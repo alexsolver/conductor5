@@ -40,6 +40,12 @@ export function useCompanyCustomers(companyId: string) {
   // Parse all customers data
   const allCustomers: Customer[] = (() => {
     if (!allCustomersQuery.data) return [];
+    
+    // Handle the format: {"customers": [...]}
+    if (allCustomersQuery.data.customers && Array.isArray(allCustomersQuery.data.customers)) {
+      return allCustomersQuery.data.customers;
+    }
+    
     if (allCustomersQuery.data.success && Array.isArray(allCustomersQuery.data.data)) {
       return allCustomersQuery.data.data;
     }
@@ -69,6 +75,8 @@ export function useCompanyCustomers(companyId: string) {
       return associatedCustomer?.isActive ? 'active' : 'inactive';
     })()
   }));
+
+
 
   // Separate for backward compatibility
   const availableCustomers = customersWithAssociation.filter(c => !c.isAssociated);
