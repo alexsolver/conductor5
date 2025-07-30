@@ -446,4 +446,3 @@ export const schemaManager = {
 
 // Export for backward compatibility
 export default db;
-```
