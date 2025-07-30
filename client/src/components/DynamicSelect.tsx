@@ -112,22 +112,30 @@ export function DynamicSelect(props: DynamicSelectProps) {
     }
   };
 
+  // Debug logging with enhanced token detection
+  const debugToken = localStorage.getItem('accessToken') || 
+                    localStorage.getItem('token') || 
+                    sessionStorage.getItem('accessToken') ||
+                    sessionStorage.getItem('token');
+
   console.log(`🔍 DynamicSelect for ${fieldName}:`, {
     totalOptions: fieldOptions.length,
     filteredOptions: fieldOptions.length,
     isLoading,
-    token: localStorage.getItem('accessToken') ? 'present' : 'missing',
-    tokenLength: localStorage.getItem('accessToken') ? localStorage.getItem('accessToken')?.length : 0,
-    tenantId: localStorage.getItem('tenantId'),
+    token: debugToken ? 'present' : 'missing',
+    tokenLength: debugToken ? debugToken.length : 0,
+    tenantId: localStorage.getItem('tenantId') || localStorage.getItem('tenant_id'),
     fieldOptions: fieldOptions.slice(0, 3), // Show first 3 for debugging
-    authContext: useAuth ? 'present' : 'missing',
-    localStorageToken: localStorage.getItem('accessToken') ? 'present' : 'missing'
+    storageKeys: Object.keys(localStorage),
+    sessionKeys: Object.keys(sessionStorage)
   });
 
-  // CRITICAL: Log token issue for debugging
-  if (!localStorage.getItem('accessToken')) {
-    console.error(`❌ Token missing for ${fieldName} - this will cause API calls to fail`);
-    console.error('Available storage keys:', Object.keys(localStorage));
+  // CRITICAL: Enhanced token validation logging
+  if (!debugToken || debugToken === 'null' || debugToken === 'undefined' || debugToken === '') {
+    console.error(`❌ Token missing or invalid for ${fieldName} - this will cause API calls to fail`);
+    console.error('LocalStorage keys:', Object.keys(localStorage));
+    console.error('SessionStorage keys:', Object.keys(sessionStorage));
+    console.error('Document cookies:', document.cookie);
   }
 
   return (
