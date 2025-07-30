@@ -190,6 +190,47 @@ Interface preference: Text-based hierarchical menus with dropdowns over visual c
 - ✅ System operational with 9 verified authentic location records
 - ✅ Enterprise-ready multi-tenant architecture validated
 
+### July 30, 2025 - FAVORECIDOS CLIENT RELATIONSHIP COMPLETED ✅ FULL CUSTOMER-BENEFICIARY INTEGRATION WITH MODAL FIX
+
+**🎯 COMPLETE CLIENT-BENEFICIARY RELATIONSHIP IMPLEMENTATION:**
+
+✅ **SIDEBAR NAVIGATION UPDATED:**
+- Renamed "Gestão de Beneficiários" to "Favorecidos" in sidebar navigation
+- Maintains Portuguese UI with cleaner terminology per user preference
+- Navigation path preserved: /tenant-admin/beneficiaries
+
+✅ **DATABASE SCHEMA ENHANCEMENT:**
+- Added customer_id column to favorecidos table across all tenant schemas
+- Foreign key relationship to customers table implemented
+- Supports NULL values for favorecidos without client assignment
+- Multi-tenant isolation maintained with proper schema naming
+
+✅ **BACKEND API UPDATES:**
+- Updated getFavorecidos() to include customer_id field in SELECT queries
+- Enhanced createFavorecido() to accept and save customerId in INSERT operations
+- Modified updateFavorecido() to support customer_id field updates
+- Maintained backward compatibility with existing records
+
+✅ **FRONTEND INTEGRATION:**
+- Added customer selection dropdown in beneficiary create/edit forms
+- Connected to real /api/customers endpoint with authentic data
+- Fixed data structure parsing: customersData?.data instead of customersData?.customers
+- Displays customer names as "FirstName LastName - Email" format
+- Includes "Nenhum cliente" option for unassigned beneficiaries
+
+✅ **MODAL BEHAVIOR FIX:**
+- Resolved edit modal not closing after successful update
+- Added setIsEditDialogOpen(false) to updateBeneficiaryMutation onSuccess callback
+- Proper form reset and cache invalidation maintained
+- User experience now smooth with automatic modal closure
+
+**🚀 TECHNICAL IMPLEMENTATION:**
+- Real PostgreSQL data integration throughout
+- JWT authentication maintained for all operations  
+- Multi-tenant schema isolation preserved
+- Toast notifications for user feedback
+- React Query cache management for real-time updates
+
 ### July 30, 2025 - COMPANY CARDS INTERFACE SIMPLIFIED ✅ STREAMLINED CUSTOMER MANAGEMENT UI
 
 **🎯 SIMPLIFIED COMPANY CARDS INTERFACE DELIVERED:**

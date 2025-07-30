@@ -115,7 +115,7 @@ export default function Beneficiaries() {
       cpfCnpj: "",
       isActive: true,
       customerCode: "",
-      customerId: "",
+      customerId: "none",
       phone: "",
       cellPhone: "",
       contactPerson: "",
@@ -197,6 +197,7 @@ export default function Beneficiaries() {
         description: "Favorecido atualizado com sucesso",
       });
       setEditingBeneficiary(null);
+      setIsEditDialogOpen(false);
       form.reset();
       queryClient.invalidateQueries({ queryKey: ["/api/beneficiaries"], exact: false });
     },
@@ -256,10 +257,16 @@ export default function Beneficiaries() {
 
   // Handle form submission
   const handleSubmit = (data: BeneficiaryFormData) => {
+    // Convert "none" back to empty string or null for backend
+    const processedData = {
+      ...data,
+      customerId: data.customerId === "none" ? "" : data.customerId
+    };
+    
     if (editingBeneficiary) {
-      updateBeneficiaryMutation.mutate({ id: editingBeneficiary.id, data });
+      updateBeneficiaryMutation.mutate({ id: editingBeneficiary.id, data: processedData });
     } else {
-      createBeneficiaryMutation.mutate(data);
+      createBeneficiaryMutation.mutate(processedData);
     }
   };
 
@@ -278,7 +285,7 @@ export default function Beneficiaries() {
       cpfCnpj: beneficiary.cpf_cnpj || beneficiary.cpfCnpj || "",
       isActive: beneficiary.is_active !== undefined ? beneficiary.is_active : beneficiary.isActive !== undefined ? beneficiary.isActive : true,
       customerCode: beneficiary.customer_code || beneficiary.customerCode || "",
-      customerId: beneficiary.customer_id || beneficiary.customerId || "",
+      customerId: beneficiary.customer_id || beneficiary.customerId || "none",
       phone: beneficiary.phone || "",
       cellPhone: beneficiary.cell_phone || beneficiary.cellPhone || "",
       contactPerson: beneficiary.contact_person || beneficiary.contactPerson || "",
@@ -374,7 +381,7 @@ export default function Beneficiaries() {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">Nenhum cliente</SelectItem>
+                      <SelectItem value="none">Nenhum cliente</SelectItem>
                       {customersData?.data?.map((customer: any) => (
                         <SelectItem key={customer.id} value={customer.id}>
                           {customer.firstName} {customer.lastName} - {customer.email}
