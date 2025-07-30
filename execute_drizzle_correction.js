@@ -10,7 +10,7 @@ console.log('🚀 INICIANDO CORREÇÃO SISTEMÁTICA DRIZZLE ORM');
 console.log('=' .repeat(60));
 
 // Executar DrizzleSystematicFixer
-const fixerProcess = spawn('npx', ['tsx', './server/scripts/DrizzleSystematicFixer.ts'], {
+const fixerProcess = spawn('tsx', ['./server/scripts/DrizzleSystematicFixer.ts'], {
   stdio: 'pipe',
   shell: true
 });
@@ -41,7 +41,7 @@ fixerProcess.on('close', (code) => {
     // Executar monitor de progresso
     console.log('\n📊 Executando verificação de progresso...');
     
-    const monitorProcess = spawn('npx', ['tsx', './server/scripts/DrizzleProgressMonitor.ts'], {
+    const monitorProcess = spawn('tsx', ['./server/scripts/DrizzleProgressMonitor.ts'], {
       stdio: 'inherit',
       shell: true
     });
@@ -51,7 +51,7 @@ fixerProcess.on('close', (code) => {
         console.log('\n✅ Monitoramento concluído. Executando validação final...');
         
         // Executar validação final
-        const validatorProcess = spawn('npx', ['tsx', './server/scripts/DrizzleFinalValidator.ts'], {
+        const validatorProcess = spawn('tsx', ['./server/scripts/DrizzleFinalValidator.ts'], {
           stdio: 'inherit',
           shell: true
         });
