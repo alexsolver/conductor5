@@ -14,7 +14,8 @@ import { getTenantIdFromToken } from "@/hooks/useTenantId";
 interface DynamicSelectProps {
   fieldName: string;
   value?: string;
-  onChange: (value: string) => void;
+  onChange?: (value: string) => void;
+  onValueChange?: (value: string) => void; // Support both prop names
   placeholder?: string;
   className?: string;
   disabled?: boolean;
@@ -28,6 +29,7 @@ export function DynamicSelect(props: DynamicSelectProps) {
     fieldName,
     value,
     onChange,
+    onValueChange, // Also support onValueChange prop
     placeholder,
     className,
     disabled = false,
@@ -211,11 +213,16 @@ export function DynamicSelect(props: DynamicSelectProps) {
   }, [fieldName, tenantId]);
 
   const handleSelectChange = (value: string) => {
-    // Check if onChange is a function before calling
-    if (typeof onChange === 'function') {
-      onChange(value);
+    // Support both onChange and onValueChange prop names
+    const callback = onChange || onValueChange;
+    
+    if (typeof callback === 'function') {
+      callback(value);
     } else {
-      console.warn('DynamicSelect: onChange is not a function', typeof onChange);
+      console.warn('DynamicSelect: No valid callback provided', { 
+        onChange: typeof onChange, 
+        onValueChange: typeof onValueChange 
+      });
     }
 
     // Se há uma opção selecionada, pegar seus dados completos
