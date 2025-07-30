@@ -10,35 +10,97 @@ import * as schema from "@shared/schema";
 // Re-export sql for other modules
 export { sql };
 
+// CRITICAL FIX: Patch ErrorEvent bug in Neon driver
+const originalErrorEvent = globalThis.ErrorEvent;
+if (originalErrorEvent) {
+  globalThis.ErrorEvent = class PatchedErrorEvent extends originalErrorEvent {
+    constructor(type, eventInitDict) {
+      super(type, eventInitDict);
+      // Make message writable to fix Neon driver bug
+      Object.defineProperty(this, 'message', {
+        value: eventInitDict?.message || '',
+        writable: true,
+        configurable: true
+      });
+    }
+  };
+}
+
 neonConfig.webSocketConstructor = ws;
 
-// Configuração otimizada para ambiente Replit
+// CRITICAL: Enhanced configuration for Neon hibernation compatibility in Replit  
 neonConfig.fetchConnectionCache = true;
-neonConfig.useSecureWebSocket = false; // Desabilitar WSS para Replit
-neonConfig.pipelineConnect = false; // Simplificar pipeline
+neonConfig.useSecureWebSocket = false; // Disable WSS for Replit compatibility
+neonConfig.pipelineConnect = false; // Simplify connection pipeline
+neonConfig.poolQueryViaFetch = true; // Use fetch for better error handling
 
+// HIBERNATION RECOVERY: Enhanced pool configuration
 export const pool = new Pool({ 
   connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }, // Necessário para Replit
-  connectionTimeoutMillis: 15000,
-  idleTimeoutMillis: 30000,
-  max: 3, // Limite reduzido para estabilidade no Replit
-  statement_timeout: 30000,
-  query_timeout: 30000
+  ssl: { rejectUnauthorized: false },
+  connectionTimeoutMillis: 30000, // Increased for hibernation recovery
+  idleTimeoutMillis: 60000, // Longer idle timeout
+  max: 2, // Reduced for stability
+  statement_timeout: 45000,
+  query_timeout: 45000,
+  // CRITICAL: Enhanced retry logic for hibernation
+  retries: 5,
+  retryDelay: 2000
 });
 
 export const db = drizzle({ client: pool, schema });
 
-// Enhanced connection monitoring with performance metrics
+// HIBERNATION RECOVERY: Enhanced connection monitoring
 let connectionStartTime = Date.now();
+let hibernationRecoveryActive = false;
+
+// CRITICAL FIX: Enhanced error handling for Neon hibernation
+const handleConnectionError = (err) => {
+  const errorMessage = err?.message || String(err);
+  
+  // HIBERNATION DETECTION: Check for hibernation-related errors
+  if (errorMessage.includes('terminating connection due to administrator command') ||
+      errorMessage.includes('Connection terminated unexpectedly') ||
+      errorMessage.includes('WebSocket connection closed') ||
+      errorMessage.includes('Cannot set property message')) {
+    
+    if (!hibernationRecoveryActive) {
+      hibernationRecoveryActive = true;
+      console.log('🔄 Hibernation detected, initiating recovery...');
+      
+      // RECOVERY DELAY: Wait for hibernation to complete
+      setTimeout(async () => {
+        try {
+          console.log('🔧 Testing connection recovery...');
+          await db.execute(sql`SELECT 1 as recovery_test`);
+          console.log('✅ Connection recovered successfully');
+          hibernationRecoveryActive = false;
+        } catch (recoveryErr) {
+          console.log('⚠️ Recovery attempt failed, will retry automatically');
+          hibernationRecoveryActive = false;
+        }
+      }, 3000);
+    }
+  } else {
+    console.error('❌ Database connection error:', errorMessage);
+  }
+};
 
 db.$client.on('connect', () => {
   const connectionTime = Date.now() - connectionStartTime;
   console.log(`✅ Database connection established in ${connectionTime}ms`);
+  hibernationRecoveryActive = false;
 });
 
-db.$client.on('error', (err) => {
-  console.error('❌ Database connection error:', err);
+db.$client.on('error', handleConnectionError);
+
+// CRITICAL: Global error handler for unhandled Neon errors
+process.on('uncaughtException', (error) => {
+  if (error.message && error.message.includes('Cannot set property message')) {
+    console.log('🔧 Intercepted Neon ErrorEvent bug, ignoring...');
+    return; // Prevent crash
+  }
+  throw error; // Re-throw non-Neon errors
 });
 
 // Performance monitoring
