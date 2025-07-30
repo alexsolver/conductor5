@@ -9,7 +9,7 @@ import { AlertCircle, Loader2 } from "lucide-react";
 import { filterDOMProps } from "@/utils/propFiltering";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { useTenant } from "@/hooks/useTenant";
+// import { useTenant } from "@/hooks/useTenant"; // Removed import
 
 interface DynamicSelectProps {
   fieldName: string;
@@ -40,8 +40,10 @@ export function DynamicSelect(props: DynamicSelectProps) {
   const cleanProps = filterDOMProps(restProps, ['fieldName', 'onChange', 'showAllOption', 'onOptionSelect']);
   const [fieldOptions, setFieldOptions] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const { token } = useAuth();
-  const { tenantId } = useTenant();
+  const { user } = useAuth();
+
+  // Obter tenant_id do user context
+  const tenantId = user?.tenant_id;
 
   useEffect(() => {
     const fetchFieldOptions = async () => {
@@ -49,7 +51,7 @@ export function DynamicSelect(props: DynamicSelectProps) {
         setIsLoading(true);
         const response = await fetch(`/api/ticket-field-options/${fieldName}`, {
           headers: {
-            'Authorization': `Bearer ${token}`,
+            'Authorization': `Bearer ${user?.access_token}`,
             'x-tenant-id': tenantId,
           },
         });
@@ -74,10 +76,10 @@ export function DynamicSelect(props: DynamicSelectProps) {
       }
     };
 
-    if (token && tenantId && fieldName) {
+    if (user?.access_token && tenantId && fieldName) {
       fetchFieldOptions();
     }
-  }, [token, tenantId, fieldName]);
+  }, [user?.access_token, tenantId, fieldName]);
 
   const handleSelectChange = (value: string) => {
     onChange(value);
