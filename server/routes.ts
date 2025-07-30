@@ -16,6 +16,7 @@ import userManagementRoutes from "./routes/userManagementRoutes";
 import { integrityRouter as integrityRoutes } from './routes/integrityRoutes';
 import systemScanRoutes from './routes/systemScanRoutes';
 import { technicalSkillsRoutes } from './modules/technical-skills/routes';
+import beneficiariesRoutes from './modules/beneficiaries/routes';
 // import internalFormsRoutes from './modules/internal-forms/routes'; // Temporarily removed
 // Removed: external-contacts routes - functionality eliminated
 import locationsNewRoutes from './modules/locations/routes-new';
@@ -152,14 +153,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const { ticketsRouter } = await import('./modules/tickets/routes');
   // const { knowledgeBaseRouter } = await import('./modules/knowledge-base/routes');
   const { peopleRouter } = await import('./modules/people/routes');
-  const favorecidosRouter = await import('./modules/favorecidos/routes');
+  // Beneficiaries routes imported at top of file
 
   // Module Integrity Control System
 
   // Mount microservice routes
   app.use('/api/dashboard', dashboardRouter);
   // Removed - using standardized /api/customers route
-  app.use('/api/favorecidos', favorecidosRouter.default);
+  app.use('/api/beneficiaries', beneficiariesRoutes);
   app.use('/api/tickets', ticketsRouter);
 
   // Import and mount ticket relationships routes

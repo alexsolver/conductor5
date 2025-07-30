@@ -14,7 +14,7 @@ import { DynamicFormRenderer } from './DynamicFormRenderer';
 import useFieldLayout from '@/hooks/useFieldLayout';
 
 interface CustomFieldsWrapperProps {
-  moduleType: 'customers' | 'tickets' | 'favorecidos' | 'habilidades' | 'materials' | 'services' | 'locais';
+  moduleType: 'customers' | 'tickets' | 'beneficiaries' | 'habilidades' | 'materials' | 'services' | 'locais';
   pageType: 'create' | 'edit' | 'details' | 'list';
   form: UseFormReturn<any>;
   hasDesignPermission: boolean;

@@ -15,7 +15,7 @@ import Dashboard from "./pages/Dashboard";
 import TicketsTable from "./pages/TicketsTable";
 import TicketDetails from "./pages/TicketDetails";
 // CustomersTable removed - unified with Clientes.tsx
-import FavorecidosTable from "./pages/FavorecidosTable";
+import Beneficiaries from "./pages/Beneficiaries";
 // Locations import moved below to avoid duplication
 import KnowledgeBase from './pages/KnowledgeBase';
 import Analytics from "./pages/Analytics";
@@ -123,7 +123,7 @@ function AppRouter() {
         <Route path="/tickets/:id" component={TicketDetails} />
         <Route path="/customers" component={Customers} />
         <Route path="/tenant-admin/solicitantes" component={Customers} />
-        <Route path="/tenant-admin/favorecidos" component={FavorecidosTable} />
+        <Route path="/tenant-admin/beneficiaries" component={Beneficiaries} />
         <Route path="/customer-companies" component={CustomerCompanies} />
         <Route path="/technical-skills" component={TechnicalSkills} />
         {/* Removed: external-contacts route - functionality eliminated */}

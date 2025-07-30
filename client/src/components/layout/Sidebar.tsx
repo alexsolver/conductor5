@@ -156,7 +156,7 @@ const adminNavigation = [
       { name: "Templates de Tickets", href: "/ticket-templates", icon: FileText },
       { name: "Campos Customizados", href: "/custom-fields-admin", icon: Wrench },
       { name: "Clientes", href: "/customers", icon: Users },
-      { name: "Gestão de Favorecidos", href: "/tenant-admin/favorecidos", icon: UserCheck },
+      { name: "Gestão de Beneficiários", href: "/tenant-admin/beneficiaries", icon: UserCheck },
       { name: "Formulários Internos", href: "/internal-forms", icon: FileText },
 
       { name: "Empresas Clientes", href: "/customer-companies", icon: Building2 },
