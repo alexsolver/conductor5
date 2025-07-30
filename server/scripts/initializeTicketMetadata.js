@@ -1,7 +1,7 @@
 // INICIALIZAÇÃO DE CONFIGURAÇÕES DE METADATA DE TICKETS
 // Corrige o problema de dropdowns vazios (priority, status, etc.)
 
-import { db } from '../db.js';
+import { db } from '../db.ts';
 
 async function initializeTicketMetadata() {
   console.log('🚀 INICIANDO CONFIGURAÇÃO DE METADATA DE TICKETS');
