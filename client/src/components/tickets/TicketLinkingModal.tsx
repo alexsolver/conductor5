@@ -251,7 +251,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                         <Icon className="h-4 w-4 text-gray-500" />
                         <div>
                           <div className="flex items-center space-x-2">
-                            <span className="font-medium">{rel.targetTicket.subject}</span>
+                            <span className="font-medium">#{rel.targetTicket.number || rel.targetTicket.ticket_number || `T-${rel.targetTicket.id.slice(-8)}`} - {rel.targetTicket.subject}</span>
                             <Badge variant="outline">
                               {getRelationshipLabel(rel.relationshipType)}
                             </Badge>
@@ -359,7 +359,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                           />
                           <div className="flex-1">
                             <div className="flex items-center space-x-2">
-                              <span className="font-medium">#{ticket.number || ticket.id.slice(-8)}</span>
+                              <span className="font-medium">#{ticket.number || ticket.ticket_number || `T-${ticket.id.slice(-8)}`}</span>
                               <Badge variant={
                                 ticket.priority === 'critical' ? 'destructive' :
                                 ticket.priority === 'high' ? 'default' :
@@ -393,7 +393,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                   <div className="space-y-1">
                     {selectedTickets.map(ticket => (
                       <div key={ticket.id} className="text-sm flex items-center justify-between">
-                        <span>#{ticket.number || ticket.id.slice(-8)} - {ticket.subject || "Sem assunto"}</span>
+                        <span>#{ticket.number || ticket.ticket_number || `T-${ticket.id.slice(-8)}`} - {ticket.subject || "Sem assunto"}</span>
                         <button
                           onClick={() => toggleTicketSelection(ticket)}
                           className="text-red-500 hover:text-red-700 ml-2"

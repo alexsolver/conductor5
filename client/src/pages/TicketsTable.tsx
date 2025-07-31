@@ -2113,7 +2113,7 @@ export default function TicketsTable() {
                                           to={`/tickets/${relationship.id}`}
                                           className="font-medium text-blue-600 hover:text-blue-800"
                                         >
-                                          {relationship.number}
+                                          #{relationship.number || relationship.ticket_number || `T-${relationship.id.slice(-8)}`}
                                         </Link>
                                         <span className="text-gray-600">{relationship.subject}</span>
                                       </div>
