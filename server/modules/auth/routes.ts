@@ -4,6 +4,7 @@ import { DependencyContainer } from "../../application/services/DependencyContai
 import { jwtAuth, AuthenticatedRequest } from "../../middleware/jwtAuth";
 import { createRateLimitMiddleware, recordLoginAttempt } from "../../middleware/rateLimitMiddleware";
 import { authSecurityService } from "../../services/authSecurityService";
+import { tokenManager } from "../../utils/tokenManager";
 import { z } from "zod";
 
 const authRouter = Router();
@@ -28,31 +29,35 @@ authRouter.post('/refresh', authRateLimit, async (req: Request, res: Response) =
       return res.status(400).json({ message: 'Refresh token required' });
     }
 
-    const tokenService = container.tokenService;
     const userRepository = container.userRepository;
 
-    // Verify refresh token
-    const payload = tokenService.verifyRefreshToken(tokenToUse);
+    // Verify refresh token using enhanced token manager
+    const payload = tokenManager.verifyRefreshToken(tokenToUse);
     if (!payload) {
       return res.status(401).json({ message: 'Invalid refresh token' });
     }
 
     // Check if user exists and is active
     const user = await userRepository.findById(payload.userId);
-    if (!user || !user.isActive) {
+    if (!user || !user.active) {
       return res.status(401).json({ message: 'User not found or inactive' });
     }
 
-    // Generate new tokens
-    const accessToken = tokenService.generateAccessToken(user);
-    const newRefreshToken = tokenService.generateRefreshToken(user);
+    // Generate new tokens with enhanced manager
+    const accessToken = tokenManager.generateAccessToken({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      tenantId: user.tenantId
+    });
+    const newRefreshToken = tokenManager.generateRefreshToken({ id: user.id });
 
     // Set new refresh token as httpOnly cookie
     res.cookie('refreshToken', newRefreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000
+      maxAge: 30 * 24 * 60 * 60 * 1000 // 30 dias
     });
 
     res.json({ 

@@ -429,7 +429,25 @@ export default function TicketsTable() {
       case 'created':
         return (
           <TableCell>
-            {new Date(ticket.createdAt || (ticket as any).created_at || (ticket as any).opened_at).toLocaleDateString('pt-BR')}
+            <div className="text-sm">
+              {(ticket.createdAt || (ticket as any).created_at || (ticket as any).opened_at) 
+                ? new Date(ticket.createdAt || (ticket as any).created_at || (ticket as any).opened_at).toLocaleDateString('pt-BR', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                  })
+                : 'N/A'
+              }
+            </div>
+            <div className="text-xs text-gray-500">
+              {(ticket.createdAt || (ticket as any).created_at || (ticket as any).opened_at)
+                ? new Date(ticket.createdAt || (ticket as any).created_at || (ticket as any).opened_at).toLocaleTimeString('pt-BR', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })
+                : ''
+              }
+            </div>
           </TableCell>
         );
       case 'description':

@@ -1,6 +1,7 @@
 // JWT Authentication Middleware - Clean Architecture
 import { Request, Response, NextFunction } from 'express';
 import { DependencyContainer } from '../application/services/DependencyContainer';
+import { tokenManager } from '../utils/tokenManager';
 
 export interface AuthenticatedRequest extends Request {
   user?: {
@@ -30,17 +31,14 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
       return res.status(401).json({ message: 'Invalid token format' });
     }
 
-    const container = DependencyContainer.getInstance();
-    const tokenService = container.tokenService;
-
-    // Verify JWT token
-    const payload = tokenService.verifyAccessToken(token);
+    // Verify JWT token using enhanced token manager
+    const payload = tokenManager.verifyAccessToken(token);
     if (!payload) {
-      console.error('🚨 Token verification failed:', { 
-        tokenLength: token.length,
-        tokenStart: token.substring(0, 20) + '...'
+      console.log('Token verification failed - attempting refresh');
+      return res.status(401).json({ 
+        message: 'Invalid or expired token',
+        needsRefresh: true 
       });
-      return res.status(401).json({ message: 'Invalid or expired token' });
     }
 
     // console.log('✅ Token verified successfully:', { 
@@ -53,7 +51,7 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
     const userRepository = container.userRepository;
     const user = await userRepository.findById(payload.userId);
 
-    if (!user || !user.isActive) {
+    if (!user || !user.active) {
       return res.status(401).json({ message: 'User not found or inactive' });
     }
 
@@ -120,7 +118,7 @@ export const optionalJwtAuth = async (req: AuthenticatedRequest, res: Response, 
       const userRepository = container.userRepository;
       const user = await userRepository.findById(payload.userId);
 
-      if (user && user.isActive) {
+      if (user && user.active) {
         req.user = {
           id: user.id,
           email: user.email,

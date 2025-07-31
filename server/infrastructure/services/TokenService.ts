@@ -6,8 +6,8 @@ import { User } from '../../domain/entities/User';
 export class TokenService implements ITokenService {
   private readonly accessTokenSecret: string;
   private readonly refreshTokenSecret: string;
-  private readonly accessTokenExpiry = '24h'; // Aumentado para 24 horas para estabilidade
-  private readonly refreshTokenExpiry = '7d';
+  private readonly accessTokenExpiry = '12h'; // 12 horas para estabilidade
+  private readonly refreshTokenExpiry = '30d'; // 30 dias para menos renovações
 
   private generateSecureDefaultSecret(type: string): string {
     // Generate secure random bytes for development - more secure than hardcoded values
