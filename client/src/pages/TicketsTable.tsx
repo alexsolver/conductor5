@@ -574,16 +574,16 @@ export default function TicketsTable() {
   useEffect(() => {
     if (tickets.length > 0) {
       console.log('🔄 useEffect triggered - tickets.length:', tickets.length);
-      
+
       // Cache inteligente com timestamp para invalidação
       const cacheKey = tickets.map(t => t.id).sort().join(',');
       const cachedData = sessionStorage.getItem(`relationships_${cacheKey}`);
-      
+
       if (cachedData) {
         try {
           const parsed = JSON.parse(cachedData);
           const isExpired = Date.now() - parsed.timestamp > 300000; // 5 minutos
-          
+
           if (!isExpired) {
             setTicketsWithRelationships(new Set(parsed.ticketsWithRels));
             setTicketRelationships(parsed.relationships);
@@ -595,27 +595,27 @@ export default function TicketsTable() {
           sessionStorage.removeItem(`relationships_${cacheKey}`);
         }
       }
-      
+
       // Debounce inteligente com cleanup e loading state
       const timeoutId = setTimeout(() => {
         const checkAllTicketRelationships = async () => {
           try {
             const ticketIds = tickets.map((ticket: any) => ticket.id);
             console.log('🔍 Starting optimized batch relationship check for', ticketIds.length, 'tickets');
-            
+
             const startTime = performance.now();
             const response = await apiRequest('POST', '/api/tickets/batch-relationships', { ticketIds });
-            
+
             if (!response.ok) {
               throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
-            
+
             const data = await response.json();
             const endTime = performance.now();
 
             const ticketsWithRels = new Set<string>();
             let totalRelationships = 0;
-            
+
             if (data.success && data.data) {
               Object.entries(data.data).forEach(([ticketId, relationships]: [string, any]) => {
                 if (relationships && Array.isArray(relationships) && relationships.length > 0) {
@@ -632,7 +632,7 @@ export default function TicketsTable() {
               timestamp: Date.now(),
               ticketCount: ticketIds.length
             };
-            
+
             sessionStorage.setItem(`relationships_${cacheKey}`, JSON.stringify(cacheData));
 
             console.log(`🎯 Batch relationships loaded in ${Math.round(endTime - startTime)}ms:`, {
@@ -641,10 +641,10 @@ export default function TicketsTable() {
               totalRelationships,
               cacheKey: cacheKey.substring(0, 20) + '...'
             });
-            
+
             setTicketsWithRelationships(ticketsWithRels);
             setTicketRelationships(data.data || {});
-            
+
           } catch (error) {
             console.error('❌ Error in batch relationship check:', error);
             setTicketsWithRelationships(new Set());
@@ -803,7 +803,7 @@ export default function TicketsTable() {
               <div className="text-sm">
                 {(ticket.createdAt || (ticket as any).created_at || (ticket as any).opened_at) 
                   ? new Date(ticket.createdAt || (ticket as any).created_at || (ticket as any).opened_at).toLocaleDateString('pt-BR', {
-                      day: '2-digit',
+                      day: '2-digit',```python
                       month: '2-digit',
                       year: 'numeric'
                     })
@@ -830,7 +830,7 @@ export default function TicketsTable() {
         case 'subcategory':
           return (
             <TableCell>
-              {(ticket as any).subcategory || '-'}
+              Женско{(ticket as any).subcategory || '-'}
             </TableCell>
           );
         case 'urgency':
@@ -925,12 +925,12 @@ export default function TicketsTable() {
 
   // Otimizar comparação do TableCellComponent com comparação personalizada
   TableCellComponent.displayName = 'TableCellComponent';
-  
+
   // Função de comparação personalizada aprimorada para evitar re-renders desnecessários
   const areEqual = (prevProps: any, nextProps: any) => {
     // Comparação rápida de referência primeiro
     if (prevProps === nextProps) return true;
-    
+
     // Comparações específicas otimizadas
     const sameColumn = prevProps.column.id === nextProps.column.id;
     const sameTicket = prevProps.ticket.id === nextProps.ticket.id;
@@ -938,10 +938,10 @@ export default function TicketsTable() {
     const sameStatus = prevProps.ticket.status === nextProps.ticket.status;
     const samePriority = prevProps.ticket.priority === nextProps.ticket.priority;
     const sameSubject = prevProps.ticket.subject === nextProps.ticket.subject;
-    
+
     return sameColumn && sameTicket && sameUpdatedAt && sameStatus && samePriority && sameSubject;
   };
-  
+
   const OptimizedTableCell = memo(TableCellComponent, areEqual);
 
   // Mutations para gerenciar visualizações
@@ -1121,7 +1121,7 @@ export default function TicketsTable() {
       rafId = requestAnimationFrame(() => {
         const now = Date.now();
         const newWidth = Math.max(80, startWidth + (e.pageX - startX));
-        
+
         // Throttle de updates para melhor performance - máximo a cada 16ms
         if (now - lastUpdateTime >= 16) {
           setColumnWidths(prev => ({
@@ -2102,41 +2102,51 @@ export default function TicketsTable() {
                             {ticketRelationships[ticket.id] && ticketRelationships[ticket.id].length > 0 ? (
                               <div className="space-y-2">
                                 {ticketRelationships[ticket.id].map((relationship: any) => (
-                                  <div key={relationship.id} className="flex items-center gap-3 p-2 bg-white rounded border border-gray-200">
-                                    <div className="flex items-center gap-2">
-                                      {getRelationshipIcon(relationship.relationshipType)}
-                                      <Badge variant="outline" className="text-xs">
-                                        {getRelationshipLabel(relationship.relationshipType)}
-                                      </Badge>
+                                  <div key={relationship.id} className="flex items-center gap-3 p-2 bg-white rounded border hover:shadow-sm transition-shadow">
+                                    <div className="flex items-center gap-2 min-w-0">
+                                      {(() => {
+                                        switch (relationship.relationshipType) {
+                                          case 'related':
+                                            return <Link2 className="h-3 w-3 text-blue-500 flex-shrink-0" />;
+                                          case 'duplicates':
+                                            return <Copy className="h-3 w-3 text-orange-500 flex-shrink-0" />;
+                                          case 'blocks':
+                                            return <AlertTriangle className="h-3 w-3 text-red-500 flex-shrink-0" />;
+                                          case 'caused_by':
+                                            return <ArrowRight className="h-3 w-3 text-purple-500 flex-shrink-0" />;
+                                          case 'parent_child':
+                                            return <GitBranch className="h-3 w-3 text-indigo-500 flex-shrink-0" />;
+                                          case 'follows':
+                                            return <ArrowUpRight className="h-3 w-3 text-green-500 flex-shrink-0" />;
+                                          default:
+                                            return <Link2 className="h-3 w-3 text-gray-500 flex-shrink-0" />;
+                                        }
+                                      })()}
+
+                                      <span className="text-xs font-mono text-blue-600 flex-shrink-0">
+                                        #{relationship.targetTicket?.number || `T-${relationship.targetTicket?.id?.slice(0,8)}`}
+                                      </span>
+
+                                      <span className="text-xs text-gray-600 truncate">
+                                        {relationship.targetTicket?.subject || 'Sem assunto'}
+                                      </span>
                                     </div>
-                                    <div className="flex-1">
-                                      <div className="flex items-center gap-2">
-                                        <Link
-                                          to={`/tickets/${relationship.id}`}
-                                          className="font-medium text-blue-600 hover:text-blue-800"
-                                        >
-                                          #{relationship.number || relationship.ticket_number || `T-${relationship.id.slice(-8)}`}
-                                        </Link>
-                                        <span className="text-gray-600">{relationship.subject}</span>
-                                      </div>
-                                      {relationship.description && (
-                                        <div className="text-xs text-gray-500 mt-1">
-                                          {relationship.description}
-                                        </div>
-                                      )}
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                      <DynamicBadge
+
+                                    <div className="flex items-center gap-1 flex-shrink-0">
+                                      <DynamicBadge 
                                         fieldName="status"
-                                        value={relationship.status}
+                                        value={relationship.targetTicket?.status}
+                                        colorHex={getFieldColor('status', relationship.targetTicket?.status)}
                                       >
-                                        {getFieldLabel('status', relationship.status)}
+                                        {getFieldLabel('status', relationship.targetTicket?.status)}
                                       </DynamicBadge>
-                                      <DynamicBadge
+
+                                      <DynamicBadge 
                                         fieldName="priority"
-                                        value={relationship.priority}
+                                        value={relationship.targetTicket?.priority}
+                                        colorHex={getFieldColor('priority', relationship.targetTicket?.priority)}
                                       >
-                                        {getFieldLabel('priority', relationship.priority)}
+                                        {getFieldLabel('priority', relationship.targetTicket?.priority)}
                                       </DynamicBadge>
                                     </div>
                                   </div>
