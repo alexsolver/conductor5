@@ -171,10 +171,10 @@ export const newTicketModalSchema = z.object({
   subcategory: z.string().min(1, "Sub categoria é obrigatória"),
   // Ação (obrigatório)
   action: z.string().min(1, "Ação é obrigatória"),
-  // Prioridade (obrigatório)
-  priority: z.string().min(1, "Prioridade é obrigatória"),
-  // Urgência (obrigatório)
-  urgency: z.string().min(1, "Urgência é obrigatória"),
+  // Prioridade (obrigatório) - usando enum para validação correta
+  priority: TicketPriorityEnum,
+  // Urgência (obrigatório) - usando enum para validação correta  
+  urgency: TicketUrgencyEnum,
   // Descrição Detalhada (obrigatório)
   description: z.string().min(10, "Descrição deve ter pelo menos 10 caracteres").max(4000, "Descrição não pode exceder 4000 caracteres"),
   // Sintomas (opcional)

@@ -147,12 +147,12 @@ export default function Tickets() {
   
   const users = (usersData as any)?.users || [];
 
-  // Extract data for new modal fields
-  const favorecidos = favorecidosData?.data?.beneficiaries || favorecidosData?.favorecidos || [];
-  const locations = locationsData?.data?.locations || locationsData?.data || [];
-  const categories = categoriesData?.data || [];
-  const subcategories = subcategoriesData?.data || [];
-  const actions = actionsData?.data || [];
+  // Extract data for new modal fields with safe type checking
+  const favorecidos = (favorecidosData as any)?.data?.beneficiaries || (favorecidosData as any)?.favorecidos || [];
+  const locations = (locationsData as any)?.data?.locations || (locationsData as any)?.data || [];
+  const categories = (categoriesData as any)?.data || [];
+  const subcategories = (subcategoriesData as any)?.data || [];
+  const actions = (actionsData as any)?.data || [];
 
   console.log('Customers data:', { customersData, customers: customers.length });
 
@@ -167,8 +167,8 @@ export default function Tickets() {
       category: "",
       subcategory: "",
       action: "",
-      priority: "",
-      urgency: "",
+      priority: "medium" as const,
+      urgency: "medium" as const,
       description: "",
       symptoms: "",
       businessImpact: "",
