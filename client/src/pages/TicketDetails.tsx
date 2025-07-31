@@ -1761,6 +1761,88 @@ export default function TicketDetails() {
           </div>
         );
 
+      case "links":
+        return (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">🔗 Vínculos</h2>
+              <Badge variant="outline" className="text-xs bg-orange-50 text-orange-600">
+                {relatedTickets.length} ticket(s) vinculado(s)
+              </Badge>
+            </div>
+
+            <div className="space-y-4">
+              {relatedTickets.length === 0 ? (
+                <div className="text-center py-8">
+                  <Link className="mx-auto h-12 w-12 text-gray-400" />
+                  <p className="mt-2 text-sm text-gray-500">Nenhum ticket vinculado</p>
+                  <p className="text-xs text-gray-400">Use o botão "Vincular" para conectar tickets relacionados</p>
+                </div>
+              ) : (
+                relatedTickets.map((linkedTicket) => (
+                  <Card key={linkedTicket.id} className="border-l-4 border-l-orange-500 hover:shadow-md transition-shadow">
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Badge variant="outline" className="text-xs bg-orange-50 text-orange-600">
+                              #{linkedTicket.number || linkedTicket.ticket_number}
+                            </Badge>
+                            <Badge variant={linkedTicket.relationship_type === 'related' ? 'default' : 'secondary'} className="text-xs">
+                              {linkedTicket.relationship_type === 'related' ? 'Relacionado' :
+                               linkedTicket.relationship_type === 'duplicate' ? 'Duplicado' :
+                               linkedTicket.relationship_type === 'blocked_by' ? 'Bloqueado por' :
+                               linkedTicket.relationship_type === 'blocks' ? 'Bloqueia' :
+                               linkedTicket.relationship_type === 'child' ? 'Filho' :
+                               linkedTicket.relationship_type === 'parent' ? 'Pai' :
+                               linkedTicket.relationship_type}
+                            </Badge>
+                            <DynamicBadge 
+                              fieldName="status"
+                              value={linkedTicket.status}
+                              colorHex={getFieldColor('status', linkedTicket.status)}
+                            >
+                              {getFieldLabel('status', linkedTicket.status)}
+                            </DynamicBadge>
+                          </div>
+                          <h4 className="font-medium text-gray-800 mb-1">
+                            {linkedTicket.subject || 'Sem assunto'}
+                          </h4>
+                          {linkedTicket.description && (
+                            <p className="text-sm text-gray-600 mb-2 line-clamp-2">
+                              {linkedTicket.description.replace(/<[^>]*>/g, '')}
+                            </p>
+                          )}
+                          <div className="flex items-center justify-between text-xs text-gray-500">
+                            <span>
+                              Criado em {linkedTicket.created_at ? new Date(linkedTicket.created_at).toLocaleDateString('pt-BR') : 'Data não disponível'}
+                            </span>
+                            {linkedTicket.resolved_at && (
+                              <span>
+                                Resolvido em {new Date(linkedTicket.resolved_at).toLocaleDateString('pt-BR')}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="ml-4">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => window.open(`/tickets/${linkedTicket.id}`, '_blank')}
+                            className="text-orange-600 hover:text-orange-700"
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
+          </div>
+        );
+
       case "external-actions":
         return (
           <div className="space-y-6">
@@ -2708,14 +2790,19 @@ export default function TicketDetails() {
 
           <button
             onClick={() => setActiveTab("notes")}
-            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
+            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left transition-colors ${
               activeTab === "notes" 
                 ? 'bg-green-50 text-green-700 border border-green-200'
                 : 'hover:bg-gray-50'
             }`}
           >
-            <FileText className="h-4 w-4" />
-            <span className="text-sm font-medium">Notas</span>
+            <div className="flex items-center gap-3">
+              <FileText className="h-4 w-4" />
+              <span className="text-sm font-medium">Notas</span>
+            </div>
+            <Badge variant="outline" className="text-xs bg-blue-50 text-blue-600">
+              {notes.length}
+            </Badge>
           </button>
 
           <button
@@ -2762,6 +2849,23 @@ export default function TicketDetails() {
           >
             <History className="h-4 w-4" />
             <span className="text-sm font-medium">Histórico</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab("links")}
+            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left transition-colors ${
+              activeTab === "links" 
+                ? 'bg-green-50 text-green-700 border border-green-200'
+                : 'hover:bg-gray-50'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <Link className="h-4 w-4" />
+              <span className="text-sm font-medium">Vínculos</span>
+            </div>
+            <Badge variant="outline" className="text-xs bg-orange-50 text-orange-600">
+              {relatedTickets.length}
+            </Badge>
           </button>
 
           <button
