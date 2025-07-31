@@ -439,26 +439,14 @@ export default function TicketsTable() {
           </TableCell>
         );
       case 'category':
-        const categoryValue = mapCategoryValue((ticket as any).category);
-        const categoryColor = getFieldColor('category', categoryValue);
-        const categoryLabel = getFieldLabel('category', categoryValue);
-        
-        console.log('🔍 Category Debug:', {
-          originalValue: (ticket as any).category,
-          mappedValue: categoryValue,
-          color: categoryColor,
-          label: categoryLabel,
-          ticketNumber: (ticket as any).number
-        });
-        
         return (
           <TableCell>
             <DynamicBadge 
               fieldName="category"
-              value={categoryValue}
-              colorHex={categoryColor}
+              value={mapCategoryValue((ticket as any).category)}
+              colorHex={getFieldColor('category', mapCategoryValue((ticket as any).category))}
             >
-              {categoryLabel}
+              {getFieldLabel('category', mapCategoryValue((ticket as any).category))}
             </DynamicBadge>
           </TableCell>
         );
