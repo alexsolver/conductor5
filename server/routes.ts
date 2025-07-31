@@ -2697,6 +2697,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           cc.website,
           cc.phone,
           cc.email,
+          cc.status,
+          cc.subscription_tier,
+          cc.created_at,
+          cc.updated_at,
           ccm.role,
           ccm.department,
           ccm.start_date
