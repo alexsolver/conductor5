@@ -23,7 +23,7 @@ interface FieldLayoutManagerProps {
   onToggleVisibility?: (visible: boolean) => void;
 }
 
-export default function FieldLayoutManager({
+export function FieldLayoutManager({
   ticketId,
   entityType = 'ticket',
   entityId,
@@ -288,3 +288,5 @@ export default function FieldLayoutManager({
     </div>
   );
 }
+
+export default FieldLayoutManager;

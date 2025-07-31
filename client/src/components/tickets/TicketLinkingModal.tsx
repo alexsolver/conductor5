@@ -61,7 +61,7 @@ const RELATIONSHIP_TYPES = [
   { value: "follows", label: "Segue", icon: Workflow, description: "Segue outro ticket" },
 ];
 
-export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: TicketLinkingModalProps) {
+export function TicketLinkingModal({ isOpen, onClose, currentTicket }: TicketLinkingModalProps) {
   // Early return if currentTicket is not provided
   if (!currentTicket) {
     return null;
@@ -462,3 +462,5 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
     </Dialog>
   );
 }
+
+export default TicketLinkingModal;

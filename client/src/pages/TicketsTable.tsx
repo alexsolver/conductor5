@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Search, Plus, Eye, Link, AlertCircle } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import TicketEdit from './TicketEdit';
-import { TicketLinkingModal } from '@/components/tickets/TicketLinkingModal';
+import TicketLinkingModal from '@/components/tickets/TicketLinkingModal';
 import { useTenantId } from '@/hooks/useTenantId';
 import { useAuth } from '@/hooks/useAuth';
 

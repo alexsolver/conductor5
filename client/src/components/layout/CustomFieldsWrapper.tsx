@@ -9,7 +9,7 @@ import {
   Layout,
   Plus
 } from 'lucide-react';
-import { FieldLayoutManager } from './FieldLayoutManager';
+import FieldLayoutManager from './FieldLayoutManager';
 import { DynamicFormRenderer } from './DynamicFormRenderer';
 import useFieldLayout from '@/hooks/useFieldLayout';
 
