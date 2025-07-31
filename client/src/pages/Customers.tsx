@@ -39,22 +39,32 @@ export default function Customers() {
         const response = await apiRequest('GET', `/api/customers/${customerId}/companies`);
         const data = await response.json();
 
+        console.log(`[DEBUG] Customer ${customerId} API response:`, {
+          responseStatus: response.status,
+          dataStructure: typeof data,
+          dataKeys: Object.keys(data || {}),
+          fullData: data
+        });
         
         // Verificar diferentes estruturas possíveis da resposta
         if (Array.isArray(data)) {
+          console.log(`[DEBUG] Customer ${customerId} - returning direct array with ${data.length} items`);
           return data;
         }
         if (data?.success && data?.data && Array.isArray(data.data)) {
+          console.log(`[DEBUG] Customer ${customerId} - returning data.data array with ${data.data.length} items`);
           return data.data;
         }
         if (data?.data && Array.isArray(data.data)) {
+          console.log(`[DEBUG] Customer ${customerId} - returning data.data array with ${data.data.length} items (no success field)`);
           return data.data;
         }
         if (data?.companies && Array.isArray(data.companies)) {
+          console.log(`[DEBUG] Customer ${customerId} - returning data.companies array with ${data.companies.length} items`);
           return data.companies;
         }
         
-        console.warn(`Invalid companies data structure for customer ${customerId}:`, data);
+        console.warn(`[DEBUG] Customer ${customerId} - Invalid companies data structure:`, data);
         return [];
       },
       enabled: !!customerId,
