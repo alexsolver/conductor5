@@ -355,10 +355,12 @@ export default function TicketsTable() {
           <TableCell>
             <div>
               <div className="font-medium">
-                {ticket.customer?.fullName || 'N/A'}
+                {(ticket as any).customer_first_name && (ticket as any).customer_last_name 
+                  ? `${(ticket as any).customer_first_name} ${(ticket as any).customer_last_name}`
+                  : ticket.customer?.fullName || ticket.caller?.fullName || (ticket as any).caller_name || 'N/A'}
               </div>
               <div className="text-sm text-gray-500">
-                {ticket.customer?.email || 'N/A'}
+                {(ticket as any).customer_email || ticket.customer?.email || ticket.caller?.email || 'N/A'}
               </div>
             </div>
           </TableCell>
@@ -427,7 +429,7 @@ export default function TicketsTable() {
       case 'created':
         return (
           <TableCell>
-            {new Date(ticket.createdAt).toLocaleDateString()}
+            {new Date(ticket.createdAt || (ticket as any).created_at || (ticket as any).opened_at).toLocaleDateString('pt-BR')}
           </TableCell>
         );
       case 'description':
