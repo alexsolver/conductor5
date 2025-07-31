@@ -424,6 +424,37 @@ const TicketConfiguration: React.FC = () => {
     }
   });
 
+  const updateFieldOptionStatusMutation = useMutation({
+    mutationFn: async ({ id, active }: { id: string; active: boolean }) => {
+      const response = await apiRequest('PUT', `/api/ticket-config/field-options/${id}/status`, {
+        active,
+        companyId: selectedCompany
+      });
+      return response.json();
+    },
+    onSuccess: async (result) => {
+      console.log('✅ Field option status updated successfully:', result);
+      
+      // Force refetch of field options
+      const queryKey = ['field-options', selectedCompany];
+      queryClient.removeQueries({ queryKey });
+      await queryClient.refetchQueries({ queryKey, type: 'active', exact: true });
+      
+      toast({ 
+        title: "Status atualizado com sucesso",
+        description: "A opção foi ativada/desativada."
+      });
+    },
+    onError: (error) => {
+      console.error('❌ Error updating field option status:', error);
+      toast({ 
+        title: "Erro ao atualizar status",
+        description: "Não foi possível alterar o status da opção.",
+        variant: "destructive"
+      });
+    }
+  });
+
   const deleteFieldOptionMutation = useMutation({
     mutationFn: async (optionId: string) => {
       const response = await apiRequest('DELETE', `/api/ticket-config/field-options/${optionId}`);
@@ -1066,11 +1097,11 @@ const TicketConfiguration: React.FC = () => {
                   id: option.id,
                   fieldName: option.fieldName || option.field_name,
                   value: option.value,
-                  displayLabel: option.displayLabel || option.display_label,
+                  displayLabel: option.displayLabel || option.display_label || option.label,
                   color: option.color,
                   icon: option.icon,
                   isDefault: option.isDefault || option.is_default,
-                  active: option.active,
+                  active: option.active !== undefined ? option.active : (option.is_active !== undefined ? option.is_active : true),
                   sortOrder: option.sortOrder || option.sort_order || 1,
                   statusType: option.statusType || option.status_type
                 }))
@@ -1189,9 +1220,21 @@ const TicketConfiguration: React.FC = () => {
                                 </TableCell>
                               )}
                               <TableCell>
-                                <Badge variant={option.active ? "default" : "secondary"} className="text-xs">
-                                  {option.active ? "Ativo" : "Inativo"}
-                                </Badge>
+                                <div className="flex items-center space-x-2">
+                                  <Switch 
+                                    checked={option.active}
+                                    onCheckedChange={(checked) => {
+                                      updateFieldOptionStatusMutation.mutate({
+                                        id: option.id,
+                                        active: checked
+                                      });
+                                    }}
+                                    className="data-[state=checked]:bg-green-600"
+                                  />
+                                  <Badge variant={option.active ? "default" : "secondary"} className="text-xs">
+                                    {option.active ? "Ativo" : "Inativo"}
+                                  </Badge>
+                                </div>
                               </TableCell>
                               <TableCell className="text-right">
                                 <div className="flex items-center justify-end space-x-1">

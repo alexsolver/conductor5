@@ -880,4 +880,106 @@ router.post('/numbering', jwtAuth, async (req: AuthenticatedRequest, res) => {
   }
 });
 
+// Update field option status endpoint - for activate/deactivate toggles
+router.put('/field-options/:id/status', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    const tenantId = req.user?.tenantId;
+    const optionId = req.params.id;
+    const { active, companyId } = req.body;
+
+    if (!tenantId) {
+      return res.status(401).json({ message: 'Tenant required' });
+    }
+
+    if (active === undefined) {
+      return res.status(400).json({ message: 'Active status is required' });
+    }
+
+    console.log('🔄 Updating field option status:', { 
+      tenantId, 
+      optionId, 
+      active,
+      companyId 
+    });
+
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    // First check if the field option exists
+    const checkResult = await db.execute(sql`
+      SELECT id, field_name, label, is_active FROM ${sql.identifier(schemaName)}.ticket_field_options 
+      WHERE id = ${optionId} AND tenant_id = ${tenantId}
+    `);
+
+    if (checkResult.rows.length === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Field option not found' 
+      });
+    }
+
+    const existingOption = checkResult.rows[0];
+    console.log('🔍 Current option status:', {
+      id: existingOption.id,
+      field_name: existingOption.field_name,
+      label: existingOption.label,
+      current_active: existingOption.is_active,
+      new_active: active
+    });
+
+    // Update the active status
+    const updateResult = await db.execute(sql`
+      UPDATE ${sql.identifier(schemaName)}.ticket_field_options 
+      SET 
+        is_active = ${active},
+        updated_at = NOW()
+      WHERE id = ${optionId} AND tenant_id = ${tenantId}
+    `);
+
+    console.log('✅ Field option status updated:', { 
+      optionId,
+      previousStatus: existingOption.is_active,
+      newStatus: active,
+      affectedRows: updateResult.rowCount 
+    });
+
+    // Verify the update
+    const verifyResult = await db.execute(sql`
+      SELECT is_active FROM ${sql.identifier(schemaName)}.ticket_field_options 
+      WHERE id = ${optionId} AND tenant_id = ${tenantId}
+    `);
+
+    const updatedStatus = verifyResult.rows[0]?.is_active;
+    console.log('🔍 Status verification:', { 
+      expected: active, 
+      actual: updatedStatus,
+      matches: updatedStatus === active 
+    });
+
+    // Force fresh response headers
+    res.set({
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    });
+
+    res.json({
+      success: true,
+      message: 'Field option status updated successfully',
+      data: {
+        id: optionId,
+        previousStatus: existingOption.is_active,
+        newStatus: active,
+        verified: updatedStatus === active
+      }
+    });
+  } catch (error) {
+    console.error('❌ Error updating field option status:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to update field option status',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 export default router;
