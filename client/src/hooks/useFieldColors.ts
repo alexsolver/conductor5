@@ -17,7 +17,7 @@ interface FieldColorsResponse {
 const colorsCache = new Map<string, Record<string, string>>();
 
 export const useFieldColors = () => {
-  const { data: fieldOptionsData } = useQuery<FieldColorsResponse>({
+  const { data: fieldOptionsData, isLoading, error } = useQuery<FieldColorsResponse>({
     queryKey: ['fieldColors'],
     queryFn: async () => {
       const token = localStorage.getItem('accessToken');
@@ -87,7 +87,8 @@ export const useFieldColors = () => {
     getFieldColor,
     getFieldLabel,
     getFieldColorMap,
-    isLoading: !fieldOptionsData,
-    fieldOptions: fieldOptionsData?.data || []
+    isLoading,
+    fieldOptions: fieldOptionsData?.data || [],
+    error
   };
 };

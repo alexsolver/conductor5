@@ -219,7 +219,7 @@ export default function TicketsTable() {
   const [ticketsWithRelationships, setTicketsWithRelationships] = useState<Set<string>>(new Set());
 
   // Hook para buscar cores dos campos personalizados
-  const { getFieldColor, getFieldLabel } = useFieldColors();
+  const { getFieldColor, getFieldLabel, isLoading: isFieldColorsLoading } = useFieldColors();
 
   // Mapeamento de valores em inglês para português para compatibilidade com configurações
   const statusMapping: Record<string, string> = {
@@ -261,6 +261,14 @@ export default function TicketsTable() {
     'customer_service': 'atendimento_cliente',
     'financial': 'financeiro',
     'infrastructure': 'infraestrutura'
+  };
+
+  // Função helper para obter cor com fallback durante carregamento
+  const getFieldColorWithFallback = (fieldName: string, value: string): string => {
+    if (isFieldColorsLoading) {
+      return '#6b7280'; // Cor neutra (gray-500) durante carregamento
+    }
+    return getFieldColor(fieldName, value) || '#6b7280';
   };
 
   // Funções de mapeamento
@@ -631,16 +639,8 @@ export default function TicketsTable() {
         );
       case 'category':
         const categoryValue = mapCategoryValue((ticket as any).category);
-        const categoryColor = getFieldColor('category', categoryValue);
+        const categoryColor = getFieldColorWithFallback('category', categoryValue);
         const categoryLabel = getFieldLabel('category', categoryValue);
-
-        console.log('🔍 Category Debug:', {
-          originalValue: (ticket as any).category,
-          mappedValue: categoryValue,
-          color: categoryColor,
-          label: categoryLabel,
-          ticketNumber: (ticket as any).number
-        });
 
         return (
           <TableCell className="overflow-hidden" style={cellStyle}>
@@ -659,7 +659,7 @@ export default function TicketsTable() {
             <DynamicBadge 
               fieldName="status"
               value={mapStatusValue((ticket as any).state || ticket.status)}
-              colorHex={getFieldColor('status', mapStatusValue((ticket as any).state || ticket.status))}
+              colorHex={getFieldColorWithFallback('status', mapStatusValue((ticket as any).state || ticket.status))}
             >
               {getFieldLabel('status', mapStatusValue((ticket as any).state || ticket.status))}
             </DynamicBadge>
@@ -671,7 +671,7 @@ export default function TicketsTable() {
             <DynamicBadge 
               fieldName="priority"
               value={mapPriorityValue(ticket.priority)}
-              colorHex={getFieldColor('priority', mapPriorityValue(ticket.priority))}
+              colorHex={getFieldColorWithFallback('priority', mapPriorityValue(ticket.priority))}
             >
               {getFieldLabel('priority', mapPriorityValue(ticket.priority))}
             </DynamicBadge>
@@ -683,7 +683,7 @@ export default function TicketsTable() {
             <DynamicBadge 
               fieldName="impact"
               value={mapImpactValue((ticket as any).impact)}
-              colorHex={getFieldColor('impact', mapImpactValue((ticket as any).impact))}
+              colorHex={getFieldColorWithFallback('impact', mapImpactValue((ticket as any).impact))}
             >
               {getFieldLabel('impact', mapImpactValue((ticket as any).impact))}
             </DynamicBadge>
@@ -748,7 +748,7 @@ export default function TicketsTable() {
             <DynamicBadge 
               fieldName="urgency" 
               value={mapUrgencyValue((ticket as any).urgency)}
-              colorHex={getFieldColor('urgency', mapUrgencyValue((ticket as any).urgency))}
+              colorHex={getFieldColorWithFallback('urgency', mapUrgencyValue((ticket as any).urgency))}
             >
               {getFieldLabel('urgency', mapUrgencyValue((ticket as any).urgency))}
             </DynamicBadge>
@@ -784,7 +784,7 @@ export default function TicketsTable() {
             <DynamicBadge 
               fieldName="sla_status" 
               value={(ticket as any).slaStatus || 'on_track'}
-              colorHex={getFieldColor('sla_status', (ticket as any).slaStatus || 'on_track')}
+              colorHex={getFieldColorWithFallback('sla_status', (ticket as any).slaStatus || 'on_track')}
             >
               {getFieldLabel('sla_status', (ticket as any).slaStatus || 'on_track')}
             </DynamicBadge>
