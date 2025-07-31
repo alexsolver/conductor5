@@ -248,7 +248,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                       className="flex items-center justify-between p-3 border rounded-lg bg-gray-50 dark:bg-gray-800"
                     >
                       <div className="flex items-center space-x-3">
-                        <Icon className="h-4 w-4 text-gray-500 />
+                        <Icon className="h-4 w-4 text-gray-500" />
                         <div>
                           <div className="flex items-center space-x-2">
                             <span className="font-medium">#{rel.targetTicket.number || rel.targetTicket.ticket_number || `T-${rel.targetTicket.id.slice(-8)}`} - {rel.targetTicket.subject}</span>
