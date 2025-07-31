@@ -424,6 +424,38 @@ const TicketConfiguration: React.FC = () => {
     }
   });
 
+  const updateFieldOptionMutation = useMutation({
+    mutationFn: async (data: z.infer<typeof fieldOptionSchema> & { id: string }) => {
+      const { id, ...updateData } = data;
+      const response = await apiRequest('PUT', `/api/ticket-config/field-options/${id}`, {
+        ...updateData,
+        companyId: selectedCompany
+      });
+      return response.json();
+    },
+    onSuccess: async (result) => {
+      console.log('✅ Field option updated successfully:', result);
+      
+      // Invalidate cache sem forçar refetch imediato
+      queryClient.invalidateQueries({ queryKey: ['field-options', selectedCompany] });
+      
+      setDialogOpen(false);
+      fieldOptionForm.reset();
+      toast({ 
+        title: "Opção atualizada com sucesso",
+        description: "A opção foi atualizada no sistema."
+      });
+    },
+    onError: (error) => {
+      console.error('❌ Error updating field option:', error);
+      toast({ 
+        title: "Erro ao atualizar opção",
+        description: "Não foi possível atualizar a opção.",
+        variant: "destructive"
+      });
+    }
+  });
+
   const updateFieldOptionStatusMutation = useMutation({
     mutationFn: async ({ id, active }: { id: string; active: boolean }) => {
       const response = await apiRequest('PUT', `/api/ticket-config/field-options/${id}/status`, {
@@ -435,10 +467,8 @@ const TicketConfiguration: React.FC = () => {
     onSuccess: async (result) => {
       console.log('✅ Field option status updated successfully:', result);
       
-      // Force refetch of field options
-      const queryKey = ['field-options', selectedCompany];
-      queryClient.removeQueries({ queryKey });
-      await queryClient.refetchQueries({ queryKey, type: 'active', exact: true });
+      // Invalidate cache sem forçar refetch imediato
+      queryClient.invalidateQueries({ queryKey: ['field-options', selectedCompany] });
       
       toast({ 
         title: "Status atualizado com sucesso",
@@ -1728,7 +1758,15 @@ const TicketConfiguration: React.FC = () => {
           {/* Formulário de Opção de Campo */}
           {editingItem?.type === 'field-option' && (
             <Form {...fieldOptionForm}>
-              <form onSubmit={fieldOptionForm.handleSubmit((data) => createFieldOptionMutation.mutate(data))} className="space-y-4">
+              <form onSubmit={fieldOptionForm.handleSubmit((data) => {
+                if (editingItem.id) {
+                  // Modo edição - usar updateFieldOptionMutation
+                  updateFieldOptionMutation.mutate({ ...data, id: editingItem.id });
+                } else {
+                  // Modo criação - usar createFieldOptionMutation
+                  createFieldOptionMutation.mutate(data);
+                }
+              })} className="space-y-4">
                 {editingItem.fieldName ? (
                   <div className="space-y-2">
                     <FormLabel>Campo</FormLabel>

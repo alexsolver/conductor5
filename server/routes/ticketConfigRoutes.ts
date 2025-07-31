@@ -878,6 +878,115 @@ router.post('/numbering', jwtAuth, async (req: AuthenticatedRequest, res) => {
   }
 });
 
+// Update field option endpoint - for full field option updates
+router.put('/field-options/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    const tenantId = req.user?.tenantId;
+    const optionId = req.params.id;
+
+    if (!tenantId) {
+      return res.status(401).json({ message: 'Tenant required' });
+    }
+
+    const {
+      fieldName,
+      value,
+      displayLabel,
+      color,
+      icon,
+      isDefault,
+      active,
+      sortOrder,
+      companyId,
+      statusType
+    } = req.body;
+
+    if (!fieldName || !value || !displayLabel) {
+      return res.status(400).json({ message: 'Field name, value, and display label are required' });
+    }
+
+    // Validate that statusType is required for status field
+    if (fieldName === 'status' && !statusType) {
+      return res.status(400).json({ message: 'Status type is required for status field options' });
+    }
+
+    console.log('🔄 Updating field option:', {
+      optionId,
+      tenantId,
+      companyId,
+      fieldName,
+      value,
+      displayLabel,
+      statusType
+    });
+
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    // First check if the field option exists
+    const checkResult = await db.execute(sql`
+      SELECT id, field_name, label FROM ${sql.identifier(schemaName)}.ticket_field_options 
+      WHERE id = ${optionId} AND tenant_id = ${tenantId}
+    `);
+
+    if (checkResult.rows.length === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Field option not found' 
+      });
+    }
+
+    // Se esta opção for marcada como padrão, desmarcar outras do mesmo campo
+    if (isDefault) {
+      await db.execute(sql`
+        UPDATE "${sql.raw(schemaName)}"."ticket_field_options" 
+        SET is_default = false 
+        WHERE tenant_id = ${tenantId} 
+        AND customer_id = ${companyId}
+        AND field_name = ${fieldName}
+        AND id != ${optionId}
+      `);
+    }
+
+    // Update the field option
+    const updateResult = await db.execute(sql`
+      UPDATE "${sql.raw(schemaName)}"."ticket_field_options" 
+      SET 
+        field_name = ${fieldName},
+        value = ${value},
+        label = ${displayLabel},
+        color = ${color || '#3b82f6'},
+        sort_order = ${sortOrder || 1},
+        is_default = ${isDefault || false},
+        is_active = ${active !== false},
+        updated_at = NOW()
+      WHERE id = ${optionId} AND tenant_id = ${tenantId}
+      RETURNING *
+    `);
+
+    console.log('✅ Field option updated successfully:', updateResult.rows[0]);
+
+    // Force fresh response headers
+    res.set({
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    });
+
+    res.json({
+      success: true,
+      data: updateResult.rows[0],
+      message: 'Field option updated successfully'
+    });
+  } catch (error) {
+    console.error('Error updating field option:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update field option',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 // Update field option status endpoint - for activate/deactivate toggles
 router.put('/field-options/:id/status', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
