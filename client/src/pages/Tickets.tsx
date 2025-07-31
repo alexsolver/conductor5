@@ -109,15 +109,18 @@ export default function Tickets() {
   const rawCompanies = Array.isArray(companiesData) ? companiesData : [];
   const { filteredCompanies } = useCompanyFilter(rawCompanies);
   
-  // Sort filtered companies to put Default first (if it's active)
+  // Use filtered companies directly (no special sorting for Default)
   const companies = filteredCompanies.sort((a: any, b: any) => {
-    const aIsDefault = a.name?.toLowerCase().includes('default') || a.displayName?.toLowerCase().includes('default');
-    const bIsDefault = b.name?.toLowerCase().includes('default') || b.displayName?.toLowerCase().includes('default');
-
-    if (aIsDefault && !bIsDefault) return -1;
-    if (!aIsDefault && bIsDefault) return 1;
     return (a.name || a.displayName || '').localeCompare(b.name || b.displayName || '');
   });
+
+  // Debug: Check if Default company is in the list
+  console.log('🔍 Companies in ticket modal:', companies.map(c => ({
+    id: c.id, 
+    name: c.name, 
+    status: c.status,
+    isDefault: c.name?.toLowerCase().includes('default')
+  })));
   
   const users = (usersData as any)?.users || [];
 
