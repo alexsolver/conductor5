@@ -1034,6 +1034,212 @@ export default function TicketDetails() {
               />
             </div>
 
+            {/* Campos Adicionais */}
+            <div className="border-t pt-4 mt-6">
+              <h3 className="text-sm font-semibold text-gray-600 mb-4">INFORMAÇÕES ADICIONAIS</h3>
+              
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                {/* Horas Estimadas */}
+                <FormField
+                  control={form.control}
+                  name="estimatedHours"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Horas Estimadas</FormLabel>
+                      <FormControl>
+                        {isEditMode ? (
+                          <Input 
+                            type="number" 
+                            min="0" 
+                            max="999" 
+                            step="0.5"
+                            {...field}
+                            onChange={(e) => field.onChange(Number(e.target.value))}
+                            placeholder="0"
+                          />
+                        ) : (
+                          <div className="p-2 bg-gray-50 rounded">{field.value || 0}h</div>
+                        )}
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Horas Reais */}
+                <FormField
+                  control={form.control}
+                  name="actualHours"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Horas Reais</FormLabel>
+                      <FormControl>
+                        {isEditMode ? (
+                          <Input 
+                            type="number" 
+                            min="0" 
+                            max="999" 
+                            step="0.5"
+                            {...field}
+                            onChange={(e) => field.onChange(Number(e.target.value))}
+                            placeholder="0"
+                          />
+                        ) : (
+                          <div className="p-2 bg-gray-50 rounded">{field.value || 0}h</div>
+                        )}
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Data de Vencimento */}
+              <FormField
+                control={form.control}
+                name="dueDate"
+                render={({ field }) => (
+                  <FormItem className="mb-4">
+                    <FormLabel>Data de Vencimento</FormLabel>
+                    <FormControl>
+                      {isEditMode ? (
+                        <Input 
+                          type="datetime-local"
+                          {...field}
+                          placeholder="Não especificado"
+                        />
+                      ) : (
+                        <div className="p-2 bg-gray-50 rounded">
+                          {field.value ? new Date(field.value).toLocaleString('pt-BR') : 'Não especificado'}
+                        </div>
+                      )}
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Ambiente */}
+              <FormField
+                control={form.control}
+                name="environment"
+                render={({ field }) => (
+                  <FormItem className="mb-4">
+                    <FormLabel>Ambiente</FormLabel>
+                    <FormControl>
+                      {isEditMode ? (
+                        <Input {...field} placeholder="Ex: Produção, Desenvolvimento, Teste" />
+                      ) : (
+                        <div className="p-2 bg-gray-50 rounded">{field.value || 'Não especificado'}</div>
+                      )}
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Template Alternativo */}
+              <FormField
+                control={form.control}
+                name="templateAlternative"
+                render={({ field }) => (
+                  <FormItem className="mb-4">
+                    <FormLabel>Template Alternativo</FormLabel>
+                    <FormControl>
+                      {isEditMode ? (
+                        <Input {...field} placeholder="Não especificado" />
+                      ) : (
+                        <div className="p-2 bg-gray-50 rounded">{field.value || 'Não especificado'}</div>
+                      )}
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Relacionamento com Outros Tickets */}
+            <div className="border-t pt-4 mt-6">
+              <h3 className="text-sm font-semibold text-gray-600 mb-4">RELACIONAMENTO COM OUTROS TICKETS</h3>
+              
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                {/* Número do Ticket Relacionado */}
+                <FormField
+                  control={form.control}
+                  name="linkTicketNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Número do Ticket Relacionado</FormLabel>
+                      <FormControl>
+                        {isEditMode ? (
+                          <Input {...field} placeholder="Ex: T-1234567890-ABC" />
+                        ) : (
+                          <div className="p-2 bg-gray-50 rounded">{field.value || 'Nenhum'}</div>
+                        )}
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Tipo de Relacionamento */}
+                <FormField
+                  control={form.control}
+                  name="linkType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Tipo de Relacionamento</FormLabel>
+                      <FormControl>
+                        {isEditMode ? (
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione o tipo" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="relates_to">Relaciona-se com</SelectItem>
+                              <SelectItem value="blocks">Bloqueia</SelectItem>
+                              <SelectItem value="blocked_by">Bloqueado por</SelectItem>
+                              <SelectItem value="duplicates">Duplica</SelectItem>
+                              <SelectItem value="caused_by">Causado por</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <div className="p-2 bg-gray-50 rounded">
+                            {field.value === 'relates_to' && 'Relaciona-se com'}
+                            {field.value === 'blocks' && 'Bloqueia'}
+                            {field.value === 'blocked_by' && 'Bloqueado por'}
+                            {field.value === 'duplicates' && 'Duplica'}
+                            {field.value === 'caused_by' && 'Causado por'}
+                            {!field.value && 'Nenhum'}
+                          </div>
+                        )}
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Comentário do Relacionamento */}
+              <FormField
+                control={form.control}
+                name="linkComment"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Comentário do Relacionamento</FormLabel>
+                    <FormControl>
+                      {isEditMode ? (
+                        <Textarea {...field} rows={2} placeholder="Descreva a relação entre os tickets" />
+                      ) : (
+                        <div className="p-2 bg-gray-50 rounded min-h-[60px]">{field.value || 'Nenhum comentário'}</div>
+                      )}
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
 
 
 

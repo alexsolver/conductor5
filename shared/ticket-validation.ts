@@ -80,6 +80,9 @@ export const ticketFormSchema = z.object({
   // Ambiente
   environment: z.string().max(100).optional(),
   
+  // Template alternativo
+  templateAlternative: z.string().max(200).optional(),
+  
   // Campos de linking
   linkTicketNumber: z.string().max(50).optional(),
   linkType: z.string().refine(val => !val || LinkTypeEnum.safeParse(val).success, "Tipo de link inválido").optional(),

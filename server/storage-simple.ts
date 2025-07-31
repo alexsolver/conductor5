@@ -529,8 +529,8 @@ export class DatabaseStorage implements IStorage {
           caller_type = ${ticketData.caller_type || 'customer'},
           beneficiary_type = ${ticketData.beneficiary_type || 'customer'},
           customer_id = ${ticketData.customer_id || null},
-          followers = ${ticketData.followers || []}::text[],
-          tags = ${ticketData.tags || []}::text[],
+          followers = ${JSON.stringify(ticketData.followers || [])},
+          tags = ${JSON.stringify(ticketData.tags || [])},
           updated_at = NOW()
         WHERE id = ${ticketId} AND tenant_id = ${validatedTenantId}
         RETURNING *
