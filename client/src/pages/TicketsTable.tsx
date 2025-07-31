@@ -1789,8 +1789,7 @@ export default function TicketsTable() {
                 <FormLabel>Business Impact</FormLabel>
                 <FormControl>
                   <Textarea 
-                    placeholder```python
-="Describe the business impact"
+                    placeholder="Describe the business impact"
                     className="min-h-[80px]"
                     {...field} 
                   />
