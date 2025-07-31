@@ -1888,10 +1888,10 @@ export default function TicketDetails() {
                               
                               <DynamicBadge 
                                 fieldName="status"
-                                value={linkedTicket.targetTicket?.status || linkedTicket.status}
-                                colorHex={getFieldColor('status', linkedTicket.targetTicket?.status || linkedTicket.status)}
+                                value={mapStatusValue(linkedTicket.targetTicket?.status || linkedTicket.status)}
+                                colorHex={getFieldColor('status', mapStatusValue(linkedTicket.targetTicket?.status || linkedTicket.status))}
                               >
-                                {getFieldLabel('status', linkedTicket.targetTicket?.status || linkedTicket.status)}
+                                {getFieldLabel('status', mapStatusValue(linkedTicket.targetTicket?.status || linkedTicket.status))}
                               </DynamicBadge>
                               
                               <DynamicBadge 
