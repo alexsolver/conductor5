@@ -14,9 +14,9 @@ interface FieldOptionsResponse {
   total?: number;
 }
 
-// Cache inteligente para reduzir chamadas à API
+// Intelligent cache to reduce API calls
 const fieldOptionsCache = new Map<string, { data: any[], timestamp: number }>();
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutos
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 export const useTicketMetadata = () => {
   const tenantId = useTenantId();
@@ -28,7 +28,7 @@ export const useTicketMetadata = () => {
         const cacheKey = `${tenantId}-${companyId || 'default'}`;
         const now = Date.now();
 
-        // Verificar cache primeiro
+        // Verify cache first
         const cached = fieldOptionsCache.get(cacheKey);
         let allOptions: any[] = [];
 
@@ -36,7 +36,7 @@ export const useTicketMetadata = () => {
           console.log(`📦 Using cached field options for ${fieldName}`);
           allOptions = cached.data;
         } else {
-          // Buscar da API apenas se necessário
+          // Fetch from the API only if needed
           const params = new URLSearchParams({
             tenantId: tenantId || '',
             ...(companyId && { companyId })
@@ -46,7 +46,7 @@ export const useTicketMetadata = () => {
           const data = await response.json();
           allOptions = data.data || [];
 
-          // Atualizar cache
+          // Update cache
           fieldOptionsCache.set(cacheKey, {
             data: allOptions,
             timestamp: now
@@ -138,10 +138,10 @@ const companiesQuery = useQuery({
         });
 
         console.log('🏢 Filtered and sorted companies:', sortedCompanies);
-        
+
         // Clear field options cache when companies change
         fieldOptionsCache.clear();
-        
+
         return sortedCompanies;
       }
 

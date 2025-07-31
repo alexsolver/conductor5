@@ -1,9 +1,10 @@
-// PROBLEMA 10 RESOLVIDO: Schema Zod completo para validação de tickets
+
+// PROBLEM 10 RESOLVED: Complete Zod schema for ticket validation
 import { z } from 'zod';
 
-// Enums para validação mais restrita (valores em português para compatibilidade com metadados)
-export const TicketStatusEnum = z.enum(['novo', 'aberto', 'em_andamento', 'resolvido', 'fechado']);
-export const TicketPriorityEnum = z.enum(['low', 'medium', 'high', 'critical']);
+// Enums for strict validation (English values for database compatibility)
+export const TicketStatusEnum = z.enum(['new', 'open', 'in_progress', 'pending', 'resolved', 'closed', 'cancelled']);
+export const TicketPriorityEnum = z.enum(['low', 'medium', 'high', 'urgent', 'critical']);
 export const TicketImpactEnum = z.enum(['low', 'medium', 'high']);
 export const TicketUrgencyEnum = z.enum(['low', 'medium', 'high']);
 export const TicketCategoryEnum = z.enum(['support', 'incident', 'request', 'change', 'problem', 'maintenance']);
@@ -11,113 +12,113 @@ export const CallerTypeEnum = z.enum(['user', 'customer', 'system']);
 export const ContactTypeEnum = z.enum(['email', 'phone', 'chat', 'portal', 'api']);
 export const LinkTypeEnum = z.enum(['relates_to', 'blocks', 'blocked_by', 'duplicates', 'caused_by']);
 
-// Schema base para ticket com todos os campos obrigatórios marcados
+// Base ticket schema with all required fields marked
 export const ticketFormSchema = z.object({
-  // Campos obrigatórios
+  // Required fields
   subject: z.string()
-    .min(3, "Assunto deve ter pelo menos 3 caracteres")
-    .max(255, "Assunto não pode exceder 255 caracteres"),
+    .min(3, "Subject must be at least 3 characters")
+    .max(255, "Subject cannot exceed 255 characters"),
   
-  // Campos opcionais mas validados
+  // Optional but validated fields
   description: z.string()
-    .max(4000, "Descrição não pode exceder 4000 caracteres")
+    .max(4000, "Description cannot exceed 4000 characters")
     .optional(),
   
-  // Enums com validação
-  status: TicketStatusEnum.default('novo'),
+  // Enums with validation
+  status: TicketStatusEnum.default('new'),
   priority: TicketPriorityEnum.default('medium'),
   impact: TicketImpactEnum.optional(),
   urgency: TicketUrgencyEnum.optional(),
-  category: z.string().refine(val => !val || TicketCategoryEnum.safeParse(val).success, "Categoria inválida").optional(),
+  category: z.string().refine(val => !val || TicketCategoryEnum.safeParse(val).success, "Invalid category").optional(),
   
-  // Subcategoria dependente da categoria
+  // Subcategory dependent on category
   subcategory: z.string().max(100).optional(),
   
-  // Campos de pessoa com validação UUID (aceita string vazia)
-  callerId: z.string().refine(val => !val || z.string().uuid().safeParse(val).success, "ID do solicitante deve ser um UUID válido").optional(),
+  // Person fields with UUID validation (accepts empty string)
+  callerId: z.string().refine(val => !val || z.string().uuid().safeParse(val).success, "Caller ID must be a valid UUID").optional(),
   callerType: CallerTypeEnum.default('customer'),
-  beneficiaryId: z.string().refine(val => !val || z.string().uuid().safeParse(val).success, "ID do beneficiário deve ser um UUID válido").optional(),
+  beneficiaryId: z.string().refine(val => !val || z.string().uuid().safeParse(val).success, "Beneficiary ID must be a valid UUID").optional(),
   beneficiaryType: CallerTypeEnum.default('customer'),
-  assignedToId: z.string().refine(val => !val || z.string().uuid().safeParse(val).success, "ID do responsável deve ser um UUID válido").optional(),
+  assignedToId: z.string().refine(val => !val || z.string().uuid().safeParse(val).success, "Assigned to ID must be a valid UUID").optional(),
   
-  // Campo de localização (aceita string vazia)
-  location: z.string().refine(val => !val || z.string().uuid().safeParse(val).success, "Localização deve ser um UUID válido").optional(),
+  // Location field (accepts empty string)
+  location: z.string().refine(val => !val || z.string().uuid().safeParse(val).success, "Location must be a valid UUID").optional(),
   
-  // Grupo de atribuição
+  // Assignment group
   assignmentGroup: z.string().max(100).optional(),
   
-  // Contato
+  // Contact
   contactType: ContactTypeEnum.default('email'),
   
-  // Campos de negócio
+  // Business fields
   businessImpact: z.string().max(500).optional(),
   symptoms: z.string().max(1000).optional(),
   workaround: z.string().max(1000).optional(),
   resolution: z.string().max(2000).optional(),
   
-  // Horas estimadas/reais
+  // Estimated/Actual hours
   estimatedHours: z.number()
-    .min(0, "Horas estimadas devem ser positivas")
-    .max(999, "Horas estimadas não podem exceder 999")
+    .min(0, "Estimated hours must be positive")
+    .max(999, "Estimated hours cannot exceed 999")
     .optional(),
   actualHours: z.number()
-    .min(0, "Horas reais devem ser positivas")
-    .max(999, "Horas reais não podem exceder 999")
+    .min(0, "Actual hours must be positive")
+    .max(999, "Actual hours cannot exceed 999")
     .optional(),
   
-  // SLA e Vencimento
+  // SLA and Due date
   dueDate: z.string()
-    .datetime("Data de vencimento deve estar em formato ISO válido")
+    .datetime("Due date must be in valid ISO format")
     .optional(),
   
-  // Arrays JSON
+  // JSON Arrays
   followers: z.array(z.string().uuid()).default([]),
   tags: z.array(z.string().max(50)).default([]),
   
-  // Relacionamento com empresa cliente
-  customerCompanyId: z.string().refine(val => !val || z.string().uuid().safeParse(val).success, "ID da empresa deve ser um UUID válido").optional(),
+  // Customer company relationship
+  customerCompanyId: z.string().refine(val => !val || z.string().uuid().safeParse(val).success, "Company ID must be a valid UUID").optional(),
   
-  // Ambiente
+  // Environment
   environment: z.string().max(100).optional(),
   
-  // Template alternativo
+  // Alternative template
   templateAlternative: z.string().max(200).optional(),
   
-  // Campos de linking
+  // Linking fields
   linkTicketNumber: z.string().max(50).optional(),
-  linkType: z.string().refine(val => !val || LinkTypeEnum.safeParse(val).success, "Tipo de link inválido").optional(),
+  linkType: z.string().refine(val => !val || LinkTypeEnum.safeParse(val).success, "Invalid link type").optional(),
   linkComment: z.string().max(500).optional(),
 })
 .refine((data) => {
-  // Validação condicional: se linkTicketNumber existe, linkType é obrigatório
+  // Conditional validation: if linkTicketNumber exists, linkType is required
   if (data.linkTicketNumber && !data.linkType) {
     return false;
   }
   return true;
 }, {
-  message: "Tipo de link é obrigatório quando número do ticket relacionado é fornecido",
+  message: "Link type is required when related ticket number is provided",
   path: ["linkType"]
 })
 .refine((data) => {
-  // Validação condicional: impact e urgency devem existir juntos para calcular prioridade
+  // Conditional validation: impact and urgency must exist together to calculate priority
   if ((data.impact && !data.urgency) || (!data.impact && data.urgency)) {
     return false;
   }
   return true;
 }, {
-  message: "Impacto e urgência devem ser definidos juntos",
+  message: "Impact and urgency must be defined together",
   path: ["impact", "urgency"]
 });
 
-// Schema para criação de ticket sem refine (não suporta omit/partial)
+// Schema for ticket creation without refine (doesn't support omit/partial)
 const baseTicketSchema = z.object({
   subject: z.string()
-    .min(3, "Assunto deve ter pelo menos 3 caracteres")
-    .max(255, "Assunto não pode exceder 255 caracteres"),
+    .min(3, "Subject must be at least 3 characters")
+    .max(255, "Subject cannot exceed 255 characters"),
   description: z.string()
-    .max(4000, "Descrição não pode exceder 4000 caracteres")
+    .max(4000, "Description cannot exceed 4000 characters")
     .optional(),
-  status: TicketStatusEnum.default('open'),
+  status: TicketStatusEnum.default('new'),
   priority: TicketPriorityEnum.default('medium'),
   impact: TicketImpactEnum.optional(),
   urgency: TicketUrgencyEnum.optional(),
@@ -150,53 +151,53 @@ const baseTicketSchema = z.object({
   linkComment: z.string().max(500).optional(),
 });
 
-// Schema para criação de ticket
+// Schema for ticket creation
 export const createTicketSchema = baseTicketSchema.extend({
-  customerId: z.string().uuid("ID do cliente é obrigatório")
+  customerId: z.string().uuid("Customer ID is required")
 });
 
-// Schema refatorado para o novo modal de criação de tickets
+// Refactored schema for new ticket creation modal
 export const newTicketModalSchema = z.object({
-  // Empresa (obrigatório)
-  companyId: z.string().uuid("Empresa é obrigatória").min(1, "Empresa é obrigatória"),
-  // Cliente (obrigatório)
-  customerId: z.string().uuid("Cliente é obrigatório").min(1, "Cliente é obrigatório"),
-  // Favorecido (opcional)
-  beneficiaryId: z.string().uuid("ID do favorecido deve ser um UUID válido").optional(),
-  // Título do Ticket (obrigatório)
-  subject: z.string().min(3, "Título deve ter pelo menos 3 caracteres").max(255, "Título não pode exceder 255 caracteres"),
-  // Categoria (obrigatório)
-  category: z.string().min(1, "Categoria é obrigatória"),
-  // Sub Categoria (obrigatório)
-  subcategory: z.string().min(1, "Sub categoria é obrigatória"),
-  // Ação (obrigatório)
-  action: z.string().min(1, "Ação é obrigatória"),
-  // Prioridade (obrigatório) - usando enum para validação correta
+  // Company (required)
+  companyId: z.string().uuid("Company is required").min(1, "Company is required"),
+  // Customer (required)
+  customerId: z.string().uuid("Customer is required").min(1, "Customer is required"),
+  // Beneficiary (optional)
+  beneficiaryId: z.string().uuid("Beneficiary ID must be a valid UUID").optional(),
+  // Ticket Title (required)
+  subject: z.string().min(3, "Title must be at least 3 characters").max(255, "Title cannot exceed 255 characters"),
+  // Category (required)
+  category: z.string().min(1, "Category is required"),
+  // Sub Category (required)
+  subcategory: z.string().min(1, "Sub category is required"),
+  // Action (required)
+  action: z.string().min(1, "Action is required"),
+  // Priority (required) - using enum for correct validation
   priority: TicketPriorityEnum,
-  // Urgência (obrigatório) - usando enum para validação correta  
+  // Urgency (required) - using enum for correct validation  
   urgency: TicketUrgencyEnum,
-  // Descrição Detalhada (obrigatório)
-  description: z.string().min(10, "Descrição deve ter pelo menos 10 caracteres").max(4000, "Descrição não pode exceder 4000 caracteres"),
-  // Sintomas (opcional)
-  symptoms: z.string().max(1000, "Sintomas não podem exceder 1000 caracteres").optional(),
-  // Impacto no Negócio (opcional)
-  businessImpact: z.string().max(500, "Impacto no negócio não pode exceder 500 caracteres").optional(),
-  // Solução Temporária (opcional)
-  workaround: z.string().max(1000, "Solução temporária não pode exceder 1000 caracteres").optional(),
-  // Local (opcional)
+  // Detailed Description (required)
+  description: z.string().min(10, "Description must be at least 10 characters").max(4000, "Description cannot exceed 4000 characters"),
+  // Symptoms (optional)
+  symptoms: z.string().max(1000, "Symptoms cannot exceed 1000 characters").optional(),
+  // Business Impact (optional)
+  businessImpact: z.string().max(500, "Business impact cannot exceed 500 characters").optional(),
+  // Temporary Solution (optional)
+  workaround: z.string().max(1000, "Temporary solution cannot exceed 1000 characters").optional(),
+  // Location (optional)
   location: z.string().optional()
 });
 
-// Schema para atualização de ticket (todos os campos opcionais)
+// Schema for ticket update (all fields optional)
 export const updateTicketSchema = baseTicketSchema.partial();
 
-// Tipos TypeScript derivados dos schemas
+// TypeScript types derived from schemas
 export type TicketFormData = z.infer<typeof ticketFormSchema>;
 export type CreateTicketData = z.infer<typeof createTicketSchema>;
 export type UpdateTicketData = z.infer<typeof updateTicketSchema>;
 export type NewTicketModalData = z.infer<typeof newTicketModalSchema>;
 
-// Schema para validação de filtros na tabela
+// Schema for table filters validation
 export const ticketFiltersSchema = z.object({
   status: z.union([TicketStatusEnum, z.literal("all")]).default("all"),
   priority: z.union([TicketPriorityEnum, z.literal("all")]).default("all"),
@@ -210,7 +211,7 @@ export const ticketFiltersSchema = z.object({
 
 export type TicketFiltersData = z.infer<typeof ticketFiltersSchema>;
 
-// Helper functions para validação
+// Helper functions for validation
 export const validateTicketForm = (data: unknown) => {
   return ticketFormSchema.safeParse(data);
 };
