@@ -23,6 +23,7 @@ import { DynamicSelect } from "@/components/DynamicSelect";
 import { DynamicBadge } from "@/components/DynamicBadge";
 import { PersonSelector } from "@/components/PersonSelector";
 import { useFieldColors } from "@/hooks/useFieldColors";
+import { useCompanyNameResolver } from "@/hooks/useCompanyName";
 import TicketLinkingModal from "@/components/tickets/TicketLinkingModal";
 import TicketHierarchyView from "@/components/tickets/TicketHierarchyView";
 
@@ -220,6 +221,9 @@ export default function TicketsTable() {
 
   // Hook para buscar cores dos campos personalizados
   const { getFieldColor, getFieldLabel, isLoading: isFieldColorsLoading } = useFieldColors();
+  
+  // Hook para resolver nomes de empresas
+  const { getCompanyName } = useCompanyNameResolver();
 
   // Debug das cores dos campos
   React.useEffect(() => {
@@ -814,10 +818,16 @@ export default function TicketsTable() {
             ticketObject: ticket
           });
 
-          const companyName = (ticket as any).customer_company_name || 
-                              (ticket as any).caller_company_name ||
-                              (ticket as any).company_name || 
-                              'Empresa não informada';
+          // Primeiro tenta obter o nome da empresa via backend, depois via resolução frontend
+          const rawCompanyId = (ticket as any).customer_company_name || 
+                               (ticket as any).caller_company_name ||
+                               (ticket as any).company_name;
+          
+          // Se o valor parece ser um UUID, resolve o nome usando o hook
+          const isUuid = rawCompanyId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(rawCompanyId);
+          const resolvedCompanyName = isUuid ? getCompanyName(rawCompanyId) : rawCompanyId;
+          
+          const companyName = resolvedCompanyName || 'Empresa não informada';
 
           return (
             <TableCell className="overflow-hidden" style={cellStyle}>

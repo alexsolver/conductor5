@@ -1905,16 +1905,6 @@ export default function TicketDetails() {
                                 #{linkedTicket.targetTicket?.number || linkedTicket.number || `T-${linkedTicket.targetTicket?.id?.slice(0,8) || linkedTicket.id?.slice(0,8)}`}
                               </Badge>
                               
-                              {/* Categoria */}
-                              <DynamicBadge 
-                                fieldName="category"
-                                value={linkedTicket.targetTicket?.category || linkedTicket.category || 'support'}
-                                colorHex={getFieldColor('category', linkedTicket.targetTicket?.category || linkedTicket.category || 'support')}
-                              >
-                                {getFieldLabel('category', linkedTicket.targetTicket?.category || linkedTicket.category || 'support')}
-                              </DynamicBadge>
-                              
-                              {/* Status */}
                               <DynamicBadge 
                                 fieldName="status"
                                 value={linkedTicket.targetTicket?.status || linkedTicket.status}
@@ -1923,22 +1913,12 @@ export default function TicketDetails() {
                                 {getFieldLabel('status', linkedTicket.targetTicket?.status || linkedTicket.status)}
                               </DynamicBadge>
                               
-                              {/* Prioridade */}
                               <DynamicBadge 
                                 fieldName="priority"
                                 value={linkedTicket.targetTicket?.priority || linkedTicket.priority}
                                 colorHex={getFieldColor('priority', linkedTicket.targetTicket?.priority || linkedTicket.priority)}
                               >
                                 {getFieldLabel('priority', linkedTicket.targetTicket?.priority || linkedTicket.priority)}
-                              </DynamicBadge>
-                              
-                              {/* Urgência */}
-                              <DynamicBadge 
-                                fieldName="urgency"
-                                value={linkedTicket.targetTicket?.urgency || linkedTicket.urgency || 'low'}
-                                colorHex={getFieldColor('urgency', linkedTicket.targetTicket?.urgency || linkedTicket.urgency || 'low')}
-                              >
-                                {getFieldLabel('urgency', linkedTicket.targetTicket?.urgency || linkedTicket.urgency || 'low')}
                               </DynamicBadge>
                             </div>
                             
