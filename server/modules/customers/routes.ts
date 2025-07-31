@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { AuthenticatedRequest, jwtAuth } from '../../middleware/auth';
+import { AuthenticatedRequest, jwtAuth } from '../../middleware/jwtAuth';
 
 const customersRouter = Router();
 
@@ -25,7 +25,7 @@ customersRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
       success: true,
       customers: result.rows
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching customers:', error);
     res.status(500).json({
       success: false,
@@ -48,7 +48,7 @@ customersRouter.get('/companies', jwtAuth, async (req: AuthenticatedRequest, res
     `, [req.user.tenantId]);
 
     res.json(result.rows);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching companies:', error);
     res.status(500).json({ message: 'Failed to fetch companies' });
   }
