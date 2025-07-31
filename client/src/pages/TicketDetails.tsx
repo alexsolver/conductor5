@@ -212,7 +212,7 @@ const RichTextEditor = React.memo(({ value, onChange, disabled = false }: { valu
       </div>
     </div>
   );
-}
+});
 
 export default function TicketDetails() {
   const { id } = useParams<{ id: string }>();
