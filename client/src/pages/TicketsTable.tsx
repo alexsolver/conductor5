@@ -2249,6 +2249,16 @@ export default function TicketsTable() {
                                           {relationship.targetTicket?.subject || relationship.subject || 'Sem assunto'}
                                         </div>
                                         <div className="flex items-center space-x-2 mt-1">
+                                          {/* Categoria */}
+                                          <DynamicBadge 
+                                            fieldName="category"
+                                            value={relationship.targetTicket?.category || relationship.category || 'support'}
+                                            colorHex={getFieldColorWithFallback('category', relationship.targetTicket?.category || relationship.category || 'support')}
+                                          >
+                                            {getFieldLabel('category', relationship.targetTicket?.category || relationship.category || 'support')}
+                                          </DynamicBadge>
+                                          
+                                          {/* Status */}
                                           <DynamicBadge 
                                             fieldName="status"
                                             value={mapStatusValue(relationship.targetTicket?.status || relationship.status)}
@@ -2256,12 +2266,23 @@ export default function TicketsTable() {
                                           >
                                             {getFieldLabel('status', mapStatusValue(relationship.targetTicket?.status || relationship.status))}
                                           </DynamicBadge>
+                                          
+                                          {/* Prioridade */}
                                           <DynamicBadge 
                                             fieldName="priority"
                                             value={mapPriorityValue(relationship.targetTicket?.priority || relationship.priority)}
                                             colorHex={getFieldColorWithFallback('priority', mapPriorityValue(relationship.targetTicket?.priority || relationship.priority))}
                                           >
                                             {getFieldLabel('priority', mapPriorityValue(relationship.targetTicket?.priority || relationship.priority))}
+                                          </DynamicBadge>
+                                          
+                                          {/* Urgência */}
+                                          <DynamicBadge 
+                                            fieldName="urgency"
+                                            value={mapUrgencyValue(relationship.targetTicket?.urgency || relationship.urgency || 'low')}
+                                            colorHex={getFieldColorWithFallback('urgency', mapUrgencyValue(relationship.targetTicket?.urgency || relationship.urgency || 'low'))}
+                                          >
+                                            {getFieldLabel('urgency', mapUrgencyValue(relationship.targetTicket?.urgency || relationship.urgency || 'low'))}
                                           </DynamicBadge>
                                         </div>
                                       </div>
