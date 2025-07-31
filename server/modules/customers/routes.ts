@@ -281,12 +281,14 @@ customersRouter.post('/companies', jwtAuth, async (req: AuthenticatedRequest, re
 customersRouter.put('/companies/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const { id } = req.params;
-    const { name, document, phone, email, address, status } = req.body;
+    const { name, displayName, document, phone, email, address, status, subscriptionTier, description } = req.body;
     const { schemaManager } = await import('../../db');
     const pool = schemaManager.getPool();
     const schemaName = schemaManager.getSchemaName(req.user.tenantId);
 
-    console.log(`[UPDATE-COMPANY] Updating company ${id} with data:`, { name, status });
+    console.log(`[UPDATE-COMPANY] Updating company ${id} with full data:`, { 
+      name, displayName, status, subscriptionTier, document, phone, email 
+    });
 
     // Verify company exists first
     const existingCompany = await pool.query(`
@@ -299,20 +301,43 @@ customersRouter.put('/companies/:id', jwtAuth, async (req: AuthenticatedRequest,
       return res.status(404).json({ message: 'Company not found' });
     }
 
-    console.log(`[UPDATE-COMPANY] Current company status:`, existingCompany.rows[0].status);
+    console.log(`[UPDATE-COMPANY] Current company:`, {
+      id: existingCompany.rows[0].id,
+      name: existingCompany.rows[0].name,
+      displayName: existingCompany.rows[0].display_name,
+      status: existingCompany.rows[0].status
+    });
+
+    // Use existing values if not provided
+    const updateName = name !== undefined ? name : existingCompany.rows[0].name;
+    const updateDisplayName = displayName !== undefined ? displayName : existingCompany.rows[0].display_name;
+    const updateDocument = document !== undefined ? document : existingCompany.rows[0].document;
+    const updatePhone = phone !== undefined ? phone : existingCompany.rows[0].phone;
+    const updateEmail = email !== undefined ? email : existingCompany.rows[0].email;
+    const updateAddress = address !== undefined ? address : existingCompany.rows[0].address;
+    const updateStatus = status !== undefined ? status : existingCompany.rows[0].status;
+    const updateSubscriptionTier = subscriptionTier !== undefined ? subscriptionTier : existingCompany.rows[0].subscription_tier;
+    const updateDescription = description !== undefined ? description : existingCompany.rows[0].description;
 
     const result = await pool.query(`
       UPDATE "${schemaName}".customer_companies 
-      SET name = $1, document = $2, phone = $3, email = $4, address = $5, status = $6, updated_at = NOW()
-      WHERE id = $7 AND tenant_id = $8
+      SET name = $1, display_name = $2, document = $3, phone = $4, email = $5, 
+          address = $6, status = $7, subscription_tier = $8, description = $9, updated_at = NOW()
+      WHERE id = $10 AND tenant_id = $11
       RETURNING *
-    `, [name, document, phone, email, address, status || 'active', id, req.user.tenantId]);
+    `, [
+      updateName, updateDisplayName, updateDocument, updatePhone, updateEmail, 
+      updateAddress, updateStatus, updateSubscriptionTier, updateDescription, 
+      id, req.user.tenantId
+    ]);
 
     console.log(`[UPDATE-COMPANY] Company updated successfully:`, {
       id: result.rows[0].id,
       name: result.rows[0].name,
+      displayName: result.rows[0].display_name,
       oldStatus: existingCompany.rows[0].status,
-      newStatus: result.rows[0].status
+      newStatus: result.rows[0].status,
+      subscriptionTier: result.rows[0].subscription_tier
     });
 
     res.json({

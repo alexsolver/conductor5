@@ -703,8 +703,14 @@ export default function CustomerCompanies() {
                       !c.displayName?.toLowerCase().includes('default')
                     ).length > 0;
 
-                    // Show deactivate option for Default company only if there are other companies
+                    // Show activate/deactivate option for Default company only if there are other companies
                     if (isDefaultCompany && hasOtherCompanies) {
+                      const isActiveCompany = company.status === 'active' || company.isActive;
+                      const newStatus = isActiveCompany ? 'inactive' : 'active';
+                      const actionText = isActiveCompany ? 'Desativar' : 'Ativar';
+                      const loadingText = isActiveCompany ? 'Desativando...' : 'Ativando...';
+                      const iconColor = isActiveCompany ? 'text-orange-600 hover:text-orange-700' : 'text-green-600 hover:text-green-700';
+                      
                       return (
                         <Button
                           variant="outline"
@@ -713,24 +719,28 @@ export default function CustomerCompanies() {
                             try {
                               // Send only the fields that need to be updated
                               const updateData = { 
-                                status: 'inactive',
+                                status: newStatus,
                                 // Include required fields to avoid validation issues
                                 name: company.name,
+                                displayName: company.displayName,
                                 subscriptionTier: company.subscriptionTier || 'basic'
                               };
+                              
+                              console.log(`[UPDATE-COMPANY] Updating Default company from ${company.status} to ${newStatus}`);
                               
                               // Optimistically update the company status in cache
                               queryClient.setQueryData(['/api/customer-companies'], (oldData: any) => {
                                 if (Array.isArray(oldData)) {
                                   return oldData.map(comp => 
                                     comp.id === company.id 
-                                      ? { ...comp, status: 'inactive', isActive: false }
+                                      ? { ...comp, status: newStatus, isActive: newStatus === 'active' }
                                       : comp
                                   );
                                 }
                                 return oldData;
                               });
 
+                              // Use the correct mutation endpoint
                               await updateCompanyMutation.mutateAsync({ id: company.id, data: updateData });
                               
                               // Force invalidate all related caches
@@ -741,16 +751,27 @@ export default function CustomerCompanies() {
                                 queryClient.invalidateQueries({ queryKey: ['/api/ticket-config/field-options'] })
                               ]);
                               
+                              toast({
+                                title: "Empresa atualizada",
+                                description: `Empresa Default ${isActiveCompany ? 'desativada' : 'ativada'} com sucesso.`,
+                              });
+                              
                             } catch (error) {
+                              console.error('Error updating Default company:', error);
                               // Revert optimistic update on error
                               queryClient.invalidateQueries({ queryKey: ['/api/customer-companies'] });
+                              toast({
+                                title: "Erro",
+                                description: "Falha ao atualizar empresa. Tente novamente.",
+                                variant: "destructive"
+                              });
                             }
                           }}
                           disabled={updateCompanyMutation.isPending}
-                          className="text-orange-600 hover:text-orange-700"
+                          className={iconColor}
                         >
                           <Edit className="w-4 h-4 mr-1" />
-                          {updateCompanyMutation.isPending ? "Desativando..." : "Desativar"}
+                          {updateCompanyMutation.isPending ? loadingText : actionText}
                         </Button>
                       );
                     }
