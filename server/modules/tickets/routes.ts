@@ -738,7 +738,7 @@ ticketsRouter.get('/:id/communications', jwtAuth, async (req: AuthenticatedReque
 
     const { id } = req.params;
     const tenantId = req.user.tenantId;
-    const { pool } } = await import('../../db');
+    const { pool } = await import('../../db');
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
     const query = `
