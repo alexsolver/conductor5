@@ -269,7 +269,11 @@ export default function TicketDetails() {
     queryKey: ["/api/tickets", id],
     queryFn: async () => {
       const response = await apiRequest("GET", `/api/tickets/${id}`);
-      return response.json();
+      const data = await response.json();
+      console.log('🎫 Ticket data received:', data);
+      console.log('🎫 Subject:', data.subject);
+      console.log('🎫 Description:', data.description);
+      return data;
     },
     enabled: !!id,
   });
@@ -668,9 +672,13 @@ export default function TicketDetails() {
   // PROBLEMA 6 RESOLVIDO: Reset form completo com todos os campos
   useEffect(() => {
     if (ticket) {
-      console.log('🎫 Resetting form with ticket data:', { subject: ticket.subject, description: ticket.description });
+      console.log('🎫 Resetting form with ticket data:', { 
+        subject: ticket.subject, 
+        description: ticket.description,
+        fullTicket: ticket 
+      });
       form.reset({
-        subject: ticket.subject || "",
+        subject: ticket.subject || ticket.short_description || "",
         description: ticket.description || "",
         priority: ticket.priority || "medium",
         status: ticket.status || "open",
@@ -930,7 +938,9 @@ export default function TicketDetails() {
                     {isEditMode ? (
                       <Input {...field} />
                     ) : (
-                      <div className="p-2 bg-gray-50 rounded">{ticket?.subject || field.value || 'Não informado'}</div>
+                      <div className="p-2 bg-gray-50 rounded">
+                        {ticket?.subject || ticket?.short_description || field.value || 'Não informado'}
+                      </div>
                     )}
                   </FormControl>
                   <FormMessage />
@@ -952,7 +962,9 @@ export default function TicketDetails() {
                         disabled={false}
                       />
                     ) : (
-                      <div className="p-3 bg-gray-50 rounded min-h-[100px] prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: ticket?.description || field.value || '<p>Não informado</p>' }} />
+                      <div className="p-3 bg-gray-50 rounded min-h-[100px] prose prose-sm max-w-none" dangerouslySetInnerHTML={{ 
+                        __html: ticket?.description || field.value || '<p>Não informado</p>' 
+                      }} />
                     )}
                   </FormControl>
                   <FormMessage />
