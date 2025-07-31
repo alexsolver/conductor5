@@ -467,9 +467,9 @@ export default function TicketsTable() {
     }
   };
 
-  // Fetch tickets with pagination and filters
+  // Fetch tickets with pagination and filters - OTIMIZADO
   const { data: ticketsData, isLoading, error: ticketsError } = useQuery({
-    queryKey: ["/api/tickets"],
+    queryKey: ["/api/tickets", currentPage, statusFilter, priorityFilter, searchTerm],
     queryFn: async () => {
       const params = new URLSearchParams({
         page: currentPage.toString(),
@@ -482,11 +482,16 @@ export default function TicketsTable() {
       if (priorityFilter !== "all") {
         params.append("priority", priorityFilter);
       }
+      if (searchTerm) {
+        params.append("search", searchTerm);
+      }
 
       const response = await apiRequest('GET', `/api/tickets?${params.toString()}`);
       return response.json();
     },
     retry: 3,
+    staleTime: 30000, // Cache por 30 segundos
+    cacheTime: 300000, // Manter em cache por 5 minutos
   });
 
   // Legacy customer system removed - using PersonSelector for modern person management
@@ -565,56 +570,59 @@ export default function TicketsTable() {
     }
   };
 
-  // Inicializar indicadores de relacionamentos - OTIMIZADO
+  // Inicializar indicadores de relacionamentos - SUPER OTIMIZADO
   useEffect(() => {
     if (tickets.length > 0) {
-      // Usar API batch para buscar todos relacionamentos de uma vez
-      const checkAllTicketRelationships = async () => {
-        try {
-          const ticketIds = tickets.map((ticket: any) => ticket.id);
-          console.log('🔍 Calling batch-relationships API with tickets:', ticketIds.slice(0, 3), '... total:', ticketIds.length);
-          
-          const response = await apiRequest('POST', '/api/tickets/batch-relationships', { ticketIds });
-          console.log('🔍 Batch API Response status:', response.status);
-          
-          const data = await response.json();
-          console.log('🔍 Batch API Response data:', data);
-
-          const ticketsWithRels = new Set<string>();
-          if (data.success && data.data) {
-            Object.entries(data.data).forEach(([ticketId, relationships]: [string, any]) => {
-              if (relationships && relationships.length > 0) {
-                ticketsWithRels.add(ticketId);
-                console.log(`✅ Ticket ${ticketId} tem ${relationships.length} relacionamentos`);
-              }
+      console.log('🔄 useEffect triggered - tickets.length:', tickets.length);
+      
+      // Debounce para evitar chamadas desnecessárias
+      const timeoutId = setTimeout(() => {
+        const checkAllTicketRelationships = async () => {
+          try {
+            const ticketIds = tickets.map((ticket: any) => ticket.id);
+            console.log('🔍 Starting relationship check for', ticketIds.length, 'tickets');
+            
+            // Log individual para debugging
+            ticketIds.forEach((id: string, index: number) => {
+              const ticket = tickets[index];
+              console.log(`🔗 Checking relationships for ticket: ${id} (${ticket.number || 'N/A'})`);
             });
-          }
+            
+            const response = await apiRequest('POST', '/api/tickets/batch-relationships', { ticketIds });
+            const data = await response.json();
 
-          console.log('🎯 Tickets with relationships detected:', Array.from(ticketsWithRels));
-          setTicketsWithRelationships(ticketsWithRels);
-          
-          // Também armazenar os relacionamentos para exibição
-          if (data.success && data.data) {
-            setTicketRelationships(data.data);
-          }
-        } catch (error) {
-          console.error('Error checking batch relationships:', error);
-          // Fallback para verificação individual apenas se necessário
-          
-          // 🔧 TEMPORÁRIO: Forçar tickets com relacionamentos conhecidos para teste
-          const knownTicketsWithRelationships = ['e58325c6-f124-4dcc-be5c-02e6cd70fcfe'];
-          const testSet = new Set<string>();
-          knownTicketsWithRelationships.forEach(id => {
-            if (tickets.some((t: any) => t.id === id)) {
-              testSet.add(id);
+            const ticketsWithRels = new Set<string>();
+            let totalRelationships = 0;
+            
+            if (data.success && data.data) {
+              Object.entries(data.data).forEach(([ticketId, relationships]: [string, any]) => {
+                if (relationships && relationships.length > 0) {
+                  ticketsWithRels.add(ticketId);
+                  totalRelationships += relationships.length;
+                  console.log(`✅ Ticket ${ticketId} HAS relationships`);
+                } else {
+                  console.log(`❌ Ticket ${ticketId} has NO relationships`);
+                }
+              });
             }
-          });
-          setTicketsWithRelationships(testSet);
-          console.log('🔧 TESTE: Forçando tickets conhecidos com relacionamentos:', Array.from(testSet));
-        }
-      };
 
-      checkAllTicketRelationships();
+            console.log('🎯 Final tickets with relationships:', Array.from(ticketsWithRels));
+            console.log('🎯 Total tickets checked:', ticketIds.length, ', with relationships:', ticketsWithRels.size);
+            
+            setTicketsWithRelationships(ticketsWithRels);
+            setTicketRelationships(data.data || {});
+            
+          } catch (error) {
+            console.error('Error checking batch relationships:', error);
+            // Fallback vazio em caso de erro
+            setTicketsWithRelationships(new Set());
+          }
+        };
+
+        checkAllTicketRelationships();
+      }, 100); // Debounce de 100ms
+
+      return () => clearTimeout(timeoutId);
     }
   }, [tickets]);
 
@@ -1056,7 +1064,7 @@ export default function TicketsTable() {
     return columnWidths[columnId] || 150; // largura padrão
   };
 
-  const handleMouseDown = (e: React.MouseEvent, columnId: string) => {
+  const handleMouseDown = useCallback((e: React.MouseEvent, columnId: string) => {
     e.preventDefault();
     setIsResizing(true);
     setResizingColumn(columnId);
@@ -1071,15 +1079,18 @@ export default function TicketsTable() {
 
       rafId = requestAnimationFrame(() => {
         const newWidth = Math.max(80, startWidth + (e.pageX - startX));
+        
+        // Debounce otimizado - só atualiza estado a cada 16ms
         setColumnWidths(prev => ({
           ...prev,
           [columnId]: newWidth
         }));
 
-        // Debounce para salvar no localStorage
+        // Debounce para salvar no localStorage - 300ms
         clearTimeout(debounceTimeout);
         debounceTimeout = setTimeout(() => {
           localStorage.setItem(`column-width-${columnId}`, newWidth.toString());
+          console.log(`🔄 Resizing ${columnId}: ${newWidth}px`);
         }, 300);
       });
     };
@@ -1710,11 +1721,25 @@ export default function TicketsTable() {
             <div className="text-sm text-gray-600">
               {isFieldColorsLoading 
                 ? "⚙️ Carregando configurações de campos personalizados..." 
-                : "🔗 Verificando relacionamentos entre tickets..."
+                : tickets.length > 0 
+                  ? `🔗 Processando relacionamentos para ${tickets.length} tickets...`
+                  : "📋 Buscando tickets no banco de dados..."
               }
             </div>
             <div className="text-xs text-gray-500">
-              Processando dados em tempo real...
+              {tickets.length > 0 
+                ? `Carregados ${tickets.length} tickets - Verificando vínculos...`
+                : "Conectando com PostgreSQL via Neon..."
+              }
+            </div>
+            {/* Progress indicator */}
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div 
+                className="bg-purple-600 h-2 rounded-full transition-all duration-300" 
+                style={{ 
+                  width: tickets.length > 0 ? '70%' : '30%' 
+                }}
+              ></div>
             </div>
           </div>
         </div>

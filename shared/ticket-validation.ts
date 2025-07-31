@@ -6,6 +6,39 @@ export const TicketStatusEnum = z.enum(['new', 'open', 'in_progress', 'resolved'
 export const TicketPriorityEnum = z.enum(['low', 'medium', 'high', 'critical']);
 export const TicketImpactEnum = z.enum(['low', 'medium', 'high']);
 export const TicketUrgencyEnum = z.enum(['low', 'medium', 'high']);
+
+// Schema para validação de formulário - aceita valores do banco
+export const ticketFormValidationSchema = z.object({
+  subject: z.string().min(3, "Assunto deve ter pelo menos 3 caracteres").max(255),
+  description: z.string().max(4000).optional(),
+  status: z.string().refine(val => ['new', 'open', 'in_progress', 'resolved', 'closed'].includes(val), "Status inválido"),
+  priority: TicketPriorityEnum,
+  impact: TicketImpactEnum.optional(),
+  urgency: TicketUrgencyEnum.optional(),
+  category: z.string().optional(),
+  subcategory: z.string().optional(),
+  callerId: z.string().optional(),
+  callerType: z.enum(['user', 'customer']).default('customer'),
+  beneficiaryId: z.string().optional(),
+  beneficiaryType: z.enum(['user', 'customer']).default('customer'),
+  assignedToId: z.string().optional(),
+  assignmentGroup: z.string().optional(),
+  location: z.string().optional(),
+  contactType: z.enum(['email', 'phone', 'chat', 'portal']).default('email'),
+  businessImpact: z.string().optional(),
+  symptoms: z.string().optional(),
+  workaround: z.string().optional(),
+  resolution: z.string().optional(),
+  environment: z.string().optional(),
+  templateAlternative: z.string().optional(),
+  linkTicketNumber: z.string().optional(),
+  linkType: z.string().optional(),
+  linkComment: z.string().optional(),
+  estimatedHours: z.number().min(0).optional(),
+  actualHours: z.number().min(0).optional(),
+  followers: z.array(z.string()).default([]),
+  customerCompanyId: z.string().optional(),
+});
 export const TicketCategoryEnum = z.enum(['support', 'incident', 'request', 'change', 'problem', 'maintenance']);
 export const CallerTypeEnum = z.enum(['user', 'customer', 'system']);
 export const ContactTypeEnum = z.enum(['email', 'phone', 'chat', 'portal', 'api']);
