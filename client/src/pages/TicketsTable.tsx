@@ -270,8 +270,17 @@ export default function TicketsTable() {
 
   // Funções de mapeamento - simplificadas para usar o hook diretamente
   const mapStatusValue = (value: string): string => {
-    if (!value) return 'novo';
-    return value; // Deixa o hook lidar com o mapeamento
+    if (!value || value === null || value === 'null' || value === '') return 'novo';
+    
+    // Se o valor já está no formato correto do banco, retorne diretamente
+    const validStatuses = ['novo', 'aberto', 'em_andamento', 'resolvido', 'fechado'];
+    if (validStatuses.includes(value.toLowerCase())) {
+      return value.toLowerCase();
+    }
+    
+    // Caso contrário, use o mapeamento
+    const mapped = statusMapping[value.toLowerCase()] || 'novo';
+    return mapped;
   };
 
   const mapPriorityValue = (value: string): string => {
@@ -667,14 +676,27 @@ export default function TicketsTable() {
           </TableCell>
         );
       case 'status':
+        const rawStatusValue = (ticket as any).state || ticket.status;
+        const statusValue = mapStatusValue(rawStatusValue);
+        const statusColor = getFieldColorWithFallback('status', statusValue);
+        const statusLabel = getFieldLabel('status', statusValue);
+
+        console.log(`🎨 Status Badge Debug:`, {
+          ticketId: ticket.id,
+          rawValue: rawStatusValue,
+          mappedValue: statusValue,
+          color: statusColor,
+          label: statusLabel
+        });
+
         return (
           <TableCell className="overflow-hidden" style={cellStyle}>
             <DynamicBadge 
               fieldName="status"
-              value={mapStatusValue((ticket as any).state || ticket.status)}
-              colorHex={getFieldColorWithFallback('status', mapStatusValue((ticket as any).state || ticket.status))}
+              value={statusValue}
+              colorHex={statusColor}
             >
-              {getFieldLabel('status', mapStatusValue((ticket as any).state || ticket.status))}
+              {statusLabel}
             </DynamicBadge>
           </TableCell>
         );

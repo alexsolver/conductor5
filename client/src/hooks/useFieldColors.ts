@@ -95,12 +95,21 @@ export const useFieldColors = () => {
   const getFieldColor = (fieldName: string, value: string): string | undefined => {
     if (!value) return getDefaultColor(fieldName, value);
     
-    // Debug para categoria
+    // Debug para categoria e status
     if (fieldName === 'category') {
       console.log(`🎨 Getting color for category:`, {
         fieldName,
         value,
         availableColors: Array.from(colorsMap.keys()).filter(k => k.startsWith('category:')),
+        totalColors: colorsMap.size
+      });
+    }
+    
+    if (fieldName === 'status') {
+      console.log(`🎨 Getting color for status:`, {
+        fieldName,
+        value,
+        availableColors: Array.from(colorsMap.keys()).filter(k => k.startsWith('status:')),
         totalColors: colorsMap.size
       });
     }
@@ -111,6 +120,9 @@ export const useFieldColors = () => {
       const color = colorsMap.get(directKey);
       if (fieldName === 'category') {
         console.log(`✅ Found color for category ${value}:`, color);
+      }
+      if (fieldName === 'status') {
+        console.log(`✅ Found color for status ${value}:`, color);
       }
       return color;
     }
@@ -167,7 +179,13 @@ export const useFieldColors = () => {
         'closed': '#6B7280',   // cinza
         'fechado': '#6B7280',  // cinza
         'cancelled': '#EF4444', // vermelho
-        'cancelado': '#EF4444'  // vermelho
+        'cancelado': '#EF4444', // vermelho
+        // Valores em inglês que podem vir do banco
+        'pending': '#8B5CF6',  // roxo
+        'assigned': '#F59E0B', // amarelo
+        'working': '#F59E0B',  // amarelo
+        'on_hold': '#6B7280',  // cinza
+        'completed': '#059669' // verde escuro
       },
       priority: {
         'low': '#10B981',      // verde
@@ -206,6 +224,10 @@ export const useFieldColors = () => {
     
     if (fieldName === 'category') {
       console.log(`🎨 Using default color for category ${value}:`, color);
+    }
+    
+    if (fieldName === 'status') {
+      console.log(`🎨 Using default color for status ${value}:`, color);
     }
     
     return color;
