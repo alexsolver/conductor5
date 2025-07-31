@@ -94,6 +94,7 @@ const fieldOptionSchema = z.object({
 
 const numberingConfigSchema = z.object({
   prefix: z.string().min(1, "Prefixo é obrigatório"),
+  firstSeparator: z.string().default('-'),
   yearFormat: z.enum(['2', '4']).default('4'),
   sequentialDigits: z.number().min(4).max(10).default(6),
   separator: z.string().default('-'),
@@ -232,6 +233,7 @@ const TicketConfiguration: React.FC = () => {
     resolver: zodResolver(numberingConfigSchema),
     defaultValues: {
       prefix: 'T',
+      firstSeparator: '-',
       yearFormat: '4' as const,
       sequentialDigits: 6,
       separator: '-',
@@ -1345,7 +1347,7 @@ const TicketConfiguration: React.FC = () => {
               <CardContent>
                 <Form {...numberingForm}>
                   <form onSubmit={numberingForm.handleSubmit((data) => saveNumberingMutation.mutate(data))} className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-3 gap-4">
                       <FormField
                         control={numberingForm.control}
                         name="prefix"
@@ -1361,10 +1363,23 @@ const TicketConfiguration: React.FC = () => {
                       />
                       <FormField
                         control={numberingForm.control}
+                        name="firstSeparator"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>1º Separador</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="-" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={numberingForm.control}
                         name="separator"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Separador</FormLabel>
+                            <FormLabel>2º Separador</FormLabel>
                             <FormControl>
                               <Input {...field} placeholder="-" />
                             </FormControl>
@@ -1438,7 +1453,7 @@ const TicketConfiguration: React.FC = () => {
                     <div className="bg-gray-50 p-4 rounded border">
                       <Label className="font-medium">Visualização:</Label>
                       <div className="mt-2 font-mono text-lg">
-                        {numberingForm.watch('prefix')}-{numberingForm.watch('yearFormat') === '4' ? '2025' : '25'}{numberingForm.watch('separator')}{Array(numberingForm.watch('sequentialDigits')).fill('0').join('').slice(0, -3)}123
+                        {numberingForm.watch('prefix')}{numberingForm.watch('firstSeparator')}{numberingForm.watch('yearFormat') === '4' ? '2025' : '25'}{numberingForm.watch('separator')}{Array(numberingForm.watch('sequentialDigits')).fill('0').join('').slice(0, -3)}123
                       </div>
                     </div>
 

@@ -781,6 +781,17 @@ router.post('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) =>
 // NUMBERING CONFIGURATION - Configuração de numeração
 // ============================================================================
 
+interface NumberingConfig {
+  id: string;
+  prefix: string;
+  firstSeparator: string;
+  yearFormat: '2' | '4';
+  sequentialDigits: number;
+  separator: string;
+  resetYearly: boolean;
+  companyId: string;
+}
+
 // GET /api/ticket-config/numbering
 router.get('/numbering', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
@@ -832,7 +843,8 @@ router.post('/numbering', jwtAuth, async (req: AuthenticatedRequest, res) => {
       sequentialDigits,
       separator,
       resetYearly,
-      companyId
+      companyId,
+      firstSeparator
     } = req.body;
 
     if (!prefix || !companyId) {
@@ -858,6 +870,7 @@ router.post('/numbering', jwtAuth, async (req: AuthenticatedRequest, res) => {
           sequential_digits = ${sequentialDigits || 6},
           separator = ${separator || '-'},
           reset_yearly = ${resetYearly !== false},
+          first_separator = ${firstSeparator || '-'},
           updated_at = NOW()
         WHERE tenant_id = ${tenantId} AND company_id = ${companyId}
       `);
@@ -867,11 +880,11 @@ router.post('/numbering', jwtAuth, async (req: AuthenticatedRequest, res) => {
       await db.execute(sql`
         INSERT INTO "${sql.raw(schemaName)}"."ticket_numbering_config" (
           id, tenant_id, company_id, prefix, year_format, sequential_digits, 
-          separator, reset_yearly, created_at, updated_at
+          separator, reset_yearly, created_at, updated_at, first_separator
         ) VALUES (
           ${configId}, ${tenantId}, ${companyId}, ${prefix}, ${yearFormat || '4'}, 
           ${sequentialDigits || 6}, ${separator || '-'}, ${resetYearly !== false}, 
-          NOW(), NOW()
+          NOW(), NOW(), ${firstSeparator || '-'}
         )
       `);
     }
@@ -921,8 +934,7 @@ router.put('/field-options/:id', jwtAuth, async (req: AuthenticatedRequest, res)
       return res.status(400).json({ message: 'Status type is required for status field options' });
     }
 
-    console.log('🔄 Updating field option:', {
-      optionId,
+    console.log('🔄 Updating field option:', {      optionId,
       tenantId,
       companyId,
       fieldName,
