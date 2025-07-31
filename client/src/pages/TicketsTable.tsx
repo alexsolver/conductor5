@@ -181,27 +181,78 @@ export default function TicketsTable() {
   const { data: ticketsResponse, isLoading: ticketsLoading, error: ticketsError } = useQuery({
     queryKey: ["/api/tickets"],
     queryFn: async () => {
-      const response = await apiRequest("GET", "/api/tickets");
-      return response.json();
+      try {
+        const response = await apiRequest("GET", "/api/tickets");
+        return response.json();
+      } catch (error) {
+        console.error('Error fetching tickets:', error);
+        throw error;
+      }
+    },
+    retry: (failureCount, error) => {
+      // Don't retry if it's an auth error
+      if (error?.message?.includes('401')) {
+        return false;
+      }
+      return failureCount < 3;
     },
   });
 
   const tickets = ticketsResponse?.success ? ticketsResponse.data?.tickets || [] : [];
 
+  // Fetch customers data to enrich ticket display
+  const { data: customersResponse } = useQuery({
+    queryKey: ["/api/customers"],
+    queryFn: async () => {
+      try {
+        const response = await apiRequest("GET", "/api/customers");
+        return response.json();
+      } catch (error) {
+        console.error('Error fetching customers:', error);
+        return { success: false, data: [] };
+      }
+    },
+    enabled: tickets.length > 0,
+  });
+
+  const customers = customersResponse?.success ? customersResponse.data : [];
+  
+  // Create a map of customers for quick lookup
+  const customersMap = useMemo(() => {
+    const map = new Map();
+    if (customers && Array.isArray(customers)) {
+      customers.forEach((customer: any) => {
+        map.set(customer.id, customer);
+      });
+    }
+    return map;
+  }, [customers]);
+
+  // Enrich tickets with customer data
+  const enrichedTickets = useMemo(() => {
+    return tickets.map((ticket: any) => ({
+      ...ticket,
+      customer: customersMap.get(ticket.customer_id) || customersMap.get(ticket.caller_id) || null
+    }));
+  }, [tickets, customersMap]);
+
   // Filter tickets based on search and filters
   const filteredTickets = useMemo(() => {
-    return tickets.filter((ticket: Ticket) => {
+    return enrichedTickets.filter((ticket: any) => {
       const matchesSearch = !searchTerm || 
         ticket.subject?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         ticket.number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        ticket.description?.toLowerCase().includes(searchTerm.toLowerCase());
+        ticket.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        ticket.customer?.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        ticket.customer?.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        ticket.customer?.fullName?.toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchesStatus = statusFilter === "all" || ticket.status === statusFilter;
       const matchesPriority = priorityFilter === "all" || ticket.priority === priorityFilter;
       
       return matchesSearch && matchesStatus && matchesPriority;
     });
-  }, [tickets, searchTerm, statusFilter, priorityFilter]);
+  }, [enrichedTickets, searchTerm, statusFilter, priorityFilter]);
 
   // Handle modal actions
   const handleEditTicket = useCallback((ticket: Ticket) => {
@@ -355,7 +406,7 @@ export default function TicketsTable() {
                     </DynamicBadge>
                   </TableCell>
                   <TableCell>
-                    {ticket.category ? (
+                    {ticket.category && ticket.category !== 'null' ? (
                       <DynamicBadge 
                         fieldName="category"
                         value={mapCategoryValue(ticket.category)}
@@ -364,12 +415,32 @@ export default function TicketsTable() {
                         {getFieldLabel('category', mapCategoryValue(ticket.category))}
                       </DynamicBadge>
                     ) : (
-                      <span className="text-gray-400">-</span>
+                      <DynamicBadge 
+                        fieldName="category"
+                        value="suporte_tecnico"
+                        colorHex={getFieldColorWithFallback('category', 'suporte_tecnico')}
+                      >
+                        {getFieldLabel('category', 'suporte_tecnico') || 'Suporte Técnico'}
+                      </DynamicBadge>
                     )}
                   </TableCell>
                   <TableCell>
                     <div className="text-sm">
-                      {ticket.customer?.fullName || ticket.customer?.firstName + ' ' + ticket.customer?.lastName || 'N/A'}
+                      {ticket.customer ? (
+                        <div>
+                          <div className="font-medium">
+                            {ticket.customer.fullName || 
+                             `${ticket.customer.firstName || ''} ${ticket.customer.lastName || ''}`.trim() ||
+                             ticket.customer.email ||
+                             'Cliente'}
+                          </div>
+                          {ticket.customer.email && ticket.customer.email !== (ticket.customer.fullName || `${ticket.customer.firstName || ''} ${ticket.customer.lastName || ''}`.trim()) && (
+                            <div className="text-xs text-gray-500">{ticket.customer.email}</div>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-gray-400">Cliente não encontrado</span>
+                      )}
                     </div>
                   </TableCell>
                   <TableCell className="text-sm text-gray-500">
