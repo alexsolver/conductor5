@@ -117,15 +117,21 @@ export default function CustomerCompanies() {
   const updateCompanyMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: any }) => 
       apiRequest('PUT', `/api/customers/companies/${id}`, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/customer-companies'] });
+    onSuccess: (result, variables) => {
+      // Only invalidate cache for non-optimistic updates (when not called from Default button)
+      const isOptimisticUpdate = variables.data.isOptimisticUpdate;
+      if (!isOptimisticUpdate) {
+        queryClient.invalidateQueries({ queryKey: ['/api/customer-companies'] });
+      }
       setIsEditDialogOpen(false);
       setSelectedCompany(null);
       editForm.reset();
-      toast({
-        title: "Sucesso",
-        description: "Empresa atualizada com sucesso!",
-      });
+      if (!isOptimisticUpdate) {
+        toast({
+          title: "Sucesso",
+          description: "Empresa atualizada com sucesso!",
+        });
+      }
     },
     onError: (error: any) => {
       toast({
@@ -723,7 +729,9 @@ export default function CustomerCompanies() {
                                 // Include required fields to avoid validation issues
                                 name: company.name,
                                 displayName: company.displayName,
-                                subscriptionTier: company.subscriptionTier || 'basic'
+                                subscriptionTier: company.subscriptionTier || 'basic',
+                                // Flag to prevent automatic cache invalidation
+                                isOptimisticUpdate: true
                               };
                               
                               console.log(`[UPDATE-COMPANY] Updating Default company from ${company.status} to ${newStatus}`);
