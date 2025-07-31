@@ -103,6 +103,7 @@ export default function TicketsTable() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedViewId, setSelectedViewId] = useState("default");
   const [isAdvancedFiltersOpen, setIsAdvancedFiltersOpen] = useState(false);
@@ -319,6 +320,14 @@ export default function TicketsTable() {
     checkTicketRelationships();
   }, [enrichedTickets]);
 
+  // Clear all filters function
+  const clearAllFilters = useCallback(() => {
+    setSearchTerm("");
+    setStatusFilter("all");
+    setPriorityFilter("all");
+    setCategoryFilter("all");
+  }, []);
+
   // Filter tickets based on search and filters
   const filteredTickets = useMemo(() => {
     return enrichedTickets.filter((ticket: any) => {
@@ -332,10 +341,11 @@ export default function TicketsTable() {
       
       const matchesStatus = statusFilter === "all" || ticket.status === statusFilter;
       const matchesPriority = priorityFilter === "all" || ticket.priority === priorityFilter;
+      const matchesCategory = categoryFilter === "all" || ticket.category === categoryFilter;
       
-      return matchesSearch && matchesStatus && matchesPriority;
+      return matchesSearch && matchesStatus && matchesPriority && matchesCategory;
     });
-  }, [enrichedTickets, searchTerm, statusFilter, priorityFilter]);
+  }, [enrichedTickets, searchTerm, statusFilter, priorityFilter, categoryFilter]);
 
   // Handle modal actions
   const handleEditTicket = useCallback((ticket: Ticket) => {
@@ -445,6 +455,22 @@ export default function TicketsTable() {
             <SelectItem value="critical">Crítica</SelectItem>
           </SelectContent>
         </Select>
+        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="Categoria" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas as Categorias</SelectItem>
+            <SelectItem value="support">Suporte</SelectItem>
+            <SelectItem value="billing">Financeiro</SelectItem>
+            <SelectItem value="technical">Técnico</SelectItem>
+            <SelectItem value="general">Geral</SelectItem>
+          </SelectContent>
+        </Select>
+        <Button variant="outline" onClick={clearAllFilters} className="gap-2">
+          <Filter className="h-4 w-4" />
+          Limpar Filtros
+        </Button>
       </div>
 
       {/* Tickets Table */}
