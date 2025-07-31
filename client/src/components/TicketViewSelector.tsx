@@ -7,9 +7,9 @@ import { Input } from './ui/input';
 import { Badge } from './ui/badge';
 import { Settings, Plus, Eye, Users, Filter } from 'lucide-react';
 
-interface TicketViewSelectorProps {
+export interface TicketViewSelectorProps {
   currentViewId?: string;
-  onViewChange: (viewId: string) => void;
+  onViewChange?: (viewId: string) => void;
 }
 
 export function TicketViewSelector({ currentViewId, onViewChange }: TicketViewSelectorProps) {
@@ -48,7 +48,7 @@ export function TicketViewSelector({ currentViewId, onViewChange }: TicketViewSe
           </span>
         </div>
 
-        <Select value={currentViewId || 'default'} onValueChange={onViewChange}>
+        <Select value={currentViewId || 'default'} onValueChange={(value) => onViewChange?.(value)}>
           <SelectTrigger className="w-64">
             <SelectValue>
               <div className="flex items-center gap-2">
@@ -138,8 +138,12 @@ export function TicketViewSelector({ currentViewId, onViewChange }: TicketViewSe
                   };
                   
                   console.log('Nova visualização criada:', newView);
-                  alert(`Nova visualização "${newView.name}" criada com sucesso!`);
                   setIsNewViewModalOpen(false);
+                  
+                  // Usar timeout para fechar o modal primeiro
+                  setTimeout(() => {
+                    alert(`Nova visualização "${newView.name}" criada com sucesso!`);
+                  }, 100);
                 }}>
                   Criar Visualização
                 </Button>
@@ -207,7 +211,12 @@ export function TicketViewSelector({ currentViewId, onViewChange }: TicketViewSe
                           };
                           
                           console.log('Visualização editada:', updatedView);
-                          alert(`Visualização "${view.name}" editada com sucesso!`);
+                          
+                          // Fechar modal primeiro, depois mostrar sucesso
+                          setIsManageViewsOpen(false);
+                          setTimeout(() => {
+                            alert(`Visualização "${view.name}" editada com sucesso!`);
+                          }, 100);
                         }}>
                           Editar
                         </Button>
