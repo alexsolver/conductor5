@@ -12,7 +12,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 // Pages
 import AuthPage from "./pages/AuthPage";
 import Dashboard from "./pages/Dashboard";
-import TicketsTable from "./pages/TicketsTable";
+import TicketsTable from "./pages/TicketsTable-working";
 import TicketDetails from "./pages/TicketDetails";
 // CustomersTable removed - unified with Clientes.tsx
 import Beneficiaries from "./pages/Beneficiaries";
@@ -72,7 +72,7 @@ import { StockManagement } from "./pages/StockManagement";
 import { SupplierManagement } from "./pages/SupplierManagement";
 import { ServicesManagement } from "./pages/ServicesManagement";
 import AssetManagement from "./pages/AssetManagement";
-import LpuManagement from "./pages/LpuManagement"; // Temporarily commented due to LSP errors
+// import LpuManagement from "./pages/LpuManagement"; // Temporarily commented due to LSP errors
 import ComplianceManagement from "./pages/ComplianceManagement";
 import NotificationManagement from './pages/NotificationManagement';
 import CustomFieldsAdministrator from './pages/CustomFieldsAdministrator';

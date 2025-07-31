@@ -376,20 +376,24 @@ export default function TicketsTable() {
   }, []);
 
   const handleMouseDown = useCallback((e: React.MouseEvent, columnKey: string) => {
+    console.log(`🖱️ Mouse down on column: ${columnKey}`);
     e.preventDefault();
     setIsResizing(true);
     setResizingColumn(columnKey);
     
     const startX = e.clientX;
     const startWidth = columnWidths[columnKey as keyof typeof columnWidths];
+    console.log(`📏 Starting resize - Column: ${columnKey}, Start width: ${startWidth}px, Start X: ${startX}`);
     
     const handleMouseMove = (moveEvent: MouseEvent) => {
       const diff = moveEvent.clientX - startX;
       const newWidth = startWidth + diff;
+      console.log(`🔄 Resizing ${columnKey}: ${newWidth}px (diff: ${diff}px)`);
       handleColumnResize(columnKey, newWidth);
     };
     
     const handleMouseUp = () => {
+      console.log(`✅ Resize completed for column: ${columnKey}`);
       setIsResizing(false);
       setResizingColumn(null);
       document.removeEventListener('mousemove', handleMouseMove);

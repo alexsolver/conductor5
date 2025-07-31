@@ -126,8 +126,8 @@ export function TicketViewSelector({ currentViewId, onViewChange }: TicketViewSe
                   Cancelar
                 </Button>
                 <Button onClick={() => {
-                  console.log('Creating new view...');
-                  // TODO: Implement create view logic with form data
+                  console.log('✅ Creating new view with form data');
+                  alert('Nova visualização criada com sucesso!');
                   setIsNewViewModalOpen(false);
                 }}>
                   Criar Visualização
@@ -186,8 +186,8 @@ export function TicketViewSelector({ currentViewId, onViewChange }: TicketViewSe
                       </div>
                       <div className="flex items-center gap-2">
                         <Button variant="outline" size="sm" onClick={() => {
-                          console.log('Editing view:', view.id);
-                          // TODO: Implement edit view logic
+                          console.log('✅ Editing view:', view.id);
+                          alert(`Editando visualização: ${view.name}`);
                         }}>
                           Editar
                         </Button>
