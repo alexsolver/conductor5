@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
-import { ArrowLeft, Save, Link as LinkIcon, Link2, Trash2, Paperclip, MessageSquare, Mail, FileCheck, History } from "lucide-react";
+import { ArrowLeft, Save, Link as LinkIcon, Link2, Trash2, Paperclip, MessageSquare, Mail, FileCheck, History, Building2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -1188,7 +1188,7 @@ export default function TicketEdit() {
         <TicketLinkingModal
           isOpen={isLinkingModalOpen}
           onClose={() => setIsLinkingModalOpen(false)}
-          ticketId={id}
+          currentTicket={ticket}
         />
         <AttachmentsModal
           isOpen={isAttachmentsModalOpen}
