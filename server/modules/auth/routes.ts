@@ -10,15 +10,28 @@ import { z } from "zod";
 const authRouter = Router();
 const container = DependencyContainer.getInstance();
 
-// Rate limiting middleware
-const authRateLimit = createRateLimitMiddleware({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  maxAttempts: 5,
-  blockDurationMs: 30 * 60 * 1000 // 30 minutes
+// Rate limiting middleware - More permissive for development
+const loginRateLimit = createRateLimitMiddleware({
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  maxAttempts: 20, // Increased attempts
+  blockDurationMs: 5 * 60 * 1000 // 5 minutes
 });
 
+// Development only: Clear rate limits
+if (process.env.NODE_ENV !== 'production') {
+  authRouter.post('/clear-rate-limits', async (req: Request, res: Response) => {
+    try {
+      const { clearRateLimitStore } = await import('../../middleware/rateLimitMiddleware');
+      clearRateLimitStore();
+      res.json({ success: true, message: 'Rate limits cleared' });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to clear rate limits' });
+    }
+  });
+}
+
 // Refresh Token Endpoint
-authRouter.post('/refresh', authRateLimit, async (req: Request, res: Response) => {
+authRouter.post('/refresh', loginRateLimit, async (req: Request, res: Response) => {
   try {
     const { refreshToken } = req.body;
     const cookieRefreshToken = req.cookies?.refreshToken;
@@ -71,7 +84,7 @@ authRouter.post('/refresh', authRateLimit, async (req: Request, res: Response) =
 });
 
 // Login endpoint
-authRouter.post('/login', authRateLimit, recordLoginAttempt, async (req: AuthenticatedRequest, res: Response) => {
+authRouter.post('/login', loginRateLimit, recordLoginAttempt, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const loginSchema = z.object({
       email: z.string().email(),
@@ -105,7 +118,7 @@ authRouter.post('/login', authRateLimit, recordLoginAttempt, async (req: Authent
 });
 
 // Register endpoint
-authRouter.post('/register', authRateLimit, recordLoginAttempt, async (req, res) => {
+authRouter.post('/register', loginRateLimit, recordLoginAttempt, async (req, res) => {
   try {
     const registerSchema = z.object({
       email: z.string().email(),

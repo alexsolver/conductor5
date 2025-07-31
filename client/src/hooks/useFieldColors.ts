@@ -20,7 +20,7 @@ let globalColorsReady = false;
 
 export const useFieldColors = () => {
   const [isColorsReady, setIsColorsReady] = useState(globalColorsReady);
-  
+
   const { data: fieldOptionsData, isLoading, error, isFetched } = useQuery<FieldColorsResponse>({
     queryKey: ['fieldColors'],
     queryFn: async () => {
@@ -46,7 +46,7 @@ export const useFieldColors = () => {
       }
 
       const result = await response.json();
-      
+
       // Atualizar cache global
       if (result.success && result.data) {
         globalColorsCache = result.data;
@@ -70,7 +70,7 @@ export const useFieldColors = () => {
         globalColorsReady = true;
         console.log('🎨 Field colors loaded and cached globally:', fieldOptionsData.data.length, 'options');
       }
-      
+
       if (!isColorsReady) {
         setIsColorsReady(true);
         console.log('🎨 Field colors ready state updated');
@@ -82,19 +82,19 @@ export const useFieldColors = () => {
   const colorsMap = useMemo(() => {
     const map = new Map<string, string>();
     const data = fieldOptionsData?.data || globalColorsCache || [];
-    
+
     data.forEach((opt: FieldOption) => {
       const key = `${opt.field_name}:${opt.value}`;
       map.set(key, opt.color);
     });
-    
+
     return map;
   }, [fieldOptionsData]);
 
   // Função para buscar cor de um campo específico
   const getFieldColor = (fieldName: string, value: string): string | undefined => {
     if (!value) return getDefaultColor(fieldName, value);
-    
+
     // Debug para categoria e status
     if (fieldName === 'category') {
       console.log(`🎨 Getting color for category:`, {
@@ -104,7 +104,7 @@ export const useFieldColors = () => {
         totalColors: colorsMap.size
       });
     }
-    
+
     if (fieldName === 'status') {
       console.log(`🎨 Getting color for status:`, {
         fieldName,
@@ -113,7 +113,7 @@ export const useFieldColors = () => {
         totalColors: colorsMap.size
       });
     }
-    
+
     // Usar cache memoizado primeiro
     const directKey = `${fieldName}:${value}`;
     if (colorsMap.has(directKey)) {
@@ -137,7 +137,7 @@ export const useFieldColors = () => {
         'closed': 'fechado',
         'cancelled': 'cancelado'
       };
-      
+
       const mappedValue = statusReverseMap[value] || value;
       const mappedKey = `${fieldName}:${mappedValue}`;
       if (colorsMap.has(mappedKey)) {
@@ -153,7 +153,7 @@ export const useFieldColors = () => {
         'medium': 'medium',
         'low': 'low'
       };
-      
+
       const mappedValue = priorityReverseMap[value] || value;
       const mappedKey = `${fieldName}:${mappedValue}`;
       if (colorsMap.has(mappedKey)) {
@@ -221,15 +221,15 @@ export const useFieldColors = () => {
     };
 
     const color = defaultColors[fieldName]?.[value] || '#6B7280';
-    
+
     if (fieldName === 'category') {
       console.log(`🎨 Using default color for category ${value}:`, color);
     }
-    
+
     if (fieldName === 'status') {
       console.log(`🎨 Using default color for status ${value}:`, color);
     }
-    
+
     return color;
   };
 
@@ -237,19 +237,19 @@ export const useFieldColors = () => {
   const labelsMap = useMemo(() => {
     const map = new Map<string, string>();
     const data = fieldOptionsData?.data || globalColorsCache || [];
-    
+
     data.forEach((opt: FieldOption) => {
       const key = `${opt.field_name}:${opt.value}`;
       map.set(key, opt.label);
     });
-    
+
     return map;
   }, [fieldOptionsData]);
 
   // Função para buscar label de um campo específico
   const getFieldLabel = (fieldName: string, value: string): string => {
     if (!value) return value;
-    
+
     // Usar cache memoizado primeiro
     const directKey = `${fieldName}:${value}`;
     if (labelsMap.has(directKey)) {
@@ -266,7 +266,7 @@ export const useFieldColors = () => {
         'closed': 'fechado',
         'cancelled': 'cancelado'
       };
-      
+
       const mappedValue = statusReverseMap[value] || value;
       const mappedKey = `${fieldName}:${mappedValue}`;
       if (labelsMap.has(mappedKey)) {
@@ -282,7 +282,7 @@ export const useFieldColors = () => {
         'medium': 'medium', 
         'low': 'low'
       };
-      
+
       const mappedValue = priorityReverseMap[value] || value;
       const mappedKey = `${fieldName}:${mappedValue}`;
       if (labelsMap.has(mappedKey)) {

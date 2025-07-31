@@ -271,13 +271,13 @@ export default function TicketsTable() {
   // Funções de mapeamento - simplificadas para usar o hook diretamente
   const mapStatusValue = (value: string): string => {
     if (!value || value === null || value === 'null' || value === '') return 'novo';
-    
+
     // Se o valor já está no formato correto do banco, retorne diretamente
     const validStatuses = ['novo', 'aberto', 'em_andamento', 'resolvido', 'fechado'];
     if (validStatuses.includes(value.toLowerCase())) {
       return value.toLowerCase();
     }
-    
+
     // Caso contrário, use o mapeamento
     const mapped = statusMapping[value.toLowerCase()] || 'novo';
     return mapped;
@@ -303,13 +303,13 @@ export default function TicketsTable() {
     if (!value || value === null || value === 'null' || value === '' || typeof value !== 'string') {
       return 'suporte_tecnico'; // Use uma categoria que existe no sistema
     }
-    
+
     // Se o valor já está no formato correto do banco, retorne diretamente
     const validCategories = ['infraestrutura', 'suporte_tecnico', 'atendimento_cliente', 'financeiro'];
     if (validCategories.includes(value.toLowerCase())) {
       return value.toLowerCase();
     }
-    
+
     // Caso contrário, use o mapeamento
     const mapped = categoryMapping[value.toLowerCase()] || 'suporte_tecnico';
     return mapped;
@@ -810,7 +810,8 @@ export default function TicketsTable() {
       case 'resolution_time':
         return (
           <TableCell>
-            {(ticket as any).resolutionTime || '-'}
+            {(ticket as any).<replit_final_file>
+resolutionTime || '-'}
           </TableCell>
         );
       case 'sla_status':
@@ -2641,3 +2642,19 @@ export default function TicketsTable() {
     </div>
   );
 }
+
+// Adicionar auto-refresh dos relacionamentos a cada 30 segundos (reduzido para evitar rate limiting)
+  useEffect(() => {
+    if (!tickets?.length) return;
+
+    const interval = setInterval(() => {
+      console.log('🔄 Auto-refreshing ticket relationships...');
+      tickets.forEach(ticket => {
+        queryClient.invalidateQueries({
+          queryKey: [`/api/tickets/${ticket.id}/relationships`]
+        });
+      });
+    }, 30000); // 30 segundos para evitar rate limiting
+
+    return () => clearInterval(interval);
+  }, [tickets, queryClient]);
