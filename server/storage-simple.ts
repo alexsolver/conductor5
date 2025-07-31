@@ -388,14 +388,16 @@ export class DatabaseStorage implements IStorage {
           customers.first_name as customer_first_name,
           customers.last_name as customer_last_name,
           customers.email as customer_email,
-          customers.company as customer_company_name,
+          customer_comp.name as customer_company_name,
           caller.first_name as caller_first_name,
           caller.last_name as caller_last_name,
           caller.email as caller_email,
-          caller.company as caller_company_name
+          caller_comp.name as caller_company_name
         FROM ${sql.identifier(schemaName)}.tickets
         LEFT JOIN ${sql.identifier(schemaName)}.customers ON tickets.customer_id = customers.id
         LEFT JOIN ${sql.identifier(schemaName)}.customers caller ON tickets.caller_id = caller.id
+        LEFT JOIN ${sql.identifier(schemaName)}.customer_companies customer_comp ON customers.company = customer_comp.id
+        LEFT JOIN ${sql.identifier(schemaName)}.customer_companies caller_comp ON caller.company = caller_comp.id
         WHERE tickets.tenant_id = ${validatedTenantId}
       `;
 
@@ -428,9 +430,17 @@ export class DatabaseStorage implements IStorage {
           tickets.*,
           customers.first_name as customer_first_name,
           customers.last_name as customer_last_name,
-          customers.email as customer_email
+          customers.email as customer_email,
+          customer_comp.name as customer_company_name,
+          caller.first_name as caller_first_name,
+          caller.last_name as caller_last_name,
+          caller.email as caller_email,
+          caller_comp.name as caller_company_name
         FROM ${sql.identifier(schemaName)}.tickets
         LEFT JOIN ${sql.identifier(schemaName)}.customers ON tickets.customer_id = customers.id
+        LEFT JOIN ${sql.identifier(schemaName)}.customers caller ON tickets.caller_id = caller.id
+        LEFT JOIN ${sql.identifier(schemaName)}.customer_companies customer_comp ON customers.company = customer_comp.id
+        LEFT JOIN ${sql.identifier(schemaName)}.customer_companies caller_comp ON caller.company = caller_comp.id
         WHERE tickets.id = ${ticketId} AND tickets.tenant_id = ${validatedTenantId}
         LIMIT 1
       `);
