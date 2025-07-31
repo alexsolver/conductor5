@@ -2405,7 +2405,13 @@ export default function TicketDetails() {
                   <Button 
                     variant="default" 
                     size="sm" 
-                    onClick={form.handleSubmit(onSubmit as any)}
+                    onClick={() => {
+                      console.log("💾 Botão Salvar clicado!");
+                      console.log("📋 Form valid:", form.formState.isValid);
+                      console.log("❌ Form errors:", form.formState.errors);
+                      console.log("📝 Form values:", form.getValues());
+                      form.handleSubmit(onSubmit as any)();
+                    }}
                     disabled={updateTicketMutation.isPending}
                   >
                     <Save className="h-4 w-4 mr-2" />
