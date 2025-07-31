@@ -536,6 +536,7 @@ export default function TicketsTable() {
         
         await Promise.all(relationshipChecks);
         console.log(`🎯 Final tickets with relationships:`, Array.from(ticketsWithRels));
+        console.log(`🎯 Total tickets checked: ${tickets.length}, with relationships: ${ticketsWithRels.size}`);
         setTicketsWithRelationships(ticketsWithRels);
       };
       
