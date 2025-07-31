@@ -1796,14 +1796,18 @@ export default function TicketDetails() {
                   // Obter ícone e cor baseado no tipo de relacionamento
                   const getRelationshipIcon = (type: string) => {
                     switch (type) {
-                      case 'parent_child':
-                        return <ArrowDown className="h-4 w-4 text-blue-600" />;
                       case 'related':
                         return <Link2 className="h-4 w-4 text-gray-600" />;
-                      case 'blocks':
-                        return <ArrowUp className="h-4 w-4 text-red-600" />;
                       case 'duplicates':
                         return <Copy className="h-4 w-4 text-orange-600" />;
+                      case 'blocks':
+                        return <AlertTriangle className="h-4 w-4 text-red-600" />;
+                      case 'caused_by':
+                        return <ArrowDown className="h-4 w-4 text-purple-600" />;
+                      case 'parent_child':
+                        return <Activity className="h-4 w-4 text-blue-600" />;
+                      case 'follows':
+                        return <Users className="h-4 w-4 text-green-600" />;
                       default:
                         return <Link2 className="h-4 w-4 text-gray-600" />;
                     }
@@ -1811,14 +1815,18 @@ export default function TicketDetails() {
 
                   const getRelationshipLabel = (type: string) => {
                     switch (type) {
-                      case 'parent_child':
-                        return 'Ticket filho';
                       case 'related':
                         return 'Relacionado';
+                      case 'duplicates':
+                        return 'Duplicado';
                       case 'blocks':
                         return 'Bloqueia';
-                      case 'duplicates':
-                        return 'Duplicata';
+                      case 'caused_by':
+                        return 'Causado por';
+                      case 'parent_child':
+                        return 'Pai/Filho';
+                      case 'follows':
+                        return 'Segue';
                       default:
                         return 'Vinculado';
                     }
@@ -1826,14 +1834,18 @@ export default function TicketDetails() {
 
                   const getBorderColor = (type: string) => {
                     switch (type) {
-                      case 'parent_child':
-                        return 'border-l-blue-500';
                       case 'related':
                         return 'border-l-gray-500';
-                      case 'blocks':
-                        return 'border-l-red-500';
                       case 'duplicates':
                         return 'border-l-orange-500';
+                      case 'blocks':
+                        return 'border-l-red-500';
+                      case 'caused_by':
+                        return 'border-l-purple-500';
+                      case 'parent_child':
+                        return 'border-l-blue-500';
+                      case 'follows':
+                        return 'border-l-green-500';
                       default:
                         return 'border-l-gray-500';
                     }

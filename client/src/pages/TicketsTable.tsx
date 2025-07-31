@@ -18,7 +18,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Plus, Filter, Search, MoreHorizontal, Edit, Trash2, Eye, ChevronLeft, ChevronRight, Settings, GripVertical, X, Undo, Redo, Bold, Italic, List, ListOrdered, ArrowLeft, Quote, Code, Heading1, Heading2, Heading3, Strikethrough, ChevronDown, ChevronUp, Link2, ArrowUpRight, ArrowDownRight, CornerDownRight } from "lucide-react";
+import { Plus, Filter, Search, MoreHorizontal, Edit, Trash2, Eye, ChevronLeft, ChevronRight, Settings, GripVertical, X, Undo, Redo, Bold, Italic, List, ListOrdered, ArrowLeft, Quote, Code, Heading1, Heading2, Heading3, Strikethrough, ChevronDown, ChevronUp, Link2, ArrowUpRight, ArrowDownRight, CornerDownRight, Copy, AlertTriangle, ArrowRight, GitBranch, Users } from "lucide-react";
 import { DynamicSelect } from "@/components/DynamicSelect";
 import { DynamicBadge } from "@/components/DynamicBadge";
 import { PersonSelector } from "@/components/PersonSelector";
@@ -399,14 +399,18 @@ export default function TicketsTable() {
   // Função para obter o ícone do tipo de relacionamento
   const getRelationshipIcon = (type: string) => {
     switch (type) {
-      case 'parent_child':
-        return <CornerDownRight className="h-4 w-4 text-blue-500" />;
       case 'related':
         return <Link2 className="h-4 w-4 text-gray-500" />;
-      case 'blocks':
-        return <ArrowUpRight className="h-4 w-4 text-red-500" />;
       case 'duplicates':
-        return <ArrowDownRight className="h-4 w-4 text-orange-500" />;
+        return <Copy className="h-4 w-4 text-orange-500" />;
+      case 'blocks':
+        return <AlertTriangle className="h-4 w-4 text-red-500" />;
+      case 'caused_by':
+        return <ArrowRight className="h-4 w-4 text-purple-500" />;
+      case 'parent_child':
+        return <GitBranch className="h-4 w-4 text-blue-500" />;
+      case 'follows':
+        return <Users className="h-4 w-4 text-green-500" />;
       default:
         return <Link2 className="h-4 w-4 text-gray-500" />;
     }
@@ -415,14 +419,18 @@ export default function TicketsTable() {
   // Função para obter o rótulo do tipo de relacionamento
   const getRelationshipLabel = (type: string) => {
     switch (type) {
-      case 'parent_child':
-        return 'Ticket filho';
       case 'related':
         return 'Relacionado';
+      case 'duplicates':
+        return 'Duplicado';
       case 'blocks':
         return 'Bloqueia';
-      case 'duplicates':
-        return 'Duplicata';
+      case 'caused_by':
+        return 'Causado por';
+      case 'parent_child':
+        return 'Pai/Filho';
+      case 'follows':
+        return 'Segue';
       default:
         return 'Vinculado';
     }
