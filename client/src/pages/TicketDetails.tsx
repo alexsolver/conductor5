@@ -738,10 +738,19 @@ export default function TicketDetails() {
   // Update mutation
   const updateTicketMutation = useMutation({
     mutationFn: async (data: TicketFormData) => {
+      console.log("🚀 Mutation started, sending PUT request to:", `/api/tickets/${id}`);
+      console.log("📤 Request payload:", data);
+      
       const response = await apiRequest("PUT", `/api/tickets/${id}`, data);
-      return response.json();
+      console.log("📥 Response status:", response.status);
+      
+      const result = await response.json();
+      console.log("📥 Response data:", result);
+      
+      return result;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("✅ Mutation success:", data);
       toast({
         title: "Sucesso",
         description: "Ticket atualizado com sucesso",
@@ -750,7 +759,8 @@ export default function TicketDetails() {
       queryClient.invalidateQueries({ queryKey: ["/api/tickets"] });
       setIsEditMode(false);
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("❌ Mutation error:", error);
       toast({
         title: "Erro",
         description: "Erro ao atualizar ticket",
@@ -783,6 +793,8 @@ export default function TicketDetails() {
 
   // PROBLEMA 3 RESOLVIDO: Mapeamento completo frontend-backend
   const onSubmit = (data: TicketFormData) => {
+    console.log("💾 onSubmit called with data:", data);
+    
     const mappedData = {
       // Core fields - direto sem mapeamento
       subject: data.subject,
@@ -833,6 +845,7 @@ export default function TicketDetails() {
       link_comment: data.linkComment,
     };
 
+    console.log("💾 Sending mapped data to API:", mappedData);
     updateTicketMutation.mutate(mappedData);
   };
 
