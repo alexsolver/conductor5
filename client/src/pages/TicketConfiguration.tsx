@@ -598,16 +598,17 @@ const TicketConfiguration: React.FC = () => {
         sortOrder: item?.sortOrder || 1
       });
     } else if (type === 'field-option') {
+      // Handle both normalized (from frontend mapping) and raw database format
       fieldOptionForm.reset({
-        fieldName: item?.fieldName || '',
+        fieldName: item?.fieldName || item?.field_name || '',
         value: item?.value || '',
-        displayLabel: item?.displayLabel || '',
+        displayLabel: item?.displayLabel || item?.label || '',
         color: item?.color || '#3b82f6',
         icon: item?.icon || '',
-        isDefault: item?.isDefault || false,
-        active: item?.active !== undefined ? item.active : true,
-        sortOrder: item?.sortOrder || 1,
-        statusType: item?.statusType || undefined
+        isDefault: item?.isDefault || item?.is_default || false,
+        active: item?.active !== undefined ? item.active : (item?.is_active !== undefined ? item.is_active : true),
+        sortOrder: item?.sortOrder || item?.sort_order || 1,
+        statusType: item?.statusType || item?.status_type || undefined
       });
     }
 

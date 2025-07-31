@@ -537,6 +537,7 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => 
         sort_order,
         is_active,
         is_default,
+        status_type,
         created_at,
         updated_at
       FROM "${sql.raw(schemaName)}".ticket_field_options 
@@ -560,6 +561,7 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => 
           sort_order,
           is_active,
           is_default,
+          status_type,
           created_at,
           updated_at
         FROM "${sql.raw(schemaName)}".ticket_field_options 
@@ -722,11 +724,11 @@ router.post('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) =>
     const insertResult = await db.execute(sql`
       INSERT INTO "${sql.raw(schemaName)}"."ticket_field_options" (
         id, tenant_id, customer_id, field_name, value, label, 
-        color, sort_order, is_default, is_active, created_at, updated_at
+        color, sort_order, is_default, is_active, status_type, created_at, updated_at
       ) VALUES (
         ${optionId}, ${tenantId}, ${companyId}, ${fieldName}, ${value}, ${displayLabel}, 
         ${color || '#3b82f6'}, ${sortOrder || 1}, ${isDefault || false}, 
-        ${active !== false}, NOW(), NOW()
+        ${active !== false}, ${statusType || null}, NOW(), NOW()
       )
       RETURNING *
     `);
@@ -958,6 +960,7 @@ router.put('/field-options/:id', jwtAuth, async (req: AuthenticatedRequest, res)
         sort_order = ${sortOrder || 1},
         is_default = ${isDefault || false},
         is_active = ${active !== false},
+        status_type = ${statusType || null},
         updated_at = NOW()
       WHERE id = ${optionId} AND tenant_id = ${tenantId}
       RETURNING *
