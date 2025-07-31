@@ -18,6 +18,7 @@ import { useToast } from '@/hooks/use-toast';
 import { CustomerLocationManager } from './CustomerLocationManager';
 import { LocationModal } from './LocationModal';
 import DynamicCustomFields from '@/components/DynamicCustomFields';
+import { useCompanyFilter } from '@/hooks/useCompanyFilter';
 
 const customerSchema = z.object({
   // Tipo e status
@@ -172,18 +173,19 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
       refetchOnMount: true,
     });
 
-    // Parse available companies - API returns direct array and sort Default first
-    const availableCompanies = (() => {
-      const companiesList = Array.isArray(availableCompaniesData) ? availableCompaniesData : [];
-      return companiesList.sort((a: any, b: any) => {
-        const aIsDefault = a.name?.toLowerCase().includes('default') || a.displayName?.toLowerCase().includes('default');
-        const bIsDefault = b.name?.toLowerCase().includes('default') || b.displayName?.toLowerCase().includes('default');
+    // Parse available companies and filter Default if inactive
+    const rawCompanies = Array.isArray(availableCompaniesData) ? availableCompaniesData : [];
+    const { filteredCompanies } = useCompanyFilter(rawCompanies);
+    
+    // Sort filtered companies to put Default first (if it's active)
+    const availableCompanies = filteredCompanies.sort((a: any, b: any) => {
+      const aIsDefault = a.name?.toLowerCase().includes('default') || a.displayName?.toLowerCase().includes('default');
+      const bIsDefault = b.name?.toLowerCase().includes('default') || b.displayName?.toLowerCase().includes('default');
 
-        if (aIsDefault && !bIsDefault) return -1;
-        if (!aIsDefault && bIsDefault) return 1;
-        return (a.name || a.displayName || '').localeCompare(b.name || b.displayName || '');
-      });
-    })();
+      if (aIsDefault && !bIsDefault) return -1;
+      if (!aIsDefault && bIsDefault) return 1;
+      return (a.name || a.displayName || '').localeCompare(b.name || b.displayName || '');
+    });
 
     if (availableCompaniesError) {
       console.error('Available companies error:', availableCompaniesError);

@@ -20,6 +20,7 @@ import { DynamicSelect } from "@/components/DynamicSelect";
 import { DynamicBadge } from "@/components/DynamicBadge";
 import { TicketViewSelector } from "@/components/TicketViewSelector";
 import { useLocation } from "wouter";
+import { useCompanyFilter } from "@/hooks/useCompanyFilter";
 
 // Schema for ticket creation
 const createTicketSchema = z.object({
@@ -104,18 +105,19 @@ export default function Tickets() {
   // Extract customers with proper error handling
   const customers = Array.isArray(customersData?.customers) ? customersData.customers : [];
   
-  // Sort companies to put Default first
-  const companies = (() => {
-    const companiesList = Array.isArray(companiesData) ? companiesData : [];
-    return companiesList.sort((a: any, b: any) => {
-      const aIsDefault = a.name?.toLowerCase().includes('default') || a.displayName?.toLowerCase().includes('default');
-      const bIsDefault = b.name?.toLowerCase().includes('default') || b.displayName?.toLowerCase().includes('default');
+  // Get raw companies and apply filtering (removes Default if inactive)
+  const rawCompanies = Array.isArray(companiesData) ? companiesData : [];
+  const { filteredCompanies } = useCompanyFilter(rawCompanies);
+  
+  // Sort filtered companies to put Default first (if it's active)
+  const companies = filteredCompanies.sort((a: any, b: any) => {
+    const aIsDefault = a.name?.toLowerCase().includes('default') || a.displayName?.toLowerCase().includes('default');
+    const bIsDefault = b.name?.toLowerCase().includes('default') || b.displayName?.toLowerCase().includes('default');
 
-      if (aIsDefault && !bIsDefault) return -1;
-      if (!aIsDefault && bIsDefault) return 1;
-      return (a.name || a.displayName || '').localeCompare(b.name || b.displayName || '');
-    });
-  })();
+    if (aIsDefault && !bIsDefault) return -1;
+    if (!aIsDefault && bIsDefault) return 1;
+    return (a.name || a.displayName || '').localeCompare(b.name || b.displayName || '');
+  });
   
   const users = (usersData as any)?.users || [];
 
