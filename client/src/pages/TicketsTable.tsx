@@ -461,7 +461,7 @@ export default function TicketsTable() {
         const categoryValue = mapCategoryValue((ticket as any).category);
         const categoryColor = getFieldColor('category', categoryValue);
         const categoryLabel = getFieldLabel('category', categoryValue);
-        
+
         console.log('🔍 Category Debug:', {
           originalValue: (ticket as any).category,
           mappedValue: categoryValue,
@@ -469,7 +469,7 @@ export default function TicketsTable() {
           label: categoryLabel,
           ticketNumber: (ticket as any).number
         });
-        
+
         return (
           <TableCell className="overflow-hidden" style={cellStyle}>
             <DynamicBadge 
@@ -642,110 +642,7 @@ export default function TicketsTable() {
             {(ticket as any).satisfaction ? `${(ticket as any).satisfaction}/5` : '-'}
           </TableCell>
         );
-      case 'description':
-        return (
-          <TableCell className="overflow-hidden" style={cellStyle}>
-            <div className="truncate" title={ticket.description?.replace(/<[^>]*>/g, '') || '-'}>
-              {ticket.description?.substring(0, 100).replace(/<[^>]*>/g, '') || '-'}
-            </div>
-          </TableCell>
-        );
-      case 'subcategory':
-        return (
-          <TableCell className="overflow-hidden" style={cellStyle}>
-            <div className="truncate" title={(ticket as any).subcategory || '-'}>
-              {(ticket as any).subcategory || '-'}
-            </div>
-          </TableCell>
-        );
-      case 'urgency':
-        return (
-          <TableCell className="overflow-hidden" style={cellStyle}>
-            <DynamicBadge 
-              fieldName="urgency" 
-              value={mapUrgencyValue((ticket as any).urgency)}
-              colorHex={getFieldColor('urgency', mapUrgencyValue((ticket as any).urgency))}
-            >
-              {getFieldLabel('urgency', mapUrgencyValue((ticket as any).urgency))}
-            </DynamicBadge>
-          </TableCell>
-        );
-      case 'created_by':
-        return (
-          <TableCell className="overflow-hidden" style={cellStyle}>
-            <div className="truncate" title={ticket.caller?.fullName || 'N/A'}>
-              {ticket.caller?.fullName || 'N/A'}
-            </div>
-          </TableCell>
-        );
-      case 'updated':
-        return (
-          <TableCell className="overflow-hidden" style={cellStyle}>
-            <div className="truncate">
-              {new Date(ticket.updatedAt).toLocaleDateString()}
-            </div>
-          </TableCell>
-        );
-      case 'due_date':
-        return (
-          <TableCell className="overflow-hidden" style={cellStyle}>
-            <div className="truncate">
-              {(ticket as any).dueDate ? new Date((ticket as any).dueDate).toLocaleDateString() : '-'}
-            </div>
-          </TableCell>
-        );
-      case 'resolution_time':
-        return (
-          <TableCell className="overflow-hidden" style={cellStyle}>
-            <div className="truncate" title={(ticket as any).resolutionTime || '-'}>
-              {(ticket as any).resolutionTime || '-'}
-            </div>
-          </TableCell>
-        );
-      case 'sla_status':
-        return (
-          <TableCell className="overflow-hidden" style={cellStyle}>
-            <DynamicBadge 
-              fieldName="sla_status" 
-              value={(ticket as any).slaStatus || 'on_track'}
-              colorHex={getFieldColor('sla_status', (ticket as any).slaStatus || 'on_track')}
-            >
-              {getFieldLabel('sla_status', (ticket as any).slaStatus || 'on_track')}
-            </DynamicBadge>
-          </TableCell>
-        );
-      case 'tags':
-        return (
-          <TableCell className="overflow-hidden" style={cellStyle}>
-            <div className="truncate" title={(ticket as any).tags?.join(', ') || '-'}>
-              {(ticket as any).tags?.join(', ') || '-'}
-            </div>
-          </TableCell>
-        );
-      case 'location':
-        return (
-          <TableCell className="overflow-hidden" style={cellStyle}>
-            <div className="truncate" title={(ticket as any).location || '-'}>
-              {(ticket as any).location || '-'}
-            </div>
-          </TableCell>
-        );
-      case 'source':
-        return (
-          <TableCell className="overflow-hidden" style={cellStyle}>
-            <div className="truncate" title={(ticket as any).source || '-'}>
-              {(ticket as any).source || '-'}
-            </div>
-          </TableCell>
-        );
-      case 'satisfaction':
-        return (
-          <TableCell className="overflow-hidden" style={cellStyle}>
-            <div className="truncate">
-              {(ticket as any).satisfaction ? `${(ticket as any).satisfaction}/5` : '-'}
-            </div>
-          </TableCell>
-        );
+    
       default:
         return (
           <TableCell className="overflow-hidden" style={cellStyle}>
@@ -923,13 +820,13 @@ export default function TicketsTable() {
     e.preventDefault();
     setIsResizing(true);
     setResizingColumn(columnId);
-    
+
     const startX = e.pageX;
     const startWidth = getColumnWidth(columnId);
 
     const handleMouseMove = (e: MouseEvent) => {
       const newWidth = Math.max(80, startWidth + (e.pageX - startX)); // largura mínima de 80px
-      setColumnWidths(prev => ({
+      setColumnWidths(prev=> ({
         ...prev,
         [columnId]: newWidth
       }));
