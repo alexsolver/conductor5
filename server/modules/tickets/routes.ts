@@ -520,7 +520,7 @@ ticketsRouter.get('/:id/actions', jwtAuth, trackInternalActionView, async (req: 
         u.first_name || ' ' || u.last_name as "createdByName"
       FROM "${schemaName}".ticket_actions tact
       LEFT JOIN public.users u ON tact.performed_by = u.id
-      WHERE tact.ticket_id = $1::uuid AND tact.tenant_id = $2::uuid AND tact.is_active = true
+      WHERE tact.tenant_id = $2::uuid AND tact.active = true
       ORDER BY tact.created_at DESC
     `;
 

@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, memo, useEffect } from "react";
+import React, { useState, useMemo, useCallback, memo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -1817,9 +1817,11 @@ export default function TicketsTable() {
                           )}
                         </div>
                       </TableCell>
-                      {visibleColumns.map((column: any) => 
-                        renderCell(column, ticket)
-                      )}
+                      {visibleColumns.map((column: any) => (
+                        <React.Fragment key={`${ticket.id}-${column.id}`}>
+                          {renderCell(column, ticket)}
+                        </React.Fragment>
+                      ))}
                       <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
