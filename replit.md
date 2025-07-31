@@ -11,6 +11,28 @@ Interface preference: Text-based hierarchical menus with dropdowns over visual c
 
 ## Recent Changes
 
+### July 31, 2025 - BUG #10 COMPLETELY RESOLVED ✅ COMPANY AND FOLLOWERS FIELDS 100% FUNCTIONAL WITH POSTGRESQL INTEGRATION
+
+**🎯 PROBLEMA #10 COMPANY/FOLLOWERS FIELDS COMPLETAMENTE RESOLVIDO:**
+
+✅ **FRONTEND STATE MANAGEMENT WORKING:**
+- Campo "Empresa": Captura UUID corretamente (`"503389ff-7616-48e0-8759-c6b98faf5608"`)
+- Campo "Seguidores": Array com múltiplos IDs funcionando (`["ce432692-9b43-4d7a-befb-a9fb1c6a0c0a", "550e8400-e29b-41d4-a716-446655440001"]`)
+- UserMultiSelect onChange calls confirmados nos logs
+- handleCompanyChange callbacks confirmados funcionais
+
+✅ **BACKEND DATABASE INTEGRATION CORRECTED:**
+- Coluna correta identificada: `customer_id` (não customer_company_id)
+- PostgreSQL array handling fixed: NULL em vez de "[]" strings
+- SQL UPDATE statements corrigidos com mapeamento `customerCompanyId → customer_id`
+- Arrays `followers` e `tags` com sintaxe PostgreSQL correta
+
+✅ **TECHNICAL ACHIEVEMENTS:**
+- Frontend-backend field mapping completamente alinhado
+- Estado local (selectedCompany, followers) sincronizando com form values
+- Validação Zod mantida para campos empresa e seguidores
+- Sistema de debug logs implementado para troubleshooting
+
 ### July 31, 2025 - BIDIRECTIONAL TICKET RELATIONSHIPS COMPLETELY FIXED ✅ SQL QUERY LOGIC CORRECTED FOR EXPANSION ARROWS
 
 **🎯 RELACIONAMENTOS BIDIRECIONAIS DE TICKETS COMPLETAMENTE FUNCIONAIS:**
