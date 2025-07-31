@@ -358,18 +358,66 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                             onClick={(e) => e.stopPropagation()}
                           />
                           <div className="flex-1">
-                            <div className="flex items-center space-x-2">
+                            <div className="flex items-center space-x-2 flex-wrap gap-1">
                               <span className="font-medium">#{ticket.number || ticket.ticket_number || `T-${ticket.id.slice(-8)}`}</span>
+                              
+                              {/* Badge de Categoria */}
+                              {(ticket as any).category && (
+                                <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                                  {(ticket as any).category}
+                                </Badge>
+                              )}
+                              
+                              {/* Badge de Status */}
+                              <Badge variant="outline" className={`text-xs ${
+                                ticket.status === 'new' ? 'bg-gray-50 text-gray-700 border-gray-200' :
+                                ticket.status === 'open' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                                ticket.status === 'in_progress' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
+                                ticket.status === 'resolved' ? 'bg-green-50 text-green-700 border-green-200' :
+                                ticket.status === 'closed' ? 'bg-gray-50 text-gray-700 border-gray-200' :
+                                'bg-gray-50 text-gray-700 border-gray-200'
+                              }`}>
+                                {ticket.status === 'new' ? 'Novo' :
+                                 ticket.status === 'open' ? 'Aberto' :
+                                 ticket.status === 'in_progress' ? 'Em Andamento' :
+                                 ticket.status === 'resolved' ? 'Resolvido' :
+                                 ticket.status === 'closed' ? 'Fechado' :
+                                 ticket.status}
+                              </Badge>
+                              
+                              {/* Badge de Prioridade */}
                               <Badge variant={
                                 ticket.priority === 'critical' ? 'destructive' :
                                 ticket.priority === 'high' ? 'default' :
                                 'secondary'
-                              }>
-                                {ticket.priority}
+                              } className={`text-xs ${
+                                ticket.priority === 'critical' ? 'bg-red-600 text-white' :
+                                ticket.priority === 'high' ? 'bg-orange-500 text-white' :
+                                ticket.priority === 'medium' ? 'bg-yellow-500 text-white' :
+                                ticket.priority === 'low' ? 'bg-green-500 text-white' :
+                                'bg-gray-500 text-white'
+                              }`}>
+                                {ticket.priority === 'critical' ? 'Crítica' :
+                                 ticket.priority === 'high' ? 'Alta' :
+                                 ticket.priority === 'medium' ? 'Média' :
+                                 ticket.priority === 'low' ? 'Baixa' :
+                                 ticket.priority}
                               </Badge>
-                              <Badge variant="outline">
-                                {ticket.status}
-                              </Badge>
+                              
+                              {/* Badge de Urgência */}
+                              {(ticket as any).urgency && (
+                                <Badge variant="outline" className={`text-xs ${
+                                  (ticket as any).urgency === 'high' ? 'bg-red-50 text-red-700 border-red-200' :
+                                  (ticket as any).urgency === 'medium' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
+                                  (ticket as any).urgency === 'low' ? 'bg-green-50 text-green-700 border-green-200' :
+                                  'bg-gray-50 text-gray-700 border-gray-200'
+                                }`}>
+                                  {(ticket as any).urgency === 'high' ? 'Urgência Alta' :
+                                   (ticket as any).urgency === 'medium' ? 'Urgência Média' :
+                                   (ticket as any).urgency === 'low' ? 'Urgência Baixa' :
+                                   `Urgência: ${(ticket as any).urgency}`}
+                                </Badge>
+                              )}
                             </div>
                             <div className="text-sm text-gray-600 dark:text-gray-400 mt-1 truncate">
                               {ticket.subject || "Sem assunto"}
@@ -390,16 +438,76 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
               {selectedTickets.length > 0 && (
                 <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                   <h4 className="font-medium mb-2">Tickets Selecionados ({selectedTickets.length})</h4>
-                  <div className="space-y-1">
+                  <div className="space-y-2">
                     {selectedTickets.map(ticket => (
-                      <div key={ticket.id} className="text-sm flex items-center justify-between">
-                        <span>#{ticket.number || ticket.ticket_number || `T-${ticket.id.slice(-8)}`} - {ticket.subject || "Sem assunto"}</span>
-                        <button
-                          onClick={() => toggleTicketSelection(ticket)}
-                          className="text-red-500 hover:text-red-700 ml-2"
-                        >
-                          ×
-                        </button>
+                      <div key={ticket.id} className="p-2 bg-white rounded border">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="font-medium">#{ticket.number || ticket.ticket_number || `T-${ticket.id.slice(-8)}`}</span>
+                          <button
+                            onClick={() => toggleTicketSelection(ticket)}
+                            className="text-red-500 hover:text-red-700 ml-2 text-lg leading-none"
+                          >
+                            ×
+                          </button>
+                        </div>
+                        <div className="flex items-center space-x-1 flex-wrap gap-1 mb-1">
+                          {/* Badge de Categoria */}
+                          {(ticket as any).category && (
+                            <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                              {(ticket as any).category}
+                            </Badge>
+                          )}
+                          
+                          {/* Badge de Status */}
+                          <Badge variant="outline" className={`text-xs ${
+                            ticket.status === 'new' ? 'bg-gray-50 text-gray-700 border-gray-200' :
+                            ticket.status === 'open' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                            ticket.status === 'in_progress' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
+                            ticket.status === 'resolved' ? 'bg-green-50 text-green-700 border-green-200' :
+                            ticket.status === 'closed' ? 'bg-gray-50 text-gray-700 border-gray-200' :
+                            'bg-gray-50 text-gray-700 border-gray-200'
+                          }`}>
+                            {ticket.status === 'new' ? 'Novo' :
+                             ticket.status === 'open' ? 'Aberto' :
+                             ticket.status === 'in_progress' ? 'Em Andamento' :
+                             ticket.status === 'resolved' ? 'Resolvido' :
+                             ticket.status === 'closed' ? 'Fechado' :
+                             ticket.status}
+                          </Badge>
+                          
+                          {/* Badge de Prioridade */}
+                          <Badge className={`text-xs ${
+                            ticket.priority === 'critical' ? 'bg-red-600 text-white' :
+                            ticket.priority === 'high' ? 'bg-orange-500 text-white' :
+                            ticket.priority === 'medium' ? 'bg-yellow-500 text-white' :
+                            ticket.priority === 'low' ? 'bg-green-500 text-white' :
+                            'bg-gray-500 text-white'
+                          }`}>
+                            {ticket.priority === 'critical' ? 'Crítica' :
+                             ticket.priority === 'high' ? 'Alta' :
+                             ticket.priority === 'medium' ? 'Média' :
+                             ticket.priority === 'low' ? 'Baixa' :
+                             ticket.priority}
+                          </Badge>
+                          
+                          {/* Badge de Urgência */}
+                          {(ticket as any).urgency && (
+                            <Badge variant="outline" className={`text-xs ${
+                              (ticket as any).urgency === 'high' ? 'bg-red-50 text-red-700 border-red-200' :
+                              (ticket as any).urgency === 'medium' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
+                              (ticket as any).urgency === 'low' ? 'bg-green-50 text-green-700 border-green-200' :
+                              'bg-gray-50 text-gray-700 border-gray-200'
+                            }`}>
+                              {(ticket as any).urgency === 'high' ? 'Urgência Alta' :
+                               (ticket as any).urgency === 'medium' ? 'Urgência Média' :
+                               (ticket as any).urgency === 'low' ? 'Urgência Baixa' :
+                               `Urgência: ${(ticket as any).urgency}`}
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="text-sm text-gray-600 truncate">
+                          {ticket.subject || "Sem assunto"}
+                        </div>
                       </div>
                     ))}
                   </div>
