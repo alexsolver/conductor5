@@ -545,14 +545,13 @@ export class DatabaseStorage implements IStorage {
           environment = ${ticketData.environment || null},
           caller_type = ${ticketData.caller_type || 'customer'},
           beneficiary_type = ${ticketData.beneficiary_type || 'customer'},
-          customer_id = ${ticketData.customer_company_id || ticketData.customer_id || null},
+          customer_id = ${ticketData.customer_id || null},
+          customer_company_id = ${ticketData.customer_company_id || null},
 
           followers = ${ticketData.followers && Array.isArray(ticketData.followers) && ticketData.followers.length > 0 
             ? ticketData.followers 
             : null},
-          tags = ${ticketData.tags && Array.isArray(ticketData.tags) && ticketData.tags.length > 0 
-            ? ticketData.tags 
-            : null},
+
           updated_at = NOW()
         WHERE id = ${ticketId} AND tenant_id = ${validatedTenantId}
         RETURNING *
