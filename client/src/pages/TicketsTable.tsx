@@ -19,6 +19,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Plus, Filter, Search, MoreHorizontal, Edit, Trash2, Eye, ChevronLeft, ChevronRight, Settings, GripVertical, X, Undo, Redo, Bold, Italic, List, ListOrdered, ArrowLeft, Quote, Code, Heading1, Heading2, Heading3, Strikethrough, ChevronDown, ChevronUp, Link2, ArrowUpRight, ArrowDownRight, CornerDownRight, Copy, AlertTriangle, ArrowRight, GitBranch, Users, AlertCircle } from "lucide-react";
+import { TicketViewSelector } from "@/components/TicketViewSelector";
 import { DynamicSelect } from "@/components/DynamicSelect";
 import { DynamicBadge } from "@/components/DynamicBadge";
 import { PersonSelector } from "@/components/PersonSelector";
@@ -107,16 +108,67 @@ export default function TicketsTable() {
   const [isAdvancedFiltersOpen, setIsAdvancedFiltersOpen] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
-
-  // Estados para expansão de relacionamentos
   const [expandedTickets, setExpandedTickets] = useState<Set<string>>(new Set());
   const [ticketRelationships, setTicketRelationships] = useState<Record<string, any[]>>({});
   const [ticketsWithRelationships, setTicketsWithRelationships] = useState<Set<string>>(new Set());
+  const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
+  const [columnWidths, setColumnWidths] = useState<Record<string, number>>({});
+  const [resizingColumn, setResizingColumn] = useState<string | null>(null);
+  const [currentViewConfig, setCurrentViewConfig] = useState({
+    showTicketNumber: true,
+    showStatus: true,
+    showPriority: true,
+    showAssigned: true,
+    showCustomer: true,
+    showCreated: true,
+    showActions: true
+  });
 
   // Hook para buscar cores dos campos personalizados
   const { getFieldColor, getFieldLabel, isLoading: isFieldColorsLoading } = useFieldColors();
   const queryClient = useQueryClient();
+
+  // Função para buscar relacionamentos de um ticket
+  const fetchTicketRelationships = useCallback(async (ticketId: string) => {
+    if (ticketRelationships[ticketId]) {
+      return; // Já temos os dados
+    }
+    
+    try {
+      const response = await apiRequest("GET", `/api/tickets/${ticketId}/relationships`);
+      const data = await response.json();
+      
+      if (data.success && data.data) {
+        setTicketRelationships(prev => ({
+          ...prev,
+          [ticketId]: data.data
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching ticket relationships:', error);
+    }
+  }, [ticketRelationships]);
+
+  // Função para expandir/contrair ticket
+  const toggleTicketExpansion = useCallback(async (ticketId: string) => {
+    const isExpanded = expandedTickets.has(ticketId);
+    
+    if (isExpanded) {
+      // Contrair
+      setExpandedTickets(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(ticketId);
+        return newSet;
+      });
+    } else {
+      // Expandir - buscar relacionamentos se necessário
+      if (!ticketRelationships[ticketId]) {
+        await fetchTicketRelationships(ticketId);
+      }
+      
+      setExpandedTickets(prev => new Set(prev).add(ticketId));
+    }
+  }, [expandedTickets, ticketRelationships, fetchTicketRelationships]);
 
   // Mapeamento de valores em inglês para português para compatibilidade com configurações
   const statusMapping: Record<string, string> = {
@@ -241,6 +293,32 @@ export default function TicketsTable() {
     });
   }, [tickets, customersMap]);
 
+  // Effect para identificar tickets com relacionamentos
+  useEffect(() => {
+    const checkTicketRelationships = async () => {
+      if (!enrichedTickets?.length) return;
+
+      const ticketsWithRel = new Set<string>();
+      
+      for (const ticket of enrichedTickets.slice(0, 10)) { // Verificar apenas os primeiros 10 para performance
+        try {
+          const response = await apiRequest("GET", `/api/tickets/${ticket.id}/relationships`);
+          const data = await response.json();
+          
+          if (data.success && data.data && data.data.length > 0) {
+            ticketsWithRel.add(ticket.id);
+          }
+        } catch (error) {
+          // Silently continue - this is just for UI enhancement
+        }
+      }
+      
+      setTicketsWithRelationships(ticketsWithRel);
+    };
+
+    checkTicketRelationships();
+  }, [enrichedTickets]);
+
   // Filter tickets based on search and filters
   const filteredTickets = useMemo(() => {
     return enrichedTickets.filter((ticket: any) => {
@@ -325,6 +403,12 @@ export default function TicketsTable() {
         </Button>
       </div>
 
+      {/* Ticket View Selector */}
+      <TicketViewSelector 
+        currentViewId={selectedViewId}
+        onViewChange={setSelectedViewId}
+      />
+
       {/* Search and Filters */}
       <div className="flex gap-4">
         <div className="relative flex-1">
@@ -369,24 +453,75 @@ export default function TicketsTable() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Número</TableHead>
-                <TableHead>Assunto</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Prioridade</TableHead>
-                <TableHead>Categoria</TableHead>
-                <TableHead>Cliente</TableHead>
-                <TableHead>Criado em</TableHead>
-                <TableHead>Ações</TableHead>
+                <TableHead className="w-32 min-w-32 max-w-48 relative group">
+                  <div className="flex items-center justify-between">
+                    <span>Número</span>
+                    <div className="w-1 h-4 bg-transparent group-hover:bg-gray-300 cursor-col-resize"></div>
+                  </div>
+                </TableHead>
+                <TableHead className="min-w-48 relative group">
+                  <div className="flex items-center justify-between">
+                    <span>Assunto</span>
+                    <div className="w-1 h-4 bg-transparent group-hover:bg-gray-300 cursor-col-resize"></div>
+                  </div>
+                </TableHead>
+                <TableHead className="w-28 min-w-28 relative group">
+                  <div className="flex items-center justify-between">
+                    <span>Status</span>
+                    <div className="w-1 h-4 bg-transparent group-hover:bg-gray-300 cursor-col-resize"></div>
+                  </div>
+                </TableHead>
+                <TableHead className="w-32 min-w-32 relative group">
+                  <div className="flex items-center justify-between">
+                    <span>Prioridade</span>
+                    <div className="w-1 h-4 bg-transparent group-hover:bg-gray-300 cursor-col-resize"></div>
+                  </div>
+                </TableHead>
+                <TableHead className="w-36 min-w-36 relative group">
+                  <div className="flex items-center justify-between">
+                    <span>Categoria</span>
+                    <div className="w-1 h-4 bg-transparent group-hover:bg-gray-300 cursor-col-resize"></div>
+                  </div>
+                </TableHead>
+                <TableHead className="min-w-48 relative group">
+                  <div className="flex items-center justify-between">
+                    <span>Cliente</span>
+                    <div className="w-1 h-4 bg-transparent group-hover:bg-gray-300 cursor-col-resize"></div>
+                  </div>
+                </TableHead>
+                <TableHead className="w-32 min-w-32 relative group">
+                  <div className="flex items-center justify-between">
+                    <span>Criado em</span>
+                    <div className="w-1 h-4 bg-transparent group-hover:bg-gray-300 cursor-col-resize"></div>
+                  </div>
+                </TableHead>
+                <TableHead className="w-24 min-w-24">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredTickets.map((ticket: any) => (
                 <TableRow key={ticket.id} className="hover:bg-gray-50">
                   <TableCell className="font-mono text-sm">
-                    <Link href={`/tickets/${ticket.id}`} className="text-blue-600 hover:text-blue-800">
-                      {ticket.number}
-                    </Link>
-                  </TableCell>
+                      <div className="flex items-center gap-2">
+                        {ticketsWithRelationships.has(ticket.id) && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => toggleTicketExpansion(ticket.id)}
+                            className="h-6 w-6 p-0"
+                          >
+                            {expandedTickets.has(ticket.id) ? (
+                              <ChevronDown className="h-4 w-4" />
+                            ) : (
+                              <ChevronRight className="h-4 w-4" />
+                            )}
+                          </Button>
+                        )}
+                        <Link href={`/tickets/${ticket.id}`} className="text-blue-600 hover:text-blue-800">
+                          {ticket.number}
+                        </Link>
+                      </div>
+                    </TableCell>
                   <TableCell>
                     <div className="max-w-xs truncate" title={ticket.subject}>
                       {ticket.subject}
