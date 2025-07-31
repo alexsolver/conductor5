@@ -249,6 +249,11 @@ export default function CustomerCompanies() {
 
   const handleUpdateCompany = (data: any) => {
     if (selectedCompany) {
+      console.log('[FRONTEND] Updating company with data:', {
+        companyId: selectedCompany.id,
+        companyName: selectedCompany.name,
+        formData: data
+      });
       updateCompanyMutation.mutate({ id: selectedCompany.id, data });
     }
   };

@@ -290,7 +290,8 @@ customersRouter.put('/companies/:id', jwtAuth, async (req: AuthenticatedRequest,
     const schemaName = schemaManager.getSchemaName(req.user.tenantId);
 
     console.log(`[UPDATE-COMPANY] Updating company ${id} with data:`, { 
-      name, displayName, industry, size, email, phone, website, subscriptionTier, status 
+      name, displayName, industry, size, email, phone, website, subscriptionTier, status,
+      description, document, address
     });
 
     // Verify company exists first
@@ -327,6 +328,12 @@ customersRouter.put('/companies/:id', jwtAuth, async (req: AuthenticatedRequest,
     const updateDocument = document !== undefined ? document : existingCompany.rows[0].cnpj;
     const updateAddress = address !== undefined ? address : existingCompany.rows[0].address;
 
+    console.log(`[UPDATE-COMPANY] About to execute UPDATE with values:`, {
+      updateName, updateDisplayName, updateDescription, updateIndustry, updateSize,
+      updateEmail, updatePhone, updateWebsite, updateSubscriptionTier, updateStatus,
+      updateDocument, updateAddress, id, tenantId: req.user.tenantId
+    });
+
     const result = await pool.query(`
       UPDATE "${schemaName}".customer_companies 
       SET name = $1, display_name = $2, description = $3, industry = $4, size = $5, 
@@ -339,6 +346,9 @@ customersRouter.put('/companies/:id', jwtAuth, async (req: AuthenticatedRequest,
       updateEmail, updatePhone, updateWebsite, updateSubscriptionTier, updateStatus,
       updateDocument, updateAddress, id, req.user.tenantId
     ]);
+
+    console.log(`[UPDATE-COMPANY] Query executed, affected rows:`, result.rowCount);
+    console.log(`[UPDATE-COMPANY] Returned data:`, result.rows[0]);
 
     console.log(`[UPDATE-COMPANY] Company updated successfully:`, {
       id: result.rows[0].id,
