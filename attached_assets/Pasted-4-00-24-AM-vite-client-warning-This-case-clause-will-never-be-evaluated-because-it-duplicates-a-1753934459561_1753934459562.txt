@@ -1,0 +1,66 @@
+4:00:24 AM [vite] (client) warning: This case clause will never be evaluated because it duplicates an earlier case clause
+662|            </TableCell>);
+663|  
+664|        case 'description':
+   |             ^
+665|          return (
+666|            <TableCell data-replit-metadata="client/src/pages/TicketsTable.tsx:666:10" data-component-name="TableCell" className="overflow-hidden" style={cellStyle}>
+
+  Plugin: vite:esbuild
+  File: /home/runner/workspace/client/src/pages/TicketsTable.tsx
+
+
+
+
+4:00:24 AM [vite] (client) warning: This case clause will never be evaluated because it duplicates an earlier case clause
+670|            </TableCell>);
+671|  
+672|        case 'subcategory':
+   |             ^
+673|          return (
+674|            <TableCell data-replit-metadata="client/src/pages/TicketsTable.tsx:674:10" data-component-name="TableCell" className="overflow-hidden" style={cellStyle}>
+
+  Plugin: vite:esbuild
+  File: /home/runner/workspace/client/src/pages/TicketsTable.tsx
+
+
+
+
+4:00:24 AM [vite] (client) warning: This case clause will never be evaluated because it duplicates an earlier case clause
+678|            </TableCell>);
+679|  
+680|        case 'urgency':
+   |             ^
+681|          return (
+682|            <TableCell data-replit-metadata="client/src/pages/TicketsTable.tsx:682:10" data-component-name="TableCell" className="overflow-hidden" style={cellStyle}>
+
+  Plugin: vite:esbuild
+  File: /home/runner/workspace/client/src/pages/TicketsTable.tsx
+
+
+
+
+4:00:24 AM [vite] (client) warning: This case clause will never be evaluated because it duplicates an earlier case clause
+690|            </TableCell>);
+691|  
+692|        case 'created_by':
+   |             ^
+693|          return (
+694|            <TableCell data-replit-metadata="client/src/pages/TicketsTable.tsx:694:10" data-component-name="TableCell" className="overflow-hidden" style={cellStyle}>
+
+  Plugin: vite:esbuild
+  File: /home/runner/workspace/client/src/pages/TicketsTable.tsx
+
+
+
+
+4:00:24 AM [vite] (client) warning: This case clause will never be evaluated because it duplicates an earlier case clause
+698|            </TableCell>);
+699|  
+700|        case 'updated':
+   |             ^
+701|          return (
+702|            <TableCell data-replit-metadata="client/src/pages/TicketsTable.tsx:702:10" data-component-name="TableCell" className="overflow-hidden" style={cellStyle}>
+
+  Plugin: vite:esbuild
+  File: /home/runner/workspace/client/src/pages/TicketsTable.tsx
