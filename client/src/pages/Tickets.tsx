@@ -35,6 +35,35 @@ export default function Tickets() {
   const [, navigate] = useLocation();
   const { getFieldColor, getFieldLabel } = useFieldColors();
 
+  // Mapeamento de valores em inglês para português para compatibilidade com configurações
+  const statusMapping: Record<string, string> = {
+    'new': 'novo',
+    'open': 'aberto', 
+    'in_progress': 'em_andamento',
+    'in progress': 'em_andamento',
+    'resolved': 'resolvido',
+    'closed': 'fechado',
+    'cancelled': 'cancelado'
+  };
+
+  const priorityMapping: Record<string, string> = {
+    'low': 'low',
+    'medium': 'medium', 
+    'high': 'high',
+    'critical': 'critical'
+  };
+
+  // Funções de mapeamento
+  const mapStatusValue = (value: string): string => {
+    if (!value) return 'novo';
+    return statusMapping[value.toLowerCase()] || value;
+  };
+
+  const mapPriorityValue = (value: string): string => {
+    if (!value) return 'medium';
+    return priorityMapping[value.toLowerCase()] || value;
+  };
+
   // Force token setup - DEBUG ONLY
   useEffect(() => {
     const checkAndSetToken = async () => {
@@ -808,17 +837,17 @@ export default function Tickets() {
                     </h3>
                     <DynamicBadge 
                       fieldName="priority" 
-                      value={ticket.priority || 'medium'}
-                      colorHex={getFieldColor('priority', ticket.priority || 'medium')}
+                      value={mapPriorityValue(ticket.priority)}
+                      colorHex={getFieldColor('priority', mapPriorityValue(ticket.priority))}
                     >
-                      {getFieldLabel('priority', ticket.priority || 'medium')}
+                      {getFieldLabel('priority', mapPriorityValue(ticket.priority))}
                     </DynamicBadge>
                     <DynamicBadge 
                       fieldName="status" 
-                      value={ticket.status || 'new'}
-                      colorHex={getFieldColor('status', ticket.status || 'new')}
+                      value={mapStatusValue(ticket.status)}
+                      colorHex={getFieldColor('status', mapStatusValue(ticket.status))}
                     >
-                      {getFieldLabel('status', ticket.status || 'new')}
+                      {getFieldLabel('status', mapStatusValue(ticket.status))}
                     </DynamicBadge>
                   </div>
                   <p className="text-gray-600 dark:text-gray-400 mb-3">

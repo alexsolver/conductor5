@@ -217,6 +217,72 @@ export default function TicketsTable() {
   // Hook para buscar cores dos campos personalizados
   const { getFieldColor, getFieldLabel } = useFieldColors();
 
+  // Mapeamento de valores em inglês para português para compatibilidade com configurações
+  const statusMapping: Record<string, string> = {
+    'new': 'novo',
+    'open': 'aberto', 
+    'in_progress': 'em_andamento',
+    'in progress': 'em_andamento',
+    'resolved': 'resolvido',
+    'closed': 'fechado',
+    'cancelled': 'cancelado'
+  };
+
+  const priorityMapping: Record<string, string> = {
+    'low': 'low',
+    'medium': 'medium', 
+    'high': 'high',
+    'critical': 'critical'
+  };
+
+  const impactMapping: Record<string, string> = {
+    'low': 'baixo',
+    'medium': 'medio',
+    'high': 'alto'
+  };
+
+  const urgencyMapping: Record<string, string> = {
+    'low': 'low',
+    'medium': 'medium',
+    'high': 'high'
+  };
+
+  const categoryMapping: Record<string, string> = {
+    'hardware': 'hardware',
+    'software': 'software', 
+    'network': 'rede',
+    'access': 'acesso',
+    'other': 'outro'
+  };
+
+  // Funções de mapeamento
+  const mapStatusValue = (value: string): string => {
+    if (!value) return 'novo';
+    const mapped = statusMapping[value.toLowerCase()] || value;
+    console.log(`🔄 Status mapping: "${value}" -> "${mapped}"`);
+    return mapped;
+  };
+
+  const mapPriorityValue = (value: string): string => {
+    if (!value) return 'medium';
+    return priorityMapping[value.toLowerCase()] || value;
+  };
+
+  const mapImpactValue = (value: string): string => {
+    if (!value) return 'baixo';
+    return impactMapping[value.toLowerCase()] || value;
+  };
+
+  const mapUrgencyValue = (value: string): string => {
+    if (!value) return 'medium';
+    return urgencyMapping[value.toLowerCase()] || value;
+  };
+
+  const mapCategoryValue = (value: string): string => {
+    if (!value) return 'outro';
+    return categoryMapping[value.toLowerCase()] || value;
+  };
+
   // Estados para criação de visualização
   const [newViewName, setNewViewName] = useState("");
   const [newViewDescription, setNewViewDescription] = useState("");
@@ -368,13 +434,17 @@ export default function TicketsTable() {
       case 'category':
         return (
           <TableCell>
-            <DynamicBadge 
-              fieldName="category"
-              value={(ticket as any).category || 'other'}
-              colorHex={getFieldColor('category', (ticket as any).category || 'other')}
-            >
-              {getFieldLabel('category', (ticket as any).category || 'other')}
-            </DynamicBadge>
+            {(ticket as any).category ? (
+              <DynamicBadge 
+                fieldName="category"
+                value={mapCategoryValue((ticket as any).category)}
+                colorHex={getFieldColor('category', mapCategoryValue((ticket as any).category))}
+              >
+                {getFieldLabel('category', mapCategoryValue((ticket as any).category))}
+              </DynamicBadge>
+            ) : (
+              <span className="text-gray-400">-</span>
+            )}
           </TableCell>
         );
       case 'status':
@@ -382,10 +452,10 @@ export default function TicketsTable() {
           <TableCell>
             <DynamicBadge 
               fieldName="status"
-              value={((ticket as any).state || ticket.status)?.replace('_', ' ') || 'open'}
-              colorHex={getFieldColor('status', ((ticket as any).state || ticket.status)?.replace('_', ' ') || 'open')}
+              value={mapStatusValue((ticket as any).state || ticket.status)}
+              colorHex={getFieldColor('status', mapStatusValue((ticket as any).state || ticket.status))}
             >
-              {getFieldLabel('status', ((ticket as any).state || ticket.status)?.replace('_', ' ') || 'open')}
+              {getFieldLabel('status', mapStatusValue((ticket as any).state || ticket.status))}
             </DynamicBadge>
           </TableCell>
         );
@@ -394,10 +464,10 @@ export default function TicketsTable() {
           <TableCell>
             <DynamicBadge 
               fieldName="priority"
-              value={ticket.priority || 'medium'}
-              colorHex={getFieldColor('priority', ticket.priority || 'medium')}
+              value={mapPriorityValue(ticket.priority)}
+              colorHex={getFieldColor('priority', mapPriorityValue(ticket.priority))}
             >
-              {getFieldLabel('priority', ticket.priority || 'medium')}
+              {getFieldLabel('priority', mapPriorityValue(ticket.priority))}
             </DynamicBadge>
           </TableCell>
         );
@@ -406,10 +476,10 @@ export default function TicketsTable() {
           <TableCell>
             <DynamicBadge 
               fieldName="impact"
-              value={(ticket as any).impact || 'medium'}
-              colorHex={getFieldColor('impact', (ticket as any).impact || 'medium')}
+              value={mapImpactValue((ticket as any).impact)}
+              colorHex={getFieldColor('impact', mapImpactValue((ticket as any).impact))}
             >
-              {getFieldLabel('impact', (ticket as any).impact || 'medium')}
+              {getFieldLabel('impact', mapImpactValue((ticket as any).impact))}
             </DynamicBadge>
           </TableCell>
         );
@@ -467,10 +537,10 @@ export default function TicketsTable() {
           <TableCell>
             <DynamicBadge 
               fieldName="urgency" 
-              value={(ticket as any).urgency || 'medium'}
-              colorHex={getFieldColor('urgency', (ticket as any).urgency || 'medium')}
+              value={mapUrgencyValue((ticket as any).urgency)}
+              colorHex={getFieldColor('urgency', mapUrgencyValue((ticket as any).urgency))}
             >
-              {getFieldLabel('urgency', (ticket as any).urgency || 'medium')}
+              {getFieldLabel('urgency', mapUrgencyValue((ticket as any).urgency))}
             </DynamicBadge>
           </TableCell>
         );
