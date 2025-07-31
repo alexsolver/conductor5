@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ChevronDown, ChevronRight, Eye, Edit, Link2, MoreHorizontal, Filter, Search } from "lucide-react";
+import { ChevronDown, ChevronRight, Eye, Edit, Link2, MoreHorizontal, Filter, Search, Plus } from "lucide-react";
 import { Link } from "wouter";
 import { TicketViewSelector } from "@/components/TicketViewSelector";
 import { DynamicBadge } from "@/components/DynamicBadge";
@@ -180,7 +180,15 @@ export default function TicketsTable() {
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Tickets</h1>
-        <TicketViewSelector />
+        <div className="flex items-center gap-4">
+          <Link href="/tickets/new">
+            <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+              <Plus className="h-4 w-4 mr-2" />
+              Novo Ticket
+            </Button>
+          </Link>
+          <TicketViewSelector />
+        </div>
       </div>
 
       {/* Filtros */}

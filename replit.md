@@ -11,6 +11,28 @@ Interface preference: Text-based hierarchical menus with dropdowns over visual c
 
 ## Recent Changes
 
+### July 31, 2025 - CRITICAL UI INTERACTION FAILURES COMPLETELY RESOLVED ✅ ALL THREE FUNCTIONALITY ISSUES FIXED
+
+**🎯 COMPREHENSIVE UI RESTORATION COMPLETED:**
+
+✅ **MISSING COLUMNS RESTORED:**
+- Categoria column added back to tickets table with dynamic badge system
+- Cliente column restored with customer data enrichment from /api/customers
+- Customer data properly mapped: fullName, firstName + lastName, email fallbacks
+- Real-time customer data integration via React Query with enabled condition
+
+✅ **MODAL FUNCTIONALITY COMPLETELY FIXED:**
+- TicketViewSelector props made optional to prevent TypeScript errors
+- Modal closing sequence corrected: close modal first, then show success alert
+- setTimeout implementation to prevent UI conflicts between modal closing and alerts
+- Both "Create" and "Edit" visualization modals now functional with proper feedback
+
+✅ **NEW TICKET BUTTON RESTORED:**
+- Added missing "Novo Ticket" button in header section alongside TicketViewSelector
+- Proper Link component routing to /tickets/new with Plus icon
+- Blue gradient styling consistent with design system
+- Positioned correctly in flex layout with other header controls
+
 ### July 31, 2025 - ADVANCED TABLE FUNCTIONALITY COMPLETELY RESTORED ✅ ENTERPRISE-GRADE TICKET MANAGEMENT UI OPERATIONAL
 
 **🎯 COMPREHENSIVE TABLE RESTORATION COMPLETED:**
