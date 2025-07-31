@@ -7,6 +7,18 @@ export const TicketPriorityEnum = z.enum(['low', 'medium', 'high', 'critical']);
 export const TicketImpactEnum = z.enum(['low', 'medium', 'high']);
 export const TicketUrgencyEnum = z.enum(['low', 'medium', 'high']);
 
+// Schema para validação que aceita valores do banco (inglês)
+export const ticketFormValidationSchema = z.object({
+  subject: z.string().min(3, "Assunto deve ter pelo menos 3 caracteres").max(255),
+  description: z.string().max(4000).optional(),
+  status: z.enum(['new', 'open', 'in_progress', 'resolved', 'closed']).default('new'),
+  priority: TicketPriorityEnum,
+  impact: TicketImpactEnum.optional(),
+  urgency: TicketUrgencyEnum.optional(),
+  category: z.string().optional(),
+  subcategory: z.string().optional()
+});
+
 // Schema para validação de formulário - aceita valores do banco
 export const ticketFormValidationSchema = z.object({
   subject: z.string().min(3, "Assunto deve ter pelo menos 3 caracteres").max(255),

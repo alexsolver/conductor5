@@ -17,33 +17,16 @@ interface FieldColorsResponse {
 const colorsCache = new Map<string, Record<string, string>>();
 
 export const useFieldColors = () => {
-  const { data: fieldOptionsData, isLoading, error } = useQuery<FieldColorsResponse>({
-    queryKey: ['fieldColors'],
+  const { data: fieldOptions, isLoading } = useQuery({
+    queryKey: ["/api/ticket-config/field-options"],
     queryFn: async () => {
-      const token = localStorage.getItem('accessToken');
-      if (!token) {
-        throw new Error('No authentication token');
-      }
-
-      const response = await fetch('/api/ticket-config/field-options', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-
+      const response = await apiRequest("GET", "/api/ticket-config/field-options");
       return response.json();
     },
-    staleTime: 10 * 60 * 1000, // 10 minutos - cache mais agressivo
-    gcTime: 30 * 60 * 1000, // 30 minutos
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchOnReconnect: false,
-    retry: 1, // Reduzir tentativas
+    retry: 3,
+    staleTime: 5 * 60 * 1000, // Cache por 5 minutos
+    cacheTime: 10 * 60 * 1000, // Manter em cache por 10 minutos
+    refetchOnWindowFocus: false, // Não refetch ao focar janela
   });
 
   // Função para buscar cor de um campo específico

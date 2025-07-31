@@ -570,21 +570,30 @@ export default function TicketsTable() {
     }
   };
 
-  // Inicializar indicadores de relacionamentos - ULTRA OTIMIZADO com Cache
+  // Inicializar indicadores de relacionamentos - ULTRA OTIMIZADO com Cache Inteligente
   useEffect(() => {
     if (tickets.length > 0) {
       console.log('🔄 useEffect triggered - tickets.length:', tickets.length);
       
-      // Cache inteligente para evitar re-fetching
+      // Cache inteligente com timestamp para invalidação
       const cacheKey = tickets.map(t => t.id).sort().join(',');
       const cachedData = sessionStorage.getItem(`relationships_${cacheKey}`);
       
       if (cachedData) {
-        const parsed = JSON.parse(cachedData);
-        setTicketsWithRelationships(new Set(parsed.ticketsWithRels));
-        setTicketRelationships(parsed.relationships);
-        console.log('✅ Loaded relationships from cache');
-        return;
+        try {
+          const parsed = JSON.parse(cachedData);
+          const isExpired = Date.now() - parsed.timestamp > 300000; // 5 minutos
+          
+          if (!isExpired) {
+            setTicketsWithRelationships(new Set(parsed.ticketsWithRels));
+            setTicketRelationships(parsed.relationships);
+            console.log('✅ Loaded relationships from cache');
+            return;
+          }
+        } catch (error) {
+          console.warn('Cache corrupted, clearing:', error);
+          sessionStorage.removeItem(`relationships_${cacheKey}`);
+        }
       }
       
       // Debounce inteligente com cleanup e loading state
@@ -592,10 +601,15 @@ export default function TicketsTable() {
         const checkAllTicketRelationships = async () => {
           try {
             const ticketIds = tickets.map((ticket: any) => ticket.id);
-            console.log('🔍 Starting optimized relationship check for', ticketIds.length, 'tickets');
+            console.log('🔍 Starting optimized batch relationship check for', ticketIds.length, 'tickets');
             
             const startTime = performance.now();
             const response = await apiRequest('POST', '/api/tickets/batch-relationships', { ticketIds });
+            
+            if (!response.ok) {
+              throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
             const data = await response.json();
             const endTime = performance.now();
 
@@ -604,37 +618,42 @@ export default function TicketsTable() {
             
             if (data.success && data.data) {
               Object.entries(data.data).forEach(([ticketId, relationships]: [string, any]) => {
-                if (relationships && relationships.length > 0) {
+                if (relationships && Array.isArray(relationships) && relationships.length > 0) {
                   ticketsWithRels.add(ticketId);
                   totalRelationships += relationships.length;
                 }
               });
             }
 
-            // Cache otimizado para próximas sessões
-            sessionStorage.setItem(`relationships_${cacheKey}`, JSON.stringify({
+            // Cache otimizado com controle de validade
+            const cacheData = {
               ticketsWithRels: Array.from(ticketsWithRels),
               relationships: data.data || {},
-              timestamp: Date.now()
-            }));
+              timestamp: Date.now(),
+              ticketCount: ticketIds.length
+            };
+            
+            sessionStorage.setItem(`relationships_${cacheKey}`, JSON.stringify(cacheData));
 
-            console.log(`🎯 Relationships loaded in ${Math.round(endTime - startTime)}ms:`, {
+            console.log(`🎯 Batch relationships loaded in ${Math.round(endTime - startTime)}ms:`, {
               totalTickets: ticketIds.length,
               withRelationships: ticketsWithRels.size,
-              totalRelationships
+              totalRelationships,
+              cacheKey: cacheKey.substring(0, 20) + '...'
             });
             
             setTicketsWithRelationships(ticketsWithRels);
             setTicketRelationships(data.data || {});
             
           } catch (error) {
-            console.error('Error checking batch relationships:', error);
+            console.error('❌ Error in batch relationship check:', error);
             setTicketsWithRelationships(new Set());
+            setTicketRelationships({});
           }
         };
 
         checkAllTicketRelationships();
-      }, 150); // Debounce otimizado para 150ms
+      }, 100); // Debounce otimizado para 100ms
 
       return () => clearTimeout(timeoutId);
     }
@@ -1746,9 +1765,32 @@ export default function TicketsTable() {
               {isFieldColorsLoading 
                 ? "⚙️ Carregando configurações de campos personalizados..." 
                 : tickets.length > 0 
-                  ? `🔗 Verificando relacionamentos para ${tickets.length} tickets...`
+                  ? `🔗 Verificando relacionamentos em lote para ${tickets.length} tickets...`
                   : "📋 Conectando com PostgreSQL via Neon..."
               }
+            </div>
+            <div className="text-xs text-gray-500">
+              {tickets.length > 0 
+                ? `✅ ${ticketsWithRelationships.size} tickets com vínculos detectados (otimizado)`
+                : "🚀 Primeira carga pode levar alguns segundos"
+              }
+            </div>
+            {/* Progress indicator melhorado com animação */}
+            <div className="w-full bg-gray-200 rounded-full h-3 shadow-inner">
+              <div 
+                className="bg-gradient-to-r from-purple-600 to-blue-600 h-3 rounded-full transition-all duration-500 ease-out" 
+                style={{ 
+                  width: tickets.length > 0 
+                    ? `${Math.min(95, (ticketsWithRelationships.size / tickets.length) * 100 + 30)}%`
+                    : '45%'
+                }}
+              ></div>
+            </div>
+            {/* Contador em tempo real otimizado */}
+            <div className="flex justify-between text-xs text-gray-500 font-mono">
+              <span>📊 Cache: {sessionStorage.length} items</span>
+              <span>🔗 Vínculos: {ticketsWithRelationships.size}</span>
+              <span>⏱️ Batch Load: {tickets.length > 0 ? 'Active' : 'Pending'}</span>
             </div>
             <div className="text-xs text-gray-500">
               {tickets.length > 0 
