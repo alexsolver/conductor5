@@ -265,18 +265,20 @@ export default function TicketDetails() {
   ];
 
   // Fetch ticket data
-  const { data: ticket, isLoading } = useQuery({
+  const { data: ticketResponse, isLoading } = useQuery({
     queryKey: ["/api/tickets", id],
     queryFn: async () => {
       const response = await apiRequest("GET", `/api/tickets/${id}`);
       const data = await response.json();
-      console.log('🎫 Ticket data received:', data);
-      console.log('🎫 Subject:', data.subject);
-      console.log('🎫 Description:', data.description);
+      console.log('🎫 Ticket response received:', data);
+      console.log('🎫 Raw ticket data:', data.data);
       return data;
     },
     enabled: !!id,
   });
+
+  // Extract ticket from response data
+  const ticket = ticketResponse?.success ? ticketResponse.data : null;
 
   // Fetch customers for dropdowns
   const { data: customersData } = useQuery({
@@ -675,6 +677,9 @@ export default function TicketDetails() {
       console.log('🎫 Resetting form with ticket data:', { 
         subject: ticket.subject, 
         description: ticket.description,
+        hasSubject: !!ticket.subject,
+        hasDescription: !!ticket.description,
+        ticketKeys: Object.keys(ticket),
         fullTicket: ticket 
       });
       form.reset({
@@ -939,7 +944,7 @@ export default function TicketDetails() {
                       <Input {...field} />
                     ) : (
                       <div className="p-2 bg-gray-50 rounded">
-                        {ticket?.subject || ticket?.short_description || field.value || 'Não informado'}
+                        {ticket?.subject || field.value || 'Não informado'}
                       </div>
                     )}
                   </FormControl>
@@ -957,7 +962,7 @@ export default function TicketDetails() {
                   <FormControl>
                     {isEditMode ? (
                       <RichTextEditor 
-                        value={field.value || ''}
+                        value={field.value || ticket?.description || ''}
                         onChange={field.onChange}
                         disabled={false}
                       />
@@ -2315,7 +2320,7 @@ export default function TicketDetails() {
                 Voltar
               </Button>
               <div className="flex items-center gap-4">
-                <h1 className="text-xl font-semibold">Ticket #{ticket.number || ticket.ticketNumber || ticket.id?.slice(0, 8) || 'N/A'}</h1>
+                <h1 className="text-xl font-semibold">Ticket #{ticket?.number || ticket?.ticketNumber || ticket?.id?.slice(0, 8) || 'N/A'}</h1>
 
                 {/* Priority and Status Fields */}
                 {isEditMode ? (
@@ -2336,11 +2341,11 @@ export default function TicketDetails() {
                   </div>
                 ) : (
                   <div className="flex items-center gap-2">
-                    <DynamicBadge value={ticket.priority}>
-                      {ticket.priority}
+                    <DynamicBadge value={ticket?.priority}>
+                      {ticket?.priority}
                     </DynamicBadge>
-                    <DynamicBadge value={ticket.status}>
-                      {ticket.status}
+                    <DynamicBadge value={ticket?.status}>
+                      {ticket?.status}
                     </DynamicBadge>
                   </div>
                 )}
