@@ -233,6 +233,7 @@ export default function TicketsTable() {
       // Testar algumas cores específicas
       const testPriorities = ['low', 'medium', 'high', 'critical'];
       const testStatuses = ['new', 'open', 'in_progress', 'resolved', 'closed'];
+      const testCategories = ['support', 'hardware', 'software', 'network', 'access', 'other'];
       
       console.log('🎨 Testing priority colors:');
       testPriorities.forEach(p => {
@@ -246,6 +247,13 @@ export default function TicketsTable() {
         const color = getFieldColor('status', s);
         const label = getFieldLabel('status', s);
         console.log(`  ${s}: ${color} (${label})`);
+      });
+
+      console.log('🎨 Testing category colors:');
+      testCategories.forEach(c => {
+        const color = getFieldColor('category', c);
+        const label = getFieldLabel('category', c);
+        console.log(`  ${c}: ${color} (${label})`);
       });
     }
   }, [isFieldColorsLoading, getFieldColor, getFieldLabel]);
@@ -279,15 +287,16 @@ export default function TicketsTable() {
   };
 
   const categoryMapping: Record<string, string> = {
-    'hardware': 'infraestrutura',
-    'software': 'suporte_tecnico', 
-    'network': 'infraestrutura',
-    'access': 'suporte_tecnico',
-    'other': 'suporte_tecnico',
-    'technical_support': 'suporte_tecnico',
-    'customer_service': 'atendimento_cliente',
-    'financial': 'financeiro',
-    'infrastructure': 'infraestrutura'
+    'hardware': 'hardware',
+    'software': 'software', 
+    'network': 'network',
+    'access': 'access',
+    'other': 'other',
+    'support': 'support',
+    'technical_support': 'technical_support',
+    'customer_service': 'customer_service',
+    'financial': 'financial',
+    'infrastructure': 'infrastructure'
   };
 
   // Função helper para obter cor com fallback durante carregamento
@@ -323,9 +332,10 @@ export default function TicketsTable() {
 
     category: (value: string): string => {
       if (!value || value === null || value === 'null' || value === '' || typeof value !== 'string') {
-        return 'support'; // Valor padrão em inglês
+        return 'support'; // Valor padrão
       }
-      return categoryMapping[value.toLowerCase()] || 'support';
+      // Manter o valor original sem mapeamento para preservar as cores configuradas
+      return value.toLowerCase();
     }
   }), [statusMapping, priorityMapping, impactMapping, urgencyMapping, categoryMapping]);
 
@@ -771,9 +781,17 @@ export default function TicketsTable() {
             </TableCell>
           );
         case 'category':
-          const categoryValue = mapCategoryValue((ticket as any).category);
+          const rawCategoryValue = (ticket as any).category;
+          const categoryValue = rawCategoryValue || 'support'; // Use raw value or default
           const categoryColor = getFieldColorWithFallback('category', categoryValue);
-          const categoryLabel = getFieldLabel('category', categoryValue);
+          const categoryLabel = getFieldLabel('category', categoryValue) || categoryValue;
+
+          console.log(`🎨 Category badge for ticket ${ticket.id}:`, {
+            rawValue: rawCategoryValue,
+            mappedValue: categoryValue,
+            color: categoryColor,
+            label: categoryLabel
+          });
 
           return (
             <TableCell className="overflow-hidden" style={cellStyle}>
