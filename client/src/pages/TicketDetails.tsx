@@ -1079,3 +1079,304 @@ const TicketDetails = React.memo(() => {
     'closed': 'closed',
     'fechado': 'closed'
   }), []);
+
+  // 🚀 OTIMIZAÇÃO: Submit handler com memoização e mapeamento correto
+  const onSubmit = useCallback(async (data: TicketFormData) => {
+    console.log("🚀 Form submitted with data:", data);
+    console.log("📋 Current followers:", followers);
+    console.log("🏢 Selected company:", selectedCompany);
+
+    // Map frontend status to backend status
+    const mappedStatus = statusMapping[data.status as keyof typeof statusMapping] || data.status;
+
+    const mappedData = {
+      ...data,
+      status: mappedStatus,
+      followers: followers,
+      finalCustomerId: mappedData.customer_company_id
+    };
+    
+    console.log("📤 Mapped data for API:", {
+      status: mappedData.status,
+      followers: mappedData.followers?.length || 0,
+      finalCustomerId: mappedData.customer_company_id
+    });
+    
+    updateTicketMutation.mutate(mappedData);
+  }, [statusMapping, followers, selectedCompany, updateTicketMutation]);
+
+  const handleDelete = () => {
+    if (confirm("Tem certeza que deseja excluir este ticket?")) {
+      deleteTicketMutation.mutate();
+    }
+  };
+
+  // Loading states
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+          <p className="text-gray-600">Carregando ticket...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!ticket) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Ticket não encontrado</h2>
+          <p className="text-gray-600 mb-4">O ticket solicitado não existe ou foi removido.</p>
+          <Button onClick={() => navigate("/tickets")}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Voltar para tickets
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex h-screen bg-gray-50">
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Header */}
+        <div className="bg-white border-b border-gray-200 px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate("/tickets")}
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Voltar
+              </Button>
+              <div>
+                <h1 className="text-2xl font-semibold text-gray-900">
+                  Ticket #{ticket.number || ticket.id}
+                </h1>
+                <p className="text-sm text-gray-500">
+                  Criado em {new Date(ticket.createdAt).toLocaleDateString()}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              {isEditMode ? (
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setIsEditMode(false);
+                      form.reset(formDataMemo);
+                    }}
+                  >
+                    <X className="h-4 w-4 mr-2" />
+                    Cancelar
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={form.handleSubmit(onSubmit)}
+                    disabled={updateTicketMutation.isPending}
+                  >
+                    <Save className="h-4 w-4 mr-2" />
+                    Salvar
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsEditMode(true)}
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    Editar
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleDelete}
+                    disabled={deleteTicketMutation.isPending}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Excluir
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Content Area */}
+        <div className="flex-1 flex overflow-hidden">
+          {/* Main Form Area */}
+          <div className="flex-1 overflow-y-auto p-6">
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Informações Básicas</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="subject"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Assunto</FormLabel>
+                          <FormControl>
+                            <Input {...field} disabled={!isEditMode} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="description"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Descrição</FormLabel>
+                          <FormControl>
+                            <RichTextEditor
+                              value={field.value || ""}
+                              onChange={field.onChange}
+                              disabled={!isEditMode}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="status"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Status</FormLabel>
+                            <Select
+                              onValueChange={field.onChange}
+                              value={field.value}
+                              disabled={!isEditMode}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecione o status" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="new">Novo</SelectItem>
+                                <SelectItem value="open">Aberto</SelectItem>
+                                <SelectItem value="in_progress">Em Andamento</SelectItem>
+                                <SelectItem value="resolved">Resolvido</SelectItem>
+                                <SelectItem value="closed">Fechado</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="priority"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Prioridade</FormLabel>
+                            <Select
+                              onValueChange={field.onChange}
+                              value={field.value}
+                              disabled={!isEditMode}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecione a prioridade" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="low">Baixa</SelectItem>
+                                <SelectItem value="medium">Média</SelectItem>
+                                <SelectItem value="high">Alta</SelectItem>
+                                <SelectItem value="critical">Crítica</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              </form>
+            </Form>
+          </div>
+
+          {/* Sidebar */}
+          <div className="w-80 bg-white border-l border-gray-200 flex flex-col">
+            <div className="p-4 border-b border-gray-200">
+              <h3 className="font-semibold text-gray-900">Detalhes</h3>
+            </div>
+            <div className="flex-1 overflow-y-auto">
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="informacoes">Info</TabsTrigger>
+                  <TabsTrigger value="attachments">Anexos</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="informacoes" className="p-4 space-y-4">
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700">Atribuído para</Label>
+                    <p className="text-sm text-gray-900">
+                      {ticket.assignedTo?.name || "Não atribuído"}
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700">Criado por</Label>
+                    <p className="text-sm text-gray-900">
+                      {ticket.caller?.fullName || "Sistema"}
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700">Última atualização</Label>
+                    <p className="text-sm text-gray-900">
+                      {new Date(ticket.updatedAt).toLocaleString()}
+                    </p>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="attachments" className="p-4">
+                  <div className="space-y-2">
+                    {attachments.length === 0 ? (
+                      <p className="text-sm text-gray-500">Nenhum anexo</p>
+                    ) : (
+                      attachments.map((attachment, index) => (
+                        <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                          <div className="flex items-center space-x-2">
+                            <FileText className="h-4 w-4 text-gray-400" />
+                            <span className="text-sm">{attachment.name}</span>
+                          </div>
+                          <Button variant="ghost" size="sm">
+                            <Download className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+export default TicketDetails;
