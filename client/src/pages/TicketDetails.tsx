@@ -1143,7 +1143,7 @@ const TicketDetails = React.memo(() => {
       finalCustomerId: mappedData.customer_company_id
     });
     updateTicketMutation.mutate(mappedData);
-  };
+  }, [statusMapping, followers, selectedCompany, updateTicketMutation]);
 
   const handleDelete = () => {
     if (confirm("Tem certeza que deseja excluir este ticket?")) {
