@@ -252,38 +252,57 @@ ticketsRouter.put('/:id', jwtAuth, trackTicketEdit, async (req: AuthenticatedReq
       return res.status(404).json({ message: "Ticket not found" });
     }
 
-    // Create history entry for ticket update
+    // 🚀 OTIMIZAÇÃO: Create history entry only for meaningful ticket updates
     try {
-      const { getClientIP, getUserAgent, getSessionId } = await import('../../utils/ipCapture');
-      const ipAddress = getClientIP(req);
-      const userAgent = getUserAgent(req);
-      const sessionId = getSessionId(req);
-      const { pool } = await import('../../db');
-      const schemaName = `tenant_${req.user.tenantId.replace(/-/g, '_')}`;
+      // Only create history entry if there are actual field changes
+      const meaningfulChanges = Object.keys(backendUpdates).filter(key => 
+        !['updated_at', 'tenant_id'].includes(key)
+      );
 
-      // Get user name
-      const userQuery = `SELECT first_name || ' ' || last_name as full_name FROM public.users WHERE id = $1`;
-      const userResult = await pool.query(userQuery, [req.user.id]);
-      const userName = userResult.rows[0]?.full_name || 'Unknown User';
+      if (meaningfulChanges.length > 0) {
+        const { getClientIP, getUserAgent, getSessionId } = await import('../../utils/ipCapture');
+        const ipAddress = getClientIP(req);
+        const userAgent = getUserAgent(req);
+        const sessionId = getSessionId(req);
+        const { pool } = await import('../../db');
+        const schemaName = `tenant_${req.user.tenantId.replace(/-/g, '_')}`;
 
-      await pool.query(`
-        INSERT INTO "${schemaName}".ticket_history 
-        (tenant_id, ticket_id, action_type, description, performed_by, performed_by_name, ip_address, user_agent, session_id, created_at, metadata)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), $10)
-      `, [
-        req.user.tenantId,
-        ticketId,
-        'ticket_updated',
-        `Ticket atualizado`,
-        req.user.id,
-        userName,
-        ipAddress,
-        userAgent,
-        sessionId,
-        JSON.stringify({
-          changes: backendUpdates
-        })
-      ]);
+        // Get user name for history record
+        const userQuery = `SELECT first_name || ' ' || last_name as full_name FROM public.users WHERE id = $1`;
+        const userResult = await pool.query(userQuery, [req.user.id]);
+        const userName = userResult.rows[0]?.full_name || 'Unknown User';
+
+        // Create a more descriptive history entry
+        const changeDescriptions = meaningfulChanges.map(field => {
+          const oldValue = updatedTicket[field];
+          const newValue = backendUpdates[field];
+          return `${field}: "${oldValue}" → "${newValue}"`;
+        }).join(', ');
+
+        await pool.query(`
+          INSERT INTO "${schemaName}".ticket_history 
+          (tenant_id, ticket_id, action_type, description, performed_by, performed_by_name, ip_address, user_agent, session_id, created_at, metadata)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), $10)
+        `, [
+          req.user.tenantId,
+          ticketId,
+          'ticket_updated',
+          `Campos alterados: ${changeDescriptions}`,
+          req.user.id,
+          userName,
+          ipAddress,
+          userAgent,
+          sessionId,
+          JSON.stringify({
+            changes: backendUpdates,
+            changedFields: meaningfulChanges
+          })
+        ]);
+
+        console.log(`📝 History entry created for ${meaningfulChanges.length} field changes`);
+      } else {
+        console.log('⏭️ Skipping history entry - no meaningful changes detected');
+      }
     } catch (historyError) {
       console.log('⚠️ Aviso: Não foi possível criar entrada no histórico:', historyError.message);
     }
@@ -719,7 +738,7 @@ ticketsRouter.get('/:id/communications', jwtAuth, async (req: AuthenticatedReque
 
     const { id } = req.params;
     const tenantId = req.user.tenantId;
-    const { pool } = await import('../../db');
+    const { pool } } = await import('../../db');
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
     const query = `

@@ -1786,8 +1786,19 @@ export default function TicketDetails() {
               </h3>
 
               <div className="space-y-3 border-l-2 border-gray-200 pl-4">
-                {/* Real history data from API */}
-                {history.length > 0 ? history.map((historyItem: any, index: number) => {
+                {/* Real history data from API - filter out generic entries */}
+                {history.length > 0 ? history
+                  .filter((historyItem: any) => {
+                    // Filter out generic "ticket updated" entries without meaningful information
+                    return !(
+                      historyItem.action_type === 'ticket_updated' && 
+                      historyItem.description === 'Ticket atualizado' &&
+                      !historyItem.field_name &&
+                      !historyItem.old_value &&
+                      !historyItem.new_value
+                    );
+                  })
+                  .map((historyItem: any, index: number) => {
                   // Map action types to icons and colors
                   const getActionIcon = (actionType: string) => {
                     switch (actionType) {
