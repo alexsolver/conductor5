@@ -1867,13 +1867,10 @@ export default function TicketsTable() {
                           {/* Indicador visual melhorado para tickets com vínculos */}
                           {ticketsWithRelationships.has(ticket.id) && (
                             <>
-                              <div className="mr-1 relative">
+                              <div className="mr-1">
                                 <div className="animate-pulse bg-blue-100 rounded-full p-1" title="Possui vínculos">
                                   <Link2 className="h-3 w-3 text-blue-600" />
                                 </div>
-                                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-3 w-3 flex items-center justify-center">
-                                  {ticketRelationships[ticket.id]?.length || '•'}
-                                </span>
                               </div>
                               <Button
                                 variant="ghost"
