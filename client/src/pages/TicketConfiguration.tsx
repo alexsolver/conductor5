@@ -1453,7 +1453,10 @@ const TicketConfiguration: React.FC = () => {
                     <div className="bg-gray-50 p-4 rounded border">
                       <Label className="font-medium">Visualização:</Label>
                       <div className="mt-2 font-mono text-lg">
-                        {numberingForm.watch('prefix')}{numberingForm.watch('firstSeparator')}{numberingForm.watch('yearFormat') === '4' ? '2025' : '25'}{numberingForm.watch('separator')}{Array(numberingForm.watch('sequentialDigits')).fill('0').join('').slice(0, -3)}123
+                        {numberingForm.watch('prefix') || 'T'}{numberingForm.watch('firstSeparator') || '-'}{numberingForm.watch('yearFormat') === '4' ? '2025' : '25'}{numberingForm.watch('separator') || '-'}{Array(numberingForm.watch('sequentialDigits') || 6).fill('0').join('').slice(0, -3)}123
+                      </div>
+                      <div className="mt-2 text-sm text-gray-600">
+                        Exemplo: <span className="font-semibold">{numberingForm.watch('prefix') || 'T'}{numberingForm.watch('firstSeparator') || '-'}{numberingForm.watch('yearFormat') === '4' ? '2025' : '25'}{numberingForm.watch('separator') || '-'}000123</span>
                       </div>
                     </div>
 
