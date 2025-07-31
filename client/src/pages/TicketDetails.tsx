@@ -290,11 +290,14 @@ export default function TicketDetails() {
       return data;
     },
     enabled: !!id,
-    staleTime: 10 * 60 * 1000, // 10 minutes cache - otimizado
-    gcTime: 30 * 60 * 1000, // 30 minutes garbage collection - otimizado
+    staleTime: 15 * 60 * 1000, // 15 minutes cache - extended
+    gcTime: 45 * 60 * 1000, // 45 minutes garbage collection - extended
     refetchOnWindowFocus: false,
     refetchOnMount: false,
-    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
+    refetchInterval: false, // Disable automatic refetch
+    refetchIntervalInBackground: false,
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
+    retry: 2, // Reduce retry attempts
   });
 
   // Extract ticket from response data
@@ -868,19 +871,21 @@ export default function TicketDetails() {
 
 
 
-  // Form setup
+  // Form setup with memoized default values
+  const defaultValues = useMemo(() => ({
+    subject: "",
+    description: "",
+    priority: "medium" as const,
+    status: "open" as const,
+    callerId: "",
+    callerType: "customer" as const,
+    beneficiaryType: "customer" as const,
+    contactType: "email" as const,
+  }), []);
+
   const form = useForm<TicketFormData>({
     resolver: zodResolver(ticketFormSchema),
-    defaultValues: {
-      subject: "",
-      description: "",
-      priority: "medium",
-      status: "open",
-      callerId: "",
-      callerType: "customer",
-      beneficiaryType: "customer",
-      contactType: "email",
-    },
+    defaultValues,
   });
 
   // 🚀 OTIMIZAÇÃO: Form reset otimizado com shallow comparison e memoização
@@ -969,23 +974,36 @@ export default function TicketDetails() {
         description: "Ticket atualizado com sucesso",
       });
       
-      // 🚀 OTIMIZAÇÃO: Invalidação inteligente e seletiva de cache
-      queryClient.invalidateQueries({ 
-        queryKey: ["/api/tickets", id],
-        exact: true 
-      });
-      
-      // Only invalidate specific data that might have changed
+      // 🚀 OTIMIZAÇÃO: Invalidação ultra-seletiva de cache
       const formData = form.getValues();
-      const statusChanged = formData.status !== ticket?.status;
-      const priorityChanged = formData.priority !== ticket?.priority;
-      const assignmentChanged = formData.assignedToId !== ticket?.assigned_to_id;
+      const changedFields = Object.keys(formData).filter(key => 
+        formData[key as keyof typeof formData] !== ticket?.[key as keyof typeof ticket]
+      );
       
-      // Invalidate tickets list only if sorting/filtering fields changed
-      if (statusChanged || priorityChanged || assignmentChanged) {
+      // Only invalidate current ticket query
+      queryClient.setQueryData(["/api/tickets", id], (oldData: any) => ({
+        ...oldData,
+        data: { ...ticket, ...formData }
+      }));
+      
+      // Invalidate lists only for critical changes
+      const criticalFields = ['status', 'priority', 'assigned_to_id'];
+      const hasCriticalChanges = changedFields.some(field => criticalFields.includes(field));
+      
+      if (hasCriticalChanges) {
         queryClient.invalidateQueries({ 
           queryKey: ["/api/tickets"],
           exact: false 
+        });
+      }
+      
+      // Skip history invalidation for minor changes
+      const contentFields = ['description', 'subject'];
+      const hasContentChanges = changedFields.some(field => contentFields.includes(field));
+      
+      if (hasContentChanges) {
+        queryClient.invalidateQueries({ 
+          queryKey: ["/api/tickets", id, "history"] 
         });
       }
       
@@ -1044,12 +1062,21 @@ export default function TicketDetails() {
   const onSubmit = (data: TicketFormData) => {
     console.log("💾 onSubmit called with data:", data);
     
+    // Map frontend status to backend status
+    const statusMapping = {
+      'new': 'new',
+      'open': 'open', 
+      'in_progress': 'in_progress',
+      'resolved': 'resolved',
+      'closed': 'closed'
+    };
+    
     const mappedData = {
-      // Core fields - direto sem mapeamento
+      // Core fields - with proper status mapping
       subject: data.subject,
       description: data.description,
       priority: data.priority,
-      status: data.status,
+      status: statusMapping[data.status as keyof typeof statusMapping] || data.status,
       category: data.category,
       subcategory: data.subcategory,
       impact: data.impact,
@@ -2458,6 +2485,8 @@ export default function TicketDetails() {
   };
   
   if (isLoadingAnyData) {
+    const progress = getLoadingProgress();
+    
     return (
       <div className="h-screen flex bg-gray-50">
         {/* Loading Sidebar */}
@@ -2471,6 +2500,19 @@ export default function TicketDetails() {
               <span className="text-sm text-gray-600" aria-label="Status de carregamento">
                 {getLoadingMessage()}
               </span>
+            </div>
+            
+            {/* Progress Bar */}
+            <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
+              <div 
+                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                style={{ width: `${progress.percentage}%` }}
+                aria-label={`Progresso: ${progress.percentage}%`}
+              ></div>
+            </div>
+            
+            <div className="text-xs text-gray-500 mb-2">
+              {progress.completed}/{progress.total} componentes carregados
             </div>
             <div className="space-y-3">
               <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
