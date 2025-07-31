@@ -686,7 +686,7 @@ export default function TicketDetails() {
         subject: ticket.subject || ticket.short_description || "",
         description: ticket.description || "",
         priority: ticket.priority || "medium",
-        status: ticket.status || "open",
+        status: ticket.status || "novo",
         category: ticket.category || "",
         subcategory: ticket.subcategory || "",
         impact: ticket.impact || "medium",
@@ -697,7 +697,7 @@ export default function TicketDetails() {
         workaround: ticket.workaround || "",
         resolution: ticket.resolution || "",
         environment: ticket.environment || "",
-        templateName: ticket.template_name || "",
+        // templateName: ticket.template_name || "",
         templateAlternative: ticket.template_alternative || "",
         linkTicketNumber: ticket.link_ticket_number || "",
         linkType: ticket.link_type || "",
@@ -796,16 +796,16 @@ export default function TicketDetails() {
 
       // Assignment mapping camelCase → snake_case
       caller_id: data.callerId,
-      caller_type: data.callerType,
+      caller_type: data.callerType || 'customer',
       beneficiary_id: data.beneficiaryId,
-      beneficiary_type: data.beneficiaryType,
+      beneficiary_type: data.beneficiaryType || 'customer',
       assigned_to_id: data.assignedToId,
       assignment_group: data.assignmentGroup,
 
       // CORREÇÃO PROBLEMA 3: Location field consistency - usar apenas location (campo texto)
       // 🚨 CORREÇÃO: location é campo texto, não locationId (FK inexistente)
       location: data.location || '',  // Campo texto livre conforme schema do banco
-      contact_type: data.contactType,
+      contact_type: data.contactType || 'email',
 
       // Business fields
       business_impact: data.businessImpact,
@@ -876,7 +876,7 @@ export default function TicketDetails() {
 
               <div className="grid grid-cols-2 gap-4">
                 <FormField
-                  control={form.control}
+                  control={form.control as any}
                   name="priority"
                   render={({ field }) => (
                     <FormItem>
@@ -904,7 +904,7 @@ export default function TicketDetails() {
                 />
 
                 <FormField
-                  control={form.control}
+                  control={form.control as any}
                   name="status"
                   render={({ field }) => (
                     <FormItem>
@@ -934,7 +934,7 @@ export default function TicketDetails() {
             </div>
 
             <FormField
-              control={form.control}
+              control={form.control as any}
               name="subject"
               render={({ field }) => (
                 <FormItem>
@@ -2392,7 +2392,7 @@ export default function TicketDetails() {
                   <Button 
                     variant="default" 
                     size="sm" 
-                    onClick={form.handleSubmit(onSubmit)}
+                    onClick={form.handleSubmit(onSubmit as any)}
                     disabled={updateTicketMutation.isPending}
                   >
                     <Save className="h-4 w-4 mr-2" />
@@ -2406,7 +2406,7 @@ export default function TicketDetails() {
           {/* Main Content */}
           <div className="h-full bg-white rounded-lg border p-6">
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)}>
+              <form onSubmit={form.handleSubmit(onSubmit as any)}>
                 {renderTabContent()}
               </form>
             </Form>
