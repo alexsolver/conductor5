@@ -1699,40 +1699,71 @@ export class DatabaseStorage implements IStorage {
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
-      const result = await tenantDb.execute(sql`
+      // Buscar relacionamentos onde o ticket é ORIGEM (source_ticket_id)
+      const outgoingResult = await tenantDb.execute(sql`
         SELECT 
           tr.id,
           tr.relationship_type as "relationshipType",
           tr.description,
           tr.created_at as "createdAt",
-          t.id as "targetTicket.id",
-          t.subject as "targetTicket.subject",
-          t.status as "targetTicket.status",
-          t.priority as "targetTicket.priority",
-          t.number as "targetTicket.number",
-          t.created_at as "targetTicket.createdAt",
-          t.description as "targetTicket.description"
+          'outgoing' as "direction",
+          t.id as "relatedTicket.id",
+          t.subject as "relatedTicket.subject",
+          t.status as "relatedTicket.status",
+          t.priority as "relatedTicket.priority",
+          t.number as "relatedTicket.number",
+          t.created_at as "relatedTicket.createdAt",
+          t.description as "relatedTicket.description"
         FROM ${sql.identifier(schemaName)}.ticket_relationships tr
         JOIN ${sql.identifier(schemaName)}.tickets t ON t.id = tr.target_ticket_id
         WHERE tr.source_ticket_id = ${ticketId} 
         AND tr.tenant_id = ${validatedTenantId}
-        ORDER BY tr.created_at DESC
       `);
 
+      // Buscar relacionamentos onde o ticket é DESTINO (target_ticket_id)
+      const incomingResult = await tenantDb.execute(sql`
+        SELECT 
+          tr.id,
+          tr.relationship_type as "relationshipType",
+          tr.description,
+          tr.created_at as "createdAt",
+          'incoming' as "direction",
+          t.id as "relatedTicket.id",
+          t.subject as "relatedTicket.subject",
+          t.status as "relatedTicket.status",
+          t.priority as "relatedTicket.priority",
+          t.number as "relatedTicket.number",
+          t.created_at as "relatedTicket.createdAt",
+          t.description as "relatedTicket.description"
+        FROM ${sql.identifier(schemaName)}.ticket_relationships tr
+        JOIN ${sql.identifier(schemaName)}.tickets t ON t.id = tr.source_ticket_id
+        WHERE tr.target_ticket_id = ${ticketId} 
+        AND tr.tenant_id = ${validatedTenantId}
+      `);
+
+      // Combinar ambos os resultados
+      const allRows = [...(outgoingResult.rows || []), ...(incomingResult.rows || [])];
+      console.log(`🔗 Found ${allRows.length} relationships for ticket ${ticketId}:`, {
+        outgoing: outgoingResult.rows?.length || 0,
+        incoming: incomingResult.rows?.length || 0,
+        total: allRows.length
+      });
+
       // Transform flat results into nested objects
-      return (result.rows || []).map(row => ({
+      return allRows.map(row => ({
         id: row.id,
         relationshipType: row.relationshipType,
         description: row.description,
         createdAt: row.createdAt,
-        targetTicket: {
-          id: row['targetTicket.id'],
-          subject: row['targetTicket.subject'],
-          status: row['targetTicket.status'],
-          priority: row['targetTicket.priority'],
-          number: row['targetTicket.number'],
-          createdAt: row['targetTicket.createdAt'],
-          description: row['targetTicket.description']
+        direction: row.direction, // 'outgoing' ou 'incoming'
+        relatedTicket: {
+          id: row['relatedTicket.id'],
+          subject: row['relatedTicket.subject'],
+          status: row['relatedTicket.status'],
+          priority: row['relatedTicket.priority'],
+          number: row['relatedTicket.number'],
+          createdAt: row['relatedTicket.createdAt'],
+          description: row['relatedTicket.description']
         }
       }));
     } catch (error) {
