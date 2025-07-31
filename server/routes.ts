@@ -279,7 +279,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const schemaName = schemaManager.getSchemaName(req.user.tenantId);
 
       const result = await pool.query(
-        `SELECT * FROM "${schemaName}"."customer_companies" WHERE tenant_id = $1 ORDER BY name`,
+        `SELECT * FROM "${schemaName}"."customer_companies" 
+         WHERE tenant_id = $1 
+         AND id != '00000000-0000-0000-0000-000000000001'
+         ORDER BY name`,
         [req.user.tenantId]
       );
 
