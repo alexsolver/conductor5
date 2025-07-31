@@ -1347,7 +1347,7 @@ const TicketConfiguration: React.FC = () => {
               <CardContent>
                 <Form {...numberingForm}>
                   <form onSubmit={numberingForm.handleSubmit((data) => saveNumberingMutation.mutate(data))} className="space-y-4">
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                       <FormField
                         control={numberingForm.control}
                         name="prefix"
@@ -1366,9 +1366,9 @@ const TicketConfiguration: React.FC = () => {
                         name="firstSeparator"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>1º Separador</FormLabel>
+                            <FormLabel>1º Separador (Prefixo-Ano)</FormLabel>
                             <FormControl>
-                              <Input {...field} placeholder="-" />
+                              <Input {...field} placeholder="-" maxLength={5} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -1379,17 +1379,14 @@ const TicketConfiguration: React.FC = () => {
                         name="separator"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>2º Separador</FormLabel>
+                            <FormLabel>2º Separador (Ano-Sequência)</FormLabel>
                             <FormControl>
-                              <Input {...field} placeholder="-" />
+                              <Input {...field} placeholder="-" maxLength={5} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
                       <FormField
                         control={numberingForm.control}
                         name="yearFormat"
@@ -1411,6 +1408,9 @@ const TicketConfiguration: React.FC = () => {
                           </FormItem>
                         )}
                       />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <FormField
                         control={numberingForm.control}
                         name="sequentialDigits"
@@ -1430,25 +1430,26 @@ const TicketConfiguration: React.FC = () => {
                           </FormItem>
                         )}
                       />
+                      <div className="flex items-end">
+                        <FormField
+                          control={numberingForm.control}
+                          name="resetYearly"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm w-full">
+                              <div className="space-y-0.5">
+                                <FormLabel>Resetar Numeração Anualmente</FormLabel>
+                              </div>
+                              <FormControl>
+                                <Switch
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                      </div>
                     </div>
-
-                    <FormField
-                      control={numberingForm.control}
-                      name="resetYearly"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                          <div className="space-y-0.5">
-                            <FormLabel>Resetar Numeração Anualmente</FormLabel>
-                          </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
 
                     <div className="bg-gray-50 p-4 rounded border">
                       <Label className="font-medium">Visualização:</Label>
