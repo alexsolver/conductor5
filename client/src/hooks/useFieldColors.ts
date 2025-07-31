@@ -35,12 +35,11 @@ export const useFieldColors = () => {
   // Função para buscar cor de um campo específico
   const getFieldColor = (fieldName: string, value: string): string | undefined => {
     if (!fieldOptions?.data) {
-      console.log('🎨 No field options data available');
+      // Não fazer log excessivo quando dados não estão carregados
       return undefined;
     }
 
     if (!value || value === '') {
-      console.log('🎨 Empty value provided for field:', fieldName);
       return undefined;
     }
 
@@ -49,12 +48,18 @@ export const useFieldColors = () => {
     );
 
     if (option?.color) {
-      console.log(`🎨 Found color for ${fieldName}:${value} = ${option.color}`);
+      // Log apenas em modo debug mais específico
+      if (process.env.NODE_ENV === 'development' && Math.random() < 0.1) {
+        console.log(`🎨 Color found: ${fieldName}:${value} = ${option.color}`);
+      }
       return option.color;
     } else {
-      console.log(`🎨 No color found for ${fieldName}:${value}. Available options:`, 
-        fieldOptions.data.filter(opt => opt.field_name === fieldName).map(opt => `${opt.value}:${opt.color}`)
-      );
+      // Log apenas quando não encontrar cor esperada
+      if (process.env.NODE_ENV === 'development' && ['priority', 'status'].includes(fieldName)) {
+        console.log(`🎨 No color for ${fieldName}:${value}. Available:`, 
+          fieldOptions.data.filter(opt => opt.field_name === fieldName).map(opt => `${opt.value}:${opt.color}`).slice(0, 3)
+        );
+      }
       return undefined;
     }
   };

@@ -25,16 +25,14 @@ const getContrastClassFromHex = (hexColor: string): string => {
   // Mapear cores hex específicas para classes CSS com bom contraste
   const colorMap: Record<string, string> = {
     // Cores de prioridade
-    '#10b981': 'bg-emerald-600 text-white border-emerald-600', // Baixa - Verde
-    '#f59e0b': 'bg-amber-600 text-white border-amber-600',     // Média - Amarelo
+    '#10b981': 'bg-emerald-600 text-white border-emerald-600', // Baixa/Resolvido - Verde
+    '#f59e0b': 'bg-amber-600 text-white border-amber-600',     // Média/Em andamento - Amarelo
     '#ef4444': 'bg-red-600 text-white border-red-600',         // Alta - Vermelho
     '#dc2626': 'bg-red-700 text-white border-red-700',         // Crítica - Vermelho escuro
     
-    // Cores de status
+    // Cores de status específicas
     '#6b7280': 'bg-slate-600 text-white border-slate-600',     // Novo - Cinza
     '#3b82f6': 'bg-blue-600 text-white border-blue-600',       // Aberto - Azul
-    '#f59e0b': 'bg-amber-600 text-white border-amber-600',     // Em andamento - Amarelo
-    '#10b981': 'bg-emerald-600 text-white border-emerald-600', // Resolvido - Verde
     '#374151': 'bg-gray-700 text-white border-gray-700',       // Fechado - Cinza escuro
     
     // Cores de categoria
@@ -43,16 +41,16 @@ const getContrastClassFromHex = (hexColor: string): string => {
     '#84cc16': 'bg-lime-600 text-white border-lime-600',       // Atendimento - Lima
     '#f97316': 'bg-orange-600 text-white border-orange-600',   // Financeiro - Laranja
     
-    // Variações de cores (maiúsculas e com #)
-    '#059669': 'bg-emerald-600 text-white border-emerald-600',
-    '#d97706': 'bg-amber-600 text-white border-amber-600',
-    '#ea580c': 'bg-orange-600 text-white border-orange-600',
-    '#DC2626': 'bg-red-600 text-white border-red-600',
-    '#3B82F6': 'bg-blue-600 text-white border-blue-600',
-    '#F59E0B': 'bg-amber-600 text-white border-amber-600',
-    '#10B981': 'bg-emerald-600 text-white border-emerald-600',
-    '#6B7280': 'bg-slate-600 text-white border-slate-600',
-    '#22c55e': 'bg-green-600 text-white border-green-600',
+    // Variações de cores (maiúsculas e alternativas)
+    '#059669': 'bg-emerald-700 text-white border-emerald-700', // Verde alternativo
+    '#d97706': 'bg-amber-700 text-white border-amber-700',     // Amarelo alternativo
+    '#ea580c': 'bg-orange-600 text-white border-orange-600',   // Laranja alternativo
+    '#DC2626': 'bg-red-600 text-white border-red-600',         // Vermelho maiúsculo
+    '#3B82F6': 'bg-blue-600 text-white border-blue-600',       // Azul maiúsculo
+    '#F59E0B': 'bg-amber-600 text-white border-amber-600',     // Amarelo maiúsculo
+    '#10B981': 'bg-emerald-600 text-white border-emerald-600', // Verde maiúsculo
+    '#6B7280': 'bg-slate-600 text-white border-slate-600',     // Cinza maiúsculo
+    '#22c55e': 'bg-green-600 text-white border-green-600',     // Verde claro
   };
 
   // Buscar cor no mapa ou retornar estilo customizado

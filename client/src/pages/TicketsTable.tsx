@@ -778,13 +778,6 @@ export default function TicketsTable() {
           const statusValue = mapStatusValue((ticket as any).state || ticket.status);
           const statusColor = getFieldColorWithFallback('status', statusValue);
           const statusLabel = getFieldLabel('status', statusValue);
-          
-          console.log(`🎫 Status for ticket ${ticket.id}:`, {
-            originalStatus: (ticket as any).state || ticket.status,
-            mappedValue: statusValue,
-            color: statusColor,
-            label: statusLabel
-          });
 
           return (
             <TableCell className="overflow-hidden" style={cellStyle}>
@@ -801,13 +794,6 @@ export default function TicketsTable() {
           const priorityValue = mapPriorityValue(ticket.priority);
           const priorityColor = getFieldColorWithFallback('priority', priorityValue);
           const priorityLabel = getFieldLabel('priority', priorityValue);
-
-          console.log(`🎫 Priority for ticket ${ticket.id}:`, {
-            originalPriority: ticket.priority,
-            mappedValue: priorityValue,
-            color: priorityColor,
-            label: priorityLabel
-          });
 
           return (
             <TableCell className="overflow-hidden" style={cellStyle}>
