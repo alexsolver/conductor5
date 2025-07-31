@@ -417,6 +417,7 @@ export default function TicketsTable() {
         // Transform the data to match the expected format
         const transformedRelationships = data.data.map((relationship: any) => ({
           id: relationship.targetTicket.id,
+          relationshipId: relationship.id, // Add unique relationship ID
           number: relationship.targetTicket.number || 'N/A',
           subject: relationship.targetTicket.subject || 'Sem assunto',
           status: relationship.targetTicket.status || 'unknown',
@@ -426,17 +427,28 @@ export default function TicketsTable() {
           createdAt: relationship.createdAt
         }));
 
+        // Remove duplicatas usando relationshipId único
+        const uniqueRelationships = transformedRelationships.filter((rel: any, index: number, self: any[]) => 
+          index === self.findIndex((r: any) => r.relationshipId === rel.relationshipId)
+        );
+
+        console.log(`🔍 Relationships for ticket ${ticketId}:`, {
+          total: transformedRelationships.length,
+          unique: uniqueRelationships.length,
+          duplicatesRemoved: transformedRelationships.length - uniqueRelationships.length
+        });
+
         setTicketRelationships(prev => ({
           ...prev,
-          [ticketId]: transformedRelationships
+          [ticketId]: uniqueRelationships
         }));
 
         // Marcar ticket como tendo relacionamentos se houver dados
-        if (transformedRelationships.length > 0) {
+        if (uniqueRelationships.length > 0) {
           setTicketsWithRelationships(prev => new Set([...Array.from(prev), ticketId]));
         }
 
-        return transformedRelationships;
+        return uniqueRelationships;
       }
     } catch (error) {
       console.error('Error fetching ticket relationships:', error);
@@ -2140,7 +2152,7 @@ export default function TicketsTable() {
                             {ticketRelationships[ticket.id] && ticketRelationships[ticket.id].length > 0 ? (
                               <div className="space-y-2">
                                 {ticketRelationships[ticket.id].map((relationship: any) => (
-                                  <div key={relationship.id} className="flex items-center gap-3 p-2 bg-white rounded border hover:shadow-sm transition-shadow">
+                                  <div key={relationship.relationshipId || relationship.id} className="flex items-center gap-3 p-2 bg-white rounded border hover:shadow-sm transition-shadow">
                                     <div className="flex items-center gap-2 min-w-0">
                                       {(() => {
                                         switch (relationship.relationshipType) {
