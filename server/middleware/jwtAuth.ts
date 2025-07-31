@@ -48,6 +48,7 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
     // });
 
     // Verify user exists and is active
+    const container = DependencyContainer.getInstance();
     const userRepository = container.userRepository;
     const user = await userRepository.findById(payload.userId);
 
