@@ -85,8 +85,8 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
     },
   });
 
-  // Ensure allTickets is always an array
-  const allTickets = Array.isArray(ticketsData?.tickets) ? ticketsData.tickets : [];
+  // Ensure allTickets is always an array - correct data structure parsing
+  const allTickets = Array.isArray(ticketsData?.data?.tickets) ? ticketsData.data.tickets : [];
 
   // Filter tickets based on search term, status, priority and exclude current ticket
   const filteredTickets = allTickets.filter((ticket: Ticket) => {
@@ -107,6 +107,17 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
     }
 
     return true;
+  });
+
+  // Debug log for tickets data
+  console.log("🔗 TicketLinkingModal Debug:", {
+    ticketsDataStructure: ticketsData ? Object.keys(ticketsData) : "no data",
+    allTicketsCount: allTickets.length,
+    filteredCount: filteredTickets.length,
+    searchTerm,
+    statusFilter,
+    priorityFilter,
+    currentTicketId: currentTicket?.id
   });
 
   // Get existing relationships
@@ -211,7 +222,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <Link2 className="h-5 w-5" />
-            <span>Tickets Vinculados{currentTicket.number || currentTicket.subject}</span>
+            <span>Tickets Vinculados {currentTicket.number || currentTicket.subject}</span>
           </DialogTitle>
         </DialogHeader>
 
@@ -288,11 +299,11 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos os status</SelectItem>
-                      <SelectItem value="open">Aberto</SelectItem>
-                      <SelectItem value="in_progress">Em Progresso</SelectItem>
-                      <SelectItem value="pending">Pendente</SelectItem>
-                      <SelectItem value="resolved">Resolvido</SelectItem>
-                      <SelectItem value="closed">Fechado</SelectItem>
+                      <SelectItem value="novo">Novo</SelectItem>
+                      <SelectItem value="aberto">Aberto</SelectItem>
+                      <SelectItem value="em_andamento">Em Andamento</SelectItem>
+                      <SelectItem value="resolvido">Resolvido</SelectItem>
+                      <SelectItem value="fechado">Fechado</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
