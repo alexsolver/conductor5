@@ -419,6 +419,89 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Delete customer company - temporary implementation to fix deletion issue
+  // PUT /api/customers/companies/:id - Update a company
+  app.put('/api/customers/companies/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { id } = req.params;
+      const { 
+        name, displayName, description, industry, size, email, phone, website, 
+        subscriptionTier, status, document, address 
+      } = req.body;
+
+      console.log(`[UPDATE-COMPANY-MAIN] Updating company ${id} with data:`, { 
+        name, displayName, industry, size, email, phone, website, subscriptionTier, status,
+        description, document, address
+      });
+
+      const { schemaManager } = await import('./db');
+      const pool = schemaManager.getPool();
+      const schemaName = schemaManager.getSchemaName(req.user.tenantId);
+
+      // Verify company exists first
+      const existingCompany = await pool.query(`
+        SELECT * FROM "${schemaName}".customer_companies 
+        WHERE id = $1 AND tenant_id = $2
+      `, [id, req.user.tenantId]);
+
+      if (existingCompany.rows.length === 0) {
+        console.log(`[UPDATE-COMPANY-MAIN] Company not found: ${id}`);
+        return res.status(404).json({ message: 'Company not found' });
+      }
+
+      console.log(`[UPDATE-COMPANY-MAIN] Current company data:`, existingCompany.rows[0]);
+
+      // Prepare update values with fallbacks to existing data
+      const updateName = name !== undefined ? name : existingCompany.rows[0].name;
+      const updateDisplayName = displayName !== undefined ? displayName : existingCompany.rows[0].display_name;
+      const updateDescription = description !== undefined ? description : existingCompany.rows[0].description;
+      const updateIndustry = industry !== undefined ? industry : existingCompany.rows[0].industry;
+      const updateSize = size !== undefined ? size : existingCompany.rows[0].size;
+      const updateEmail = email !== undefined ? email : existingCompany.rows[0].email;
+      const updatePhone = phone !== undefined ? phone : existingCompany.rows[0].phone;
+      const updateWebsite = website !== undefined ? website : existingCompany.rows[0].website;
+      const updateSubscriptionTier = subscriptionTier !== undefined ? subscriptionTier : existingCompany.rows[0].subscription_tier;
+      const updateStatus = status !== undefined ? status : existingCompany.rows[0].status;
+      const updateDocument = document !== undefined ? document : existingCompany.rows[0].cnpj;
+      const updateAddress = address !== undefined ? address : existingCompany.rows[0].address;
+
+      console.log(`[UPDATE-COMPANY-MAIN] About to execute UPDATE with values:`, {
+        updateName, updateDisplayName, updateDescription, updateIndustry, updateSize,
+        updateEmail, updatePhone, updateWebsite, updateSubscriptionTier, updateStatus,
+        updateDocument, updateAddress, id, tenantId: req.user.tenantId
+      });
+
+      const result = await pool.query(`
+        UPDATE "${schemaName}".customer_companies 
+        SET name = $1, display_name = $2, description = $3, industry = $4, size = $5, 
+            email = $6, phone = $7, website = $8, subscription_tier = $9, status = $10,
+            cnpj = $11, address = $12, updated_at = NOW()
+        WHERE id = $13 AND tenant_id = $14
+        RETURNING *
+      `, [
+        updateName, updateDisplayName, updateDescription, updateIndustry, updateSize,
+        updateEmail, updatePhone, updateWebsite, updateSubscriptionTier, updateStatus,
+        updateDocument, updateAddress, id, req.user.tenantId
+      ]);
+
+      console.log(`[UPDATE-COMPANY-MAIN] Query executed, affected rows:`, result.rowCount);
+      console.log(`[UPDATE-COMPANY-MAIN] Returned data:`, result.rows[0]);
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'Company not found or not updated' });
+      }
+
+      console.log(`[UPDATE-COMPANY-MAIN] Company updated successfully`);
+
+      res.json({
+        success: true,
+        data: result.rows[0]
+      });
+    } catch (error) {
+      console.error('[UPDATE-COMPANY-MAIN] Error updating company:', error);
+      res.status(500).json({ message: 'Failed to update company' });
+    }
+  });
+
   app.delete('/api/customers/companies/:companyId', jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const { companyId } = req.params;
