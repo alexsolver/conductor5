@@ -128,22 +128,35 @@ export default function Tickets() {
   // Extract customers with proper error handling
   const customers = Array.isArray(customersData?.customers) ? customersData.customers : [];
   
-  // Get raw companies and apply filtering (removes Default if inactive)
+  // Get raw companies and filter out Default if inactive
   const rawCompanies = Array.isArray(companiesData) ? companiesData : [];
-  const { filteredCompanies } = useCompanyFilter(rawCompanies);
   
-  // Use filtered companies directly (no special sorting for Default)
-  const companies = filteredCompanies.sort((a: any, b: any) => {
-    return (a.name || a.displayName || '').localeCompare(b.name || b.displayName || '');
-  });
+  // Filter companies directly removing Default if inactive
+  const companies = rawCompanies
+    .filter((company: any) => {
+      // Remove Default company if it's inactive
+      const isDefaultCompany = company.name?.toLowerCase().includes('default');
+      if (isDefaultCompany && (company.status === 'inactive' || company.is_active === false)) {
+        console.log('🚫 Filtering out Default company (inactive):', company);
+        return false;
+      }
+      return true;
+    })
+    .sort((a: any, b: any) => {
+      return (a.name || a.displayName || '').localeCompare(b.name || b.displayName || '');
+    });
 
   // Debug: Check if Default company is in the list
-  console.log('🔍 Companies in ticket modal:', companies.map(c => ({
+  console.log('🔍 Final companies list for ticket modal:', companies.map(c => ({
     id: c.id, 
     name: c.name, 
     status: c.status,
+    isActive: c.is_active,
     isDefault: c.name?.toLowerCase().includes('default')
   })));
+  
+  console.log('🔍 Raw companies from API before filtering:', rawCompanies.length);
+  console.log('🔍 Filtered companies for dropdown:', companies.length);
   
   const users = (usersData as any)?.users || [];
 
