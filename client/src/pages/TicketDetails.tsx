@@ -290,9 +290,10 @@ export default function TicketDetails() {
       return data;
     },
     enabled: !!id,
-    staleTime: 2 * 60 * 1000, // 2 minutes cache for better performance
-    gcTime: 10 * 60 * 1000, // 10 minutes garbage collection
+    staleTime: 5 * 60 * 1000, // 5 minutes cache for better performance
+    gcTime: 15 * 60 * 1000, // 15 minutes garbage collection
     refetchOnWindowFocus: false, // Evita refetch desnecessário
+    refetchOnMount: false, // Evita refetch no mount se cache válido
   });
 
   // Extract ticket from response data
@@ -477,8 +478,10 @@ export default function TicketDetails() {
       return data;
     },
     enabled: !!id,
-    staleTime: 3 * 60 * 1000,
+    staleTime: 10 * 60 * 1000, // 10 minutes - history changes less frequently
+    gcTime: 20 * 60 * 1000,
     refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   const { data: ticketCommunications, isLoading: communicationsLoading, error: communicationsError } = useQuery({
@@ -491,8 +494,10 @@ export default function TicketDetails() {
       return data;
     },
     enabled: !!id,
-    staleTime: 60 * 1000,
+    staleTime: 3 * 60 * 1000, // 3 minutes - communications change moderately
+    gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   const { data: ticketNotes, isLoading: notesLoading, error: notesError } = useQuery({
@@ -505,8 +510,10 @@ export default function TicketDetails() {
       return data;
     },
     enabled: !!id,
-    staleTime: 60 * 1000,
+    staleTime: 2 * 60 * 1000, // 2 minutes - notes change frequently
+    gcTime: 8 * 60 * 1000,
     refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   const { data: ticketAttachments, isLoading: attachmentsLoading, error: attachmentsError } = useQuery({
@@ -879,7 +886,7 @@ export default function TicketDetails() {
       subject: ticket.subject || ticket.short_description || "",
       description: ticket.description || "",
       priority: ticket.priority || "medium",
-      status: ticket.status || "new", // Use backend values
+      status: ticket.status || "new", // Use backend values (new, open, in_progress, etc)
       category: ticket.category || "",
       subcategory: ticket.subcategory || "",
       impact: ticket.impact || "medium",
@@ -912,7 +919,10 @@ export default function TicketDetails() {
     ticket?.status, 
     ticket?.priority,
     ticket?.updated_at, // Adiciona timestamp para detectar mudanças
-  ]); // Dependency array otimizada
+    ticket?.caller_id,
+    ticket?.assigned_to_id,
+    ticket?.customer_company_id,
+  ]); // Dependency array expandida para capturar mudanças importantes
 
   useEffect(() => {
     if (formDataMemo && ticket) {
@@ -960,12 +970,14 @@ export default function TicketDetails() {
         exact: true 
       });
       
-      // Only invalidate list if status/priority changed (affects sorting)
+      // Only invalidate specific data that might have changed
       const formData = form.getValues();
       const statusChanged = formData.status !== ticket?.status;
       const priorityChanged = formData.priority !== ticket?.priority;
+      const assignmentChanged = formData.assignedToId !== ticket?.assigned_to_id;
       
-      if (statusChanged || priorityChanged) {
+      // Invalidate tickets list only if sorting/filtering fields changed
+      if (statusChanged || priorityChanged || assignmentChanged) {
         queryClient.invalidateQueries({ 
           queryKey: ["/api/tickets"],
           exact: false 
@@ -976,6 +988,16 @@ export default function TicketDetails() {
       if (formData.linkTicketNumber || formData.linkType) {
         queryClient.invalidateQueries({ 
           queryKey: ["/api/ticket-relationships", id] 
+        });
+      }
+      
+      // Don't invalidate history/notes/communications unless content fields changed
+      const contentChanged = formData.description !== ticket?.description || 
+                           formData.subject !== ticket?.subject;
+      
+      if (contentChanged) {
+        queryClient.invalidateQueries({ 
+          queryKey: ["/api/tickets", id, "history"] 
         });
       }
       
@@ -2381,6 +2403,17 @@ export default function TicketDetails() {
   // 🚀 OTIMIZAÇÃO: Loading states específicos e informativos
   const isLoadingAnyData = isLoading || historyLoading || communicationsLoading || notesLoading || attachmentsLoading || actionsLoading;
   
+  // Determine what is specifically loading
+  const getLoadingMessage = () => {
+    if (isLoading) return "Carregando informações do ticket...";
+    if (historyLoading) return "Carregando histórico...";
+    if (communicationsLoading) return "Carregando comunicações...";
+    if (notesLoading) return "Carregando notas...";
+    if (attachmentsLoading) return "Carregando anexos...";
+    if (actionsLoading) return "Carregando ações...";
+    return "Carregando dados do ticket...";
+  };
+  
   if (isLoadingAnyData) {
     return (
       <div className="h-screen flex bg-gray-50">
@@ -2389,11 +2422,30 @@ export default function TicketDetails() {
           <div className="space-y-4">
             <div className="flex items-center gap-2 mb-4">
               <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-              <span className="text-sm text-gray-600">Carregando dados do ticket...</span>
+              <span className="text-sm text-gray-600">{getLoadingMessage()}</span>
             </div>
-            <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
-            <div className="h-16 bg-gray-200 rounded animate-pulse"></div>
-            <div className="h-32 bg-gray-200 rounded animate-pulse"></div>
+            <div className="space-y-3">
+              <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-16 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-32 bg-gray-200 rounded animate-pulse"></div>
+            </div>
+            {/* Loading progress indicators */}
+            <div className="border-t pt-4">
+              <div className="space-y-2 text-xs text-gray-500">
+                <div className={`flex items-center gap-2 ${!isLoading ? 'text-green-600' : ''}`}>
+                  {!isLoading ? '✅' : '⏳'} Dados básicos
+                </div>
+                <div className={`flex items-center gap-2 ${!historyLoading ? 'text-green-600' : ''}`}>
+                  {!historyLoading ? '✅' : '⏳'} Histórico
+                </div>
+                <div className={`flex items-center gap-2 ${!notesLoading ? 'text-green-600' : ''}`}>
+                  {!notesLoading ? '✅' : '⏳'} Notas
+                </div>
+                <div className={`flex items-center gap-2 ${!communicationsLoading ? 'text-green-600' : ''}`}>
+                  {!communicationsLoading ? '✅' : '⏳'} Comunicações
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         
@@ -2404,7 +2456,10 @@ export default function TicketDetails() {
               <ArrowLeft className="h-4 w-4 mr-2" />
               Voltar
             </Button>
-            <div className="ml-4 h-6 w-48 bg-gray-200 rounded animate-pulse"></div>
+            <div className="ml-4 flex items-center gap-2">
+              <div className="h-6 w-48 bg-gray-200 rounded animate-pulse"></div>
+              <div className="text-sm text-gray-500">{getLoadingMessage()}</div>
+            </div>
           </div>
           
           <div className="bg-white rounded-lg border p-6">
