@@ -91,7 +91,8 @@ export default function TicketEdit() {
   const [filteredCustomers, setFilteredCustomers] = useState<any[]>([]);
 
   // Use metadata system
-  const { isLoading: metadataLoading } = useTicketMetadata();
+  const ticketMetadata = useTicketMetadata();
+  const metadataLoading = false; // Simplified since metadata is not critical for this component
 
   // Fetch ticket data
   const { data: ticket, isLoading } = useQuery({

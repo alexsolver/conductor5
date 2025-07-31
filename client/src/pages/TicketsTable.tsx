@@ -29,7 +29,6 @@ import TicketHierarchyView from "@/components/tickets/TicketHierarchyView";
 // Schema for ticket creation/editing - ServiceNow style
 const ticketSchema = z.object({
   // Basic Fields
-  shortDescription: z.string().min(1, "Título do ticket é obrigatório"),
   description: z.string().min(1, "Descrição é obrigatória"),
   category: z.string().optional(),
   subcategory: z.string().optional(),
@@ -57,8 +56,8 @@ const ticketSchema = z.object({
   symptoms: z.string().optional(),
   workaround: z.string().optional(),
 
-  // Legacy compatibility - subject será automaticamente preenchido com shortDescription
-  subject: z.string().optional(),
+  // Using subject field directly - no legacy conversion needed
+  subject: z.string().min(1, "Título do ticket é obrigatório"),
   status: z.enum(["open", "in_progress", "resolved", "closed"]).optional(),
   tags: z.array(z.string()).default([]),
 });
@@ -536,8 +535,8 @@ export default function TicketsTable() {
       case 'subject':
         return (
           <TableCell className="font-medium overflow-hidden" style={cellStyle}>
-            <div className="truncate" title={(ticket as any).shortDescription || ticket.subject}>
-              {(ticket as any).shortDescription || ticket.subject}
+            <div className="truncate" title={ticket.subject}>
+              {ticket.subject}
             </div>
           </TableCell>
         );
@@ -976,7 +975,6 @@ export default function TicketsTable() {
   const form = useForm<TicketFormData>({
     resolver: zodResolver(ticketSchema),
     defaultValues: {
-      shortDescription: "",
       description: "",
       category: "",
       subcategory: "",
@@ -997,19 +995,13 @@ export default function TicketsTable() {
       businessImpact: "",
       symptoms: "",
       workaround: "",
-      subject: "", // Será preenchido automaticamente
+      subject: "",
       status: "open",
       tags: [],
     },
   });
 
-  // Sincronizar subject com shortDescription
-  const shortDescriptionValue = form.watch("shortDescription");
-  useEffect(() => {
-    if (shortDescriptionValue) {
-      form.setValue("subject", shortDescriptionValue);
-    }
-  }, [shortDescriptionValue, form]);
+  // Remove synchronization logic - no longer needed
 
   // Mutação para criar ticket
   const createTicketMutation = useMutation({
@@ -1059,17 +1051,14 @@ export default function TicketsTable() {
   const onSubmit = (data: TicketFormData) => {
     console.log('🚀 Form submission started with data:', data);
 
-    // Automatically set subject from shortDescription for legacy compatibility
-    if (data.shortDescription && !data.subject) {
-      data.subject = data.shortDescription;
-    }
+    // Remove legacy compatibility - using subject directly
 
     // Validate required fields
-    if (!data.shortDescription) {
-      console.error('❌ Short description is required');
+    if (!data.subject && !data.description) {
+      console.error('❌ Subject or description is required');
       toast({
         title: "Erro de Validação",
-        description: "Título do ticket é obrigatório",
+        description: "Título ou descrição do ticket é obrigatório",
         variant: "destructive",
       });
       return;
@@ -1095,13 +1084,13 @@ export default function TicketsTable() {
       return;
     }
 
-    // Use shortDescription as subject for legacy compatibility
-    const subject = data.shortDescription;
+    // Use subject field directly
+    const subject = data.subject || data.description?.substring(0, 100) || "";
 
     const submitData = {
       // Core ticket fields (using ServiceNow-style naming)
       subject: subject,
-      shortDescription: data.shortDescription,
+
       description: data.description,
       priority: data.priority,
       status: data.state || data.status || "open",
@@ -1188,20 +1177,6 @@ export default function TicketsTable() {
         {/* Basic Information */}
         <div className="space-y-4">
           <h3 className="text-lg font-medium">Basic Information</h3>
-
-          <FormField
-            control={form.control}
-            name="shortDescription"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Short Description *</FormLabel>
-                <FormControl>
-                  <Input placeholder="Brief summary of the issue" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
 
           <FormField
             control={form.control}
@@ -1538,7 +1513,7 @@ export default function TicketsTable() {
             <input 
               type="hidden" 
               {...field}
-              value={form.watch("shortDescription") || field.value || ""}
+              value={form.watch("subject") || field.value || ""}
             />
           )}
         />
@@ -2216,8 +2191,8 @@ export default function TicketsTable() {
 
               // Extract specific error messages with better detail
               const errorMessages = [];
-              if (errors.shortDescription) {
-                errorMessages.push(errors.shortDescription.message || 'Título do ticket é obrigatório');
+              if (errors.subject) {
+                errorMessages.push(errors.subject.message || 'Título do ticket é obrigatório');
               }
               if (errors.description) {
                 errorMessages.push(errors.description.message || 'Descrição é obrigatória');
@@ -2250,7 +2225,7 @@ export default function TicketsTable() {
 
                     <FormField
                       control={form.control}
-                      name="shortDescription"
+                      name="subject"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Título do Ticket *</FormLabel>

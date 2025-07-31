@@ -26,7 +26,7 @@ export const FRONTEND_TO_BACKEND_MAPPING: Record<string, string> = {
   deletedAt: 'deleted_at',
   tenantId: 'tenant_id',
   customerId: 'customer_id',
-  shortDescription: 'short_description',
+
   businessImpact: 'business_impact',
   contactType: 'contact_type'
 };
