@@ -98,18 +98,35 @@ export default function Customers() {
       return <div className="h-4 w-16 bg-gray-200 rounded animate-pulse"></div>;
     }
     
-
+    // Filtrar empresa Default inativa para evitar problemas de renderização
+    const activeCompanies = Array.isArray(companies) ? companies.filter((company: any) => {
+      const companyId = company?.company_id || company?.id;
+      const companyStatus = company?.status;
+      
+      // Filtrar empresa Default se estiver inativa
+      if (companyId === '00000000-0000-0000-0000-000000000001') {
+        return companyStatus === 'active';
+      }
+      
+      return true;
+    }) : [];
     
-    // Verificação adicional para garantir que companies é um array
-    if (!companies || !Array.isArray(companies) || companies.length === 0) {
+    console.log(`Customer ${customerId} companies:`, {
+      originalCount: companies?.length || 0,
+      filteredCount: activeCompanies.length,
+      filtered: activeCompanies
+    });
+    
+    // Verificação adicional para garantir que activeCompanies é um array
+    if (!activeCompanies || !Array.isArray(activeCompanies) || activeCompanies.length === 0) {
       return <span className="text-gray-400">-</span>;
     }
     
-    // Renderizar lista de empresas
+    // Renderizar lista de empresas ativas
     try {
       return (
         <div className="flex flex-col gap-1 max-w-xs">
-          {companies.map((company: any, index: number) => {
+          {activeCompanies.map((company: any, index: number) => {
             // Verificação defensiva para evitar erros - usar campos corretos da estrutura
             const companyName = company?.company_name || company?.display_name || company?.name || company?.displayName || 'Empresa sem nome';
             const companyId = company?.company_id || company?.id || index;
@@ -126,7 +143,7 @@ export default function Customers() {
         </div>
       );
     } catch (error) {
-      console.error(`Error rendering companies for customer ${customerId}:`, error, companies);
+      console.error(`Error rendering companies for customer ${customerId}:`, error, activeCompanies);
       return <span className="text-red-400">Erro ao carregar empresas</span>;
     }
   };
