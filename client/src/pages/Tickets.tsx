@@ -528,15 +528,15 @@ export default function Tickets() {
                     )}
                   />
 
-                  {/* 4. TITULO */}
+                  {/* 4. ASSUNTO/TÍTULO */}
                   <FormField
                     control={form.control}
                     name="subject"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-lg font-semibold">Título *</FormLabel>
+                        <FormLabel className="text-lg font-semibold">Assunto *</FormLabel>
                         <FormControl>
-                          <Input placeholder="Digite o título do ticket" {...field} />
+                          <Input placeholder="Digite o assunto do ticket" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

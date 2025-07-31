@@ -20,7 +20,7 @@ export const ContactTypeEnum = z.enum(['email', 'phone', 'chat', 'portal', 'api'
  */
 export const ticketFormSchema = z.object({
   // CORE FIELDS - Campos obrigatórios básicos
-  subject: z.string().min(1, "Subject is required"),
+  subject: z.string().min(1, "Subject is required"), // Serve como título e assunto do ticket
   description: z.string().min(1, "Description is required"),
   priority: TicketPriorityEnum.default('medium'),
   status: TicketStatusEnum.default('open'),
