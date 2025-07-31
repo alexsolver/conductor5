@@ -1699,8 +1699,6 @@ export class DatabaseStorage implements IStorage {
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
-      console.log(`🔍 Backend: Getting relationships for ticket ${ticketId} in schema ${schemaName}`);
-
       const result = await tenantDb.execute(sql`
         SELECT 
           tr.id,

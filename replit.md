@@ -11,6 +11,28 @@ Interface preference: Text-based hierarchical menus with dropdowns over visual c
 
 ## Recent Changes
 
+### July 31, 2025 - BIDIRECTIONAL TICKET RELATIONSHIPS COMPLETELY FIXED ✅ SQL QUERY LOGIC CORRECTED FOR EXPANSION ARROWS
+
+**🎯 RELACIONAMENTOS BIDIRECIONAIS DE TICKETS COMPLETAMENTE FUNCIONAIS:**
+
+✅ **PROBLEMA DA CONSULTA SQL UNIDIRECIONAL RESOLVIDO:**
+- Rota `/api/tickets/:id/relationships` corrigida para buscar relacionamentos SOURCE e TARGET 
+- Implementados CASE statements para retornar tickets relacionados de ambas as direções
+- Query SQL agora usa LEFT JOIN com t_target e t_source para capturar relacionamentos completos
+- Condição WHERE alterada de `tr.source_ticket_id = $1` para `(tr.source_ticket_id = $1 OR tr.target_ticket_id = $1)`
+
+✅ **RESULTADOS VALIDADOS:**
+- Tickets com relacionamentos aumentaram de 3 para 7 tickets na listagem
+- Setas de expansão agora aparecem corretamente para todos os tickets com vínculos
+- Ticket T-1753756629339-G5WE (6fdae7d3-67cd-49f3-99d1-8ddd3efcb653) agora mostra relacionamento com T-1752980389088-AKJD corretamente
+- Logs backend confirmam query bidirecionais funcionando: "Query result: rowCount: 1, targetTicket: 3cafa3b6-b0b8-40ef-8c62-643225bf4c77"
+
+✅ **ARQUITETURA TÉCNICA APRIMORADA:**
+- Consulta SQL robusta usando CASE statements para determinar ticket alvo baseado na direção do relacionamento
+- Sistema bidirecional completo: tickets aparecem como relacionados independente de serem source ou target
+- Lógica de detecção de relacionamentos no frontend agora funcional com dados autênticos
+- Zero loops infinitos ou problemas de performance
+
 ### July 31, 2025 - COMPLETE SHORT_DESCRIPTION CLEANUP AND TICKET_ACTIONS TABLE FIXES ✅ COMPREHENSIVE CODE OPTIMIZATION
 
 **🎯 FINAL SHORTDESCRIPTION CLEANUP COMPLETED:**

@@ -1037,8 +1037,6 @@ ticketsRouter.get('/:id/relationships', jwtAuth, async (req: AuthenticatedReques
     const { pool } = await import('../../db');
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-    console.log(`🔍 Backend: Getting relationships for ticket ${id} in schema ${schemaName}`);
-    
     const query = `
       SELECT 
         tr.id,
@@ -1074,11 +1072,6 @@ ticketsRouter.get('/:id/relationships', jwtAuth, async (req: AuthenticatedReques
 
     const result = await pool.query(query, [id, tenantId]);
 
-    console.log(`🔍 Backend: Query result for ticket ${id}:`, {
-      rowCount: result.rows?.length || 0,
-      rows: result.rows
-    });
-
     // Transform flat results to nested objects
     const relationships = result.rows.map(row => ({
       id: row.id,
@@ -1093,8 +1086,6 @@ ticketsRouter.get('/:id/relationships', jwtAuth, async (req: AuthenticatedReques
         number: row['targetTicket.number']
       }
     }));
-
-    console.log(`🔍 Backend: Transformed results for ticket ${id}:`, relationships);
     res.json(relationships);
   } catch (error) {
     console.error("Error fetching ticket relationships:", error);
