@@ -338,12 +338,25 @@ export default function TicketDetails() {
   // PROBLEMA 9 RESOLVIDO: Handle company change otimizado
   const handleCompanyChange = async (newCompanyId: string) => {
     console.log('🏢 Company change:', { newCompanyId, selectedCompany });
+    console.log('🔍 DEBUG - handleCompanyChange called with:', { 
+      newCompanyId, 
+      currentSelected: selectedCompany,
+      formValue: form.getValues('customerCompanyId')
+    });
     
     // Only proceed if company actually changed
-    if (newCompanyId === selectedCompany) return;
+    if (newCompanyId === selectedCompany) {
+      console.log('⚠️ Company already selected, skipping');
+      return;
+    }
 
     setSelectedCompany(newCompanyId);
     form.setValue('customerCompanyId', newCompanyId);
+    
+    console.log('✅ Company state updated:', { 
+      newSelectedCompany: newCompanyId,
+      formValueAfter: form.getValues('customerCompanyId')
+    });
 
     // Reset customer selections only when changing company
     form.setValue('callerId', '');
@@ -860,12 +873,12 @@ export default function TicketDetails() {
       estimated_hours: data.estimatedHours,
       actual_hours: data.actualHours,
 
-      // Collections
-      followers: data.followers || [],
-      tags: data.tags || [],
+      // Collections - CORREÇÃO: Usar state ao invés de form data
+      followers: followers.length > 0 ? followers : (data.followers || []),
+      tags: tags.length > 0 ? tags : (data.tags || []),
 
-      // CORRIGIDO: Company relationship - mapeamento consistente
-      customer_company_id: data.customerCompanyId,
+      // CORRIGIDO: Company relationship - usar selectedCompany se customerCompanyId vazio
+      customer_company_id: data.customerCompanyId || selectedCompany || null,
 
       // Environment
       environment: data.environment,
@@ -877,6 +890,14 @@ export default function TicketDetails() {
     };
 
     console.log("💾 Sending mapped data to API:", mappedData);
+    console.log("🔍 DEBUG - State values before sending:", {
+      followersState: followers,
+      selectedCompanyState: selectedCompany,
+      dataFollowers: data.followers,
+      dataCustomerCompanyId: data.customerCompanyId,
+      finalFollowers: mappedData.followers,
+      finalCustomerId: mappedData.customer_company_id
+    });
     updateTicketMutation.mutate(mappedData);
   };
 
@@ -2581,8 +2602,13 @@ export default function TicketDetails() {
               <UserMultiSelect
                 value={form.getValues('followers') || ticket.followers || []}
                 onChange={(value) => {
+                  console.log('👥 UserMultiSelect onChange called with:', value);
                   setFollowers(value);
                   form.setValue('followers', value);
+                  console.log('✅ Followers state updated:', { 
+                    newFollowers: value,
+                    formValueAfter: form.getValues('followers')
+                  });
                 }}
                 users={teamUsers}
                 placeholder="Selecionar seguidores da equipe"

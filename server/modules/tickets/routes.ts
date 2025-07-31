@@ -205,8 +205,28 @@ ticketsRouter.put('/:id', jwtAuth, trackTicketEdit, async (req: AuthenticatedReq
     const ticketId = req.params.id;
     const frontendUpdates = req.body;
 
+    // DEBUG: Log incoming data for followers and customer_id investigation
+    console.log('🔍 DEBUGGING TICKET UPDATE - Incoming data:', {
+      ticketId,
+      hasFollowers: !!frontendUpdates.followers,
+      followersType: typeof frontendUpdates.followers,
+      followersValue: frontendUpdates.followers,
+      hasCustomerId: !!frontendUpdates.customer_id,
+      customerIdValue: frontendUpdates.customer_id,
+      assignedToId: frontendUpdates.assigned_to_id,
+      allKeys: Object.keys(frontendUpdates)
+    });
+
     // CORREÇÃO CRÍTICA 1: Aplicar mapeamento centralizado Frontend→Backend
     const backendUpdates = mapFrontendToBackend(frontendUpdates);
+
+    // DEBUG: Log after mapping
+    console.log('🔍 DEBUGGING TICKET UPDATE - After mapping:', {
+      backendFollowers: backendUpdates.followers,
+      backendCustomerId: backendUpdates.customer_id,
+      backendAssignedToId: backendUpdates.assigned_to_id,
+      allBackendKeys: Object.keys(backendUpdates)
+    });
 
     // CORREÇÃO CRÍTICA 3: Campo location é texto livre, não FK
     // Manter consistência com schema do banco

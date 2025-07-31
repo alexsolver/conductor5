@@ -17,7 +17,7 @@ export const FRONTEND_TO_BACKEND_MAPPING: Record<string, string> = {
   callerId: 'caller_id',
   beneficiaryId: 'beneficiary_id', 
   assignedToId: 'assigned_to_id',
-  customerCompanyId: 'customer_id',
+  customerCompanyId: 'customer_id', // MAPEAMENTO CORRETO
   // 🚨 CORREÇÃO CRÍTICA: location é campo texto, não FK
   location: 'location', // Campo texto livre, não location_id
   // Campos adicionais
@@ -25,7 +25,8 @@ export const FRONTEND_TO_BACKEND_MAPPING: Record<string, string> = {
   updatedAt: 'updated_at',
   deletedAt: 'deleted_at',
   tenantId: 'tenant_id',
-  customerId: 'customer_id',
+  // CORREÇÃO: Remover duplicate mapping 
+  // customerId: 'customer_id', // já tem customerCompanyId
 
   businessImpact: 'business_impact',
   contactType: 'contact_type'

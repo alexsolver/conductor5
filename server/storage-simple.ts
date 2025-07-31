@@ -507,8 +507,19 @@ export class DatabaseStorage implements IStorage {
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
+      // DEBUG: Log ticket data before SQL update
+      console.log('🎫 STORAGE DEBUG - About to update ticket:', {
+        ticketId,
+        followersRaw: ticketData.followers,
+        followersType: typeof ticketData.followers,
+        customerIdRaw: ticketData.customer_id,
+        assignedToIdRaw: ticketData.assigned_to_id,
+        allKeys: Object.keys(ticketData)
+      });
+
       // PROBLEMA 2,3,7 RESOLVIDOS: Campos reais do banco, mapping correto, SQL injection safe
       // CORREÇÃO CRÍTICA: Usar location ao invés de location_id baseado no schema real
+      // CORREÇÃO FOLLOWERS: Adicionar campo followers que estava faltando
       const result = await tenantDb.execute(sql`
         UPDATE ${sql.identifier(schemaName)}.tickets
         SET 
@@ -535,10 +546,17 @@ export class DatabaseStorage implements IStorage {
           caller_type = ${ticketData.caller_type || 'customer'},
           beneficiary_type = ${ticketData.beneficiary_type || 'customer'},
           customer_id = ${ticketData.customer_id || null},
+          followers = ${ticketData.followers ? JSON.stringify(ticketData.followers) : '[]'},
           updated_at = NOW()
         WHERE id = ${ticketId} AND tenant_id = ${validatedTenantId}
         RETURNING *
       `);
+
+      console.log('🎫 STORAGE DEBUG - SQL update completed:', {
+        ticketId,
+        rowsAffected: result.rowCount,
+        returnedData: result.rows?.[0] ? 'Yes' : 'No'
+      });
 
       return result.rows?.[0];
     } catch (error) {
