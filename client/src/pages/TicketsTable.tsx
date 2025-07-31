@@ -2179,36 +2179,43 @@ export default function TicketsTable() {
 
                             {ticketRelationships[ticket.id] && ticketRelationships[ticket.id].length > 0 ? (
                               <div className="space-y-2">
-                                {ticketRelationships[ticket.id].map((relationship: any, index: number) => (
+                                {ticketRelationships[ticket.id].map((relationship: any, index: number) => {
+                                  console.log(`🎯 Renderizando relacionamento ${index}:`, {
+                                    id: relationship.id,
+                                    targetTicket: relationship.targetTicket,
+                                    number: relationship.targetTicket?.number || relationship.number,
+                                    subject: relationship.targetTicket?.subject || relationship.subject
+                                  });
+                                  return (
                                   <div key={`${relationship.relationshipId || relationship.id}-${index}`} className="flex items-center justify-between p-3 bg-white rounded border">
                                     <div className="flex items-center space-x-3">
                                       {getRelationshipIcon(relationship.relationshipType)}
                                       <div>
                                         <div className="flex items-center space-x-2">
-                                          <Link href={`/tickets/${relationship.id}`} className="font-medium text-blue-600 hover:text-blue-800">
-                                            {relationship.number}
+                                          <Link href={`/tickets/${relationship.targetTicket?.id || relationship.id}`} className="font-medium text-blue-600 hover:text-blue-800">
+                                            {relationship.targetTicket?.number || relationship.number || 'N/A'}
                                           </Link>
                                           <span className="text-xs text-gray-500">
                                             {getRelationshipLabel(relationship.relationshipType)}
                                           </span>
                                         </div>
-                                        <div className="text-sm text-gray-600 truncate max-w-md" title={relationship.subject}>
-                                          {relationship.subject}
+                                        <div className="text-sm text-gray-600 truncate max-w-md" title={relationship.targetTicket?.subject || relationship.subject}>
+                                          {relationship.targetTicket?.subject || relationship.subject || 'Sem assunto'}
                                         </div>
                                         <div className="flex items-center space-x-2 mt-1">
                                           <DynamicBadge 
                                             fieldName="status"
-                                            value={mapStatusValue(relationship.status)}
-                                            colorHex={getFieldColorWithFallback('status', mapStatusValue(relationship.status))}
+                                            value={mapStatusValue(relationship.targetTicket?.status || relationship.status)}
+                                            colorHex={getFieldColorWithFallback('status', mapStatusValue(relationship.targetTicket?.status || relationship.status))}
                                           >
-                                            {getFieldLabel('status', mapStatusValue(relationship.status))}
+                                            {getFieldLabel('status', mapStatusValue(relationship.targetTicket?.status || relationship.status))}
                                           </DynamicBadge>
                                           <DynamicBadge 
                                             fieldName="priority"
-                                            value={mapPriorityValue(relationship.priority)}
-                                            colorHex={getFieldColorWithFallback('priority', mapPriorityValue(relationship.priority))}
+                                            value={mapPriorityValue(relationship.targetTicket?.priority || relationship.priority)}
+                                            colorHex={getFieldColorWithFallback('priority', mapPriorityValue(relationship.targetTicket?.priority || relationship.priority))}
                                           >
-                                            {getFieldLabel('priority', mapPriorityValue(relationship.priority))}
+                                            {getFieldLabel('priority', mapPriorityValue(relationship.targetTicket?.priority || relationship.priority))}
                                           </DynamicBadge>
                                         </div>
                                       </div>
@@ -2217,7 +2224,8 @@ export default function TicketsTable() {
                                       {relationship.createdAt ? new Date(relationship.createdAt).toLocaleDateString('pt-BR') : ''}
                                     </div>
                                   </div>
-                                ))}
+                                  );
+                                })}
                               </div>
                             ) : (
                               <div className="text-center py-4 text-gray-500 text-sm">
