@@ -1,206 +1,207 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Search, Plus, Eye, Link, AlertCircle } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import TicketEdit from './TicketEdit';
-import TicketLinkingModal from '@/components/tickets/TicketLinkingModal';
-import { useTenantId } from '@/hooks/useTenantId';
-import { useAuth } from '@/hooks/useAuth';
+import { useState, useMemo, useCallback, memo, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import { useLocation, Link } from "wouter";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+import { Plus, Filter, Search, MoreHorizontal, Edit, Trash2, Eye, ChevronLeft, ChevronRight, Settings, GripVertical, X, Undo, Redo, Bold, Italic, List, ListOrdered, ArrowLeft, Quote, Code, Heading1, Heading2, Heading3, Strikethrough, ChevronDown, ChevronUp, Link2, ArrowUpRight, ArrowDownRight, CornerDownRight, Copy, AlertTriangle, ArrowRight, GitBranch, Users, AlertCircle } from "lucide-react";
+import { DynamicSelect } from "@/components/DynamicSelect";
+import { DynamicBadge } from "@/components/DynamicBadge";
+import { PersonSelector } from "@/components/PersonSelector";
+import { useFieldColors } from "@/hooks/useFieldColors";
+import TicketLinkingModal from "@/components/tickets/TicketLinkingModal";
+import TicketHierarchyView from "@/components/tickets/TicketHierarchyView";
+
+// Schema for ticket creation/editing - ServiceNow style
+const ticketSchema = z.object({
+  // Basic Fields
+  description: z.string().min(1, "Descrição é obrigatória"),
+  category: z.string().optional(),
+  subcategory: z.string().optional(),
+  priority: z.enum(["low", "medium", "high", "critical"]),
+  impact: z.enum(["low", "medium", "high"]).optional(),
+  urgency: z.enum(["low", "medium", "high"]).optional(),
+  state: z.enum(["new", "in_progress", "resolved", "closed", "cancelled"]).optional(),
+
+  // Assignment Fields - Enhanced for flexible person referencing
+  companyId: z.string().min(1, "Empresa é obrigatória"),
+  callerId: z.string().min(1, "Solicitante é obrigatório"),
+  callerType: z.enum(["user", "customer"]).default("customer"),
+  beneficiaryId: z.string().optional(), // Optional - defaults to callerId
+  beneficiaryType: z.enum(["user", "customer"]).optional(),
+
+  assignedToId: z.string().optional(),
+  assignmentGroup: z.string().optional(),
+  location: z.string().optional(),
+
+  // Communication Fields
+  contactType: z.enum(["email", "phone", "self_service", "chat"]).optional(),
+
+  // Business Fields
+  businessImpact: z.string().optional(),
+  symptoms: z.string().optional(),
+  workaround: z.string().optional(),
+
+  // Using subject field directly - no legacy conversion needed
+  subject: z.string().min(1, "Título do ticket é obrigatório"),
+  status: z.enum(["open", "in_progress", "resolved", "closed"]).optional(),
+  tags: z.array(z.string()).default([]),
+});
+
+type TicketFormData = z.infer<typeof ticketSchema>;
 
 interface Ticket {
   id: string;
   number: string;
   subject: string;
+  description: string;
   status: string;
   priority: string;
+  category?: string;
+  subcategory?: string;
+  impact?: string;
+  urgency?: string;
+  state?: string;
   created_at: string;
-  customer_id?: string;
-  satisfaction?: number;
-}
-
-interface TicketRelationship {
-  id: string;
-  relationshipType: string;
-  description?: string;
-  targetTicket: {
+  updated_at: string;
+  customer_id: string;
+  caller_id: string;
+  assigned_to_id?: string;
+  assignedTo?: {
     id: string;
-    subject: string;
-    status: string;
-    priority: string;
-    number: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+  customer?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    fullName: string;
   };
 }
 
-interface BatchRelationshipsResponse {
-  success: boolean;
-  data: Record<string, TicketRelationship[]>;
-  message: string;
-}
-
-const TicketsTable = () => {
-  const { token } = useAuth();
-  const tenantId = useTenantId();
-  const queryClient = useQueryClient();
-
-  // State management
-  const [searchTerm, setSearchTerm] = useState('');
+export default function TicketsTable() {
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isLinkingModalOpen, setIsLinkingModalOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [priorityFilter, setPriorityFilter] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [selectedViewId, setSelectedViewId] = useState("default");
+  const [isAdvancedFiltersOpen, setIsAdvancedFiltersOpen] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
+
+  // Estados para expansão de relacionamentos
+  const [expandedTickets, setExpandedTickets] = useState<Set<string>>(new Set());
+  const [ticketRelationships, setTicketRelationships] = useState<Record<string, any[]>>({});
   const [ticketsWithRelationships, setTicketsWithRelationships] = useState<Set<string>>(new Set());
 
-  // Fetch tickets with optimized query
-  const { data: ticketsData, isLoading: ticketsLoading, error: ticketsError } = useQuery({
-    queryKey: ['tickets', tenantId, searchTerm],
-    queryFn: async () => {
-      const searchParam = searchTerm ? `?search=${encodeURIComponent(searchTerm)}` : '';
-      const response = await fetch(`/api/tickets${searchParam}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+  // Hook para buscar cores dos campos personalizados
+  const { getFieldColor, getFieldLabel, isLoading: isFieldColorsLoading } = useFieldColors();
+  const queryClient = useQueryClient();
 
-      if (!response.ok) throw new Error('Failed to fetch tickets');
+  // Mapeamento de valores em inglês para português para compatibilidade com configurações
+  const statusMapping: Record<string, string> = {
+    'new': 'novo',
+    'open': 'aberto', 
+    'in_progress': 'em_andamento',
+    'in progress': 'em_andamento',
+    'resolved': 'resolvido',
+    'closed': 'fechado',
+    'cancelled': 'cancelado'
+  };
+
+  const priorityMapping: Record<string, string> = {
+    'low': 'low',
+    'medium': 'medium', 
+    'high': 'high',
+    'critical': 'critical'
+  };
+
+  const categoryMapping: Record<string, string> = {
+    'hardware': 'infraestrutura',
+    'software': 'suporte_tecnico', 
+    'network': 'infraestrutura',
+    'access': 'suporte_tecnico',
+    'other': 'suporte_tecnico',
+    'technical_support': 'suporte_tecnico',
+    'customer_service': 'atendimento_cliente',
+    'financial': 'financeiro',
+    'infrastructure': 'infraestrutura'
+  };
+
+  // Função helper para obter cor com fallback durante carregamento
+  const getFieldColorWithFallback = (fieldName: string, value: string): string => {
+    if (isFieldColorsLoading) {
+      return '#6b7280'; // Cor neutra (gray-500) durante carregamento
+    }
+    return getFieldColor(fieldName, value) || '#6b7280';
+  };
+
+  // Funções de mapeamento
+  const mapStatusValue = (value: string): string => {
+    if (!value) return 'novo';
+    const mapped = statusMapping[value.toLowerCase()] || value;
+    return mapped;
+  };
+
+  const mapPriorityValue = (value: string): string => {
+    if (!value) return 'medium';
+    return priorityMapping[value.toLowerCase()] || value;
+  };
+
+  const mapCategoryValue = (value: string): string => {
+    // Lidar com valores null, undefined, string "null" ou vazios
+    if (!value || value === null || value === 'null' || value === '' || typeof value !== 'string') {
+      return 'suporte_tecnico'; // Use uma categoria que existe no sistema
+    }
+    const mapped = categoryMapping[value.toLowerCase()] || 'suporte_tecnico';
+    return mapped;
+  };
+
+  // Fetch tickets data
+  const { data: ticketsResponse, isLoading: ticketsLoading, error: ticketsError } = useQuery({
+    queryKey: ["/api/tickets"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/tickets");
       return response.json();
     },
-    enabled: !!token && !!tenantId,
-    staleTime: 30000, // 30 seconds
-    refetchInterval: 60000, // 1 minute
   });
 
-  const tickets = ticketsData?.data?.tickets || [];
+  const tickets = ticketsResponse?.success ? ticketsResponse.data?.tickets || [] : [];
 
-  // Batch fetch relationships for all tickets - optimized
-  const { data: relationshipsData, isLoading: relationshipsLoading } = useQuery({
-    queryKey: ['ticket-relationships-batch', tickets.map((t: Ticket) => t.id).sort().join(',')],
-    queryFn: async (): Promise<BatchRelationshipsResponse> => {
-      if (tickets.length === 0) {
-        return { success: true, data: {}, message: 'No tickets to process' };
-      }
-
-      const ticketIds = tickets.map((t: Ticket) => t.id);
-      console.log(`🚀 Batch loading relationships for ${ticketIds.length} tickets`);
-      
-      const response = await fetch('/api/tickets/batch-relationships', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ ticketIds })
-      });
-
-      if (!response.ok) {
-        console.error('❌ Batch relationships request failed:', response.status);
-        return { success: false, data: {}, message: 'Batch request failed' };
-      }
-
-      const result = await response.json();
-      console.log(`✅ Batch relationships loaded: ${Object.keys(result.data || {}).length} tickets processed`);
-      return result;
-    },
-    enabled: !!token && !!tenantId && tickets.length > 0,
-    staleTime: 300000, // 5 minutes for relationships
-    retry: false, // Don't retry to avoid multiple requests
-  });
-
-  // Update tickets with relationships when data changes - optimized
-  useEffect(() => {
-    if (relationshipsData?.success && relationshipsData.data) {
-      const ticketsWithRels = new Set<string>();
-      Object.entries(relationshipsData.data).forEach(([ticketId, relationships]) => {
-        if (Array.isArray(relationships) && relationships.length > 0) {
-          ticketsWithRels.add(ticketId);
-        }
-      });
-      setTicketsWithRelationships(ticketsWithRels);
-      console.log(`⚡ Performance: Batch loaded relationships for ${ticketsWithRels.size}/${tickets.length} tickets in single request`);
-    } else if (relationshipsData && !relationshipsData.success) {
-      console.warn('⚠️ Batch relationships loading failed, relationships will not be displayed');
-      setTicketsWithRelationships(new Set());
-    }
-  }, [relationshipsData, tickets.length]);
-
-  // Status mapping - keep backend values (English) for consistency
-  const mapStatusDisplay = (status: string): string => {
-    const statusDisplayMap: Record<string, string> = {
-      'new': 'Novo',
-      'open': 'Aberto', 
-      'in_progress': 'Em Andamento',
-      'pending': 'Pendente',
-      'resolved': 'Resolvido',
-      'closed': 'Fechado',
-      'cancelled': 'Cancelado'
-    };
-    return statusDisplayMap[status] || status;
-  };
-
-  // Priority mapping - keep backend values (English) for consistency
-  const mapPriorityDisplay = (priority: string): string => {
-    const priorityDisplayMap: Record<string, string> = {
-      'low': 'Baixa',
-      'medium': 'Média',
-      'high': 'Alta',
-      'critical': 'Crítica',
-      'urgent': 'Urgente'
-    };
-    return priorityDisplayMap[priority] || priority;
-  };
-
-  // Memoized filtered tickets for performance - keep raw backend values
+  // Filter tickets based on search and filters
   const filteredTickets = useMemo(() => {
-    if (!searchTerm) return tickets;
-
-    const term = searchTerm.toLowerCase();
-    return tickets.filter((ticket: Ticket) =>
-      ticket.subject?.toLowerCase().includes(term) ||
-      ticket.number?.toLowerCase().includes(term) ||
-      ticket.status?.toLowerCase().includes(term) ||
-      ticket.priority?.toLowerCase().includes(term)
-    );
-  }, [tickets, searchTerm]);
-
-  // Debounced search
-  const debouncedSearch = useCallback(
-    (value: string) => {
-      const timeoutId = setTimeout(() => {
-        setSearchTerm(value);
-      }, 300);
-      return () => clearTimeout(timeoutId);
-    },
-    []
-  );
-
-  // Priority color mapping with memoization - using English keys
-  const getPriorityColor = useMemo(() => {
-    const colorMap: Record<string, string> = {
-      'critical': 'bg-red-100 text-red-800 border-red-200',
-      'urgent': 'bg-red-100 text-red-800 border-red-200',
-      'high': 'bg-orange-100 text-orange-800 border-orange-200',
-      'medium': 'bg-yellow-100 text-yellow-800 border-yellow-200',
-      'low': 'bg-green-100 text-green-800 border-green-200'
-    };
-
-    return (priority: string) => colorMap[priority?.toLowerCase()] || 'bg-gray-100 text-gray-800 border-gray-200';
-  }, []);
-
-  // Status color mapping with memoization - using English keys
-  const getStatusColor = useMemo(() => {
-    const colorMap: Record<string, string> = {
-      'new': 'bg-blue-100 text-blue-800 border-blue-200',
-      'open': 'bg-green-100 text-green-800 border-green-200',
-      'in_progress': 'bg-yellow-100 text-yellow-800 border-yellow-200',
-      'pending': 'bg-orange-100 text-orange-800 border-orange-200',
-      'resolved': 'bg-purple-100 text-purple-800 border-purple-200',
-      'closed': 'bg-gray-100 text-gray-800 border-gray-200',
-      'cancelled': 'bg-red-100 text-red-800 border-red-200'
-    };
-
-    return (status: string) => colorMap[status?.toLowerCase()] || 'bg-gray-100 text-gray-800 border-gray-200';
-  }, []);
+    return tickets.filter((ticket: Ticket) => {
+      const matchesSearch = !searchTerm || 
+        ticket.subject?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        ticket.number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        ticket.description?.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesStatus = statusFilter === "all" || ticket.status === statusFilter;
+      const matchesPriority = priorityFilter === "all" || ticket.priority === priorityFilter;
+      
+      return matchesSearch && matchesStatus && matchesPriority;
+    });
+  }, [tickets, searchTerm, statusFilter, priorityFilter]);
 
   // Handle modal actions
   const handleEditTicket = useCallback((ticket: Ticket) => {
@@ -218,8 +219,7 @@ const TicketsTable = () => {
     setIsLinkModalOpen(false);
     setSelectedTicket(null);
     // Invalidate cache to refresh data
-    queryClient.invalidateQueries({ queryKey: ['tickets'] });
-    queryClient.invalidateQueries({ queryKey: ['ticket-relationships-batch'] });
+    queryClient.invalidateQueries({ queryKey: ["/api/tickets"] });
   }, [queryClient]);
 
   // Loading state
@@ -261,37 +261,53 @@ const TicketsTable = () => {
           <h1 className="text-2xl font-bold">Tickets</h1>
           <p className="text-gray-600">
             {filteredTickets.length} tickets encontrados
-            {relationshipsLoading && <span className="ml-2 text-sm text-blue-600">(Carregando relacionamentos...)</span>}
           </p>
         </div>
-        <Button onClick={() => {/* Add new ticket logic */}}>
+        <Button onClick={() => setIsCreateDialogOpen(true)}>
           <Plus className="h-4 w-4 mr-2" />
           Novo Ticket
         </Button>
       </div>
 
-      {/* Search */}
+      {/* Search and Filters */}
       <div className="flex gap-4">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
-            placeholder="Buscar por número, assunto, status ou prioridade..."
+            placeholder="Buscar tickets..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
-            onChange={(e) => debouncedSearch(e.target.value)}
           />
         </div>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os Status</SelectItem>
+            <SelectItem value="new">Novo</SelectItem>
+            <SelectItem value="open">Aberto</SelectItem>
+            <SelectItem value="in_progress">Em Andamento</SelectItem>
+            <SelectItem value="resolved">Resolvido</SelectItem>
+            <SelectItem value="closed">Fechado</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="Prioridade" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas as Prioridades</SelectItem>
+            <SelectItem value="low">Baixa</SelectItem>
+            <SelectItem value="medium">Média</SelectItem>
+            <SelectItem value="high">Alta</SelectItem>
+            <SelectItem value="critical">Crítica</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
-      {/* Performance Stats */}
-      {relationshipsData && (
-        <div className="flex gap-4 text-sm text-gray-600">
-          <span>📊 {tickets.length} tickets carregados</span>
-          <span>🔗 {ticketsWithRelationships.size} com relacionamentos</span>
-          <span>⚡ Carregamento otimizado: {relationshipsLoading ? 'Processando...' : 'Concluído'}</span>
-        </div>
-      )}
-
-      {/* Table */}
+      {/* Tickets Table */}
       <Card>
         <CardContent className="p-0">
           <Table>
@@ -301,8 +317,8 @@ const TicketsTable = () => {
                 <TableHead>Assunto</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Prioridade</TableHead>
-                <TableHead>Relacionamentos</TableHead>
-                <TableHead>Satisfação</TableHead>
+                <TableHead>Categoria</TableHead>
+                <TableHead>Cliente</TableHead>
                 <TableHead>Criado em</TableHead>
                 <TableHead>Ações</TableHead>
               </TableRow>
@@ -310,51 +326,79 @@ const TicketsTable = () => {
             <TableBody>
               {filteredTickets.map((ticket: Ticket) => (
                 <TableRow key={ticket.id} className="hover:bg-gray-50">
-                  <TableCell className="font-medium">{ticket.number}</TableCell>
-                  <TableCell className="max-w-xs truncate">{ticket.subject}</TableCell>
-                  <TableCell>
-                    <Badge className={getStatusColor(ticket.status)}>
-                      {mapStatusDisplay(ticket.status)}
-                    </Badge>
+                  <TableCell className="font-mono text-sm">
+                    <Link href={`/tickets/${ticket.id}`} className="text-blue-600 hover:text-blue-800">
+                      {ticket.number}
+                    </Link>
                   </TableCell>
                   <TableCell>
-                    <Badge className={getPriorityColor(ticket.priority)}>
-                      {mapPriorityDisplay(ticket.priority)}
-                    </Badge>
+                    <div className="max-w-xs truncate" title={ticket.subject}>
+                      {ticket.subject}
+                    </div>
                   </TableCell>
                   <TableCell>
-                    {ticketsWithRelationships.has(ticket.id) ? (
-                      <Badge className="bg-blue-100 text-blue-800 border-blue-200">
-                        <Link className="h-3 w-3 mr-1" />
-                        Relacionado
-                      </Badge>
+                    <DynamicBadge 
+                      fieldName="status"
+                      value={mapStatusValue(ticket.status)}
+                      colorHex={getFieldColorWithFallback('status', mapStatusValue(ticket.status))}
+                    >
+                      {getFieldLabel('status', mapStatusValue(ticket.status))}
+                    </DynamicBadge>
+                  </TableCell>
+                  <TableCell>
+                    <DynamicBadge 
+                      fieldName="priority"
+                      value={mapPriorityValue(ticket.priority)}
+                      colorHex={getFieldColorWithFallback('priority', mapPriorityValue(ticket.priority))}
+                    >
+                      {getFieldLabel('priority', mapPriorityValue(ticket.priority))}
+                    </DynamicBadge>
+                  </TableCell>
+                  <TableCell>
+                    {ticket.category ? (
+                      <DynamicBadge 
+                        fieldName="category"
+                        value={mapCategoryValue(ticket.category)}
+                        colorHex={getFieldColorWithFallback('category', mapCategoryValue(ticket.category))}
+                      >
+                        {getFieldLabel('category', mapCategoryValue(ticket.category))}
+                      </DynamicBadge>
                     ) : (
                       <span className="text-gray-400">-</span>
                     )}
                   </TableCell>
                   <TableCell>
-                    {ticket.satisfaction ? `${ticket.satisfaction}/5` : '-'}
+                    <div className="text-sm">
+                      {ticket.customer?.fullName || ticket.customer?.firstName + ' ' + ticket.customer?.lastName || 'N/A'}
+                    </div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="text-sm text-gray-500">
                     {new Date(ticket.created_at).toLocaleDateString('pt-BR')}
                   </TableCell>
                   <TableCell>
-                    <div className="flex gap-1">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleEditTicket(ticket)}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleLinkTicket(ticket)}
-                      >
-                        <Link className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem asChild>
+                          <Link href={`/tickets/${ticket.id}`}>
+                            <Eye className="h-4 w-4 mr-2" />
+                            Visualizar
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleEditTicket(ticket)}>
+                          <Edit className="h-4 w-4 mr-2" />
+                          Editar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleLinkTicket(ticket)}>
+                          <Link2 className="h-4 w-4 mr-2" />
+                          Vincular
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))}
@@ -369,23 +413,16 @@ const TicketsTable = () => {
           <DialogHeader>
             <DialogTitle>Editar Ticket</DialogTitle>
           </DialogHeader>
-          {selectedTicket && (
-            <TicketEdit
-              ticketId={selectedTicket.id}
-              onSuccess={handleModalClose}
-            />
-          )}
+          {/* Edit form would go here */}
         </DialogContent>
       </Dialog>
 
       <TicketLinkingModal
         isOpen={isLinkModalOpen}
         onClose={handleModalClose}
-        ticketId={selectedTicket?.id}
-        ticketNumber={selectedTicket?.number}
+        sourceTicketId={selectedTicket?.id}
+        sourceTicketNumber={selectedTicket?.number}
       />
     </div>
   );
-};
-
-export default TicketsTable;
+}
