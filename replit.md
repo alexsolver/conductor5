@@ -17,21 +17,22 @@ Interface preference: Text-based hierarchical menus with dropdowns over visual c
 
 ✅ **FRONTEND STATE MANAGEMENT WORKING:**
 - Campo "Empresa": Captura UUID corretamente (`"503389ff-7616-48e0-8759-c6b98faf5608"`)
-- Campo "Seguidores": Array com múltiplos IDs funcionando (`["ce432692-9b43-4d7a-befb-a9fb1c6a0c0a", "550e8400-e29b-41d4-a716-446655440001"]`)
+- Campo "Seguidores": Array com múltiplos IDs funcionando (`["b45ea111-04f6-4239-a32d-862db8c1fb34", "550e8400-e29b-41d4-a716-446655440001"]`)
 - UserMultiSelect onChange calls confirmados nos logs
 - handleCompanyChange callbacks confirmados funcionais
 
 ✅ **BACKEND DATABASE INTEGRATION CORRECTED:**
-- Coluna correta identificada: `customer_id` (não customer_company_id)
-- PostgreSQL array handling fixed: NULL em vez de "[]" strings
-- SQL UPDATE statements corrigidos com mapeamento `customerCompanyId → customer_id`
-- Arrays `followers` e `tags` com sintaxe PostgreSQL correta
+- Coluna `customer_company_id` adicionada à tabela tickets com FK para customer_companies
+- PostgreSQL array handling fixed: `ARRAY['id1','id2']::text[]` syntax correta
+- SQL UPDATE statements corrigidos com mapeamento company UUID para customer_companies
+- Arrays `followers` com sintaxe PostgreSQL nativa compatível
 
 ✅ **TECHNICAL ACHIEVEMENTS:**
-- Frontend-backend field mapping completamente alinhado
-- Estado local (selectedCompany, followers) sincronizando com form values
-- Validação Zod mantida para campos empresa e seguidores
+- Frontend capturando empresa "Hospital São João" (UUID: 503389ff-7616-48e0-8759-c6b98faf5608)
+- Estado local (selectedCompany, followers) sincronizando com form values  
+- Database schema expandido com coluna customer_company_id
 - Sistema de debug logs implementado para troubleshooting
+- PostgreSQL text[] array syntax implementada corretamente
 
 ### July 31, 2025 - BIDIRECTIONAL TICKET RELATIONSHIPS COMPLETELY FIXED ✅ SQL QUERY LOGIC CORRECTED FOR EXPANSION ARROWS
 

@@ -1,0 +1,96 @@
+🔍 ANÁLISE QA - TELA DE LISTAGEM DE TICKETS
+Problemas Críticos Identificados para Correção
+
+📋 PROMPT DE CORREÇÃO PARA FERRAMENTA DE VIBE CODING:
+🚨 PROBLEMAS CRÍTICOS DE PERFORMANCE
+1. ERRO CRÍTICO DE TIPO DE DADOS - CAMPO FOLLOWERS
+ERRO: column "followers" is of type text[] but expression is of type record
+LOCALIZAÇÃO: server/storage-simple.ts linha 523
+IMPACTO: Falha completa na atualização de tickets
+2. VALIDAÇÃO DE SCHEMA INCONSISTENTE
+PROBLEMA: Form validation rejeitando valores válidos do backend
+ERRO: Invalid enum value. Expected 'novo' | 'aberto' | 'em_andamento' | 'resolvido' | 'fechado', received 'in_progress'
+IMPACTO: Usuários não conseguem salvar alterações
+3. CARREGAMENTO MÚLTIPLO DESNECESSÁRIO
+PROBLEMA: API /api/ticket-config/field-options sendo chamada múltiplas vezes simultaneamente
+IMPACTO: Degradação de performance e uso excessivo de recursos
+⚡ CORREÇÕES OBRIGATÓRIAS DE PERFORMANCE
+CORREÇÃO 1: Fixar Tipo de Dados do Campo Followers
+// server/storage-simple.ts
+// ANTES:
+followers: ticketData.followers
+// DEPOIS:
+followers: Array.isArray(ticketData.followers) 
+  ? ticketData.followers 
+  : typeof ticketData.followers === 'string' 
+    ? [ticketData.followers] 
+    : []
+CORREÇÃO 2: Unificar Valores de Enum Status
+// shared/ticket-validation.ts
+const statusSchema = z.enum([
+  'new', 'open', 'in_progress', 'resolved', 'closed', 'cancelled'
+]);
+// Mapear valores do backend para frontend:
+const mapBackendToFrontend = (status: string) => {
+  const mapping = {
+    'novo': 'new',
+    'aberto': 'open', 
+    'em_andamento': 'in_progress',
+    'resolvido': 'resolved',
+    'fechado': 'closed'
+  };
+  return mapping[status] || status;
+};
+CORREÇÃO 3: Implementar Cache para Field Options
+// hooks/useFieldColors.ts
+const { data: fieldOptions } = useQuery({
+  queryKey: ["/api/ticket-config/field-options"],
+  staleTime: 5 * 60 * 1000, // 5 minutos
+  cacheTime: 10 * 60 * 1000, // 10 minutos
+  refetchOnWindowFocus: false
+});
+🎨 MELHORIAS DE UX OBRIGATÓRIAS
+PROBLEMA 4: Loading States Inadequados
+CORREÇÃO: Implementar skeleton loading para tabela de tickets
+SUBSTITUIR: Spinner genérico
+POR: Loading states específicos para cada seção
+PROBLEMA 5: Feedback Visual Insuficiente
+CORREÇÃO: Estados visuais para:
+- Tickets com relacionamentos (ícone de link)
+- Expansão/colapso de relacionamentos
+- Estados de erro em tempo real
+- Progresso de salvamento
+PROBLEMA 6: Responsividade da Tabela
+CORREÇÃO: Implementar scroll horizontal responsivo
+ADICIONAR: Colunas colapsáveis em mobile
+IMPLEMENTAR: Redimensionamento de colunas funcional
+🚀 OTIMIZAÇÕES DE PERFORMANCE ESPECÍFICAS
+OTIMIZAÇÃO 1: React.memo para Componentes de Célula
+const TableCellComponent = memo(({ column, ticket }: CellProps) => {
+  // Renderização otimizada
+}, (prevProps, nextProps) => {
+  return prevProps.ticket.id === nextProps.ticket.id &&
+         prevProps.ticket.updated_at === nextProps.ticket.updated_at;
+});
+OTIMIZAÇÃO 2: Virtualização para Listas Grandes
+// Implementar react-window para tabelas com >100 tickets
+import { FixedSizeList as List } from 'react-window';
+OTIMIZAÇÃO 3: Debounce para Filtros
+const [searchTerm, setSearchTerm] = useState("");
+const debouncedSearch = useDebounce(searchTerm, 300);
+🔧 CORREÇÕES TÉCNICAS CRÍTICAS
+BUG 1: Relacionamentos de Tickets
+PROBLEMA: Sistema mostra tickets com relacionamentos inconsistentemente
+CORREÇÃO: Padronizar verificação de relacionamentos na inicialização
+BUG 2: Mapeamento de Campos
+PROBLEMA: Inconsistência entre nomes de campos frontend/backend
+CORREÇÃO: Implementar camada de transformação consistente
+BUG 3: Redimensionamento de Colunas
+PROBLEMA: Colunas não mantêm largura após redimensionamento
+CORREÇÃO: Persistir configurações de coluna no localStorage
+📊 MÉTRICAS DE PERFORMANCE ALVO
+TEMPO DE CARREGAMENTO INICIAL: < 2 segundos
+TEMPO DE RESPOSTA FILTROS: < 300ms
+TEMPO DE SALVAMENTO: < 1 segundo
+TAXA DE ERRO: < 1%
+SCORE LIGHTHOUSE PERFORMANCE: > 90
