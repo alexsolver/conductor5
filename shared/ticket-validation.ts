@@ -60,7 +60,7 @@ export const ticketFormSchema = z.object({
     .optional(),
 
   // Enums com validação (valores em inglês para compatibilidade com banco)
-  status: TicketStatusEnum.default('new'),
+  status: z.enum(['new', 'open', 'in_progress', 'resolved', 'closed']).default('new'),
   priority: TicketPriorityEnum.default('medium'),
   impact: TicketImpactEnum.optional(),
   urgency: TicketUrgencyEnum.optional(),
