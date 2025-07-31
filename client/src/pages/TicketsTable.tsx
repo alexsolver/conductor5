@@ -484,17 +484,37 @@ export default function TicketsTable() {
                    Array.isArray(companiesData) ? companiesData : [];
   const ticketViews = ticketViewsData?.data || [];
 
+  // Função para verificar se um ticket tem relacionamentos via API
+  const checkTicketRelationships = async (ticketId: string) => {
+    try {
+      const response = await apiRequest('GET', `/api/tickets/${ticketId}/relationships`);
+      const data = await response.json();
+      return data.relationships && data.relationships.length > 0;
+    } catch (error) {
+      console.error('Error checking ticket relationships:', error);
+      return false;
+    }
+  };
+
   // Inicializar indicadores de relacionamentos quando os tickets carregarem
   useEffect(() => {
     if (tickets.length > 0) {
-      // Marcar tickets que sabemos ter relacionamentos (baseado no número)
-      const ticketsWithKnownRelationships = tickets.filter((ticket: any) => 
-        ticket.number === 'T2025-000001' // Sabemos que este tem 2 relacionamentos
-      );
+      const checkAllTicketRelationships = async () => {
+        const ticketsWithRels = new Set<string>();
+        
+        // Verificar relacionamentos para cada ticket de forma otimizada
+        const relationshipChecks = tickets.map(async (ticket: any) => {
+          const hasRelationships = await checkTicketRelationships(ticket.id);
+          if (hasRelationships) {
+            ticketsWithRels.add(ticket.id);
+          }
+        });
+        
+        await Promise.all(relationshipChecks);
+        setTicketsWithRelationships(ticketsWithRels);
+      };
       
-      if (ticketsWithKnownRelationships.length > 0) {
-        setTicketsWithRelationships(new Set(ticketsWithKnownRelationships.map((t: any) => t.id)));
-      }
+      checkAllTicketRelationships();
     }
   }, [tickets]);
 
@@ -1722,25 +1742,27 @@ export default function TicketsTable() {
                     <TableRow key={ticket.id}>
                       <TableCell className="w-10">
                         <div className="flex items-center">
-                          {/* Indicador de relacionamentos */}
+                          {/* Botão de expansão só aparece quando há vínculos */}
                           {ticketsWithRelationships.has(ticket.id) && (
-                            <div className="mr-1">
-                              <Link2 className="h-3 w-3 text-blue-500" title="Possui vínculos" />
-                            </div>
+                            <>
+                              <div className="mr-1">
+                                <Link2 className="h-3 w-3 text-blue-500" title="Possui vínculos" />
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0"
+                                onClick={() => toggleTicketExpansion(ticket.id)}
+                                title="Ver tickets vinculados"
+                              >
+                                {expandedTickets.has(ticket.id) ? (
+                                  <ChevronUp className="h-4 w-4" />
+                                ) : (
+                                  <ChevronDown className="h-4 w-4" />
+                                )}
+                              </Button>
+                            </>
                           )}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 w-6 p-0"
-                            onClick={() => toggleTicketExpansion(ticket.id)}
-                            title="Ver tickets vinculados"
-                          >
-                            {expandedTickets.has(ticket.id) ? (
-                              <ChevronUp className="h-4 w-4" />
-                            ) : (
-                              <ChevronDown className="h-4 w-4" />
-                            )}
-                          </Button>
                         </div>
                       </TableCell>
                       {visibleColumns.map((column: any) => 
