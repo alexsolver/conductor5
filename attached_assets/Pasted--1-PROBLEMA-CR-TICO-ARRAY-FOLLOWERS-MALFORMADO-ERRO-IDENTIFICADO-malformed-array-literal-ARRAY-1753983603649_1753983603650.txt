@@ -1,0 +1,109 @@
+
+1. PROBLEMA CRÍTICO: ARRAY FOLLOWERS MALFORMADO
+ERRO IDENTIFICADO:
+
+malformed array literal: "ARRAY['550e8400-e29b-41d4-a716-446655440001']::text[]"
+CORREÇÃO OBRIGATÓRIA:
+
+Arquivo: server/storage-simple.ts linha 523
+Problema: Campo followers está sendo processado incorretamente como string ao invés de array
+Impacto: Falha completa na atualização de tickets (HTTP 500)
+INSTRUÇÃO:
+Corrigir o processamento do campo followers no método updateTicket para garantir que arrays sejam tratados como arrays PostgreSQL nativos, não como strings literais.
+
+2. PROBLEMA CRÍTICO: ENUM STATUS INCONSISTENTE
+ERRO IDENTIFICADO:
+
+Invalid enum value. Expected 'novo' | 'aberto' | 'em_andamento' | 'resolvido' | 'fechado', received 'in_progress'
+CORREÇÃO OBRIGATÓRIA:
+
+Arquivo: shared/ticket-validation.ts
+Problema: Frontend está enviando valores em inglês ('in_progress') mas backend espera português ('em_andamento')
+Impacto: Impossibilidade de salvar alterações de status
+INSTRUÇÃO:
+Padronizar valores de enum entre frontend e backend. Manter valores em inglês no banco de dados e implementar mapeamento correto na validação.
+
+3. PROBLEMA DE PERFORMANCE: MÚLTIPLAS CHAMADAS API DESNECESSÁRIAS
+IDENTIFICADO:
+
+API /api/ticket-config/field-options sendo chamada múltiplas vezes simultaneamente
+Tempo de resposta: 3469ms (inaceitável)
+13 chamadas para relationships executando em paralelo
+CORREÇÃO OBRIGATÓRIA:
+
+Arquivo: client/src/hooks/useFieldColors.ts
+Implementar cache agressivo para field options
+Implementar debounce para chamadas de relacionamentos
+INSTRUÇÃO:
+Configurar React Query com staleTime de 5 minutos e implementar cache localStorage para field options. Implementar batching para chamadas de relacionamentos.
+
+4. PROBLEMA UX: LOADING STATES INADEQUADOS
+IDENTIFICADO:
+
+Skeleton loading genérico sem indicação específica
+Não há feedback visual durante operações críticas
+Usuários não sabem se sistema travou ou está processando
+CORREÇÃO OBRIGATÓRIA:
+
+Arquivo: client/src/pages/Tickets.tsx
+Implementar loading states específicos para cada operação
+INSTRUÇÃO:
+Substituir skeleton genérico por loading states específicos: "Carregando tickets...", "Verificando relacionamentos...", "Salvando alterações...". Adicionar progress bars para operações longas.
+
+5. PROBLEMA CRÍTICO: INCONSISTÊNCIA DE RELACIONAMENTOS
+IDENTIFICADO:
+
+🎯 Total tickets checked: 13, with relationships: 1
+🎯 Final tickets with relationships: 7
+PROBLEMA:
+
+Sistema está mostrando relacionamentos inconsistentemente
+Primeiro verifica 1 ticket com relacionamentos, depois mostra 7
+Causa confusão e dados incorretos na tela
+CORREÇÃO OBRIGATÓRIA:
+
+Arquivo: client/src/pages/TicketsTable.tsx
+Implementar verificação de relacionamentos na inicialização
+INSTRUÇÃO:
+Mover verificação de relacionamentos para o carregamento inicial dos tickets. Implementar cache de relacionamentos e atualizar apenas quando necessário. Evitar re-renderizações desnecessárias.
+
+6. PROBLEMA DE PERFORMANCE: REDIMENSIONAMENTO DE COLUNAS
+IDENTIFICADO:
+
+🔄 Resizing priority: 171px → 80px (múltiplas chamadas)
+PROBLEMA:
+
+Redimensionamento está causando múltiplas re-renderizações
+Performance degradada durante interação do usuário
+CORREÇÃO OBRIGATÓRIA:
+
+Arquivo: client/src/pages/TicketsTable.tsx
+Implementar debounce para redimensionamento
+INSTRUÇÃO:
+Implementar debounce de 300ms para redimensionamento de colunas. Usar React.memo para componentes de célula. Salvar larguras no localStorage para persistir configurações.
+
+7. PROBLEMA UX: EXPANSÃO/COLAPSO INCONSISTENTE
+IDENTIFICADO:
+
+Tickets expandem e colapsam sem feedback visual claro
+Estado de expansão não é persistido
+Relacionamentos carregam após expansão (deveria ser pré-carregado)
+CORREÇÃO OBRIGATÓRIA:
+
+Arquivo: client/src/pages/TicketsTable.tsx
+Pré-carregar relacionamentos para tickets que possuem
+INSTRUÇÃO:
+Implementar indicadores visuais de expansão (setas, ícones). Pré-carregar relacionamentos para tickets identificados. Persistir estado de expansão no sessionStorage.
+
+8. PROBLEMA CRÍTICO: ERRO NO MAPEAMENTO DE DADOS
+IDENTIFICADO:
+
+Campo customer_company_id não está sendo mapeado corretamente
+Validação Zod falhando por inconsistência de campos
+CORREÇÃO OBRIGATÓRIA:
+
+Arquivo: server/utils/fieldMapping.ts
+Corrigir mapeamento frontend→backend
+INSTRUÇÃO:
+Implementar mapeamento completo de campos entre frontend e backend. Garantir que todos os campos do formulário tenham correspondência correta no banco de dados.
+

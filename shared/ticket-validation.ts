@@ -1,7 +1,7 @@
 // PROBLEMA 10 RESOLVIDO: Schema Zod completo para validação de tickets
 import { z } from 'zod';
 
-// Enums alinhados com dados reais do banco de dados
+// Enums alinhados com dados reais do banco de dados (valores em inglês)
 export const TicketStatusEnum = z.enum(['new', 'open', 'in_progress', 'resolved', 'closed']);
 export const TicketPriorityEnum = z.enum(['low', 'medium', 'high', 'critical']);
 export const TicketImpactEnum = z.enum(['low', 'medium', 'high']);

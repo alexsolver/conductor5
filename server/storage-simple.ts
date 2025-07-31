@@ -549,7 +549,7 @@ export class DatabaseStorage implements IStorage {
           customer_company_id = ${ticketData.customer_company_id || null},
 
           followers = ${ticketData.followers && Array.isArray(ticketData.followers) && ticketData.followers.length > 0 
-            ? `ARRAY[${ticketData.followers.map(f => `'${f}'`).join(',')}]::text[]`
+            ? ticketData.followers 
             : null},
 
           updated_at = NOW()
