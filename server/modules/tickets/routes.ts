@@ -1037,24 +1037,47 @@ ticketsRouter.get('/:id/relationships', jwtAuth, async (req: AuthenticatedReques
     const { pool } = await import('../../db');
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
+    console.log(`🔍 Backend: Getting relationships for ticket ${id} in schema ${schemaName}`);
+    
     const query = `
       SELECT 
         tr.id,
         tr.relationship_type as "relationshipType",
         tr.description,
         tr.created_at as "createdAt",
-        t.id as "targetTicket.id",
-        t.subject as "targetTicket.subject",
-        t.status as "targetTicket.status",
-        t.priority as "targetTicket.priority",
-        t.number as "targetTicket.number"
+        CASE 
+          WHEN tr.source_ticket_id = $1 THEN t_target.id
+          WHEN tr.target_ticket_id = $1 THEN t_source.id
+        END as "targetTicket.id",
+        CASE 
+          WHEN tr.source_ticket_id = $1 THEN t_target.subject
+          WHEN tr.target_ticket_id = $1 THEN t_source.subject
+        END as "targetTicket.subject",
+        CASE 
+          WHEN tr.source_ticket_id = $1 THEN t_target.status
+          WHEN tr.target_ticket_id = $1 THEN t_source.status
+        END as "targetTicket.status",
+        CASE 
+          WHEN tr.source_ticket_id = $1 THEN t_target.priority
+          WHEN tr.target_ticket_id = $1 THEN t_source.priority
+        END as "targetTicket.priority",
+        CASE 
+          WHEN tr.source_ticket_id = $1 THEN t_target.number
+          WHEN tr.target_ticket_id = $1 THEN t_source.number
+        END as "targetTicket.number"
       FROM "${schemaName}".ticket_relationships tr
-      JOIN "${schemaName}".tickets t ON tr.target_ticket_id = t.id
-      WHERE tr.source_ticket_id = $1 AND tr.tenant_id = $2
+      LEFT JOIN "${schemaName}".tickets t_target ON t_target.id = tr.target_ticket_id
+      LEFT JOIN "${schemaName}".tickets t_source ON t_source.id = tr.source_ticket_id
+      WHERE (tr.source_ticket_id = $1 OR tr.target_ticket_id = $1) AND tr.tenant_id = $2
       ORDER BY tr.created_at DESC
     `;
 
     const result = await pool.query(query, [id, tenantId]);
+
+    console.log(`🔍 Backend: Query result for ticket ${id}:`, {
+      rowCount: result.rows?.length || 0,
+      rows: result.rows
+    });
 
     // Transform flat results to nested objects
     const relationships = result.rows.map(row => ({
@@ -1071,6 +1094,7 @@ ticketsRouter.get('/:id/relationships', jwtAuth, async (req: AuthenticatedReques
       }
     }));
 
+    console.log(`🔍 Backend: Transformed results for ticket ${id}:`, relationships);
     res.json(relationships);
   } catch (error) {
     console.error("Error fetching ticket relationships:", error);
