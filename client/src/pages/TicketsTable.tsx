@@ -388,6 +388,7 @@ export default function TicketsTable() {
     { id: "subject", label: "Assunto" },
     { id: "description", label: "Descrição" },
     { id: "customer", label: "Cliente" },
+    { id: "company", label: "Empresa" },
     { id: "category", label: "Categoria" },
     { id: "subcategory", label: "Subcategoria" },
     { id: "status", label: "Status" },
@@ -721,11 +722,12 @@ export default function TicketsTable() {
     { id: "number", label: "Número", visible: true, order: 1, width: 120 },
     { id: "subject", label: "Assunto", visible: true, order: 2, width: 300 },
     { id: "customer", label: "Cliente", visible: true, order: 3, width: 150 },
-    { id: "category", label: "Categoria", visible: true, order: 4, width: 120 },
-    { id: "status", label: "Status", visible: true, order: 5, width: 120 },
-    { id: "priority", label: "Prioridade", visible: true, order: 6, width: 120 },
-    { id: "urgency", label: "Urgência", visible: true, order: 7, width: 120 },
-    { id: "created", label: "Criado", visible: true, order: 8, width: 150 }
+    { id: "company", label: "Empresa", visible: true, order: 4, width: 150 },
+    { id: "category", label: "Categoria", visible: true, order: 5, width: 120 },
+    { id: "status", label: "Status", visible: true, order: 6, width: 120 },
+    { id: "priority", label: "Prioridade", visible: true, order: 7, width: 120 },
+    { id: "urgency", label: "Urgência", visible: true, order: 8, width: 120 },
+    { id: "created", label: "Criado", visible: true, order: 9, width: 150 }
   ];
 
   // Filtrar apenas colunas visíveis e ordenar
@@ -801,6 +803,26 @@ export default function TicketsTable() {
                 <div className="text-sm text-gray-500 truncate" title={customerEmail}>
                   {customerEmail}
                 </div>
+              </div>
+            </TableCell>
+          );
+        case 'company':
+          // Log para debug da empresa
+          console.log(`🏢 Empresa para ticket ${ticket.id}:`, {
+            customer_company_name: (ticket as any).customer_company_name,
+            company_name: (ticket as any).company_name,
+            ticketObject: ticket
+          });
+
+          const companyName = (ticket as any).customer_company_name || 
+                              (ticket as any).caller_company_name ||
+                              (ticket as any).company_name || 
+                              'Empresa não informada';
+
+          return (
+            <TableCell className="overflow-hidden" style={cellStyle}>
+              <div className="font-medium truncate" title={companyName}>
+                {companyName}
               </div>
             </TableCell>
           );
