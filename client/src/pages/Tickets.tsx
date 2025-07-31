@@ -158,6 +158,15 @@ export default function Tickets() {
   console.log('🔍 Raw companies from API before filtering:', rawCompanies.length);
   console.log('🔍 Filtered companies for dropdown:', companies.length);
   
+  // Additional debug for Default company filtering
+  const defaultCompany = rawCompanies.find((c: any) => c.name?.toLowerCase().includes('default'));
+  if (defaultCompany) {
+    console.log('🎯 Default company found in raw data:', defaultCompany);
+    console.log('🎯 Default company status:', defaultCompany.status, 'is_active:', defaultCompany.is_active);
+  } else {
+    console.log('✅ No Default company in raw API data');
+  }
+  
   const users = (usersData as any)?.users || [];
 
   // Extract data for new modal fields with safe type checking
