@@ -592,7 +592,7 @@ export default function TicketDetails() {
         name: file.name,
         size: file.size,
         type: file.type,
-        uploadedAt: new Date(),
+        uploadedAt: new Date().toISOString(),
         description: "",
         file: file
       };
@@ -1072,7 +1072,13 @@ export default function TicketDetails() {
                       <div>
                         <p className="font-medium">{attachment.name}</p>
                         <p className="text-sm text-gray-500">
-                          {formatFileSize(attachment.size)} • Adicionado em {attachment.uploadedAt}
+                          {formatFileSize(attachment.size)} • Adicionado em {
+                            attachment.uploadedAt instanceof Date 
+                              ? attachment.uploadedAt.toLocaleDateString('pt-BR')
+                              : typeof attachment.uploadedAt === 'string'
+                              ? new Date(attachment.uploadedAt).toLocaleDateString('pt-BR')
+                              : 'Data não disponível'
+                          }
                         </p>
                         {attachment.description && (
                           <p className="text-sm text-gray-600 mt-1">{attachment.description}</p>
