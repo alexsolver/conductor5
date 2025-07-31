@@ -22,6 +22,7 @@ import { Plus, Filter, Search, MoreHorizontal, Edit, Trash2, Eye, ChevronLeft, C
 import { DynamicSelect } from "@/components/DynamicSelect";
 import { DynamicBadge } from "@/components/DynamicBadge";
 import { PersonSelector } from "@/components/PersonSelector";
+import { useFieldColors } from "@/hooks/useFieldColors";
 import TicketLinkingModal from "@/components/tickets/TicketLinkingModal";
 import TicketHierarchyView from "@/components/tickets/TicketHierarchyView";
 
@@ -213,6 +214,9 @@ export default function TicketsTable() {
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>("");
   const [filteredCustomers, setFilteredCustomers] = useState<any[]>([]);
 
+  // Hook para buscar cores dos campos personalizados
+  const { getFieldColor, getFieldLabel } = useFieldColors();
+
   // Estados para criação de visualização
   const [newViewName, setNewViewName] = useState("");
   const [newViewDescription, setNewViewDescription] = useState("");
@@ -363,9 +367,11 @@ export default function TicketsTable() {
         return (
           <TableCell>
             <DynamicBadge 
+              fieldName="category"
               value={(ticket as any).category || 'other'}
+              colorHex={getFieldColor('category', (ticket as any).category || 'other')}
             >
-              {(ticket as any).category || 'Other'}
+              {getFieldLabel('category', (ticket as any).category || 'other')}
             </DynamicBadge>
           </TableCell>
         );
@@ -373,9 +379,11 @@ export default function TicketsTable() {
         return (
           <TableCell>
             <DynamicBadge 
+              fieldName="status"
               value={((ticket as any).state || ticket.status)?.replace('_', ' ') || 'open'}
+              colorHex={getFieldColor('status', ((ticket as any).state || ticket.status)?.replace('_', ' ') || 'open')}
             >
-              {((ticket as any).state || ticket.status)?.replace('_', ' ') || 'Open'}
+              {getFieldLabel('status', ((ticket as any).state || ticket.status)?.replace('_', ' ') || 'open')}
             </DynamicBadge>
           </TableCell>
         );
@@ -383,9 +391,11 @@ export default function TicketsTable() {
         return (
           <TableCell>
             <DynamicBadge 
+              fieldName="priority"
               value={ticket.priority || 'medium'}
+              colorHex={getFieldColor('priority', ticket.priority || 'medium')}
             >
-              {ticket.priority || 'Medium'}
+              {getFieldLabel('priority', ticket.priority || 'medium')}
             </DynamicBadge>
           </TableCell>
         );
@@ -393,9 +403,11 @@ export default function TicketsTable() {
         return (
           <TableCell>
             <DynamicBadge 
+              fieldName="impact"
               value={(ticket as any).impact || 'medium'}
+              colorHex={getFieldColor('impact', (ticket as any).impact || 'medium')}
             >
-              {(ticket as any).impact || 'Medium'}
+              {getFieldLabel('impact', (ticket as any).impact || 'medium')}
             </DynamicBadge>
           </TableCell>
         );
@@ -433,8 +445,12 @@ export default function TicketsTable() {
       case 'urgency':
         return (
           <TableCell>
-            <DynamicBadge fieldName="urgency" value={(ticket as any).urgency || 'medium'}>
-              {(ticket as any).urgency || 'Medium'}
+            <DynamicBadge 
+              fieldName="urgency" 
+              value={(ticket as any).urgency || 'medium'}
+              colorHex={getFieldColor('urgency', (ticket as any).urgency || 'medium')}
+            >
+              {getFieldLabel('urgency', (ticket as any).urgency || 'medium')}
             </DynamicBadge>
           </TableCell>
         );
@@ -465,8 +481,12 @@ export default function TicketsTable() {
       case 'sla_status':
         return (
           <TableCell>
-            <DynamicBadge fieldName="sla_status" value={(ticket as any).slaStatus || 'on_track'}>
-              {(ticket as any).slaStatus || 'On Track'}
+            <DynamicBadge 
+              fieldName="sla_status" 
+              value={(ticket as any).slaStatus || 'on_track'}
+              colorHex={getFieldColor('sla_status', (ticket as any).slaStatus || 'on_track')}
+            >
+              {getFieldLabel('sla_status', (ticket as any).slaStatus || 'on_track')}
             </DynamicBadge>
           </TableCell>
         );
