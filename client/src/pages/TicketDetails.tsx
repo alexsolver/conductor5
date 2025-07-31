@@ -286,14 +286,14 @@ export default function TicketDetails() {
     queryFn: async () => {
       const response = await apiRequest("GET", `/api/tickets/${id}`);
       const data = await response.json();
-      console.log('🎫 Ticket response received:', data);
       return data;
     },
     enabled: !!id,
-    staleTime: 5 * 60 * 1000, // 5 minutes cache for better performance
-    gcTime: 15 * 60 * 1000, // 15 minutes garbage collection
-    refetchOnWindowFocus: false, // Evita refetch desnecessário
-    refetchOnMount: false, // Evita refetch no mount se cache válido
+    staleTime: 10 * 60 * 1000, // 10 minutes cache - otimizado
+    gcTime: 30 * 60 * 1000, // 30 minutes garbage collection - otimizado
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
   });
 
   // Extract ticket from response data
@@ -457,7 +457,7 @@ export default function TicketDetails() {
     },
   });
 
-  // Fetch ticket relationships (linked tickets)
+  // Fetch ticket relationships (linked tickets) with optimized caching
   const { data: ticketRelationships } = useQuery({
     queryKey: ["/api/ticket-relationships", id, "relationships"],
     queryFn: async () => {
@@ -465,6 +465,10 @@ export default function TicketDetails() {
       return response.json();
     },
     enabled: !!id,
+    staleTime: 5 * 60 * 1000, // 5 minutes cache
+    gcTime: 15 * 60 * 1000, // 15 minutes garbage collection
+    refetchOnWindowFocus: false,
+    retry: 2, // Reduce retry attempts for faster failure detection
   });
 
   // 🚀 OTIMIZAÇÃO: Individual queries with proper error handling and data extraction
@@ -2403,15 +2407,32 @@ export default function TicketDetails() {
   // 🚀 OTIMIZAÇÃO: Loading states específicos e informativos
   const isLoadingAnyData = isLoading || historyLoading || communicationsLoading || notesLoading || attachmentsLoading || actionsLoading;
   
+  // Calculate loading progress
+  const getLoadingProgress = () => {
+    const states = [
+      { name: 'Dados básicos', loading: isLoading },
+      { name: 'Histórico', loading: historyLoading },
+      { name: 'Comunicações', loading: communicationsLoading },
+      { name: 'Notas', loading: notesLoading },
+      { name: 'Anexos', loading: attachmentsLoading },
+      { name: 'Ações', loading: actionsLoading }
+    ];
+    
+    const completed = states.filter(s => !s.loading).length;
+    const total = states.length;
+    const percentage = Math.round((completed / total) * 100);
+    
+    return { percentage, completed, total, states };
+  };
+  
   // Determine what is specifically loading
   const getLoadingMessage = () => {
-    if (isLoading) return "Carregando informações do ticket...";
-    if (historyLoading) return "Carregando histórico...";
-    if (communicationsLoading) return "Carregando comunicações...";
-    if (notesLoading) return "Carregando notas...";
-    if (attachmentsLoading) return "Carregando anexos...";
-    if (actionsLoading) return "Carregando ações...";
-    return "Carregando dados do ticket...";
+    const progress = getLoadingProgress();
+    const loadingItems = progress.states.filter(s => s.loading).map(s => s.name);
+    
+    if (loadingItems.length === 0) return "Carregamento concluído";
+    if (loadingItems.length === 1) return `Carregando ${loadingItems[0].toLowerCase()}...`;
+    return `Carregando ${loadingItems.length} itens... (${progress.percentage}%)`;
   };
   
   if (isLoadingAnyData) {
@@ -2419,10 +2440,15 @@ export default function TicketDetails() {
       <div className="h-screen flex bg-gray-50">
         {/* Loading Sidebar */}
         <div className="w-72 bg-white border-r p-4">
-          <div className="space-y-4">
+          <div className="space-y-4" role="status" aria-live="polite">
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-              <span className="text-sm text-gray-600">{getLoadingMessage()}</span>
+              <div 
+                className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"
+                aria-hidden="true"
+              ></div>
+              <span className="text-sm text-gray-600" aria-label="Status de carregamento">
+                {getLoadingMessage()}
+              </span>
             </div>
             <div className="space-y-3">
               <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
@@ -3126,12 +3152,27 @@ export default function TicketDetails() {
                       console.log("📋 Form valid:", form.formState.isValid);
                       console.log("❌ Form errors:", form.formState.errors);
                       console.log("📝 Form values:", form.getValues());
+                      
+                      // Show validation errors to user
+                      if (!form.formState.isValid) {
+                        const errorMessages = Object.entries(form.formState.errors)
+                          .map(([field, error]) => `${field}: ${error?.message || 'Erro de validação'}`)
+                          .join('\n');
+                        
+                        toast({
+                          title: "Erro de Validação",
+                          description: `Por favor, corrija os seguintes erros:\n${errorMessages}`,
+                          variant: "destructive",
+                        });
+                        return;
+                      }
+                      
                       form.handleSubmit(onSubmit as any)();
                     }}
                     disabled={updateTicketMutation.isPending}
                   >
                     <Save className="h-4 w-4 mr-2" />
-                    Salvar
+                    {updateTicketMutation.isPending ? "Salvando..." : "Salvar"}
                   </Button>
                 </>
               )}
