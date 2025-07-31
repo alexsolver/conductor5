@@ -227,6 +227,7 @@ function TicketAdvancedConfiguration() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/ticket-metadata/field-options'] });
+      queryClient.invalidateQueries({ queryKey: ['fieldColors'] }); // Invalidate badge colors cache
       setIsDialogOpen(false);
       optionForm.reset();
       toast({ title: "Opção criada com sucesso" });

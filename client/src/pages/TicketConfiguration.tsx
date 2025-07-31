@@ -395,6 +395,7 @@ const TicketConfiguration: React.FC = () => {
 
       // 2. Invalidate all related queries
       queryClient.invalidateQueries({ queryKey: ['field-options'] });
+      queryClient.invalidateQueries({ queryKey: ['fieldColors'] }); // Invalidate badge colors cache
 
       // 3. Force immediate refetch with fresh data
       await queryClient.refetchQueries({ 
@@ -440,6 +441,7 @@ const TicketConfiguration: React.FC = () => {
       
       // Invalidate cache sem forçar refetch imediato
       queryClient.invalidateQueries({ queryKey: ['field-options', selectedCompany] });
+      queryClient.invalidateQueries({ queryKey: ['fieldColors'] }); // Invalidate badge colors cache
       
       setDialogOpen(false);
       fieldOptionForm.reset();
@@ -471,6 +473,7 @@ const TicketConfiguration: React.FC = () => {
       
       // Invalidate cache sem forçar refetch imediato
       queryClient.invalidateQueries({ queryKey: ['field-options', selectedCompany] });
+      queryClient.invalidateQueries({ queryKey: ['fieldColors'] }); // Invalidate badge colors cache
       
       toast({ 
         title: "Status atualizado com sucesso",
@@ -501,6 +504,7 @@ const TicketConfiguration: React.FC = () => {
 
       // 2. Invalidate all related queries
       queryClient.invalidateQueries({ queryKey: ['field-options'] });
+      queryClient.invalidateQueries({ queryKey: ['fieldColors'] }); // Invalidate badge colors cache
 
       // 3. Force immediate refetch with fresh data
       await queryClient.refetchQueries({ 

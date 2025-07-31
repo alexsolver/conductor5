@@ -38,7 +38,7 @@ export const useFieldColors = () => {
 
       return response.json();
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 30 * 1000, // 30 seconds - reduced for better responsiveness
   });
 
   // Função para buscar cor de um campo específico
