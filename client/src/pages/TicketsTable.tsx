@@ -802,8 +802,7 @@ export default function TicketsTable() {
               >
                 {categoryLabel}
               </DynamicBadge>
-            </TableCell>
-          );
+            </TableCell>          );
         case 'status':
           const statusValue = mapStatusValue((ticket as any).state || ticket.status);
           const statusColor = getFieldColorWithFallback('status', statusValue);
@@ -2157,3 +2156,238 @@ export default function TicketsTable() {
                         </DropdownMenu>
                       </TableCell>
                     </TableRow>
+                    {/* Linha expandida para relacionamentos */}
+                    {expandedTickets.has(ticket.id) && (
+                      <TableRow>
+                        <TableCell colSpan={visibleColumns.length + 2} className="p-0 bg-gray-50">
+                          <div className="p-4 border-t">
+                            <div className="flex items-center justify-between mb-3">
+                              <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                                <Link2 className="h-4 w-4" />
+                                Tickets Vinculados
+                              </h4>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setIsLinkingModalOpen(true)}
+                                className="text-xs"
+                              >
+                                <Plus className="h-3 w-3 mr-1" />
+                                Vincular Ticket
+                              </Button>
+                            </div>
+
+                            {ticketRelationships[ticket.id] && ticketRelationships[ticket.id].length > 0 ? (
+                              <div className="space-y-2">
+                                {ticketRelationships[ticket.id].map((relationship: any, index: number) => (
+                                  <div key={`${relationship.relationshipId || relationship.id}-${index}`} className="flex items-center justify-between p-3 bg-white rounded border">
+                                    <div className="flex items-center space-x-3">
+                                      {getRelationshipIcon(relationship.relationshipType)}
+                                      <div>
+                                        <div className="flex items-center space-x-2">
+                                          <Link href={`/tickets/${relationship.id}`} className="font-medium text-blue-600 hover:text-blue-800">
+                                            {relationship.number}
+                                          </Link>
+                                          <span className="text-xs text-gray-500">
+                                            {getRelationshipLabel(relationship.relationshipType)}
+                                          </span>
+                                        </div>
+                                        <div className="text-sm text-gray-600 truncate max-w-md" title={relationship.subject}>
+                                          {relationship.subject}
+                                        </div>
+                                        <div className="flex items-center space-x-2 mt-1">
+                                          <DynamicBadge 
+                                            fieldName="status"
+                                            value={mapStatusValue(relationship.status)}
+                                            colorHex={getFieldColorWithFallback('status', mapStatusValue(relationship.status))}
+                                          >
+                                            {getFieldLabel('status', mapStatusValue(relationship.status))}
+                                          </DynamicBadge>
+                                          <DynamicBadge 
+                                            fieldName="priority"
+                                            value={mapPriorityValue(relationship.priority)}
+                                            colorHex={getFieldColorWithFallback('priority', mapPriorityValue(relationship.priority))}
+                                          >
+                                            {getFieldLabel('priority', mapPriorityValue(relationship.priority))}
+                                          </DynamicBadge>
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div className="text-xs text-gray-500">
+                                      {relationship.createdAt ? new Date(relationship.createdAt).toLocaleDateString('pt-BR') : ''}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <div className="text-center py-4 text-gray-500 text-sm">
+                                Nenhum ticket vinculado encontrado
+                              </div>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </React.Fragment>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Pagination */}
+      <div className="flex justify-between items-center">
+        <Button
+          variant="outline"
+          onClick={() => setCurrentPage(currentPage - 1)}
+          disabled={currentPage === 1}
+        >
+          <ChevronLeft className="h-4 w-4 mr-2" />
+          Previous
+        </Button>
+        <Button
+          variant="outline"
+          onClick={() => setCurrentPage(currentPage + 1)}
+          disabled={currentPage === pagination.totalPages}
+        >
+          Next
+          <ChevronRight className="h-4 w-4 ml-2" />
+        </Button>
+      </div>
+
+      {/* Modals */}
+      <Dialog open={isNewTicketModalOpen} onOpenChange={setIsNewTicketModalOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Novo Ticket</DialogTitle>
+          </DialogHeader>
+          <TicketForm />
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal para criar nova visualização */}
+      <Dialog open={isNewViewDialogOpen} onOpenChange={handleDialogClose}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{editingView ? "Editar Visualização" : "Criar Nova Visualização"}</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <FormLabel htmlFor="name" className="text-right">
+                Nome
+              </FormLabel>
+              <Input 
+                type="text" 
+                id="name" 
+                value={newViewName}
+                onChange={(e) => setNewViewName(e.target.value)}
+                className="col-span-3" 
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <FormLabel htmlFor="description" className="text-right">
+                Descrição
+              </FormLabel>
+              <Textarea
+                id="description"
+                value={newViewDescription}
+                onChange={(e) => setNewViewDescription(e.target.value)}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <FormLabel htmlFor="columns" className="text-right">
+                Colunas
+              </FormLabel>
+              <div className="col-span-3 space-y-2">
+                {availableColumns.map((column, index) => (
+                  <div key={column.id} className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id={`column-${column.id}`}
+                      className="h-4 w-4 accent-purple-600"
+                      checked={selectedColumns.includes(column.id)}
+                      onChange={() => {
+                        if (selectedColumns.includes(column.id)) {
+                          setSelectedColumns(selectedColumns.filter((c) => c !== column.id));
+                        } else {
+                          setSelectedColumns([...selectedColumns, column.id]);
+                        }
+                      }}
+                    />
+                    <label htmlFor={`column-${column.id}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                      {column.label}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <FormLabel htmlFor="public" className="text-right">
+                Público
+              </FormLabel>
+              <div className="col-span-3">
+                <input
+                  type="checkbox"
+                  id="public"
+                  className="h-4 w-4 accent-purple-600"
+                  checked={isPublicView}
+                  onChange={() => setIsPublicView(!isPublicView)}
+                />
+                <label htmlFor="public" className="ml-2 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                  Tornar esta visualização pública
+                </label>
+              </div>
+            </div>
+          </div>
+          <div className="flex justify-end space-x-2">
+            <Button type="button" variant="secondary" onClick={() => handleDialogClose(false)}>
+              Cancelar
+            </Button>
+            <Button type="submit" onClick={handleCreateView}>
+              {editingView ? "Salvar" : "Criar"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal para gerenciar visualizações */}
+      <Dialog open={isManageViewsOpen} onOpenChange={() => setIsManageViewsOpen((open) => !open)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Gerenciar Visualizações</DialogTitle>
+            <DialogDescription>
+              Gerencie e personalize suas visualizações de tickets.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="divide-y divide-gray-200">
+            {ticketViews.map((view) => (
+              <div key={view.id} className="py-4 flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-medium">{view.name}</h3>
+                  <p className="text-sm text-gray-500">{view.description || "Sem descrição"}</p>
+                </div>
+                <div className="flex space-x-2">
+                  <Button variant="outline" size="sm" onClick={() => handleEditView(view)}>
+                    <Edit className="h-4 w-4 mr-2" />
+                    Editar
+                  </Button>
+                  <Button variant="destructive" size="sm" onClick={() => handleDeleteView(view.id)}>
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Excluir
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <TicketLinkingModal
+        isOpen={isLinkingModalOpen}
+        onClose={() => setIsLinkingModalOpen(false)}
+      />
+    </div>
+  );
+}
