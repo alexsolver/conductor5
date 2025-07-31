@@ -2034,13 +2034,9 @@ export default function TicketsTable() {
                           {/* Indicador visual melhorado para tickets com vínculos */}
                           {ticketsWithRelationships.has(ticket.id) && (
                             <>
-                              <div className="mr-1 relative group">
+                              <div className="mr-1">
                                 <div className="animate-pulse bg-gradient-to-r from-blue-100 to-blue-200 rounded-full p-1.5 shadow-sm" title="Possui vínculos">
-                                  <Link2 className="h-3 w-3 text-blue-600 group-hover:text-blue-700 transition-colors" />
-                                </div>
-                                {/* Badge com contador animado */}
-                                <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center text-[10px] font-bold animate-bounce">
-                                  {ticketRelationships[ticket.id]?.length || '•'}
+                                  <Link2 className="h-3 w-3 text-blue-600 hover:text-blue-700 transition-colors" />
                                 </div>
                               </div>
                               <Button
