@@ -829,8 +829,8 @@ export default function TicketsTable() {
   });
 
   // Função de renderização otimizada
-  const renderCell = useCallback((column: any, ticket: Ticket) => (
-    <TableCellComponent key={`${ticket.id}-${column.id}`} column={column} ticket={ticket} />
+  const renderCell = useCallback((column: any, ticket: Ticket, key?: string) => (
+    <TableCellComponent key={key || `${ticket.id}-${column.id}`} column={column} ticket={ticket} />
   ), []);
 
   // Mutations para gerenciar visualizações
@@ -1817,11 +1817,9 @@ export default function TicketsTable() {
                           )}
                         </div>
                       </TableCell>
-                      {visibleColumns.map((column: any) => (
-                        <React.Fragment key={`${ticket.id}-${column.id}`}>
-                          {renderCell(column, ticket)}
-                        </React.Fragment>
-                      ))}
+                      {visibleColumns.map((column: any) => 
+                        renderCell(column, ticket, `${ticket.id}-${column.id}`)
+                      )}
                       <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>

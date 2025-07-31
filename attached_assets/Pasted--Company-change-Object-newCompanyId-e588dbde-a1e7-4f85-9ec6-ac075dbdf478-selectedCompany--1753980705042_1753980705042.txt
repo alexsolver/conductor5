@@ -1,0 +1,29 @@
+🏢 Company change: 
+Object {newCompanyId: "e588dbde-a1e7-4f85-9ec6-ac075dbdf478", selectedCompany: ""}
+DynamicSelect status: Found 5 options from API
+✅ Customers loaded for company: 0
+💾 Botão Salvar clicado!
+📋 Form valid: false
+❌ Form errors: 
+Object {}
+📝 Form values: 
+Object {subject: "5555555", description: "<p>444</p>", priority: "critical", status: "new", category: "", …}
+💾 onSubmit called with data: 
+Object {subject: "5555555", description: "<p>444</p>", status: "new", priority: "critical", impact: "low", …}
+💾 Sending mapped data to API: 
+Object {subject: "5555555", description: "<p>444</p>", priority: "critical", status: "new", category: "", …}
+🚀 Mutation started, sending PUT request to: /api/tickets/e58325c6-f124-4dcc-be5c-02e6cd70fcfe
+📤 Request payload: 
+Object {subject: "5555555", description: "<p>444</p>", priority: "critical", status: "new", category: "", …}
+❌ Mutation error: 
+Error {}
+message: "500: {"success":false,"error":"Failed to update ticket","timestamp":"2025-07-31T16:51:29.171Z"}"
+stack: "Error: 500: {"success":false,"error":"Failed to update ticket","timestamp":"2025-07-31T16:51:29.171Z"}↵ at throwIfResNotOk (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/lib/queryClient.ts:46:11)↵ at async apiRequest (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/lib/queryClient.ts:92:3)↵ at async Object.mutationFn (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/pages/TicketDetails.tsx:906:24)"
+get stack: ƒ ()
+set stack: ƒ ()
+[[Prototype]]: Object
+
+at t.value (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400
