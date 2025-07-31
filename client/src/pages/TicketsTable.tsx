@@ -73,15 +73,17 @@ const TicketsTable = () => {
 
   const tickets = ticketsData?.data?.tickets || [];
 
-  // Batch fetch relationships for all tickets
+  // Batch fetch relationships for all tickets - optimized
   const { data: relationshipsData, isLoading: relationshipsLoading } = useQuery({
-    queryKey: ['ticket-relationships-batch', tickets.map((t: Ticket) => t.id)],
+    queryKey: ['ticket-relationships-batch', tickets.map((t: Ticket) => t.id).sort().join(',')],
     queryFn: async (): Promise<BatchRelationshipsResponse> => {
       if (tickets.length === 0) {
         return { success: true, data: {}, message: 'No tickets to process' };
       }
 
       const ticketIds = tickets.map((t: Ticket) => t.id);
+      console.log(`🚀 Batch loading relationships for ${ticketIds.length} tickets`);
+      
       const response = await fetch('/api/tickets/batch-relationships', {
         method: 'POST',
         headers: {
@@ -92,18 +94,20 @@ const TicketsTable = () => {
       });
 
       if (!response.ok) {
-        console.warn('Batch relationships failed, falling back to individual requests');
-        return { success: true, data: {}, message: 'Fallback mode' };
+        console.error('❌ Batch relationships request failed:', response.status);
+        return { success: false, data: {}, message: 'Batch request failed' };
       }
 
-      return response.json();
+      const result = await response.json();
+      console.log(`✅ Batch relationships loaded: ${Object.keys(result.data || {}).length} tickets processed`);
+      return result;
     },
     enabled: !!token && !!tenantId && tickets.length > 0,
     staleTime: 300000, // 5 minutes for relationships
-    retry: 1, // Only retry once for batch requests
+    retry: false, // Don't retry to avoid multiple requests
   });
 
-  // Update tickets with relationships when data changes
+  // Update tickets with relationships when data changes - optimized
   useEffect(() => {
     if (relationshipsData?.success && relationshipsData.data) {
       const ticketsWithRels = new Set<string>();
@@ -113,9 +117,12 @@ const TicketsTable = () => {
         }
       });
       setTicketsWithRelationships(ticketsWithRels);
-      console.log(`🎯 Batch loaded relationships for ${ticketsWithRels.size} tickets`);
+      console.log(`⚡ Performance: Batch loaded relationships for ${ticketsWithRels.size}/${tickets.length} tickets in single request`);
+    } else if (relationshipsData && !relationshipsData.success) {
+      console.warn('⚠️ Batch relationships loading failed, relationships will not be displayed');
+      setTicketsWithRelationships(new Set());
     }
-  }, [relationshipsData]);
+  }, [relationshipsData, tickets.length]);
 
   // Status mapping - keep backend values (English) for consistency
   const mapStatusDisplay = (status: string): string => {

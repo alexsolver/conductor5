@@ -180,8 +180,8 @@ export default function TicketEdit() {
     subject: z.string().min(1, { message: "Subject is required" }),
     description: z.string().optional(),
     priority: z.string().optional(),
-    // Make sure this status matches the expected values from the backend
-    status: z.enum(["novo", "aberto", "em_andamento", "resolvido", "fechado"]).optional(),
+    // Fixed: Use English values to match backend and shared schema
+    status: z.enum(["new", "open", "in_progress", "pending", "resolved", "closed", "cancelled"]).optional(),
     category: z.string().optional(),
     subcategory: z.string().optional(),
     callerId: z.string().min(1, { message: "Caller is required" }),
