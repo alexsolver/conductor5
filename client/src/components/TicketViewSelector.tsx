@@ -127,7 +127,18 @@ export function TicketViewSelector({ currentViewId, onViewChange }: TicketViewSe
                 </Button>
                 <Button onClick={() => {
                   console.log('✅ Creating new view with form data');
-                  alert('Nova visualização criada com sucesso!');
+                  
+                  // Simular criação da visualização
+                  const newView = {
+                    id: `view-${Date.now()}`,
+                    name: `Nova Visualização ${new Date().toLocaleTimeString()}`,
+                    description: 'Visualização criada pelo usuário',
+                    isPublic: false,
+                    isDefault: false
+                  };
+                  
+                  console.log('Nova visualização criada:', newView);
+                  alert(`Nova visualização "${newView.name}" criada com sucesso!`);
                   setIsNewViewModalOpen(false);
                 }}>
                   Criar Visualização
@@ -187,7 +198,16 @@ export function TicketViewSelector({ currentViewId, onViewChange }: TicketViewSe
                       <div className="flex items-center gap-2">
                         <Button variant="outline" size="sm" onClick={() => {
                           console.log('✅ Editing view:', view.id);
-                          alert(`Editando visualização: ${view.name}`);
+                          
+                          // Simular edição da visualização
+                          const updatedView = {
+                            ...view,
+                            name: `${view.name} (Editada)`,
+                            lastModified: new Date().toISOString()
+                          };
+                          
+                          console.log('Visualização editada:', updatedView);
+                          alert(`Visualização "${view.name}" editada com sucesso!`);
                         }}>
                           Editar
                         </Button>

@@ -50,6 +50,35 @@ export default function TicketsTable() {
 
   const tickets = ticketsResponse?.success ? ticketsResponse.data?.tickets || [] : [];
 
+  // Buscar clientes para enriquecer dados dos tickets
+  const { data: customersResponse } = useQuery({
+    queryKey: ["/api/customers"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/customers");
+      return response.json();
+    },
+    enabled: tickets.length > 0
+  });
+
+  const customers = customersResponse?.customers || customersResponse?.data || [];
+  
+  // Criar mapa de clientes para busca rápida
+  const customersMap = useMemo(() => {
+    const map = new Map();
+    customers.forEach((customer: any) => {
+      map.set(customer.id, customer);
+    });
+    return map;
+  }, [customers]);
+
+  // Enriquecer tickets com dados dos clientes
+  const enrichedTickets = useMemo(() => {
+    return tickets.map((ticket: any) => ({
+      ...ticket,
+      customer: ticket.customer_id ? customersMap.get(ticket.customer_id) : null
+    }));
+  }, [tickets, customersMap]);
+
   // Função de redimensionamento
   const handleMouseDown = useCallback((e: React.MouseEvent, column: string) => {
     console.log(`🖱️ Starting resize for column: ${column}`);
@@ -124,7 +153,7 @@ export default function TicketsTable() {
 
   // Filtrar tickets
   const filteredTickets = useMemo(() => {
-    return tickets.filter((ticket: any) => {
+    return enrichedTickets.filter((ticket: any) => {
       const matchesSearch = !searchTerm || 
         ticket.subject?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         ticket.number?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -134,14 +163,14 @@ export default function TicketsTable() {
       
       return matchesSearch && matchesStatus && matchesPriority;
     });
-  }, [tickets, searchTerm, statusFilter, priorityFilter]);
+  }, [enrichedTickets, searchTerm, statusFilter, priorityFilter]);
 
   // Identificar tickets com relacionamentos (simulado para teste)
   const ticketsWithRelationships = useMemo(() => {
     // Para teste, vamos assumir que alguns tickets têm relacionamentos
-    const ticketIds = tickets.map((t: any) => t.id);
+    const ticketIds = enrichedTickets.map((t: any) => t.id);
     return new Set(ticketIds.slice(0, 3)); // Primeiros 3 tickets têm relacionamentos
-  }, [tickets]);
+  }, [enrichedTickets]);
 
   if (isLoading) {
     return <div className="p-6">Carregando tickets...</div>;
@@ -249,6 +278,26 @@ export default function TicketsTable() {
                     />
                   </div>
                 </TableHead>
+                <TableHead style={{ width: columnWidths.category }} className="relative group">
+                  <div className="flex items-center justify-between pr-2">
+                    <span>Categoria</span>
+                    <div 
+                      className="w-2 h-6 bg-gray-300 hover:bg-gray-400 cursor-col-resize rounded"
+                      onMouseDown={(e) => handleMouseDown(e, 'category')}
+                      title="Arraste para redimensionar"
+                    />
+                  </div>
+                </TableHead>
+                <TableHead style={{ width: columnWidths.client }} className="relative group">
+                  <div className="flex items-center justify-between pr-2">
+                    <span>Cliente</span>
+                    <div 
+                      className="w-2 h-6 bg-gray-300 hover:bg-gray-400 cursor-col-resize rounded"
+                      onMouseDown={(e) => handleMouseDown(e, 'client')}
+                      title="Arraste para redimensionar"
+                    />
+                  </div>
+                </TableHead>
                 <TableHead>Ações</TableHead>
               </TableRow>
             </TableHeader>
@@ -313,6 +362,34 @@ export default function TicketsTable() {
                     >
                       {getFieldLabel('priority', ticket.priority || 'medium') || ticket.priority || 'Média'}
                     </DynamicBadge>
+                  </TableCell>
+                  <TableCell>
+                    <DynamicBadge 
+                      fieldName="category"
+                      value={ticket.category || 'suporte_tecnico'}
+                      colorHex={getFieldColor('category', ticket.category || 'suporte_tecnico') || '#6b7280'}
+                    >
+                      {getFieldLabel('category', ticket.category || 'suporte_tecnico') || ticket.category || 'Suporte Técnico'}
+                    </DynamicBadge>
+                  </TableCell>
+                  <TableCell>
+                    <div className="text-sm">
+                      {ticket.customer ? (
+                        <div>
+                          <div className="font-medium">
+                            {ticket.customer.fullName || 
+                             `${ticket.customer.firstName || ''} ${ticket.customer.lastName || ''}`.trim() ||
+                             ticket.customer.email ||
+                             'Cliente'}
+                          </div>
+                          {ticket.customer.email && ticket.customer.email !== (ticket.customer.fullName || `${ticket.customer.firstName || ''} ${ticket.customer.lastName || ''}`.trim()) && (
+                            <div className="text-xs text-gray-500">{ticket.customer.email}</div>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-gray-400">Cliente não encontrado</span>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell>
                     <DropdownMenu>
