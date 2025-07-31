@@ -668,6 +668,7 @@ export default function TicketDetails() {
   // PROBLEMA 6 RESOLVIDO: Reset form completo com todos os campos
   useEffect(() => {
     if (ticket) {
+      console.log('🎫 Resetting form with ticket data:', { subject: ticket.subject, description: ticket.description });
       form.reset({
         subject: ticket.subject || "",
         description: ticket.description || "",
@@ -929,7 +930,7 @@ export default function TicketDetails() {
                     {isEditMode ? (
                       <Input {...field} />
                     ) : (
-                      <div className="p-2 bg-gray-50 rounded">{field.value}</div>
+                      <div className="p-2 bg-gray-50 rounded">{ticket?.subject || field.value || 'Não informado'}</div>
                     )}
                   </FormControl>
                   <FormMessage />
@@ -951,7 +952,7 @@ export default function TicketDetails() {
                         disabled={false}
                       />
                     ) : (
-                      <div className="p-3 bg-gray-50 rounded min-h-[100px] prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: field.value || '' }} />
+                      <div className="p-3 bg-gray-50 rounded min-h-[100px] prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: ticket?.description || field.value || '<p>Não informado</p>' }} />
                     )}
                   </FormControl>
                   <FormMessage />
