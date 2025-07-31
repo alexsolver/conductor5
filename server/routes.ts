@@ -1274,6 +1274,129 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.warn('⚠️ Failed to load hierarchical controller:', error);
   }
 
+  // ========================================
+  // TENANT DEPLOYMENT TEMPLATE ROUTES
+  // ========================================
+  
+  // Demonstration route for Default company template usage
+  app.get('/api/deployment/default-template-info', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { DEFAULT_COMPANY_TEMPLATE } = await import('./templates/default-company-template');
+      
+      res.json({
+        success: true,
+        message: 'Default company template information',
+        data: {
+          company: {
+            name: DEFAULT_COMPANY_TEMPLATE.company.name,
+            industry: DEFAULT_COMPANY_TEMPLATE.company.industry,
+            size: DEFAULT_COMPANY_TEMPLATE.company.size,
+            status: DEFAULT_COMPANY_TEMPLATE.company.status
+          },
+          configurationCounts: {
+            ticketFieldOptions: DEFAULT_COMPANY_TEMPLATE.ticketFieldOptions.length,
+            categories: DEFAULT_COMPANY_TEMPLATE.categories.length,
+            subcategories: DEFAULT_COMPANY_TEMPLATE.subcategories.length,
+            actions: DEFAULT_COMPANY_TEMPLATE.actions.length
+          },
+          templateInfo: {
+            extracted: 'From real Default company data',
+            industry: DEFAULT_COMPANY_TEMPLATE.company.industry,
+            lastUpdated: '2025-07-31',
+            source: 'tenant_3f99462f_3621_4b1b_bea8_782acc50d62e'
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Error loading default template info:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to load template information',
+        error: error.message
+      });
+    }
+  });
+
+  // Check if tenant has template applied
+  app.get('/api/deployment/template-status/:tenantId', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { tenantId } = req.params;
+      const { TenantTemplateService } = await import('./services/TenantTemplateService');
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      const status = await TenantTemplateService.isTemplateApplied(schemaManager.pool, schemaName, tenantId);
+      
+      res.json({
+        success: true,
+        tenantId,
+        hasTemplate: status,
+        message: status ? 'Template already applied' : 'Template not applied'
+      });
+    } catch (error) {
+      console.error('Error checking template status:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to check template status',
+        error: error.message
+      });
+    }
+  });
+
+  // Apply default template to new tenant
+  app.post('/api/deployment/apply-default-template', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { newTenantId } = req.body;
+      
+      if (!newTenantId) {
+        return res.status(400).json({
+          success: false,
+          message: 'newTenantId is required'
+        });
+      }
+
+      const { TenantTemplateService } = await import('./services/TenantTemplateService');
+      const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
+      
+      if (!tenantId || !userId) {
+        return res.status(400).json({
+          success: false,
+          message: 'User information is required'
+        });
+      }
+
+      const schemaName = `tenant_${newTenantId.replace(/-/g, '_')}`;
+      await TenantTemplateService.applyDefaultCompanyTemplate(newTenantId, userId, schemaManager.pool, schemaName);
+      
+      const result = {
+        tenantId: newTenantId,
+        templateApplied: true,
+        totalItemsCreated: {
+          company: 1,
+          ticketFieldOptions: 19,
+          categories: 4,
+          subcategories: 12,
+          actions: 36
+        }
+      };
+      
+      res.json({
+        success: true,
+        message: 'Default template applied successfully',
+        data: result
+      });
+    } catch (error) {
+      console.error('Error applying default template:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to apply default template',
+        error: error.message
+      });
+    }
+  });
+
+  console.log('✅ Tenant deployment template routes registered');
+
   // Ticket relationships routes
   app.use('/api/tickets', ticketRelationshipsRoutes);
 
