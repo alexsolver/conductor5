@@ -281,7 +281,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const result = await pool.query(
         `SELECT * FROM "${schemaName}"."customer_companies" 
          WHERE tenant_id = $1 
-         AND id != '00000000-0000-0000-0000-000000000001'
+         AND status = 'active'
          ORDER BY name`,
         [req.user.tenantId]
       );
