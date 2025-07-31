@@ -2123,9 +2123,12 @@ export default function TicketsTable() {
                                         }
                                       })()}
 
-                                      <span className="text-xs font-mono text-blue-600 flex-shrink-0">
+                                      <Link 
+                                        href={`/tickets/${relationship.targetTicket?.id}`}
+                                        className="text-xs font-mono text-blue-600 hover:text-blue-800 hover:underline flex-shrink-0 transition-colors"
+                                      >
                                         #{relationship.targetTicket?.number || `T-${relationship.targetTicket?.id?.slice(0,8)}`}
-                                      </span>
+                                      </Link>
 
                                       <span className="text-xs text-gray-600 truncate">
                                         {relationship.targetTicket?.subject || 'Sem assunto'}
