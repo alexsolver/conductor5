@@ -27,7 +27,8 @@ router.get('/categories', jwtAuth, async (req: AuthenticatedRequest, res) => {
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
     const result = await db.execute(sql`
-      SELECT * FROM "${sql.raw(schemaName)}"."ticket_categories" 
+      SELECT *, sort_order as "sortOrder" 
+      FROM "${sql.raw(schemaName)}"."ticket_categories" 
       WHERE tenant_id = ${tenantId} 
       AND company_id = ${companyId}
       AND active = true
@@ -216,7 +217,10 @@ router.get('/subcategories', jwtAuth, async (req: AuthenticatedRequest, res) => 
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
     const result = await db.execute(sql`
-      SELECT s.*, c.name as category_name 
+      SELECT s.*, 
+             s.category_id as "categoryId",
+             s.sort_order as "sortOrder",
+             c.name as category_name 
       FROM "${sql.raw(schemaName)}"."ticket_subcategories" s
       JOIN "${sql.raw(schemaName)}"."ticket_categories" c ON s.category_id = c.id
       WHERE s.tenant_id = ${tenantId} 
@@ -377,7 +381,12 @@ router.get('/actions', jwtAuth, async (req: AuthenticatedRequest, res) => {
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
     const result = await db.execute(sql`
-      SELECT a.*, s.name as subcategory_name, c.name as category_name 
+      SELECT a.*, 
+             a.subcategory_id as "subcategoryId",
+             a.estimated_time_minutes as "estimatedTimeMinutes",
+             a.sort_order as "sortOrder",
+             s.name as subcategory_name, 
+             c.name as category_name 
       FROM "${sql.raw(schemaName)}"."ticket_actions" a
       JOIN "${sql.raw(schemaName)}"."ticket_subcategories" s ON a.subcategory_id = s.id
       JOIN "${sql.raw(schemaName)}"."ticket_categories" c ON s.category_id = c.id

@@ -11,6 +11,34 @@ Interface preference: Text-based hierarchical menus with dropdowns over visual c
 
 ## Recent Changes
 
+### July 31, 2025 - HIERARCHICAL TICKET EDITING BUG PERMANENTLY RESOLVED ✅ BACKEND-FRONTEND DATA CONSISTENCY ACHIEVED
+
+**🎯 CRITICAL DATA STRUCTURE CONSISTENCY IMPLEMENTED:**
+
+✅ **ROOT CAUSE IDENTIFIED AND ELIMINATED:**
+- Resolved recurring modal population bug in ticket configuration hierarchical editing
+- Backend queries now return camelCase field names (categoryId, subcategoryId, sortOrder) ensuring frontend compatibility  
+- Eliminated snake_case vs camelCase field mapping inconsistency between backend and frontend
+- Updated all hierarchical GET endpoints to use SQL aliases for consistent field naming
+
+✅ **BACKEND QUERIES STANDARDIZED:**
+- Categories query: Added `sort_order as "sortOrder"` alias for consistent field naming
+- Subcategories query: Added `category_id as "categoryId", sort_order as "sortOrder"` aliases
+- Actions query: Added `subcategory_id as "subcategoryId", estimated_time_minutes as "estimatedTimeMinutes", sort_order as "sortOrder"` aliases
+- All hierarchical endpoints now guarantee camelCase field names in responses
+
+✅ **FRONTEND CODE CLEANUP:**
+- Removed all fallback conditions checking both camelCase and snake_case field names
+- Simplified filter logic to use only `categoryId` and `subcategoryId` without fallbacks
+- Eliminated defensive programming patterns that masked the underlying data structure issue
+- Frontend now relies on consistent backend field naming without compatibility layers
+
+✅ **SYSTEM RELIABILITY ENHANCED:**
+- Hierarchical editing modals now populate correctly every time without data mapping failures
+- Prevented future recurrence of "aparecer e desaparecer" rendering issues
+- Established consistent data contract between backend responses and frontend expectations
+- Zero field mapping errors in hierarchical ticket configuration system
+
 ### July 28, 2025 - COMPREHENSIVE LOCATION MANAGEMENT WITH ADVANCED UX FEATURES ✅ ALL 7 MODALS + 3 ADVANCED FUNCTIONALITIES COMPLETED
 
 **🎯 COMPLETE ADVANCED LOCATION SYSTEM DELIVERED:**

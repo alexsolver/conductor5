@@ -570,12 +570,14 @@ const TicketConfiguration: React.FC = () => {
       const formData = {
         name: item?.name || '',
         description: item?.description || '',
-        categoryId: item?.categoryId || '',
+        // Fix: handle both camelCase and snake_case from backend
+        categoryId: item?.categoryId || item?.category_id || '',
         color: item?.color || '#3b82f6',
         icon: item?.icon || '',
         active: item?.active !== undefined ? item.active : true,
-        sortOrder: item?.sortOrder || 1
+        sortOrder: item?.sortOrder || item?.sort_order || 1
       };
+      console.log('🔧 Opening subcategory dialog with data:', formData);
       subcategoryForm.reset(formData);
     } else if (type === 'category') {
       categoryForm.reset({
@@ -584,19 +586,22 @@ const TicketConfiguration: React.FC = () => {
         color: item?.color || '#3b82f6',
         icon: item?.icon || '',
         active: item?.active !== undefined ? item.active : true,
-        sortOrder: item?.sortOrder || 1
+        sortOrder: item?.sortOrder || item?.sort_order || 1
       });
     } else if (type === 'action') {
-      actionForm.reset({
+      const formData = {
         name: item?.name || '',
         description: item?.description || '',
-        subcategoryId: item?.subcategoryId || '',
-        estimatedTimeMinutes: item?.estimatedTimeMinutes || undefined,
+        // Fix: handle both camelCase and snake_case from backend
+        subcategoryId: item?.subcategoryId || item?.subcategory_id || '',
+        estimatedTimeMinutes: item?.estimatedTimeMinutes || item?.estimated_time_minutes || undefined,
         color: item?.color || '#3b82f6',
         icon: item?.icon || '',
         active: item?.active !== undefined ? item.active : true,
-        sortOrder: item?.sortOrder || 1
-      });
+        sortOrder: item?.sortOrder || item?.sort_order || 1
+      };
+      console.log('🔧 Opening action dialog with data:', formData);
+      actionForm.reset(formData);
     } else if (type === 'field-option') {
       // Handle both normalized (from frontend mapping) and raw database format
       fieldOptionForm.reset({
@@ -816,7 +821,7 @@ const TicketConfiguration: React.FC = () => {
                                   {category.active ? "Ativo" : "Inativo"}
                                 </Badge>
                                 <Badge variant="outline" className="text-xs">
-                                  {subcategories.filter(sub => (sub.categoryId || (sub as any).category_id) === category.id).length} subcategorias
+                                  {subcategories.filter(sub => sub.categoryId === category.id).length} subcategorias
                                 </Badge>
                               </div>
                               {category.description && (
@@ -867,10 +872,7 @@ const TicketConfiguration: React.FC = () => {
                         {expandedCategories.has(category.id) && (
                           <div className="bg-white">
                             {subcategories
-                              .filter((sub: Subcategory) => {
-                                const subCategoryId = sub.categoryId || (sub as any).category_id;
-                                return subCategoryId === category.id;
-                              })
+                              .filter((sub: Subcategory) => sub.categoryId === category.id)
                               .map((subcategory: Subcategory) => (
                                 <div key={subcategory.id} className="border-t border-gray-100">
                                   {/* Header da Subcategoria */}
@@ -884,7 +886,7 @@ const TicketConfiguration: React.FC = () => {
                                         <div className="flex items-center space-x-3">
                                           <span className="font-medium text-gray-900">{subcategory.name}</span>
                                           <Badge variant="outline" className="text-xs">
-                                            {actions.filter(action => (action.subcategoryId || (action as any).subcategory_id) === subcategory.id).length} ações
+                                            {actions.filter(action => action.subcategoryId === subcategory.id).length} ações
                                           </Badge>
                                         </div>
                                         {subcategory.description && (
@@ -927,10 +929,7 @@ const TicketConfiguration: React.FC = () => {
                                   {/* Ações da Subcategoria */}
                                   <div className="pl-16 pr-4 pb-4">
                                     {actions
-                                      .filter((action: Action) => {
-                                        const actionSubcategoryId = action.subcategoryId || (action as any).subcategory_id;
-                                        return actionSubcategoryId === subcategory.id;
-                                      })
+                                      .filter((action: Action) => action.subcategoryId === subcategory.id)
                                       .map((action: Action) => (
                                         <div key={action.id} className="flex items-center justify-between py-2 px-3 bg-orange-50 rounded-md mb-2 last:mb-0">
                                           <div className="flex items-center space-x-3">
@@ -971,7 +970,7 @@ const TicketConfiguration: React.FC = () => {
                                           </div>
                                         </div>
                                       ))}
-                                    {actions.filter(action => (action.subcategoryId || (action as any).subcategory_id) === subcategory.id).length === 0 && (
+                                    {actions.filter(action => action.subcategoryId === subcategory.id).length === 0 && (
                                       <div className="text-center py-4 text-gray-500 bg-gray-50 rounded-md">
                                         <Settings className="w-8 h-8 mx-auto mb-2 opacity-50" />
                                         <p className="text-sm">Nenhuma ação cadastrada</p>
@@ -990,7 +989,7 @@ const TicketConfiguration: React.FC = () => {
                                 </div>
                               ))}
 
-                            {subcategories.filter(sub => (sub.categoryId || (sub as any).category_id) === category.id).length === 0 && (
+                            {subcategories.filter(sub => sub.categoryId === category.id).length === 0 && (
                               <div className="p-8 text-center text-gray-500 border-t">
                                 <FolderTree className="w-12 h-12 mx-auto mb-4 opacity-50" />
                                 <p className="text-sm mb-4">Nenhuma subcategoria cadastrada nesta categoria</p>
