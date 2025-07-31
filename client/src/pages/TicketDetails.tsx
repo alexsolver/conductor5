@@ -466,64 +466,76 @@ export default function TicketDetails() {
     enabled: !!id,
   });
 
-  // 🚀 OTIMIZAÇÃO: Parallel queries com Promise.all para máxima performance
-  const ticketDataQueries = useQueries({
-    queries: [
-      {
-        queryKey: ["/api/tickets", id, "history"],
-        queryFn: async () => {
-          const response = await apiRequest("GET", `/api/tickets/${id}/history`);
-          return response.json();
-        },
-        enabled: !!id,
-        staleTime: 3 * 60 * 1000, // 3 minutes cache for history (menos frequente)
-        refetchOnWindowFocus: false,
-      },
-      {
-        queryKey: ["/api/tickets", id, "communications"],
-        queryFn: async () => {
-          const response = await apiRequest("GET", `/api/tickets/${id}/communications`);
-          return response.json();
-        },
-        enabled: !!id,
-        staleTime: 60 * 1000, // 1 minute cache for communications
-        refetchOnWindowFocus: false,
-      },
-      {
-        queryKey: ["/api/tickets", id, "notes"],
-        queryFn: async () => {
-          const response = await apiRequest("GET", `/api/tickets/${id}/notes`);
-          return response.json();
-        },
-        enabled: !!id,
-        staleTime: 60 * 1000, // 1 minute cache for notes
-        refetchOnWindowFocus: false,
-      },
-      {
-        queryKey: ["/api/tickets", id, "attachments"],
-        queryFn: async () => {
-          const response = await apiRequest("GET", `/api/tickets/${id}/attachments`);
-          return response.json();
-        },
-        enabled: !!id,
-        staleTime: 5 * 60 * 1000, // 5 minutes cache for attachments (estático)
-        refetchOnWindowFocus: false,
-      },
-      {
-        queryKey: ["/api/tickets", id, "actions"],
-        queryFn: async () => {
-          const response = await apiRequest("GET", `/api/tickets/${id}/actions`);
-          return response.json();
-        },
-        enabled: !!id,
-        staleTime: 90 * 1000, // 90 seconds cache for actions
-        refetchOnWindowFocus: false,
-      }
-    ]
+  // 🚀 OTIMIZAÇÃO: Individual queries with proper error handling and data extraction
+  const { data: ticketHistoryData, isLoading: historyLoading, error: historyError } = useQuery({
+    queryKey: ["/api/tickets", id, "history"],
+    queryFn: async () => {
+      console.log('🗂️ Fetching ticket history for:', id);
+      const response = await apiRequest("GET", `/api/tickets/${id}/history`);
+      const data = await response.json();
+      console.log('🗂️ History API response:', data);
+      return data;
+    },
+    enabled: !!id,
+    staleTime: 3 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
-  // Extract data from parallel queries
-  const [ticketHistoryData, ticketCommunications, ticketNotes, ticketAttachments, ticketActions] = ticketDataQueries;
+  const { data: ticketCommunications, isLoading: communicationsLoading, error: communicationsError } = useQuery({
+    queryKey: ["/api/tickets", id, "communications"],
+    queryFn: async () => {
+      console.log('💬 Fetching ticket communications for:', id);
+      const response = await apiRequest("GET", `/api/tickets/${id}/communications`);
+      const data = await response.json();
+      console.log('💬 Communications API response:', data);
+      return data;
+    },
+    enabled: !!id,
+    staleTime: 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
+  const { data: ticketNotes, isLoading: notesLoading, error: notesError } = useQuery({
+    queryKey: ["/api/tickets", id, "notes"],
+    queryFn: async () => {
+      console.log('📝 Fetching ticket notes for:', id);
+      const response = await apiRequest("GET", `/api/tickets/${id}/notes`);
+      const data = await response.json();
+      console.log('📝 Notes API response:', data);
+      return data;
+    },
+    enabled: !!id,
+    staleTime: 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
+  const { data: ticketAttachments, isLoading: attachmentsLoading, error: attachmentsError } = useQuery({
+    queryKey: ["/api/tickets", id, "attachments"],
+    queryFn: async () => {
+      console.log('📎 Fetching ticket attachments for:', id);
+      const response = await apiRequest("GET", `/api/tickets/${id}/attachments`);
+      const data = await response.json();
+      console.log('📎 Attachments API response:', data);
+      return data;
+    },
+    enabled: !!id,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
+  const { data: ticketActions, isLoading: actionsLoading, error: actionsError } = useQuery({
+    queryKey: ["/api/tickets", id, "actions"],
+    queryFn: async () => {
+      console.log('⚙️ Fetching ticket actions for:', id);
+      const response = await apiRequest("GET", `/api/tickets/${id}/actions`);
+      const data = await response.json();
+      console.log('⚙️ Actions API response:', data);
+      return data;
+    },
+    enabled: !!id,
+    staleTime: 90 * 1000,
+    refetchOnWindowFocus: false,
+  });
 
   // Fetch team users/members for assignments and followers
   const { data: usersData } = useQuery({
@@ -543,85 +555,205 @@ export default function TicketDetails() {
     role: user.role || 'Usuário'
   })) : [];
 
-  // Initialize data from API responses - NO MORE HARDCODED DATA
+  // Initialize data from API responses with comprehensive error handling and logging
   useEffect(() => {
-    // Set communications from API
-    if (ticketCommunications?.success && ticketCommunications?.data) {
+    console.log('🔄 Initializing ticket data:', {
+      ticketId: id,
+      hasCommunications: !!ticketCommunications,
+      hasNotes: !!ticketNotes,
+      hasActions: !!ticketActions,
+      hasAttachments: !!ticketAttachments,
+      hasRelationships: !!ticketRelationships
+    });
+
+    // Set communications from API with fallback
+    if (ticketCommunications?.success && Array.isArray(ticketCommunications.data)) {
+      console.log('💬 Setting communications:', ticketCommunications.data.length, 'items');
       setCommunications(ticketCommunications.data);
-    } else if (ticketRelationships?.communications) {
+    } else if (ticketCommunications?.data && Array.isArray(ticketCommunications.data)) {
+      console.log('💬 Setting communications (no success flag):', ticketCommunications.data.length, 'items');
+      setCommunications(ticketCommunications.data);
+    } else if (ticketRelationships?.communications && Array.isArray(ticketRelationships.communications)) {
+      console.log('💬 Setting communications from relationships:', ticketRelationships.communications.length, 'items');
       setCommunications(ticketRelationships.communications);
     } else {
+      console.log('💬 No communications found, setting empty array');
       setCommunications([]);
     }
 
-    // Set attachments from API
-    if (ticketAttachments?.success && ticketAttachments?.data) {
+    // Set attachments from API with fallback
+    if (ticketAttachments?.success && Array.isArray(ticketAttachments.data)) {
+      console.log('📎 Setting attachments:', ticketAttachments.data.length, 'items');
       setAttachments(ticketAttachments.data);
-    } else if (ticketRelationships?.attachments) {
+    } else if (ticketAttachments?.data && Array.isArray(ticketAttachments.data)) {
+      console.log('📎 Setting attachments (no success flag):', ticketAttachments.data.length, 'items');
+      setAttachments(ticketAttachments.data);
+    } else if (ticketRelationships?.attachments && Array.isArray(ticketRelationships.attachments)) {
+      console.log('📎 Setting attachments from relationships:', ticketRelationships.attachments.length, 'items');
       setAttachments(ticketRelationships.attachments);
     } else {
+      console.log('📎 No attachments found, setting empty array');
       setAttachments([]);
     }
 
-    // Set notes from API
-    if (ticketNotes?.success && ticketNotes?.data) {
-      // Map the notes data to ensure consistent field names
+    // Set notes from API with comprehensive mapping and fallback
+    if (ticketNotes?.success && Array.isArray(ticketNotes.data)) {
+      console.log('📝 Setting notes from API success:', ticketNotes.data.length, 'items');
       const mappedNotes = ticketNotes.data.map((note: any) => ({
         ...note,
-        createdBy: note.author_name || note.createdBy || 'Sistema',
-        createdAt: note.created_at || note.createdAt
+        id: note.id || `note-${Date.now()}-${Math.random()}`,
+        createdBy: note.author_name || note.created_by_name || note.createdBy || 'Sistema',
+        createdByName: note.author_name || note.created_by_name || note.createdByName || 'Sistema',
+        createdAt: note.created_at || note.createdAt || new Date().toISOString(),
+        content: note.content || note.description || note.text || 'Sem conteúdo'
       }));
       setNotes(mappedNotes);
-    } else if (ticketRelationships?.notes) {
+    } else if (ticketNotes?.data && Array.isArray(ticketNotes.data)) {
+      console.log('📝 Setting notes from API (no success flag):', ticketNotes.data.length, 'items');
+      const mappedNotes = ticketNotes.data.map((note: any) => ({
+        ...note,
+        id: note.id || `note-${Date.now()}-${Math.random()}`,
+        createdBy: note.author_name || note.created_by_name || note.createdBy || 'Sistema',
+        createdByName: note.author_name || note.created_by_name || note.createdByName || 'Sistema',
+        createdAt: note.created_at || note.createdAt || new Date().toISOString(),
+        content: note.content || note.description || note.text || 'Sem conteúdo'
+      }));
+      setNotes(mappedNotes);
+    } else if (ticketRelationships?.notes && Array.isArray(ticketRelationships.notes)) {
+      console.log('📝 Setting notes from relationships:', ticketRelationships.notes.length, 'items');
       setNotes(ticketRelationships.notes);
     } else {
+      console.log('📝 No notes found, setting empty array');
       setNotes([]);
     }
 
-    // Set actions from API - all actions are internal by default from ticket_actions table
-    if (ticketActions?.success && ticketActions?.data) {
-      const actions = ticketActions.data;
-      // All actions from ticket_actions table are internal actions
-      setInternalActions(actions);
-      setExternalActions([]); // External actions would come from a different endpoint
+    // Set actions from API with comprehensive mapping for internal actions
+    if (ticketActions?.success && Array.isArray(ticketActions.data)) {
+      console.log('⚙️ Setting actions from API success:', ticketActions.data.length, 'items');
+      const mappedActions = ticketActions.data.map((action: any) => ({
+        ...action,
+        id: action.id || `action-${Date.now()}-${Math.random()}`,
+        createdByName: action.agent_name || action.created_by_name || action.createdByName || action.performed_by_name || 'Sistema',
+        actionType: action.action_type || action.actionType || action.type || 'Ação',
+        content: action.content || action.description || action.summary || 'Sem descrição',
+        is_public: action.is_public !== undefined ? action.is_public : action.isPublic !== undefined ? action.isPublic : false,
+        created_at: action.created_at || action.createdAt || new Date().toISOString(),
+        time_spent: action.time_spent || action.timeSpent || '0:00:00:00'
+      }));
+      setInternalActions(mappedActions);
+      setExternalActions([]); // External actions would come from different endpoint
+    } else if (ticketActions?.data && Array.isArray(ticketActions.data)) {
+      console.log('⚙️ Setting actions from API (no success flag):', ticketActions.data.length, 'items');
+      const mappedActions = ticketActions.data.map((action: any) => ({
+        ...action,
+        id: action.id || `action-${Date.now()}-${Math.random()}`,
+        createdByName: action.agent_name || action.created_by_name || action.createdByName || action.performed_by_name || 'Sistema',
+        actionType: action.action_type || action.actionType || action.type || 'Ação',
+        content: action.content || action.description || action.summary || 'Sem descrição',
+        is_public: action.is_public !== undefined ? action.is_public : action.isPublic !== undefined ? action.isPublic : false,
+        created_at: action.created_at || action.createdAt || new Date().toISOString(),
+        time_spent: action.time_spent || action.timeSpent || '0:00:00:00'
+      }));
+      setInternalActions(mappedActions);
+      setExternalActions([]);
     } else {
+      console.log('⚙️ No actions found, setting empty arrays');
       setInternalActions([]);
       setExternalActions([]);
     }
 
     // Set related tickets from relationships API
-    if (ticketRelationships?.success && ticketRelationships?.data) {
-      // Transform the data to match the expected format for display
+    if (ticketRelationships?.success && Array.isArray(ticketRelationships.data)) {
+      console.log('🔗 Setting related tickets from relationships:', ticketRelationships.data.length, 'items');
       const transformedTickets = ticketRelationships.data.map((relationship: any) => ({
-        id: relationship.targetTicket.id,
-        number: relationship.targetTicket.number || 'N/A',
-        subject: relationship.targetTicket.subject || 'Sem assunto',
-        status: relationship.targetTicket.status || 'unknown',
-        priority: relationship.targetTicket.priority || 'medium',
-        relationshipType: relationship.relationshipType,
+        id: relationship.targetTicket?.id || relationship.id,
+        number: relationship.targetTicket?.number || relationship.number || 'N/A',
+        subject: relationship.targetTicket?.subject || relationship.subject || 'Sem assunto',
+        status: relationship.targetTicket?.status || relationship.status || 'unknown',
+        priority: relationship.targetTicket?.priority || relationship.priority || 'medium',
+        relationshipType: relationship.relationshipType || relationship.relationship_type || 'related',
         description: relationship.description || '',
-        createdAt: relationship.createdAt
+        createdAt: relationship.createdAt || relationship.created_at || new Date().toISOString(),
+        targetTicket: relationship.targetTicket || {}
       }));
       setRelatedTickets(transformedTickets);
     } else {
+      console.log('🔗 No related tickets found, setting empty array');
       setRelatedTickets([]);
     }
 
     // Set ticket-specific data
     if (ticket) {
-      setFollowers(ticket.followers || []);
-      setTags(ticket.tags || []);
+      console.log('🎫 Setting ticket-specific data:', {
+        hasFollowers: Array.isArray(ticket.followers),
+        hasTags: Array.isArray(ticket.tags),
+        followersCount: ticket.followers?.length || 0,
+        tagsCount: ticket.tags?.length || 0
+      });
+      
+      if (Array.isArray(ticket.followers)) {
+        setFollowers(ticket.followers);
+      }
+      
+      if (Array.isArray(ticket.tags)) {
+        setTags(ticket.tags);
+      }
     }
   }, [ticketCommunications, ticketAttachments, ticketNotes, ticketActions, ticketRelationships, ticket]);
 
-  // Initialize real history data from API
+  // Initialize real history data from API with comprehensive mapping
   useEffect(() => {
-    if (ticketHistoryData?.success && ticketHistoryData?.data) {
-      setHistory(ticketHistoryData.data);
+    console.log('🗂️ Initializing history data:', {
+      hasHistoryData: !!ticketHistoryData,
+      historySuccess: ticketHistoryData?.success,
+      historyDataType: typeof ticketHistoryData?.data,
+      historyIsArray: Array.isArray(ticketHistoryData?.data),
+      historyLength: ticketHistoryData?.data?.length || 0,
+      historyError: historyError,
+      historyLoading: historyLoading
+    });
+
+    if (ticketHistoryData?.success && Array.isArray(ticketHistoryData.data)) {
+      console.log('🗂️ Setting history from API success:', ticketHistoryData.data.length, 'items');
+      const mappedHistory = ticketHistoryData.data.map((item: any) => ({
+        ...item,
+        id: item.id || `history-${Date.now()}-${Math.random()}`,
+        action_type: item.action_type || item.actionType || item.type || 'activity',
+        performed_by_name: item.performed_by_name || item.performedByName || item.actor_name || item.createdBy || 'Sistema',
+        created_at: item.created_at || item.createdAt || new Date().toISOString(),
+        description: item.description || item.summary || item.content || 'Atividade registrada',
+        field_name: item.field_name || item.fieldName || null,
+        old_value: item.old_value || item.oldValue || null,
+        new_value: item.new_value || item.newValue || null,
+        metadata: item.metadata || {},
+        ip_address: item.ip_address || item.ipAddress || item.metadata?.ip_address || null,
+        user_agent: item.user_agent || item.userAgent || item.metadata?.user_agent || null,
+        session_id: item.session_id || item.sessionId || item.metadata?.session_id || null
+      }));
+      setHistory(mappedHistory);
+    } else if (ticketHistoryData?.data && Array.isArray(ticketHistoryData.data)) {
+      console.log('🗂️ Setting history from API (no success flag):', ticketHistoryData.data.length, 'items');
+      const mappedHistory = ticketHistoryData.data.map((item: any) => ({
+        ...item,
+        id: item.id || `history-${Date.now()}-${Math.random()}`,
+        action_type: item.action_type || item.actionType || item.type || 'activity',
+        performed_by_name: item.performed_by_name || item.performedByName || item.actor_name || item.createdBy || 'Sistema',
+        created_at: item.created_at || item.createdAt || new Date().toISOString(),
+        description: item.description || item.summary || item.content || 'Atividade registrada',
+        field_name: item.field_name || item.fieldName || null,
+        old_value: item.old_value || item.oldValue || null,
+        new_value: item.new_value || item.newValue || null,
+        metadata: item.metadata || {},
+        ip_address: item.ip_address || item.ipAddress || item.metadata?.ip_address || null,
+        user_agent: item.user_agent || item.userAgent || item.metadata?.user_agent || null,
+        session_id: item.session_id || item.sessionId || item.metadata?.session_id || null
+      }));
+      setHistory(mappedHistory);
     } else {
+      console.log('🗂️ No history found, setting empty array');
       setHistory([]);
     }
-  }, [ticketHistoryData]);
+  }, [ticketHistoryData, historyError, historyLoading]);
 
   // File upload handlers
   const handleDrag = (e: React.DragEvent) => {
@@ -2240,7 +2372,9 @@ export default function TicketDetails() {
   }
 
   // 🚀 OTIMIZAÇÃO: Loading states específicos e informativos
-  if (isLoading) {
+  const isLoadingAnyData = isLoading || historyLoading || communicationsLoading || notesLoading || attachmentsLoading || actionsLoading;
+  
+  if (isLoadingAnyData) {
     return (
       <div className="h-screen flex bg-gray-50">
         {/* Loading Sidebar */}
@@ -2985,7 +3119,7 @@ export default function TicketDetails() {
               <span className="text-sm font-medium">Comunicação</span>
             </div>
             <Badge variant="outline" className="text-xs bg-green-50 text-green-600">
-              {communications.length}
+              {communications?.length || 0}
             </Badge>
           </button>
 
@@ -3014,7 +3148,7 @@ export default function TicketDetails() {
               <span className="text-sm font-medium">Notas</span>
             </div>
             <Badge variant="outline" className="text-xs bg-blue-50 text-blue-600">
-              {notes.length}
+              {notes?.length || 0}
             </Badge>
           </button>
 
@@ -3031,7 +3165,7 @@ export default function TicketDetails() {
               <span className="text-sm font-medium">Ações Internas</span>
             </div>
             <Badge variant="outline" className="text-xs bg-purple-50 text-purple-600">
-              {internalActions.length}
+              {internalActions?.length || 0}
             </Badge>
           </button>
 
