@@ -10,9 +10,9 @@ export class SimpleTokenService implements ITokenService {
   private readonly refreshTokenExpiry = '30d'; // 30 dias para menos renovações
 
   constructor() {
-    // Use environment variables or secure defaults
-    this.accessTokenSecret = process.env.JWT_ACCESS_SECRET || this.generateFallbackSecret('access');
-    this.refreshTokenSecret = process.env.JWT_REFRESH_SECRET || this.generateFallbackSecret('refresh');
+    // Fixed secrets for consistency with tokenManager
+    this.accessTokenSecret = process.env.JWT_ACCESS_SECRET || 'conductor-platform-development-fixed-secret-2025';
+    this.refreshTokenSecret = process.env.JWT_REFRESH_SECRET || 'conductor-platform-refresh-fixed-secret-2025';
   }
 
   private generateFallbackSecret(type: string): string {

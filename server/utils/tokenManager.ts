@@ -17,9 +17,9 @@ export class TokenManager {
   private readonly refreshSecret: string;
   
   private constructor() {
-    // Enhanced secret generation for stability
-    this.accessSecret = process.env.JWT_ACCESS_SECRET || this.generateStableSecret('access');
-    this.refreshSecret = process.env.JWT_REFRESH_SECRET || this.generateStableSecret('refresh');
+    // Fixed secrets for development stability
+    this.accessSecret = process.env.JWT_ACCESS_SECRET || 'conductor-platform-development-fixed-secret-2025';
+    this.refreshSecret = process.env.JWT_REFRESH_SECRET || 'conductor-platform-refresh-fixed-secret-2025';
   }
 
   static getInstance(): TokenManager {
@@ -30,10 +30,9 @@ export class TokenManager {
   }
 
   private generateStableSecret(type: string): string {
-    // More predictable secret for development stability
-    const base = `conductor-platform-${type}-secret`;
-    const timestamp = Math.floor(Date.now() / (1000 * 60 * 60 * 24)); // Daily rotation
-    return `${base}-${timestamp}-production-stable`;
+    // Fixed secret for development to prevent signature mismatches
+    const base = `conductor-platform-${type}-secret-fixed-development`;
+    return `${base}-stable-key-2025`;
   }
 
   generateAccessToken(user: { id: string; email: string; role: string; tenantId: string | null }): string {

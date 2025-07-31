@@ -18,12 +18,9 @@ export class TokenService implements ITokenService {
   }
 
   constructor() {
-    this.accessTokenSecret = process.env.JWT_ACCESS_SECRET || this.generateSecureDefaultSecret('access');
-    this.refreshTokenSecret = process.env.JWT_REFRESH_SECRET || this.generateSecureDefaultSecret('refresh');
-    
-    if (!process.env.JWT_ACCESS_SECRET || !process.env.JWT_REFRESH_SECRET) {
-      // JWT secrets automatically generated from secure random bytes for production security
-    }
+    // Fixed secrets for consistency with tokenManager
+    this.accessTokenSecret = process.env.JWT_ACCESS_SECRET || 'conductor-platform-development-fixed-secret-2025';
+    this.refreshTokenSecret = process.env.JWT_REFRESH_SECRET || 'conductor-platform-refresh-fixed-secret-2025';
   }
 
   generateAccessToken(userId: string, email: string): string;
