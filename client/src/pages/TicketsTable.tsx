@@ -221,6 +221,35 @@ export default function TicketsTable() {
   // Hook para buscar cores dos campos personalizados
   const { getFieldColor, getFieldLabel, isLoading: isFieldColorsLoading } = useFieldColors();
 
+  // Debug das cores dos campos
+  React.useEffect(() => {
+    if (!isFieldColorsLoading) {
+      console.log('🎨 Field colors hook status:', {
+        isLoading: isFieldColorsLoading,
+        getFieldColor: typeof getFieldColor,
+        getFieldLabel: typeof getFieldLabel
+      });
+      
+      // Testar algumas cores específicas
+      const testPriorities = ['low', 'medium', 'high', 'critical'];
+      const testStatuses = ['new', 'open', 'in_progress', 'resolved', 'closed'];
+      
+      console.log('🎨 Testing priority colors:');
+      testPriorities.forEach(p => {
+        const color = getFieldColor('priority', p);
+        const label = getFieldLabel('priority', p);
+        console.log(`  ${p}: ${color} (${label})`);
+      });
+      
+      console.log('🎨 Testing status colors:');
+      testStatuses.forEach(s => {
+        const color = getFieldColor('status', s);
+        const label = getFieldLabel('status', s);
+        console.log(`  ${s}: ${color} (${label})`);
+      });
+    }
+  }, [isFieldColorsLoading, getFieldColor, getFieldLabel]);
+
   // Status mapping simplificado - usar valores diretos do banco
   const statusMapping: Record<string, string> = {
     'new': 'new',
@@ -372,6 +401,11 @@ export default function TicketsTable() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
+
+  // Limpar cache de cores dos campos na inicialização para debug
+  React.useEffect(() => {
+    queryClient.invalidateQueries({ queryKey: ["/api/ticket-config/field-options"] });
+  }, []);  // Executar apenas uma vez
 
   // Função para buscar relacionamentos de tickets
   const fetchTicketRelationships = async (ticketId: string) => {
@@ -741,14 +775,25 @@ export default function TicketsTable() {
             </TableCell>
           );
         case 'status':
+          const statusValue = mapStatusValue((ticket as any).state || ticket.status);
+          const statusColor = getFieldColorWithFallback('status', statusValue);
+          const statusLabel = getFieldLabel('status', statusValue);
+          
+          console.log(`🎫 Status for ticket ${ticket.id}:`, {
+            originalStatus: (ticket as any).state || ticket.status,
+            mappedValue: statusValue,
+            color: statusColor,
+            label: statusLabel
+          });
+
           return (
             <TableCell className="overflow-hidden" style={cellStyle}>
               <DynamicBadge 
                 fieldName="status"
-                value={mapStatusValue((ticket as any).state || ticket.status)}
-                colorHex={getFieldColorWithFallback('status', mapStatusValue((ticket as any).state || ticket.status))}
+                value={statusValue}
+                colorHex={statusColor}
               >
-                {getFieldLabel('status', mapStatusValue((ticket as any).state || ticket.status))}
+                {statusLabel}
               </DynamicBadge>
             </TableCell>
           );
@@ -756,6 +801,13 @@ export default function TicketsTable() {
           const priorityValue = mapPriorityValue(ticket.priority);
           const priorityColor = getFieldColorWithFallback('priority', priorityValue);
           const priorityLabel = getFieldLabel('priority', priorityValue);
+
+          console.log(`🎫 Priority for ticket ${ticket.id}:`, {
+            originalPriority: ticket.priority,
+            mappedValue: priorityValue,
+            color: priorityColor,
+            label: priorityLabel
+          });
 
           return (
             <TableCell className="overflow-hidden" style={cellStyle}>
