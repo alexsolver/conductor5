@@ -294,6 +294,14 @@ export default function TicketsTable() {
     if (!value || value === null || value === 'null' || value === '' || typeof value !== 'string') {
       return 'suporte_tecnico'; // Use uma categoria que existe no sistema
     }
+    
+    // Se o valor já está no formato correto do banco, retorne diretamente
+    const validCategories = ['infraestrutura', 'suporte_tecnico', 'atendimento_cliente', 'financeiro'];
+    if (validCategories.includes(value.toLowerCase())) {
+      return value.toLowerCase();
+    }
+    
+    // Caso contrário, use o mapeamento
     const mapped = categoryMapping[value.toLowerCase()] || 'suporte_tecnico';
     return mapped;
   };
@@ -634,9 +642,18 @@ export default function TicketsTable() {
           </TableCell>
         );
       case 'category':
-        const categoryValue = mapCategoryValue((ticket as any).category);
+        const rawCategoryValue = (ticket as any).category;
+        const categoryValue = mapCategoryValue(rawCategoryValue);
         const categoryColor = getFieldColorWithFallback('category', categoryValue);
         const categoryLabel = getFieldLabel('category', categoryValue);
+
+        console.log(`🎨 Category Badge Debug:`, {
+          ticketId: ticket.id,
+          rawValue: rawCategoryValue,
+          mappedValue: categoryValue,
+          color: categoryColor,
+          label: categoryLabel
+        });
 
         return (
           <TableCell className="overflow-hidden" style={cellStyle}>

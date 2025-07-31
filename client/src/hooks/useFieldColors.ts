@@ -95,10 +95,24 @@ export const useFieldColors = () => {
   const getFieldColor = (fieldName: string, value: string): string | undefined => {
     if (!value) return getDefaultColor(fieldName, value);
     
+    // Debug para categoria
+    if (fieldName === 'category') {
+      console.log(`🎨 Getting color for category:`, {
+        fieldName,
+        value,
+        availableColors: Array.from(colorsMap.keys()).filter(k => k.startsWith('category:')),
+        totalColors: colorsMap.size
+      });
+    }
+    
     // Usar cache memoizado primeiro
     const directKey = `${fieldName}:${value}`;
     if (colorsMap.has(directKey)) {
-      return colorsMap.get(directKey);
+      const color = colorsMap.get(directKey);
+      if (fieldName === 'category') {
+        console.log(`✅ Found color for category ${value}:`, color);
+      }
+      return color;
     }
 
     // Se não encontrar, tenta mapeamento reverso para status
@@ -170,10 +184,31 @@ export const useFieldColors = () => {
         'low': '#10B981',      // verde
         'medium': '#F59E0B',   // amarelo
         'high': '#EF4444'      // vermelho
+      },
+      category: {
+        'infraestrutura': '#8B5CF6',     // roxo
+        'infrastructure': '#8B5CF6',     // roxo
+        'suporte_tecnico': '#3B82F6',    // azul
+        'technical_support': '#3B82F6',  // azul
+        'atendimento_cliente': '#10B981', // verde
+        'customer_service': '#10B981',    // verde
+        'financeiro': '#F59E0B',         // amarelo
+        'financial': '#F59E0B',          // amarelo
+        'hardware': '#8B5CF6',           // roxo (maps to infraestrutura)
+        'software': '#3B82F6',           // azul (maps to suporte_tecnico)
+        'network': '#8B5CF6',            // roxo (maps to infraestrutura)
+        'access': '#3B82F6',             // azul (maps to suporte_tecnico)
+        'other': '#3B82F6'               // azul (maps to suporte_tecnico)
       }
     };
 
-    return defaultColors[fieldName]?.[value] || '#6B7280';
+    const color = defaultColors[fieldName]?.[value] || '#6B7280';
+    
+    if (fieldName === 'category') {
+      console.log(`🎨 Using default color for category ${value}:`, color);
+    }
+    
+    return color;
   };
 
   // Memoizar labels para melhor performance
