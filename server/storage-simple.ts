@@ -462,8 +462,14 @@ export class DatabaseStorage implements IStorage {
         throw new Error('Ticket subject and customer ID are required');
       }
 
-      // Generate ticket number
-      const ticketNumber = `T-${Date.now()}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`;
+      // Get company ID for numbering configuration
+      const companyId = ticketData.customer_company_id || '00000000-0000-0000-0000-000000000001'; // Default company
+      
+      // Generate ticket number using configuration
+      const { ticketNumberGenerator } = await import('../utils/ticketNumberGenerator');
+      const ticketNumber = await ticketNumberGenerator.generateTicketNumber(validatedTenantId, companyId);
+      
+      console.log('🎯 Generated ticket number:', ticketNumber, { companyId, tenantId: validatedTenantId });
       
       const result = await tenantDb.execute(sql`
         INSERT INTO ${sql.identifier(schemaName)}.tickets 

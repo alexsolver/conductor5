@@ -1,46 +1,147 @@
 /**
  * Ticket Number Generator
- * Generates unique ticket numbers for each tenant
+ * Generates unique ticket numbers for each tenant based on configuration
  */
 
-import { db } from '../db';
-import { tickets } from '../../shared/schema.js';
-import { eq } from 'drizzle-orm';
+import { sql } from 'drizzle-orm';
+import { poolManager } from '../database/ConnectionPoolManager';
+
+interface NumberingConfig {
+  id: string;
+  prefix: string;
+  first_separator: string;
+  year_format: '2' | '4';
+  sequential_digits: number;
+  separator: string;
+  reset_yearly: boolean;
+  company_id: string;
+}
 
 class TicketNumberGenerator {
   private counters = new Map<string, number>();
 
-  async generateTicketNumber(tenantId: string, prefix = 'INC'): Promise<string> {
-    const year = new Date().getFullYear().toString().slice(-2);
-    const cacheKey = `${tenantId}-${year}`;
+  async generateTicketNumber(tenantId: string, companyId: string): Promise<string> {
+    try {
+      // Get numbering configuration from database
+      const config = await this.getNumberingConfig(tenantId, companyId);
+      
+      if (!config) {
+        // Fallback to default format if no config found
+        return `T-${Date.now()}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`;
+      }
 
-    // Check if we have a cached counter for this tenant and year
-    if (!this.counters.has(cacheKey)) {
-      // Get the highest number for this tenant and year
-      const latestTicket = await db
-        .select({ number: tickets.number })
-        .from(tickets)
-        .where(eq(tickets.tenantId, tenantId))
-        .orderBy(tickets.createdAt)
-        .limit(1);
+      const currentYear = new Date().getFullYear();
+      const yearStr = config.year_format === '2' ? 
+        currentYear.toString().slice(-2) : 
+        currentYear.toString();
 
+      const cacheKey = config.reset_yearly ? 
+        `${tenantId}-${companyId}-${currentYear}` : 
+        `${tenantId}-${companyId}`;
+
+      // Get next sequential number
       let nextNumber = 1;
       
-      if (latestTicket.length > 0) {
-        const match = latestTicket[0].number.match(/(\d+)$/);
-        if (match) {
-          nextNumber = parseInt(match[1]) + 1;
-        }
+      if (!this.counters.has(cacheKey)) {
+        nextNumber = await this.getNextSequentialNumber(tenantId, config, currentYear);
+        this.counters.set(cacheKey, nextNumber);
+      } else {
+        nextNumber = this.counters.get(cacheKey)! + 1;
+        this.counters.set(cacheKey, nextNumber);
+      }
+
+      // Build ticket number according to configuration
+      const sequentialPart = nextNumber.toString().padStart(config.sequential_digits, '0');
+      
+      let ticketNumber = config.prefix;
+      
+      if (config.first_separator) {
+        ticketNumber += config.first_separator;
       }
       
-      this.counters.set(cacheKey, nextNumber);
+      ticketNumber += yearStr;
+      
+      if (config.separator) {
+        ticketNumber += config.separator;
+      }
+      
+      ticketNumber += sequentialPart;
+
+      return ticketNumber;
+    } catch (error) {
+      console.error('Error generating ticket number:', error);
+      // Fallback to simple format
+      return `T-${Date.now()}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`;
     }
+  }
 
-    const number = this.counters.get(cacheKey)!;
-    this.counters.set(cacheKey, number + 1);
+  private async getNumberingConfig(tenantId: string, companyId: string): Promise<NumberingConfig | null> {
+    try {
+      const tenantDb = await poolManager.getTenantConnection(tenantId);
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-    // Format: INC2025001234
-    return `${prefix}${year}${number.toString().padStart(6, '0')}`;
+      const result = await tenantDb.execute(sql`
+        SELECT * FROM ${sql.identifier(schemaName)}.ticket_numbering_config 
+        WHERE tenant_id = ${tenantId} 
+        AND company_id = ${companyId}
+        LIMIT 1
+      `);
+
+      const row = result.rows?.[0];
+      if (!row) return null;
+
+      return {
+        id: row.id,
+        prefix: row.prefix,
+        first_separator: row.first_separator || '',
+        year_format: row.year_format === '2' ? '2' : '4',
+        sequential_digits: Number(row.sequential_digits) || 6,
+        separator: row.separator || '',
+        reset_yearly: row.reset_yearly !== false,
+        company_id: row.company_id
+      };
+    } catch (error) {
+      console.error('Error fetching numbering config:', error);
+      return null;
+    }
+  }
+
+  private async getNextSequentialNumber(tenantId: string, config: NumberingConfig, currentYear: number): Promise<number> {
+    try {
+      const tenantDb = await poolManager.getTenantConnection(tenantId);
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+      let whereClause = sql`tenant_id = ${tenantId}`;
+      
+      if (config.reset_yearly) {
+        // If reset yearly, only count tickets from current year
+        whereClause = sql`${whereClause} AND EXTRACT(YEAR FROM created_at) = ${currentYear}`;
+      }
+
+      // Get the highest sequential number for this configuration
+      const result = await tenantDb.execute(sql`
+        SELECT number FROM ${sql.identifier(schemaName)}.tickets
+        WHERE ${whereClause}
+        AND number LIKE ${config.prefix + '%'}
+        ORDER BY created_at DESC
+        LIMIT 1
+      `);
+
+      if (result.rows && result.rows.length > 0) {
+        const lastNumber = result.rows[0].number;
+        
+        // Extract the sequential part from the last ticket number
+        const sequentialMatch = lastNumber.match(/(\d+)$/);
+        if (sequentialMatch) {
+          return parseInt(sequentialMatch[1]) + 1;
+        }
+      }
+
+      return 1;
+    } catch (error) {
+      console.error('Error getting next sequential number:', error);
+      return 1;
+    }
   }
 
   // Clear cache for testing
