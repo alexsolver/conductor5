@@ -1789,7 +1789,8 @@ export default function TicketsTable() {
                 <FormLabel>Business Impact</FormLabel>
                 <FormControl>
                   <Textarea 
-                    placeholder="Describe the business impact"
+                    placeholder```python
+="Describe the business impact"
                     className="min-h-[80px]"
                     {...field} 
                   />
@@ -1879,115 +1880,7 @@ export default function TicketsTable() {
     </Form>
   );
 
-  if (isLoading) {
-    return (
-      <div className="spacey-6">
-        <div className="flex items-center space-x-4 p-6 bg-white rounded-lg shadow-sm border">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-purple-600"></div>
-          <div className="space-y-2 flex-1">
-            <div className="text-lg font-semibold text-gray-800">⚡ Carregando Sistema de Tickets</div>
-            <div className="text-sm text-gray-600 font-medium">
-              {isFieldColorsLoading 
-                ? "⚙️ Carregando configurações de campos personalizados..." 
-                : tickets.length > 0 
-                  ? `🔗 Verificando relacionamentos em lote para ${tickets.length} tickets...`
-                  : "📋 Conectando com PostgreSQL via Neon..."
-              }
-            </div>
-            <div className="text-xs text-gray-500">
-              {tickets.length > 0 
-                ? `✅ ${ticketsWithRelationships.size} tickets com vínculos detectados (otimizado)`
-                : "🚀 Primeira carga pode levar alguns segundos"
-              }
-            </div>
-            {/* Progress indicator melhorado com animação */}
-            <div className="w-full bg-gray-200 rounded-full h-3 shadow-inner">
-              <div 
-                className="bg-gradient-to-r from-purple-600 to-blue-600 h-3 rounded-full transition-all duration-500 ease-out" 
-                style={{ 
-                  width: tickets.length > 0 
-                    ? `${Math.min(95, (ticketsWithRelationships.size / tickets.length) * 100 + 30)}%`
-                    : '45%'
-                }}
-              ></div>
-            </div>
-            {/* Contador em tempo real otimizado */}
-            <div className="flex justify-between text-xs text-gray-500 font-mono">
-              <span>📊 Cache: {sessionStorage.length} items</span>
-              <span>🔗 Vínculos: {ticketsWithRelationships.size}</span>
-              <span>⏱️ Batch Load: {tickets.length > 0 ? 'Active' : 'Pending'}</span>
-            </div>
-            <div className="text-xs text-gray-500">
-              {tickets.length > 0 
-                ? `✅ ${ticketsWithRelationships.size} tickets com vínculos detectados`
-                : "🚀 Primeira carga pode levar alguns segundos"
-              }
-            </div>
-            {/* Progress indicator melhorado com animação */}
-            <div className="w-full bg-gray-200 rounded-full h-3 shadow-inner">
-              <div 
-                className="bg-gradient-to-r from-purple-600 to-blue-600 h-3 rounded-full transition-all duration-700 ease-out" 
-                style={{ 
-                  width: tickets.length > 0 
-                    ? `${Math.min(90, (ticketsWithRelationships.size / tickets.length) * 100 + 20)}%`
-                    : '35%'
-                }}
-              ></div>
-            </div>
-            {/* Contador em tempo real */}
-            <div className="flex justify-between text-xs text-gray-500 font-mono">
-              <span>📊 Processados: {tickets.length}/13</span>
-              <span>🔗 Vínculos: {ticketsWithRelationships.size}</span>
-              <span>⏱️ {tickets.length > 0 ? `${Math.round((ticketsWithRelationships.size / tickets.length) * 100)}%` : '0%'}</span>
-            </div>
-            <div className="text-xs text-gray-500">
-              {tickets.length > 0 
-                ? `Carregados ${tickets.length} tickets - Verificando vínculos...`
-                : "Conectando com PostgreSQL via Neon..."
-              }
-            </div>
-            {/* Progress indicator */}
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div 
-                className="bg-purple-600 h-2 rounded-full transition-all duration-300" 
-                style={{ 
-                  width: tickets.length > 0 ? '70%' : '30%' 
-                }}
-              ></div>
-            </div>
-          </div>
-        </div>
-
-        {/* Progress skeleton melhorado */}
-        <div className="space-y-3">
-          {[...Array(8)].map((_, i) => (
-            <div key={i} className="bg-white p-4 rounded-lg shadow-sm border animate-pulse">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <div className="h-4 w-20 bg-gray-200 rounded"></div>
-                  <div className="h-4 w-40 bg-gray-200 rounded"></div>
-                  <div className="h-6 w-16 bg-gray-200 rounded-full"></div>
-                </div>
-                <div className="h-4 w-24 bg-gray-200 rounded"></div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="text-center p-4 bg-blue-50 rounded-lg">
-          <div className="text-sm text-blue-700 font-medium">
-            {tickets.length > 0 
-              ? `Processando ${tickets.length} tickets encontrados...`
-              : "Conectando com o servidor..."
-            }
-          </div>
-          <div className="text-xs text-blue-600 mt-1">
-            Primeira carga pode levar alguns segundos
-          </div>
-        </div>
-      </div>
-    );
-  }
+  
 
   return (
     <div className="space-y-6" style={{
