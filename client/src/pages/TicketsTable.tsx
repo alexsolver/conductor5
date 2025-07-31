@@ -497,7 +497,23 @@ export default function TicketsTable() {
     try {
       const response = await apiRequest('GET', `/api/tickets/${ticketId}/relationships`);
       const data = await response.json();
-      return data.relationships && data.relationships.length > 0;
+      
+      // A API pode retornar {success: true, data: [...]} ou {relationships: [...]}
+      let relationships = data.relationships || data.data || [];
+      
+      // Se data é um array diretamente
+      if (Array.isArray(data)) {
+        relationships = data;
+      }
+      
+      const hasRelationships = relationships && relationships.length > 0;
+      console.log(`🔗 Ticket ${ticketId} relationships:`, {
+        hasRelationships,
+        count: relationships?.length || 0,
+        rawResponse: data,
+        relationships: relationships
+      });
+      return hasRelationships;
     } catch (error) {
       console.error('Error checking ticket relationships:', error);
       return false;
@@ -519,6 +535,7 @@ export default function TicketsTable() {
         });
         
         await Promise.all(relationshipChecks);
+        console.log(`🎯 Final tickets with relationships:`, Array.from(ticketsWithRels));
         setTicketsWithRelationships(ticketsWithRels);
       };
       
