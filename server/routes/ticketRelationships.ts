@@ -73,6 +73,42 @@ router.post('/:id/relationships', async (req: AuthenticatedRequest, res) => {
   }
 });
 
+// Batch check ticket relationships - NOVA ROTA CRÍTICA
+router.post('/batch-relationships', async (req: AuthenticatedRequest, res) => {
+  try {
+    const tenantId = req.user?.tenantId;
+    const { ticketIds } = req.body;
+
+    if (!tenantId) {
+      return sendError(res as any, "Tenant ID is required", "Tenant ID is required", 400);
+    }
+
+    if (!ticketIds || !Array.isArray(ticketIds)) {
+      return sendError(res as any, "ticketIds array is required", "ticketIds array is required", 400);
+    }
+
+    const storage = await getStorage();
+    const batchResults: Record<string, any[]> = {};
+
+    // Buscar relacionamentos para cada ticket
+    for (const ticketId of ticketIds) {
+      try {
+        const relationships = await storage.getTicketRelationships(tenantId, ticketId);
+        batchResults[ticketId] = relationships || [];
+      } catch (error) {
+        logError('Error fetching relationships for ticket', error as any, { tenantId, ticketId });
+        batchResults[ticketId] = [];
+      }
+    }
+
+    logInfo('Batch relationships fetched', { tenantId, ticketCount: ticketIds.length, totalRelationships: Object.values(batchResults).flat().length });
+    return sendSuccess(res as any, batchResults, `Batch relationships retrieved for ${ticketIds.length} tickets`);
+  } catch (error) {
+    logError('Error in batch relationships check', error as any, { tenantId: req.user?.tenantId, ticketIds: req.body?.ticketIds });
+    return sendError(res as any, error as any, "Failed to fetch batch relationships", 500);
+  }
+});
+
 // Delete ticket relationship
 router.delete('/relationships/:id', async (req: AuthenticatedRequest, res) => {
   try {
