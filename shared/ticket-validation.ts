@@ -155,6 +155,38 @@ export const createTicketSchema = baseTicketSchema.extend({
   customerId: z.string().uuid("ID do cliente é obrigatório")
 });
 
+// Schema refatorado para o novo modal de criação de tickets
+export const newTicketModalSchema = z.object({
+  // Empresa (obrigatório)
+  companyId: z.string().uuid("Empresa é obrigatória").min(1, "Empresa é obrigatória"),
+  // Cliente (obrigatório)
+  customerId: z.string().uuid("Cliente é obrigatório").min(1, "Cliente é obrigatório"),
+  // Favorecido (opcional)
+  beneficiaryId: z.string().uuid("ID do favorecido deve ser um UUID válido").optional(),
+  // Título do Ticket (obrigatório)
+  subject: z.string().min(3, "Título deve ter pelo menos 3 caracteres").max(255, "Título não pode exceder 255 caracteres"),
+  // Categoria (obrigatório)
+  category: z.string().min(1, "Categoria é obrigatória"),
+  // Sub Categoria (obrigatório)
+  subcategory: z.string().min(1, "Sub categoria é obrigatória"),
+  // Ação (obrigatório)
+  action: z.string().min(1, "Ação é obrigatória"),
+  // Prioridade (obrigatório)
+  priority: z.string().min(1, "Prioridade é obrigatória"),
+  // Urgência (obrigatório)
+  urgency: z.string().min(1, "Urgência é obrigatória"),
+  // Descrição Detalhada (obrigatório)
+  description: z.string().min(10, "Descrição deve ter pelo menos 10 caracteres").max(4000, "Descrição não pode exceder 4000 caracteres"),
+  // Sintomas (opcional)
+  symptoms: z.string().max(1000, "Sintomas não podem exceder 1000 caracteres").optional(),
+  // Impacto no Negócio (opcional)
+  businessImpact: z.string().max(500, "Impacto no negócio não pode exceder 500 caracteres").optional(),
+  // Solução Temporária (opcional)
+  workaround: z.string().max(1000, "Solução temporária não pode exceder 1000 caracteres").optional(),
+  // Local (opcional)
+  location: z.string().optional()
+});
+
 // Schema para atualização de ticket (todos os campos opcionais)
 export const updateTicketSchema = baseTicketSchema.partial();
 
@@ -162,6 +194,7 @@ export const updateTicketSchema = baseTicketSchema.partial();
 export type TicketFormData = z.infer<typeof ticketFormSchema>;
 export type CreateTicketData = z.infer<typeof createTicketSchema>;
 export type UpdateTicketData = z.infer<typeof updateTicketSchema>;
+export type NewTicketModalData = z.infer<typeof newTicketModalSchema>;
 
 // Schema para validação de filtros na tabela
 export const ticketFiltersSchema = z.object({

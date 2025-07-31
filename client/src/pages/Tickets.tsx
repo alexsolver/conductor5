@@ -22,18 +22,7 @@ import { TicketViewSelector } from "@/components/TicketViewSelector";
 import { useLocation } from "wouter";
 import { useCompanyFilter } from "@/hooks/useCompanyFilter";
 
-// Schema for ticket creation
-const createTicketSchema = z.object({
-  customerId: z.string().min(1, "Solicitante é obrigatório"),
-  companyId: z.string().min(1, "Empresa é obrigatória"),
-  subject: z.string().min(1, "Subject is required"),
-  description: z.string().min(1, "Description is required"),
-  priority: z.enum(["low", "medium", "high", "urgent"]),
-  assignedToId: z.string().optional(),
-  tags: z.array(z.string()).default([]),
-});
-
-type CreateTicketFormData = z.infer<typeof createTicketSchema>;
+import { NewTicketModalData, newTicketModalSchema } from "../../../shared/ticket-validation";
 
 export default function Tickets() {
   const { t } = useTranslation();
@@ -102,6 +91,40 @@ export default function Tickets() {
     retry: false,
   });
 
+  // Fetch favorecidos (beneficiaries)
+  const { data: favorecidosData } = useQuery({
+    queryKey: ["/api/beneficiaries"],
+    retry: false,
+  });
+
+  // Fetch locations
+  const { data: locationsData } = useQuery({
+    queryKey: ["/api/locations-new/local"],
+    retry: false,
+  });
+
+  // Fetch hierarchical categories 
+  const { data: categoriesData } = useQuery({
+    queryKey: ["/api/ticket-hierarchy/categories"],
+    retry: false,
+  });
+
+  // Fetch subcategories based on selected category
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
+  const { data: subcategoriesData } = useQuery({
+    queryKey: ["/api/ticket-hierarchy/subcategories", selectedCategoryId],
+    enabled: !!selectedCategoryId,
+    retry: false,
+  });
+
+  // Fetch actions based on selected subcategory
+  const [selectedSubcategoryId, setSelectedSubcategoryId] = useState<string>("");
+  const { data: actionsData } = useQuery({
+    queryKey: ["/api/ticket-hierarchy/actions", selectedSubcategoryId],
+    enabled: !!selectedSubcategoryId,
+    retry: false,
+  });
+
   // Extract customers with proper error handling
   const customers = Array.isArray(customersData?.customers) ? customersData.customers : [];
   
@@ -124,25 +147,55 @@ export default function Tickets() {
   
   const users = (usersData as any)?.users || [];
 
+  // Extract data for new modal fields
+  const favorecidos = favorecidosData?.data?.beneficiaries || favorecidosData?.favorecidos || [];
+  const locations = locationsData?.data?.locations || locationsData?.data || [];
+  const categories = categoriesData?.data || [];
+  const subcategories = subcategoriesData?.data || [];
+  const actions = actionsData?.data || [];
+
   console.log('Customers data:', { customersData, customers: customers.length });
 
-  // Form setup
-  const form = useForm<CreateTicketFormData>({
-    resolver: zodResolver(createTicketSchema),
+  // Form setup with new schema
+  const form = useForm<NewTicketModalData>({
+    resolver: zodResolver(newTicketModalSchema),
     defaultValues: {
-      customerId: "",
       companyId: "",
+      customerId: "",
+      beneficiaryId: "",
       subject: "",
+      category: "",
+      subcategory: "",
+      action: "",
+      priority: "",
+      urgency: "",
       description: "",
-      priority: "medium",
-      assignedToId: "unassigned",
-      tags: [],
+      symptoms: "",
+      businessImpact: "",
+      workaround: "",
+      location: "",
     },
   });
 
   // Watch for company selection to filter customers
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>("");
   const [filteredCustomers, setFilteredCustomers] = useState<any[]>([]);
+
+  // Reset subcategory when category changes
+  useEffect(() => {
+    if (selectedCategoryId) {
+      setSelectedSubcategoryId("");
+      form.setValue("subcategory", "");
+      form.setValue("action", "");
+    }
+  }, [selectedCategoryId]);
+
+  // Reset action when subcategory changes  
+  useEffect(() => {
+    if (selectedSubcategoryId) {
+      form.setValue("action", "");
+    }
+  }, [selectedSubcategoryId]);
 
   // Filter customers based on selected company
   useEffect(() => {
@@ -178,18 +231,14 @@ export default function Tickets() {
 
   // Create ticket mutation
   const createTicketMutation = useMutation({
-    mutationFn: async (data: CreateTicketFormData) => {
-      const submitData = {
-        ...data,
-        assignedToId: data.assignedToId === "unassigned" ? undefined : data.assignedToId
-      };
-      const response = await apiRequest("POST", "/api/tickets", submitData);
+    mutationFn: async (data: any) => {
+      const response = await apiRequest("POST", "/api/tickets", data);
       return response.json();
     },
     onSuccess: () => {
       toast({
-        title: "Success",
-        description: "Ticket created successfully",
+        title: "Sucesso",
+        description: "Ticket criado com sucesso",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/tickets"] });
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
@@ -198,20 +247,38 @@ export default function Tickets() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to create ticket",
+        title: "Erro",
+        description: error.message || "Falha ao criar ticket",
         variant: "destructive",
       });
     },
   });
 
-  const onSubmit = (data: CreateTicketFormData) => {
-    const submitData = {
-      ...data,
-      callerId: data.customerId, // Ensure customer is mapped to caller for backend
-      customerCompanyId: data.companyId, // Map company to backend field
+  // Handle form submission  
+  const onSubmit = (data: NewTicketModalData) => {
+    console.log('🎫 New ticket form submitted:', data);
+    
+    // Transform data to match backend API format
+    const ticketData = {
+      customerId: data.customerId,
+      companyId: data.companyId,
+      subject: data.subject,
+      description: data.description,
+      priority: data.priority,
+      urgency: data.urgency,
+      category: data.category,
+      subcategory: data.subcategory,
+      action: data.action,
+      beneficiaryId: data.beneficiaryId || null,
+      location: data.location,
+      symptoms: data.symptoms || null,
+      businessImpact: data.businessImpact || null,
+      workaround: data.workaround || null,
+      callerId: data.customerId, // Map to backend field
+      customerCompanyId: data.companyId, // Map to backend field
     };
-    createTicketMutation.mutate(submitData);
+    
+    createTicketMutation.mutate(ticketData);
   };
 
   // Função para trocar visualização ativa
@@ -317,9 +384,9 @@ export default function Tickets() {
                 New Ticket
               </Button>
             </DialogTrigger>
-              <DialogContent className="sm:max-w-[600px]">
+              <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle>Create New Ticket</DialogTitle>
+                  <DialogTitle>Criar Novo Ticket</DialogTitle>
                 </DialogHeader>
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -369,7 +436,7 @@ export default function Tickets() {
                     name="customerId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-lg font-semibold">Cliente/Solicitante *</FormLabel>
+                        <FormLabel className="text-lg font-semibold">Cliente *</FormLabel>
                         <Select 
                           onValueChange={field.onChange} 
                           value={field.value}
@@ -412,29 +479,207 @@ export default function Tickets() {
                     )}
                   />
 
+                  {/* 3. FAVORECIDO */}
+                  <FormField
+                    control={form.control}
+                    name="beneficiaryId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Favorecido</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione o favorecido (opcional)" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="">Nenhum favorecido</SelectItem>
+                            {favorecidos.map((favorecido: any) => (
+                              <SelectItem key={favorecido.id} value={favorecido.id}>
+                                {favorecido.name || favorecido.fullName || favorecido.full_name || `${favorecido.first_name || ''} ${favorecido.last_name || ''}`.trim()}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* 4. TITULO */}
                   <FormField
                     control={form.control}
                     name="subject"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Subject</FormLabel>
+                        <FormLabel className="text-lg font-semibold">Título *</FormLabel>
                         <FormControl>
-                          <Input placeholder="Enter ticket subject" {...field} />
+                          <Input placeholder="Digite o título do ticket" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
 
+                  {/* 5. CATEGORIA */}
+                  <FormField
+                    control={form.control}
+                    name="category"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Categoria *</FormLabel>
+                        <Select 
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            setSelectedCategoryId(value);
+                          }} 
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione a categoria" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {categories.map((category: any) => (
+                              <SelectItem key={category.id} value={category.id}>
+                                {category.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* 6. SUB CATEGORIA */}
+                  <FormField
+                    control={form.control}
+                    name="subcategory"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Sub Categoria *</FormLabel>
+                        <Select 
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            setSelectedSubcategoryId(value);
+                          }} 
+                          value={field.value}
+                          disabled={!selectedCategoryId}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder={!selectedCategoryId ? "Primeiro selecione uma categoria" : "Selecione a subcategoria"} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {!selectedCategoryId ? (
+                              <SelectItem value="no-category" disabled>Selecione uma categoria primeiro</SelectItem>
+                            ) : subcategories.length === 0 ? (
+                              <SelectItem value="no-subcategories" disabled>Nenhuma subcategoria encontrada</SelectItem>
+                            ) : (
+                              subcategories.map((subcategory: any) => (
+                                <SelectItem key={subcategory.id} value={subcategory.id}>
+                                  {subcategory.name}
+                                </SelectItem>
+                              ))
+                            )}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* 7. AÇÃO */}
+                  <FormField
+                    control={form.control}
+                    name="action"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Ação *</FormLabel>
+                        <Select 
+                          onValueChange={field.onChange} 
+                          value={field.value}
+                          disabled={!selectedSubcategoryId}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder={!selectedSubcategoryId ? "Primeiro selecione uma subcategoria" : "Selecione a ação"} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {!selectedSubcategoryId ? (
+                              <SelectItem value="no-subcategory" disabled>Selecione uma subcategoria primeiro</SelectItem>
+                            ) : actions.length === 0 ? (
+                              <SelectItem value="no-actions" disabled>Nenhuma ação encontrada</SelectItem>
+                            ) : (
+                              actions.map((action: any) => (
+                                <SelectItem key={action.id} value={action.id}>
+                                  {action.name}
+                                </SelectItem>
+                              ))
+                            )}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* 8. PRIORIDADE */}
+                    <FormField
+                      control={form.control}
+                      name="priority"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Prioridade *</FormLabel>
+                          <FormControl>
+                            <DynamicSelect
+                              fieldName="priority"
+                              value={field.value}
+                              onValueChange={field.onChange}
+                              placeholder="Selecione a prioridade"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* 9. URGÊNCIA */}
+                    <FormField
+                      control={form.control}
+                      name="urgency"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Urgência *</FormLabel>
+                          <FormControl>
+                            <DynamicSelect
+                              fieldName="urgency"
+                              value={field.value}
+                              onValueChange={field.onChange}
+                              placeholder="Selecione a urgência"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  {/* 10. DESCRIÇÃO DETALHADA */}
                   <FormField
                     control={form.control}
                     name="description"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Description</FormLabel>
+                        <FormLabel className="text-lg font-semibold">Descrição Detalhada *</FormLabel>
                         <FormControl>
                           <Textarea 
-                            placeholder="Describe the issue or request"
+                            placeholder="Descreva detalhadamente o problema ou solicitação"
                             className="min-h-[100px]"
                             {...field} 
                           />
@@ -444,52 +689,89 @@ export default function Tickets() {
                     )}
                   />
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="priority"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Priority</FormLabel>
-                          <FormControl>
-                            <DynamicSelect
-                              fieldName="priority"
-                              value={field.value}
-                              onValueChange={field.onChange}
-                              placeholder="Select priority"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                  {/* 11. SINTOMAS */}
+                  <FormField
+                    control={form.control}
+                    name="symptoms"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Sintomas</FormLabel>
+                        <FormControl>
+                          <Textarea 
+                            placeholder="Descreva os sintomas observados (opcional)"
+                            className="min-h-[80px]"
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                    <FormField
-                      control={form.control}
-                      name="assignedToId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Assign to</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select agent (optional)" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="unassigned">Unassigned</SelectItem>
-                              {users.map((user: any) => (
-                                <SelectItem key={user.id} value={user.id}>
-                                  {user.firstName} {user.lastName} ({user.email})
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+                  {/* 12. IMPACTO NO NEGÓCIO */}
+                  <FormField
+                    control={form.control}
+                    name="businessImpact"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Impacto no Negócio</FormLabel>
+                        <FormControl>
+                          <Textarea 
+                            placeholder="Descreva o impacto no negócio (opcional)"
+                            className="min-h-[80px]"
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* 13. SOLUÇÃO TEMPORÁRIA */}
+                  <FormField
+                    control={form.control}
+                    name="workaround"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Solução Temporária</FormLabel>
+                        <FormControl>
+                          <Textarea 
+                            placeholder="Descreva alguma solução temporária aplicada (opcional)"
+                            className="min-h-[80px]"
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* 14. LOCAL */}
+                  <FormField
+                    control={form.control}
+                    name="location"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Local</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione o local de atendimento (opcional)" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="">Nenhum local específico</SelectItem>
+                            {locations.map((location: any) => (
+                              <SelectItem key={location.id} value={location.id}>
+                                {location.name || location.nome}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
                   <div className="flex justify-end space-x-2 pt-4">
                     <Button
@@ -497,14 +779,14 @@ export default function Tickets() {
                       variant="outline"
                       onClick={() => setIsCreateDialogOpen(false)}
                     >
-                      Cancel
+                      Cancelar
                     </Button>
                     <Button
                       type="submit"
                       className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
                       disabled={createTicketMutation.isPending}
                     >
-                      {createTicketMutation.isPending ? "Creating..." : "Create Ticket"}
+                      {createTicketMutation.isPending ? "Criando..." : "Criar Ticket"}
                     </Button>
                   </div>
                 </form>
