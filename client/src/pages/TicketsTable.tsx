@@ -399,7 +399,7 @@ export default function TicketsTable() {
 
         // Marcar ticket como tendo relacionamentos se houver dados
         if (transformedRelationships.length > 0) {
-          setTicketsWithRelationships(prev => new Set([...prev, ticketId]));
+          setTicketsWithRelationships(prev => new Set([...Array.from(prev), ticketId]));
         }
 
         return transformedRelationships;
@@ -517,11 +517,11 @@ export default function TicketsTable() {
   const tickets = ticketsData?.data?.tickets || [];
   const pagination = ticketsData?.data?.pagination || { total: 0, totalPages: 0 };
   // Legacy customers array removed
-  const users = usersData?.users || [];
-  const companies = Array.isArray(companiesData?.companies) ? companiesData.companies : 
-                   Array.isArray(companiesData?.data) ? companiesData.data :
+  const users = (usersData as any)?.users || [];
+  const companies = Array.isArray((companiesData as any)?.companies) ? (companiesData as any).companies : 
+                   Array.isArray((companiesData as any)?.data) ? (companiesData as any).data :
                    Array.isArray(companiesData) ? companiesData : [];
-  const ticketViews = ticketViewsData?.data || [];
+  const ticketViews = (ticketViewsData as any)?.data || [];
 
   // Função para verificar se um ticket tem relacionamentos via API
   const checkTicketRelationships = async (ticketId: string) => {
@@ -1262,8 +1262,8 @@ export default function TicketsTable() {
 
               // Extract specific error messages with better detail
               const errorMessages = [];
-              if (errors.shortDescription) {
-                errorMessages.push(errors.shortDescription.message || 'Título do ticket é obrigatório');
+              if (errors.subject) {
+                errorMessages.push(errors.subject.message || 'Título do ticket é obrigatório');
               }
               if (errors.description) {
                 errorMessages.push(errors.description.message || 'Descrição é obrigatória');
@@ -1426,7 +1426,7 @@ export default function TicketsTable() {
                         form.setValue('callerType', personType);
                         // Auto-set legacy customer field if caller is customer
                         if (personType === 'customer') {
-                          form.setValue('customerId', personId);
+                          form.setValue('companyId', personId);
                         }
                         // Auto-set beneficiary to caller if not already set
                         if (!form.getValues('beneficiaryId')) {
@@ -1451,7 +1451,7 @@ export default function TicketsTable() {
                   <FormLabel>Favorecido (Beneficiary)</FormLabel>
                   <FormControl>
                     <PersonSelector
-                      value={field.value}
+                      value={field.value || ""}
                       onValueChange={(personId, personType) => {
                         field.onChange(personId);
                         form.setValue('beneficiaryType', personType);
@@ -1852,8 +1852,8 @@ export default function TicketsTable() {
                           {ticketsWithRelationships.has(ticket.id) && (
                             <>
                               <div className="mr-1 relative">
-                                <div className="animate-pulse bg-blue-100 rounded-full p-1">
-                                  <Link2 className="h-3 w-3 text-blue-600" title="Possui vínculos" />
+                                <div className="animate-pulse bg-blue-100 rounded-full p-1" title="Possui vínculos">
+                                  <Link2 className="h-3 w-3 text-blue-600" />
                                 </div>
                                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-3 w-3 flex items-center justify-center">
                                   {ticketRelationships[ticket.id]?.length || '•'}
