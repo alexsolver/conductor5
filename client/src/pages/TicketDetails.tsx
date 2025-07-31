@@ -1773,8 +1773,8 @@ export default function TicketDetails() {
                   <p className="text-xs text-gray-400">Use o botão "Nova Ação" para começar</p>
                 </div>
               ) : (
-                internalActions.map((action) => (
-                  <Card key={action.id} className="border-l-4 border-l-blue-500">
+                internalActions.map((action, index) => (
+                  <Card key={`internal-action-${action.id}-${index}`} className="border-l-4 border-l-blue-500">
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
@@ -1888,7 +1888,7 @@ export default function TicketDetails() {
                   };
 
                   return (
-                    <Card key={linkedTicket.id} className={`border-l-4 ${getBorderColor(linkedTicket.relationshipType)} hover:shadow-md transition-shadow`}>
+                    <Card key={`linked-${linkedTicket.id}-${linkedTicket.relationshipType}`} className={`border-l-4 ${getBorderColor(linkedTicket.relationshipType)} hover:shadow-md transition-shadow`}>
                       <CardContent className="p-4">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
@@ -1998,8 +1998,8 @@ export default function TicketDetails() {
                   </p>
                 </Card>
               ) : (
-                externalActions.map((action: any) => (
-                  <Card key={action.id} className="p-4 hover:shadow-md transition-shadow">
+                externalActions.map((action: any, index: number) => (
+                  <Card key={`external-action-${action.id}-${index}`} className="p-4 hover:shadow-md transition-shadow">
                     <div className="flex items-start justify-between">
                       <div className="flex items-start gap-3">
                         <div className="p-2 bg-blue-100 rounded-lg">
@@ -2088,8 +2088,8 @@ export default function TicketDetails() {
 
                 {/* PROBLEMA 4 RESOLVIDO: Conectar dados reais de tickets relacionados */}
                 {ticketRelationships?.related_tickets && ticketRelationships.related_tickets.length > 0 ? 
-                  ticketRelationships.related_tickets.map((relatedTicket: any) => (
-                    <Card key={relatedTicket.id} className="p-4 border-l-4 border-l-green-500 hover:shadow-md transition-shadow cursor-pointer">
+                  ticketRelationships.related_tickets.map((relatedTicket: any, index: number) => (
+                    <Card key={`related-${relatedTicket.id}-${index}`} className="p-4 border-l-4 border-l-green-500 hover:shadow-md transition-shadow cursor-pointer">
                       <div className="flex items-start justify-between">
                         <div className="flex items-start gap-3">
                           <Badge variant="secondary" className={`${relatedTicket.status === 'resolved' ? 'bg-green-100 text-green-700' : 
@@ -2172,7 +2172,7 @@ export default function TicketDetails() {
                 </h4>
                 <div className="space-y-2 text-sm">
                   {ticketRelationships.customer_insights.map((insight: any, idx: number) => (
-                    <div key={idx} className="flex items-center gap-2">
+                    <div key={`insight-${idx}-${insight.type || insight.id || Math.random()}`} className="flex items-center gap-2">
                       <div className={`w-2 h-2 rounded-full ${['bg-green-500', 'bg-blue-500', 'bg-purple-500', 'bg-orange-500'][idx % 4]}`}></div>
                       <span>{insight.description}</span>
                     </div>
