@@ -94,10 +94,10 @@ const fieldOptionSchema = z.object({
 
 const numberingConfigSchema = z.object({
   prefix: z.string().min(1, "Prefixo é obrigatório"),
-  firstSeparator: z.string().default('-'),
+  firstSeparator: z.string().default(''),
   yearFormat: z.enum(['2', '4']).default('4'),
   sequentialDigits: z.number().min(4).max(10).default(6),
-  separator: z.string().default('-'),
+  separator: z.string().default(''),
   resetYearly: z.boolean().default(true)
 });
 
@@ -233,10 +233,10 @@ const TicketConfiguration: React.FC = () => {
     resolver: zodResolver(numberingConfigSchema),
     defaultValues: {
       prefix: 'T',
-      firstSeparator: '-',
+      firstSeparator: '',
       yearFormat: '4' as const,
       sequentialDigits: 6,
-      separator: '-',
+      separator: '',
       resetYearly: true
     }
   });
@@ -421,7 +421,7 @@ const TicketConfiguration: React.FC = () => {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/ticket-config/numbering'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/ticket-config/numbering', selectedCompany] });
       toast({ title: "Configuração de numeração salva com sucesso" });
     }
   });
@@ -1454,16 +1454,16 @@ const TicketConfiguration: React.FC = () => {
                     <div className="bg-gray-50 p-4 rounded border">
                       <Label className="font-medium">Visualização:</Label>
                       <div className="mt-2 font-mono text-lg">
-                        {numberingForm.watch('prefix') || 'T'}{numberingForm.watch('firstSeparator') || '-'}{numberingForm.watch('yearFormat') === '4' ? '2025' : '25'}{numberingForm.watch('separator') || '-'}{Array(numberingForm.watch('sequentialDigits') || 6).fill('0').join('').slice(0, -3)}123
+                        {numberingForm.watch('prefix') || 'T'}{numberingForm.watch('firstSeparator') || ''}{numberingForm.watch('yearFormat') === '4' ? '2025' : '25'}{numberingForm.watch('separator') || ''}{Array(numberingForm.watch('sequentialDigits') || 6).fill('0').join('').slice(0, -3)}123
                       </div>
                       <div className="mt-2 text-sm text-gray-600">
-                        Exemplo: <span className="font-semibold">{numberingForm.watch('prefix') || 'T'}{numberingForm.watch('firstSeparator') || '-'}{numberingForm.watch('yearFormat') === '4' ? '2025' : '25'}{numberingForm.watch('separator') || '-'}000123</span>
+                        Exemplo: <span className="font-semibold">{numberingForm.watch('prefix') || 'T'}{numberingForm.watch('firstSeparator') || ''}{numberingForm.watch('yearFormat') === '4' ? '2025' : '25'}{numberingForm.watch('separator') || ''}{Array(numberingForm.watch('sequentialDigits') || 6).fill('0').join('').slice(0, -6)}000123</span>
                       </div>
                     </div>
 
                     <Button type="submit" disabled={saveNumberingMutation.isPending}>
                       <Save className="w-4 h-4 mr-2" />
-                      Salvar Configuração
+                      {saveNumberingMutation.isPending ? 'Salvando...' : 'Salvar Configuração'}
                     </Button>
                   </form>
                 </Form>

@@ -868,9 +868,9 @@ router.post('/numbering', jwtAuth, async (req: AuthenticatedRequest, res) => {
           prefix = ${prefix},
           year_format = ${yearFormat || '4'},
           sequential_digits = ${sequentialDigits || 6},
-          separator = ${separator || '-'},
+          separator = ${separator || ''},
           reset_yearly = ${resetYearly !== false},
-          first_separator = ${firstSeparator || '-'},
+          first_separator = ${firstSeparator || ''},
           updated_at = NOW()
         WHERE tenant_id = ${tenantId} AND company_id = ${companyId}
       `);
@@ -883,8 +883,8 @@ router.post('/numbering', jwtAuth, async (req: AuthenticatedRequest, res) => {
           separator, reset_yearly, created_at, updated_at, first_separator
         ) VALUES (
           ${configId}, ${tenantId}, ${companyId}, ${prefix}, ${yearFormat || '4'}, 
-          ${sequentialDigits || 6}, ${separator || '-'}, ${resetYearly !== false}, 
-          NOW(), NOW(), ${firstSeparator || '-'}
+          ${sequentialDigits || 6}, ${separator || ''}, ${resetYearly !== false}, 
+          NOW(), NOW(), ${firstSeparator || ''}
         )
       `);
     }
