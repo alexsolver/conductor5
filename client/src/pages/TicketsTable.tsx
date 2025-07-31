@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, memo, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -221,7 +221,7 @@ export default function TicketsTable() {
 
   // Hook para buscar cores dos campos personalizados
   const { getFieldColor, getFieldLabel, isLoading: isFieldColorsLoading } = useFieldColors();
-  
+
   // Hook para resolver nomes de empresas
   const { getCompanyName } = useCompanyNameResolver();
 
@@ -795,7 +795,7 @@ export default function TicketsTable() {
           const customerEmail = (ticket as any).customer_email || 
                                (ticket as any).caller_email || 
                                ticket.customer?.email || 
-                               ticket.caller?.email || 
+                               ticket<caller?.email || 
                                'Email não informado';
 
           return (
@@ -822,11 +822,11 @@ export default function TicketsTable() {
           const rawCompanyId = (ticket as any).customer_company_name || 
                                (ticket as any).caller_company_name ||
                                (ticket as any).company_name;
-          
+
           // Se o valor parece ser um UUID, resolve o nome usando o hook
           const isUuid = rawCompanyId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(rawCompanyId);
           const resolvedCompanyName = isUuid ? getCompanyName(rawCompanyId) : rawCompanyId;
-          
+
           const companyName = resolvedCompanyName || 'Empresa não informada';
 
           return (
@@ -2267,7 +2267,7 @@ export default function TicketsTable() {
                                           >
                                             {getFieldLabel('category', relationship.targetTicket?.category || relationship.category || 'support')}
                                           </DynamicBadge>
-                                          
+
                                           {/* Status */}
                                           <DynamicBadge 
                                             fieldName="status"
@@ -2276,7 +2276,7 @@ export default function TicketsTable() {
                                           >
                                             {getFieldLabel('status', mapStatusValue(relationship.targetTicket?.status || relationship.status))}
                                           </DynamicBadge>
-                                          
+
                                           {/* Prioridade */}
                                           <DynamicBadge 
                                             fieldName="priority"
@@ -2285,7 +2285,7 @@ export default function TicketsTable() {
                                           >
                                             {getFieldLabel('priority', mapPriorityValue(relationship.targetTicket?.priority || relationship.priority))}
                                           </DynamicBadge>
-                                          
+
                                           {/* Urgência */}
                                           <DynamicBadge 
                                             fieldName="urgency"
