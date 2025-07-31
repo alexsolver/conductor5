@@ -144,6 +144,7 @@ export const ticketFormSchema = z.object({
 
 // Schema para criação de ticket sem refine (não suporta omit/partial)
 const baseTicketSchema = z.object({
+  // Campos obrigatórios
   subject: z.string()
     .min(3, "Assunto deve ter pelo menos 3 caracteres")
     .max(255, "Assunto não pode exceder 255 caracteres"),
