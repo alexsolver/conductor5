@@ -180,7 +180,7 @@ export default function TicketEdit() {
     subject: z.string().min(1, { message: "Subject is required" }),
     description: z.string().optional(),
     priority: z.string().optional(),
-    // Fixed: Use English values to match backend and shared schema
+    // Fixed: Use English values to match backend database exactly  
     status: z.enum(["new", "open", "in_progress", "pending", "resolved", "closed", "cancelled"]).optional(),
     category: z.string().optional(),
     subcategory: z.string().optional(),
