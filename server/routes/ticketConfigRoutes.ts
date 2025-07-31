@@ -524,7 +524,7 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => 
 
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-    // Primeiro, tentar buscar configurações específicas da empresa
+    // Primeiro, tentar buscar configurações específicas da empresa (INCLUINDO INATIVAS)
     let result = await db.execute(sql`
       SELECT 
         id,
@@ -542,11 +542,10 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => 
       FROM "${sql.raw(schemaName)}".ticket_field_options 
       WHERE tenant_id = ${tenantId}
       AND customer_id = ${companyId}
-      AND is_active = true 
       ORDER BY field_name, sort_order, label
     `);
 
-    // Se não encontrar configurações específicas e não for a empresa Default, buscar na Default
+    // Se não encontrar configurações específicas e não for a empresa Default, buscar na Default (INCLUINDO INATIVAS)
     if (result.rows.length === 0 && companyId !== '00000000-0000-0000-0000-000000000001') {
       console.log('🔄 No specific company config found, falling back to Default company');
       result = await db.execute(sql`
@@ -566,7 +565,6 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => 
         FROM "${sql.raw(schemaName)}".ticket_field_options 
         WHERE tenant_id = ${tenantId}
         AND customer_id = '00000000-0000-0000-0000-000000000001'
-        AND is_active = true 
         ORDER BY field_name, sort_order, label
       `);
     }
