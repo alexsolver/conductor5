@@ -425,11 +425,11 @@ export default function TicketDetails() {
     },
   });
 
-  // Fetch ticket relationships (attachments, notes, etc.)
+  // Fetch ticket relationships (linked tickets)
   const { data: ticketRelationships } = useQuery({
-    queryKey: ["/api/tickets", id, "relationships"],
+    queryKey: ["/api/ticket-relationships", id, "relationships"],
     queryFn: async () => {
-      const response = await apiRequest("GET", `/api/tickets/${id}/relationships`);
+      const response = await apiRequest("GET", `/api/ticket-relationships/${id}/relationships`);
       return response.json();
     },
     enabled: !!id,
@@ -536,10 +536,22 @@ export default function TicketDetails() {
       setExternalActions([]);
     }
 
-    // Set related data from relationships
-    if (ticketRelationships) {
-      setRelatedTickets(ticketRelationships.related_tickets || []);
-      setLatestInteractions(ticketRelationships.latest_interactions || []);
+    // Set related tickets from relationships API
+    if (ticketRelationships?.success && ticketRelationships?.data) {
+      // Transform the data to match the expected format for display
+      const transformedTickets = ticketRelationships.data.map((relationship: any) => ({
+        id: relationship.targetTicket.id,
+        number: relationship.targetTicket.number || 'N/A',
+        subject: relationship.targetTicket.subject || 'Sem assunto',
+        status: relationship.targetTicket.status || 'unknown',
+        priority: relationship.targetTicket.priority || 'medium',
+        relationshipType: relationship.relationshipType,
+        description: relationship.description || '',
+        createdAt: relationship.createdAt
+      }));
+      setRelatedTickets(transformedTickets);
+    } else {
+      setRelatedTickets([]);
     }
 
     // Set ticket-specific data

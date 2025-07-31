@@ -166,7 +166,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Import and mount ticket relationships routes
   const ticketRelationshipsRouter = await import('./routes/ticketRelationships');
-  app.use('/api/tickets', ticketRelationshipsRouter.default);
+  app.use('/api/ticket-relationships', ticketRelationshipsRouter.default);
 
   // Ticket metadata configuration routes
   const { TicketMetadataController } = await import('./modules/tickets/TicketMetadataController');
