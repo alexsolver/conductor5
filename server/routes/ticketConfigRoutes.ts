@@ -706,7 +706,7 @@ router.post('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) =>
         UPDATE "${sql.raw(schemaName)}"."ticket_field_options" 
         SET is_default = false 
         WHERE tenant_id = ${tenantId} 
-        AND company_id = ${companyId}
+        AND customer_id = ${companyId}
         AND field_name = ${fieldName}
       `);
     }
@@ -723,12 +723,12 @@ router.post('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) =>
 
     const insertResult = await db.execute(sql`
       INSERT INTO "${sql.raw(schemaName)}"."ticket_field_options" (
-        id, tenant_id, company_id, field_name, value, display_label, 
-        color, icon, is_default, active, sort_order, status_type, created_at, updated_at
+        id, tenant_id, customer_id, field_name, value, label, 
+        color, sort_order, is_default, is_active, created_at, updated_at
       ) VALUES (
         ${optionId}, ${tenantId}, ${companyId}, ${fieldName}, ${value}, ${displayLabel}, 
-        ${color || '#3b82f6'}, ${icon || null}, ${isDefault || false}, 
-        ${active !== false}, ${sortOrder || 1}, ${req.body.statusType || null}, NOW(), NOW()
+        ${color || '#3b82f6'}, ${sortOrder || 1}, ${isDefault || false}, 
+        ${active !== false}, NOW(), NOW()
       )
       RETURNING *
     `);
