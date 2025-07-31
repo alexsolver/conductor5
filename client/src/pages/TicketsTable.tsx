@@ -300,6 +300,31 @@ export default function TicketsTable() {
     }
   }), [statusMapping, priorityMapping, impactMapping, urgencyMapping, categoryMapping]);
 
+  // Função de mapeamento para status
+  const mapStatusValue = (value: string): string => {
+    return dataMapper.status(value);
+  };
+
+  // Função de mapeamento para prioridade
+  const mapPriorityValue = (value: string): string => {
+    return dataMapper.priority(value);
+  };
+
+  // Função de mapeamento para impacto
+  const mapImpactValue = (value: string): string => {
+    return dataMapper.impact(value);
+  };
+
+  // Função de mapeamento para urgência
+  const mapUrgencyValue = (value: string): string => {
+    return dataMapper.urgency(value);
+  };
+
+  // Função de mapeamento para categoria
+  const mapCategoryValue = (value: string): string => {
+    return dataMapper.category(value);
+  };
+
   // Estados para criação de visualização
   const [newViewName, setNewViewName] = useState("");
   const [newViewDescription, setNewViewDescription] = useState("");
