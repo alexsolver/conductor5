@@ -1110,7 +1110,7 @@ export default function TicketsTable() {
 
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
-  };
+  }, [getColumnWidth, setColumnWidths, setIsResizing, setResizingColumn]);
 
   // Componente para handle de redimensionamento
   const ResizeHandle = ({ columnId }: { columnId: string }) => (
