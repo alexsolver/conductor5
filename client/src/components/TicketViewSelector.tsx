@@ -125,7 +125,11 @@ export function TicketViewSelector({ currentViewId, onViewChange }: TicketViewSe
                 <Button variant="outline" onClick={() => setIsNewViewModalOpen(false)}>
                   Cancelar
                 </Button>
-                <Button>
+                <Button onClick={() => {
+                  console.log('Creating new view...');
+                  // TODO: Implement create view logic with form data
+                  setIsNewViewModalOpen(false);
+                }}>
                   Criar Visualização
                 </Button>
               </div>
@@ -181,7 +185,10 @@ export function TicketViewSelector({ currentViewId, onViewChange }: TicketViewSe
                         )}
                       </div>
                       <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm" onClick={() => {
+                          console.log('Editing view:', view.id);
+                          // TODO: Implement edit view logic
+                        }}>
                           Editar
                         </Button>
                         <Button variant="outline" size="sm" onClick={() => onViewChange(view.id)}>

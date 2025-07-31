@@ -161,7 +161,27 @@ export default function TicketsTable() {
 
   // Função para expandir/contrair ticket
   const toggleTicketExpansion = useCallback(async (ticketId: string) => {
+    console.log(`🔄 Toggling expansion for ticket: ${ticketId}`);
     const isExpanded = expandedTickets.has(ticketId);
+    
+    if (isExpanded) {
+      // Contrair ticket
+      setExpandedTickets(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(ticketId);
+        return newSet;
+      });
+      console.log(`📦 Collapsed ticket: ${ticketId}`);
+    } else {
+      // Expandir ticket
+      setExpandedTickets(prev => new Set(prev.add(ticketId)));
+      console.log(`📂 Expanded ticket: ${ticketId}`);
+      
+      // Buscar relacionamentos se não temos ainda
+      if (!ticketRelationships[ticketId]) {
+        await fetchTicketRelationships(ticketId);
+      }
+    }
     
     if (isExpanded) {
       // Contrair
@@ -535,63 +555,84 @@ export default function TicketsTable() {
                   <div className="flex items-center justify-between">
                     <span>Número</span>
                     <div 
-                      className="w-1 h-4 bg-transparent group-hover:bg-gray-300 cursor-col-resize absolute right-0 top-1/2 transform -translate-y-1/2"
+                      className="w-3 h-full bg-transparent hover:bg-gray-200 cursor-col-resize absolute right-0 top-0 flex items-center justify-center"
                       onMouseDown={(e) => handleMouseDown(e, 'number')}
-                    ></div>
+                      title="Arraste para redimensionar"
+                    >
+                      <div className="w-0.5 h-4 bg-gray-300 group-hover:bg-gray-500"></div>
+                    </div>
                   </div>
                 </TableHead>
                 <TableHead style={{ width: columnWidths.subject }} className="relative group">
                   <div className="flex items-center justify-between">
                     <span>Assunto</span>
                     <div 
-                      className="w-1 h-4 bg-transparent group-hover:bg-gray-300 cursor-col-resize absolute right-0 top-1/2 transform -translate-y-1/2"
+                      className="w-3 h-full bg-transparent hover:bg-gray-200 cursor-col-resize absolute right-0 top-0 flex items-center justify-center"
                       onMouseDown={(e) => handleMouseDown(e, 'subject')}
-                    ></div>
+                      title="Arraste para redimensionar"
+                    >
+                      <div className="w-0.5 h-4 bg-gray-300 group-hover:bg-gray-500"></div>
+                    </div>
                   </div>
                 </TableHead>
                 <TableHead style={{ width: columnWidths.status }} className="relative group">
                   <div className="flex items-center justify-between">
                     <span>Status</span>
                     <div 
-                      className="w-1 h-4 bg-transparent group-hover:bg-gray-300 cursor-col-resize absolute right-0 top-1/2 transform -translate-y-1/2"
+                      className="w-3 h-full bg-transparent hover:bg-gray-200 cursor-col-resize absolute right-0 top-0 flex items-center justify-center"
                       onMouseDown={(e) => handleMouseDown(e, 'status')}
-                    ></div>
+                      title="Arraste para redimensionar"
+                    >
+                      <div className="w-0.5 h-4 bg-gray-300 group-hover:bg-gray-500"></div>
+                    </div>
                   </div>
                 </TableHead>
                 <TableHead style={{ width: columnWidths.priority }} className="relative group">
                   <div className="flex items-center justify-between">
                     <span>Prioridade</span>
                     <div 
-                      className="w-1 h-4 bg-transparent group-hover:bg-gray-300 cursor-col-resize absolute right-0 top-1/2 transform -translate-y-1/2"
+                      className="w-3 h-full bg-transparent hover:bg-gray-200 cursor-col-resize absolute right-0 top-0 flex items-center justify-center"
                       onMouseDown={(e) => handleMouseDown(e, 'priority')}
-                    ></div>
+                      title="Arraste para redimensionar"
+                    >
+                      <div className="w-0.5 h-4 bg-gray-300 group-hover:bg-gray-500"></div>
+                    </div>
                   </div>
                 </TableHead>
                 <TableHead style={{ width: columnWidths.category }} className="relative group">
                   <div className="flex items-center justify-between">
                     <span>Categoria</span>
                     <div 
-                      className="w-1 h-4 bg-transparent group-hover:bg-gray-300 cursor-col-resize absolute right-0 top-1/2 transform -translate-y-1/2"
+                      className="w-3 h-full bg-transparent hover:bg-gray-200 cursor-col-resize absolute right-0 top-0 flex items-center justify-center"
                       onMouseDown={(e) => handleMouseDown(e, 'category')}
-                    ></div>
+                      title="Arraste para redimensionar"
+                    >
+                      <div className="w-0.5 h-4 bg-gray-300 group-hover:bg-gray-500"></div>
+                    </div>
                   </div>
                 </TableHead>
                 <TableHead style={{ width: columnWidths.client }} className="relative group">
                   <div className="flex items-center justify-between">
                     <span>Cliente</span>
                     <div 
-                      className="w-1 h-4 bg-transparent group-hover:bg-gray-300 cursor-col-resize absolute right-0 top-1/2 transform -translate-y-1/2"
+                      className="w-3 h-full bg-transparent hover:bg-gray-200 cursor-col-resize absolute right-0 top-0 flex items-center justify-center"
                       onMouseDown={(e) => handleMouseDown(e, 'client')}
-                    ></div>
+                      title="Arraste para redimensionar"
+                    >
+                      <div className="w-0.5 h-4 bg-gray-300 group-hover:bg-gray-500"></div>
+                    </div>
                   </div>
                 </TableHead>
                 <TableHead style={{ width: columnWidths.date }} className="relative group">
                   <div className="flex items-center justify-between">
                     <span>Criado em</span>
                     <div 
-                      className="w-1 h-4 bg-transparent group-hover:bg-gray-300 cursor-col-resize absolute right-0 top-1/2 transform -translate-y-1/2"
+                      className="w-3 h-full bg-transparent hover:bg-gray-200 cursor-col-resize absolute right-0 top-0 flex items-center justify-center"
                       onMouseDown={(e) => handleMouseDown(e, 'date')}
-                    ></div>
+                      title="Arraste para redimensionar"
+                    >
+                      <div className="w-0.5 h-4 bg-gray-300 group-hover:bg-gray-500"></div>
+                    </div>
                   </div>
                 </TableHead>
                 <TableHead className="w-24 min-w-24">Ações</TableHead>
@@ -625,6 +666,19 @@ export default function TicketsTable() {
                     <div className="max-w-xs truncate" title={ticket.subject}>
                       {ticket.subject}
                     </div>
+                    {/* Expanded relationships */}
+                    {expandedTickets.has(ticket.id) && ticketRelationships[ticket.id] && (
+                      <div className="mt-2 p-2 bg-gray-50 rounded border-l-4 border-blue-200">
+                        <div className="text-xs font-medium text-gray-600 mb-1">Tickets relacionados:</div>
+                        {ticketRelationships[ticket.id].map((rel: any) => (
+                          <div key={rel.id} className="flex items-center gap-2 text-xs text-gray-600 py-1">
+                            <span className="font-mono text-blue-600">{rel.targetTicket?.number}</span>
+                            <span>({rel.relationshipType})</span>
+                            <span className="truncate">{rel.targetTicket?.subject}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </TableCell>
                   <TableCell>
                     <DynamicBadge 
