@@ -743,9 +743,8 @@ export default function CustomerCompanies() {
                               // Use the correct mutation endpoint
                               await updateCompanyMutation.mutateAsync({ id: company.id, data: updateData });
                               
-                              // Force invalidate all related caches
+                              // Only invalidate secondary queries, not the main companies query since we already updated optimistically
                               await Promise.all([
-                                queryClient.invalidateQueries({ queryKey: ['/api/customer-companies'] }),
                                 queryClient.invalidateQueries({ queryKey: ['/api/customers/companies'] }),
                                 queryClient.invalidateQueries({ queryKey: ['fieldOptions'] }),
                                 queryClient.invalidateQueries({ queryKey: ['/api/ticket-config/field-options'] })
