@@ -1,11 +1,11 @@
 // PROBLEMA 10 RESOLVIDO: Schema Zod completo para validação de tickets
 import { z } from 'zod';
 
-// Enums para validação mais restrita
-export const TicketStatusEnum = z.enum(['new', 'open', 'in_progress', 'pending', 'resolved', 'closed', 'cancelled']);
-export const TicketPriorityEnum = z.enum(['low', 'medium', 'high', 'urgent', 'critical']);
-export const TicketImpactEnum = z.enum(['low', 'medium', 'high', 'critical']);
-export const TicketUrgencyEnum = z.enum(['low', 'medium', 'high', 'urgent']);
+// Enums para validação mais restrita (valores em português para compatibilidade com metadados)
+export const TicketStatusEnum = z.enum(['novo', 'aberto', 'em_andamento', 'resolvido', 'fechado']);
+export const TicketPriorityEnum = z.enum(['low', 'medium', 'high', 'critical']);
+export const TicketImpactEnum = z.enum(['low', 'medium', 'high']);
+export const TicketUrgencyEnum = z.enum(['low', 'medium', 'high']);
 export const TicketCategoryEnum = z.enum(['support', 'incident', 'request', 'change', 'problem', 'maintenance']);
 export const CallerTypeEnum = z.enum(['user', 'customer', 'system']);
 export const ContactTypeEnum = z.enum(['email', 'phone', 'chat', 'portal', 'api']);
@@ -24,7 +24,7 @@ export const ticketFormSchema = z.object({
     .optional(),
   
   // Enums com validação
-  status: TicketStatusEnum.default('open'),
+  status: TicketStatusEnum.default('novo'),
   priority: TicketPriorityEnum.default('medium'),
   impact: TicketImpactEnum.optional(),
   urgency: TicketUrgencyEnum.optional(),
