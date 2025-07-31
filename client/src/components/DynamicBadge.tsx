@@ -17,14 +17,7 @@ interface DynamicBadgeProps {
 
 // Função para converter hex em classe CSS com bom contraste
 const getContrastClassFromHex = (hexColor: string): string => {
-  if (!hexColor || 
-      hexColor === '' || 
-      hexColor === 'undefined' || 
-      hexColor === 'null' || 
-      hexColor === undefined ||
-      hexColor === null) {
-    return 'bg-slate-600 text-white border-slate-600';
-  }
+  if (!hexColor || hexColor === '' || hexColor === 'undefined') return 'bg-slate-600 text-white border-slate-600';
 
   // Mapear cores hex específicas para classes CSS com bom contraste
   const colorMap: Record<string, string> = {
@@ -83,11 +76,6 @@ export function DynamicBadge(props: DynamicBadgeProps) {
   // 🚨 CORREÇÃO: Filtragem consistente de props usando utilitário
   const cleanProps = filterDOMProps(restProps, ['fieldName', 'value']);
   let dynamicClasses = '';
-
-  // Debug logging para identificar badges sem cores
-  if (fieldName && value && !colorHex) {
-    console.log(`🎨 Badge sem cor definida: ${fieldName}=${value}`);
-  }
 
   // Prioridade: colorHex > bgColor > variant padrão
   if (colorHex) {

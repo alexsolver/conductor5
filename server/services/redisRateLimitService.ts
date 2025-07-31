@@ -201,17 +201,17 @@ export function createMemoryRateLimitMiddleware(config: RateLimitConfig) {
 
 // Predefined rate limit configurations
 export const RATE_LIMIT_CONFIGS = {
-  // Authentication endpoints - More permissive for development
+  // Authentication endpoints
   LOGIN: {
-    windowMs: 5 * 60 * 1000, // 5 minutes
-    maxRequests: 20, // Increased limit
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    maxRequests: 5,
     keyGenerator: (req: Request) => `login:${req.ip}:${req.body?.email || 'unknown'}`
   },
 
-  // API endpoints - More permissive for development
+  // API endpoints
   API_GENERAL: {
-    windowMs: 1 * 60 * 1000, // 1 minute
-    maxRequests: 300, // Increased limit
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    maxRequests: 100,
     keyGenerator: (req: Request) => `api:${req.ip}`
   },
 

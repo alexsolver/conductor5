@@ -122,20 +122,14 @@ export class RateLimitService {
   }
 }
 
-// Default configuration - More permissive for development
+// Default configuration
 const defaultConfig: RateLimitConfig = {
-  windowMs: 5 * 60 * 1000, // 5 minutes (reduced window)
-  maxAttempts: 20, // Increased attempts
-  blockDurationMs: 5 * 60 * 1000 // 5 minutes block (reduced)
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  maxAttempts: 5,
+  blockDurationMs: 30 * 60 * 1000 // 30 minutes
 };
 
 export const rateLimitService = new RateLimitService(defaultConfig);
-
-// Clear all rate limit data (useful for development)
-export function clearRateLimitStore(): void {
-  attemptStore.clear();
-  console.log('Rate limit store cleared');
-}
 
 // Middleware factory
 export function createRateLimitMiddleware(config?: Partial<RateLimitConfig>) {

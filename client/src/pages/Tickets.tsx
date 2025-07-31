@@ -33,7 +33,7 @@ export default function Tickets() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
-  const { getFieldColor, getFieldLabel, isLoading: colorsLoading, isColorsReady } = useFieldColors();
+  const { getFieldColor, getFieldLabel, isLoading: colorsLoading } = useFieldColors();
 
   // Mapeamento de valores em inglês para português para compatibilidade com configurações
   const statusMapping: Record<string, string> = {
@@ -53,15 +53,15 @@ export default function Tickets() {
     'critical': 'critical'
   };
 
-  // Funções de mapeamento - simplificadas para usar o hook diretamente
+  // Funções de mapeamento
   const mapStatusValue = (value: string): string => {
     if (!value) return 'novo';
-    return value; // Deixa o hook lidar com o mapeamento
+    return statusMapping[value.toLowerCase()] || value;
   };
 
   const mapPriorityValue = (value: string): string => {
     if (!value) return 'medium';
-    return value; // Deixa o hook lidar com o mapeamento
+    return priorityMapping[value.toLowerCase()] || value;
   };
 
   const categoryMapping: Record<string, string> = {
@@ -381,7 +381,7 @@ export default function Tickets() {
     }
   };
 
-  if (isLoading || colorsLoading || !isColorsReady) {
+  if (isLoading || colorsLoading) {
     return (
       <div className="p-4 space-y-6">
         <div className="h-8 bg-gray-200 rounded w-48 animate-pulse"></div>
