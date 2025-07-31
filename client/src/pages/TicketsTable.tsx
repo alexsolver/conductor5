@@ -206,7 +206,8 @@ export default function TicketsTable() {
     queryFn: async () => {
       try {
         const response = await apiRequest("GET", "/api/customers");
-        return response.json();
+        const data = await response.json();
+        return data;
       } catch (error) {
         console.error('Error fetching customers:', error);
         return { success: false, data: [] };
@@ -215,7 +216,8 @@ export default function TicketsTable() {
     enabled: tickets.length > 0,
   });
 
-  const customers = customersResponse?.success ? customersResponse.data : [];
+  // Handle different response formats from customers API
+  const customers = customersResponse?.customers || customersResponse?.data || customersResponse || [];
   
   // Create a map of customers for quick lookup
   const customersMap = useMemo(() => {
@@ -230,10 +232,13 @@ export default function TicketsTable() {
 
   // Enrich tickets with customer data
   const enrichedTickets = useMemo(() => {
-    return tickets.map((ticket: any) => ({
-      ...ticket,
-      customer: customersMap.get(ticket.customer_id) || customersMap.get(ticket.caller_id) || null
-    }));
+    return tickets.map((ticket: any) => {
+      const customer = customersMap.get(ticket.customer_id) || customersMap.get(ticket.caller_id) || null;
+      return {
+        ...ticket,
+        customer: customer
+      };
+    });
   }, [tickets, customersMap]);
 
   // Filter tickets based on search and filters
@@ -375,7 +380,7 @@ export default function TicketsTable() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredTickets.map((ticket: Ticket) => (
+              {filteredTickets.map((ticket: any) => (
                 <TableRow key={ticket.id} className="hover:bg-gray-50">
                   <TableCell className="font-mono text-sm">
                     <Link href={`/tickets/${ticket.id}`} className="text-blue-600 hover:text-blue-800">
@@ -491,8 +496,8 @@ export default function TicketsTable() {
       <TicketLinkingModal
         isOpen={isLinkModalOpen}
         onClose={handleModalClose}
-        sourceTicketId={selectedTicket?.id}
-        sourceTicketNumber={selectedTicket?.number}
+        ticketId={selectedTicket?.id}
+        ticketNumber={selectedTicket?.number}
       />
     </div>
   );
