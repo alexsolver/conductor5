@@ -245,6 +245,7 @@ export default function TicketDetails() {
   const [showInternalActionModal, setShowInternalActionModal] = useState(false);
   const [externalActions, setExternalActions] = useState<any[]>([]);
   const [showExternalActionModal, setShowExternalActionModal] = useState(false);
+  // Move history view mode state outside form context to prevent unwanted updates
   const [historyViewMode, setHistoryViewMode] = useState<'simple' | 'advanced'>('simple');
   const [latestInteractions, setLatestInteractions] = useState<any[]>([]);
   const [followers, setFollowers] = useState<any[]>([]);
@@ -1762,16 +1763,26 @@ export default function TicketDetails() {
               <h2 className="text-xl font-semibold">📜 Histórico Completo</h2>
               <div className="flex gap-2">
                 <Button
+                  type="button"
                   variant={historyViewMode === 'simple' ? 'default' : 'outline'}
                   size="sm"
-                  onClick={() => setHistoryViewMode('simple')}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setHistoryViewMode('simple');
+                  }}
                 >
                   Simples
                 </Button>
                 <Button
+                  type="button"
                   variant={historyViewMode === 'advanced' ? 'default' : 'outline'}
                   size="sm"
-                  onClick={() => setHistoryViewMode('advanced')}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setHistoryViewMode('advanced');
+                  }}
                 >
                   Detalhado
                 </Button>
