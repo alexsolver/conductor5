@@ -1707,31 +1707,31 @@ export class DatabaseStorage implements IStorage {
           tr.created_at as "createdAt",
           CASE 
             WHEN tr.source_ticket_id = ${ticketId} THEN t_target.id
-            ELSE t_source.id
+            WHEN tr.target_ticket_id = ${ticketId} THEN t_source.id
           END as "targetTicket.id",
           CASE 
             WHEN tr.source_ticket_id = ${ticketId} THEN t_target.subject
-            ELSE t_source.subject
+            WHEN tr.target_ticket_id = ${ticketId} THEN t_source.subject
           END as "targetTicket.subject",
           CASE 
             WHEN tr.source_ticket_id = ${ticketId} THEN t_target.status
-            ELSE t_source.status
+            WHEN tr.target_ticket_id = ${ticketId} THEN t_source.status
           END as "targetTicket.status",
           CASE 
             WHEN tr.source_ticket_id = ${ticketId} THEN t_target.priority
-            ELSE t_source.priority
+            WHEN tr.target_ticket_id = ${ticketId} THEN t_source.priority
           END as "targetTicket.priority",
           CASE 
             WHEN tr.source_ticket_id = ${ticketId} THEN t_target.number
-            ELSE t_source.number
+            WHEN tr.target_ticket_id = ${ticketId} THEN t_source.number
           END as "targetTicket.number",
           CASE 
             WHEN tr.source_ticket_id = ${ticketId} THEN t_target.created_at
-            ELSE t_source.created_at
+            WHEN tr.target_ticket_id = ${ticketId} THEN t_source.created_at
           END as "targetTicket.createdAt",
           CASE 
             WHEN tr.source_ticket_id = ${ticketId} THEN t_target.description
-            ELSE t_source.description
+            WHEN tr.target_ticket_id = ${ticketId} THEN t_source.description
           END as "targetTicket.description"
         FROM ${sql.identifier(schemaName)}.ticket_relationships tr
         LEFT JOIN ${sql.identifier(schemaName)}.tickets t_target ON t_target.id = tr.target_ticket_id
