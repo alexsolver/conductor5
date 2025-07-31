@@ -56,22 +56,126 @@ export const useFieldColors = () => {
 
   // Função para buscar cor de um campo específico
   const getFieldColor = (fieldName: string, value: string): string | undefined => {
-    if (!fieldOptionsData?.data) return undefined;
+    if (!fieldOptionsData?.data || !value) return getDefaultColor(fieldName, value);
 
-    const option = fieldOptionsData.data.find(
+    // Primeiro tenta encontrar exato
+    let option = fieldOptionsData.data.find(
       (opt: FieldOption) => opt.field_name === fieldName && opt.value === value
     );
 
-    return option?.color;
+    // Se não encontrar, tenta mapeamento reverso para status
+    if (!option && fieldName === 'status') {
+      const statusReverseMap: Record<string, string> = {
+        'new': 'novo',
+        'open': 'aberto',
+        'in_progress': 'em_andamento',
+        'resolved': 'resolvido',
+        'closed': 'fechado',
+        'cancelled': 'cancelado'
+      };
+      
+      const mappedValue = statusReverseMap[value] || value;
+      option = fieldOptionsData.data.find(
+        (opt: FieldOption) => opt.field_name === fieldName && opt.value === mappedValue
+      );
+    }
+
+    // Se não encontrar, tenta mapeamento reverso para priority
+    if (!option && fieldName === 'priority') {
+      const priorityReverseMap: Record<string, string> = {
+        'critical': 'critical',
+        'high': 'high', 
+        'medium': 'medium',
+        'low': 'low'
+      };
+      
+      const mappedValue = priorityReverseMap[value] || value;
+      option = fieldOptionsData.data.find(
+        (opt: FieldOption) => opt.field_name === fieldName && opt.value === mappedValue
+      );
+    }
+
+    return option?.color || getDefaultColor(fieldName, value);
+  };
+
+  // Função para cores padrão quando não encontra no banco
+  const getDefaultColor = (fieldName: string, value: string): string => {
+    const defaultColors: Record<string, Record<string, string>> = {
+      status: {
+        'new': '#3B82F6',      // azul
+        'novo': '#3B82F6',     // azul
+        'open': '#10B981',     // verde
+        'aberto': '#10B981',   // verde
+        'in_progress': '#F59E0B', // amarelo
+        'em_andamento': '#F59E0B', // amarelo
+        'resolved': '#059669', // verde escuro
+        'resolvido': '#059669', // verde escuro
+        'closed': '#6B7280',   // cinza
+        'fechado': '#6B7280',  // cinza
+        'cancelled': '#EF4444', // vermelho
+        'cancelado': '#EF4444'  // vermelho
+      },
+      priority: {
+        'low': '#10B981',      // verde
+        'medium': '#F59E0B',   // amarelo
+        'high': '#EF4444',     // vermelho
+        'critical': '#DC2626'  // vermelho escuro
+      },
+      impact: {
+        'low': '#10B981',      // verde
+        'medium': '#F59E0B',   // amarelo
+        'high': '#EF4444'      // vermelho
+      },
+      urgency: {
+        'low': '#10B981',      // verde
+        'medium': '#F59E0B',   // amarelo
+        'high': '#EF4444'      // vermelho
+      }
+    };
+
+    return defaultColors[fieldName]?.[value] || '#6B7280';
   };
 
   // Função para buscar label de um campo específico
   const getFieldLabel = (fieldName: string, value: string): string => {
-    if (!fieldOptionsData?.data) return value;
+    if (!fieldOptionsData?.data || !value) return value;
 
-    const option = fieldOptionsData.data.find(
+    // Primeiro tenta encontrar exato
+    let option = fieldOptionsData.data.find(
       (opt: FieldOption) => opt.field_name === fieldName && opt.value === value
     );
+
+    // Se não encontrar, tenta mapeamento reverso para status
+    if (!option && fieldName === 'status') {
+      const statusReverseMap: Record<string, string> = {
+        'new': 'novo',
+        'open': 'aberto', 
+        'in_progress': 'em_andamento',
+        'resolved': 'resolvido',
+        'closed': 'fechado',
+        'cancelled': 'cancelado'
+      };
+      
+      const mappedValue = statusReverseMap[value] || value;
+      option = fieldOptionsData.data.find(
+        (opt: FieldOption) => opt.field_name === fieldName && opt.value === mappedValue
+      );
+    }
+
+    // Se não encontrar, tenta mapeamento reverso para priority  
+    if (!option && fieldName === 'priority') {
+      const priorityReverseMap: Record<string, string> = {
+        'critical': 'critical',
+        'high': 'high',
+        'medium': 'medium', 
+        'low': 'low'
+      };
+      
+      const mappedValue = priorityReverseMap[value] || value;
+      option = fieldOptionsData.data.find(
+        (opt: FieldOption) => opt.field_name === fieldName && opt.value === mappedValue
+      );
+    }
 
     return option?.label || value;
   };

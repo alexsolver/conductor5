@@ -53,15 +53,15 @@ export default function Tickets() {
     'critical': 'critical'
   };
 
-  // Funções de mapeamento
+  // Funções de mapeamento - simplificadas para usar o hook diretamente
   const mapStatusValue = (value: string): string => {
     if (!value) return 'novo';
-    return statusMapping[value.toLowerCase()] || value;
+    return value; // Deixa o hook lidar com o mapeamento
   };
 
   const mapPriorityValue = (value: string): string => {
     if (!value) return 'medium';
-    return priorityMapping[value.toLowerCase()] || value;
+    return value; // Deixa o hook lidar com o mapeamento
   };
 
   const categoryMapping: Record<string, string> = {

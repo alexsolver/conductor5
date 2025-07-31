@@ -271,16 +271,15 @@ export default function TicketsTable() {
     return getFieldColor(fieldName, value) || '#6b7280';
   };
 
-  // Funções de mapeamento
+  // Funções de mapeamento - simplificadas para usar o hook diretamente
   const mapStatusValue = (value: string): string => {
     if (!value) return 'novo';
-    const mapped = statusMapping[value.toLowerCase()] || value;
-    return mapped;
+    return value; // Deixa o hook lidar com o mapeamento
   };
 
   const mapPriorityValue = (value: string): string => {
     if (!value) return 'medium';
-    return priorityMapping[value.toLowerCase()] || value;
+    return value; // Deixa o hook lidar com o mapeamento  
   };
 
   const mapImpactValue = (value: string): string => {
