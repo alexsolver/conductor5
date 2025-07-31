@@ -67,7 +67,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
     return null;
   }
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
+  const [selectedTickets, setSelectedTickets] = useState<Ticket[]>([]);
   const [relationshipType, setRelationshipType] = useState("");
   const [description, setDescription] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -109,16 +109,21 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
     return true;
   });
 
-  // Debug log for tickets data
-  console.log("🔗 TicketLinkingModal Debug:", {
-    ticketsDataStructure: ticketsData ? Object.keys(ticketsData) : "no data",
-    allTicketsCount: allTickets.length,
-    filteredCount: filteredTickets.length,
-    searchTerm,
-    statusFilter,
-    priorityFilter,
-    currentTicketId: currentTicket?.id
-  });
+  // Helper functions for multi-selection
+  const toggleTicketSelection = (ticket: Ticket) => {
+    setSelectedTickets(prev => {
+      const isSelected = prev.some(t => t.id === ticket.id);
+      if (isSelected) {
+        return prev.filter(t => t.id !== ticket.id);
+      } else {
+        return [...prev, ticket];
+      }
+    });
+  };
+
+  const isTicketSelected = (ticket: Ticket) => {
+    return selectedTickets.some(t => t.id === ticket.id);
+  };
 
   // Get existing relationships
   const { data: relationships = [] } = useQuery<TicketRelationship[]>({
@@ -152,7 +157,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
       if (currentTicket?.id) {
         queryClient.invalidateQueries({ queryKey: ["/api/tickets", currentTicket.id, "relationships"] });
       }
-      setSelectedTicket(null);
+      setSelectedTickets([]);
       setRelationshipType("");
       setDescription("");
       setSearchTerm("");
@@ -189,20 +194,23 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
     },
   });
 
-  const handleLinkTicket = () => {
-    if (!selectedTicket || !relationshipType) {
+  const handleLinkTickets = () => {
+    if (selectedTickets.length === 0 || !relationshipType) {
       toast({
         title: "Erro",
-        description: "Selecione um chamado e tipo de relação",
+        description: "Selecione pelo menos um chamado e tipo de relação",
         variant: "destructive",
       });
       return;
     }
 
-    createRelationshipMutation.mutate({
-      targetTicketId: selectedTicket.id,
-      relationshipType,
-      description,
+    // Create relationships for all selected tickets
+    selectedTickets.forEach(ticket => {
+      createRelationshipMutation.mutate({
+        targetTicketId: ticket.id,
+        relationshipType,
+        description,
+      });
     });
   };
 
@@ -337,11 +345,18 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                       <div
                         key={ticket.id}
                         className={`p-3 border-b last:border-b-0 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 ${
-                          selectedTicket?.id === ticket.id ? "bg-blue-50 dark:bg-blue-900/20" : ""
+                          isTicketSelected(ticket) ? "bg-blue-50 dark:bg-blue-900/20 border-blue-200" : ""
                         }`}
-                        onClick={() => setSelectedTicket(ticket)}
+                        onClick={() => toggleTicketSelection(ticket)}
                       >
                         <div className="flex items-center justify-between">
+                          <input
+                            type="checkbox"
+                            checked={isTicketSelected(ticket)}
+                            onChange={() => toggleTicketSelection(ticket)}
+                            className="mr-3 rounded border-gray-300"
+                            onClick={(e) => e.stopPropagation()}
+                          />
                           <div className="flex-1">
                             <div className="flex items-center space-x-2">
                               <span className="font-medium">#{ticket.number || ticket.id.slice(-8)}</span>
@@ -371,8 +386,28 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                 </div>
               )}
 
+              {/* Selected Tickets Summary */}
+              {selectedTickets.length > 0 && (
+                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <h4 className="font-medium mb-2">Tickets Selecionados ({selectedTickets.length})</h4>
+                  <div className="space-y-1">
+                    {selectedTickets.map(ticket => (
+                      <div key={ticket.id} className="text-sm flex items-center justify-between">
+                        <span>#{ticket.number || ticket.id.slice(-8)} - {ticket.subject || "Sem assunto"}</span>
+                        <button
+                          onClick={() => toggleTicketSelection(ticket)}
+                          className="text-red-500 hover:text-red-700 ml-2"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Relationship Type */}
-              {selectedTicket && (
+              {selectedTickets.length > 0 && (
                 <div className="space-y-4">
                   <div>
                     <Label htmlFor="relationshipType">Tipo de Relação</Label>
@@ -412,10 +447,10 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                       Cancelar
                     </Button>
                     <Button 
-                      onClick={handleLinkTicket}
+                      onClick={handleLinkTickets}
                       disabled={createRelationshipMutation.isPending}
                     >
-                      {createRelationshipMutation.isPending ? "Vinculando..." : "Vincular Chamado"}
+                      {createRelationshipMutation.isPending ? "Vinculando..." : `Vincular ${selectedTickets.length} Ticket${selectedTickets.length !== 1 ? 's' : ''}`}
                     </Button>
                   </div>
                 </div>
