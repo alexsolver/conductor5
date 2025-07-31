@@ -570,12 +570,12 @@ export default function TicketsTable() {
     }
   };
 
-  // Inicializar indicadores de relacionamentos - SUPER OTIMIZADO
+  // Inicializar indicadores de relacionamentos - ULTRA OTIMIZADO
   useEffect(() => {
     if (tickets.length > 0) {
       console.log('🔄 useEffect triggered - tickets.length:', tickets.length);
       
-      // Debounce para evitar chamadas desnecessárias
+      // Debounce inteligente com cleanup
       const timeoutId = setTimeout(() => {
         const checkAllTicketRelationships = async () => {
           try {
@@ -892,15 +892,20 @@ export default function TicketsTable() {
   // Otimizar comparação do TableCellComponent com comparação personalizada
   TableCellComponent.displayName = 'TableCellComponent';
   
-  // Função de comparação personalizada para evitar re-renders desnecessários
+  // Função de comparação personalizada aprimorada para evitar re-renders desnecessários
   const areEqual = (prevProps: any, nextProps: any) => {
-    return (
-      prevProps.column.id === nextProps.column.id &&
-      prevProps.ticket.id === nextProps.ticket.id &&
-      prevProps.ticket.updatedAt === nextProps.ticket.updatedAt &&
-      prevProps.ticket.status === nextProps.ticket.status &&
-      prevProps.ticket.priority === nextProps.ticket.priority
-    );
+    // Comparação rápida de referência primeiro
+    if (prevProps === nextProps) return true;
+    
+    // Comparações específicas otimizadas
+    const sameColumn = prevProps.column.id === nextProps.column.id;
+    const sameTicket = prevProps.ticket.id === nextProps.ticket.id;
+    const sameUpdatedAt = prevProps.ticket.updatedAt === nextProps.ticket.updatedAt;
+    const sameStatus = prevProps.ticket.status === nextProps.ticket.status;
+    const samePriority = prevProps.ticket.priority === nextProps.ticket.priority;
+    const sameSubject = prevProps.ticket.subject === nextProps.ticket.subject;
+    
+    return sameColumn && sameTicket && sameUpdatedAt && sameStatus && samePriority && sameSubject;
   };
   
   const OptimizedTableCell = memo(TableCellComponent, areEqual);
@@ -1073,24 +1078,29 @@ export default function TicketsTable() {
     const startWidth = getColumnWidth(columnId);
     let rafId: number;
     let debounceTimeout: NodeJS.Timeout;
+    let lastUpdateTime = 0;
 
     const handleMouseMove = (e: MouseEvent) => {
       if (rafId) cancelAnimationFrame(rafId);
 
       rafId = requestAnimationFrame(() => {
+        const now = Date.now();
         const newWidth = Math.max(80, startWidth + (e.pageX - startX));
         
-        // Debounce otimizado - só atualiza estado a cada 16ms
-        setColumnWidths(prev => ({
-          ...prev,
-          [columnId]: newWidth
-        }));
+        // Throttle de updates para melhor performance - máximo a cada 16ms
+        if (now - lastUpdateTime >= 16) {
+          setColumnWidths(prev => ({
+            ...prev,
+            [columnId]: newWidth
+          }));
+          lastUpdateTime = now;
+        }
 
-        // Debounce para salvar no localStorage - 300ms
+        // Debounce para localStorage - 300ms
         clearTimeout(debounceTimeout);
         debounceTimeout = setTimeout(() => {
           localStorage.setItem(`column-width-${columnId}`, newWidth.toString());
-          console.log(`🔄 Resizing ${columnId}: ${newWidth}px`);
+          console.log(`✅ Resize completed for column: ${columnId}`);
         }, 300);
       });
     };
@@ -1722,9 +1732,26 @@ export default function TicketsTable() {
               {isFieldColorsLoading 
                 ? "⚙️ Carregando configurações de campos personalizados..." 
                 : tickets.length > 0 
-                  ? `🔗 Processando relacionamentos para ${tickets.length} tickets...`
-                  : "📋 Buscando tickets no banco de dados..."
+                  ? `🔗 Verificando relacionamentos para ${tickets.length} tickets...`
+                  : "📋 Conectando com PostgreSQL via Neon..."
               }
+            </div>
+            <div className="text-xs text-gray-500">
+              {tickets.length > 0 
+                ? `${ticketsWithRelationships.size} tickets com vínculos detectados`
+                : "Primeira carga pode levar alguns segundos"
+              }
+            </div>
+            {/* Progress indicator melhorado */}
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div 
+                className="bg-purple-600 h-2 rounded-full transition-all duration-500" 
+                style={{ 
+                  width: tickets.length > 0 
+                    ? `${Math.min(85, (ticketsWithRelationships.size / tickets.length) * 100)}%`
+                    : '25%'
+                }}
+              ></div>
             </div>
             <div className="text-xs text-gray-500">
               {tickets.length > 0 
