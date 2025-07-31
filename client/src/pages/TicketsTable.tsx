@@ -760,22 +760,46 @@ export default function TicketsTable() {
             </TableCell>
           );
         case 'customer':
+          // Log para debug
+          console.log(`🔍 Cliente para ticket ${ticket.id}:`, {
+            customer_id: (ticket as any).customer_id,
+            caller_id: (ticket as any).caller_id,
+            customer_first_name: (ticket as any).customer_first_name,
+            customer_last_name: (ticket as any).customer_last_name,
+            customer_email: (ticket as any).customer_email,
+            caller_first_name: (ticket as any).caller_first_name,
+            caller_last_name: (ticket as any).caller_last_name,
+            caller_email: (ticket as any).caller_email,
+            ticketObject: ticket
+          });
+
+          const customerName = (() => {
+            // Priorizar dados do customer se existir
+            if ((ticket as any).customer_first_name || (ticket as any).customer_last_name) {
+              return `${(ticket as any).customer_first_name || ''} ${(ticket as any).customer_last_name || ''}`.trim();
+            }
+            // Fallback para dados do caller 
+            if ((ticket as any).caller_first_name || (ticket as any).caller_last_name) {
+              return `${(ticket as any).caller_first_name || ''} ${(ticket as any).caller_last_name || ''}`.trim();
+            }
+            // Fallback genérico
+            return ticket.customer?.fullName || ticket.caller?.fullName || (ticket as any).caller_name || 'Cliente não informado';
+          })();
+
+          const customerEmail = (ticket as any).customer_email || 
+                               (ticket as any).caller_email || 
+                               ticket.customer?.email || 
+                               ticket.caller?.email || 
+                               'Email não informado';
+
           return (
             <TableCell className="overflow-hidden" style={cellStyle}>
               <div>
-                <div className="font-medium truncate" title={
-                  (ticket as any).customer_first_name && (ticket as any).customer_last_name 
-                    ? `${(ticket as any).customer_first_name} ${(ticket as any).customer_last_name}`
-                    : ticket.customer?.fullName || ticket.caller?.fullName || (ticket as any).caller_name || 'N/A'
-                }>
-                  {(ticket as any).customer_first_name && (ticket as any).customer_last_name 
-                    ? `${(ticket as any).customer_first_name} ${(ticket as any).customer_last_name}`
-                    : ticket.customer?.fullName || ticket.caller?.fullName || (ticket as any).caller_name || 'N/A'}
+                <div className="font-medium truncate" title={customerName}>
+                  {customerName}
                 </div>
-                <div className="text-sm text-gray-500 truncate" title={
-                  (ticket as any).customer_email || ticket.customer?.email || ticket.caller?.email || 'N/A'
-                }>
-                  {(ticket as any).customer_email || ticket.customer?.email || ticket.caller?.email || 'N/A'}
+                <div className="text-sm text-gray-500 truncate" title={customerEmail}>
+                  {customerEmail}
                 </div>
               </div>
             </TableCell>
