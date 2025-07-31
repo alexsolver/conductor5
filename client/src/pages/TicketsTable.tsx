@@ -803,7 +803,7 @@ export default function TicketsTable() {
               <div className="text-sm">
                 {(ticket.createdAt || (ticket as any).created_at || (ticket as any).opened_at) 
                   ? new Date(ticket.createdAt || (ticket as any).created_at || (ticket as any).opened_at).toLocaleDateString('pt-BR', {
-                      day: '2-digit',```python
+                      day: '2-digit',
                       month: '2-digit',
                       year: 'numeric'
                     })
