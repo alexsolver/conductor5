@@ -1699,6 +1699,8 @@ export class DatabaseStorage implements IStorage {
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
+      console.log(`🔍 Backend: Getting relationships for ticket ${ticketId} in schema ${schemaName}`);
+
       const result = await tenantDb.execute(sql`
         SELECT 
           tr.id,
@@ -1741,8 +1743,13 @@ export class DatabaseStorage implements IStorage {
         ORDER BY tr.created_at DESC
       `);
 
+      console.log(`🔍 Backend: Query result for ticket ${ticketId}:`, {
+        rowCount: result.rows?.length || 0,
+        rows: result.rows
+      });
+
       // Transform flat results into nested objects
-      return (result.rows || []).map(row => ({
+      const transformedResults = (result.rows || []).map(row => ({
         id: row.id,
         relationshipType: row.relationshipType,
         description: row.description,
@@ -1757,6 +1764,9 @@ export class DatabaseStorage implements IStorage {
           description: row['targetTicket.description']
         }
       }));
+
+      console.log(`🔍 Backend: Transformed results for ticket ${ticketId}:`, transformedResults);
+      return transformedResults;
     } catch (error) {
       logError('Error fetching ticket relationships', error, { tenantId, ticketId });
       throw error;

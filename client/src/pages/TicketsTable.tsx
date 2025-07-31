@@ -513,6 +513,20 @@ export default function TicketsTable() {
         rawResponse: data,
         relationships: relationships
       });
+      
+      // Log especial para tickets que sabemos que deveriam ter relacionamentos
+      if (ticketId === '6fdae7d3-67cd-49f3-99d1-8ddd3efcb653') {
+        console.log(`🚨 IMPORTANTE: Ticket T-1753756629339-G5WE deveria ter relacionamentos:`, {
+          ticketId,
+          hasRelationships,
+          dataType: typeof data,
+          isDataArray: Array.isArray(data),
+          dataKeys: data ? Object.keys(data) : 'null',
+          relationships,
+          relationshipsLength: relationships?.length
+        });
+      }
+      
       return hasRelationships;
     } catch (error) {
       console.error('Error checking ticket relationships:', error);
@@ -522,15 +536,21 @@ export default function TicketsTable() {
 
   // Inicializar indicadores de relacionamentos quando os tickets carregarem
   useEffect(() => {
+    console.log(`🔄 useEffect triggered - tickets.length: ${tickets.length}`);
     if (tickets.length > 0) {
       const checkAllTicketRelationships = async () => {
+        console.log(`🔍 Starting relationship check for ${tickets.length} tickets`);
         const ticketsWithRels = new Set<string>();
         
         // Verificar relacionamentos para cada ticket de forma otimizada
         const relationshipChecks = tickets.map(async (ticket: any) => {
+          console.log(`🔗 Checking relationships for ticket: ${ticket.id} (${(ticket as any).number})`);
           const hasRelationships = await checkTicketRelationships(ticket.id);
           if (hasRelationships) {
+            console.log(`✅ Ticket ${ticket.id} HAS relationships`);
             ticketsWithRels.add(ticket.id);
+          } else {
+            console.log(`❌ Ticket ${ticket.id} has NO relationships`);
           }
         });
         
@@ -541,6 +561,8 @@ export default function TicketsTable() {
       };
       
       checkAllTicketRelationships();
+    } else {
+      console.log(`⚠️ No tickets to check relationships for`);
     }
   }, [tickets]);
 
