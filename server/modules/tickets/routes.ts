@@ -540,7 +540,9 @@ ticketsRouter.get('/:id/actions', jwtAuth, trackInternalActionView, async (req: 
         u.first_name || ' ' || u.last_name as "createdByName"
       FROM "${schemaName}".ticket_history th
       LEFT JOIN public.users u ON th.performed_by = u.id
-      WHERE th.tenant_id = $1::uuid AND th.ticket_id = $2::uuid
+      WHERE th.tenant_id = $1::uuid 
+        AND th.ticket_id = $2::uuid
+        AND th.action_type IN ('investigation', 'resolution', 'escalation', 'reassignment', 'follow_up', 'customer_contact', 'internal_note', 'workaround', 'root_cause_analysis')
       ORDER BY th.created_at DESC
     `;
 
