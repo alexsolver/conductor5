@@ -1600,7 +1600,14 @@ export default function TicketDetails() {
               <div className="space-y-4">
                 <h3 className="font-medium text-gray-700">Timeline de Notas</h3>
                 <div className="space-y-3">
-                  {notes.map((note: any) => (
+                  {notes
+                    .slice()
+                    .sort((a: any, b: any) => {
+                      const dateA = new Date(a.created_at || a.createdAt || 0);
+                      const dateB = new Date(b.created_at || b.createdAt || 0);
+                      return dateB.getTime() - dateA.getTime(); // Ordem decrescente (mais recente primeiro)
+                    })
+                    .map((note: any) => (
                     <Card key={note.id} className="p-4 border-l-4 border-l-blue-400">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
