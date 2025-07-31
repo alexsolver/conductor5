@@ -118,3 +118,42 @@ router.get('/:id/hierarchy', async (req: AuthenticatedRequest, res) => {
 });
 
 export default router;
+// Batch relationships endpoint to prevent N+1 queries
+router.post('/batch-relationships', authenticateToken, async (req, res) => {
+  try {
+    const { ticketIds } = req.body;
+    
+    if (!Array.isArray(ticketIds) || ticketIds.length === 0) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'ticketIds array is required' 
+      });
+    }
+
+    // Single query for all relationships
+    const relationships = await db
+      .select()
+      .from(ticketRelationships)
+      .where(inArray(ticketRelationships.sourceTicketId, ticketIds))
+      .leftJoin(tickets, eq(ticketRelationships.targetTicketId, tickets.id));
+
+    // Group by source ticket
+    const grouped = relationships.reduce((acc, rel) => {
+      const sourceId = rel.ticket_relationships.sourceTicketId;
+      if (!acc[sourceId]) acc[sourceId] = [];
+      acc[sourceId].push(rel);
+      return acc;
+    }, {});
+
+    res.json({
+      success: true,
+      relationships: grouped
+    });
+  } catch (error) {
+    console.error('Batch relationships error:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to load relationships' 
+    });
+  }
+});
