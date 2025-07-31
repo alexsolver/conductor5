@@ -668,7 +668,8 @@ export default function TicketsTable() {
     { id: "category", label: "Categoria", visible: true, order: 4, width: 120 },
     { id: "status", label: "Status", visible: true, order: 5, width: 120 },
     { id: "priority", label: "Prioridade", visible: true, order: 6, width: 120 },
-    { id: "created", label: "Criado", visible: true, order: 7, width: 150 }
+    { id: "urgency", label: "Urgência", visible: true, order: 7, width: 120 },
+    { id: "created", label: "Criado", visible: true, order: 8, width: 150 }
   ];
 
   // Filtrar apenas colunas visíveis e ordenar
@@ -1016,7 +1017,7 @@ export default function TicketsTable() {
   const resetNewViewForm = () => {
     setNewViewName("");
     setNewViewDescription("");
-    setSelectedColumns(["number", "subject", "customer", "category", "status", "priority", "created"]);
+    setSelectedColumns(["number", "subject", "customer", "category", "status", "priority", "urgency", "created"]);
     setIsPublicView(false);
   };
 
@@ -1039,9 +1040,10 @@ export default function TicketsTable() {
       { id: "category", label: "Categoria", visible: selectedColumns.includes("category"), order: 4, width: 120 },
       { id: "status", label: "Status", visible: selectedColumns.includes("status"), order: 5, width: 120 },
       { id: "priority", label: "Prioridade", visible: selectedColumns.includes("priority"), order: 6, width: 120 },
-      { id: "impact", label: "Impacto", visible: selectedColumns.includes("impact"), order: 7, width: 120 },
-      { id: "assigned_to", label: "Atribuído", visible: selectedColumns.includes("assigned_to"), order: 8, width: 150 },
-      { id: "created", label: "Criado", visible: selectedColumns.includes("created"), order: 9, width: 150 }
+      { id: "urgency", label: "Urgência", visible: selectedColumns.includes("urgency"), order: 7, width: 120 },
+      { id: "impact", label: "Impacto", visible: selectedColumns.includes("impact"), order: 8, width: 120 },
+      { id: "assigned_to", label: "Atribuído", visible: selectedColumns.includes("assigned_to"), order: 9, width: 150 },
+      { id: "created", label: "Criado", visible: selectedColumns.includes("created"), order: 10, width: 150 }
     ];
 
     const viewData = {
