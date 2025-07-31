@@ -12,7 +12,8 @@ import {
   Bold, Italic, Underline, List, ListOrdered, Quote, Code, 
   Heading1, Heading2, Heading3, Undo, Redo, Strikethrough, AlertTriangle,
   Mail, PlusCircle, Activity, RefreshCw, Ticket, Link, EyeOff,
-  CheckCircle, Star, TrendingUp, Building2, MapPin, BarChart3
+  CheckCircle, Star, TrendingUp, Building2, MapPin, BarChart3,
+  Copy, ArrowDown, ArrowUp, Calendar
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -1791,65 +1792,138 @@ export default function TicketDetails() {
                   <p className="text-xs text-gray-400">Use o botão "Vincular" para conectar tickets relacionados</p>
                 </div>
               ) : (
-                relatedTickets.map((linkedTicket) => (
-                  <Card key={linkedTicket.id} className="border-l-4 border-l-orange-500 hover:shadow-md transition-shadow">
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <Badge variant="outline" className="text-xs bg-orange-50 text-orange-600">
-                              #{linkedTicket.number || linkedTicket.ticket_number}
-                            </Badge>
-                            <Badge variant={linkedTicket.relationship_type === 'related' ? 'default' : 'secondary'} className="text-xs">
-                              {linkedTicket.relationship_type === 'related' ? 'Relacionado' :
-                               linkedTicket.relationship_type === 'duplicate' ? 'Duplicado' :
-                               linkedTicket.relationship_type === 'blocked_by' ? 'Bloqueado por' :
-                               linkedTicket.relationship_type === 'blocks' ? 'Bloqueia' :
-                               linkedTicket.relationship_type === 'child' ? 'Filho' :
-                               linkedTicket.relationship_type === 'parent' ? 'Pai' :
-                               linkedTicket.relationship_type}
-                            </Badge>
-                            <DynamicBadge 
-                              fieldName="status"
-                              value={linkedTicket.status}
-                              colorHex={getFieldColor('status', linkedTicket.status)}
-                            >
-                              {getFieldLabel('status', linkedTicket.status)}
-                            </DynamicBadge>
-                          </div>
-                          <h4 className="font-medium text-gray-800 mb-1">
-                            {linkedTicket.subject || 'Sem assunto'}
-                          </h4>
-                          {linkedTicket.description && (
-                            <p className="text-sm text-gray-600 mb-2 line-clamp-2">
-                              {linkedTicket.description.replace(/<[^>]*>/g, '')}
-                            </p>
-                          )}
-                          <div className="flex items-center justify-between text-xs text-gray-500">
-                            <span>
-                              Criado em {linkedTicket.created_at ? new Date(linkedTicket.created_at).toLocaleDateString('pt-BR') : 'Data não disponível'}
-                            </span>
-                            {linkedTicket.resolved_at && (
-                              <span>
-                                Resolvido em {new Date(linkedTicket.resolved_at).toLocaleDateString('pt-BR')}
-                              </span>
+                relatedTickets.map((linkedTicket) => {
+                  // Obter ícone e cor baseado no tipo de relacionamento
+                  const getRelationshipIcon = (type: string) => {
+                    switch (type) {
+                      case 'parent_child':
+                        return <ArrowDown className="h-4 w-4 text-blue-600" />;
+                      case 'related':
+                        return <Link2 className="h-4 w-4 text-gray-600" />;
+                      case 'blocks':
+                        return <ArrowUp className="h-4 w-4 text-red-600" />;
+                      case 'duplicates':
+                        return <Copy className="h-4 w-4 text-orange-600" />;
+                      default:
+                        return <Link2 className="h-4 w-4 text-gray-600" />;
+                    }
+                  };
+
+                  const getRelationshipLabel = (type: string) => {
+                    switch (type) {
+                      case 'parent_child':
+                        return 'Ticket filho';
+                      case 'related':
+                        return 'Relacionado';
+                      case 'blocks':
+                        return 'Bloqueia';
+                      case 'duplicates':
+                        return 'Duplicata';
+                      default:
+                        return 'Vinculado';
+                    }
+                  };
+
+                  const getBorderColor = (type: string) => {
+                    switch (type) {
+                      case 'parent_child':
+                        return 'border-l-blue-500';
+                      case 'related':
+                        return 'border-l-gray-500';
+                      case 'blocks':
+                        return 'border-l-red-500';
+                      case 'duplicates':
+                        return 'border-l-orange-500';
+                      default:
+                        return 'border-l-gray-500';
+                    }
+                  };
+
+                  return (
+                    <Card key={linkedTicket.id} className={`border-l-4 ${getBorderColor(linkedTicket.relationshipType)} hover:shadow-md transition-shadow`}>
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-3">
+                              {/* Ícone visual do tipo de relacionamento */}
+                              <div className="flex items-center gap-1">
+                                {getRelationshipIcon(linkedTicket.relationshipType)}
+                                <Badge variant="secondary" className="text-xs">
+                                  {getRelationshipLabel(linkedTicket.relationshipType)}
+                                </Badge>
+                              </div>
+                              
+                              <Badge variant="outline" className="text-xs bg-blue-50 text-blue-600 font-mono">
+                                #{linkedTicket.targetTicket?.number || linkedTicket.number}
+                              </Badge>
+                              
+                              <DynamicBadge 
+                                fieldName="status"
+                                value={linkedTicket.targetTicket?.status || linkedTicket.status}
+                                colorHex={getFieldColor('status', linkedTicket.targetTicket?.status || linkedTicket.status)}
+                              >
+                                {getFieldLabel('status', linkedTicket.targetTicket?.status || linkedTicket.status)}
+                              </DynamicBadge>
+                              
+                              <DynamicBadge 
+                                fieldName="priority"
+                                value={linkedTicket.targetTicket?.priority || linkedTicket.priority}
+                                colorHex={getFieldColor('priority', linkedTicket.targetTicket?.priority || linkedTicket.priority)}
+                              >
+                                {getFieldLabel('priority', linkedTicket.targetTicket?.priority || linkedTicket.priority)}
+                              </DynamicBadge>
+                            </div>
+                            
+                            <h4 className="font-medium text-gray-800 mb-2">
+                              {linkedTicket.targetTicket?.subject || linkedTicket.subject || 'Sem assunto definido'}
+                            </h4>
+                            
+                            {(linkedTicket.targetTicket?.description || linkedTicket.description) && (
+                              <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                                {typeof (linkedTicket.targetTicket?.description || linkedTicket.description) === 'string' 
+                                  ? (linkedTicket.targetTicket?.description || linkedTicket.description).replace(/<[^>]*>/g, '') 
+                                  : 'Descrição não disponível'}
+                              </p>
                             )}
+                            
+                            <div className="flex items-center justify-between text-xs text-gray-500">
+                              <span className="flex items-center gap-1">
+                                <Calendar className="w-3 h-3" />
+                                Criado em {(linkedTicket.targetTicket?.createdAt || linkedTicket.createdAt)
+                                  ? new Date(linkedTicket.targetTicket?.createdAt || linkedTicket.createdAt).toLocaleDateString('pt-BR', {
+                                      day: '2-digit',
+                                      month: '2-digit', 
+                                      year: 'numeric',
+                                      hour: '2-digit',
+                                      minute: '2-digit'
+                                    })
+                                  : 'Data não disponível'}
+                              </span>
+                              
+                              {linkedTicket.description && (
+                                <span className="text-xs text-gray-400">
+                                  Rel. criado em {new Date().toLocaleDateString('pt-BR')}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          
+                          <div className="ml-4 flex flex-col gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => window.open(`/tickets/${linkedTicket.targetTicket?.id || linkedTicket.id}`, '_blank')}
+                              className="text-blue-600 hover:text-blue-700 p-2"
+                              title="Abrir ticket em nova aba"
+                            >
+                              <ExternalLink className="h-4 w-4" />
+                            </Button>
                           </div>
                         </div>
-                        <div className="ml-4">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => window.open(`/tickets/${linkedTicket.id}`, '_blank')}
-                            className="text-orange-600 hover:text-orange-700"
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
+                      </CardContent>
+                    </Card>
+                  );
+                })
               )}
             </div>
           </div>

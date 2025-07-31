@@ -1706,10 +1706,12 @@ export class DatabaseStorage implements IStorage {
           tr.description,
           tr.created_at as "createdAt",
           t.id as "targetTicket.id",
-          t.short_description as "targetTicket.subject",
-          t.state as "targetTicket.status",
+          t.subject as "targetTicket.subject",
+          t.status as "targetTicket.status",
           t.priority as "targetTicket.priority",
-          t.number as "targetTicket.number"
+          t.number as "targetTicket.number",
+          t.created_at as "targetTicket.createdAt",
+          t.description as "targetTicket.description"
         FROM ${sql.identifier(schemaName)}.ticket_relationships tr
         JOIN ${sql.identifier(schemaName)}.tickets t ON t.id = tr.target_ticket_id
         WHERE tr.source_ticket_id = ${ticketId} 
@@ -1728,7 +1730,9 @@ export class DatabaseStorage implements IStorage {
           subject: row['targetTicket.subject'],
           status: row['targetTicket.status'],
           priority: row['targetTicket.priority'],
-          number: row['targetTicket.number']
+          number: row['targetTicket.number'],
+          createdAt: row['targetTicket.createdAt'],
+          description: row['targetTicket.description']
         }
       }));
     } catch (error) {
