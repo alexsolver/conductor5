@@ -802,8 +802,7 @@ export default function TicketsTable() {
               >
                 {categoryLabel}
               </DynamicBadge>
-            </```text
-              </TableCell>
+            </TableCell>
           );
         case 'status':
           const statusValue = mapStatusValue((ticket as any).state || ticket.status);
@@ -899,7 +898,7 @@ export default function TicketsTable() {
         case 'subcategory':
           return (
             <TableCell>
-              Женско{(ticket as any).subcategory || '-'}
+              {(ticket as any).subcategory || '-'}
             </TableCell>
           );
         case 'urgency':
