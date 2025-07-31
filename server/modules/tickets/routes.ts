@@ -622,12 +622,18 @@ ticketsRouter.post('/:id/actions', jwtAuth, trackInternalActionCreate, async (re
     // Prepare description and work log
     const actionDescription = workLog || description || `${actionType} action performed`;
 
-    // Insert action into database with all fields
+    // Get user info for IP capture
+    const { getClientIP, getUserAgent, getSessionId } = await import('../../utils/ipCapture');
+    const ipAddress = getClientIP(req);
+    const userAgent = getUserAgent(req);
+    const sessionId = getSessionId(req);
+
+    // Insert action into ticket_history table using correct column names
     const insertQuery = `
-      INSERT INTO "${schemaName}".ticket_actions 
-      (tenant_id, ticket_id, action_type, description, estimated_time_minutes, performed_by, created_at, updated_at, active)
-      VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW(), true)
-      RETURNING id, action_type, description, estimated_time_minutes, created_at
+      INSERT INTO "${schemaName}".ticket_history 
+      (id, tenant_id, ticket_id, action_type, description, performed_by, ip_address, user_agent, session_id, created_at)
+      VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, NOW())
+      RETURNING id, action_type, description, created_at
     `;
 
     const result = await pool.query(insertQuery, [
@@ -635,8 +641,10 @@ ticketsRouter.post('/:id/actions', jwtAuth, trackInternalActionCreate, async (re
       id,                 // $2 ticket_id
       actionType,         // $3 action_type
       actionDescription,  // $4 description
-      estimatedMinutes,   // $5 estimated_time_minutes
-      req.user.id         // $6 performed_by
+      req.user.id,        // $5 performed_by
+      ipAddress,          // $6 ip_address  
+      userAgent,          // $7 user_agent
+      sessionId           // $8 session_id
     ]);
 
     if (result.rows.length === 0) {
@@ -658,39 +666,6 @@ ticketsRouter.post('/:id/actions', jwtAuth, trackInternalActionCreate, async (re
       `UPDATE "${schemaName}".tickets SET updated_at = NOW() WHERE id = $1 AND tenant_id = $2`,
       [id, tenantId]
     );
-
-    // Create history entry for the internal action
-    try {
-      const { getClientIP, getUserAgent, getSessionId } = await import('../../utils/ipCapture');
-      const ipAddress = getClientIP(req);
-      const userAgent = getUserAgent(req);
-      const sessionId = getSessionId(req);
-
-      await pool.query(`
-        INSERT INTO "${schemaName}".ticket_history 
-        (tenant_id, ticket_id, action_type, description, performed_by, performed_by_name, ip_address, user_agent, session_id, created_at, metadata)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), $10)
-      `, [
-        tenantId,
-        id,
-        'internal_action',
-        `Ação interna adicionada: ${actionType}`,
-        req.user.id,
-        userName,
-        ipAddress,
-        userAgent,
-        sessionId,
-        JSON.stringify({
-          action_type: actionType,
-          work_log: workLog || '',
-          time_spent: timeSpent || '0:00:00:00',
-          estimated_hours: estimatedHours,
-          is_public: is_public
-        })
-      ]);
-    } catch (historyError) {
-      console.log('⚠️ Aviso: Não foi possível criar entrada no histórico:', historyError.message);
-    }
 
     console.log('✅ Ação interna criada com sucesso:', newAction);
 

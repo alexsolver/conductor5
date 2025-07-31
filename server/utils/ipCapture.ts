@@ -33,7 +33,7 @@ export function getUserAgent(req: Request): string {
 
 export function getSessionId(req: Request): string {
   // Try to get session ID from various sources
-  return req.sessionID || 
+  return (req as any).sessionID || 
          req.headers['x-session-id'] as string || 
          req.cookies?.sessionId || 
          'no-session';
