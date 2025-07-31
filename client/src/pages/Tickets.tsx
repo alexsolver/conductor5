@@ -64,6 +64,26 @@ export default function Tickets() {
     return priorityMapping[value.toLowerCase()] || value;
   };
 
+  const categoryMapping: Record<string, string> = {
+    'hardware': 'infraestrutura',
+    'software': 'suporte_tecnico', 
+    'network': 'infraestrutura',
+    'access': 'suporte_tecnico',
+    'other': 'suporte_tecnico',
+    'technical_support': 'suporte_tecnico',
+    'customer_service': 'atendimento_cliente',
+    'financial': 'financeiro',
+    'infrastructure': 'infraestrutura'
+  };
+
+  const mapCategoryValue = (value: string): string => {
+    if (!value || value === null || value === 'null' || value === '' || typeof value !== 'string') {
+      return 'suporte_tecnico';
+    }
+    const mapped = categoryMapping[value.toLowerCase()] || 'suporte_tecnico';
+    return mapped;
+  };
+
   // Force token setup - DEBUG ONLY
   useEffect(() => {
     const checkAndSetToken = async () => {
@@ -848,6 +868,13 @@ export default function Tickets() {
                       colorHex={getFieldColor('status', mapStatusValue(ticket.status))}
                     >
                       {getFieldLabel('status', mapStatusValue(ticket.status))}
+                    </DynamicBadge>
+                    <DynamicBadge 
+                      fieldName="category" 
+                      value={mapCategoryValue(ticket.category)}
+                      colorHex={getFieldColor('category', mapCategoryValue(ticket.category))}
+                    >
+                      {getFieldLabel('category', mapCategoryValue(ticket.category))}
                     </DynamicBadge>
                   </div>
                   <p className="text-gray-600 dark:text-gray-400 mb-3">

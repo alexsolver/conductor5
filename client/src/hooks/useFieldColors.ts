@@ -49,6 +49,8 @@ export const useFieldColors = () => {
       (opt: FieldOption) => opt.field_name === fieldName && opt.value === value
     );
 
+
+
     return option?.color;
   };
 

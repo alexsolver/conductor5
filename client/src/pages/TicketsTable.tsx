@@ -248,18 +248,21 @@ export default function TicketsTable() {
   };
 
   const categoryMapping: Record<string, string> = {
-    'hardware': 'hardware',
-    'software': 'software', 
-    'network': 'rede',
-    'access': 'acesso',
-    'other': 'outro'
+    'hardware': 'infraestrutura',
+    'software': 'suporte_tecnico', 
+    'network': 'infraestrutura',
+    'access': 'suporte_tecnico',
+    'other': 'suporte_tecnico',
+    'technical_support': 'suporte_tecnico',
+    'customer_service': 'atendimento_cliente',
+    'financial': 'financeiro',
+    'infrastructure': 'infraestrutura'
   };
 
   // Funções de mapeamento
   const mapStatusValue = (value: string): string => {
     if (!value) return 'novo';
     const mapped = statusMapping[value.toLowerCase()] || value;
-    console.log(`🔄 Status mapping: "${value}" -> "${mapped}"`);
     return mapped;
   };
 
@@ -279,8 +282,12 @@ export default function TicketsTable() {
   };
 
   const mapCategoryValue = (value: string): string => {
-    if (!value) return 'outro';
-    return categoryMapping[value.toLowerCase()] || value;
+    // Lidar com valores null, undefined, string "null" ou vazios
+    if (!value || value === null || value === 'null' || value === '' || typeof value !== 'string') {
+      return 'suporte_tecnico'; // Use uma categoria que existe no sistema
+    }
+    const mapped = categoryMapping[value.toLowerCase()] || 'suporte_tecnico';
+    return mapped;
   };
 
   // Estados para criação de visualização
@@ -434,17 +441,13 @@ export default function TicketsTable() {
       case 'category':
         return (
           <TableCell>
-            {(ticket as any).category ? (
-              <DynamicBadge 
-                fieldName="category"
-                value={mapCategoryValue((ticket as any).category)}
-                colorHex={getFieldColor('category', mapCategoryValue((ticket as any).category))}
-              >
-                {getFieldLabel('category', mapCategoryValue((ticket as any).category))}
-              </DynamicBadge>
-            ) : (
-              <span className="text-gray-400">-</span>
-            )}
+            <DynamicBadge 
+              fieldName="category"
+              value={mapCategoryValue((ticket as any).category)}
+              colorHex={getFieldColor('category', mapCategoryValue((ticket as any).category))}
+            >
+              {getFieldLabel('category', mapCategoryValue((ticket as any).category))}
+            </DynamicBadge>
           </TableCell>
         );
       case 'status':
