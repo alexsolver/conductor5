@@ -23,7 +23,7 @@ export const ticketFormSchema = z.object({
     .max(4000, "Descrição não pode exceder 4000 caracteres")
     .optional(),
   
-  // Enums com validação
+  // Enums com validação (valores em inglês para compatibilidade com banco)
   status: TicketStatusEnum.default('new'),
   priority: TicketPriorityEnum.default('medium'),
   impact: TicketImpactEnum.optional(),

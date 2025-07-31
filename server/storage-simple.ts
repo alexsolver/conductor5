@@ -1676,7 +1676,7 @@ export class DatabaseStorage implements IStorage {
         AND customer_id = ${customerId}
       `);
 
-      return result.rowCount > 0;
+      return (result.rowCount || 0) > 0;
     } catch (error) {
       logError('Error removing favorecido customer relationship', error, { tenantId, favorecidoId, customerId });
       throw error;
@@ -1684,8 +1684,33 @@ export class DatabaseStorage implements IStorage {
   }
 
   // ==============================
-  // TICKET RELATIONSHIPS METHODS
+  // TICKET RELATIONSHIPS METHODS  
   // ==============================
+
+  async getTicketsWithRelationships(tenantId: string): Promise<string[]> {
+    try {
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      const result = await tenantDb.execute(sql`
+        SELECT DISTINCT 
+          CASE 
+            WHEN tr.source_ticket_id = t.id THEN tr.source_ticket_id
+            ELSE tr.target_ticket_id 
+          END as ticket_id
+        FROM ${sql.identifier(schemaName)}.tickets t
+        INNER JOIN ${sql.identifier(schemaName)}.ticket_relationships tr 
+          ON (tr.source_ticket_id = t.id OR tr.target_ticket_id = t.id)
+        WHERE t.tenant_id = ${validatedTenantId}
+      `);
+
+      return result.rows?.map(row => row.ticket_id) || [];
+    } catch (error) {
+      logError('Error fetching tickets with relationships', error, { tenantId });
+      return [];
+    }
+  }
 
   async searchTickets(tenantId: string, query: string): Promise<any[]> {
     try {

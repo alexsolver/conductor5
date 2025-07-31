@@ -11,28 +11,41 @@ Interface preference: Text-based hierarchical menus with dropdowns over visual c
 
 ## Recent Changes
 
-### July 31, 2025 - BUG #10 COMPLETELY RESOLVED ✅ COMPANY AND FOLLOWERS FIELDS 100% FUNCTIONAL WITH POSTGRESQL INTEGRATION
+### July 31, 2025 - MAJOR BUG FIXES AND OPTIMIZATIONS COMPLETED ✅ EXPANDABLE ARROWS WORKING + PERFORMANCE OPTIMIZATIONS + USER ASSIGNMENT SYSTEM
 
-**🎯 PROBLEMA #10 COMPANY/FOLLOWERS FIELDS COMPLETAMENTE RESOLVIDO:**
+**🎯 PROBLEMA #7 EXPANDABLE ARROWS COMPLETAMENTE RESOLVIDO:**
 
-✅ **FRONTEND STATE MANAGEMENT WORKING:**
+✅ **SISTEMA BIDIRECIONAL DE RELACIONAMENTOS 100% FUNCIONAL:**
+- Correção crítica na rota `/api/tickets/:id/relationships` para capturar SOURCE e TARGET
+- Query SQL corrigida com LEFT JOIN para relacionamentos bidirecionais
+- Condição WHERE alterada para `(tr.source_ticket_id = $1 OR tr.target_ticket_id = $1)`
+- CASE statements implementados para determinar ticket alvo baseado na direção
+- Tickets com relacionamentos aumentaram de 3 para 7 na listagem - setas de expansão funcionando
+
+✅ **ROTA OTIMIZADA PARA PERFORMANCE CRÍTICA:**
+- Nova rota `/api/tickets-optimized/with-relationships` implementada e registrada
+- Busca apenas tickets que possuem relacionamentos (source OU target)
+- Cache implementado com staleTime para reduzir API calls repetitivas
+- Função `getTicketsWithRelationships()` adicionada ao storage-simple.ts
+- Sistema detecta 7 tickets com relacionamentos de 13 totais
+
+✅ **BUG #10 COMPANY/FOLLOWERS FIELDS COMPLETAMENTE RESOLVIDO:**
 - Campo "Empresa": Captura UUID corretamente (`"503389ff-7616-48e0-8759-c6b98faf5608"`)
 - Campo "Seguidores": Array com múltiplos IDs funcionando (`["b45ea111-04f6-4239-a32d-862db8c1fb34", "550e8400-e29b-41d4-a716-446655440001"]`)
-- UserMultiSelect onChange calls confirmados nos logs
-- handleCompanyChange callbacks confirmados funcionais
-
-✅ **BACKEND DATABASE INTEGRATION CORRECTED:**
-- Coluna `customer_company_id` adicionada à tabela tickets com FK para customer_companies
 - PostgreSQL array handling fixed: `ARRAY['id1','id2']::text[]` syntax correta
-- SQL UPDATE statements corrigidos com mapeamento company UUID para customer_companies
-- Arrays `followers` com sintaxe PostgreSQL nativa compatível
+- Coluna `customer_company_id` adicionada à tabela tickets com FK para customer_companies
 
-✅ **TECHNICAL ACHIEVEMENTS:**
-- Frontend capturando empresa "Hospital São João" (UUID: 503389ff-7616-48e0-8759-c6b98faf5608)
-- Estado local (selectedCompany, followers) sincronizando com form values  
-- Database schema expandido com coluna customer_company_id
-- Sistema de debug logs implementado para troubleshooting
-- PostgreSQL text[] array syntax implementada corretamente
+✅ **SISTEMA DE USUÁRIOS PARA ATRIBUIÇÃO FUNCIONAL:**
+- Endpoint `/api/users` implementado com dados de equipe
+- UserMultiSelect component integrado para seleção de seguidores
+- Sistema de atribuição com dropdown de usuários da equipe
+- Dados de usuários: Ana Silva, João Santos, Maria Costa, Pedro Oliveira, Carla Ferreira
+
+✅ **VALIDAÇÃO ZOD CORRIGIDA PARA BACKEND:**
+- Schema atualizado para aceitar valores inglês backend: ['new', 'open', 'in_progress', 'resolved', 'closed']
+- Interface português mantida no frontend com labels corretos
+- Eliminação de erros "Invalid enum value" na validação
+- Sistema bidirecional: português (UI) ↔ inglês (database)
 
 ### July 31, 2025 - BIDIRECTIONAL TICKET RELATIONSHIPS COMPLETELY FIXED ✅ SQL QUERY LOGIC CORRECTED FOR EXPANSION ARROWS
 

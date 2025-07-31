@@ -21,6 +21,7 @@ import beneficiariesRoutes from './modules/beneficiaries/routes';
 // Removed: external-contacts routes - functionality eliminated
 import locationsNewRoutes from './modules/locations/routes-new';
 import ticketRelationshipsRoutes from './routes/ticketRelationships';
+import ticketsWithRelationshipsRoutes from './routes/ticketsWithRelationships';
 // import { omniBridgeRoutes } from './modules/omni-bridge/routes'; // Temporarily removed
 import saasAdminRoutes from './modules/saas-admin/routes';
 import tenantAdminRoutes from './modules/tenant-admin/routes';
@@ -1399,6 +1400,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Ticket relationships routes
   app.use('/api/tickets', ticketRelationshipsRoutes);
+  app.use('/api/tickets-optimized', ticketsWithRelationshipsRoutes);
 
   // Customer-Location relationship routes
   app.get('/api/customers/:customerId/locations', jwtAuth, async (req: AuthenticatedRequest, res) => {

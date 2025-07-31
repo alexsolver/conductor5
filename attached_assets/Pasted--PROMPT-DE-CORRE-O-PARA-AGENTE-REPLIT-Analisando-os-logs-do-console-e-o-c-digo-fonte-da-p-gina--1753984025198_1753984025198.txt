@@ -1,0 +1,133 @@
+🚨 PROMPT DE CORREÇÃO PARA AGENTE REPLIT:
+Analisando os logs do console e o código fonte da página /tickets, identifiquei 8 problemas críticos que comprometem gravemente a performance e experiência do usuário:
+
+1. PROBLEMA CRÍTICO: ENUM STATUS INCONSISTENTE
+ERRO IDENTIFICADO:
+
+Invalid enum value. Expected 'novo' | 'aberto' | 'em_andamento' | 'resolvido' | 'fechado', received 'in_progress'
+CORREÇÃO OBRIGATÓRIA:
+
+Arquivo: shared/ticket-validation.ts
+Problema: Frontend está enviando valores em inglês ('in_progress') mas validação Zod espera português ('em_andamento')
+Impacto: Impossibilidade de salvar alterações de status dos tickets
+INSTRUÇÃO:
+Padronizar valores de enum entre frontend e backend. Manter valores em inglês no banco de dados ('in_progress', 'new', 'open', 'resolved', 'closed') e atualizar o schema Zod para aceitar valores em inglês. Remover tradução desnecessária que causa conflitos.
+
+2. PROBLEMA CRÍTICO: MÚLTIPLAS CHAMADAS API DESNECESSÁRIAS
+IDENTIFICADO:
+
+API /api/ticket-config/field-options sendo chamada múltiplas vezes (3469ms de resposta inicial)
+13 chamadas para /api/tickets/{id}/relationships executando em paralelo
+Cache inexistente causando re-requests desnecessários
+CORREÇÃO OBRIGATÓRIA:
+
+Arquivo: client/src/hooks/useFieldColors.ts
+Implementar cache agressivo para field options
+Implementar debounce para chamadas de relacionamentos
+INSTRUÇÃO:
+Configurar React Query com staleTime de 5 minutos para field options. Implementar cache localStorage para persistir dados entre sessões. Agrupar chamadas de relacionamentos em uma única API que retorne todos os relacionamentos de uma vez.
+
+3. PROBLEMA DE PERFORMANCE: VERIFICAÇÃO REDUNDANTE DE RELACIONAMENTOS
+IDENTIFICADO:
+
+🔍 Starting relationship check for 13 tickets
+🎯 Total tickets checked: 13, with relationships: 1
+(depois mostra 7 tickets com relacionamentos)
+PROBLEMA:
+
+Sistema está fazendo verificação inconsistente de relacionamentos
+Primeiro mostra 1 ticket com relacionamentos, depois 7
+Múltiples re-renderizações causando confusão visual
+CORREÇÃO OBRIGATÓRIA:
+
+Arquivo: client/src/pages/TicketsTable.tsx linhas 200-250
+Otimizar useEffect de verificação de relacionamentos
+INSTRUÇÃO:
+Mover verificação de relacionamentos para o carregamento inicial dos tickets via backend. Criar endpoint /api/tickets/with-relationships que retorne apenas tickets que possuem vínculos. Eliminar verificação individual por ticket no frontend.
+
+4. PROBLEMA UX: LOADING STATES INADEQUADOS
+IDENTIFICADO:
+
+Skeleton loading genérico sem indicação específica do que está carregando
+Usuários não sabem se sistema travou durante os 3+ segundos de espera
+Falta de feedback visual durante operações críticas
+CORREÇÃO OBRIGATÓRIA:
+
+Arquivo: client/src/pages/TicketsTable.tsx
+Substituir skeleton genérico por loading states específicos
+INSTRUÇÃO:
+Implementar loading states específicos: "Carregando tickets...", "Verificando relacionamentos...", "Carregando configurações...". Adicionar progress bar para operações que excedem 1 segundo. Mostrar contador de tickets carregados durante o processo.
+
+5. PROBLEMA CRÍTICO: REDIMENSIONAMENTO CAUSANDO MÚLTIPLAS RE-RENDERIZAÇÕES
+IDENTIFICADO:
+
+🔄 Resizing priority: 171px → 144px → 118px → 95px → 80px
+PROBLEMA:
+
+Redimensionamento de colunas está causando múltiplas re-renderizações
+Performance degradada durante interação do usuário
+Falta de debounce nas operações de resize
+CORREÇÃO OBRIGATÓRIA:
+
+Arquivo: client/src/pages/TicketsTable.tsx função handleMouseDown
+Implementar debounce para redimensionamento
+INSTRUÇÃO:
+Implementar debounce de 300ms para redimensionamento de colunas. Usar requestAnimationFrame para otimizar atualizações visuais. Salvar larguras no localStorage apenas após completar o redimensionamento.
+
+6. PROBLEMA DE PERFORMANCE: COMPONENTE SEM REACT.MEMO
+IDENTIFICADO:
+
+TableCellComponent está sendo re-renderizado desnecessariamente
+13 tickets × 7 colunas = 91 componentes renderizando a cada mudança de estado
+Falta de otimização com React.memo
+CORREÇÃO OBRIGATÓRIA:
+
+Arquivo: client/src/pages/TicketsTable.tsx componente TableCellComponent
+Otimizar renderização com memoização
+INSTRUÇÃO:
+Garantir que TableCellComponent está usando React.memo adequadamente. Implementar useMemo para objetos de estilo inline. Otimizar função renderCell com useCallback para evitar re-criações desnecessárias.
+
+7. PROBLEMA UX: EXPANSÃO/COLAPSO SEM FEEDBACK CLARO
+IDENTIFICADO:
+
+Tickets expandem sem indicação visual clara de que há conteúdo relacionado
+Estado de expansão não persiste durante navegação
+Relacionamentos carregam após expansão (deveria ser pré-indicado)
+CORREÇÃO OBRIGATÓRIA:
+
+Arquivo: client/src/pages/TicketsTable.tsx
+Melhorar indicadores visuais de expansão
+INSTRUÇÃO:
+Adicionar ícones de vínculo (🔗) apenas para tickets que realmente possuem relacionamentos. Implementar transições suaves para expansão/colapso. Persistir estado de expansão no sessionStorage. Pré-carregar relacionamentos para tickets identificados com vínculos.
+
+8. PROBLEMA DE INCONSISTÊNCIA: MAPEAMENTO DE DADOS INCORRETO
+IDENTIFICADO:
+
+Funções de mapeamento (mapStatusValue, mapCategoryValue) aplicadas inconsistentemente
+Valores sendo traduzidos em pontos diferentes do código
+Inconsistência entre dados do banco e exibição
+CORREÇÃO OBRIGATÓRIA:
+
+Arquivo: client/src/pages/TicketsTable.tsx e shared/ticket-validation.ts
+Centralizar mapeamento de dados
+INSTRUÇÃO:
+Criar serviço centralizado de mapeamento de dados. Aplicar transformações apenas na camada de apresentação. Garantir que banco de dados sempre use valores em inglês como padrão, traduzindo apenas na interface do usuário.
+
+⚡ MÉTRICAS DE PERFORMANCE ALVO:
+TEMPO DE CARREGAMENTO INICIAL: < 2 segundos
+TEMPO DE RESPOSTA FIELD OPTIONS: < 500ms  
+TEMPO DE SALVAMENTO: < 1 segundo
+TEMPO DE EXPANSÃO/RELACIONAMENTOS: < 300ms
+TAXA DE ERRO DE VALIDAÇÃO: < 1%
+RE-RENDERIZAÇÕES DESNECESSÁRIAS: Eliminar 80%
+✅ CHECKLIST DE VALIDAÇÃO OBRIGATÓRIO:
+ Enums de status padronizados (inglês no backend)
+ Cache de field options implementado (staleTime: 5min)
+ Endpoint /api/tickets/with-relationships criado
+ Loading states específicos em todas operações
+ Debounce de redimensionamento (300ms)
+ React.memo otimizado em TableCellComponent
+ Indicadores visuais de expansão melhorados
+ Mapeamento de dados centralizado
+ Performance < 2s carregamento inicial
+ Zero erros de validação enum
