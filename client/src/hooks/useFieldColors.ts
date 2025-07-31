@@ -38,10 +38,12 @@ export const useFieldColors = () => {
 
       return response.json();
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes (renamed from cacheTime in v5)
+    staleTime: 10 * 60 * 1000, // 10 minutos - cache mais agressivo
+    gcTime: 30 * 60 * 1000, // 30 minutos
     refetchOnWindowFocus: false,
     refetchOnMount: false,
+    refetchOnReconnect: false,
+    retry: 1, // Reduzir tentativas
   });
 
   // Função para buscar cor de um campo específico

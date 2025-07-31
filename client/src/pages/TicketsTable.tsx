@@ -221,15 +221,13 @@ export default function TicketsTable() {
   // Hook para buscar cores dos campos personalizados
   const { getFieldColor, getFieldLabel, isLoading: isFieldColorsLoading } = useFieldColors();
 
-  // Status mapping - manter valores em inglês conforme banco de dados 
+  // Status mapping simplificado - usar valores diretos do banco
   const statusMapping: Record<string, string> = {
     'new': 'new',
     'open': 'open', 
     'in_progress': 'in_progress',
-    'in progress': 'in_progress',
     'resolved': 'resolved',
-    'closed': 'closed',
-    'cancelled': 'cancelled'
+    'closed': 'closed'
   };
 
   const priorityMapping: Record<string, string> = {
@@ -271,36 +269,36 @@ export default function TicketsTable() {
     return getFieldColor(fieldName, value) || '#6b7280';
   };
 
-  // Funções de mapeamento
-  const mapStatusValue = (value: string): string => {
-    if (!value) return 'new';
-    const mapped = statusMapping[value.toLowerCase()] || value;
-    return mapped;
-  };
-
-  const mapPriorityValue = (value: string): string => {
-    if (!value) return 'medium';
-    return priorityMapping[value.toLowerCase()] || value;
-  };
-
-  const mapImpactValue = (value: string): string => {
-    if (!value) return 'baixo';
-    return impactMapping[value.toLowerCase()] || value;
-  };
-
-  const mapUrgencyValue = (value: string): string => {
-    if (!value) return 'medium';
-    return urgencyMapping[value.toLowerCase()] || value;
-  };
-
-  const mapCategoryValue = (value: string): string => {
-    // Lidar com valores null, undefined, string "null" ou vazios
-    if (!value || value === null || value === 'null' || value === '' || typeof value !== 'string') {
-      return 'suporte_tecnico'; // Use uma categoria que existe no sistema
+  // Serviço centralizado de mapeamento de dados
+  const dataMapper = useMemo(() => ({
+    status: (value: string): string => {
+      if (!value) return 'new';
+      // Manter valores do banco diretos - sem tradução
+      return statusMapping[value.toLowerCase()] || value;
+    },
+    
+    priority: (value: string): string => {
+      if (!value) return 'medium';
+      return priorityMapping[value.toLowerCase()] || value;
+    },
+    
+    impact: (value: string): string => {
+      if (!value) return 'low';
+      return impactMapping[value.toLowerCase()] || value;
+    },
+    
+    urgency: (value: string): string => {
+      if (!value) return 'medium';
+      return urgencyMapping[value.toLowerCase()] || value;
+    },
+    
+    category: (value: string): string => {
+      if (!value || value === null || value === 'null' || value === '' || typeof value !== 'string') {
+        return 'support'; // Valor padrão em inglês
+      }
+      return categoryMapping[value.toLowerCase()] || 'support';
     }
-    const mapped = categoryMapping[value.toLowerCase()] || 'suporte_tecnico';
-    return mapped;
-  };
+  }), [statusMapping, priorityMapping, impactMapping, urgencyMapping, categoryMapping]);
 
   // Estados para criação de visualização
   const [newViewName, setNewViewName] = useState("");
@@ -542,35 +540,33 @@ export default function TicketsTable() {
     }
   };
 
-  // Inicializar indicadores de relacionamentos quando os tickets carregarem
+  // Inicializar indicadores de relacionamentos - OTIMIZADO
   useEffect(() => {
-    console.log(`🔄 useEffect triggered - tickets.length: ${tickets.length}`);
     if (tickets.length > 0) {
+      // Usar API batch para buscar todos relacionamentos de uma vez
       const checkAllTicketRelationships = async () => {
-        console.log(`🔍 Starting relationship check for ${tickets.length} tickets`);
-        const ticketsWithRels = new Set<string>();
-        
-        // Verificar relacionamentos para cada ticket de forma otimizada
-        const relationshipChecks = tickets.map(async (ticket: any) => {
-          console.log(`🔗 Checking relationships for ticket: ${ticket.id} (${(ticket as any).number})`);
-          const hasRelationships = await checkTicketRelationships(ticket.id);
-          if (hasRelationships) {
-            console.log(`✅ Ticket ${ticket.id} HAS relationships`);
-            ticketsWithRels.add(ticket.id);
-          } else {
-            console.log(`❌ Ticket ${ticket.id} has NO relationships`);
+        try {
+          const ticketIds = tickets.map((ticket: any) => ticket.id);
+          const response = await apiRequest('POST', '/api/tickets/batch-relationships', { ticketIds });
+          const data = await response.json();
+          
+          const ticketsWithRels = new Set<string>();
+          if (data.success && data.data) {
+            Object.entries(data.data).forEach(([ticketId, relationships]: [string, any]) => {
+              if (relationships && relationships.length > 0) {
+                ticketsWithRels.add(ticketId);
+              }
+            });
           }
-        });
-        
-        await Promise.all(relationshipChecks);
-        console.log(`🎯 Final tickets with relationships:`, Array.from(ticketsWithRels));
-        console.log(`🎯 Total tickets checked: ${tickets.length}, with relationships: ${ticketsWithRels.size}`);
-        setTicketsWithRelationships(ticketsWithRels);
+          
+          setTicketsWithRelationships(ticketsWithRels);
+        } catch (error) {
+          console.error('Error checking batch relationships:', error);
+          // Fallback para verificação individual apenas se necessário
+        }
       };
       
       checkAllTicketRelationships();
-    } else {
-      console.log(`⚠️ No tickets to check relationships for`);
     }
   }, [tickets]);
 
@@ -591,13 +587,15 @@ export default function TicketsTable() {
     .filter((col: any) => col.visible)
     .sort((a: any, b: any) => a.order - b.order);
 
-  // Componente de célula otimizado com React.memo
+  // Componente de célula otimizado com React.memo e useMemo
   const TableCellComponent = memo(({ column, ticket }: { column: any, ticket: Ticket }) => {
-    const cellStyle = {
+    const cellStyle = useMemo(() => ({
       width: getColumnWidth(column.id),
       minWidth: getColumnWidth(column.id),
       maxWidth: getColumnWidth(column.id)
-    };
+    }), [column.id, columnWidths]);
+
+    const memoizedCellContent = useMemo(() => {
 
     switch (column.id) {
       case 'number':
@@ -833,6 +831,9 @@ export default function TicketsTable() {
     <TableCellComponent key={key || `${ticket.id}-${column.id}`} column={column} ticket={ticket} />
   ), []);
 
+  // Otimizar comparação do TableCellComponent
+  TableCellComponent.displayName = 'TableCellComponent';
+
   // Mutations para gerenciar visualizações
   const createViewMutation = useMutation({
     mutationFn: async (viewData: any) => {
@@ -999,18 +1000,29 @@ export default function TicketsTable() {
 
     const startX = e.pageX;
     const startWidth = getColumnWidth(columnId);
+    let rafId: number;
 
     const handleMouseMove = (e: MouseEvent) => {
-      const newWidth = Math.max(80, startWidth + (e.pageX - startX)); // largura mínima de 80px
-      setColumnWidths(prev=> ({
-        ...prev,
-        [columnId]: newWidth
-      }));
+      if (rafId) cancelAnimationFrame(rafId);
+      
+      rafId = requestAnimationFrame(() => {
+        const newWidth = Math.max(80, startWidth + (e.pageX - startX));
+        setColumnWidths(prev => ({
+          ...prev,
+          [columnId]: newWidth
+        }));
+      });
     };
 
     const handleMouseUp = () => {
       setIsResizing(false);
       setResizingColumn(null);
+      if (rafId) cancelAnimationFrame(rafId);
+      
+      // Salvar no localStorage apenas no final
+      const finalWidth = getColumnWidth(columnId);
+      localStorage.setItem(`column-width-${columnId}`, finalWidth.toString());
+      
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
@@ -1621,8 +1633,23 @@ export default function TicketsTable() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <div className="h-8 bg-gray-200 rounded w-48 animate-pulse"></div>
-        <div className="h-64 bg-gray-200 rounded animate-pulse"></div>
+        <div className="flex items-center space-x-4 p-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+          <div className="space-y-2">
+            <div className="text-lg font-semibold">Carregando tickets...</div>
+            <div className="text-sm text-gray-500">
+              {isFieldColorsLoading ? "Carregando configurações..." : "Verificando relacionamentos..."}
+            </div>
+          </div>
+        </div>
+        <div className="space-y-3">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="h-16 bg-gray-200 rounded animate-pulse"></div>
+          ))}
+        </div>
+        <div className="text-center text-sm text-gray-500">
+          Carregando {tickets.length > 0 ? tickets.length : '...'} tickets
+        </div>
       </div>
     );
   }
@@ -1794,18 +1821,27 @@ export default function TicketsTable() {
                     <TableRow>
                       <TableCell className="w-10">
                         <div className="flex items-center">
-                          {/* Botão de expansão só aparece quando há vínculos */}
+                          {/* Indicador visual melhorado para tickets com vínculos */}
                           {ticketsWithRelationships.has(ticket.id) && (
                             <>
-                              <div className="mr-1">
-                                <Link2 className="h-3 w-3 text-blue-500" title="Possui vínculos" />
+                              <div className="mr-1 relative">
+                                <div className="animate-pulse bg-blue-100 rounded-full p-1">
+                                  <Link2 className="h-3 w-3 text-blue-600" title="Possui vínculos" />
+                                </div>
+                                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-3 w-3 flex items-center justify-center">
+                                  {ticketRelationships[ticket.id]?.length || '•'}
+                                </span>
                               </div>
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="h-6 w-6 p-0"
+                                className={`h-6 w-6 p-0 transition-all duration-200 ${
+                                  expandedTickets.has(ticket.id) 
+                                    ? 'bg-blue-100 text-blue-600' 
+                                    : 'hover:bg-gray-100'
+                                }`}
                                 onClick={() => toggleTicketExpansion(ticket.id)}
-                                title="Ver tickets vinculados"
+                                title={expandedTickets.has(ticket.id) ? "Recolher vínculos" : "Expandir vínculos"}
                               >
                                 {expandedTickets.has(ticket.id) ? (
                                   <ChevronUp className="h-4 w-4" />
