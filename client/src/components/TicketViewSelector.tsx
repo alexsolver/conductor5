@@ -100,7 +100,7 @@ export function TicketViewSelector({ currentViewId, onViewChange }: TicketViewSe
       <div className="flex items-center gap-2">
         <Dialog open={isNewViewModalOpen} onOpenChange={setIsNewViewModalOpen}>
           <DialogTrigger asChild>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={() => setIsNewViewModalOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
               Nova Visualização
             </Button>
@@ -135,7 +135,7 @@ export function TicketViewSelector({ currentViewId, onViewChange }: TicketViewSe
 
         <Dialog open={isManageViewsOpen} onOpenChange={setIsManageViewsOpen}>
           <DialogTrigger asChild>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={() => setIsManageViewsOpen(true)}>
               <Settings className="h-4 w-4 mr-2" />
               Gerenciar
             </Button>

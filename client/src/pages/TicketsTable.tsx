@@ -315,13 +315,23 @@ export default function TicketsTable() {
           const response = await apiRequest("GET", `/api/tickets/${ticket.id}/relationships`);
           const data = await response.json();
           
-          if (data.success && data.data && data.data.length > 0) {
+          console.log(`🔍 Checking ticket ${ticket.number} (${ticket.id}):`, data);
+          
+          if (data && Array.isArray(data) && data.length > 0) {
+            console.log(`✅ Found ${data.length} relationships for ticket ${ticket.number}`);
             ticketsWithRel.add(ticket.id);
+          } else if (data.success && data.data && Array.isArray(data.data) && data.data.length > 0) {
+            console.log(`✅ Found ${data.data.length} relationships for ticket ${ticket.number}`);
+            ticketsWithRel.add(ticket.id);
+          } else {
+            console.log(`❌ No relationships for ticket ${ticket.number}`);
           }
         } catch (error) {
-          // Silently continue - this is just for UI enhancement
+          console.error(`Error checking relationships for ticket ${ticket.number}:`, error);
         }
       }
+      
+      console.log(`🎯 Total tickets with relationships: ${ticketsWithRel.size}`, Array.from(ticketsWithRel));
       
       setTicketsWithRelationships(ticketsWithRel);
     };
@@ -341,7 +351,7 @@ export default function TicketsTable() {
   const handleColumnResize = useCallback((columnKey: string, newWidth: number) => {
     setColumnWidths(prev => ({
       ...prev,
-      [columnKey]: Math.max(80, newWidth) // Minimum width of 80px
+      [columnKey as keyof typeof prev]: Math.max(80, newWidth) // Minimum width of 80px
     }));
   }, []);
 
@@ -351,7 +361,7 @@ export default function TicketsTable() {
     setResizingColumn(columnKey);
     
     const startX = e.clientX;
-    const startWidth = columnWidths[columnKey];
+    const startWidth = columnWidths[columnKey as keyof typeof columnWidths];
     
     const handleMouseMove = (moveEvent: MouseEvent) => {
       const diff = moveEvent.clientX - startX;
@@ -720,8 +730,7 @@ export default function TicketsTable() {
       <TicketLinkingModal
         isOpen={isLinkModalOpen}
         onClose={handleModalClose}
-        ticketId={selectedTicket?.id}
-        ticketNumber={selectedTicket?.number}
+        currentTicket={selectedTicket || { id: '', subject: '', status: '', priority: '', number: '' }}
       />
     </div>
   );
