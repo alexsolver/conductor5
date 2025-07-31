@@ -119,41 +119,45 @@ router.get('/:id/hierarchy', async (req: AuthenticatedRequest, res) => {
 
 export default router;
 // Batch relationships endpoint to prevent N+1 queries
-router.post('/batch-relationships', authenticateToken, async (req, res) => {
+router.post('/batch-relationships', async (req: AuthenticatedRequest, res) => {
   try {
+    const tenantId = req.user?.tenantId;
     const { ticketIds } = req.body;
     
+    if (!tenantId) {
+      return sendError(res as any, "Tenant ID is required", "Tenant ID is required", 400);
+    }
+    
     if (!Array.isArray(ticketIds) || ticketIds.length === 0) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'ticketIds array is required' 
+      return sendError(res as any, "ticketIds array is required", "ticketIds array is required", 400);
+    }
+
+    const storage = await getStorage();
+    const relationshipsMap: Record<string, any[]> = {};
+    
+    // Process in batches to avoid overwhelming the system
+    const batchSize = 10;
+    for (let i = 0; i < ticketIds.length; i += batchSize) {
+      const batch = ticketIds.slice(i, i + batchSize);
+      const promises = batch.map(async (ticketId: string) => {
+        try {
+          const relationships = await storage.getTicketRelationships(tenantId, ticketId);
+          return { ticketId, relationships };
+        } catch (error) {
+          logError('Error fetching relationships for ticket', error as any, { tenantId, ticketId });
+          return { ticketId, relationships: [] };
+        }
+      });
+      
+      const batchResults = await Promise.all(promises);
+      batchResults.forEach(({ ticketId, relationships }) => {
+        relationshipsMap[ticketId] = relationships;
       });
     }
 
-    // Single query for all relationships
-    const relationships = await db
-      .select()
-      .from(ticketRelationships)
-      .where(inArray(ticketRelationships.sourceTicketId, ticketIds))
-      .leftJoin(tickets, eq(ticketRelationships.targetTicketId, tickets.id));
-
-    // Group by source ticket
-    const grouped = relationships.reduce((acc, rel) => {
-      const sourceId = rel.ticket_relationships.sourceTicketId;
-      if (!acc[sourceId]) acc[sourceId] = [];
-      acc[sourceId].push(rel);
-      return acc;
-    }, {});
-
-    res.json({
-      success: true,
-      relationships: grouped
-    });
+    return sendSuccess(res as any, relationshipsMap, "Batch relationships retrieved successfully");
   } catch (error) {
-    console.error('Batch relationships error:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Failed to load relationships' 
-    });
+    logError('Batch relationships error', error as any, { tenantId: req.user?.tenantId });
+    return sendError(res as any, error as any, "Failed to load batch relationships", 500);
   }
 });
