@@ -77,6 +77,11 @@ export function DynamicBadge(props: DynamicBadgeProps) {
   const cleanProps = filterDOMProps(restProps, ['fieldName', 'value']);
   let dynamicClasses = '';
 
+  // Debug logging para identificar badges sem cores
+  if (fieldName && value && !colorHex) {
+    console.log(`🎨 Badge sem cor definida: ${fieldName}=${value}`);
+  }
+
   // Prioridade: colorHex > bgColor > variant padrão
   if (colorHex) {
     dynamicClasses = getContrastClassFromHex(colorHex);

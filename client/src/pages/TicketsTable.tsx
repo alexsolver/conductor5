@@ -212,14 +212,14 @@ export default function TicketsTable() {
   const [activeTicketTab, setActiveTicketTab] = useState("informacoes");
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>("");
   const [filteredCustomers, setFilteredCustomers] = useState<any[]>([]);
-  
+
   // Estados para expansão de relacionamentos
   const [expandedTickets, setExpandedTickets] = useState<Set<string>>(new Set());
   const [ticketRelationships, setTicketRelationships] = useState<Record<string, any[]>>({});
   const [ticketsWithRelationships, setTicketsWithRelationships] = useState<Set<string>>(new Set());
 
   // Hook para buscar cores dos campos personalizados
-  const { getFieldColor, getFieldLabel, isLoading: isFieldColorsLoading } = useFieldColors();
+  const { getFieldColor, getFieldLabel, isLoading: isFieldColorsLoading, isColorsReady } = useFieldColors();
 
   // Mapeamento de valores em inglês para português para compatibilidade com configurações
   const statusMapping: Record<string, string> = {
@@ -355,7 +355,7 @@ export default function TicketsTable() {
     try {
       const response = await apiRequest("GET", `/api/ticket-relationships/${ticketId}/relationships`);
       const data = await response.json();
-      
+
       if (data.success) {
         // Transform the data to match the expected format
         const transformedRelationships = data.data.map((relationship: any) => ({
@@ -368,7 +368,7 @@ export default function TicketsTable() {
           description: relationship.description || '',
           createdAt: relationship.createdAt
         }));
-        
+
         setTicketRelationships(prev => ({
           ...prev,
           [ticketId]: transformedRelationships
@@ -378,7 +378,7 @@ export default function TicketsTable() {
         if (transformedRelationships.length > 0) {
           setTicketsWithRelationships(prev => new Set([...prev, ticketId]));
         }
-        
+
         return transformedRelationships;
       }
     } catch (error) {
@@ -390,7 +390,7 @@ export default function TicketsTable() {
   // Função para alternar expansão de ticket
   const toggleTicketExpansion = async (ticketId: string) => {
     const newExpanded = new Set(expandedTickets);
-    
+
     if (expandedTickets.has(ticketId)) {
       newExpanded.delete(ticketId);
     } else {
@@ -400,7 +400,7 @@ export default function TicketsTable() {
         await fetchTicketRelationships(ticketId);
       }
     }
-    
+
     setExpandedTickets(newExpanded);
   };
 
@@ -505,15 +505,15 @@ export default function TicketsTable() {
     try {
       const response = await apiRequest('GET', `/api/tickets/${ticketId}/relationships`);
       const data = await response.json();
-      
+
       // A API pode retornar {success: true, data: [...]} ou {relationships: [...]}
       let relationships = data.relationships || data.data || [];
-      
+
       // Se data é um array diretamente
       if (Array.isArray(data)) {
         relationships = data;
       }
-      
+
       const hasRelationships = relationships && relationships.length > 0;
       console.log(`🔗 Ticket ${ticketId} relationships:`, {
         hasRelationships,
@@ -521,7 +521,7 @@ export default function TicketsTable() {
         rawResponse: data,
         relationships: relationships
       });
-      
+
       // Log especial para tickets que sabemos que deveriam ter relacionamentos
       if (ticketId === '6fdae7d3-67cd-49f3-99d1-8ddd3efcb653') {
         console.log(`🚨 IMPORTANTE: Ticket T-1753756629339-G5WE deveria ter relacionamentos:`, {
@@ -534,7 +534,7 @@ export default function TicketsTable() {
           relationshipsLength: relationships?.length
         });
       }
-      
+
       return hasRelationships;
     } catch (error) {
       console.error('Error checking ticket relationships:', error);
@@ -549,7 +549,7 @@ export default function TicketsTable() {
       const checkAllTicketRelationships = async () => {
         console.log(`🔍 Starting relationship check for ${tickets.length} tickets`);
         const ticketsWithRels = new Set<string>();
-        
+
         // Verificar relacionamentos para cada ticket de forma otimizada
         const relationshipChecks = tickets.map(async (ticket: any) => {
           console.log(`🔗 Checking relationships for ticket: ${ticket.id} (${(ticket as any).number})`);
@@ -561,13 +561,13 @@ export default function TicketsTable() {
             console.log(`❌ Ticket ${ticket.id} has NO relationships`);
           }
         });
-        
+
         await Promise.all(relationshipChecks);
         console.log(`🎯 Final tickets with relationships:`, Array.from(ticketsWithRels));
         console.log(`🎯 Total tickets checked: ${tickets.length}, with relationships: ${ticketsWithRels.size}`);
         setTicketsWithRelationships(ticketsWithRels);
       };
-      
+
       checkAllTicketRelationships();
     } else {
       console.log(`⚠️ No tickets to check relationships for`);
@@ -814,7 +814,7 @@ export default function TicketsTable() {
             {(ticket as any).satisfaction ? `${(ticket as any).satisfaction}/5` : '-'}
           </TableCell>
         );
-    
+
       default:
         return (
           <TableCell className="overflow-hidden" style={cellStyle}>
@@ -1614,7 +1614,7 @@ export default function TicketsTable() {
     </Form>
   );
 
-  if (isLoading) {
+  if (isLoading || isFieldColorsLoading || !isColorsReady) {
     return (
       <div className="space-y-6">
         <div className="h-8 bg-gray-200 rounded w-48 animate-pulse"></div>
@@ -1840,7 +1840,7 @@ export default function TicketsTable() {
                         </DropdownMenu>
                       </TableCell>
                     </TableRow>
-                    
+
                     {/* Linha expandida para relacionamentos */}
                     {expandedTickets.has(ticket.id) && (
                       <TableRow>

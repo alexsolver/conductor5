@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
 
 interface FieldOption {
   field_name: string;
@@ -17,7 +18,9 @@ interface FieldColorsResponse {
 const colorsCache = new Map<string, Record<string, string>>();
 
 export const useFieldColors = () => {
-  const { data: fieldOptionsData, isLoading, error } = useQuery<FieldColorsResponse>({
+  const [isColorsReady, setIsColorsReady] = useState(false);
+  
+  const { data: fieldOptionsData, isLoading, error, isFetched } = useQuery<FieldColorsResponse>({
     queryKey: ['fieldColors'],
     queryFn: async () => {
       const token = localStorage.getItem('accessToken');
@@ -39,7 +42,17 @@ export const useFieldColors = () => {
       return response.json();
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 3,
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
+
+  // Marcar cores como prontas quando os dados chegarem
+  useEffect(() => {
+    if (fieldOptionsData?.data && !isLoading && isFetched) {
+      setIsColorsReady(true);
+      console.log('🎨 Field colors loaded and ready:', fieldOptionsData.data.length, 'options');
+    }
+  }, [fieldOptionsData, isLoading, isFetched]);
 
   // Função para buscar cor de um campo específico
   const getFieldColor = (fieldName: string, value: string): string | undefined => {
@@ -87,7 +100,8 @@ export const useFieldColors = () => {
     getFieldColor,
     getFieldLabel,
     getFieldColorMap,
-    isLoading,
+    isLoading: isLoading || !isColorsReady,
+    isColorsReady,
     fieldOptions: fieldOptionsData?.data || [],
     error
   };
