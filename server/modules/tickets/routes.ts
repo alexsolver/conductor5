@@ -521,30 +521,30 @@ ticketsRouter.get('/:id/actions', jwtAuth, trackInternalActionView, async (req: 
 
     const query = `
       SELECT 
-        tact.id,
-        tact.action_type as type,
-        tact.description as content,
-        tact.description,
+        th.id,
+        th.action_type as type,
+        th.description as content,
+        th.description,
         'active' as status,
-        COALESCE(tact.estimated_time_minutes, 0) as time_spent,
-        tact.created_at as start_time,
-        tact.updated_at as end_time,
+        0 as time_spent,
+        th.created_at as start_time,
+        th.created_at as end_time,
         '[]'::text as linked_items,
         false as has_file,
         'system' as contact_method,
         '' as vendor,
         true as is_public,
-        tact.created_at,
-        tact.performed_by as created_by,
+        th.created_at,
+        th.performed_by as created_by,
         u.first_name || ' ' || u.last_name as agent_name,
         u.first_name || ' ' || u.last_name as "createdByName"
-      FROM "${schemaName}".ticket_actions tact
-      LEFT JOIN public.users u ON tact.performed_by = u.id
-      WHERE tact.tenant_id = $2::uuid AND tact.active = true
-      ORDER BY tact.created_at DESC
+      FROM "${schemaName}".ticket_history th
+      LEFT JOIN public.users u ON th.performed_by = u.id
+      WHERE th.tenant_id = $1::uuid AND th.ticket_id = $2::uuid
+      ORDER BY th.created_at DESC
     `;
 
-    const result = await pool.query(query, [id, tenantId]);
+    const result = await pool.query(query, [tenantId, id]);
 
     res.json({
       success: true,
@@ -1170,10 +1170,9 @@ ticketsRouter.delete('/relationships/:relationshipId', jwtAuth, async (req: Auth
     const { pool } = await import('../../db');
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-    // Soft delete the relationship
+    // Delete the relationship (hard delete since no is_active column)
     const result = await pool.query(
-      `UPDATE "${schemaName}".ticket_relationships 
-       SET is_active = false, updated_at = NOW() 
+      `DELETE FROM "${schemaName}".ticket_relationships 
        WHERE id = $1 AND tenant_id = $2`,
       [relationshipId, tenantId]
     );
