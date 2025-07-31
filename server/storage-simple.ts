@@ -466,7 +466,7 @@ export class DatabaseStorage implements IStorage {
       const companyId = ticketData.customer_company_id || '00000000-0000-0000-0000-000000000001'; // Default company
       
       // Generate ticket number using configuration
-      const { ticketNumberGenerator } = await import('../utils/ticketNumberGenerator');
+      const { ticketNumberGenerator } = await import('./utils/ticketNumberGenerator');
       const ticketNumber = await ticketNumberGenerator.generateTicketNumber(validatedTenantId, companyId);
       
       console.log('🎯 Generated ticket number:', ticketNumber, { companyId, tenantId: validatedTenantId });
