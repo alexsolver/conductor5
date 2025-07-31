@@ -160,7 +160,7 @@ export const newTicketModalSchema = z.object({
   // Empresa (obrigatório)
   companyId: z.string().uuid("Empresa é obrigatória").min(1, "Empresa é obrigatória"),
   // Cliente (obrigatório)
-  customerId: z.string().uuid("Cliente é obrigatório").min(1, "Cliente é obrigatório"),
+  customerId: z.string().uuid("Cliente é obrigatório").min(1, "Cliente é obrigatória"),
   // Favorecido (opcional)
   beneficiaryId: z.string().uuid("ID do favorecido deve ser um UUID válido").optional(),
   // Título do Ticket (obrigatório)

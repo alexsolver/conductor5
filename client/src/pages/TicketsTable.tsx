@@ -565,20 +565,25 @@ export default function TicketsTable() {
     }
   };
 
-  // Inicializar indicadores de relacionamentos - OTIMIZADO
+  // Inicializar indicadores de relacionamentos - OTIMIZADO com cache
   useEffect(() => {
     if (tickets.length > 0) {
-      // Usar API batch para buscar todos relacionamentos de uma vez
       const checkAllTicketRelationships = async () => {
         try {
           const ticketIds = tickets.map((ticket: any) => ticket.id);
-          console.log('🔍 Calling batch-relationships API with tickets:', ticketIds.slice(0, 3), '... total:', ticketIds.length);
+          
+          // Cache key baseado nos IDs dos tickets
+          const cacheKey = `relationships_${ticketIds.sort().join('_')}`;
+          const cached = sessionStorage.getItem(cacheKey);
+          
+          if (cached) {
+            const cachedData = JSON.parse(cached);
+            setTicketsWithRelationships(new Set(cachedData));
+            return;
+          }
 
           const response = await apiRequest('POST', '/api/tickets/batch-relationships', { ticketIds });
-          console.log('🔍 Batch API Response status:', response.status);
-
           const data = await response.json();
-          console.log('🔍 Batch API Response data:', data);
 
           const ticketsWithRels = new Set<string>();
           if (data.success && data.data) {
@@ -589,21 +594,12 @@ export default function TicketsTable() {
             });
           }
 
+          // Cache por 5 minutos
+          sessionStorage.setItem(cacheKey, JSON.stringify(Array.from(ticketsWithRels)));
           setTicketsWithRelationships(ticketsWithRels);
         } catch (error) {
           console.error('Error checking batch relationships:', error);
-          // Fallback para verificação individual apenas se necessário
-
-          // 🔧 TEMPORÁRIO: Forçar tickets com relacionamentos conhecidos para teste
-          const knownTicketsWithRelationships = ['e58325c6-f124-4dcc-be5c-02e6cd70fcfe'];
-          const testSet = new Set<string>();
-          knownTicketsWithRelationships.forEach(id => {
-            if (tickets.some((t: any) => t.id === id)) {
-              testSet.add(id);
-            }
-          });
-          setTicketsWithRelationships(testSet);
-          console.log('🔧 TESTE: Forçando tickets conhecidos com relacionamentos:', Array.from(testSet));
+          setTicketsWithRelationships(new Set());
         }
       };
 
@@ -874,8 +870,21 @@ export default function TicketsTable() {
     <TableCellComponent key={key || `${ticket.id}-${column.id}`} column={column} ticket={ticket} />
   ), []);
 
-  // Otimizar comparação do TableCellComponent
+  // Otimizar comparação do TableCellComponent com comparação personalizada
   TableCellComponent.displayName = 'TableCellComponent';
+  
+  // Função de comparação personalizada para evitar re-renders desnecessários
+  const areEqual = (prevProps: any, nextProps: any) => {
+    return (
+      prevProps.column.id === nextProps.column.id &&
+      prevProps.ticket.id === nextProps.ticket.id &&
+      prevProps.ticket.updatedAt === nextProps.ticket.updatedAt &&
+      prevProps.ticket.status === nextProps.ticket.status &&
+      prevProps.ticket.priority === nextProps.ticket.priority
+    );
+  };
+  
+  const OptimizedTableCell = memo(TableCellComponent, areEqual);
 
   // Mutations para gerenciar visualizações
   const createViewMutation = useMutation({
@@ -1044,6 +1053,7 @@ export default function TicketsTable() {
     const startX = e.pageX;
     const startWidth = getColumnWidth(columnId);
     let rafId: number;
+    let debounceTimeout: NodeJS.Timeout;
 
     const handleMouseMove = (e: MouseEvent) => {
       if (rafId) cancelAnimationFrame(rafId);
@@ -1054,6 +1064,12 @@ export default function TicketsTable() {
           ...prev,
           [columnId]: newWidth
         }));
+
+        // Debounce para salvar no localStorage
+        clearTimeout(debounceTimeout);
+        debounceTimeout = setTimeout(() => {
+          localStorage.setItem(`column-width-${columnId}`, newWidth.toString());
+        }, 300);
       });
     };
 
@@ -1676,22 +1692,48 @@ export default function TicketsTable() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <div className="flex items-center space-x-4 p-4">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+        <div className="flex items-center space-x-4 p-6 bg-white rounded-lg shadow-sm border">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-purple-600"></div>
           <div className="space-y-2">
-            <div className="text-lg font-semibold">Carregando tickets...</div>
-            <div className="text-sm text-gray-500">
-              {isFieldColorsLoading ? "Carregando configurações..." : "Verificando relacionamentos..."}
+            <div className="text-lg font-semibold text-gray-800">Carregando Sistema de Tickets</div>
+            <div className="text-sm text-gray-600">
+              {isFieldColorsLoading 
+                ? "⚙️ Carregando configurações de campos personalizados..." 
+                : "🔗 Verificando relacionamentos entre tickets..."
+              }
+            </div>
+            <div className="text-xs text-gray-500">
+              Processando dados em tempo real...
             </div>
           </div>
         </div>
+
+        {/* Progress skeleton melhorado */}
         <div className="space-y-3">
-          {[...Array(5)].map((_, i) => (
-            <div key={i} className="h-16 bg-gray-200 rounded animate-pulse"></div>
+          {[...Array(8)].map((_, i) => (
+            <div key={i} className="bg-white p-4 rounded-lg shadow-sm border animate-pulse">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <div className="h-4 w-20 bg-gray-200 rounded"></div>
+                  <div className="h-4 w-40 bg-gray-200 rounded"></div>
+                  <div className="h-6 w-16 bg-gray-200 rounded-full"></div>
+                </div>
+                <div className="h-4 w-24 bg-gray-200 rounded"></div>
+              </div>
+            </div>
           ))}
         </div>
-        <div className="text-center text-sm text-gray-500">
-          Carregando {tickets.length > 0 ? tickets.length : '...'} tickets
+
+        <div className="text-center p-4 bg-blue-50 rounded-lg">
+          <div className="text-sm text-blue-700 font-medium">
+            {tickets.length > 0 
+              ? `Processando ${tickets.length} tickets encontrados...`
+              : "Conectando com o servidor..."
+            }
+          </div>
+          <div className="text-xs text-blue-600 mt-1">
+            Primeira carga pode levar alguns segundos
+          </div>
         </div>
       </div>
     );
