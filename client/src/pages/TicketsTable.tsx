@@ -117,42 +117,38 @@ const TicketsTable = () => {
     }
   }, [relationshipsData]);
 
-  // Status mapping from backend to frontend
-  const mapStatusToFrontend = (status: string): string => {
-    const statusMap: Record<string, string> = {
-      'new': 'novo',
-      'open': 'aberto', 
-      'in_progress': 'em_andamento',
-      'resolved': 'resolvido',
-      'closed': 'fechado'
+  // Status mapping - keep backend values (English) for consistency
+  const mapStatusDisplay = (status: string): string => {
+    const statusDisplayMap: Record<string, string> = {
+      'new': 'Novo',
+      'open': 'Aberto', 
+      'in_progress': 'Em Andamento',
+      'pending': 'Pendente',
+      'resolved': 'Resolvido',
+      'closed': 'Fechado',
+      'cancelled': 'Cancelado'
     };
-    return statusMap[status] || status;
+    return statusDisplayMap[status] || status;
   };
 
-  // Priority mapping from backend to frontend
-  const mapPriorityToFrontend = (priority: string): string => {
-    const priorityMap: Record<string, string> = {
-      'low': 'baixa',
-      'medium': 'media',
-      'high': 'alta',
-      'critical': 'critica',
-      'urgent': 'critica'
+  // Priority mapping - keep backend values (English) for consistency
+  const mapPriorityDisplay = (priority: string): string => {
+    const priorityDisplayMap: Record<string, string> = {
+      'low': 'Baixa',
+      'medium': 'Média',
+      'high': 'Alta',
+      'critical': 'Crítica',
+      'urgent': 'Urgente'
     };
-    return priorityMap[priority] || priority;
+    return priorityDisplayMap[priority] || priority;
   };
 
-  // Memoized filtered tickets for performance with mapped status/priority
+  // Memoized filtered tickets for performance - keep raw backend values
   const filteredTickets = useMemo(() => {
-    const mappedTickets = tickets.map((ticket: Ticket) => ({
-      ...ticket,
-      status: mapStatusToFrontend(ticket.status),
-      priority: mapPriorityToFrontend(ticket.priority)
-    }));
-
-    if (!searchTerm) return mappedTickets;
+    if (!searchTerm) return tickets;
 
     const term = searchTerm.toLowerCase();
-    return mappedTickets.filter((ticket: Ticket) =>
+    return tickets.filter((ticket: Ticket) =>
       ticket.subject?.toLowerCase().includes(term) ||
       ticket.number?.toLowerCase().includes(term) ||
       ticket.status?.toLowerCase().includes(term) ||
@@ -171,26 +167,29 @@ const TicketsTable = () => {
     []
   );
 
-  // Priority color mapping with memoization
+  // Priority color mapping with memoization - using English keys
   const getPriorityColor = useMemo(() => {
     const colorMap: Record<string, string> = {
-      'critica': 'bg-red-100 text-red-800 border-red-200',
-      'alta': 'bg-orange-100 text-orange-800 border-orange-200',
-      'media': 'bg-yellow-100 text-yellow-800 border-yellow-200',
-      'baixa': 'bg-green-100 text-green-800 border-green-200'
+      'critical': 'bg-red-100 text-red-800 border-red-200',
+      'urgent': 'bg-red-100 text-red-800 border-red-200',
+      'high': 'bg-orange-100 text-orange-800 border-orange-200',
+      'medium': 'bg-yellow-100 text-yellow-800 border-yellow-200',
+      'low': 'bg-green-100 text-green-800 border-green-200'
     };
 
     return (priority: string) => colorMap[priority?.toLowerCase()] || 'bg-gray-100 text-gray-800 border-gray-200';
   }, []);
 
-  // Status color mapping with memoization
+  // Status color mapping with memoization - using English keys
   const getStatusColor = useMemo(() => {
     const colorMap: Record<string, string> = {
-      'novo': 'bg-blue-100 text-blue-800 border-blue-200',
-      'aberto': 'bg-green-100 text-green-800 border-green-200',
-      'em_andamento': 'bg-yellow-100 text-yellow-800 border-yellow-200',
-      'resolvido': 'bg-purple-100 text-purple-800 border-purple-200',
-      'fechado': 'bg-gray-100 text-gray-800 border-gray-200'
+      'new': 'bg-blue-100 text-blue-800 border-blue-200',
+      'open': 'bg-green-100 text-green-800 border-green-200',
+      'in_progress': 'bg-yellow-100 text-yellow-800 border-yellow-200',
+      'pending': 'bg-orange-100 text-orange-800 border-orange-200',
+      'resolved': 'bg-purple-100 text-purple-800 border-purple-200',
+      'closed': 'bg-gray-100 text-gray-800 border-gray-200',
+      'cancelled': 'bg-red-100 text-red-800 border-red-200'
     };
 
     return (status: string) => colorMap[status?.toLowerCase()] || 'bg-gray-100 text-gray-800 border-gray-200';
@@ -308,12 +307,12 @@ const TicketsTable = () => {
                   <TableCell className="max-w-xs truncate">{ticket.subject}</TableCell>
                   <TableCell>
                     <Badge className={getStatusColor(ticket.status)}>
-                      {ticket.status}
+                      {mapStatusDisplay(ticket.status)}
                     </Badge>
                   </TableCell>
                   <TableCell>
                     <Badge className={getPriorityColor(ticket.priority)}>
-                      {ticket.priority}
+                      {mapPriorityDisplay(ticket.priority)}
                     </Badge>
                   </TableCell>
                   <TableCell>
