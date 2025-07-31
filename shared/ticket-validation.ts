@@ -28,23 +28,20 @@ export const ticketFormSchema = z.object({
   priority: TicketPriorityEnum.default('medium'),
   impact: TicketImpactEnum.optional(),
   urgency: TicketUrgencyEnum.optional(),
-  category: TicketCategoryEnum.optional(),
+  category: z.string().refine(val => !val || TicketCategoryEnum.safeParse(val).success, "Categoria inválida").optional(),
   
   // Subcategoria dependente da categoria
   subcategory: z.string().max(100).optional(),
   
-  // Campos de pessoa com validação UUID
-  callerId: z.string().uuid("ID do solicitante deve ser um UUID válido").optional(),
+  // Campos de pessoa com validação UUID (aceita string vazia)
+  callerId: z.string().refine(val => !val || z.string().uuid().safeParse(val).success, "ID do solicitante deve ser um UUID válido").optional(),
   callerType: CallerTypeEnum.default('customer'),
-  beneficiaryId: z.string().uuid("ID do beneficiário deve ser um UUID válido").optional(),
+  beneficiaryId: z.string().refine(val => !val || z.string().uuid().safeParse(val).success, "ID do beneficiário deve ser um UUID válido").optional(),
   beneficiaryType: CallerTypeEnum.default('customer'),
-  assignedToId: z.string().uuid("ID do responsável deve ser um UUID válido").optional(),
+  assignedToId: z.string().refine(val => !val || z.string().uuid().safeParse(val).success, "ID do responsável deve ser um UUID válido").optional(),
   
-  // Campo de localização (pode ser UUID ou texto)
-  location: z.union([
-    z.string().uuid("Localização deve ser um UUID válido"),
-    z.literal("unspecified")
-  ]).optional(),
+  // Campo de localização (aceita string vazia)
+  location: z.string().refine(val => !val || z.string().uuid().safeParse(val).success, "Localização deve ser um UUID válido").optional(),
   
   // Grupo de atribuição
   assignmentGroup: z.string().max(100).optional(),
@@ -78,14 +75,14 @@ export const ticketFormSchema = z.object({
   tags: z.array(z.string().max(50)).default([]),
   
   // Relacionamento com empresa cliente
-  customerCompanyId: z.string().uuid("ID da empresa deve ser um UUID válido").optional(),
+  customerCompanyId: z.string().refine(val => !val || z.string().uuid().safeParse(val).success, "ID da empresa deve ser um UUID válido").optional(),
   
   // Ambiente
   environment: z.string().max(100).optional(),
   
   // Campos de linking
   linkTicketNumber: z.string().max(50).optional(),
-  linkType: LinkTypeEnum.optional(),
+  linkType: z.string().refine(val => !val || LinkTypeEnum.safeParse(val).success, "Tipo de link inválido").optional(),
   linkComment: z.string().max(500).optional(),
 })
 .refine((data) => {
