@@ -17,7 +17,12 @@ interface DynamicBadgeProps {
 
 // Função para converter hex em classe CSS com bom contraste
 const getContrastClassFromHex = (hexColor: string): string => {
-  if (!hexColor || hexColor === '' || hexColor === 'undefined' || hexColor === 'null') {
+  if (!hexColor || 
+      hexColor === '' || 
+      hexColor === 'undefined' || 
+      hexColor === 'null' || 
+      hexColor === undefined ||
+      hexColor === null) {
     return 'bg-slate-600 text-white border-slate-600';
   }
 

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 
 interface FieldOption {
   field_name: string;
@@ -14,15 +14,21 @@ interface FieldColorsResponse {
   data: FieldOption[];
 }
 
-// Cache de cores para evitar múltiplas chamadas
-const colorsCache = new Map<string, Record<string, string>>();
+// Cache global de cores para evitar re-renderizações desnecessárias
+let globalColorsCache: FieldOption[] | null = null;
+let globalColorsReady = false;
 
 export const useFieldColors = () => {
-  const [isColorsReady, setIsColorsReady] = useState(false);
+  const [isColorsReady, setIsColorsReady] = useState(globalColorsReady);
   
   const { data: fieldOptionsData, isLoading, error, isFetched } = useQuery<FieldColorsResponse>({
     queryKey: ['fieldColors'],
     queryFn: async () => {
+      // Se já temos cache global, use-o
+      if (globalColorsCache && globalColorsReady) {
+        return { success: true, data: globalColorsCache };
+      }
+
       const token = localStorage.getItem('accessToken');
       if (!token) {
         throw new Error('No authentication token');
@@ -39,32 +45,64 @@ export const useFieldColors = () => {
         throw new Error(`HTTP ${response.status}`);
       }
 
-      return response.json();
+      const result = await response.json();
+      
+      // Atualizar cache global
+      if (result.success && result.data) {
+        globalColorsCache = result.data;
+        globalColorsReady = true;
+      }
+
+      return result;
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 30 * 60 * 1000, // 30 minutes - cache mais longo
     retry: 3,
     retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
+    // Usar cache global se disponível
+    initialData: globalColorsCache ? { success: true, data: globalColorsCache } : undefined,
   });
 
   // Marcar cores como prontas quando os dados chegarem
   useEffect(() => {
-    if (fieldOptionsData?.data && !isLoading && isFetched) {
-      setIsColorsReady(true);
-      console.log('🎨 Field colors loaded and ready:', fieldOptionsData.data.length, 'options');
+    if (fieldOptionsData?.data && fieldOptionsData.data.length > 0) {
+      if (!globalColorsReady) {
+        globalColorsCache = fieldOptionsData.data;
+        globalColorsReady = true;
+        console.log('🎨 Field colors loaded and cached globally:', fieldOptionsData.data.length, 'options');
+      }
+      
+      if (!isColorsReady) {
+        setIsColorsReady(true);
+        console.log('🎨 Field colors ready state updated');
+      }
     }
-  }, [fieldOptionsData, isLoading, isFetched]);
+  }, [fieldOptionsData, isColorsReady]);
+
+  // Memoizar cores para melhor performance
+  const colorsMap = useMemo(() => {
+    const map = new Map<string, string>();
+    const data = fieldOptionsData?.data || globalColorsCache || [];
+    
+    data.forEach((opt: FieldOption) => {
+      const key = `${opt.field_name}:${opt.value}`;
+      map.set(key, opt.color);
+    });
+    
+    return map;
+  }, [fieldOptionsData]);
 
   // Função para buscar cor de um campo específico
   const getFieldColor = (fieldName: string, value: string): string | undefined => {
-    if (!fieldOptionsData?.data || !value) return getDefaultColor(fieldName, value);
-
-    // Primeiro tenta encontrar exato
-    let option = fieldOptionsData.data.find(
-      (opt: FieldOption) => opt.field_name === fieldName && opt.value === value
-    );
+    if (!value) return getDefaultColor(fieldName, value);
+    
+    // Usar cache memoizado primeiro
+    const directKey = `${fieldName}:${value}`;
+    if (colorsMap.has(directKey)) {
+      return colorsMap.get(directKey);
+    }
 
     // Se não encontrar, tenta mapeamento reverso para status
-    if (!option && fieldName === 'status') {
+    if (fieldName === 'status') {
       const statusReverseMap: Record<string, string> = {
         'new': 'novo',
         'open': 'aberto',
@@ -75,13 +113,14 @@ export const useFieldColors = () => {
       };
       
       const mappedValue = statusReverseMap[value] || value;
-      option = fieldOptionsData.data.find(
-        (opt: FieldOption) => opt.field_name === fieldName && opt.value === mappedValue
-      );
+      const mappedKey = `${fieldName}:${mappedValue}`;
+      if (colorsMap.has(mappedKey)) {
+        return colorsMap.get(mappedKey);
+      }
     }
 
     // Se não encontrar, tenta mapeamento reverso para priority
-    if (!option && fieldName === 'priority') {
+    if (fieldName === 'priority') {
       const priorityReverseMap: Record<string, string> = {
         'critical': 'critical',
         'high': 'high', 
@@ -90,12 +129,13 @@ export const useFieldColors = () => {
       };
       
       const mappedValue = priorityReverseMap[value] || value;
-      option = fieldOptionsData.data.find(
-        (opt: FieldOption) => opt.field_name === fieldName && opt.value === mappedValue
-      );
+      const mappedKey = `${fieldName}:${mappedValue}`;
+      if (colorsMap.has(mappedKey)) {
+        return colorsMap.get(mappedKey);
+      }
     }
 
-    return option?.color || getDefaultColor(fieldName, value);
+    return getDefaultColor(fieldName, value);
   };
 
   // Função para cores padrão quando não encontra no banco
@@ -136,17 +176,31 @@ export const useFieldColors = () => {
     return defaultColors[fieldName]?.[value] || '#6B7280';
   };
 
+  // Memoizar labels para melhor performance
+  const labelsMap = useMemo(() => {
+    const map = new Map<string, string>();
+    const data = fieldOptionsData?.data || globalColorsCache || [];
+    
+    data.forEach((opt: FieldOption) => {
+      const key = `${opt.field_name}:${opt.value}`;
+      map.set(key, opt.label);
+    });
+    
+    return map;
+  }, [fieldOptionsData]);
+
   // Função para buscar label de um campo específico
   const getFieldLabel = (fieldName: string, value: string): string => {
-    if (!fieldOptionsData?.data || !value) return value;
-
-    // Primeiro tenta encontrar exato
-    let option = fieldOptionsData.data.find(
-      (opt: FieldOption) => opt.field_name === fieldName && opt.value === value
-    );
+    if (!value) return value;
+    
+    // Usar cache memoizado primeiro
+    const directKey = `${fieldName}:${value}`;
+    if (labelsMap.has(directKey)) {
+      return labelsMap.get(directKey) || value;
+    }
 
     // Se não encontrar, tenta mapeamento reverso para status
-    if (!option && fieldName === 'status') {
+    if (fieldName === 'status') {
       const statusReverseMap: Record<string, string> = {
         'new': 'novo',
         'open': 'aberto', 
@@ -157,13 +211,14 @@ export const useFieldColors = () => {
       };
       
       const mappedValue = statusReverseMap[value] || value;
-      option = fieldOptionsData.data.find(
-        (opt: FieldOption) => opt.field_name === fieldName && opt.value === mappedValue
-      );
+      const mappedKey = `${fieldName}:${mappedValue}`;
+      if (labelsMap.has(mappedKey)) {
+        return labelsMap.get(mappedKey) || value;
+      }
     }
 
     // Se não encontrar, tenta mapeamento reverso para priority  
-    if (!option && fieldName === 'priority') {
+    if (fieldName === 'priority') {
       const priorityReverseMap: Record<string, string> = {
         'critical': 'critical',
         'high': 'high',
@@ -172,12 +227,13 @@ export const useFieldColors = () => {
       };
       
       const mappedValue = priorityReverseMap[value] || value;
-      option = fieldOptionsData.data.find(
-        (opt: FieldOption) => opt.field_name === fieldName && opt.value === mappedValue
-      );
+      const mappedKey = `${fieldName}:${mappedValue}`;
+      if (labelsMap.has(mappedKey)) {
+        return labelsMap.get(mappedKey) || value;
+      }
     }
 
-    return option?.label || value;
+    return value;
   };
 
   // Criar mapa de cores por campo para performance
@@ -204,9 +260,9 @@ export const useFieldColors = () => {
     getFieldColor,
     getFieldLabel,
     getFieldColorMap,
-    isLoading: isLoading || !isColorsReady,
-    isColorsReady,
-    fieldOptions: fieldOptionsData?.data || [],
+    isLoading: isLoading && !globalColorsReady,
+    isColorsReady: isColorsReady || globalColorsReady,
+    fieldOptions: fieldOptionsData?.data || globalColorsCache || [],
     error
   };
 };

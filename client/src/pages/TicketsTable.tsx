@@ -263,11 +263,8 @@ export default function TicketsTable() {
     'infrastructure': 'infraestrutura'
   };
 
-  // Função helper para obter cor com fallback durante carregamento
+  // Função helper para obter cor com fallback
   const getFieldColorWithFallback = (fieldName: string, value: string): string => {
-    if (isFieldColorsLoading) {
-      return '#6b7280'; // Cor neutra (gray-500) durante carregamento
-    }
     return getFieldColor(fieldName, value) || '#6b7280';
   };
 
@@ -1613,7 +1610,7 @@ export default function TicketsTable() {
     </Form>
   );
 
-  if (isLoading || isFieldColorsLoading || !isColorsReady) {
+  if (isLoading) {
     return (
       <div className="space-y-6">
         <div className="h-8 bg-gray-200 rounded w-48 animate-pulse"></div>
