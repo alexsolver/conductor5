@@ -810,8 +810,7 @@ export default function TicketsTable() {
       case 'resolution_time':
         return (
           <TableCell>
-            {(ticket as any).<replit_final_file>
-resolutionTime || '-'}
+            {(ticket as any).resolutionTime || '-'}
           </TableCell>
         );
       case 'sla_status':
