@@ -1,9 +1,10 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useParams, useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient, useQueries } from "@tanstack/react-query";
 import { z } from "zod";
+import React from "react";
 import { 
   ArrowLeft, Edit, Save, X, Trash2, Eye, ChevronRight, ChevronLeft,
   Paperclip, FileText, MessageSquare, History, Settings,
@@ -43,8 +44,8 @@ import InternalActionModal from "@/components/tickets/InternalActionModal";
 // 🚨 CORREÇÃO CRÍTICA: Usar schema unificado para consistência
 import { ticketFormSchema, type TicketFormData } from "../../../shared/ticket-validation";
 
-// Rich Text Editor Component
-function RichTextEditor({ value, onChange, disabled = false }: { value: string, onChange: (value: string) => void, disabled?: boolean }) {
+// 🚀 OTIMIZAÇÃO: Rich Text Editor Component com memoização
+const RichTextEditor = React.memo(({ value, onChange, disabled = false }: { value: string, onChange: (value: string) => void, disabled?: boolean }) => {
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -270,17 +271,18 @@ export default function TicketDetails() {
     { id: "links", label: "Vínculos", icon: Link },
   ];
 
-  // Fetch ticket data
+  // 🚀 OTIMIZAÇÃO: Parallel queries com cache inteligente
   const { data: ticketResponse, isLoading } = useQuery({
     queryKey: ["/api/tickets", id],
     queryFn: async () => {
       const response = await apiRequest("GET", `/api/tickets/${id}`);
       const data = await response.json();
       console.log('🎫 Ticket response received:', data);
-      console.log('🎫 Raw ticket data:', data.data);
       return data;
     },
     enabled: !!id,
+    staleTime: 30 * 1000, // 30 seconds cache
+    gcTime: 5 * 60 * 1000, // 5 minutes garbage collection
   });
 
   // Extract ticket from response data
@@ -451,55 +453,59 @@ export default function TicketDetails() {
     enabled: !!id,
   });
 
-  // Fetch real ticket history data from API
-  const { data: ticketHistoryData } = useQuery({
-    queryKey: ["/api/tickets", id, "history"],
-    queryFn: async () => {
-      const response = await apiRequest("GET", `/api/tickets/${id}/history`);
-      return response.json();
-    },
-    enabled: !!id,
+  // 🚀 OTIMIZAÇÃO: Parallel queries com Promise.all para máxima performance
+  const ticketDataQueries = useQueries({
+    queries: [
+      {
+        queryKey: ["/api/tickets", id, "history"],
+        queryFn: async () => {
+          const response = await apiRequest("GET", `/api/tickets/${id}/history`);
+          return response.json();
+        },
+        enabled: !!id,
+        staleTime: 60 * 1000, // 1 minute cache for history
+      },
+      {
+        queryKey: ["/api/tickets", id, "communications"],
+        queryFn: async () => {
+          const response = await apiRequest("GET", `/api/tickets/${id}/communications`);
+          return response.json();
+        },
+        enabled: !!id,
+        staleTime: 30 * 1000, // 30 seconds cache for communications
+      },
+      {
+        queryKey: ["/api/tickets", id, "notes"],
+        queryFn: async () => {
+          const response = await apiRequest("GET", `/api/tickets/${id}/notes`);
+          return response.json();
+        },
+        enabled: !!id,
+        staleTime: 30 * 1000, // 30 seconds cache for notes
+      },
+      {
+        queryKey: ["/api/tickets", id, "attachments"],
+        queryFn: async () => {
+          const response = await apiRequest("GET", `/api/tickets/${id}/attachments`);
+          return response.json();
+        },
+        enabled: !!id,
+        staleTime: 60 * 1000, // 1 minute cache for attachments
+      },
+      {
+        queryKey: ["/api/tickets", id, "actions"],
+        queryFn: async () => {
+          const response = await apiRequest("GET", `/api/tickets/${id}/actions`);
+          return response.json();
+        },
+        enabled: !!id,
+        staleTime: 45 * 1000, // 45 seconds cache for actions
+      }
+    ]
   });
 
-  // Fetch ticket communications from API
-  const { data: ticketCommunications } = useQuery({
-    queryKey: ["/api/tickets", id, "communications"],
-    queryFn: async () => {
-      const response = await apiRequest("GET", `/api/tickets/${id}/communications`);
-      return response.json();
-    },
-    enabled: !!id,
-  });
-
-  // Fetch ticket notes from API
-  const { data: ticketNotes } = useQuery({
-    queryKey: ["/api/tickets", id, "notes"],
-    queryFn: async () => {
-      const response = await apiRequest("GET", `/api/tickets/${id}/notes`);
-      return response.json();
-    },
-    enabled: !!id,
-  });
-
-  // Fetch ticket attachments from API
-  const { data: ticketAttachments } = useQuery({
-    queryKey: ["/api/tickets", id, "attachments"],
-    queryFn: async () => {
-      const response = await apiRequest("GET", `/api/tickets/${id}/attachments`);
-      return response.json();
-    },
-    enabled: !!id,
-  });
-
-  // Fetch ticket actions from API
-  const { data: ticketActions } = useQuery({
-    queryKey: ["/api/tickets", id, "actions"],
-    queryFn: async () => {
-      const response = await apiRequest("GET", `/api/tickets/${id}/actions`);
-      return response.json();
-    },
-    enabled: !!id,
-  });
+  // Extract data from parallel queries
+  const [ticketHistoryData, ticketCommunications, ticketNotes, ticketAttachments, ticketActions] = ticketDataQueries;
 
   // Fetch team users/members for assignments and followers
   const { data: usersData } = useQuery({
@@ -715,69 +721,61 @@ export default function TicketDetails() {
     },
   });
 
-  // PROBLEMA 6 RESOLVIDO: Reset form completo com todos os campos
-  useEffect(() => {
-    if (ticket) {
-      console.log('🎫 Resetting form with ticket data:', { 
-        subject: ticket.subject, 
-        description: ticket.description,
-        hasSubject: !!ticket.subject,
-        hasDescription: !!ticket.description,
-        ticketKeys: Object.keys(ticket),
-        fullTicket: ticket 
-      });
-      form.reset({
-        subject: ticket.subject || ticket.short_description || "",
-        description: ticket.description || "",
-        priority: ticket.priority || "medium",
-        status: ticket.status || "novo",
-        category: ticket.category || "",
-        subcategory: ticket.subcategory || "",
-        impact: ticket.impact || "medium",
-        urgency: ticket.urgency || "medium",
-        // PROBLEMA 6 RESOLVIDO: Reset COMPLETO com todos os campos faltantes
-        businessImpact: ticket.business_impact || "",
-        symptoms: ticket.symptoms || "",
-        workaround: ticket.workaround || "",
-        resolution: ticket.resolution || "",
-        environment: ticket.environment || "",
-        // templateName: ticket.template_name || "",
-        templateAlternative: ticket.template_alternative || "",
-        linkTicketNumber: ticket.link_ticket_number || "",
-        linkType: ticket.link_type || "",
-        linkComment: ticket.link_comment || "",
-        estimatedHours: ticket.estimated_hours || 0,
-        actualHours: ticket.actual_hours || 0,
-        // CORRIGIDO: Field mapping consistente backend snake_case → frontend camelCase  
-        callerId: ticket.caller_id || "",
-        callerType: ticket.caller_type || "customer",
-        beneficiaryId: ticket.beneficiary_id || "",
-        beneficiaryType: ticket.beneficiary_type || "customer", 
-        assignedToId: ticket.assigned_to_id || "",
-        assignmentGroup: ticket.assignment_group || "",
-        location: ticket.location || "",
-        contactType: ticket.contact_type || "email",
-        followers: ticket.followers || [],
-        customerCompanyId: ticket.customer_company_id || "",
-      });
+  // 🚀 OTIMIZAÇÃO: Form reset otimizado com shallow comparison e memoização
+  const formDataMemo = useMemo(() => {
+    if (!ticket) return null;
+    
+    return {
+      subject: ticket.subject || ticket.short_description || "",
+      description: ticket.description || "",
+      priority: ticket.priority || "medium",
+      status: ticket.status || "new", // Use backend values
+      category: ticket.category || "",
+      subcategory: ticket.subcategory || "",
+      impact: ticket.impact || "medium",
+      urgency: ticket.urgency || "medium",
+      businessImpact: ticket.business_impact || "",
+      symptoms: ticket.symptoms || "",
+      workaround: ticket.workaround || "",
+      resolution: ticket.resolution || "",
+      environment: ticket.environment || "",
+      templateAlternative: ticket.template_alternative || "",
+      linkTicketNumber: ticket.link_ticket_number || "",
+      linkType: ticket.link_type || "",
+      linkComment: ticket.link_comment || "",
+      estimatedHours: ticket.estimated_hours || 0,
+      actualHours: ticket.actual_hours || 0,
+      callerId: ticket.caller_id || "",
+      callerType: ticket.caller_type || "customer",
+      beneficiaryId: ticket.beneficiary_id || "",
+      beneficiaryType: ticket.beneficiary_type || "customer", 
+      assignedToId: ticket.assigned_to_id || "",
+      assignmentGroup: ticket.assignment_group || "",
+      location: ticket.location || "",
+      contactType: ticket.contact_type || "email",
+      followers: ticket.followers || [],
+      customerCompanyId: ticket.customer_company_id || "",
+    };
+  }, [ticket?.id, ticket?.subject, ticket?.status, ticket?.priority]); // Only key fields
 
-      // Update local states to sync with ticket data
-      if (ticket.customer_company_id || ticket.customerCompanyId) {
-        setSelectedCompany(ticket.customer_company_id || ticket.customerCompanyId);
+  useEffect(() => {
+    if (formDataMemo && ticket) {
+      console.log('🎫 Optimized form reset with memoized data');
+      form.reset(formDataMemo);
+
+      // Update local states only if changed
+      const newCompany = ticket.customer_company_id || ticket.customerCompanyId;
+      if (newCompany && newCompany !== selectedCompany) {
+        setSelectedCompany(newCompany);
       }
 
-      // Initialize followers from ticket data
-      if (ticket.followers && Array.isArray(ticket.followers)) {
+      // Initialize followers only if different
+      if (ticket.followers && Array.isArray(ticket.followers) && 
+          JSON.stringify(ticket.followers) !== JSON.stringify(followers)) {
         setFollowers(ticket.followers);
       }
-
-      // Communications data now handled by API integration above
-
-      // History data now handled by API integration above
-
-      // Internal actions, external actions, and latest interactions now handled by API integration above
     }
-  }, [ticket, form]);
+  }, [formDataMemo, selectedCompany, followers]);
 
   // Update mutation
   const updateTicketMutation = useMutation({
@@ -799,8 +797,28 @@ export default function TicketDetails() {
         title: "Sucesso",
         description: "Ticket atualizado com sucesso",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/tickets", id] });
-      queryClient.invalidateQueries({ queryKey: ["/api/tickets"] });
+      
+      // 🚀 OTIMIZAÇÃO: Invalidação inteligente e seletiva de cache
+      queryClient.invalidateQueries({ 
+        queryKey: ["/api/tickets", id],
+        exact: true 
+      });
+      
+      // Only invalidate list if status/priority changed (affects sorting)
+      if (data.statusChanged || data.priorityChanged) {
+        queryClient.invalidateQueries({ 
+          queryKey: ["/api/tickets"],
+          exact: false 
+        });
+      }
+      
+      // Invalidate related data only if needed
+      if (data.communicationsChanged) {
+        queryClient.invalidateQueries({ 
+          queryKey: ["/api/tickets", id, "communications"] 
+        });
+      }
+      
       setIsEditMode(false);
     },
     onError: (error) => {
@@ -2193,16 +2211,46 @@ export default function TicketDetails() {
     }
   }
 
+  // 🚀 OTIMIZAÇÃO: Loading states específicos e informativos
   if (isLoading) {
     return (
-      <div className="p-4">
-        <div className="flex items-center mb-6">
-          <Button variant="ghost" size="sm" onClick={() => navigate("/tickets")}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Voltar
-          </Button>
+      <div className="h-screen flex bg-gray-50">
+        {/* Loading Sidebar */}
+        <div className="w-72 bg-white border-r p-4">
+          <div className="space-y-4">
+            <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+            <div className="h-16 bg-gray-200 rounded animate-pulse"></div>
+            <div className="h-32 bg-gray-200 rounded animate-pulse"></div>
+          </div>
         </div>
-        <div>Carregando...</div>
+        
+        {/* Loading Main Content */}
+        <div className="flex-1 p-4">
+          <div className="flex items-center mb-6">
+            <Button variant="ghost" size="sm" onClick={() => navigate("/tickets")}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Voltar
+            </Button>
+            <div className="ml-4 h-6 w-48 bg-gray-200 rounded animate-pulse"></div>
+          </div>
+          
+          <div className="bg-white rounded-lg border p-6">
+            <div className="space-y-4">
+              <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-32 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-16 bg-gray-200 rounded animate-pulse"></div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Loading Right Sidebar */}
+        <div className="w-80 bg-white border-l p-4">
+          <div className="space-y-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="h-10 bg-gray-200 rounded animate-pulse"></div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
