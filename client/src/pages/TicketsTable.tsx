@@ -106,6 +106,17 @@ export default function TicketsTable() {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedViewId, setSelectedViewId] = useState("default");
+  const [columnWidths, setColumnWidths] = useState({
+    number: 128,
+    subject: 300,
+    status: 112,
+    priority: 128,
+    category: 144,
+    client: 200,
+    date: 128
+  });
+  const [isResizing, setIsResizing] = useState(false);
+  const [resizingColumn, setResizingColumn] = useState<string | null>(null);
   const [isAdvancedFiltersOpen, setIsAdvancedFiltersOpen] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -113,8 +124,6 @@ export default function TicketsTable() {
   const [ticketRelationships, setTicketRelationships] = useState<Record<string, any[]>>({});
   const [ticketsWithRelationships, setTicketsWithRelationships] = useState<Set<string>>(new Set());
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
-  const [columnWidths, setColumnWidths] = useState<Record<string, number>>({});
-  const [resizingColumn, setResizingColumn] = useState<string | null>(null);
   const [currentViewConfig, setCurrentViewConfig] = useState({
     showTicketNumber: true,
     showStatus: true,
@@ -328,6 +337,39 @@ export default function TicketsTable() {
     setCategoryFilter("all");
   }, []);
 
+  // Column resizing handlers
+  const handleColumnResize = useCallback((columnKey: string, newWidth: number) => {
+    setColumnWidths(prev => ({
+      ...prev,
+      [columnKey]: Math.max(80, newWidth) // Minimum width of 80px
+    }));
+  }, []);
+
+  const handleMouseDown = useCallback((e: React.MouseEvent, columnKey: string) => {
+    e.preventDefault();
+    setIsResizing(true);
+    setResizingColumn(columnKey);
+    
+    const startX = e.clientX;
+    const startWidth = columnWidths[columnKey];
+    
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const diff = moveEvent.clientX - startX;
+      const newWidth = startWidth + diff;
+      handleColumnResize(columnKey, newWidth);
+    };
+    
+    const handleMouseUp = () => {
+      setIsResizing(false);
+      setResizingColumn(null);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+    
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  }, [columnWidths, handleColumnResize]);
+
   // Filter tickets based on search and filters
   const filteredTickets = useMemo(() => {
     return enrichedTickets.filter((ticket: any) => {
@@ -479,46 +521,67 @@ export default function TicketsTable() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-32 min-w-32 max-w-48 relative group">
+                <TableHead style={{ width: columnWidths.number }} className="relative group">
                   <div className="flex items-center justify-between">
                     <span>Número</span>
-                    <div className="w-1 h-4 bg-transparent group-hover:bg-gray-300 cursor-col-resize"></div>
+                    <div 
+                      className="w-1 h-4 bg-transparent group-hover:bg-gray-300 cursor-col-resize absolute right-0 top-1/2 transform -translate-y-1/2"
+                      onMouseDown={(e) => handleMouseDown(e, 'number')}
+                    ></div>
                   </div>
                 </TableHead>
-                <TableHead className="min-w-48 relative group">
+                <TableHead style={{ width: columnWidths.subject }} className="relative group">
                   <div className="flex items-center justify-between">
                     <span>Assunto</span>
-                    <div className="w-1 h-4 bg-transparent group-hover:bg-gray-300 cursor-col-resize"></div>
+                    <div 
+                      className="w-1 h-4 bg-transparent group-hover:bg-gray-300 cursor-col-resize absolute right-0 top-1/2 transform -translate-y-1/2"
+                      onMouseDown={(e) => handleMouseDown(e, 'subject')}
+                    ></div>
                   </div>
                 </TableHead>
-                <TableHead className="w-28 min-w-28 relative group">
+                <TableHead style={{ width: columnWidths.status }} className="relative group">
                   <div className="flex items-center justify-between">
                     <span>Status</span>
-                    <div className="w-1 h-4 bg-transparent group-hover:bg-gray-300 cursor-col-resize"></div>
+                    <div 
+                      className="w-1 h-4 bg-transparent group-hover:bg-gray-300 cursor-col-resize absolute right-0 top-1/2 transform -translate-y-1/2"
+                      onMouseDown={(e) => handleMouseDown(e, 'status')}
+                    ></div>
                   </div>
                 </TableHead>
-                <TableHead className="w-32 min-w-32 relative group">
+                <TableHead style={{ width: columnWidths.priority }} className="relative group">
                   <div className="flex items-center justify-between">
                     <span>Prioridade</span>
-                    <div className="w-1 h-4 bg-transparent group-hover:bg-gray-300 cursor-col-resize"></div>
+                    <div 
+                      className="w-1 h-4 bg-transparent group-hover:bg-gray-300 cursor-col-resize absolute right-0 top-1/2 transform -translate-y-1/2"
+                      onMouseDown={(e) => handleMouseDown(e, 'priority')}
+                    ></div>
                   </div>
                 </TableHead>
-                <TableHead className="w-36 min-w-36 relative group">
+                <TableHead style={{ width: columnWidths.category }} className="relative group">
                   <div className="flex items-center justify-between">
                     <span>Categoria</span>
-                    <div className="w-1 h-4 bg-transparent group-hover:bg-gray-300 cursor-col-resize"></div>
+                    <div 
+                      className="w-1 h-4 bg-transparent group-hover:bg-gray-300 cursor-col-resize absolute right-0 top-1/2 transform -translate-y-1/2"
+                      onMouseDown={(e) => handleMouseDown(e, 'category')}
+                    ></div>
                   </div>
                 </TableHead>
-                <TableHead className="min-w-48 relative group">
+                <TableHead style={{ width: columnWidths.client }} className="relative group">
                   <div className="flex items-center justify-between">
                     <span>Cliente</span>
-                    <div className="w-1 h-4 bg-transparent group-hover:bg-gray-300 cursor-col-resize"></div>
+                    <div 
+                      className="w-1 h-4 bg-transparent group-hover:bg-gray-300 cursor-col-resize absolute right-0 top-1/2 transform -translate-y-1/2"
+                      onMouseDown={(e) => handleMouseDown(e, 'client')}
+                    ></div>
                   </div>
                 </TableHead>
-                <TableHead className="w-32 min-w-32 relative group">
+                <TableHead style={{ width: columnWidths.date }} className="relative group">
                   <div className="flex items-center justify-between">
                     <span>Criado em</span>
-                    <div className="w-1 h-4 bg-transparent group-hover:bg-gray-300 cursor-col-resize"></div>
+                    <div 
+                      className="w-1 h-4 bg-transparent group-hover:bg-gray-300 cursor-col-resize absolute right-0 top-1/2 transform -translate-y-1/2"
+                      onMouseDown={(e) => handleMouseDown(e, 'date')}
+                    ></div>
                   </div>
                 </TableHead>
                 <TableHead className="w-24 min-w-24">Ações</TableHead>

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from './ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from './ui/dialog';
 import { Input } from './ui/input';
 import { Badge } from './ui/badge';
 import { Settings, Plus, Eye, Users, Filter } from 'lucide-react';
@@ -108,6 +108,9 @@ export function TicketViewSelector({ currentViewId, onViewChange }: TicketViewSe
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Criar Nova Visualização</DialogTitle>
+              <DialogDescription>
+                Crie uma nova visualização personalizada para organizar seus tickets
+              </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div>
@@ -143,6 +146,9 @@ export function TicketViewSelector({ currentViewId, onViewChange }: TicketViewSe
                 <Settings className="h-5 w-5" />
                 Gerenciar Visualizações
               </DialogTitle>
+              <DialogDescription>
+                Edite, organize e configure suas visualizações personalizadas de tickets
+              </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               {ticketViews.length === 0 ? (
