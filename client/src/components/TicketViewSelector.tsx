@@ -2,14 +2,14 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from './ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from './ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import { Input } from './ui/input';
 import { Badge } from './ui/badge';
 import { Settings, Plus, Eye, Users, Filter } from 'lucide-react';
 
-export interface TicketViewSelectorProps {
+interface TicketViewSelectorProps {
   currentViewId?: string;
-  onViewChange?: (viewId: string) => void;
+  onViewChange: (viewId: string) => void;
 }
 
 export function TicketViewSelector({ currentViewId, onViewChange }: TicketViewSelectorProps) {
@@ -48,7 +48,7 @@ export function TicketViewSelector({ currentViewId, onViewChange }: TicketViewSe
           </span>
         </div>
 
-        <Select value={currentViewId || 'default'} onValueChange={(value) => onViewChange?.(value)}>
+        <Select value={currentViewId || 'default'} onValueChange={onViewChange}>
           <SelectTrigger className="w-64">
             <SelectValue>
               <div className="flex items-center gap-2">
@@ -100,7 +100,7 @@ export function TicketViewSelector({ currentViewId, onViewChange }: TicketViewSe
       <div className="flex items-center gap-2">
         <Dialog open={isNewViewModalOpen} onOpenChange={setIsNewViewModalOpen}>
           <DialogTrigger asChild>
-            <Button variant="outline" size="sm" onClick={() => setIsNewViewModalOpen(true)}>
+            <Button variant="outline" size="sm">
               <Plus className="h-4 w-4 mr-2" />
               Nova Visualização
             </Button>
@@ -108,9 +108,6 @@ export function TicketViewSelector({ currentViewId, onViewChange }: TicketViewSe
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Criar Nova Visualização</DialogTitle>
-              <DialogDescription>
-                Crie uma nova visualização personalizada para organizar seus tickets
-              </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div>
@@ -125,26 +122,7 @@ export function TicketViewSelector({ currentViewId, onViewChange }: TicketViewSe
                 <Button variant="outline" onClick={() => setIsNewViewModalOpen(false)}>
                   Cancelar
                 </Button>
-                <Button onClick={() => {
-                  console.log('✅ Creating new view with form data');
-                  
-                  // Simular criação da visualização
-                  const newView = {
-                    id: `view-${Date.now()}`,
-                    name: `Nova Visualização ${new Date().toLocaleTimeString()}`,
-                    description: 'Visualização criada pelo usuário',
-                    isPublic: false,
-                    isDefault: false
-                  };
-                  
-                  console.log('Nova visualização criada:', newView);
-                  setIsNewViewModalOpen(false);
-                  
-                  // Usar timeout para fechar o modal primeiro
-                  setTimeout(() => {
-                    alert(`Nova visualização "${newView.name}" criada com sucesso!`);
-                  }, 100);
-                }}>
+                <Button>
                   Criar Visualização
                 </Button>
               </div>
@@ -154,7 +132,7 @@ export function TicketViewSelector({ currentViewId, onViewChange }: TicketViewSe
 
         <Dialog open={isManageViewsOpen} onOpenChange={setIsManageViewsOpen}>
           <DialogTrigger asChild>
-            <Button variant="outline" size="sm" onClick={() => setIsManageViewsOpen(true)}>
+            <Button variant="outline" size="sm">
               <Settings className="h-4 w-4 mr-2" />
               Gerenciar
             </Button>
@@ -165,9 +143,6 @@ export function TicketViewSelector({ currentViewId, onViewChange }: TicketViewSe
                 <Settings className="h-5 w-5" />
                 Gerenciar Visualizações
               </DialogTitle>
-              <DialogDescription>
-                Edite, organize e configure suas visualizações personalizadas de tickets
-              </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               {ticketViews.length === 0 ? (
@@ -200,24 +175,7 @@ export function TicketViewSelector({ currentViewId, onViewChange }: TicketViewSe
                         )}
                       </div>
                       <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm" onClick={() => {
-                          console.log('✅ Editing view:', view.id);
-                          
-                          // Simular edição da visualização
-                          const updatedView = {
-                            ...view,
-                            name: `${view.name} (Editada)`,
-                            lastModified: new Date().toISOString()
-                          };
-                          
-                          console.log('Visualização editada:', updatedView);
-                          
-                          // Fechar modal primeiro, depois mostrar sucesso
-                          setIsManageViewsOpen(false);
-                          setTimeout(() => {
-                            alert(`Visualização "${view.name}" editada com sucesso!`);
-                          }, 100);
-                        }}>
+                        <Button variant="outline" size="sm">
                           Editar
                         </Button>
                         <Button variant="outline" size="sm" onClick={() => onViewChange(view.id)}>

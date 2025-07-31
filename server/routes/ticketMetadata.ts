@@ -47,13 +47,13 @@ router.post('/initialize', jwtAuth, async (req: AuthenticatedRequest, res) => {
       { fieldName: 'status', value: 'in_progress', label: 'In Progress', color: '#8B5CF6', backgroundColor: '#F3E8FF', order: 2 },
       { fieldName: 'status', value: 'resolved', label: 'Resolved', color: '#10B981', backgroundColor: '#ECFDF5', order: 3 },
       { fieldName: 'status', value: 'closed', label: 'Closed', color: '#6B7280', backgroundColor: '#F9FAFB', order: 4 },
-
+      
       // Priority options
       { fieldName: 'priority', value: 'low', label: 'Low', color: '#10B981', backgroundColor: '#ECFDF5', order: 1 },
       { fieldName: 'priority', value: 'medium', label: 'Medium', color: '#F59E0B', backgroundColor: '#FFFBEB', order: 2 },
       { fieldName: 'priority', value: 'high', label: 'High', color: '#EF4444', backgroundColor: '#FEF2F2', order: 3 },
       { fieldName: 'priority', value: 'urgent', label: 'Urgent', color: '#DC2626', backgroundColor: '#FEE2E2', order: 4 },
-
+      
       // Category options
       { fieldName: 'category', value: 'hardware', label: 'Hardware', color: '#6B7280', backgroundColor: '#F9FAFB', order: 1 },
       { fieldName: 'category', value: 'software', label: 'Software', color: '#3B82F6', backgroundColor: '#EFF6FF', order: 2 },
@@ -61,23 +61,23 @@ router.post('/initialize', jwtAuth, async (req: AuthenticatedRequest, res) => {
       { fieldName: 'category', value: 'security', label: 'Security', color: '#EF4444', backgroundColor: '#FEF2F2', order: 4 },
       { fieldName: 'category', value: 'access', label: 'Access Request', color: '#10B981', backgroundColor: '#ECFDF5', order: 5 },
       { fieldName: 'category', value: 'other', label: 'Other', color: '#6B7280', backgroundColor: '#F9FAFB', order: 6 },
-
+      
       // Location options
       { fieldName: 'location', value: 'matriz', label: 'Matriz', color: '#3B82F6', backgroundColor: '#EFF6FF', order: 1 },
       { fieldName: 'location', value: 'filial1', label: 'Filial 1', color: '#10B981', backgroundColor: '#ECFDF5', order: 2 },
       { fieldName: 'location', value: 'filial2', label: 'Filial 2', color: '#F59E0B', backgroundColor: '#FFFBEB', order: 3 },
       { fieldName: 'location', value: 'remoto', label: 'Remoto', color: '#8B5CF6', backgroundColor: '#F3E8FF', order: 4 },
-
+      
       // Impact options
       { fieldName: 'impact', value: 'low', label: 'Low', color: '#10B981', backgroundColor: '#ECFDF5', order: 1 },
       { fieldName: 'impact', value: 'medium', label: 'Medium', color: '#F59E0B', backgroundColor: '#FFFBEB', order: 2 },
       { fieldName: 'impact', value: 'high', label: 'High', color: '#EF4444', backgroundColor: '#FEF2F2', order: 3 },
-
+      
       // Urgency options
       { fieldName: 'urgency', value: 'low', label: 'Low', color: '#10B981', backgroundColor: '#ECFDF5', order: 1 },
       { fieldName: 'urgency', value: 'medium', label: 'Medium', color: '#F59E0B', backgroundColor: '#FFFBEB', order: 2 },
       { fieldName: 'urgency', value: 'high', label: 'High', color: '#EF4444', backgroundColor: '#FEF2F2', order: 3 },
-
+      
       // Template options
       { fieldName: 'template', value: 'incident', label: 'Incident Template', color: '#EF4444', backgroundColor: '#FEF2F2', order: 1 },
       { fieldName: 'template', value: 'request', label: 'Service Request', color: '#3B82F6', backgroundColor: '#EFF6FF', order: 2 },

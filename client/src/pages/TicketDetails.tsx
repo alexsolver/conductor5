@@ -219,23 +219,6 @@ export default function TicketDetails() {
   const [isEditMode, setIsEditMode] = useState(false);
   const { getFieldColor, getFieldLabel } = useFieldColors();
 
-  // Mapeamento de valores em inglês para português para compatibilidade com configurações
-  const statusMapping: Record<string, string> = {
-    'new': 'novo',
-    'open': 'aberto', 
-    'in_progress': 'em_andamento',
-    'in progress': 'em_andamento',
-    'resolved': 'resolvido',
-    'closed': 'fechado',
-    'cancelled': 'cancelado'
-  };
-
-  // Função para mapear valores de status
-  const mapStatusValue = (value: string): string => {
-    if (!value) return 'novo';
-    return statusMapping[value.toLowerCase()] || value;
-  };
-
   // Sidebar sempre fixa e visível - tab padrão é informações
   const [activeTab, setActiveTab] = useState("informacoes");
   const [dragActive, setDragActive] = useState(false);
@@ -972,10 +955,10 @@ export default function TicketDetails() {
                           <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
                             <DynamicBadge 
                               fieldName="status"
-                              value={mapStatusValue(field.value)}
-                              colorHex={getFieldColor('status', mapStatusValue(field.value))}
+                              value={field.value}
+                              colorHex={getFieldColor('status', field.value)}
                             >
-                              {getFieldLabel('status', mapStatusValue(field.value))}
+                              {getFieldLabel('status', field.value)}
                             </DynamicBadge>
                           </div>
                         )}
@@ -1888,10 +1871,10 @@ export default function TicketDetails() {
                               
                               <DynamicBadge 
                                 fieldName="status"
-                                value={mapStatusValue(linkedTicket.targetTicket?.status || linkedTicket.status)}
-                                colorHex={getFieldColor('status', mapStatusValue(linkedTicket.targetTicket?.status || linkedTicket.status))}
+                                value={linkedTicket.targetTicket?.status || linkedTicket.status}
+                                colorHex={getFieldColor('status', linkedTicket.targetTicket?.status || linkedTicket.status)}
                               >
-                                {getFieldLabel('status', mapStatusValue(linkedTicket.targetTicket?.status || linkedTicket.status))}
+                                {getFieldLabel('status', linkedTicket.targetTicket?.status || linkedTicket.status)}
                               </DynamicBadge>
                               
                               <DynamicBadge 

@@ -1,11 +1,11 @@
 /**
- * CRITICAL FIX 2: Unified Zod Schema - Single Source of Truth
- * Resolves divergence between shared/ticket-validation.ts and TicketDetails.tsx
+ * CORREÇÃO CRÍTICA 2: Schema Zod Unificado - Fonte Única de Verdade
+ * Resolve divergência entre shared/ticket-validation.ts e TicketDetails.tsx
  */
 
 import { z } from 'zod';
 
-// Standardized enums for the entire application
+// Enums padronizados para toda a aplicação
 export const TicketStatusEnum = z.enum(['new', 'open', 'in_progress', 'pending', 'resolved', 'closed', 'cancelled']);
 export const TicketPriorityEnum = z.enum(['low', 'medium', 'high', 'urgent', 'critical']);
 export const TicketImpactEnum = z.enum(['low', 'medium', 'high', 'critical']);
@@ -15,11 +15,11 @@ export const CallerTypeEnum = z.enum(['user', 'customer', 'system']);
 export const ContactTypeEnum = z.enum(['email', 'phone', 'chat', 'portal', 'api']);
 
 /**
- * MAIN SCHEMA - Single source of truth
- * Contains ALL fields identified in QA analysis
+ * SCHEMA PRINCIPAL - Fonte única de verdade
+ * Contém TODOS os campos identificados na análise QA
  */
 export const ticketFormSchema = z.object({
-  // CORE FIELDS - Basic required fields
+  // CORE FIELDS - Campos obrigatórios básicos
   subject: z.string().min(1, "Subject is required"), // Serve como título e assunto do ticket
   description: z.string().min(1, "Description is required"),
   priority: TicketPriorityEnum.default('medium'),
@@ -27,13 +27,13 @@ export const ticketFormSchema = z.object({
   category: TicketCategoryEnum.optional(),
   subcategory: z.string().optional(),
   
-  // ASSIGNMENT FIELDS - Assignment fields
+  // ASSIGNMENT FIELDS - Campos de atribuição
   callerId: z.string().uuid().optional(),
   beneficiaryId: z.string().uuid().optional(), 
   assignedToId: z.string().uuid().optional(),
   customerCompanyId: z.string().uuid().optional(), // Note: maps to customer_id in backend
   
-  // LOCATION FIELD - Resolving critical inconsistency 3
+  // LOCATION FIELD - Resolvendo inconsistência crítica 3
   location: z.string().optional(), // Definido como texto livre (não FK)
   locationId: z.string().optional(), // Para compatibilidade, será convertido para 'location'
   
