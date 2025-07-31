@@ -17,44 +17,44 @@ export const ticketFormSchema = z.object({
   subject: z.string()
     .min(3, "Assunto deve ter pelo menos 3 caracteres")
     .max(255, "Assunto não pode exceder 255 caracteres"),
-  
+
   // Campos opcionais mas validados
   description: z.string()
     .max(4000, "Descrição não pode exceder 4000 caracteres")
     .optional(),
-  
+
   // Enums com validação (valores em inglês para compatibilidade com banco)
   status: TicketStatusEnum.default('new'),
   priority: TicketPriorityEnum.default('medium'),
   impact: TicketImpactEnum.optional(),
   urgency: TicketUrgencyEnum.optional(),
   category: z.string().refine(val => !val || TicketCategoryEnum.safeParse(val).success, "Categoria inválida").optional(),
-  
+
   // Subcategoria dependente da categoria
   subcategory: z.string().max(100).optional(),
-  
+
   // Campos de pessoa com validação UUID (aceita string vazia)
   callerId: z.string().refine(val => !val || z.string().uuid().safeParse(val).success, "ID do solicitante deve ser um UUID válido").optional(),
   callerType: CallerTypeEnum.default('customer'),
   beneficiaryId: z.string().refine(val => !val || z.string().uuid().safeParse(val).success, "ID do beneficiário deve ser um UUID válido").optional(),
   beneficiaryType: CallerTypeEnum.default('customer'),
   assignedToId: z.string().refine(val => !val || z.string().uuid().safeParse(val).success, "ID do responsável deve ser um UUID válido").optional(),
-  
+
   // Campo de localização (aceita string vazia)
   location: z.string().refine(val => !val || z.string().uuid().safeParse(val).success, "Localização deve ser um UUID válido").optional(),
-  
+
   // Grupo de atribuição
   assignmentGroup: z.string().max(100).optional(),
-  
+
   // Contato
   contactType: ContactTypeEnum.default('email'),
-  
+
   // Campos de negócio
   businessImpact: z.string().max(500).optional(),
   symptoms: z.string().max(1000).optional(),
   workaround: z.string().max(1000).optional(),
   resolution: z.string().max(2000).optional(),
-  
+
   // Horas estimadas/reais
   estimatedHours: z.number()
     .min(0, "Horas estimadas devem ser positivas")
@@ -64,25 +64,25 @@ export const ticketFormSchema = z.object({
     .min(0, "Horas reais devem ser positivas")
     .max(999, "Horas reais não podem exceder 999")
     .optional(),
-  
+
   // SLA e Vencimento
   dueDate: z.string()
     .datetime("Data de vencimento deve estar em formato ISO válido")
     .optional(),
-  
+
   // Arrays JSON
   followers: z.array(z.string().uuid()).default([]),
   tags: z.array(z.string().max(50)).default([]),
-  
+
   // Relacionamento com empresa cliente
   customerCompanyId: z.string().refine(val => !val || z.string().uuid().safeParse(val).success, "ID da empresa deve ser um UUID válido").optional(),
-  
+
   // Ambiente
   environment: z.string().max(100).optional(),
-  
+
   // Template alternativo
   templateAlternative: z.string().max(200).optional(),
-  
+
   // Campos de linking
   linkTicketNumber: z.string().max(50).optional(),
   linkType: z.string().refine(val => !val || LinkTypeEnum.safeParse(val).success, "Tipo de link inválido").optional(),
