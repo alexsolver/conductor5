@@ -32,6 +32,7 @@ import StarterKit from '@tiptap/starter-kit';
 import { DynamicSelect } from "@/components/DynamicSelect";
 import { DynamicBadge } from "@/components/DynamicBadge";
 import { useTicketMetadata } from "@/hooks/useTicketMetadata";
+import { useFieldColors } from "@/hooks/useFieldColors";
 import TicketLinkingModal from "@/components/tickets/TicketLinkingModal";
 import InternalActionModal from "@/components/tickets/InternalActionModal";
 
@@ -215,6 +216,7 @@ export default function TicketDetails() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isEditMode, setIsEditMode] = useState(false);
+  const { getFieldColor, getFieldLabel } = useFieldColors();
 
   // Sidebar sempre fixa e visível - tab padrão é informações
   const [activeTab, setActiveTab] = useState("informacoes");
@@ -905,8 +907,12 @@ export default function TicketDetails() {
                           />
                         ) : (
                           <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
-                            <DynamicBadge value={field.value}>
-                              {field.value}
+                            <DynamicBadge 
+                              fieldName="priority"
+                              value={field.value}
+                              colorHex={getFieldColor('priority', field.value)}
+                            >
+                              {getFieldLabel('priority', field.value)}
                             </DynamicBadge>
                           </div>
                         )}
@@ -933,8 +939,12 @@ export default function TicketDetails() {
                           />
                         ) : (
                           <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
-                            <DynamicBadge value={field.value}>
-                              {field.value}
+                            <DynamicBadge 
+                              fieldName="status"
+                              value={field.value}
+                              colorHex={getFieldColor('status', field.value)}
+                            >
+                              {getFieldLabel('status', field.value)}
                             </DynamicBadge>
                           </div>
                         )}
@@ -2566,11 +2576,19 @@ export default function TicketDetails() {
                   </div>
                 ) : (
                   <div className="flex items-center gap-2">
-                    <DynamicBadge value={ticket?.priority}>
-                      {ticket?.priority}
+                    <DynamicBadge 
+                      fieldName="priority"
+                      value={ticket?.priority}
+                      colorHex={getFieldColor('priority', ticket?.priority)}
+                    >
+                      {getFieldLabel('priority', ticket?.priority)}
                     </DynamicBadge>
-                    <DynamicBadge value={ticket?.status}>
-                      {ticket?.status}
+                    <DynamicBadge 
+                      fieldName="status"
+                      value={ticket?.status}
+                      colorHex={getFieldColor('status', ticket?.status)}
+                    >
+                      {getFieldLabel('status', ticket?.status)}
                     </DynamicBadge>
                   </div>
                 )}

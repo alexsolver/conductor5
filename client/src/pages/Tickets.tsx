@@ -18,6 +18,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { Plus, Filter } from "lucide-react";
 import { DynamicSelect } from "@/components/DynamicSelect";
 import { DynamicBadge } from "@/components/DynamicBadge";
+import { useFieldColors } from "@/hooks/useFieldColors";
 import { TicketViewSelector } from "@/components/TicketViewSelector";
 import { useLocation } from "wouter";
 import { useCompanyFilter } from "@/hooks/useCompanyFilter";
@@ -32,6 +33,7 @@ export default function Tickets() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
+  const { getFieldColor, getFieldLabel } = useFieldColors();
 
   // Force token setup - DEBUG ONLY
   useEffect(() => {
@@ -804,16 +806,19 @@ export default function Tickets() {
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                       #{ticket.number || ticket.id} - {ticket.subject || 'Sem título'}
                     </h3>
-                    <DynamicBadge fieldName="priority" value={ticket.priority || 'medium'}>
-                      {ticket.priority || 'Média'}
+                    <DynamicBadge 
+                      fieldName="priority" 
+                      value={ticket.priority || 'medium'}
+                      colorHex={getFieldColor('priority', ticket.priority || 'medium')}
+                    >
+                      {getFieldLabel('priority', ticket.priority || 'medium')}
                     </DynamicBadge>
-                    <DynamicBadge fieldName="status" value={ticket.status || 'new'}>
-                      {ticket.status === 'new' ? 'Novo' : 
-                       ticket.status === 'open' ? 'Aberto' :
-                       ticket.status === 'in_progress' ? 'Em Andamento' :
-                       ticket.status === 'resolved' ? 'Resolvido' :
-                       ticket.status === 'closed' ? 'Fechado' :
-                       ticket.status || 'Indefinido'}
+                    <DynamicBadge 
+                      fieldName="status" 
+                      value={ticket.status || 'new'}
+                      colorHex={getFieldColor('status', ticket.status || 'new')}
+                    >
+                      {getFieldLabel('status', ticket.status || 'new')}
                     </DynamicBadge>
                   </div>
                   <p className="text-gray-600 dark:text-gray-400 mb-3">
