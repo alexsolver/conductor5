@@ -33,7 +33,7 @@ export default function Tickets() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
-  const { getFieldColor, getFieldLabel } = useFieldColors();
+  const { getFieldColor, getFieldLabel, isLoading: colorsLoading } = useFieldColors();
 
   // Mapeamento de valores em inglês para português para compatibilidade com configurações
   const statusMapping: Record<string, string> = {
@@ -381,7 +381,7 @@ export default function Tickets() {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || colorsLoading) {
     return (
       <div className="p-4 space-y-6">
         <div className="h-8 bg-gray-200 rounded w-48 animate-pulse"></div>
