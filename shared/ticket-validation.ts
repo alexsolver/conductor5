@@ -2,7 +2,7 @@
 import { z } from 'zod';
 
 // Enums para validação mais restrita
-export const TicketStatusEnum = z.enum(['open', 'in_progress', 'pending', 'resolved', 'closed', 'cancelled']);
+export const TicketStatusEnum = z.enum(['new', 'open', 'in_progress', 'pending', 'resolved', 'closed', 'cancelled']);
 export const TicketPriorityEnum = z.enum(['low', 'medium', 'high', 'urgent', 'critical']);
 export const TicketImpactEnum = z.enum(['low', 'medium', 'high', 'critical']);
 export const TicketUrgencyEnum = z.enum(['low', 'medium', 'high', 'urgent']);
