@@ -621,235 +621,234 @@ export default function TicketsTable() {
     }), [column.id, columnWidths]);
 
     const memoizedCellContent = useMemo(() => {
-
-    switch (column.id) {
-      case 'number':
-        return (
-          <TableCell className="font-mono text-sm overflow-hidden" style={cellStyle}>
-            <Link href={`/tickets/${ticket.id}`} className="text-blue-600 hover:text-blue-800 hover:underline truncate block">
-              {(ticket as any).number || `#${ticket.id.slice(-8)}`}
-            </Link>
-          </TableCell>
-        );
-      case 'subject':
-        return (
-          <TableCell className="font-medium overflow-hidden" style={cellStyle}>
-            <div className="truncate" title={ticket.subject}>
-              {ticket.subject}
-            </div>
-          </TableCell>
-        );
-      case 'customer':
-        return (
-          <TableCell className="overflow-hidden" style={cellStyle}>
-            <div>
-              <div className="font-medium truncate" title={
-                (ticket as any).customer_first_name && (ticket as any).customer_last_name 
-                  ? `${(ticket as any).customer_first_name} ${(ticket as any).customer_last_name}`
-                  : ticket.customer?.fullName || ticket.caller?.fullName || (ticket as any).caller_name || 'N/A'
-              }>
-                {(ticket as any).customer_first_name && (ticket as any).customer_last_name 
-                  ? `${(ticket as any).customer_first_name} ${(ticket as any).customer_last_name}`
-                  : ticket.customer?.fullName || ticket.caller?.fullName || (ticket as any).caller_name || 'N/A'}
+      switch (column.id) {
+        case 'number':
+          return (
+            <TableCell className="font-mono text-sm overflow-hidden" style={cellStyle}>
+              <Link href={`/tickets/${ticket.id}`} className="text-blue-600 hover:text-blue-800 hover:underline truncate block">
+                {(ticket as any).number || `#${ticket.id.slice(-8)}`}
+              </Link>
+            </TableCell>
+          );
+        case 'subject':
+          return (
+            <TableCell className="font-medium overflow-hidden" style={cellStyle}>
+              <div className="truncate" title={ticket.subject}>
+                {ticket.subject}
               </div>
-              <div className="text-sm text-gray-500 truncate" title={
-                (ticket as any).customer_email || ticket.customer?.email || ticket.caller?.email || 'N/A'
-              }>
-                {(ticket as any).customer_email || ticket.customer?.email || ticket.caller?.email || 'N/A'}
-              </div>
-            </div>
-          </TableCell>
-        );
-      case 'category':
-        const categoryValue = mapCategoryValue((ticket as any).category);
-        const categoryColor = getFieldColorWithFallback('category', categoryValue);
-        const categoryLabel = getFieldLabel('category', categoryValue);
-
-        return (
-          <TableCell className="overflow-hidden" style={cellStyle}>
-            <DynamicBadge 
-              fieldName="category"
-              value={categoryValue}
-              colorHex={categoryColor}
-            >
-              {categoryLabel}
-            </DynamicBadge>
-          </TableCell>
-        );
-      case 'status':
-        return (
-          <TableCell className="overflow-hidden" style={cellStyle}>
-            <DynamicBadge 
-              fieldName="status"
-              value={mapStatusValue((ticket as any).state || ticket.status)}
-              colorHex={getFieldColorWithFallback('status', mapStatusValue((ticket as any).state || ticket.status))}
-            >
-              {getFieldLabel('status', mapStatusValue((ticket as any).state || ticket.status))}
-            </DynamicBadge>
-          </TableCell>
-        );
-      case 'priority':
-        const priorityValue = mapPriorityValue(ticket.priority);
-        const priorityColor = getFieldColorWithFallback('priority', priorityValue);
-        const priorityLabel = getFieldLabel('priority', priorityValue);
-
-        return (
-          <TableCell className="overflow-hidden" style={cellStyle}>
-            <DynamicBadge 
-              fieldName="priority"
-              value={priorityValue}
-              colorHex={priorityColor}
-            >
-              {priorityLabel}
-            </DynamicBadge>
-          </TableCell>
-        );
-      case 'impact':
-        return (
-          <TableCell className="overflow-hidden" style={cellStyle}>
-            <DynamicBadge 
-              fieldName="impact"
-              value={mapImpactValue((ticket as any).impact)}
-              colorHex={getFieldColorWithFallback('impact', mapImpactValue((ticket as any).impact))}
-            >
-              {getFieldLabel('impact', mapImpactValue((ticket as any).impact))}
-            </DynamicBadge>
-          </TableCell>
-        );
-      case 'assigned_to':
-        return (
-          <TableCell className="overflow-hidden" style={cellStyle}>
-            {ticket.assignedTo ? (
+            </TableCell>
+          );
+        case 'customer':
+          return (
+            <TableCell className="overflow-hidden" style={cellStyle}>
               <div>
-                <div className="font-medium truncate" title={`${ticket.assignedTo.firstName} ${ticket.assignedTo.lastName}`}>
-                  {ticket.assignedTo.firstName} {ticket.assignedTo.lastName}
+                <div className="font-medium truncate" title={
+                  (ticket as any).customer_first_name && (ticket as any).customer_last_name 
+                    ? `${(ticket as any).customer_first_name} ${(ticket as any).customer_last_name}`
+                    : ticket.customer?.fullName || ticket.caller?.fullName || (ticket as any).caller_name || 'N/A'
+                }>
+                  {(ticket as any).customer_first_name && (ticket as any).customer_last_name 
+                    ? `${(ticket as any).customer_first_name} ${(ticket as any).customer_last_name}`
+                    : ticket.customer?.fullName || ticket.caller?.fullName || (ticket as any).caller_name || 'N/A'}
                 </div>
-                <div className="text-sm text-gray-500 truncate" title={ticket.assignedTo.email}>
-                  {ticket.assignedTo.email}
+                <div className="text-sm text-gray-500 truncate" title={
+                  (ticket as any).customer_email || ticket.customer?.email || ticket.caller?.email || 'N/A'
+                }>
+                  {(ticket as any).customer_email || ticket.customer?.email || ticket.caller?.email || 'N/A'}
                 </div>
               </div>
-            ) : (
-              <span className="text-gray-400">Unassigned</span>
-            )}
-          </TableCell>
-        );
-      case 'created':
-        return (
-          <TableCell className="overflow-hidden" style={cellStyle}>
-            <div className="text-sm">
-              {(ticket.createdAt || (ticket as any).created_at || (ticket as any).opened_at) 
-                ? new Date(ticket.createdAt || (ticket as any).created_at || (ticket as any).opened_at).toLocaleDateString('pt-BR', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric'
-                  })
-                : 'N/A'
-              }
-            </div>
-            <div className="text-xs text-gray-500">
-              {(ticket.createdAt || (ticket as any).created_at || (ticket as any).opened_at)
-                ? new Date(ticket.createdAt || (ticket as any).created_at || (ticket as any).opened_at).toLocaleTimeString('pt-BR', {
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })
-                : ''
-              }
-            </div>
-          </TableCell>
-        );
-      case 'description':
-        return (
-          <TableCell className="max-w-xs truncate">
-            {ticket.description?.substring(0, 100) || '-'}
-          </TableCell>
-        );
-      case 'subcategory':
-        return (
-          <TableCell>
-            {(ticket as any).subcategory || '-'}
-          </TableCell>
-        );
-      case 'urgency':
-        return (
-          <TableCell>
-            <DynamicBadge 
-              fieldName="urgency" 
-              value={mapUrgencyValue((ticket as any).urgency)}
-              colorHex={getFieldColorWithFallback('urgency', mapUrgencyValue((ticket as any).urgency))}
-            >
-              {getFieldLabel('urgency', mapUrgencyValue((ticket as any).urgency))}
-            </DynamicBadge>
-          </TableCell>
-        );
-      case 'created_by':
-        return (
-          <TableCell>
-            {ticket.caller?.fullName || 'N/A'}
-          </TableCell>
-        );
-      case 'updated':
-        return (
-          <TableCell>
-            {new Date(ticket.updatedAt).toLocaleDateString()}
-          </TableCell>
-        );
-      case 'due_date':
-        return (
-          <TableCell>
-            {(ticket as any).dueDate ? new Date((ticket as any).dueDate).toLocaleDateString() : '-'}
-          </TableCell>
-        );
-      case 'resolution_time':
-        return (
-          <TableCell>
-            {(ticket as any).resolutionTime || '-'}
-          </TableCell>
-        );
-      case 'sla_status':
-        return (
-          <TableCell>
-            <DynamicBadge 
-              fieldName="sla_status" 
-              value={(ticket as any).slaStatus || 'on_track'}
-              colorHex={getFieldColorWithFallback('sla_status', (ticket as any).slaStatus || 'on_track')}
-            >
-              {getFieldLabel('sla_status', (ticket as any).slaStatus || 'on_track')}
-            </DynamicBadge>
-          </TableCell>
-        );
-      case 'tags':
-        return (
-          <TableCell>
-            {(ticket as any).tags?.join(', ') || '-'}
-          </TableCell>
-        );
-      case 'location':
-        return (
-          <TableCell>
-            {(ticket as any).location || '-'}
-          </TableCell>
-        );
-      case 'source':
-        return (
-          <TableCell>
-            {(ticket as any).source || '-'}
-          </TableCell>
-        );
-      case 'satisfaction':
-        return (
-          <TableCell>
-            {(ticket as any).satisfaction ? `${(ticket as any).satisfaction}/5` : '-'}
-          </TableCell>
-        );
-    
-      default:
-        return (
-          <TableCell className="overflow-hidden" style={cellStyle}>
-            <div className="truncate">-</div>
-          </TableCell>
-        );
-    }
-  });
+            </TableCell>
+          );
+        case 'category':
+          const categoryValue = mapCategoryValue((ticket as any).category);
+          const categoryColor = getFieldColorWithFallback('category', categoryValue);
+          const categoryLabel = getFieldLabel('category', categoryValue);
+
+          return (
+            <TableCell className="overflow-hidden" style={cellStyle}>
+              <DynamicBadge 
+                fieldName="category"
+                value={categoryValue}
+                colorHex={categoryColor}
+              >
+                {categoryLabel}
+              </DynamicBadge>
+            </TableCell>
+          );
+        case 'status':
+          return (
+            <TableCell className="overflow-hidden" style={cellStyle}>
+              <DynamicBadge 
+                fieldName="status"
+                value={mapStatusValue((ticket as any).state || ticket.status)}
+                colorHex={getFieldColorWithFallback('status', mapStatusValue((ticket as any).state || ticket.status))}
+              >
+                {getFieldLabel('status', mapStatusValue((ticket as any).state || ticket.status))}
+              </DynamicBadge>
+            </TableCell>
+          );
+        case 'priority':
+          const priorityValue = mapPriorityValue(ticket.priority);
+          const priorityColor = getFieldColorWithFallback('priority', priorityValue);
+          const priorityLabel = getFieldLabel('priority', priorityValue);
+
+          return (
+            <TableCell className="overflow-hidden" style={cellStyle}>
+              <DynamicBadge 
+                fieldName="priority"
+                value={priorityValue}
+                colorHex={priorityColor}
+              >
+                {priorityLabel}
+              </DynamicBadge>
+            </TableCell>
+          );
+        case 'impact':
+          return (
+            <TableCell className="overflow-hidden" style={cellStyle}>
+              <DynamicBadge 
+                fieldName="impact"
+                value={mapImpactValue((ticket as any).impact)}
+                colorHex={getFieldColorWithFallback('impact', mapImpactValue((ticket as any).impact))}
+              >
+                {getFieldLabel('impact', mapImpactValue((ticket as any).impact))}
+              </DynamicBadge>
+            </TableCell>
+          );
+        case 'assigned_to':
+          return (
+            <TableCell className="overflow-hidden" style={cellStyle}>
+              {ticket.assignedTo ? (
+                <div>
+                  <div className="font-medium truncate" title={`${ticket.assignedTo.firstName} ${ticket.assignedTo.lastName}`}>
+                    {ticket.assignedTo.firstName} {ticket.assignedTo.lastName}
+                  </div>
+                  <div className="text-sm text-gray-500 truncate" title={ticket.assignedTo.email}>
+                    {ticket.assignedTo.email}
+                  </div>
+                </div>
+              ) : (
+                <span className="text-gray-400">Unassigned</span>
+              )}
+            </TableCell>
+          );
+        case 'created':
+          return (
+            <TableCell className="overflow-hidden" style={cellStyle}>
+              <div className="text-sm">
+                {(ticket.createdAt || (ticket as any).created_at || (ticket as any).opened_at) 
+                  ? new Date(ticket.createdAt || (ticket as any).created_at || (ticket as any).opened_at).toLocaleDateString('pt-BR', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric'
+                    })
+                  : 'N/A'
+                }
+              </div>
+              <div className="text-xs text-gray-500">
+                {(ticket.createdAt || (ticket as any).created_at || (ticket as any).opened_at)
+                  ? new Date(ticket.createdAt || (ticket as any).created_at || (ticket as any).opened_at).toLocaleTimeString('pt-BR', {
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })
+                  : ''
+                }
+              </div>
+            </TableCell>
+          );
+        case 'description':
+          return (
+            <TableCell className="max-w-xs truncate">
+              {ticket.description?.substring(0, 100) || '-'}
+            </TableCell>
+          );
+        case 'subcategory':
+          return (
+            <TableCell>
+              {(ticket as any).subcategory || '-'}
+            </TableCell>
+          );
+        case 'urgency':
+          return (
+            <TableCell>
+              <DynamicBadge 
+                fieldName="urgency" 
+                value={mapUrgencyValue((ticket as any).urgency)}
+                colorHex={getFieldColorWithFallback('urgency', mapUrgencyValue((ticket as any).urgency))}
+              >
+                {getFieldLabel('urgency', mapUrgencyValue((ticket as any).urgency))}
+              </DynamicBadge>
+            </TableCell>
+          );
+        case 'created_by':
+          return (
+            <TableCell>
+              {ticket.caller?.fullName || 'N/A'}
+            </TableCell>
+          );
+        case 'updated':
+          return (
+            <TableCell>
+              {new Date(ticket.updatedAt).toLocaleDateString()}
+            </TableCell>
+          );
+        case 'due_date':
+          return (
+            <TableCell>
+              {(ticket as any).dueDate ? new Date((ticket as any).dueDate).toLocaleDateString() : '-'}
+            </TableCell>
+          );
+        case 'resolution_time':
+          return (
+            <TableCell>
+              {(ticket as any).resolutionTime || '-'}
+            </TableCell>
+          );
+        case 'sla_status':
+          return (
+            <TableCell>
+              <DynamicBadge 
+                fieldName="sla_status" 
+                value={(ticket as any).slaStatus || 'on_track'}
+                colorHex={getFieldColorWithFallback('sla_status', (ticket as any).slaStatus || 'on_track')}
+              >
+                {getFieldLabel('sla_status', (ticket as any).slaStatus || 'on_track')}
+              </DynamicBadge>
+            </TableCell>
+          );
+        case 'tags':
+          return (
+            <TableCell>
+              {(ticket as any).tags?.join(', ') || '-'}
+            </TableCell>
+          );
+        case 'location':
+          return (
+            <TableCell>
+              {(ticket as any).location || '-'}
+            </TableCell>
+          );
+        case 'source':
+          return (
+            <TableCell>
+              {(ticket as any).source || '-'}
+            </TableCell>
+          );
+        case 'satisfaction':
+          return (
+            <TableCell>
+              {(ticket as any).satisfaction ? `${(ticket as any).satisfaction}/5` : '-'}
+            </TableCell>
+          );
+      
+        default:
+          return (
+            <TableCell className="overflow-hidden" style={cellStyle}>
+              <div className="truncate">-</div>
+            </TableCell>
+          );
+      }
+    }, [column.id, ticket, cellStyle, getFieldColorWithFallback, getFieldLabel, mapCategoryValue, mapStatusValue, mapPriorityValue, mapImpactValue, mapUrgencyValue]);
 
   // Função de renderização otimizada
   const renderCell = useCallback((column: any, ticket: Ticket, key?: string) => (
