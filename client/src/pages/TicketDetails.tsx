@@ -223,7 +223,7 @@ const RichTextEditor = React.memo(({ value, onChange, disabled = false }: { valu
   );
 });
 
-export default function TicketDetails() {
+const TicketDetails = React.memo(() => {
   const { id } = useParams<{ id: string }>();
   const [, navigate] = useLocation();
   const { toast } = useToast();
@@ -356,11 +356,6 @@ export default function TicketDetails() {
   const handleCompanyChange = useCallback(
     debounce(async (newCompanyId: string) => {
       console.log('🏢 Company change:', { newCompanyId, selectedCompany });
-      console.log('🔍 DEBUG - handleCompanyChange called with:', { 
-        newCompanyId, 
-        currentSelected: selectedCompany,
-        formValue: form.getValues('customerCompanyId')
-      });
       
       // Only proceed if company actually changed
       if (newCompanyId === selectedCompany) {
@@ -368,6 +363,7 @@ export default function TicketDetails() {
         return;
       }
 
+    // Otimização: Update UI primeiro, depois fetch data
     setSelectedCompany(newCompanyId);
     form.setValue('customerCompanyId', newCompanyId);
     
@@ -443,6 +439,10 @@ export default function TicketDetails() {
       const response = await apiRequest("GET", "/api/ticket-metadata/field-options/impact");
       return response.json();
     },
+    staleTime: 30 * 60 * 1000, // 30 minutos cache
+    gcTime: 60 * 60 * 1000, // 1 hora garbage collection
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   const { data: urgencyOptions } = useQuery({
@@ -451,6 +451,10 @@ export default function TicketDetails() {
       const response = await apiRequest("GET", "/api/ticket-metadata/field-options/urgency");
       return response.json();
     },
+    staleTime: 30 * 60 * 1000, // 30 minutos cache
+    gcTime: 60 * 60 * 1000, // 1 hora garbage collection
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   const { data: locationsData } = useQuery({
@@ -974,27 +978,30 @@ export default function TicketDetails() {
         description: "Ticket atualizado com sucesso",
       });
       
-      // 🚀 OTIMIZAÇÃO: Invalidação ultra-seletiva de cache
+      // 🚀 OTIMIZAÇÃO: Invalidação ultra-seletiva e inteligente
       const formData = form.getValues();
       const changedFields = Object.keys(formData).filter(key => 
         formData[key as keyof typeof formData] !== ticket?.[key as keyof typeof ticket]
       );
       
-      // Only invalidate current ticket query
+      // Update cache optimistically primeiro
       queryClient.setQueryData(["/api/tickets", id], (oldData: any) => ({
         ...oldData,
         data: { ...ticket, ...formData }
       }));
       
-      // Invalidate lists only for critical changes
+      // Batch invalidations para reduzir network requests
       const criticalFields = ['status', 'priority', 'assigned_to_id'];
       const hasCriticalChanges = changedFields.some(field => criticalFields.includes(field));
       
       if (hasCriticalChanges) {
-        queryClient.invalidateQueries({ 
-          queryKey: ["/api/tickets"],
-          exact: false 
-        });
+        // Invalidar apenas após 500ms para agrupar mudanças
+        setTimeout(() => {
+          queryClient.invalidateQueries({ 
+            queryKey: ["/api/tickets"],
+            exact: false 
+          });
+        }, 500);
       }
       
       // Skip history invalidation for minor changes
@@ -1059,17 +1066,22 @@ export default function TicketDetails() {
   });
 
   // PROBLEMA 3 RESOLVIDO: Mapeamento completo frontend-backend
-  const onSubmit = (data: TicketFormData) => {
+  // Memoizar mapeamento de status para evitar recriação
+  const statusMapping = useMemo(() => ({
+    'new': 'new',
+    'novo': 'new',
+    'open': 'open', 
+    'aberto': 'open',
+    'in_progress': 'in_progress',
+    'em_andamento': 'in_progress',
+    'resolved': 'resolved',
+    'resolvido': 'resolved',
+    'closed': 'closed',
+    'fechado': 'closed'
+  }), []);
+
+  const onSubmit = useCallback((data: TicketFormData) => {
     console.log("💾 onSubmit called with data:", data);
-    
-    // Map frontend status to backend status
-    const statusMapping = {
-      'new': 'new',
-      'open': 'open', 
-      'in_progress': 'in_progress',
-      'resolved': 'resolved',
-      'closed': 'closed'
-    };
     
     const mappedData = {
       // Core fields - with proper status mapping
@@ -2502,6 +2514,16 @@ export default function TicketDetails() {
               </span>
             </div>
             
+            {/* Progress Bar Animado */}
+            <div className="w-full bg-gray-200 rounded-full h-3 mb-4 overflow-hidden">
+              <div 
+                className="bg-gradient-to-r from-blue-500 to-green-500 h-3 rounded-full transition-all duration-500 ease-out relative"
+                style={{ width: `${progress.percentage}%` }}
+              >
+                <div className="absolute inset-0 bg-white opacity-20 animate-pulse"></div>
+              </div>
+            </div>
+            
             {/* Progress Bar */}
             <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
               <div 
@@ -3852,4 +3874,8 @@ export default function TicketDetails() {
 
     </div>
   );
-}
+});
+
+TicketDetails.displayName = 'TicketDetails';
+
+export default TicketDetails;
