@@ -795,7 +795,7 @@ export default function TicketsTable() {
           const customerEmail = (ticket as any).customer_email || 
                                (ticket as any).caller_email || 
                                ticket.customer?.email || 
-                               ticket<caller?.email || 
+                               ticket.caller?.email || 
                                'Email não informado';
 
           return (
