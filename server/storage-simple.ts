@@ -535,7 +535,7 @@ export class DatabaseStorage implements IStorage {
           caller_type = ${ticketData.caller_type || 'customer'},
           beneficiary_type = ${ticketData.beneficiary_type || 'customer'},
           customer_id = ${ticketData.customer_id || null},
-          followers = ${ticketData.followers ? `ARRAY[${ticketData.followers.map((f: string) => `'${f}'`).join(',')}]` : 'ARRAY[]::text[]'},
+          followers = ${ticketData.followers && ticketData.followers.length > 0 ? `ARRAY[${ticketData.followers.map((f: string) => `'${f}'`).join(',')}]` : 'NULL'},
           updated_at = NOW()
         WHERE id = ${ticketId} AND tenant_id = ${validatedTenantId}
         RETURNING *

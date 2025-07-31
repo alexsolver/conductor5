@@ -1789,9 +1789,9 @@ export default function TicketsTable() {
                       )}
                     </TableCell>
                   </TableRow>
-                ) : tickets.map((ticket: Ticket) => (
-                  <>
-                    <TableRow key={ticket.id}>
+                ) : tickets.map((ticket: Ticket, ticketIndex: number) => (
+                  <React.Fragment key={ticket.id}>
+                    <TableRow>
                       <TableCell className="w-10">
                         <div className="flex items-center">
                           {/* Botão de expansão só aparece quando há vínculos */}
@@ -1905,7 +1905,7 @@ export default function TicketsTable() {
                         </TableCell>
                       </TableRow>
                     )}
-                  </>
+                  </React.Fragment>
                 ))}
               </TableBody>
             </Table>
