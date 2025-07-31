@@ -1902,7 +1902,7 @@ export default function TicketDetails() {
                               </div>
                               
                               <Badge variant="outline" className="text-xs bg-blue-50 text-blue-600 font-mono">
-                                #{linkedTicket.targetTicket?.number || linkedTicket.number}
+                                #{linkedTicket.targetTicket?.number || linkedTicket.number || `T-${linkedTicket.targetTicket?.id?.slice(0,8) || linkedTicket.id?.slice(0,8)}`}
                               </Badge>
                               
                               <DynamicBadge 

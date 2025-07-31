@@ -464,13 +464,13 @@ export class DatabaseStorage implements IStorage {
 
       // Get company ID for numbering configuration
       const companyId = ticketData.customer_company_id || '00000000-0000-0000-0000-000000000001'; // Default company
-      
+
       // Generate ticket number using configuration
       const { ticketNumberGenerator } = await import('./utils/ticketNumberGenerator');
       const ticketNumber = await ticketNumberGenerator.generateTicketNumber(validatedTenantId, companyId);
-      
+
       console.log('🎯 Generated ticket number:', ticketNumber, { companyId, tenantId: validatedTenantId });
-      
+
       const result = await tenantDb.execute(sql`
         INSERT INTO ${sql.identifier(schemaName)}.tickets 
         (number, subject, description, status, priority, customer_id, caller_id, tenant_id, created_at, updated_at)
@@ -807,13 +807,13 @@ export class DatabaseStorage implements IStorage {
 
       const result = await tenantDb.execute(query);
       console.log(`Found ${result.rows.length} favorecidos in ${schemaName}`);
-      
+
       // Adicionar fullName computed field para compatibilidade frontend em TODOS os registros
       const favorecidos = (result.rows || []).map(favorecido => {
         favorecido.fullName = `${favorecido.first_name || ''} ${favorecido.last_name || ''}`.trim();
         return favorecido;
       });
-      
+
       console.log(`Fetched ${favorecidos.length} favorecidos for tenant ${tenantId}`);
       return favorecidos;
     } catch (error) {
@@ -853,7 +853,7 @@ export class DatabaseStorage implements IStorage {
       `);
 
       const favorecido = result.rows?.[0] || null;
-      
+
       // Adicionar fullName computed field para compatibilidade frontend
       if (favorecido) {
         favorecido.fullName = `${favorecido.first_name || ''} ${favorecido.last_name || ''}`.trim();
@@ -1006,7 +1006,7 @@ export class DatabaseStorage implements IStorage {
   async updateFavorecido(tenantId: string, id: string, data: any): Promise<any> {
     try {
       console.log('UPDATE DEBUG:', { tenantId, id, data });
-      
+
       // CRITICAL FIX: Validate that tenantId looks like UUID and id looks like UUID
       if (!tenantId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/)) {
         throw new Error(`Invalid tenantId format: ${tenantId}`);
@@ -1014,7 +1014,7 @@ export class DatabaseStorage implements IStorage {
       if (!id.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/)) {
         throw new Error(`Invalid favorecido ID format: ${id}`);
       }
-      
+
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
@@ -1719,7 +1719,7 @@ export class DatabaseStorage implements IStorage {
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
       const result = await tenantDb.execute(sql`
-        SELECT id, short_description as subject, state as status, priority, number, created_at
+        SELECT id, short_description as subject, state as status, priority, COALESCE(number, CONCAT('T-', SUBSTRING(id::text, 1, 8))) as number, created_at
         FROM ${sql.identifier(schemaName)}.tickets
         WHERE tenant_id = ${validatedTenantId}
         AND (
@@ -1768,8 +1768,8 @@ export class DatabaseStorage implements IStorage {
             WHEN tr.target_ticket_id = ${ticketId} THEN t_source.priority
           END as "targetTicket.priority",
           CASE 
-            WHEN tr.source_ticket_id = ${ticketId} THEN t_target.number
-            WHEN tr.target_ticket_id = ${ticketId} THEN t_source.number
+            WHEN tr.source_ticket_id = ${ticketId} THEN COALESCE(t_target.number, CONCAT('T-', SUBSTRING(t_target.id::text, 1, 8)))
+            WHEN tr.target_ticket_id = ${ticketId} THEN COALESCE(t_source.number, CONCAT('T-', SUBSTRING(t_source.id::text, 1, 8)))
           END as "targetTicket.number",
           CASE 
             WHEN tr.source_ticket_id = ${ticketId} THEN t_target.created_at

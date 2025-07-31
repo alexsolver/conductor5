@@ -248,7 +248,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                       className="flex items-center justify-between p-3 border rounded-lg bg-gray-50 dark:bg-gray-800"
                     >
                       <div className="flex items-center space-x-3">
-                        <Icon className="h-4 w-4 text-gray-500" />
+                        <Icon className="h-4 w-4 text-gray-500 />
                         <div>
                           <div className="flex items-center space-x-2">
                             <span className="font-medium">#{rel.targetTicket.number || rel.targetTicket.ticket_number || `T-${rel.targetTicket.id.slice(-8)}`} - {rel.targetTicket.subject}</span>
@@ -360,14 +360,14 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                           <div className="flex-1">
                             <div className="flex items-center space-x-2 flex-wrap gap-1">
                               <span className="font-medium">#{ticket.number || ticket.ticket_number || `T-${ticket.id.slice(-8)}`}</span>
-                              
+
                               {/* Badge de Categoria */}
                               {(ticket as any).category && (
                                 <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
                                   {(ticket as any).category}
                                 </Badge>
                               )}
-                              
+
                               {/* Badge de Status */}
                               <Badge variant="outline" className={`text-xs ${
                                 ticket.status === 'new' ? 'bg-gray-50 text-gray-700 border-gray-200' :
@@ -384,7 +384,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                                  ticket.status === 'closed' ? 'Fechado' :
                                  ticket.status}
                               </Badge>
-                              
+
                               {/* Badge de Prioridade */}
                               <Badge variant={
                                 ticket.priority === 'critical' ? 'destructive' :
@@ -403,7 +403,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                                  ticket.priority === 'low' ? 'Baixa' :
                                  ticket.priority}
                               </Badge>
-                              
+
                               {/* Badge de Urgência */}
                               {(ticket as any).urgency && (
                                 <Badge variant="outline" className={`text-xs ${
@@ -457,7 +457,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                               {(ticket as any).category}
                             </Badge>
                           )}
-                          
+
                           {/* Badge de Status */}
                           <Badge variant="outline" className={`text-xs ${
                             ticket.status === 'new' ? 'bg-gray-50 text-gray-700 border-gray-200' :
@@ -474,7 +474,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                              ticket.status === 'closed' ? 'Fechado' :
                              ticket.status}
                           </Badge>
-                          
+
                           {/* Badge de Prioridade */}
                           <Badge className={`text-xs ${
                             ticket.priority === 'critical' ? 'bg-red-600 text-white' :
@@ -489,7 +489,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                              ticket.priority === 'low' ? 'Baixa' :
                              ticket.priority}
                           </Badge>
-                          
+
                           {/* Badge de Urgência */}
                           {(ticket as any).urgency && (
                             <Badge variant="outline" className={`text-xs ${
