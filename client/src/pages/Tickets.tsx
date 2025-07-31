@@ -350,60 +350,27 @@ export default function Tickets() {
     );
   }
 
-  // Log para debug detalhado
-  console.log('🚀 Tickets component is rendering...', { 
-    currentViewId, 
-    tickets, 
-    ticketsType: typeof tickets,
-    ticketsKeys: tickets ? Object.keys(tickets) : 'no tickets',
-    fullTicketsObject: JSON.stringify(tickets, null, 2)
-  });
-  
-  // Parse dos dados de tickets vindos da API - TESTANDO MÚLTIPLAS ESTRUTURAS
-  let ticketsList = [];
-  let ticketsCount = 0;
-  
-  // Testar diferentes estruturas possíveis
-  if ((tickets as any)?.data?.tickets) {
-    ticketsList = (tickets as any).data.tickets;
-    console.log('🔍 Found tickets in: tickets.data.tickets');
-  } else if ((tickets as any)?.tickets) {
-    ticketsList = (tickets as any).tickets;
-    console.log('🔍 Found tickets in: tickets.tickets');
-  } else if (Array.isArray(tickets)) {
-    ticketsList = tickets;
-    console.log('🔍 Found tickets as: direct array');
-  } else if ((tickets as any)?.data && Array.isArray((tickets as any).data)) {
-    ticketsList = (tickets as any).data;
-    console.log('🔍 Found tickets in: tickets.data (array)');
-  } else {
-    console.log('🚨 NO TICKETS FOUND - Raw data:', tickets);
-  }
-  
-  ticketsCount = Array.isArray(ticketsList) ? ticketsList.length : 0;
-  
-  console.log('📋 Final parsed tickets data:', { 
-    ticketsList, 
-    ticketsCount, 
-    ticketsListType: typeof ticketsList,
-    isArray: Array.isArray(ticketsList),
-    firstTicket: ticketsList[0],
-    rawTicketsStringified: JSON.stringify(tickets).substring(0, 200) + '...'
-  });
+  // Parse consistente dos dados de tickets
+  const ticketsList = (tickets as any)?.data?.tickets || [];
+  const ticketsCount = Array.isArray(ticketsList) ? ticketsList.length : 0;
 
   return (
     <div className="p-4 space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Support Tickets ({ticketsCount})</h1>
-          <p className="text-gray-600 dark:text-gray-400">Manage and track customer support requests</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+            Tickets de Suporte ({ticketsCount})
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400">
+            Gerencie e acompanhe solicitações de suporte ao cliente
+          </p>
         </div>
         <div className="flex space-x-2">
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
               <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
                 <Plus className="h-4 w-4 mr-2" />
-                New Ticket
+                Novo Ticket
               </Button>
             </DialogTrigger>
               <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-y-auto">
@@ -818,110 +785,85 @@ export default function Tickets() {
         </div>
       </div>
 
-      {/* COMPONENTE TESTE MÁXIMA VISIBILIDADE */}
-      <div 
-        style={{
-          backgroundColor: '#ff0000',
-          color: '#ffffff',
-          padding: '30px',
-          margin: '20px 0',
-          border: '5px solid #000000',
-          fontSize: '24px',
-          fontWeight: 'bold',
-          textAlign: 'center',
-          zIndex: 9999,
-          position: 'relative'
-        }}
-      >
-        🚨 TESTE DE VISIBILIDADE MÁXIMA - SELETOR DE VISUALIZAÇÕES 🚨
-      </div>
-
-      {/* Filtros básicos atuais */}
-      <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-        <h3 className="text-lg font-semibold mb-4">Filtros de Tickets</h3>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">Visualização:</span>
-            <select 
-              value={currentViewId || "default"} 
-              onChange={(e) => handleViewChange(e.target.value)}
-              className="px-3 py-2 border rounded-md"
-            >
-              <option value="default">Visualização Padrão</option>
-              <option value="my-tickets">Meus Tickets</option>
-              <option value="urgent">Tickets Urgentes</option>
-              <option value="resolved">Tickets Resolvidos</option>
-            </select>
-          </div>
-          <button className="px-4 py-2 bg-blue-500 text-white rounded-md">
-            Nova Visualização
-          </button>
-        </div>
-      </div>
-
-      {/* DEBUG: Estado atual dos dados */}
-      <div style={{
-        backgroundColor: '#ffff00',
-        padding: '20px',
-        margin: '10px 0',
-        border: '2px solid #ff0000',
-        fontSize: '14px',
-        fontFamily: 'monospace'
-      }}>
-        <strong>🐛 DEBUG INFO COMPLETO:</strong><br/>
-        isLoading: {isLoading ? 'YES' : 'NO'}<br/>
-        error: {error ? 'ERROR PRESENT' : 'NO ERROR'}<br/>
-        tickets: {tickets ? 'DATA EXISTS' : 'NULL/UNDEFINED'}<br/>
-        ticketsCount: {ticketsCount}<br/>
-        ticketsList.length: {ticketsList?.length || 'undefined'}<br/>
-        isArray: {Array.isArray(ticketsList) ? 'YES' : 'NO'}<br/>
-        First ticket ID: {ticketsList[0]?.id || 'NOT_FOUND'}<br/>
-        Raw tickets type: {typeof tickets}<br/>
-        Local storage token: {typeof window !== 'undefined' && localStorage.getItem('accessToken') ? 'EXISTS' : 'NOT_FOUND'}<br/>
-        API Response Structure: {tickets ? JSON.stringify(tickets).substring(0, 100) + '...' : 'NO_DATA'}<br/>
+      {/* Sistema de Visualizações de Tickets */}
+      <div className="mb-6">
+        <TicketViewSelector 
+          currentViewId={currentViewId}
+          onViewChange={handleViewChange}
+        />
       </div>
 
       <div className="space-y-4">
         {Array.isArray(ticketsList) && ticketsList.length > 0 ? (
           ticketsList.map((ticket: any) => (
-          <Card key={ticket.id} className="hover:shadow-md transition-shadow" style={{border: '3px solid #00ff00'}}>
+          <Card key={ticket.id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate(`/tickets/${ticket.id}`)}>
             <CardContent className="p-6">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center space-x-3 mb-2">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                      #{ticket.number || ticket.id} - {ticket.subject}
+                      #{ticket.number || ticket.id} - {ticket.subject || 'Sem título'}
                     </h3>
-                    <DynamicBadge fieldName="priority" value={ticket.priority}>{ticket.priority}</DynamicBadge>
-                    <DynamicBadge fieldName="status" value={ticket.status?.replace('_', ' ')}>{ticket.status?.replace('_', ' ')}</DynamicBadge>
+                    <DynamicBadge fieldName="priority" value={ticket.priority || 'medium'}>
+                      {ticket.priority || 'Média'}
+                    </DynamicBadge>
+                    <DynamicBadge fieldName="status" value={ticket.status || 'new'}>
+                      {ticket.status === 'new' ? 'Novo' : 
+                       ticket.status === 'open' ? 'Aberto' :
+                       ticket.status === 'in_progress' ? 'Em Andamento' :
+                       ticket.status === 'resolved' ? 'Resolvido' :
+                       ticket.status === 'closed' ? 'Fechado' :
+                       ticket.status || 'Indefinido'}
+                    </DynamicBadge>
                   </div>
                   <p className="text-gray-600 dark:text-gray-400 mb-3">
-                    {ticket.description?.substring(0, 150)}...
+                    {ticket.description ? 
+                      (ticket.description.length > 150 ? 
+                        ticket.description.substring(0, 150) + '...' : 
+                        ticket.description
+                      ).replace(/<[^>]*>/g, '') : 
+                      'Sem descrição disponível'
+                    }
                   </p>
                   <div className="flex items-center space-x-4 text-sm text-gray-500">
                     <span>ID: {ticket.id}</span>
                     <span>•</span>
-                    <span>Created: {new Date(ticket.created_at).toLocaleDateString()}</span>
+                    <span>Criado: {formatDate(ticket.created_at || ticket.opened_at)}</span>
+                    {ticket.assigned_to_id && (
+                      <>
+                        <span>•</span>
+                        <span>Atribuído</span>
+                      </>
+                    )}
                   </div>
                 </div>
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={() => navigate(`/tickets/${ticket.id}`)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/tickets/${ticket.id}`);
+                  }}
                 >
-                  View Details
+                  Ver Detalhes
                 </Button>
               </div>
             </CardContent>
           </Card>
         ))
         ) : (
-          <Card style={{border: '3px solid #ff0000'}}>
+          <Card>
             <CardContent className="p-12 text-center">
               <div className="text-gray-500">
-                <div className="text-lg font-medium mb-2">🚨 No tickets found - DEBUG MODE</div>
-                <p className="text-sm">ticketsCount: {ticketsCount} | isArray: {Array.isArray(ticketsList) ? 'YES' : 'NO'}</p>
-                <p className="text-sm">Raw data: {JSON.stringify(tickets).substring(0, 100)}...</p>
+                <div className="text-lg font-medium mb-2">📋 Nenhum ticket encontrado</div>
+                <p className="text-sm mb-4">Não há tickets para exibir no momento.</p>
+                <Button 
+                  onClick={() => setIsCreateDialogOpen(true)}
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Criar Primeiro Ticket
+                </Button>
               </div>
             </CardContent>
           </Card>
