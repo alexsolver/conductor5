@@ -570,26 +570,34 @@ export default function TicketsTable() {
     }
   };
 
-  // Inicializar indicadores de relacionamentos - ULTRA OTIMIZADO
+  // Inicializar indicadores de relacionamentos - ULTRA OTIMIZADO com Cache
   useEffect(() => {
     if (tickets.length > 0) {
       console.log('🔄 useEffect triggered - tickets.length:', tickets.length);
       
-      // Debounce inteligente com cleanup
+      // Cache inteligente para evitar re-fetching
+      const cacheKey = tickets.map(t => t.id).sort().join(',');
+      const cachedData = sessionStorage.getItem(`relationships_${cacheKey}`);
+      
+      if (cachedData) {
+        const parsed = JSON.parse(cachedData);
+        setTicketsWithRelationships(new Set(parsed.ticketsWithRels));
+        setTicketRelationships(parsed.relationships);
+        console.log('✅ Loaded relationships from cache');
+        return;
+      }
+      
+      // Debounce inteligente com cleanup e loading state
       const timeoutId = setTimeout(() => {
         const checkAllTicketRelationships = async () => {
           try {
             const ticketIds = tickets.map((ticket: any) => ticket.id);
-            console.log('🔍 Starting relationship check for', ticketIds.length, 'tickets');
+            console.log('🔍 Starting optimized relationship check for', ticketIds.length, 'tickets');
             
-            // Log individual para debugging
-            ticketIds.forEach((id: string, index: number) => {
-              const ticket = tickets[index];
-              console.log(`🔗 Checking relationships for ticket: ${id} (${ticket.number || 'N/A'})`);
-            });
-            
+            const startTime = performance.now();
             const response = await apiRequest('POST', '/api/tickets/batch-relationships', { ticketIds });
             const data = await response.json();
+            const endTime = performance.now();
 
             const ticketsWithRels = new Set<string>();
             let totalRelationships = 0;
@@ -599,28 +607,34 @@ export default function TicketsTable() {
                 if (relationships && relationships.length > 0) {
                   ticketsWithRels.add(ticketId);
                   totalRelationships += relationships.length;
-                  console.log(`✅ Ticket ${ticketId} HAS relationships`);
-                } else {
-                  console.log(`❌ Ticket ${ticketId} has NO relationships`);
                 }
               });
             }
 
-            console.log('🎯 Final tickets with relationships:', Array.from(ticketsWithRels));
-            console.log('🎯 Total tickets checked:', ticketIds.length, ', with relationships:', ticketsWithRels.size);
+            // Cache otimizado para próximas sessões
+            sessionStorage.setItem(`relationships_${cacheKey}`, JSON.stringify({
+              ticketsWithRels: Array.from(ticketsWithRels),
+              relationships: data.data || {},
+              timestamp: Date.now()
+            }));
+
+            console.log(`🎯 Relationships loaded in ${Math.round(endTime - startTime)}ms:`, {
+              totalTickets: ticketIds.length,
+              withRelationships: ticketsWithRels.size,
+              totalRelationships
+            });
             
             setTicketsWithRelationships(ticketsWithRels);
             setTicketRelationships(data.data || {});
             
           } catch (error) {
             console.error('Error checking batch relationships:', error);
-            // Fallback vazio em caso de erro
             setTicketsWithRelationships(new Set());
           }
         };
 
         checkAllTicketRelationships();
-      }, 100); // Debounce de 100ms
+      }, 150); // Debounce otimizado para 150ms
 
       return () => clearTimeout(timeoutId);
     }
@@ -1726,9 +1740,9 @@ export default function TicketsTable() {
       <div className="space-y-6">
         <div className="flex items-center space-x-4 p-6 bg-white rounded-lg shadow-sm border">
           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-purple-600"></div>
-          <div className="space-y-2">
-            <div className="text-lg font-semibold text-gray-800">Carregando Sistema de Tickets</div>
-            <div className="text-sm text-gray-600">
+          <div className="space-y-2 flex-1">
+            <div className="text-lg font-semibold text-gray-800">⚡ Carregando Sistema de Tickets</div>
+            <div className="text-sm text-gray-600 font-medium">
               {isFieldColorsLoading 
                 ? "⚙️ Carregando configurações de campos personalizados..." 
                 : tickets.length > 0 
@@ -1738,20 +1752,26 @@ export default function TicketsTable() {
             </div>
             <div className="text-xs text-gray-500">
               {tickets.length > 0 
-                ? `${ticketsWithRelationships.size} tickets com vínculos detectados`
-                : "Primeira carga pode levar alguns segundos"
+                ? `✅ ${ticketsWithRelationships.size} tickets com vínculos detectados`
+                : "🚀 Primeira carga pode levar alguns segundos"
               }
             </div>
-            {/* Progress indicator melhorado */}
-            <div className="w-full bg-gray-200 rounded-full h-2">
+            {/* Progress indicator melhorado com animação */}
+            <div className="w-full bg-gray-200 rounded-full h-3 shadow-inner">
               <div 
-                className="bg-purple-600 h-2 rounded-full transition-all duration-500" 
+                className="bg-gradient-to-r from-purple-600 to-blue-600 h-3 rounded-full transition-all duration-700 ease-out" 
                 style={{ 
                   width: tickets.length > 0 
-                    ? `${Math.min(85, (ticketsWithRelationships.size / tickets.length) * 100)}%`
-                    : '25%'
+                    ? `${Math.min(90, (ticketsWithRelationships.size / tickets.length) * 100 + 20)}%`
+                    : '35%'
                 }}
               ></div>
+            </div>
+            {/* Contador em tempo real */}
+            <div className="flex justify-between text-xs text-gray-500 font-mono">
+              <span>📊 Processados: {tickets.length}/13</span>
+              <span>🔗 Vínculos: {ticketsWithRelationships.size}</span>
+              <span>⏱️ {tickets.length > 0 ? `${Math.round((ticketsWithRelationships.size / tickets.length) * 100)}%` : '0%'}</span>
             </div>
             <div className="text-xs text-gray-500">
               {tickets.length > 0 
@@ -1972,26 +1992,30 @@ export default function TicketsTable() {
                           {/* Indicador visual melhorado para tickets com vínculos */}
                           {ticketsWithRelationships.has(ticket.id) && (
                             <>
-                              <div className="mr-1">
-                                <div className="animate-pulse bg-blue-100 rounded-full p-1" title="Possui vínculos">
-                                  <Link2 className="h-3 w-3 text-blue-600" />
+                              <div className="mr-1 relative group">
+                                <div className="animate-pulse bg-gradient-to-r from-blue-100 to-blue-200 rounded-full p-1.5 shadow-sm" title="Possui vínculos">
+                                  <Link2 className="h-3 w-3 text-blue-600 group-hover:text-blue-700 transition-colors" />
+                                </div>
+                                {/* Badge com contador animado */}
+                                <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center text-[10px] font-bold animate-bounce">
+                                  {ticketRelationships[ticket.id]?.length || '•'}
                                 </div>
                               </div>
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className={`h-6 w-6 p-0 transition-all duration-200 ${
+                                className={`h-6 w-6 p-0 transition-all duration-300 transform hover:scale-110 ${
                                   expandedTickets.has(ticket.id) 
-                                    ? 'bg-blue-100 text-blue-600' 
-                                    : 'hover:bg-gray-100'
+                                    ? 'bg-gradient-to-r from-blue-100 to-blue-200 text-blue-600 shadow-sm' 
+                                    : 'hover:bg-gray-100 hover:text-gray-700'
                                 }`}
                                 onClick={() => toggleTicketExpansion(ticket.id)}
-                                title={expandedTickets.has(ticket.id) ? "Recolher vínculos" : "Expandir vínculos"}
+                                title={expandedTickets.has(ticket.id) ? "🔼 Recolher vínculos" : "🔽 Expandir vínculos"}
                               >
                                 {expandedTickets.has(ticket.id) ? (
-                                  <ChevronUp className="h-4 w-4" />
+                                  <ChevronUp className="h-4 w-4 transition-transform duration-200" />
                                 ) : (
-                                  <ChevronDown className="h-4 w-4" />
+                                  <ChevronDown className="h-4 w-4 transition-transform duration-200" />
                                 )}
                               </Button>
                             </>
@@ -2026,13 +2050,14 @@ export default function TicketsTable() {
                       </TableCell>
                     </TableRow>
 
-                    {/* Linha expandida para relacionamentos */}
+                    {/* Linha expandida para relacionamentos com animação suave */}
                     {expandedTickets.has(ticket.id) && (
-                      <TableRow>
+                      <TableRow className="animate-in slide-in-from-top-2 duration-300">
                         <TableCell colSpan={visibleColumns.length + 2} className="p-0">
-                          <div className="border-t bg-gray-50/50 p-4">
-                            <div className="text-sm font-medium text-gray-700 mb-3">
-                              Tickets vinculados:
+                          <div className="border-t bg-gradient-to-r from-blue-50/30 to-purple-50/30 p-4 transition-all duration-300">
+                            <div className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                              <div className="h-2 w-2 bg-blue-500 rounded-full animate-pulse"></div>
+                              Tickets vinculados ({ticketRelationships[ticket.id]?.length || 0}):
                             </div>
                             {ticketRelationships[ticket.id] && ticketRelationships[ticket.id].length > 0 ? (
                               <div className="space-y-2">

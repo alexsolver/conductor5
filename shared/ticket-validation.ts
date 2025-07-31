@@ -11,7 +11,7 @@ export const TicketUrgencyEnum = z.enum(['low', 'medium', 'high']);
 export const ticketFormValidationSchema = z.object({
   subject: z.string().min(3, "Assunto deve ter pelo menos 3 caracteres").max(255),
   description: z.string().max(4000).optional(),
-  status: z.string().refine(val => ['new', 'open', 'in_progress', 'resolved', 'closed'].includes(val), "Status inválido"),
+  status: z.enum(['new', 'open', 'in_progress', 'resolved', 'closed']).default('new'),
   priority: TicketPriorityEnum,
   impact: TicketImpactEnum.optional(),
   urgency: TicketUrgencyEnum.optional(),
