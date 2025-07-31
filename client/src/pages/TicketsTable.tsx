@@ -666,14 +666,18 @@ export default function TicketsTable() {
           </TableCell>
         );
       case 'priority':
+        const priorityValue = mapPriorityValue(ticket.priority);
+        const priorityColor = getFieldColorWithFallback('priority', priorityValue);
+        const priorityLabel = getFieldLabel('priority', priorityValue);
+
         return (
           <TableCell className="overflow-hidden" style={cellStyle}>
             <DynamicBadge 
               fieldName="priority"
-              value={mapPriorityValue(ticket.priority)}
-              colorHex={getFieldColorWithFallback('priority', mapPriorityValue(ticket.priority))}
+              value={priorityValue}
+              colorHex={priorityColor}
             >
-              {getFieldLabel('priority', mapPriorityValue(ticket.priority))}
+              {priorityLabel}
             </DynamicBadge>
           </TableCell>
         );
