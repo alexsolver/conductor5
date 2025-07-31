@@ -303,6 +303,11 @@ export default function TicketsTable() {
   const [editingView, setEditingView] = useState<any>(null);
   const [columnsOrder, setColumnsOrder] = useState<any[]>([]);
 
+  // Estados para redimensionamento de colunas
+  const [columnWidths, setColumnWidths] = useState<Record<string, number>>({});
+  const [isResizing, setIsResizing] = useState(false);
+  const [resizingColumn, setResizingColumn] = useState<string | null>(null);
+
   // Campos disponíveis para seleção em visualizações (expandido)
   const availableColumns = [
     { id: "number", label: "Número" },
@@ -408,51 +413,77 @@ export default function TicketsTable() {
 
   // Componente de célula otimizado com React.memo
   const TableCellComponent = memo(({ column, ticket }: { column: any, ticket: Ticket }) => {
+    const cellStyle = {
+      width: getColumnWidth(column.id),
+      minWidth: getColumnWidth(column.id),
+      maxWidth: getColumnWidth(column.id)
+    };
+
     switch (column.id) {
       case 'number':
         return (
-          <TableCell className="font-mono text-sm">
-            <Link href={`/tickets/${ticket.id}`} className="text-blue-600 hover:text-blue-800 hover:underline">
+          <TableCell className="font-mono text-sm overflow-hidden" style={cellStyle}>
+            <Link href={`/tickets/${ticket.id}`} className="text-blue-600 hover:text-blue-800 hover:underline truncate block">
               {(ticket as any).number || `#${ticket.id.slice(-8)}`}
             </Link>
           </TableCell>
         );
       case 'subject':
         return (
-          <TableCell className="font-medium max-w-xs truncate">
-            {(ticket as any).shortDescription || ticket.subject}
+          <TableCell className="font-medium overflow-hidden" style={cellStyle}>
+            <div className="truncate" title={(ticket as any).shortDescription || ticket.subject}>
+              {(ticket as any).shortDescription || ticket.subject}
+            </div>
           </TableCell>
         );
       case 'customer':
         return (
-          <TableCell>
+          <TableCell className="overflow-hidden" style={cellStyle}>
             <div>
-              <div className="font-medium">
+              <div className="font-medium truncate" title={
+                (ticket as any).customer_first_name && (ticket as any).customer_last_name 
+                  ? `${(ticket as any).customer_first_name} ${(ticket as any).customer_last_name}`
+                  : ticket.customer?.fullName || ticket.caller?.fullName || (ticket as any).caller_name || 'N/A'
+              }>
                 {(ticket as any).customer_first_name && (ticket as any).customer_last_name 
                   ? `${(ticket as any).customer_first_name} ${(ticket as any).customer_last_name}`
                   : ticket.customer?.fullName || ticket.caller?.fullName || (ticket as any).caller_name || 'N/A'}
               </div>
-              <div className="text-sm text-gray-500">
+              <div className="text-sm text-gray-500 truncate" title={
+                (ticket as any).customer_email || ticket.customer?.email || ticket.caller?.email || 'N/A'
+              }>
                 {(ticket as any).customer_email || ticket.customer?.email || ticket.caller?.email || 'N/A'}
               </div>
             </div>
           </TableCell>
         );
       case 'category':
+        const categoryValue = mapCategoryValue((ticket as any).category);
+        const categoryColor = getFieldColor('category', categoryValue);
+        const categoryLabel = getFieldLabel('category', categoryValue);
+        
+        console.log('🔍 Category Debug:', {
+          originalValue: (ticket as any).category,
+          mappedValue: categoryValue,
+          color: categoryColor,
+          label: categoryLabel,
+          ticketNumber: (ticket as any).number
+        });
+        
         return (
-          <TableCell>
+          <TableCell className="overflow-hidden" style={cellStyle}>
             <DynamicBadge 
               fieldName="category"
-              value={mapCategoryValue((ticket as any).category)}
-              colorHex={getFieldColor('category', mapCategoryValue((ticket as any).category))}
+              value={categoryValue}
+              colorHex={categoryColor}
             >
-              {getFieldLabel('category', mapCategoryValue((ticket as any).category))}
+              {categoryLabel}
             </DynamicBadge>
           </TableCell>
         );
       case 'status':
         return (
-          <TableCell>
+          <TableCell className="overflow-hidden" style={cellStyle}>
             <DynamicBadge 
               fieldName="status"
               value={mapStatusValue((ticket as any).state || ticket.status)}
@@ -464,7 +495,7 @@ export default function TicketsTable() {
         );
       case 'priority':
         return (
-          <TableCell>
+          <TableCell className="overflow-hidden" style={cellStyle}>
             <DynamicBadge 
               fieldName="priority"
               value={mapPriorityValue(ticket.priority)}
@@ -476,7 +507,7 @@ export default function TicketsTable() {
         );
       case 'impact':
         return (
-          <TableCell>
+          <TableCell className="overflow-hidden" style={cellStyle}>
             <DynamicBadge 
               fieldName="impact"
               value={mapImpactValue((ticket as any).impact)}
@@ -488,11 +519,15 @@ export default function TicketsTable() {
         );
       case 'assigned_to':
         return (
-          <TableCell>
+          <TableCell className="overflow-hidden" style={cellStyle}>
             {ticket.assignedTo ? (
               <div>
-                <div className="font-medium">{ticket.assignedTo.firstName} {ticket.assignedTo.lastName}</div>
-                <div className="text-sm text-gray-500">{ticket.assignedTo.email}</div>
+                <div className="font-medium truncate" title={`${ticket.assignedTo.firstName} ${ticket.assignedTo.lastName}`}>
+                  {ticket.assignedTo.firstName} {ticket.assignedTo.lastName}
+                </div>
+                <div className="text-sm text-gray-500 truncate" title={ticket.assignedTo.email}>
+                  {ticket.assignedTo.email}
+                </div>
               </div>
             ) : (
               <span className="text-gray-400">Unassigned</span>
@@ -501,7 +536,7 @@ export default function TicketsTable() {
         );
       case 'created':
         return (
-          <TableCell>
+          <TableCell className="overflow-hidden" style={cellStyle}>
             <div className="text-sm">
               {(ticket.createdAt || (ticket as any).created_at || (ticket as any).opened_at) 
                 ? new Date(ticket.createdAt || (ticket as any).created_at || (ticket as any).opened_at).toLocaleDateString('pt-BR', {
@@ -607,8 +642,116 @@ export default function TicketsTable() {
             {(ticket as any).satisfaction ? `${(ticket as any).satisfaction}/5` : '-'}
           </TableCell>
         );
+      case 'description':
+        return (
+          <TableCell className="overflow-hidden" style={cellStyle}>
+            <div className="truncate" title={ticket.description?.replace(/<[^>]*>/g, '') || '-'}>
+              {ticket.description?.substring(0, 100).replace(/<[^>]*>/g, '') || '-'}
+            </div>
+          </TableCell>
+        );
+      case 'subcategory':
+        return (
+          <TableCell className="overflow-hidden" style={cellStyle}>
+            <div className="truncate" title={(ticket as any).subcategory || '-'}>
+              {(ticket as any).subcategory || '-'}
+            </div>
+          </TableCell>
+        );
+      case 'urgency':
+        return (
+          <TableCell className="overflow-hidden" style={cellStyle}>
+            <DynamicBadge 
+              fieldName="urgency" 
+              value={mapUrgencyValue((ticket as any).urgency)}
+              colorHex={getFieldColor('urgency', mapUrgencyValue((ticket as any).urgency))}
+            >
+              {getFieldLabel('urgency', mapUrgencyValue((ticket as any).urgency))}
+            </DynamicBadge>
+          </TableCell>
+        );
+      case 'created_by':
+        return (
+          <TableCell className="overflow-hidden" style={cellStyle}>
+            <div className="truncate" title={ticket.caller?.fullName || 'N/A'}>
+              {ticket.caller?.fullName || 'N/A'}
+            </div>
+          </TableCell>
+        );
+      case 'updated':
+        return (
+          <TableCell className="overflow-hidden" style={cellStyle}>
+            <div className="truncate">
+              {new Date(ticket.updatedAt).toLocaleDateString()}
+            </div>
+          </TableCell>
+        );
+      case 'due_date':
+        return (
+          <TableCell className="overflow-hidden" style={cellStyle}>
+            <div className="truncate">
+              {(ticket as any).dueDate ? new Date((ticket as any).dueDate).toLocaleDateString() : '-'}
+            </div>
+          </TableCell>
+        );
+      case 'resolution_time':
+        return (
+          <TableCell className="overflow-hidden" style={cellStyle}>
+            <div className="truncate" title={(ticket as any).resolutionTime || '-'}>
+              {(ticket as any).resolutionTime || '-'}
+            </div>
+          </TableCell>
+        );
+      case 'sla_status':
+        return (
+          <TableCell className="overflow-hidden" style={cellStyle}>
+            <DynamicBadge 
+              fieldName="sla_status" 
+              value={(ticket as any).slaStatus || 'on_track'}
+              colorHex={getFieldColor('sla_status', (ticket as any).slaStatus || 'on_track')}
+            >
+              {getFieldLabel('sla_status', (ticket as any).slaStatus || 'on_track')}
+            </DynamicBadge>
+          </TableCell>
+        );
+      case 'tags':
+        return (
+          <TableCell className="overflow-hidden" style={cellStyle}>
+            <div className="truncate" title={(ticket as any).tags?.join(', ') || '-'}>
+              {(ticket as any).tags?.join(', ') || '-'}
+            </div>
+          </TableCell>
+        );
+      case 'location':
+        return (
+          <TableCell className="overflow-hidden" style={cellStyle}>
+            <div className="truncate" title={(ticket as any).location || '-'}>
+              {(ticket as any).location || '-'}
+            </div>
+          </TableCell>
+        );
+      case 'source':
+        return (
+          <TableCell className="overflow-hidden" style={cellStyle}>
+            <div className="truncate" title={(ticket as any).source || '-'}>
+              {(ticket as any).source || '-'}
+            </div>
+          </TableCell>
+        );
+      case 'satisfaction':
+        return (
+          <TableCell className="overflow-hidden" style={cellStyle}>
+            <div className="truncate">
+              {(ticket as any).satisfaction ? `${(ticket as any).satisfaction}/5` : '-'}
+            </div>
+          </TableCell>
+        );
       default:
-        return <TableCell>-</TableCell>;
+        return (
+          <TableCell className="overflow-hidden" style={cellStyle}>
+            <div className="truncate">-</div>
+          </TableCell>
+        );
     }
   });
 
@@ -770,6 +913,49 @@ export default function TicketsTable() {
     }
     setIsNewViewDialogOpen(open);
   };
+
+  // Funções para redimensionamento de colunas
+  const getColumnWidth = (columnId: string) => {
+    return columnWidths[columnId] || 150; // largura padrão
+  };
+
+  const handleMouseDown = (e: React.MouseEvent, columnId: string) => {
+    e.preventDefault();
+    setIsResizing(true);
+    setResizingColumn(columnId);
+    
+    const startX = e.pageX;
+    const startWidth = getColumnWidth(columnId);
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const newWidth = Math.max(80, startWidth + (e.pageX - startX)); // largura mínima de 80px
+      setColumnWidths(prev => ({
+        ...prev,
+        [columnId]: newWidth
+      }));
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+      setResizingColumn(null);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  };
+
+  // Componente para handle de redimensionamento
+  const ResizeHandle = ({ columnId }: { columnId: string }) => (
+    <div
+      className="absolute right-0 top-0 w-1 h-full cursor-col-resize hover:bg-blue-300 hover:w-2 transition-all"
+      onMouseDown={(e) => handleMouseDown(e, columnId)}
+      style={{
+        background: resizingColumn === columnId ? '#3b82f6' : 'transparent'
+      }}
+    />
+  );
 
   // Debug logging
   console.log('TicketsTable - Data:', {
@@ -1393,7 +1579,10 @@ export default function TicketsTable() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" style={{
+      userSelect: isResizing ? 'none' : 'auto',
+      cursor: isResizing ? 'col-resize' : 'default'
+    }}>
       {/* Header */}
       <div className="flex justify-between items-center ml-[20px] mr-[20px]">
         <div>
@@ -1510,8 +1699,18 @@ export default function TicketsTable() {
               <TableHeader>
                 <TableRow>
                   {visibleColumns.map((column: any) => (
-                    <TableHead key={column.id} style={{ width: column.width }}>
-                      {column.label}
+                    <TableHead 
+                      key={column.id} 
+                      className="relative select-none"
+                      style={{ 
+                        width: getColumnWidth(column.id),
+                        minWidth: getColumnWidth(column.id)
+                      }}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span>{column.label}</span>
+                        <ResizeHandle columnId={column.id} />
+                      </div>
                     </TableHead>
                   ))}
                   <TableHead className="text-right">Actions</TableHead>
