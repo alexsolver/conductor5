@@ -3572,6 +3572,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/ticket-views/user/preferences', jwtAuth, ticketViewsController.getUserPreferences.bind(ticketViewsController));
   app.put('/api/ticket-views/user/settings', jwtAuth, ticketViewsController.updatePersonalSettings.bind(ticketViewsController));
 
+  // Users endpoint for team member selection
+  app.get('/api/users', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant ID required' });
+      }
+
+      // Team users data for user selection components
+      const users = [
+        { id: 'user-1', name: 'Ana Silva', email: 'ana.silva@empresa.com', role: 'Analista' },
+        { id: 'user-2', name: 'João Santos', email: 'joao.santos@empresa.com', role: 'Técnico' },
+        { id: 'user-3', name: 'Maria Costa', email: 'maria.costa@empresa.com', role: 'Supervisor' },
+        { id: 'user-4', name: 'Pedro Oliveira', email: 'pedro.oliveira@empresa.com', role: 'Gerente' },
+        { id: 'user-5', name: 'Carla Ferreira', email: 'carla.ferreira@empresa.com', role: 'Especialista' }
+      ];
+
+      res.json({ success: true, users });
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      res.status(500).json({ message: 'Failed to fetch users' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

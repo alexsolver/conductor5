@@ -34,6 +34,8 @@ import { DynamicSelect } from "@/components/DynamicSelect";
 import { DynamicBadge } from "@/components/DynamicBadge";
 import { useTicketMetadata } from "@/hooks/useTicketMetadata";
 import { useFieldColors } from "@/hooks/useFieldColors";
+import { UserSelect } from "@/components/ui/UserSelect";
+import { UserMultiSelect } from "@/components/ui/UserMultiSelect";
 import TicketLinkingModal from "@/components/tickets/TicketLinkingModal";
 import InternalActionModal from "@/components/tickets/InternalActionModal";
 
@@ -486,10 +488,23 @@ export default function TicketDetails() {
     enabled: !!id,
   });
 
+  // Fetch team users/members for assignments and followers
+  const { data: usersData } = useQuery({
+    queryKey: ["/api/tenant-admin/users"],
+  });
+
   const customers = Array.isArray(customersData?.customers) ? customersData.customers : [];
 
   // Use company-specific customers if available, otherwise fall back to all customers
   const availableCustomers = selectedCompanyCustomers.length > 0 ? selectedCompanyCustomers : customers;
+
+  // Transform users data for UserSelect and UserMultiSelect components
+  const teamUsers = usersData?.users ? usersData.users.map((user: any) => ({
+    id: user.id,
+    name: user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim(),
+    email: user.email,
+    role: user.role || 'Usuário'
+  })) : [];
 
   // Initialize data from API responses - NO MORE HARDCODED DATA
   useEffect(() => {
@@ -2547,44 +2562,38 @@ export default function TicketDetails() {
 
           {/* Atribuído a Section */}
           <div className="mb-6">
-            <h3 className="text-sm font-semibold text-gray-600 mb-3">Atribuído a</h3>
+            <h3 className="text-sm font-semibold text-gray-600 mb-3">ATRIBUÍDO A</h3>
             <div className="mb-4">
-              {isEditMode ? (
-                <Select 
-                  onValueChange={(value) => form.setValue('assignedToId', value)} 
-                  value={form.getValues('assignedToId') || ticket.assigned_to_id || ticket.assignedToId || ''}
-                >
-                  <SelectTrigger className="h-8 text-xs">
-                    <SelectValue placeholder="Selecione o responsável">
-                      {(() => {
-                        const currentValue = form.getValues('assignedToId') || ticket.assigned_to_id || ticket.assignedToId;
-                        if (currentValue === 'unassigned' || !currentValue) return 'Não atribuído';
-                        const user = users?.users?.find((u: any) => u.id === currentValue);
-                        return user?.name || 'Usuário não encontrado';
-                      })()}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="unassigned">Não atribuído</SelectItem>
-                    {users?.users?.map((user: any) => (
-                      <SelectItem key={user.id} value={user.id}>
-                        {user.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              ) : (
-                <div className="text-sm text-gray-700">
-                  {ticket.assignedToId === 'unassigned' || !ticket.assignedToId ? 'Não atribuído' : 
-                   users?.users?.find((u: any) => u.id === ticket.assignedToId)?.name || 'Não atribuído'}
-                </div>
-              )}
+              <UserSelect
+                value={form.getValues('assignedToId') || ticket.assigned_to_id || ticket.assignedToId || ''}
+                onChange={(value) => form.setValue('assignedToId', value)}
+                users={teamUsers}
+                placeholder="Selecionar membro da equipe"
+                disabled={!isEditMode}
+              />
             </div>
           </div>
 
           {/* Seguidores Section */}
           <div className="mb-6">
-            <h3 className="text-sm font-semibold text-gray-600 mb-2">Seguidores</h3>
+            <h3 className="text-sm font-semibold text-gray-600 mb-3">SEGUIDORES</h3>
+            <div className="mb-4">
+              <UserMultiSelect
+                value={form.getValues('followers') || ticket.followers || []}
+                onChange={(value) => {
+                  setFollowers(value);
+                  form.setValue('followers', value);
+                }}
+                users={teamUsers}
+                placeholder="Selecionar seguidores da equipe"
+                disabled={!isEditMode}
+              />
+            </div>
+          </div>
+
+          {/* Campos Customizados Section - temporarily hidden */}
+          <div className="mb-6" style={{ display: 'none' }}>
+            <h3 className="text-sm font-semibold text-gray-600 mb-2">SEGUIDORES ANTIGO (oculto)</h3>
             <div className="space-y-2">
               {followers.length > 0 ? (
                 followers.map((followerId, index) => {
