@@ -22,31 +22,59 @@ ticketsRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
     const status = req.query.status as string;
     const priority = req.query.priority as string;
     const assignedTo = req.query.assignedTo as string;
+    const search = req.query.search as string;
 
-    const offset = (page - 1) * limit;
+    console.log(`🎫 Fetching tickets for tenant: ${req.user.tenantId}, filters:`, { 
+      status, priority, assignedTo, search, page, limit 
+    });
+
     let tickets = await storageSimple.getTickets(req.user.tenantId);
+    console.log(`🎫 Raw tickets count: ${tickets.length}`);
 
-    // Apply filters
+    // Apply search filter first
+    if (search && search.trim()) {
+      const searchTerm = search.trim().toLowerCase();
+      tickets = tickets.filter(ticket => 
+        ticket.subject?.toLowerCase().includes(searchTerm) ||
+        ticket.number?.toLowerCase().includes(searchTerm) ||
+        ticket.description?.toLowerCase().includes(searchTerm) ||
+        ticket.status?.toLowerCase().includes(searchTerm) ||
+        ticket.priority?.toLowerCase().includes(searchTerm)
+      );
+      console.log(`🔍 After search filter: ${tickets.length} tickets`);
+    }
+
+    // Apply other filters
     if (status) {
       tickets = tickets.filter(ticket => ticket.status === status);
+      console.log(`🟢 After status filter: ${tickets.length} tickets`);
     }
     if (priority) {
       tickets = tickets.filter(ticket => ticket.priority === priority);
+      console.log(`🔥 After priority filter: ${tickets.length} tickets`);
     }
     if (assignedTo) {
       tickets = tickets.filter(ticket => ticket.assignedToId === assignedTo);
+      console.log(`👤 After assignedTo filter: ${tickets.length} tickets`);
     }
+
+    // Sort by created_at descending
+    tickets.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+    console.log(`✅ Final tickets count: ${tickets.length}`);
 
     return sendSuccess(res, {
       tickets,
       pagination: {
         page,
         limit,
-        total: tickets.length
+        total: tickets.length,
+        hasMore: tickets.length > page * limit
       },
-      filters: { status, priority, assignedTo }
+      filters: { status, priority, assignedTo, search }
     }, "Tickets retrieved successfully");
   } catch (error) {
+    console.error('❌ Error fetching tickets:', error);
     const { logError } = await import('../../utils/logger');
     logError('Error fetching tickets', error, { tenantId: req.user?.tenantId });
     return sendError(res, error, "Failed to fetch tickets", 500);
