@@ -264,6 +264,7 @@ export default function TicketDetails() {
     { id: "communications", label: "Comunicação", icon: MessageSquare },
     { id: "history", label: "Histórico", icon: History },
     { id: "internal-actions", label: "Ações Internas", icon: Settings },
+    { id: "links", label: "Vínculos", icon: Link },
   ];
 
   // Fetch ticket data
