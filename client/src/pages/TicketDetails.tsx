@@ -5,6 +5,15 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient, useQueries } from "@tanstack/react-query";
 import { z } from "zod";
 import React from "react";
+
+// Debounce utility function
+function debounce<T extends (...args: any[]) => any>(func: T, wait: number): (...args: Parameters<T>) => void {
+  let timeout: NodeJS.Timeout;
+  return (...args: Parameters<T>) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), wait);
+  };
+}
 import { 
   ArrowLeft, Edit, Save, X, Trash2, Eye, ChevronRight, ChevronLeft,
   Paperclip, FileText, MessageSquare, History, Settings,
@@ -281,8 +290,9 @@ export default function TicketDetails() {
       return data;
     },
     enabled: !!id,
-    staleTime: 30 * 1000, // 30 seconds cache
-    gcTime: 5 * 60 * 1000, // 5 minutes garbage collection
+    staleTime: 2 * 60 * 1000, // 2 minutes cache for better performance
+    gcTime: 10 * 60 * 1000, // 10 minutes garbage collection
+    refetchOnWindowFocus: false, // Evita refetch desnecessário
   });
 
   // Extract ticket from response data
@@ -337,20 +347,21 @@ export default function TicketDetails() {
     }
   }, [ticket?.customer_company_id, ticket?.customerCompanyId, ticket?.company, selectedCompany]);
 
-  // PROBLEMA 9 RESOLVIDO: Handle company change otimizado
-  const handleCompanyChange = async (newCompanyId: string) => {
-    console.log('🏢 Company change:', { newCompanyId, selectedCompany });
-    console.log('🔍 DEBUG - handleCompanyChange called with:', { 
-      newCompanyId, 
-      currentSelected: selectedCompany,
-      formValue: form.getValues('customerCompanyId')
-    });
-    
-    // Only proceed if company actually changed
-    if (newCompanyId === selectedCompany) {
-      console.log('⚠️ Company already selected, skipping');
-      return;
-    }
+  // PROBLEMA 9 RESOLVIDO: Handle company change otimizado com debounce
+  const handleCompanyChange = useCallback(
+    debounce(async (newCompanyId: string) => {
+      console.log('🏢 Company change:', { newCompanyId, selectedCompany });
+      console.log('🔍 DEBUG - handleCompanyChange called with:', { 
+        newCompanyId, 
+        currentSelected: selectedCompany,
+        formValue: form.getValues('customerCompanyId')
+      });
+      
+      // Only proceed if company actually changed
+      if (newCompanyId === selectedCompany) {
+        console.log('⚠️ Company already selected, skipping');
+        return;
+      }
 
     setSelectedCompany(newCompanyId);
     form.setValue('customerCompanyId', newCompanyId);
@@ -383,7 +394,9 @@ export default function TicketDetails() {
     } else {
       setSelectedCompanyCustomers([]);
     }
-  };
+  }, 300), // 300ms debounce
+  [selectedCompany]
+);
 
   // Handle customer selection with proper form updates
   const handleCustomerChange = (customerId: string, type: 'caller' | 'beneficiary') => {
@@ -463,7 +476,8 @@ export default function TicketDetails() {
           return response.json();
         },
         enabled: !!id,
-        staleTime: 60 * 1000, // 1 minute cache for history
+        staleTime: 3 * 60 * 1000, // 3 minutes cache for history (menos frequente)
+        refetchOnWindowFocus: false,
       },
       {
         queryKey: ["/api/tickets", id, "communications"],
@@ -472,7 +486,8 @@ export default function TicketDetails() {
           return response.json();
         },
         enabled: !!id,
-        staleTime: 30 * 1000, // 30 seconds cache for communications
+        staleTime: 60 * 1000, // 1 minute cache for communications
+        refetchOnWindowFocus: false,
       },
       {
         queryKey: ["/api/tickets", id, "notes"],
@@ -481,7 +496,8 @@ export default function TicketDetails() {
           return response.json();
         },
         enabled: !!id,
-        staleTime: 30 * 1000, // 30 seconds cache for notes
+        staleTime: 60 * 1000, // 1 minute cache for notes
+        refetchOnWindowFocus: false,
       },
       {
         queryKey: ["/api/tickets", id, "attachments"],
@@ -490,7 +506,8 @@ export default function TicketDetails() {
           return response.json();
         },
         enabled: !!id,
-        staleTime: 60 * 1000, // 1 minute cache for attachments
+        staleTime: 5 * 60 * 1000, // 5 minutes cache for attachments (estático)
+        refetchOnWindowFocus: false,
       },
       {
         queryKey: ["/api/tickets", id, "actions"],
@@ -499,7 +516,8 @@ export default function TicketDetails() {
           return response.json();
         },
         enabled: !!id,
-        staleTime: 45 * 1000, // 45 seconds cache for actions
+        staleTime: 90 * 1000, // 90 seconds cache for actions
+        refetchOnWindowFocus: false,
       }
     ]
   });
@@ -756,7 +774,13 @@ export default function TicketDetails() {
       followers: ticket.followers || [],
       customerCompanyId: ticket.customer_company_id || "",
     };
-  }, [ticket?.id, ticket?.subject, ticket?.status, ticket?.priority]); // Only key fields
+  }, [
+    ticket?.id, 
+    ticket?.subject, 
+    ticket?.status, 
+    ticket?.priority,
+    ticket?.updated_at, // Adiciona timestamp para detectar mudanças
+  ]); // Dependency array otimizada
 
   useEffect(() => {
     if (formDataMemo && ticket) {
@@ -805,17 +829,21 @@ export default function TicketDetails() {
       });
       
       // Only invalidate list if status/priority changed (affects sorting)
-      if (data.statusChanged || data.priorityChanged) {
+      const formData = form.getValues();
+      const statusChanged = formData.status !== ticket?.status;
+      const priorityChanged = formData.priority !== ticket?.priority;
+      
+      if (statusChanged || priorityChanged) {
         queryClient.invalidateQueries({ 
           queryKey: ["/api/tickets"],
           exact: false 
         });
       }
       
-      // Invalidate related data only if needed
-      if (data.communicationsChanged) {
+      // Invalidate relationships if linking fields changed
+      if (formData.linkTicketNumber || formData.linkType) {
         queryClient.invalidateQueries({ 
-          queryKey: ["/api/tickets", id, "communications"] 
+          queryKey: ["/api/ticket-relationships", id] 
         });
       }
       
@@ -2218,6 +2246,10 @@ export default function TicketDetails() {
         {/* Loading Sidebar */}
         <div className="w-72 bg-white border-r p-4">
           <div className="space-y-4">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+              <span className="text-sm text-gray-600">Carregando dados do ticket...</span>
+            </div>
             <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
             <div className="h-16 bg-gray-200 rounded animate-pulse"></div>
             <div className="h-32 bg-gray-200 rounded animate-pulse"></div>

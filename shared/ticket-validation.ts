@@ -11,10 +11,10 @@ export const TicketUrgencyEnum = z.enum(['low', 'medium', 'high']);
 export const ticketFormValidationSchema = z.object({
   subject: z.string().min(3, "Assunto deve ter pelo menos 3 caracteres").max(255),
   description: z.string().max(4000).optional(),
-  status: z.union([
-    z.enum(['new', 'open', 'in_progress', 'resolved', 'closed']), // Backend values
-    z.enum(['novo', 'aberto', 'em_andamento', 'resolvido', 'fechado']) // Frontend display values
-  ]).default('new'),
+  // Status aceita tanto valores do backend (inglês) quanto frontend (português)
+  status: z.enum(['new', 'open', 'in_progress', 'resolved', 'closed', 'novo', 'aberto', 'em_andamento', 'resolvido', 'fechado'], {
+    errorMap: () => ({ message: "Status inválido" })
+  }).default('new'),
   priority: TicketPriorityEnum,
   impact: TicketImpactEnum.optional(),
   urgency: TicketUrgencyEnum.optional(),
