@@ -221,15 +221,15 @@ export default function TicketsTable() {
   // Hook para buscar cores dos campos personalizados
   const { getFieldColor, getFieldLabel, isLoading: isFieldColorsLoading } = useFieldColors();
 
-  // Mapeamento de valores em inglês para português para compatibilidade com configurações
+  // Status mapping - manter valores em inglês conforme banco de dados 
   const statusMapping: Record<string, string> = {
-    'new': 'novo',
-    'open': 'aberto', 
-    'in_progress': 'em_andamento',
-    'in progress': 'em_andamento',
-    'resolved': 'resolvido',
-    'closed': 'fechado',
-    'cancelled': 'cancelado'
+    'new': 'new',
+    'open': 'open', 
+    'in_progress': 'in_progress',
+    'in progress': 'in_progress',
+    'resolved': 'resolved',
+    'closed': 'closed',
+    'cancelled': 'cancelled'
   };
 
   const priorityMapping: Record<string, string> = {
@@ -273,7 +273,7 @@ export default function TicketsTable() {
 
   // Funções de mapeamento
   const mapStatusValue = (value: string): string => {
-    if (!value) return 'novo';
+    if (!value) return 'new';
     const mapped = statusMapping[value.toLowerCase()] || value;
     return mapped;
   };
