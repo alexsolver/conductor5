@@ -1109,7 +1109,7 @@ ticketsRouter.post('/:id/relationships', jwtAuth, async (req: AuthenticatedReque
     // Check for duplicate relationships
     const duplicateCheck = await pool.query(
       `SELECT id FROM "${schemaName}".ticket_relationships 
-       WHERE source_ticket_id = $1 AND target_ticket_id = $2 AND relationship_type = $3 AND is_active = true`,
+       WHERE source_ticket_id = $1 AND target_ticket_id = $2 AND relationship_type = $3`,
       [id, targetTicketId, relationshipType]
     );
 
@@ -1120,8 +1120,8 @@ ticketsRouter.post('/:id/relationships', jwtAuth, async (req: AuthenticatedReque
     // Create relationship
     const insertQuery = `
       INSERT INTO "${schemaName}".ticket_relationships 
-      (id, tenant_id, source_ticket_id, target_ticket_id, relationship_type, description, created_by, created_at, updated_at, is_active)
-      VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, NOW(), NOW(), true)
+      (id, tenant_id, source_ticket_id, target_ticket_id, relationship_type, description, created_by, created_at)
+      VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, NOW())
       RETURNING id, relationship_type, description, created_at
     `;
 
