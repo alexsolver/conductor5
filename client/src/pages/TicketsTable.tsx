@@ -212,7 +212,7 @@ export default function TicketsTable() {
   const [activeTicketTab, setActiveTicketTab] = useState("informacoes");
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>("");
   const [filteredCustomers, setFilteredCustomers] = useState<any[]>([]);
-  
+
   // Estados para expansão de relacionamentos
   const [expandedTickets, setExpandedTickets] = useState<Set<string>>(new Set());
   const [ticketRelationships, setTicketRelationships] = useState<Record<string, any[]>>({});
@@ -276,22 +276,22 @@ export default function TicketsTable() {
       // Manter valores do banco diretos - sem tradução
       return statusMapping[value.toLowerCase()] || value;
     },
-    
+
     priority: (value: string): string => {
       if (!value) return 'medium';
       return priorityMapping[value.toLowerCase()] || value;
     },
-    
+
     impact: (value: string): string => {
       if (!value) return 'low';
       return impactMapping[value.toLowerCase()] || value;
     },
-    
+
     urgency: (value: string): string => {
       if (!value) return 'medium';
       return urgencyMapping[value.toLowerCase()] || value;
     },
-    
+
     category: (value: string): string => {
       if (!value || value === null || value === 'null' || value === '' || typeof value !== 'string') {
         return 'support'; // Valor padrão em inglês
@@ -378,7 +378,7 @@ export default function TicketsTable() {
     try {
       const response = await apiRequest("GET", `/api/ticket-relationships/${ticketId}/relationships`);
       const data = await response.json();
-      
+
       if (data.success) {
         // Transform the data to match the expected format
         const transformedRelationships = data.data.map((relationship: any) => ({
@@ -391,7 +391,7 @@ export default function TicketsTable() {
           description: relationship.description || '',
           createdAt: relationship.createdAt
         }));
-        
+
         setTicketRelationships(prev => ({
           ...prev,
           [ticketId]: transformedRelationships
@@ -401,7 +401,7 @@ export default function TicketsTable() {
         if (transformedRelationships.length > 0) {
           setTicketsWithRelationships(prev => new Set([...prev, ticketId]));
         }
-        
+
         return transformedRelationships;
       }
     } catch (error) {
@@ -413,7 +413,7 @@ export default function TicketsTable() {
   // Função para alternar expansão de ticket
   const toggleTicketExpansion = async (ticketId: string) => {
     const newExpanded = new Set(expandedTickets);
-    
+
     if (expandedTickets.has(ticketId)) {
       newExpanded.delete(ticketId);
     } else {
@@ -423,7 +423,7 @@ export default function TicketsTable() {
         await fetchTicketRelationships(ticketId);
       }
     }
-    
+
     setExpandedTickets(newExpanded);
   };
 
@@ -528,15 +528,15 @@ export default function TicketsTable() {
     try {
       const response = await apiRequest('GET', `/api/tickets/${ticketId}/relationships`);
       const data = await response.json();
-      
+
       // A API pode retornar {success: true, data: [...]} ou {relationships: [...]}
       let relationships = data.relationships || data.data || [];
-      
+
       // Se data é um array diretamente
       if (Array.isArray(data)) {
         relationships = data;
       }
-      
+
       const hasRelationships = relationships && relationships.length > 0;
       console.log(`🔗 Ticket ${ticketId} relationships:`, {
         hasRelationships,
@@ -544,7 +544,7 @@ export default function TicketsTable() {
         rawResponse: data,
         relationships: relationships
       });
-      
+
       // Log especial para tickets que sabemos que deveriam ter relacionamentos
       if (ticketId === '6fdae7d3-67cd-49f3-99d1-8ddd3efcb653') {
         console.log(`🚨 IMPORTANTE: Ticket T-1753756629339-G5WE deveria ter relacionamentos:`, {
@@ -557,7 +557,7 @@ export default function TicketsTable() {
           relationshipsLength: relationships?.length
         });
       }
-      
+
       return hasRelationships;
     } catch (error) {
       console.error('Error checking ticket relationships:', error);
@@ -574,7 +574,7 @@ export default function TicketsTable() {
           const ticketIds = tickets.map((ticket: any) => ticket.id);
           const response = await apiRequest('POST', '/api/tickets/batch-relationships', { ticketIds });
           const data = await response.json();
-          
+
           const ticketsWithRels = new Set<string>();
           if (data.success && data.data) {
             Object.entries(data.data).forEach(([ticketId, relationships]: [string, any]) => {
@@ -583,14 +583,14 @@ export default function TicketsTable() {
               }
             });
           }
-          
+
           setTicketsWithRelationships(ticketsWithRels);
         } catch (error) {
           console.error('Error checking batch relationships:', error);
           // Fallback para verificação individual apenas se necessário
         }
       };
-      
+
       checkAllTicketRelationships();
     }
   }, [tickets]);
@@ -840,7 +840,7 @@ export default function TicketsTable() {
               {(ticket as any).satisfaction ? `${(ticket as any).satisfaction}/5` : '-'}
             </TableCell>
           );
-      
+
         default:
           return (
             <TableCell className="overflow-hidden" style={cellStyle}>
@@ -849,6 +849,9 @@ export default function TicketsTable() {
           );
       }
     }, [column.id, ticket, cellStyle, getFieldColorWithFallback, getFieldLabel, mapCategoryValue, mapStatusValue, mapPriorityValue, mapImpactValue, mapUrgencyValue]);
+
+    return memoizedCellContent;
+  });
 
   // Função de renderização otimizada
   const renderCell = useCallback((column: any, ticket: Ticket, key?: string) => (
@@ -1028,7 +1031,7 @@ export default function TicketsTable() {
 
     const handleMouseMove = (e: MouseEvent) => {
       if (rafId) cancelAnimationFrame(rafId);
-      
+
       rafId = requestAnimationFrame(() => {
         const newWidth = Math.max(80, startWidth + (e.pageX - startX));
         setColumnWidths(prev => ({
@@ -1042,11 +1045,11 @@ export default function TicketsTable() {
       setIsResizing(false);
       setResizingColumn(null);
       if (rafId) cancelAnimationFrame(rafId);
-      
+
       // Salvar no localStorage apenas no final
       const finalWidth = getColumnWidth(columnId);
       localStorage.setItem(`column-width-${columnId}`, finalWidth.toString());
-      
+
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
@@ -1904,7 +1907,7 @@ export default function TicketsTable() {
                         </DropdownMenu>
                       </TableCell>
                     </TableRow>
-                    
+
                     {/* Linha expandida para relacionamentos */}
                     {expandedTickets.has(ticket.id) && (
                       <TableRow>
