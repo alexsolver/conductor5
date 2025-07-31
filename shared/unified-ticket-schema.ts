@@ -6,10 +6,10 @@
 import { z } from 'zod';
 
 // Enums padronizados para toda a aplicação
-export const TicketStatusEnum = z.enum(['new', 'open', 'in_progress', 'pending', 'resolved', 'closed', 'cancelled']);
-export const TicketPriorityEnum = z.enum(['low', 'medium', 'high', 'urgent', 'critical']);
-export const TicketImpactEnum = z.enum(['low', 'medium', 'high', 'critical']);
-export const TicketUrgencyEnum = z.enum(['low', 'medium', 'high', 'urgent']);
+export const TicketStatusEnum = z.enum(['new', 'open', 'in_progress', 'resolved', 'closed']);
+export const TicketPriorityEnum = z.enum(['low', 'medium', 'high', 'critical']);
+export const TicketImpactEnum = z.enum(['low', 'medium', 'high']);
+export const TicketUrgencyEnum = z.enum(['low', 'medium', 'high']);
 export const TicketCategoryEnum = z.enum(['support', 'incident', 'request', 'change', 'problem', 'maintenance']);
 export const CallerTypeEnum = z.enum(['user', 'customer', 'system']);
 export const ContactTypeEnum = z.enum(['email', 'phone', 'chat', 'portal', 'api']);
@@ -23,7 +23,7 @@ export const ticketFormSchema = z.object({
   subject: z.string().min(1, "Subject is required"), // Serve como título e assunto do ticket
   description: z.string().min(1, "Description is required"),
   priority: TicketPriorityEnum.default('medium'),
-  status: TicketStatusEnum.default('open'),
+  status: TicketStatusEnum.default('new'),
   category: TicketCategoryEnum.optional(),
   subcategory: z.string().optional(),
   

@@ -513,7 +513,7 @@ ticketsRouter.get('/:id/actions', jwtAuth, trackInternalActionView, async (req: 
         false as has_file,
         'system' as contact_method,
         '' as vendor,
-        COALESCE(tact.is_public, true) as is_public,
+        true as is_public,
         tact.created_at,
         tact.performed_by as created_by,
         u.first_name || ' ' || u.last_name as agent_name,
@@ -557,7 +557,6 @@ ticketsRouter.post('/:id/actions', jwtAuth, trackInternalActionCreate, async (re
       timeSpent, 
       startDateTime, 
       endDateTime, 
-      is_public = false 
     } = req.body;
     const tenantId = req.user.tenantId;
     const { pool } = await import('../../db');
@@ -695,8 +694,8 @@ ticketsRouter.post('/:id/actions', jwtAuth, trackInternalActionCreate, async (re
         has_file: false,
         contact_method: 'system',
         vendor: '',
-        is_public: newAction.is_public,
-        isPublic: newAction.is_public,
+        is_public: true,
+        isPublic: true,
         createdBy: req.user.id,
         createdByName: userName,
         createdAt: newAction.created_at,
