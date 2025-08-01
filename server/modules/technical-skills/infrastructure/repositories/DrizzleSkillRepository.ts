@@ -12,14 +12,16 @@ export class DrizzleSkillRepository implements ISkillRepository {
       category: skill.category,
       levelMin: skill.minLevelRequired || 1,
       levelMax: skill.maxLevelRequired || 5,
-      suggestedCertification: skill.suggestedCertification,
-      certificationValidityMonths: skill.certificationValidityMonths,
+      certificationSuggested: skill.suggestedCertification,
+      validityMonths: skill.certificationValidityMonths,
       description: skill.description,
       observations: skill.observations,
       tenantId: skill.tenantId,
       isActive: true,
       createdAt: new Date(),
       updatedAt: new Date(),
+      suggestedCertification: skill.suggestedCertification,
+      certificationValidityMonths: skill.certificationValidityMonths,
     }).returning();
 
     return this.mapToSkill(result);
@@ -77,11 +79,13 @@ export class DrizzleSkillRepository implements ISkillRepository {
         category: skill.category,
         levelMin: skill.minLevelRequired || 1,
         levelMax: skill.maxLevelRequired || 5,
-        suggestedCertification: skill.suggestedCertification,
-        certificationValidityMonths: skill.certificationValidityMonths,
+        certificationSuggested: skill.suggestedCertification,
+        validityMonths: skill.certificationValidityMonths,
         description: skill.description,
         observations: skill.observations,
         updatedAt: new Date(),
+        suggestedCertification: skill.suggestedCertification,
+        certificationValidityMonths: skill.certificationValidityMonths,
       })
       .where(eq(skills.id, skill.id))
       .returning();
@@ -173,7 +177,7 @@ export class DrizzleSkillRepository implements ISkillRepository {
       id: data.id,
       name: data.name,
       category: data.category,
-      minLevelRequired: data.levelMin || data.minLevelRequired || 1,
+      minLevelRequired: data.levelMin || 1,
       maxLevelRequired: data.levelMax || 5,
       suggestedCertification: data.suggestedCertification || data.certificationSuggested,
       certificationValidityMonths: data.certificationValidityMonths || data.validityMonths,
