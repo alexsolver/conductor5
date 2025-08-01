@@ -21,7 +21,17 @@ export class DrizzleSkillRepository implements ISkillRepository {
   }
 
   async findById(id: string): Promise<Skill | null> {
-    const [result] = await db.select()
+    const [result] = await db.select({
+      id: skills.id,
+      name: skills.name,
+      category: skills.category,
+      levelMin: skills.levelMin,
+      levelMax: skills.levelMax,
+      tenantId: skills.tenantId,
+      isActive: skills.isActive,
+      createdAt: skills.createdAt,
+      updatedAt: skills.updatedAt,
+    })
       .from(skills)
       .where(eq(skills.id, id))
       .limit(1);
@@ -35,7 +45,17 @@ export class DrizzleSkillRepository implements ISkillRepository {
     search?: string;
     tenantId?: string;
   }): Promise<Skill[]> {
-    let query = db.select().from(skills);
+    let query = db.select({
+      id: skills.id,
+      name: skills.name,
+      category: skills.category,
+      levelMin: skills.levelMin,
+      levelMax: skills.levelMax,
+      tenantId: skills.tenantId,
+      isActive: skills.isActive,
+      createdAt: skills.createdAt,
+      updatedAt: skills.updatedAt,
+    }).from(skills);
 
     const conditions = [];
 
@@ -72,10 +92,6 @@ export class DrizzleSkillRepository implements ISkillRepository {
         category: skill.category,
         levelMin: skill.minLevelRequired || 1,
         levelMax: skill.maxLevelRequired || 5,
-        certificationSuggested: skill.certificationSuggested,
-        validityMonths: skill.validityMonths,
-        description: skill.description,
-        observations: skill.observations,
         updatedAt: new Date(),
       })
       .where(eq(skills.id, skill.id))
@@ -94,7 +110,17 @@ export class DrizzleSkillRepository implements ISkillRepository {
   }
 
   async findByCategory(category: string): Promise<Skill[]> {
-    const results = await db.select()
+    const results = await db.select({
+      id: skills.id,
+      name: skills.name,
+      category: skills.category,
+      levelMin: skills.levelMin,
+      levelMax: skills.levelMax,
+      tenantId: skills.tenantId,
+      isActive: skills.isActive,
+      createdAt: skills.createdAt,
+      updatedAt: skills.updatedAt,
+    })
       .from(skills)
       .where(and(
         eq(skills.category, category),
@@ -106,7 +132,17 @@ export class DrizzleSkillRepository implements ISkillRepository {
   }
 
   async findByNamePattern(pattern: string): Promise<Skill[]> {
-    const results = await db.select()
+    const results = await db.select({
+      id: skills.id,
+      name: skills.name,
+      category: skills.category,
+      levelMin: skills.levelMin,
+      levelMax: skills.levelMax,
+      tenantId: skills.tenantId,
+      isActive: skills.isActive,
+      createdAt: skills.createdAt,
+      updatedAt: skills.updatedAt,
+    })
       .from(skills)
       .where(and(
         ilike(skills.name, `%${pattern}%`),
@@ -151,7 +187,17 @@ export class DrizzleSkillRepository implements ISkillRepository {
   async getMostDemandedSkills(limit?: number): Promise<{ skill: Skill; demandCount: number }[]> {
     // Esta implementação seria baseada em estatísticas de uso real
     // Por enquanto, retorna skills ordenadas por data de criação
-    const results = await db.select()
+    const results = await db.select({
+      id: skills.id,
+      name: skills.name,
+      category: skills.category,
+      levelMin: skills.levelMin,
+      levelMax: skills.levelMax,
+      tenantId: skills.tenantId,
+      isActive: skills.isActive,
+      createdAt: skills.createdAt,
+      updatedAt: skills.updatedAt,
+    })
       .from(skills)
       .where(eq(skills.isActive, true))
       .orderBy(desc(skills.createdAt))
