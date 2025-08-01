@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,7 +9,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -17,7 +17,23 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Users, Edit, Trash2, User, UserPlus, UserMinus } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import { 
+  Plus, 
+  Users, 
+  Edit, 
+  Trash2, 
+  User, 
+  UserPlus, 
+  UserMinus, 
+  Save,
+  X,
+  CheckCircle,
+  AlertCircle,
+  Loader2
+} from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -28,7 +44,17 @@ interface UserGroup {
   isActive: boolean;
   createdAt: string;
   memberships?: Array<{ id: string; userId: string; role: string }>;
-  memberCount?: number;
+  memberCount: number;
+}
+
+interface TeamMember {
+  id: string;
+  name: string;
+  firstName?: string;
+  lastName?: string;
+  email: string;
+  role?: string;
+  position?: string;
 }
 
 interface UserGroupsProps {
@@ -39,520 +65,554 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // Estados principais
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingGroup, setEditingGroup] = useState<UserGroup | null>(null);
+  const [activeTab, setActiveTab] = useState("info");
+  
+  // Estados do formulário
   const [formData, setFormData] = useState({
     name: "",
     description: ""
   });
+  
+  // Estados para gerenciamento de membros
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  const [isUpdatingMemberships, setIsUpdatingMemberships] = useState(false);
 
-  const { data: groupsData, isLoading } = useQuery<{ groups: UserGroup[] }>({
+  // Query para buscar grupos
+  const { data: groupsData, isLoading: groupsLoading, refetch: refetchGroups } = useQuery<{ groups: UserGroup[] }>({
     queryKey: ["/api/user-management/groups"],
+    refetchInterval: 30000,
   });
 
-  // Query para buscar usuários disponíveis
-  const { data: usersData } = useQuery({
+  // Query para buscar membros da equipe
+  const { data: teamMembersData, isLoading: membersLoading } = useQuery<TeamMember[]>({
     queryKey: ["/api/team-management/members"],
     enabled: !!editingGroup,
+    select: (data) => {
+      if (Array.isArray(data)) {
+        return data.map((member: any) => ({
+          id: member.id,
+          name: member.name || `${member.firstName || ''} ${member.lastName || ''}`.trim() || 'Sem nome',
+          firstName: member.firstName,
+          lastName: member.lastName,
+          email: member.email,
+          role: member.role,
+          position: member.position
+        }));
+      }
+      return [];
+    }
   });
 
   // Query para buscar membros do grupo atual
-  const { data: groupMembersData } = useQuery({
+  const { data: groupMembersData, refetch: refetchGroupMembers } = useQuery({
     queryKey: ["/api/user-management/groups", editingGroup?.id, "members"],
     enabled: !!editingGroup?.id,
+    select: (data: any) => {
+      if (data && Array.isArray(data.members)) {
+        return data.members.map((member: any) => member.userId);
+      }
+      return [];
+    }
   });
 
+  // Mutation para criar grupo
   const createGroupMutation = useMutation({
     mutationFn: async (data: { name: string; description?: string }) => {
-      return apiRequest("POST", "/api/user-management/groups", data);
+      return apiRequest('POST', '/api/user-management/groups', data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/user-management/groups"] });
       setShowCreateDialog(false);
       setFormData({ name: "", description: "" });
       toast({
-        title: t("userManagement.success", "Sucesso"),
-        description: t("userManagement.groupCreated", "Grupo criado com sucesso"),
+        title: "Grupo criado",
+        description: "Grupo criado com sucesso!",
       });
     },
-    onError: () => {
+    onError: (error: any) => {
       toast({
-        title: t("userManagement.error", "Erro"),
-        description: t("userManagement.groupCreateError", "Erro ao criar grupo"),
+        title: "Erro ao criar grupo",
+        description: error?.message || "Falha ao criar grupo",
         variant: "destructive",
       });
     },
   });
 
+  // Mutation para atualizar grupo
   const updateGroupMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: { name: string; description?: string } }) => {
-      return apiRequest("PUT", `/api/user-management/groups/${id}`, data);
+    mutationFn: async (data: { id: string; name: string; description?: string }) => {
+      return apiRequest('PUT', `/api/user-management/groups/${data.id}`, {
+        name: data.name,
+        description: data.description
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/user-management/groups"] });
       setEditingGroup(null);
       setFormData({ name: "", description: "" });
       toast({
-        title: t("userManagement.success", "Sucesso"),
-        description: t("userManagement.groupUpdated", "Grupo atualizado com sucesso"),
+        title: "Grupo atualizado",
+        description: "Grupo atualizado com sucesso!",
       });
     },
-    onError: () => {
+    onError: (error: any) => {
       toast({
-        title: t("userManagement.error", "Erro"),
-        description: t("userManagement.groupUpdateError", "Erro ao atualizar grupo"),
+        title: "Erro ao atualizar grupo",
+        description: error?.message || "Falha ao atualizar grupo",
         variant: "destructive",
       });
     },
   });
 
+  // Mutation para deletar grupo
   const deleteGroupMutation = useMutation({
-    mutationFn: async (id: string) => {
-      return apiRequest("DELETE", `/api/user-management/groups/${id}`);
+    mutationFn: async (groupId: string) => {
+      return apiRequest('DELETE', `/api/user-management/groups/${groupId}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/user-management/groups"] });
       toast({
-        title: t("userManagement.success", "Sucesso"),
-        description: t("userManagement.groupDeleted", "Grupo excluído com sucesso"),
+        title: "Grupo excluído",
+        description: "Grupo excluído com sucesso!",
       });
     },
-    onError: () => {
+    onError: (error: any) => {
       toast({
-        title: t("userManagement.error", "Erro"),
-        description: t("userManagement.groupDeleteError", "Erro ao excluir grupo"),
+        title: "Erro ao excluir grupo",
+        description: error?.message || "Falha ao excluir grupo",
         variant: "destructive",
       });
     },
   });
 
-  // Mutation to add user to group
+  // Mutation para adicionar usuário ao grupo
   const addUserToGroupMutation = useMutation({
-    mutationFn: async ({ groupId, userId }: { groupId: string, userId: string }) => {
-      console.log(`Mutation: Adding user ${userId} to group ${groupId}`);
-      const response = await apiRequest('POST', `/api/user-management/groups/${groupId}/members`, { userId });
-      console.log('Add user response:', response);
-      return response;
+    mutationFn: async ({ groupId, userId }: { groupId: string; userId: string }) => {
+      return apiRequest('POST', `/api/user-management/groups/${groupId}/members`, { userId });
     },
-    onSuccess: (data) => {
-      console.log('User added successfully:', data);
-      queryClient.invalidateQueries({ queryKey: ['/api/user-management/groups'] });
-      if (editingGroup?.id) {
-        queryClient.invalidateQueries({ queryKey: [`/api/user-management/groups/${editingGroup.id}/members`] });
-      }
-      // Refresh the editing group data
-      if (editingGroup) {
-        setTimeout(() => {
-          queryClient.invalidateQueries({ queryKey: ['/api/user-management/groups'] });
-        }, 500);
-      }
+    onSuccess: () => {
+      refetchGroupMembers();
+      refetchGroups();
       toast({
         title: "Usuário adicionado",
-        description: "Usuário foi adicionado ao grupo com sucesso.",
+        description: "Usuário adicionado ao grupo com sucesso!",
       });
     },
     onError: (error: any) => {
-      console.error('Error adding user to group:', error);
-      const errorMessage = error?.response?.data?.message || error?.message || "Falha ao adicionar usuário ao grupo.";
       toast({
         title: "Erro ao adicionar usuário",
-        description: errorMessage,
+        description: error?.message || "Falha ao adicionar usuário ao grupo",
         variant: "destructive",
       });
     },
   });
 
-  // Mutation to remove user from group
+  // Mutation para remover usuário do grupo
   const removeUserFromGroupMutation = useMutation({
-    mutationFn: async ({ groupId, userId }: { groupId: string, userId: string }) => {
-      console.log(`Mutation: Removing user ${userId} from group ${groupId}`);
-      const response = await apiRequest('DELETE', `/api/user-management/groups/${groupId}/members/${userId}`);
-      console.log('Remove user response:', response);
-      return response;
+    mutationFn: async ({ groupId, userId }: { groupId: string; userId: string }) => {
+      return apiRequest('DELETE', `/api/user-management/groups/${groupId}/members/${userId}`);
     },
-    onSuccess: (data) => {
-      console.log('User removed successfully:', data);
-      queryClient.invalidateQueries({ queryKey: ['/api/user-management/groups'] });
-      if (editingGroup?.id) {
-        queryClient.invalidateQueries({ queryKey: [`/api/user-management/groups/${editingGroup.id}/members`] });
-      }
-      // Refresh the editing group data
-      if (editingGroup) {
-        setTimeout(() => {
-          queryClient.invalidateQueries({ queryKey: ['/api/user-management/groups'] });
-        }, 500);
-      }
+    onSuccess: () => {
+      refetchGroupMembers();
+      refetchGroups();
       toast({
         title: "Usuário removido",
-        description: "Usuário foi removido do grupo com sucesso.",
+        description: "Usuário removido do grupo com sucesso!",
       });
     },
     onError: (error: any) => {
-      console.error('Error removing user from group:', error);
-      const errorMessage = error?.response?.data?.message || error?.message || "Falha ao remover usuário do grupo.";
       toast({
         title: "Erro ao remover usuário",
-        description: errorMessage,
+        description: error?.message || "Falha ao remover usuário do grupo",
         variant: "destructive",
       });
     },
   });
 
-  const handleCreateSubmit = (e: React.FormEvent) => {
+  // Efeito para sincronizar formulário quando editando
+  useEffect(() => {
+    if (editingGroup) {
+      setFormData({
+        name: editingGroup.name,
+        description: editingGroup.description || ""
+      });
+      setActiveTab("info");
+    }
+  }, [editingGroup]);
+
+  // Efeito para sincronizar usuários selecionados
+  useEffect(() => {
+    if (groupMembersData && Array.isArray(groupMembersData)) {
+      setSelectedUsers(groupMembersData);
+    }
+  }, [groupMembersData]);
+
+  // Função para fechar diálogo
+  const handleCloseDialog = () => {
+    setEditingGroup(null);
+    setFormData({ name: "", description: "" });
+    setSelectedUsers([]);
+    setActiveTab("info");
+  };
+
+  // Função para criar grupo
+  const handleCreateGroup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name.trim()) return;
+    if (!formData.name.trim()) {
+      toast({
+        title: "Nome obrigatório",
+        description: "O nome do grupo é obrigatório",
+        variant: "destructive",
+      });
+      return;
+    }
     createGroupMutation.mutate(formData);
   };
 
-  const handleEditSubmit = (e: React.FormEvent) => {
+  // Função para atualizar grupo
+  const handleUpdateGroup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name.trim() || !editingGroup) return;
-    updateGroupMutation.mutate({ 
-      id: editingGroup.id, 
-      data: formData 
+    if (!editingGroup || !formData.name.trim()) {
+      toast({
+        title: "Dados inválidos",
+        description: "Nome do grupo é obrigatório",
+        variant: "destructive",
+      });
+      return;
+    }
+    updateGroupMutation.mutate({
+      id: editingGroup.id,
+      name: formData.name,
+      description: formData.description
     });
   };
 
-  const handleEditClick = (group: UserGroup) => {
-    setEditingGroup(group);
-    setFormData({
-      name: group.name,
-      description: group.description || ""
-    });
-    // Inicializar usuários selecionados com os membros atuais do grupo
-    const currentMemberIds = group.memberships?.map(membership => membership.userId) || [];
-    setSelectedUsers(currentMemberIds);
+  // Função para alternar membro no grupo
+  const handleToggleUserInGroup = async (userId: string, isCurrentlyInGroup: boolean) => {
+    if (!editingGroup) return;
+
+    setIsUpdatingMemberships(true);
+    
+    try {
+      if (isCurrentlyInGroup) {
+        await removeUserFromGroupMutation.mutateAsync({
+          groupId: editingGroup.id,
+          userId: userId
+        });
+      } else {
+        await addUserToGroupMutation.mutateAsync({
+          groupId: editingGroup.id,
+          userId: userId
+        });
+      }
+    } catch (error) {
+      console.error('Error toggling user in group:', error);
+    } finally {
+      setIsUpdatingMemberships(false);
+    }
   };
 
-  const handleDeleteClick = (group: UserGroup) => {
+  // Função para confirmar exclusão
+  const handleDeleteGroup = (group: UserGroup) => {
     if (window.confirm(`Tem certeza que deseja excluir o grupo "${group.name}"?`)) {
       deleteGroupMutation.mutate(group.id);
     }
   };
 
-  const handleCloseDialog = () => {
-    setShowCreateDialog(false);
-    setEditingGroup(null);
-    setFormData({ name: "", description: "" });
-    setSelectedUsers([]);
-  };
+  const groups = groupsData?.groups || [];
 
-  // Funções para gerenciar usuários no grupo
-  const handleAddUserToGroup = (userId: string) => {
-    if (!editingGroup || !userId) return;
-    console.log(`Adding user ${userId} to group ${editingGroup.id}`);
-    addUserToGroupMutation.mutate({ groupId: editingGroup.id, userId });
-  };
-
-  const handleRemoveUserFromGroup = (userId: string) => {
-    if (!editingGroup || !userId) return;
-    console.log(`Removing user ${userId} from group ${editingGroup.id}`);
-    removeUserFromGroupMutation.mutate({ groupId: editingGroup.id, userId });
-  };
-
-  const handleToggleUserSelection = (userId: string) => {
-    setSelectedUsers(prev => 
-      prev.includes(userId) 
-        ? prev.filter(id => id !== userId)
-        : [...prev, userId]
+  if (groupsLoading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin" />
+        <span className="ml-2">Carregando grupos...</span>
+      </div>
     );
-  };
+  }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-medium">{t("userManagement.userGroups", "Grupos de Usuários")}</h3>
-          <p className="text-sm text-muted-foreground">
-            {t("userManagement.userGroupsDesc", "Organize usuários em grupos para facilitar o gerenciamento de permissões")}
+          <h3 className="text-lg font-semibold">Grupos de Usuários</h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Organize usuários em grupos para facilitar o gerenciamento de permissões
           </p>
         </div>
         <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
           <DialogTrigger asChild>
             <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              {t("userManagement.createGroup", "Criar Grupo")}
+              <Plus className="h-4 w-4 mr-2" />
+              Criar Grupo
             </Button>
           </DialogTrigger>
           <DialogContent>
-            <form onSubmit={handleCreateSubmit}>
-              <DialogHeader>
-                <DialogTitle>{t("userManagement.createGroup", "Criar Grupo")}</DialogTitle>
-                <DialogDescription>
-                  {t("userManagement.createGroupDesc", "Crie um novo grupo para organizar usuários")}
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">{t("userManagement.groupName", "Nome do Grupo")}</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder={t("userManagement.groupNamePlaceholder", "Ex: Suporte Técnico")}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="description">{t("userManagement.description", "Descrição")}</Label>
-                  <Textarea
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder={t("userManagement.descriptionPlaceholder", "Descrição opcional do grupo")}
-                    rows={3}
-                  />
-                </div>
+            <DialogHeader>
+              <DialogTitle>Criar Novo Grupo</DialogTitle>
+              <DialogDescription>
+                Crie um novo grupo para organizar usuários
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleCreateGroup} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Nome do Grupo</Label>
+                <Input
+                  id="name"
+                  placeholder="Ex: Suporte Técnico"
+                  value={formData.name}
+                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                  required
+                />
               </div>
-              <DialogFooter>
+              <div className="space-y-2">
+                <Label htmlFor="description">Descrição</Label>
+                <Textarea
+                  id="description"
+                  placeholder="Descrição opcional do grupo"
+                  value={formData.description}
+                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                  rows={3}
+                />
+              </div>
+              <div className="flex justify-end space-x-2">
                 <Button 
                   type="button" 
                   variant="outline" 
-                  onClick={handleCloseDialog}
+                  onClick={() => setShowCreateDialog(false)}
                 >
-                  {t("common.cancel", "Cancelar")}
+                  Cancelar
                 </Button>
                 <Button 
                   type="submit" 
                   disabled={createGroupMutation.isPending || !formData.name.trim()}
                 >
-                  {createGroupMutation.isPending 
-                    ? t("common.creating", "Criando...") 
-                    : t("common.create", "Criar")
-                  }
+                  {createGroupMutation.isPending ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Criando...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      Criar
+                    </>
+                  )}
                 </Button>
-              </DialogFooter>
+              </div>
             </form>
-          </DialogContent>
-        </Dialog>
-
-        {/* Dialog de Edição com Abas */}
-        <Dialog open={!!editingGroup} onOpenChange={() => setEditingGroup(null)}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>{t("userManagement.editGroup", "Editar Grupo")}</DialogTitle>
-              <DialogDescription>
-                Gerencie as informações do grupo e associe técnicos
-              </DialogDescription>
-            </DialogHeader>
-
-            <Tabs defaultValue="info" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-4">
-                <TabsTrigger value="info" className="flex items-center space-x-2">
-                  <Edit className="h-4 w-4" />
-                  <span>Informações</span>
-                </TabsTrigger>
-                <TabsTrigger value="members" className="flex items-center space-x-2">
-                  <Users className="h-4 w-4" />
-                  <span>Técnicos</span>
-                </TabsTrigger>
-              </TabsList>
-
-              {/* Aba Informações */}
-              <TabsContent value="info" className="space-y-4">
-                <form onSubmit={handleEditSubmit}>
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="edit-name">Nome do Grupo</Label>
-                      <Input
-                        id="edit-name"
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        placeholder="Ex: Suporte Técnico"
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="edit-description">Descrição</Label>
-                      <Textarea
-                        id="edit-description"
-                        value={formData.description}
-                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                        placeholder="Descrição opcional do grupo"
-                        rows={3}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex justify-end space-x-2 mt-6">
-                    <Button type="button" variant="outline" onClick={handleCloseDialog}>
-                      Cancelar
-                    </Button>
-                    <Button type="submit" disabled={updateGroupMutation.isPending || !formData.name.trim()}>
-                      {updateGroupMutation.isPending ? "Atualizando..." : "Atualizar"}
-                    </Button>
-                  </div>
-                </form>
-              </TabsContent>
-
-              {/* Aba Técnicos */}
-              <TabsContent value="members" className="space-y-4">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-medium">Associar Técnicos ao Grupo</h4>
-                    <Badge variant="outline">
-                      {editingGroup?.memberships?.length || 0} técnicos associados
-                    </Badge>
-                  </div>
-
-                  {/* Lista de Usuários Disponíveis */}
-                  <div className="border rounded-lg p-4 max-h-96 overflow-y-auto">
-                    <div className="space-y-2">
-                      {Array.isArray(usersData) && usersData.length > 0 ? (
-                        usersData.map((user: any) => {
-                          const isInGroup = editingGroup?.memberships?.some(m => m.userId === user.id);
-
-                          // Criar handlers únicos para cada usuário para evitar conflitos de evento
-                          const createAddHandler = (userId: string) => (e: React.MouseEvent) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            console.log(`Adding user ${userId} to group`);
-                            handleAddUserToGroup(userId);
-                          };
-
-                          const createRemoveHandler = (userId: string) => (e: React.MouseEvent) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            console.log(`Removing user ${userId} from group`);
-                            handleRemoveUserFromGroup(userId);
-                          };
-
-                          return (
-                            <div 
-                              key={user.id} 
-                              className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
-                            >
-                              <div className="flex items-center space-x-3">
-                                <div className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center flex-shrink-0">
-                                  <span className="text-white font-semibold text-xs">
-                                    {user.name?.charAt(0)?.toUpperCase() || user.email?.charAt(0)?.toUpperCase()}
-                                  </span>
-                                </div>
-                                <div>
-                                  <p className="text-sm font-medium">{user.name || 'Nome não informado'}</p>
-                                  <p className="text-xs text-gray-500">{user.email}</p>
-                                  <p className="text-xs text-gray-400">{user.role || 'Função não informada'}</p>
-                                </div>
-                              </div>
-                              <div className="flex items-center space-x-2">
-                                {isInGroup ? (
-                                  <Button
-                                    size="sm"
-                                    variant="destructive"
-                                    onClick={createRemoveHandler(user.id)}
-                                    disabled={removeUserFromGroupMutation.isPending}
-                                  >
-                                    <UserMinus className="h-3 w-3 mr-1" />
-                                    Remover
-                                  </Button>
-                                ) : (
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={createAddHandler(user.id)}
-                                    disabled={addUserToGroupMutation.isPending}
-                                  >
-                                    <UserPlus className="h-3 w-3 mr-1" />
-                                    Atribuir
-                                  </Button>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })
-                      ) : (
-                        <div className="text-center py-8 text-gray-500">
-                          <User className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                          <p>Nenhum técnico disponível</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex justify-end">
-                    <Button type="button" onClick={handleCloseDialog}>
-                      Concluir
-                    </Button>
-                  </div>
-                </div>
-              </TabsContent>
-            </Tabs>
           </DialogContent>
         </Dialog>
       </div>
 
-      {isLoading ? (
-        <div className="text-center py-8">
-          {t("common.loading", "Carregando...")}
-        </div>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {groupsData?.groups?.map((group) => (
-            <Card key={group.id}>
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-base">{group.name}</CardTitle>
+      {/* Lista de Grupos */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {groups.length === 0 ? (
+          <div className="col-span-full">
+            <Card>
+              <CardContent className="text-center py-8">
+                <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+                  Nenhum grupo encontrado
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-4">
+                  Crie seu primeiro grupo para organizar usuários
+                </p>
+                <Button onClick={() => setShowCreateDialog(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Criar Primeiro Grupo
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        ) : (
+          groups.map((group) => (
+            <Card key={group.id} className="hover:shadow-md transition-shadow">
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1 min-w-0">
+                    <CardTitle className="text-base truncate">{group.name}</CardTitle>
+                    {group.description && (
+                      <CardDescription className="mt-1 text-sm">
+                        {group.description}
+                      </CardDescription>
+                    )}
+                  </div>
                   <Badge variant={group.isActive ? "default" : "secondary"}>
-                    {group.isActive 
-                      ? t("userManagement.active", "Ativo")
-                      : t("userManagement.inactive", "Inativo")
-                    }
+                    {group.isActive ? "Ativo" : "Inativo"}
                   </Badge>
                 </div>
-                {group.description && (
-                  <CardDescription className="text-sm">
-                    {group.description}
-                  </CardDescription>
-                )}
               </CardHeader>
-              <CardContent>
+              <CardContent className="pt-0">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <Users className="mr-1 h-4 w-4" />
-                    {group.memberCount || group.memberships?.length || 0} membros
+                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                    <Users className="h-4 w-4 mr-1" />
+                    <span>{group.memberCount || 0} membros</span>
                   </div>
-                  <div className="flex items-center space-x-1">
-                    <Button 
-                      variant="ghost" 
+                  <div className="flex space-x-1">
+                    <Button
                       size="sm"
-                      onClick={() => handleEditClick(group)}
-                      title={t("userManagement.editGroup", "Editar Grupo")}
+                      variant="outline"
+                      onClick={() => setEditingGroup(group)}
                     >
-                      <Edit className="h-4 w-4" />
+                      <Edit className="h-3 w-3" />
                     </Button>
-                    <Button 
-                      variant="ghost" 
+                    <Button
                       size="sm"
-                      onClick={() => handleDeleteClick(group)}
-                      title={t("userManagement.deleteGroup", "Excluir Grupo")}
+                      variant="outline"
+                      onClick={() => handleDeleteGroup(group)}
+                      disabled={deleteGroupMutation.isPending}
                     >
-                      <Trash2 className="h-4 w-4" />
+                      {deleteGroupMutation.isPending ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        <Trash2 className="h-3 w-3" />
+                      )}
                     </Button>
                   </div>
                 </div>
               </CardContent>
             </Card>
-          ))}
-        </div>
-      )}
+          ))
+        )}
+      </div>
 
-      {groupsData?.groups?.length === 0 && (
-        <Card>
-          <CardContent className="text-center py-8">
-            <Users className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-            <p className="text-muted-foreground">
-              {t("userManagement.noGroups", "Nenhum grupo foi criado ainda")}
-            </p>
-            <Button 
-              className="mt-4" 
-              onClick={() => setShowCreateDialog(true)}
-            >
-              {t("userManagement.createFirstGroup", "Criar primeiro grupo")}
-            </Button>
-          </CardContent>
-        </Card>
-      )}
+      {/* Dialog de Edição */}
+      <Dialog open={!!editingGroup} onOpenChange={() => handleCloseDialog()}>
+        <DialogContent className="max-w-2xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle>Editar Grupo: {editingGroup?.name}</DialogTitle>
+            <DialogDescription>
+              Gerencie as informações e membros do grupo
+            </DialogDescription>
+          </DialogHeader>
+
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="info">Informações</TabsTrigger>
+              <TabsTrigger value="members">
+                Membros ({editingGroup?.memberCount || 0})
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="info" className="space-y-4">
+              <form onSubmit={handleUpdateGroup} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-name">Nome do Grupo</Label>
+                  <Input
+                    id="edit-name"
+                    value={formData.name}
+                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-description">Descrição</Label>
+                  <Textarea
+                    id="edit-description"
+                    value={formData.description}
+                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                    rows={3}
+                  />
+                </div>
+                <div className="flex justify-end space-x-2">
+                  <Button type="button" variant="outline" onClick={handleCloseDialog}>
+                    Cancelar
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    disabled={updateGroupMutation.isPending || !formData.name.trim()}
+                  >
+                    {updateGroupMutation.isPending ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Atualizando...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="h-4 w-4 mr-2" />
+                        Salvar
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </form>
+            </TabsContent>
+
+            <TabsContent value="members" className="space-y-4">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-medium">Gerenciar Membros</h4>
+                  <Badge variant="outline">
+                    {selectedUsers.length} selecionados
+                  </Badge>
+                </div>
+
+                {membersLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                    <span className="ml-2">Carregando membros...</span>
+                  </div>
+                ) : (
+                  <ScrollArea className="h-64 border rounded-lg p-4">
+                    <div className="space-y-2">
+                      {teamMembersData && teamMembersData.length > 0 ? (
+                        teamMembersData.map((member) => {
+                          const isInGroup = selectedUsers.includes(member.id);
+                          return (
+                            <div
+                              key={member.id}
+                              className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
+                            >
+                              <Checkbox
+                                checked={isInGroup}
+                                onCheckedChange={(checked) => {
+                                  handleToggleUserInGroup(member.id, isInGroup);
+                                }}
+                                disabled={isUpdatingMemberships}
+                              />
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center space-x-2">
+                                  <User className="h-4 w-4 text-gray-400" />
+                                  <span className="font-medium truncate">{member.name}</span>
+                                </div>
+                                <p className="text-xs text-gray-500 truncate">
+                                  {member.email} {member.position && `• ${member.position}`}
+                                </p>
+                              </div>
+                              {isInGroup && (
+                                <CheckCircle className="h-4 w-4 text-green-500" />
+                              )}
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <div className="text-center py-4">
+                          <AlertCircle className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                          <p className="text-sm text-gray-500">
+                            Nenhum membro da equipe encontrado
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </ScrollArea>
+                )}
+
+                <div className="flex justify-end">
+                  <Button variant="outline" onClick={handleCloseDialog}>
+                    <X className="h-4 w-4 mr-2" />
+                    Fechar
+                  </Button>
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
