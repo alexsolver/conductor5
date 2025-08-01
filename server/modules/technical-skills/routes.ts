@@ -11,6 +11,15 @@ const userSkillController = new UserSkillController();
 // Middleware de autenticação para todas as rotas
 router.use(jwtAuth);
 
+// Middleware para extrair tenantId do usuário autenticado
+router.use((req, res, next) => {
+  const user = (req as any).user;
+  if (user && user.tenantId) {
+    req.headers['x-tenant-id'] = user.tenantId;
+  }
+  next();
+});
+
 // ===================
 // ROTAS DE HABILIDADES
 // ===================

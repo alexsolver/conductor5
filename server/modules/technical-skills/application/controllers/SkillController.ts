@@ -13,14 +13,25 @@ export class SkillController {
 
   async createSkill(req: Request, res: Response): Promise<void> {
     try {
-      const { name, category, description, suggestedCertification, certificationValidityMonths, observations, scaleOptions } = req.body;
-      const tenantId = req.headers['x-tenant-id'] as string;
-      const userId = (req as any).user?.id;
+      const { name, category, description } = req.body;
+      const user = (req as any).user;
+      const tenantId = req.headers['x-tenant-id'] as string || user?.tenantId;
+      const userId = user?.id;
+
+      console.log('Creating skill with tenantId:', tenantId, 'user:', user);
 
       if (!name || !category) {
         res.status(400).json({
           success: false,
           message: 'Nome e categoria são obrigatórios'
+        });
+        return;
+      }
+
+      if (!tenantId) {
+        res.status(400).json({
+          success: false,
+          message: 'Tenant ID é obrigatório'
         });
         return;
       }
