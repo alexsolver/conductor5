@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
 import type { ISkillRepository } from '../../domain/repositories/ISkillRepository';
 import { Skill, SkillEntity } from '../../domain/entities/Skill';
+import crypto from 'crypto';
 import { DrizzleSkillRepository } from '../../infrastructure/repositories/DrizzleSkillRepository';
 
 export class SkillController {
@@ -24,17 +25,19 @@ export class SkillController {
         return;
       }
 
-      const skill = SkillEntity.create({
+      // Criar skill com apenas campos básicos
+      const skill = {
+        id: crypto.randomUUID(),
         name,
         category,
-        description,
-        suggestedCertification,
-        certificationValidityMonths,
-        observations,
-        scaleOptions: scaleOptions || [],
+        description: description || '',
+        minLevelRequired: 1,
+        maxLevelRequired: 5,
         tenantId,
-        createdBy: userId,
-      });
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
 
       const createdSkill = await this.skillRepository.create(skill);
 

@@ -6,12 +6,12 @@ import { Skill, SkillEntity } from '../../domain/entities/Skill';
 
 export class DrizzleSkillRepository implements ISkillRepository {
   async create(skill: Skill): Promise<Skill> {
+    // Usar apenas campos básicos que existem no banco
     const [result] = await db.insert(skills).values({
-      id: skill.id,
       name: skill.name,
       category: skill.category,
       description: skill.description || '',
-      tenantId: skill.tenantId,
+      tenantId: skill.tenantId || '',
       isActive: true,
     }).returning();
 
@@ -84,8 +84,9 @@ export class DrizzleSkillRepository implements ISkillRepository {
       .set({
         name: skill.name,
         category: skill.category,
+        description: skill.description,
         isActive: skill.isActive,
-        updatedAt: skill.updatedAt,
+        updatedAt: new Date(),
       })
       .where(eq(skills.id, skill.id))
       .returning();
@@ -108,7 +109,6 @@ export class DrizzleSkillRepository implements ISkillRepository {
     if (data.name !== undefined) updateData.name = data.name;
     if (data.category !== undefined) updateData.category = data.category;
     if (data.description !== undefined) updateData.description = data.description;
-    if (data.updatedBy !== undefined) updateData.updatedBy = data.updatedBy;
 
     const [result] = await db.update(skills)
       .set(updateData)
