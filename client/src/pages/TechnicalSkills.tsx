@@ -35,12 +35,26 @@ const skillFormSchema = z.object({
   certificationValidityMonths: z.number().positive().optional(),
   description: z.string().optional(),
   observations: z.string().optional(),
+  scaleOptions: z.array(z.object({
+    level: z.number(),
+    label: z.string(),
+    description: z.string()
+  })).optional(),
 });
 
 type SkillFormData = z.infer<typeof skillFormSchema>;
 
 // Categorias agora são carregadas dinamicamente do backend
 const DEFAULT_CATEGORIES = ["Técnica", "Operacional", "Administrativa"];
+
+// Opções padrão da escala
+const DEFAULT_SCALE_OPTIONS = [
+  { level: 1, label: "Básico", description: "Conhecimento introdutório, precisa de supervisão" },
+  { level: 2, label: "Intermediário", description: "Executa tarefas com alguma autonomia" },
+  { level: 3, label: "Avançado", description: "Executa com autonomia, lida com situações variadas" },
+  { level: 4, label: "Especialista", description: "Referência técnica interna, resolve problemas críticos" },
+  { level: 5, label: "Excelência", description: "Comprovada por resultados e avaliações de clientes" }
+];
 
 interface Skill {
   id: string;
@@ -55,6 +69,11 @@ interface Skill {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  scaleOptions?: Array<{
+    level: number;
+    label: string;
+    description: string;
+  }>;
 }
 
 interface SkillsResponse {
@@ -89,6 +108,7 @@ export default function TechnicalSkills() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingSkill, setEditingSkill] = useState<Skill | null>(null);
+  const [scaleOptions, setScaleOptions] = useState(DEFAULT_SCALE_OPTIONS);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -127,6 +147,7 @@ export default function TechnicalSkills() {
       certificationValidityMonths: undefined,
       description: "",
       observations: "",
+      scaleOptions: DEFAULT_SCALE_OPTIONS,
     },
   });
 
@@ -177,17 +198,27 @@ export default function TechnicalSkills() {
 
   // Event handlers
   const onCreateSubmit = (data: SkillFormData) => {
-    createSkillMutation.mutate(data);
+    const submitData = {
+      ...data,
+      scaleOptions: scaleOptions
+    };
+    createSkillMutation.mutate(submitData);
   };
 
   const onEditSubmit = (data: SkillFormData) => {
     if (editingSkill) {
-      updateSkillMutation.mutate({ id: editingSkill.id, data });
+      const submitData = {
+        ...data,
+        scaleOptions: scaleOptions
+      };
+      updateSkillMutation.mutate({ id: editingSkill.id, data: submitData });
     }
   };
 
   const openEditDialog = (skill: Skill) => {
     setEditingSkill(skill);
+    const skillScaleOptions = skill.scaleOptions || DEFAULT_SCALE_OPTIONS;
+    setScaleOptions(skillScaleOptions);
     editForm.reset({
       name: skill.name,
       category: skill.category,
@@ -196,18 +227,15 @@ export default function TechnicalSkills() {
       certificationValidityMonths: skill.certificationValidityMonths || undefined,
       description: skill.description || "",
       observations: skill.observations || "",
+      scaleOptions: skillScaleOptions,
     });
     setIsEditDialogOpen(true);
   };
 
-  const renderStars = (level: number) => {
-    const levelLabels = {
-      1: "Básico",
-      2: "Intermediário", 
-      3: "Avançado",
-      4: "Especialista",
-      5: "Excelência"
-    };
+  const renderStars = (level: number, skillScaleOptions?: typeof DEFAULT_SCALE_OPTIONS) => {
+    const options = skillScaleOptions || scaleOptions;
+    const levelOption = options.find(opt => opt.level === level);
+    const levelLabel = levelOption?.label || `Nível ${level}`;
 
     return (
       <div className="flex items-center space-x-1">
@@ -218,7 +246,7 @@ export default function TechnicalSkills() {
           />
         ))}
         <span className="ml-1 text-xs text-gray-500">
-          {levelLabels[level as keyof typeof levelLabels]} mín.
+          {levelLabel} mín.
         </span>
       </div>
     );
@@ -311,19 +339,19 @@ export default function TechnicalSkills() {
                   name="minLevelRequired"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Nível Mínimo Requerido</FormLabel>
+                      <FormLabel>Escala</FormLabel>
                       <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString()}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Selecione o nível" />
+                            <SelectValue placeholder="Selecione a escala" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="1">Básico - Conhecimento introdutório, precisa de supervisão</SelectItem>
-                          <SelectItem value="2">Intermediário - Executa tarefas com alguma autonomia</SelectItem>
-                          <SelectItem value="3">Avançado - Executa com autonomia, lida com situações variadas</SelectItem>
-                          <SelectItem value="4">Especialista - Referência técnica interna, resolve problemas críticos</SelectItem>
-                          <SelectItem value="5">Excelência - Comprovada por resultados e avaliações de clientes</SelectItem>
+                          {scaleOptions.map((option) => (
+                            <SelectItem key={option.level} value={option.level.toString()}>
+                              {option.label} - {option.description}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -499,7 +527,7 @@ export default function TechnicalSkills() {
                     <CardTitle className="text-lg">{skill.name}</CardTitle>
                     <div className="flex items-center space-x-2 mt-1">
                       <Badge variant="secondary">{skill.category}</Badge>
-                      {renderStars(skill.minLevelRequired || 1)}
+                      {renderStars(skill.minLevelRequired || 1, skill.scaleOptions)}
                     </div>
                   </div>
                   <div className="flex space-x-1">
@@ -601,7 +629,7 @@ export default function TechnicalSkills() {
                 name="minLevelRequired"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Nível Mínimo Requerido</FormLabel>
+                    <FormLabel>Escala</FormLabel>
                     <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString()}>
                       <FormControl>
                         <SelectTrigger>
@@ -609,17 +637,51 @@ export default function TechnicalSkills() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="1">Básico - Conhecimento introdutório, precisa de supervisão</SelectItem>
-                        <SelectItem value="2">Intermediário - Executa tarefas com alguma autonomia</SelectItem>
-                        <SelectItem value="3">Avançado - Executa com autonomia, lida com situações variadas</SelectItem>
-                        <SelectItem value="4">Especialista - Referência técnica interna, resolve problemas críticos</SelectItem>
-                        <SelectItem value="5">Excelência - Comprovada por resultados e avaliações de clientes</SelectItem>
+                        {scaleOptions.map((option) => (
+                          <SelectItem key={option.level} value={option.level.toString()}>
+                            {option.label} - {option.description}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
+              {/* Editor de Opções da Escala */}
+              <div className="space-y-4">
+                <FormLabel>Opções da Escala</FormLabel>
+                {scaleOptions.map((option, index) => (
+                  <div key={option.level} className="grid grid-cols-12 gap-2 items-center">
+                    <div className="col-span-1">
+                      <span className="text-sm font-medium">{option.level}</span>
+                    </div>
+                    <div className="col-span-3">
+                      <Input
+                        placeholder="Nome da escala"
+                        value={option.label}
+                        onChange={(e) => {
+                          const newOptions = [...scaleOptions];
+                          newOptions[index].label = e.target.value;
+                          setScaleOptions(newOptions);
+                        }}
+                      />
+                    </div>
+                    <div className="col-span-8">
+                      <Input
+                        placeholder="Descrição da escala"
+                        value={option.description}
+                        onChange={(e) => {
+                          const newOptions = [...scaleOptions];
+                          newOptions[index].description = e.target.value;
+                          setScaleOptions(newOptions);
+                        }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
 
               <FormField
                 control={editForm.control}
