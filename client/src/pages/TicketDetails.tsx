@@ -2986,31 +2986,22 @@ const TicketDetails = React.memo(() => {
             
             {/* Grupo de Atribuição */}
             <div className="mb-4">
-              <FormField
-                control={form.control}
-                name="assignmentGroup"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-sm font-medium text-gray-700">Grupo de Atribuição</FormLabel>
-                    <FormControl>
-                      {isEditMode ? (
-                        <DynamicSelect
-                          fieldName="assignmentGroup"
-                          value={field.value || ticket.assignment_group || ''}
-                          onValueChange={field.onChange}
-                          placeholder="Selecione o grupo"
-                          disabled={!isEditMode}
-                        />
-                      ) : (
-                        <div className="p-2 bg-gray-50 rounded text-sm">
-                          {field.value || ticket.assignment_group || 'Não especificado'}
-                        </div>
-                      )}
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Grupo de Atribuição</label>
+                {isEditMode ? (
+                  <DynamicSelect
+                    fieldName="assignmentGroup"
+                    value={form.getValues('assignmentGroup') || ticket.assignment_group || ''}
+                    onValueChange={(value) => form.setValue('assignmentGroup', value)}
+                    placeholder="Selecione o grupo"
+                    disabled={!isEditMode}
+                  />
+                ) : (
+                  <div className="p-2 bg-gray-50 rounded text-sm">
+                    {form.getValues('assignmentGroup') || ticket.assignment_group || 'Não especificado'}
+                  </div>
                 )}
-              />
+              </div>
             </div>
 
             {/* Usuário Atribuído */}
