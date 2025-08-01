@@ -201,14 +201,40 @@ export default function TeamManagement() {
   // Handle edit member
   const handleEditMember = (member: any) => {
     console.log('TeamManagement - Opening edit dialog with member:', member);
+    if (!member || !member.id) {
+      toast({
+        title: "Erro",
+        description: "Dados do membro inválidos",
+        variant: "destructive",
+      });
+      return;
+    }
     setEditingMember(member);
     setShowEditDialog(true);
   };
 
   // Handle toggle member status
   const handleToggleMemberStatus = async (member: any) => {
+    if (!member || !member.id) {
+      toast({
+        title: "Erro",
+        description: "Dados do membro inválidos",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     const newStatus = member.status === 'active' ? 'inactive' : 'active';
-    toggleMemberStatusMutation.mutate({ memberId: member.id, newStatus });
+    try {
+      toggleMemberStatusMutation.mutate({ memberId: member.id, newStatus });
+    } catch (error) {
+      console.error('Error toggling member status:', error);
+      toast({
+        title: "Erro",
+        description: "Falha ao alterar status do membro",
+        variant: "destructive",
+      });
+    }
   };
 
   // Handle export team data
@@ -707,7 +733,7 @@ export default function TeamManagement() {
 
                 {/* Table Body */}
                 <div className="divide-y divide-gray-200 dark:divide-gray-700">
-                  {filteredMembers.map((member: any) => (
+                  {filteredMembers && filteredMembers.length > 0 ? filteredMembers.map((member: any) => (
                     <div key={member.id} className="grid grid-cols-12 gap-4 p-4 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
                       {/* Member Info */}
                       <div className="col-span-3 flex items-center space-x-3">
@@ -807,7 +833,20 @@ export default function TeamManagement() {
                         </Button>
                       </div>
                     </div>
-                  ))}
+                  )) : (
+                    <div className="p-8 text-center">
+                      <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                        Nenhum membro encontrado
+                      </h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        {teamMembers && teamMembers.length === 0 
+                          ? "Nenhum membro foi adicionado à equipe ainda."
+                          : "Ajuste os filtros para encontrar membros da equipe."
+                        }
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Empty State */}

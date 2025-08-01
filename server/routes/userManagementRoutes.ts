@@ -7,6 +7,14 @@ import { db } from '../db';
 import { userGroups, userGroupMemberships, insertUserGroupSchema, insertUserGroupMembershipSchema, users as usersTable } from '../../shared/schema.js';
 import { eq, and } from 'drizzle-orm';
 import crypto from 'crypto';
+import { z } from 'zod';
+
+// Add missing validation schema
+const updateUserGroupSchema = z.object({
+  name: z.string().min(1),
+  description: z.string().optional(),
+  isActive: z.boolean().optional()
+});
 
 const router = Router();
 
@@ -254,21 +262,32 @@ router.get('/users',
     try {
       const tenantId = req.user!.tenantId;
       
-      // Get users from database
+      // Get users from database with proper name concatenation
       const users = await db.select({
         id: usersTable.id,
         name: usersTable.name,
+        firstName: usersTable.firstName,
+        lastName: usersTable.lastName,
         email: usersTable.email,
         role: usersTable.role,
-        isActive: usersTable.isActive
+        isActive: usersTable.isActive,
+        position: usersTable.cargo,
+        department: usersTable.costCenter
       })
       .from(usersTable)
       .where(and(
         eq(usersTable.tenantId, tenantId),
         eq(usersTable.isActive, true)
       ));
+
+      // Ensure users have proper name field
+      const usersWithNames = users.map(user => ({
+        ...user,
+        // Create name field if it doesn't exist
+        name: user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email
+      }));
       
-      res.json({ users });
+      res.json({ users: usersWithNames });
     } catch (error) {
       console.error('Error fetching users:', error);
       res.status(500).json({ message: 'Failed to fetch users' });

@@ -124,7 +124,7 @@ router.get('/members', async (req: AuthenticatedRequest, res) => {
 
     // Get user group memberships with proper schema validation
     let groupMembershipMap = new Map();
-    
+
     try {
       // Check if user_group_memberships table exists
       const tableCheck = await db.execute(sql`
@@ -134,7 +134,7 @@ router.get('/members', async (req: AuthenticatedRequest, res) => {
           AND table_name = 'user_group_memberships'
         ) as table_exists
       `);
-      
+
       if (tableCheck.rows[0]?.table_exists) {
         const groupMemberships = await db.execute(sql`
           SELECT ugm.user_id, ugm.group_id, ug.name as group_name
@@ -151,7 +151,7 @@ router.get('/members', async (req: AuthenticatedRequest, res) => {
             groupMembershipMap.get(membership.user_id).push(membership.group_id);
           }
         });
-        
+
         console.log(`Team Management: Loaded ${groupMemberships.rows.length} group memberships`);
       } else {
         console.log('Team Management: user_group_memberships table not found, skipping group data');
@@ -382,7 +382,7 @@ router.get('/skills-matrix', async (req: AuthenticatedRequest, res) => {
       userCompetencies.forEach(comp => {
         const skillName = comp.position || 'Posição Geral';
         const category = comp.department || 'Departamento Geral';
-        
+
         if (!skillsMap.has(skillName)) {
           skillsMap.set(skillName, {
             name: skillName,
@@ -391,11 +391,11 @@ router.get('/skills-matrix', async (req: AuthenticatedRequest, res) => {
             level: comp.experienceLevel
           });
         }
-        
+
         const skill = skillsMap.get(skillName);
         skill.count += 1;
         skill.totalPerformance += (comp.performance || 0);
-        
+
         // Calculate level based on actual performance and experience
         const avgPerformance = skill.totalPerformance / skill.count;
         if (avgPerformance >= 85 && comp.experienceLevel === 'Avançado') skill.level = 'Avançado';
@@ -693,5 +693,41 @@ router.post('/members/sync', async (req: AuthenticatedRequest, res) => {
     res.status(500).json({ message: 'Failed to sync team data' });
   }
 });
+
+// Estruturar dados finais dos membros
+    const membersWithProperNames = allMembersData.map((member: any) => {
+      const memberData = member.users || member;
+      const groupIds = groupMembershipMap.get(memberData.id) || [];
+
+      // Ensure proper name field exists
+      const displayName = memberData.name || 
+                         (memberData.firstName && memberData.lastName 
+                           ? `${memberData.firstName} ${memberData.lastName}` 
+                           : memberData.firstName || memberData.lastName || memberData.email);
+
+      return {
+        id: memberData.id,
+        name: displayName,
+        email: memberData.email,
+        role: memberData.role || 'agent',
+        position: memberData.cargo || memberData.position || 'Não informado',
+        department: memberData.costCenter || memberData.department || 'Geral',
+        departmentName: memberData.costCenter || memberData.department || 'Geral',
+        phone: memberData.cellPhone || memberData.phone || '',
+        status: memberData.isActive ? 'active' : 'inactive',
+        isActive: memberData.isActive !== false,
+        lastActive: memberData.lastActiveAt || memberData.updatedAt || new Date(),
+        createdAt: memberData.createdAt || new Date(),
+        updatedAt: memberData.updatedAt || new Date(),
+        performance: Math.floor(Math.random() * 40) + 60, // 60-100%
+        goals: Math.floor(Math.random() * 8) + 3, // 3-10 metas
+        completedGoals: Math.floor(Math.random() * 5) + 1, // 1-5 concluídas
+        groupIds: Array.isArray(groupIds) ? groupIds : [],
+        // Dados adicionais
+        employeeCode: memberData.employeeCode || null,
+        admissionDate: memberData.admissionDate || null,
+        supervisorIds: memberData.supervisorIds || []
+      };
+    });
 
 export { router as teamManagementRoutes };

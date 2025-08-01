@@ -137,8 +137,10 @@ userGroupsRouter.post('/:groupId/members', jwtAuth, async (req: AuthenticatedReq
         tenantId: tenantId,
         userId,
         groupId,
+        role: 'member',
         addedById: req.user!.id,
         addedAt: new Date(),
+        isActive: true,
         createdAt: new Date(),
         updatedAt: new Date()
       });
