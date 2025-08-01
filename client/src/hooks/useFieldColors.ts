@@ -60,12 +60,15 @@ export const useFieldColors = () => {
         'atendimento_cliente': '#10b981', 
         'financeiro': '#f59e0b',
         'vendas': '#8b5cf6',
-        'support': '#6b7280',
+        'support': '#3b82f6', // Mapear para suporte_tecnico
         'hardware': '#ef4444',
         'software': '#22c55e',
         'network': '#f97316',
         'access': '#84cc16',
-        'other': '#64748b'
+        'other': '#64748b',
+        'technical_support': '#3b82f6',
+        'customer_service': '#10b981',
+        'infrastructure': '#8b5cf6'
       },
       priority: {
         'low': '#10b981',
@@ -101,6 +104,15 @@ export const useFieldColors = () => {
         console.log(`🎨 Using fallback color for ${fieldName}:${value} = ${fallbackColor}`);
       }
       return fallbackColor;
+    }
+
+    // Fallback final: se for categoria e não encontrou nada, usar cor padrão
+    if (fieldName === 'category') {
+      const defaultCategoryColor = '#3b82f6'; // Azul do suporte_tecnico
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`🎨 Using final fallback for category:${value} = ${defaultCategoryColor}`);
+      }
+      return defaultCategoryColor;
     }
 
     if (process.env.NODE_ENV === 'development' && ['priority', 'status', 'category'].includes(fieldName)) {

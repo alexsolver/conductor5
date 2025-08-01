@@ -363,9 +363,28 @@ const TicketsTable = React.memo(() => {
     return dataMapper.urgency(value);
   };
 
-  // Função de mapeamento para categoria
+  // Função de mapeamento para categoria com fallback mais robusto
   const mapCategoryValue = (value: string): string => {
-    return dataMapper.category(value);
+    if (!value || value === null || value === 'null' || value === '' || typeof value !== 'string') {
+      return 'suporte_tecnico'; // Valor padrão da empresa Default
+    }
+    
+    // Mapeamento de valores legados para valores configurados
+    const categoryLegacyMapping: Record<string, string> = {
+      'support': 'suporte_tecnico',
+      'hardware': 'suporte_tecnico', 
+      'software': 'suporte_tecnico',
+      'network': 'suporte_tecnico',
+      'access': 'suporte_tecnico',
+      'other': 'suporte_tecnico',
+      'technical_support': 'suporte_tecnico',
+      'customer_service': 'atendimento_cliente',
+      'financial': 'financeiro',
+      'infrastructure': 'suporte_tecnico'
+    };
+
+    const normalizedValue = value.toLowerCase().trim();
+    return categoryLegacyMapping[normalizedValue] || normalizedValue;
   };
 
   // Estados para criação de visualização
@@ -838,27 +857,10 @@ const TicketsTable = React.memo(() => {
           );
         case 'category':
           const rawCategoryValue = (ticket as any).category;
-          const categoryValue = rawCategoryValue || 'support'; // Use raw value or default
-          let categoryColor = getFieldColor('category', categoryValue);
-          
-          // Se não encontrou cor específica, usar cor padrão baseada no valor
-          if (!categoryColor) {
-            const defaultCategoryColors: Record<string, string> = {
-              'suporte_tecnico': '#3b82f6',
-              'atendimento_cliente': '#10b981', 
-              'financeiro': '#f59e0b',
-              'vendas': '#8b5cf6',
-              'support': '#6b7280',
-              'hardware': '#ef4444',
-              'software': '#22c55e',
-              'network': '#f97316',
-              'access': '#84cc16',
-              'other': '#64748b'
-            };
-            categoryColor = defaultCategoryColors[categoryValue] || '#6b7280';
-          }
-          
-          const categoryLabel = getFieldLabel('category', categoryValue) || categoryValue;
+          const categoryValue = mapCategoryValue(rawCategoryValue);
+          const categoryColor = getFieldColor('category', categoryValue) || '#3b82f6'; // Sempre ter uma cor
+          const categoryLabel = getFieldLabel('category', categoryValue) || 
+                               (categoryValue === 'suporte_tecnico' ? 'Suporte Técnico' : categoryValue);
 
           console.log(`🎨 Category badge for ticket ${ticket.id}:`, {
             rawValue: rawCategoryValue,
@@ -876,7 +878,8 @@ const TicketsTable = React.memo(() => {
               >
                 {categoryLabel}
               </DynamicBadge>
-            </TableCell>          );
+            </TableCell>
+          );
         case 'status':
           const statusValue = mapStatusValue((ticket as any).state || ticket.status);
           const statusColor = getFieldColorWithFallback('status', statusValue);

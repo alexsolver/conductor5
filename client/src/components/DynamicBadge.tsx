@@ -103,12 +103,6 @@ export function DynamicBadge(props: DynamicBadgeProps) {
 
   // Implementar fallback robusto para cores
   const getFieldColorWithDefault = (fieldName: string, value: string): string => {
-    // Primeiro tentar buscar cor configurada
-    // @ts-ignore
-    const getFieldColor = () => undefined;
-    const configuredColor = getFieldColor(fieldName, value);
-    if (configuredColor) return configuredColor;
-
     // Fallback para cores padrão da empresa Default
     const defaultColors: Record<string, Record<string, string>> = {
       category: {
@@ -116,12 +110,15 @@ export function DynamicBadge(props: DynamicBadgeProps) {
         'atendimento_cliente': '#10b981', 
         'financeiro': '#f59e0b',
         'vendas': '#8b5cf6',
-        'support': '#6b7280',
+        'support': '#3b82f6', // Mapear para azul como suporte_tecnico
         'hardware': '#ef4444',
         'software': '#22c55e',
         'network': '#f97316',
         'access': '#84cc16',
-        'other': '#64748b'
+        'other': '#64748b',
+        'technical_support': '#3b82f6',
+        'customer_service': '#10b981',
+        'infrastructure': '#8b5cf6'
       },
       priority: {
         'low': '#10b981',
@@ -150,10 +147,18 @@ export function DynamicBadge(props: DynamicBadgeProps) {
       }
     };
 
-    return defaultColors[fieldName]?.[value] || '#6b7280';
+    const color = defaultColors[fieldName]?.[value];
+    if (color) return color;
+    
+    // Fallback final por campo
+    if (fieldName === 'category') return '#3b82f6'; // Azul padrão
+    if (fieldName === 'priority') return '#22c55e'; // Verde padrão
+    if (fieldName === 'status') return '#3b82f6'; // Azul padrão
+    
+    return '#6b7280'; // Cinza como último recurso
   };
 
-  const finalColor = colorHex || getFieldColorWithDefault(fieldName, value);
+  const finalColor = colorHex || getFieldColorWithDefault(fieldName || '', value || '');
 
   // Converter cor hex para classes Tailwind ou usar inline styles
   const getBadgeStyles = (color: string) => {
