@@ -45,8 +45,6 @@ export class DrizzleSkillRepository implements ISkillRepository {
     search?: string;
     tenantId?: string;
   }): Promise<Skill[]> {
-    console.log('DrizzleSkillRepository.findAll called with filters:', filters);
-    
     let query = db.select({
       id: skills.id,
       name: skills.name,
@@ -62,7 +60,6 @@ export class DrizzleSkillRepository implements ISkillRepository {
     const conditions = [];
 
     if (filters?.tenantId) {
-      console.log('Adding tenantId filter:', filters.tenantId);
       conditions.push(eq(skills.tenantId, filters.tenantId));
     }
 
@@ -85,8 +82,6 @@ export class DrizzleSkillRepository implements ISkillRepository {
     }
 
     const results = await query.orderBy(desc(skills.createdAt));
-    console.log('Query results found:', results.length, 'skills');
-    console.log('First result:', results[0]);
     return results.map(r => this.mapToSkill(r));
   }
 

@@ -224,7 +224,7 @@ export default function TechnicalSkills() {
     );
   };
 
-  const filteredSkills = skills?.data?.filter(skill => {
+  const filteredSkills = skills?.filter(skill => {
     const matchesSearch = !searchTerm || 
       skill.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       skill.description?.toLowerCase().includes(searchTerm.toLowerCase());
