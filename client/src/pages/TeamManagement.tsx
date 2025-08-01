@@ -147,11 +147,25 @@ export default function TeamManagement() {
     enabled: !!user,
   });
 
+  // Fetch departments for filter
+  const { data: departmentsData } = useQuery({
+    queryKey: ['/api/team-management/departments'],
+    enabled: !!user,
+  });
+
+  // Fetch roles for filter
+  const { data: rolesData } = useQuery({
+    queryKey: ['/api/team-management/roles'],
+    enabled: !!user,
+  });
+
   // Filter team members
   const filteredMembers = Array.isArray(teamMembers) ? teamMembers.filter((member: any) => {
     const matchesSearch = member.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          member.email?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesDepartment = filterDepartment === "all" || member.department === filterDepartment;
+    const matchesDepartment = filterDepartment === "all" || 
+                             member.department === filterDepartment ||
+                             member.departmentName === filterDepartment;
     const matchesStatus = filterStatus === "all" || member.status === filterStatus;
     const matchesRole = filterRole === "all" || member.role === filterRole;
     // Filtro por grupo agora funciona com array de groupIds do relacionamento
@@ -606,10 +620,15 @@ export default function TeamManagement() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos</SelectItem>
-                      <SelectItem value="engineering">Engenharia</SelectItem>
-                      <SelectItem value="sales">Vendas</SelectItem>
-                      <SelectItem value="support">Suporte</SelectItem>
-                      <SelectItem value="hr">RH</SelectItem>
+                      {Array.isArray(departmentsData?.departments) ? departmentsData.departments.map((dept: any) => (
+                        <SelectItem key={dept.id} value={dept.name}>
+                          {dept.name}
+                        </SelectItem>
+                      )) : Array.isArray(teamOverview?.departments) ? teamOverview.departments.map((dept: any) => (
+                        <SelectItem key={dept.id} value={dept.name}>
+                          {dept.name}
+                        </SelectItem>
+                      )) : null}
                     </SelectContent>
                   </Select>
                 </div>
@@ -621,10 +640,11 @@ export default function TeamManagement() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todas</SelectItem>
-                      <SelectItem value="tenant_admin">Admin</SelectItem>
-                      <SelectItem value="agent">Agente</SelectItem>
-                      <SelectItem value="supervisor">Supervisor</SelectItem>
-                      <SelectItem value="manager">Gerente</SelectItem>
+                      {Array.isArray(rolesData?.roles) ? rolesData.roles.map((role: any) => (
+                        <SelectItem key={role.id} value={role.id}>
+                          {role.name}
+                        </SelectItem>
+                      )) : null}
                     </SelectContent>
                   </Select>
                 </div>

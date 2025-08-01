@@ -122,8 +122,24 @@ router.get('/members', async (req: AuthenticatedRequest, res) => {
       eq(users.isActive, true)
     ));
 
-    // Temporarily skip group memberships to fix basic member data loading
+    // Get user group memberships
+    const groupMemberships = await db.select({
+      userId: sql`user_group_memberships.user_id`,
+      groupId: sql`user_group_memberships.group_id`,
+      groupName: sql`user_groups.name`
+    })
+    .from(sql`user_group_memberships`)
+    .leftJoin(sql`user_groups`, sql`user_group_memberships.group_id = user_groups.id`)
+    .where(sql`user_groups.tenant_id = ${user.tenantId}`);
+
+    // Create group membership map
     const groupMembershipMap = new Map();
+    groupMemberships.forEach(membership => {
+      if (!groupMembershipMap.has(membership.userId)) {
+        groupMembershipMap.set(membership.userId, []);
+      }
+      groupMembershipMap.get(membership.userId).push(membership.groupId);
+    });
 
     // Format the response
     const formattedMembers = members.map(member => ({
@@ -319,70 +335,122 @@ router.get('/skills-matrix', async (req: AuthenticatedRequest, res) => {
       return res.status(401).json({ message: 'User not authenticated' });
     }
 
-    // Get user count for tenant to generate realistic skills data
-    const userCountResult = await db.select({
-      count: sql<number>`COUNT(*)`
-    })
-    .from(users)
-    .where(and(
-      eq(users.tenantId, user.tenantId),
-      eq(users.isActive, true)
-    ));
-    
-    const userCount = Number(userCountResult[0]?.count) || 3;
-    
-    // Create realistic skills data based on user positions
-    const mockSkills = [
-      { name: 'Atendimento ao Cliente', count: Math.floor(userCount * 0.8), level: 'Intermediário' },
-      { name: 'Gestão de Projetos', count: Math.floor(userCount * 0.6), level: 'Avançado' },
-      { name: 'Comunicação', count: Math.floor(userCount * 0.9), level: 'Avançado' },
-      { name: 'Análise de Dados', count: Math.floor(userCount * 0.4), level: 'Básico' },
-      { name: 'Liderança', count: Math.floor(userCount * 0.3), level: 'Intermediário' },
-      { name: 'Resolução de Problemas', count: Math.floor(userCount * 0.7), level: 'Avançado' },
-      { name: 'Tecnologia', count: Math.floor(userCount * 0.5), level: 'Intermediário' },
-      { name: 'Vendas', count: Math.floor(userCount * 0.4), level: 'Básico' }
-    ];
+    // First, check if technical skills tables exist and have data
+    try {
+      // Get real skills data from technical skills module
+      const skillsData = await db.select({
+        skillName: sql<string>`skills.name`,
+        skillLevel: sql<string>`skills.level`,
+        userCount: sql<number>`COUNT(DISTINCT user_skills.user_id)`,
+        category: sql<string>`skills.category`
+      })
+      .from(sql`skills`)
+      .leftJoin(sql`user_skills`, sql`skills.id = user_skills.skill_id`)
+      .leftJoin(users, sql`user_skills.user_id = users.id`)
+      .where(and(
+        sql`skills.tenant_id = ${user.tenantId}`,
+        sql`skills.is_active = true`,
+        or(
+          sql`users.tenant_id = ${user.tenantId}`,
+          sql`users.id IS NULL`
+        )
+      ))
+      .groupBy(sql`skills.id, skills.name, skills.level, skills.category`)
+      .orderBy(sql`COUNT(DISTINCT user_skills.user_id) DESC`)
+      .limit(10);
 
-    const topSkills = mockSkills.slice(0, 8);
+      if (skillsData && skillsData.length > 0) {
+        // Format real skills data
+        const topSkills = skillsData.map(skill => ({
+          name: skill.skillName,
+          count: Number(skill.userCount) || 0,
+          level: skill.skillLevel || 'Básico'
+        }));
 
-    const skillCategories = [
-      { category: 'Soft Skills', count: Math.floor(userCount * 0.8) },
-      { category: 'Técnicas', count: Math.floor(userCount * 0.6) },
-      { category: 'Gestão', count: Math.floor(userCount * 0.4) },
-      { category: 'Comunicação', count: Math.floor(userCount * 0.9) }
-    ].map((cat: any) => ({
-      category: cat.category,
-      count: cat.count
-    }));
+        // Group by categories
+        const categoryMap = new Map();
+        skillsData.forEach(skill => {
+          const category = skill.category || 'Geral';
+          if (!categoryMap.has(category)) {
+            categoryMap.set(category, 0);
+          }
+          categoryMap.set(category, categoryMap.get(category) + Number(skill.userCount));
+        });
 
-    // Fallback to basic data if no skills found
-    if (topSkills.length === 0) {
-      const fallbackData = {
-        topSkills: [
-          { name: 'Sistema em configuração', count: 0, level: 'Configurando' }
-        ],
-        skillCategories: [
-          { category: 'Em configuração', count: 0 }
-        ]
-      };
-      return res.json(fallbackData);
+        const skillCategories = Array.from(categoryMap.entries()).map(([category, count]) => ({
+          category,
+          count
+        }));
+
+        return res.json({
+          topSkills,
+          skillCategories
+        });
+      }
+    } catch (skillsError) {
+      console.log('Technical skills tables not available, using fallback');
     }
 
-    res.json({
-      topSkills,
-      skillCategories
-    });
-  } catch (error) {
-    console.error('Error fetching skills matrix:', error);
-    // Return fallback data instead of error
+    // Fallback: Get skills data from user positions and departments
+    const positionSkills = await db.select({
+      position: users.position,
+      department: departments.name,
+      userCount: sql<number>`COUNT(*)`
+    })
+    .from(users)
+    .leftJoin(departments, eq(users.departmentId, departments.id))
+    .where(and(
+      eq(users.tenantId, user.tenantId),
+      eq(users.isActive, true),
+      not(sql`${users.position} IS NULL`)
+    ))
+    .groupBy(users.position, departments.name);
+
+    if (positionSkills.length > 0) {
+      // Generate skills based on actual positions
+      const topSkills = positionSkills.map(pos => ({
+        name: pos.position || 'Posição Geral',
+        count: Number(pos.userCount),
+        level: pos.department ? 'Intermediário' : 'Básico'
+      }));
+
+      // Generate categories based on departments
+      const departmentCategories = await db.select({
+        department: departments.name,
+        userCount: sql<number>`COUNT(users.id)`
+      })
+      .from(departments)
+      .leftJoin(users, and(
+        eq(users.departmentId, departments.id),
+        eq(users.isActive, true)
+      ))
+      .where(eq(departments.tenantId, user.tenantId))
+      .groupBy(departments.name);
+
+      const skillCategories = departmentCategories.map(dept => ({
+        category: dept.department || 'Sem Departamento',
+        count: Number(dept.userCount) || 0
+      }));
+
+      return res.json({
+        topSkills,
+        skillCategories
+      });
+    }
+
+    // Final fallback if no data available
     res.json({
       topSkills: [
-        { name: 'Erro na consulta', count: 0, level: 'N/A' }
+        { name: 'Aguardando configuração de habilidades', count: 0, level: 'Configurando' }
       ],
       skillCategories: [
-        { category: 'Erro', count: 0 }
+        { category: 'Sistema em configuração', count: 0 }
       ]
     });
+
+  } catch (error) {
+    console.error('Error fetching skills matrix:', error);
+    res.status(500).json({ message: 'Failed to fetch skills matrix' });
   }
 });
 
@@ -490,6 +558,52 @@ router.put('/members/:id', async (req: AuthenticatedRequest, res) => {
   } catch (error) {
     console.error('Error updating member:', error);
     res.status(500).json({ message: 'Failed to update member' });
+  }
+});
+
+// Get roles list
+router.get('/roles', async (req: AuthenticatedRequest, res) => {
+  try {
+    const { user } = req;
+    if (!user) {
+      return res.status(401).json({ message: 'User not authenticated' });
+    }
+
+    // Get distinct roles from users table
+    const rolesFromUsers = await db.select({
+      role: users.role
+    })
+    .from(users)
+    .where(and(
+      eq(users.tenantId, user.tenantId),
+      eq(users.isActive, true),
+      not(sql`${users.role} IS NULL`)
+    ))
+    .groupBy(users.role);
+
+    // Get distinct positions as additional roles
+    const positionsFromUsers = await db.select({
+      position: users.position
+    })
+    .from(users)
+    .where(and(
+      eq(users.tenantId, user.tenantId),
+      eq(users.isActive, true),
+      not(sql`${users.position} IS NULL`)
+    ))
+    .groupBy(users.position);
+
+    const roles = [
+      ...rolesFromUsers.map(r => ({ id: r.role, name: r.role, type: 'role' })),
+      ...positionsFromUsers.map(p => ({ id: p.position, name: p.position, type: 'position' }))
+    ].filter((role, index, self) => 
+      role.id && self.findIndex(r => r.id === role.id) === index
+    );
+
+    res.json({ roles });
+  } catch (error) {
+    console.error('Error fetching roles:', error);
+    res.status(500).json({ message: 'Failed to fetch roles' });
   }
 });
 

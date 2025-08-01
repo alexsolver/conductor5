@@ -116,14 +116,29 @@ export default function LocalForm({ onSubmit, initialData, isLoading }: LocalFor
 
   const loadTeamMembers = async () => {
     try {
-      // Mock data - replace with actual API call
-      setTeamMembers([
-        { id: '1', name: 'João Silva', email: 'joao@empresa.com', role: 'Técnico Sênior' },
-        { id: '2', name: 'Maria Santos', email: 'maria@empresa.com', role: 'Supervisora' },
-        { id: '3', name: 'Pedro Costa', email: 'pedro@empresa.com', role: 'Técnico' }
-      ]);
+      const response = await fetch('/api/team-management/members', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      
+      if (response.ok) {
+        const members = await response.json();
+        const formattedMembers = Array.isArray(members) ? members.map((member: any) => ({
+          id: member.id,
+          name: member.name || `${member.firstName || ''} ${member.lastName || ''}`.trim(),
+          email: member.email,
+          role: member.position || member.role || 'Membro da Equipe'
+        })) : [];
+        
+        setTeamMembers(formattedMembers);
+      } else {
+        console.error('Failed to fetch team members');
+        setTeamMembers([]);
+      }
     } catch (error) {
       console.error('Error loading team members:', error);
+      setTeamMembers([]);
     }
   };
 
