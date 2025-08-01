@@ -694,40 +694,4 @@ router.post('/members/sync', async (req: AuthenticatedRequest, res) => {
   }
 });
 
-// Estruturar dados finais dos membros
-    const membersWithProperNames = allMembersData.map((member: any) => {
-      const memberData = member.users || member;
-      const groupIds = groupMembershipMap.get(memberData.id) || [];
-
-      // Ensure proper name field exists
-      const displayName = memberData.name || 
-                         (memberData.firstName && memberData.lastName 
-                           ? `${memberData.firstName} ${memberData.lastName}` 
-                           : memberData.firstName || memberData.lastName || memberData.email);
-
-      return {
-        id: memberData.id,
-        name: displayName,
-        email: memberData.email,
-        role: memberData.role || 'agent',
-        position: memberData.cargo || memberData.position || 'Não informado',
-        department: memberData.costCenter || memberData.department || 'Geral',
-        departmentName: memberData.costCenter || memberData.department || 'Geral',
-        phone: memberData.cellPhone || memberData.phone || '',
-        status: memberData.isActive ? 'active' : 'inactive',
-        isActive: memberData.isActive !== false,
-        lastActive: memberData.lastActiveAt || memberData.updatedAt || new Date(),
-        createdAt: memberData.createdAt || new Date(),
-        updatedAt: memberData.updatedAt || new Date(),
-        performance: Math.floor(Math.random() * 40) + 60, // 60-100%
-        goals: Math.floor(Math.random() * 8) + 3, // 3-10 metas
-        completedGoals: Math.floor(Math.random() * 5) + 1, // 1-5 concluídas
-        groupIds: Array.isArray(groupIds) ? groupIds : [],
-        // Dados adicionais
-        employeeCode: memberData.employeeCode || null,
-        admissionDate: memberData.admissionDate || null,
-        supervisorIds: memberData.supervisorIds || []
-      };
-    });
-
 export { router as teamManagementRoutes };
