@@ -40,6 +40,9 @@ export class SkillController {
       if (isActive !== undefined) filters.isActive = isActive === 'true';
 
       const skills = await skillRepository.findAll(filters);
+      
+      console.log('Controller returning skills:', skills.length, 'items');
+      console.log('First skill data:', skills[0]);
 
       res.json({
         success: true,

@@ -46,8 +46,8 @@ interface Skill {
   id: string;
   name: string;
   category: string;
-  levelMin?: number;
-  levelMax?: number;
+  minLevelRequired?: number;
+  maxLevelRequired?: number;
   suggestedCertification?: string;
   certificationValidityMonths?: number;
   description?: string;
@@ -499,7 +499,7 @@ export default function TechnicalSkills() {
                     <CardTitle className="text-lg">{skill.name}</CardTitle>
                     <div className="flex items-center space-x-2 mt-1">
                       <Badge variant="secondary">{skill.category}</Badge>
-                      {renderStars(skill.minLevelRequired)}
+                      {renderStars(skill.minLevelRequired || 1)}
                     </div>
                   </div>
                   <div className="flex space-x-1">
