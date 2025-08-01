@@ -179,5 +179,12 @@
     "groups": "Grupos",
     "status": "Status",
     "actions": "Ações"
+  },
+  "teamManagement": {
+    "title": "Gestão de Equipe",
+    "overview": "Visão Geral",
+    "members": "Membros",
+    "performance": "Performance",
+    "analytics": "Analytics"
   }
 }

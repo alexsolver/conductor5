@@ -170,10 +170,10 @@ router.get('/members', async (req: AuthenticatedRequest, res) => {
       departmentId: member.departmentId,
       status: member.status || 'active',
       phone: member.phone || 'Não informado',
-      performance: member.performance || 75,
+      performance: member.performance,
       lastActive: member.lastActiveAt || member.createdAt,
-      goals: member.goals || 0,
-      completedGoals: member.completedGoals || 0,
+      goals: member.goals,
+      completedGoals: member.completedGoals,
       role: member.role,
       profileImageUrl: member.profileImageUrl,
       groupIds: groupMembershipMap.get(member.id) || []
@@ -288,9 +288,9 @@ router.get('/performance', async (req: AuthenticatedRequest, res) => {
     const formattedIndividuals = individuals.map(individual => ({
       id: individual.id,
       name: individual.name,
-      performance: individual.performance || 75,
-      goals: individual.goals || 0,
-      completedGoals: individual.completedGoals || 0,
+      performance: individual.performance,
+      goals: individual.goals,
+      completedGoals: individual.completedGoals,
       department: individual.department || 'Sem departamento',
       completionRate: individual.goals > 0 ? Math.round((individual.completedGoals / individual.goals) * 100) : 0
     }));
@@ -439,7 +439,7 @@ router.get('/skills-matrix', async (req: AuthenticatedRequest, res) => {
     const roleSkills = userDistribution.map(dist => ({
       name: `${dist.role || 'Função Geral'} (${dist.status})`,
       count: Number(dist.userCount),
-      level: dist.role === 'tenant_admin' ? 'Avançado' : 'Intermediário'
+      level: 'Não definido' // Will be calculated based on actual performance data
     }));
 
     const departmentCategories = await db.select({
