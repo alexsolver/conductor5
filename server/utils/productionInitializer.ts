@@ -36,15 +36,6 @@ export class ProductionInitializer {
       // 4. Run health checks
       await this.runHealthChecks();
 
-      // Garantir que grupos de usuários padrão existam
-      try {
-        const { populateDefaultUserGroups } = await import('../scripts/populateUserGroups');
-        await populateDefaultUserGroups();
-        logInfo('User groups initialization completed');
-      } catch (error) {
-        logWarn('Could not initialize user groups:', error.message);
-      }
-
       logInfo('Production initialization completed successfully');
     } catch (error) {
       logError('Production initialization failed', error);
@@ -57,7 +48,7 @@ export class ProductionInitializer {
   // ===========================
   private async validateEnvironment(): Promise<void> {
     const requiredEnvVars = ['DATABASE_URL', 'NODE_ENV'];
-
+    
     for (const envVar of requiredEnvVars) {
       if (!process.env[envVar]) {
         throw new Error(`Missing required environment variable: ${envVar}`);
@@ -78,9 +69,9 @@ export class ProductionInitializer {
   private async initializeDatabase(): Promise<void> {
     try {
       logInfo('Initializing database connections...');
-
+      
       await schemaManager.ensurePublicTables();
-
+      
       logInfo('Database initialization completed');
     } catch (error) {
       logError('Database initialization failed', error);
@@ -106,10 +97,10 @@ export class ProductionInitializer {
           const isValid = await schemaManager.validateTenantSchema(tenant.id);
           if (!isValid) {
             logWarn(`Schema validation failed for tenant ${tenant.id}, attempting auto-heal`, {});
-
+            
             // CRITICAL FIX: Auto-healing com stub implementation
             await schemaManager.ensureTenantTables(tenant.id);
-
+            
             // Re-validate after healing
             const isValidAfterHeal = await schemaManager.validateTenantSchema(tenant.id);
             if (isValidAfterHeal) {
@@ -151,14 +142,14 @@ export class ProductionInitializer {
         const isValid = await schemaManager.validateTenantSchema(tenantId);
         if (!isValid) {
           logWarn(`Health check: Tenant schema ${tenantId} needs attention, attempting auto-correction...`);
-
+          
           try {
             // AUTO-CORRECTION: Tentar corrigir problemas de schema automaticamente
             await schemaManager.createTenantSchema(tenantId);
-
+            
             // Pequeno delay para permitir que as tabelas sejam criadas
             await new Promise(resolve => setTimeout(resolve, 1000));
-
+            
             // Revalidar após correção
             const isValidAfterFix = await schemaManager.validateTenantSchema(tenantId);
             if (isValidAfterFix) {
