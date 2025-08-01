@@ -16,9 +16,9 @@ router.put('/timecard-entries/:id', timecardController.updateTimecardEntry);
 router.delete('/timecard-entries/:id', timecardController.deleteTimecardEntry);
 
 // Work Schedules
-router.post('/work-schedules', timecardController.createWorkSchedule);
-router.get('/users/:userId/work-schedules', timecardController.getWorkSchedulesByUser);
 router.get('/work-schedules', timecardController.getAllWorkSchedules);
+router.get('/work-schedules/user/:userId', timecardController.getWorkSchedulesByUser);
+router.post('/work-schedules', timecardController.createWorkSchedule);
 router.put('/work-schedules/:id', timecardController.updateWorkSchedule);
 router.delete('/work-schedules/:id', timecardController.deleteWorkSchedule);
 

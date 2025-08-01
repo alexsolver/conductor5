@@ -325,4 +325,125 @@ export class DrizzleTimecardRepository implements TimecardRepository {
 
     return result[0]?.totalBalance || 0;
   }
+
+  // Work Schedules methods
+  async createWorkSchedule(scheduleData: any, tenantId: string): Promise<any> {
+    try {
+      const [newSchedule] = await this.db
+        .insert(workSchedules)
+        .values({
+          ...scheduleData,
+          tenantId,
+          workDays: JSON.stringify(scheduleData.workDays)
+        })
+        .returning();
+
+      return newSchedule;
+    } catch (error) {
+      console.error('Error creating work schedule:', error);
+      throw error;
+    }
+  }
+
+  async getAllWorkSchedules(tenantId: string): Promise<any[]> {
+    try {
+      const schedules = await this.db
+        .select({
+          id: workSchedules.id,
+          userId: workSchedules.userId,
+          scheduleType: workSchedules.scheduleType,
+          startDate: workSchedules.startDate,
+          endDate: workSchedules.endDate,
+          workDays: workSchedules.workDays,
+          startTime: workSchedules.startTime,
+          endTime: workSchedules.endTime,
+          breakDurationMinutes: workSchedules.breakDurationMinutes,
+          isActive: workSchedules.isActive,
+          createdAt: workSchedules.createdAt,
+          updatedAt: workSchedules.updatedAt,
+          userName: sql`CONCAT(${users.firstName}, ' ', ${users.lastName})`.as('userName')
+        })
+        .from(workSchedules)
+        .leftJoin(users, eq(workSchedules.userId, users.id))
+        .where(eq(workSchedules.tenantId, tenantId))
+        .orderBy(desc(workSchedules.createdAt));
+
+      return schedules.map(schedule => ({
+        ...schedule,
+        workDays: typeof schedule.workDays === 'string' 
+          ? JSON.parse(schedule.workDays) 
+          : schedule.workDays
+      }));
+    } catch (error) {
+      console.error('Error fetching work schedules:', error);
+      throw error;
+    }
+  }
+
+  async getWorkSchedulesByUser(userId: string, tenantId: string): Promise<any[]> {
+    try {
+      const schedules = await this.db
+        .select()
+        .from(workSchedules)
+        .where(
+          and(
+            eq(workSchedules.userId, userId),
+            eq(workSchedules.tenantId, tenantId)
+          )
+        )
+        .orderBy(desc(workSchedules.createdAt));
+
+      return schedules.map(schedule => ({
+        ...schedule,
+        workDays: typeof schedule.workDays === 'string' 
+          ? JSON.parse(schedule.workDays) 
+          : schedule.workDays
+      }));
+    } catch (error) {
+      console.error('Error fetching user work schedules:', error);
+      throw error;
+    }
+  }
+
+  async updateWorkSchedule(scheduleId: string, tenantId: string, updateData: any): Promise<any> {
+    try {
+      const [updatedSchedule] = await this.db
+        .update(workSchedules)
+        .set({
+          ...updateData,
+          workDays: updateData.workDays ? JSON.stringify(updateData.workDays) : undefined,
+          updatedAt: new Date()
+        })
+        .where(
+          and(
+            eq(workSchedules.id, scheduleId),
+            eq(workSchedules.tenantId, tenantId)
+          )
+        )
+        .returning();
+
+      return updatedSchedule;
+    } catch (error) {
+      console.error('Error updating work schedule:', error);
+      throw error;
+    }
+  }
+
+  async deleteWorkSchedule(scheduleId: string, tenantId: string): Promise<boolean> {
+    try {
+      const result = await this.db
+        .delete(workSchedules)
+        .where(
+          and(
+            eq(workSchedules.id, scheduleId),
+            eq(workSchedules.tenantId, tenantId)
+          )
+        );
+
+      return result.rowCount > 0;
+    } catch (error) {
+      console.error('Error deleting work schedule:', error);
+      throw error;
+    }
+  }
 }

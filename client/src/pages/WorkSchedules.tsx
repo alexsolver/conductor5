@@ -178,13 +178,54 @@ export default function WorkSchedules() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validações obrigatórias
+    if (!formData.userId) {
+      toast({
+        title: 'Erro de validação',
+        description: 'Selecione um funcionário.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    if (!formData.startDate) {
+      toast({
+        title: 'Erro de validação',
+        description: 'Data de início é obrigatória.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    if (formData.workDays.length === 0) {
+      toast({
+        title: 'Erro de validação',
+        description: 'Selecione pelo menos um dia da semana.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    // Mapear dados do frontend para o formato esperado pela API
+    const apiData = {
+      userId: formData.userId,
+      scheduleType: formData.scheduleType,
+      startDate: formData.startDate,
+      endDate: formData.endDate || null,
+      workDays: formData.workDays,
+      startTime: formData.startTime,
+      endTime: formData.endTime,
+      breakDurationMinutes: formData.breakDurationMinutes,
+      isActive: formData.isActive
+    };
+    
     if (selectedSchedule) {
       updateScheduleMutation.mutate({
         id: selectedSchedule.id,
-        data: formData
+        data: apiData
       });
     } else {
-      createScheduleMutation.mutate(formData);
+      createScheduleMutation.mutate(apiData);
     }
   };
 
