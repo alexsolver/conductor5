@@ -6,32 +6,26 @@ import type { Skill } from '../../domain/entities/Skill';
 
 export class DrizzleSkillRepository implements ISkillRepository {
   async create(skill: Skill): Promise<Skill> {
-    // INSERT usando apenas campos básicos obrigatórios
     const [result] = await db.insert(skills).values({
       id: skill.id,
       name: skill.name,
       category: skill.category,
-      levelMin: skill.minLevelRequired || 1,
-      levelMax: skill.maxLevelRequired || 5,
+      description: skill.description,
+      suggestedCertification: skill.suggestedCertification,
+      certificationValidityMonths: skill.certificationValidityMonths,
+      observations: skill.observations,
+      scaleOptions: skill.scaleOptions || [],
       tenantId: skill.tenantId,
       isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     }).returning();
 
     return this.mapToSkill(result);
   }
 
   async findById(id: string): Promise<Skill | null> {
-    const [result] = await db.select({
-      id: skills.id,
-      name: skills.name,
-      category: skills.category,
-      levelMin: skills.levelMin,
-      levelMax: skills.levelMax,
-      tenantId: skills.tenantId,
-      isActive: skills.isActive,
-      createdAt: skills.createdAt,
-      updatedAt: skills.updatedAt,
-    })
+    const [result] = await db.select()
       .from(skills)
       .where(eq(skills.id, id))
       .limit(1);
@@ -45,17 +39,7 @@ export class DrizzleSkillRepository implements ISkillRepository {
     search?: string;
     tenantId?: string;
   }): Promise<Skill[]> {
-    let query = db.select({
-      id: skills.id,
-      name: skills.name,
-      category: skills.category,
-      levelMin: skills.levelMin,
-      levelMax: skills.levelMax,
-      tenantId: skills.tenantId,
-      isActive: skills.isActive,
-      createdAt: skills.createdAt,
-      updatedAt: skills.updatedAt,
-    }).from(skills);
+    let query = db.select().from(skills);
 
     const conditions = [];
 
@@ -141,17 +125,7 @@ export class DrizzleSkillRepository implements ISkillRepository {
   }
 
   async findByCategory(category: string): Promise<Skill[]> {
-    const results = await db.select({
-      id: skills.id,
-      name: skills.name,
-      category: skills.category,
-      levelMin: skills.levelMin,
-      levelMax: skills.levelMax,
-      tenantId: skills.tenantId,
-      isActive: skills.isActive,
-      createdAt: skills.createdAt,
-      updatedAt: skills.updatedAt,
-    })
+    const results = await db.select()
       .from(skills)
       .where(and(
         eq(skills.category, category),
@@ -163,17 +137,7 @@ export class DrizzleSkillRepository implements ISkillRepository {
   }
 
   async findByNamePattern(pattern: string): Promise<Skill[]> {
-    const results = await db.select({
-      id: skills.id,
-      name: skills.name,
-      category: skills.category,
-      levelMin: skills.levelMin,
-      levelMax: skills.levelMax,
-      tenantId: skills.tenantId,
-      isActive: skills.isActive,
-      createdAt: skills.createdAt,
-      updatedAt: skills.updatedAt,
-    })
+    const results = await db.select()
       .from(skills)
       .where(and(
         ilike(skills.name, `%${pattern}%`),
@@ -216,19 +180,7 @@ export class DrizzleSkillRepository implements ISkillRepository {
   }
 
   async getMostDemandedSkills(limit?: number): Promise<{ skill: Skill; demandCount: number }[]> {
-    // Esta implementação seria baseada em estatísticas de uso real
-    // Por enquanto, retorna skills ordenadas por data de criação
-    const results = await db.select({
-      id: skills.id,
-      name: skills.name,
-      category: skills.category,
-      levelMin: skills.levelMin,
-      levelMax: skills.levelMax,
-      tenantId: skills.tenantId,
-      isActive: skills.isActive,
-      createdAt: skills.createdAt,
-      updatedAt: skills.updatedAt,
-    })
+    const results = await db.select()
       .from(skills)
       .where(eq(skills.isActive, true))
       .orderBy(desc(skills.createdAt))
@@ -245,8 +197,11 @@ export class DrizzleSkillRepository implements ISkillRepository {
       id: data.id,
       name: data.name,
       category: data.category,
-      minLevelRequired: data.levelMin || 1,
-      maxLevelRequired: data.levelMax || 5,
+      description: data.description,
+      suggestedCertification: data.suggestedCertification,
+      certificationValidityMonths: data.certificationValidityMonths,
+      observations: data.observations,
+      scaleOptions: data.scaleOptions || [],
       tenantId: data.tenantId,
       isActive: data.isActive,
       createdAt: data.createdAt,
