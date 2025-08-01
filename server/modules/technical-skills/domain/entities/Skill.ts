@@ -5,12 +5,6 @@ export class Skill {
     public category: string,
     public minLevelRequired: number,
     public maxLevelRequired: number = 5,
-    public certificationSuggested?: string,
-    public validityMonths?: number,
-    public suggestedCertification?: string,
-    public certificationValidityMonths?: number,
-    public description?: string,
-    public observations?: string,
     public tenantId?: string,
     public isActive: boolean = true,
     public readonly createdAt: Date = new Date(),
@@ -80,12 +74,6 @@ export class Skill {
     category: string;
     minLevelRequired?: number;
     maxLevelRequired?: number;
-    certificationSuggested?: string;
-    validityMonths?: number;
-    suggestedCertification?: string;
-    certificationValidityMonths?: number;
-    description?: string;
-    observations?: string;
     createdBy?: string;
     tenantId?: string;
   }): Skill {
@@ -95,12 +83,6 @@ export class Skill {
       data.category,
       data.minLevelRequired || 1,
       data.maxLevelRequired || 5,
-      data.certificationSuggested,
-      data.validityMonths,
-      data.suggestedCertification,
-      data.certificationValidityMonths,
-      data.description,
-      data.observations,
       data.tenantId,
       true,
       new Date(),

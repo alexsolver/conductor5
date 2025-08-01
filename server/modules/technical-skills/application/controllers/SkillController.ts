@@ -129,10 +129,6 @@ export class SkillController {
         name,
         category,
         minLevelRequired: minLevelRequired || 1,
-        description: description || null,
-        observations: observations || null,
-        certificationSuggested: certificationSuggested || null,
-        validityMonths: validityMonths || null,
         createdBy: req.user?.id,
         tenantId: req.user.tenantId
       });

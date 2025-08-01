@@ -6,16 +6,13 @@ import type { Skill } from '../../domain/entities/Skill';
 
 export class DrizzleSkillRepository implements ISkillRepository {
   async create(skill: Skill): Promise<Skill> {
-    // Teste com INSERT básico sem campos problemáticos
+    // INSERT usando apenas campos básicos obrigatórios
     const [result] = await db.insert(skills).values({
       id: skill.id,
       name: skill.name,
       category: skill.category,
       levelMin: skill.minLevelRequired || 1,
       levelMax: skill.maxLevelRequired || 5,
-      description: skill.description,
-      certificationSuggested: skill.certificationSuggested,
-      validityMonths: skill.validityMonths,
       tenantId: skill.tenantId,
       isActive: true,
     }).returning();
@@ -173,12 +170,6 @@ export class DrizzleSkillRepository implements ISkillRepository {
       category: data.category,
       minLevelRequired: data.levelMin || 1,
       maxLevelRequired: data.levelMax || 5,
-      certificationSuggested: data.certificationSuggested,
-      validityMonths: data.validityMonths,
-      suggestedCertification: data.suggestedCertification,
-      certificationValidityMonths: data.certificationValidityMonths,
-      description: data.description,
-      observations: data.observations,
       tenantId: data.tenantId,
       isActive: data.isActive,
       createdAt: data.createdAt,
