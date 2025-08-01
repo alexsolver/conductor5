@@ -353,73 +353,65 @@ export class UserSkillController {
     }
   }
 
-  async getExpiredCertifications(req: Request, res: Response) {
+  async getExpiredCertifications(req: AuthenticatedRequest, res: Response) {
     try {
-      const tenantId = req.user?.tenantId;
-      if (!tenantId) {
-        return res.status(400).json({ 
-          success: false, 
-          error: 'Tenant ID é obrigatório',
-          data: []
+      if (!req.user?.tenantId) {
+        return res.status(401).json({
+          success: false,
+          message: 'Tenant não identificado'
         });
       }
 
-      const expiredCerts = await this.userSkillRepository.getExpiredCertifications();
-      res.json({ 
-        success: true, 
+      const userSkillRepository = new DrizzleUserSkillRepository();
+      const expiredCerts = await userSkillRepository.findExpiredCertifications(req.user.tenantId) || [];
+
+      res.json({
+        success: true,
         data: expiredCerts,
         count: expiredCerts.length
       });
-    } catch (error) {
-      console.error('Error fetching expired certifications', { 
-        error: error instanceof Error ? error.message : error, 
+    } catch (error: any) {
+      console.error('Error fetching expired certifications', {
+        error: error.message,
         userId: req.user?.id,
         tenantId: req.user?.tenantId
       });
-      res.status(500).json({ 
-        success: false, 
-        error: 'Erro interno do servidor',
+
+      res.status(500).json({
+        success: false,
+        message: 'Erro interno do servidor',
         data: []
       });
     }
   }
 
-  async getExpiringCertifications(req: Request, res: Response) {
+  async getExpiringCertifications(req: AuthenticatedRequest, res: Response) {
     try {
-      const tenantId = req.user?.tenantId;
-      if (!tenantId) {
-        return res.status(400).json({ 
-          success: false, 
-          error: 'Tenant ID é obrigatório',
-          data: []
-        });
-      }
-
-      const daysAhead = parseInt(req.query.days as string) || 30;
-      if (daysAhead < 1 || daysAhead > 365) {
-        return res.status(400).json({
+      if (!req.user?.tenantId) {
+        return res.status(401).json({
           success: false,
-          error: 'Dias deve estar entre 1 e 365',
-          data: []
+          message: 'Tenant não identificado'
         });
       }
 
-      const expiringCerts = await this.userSkillRepository.getExpiringCertifications(daysAhead);
-      res.json({ 
-        success: true, 
+      const userSkillRepository = new DrizzleUserSkillRepository();
+      const expiringCerts = await userSkillRepository.findExpiringCertifications(req.user.tenantId) || [];
+
+      res.json({
+        success: true,
         data: expiringCerts,
-        count: expiringCerts.length,
-        daysAhead
+        count: expiringCerts.length
       });
-    } catch (error) {
-      console.error('Error fetching expiring certifications', { 
-        error: error instanceof Error ? error.message : error, 
+    } catch (error: any) {
+      console.error('Error fetching expiring certifications', {
+        error: error.message,
         userId: req.user?.id,
         tenantId: req.user?.tenantId
       });
-      res.status(500).json({ 
-        success: false, 
-        error: 'Erro interno do servidor',
+
+      res.status(500).json({
+        success: false,
+        message: 'Erro interno do servidor',
         data: []
       });
     }

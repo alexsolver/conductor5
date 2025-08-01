@@ -187,6 +187,40 @@ export class DrizzleUserSkillRepository implements IUserSkillRepository {
     }));
   }
 
+  async findExpiredCertifications(tenantId: string): Promise<Array<{
+    userId: string;
+    userName: string;
+    skillName: string;
+    skillId: string;
+    expiresAt: Date;
+    daysSinceExpiry: number;
+  }>> {
+    try {
+      // Por enquanto retorna array vazio até implementar a lógica completa
+      return [];
+    } catch (error) {
+      console.error('Error in findExpiredCertifications:', error);
+      return [];
+    }
+  }
+
+  async findExpiringCertifications(tenantId: string): Promise<Array<{
+    userId: string;
+    userName: string;
+    skillName: string;
+    skillId: string;
+    expiresAt: Date;
+    daysUntilExpiry: number;
+  }>> {
+    try {
+      // Por enquanto retorna array vazio até implementar a lógica completa
+      return [];
+    } catch (error) {
+      console.error('Error in findExpiringCertifications:', error);
+      return [];
+    }
+  }
+
   async findTechniciansForTask(requiredSkills: string[], minLevel: number = 3, tenantId: string) {
     const results = await db.select({
       userId: userSkills.userId,

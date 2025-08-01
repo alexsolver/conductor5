@@ -275,7 +275,7 @@ export class SkillController {
     }
   }
 
-  async getCategories(req: Request, res: Response) {
+  async getCategories(req: AuthenticatedRequest, res: Response) {
     try {
       const tenantId = req.user?.tenantId;
       if (!tenantId) {
@@ -286,7 +286,8 @@ export class SkillController {
         });
       }
 
-      const categories = await this.skillRepository.getCategories(tenantId);
+      const skillRepository = new DrizzleSkillRepository();
+      const categories = await skillRepository.getCategories();
 
       // Ensure we always return an array
       const validCategories = Array.isArray(categories) ? categories : [];
