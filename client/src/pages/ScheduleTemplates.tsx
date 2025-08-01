@@ -152,6 +152,10 @@ export default function ScheduleTemplates() {
   });
 
   const templates = templatesData?.templates || [];
+  
+  console.log('Templates data:', templatesData);
+  console.log('Templates array:', templates);
+  console.log('Templates length:', templates.length);
 
   const handleSubmit = (data: ScheduleTemplateFormData) => {
     createTemplateMutation.mutate(data);
