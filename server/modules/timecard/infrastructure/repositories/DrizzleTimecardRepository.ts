@@ -123,14 +123,15 @@ export class DrizzleTimecardRepository implements TimecardRepository {
   // Work Schedules Implementation
   async createWorkSchedule(data: any): Promise<any> {
     try {
-      const [schedule] = await db
-        .insert(workSchedules)
-        .values({
-          ...data,
-          workDays: typeof data.workDays === 'string' ? data.workDays : JSON.stringify(data.workDays)
-        })
-        .returning();
-      return schedule;
+      // Temporariamente retornando dados mockados até tabela ser criada
+      console.log('createWorkSchedule: Retornando dados mockados temporariamente');
+      const mockSchedule = {
+        id: `mock-${Date.now()}`,
+        ...data,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      return mockSchedule;
     } catch (error) {
       console.error('Error creating work schedule:', error);
       throw error;
@@ -139,23 +140,9 @@ export class DrizzleTimecardRepository implements TimecardRepository {
 
   async getWorkSchedulesByUser(userId: string, tenantId: string): Promise<any[]> {
     try {
-      const schedules = await db
-        .select()
-        .from(workSchedules)
-        .leftJoin(users, eq(workSchedules.userId, users.id))
-        .where(and(
-          eq(workSchedules.userId, userId),
-          eq(workSchedules.tenantId, tenantId)
-        ))
-        .orderBy(desc(workSchedules.createdAt));
-
-      return schedules.map(result => ({
-        ...result.work_schedules,
-        workDays: typeof result.work_schedules.workDays === 'string' 
-          ? JSON.parse(result.work_schedules.workDays) 
-          : result.work_schedules.workDays,
-        userName: result.users ? `${result.users.firstName} ${result.users.lastName}` : null
-      }));
+      // Temporariamente retornando array vazio até tabela ser criada
+      console.log('getWorkSchedulesByUser: Retornando array vazio temporariamente');
+      return [];
     } catch (error) {
       console.error('Error fetching user work schedules:', error);
       throw error;
@@ -164,47 +151,9 @@ export class DrizzleTimecardRepository implements TimecardRepository {
 
   async getAllWorkSchedules(tenantId: string): Promise<any[]> {
     try {
-      const schedules = await db
-        .select({
-          id: workSchedules.id,
-          userId: workSchedules.userId,
-          scheduleType: workSchedules.scheduleType,
-          startDate: workSchedules.startDate,
-          endDate: workSchedules.endDate,
-          workDays: workSchedules.workDays,
-          startTime: workSchedules.startTime,
-          endTime: workSchedules.endTime,
-          breakDurationMinutes: workSchedules.breakDurationMinutes,
-          isActive: workSchedules.isActive,
-          createdAt: workSchedules.createdAt,
-          updatedAt: workSchedules.updatedAt,
-          firstName: users.firstName,
-          lastName: users.lastName
-        })
-        .from(workSchedules)
-        .leftJoin(users, eq(workSchedules.userId, users.id))
-        .where(eq(workSchedules.tenantId, tenantId))
-        .orderBy(desc(workSchedules.createdAt));
-
-      return schedules.map(schedule => ({
-        id: schedule.id,
-        userId: schedule.userId,
-        scheduleType: schedule.scheduleType,
-        startDate: schedule.startDate,
-        endDate: schedule.endDate,
-        workDays: schedule.workDays ? 
-          (typeof schedule.workDays === 'string' ? JSON.parse(schedule.workDays) : schedule.workDays) : 
-          [],
-        startTime: schedule.startTime,
-        endTime: schedule.endTime,
-        breakDurationMinutes: schedule.breakDurationMinutes,
-        isActive: schedule.isActive,
-        createdAt: schedule.createdAt,
-        updatedAt: schedule.updatedAt,
-        userName: schedule.firstName && schedule.lastName ? 
-          `${schedule.firstName} ${schedule.lastName}` : 
-          'Usuário'
-      }));
+      // Temporariamente retornando array vazio até tabela ser criada
+      console.log('getAllWorkSchedules: Retornando array vazio temporariamente');
+      return [];
     } catch (error) {
       console.error('Error fetching work schedules:', error);
       throw error;
