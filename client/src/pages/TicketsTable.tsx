@@ -20,6 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Plus, Filter, Search, MoreHorizontal, Edit, Trash2, Eye, ChevronLeft, ChevronRight, Settings, GripVertical, X, Undo, Redo, Bold, Italic, List, ListOrdered, ArrowLeft, Quote, Code, Heading1, Heading2, Heading3, Strikethrough, ChevronDown, ChevronUp, Link2, ArrowUpRight, ArrowDownRight, CornerDownRight, Copy, AlertTriangle, ArrowRight, GitBranch, Users } from "lucide-react";
 import { DynamicSelect } from "@/components/DynamicSelect";
+import { UserGroupSelect } from "@/components/ui/UserGroupSelect";
 import { DynamicBadge } from "@/components/DynamicBadge";
 import { PersonSelector } from "@/components/PersonSelector";
 import { useFieldColors } from "@/hooks/useFieldColors";
@@ -1777,21 +1778,14 @@ const TicketsTable = React.memo(() => {
               name="assignmentGroup"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Assignment Group</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select group" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="level1">Level 1 Support</SelectItem>
-                      <SelectItem value="level2">Level 2 Support</SelectItem>
-                      <SelectItem value="level3">Level 3 Support</SelectItem>
-                      <SelectItem value="network">Network Team</SelectItem>
-                      <SelectItem value="security">Security Team</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <FormLabel>Grupo de Atribuição</FormLabel>
+                  <FormControl>
+                    <UserGroupSelect
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      placeholder="Selecione um grupo"
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

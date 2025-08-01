@@ -26,6 +26,7 @@ import EmailHistoryModal from "@/components/tickets/EmailHistoryModal";
 import TicketHistoryModal from "@/components/tickets/TicketHistoryModal";
 import ApprovalRequestModal from "@/components/tickets/ApprovalRequestModal";
 import { DynamicSelect } from "@/components/DynamicSelect";
+import { UserGroupSelect } from "@/components/ui/UserGroupSelect";
 import { DynamicBadge } from "@/components/DynamicBadge";
 import { useTicketMetadata } from "@/hooks/useTicketMetadata";
 import { CustomFieldsWrapper } from "@/components/layout/CustomFieldsWrapper";
@@ -861,8 +862,7 @@ export default function TicketEdit() {
                           <FormItem>
                             <FormLabel>Grupo de Atribuição</FormLabel>
                             <FormControl>
-                              <DynamicSelect
-                                fieldName="assignmentGroup"
+                              <UserGroupSelect
                                 value={field.value}
                                 onValueChange={field.onChange}
                                 placeholder="Selecione um grupo"
