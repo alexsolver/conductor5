@@ -347,7 +347,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
 
   // Function to toggle user membership in group
   const handleToggleUserInGroup = async (userId: string, isCurrentlyInGroup: boolean) => {
-    if (!editingGroup) return;
+    if (!editingGroup || isUpdatingMemberships) return;
 
     console.log(`Toggling user ${userId} in group ${editingGroup.id}, currently in group: ${isCurrentlyInGroup}`);
     setIsUpdatingMemberships(true);
@@ -692,13 +692,27 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
                               className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
                             >
                               <Checkbox
+                                id={`member-${member.id}`}
                                 checked={isInGroup}
                                 onCheckedChange={(checked) => {
-                                  handleToggleUserInGroup(member.id, isInGroup);
+                                  // Prevent multiple calls and only proceed if not already updating
+                                  if (!isUpdatingMemberships) {
+                                    handleToggleUserInGroup(member.id, isInGroup);
+                                  }
                                 }}
                                 disabled={isUpdatingMemberships}
                               />
-                              <div className="flex-1 min-w-0">
+                              <label 
+                                htmlFor={`member-${member.id}`}
+                                className="flex-1 min-w-0 cursor-pointer"
+                                onClick={(e) => {
+                                  // Prevent double clicks when clicking on label
+                                  e.preventDefault();
+                                  if (!isUpdatingMemberships) {
+                                    handleToggleUserInGroup(member.id, isInGroup);
+                                  }
+                                }}
+                              >
                                 <div className="flex items-center space-x-2">
                                   <User className="h-4 w-4 text-gray-400" />
                                   <span className="font-medium truncate">{member.name}</span>
@@ -706,7 +720,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
                                 <p className="text-xs text-gray-500 truncate">
                                   {member.email} {member.position && `• ${member.position}`}
                                 </p>
-                              </div>
+                              </label>
                               {isInGroup && (
                                 <CheckCircle className="h-4 w-4 text-green-500" />
                               )}
