@@ -57,23 +57,23 @@ export class SkillController {
     try {
       const tenantId = req.headers['x-tenant-id'] as string;
       
-      if (!tenantId) {
-        res.status(400).json({
-          success: false,
-          message: 'Tenant ID é obrigatório'
-        });
-        return;
-      }
+      console.log('Getting skills for tenant:', tenantId);
 
       const { category, search, isActive } = req.query;
 
-      const filters: any = { tenantId };
+      const filters: any = {};
+      
+      if (tenantId) {
+        filters.tenantId = tenantId;
+      }
 
       if (category) filters.category = category as string;
       if (search) filters.search = search as string;
       if (isActive !== undefined) filters.isActive = isActive === 'true';
 
       const skills = await this.skillRepository.findAll(filters);
+
+      console.log('Found skills:', skills.length);
 
       res.json({
         success: true,

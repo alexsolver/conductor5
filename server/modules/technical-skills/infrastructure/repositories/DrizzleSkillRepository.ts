@@ -10,8 +10,11 @@ export class DrizzleSkillRepository implements ISkillRepository {
       id: skill.id,
       name: skill.name,
       category: skill.category,
-      minLevelRequired: 1,
-      maxLevelRequired: 5,
+      description: skill.description,
+      suggestedCertification: skill.suggestedCertification,
+      certificationValidityMonths: skill.certificationValidityMonths,
+      observations: skill.observations,
+      scaleOptions: skill.scaleOptions || [],
       tenantId: skill.tenantId,
       isActive: skill.isActive,
       createdAt: skill.createdAt,
@@ -96,6 +99,12 @@ export class DrizzleSkillRepository implements ISkillRepository {
 
     if (data.name !== undefined) updateData.name = data.name;
     if (data.category !== undefined) updateData.category = data.category;
+    if (data.description !== undefined) updateData.description = data.description;
+    if (data.suggestedCertification !== undefined) updateData.suggestedCertification = data.suggestedCertification;
+    if (data.certificationValidityMonths !== undefined) updateData.certificationValidityMonths = data.certificationValidityMonths;
+    if (data.observations !== undefined) updateData.observations = data.observations;
+    if (data.scaleOptions !== undefined) updateData.scaleOptions = data.scaleOptions;
+    if (data.updatedBy !== undefined) updateData.updatedBy = data.updatedBy;
 
     const [result] = await db.update(skills)
       .set(updateData)
@@ -147,17 +156,17 @@ export class DrizzleSkillRepository implements ISkillRepository {
       row.id,
       row.name,
       row.category,
-      undefined, // description
-      undefined, // suggestedCertification
-      undefined, // certificationValidityMonths
-      undefined, // observations
-      [], // scaleOptions
+      row.description,
+      row.suggestedCertification,
+      row.certificationValidityMonths,
+      row.observations,
+      row.scaleOptions || [],
       row.tenantId,
       row.isActive,
       row.createdAt,
       row.updatedAt,
-      undefined, // createdBy
-      undefined  // updatedBy
+      row.createdBy,
+      row.updatedBy
     );
   }
 }
