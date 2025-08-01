@@ -231,6 +231,38 @@
       "customer": "Cliente",
       "agent": "Agente",
       "workspaceAdmin": "Admin do Workspace"
+    },
+    "groups": {
+      "title": "Grupos de Usuários",
+      "description": "Organize usuários em grupos para facilitar o gerenciamento",
+      "createGroup": "Criar Grupo",
+      "editGroup": "Editar Grupo",
+      "deleteGroup": "Excluir Grupo",
+      "members": "Membros",
+      "addMember": "Adicionar Membro",
+      "removeMember": "Remover Membro",
+      "noMembers": "Nenhum membro neste grupo",
+      "memberCount": "{{count}} membro",
+      "memberCount_plural": "{{count}} membros",
+      "groupName": "Nome do Grupo",
+      "groupDescription": "Descrição do Grupo",
+      "selectUsers": "Selecionar Usuários",
+      "saveChanges": "Salvar Alterações",
+      "cancel": "Cancelar",
+      "confirmDelete": "Tem certeza que deseja excluir este grupo?",
+      "groupCreated": "Grupo criado com sucesso",
+      "groupUpdated": "Grupo atualizado com sucesso",
+      "groupDeleted": "Grupo excluído com sucesso",
+      "memberAdded": "Membro adicionado com sucesso",
+      "memberRemoved": "Membro removido com sucesso",
+      "errors": {
+        "nameRequired": "Nome do grupo é obrigatório",
+        "loadingGroups": "Erro ao carregar grupos",
+        "creatingGroup": "Erro ao criar grupo",
+        "updatingGroup": "Erro ao atualizar grupo",
+        "deletingGroup": "Erro ao excluir grupo",
+        "managingMembers": "Erro ao gerenciar membros"
+      }
     }
   },
   "userManagement": {

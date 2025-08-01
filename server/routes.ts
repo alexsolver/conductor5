@@ -3583,14 +3583,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: 'Tenant ID required' });
       }
 
-      // Team users data for user selection components
-      const users = [
-        { id: 'user-1', name: 'Ana Silva', email: 'ana.silva@empresa.com', role: 'Analista' },
-        { id: 'user-2', name: 'João Santos', email: 'joao.santos@empresa.com', role: 'Técnico' },
-        { id: 'user-3', name: 'Maria Costa', email: 'maria.costa@empresa.com', role: 'Supervisor' },
-        { id: 'user-4', name: 'Pedro Oliveira', email: 'pedro.oliveira@empresa.com', role: 'Gerente' },
-        { id: 'user-5', name: 'Carla Ferreira', email: 'carla.ferreira@empresa.com', role: 'Especialista' }
-      ];
+      // Buscar usuários reais do banco de dados
+      const { users: usersTable } = await import('./shared/schema-master.js');
+      const { db } = await import('./server/db.js');
+      const { eq, and } = await import('drizzle-orm');
+
+      const users = await db.select({
+        id: usersTable.id,
+        name: usersTable.firstName,
+        lastName: usersTable.lastName,
+        email: usersTable.email,
+        role: usersTable.role,
+        position: usersTable.cargo,
+        isActive: usersTable.isActive
+      })
+      .from(usersTable)
+      .where(and(
+        eq(usersTable.tenantId, tenantId),
+        eq(usersTable.isActive, true)
+      ))
+      .orderBy(usersTable.firstName);
+
+      // Format response with proper name concatenation
+      const formattedUsers = users.map(user => ({
+        id: user.id,
+        name: `${user.name || ''} ${user.lastName || ''}`.trim() || user.email,
+        email: user.email,
+        role: user.role,
+        position: user.position,
+        isActive: user.isActive
+      }));
 
       res.json({ success: true, users });
     } catch (error) {

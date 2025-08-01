@@ -80,21 +80,40 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [isUpdatingMemberships, setIsUpdatingMemberships] = useState(false);
 
+  // Query para buscar membros do grupo quando um grupo está sendo editado
+  const { data: groupMembersData, isLoading: membersLoading, refetch: refetchGroupMembers } = useQuery({
+    queryKey: ["/api/user-management/groups", editingGroup?.id, "members"],
+    enabled: !!editingGroup?.id,
+    staleTime: 0,
+    retry: 3,
+    retryDelay: 1000,
+    onError: (error: any) => {
+      console.error('Error fetching group members:', error);
+      toast({
+        title: "Erro ao carregar membros",
+        description: error?.message || "Falha ao carregar membros do grupo",
+        variant: "destructive"
+      });
+    }
+  });
+
   // Query para buscar grupos
   const { data: groupsData, isLoading: groupsLoading, refetch: refetchGroups } = useQuery<{ groups: UserGroup[] }>({
     queryKey: ["/api/user-management/groups"],
     refetchInterval: 30000,
+    staleTime: 5000,
     select: (data) => {
-      // Calcular memberCount real baseado nos memberships
-      if (data?.groups) {
+      // Garantir que a resposta tenha a estrutura correta
+      if (data?.groups && Array.isArray(data.groups)) {
         return {
           groups: data.groups.map(group => ({
             ...group,
-            memberCount: group.memberships?.length || 0
+            memberCount: group.memberCount || 0,
+            isActive: group.isActive !== false
           }))
         };
       }
-      return data;
+      return { groups: [] };
     }
   });
 

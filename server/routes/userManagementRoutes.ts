@@ -146,17 +146,51 @@ router.get('/groups',
   async (req: AuthenticatedRequest, res) => {
     try {
       const tenantId = req.user!.tenantId;
-      const groups = await db.select().from(userGroups)
+      
+      // Buscar grupos com contagem de membros
+      const groups = await db.select({
+        id: userGroups.id,
+        name: userGroups.name,
+        description: userGroups.description,
+        isActive: userGroups.isActive,
+        createdAt: userGroups.createdAt,
+        updatedAt: userGroups.updatedAt
+      }).from(userGroups)
         .where(and(
           eq(userGroups.tenantId, tenantId),
           eq(userGroups.isActive, true)
         ))
         .orderBy(userGroups.createdAt);
+
+      // Para cada grupo, buscar a contagem de membros ativos
+      const groupsWithMemberCount = await Promise.all(
+        groups.map(async (group) => {
+          const memberCount = await db.select({ count: sql<number>`count(*)` })
+            .from(userGroupMemberships)
+            .where(and(
+              eq(userGroupMemberships.groupId, group.id),
+              eq(userGroupMemberships.tenantId, tenantId),
+              eq(userGroupMemberships.isActive, true)
+            ));
+
+          return {
+            ...group,
+            memberCount: Number(memberCount[0]?.count || 0)
+          };
+        })
+      );
       
-      res.json({ groups });
+      res.json({ 
+        success: true,
+        groups: groupsWithMemberCount 
+      });
     } catch (error) {
       console.error('Error fetching user groups:', error);
-      res.status(500).json({ message: 'Failed to fetch user groups' });
+      res.status(500).json({ 
+        success: false,
+        message: 'Failed to fetch user groups',
+        error: error.message 
+      });
     }
   }
 );
@@ -306,18 +340,42 @@ router.get('/groups/:groupId/members',
       const { groupId } = req.params;
       const tenantId = req.user!.tenantId;
       
+      if (!groupId || !tenantId) {
+        return res.status(400).json({ 
+          success: false,
+          message: 'Group ID and tenant ID are required' 
+        });
+      }
+      
       console.log(`Fetching members for group ${groupId} in tenant ${tenantId}`);
       
-      // Query para buscar os membros do grupo específico com informações do usuário
+      // Verificar se o grupo existe e pertence ao tenant
+      const groupExists = await db.select({ id: userGroups.id })
+        .from(userGroups)
+        .where(and(
+          eq(userGroups.id, groupId),
+          eq(userGroups.tenantId, tenantId),
+          eq(userGroups.isActive, true)
+        ))
+        .limit(1);
+
+      if (!groupExists.length) {
+        return res.status(404).json({
+          success: false,
+          message: 'Group not found or access denied'
+        });
+      }
+      
+      // Query corrigida para buscar os membros do grupo
       const members = await db.select({
         membershipId: userGroupMemberships.id,
         userId: userGroupMemberships.userId,
         role: userGroupMemberships.role,
-        userName: usersTable.name,
         userFirstName: usersTable.firstName,
         userLastName: usersTable.lastName,
         userEmail: usersTable.email,
-        userPosition: usersTable.cargo
+        userPosition: usersTable.cargo,
+        addedAt: userGroupMemberships.addedAt
       })
       .from(userGroupMemberships)
       .innerJoin(usersTable, eq(userGroupMemberships.userId, usersTable.id))
@@ -326,16 +384,18 @@ router.get('/groups/:groupId/members',
         eq(userGroupMemberships.groupId, groupId),
         eq(userGroupMemberships.isActive, true),
         eq(usersTable.isActive, true)
-      ));
+      ))
+      .orderBy(userGroupMemberships.addedAt);
 
-      // Format members data consistently
+      // Format members data consistently - corrigido para evitar campos undefined
       const formattedMembers = members.map(member => ({
         membershipId: member.membershipId,
         userId: member.userId,
-        role: member.role,
-        name: member.userName || `${member.userFirstName || ''} ${member.userLastName || ''}`.trim() || member.userEmail,
+        role: member.role || 'member',
+        name: `${member.userFirstName || ''} ${member.userLastName || ''}`.trim() || member.userEmail,
         email: member.userEmail,
-        position: member.userPosition
+        position: member.userPosition || '',
+        addedAt: member.addedAt
       }));
       
       console.log(`Found ${formattedMembers.length} members for group ${groupId}`);
