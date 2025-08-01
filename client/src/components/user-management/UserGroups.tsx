@@ -124,6 +124,8 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
   const { data: currentGroupMembers, refetch: refetchCurrentGroupMembers } = useQuery({
     queryKey: ["/api/user-management/groups", editingGroup?.id, "members"],
     enabled: !!editingGroup?.id,
+    refetchOnWindowFocus: false, // Evitar refetch desnecessário
+    staleTime: 10000, // Cache por 10 segundos
     select: (data: any) => {
       if (data && Array.isArray(data.members)) {
         return data.members.map((member: any) => member.userId);
@@ -215,10 +217,12 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
       return await response.json();
     },
     onSuccess: () => {
-      refetchCurrentGroupMembers();
-      refetchGroups();
-      // Invalidar cache dos grupos para forçar nova busca
-      queryClient.invalidateQueries({ queryKey: ["/api/user-management/groups"] });
+      // Não fazer refetch imediato para evitar conflito de estado
+      setTimeout(() => {
+        refetchCurrentGroupMembers();
+        refetchGroups();
+        queryClient.invalidateQueries({ queryKey: ["/api/user-management/groups"] });
+      }, 1000);
       toast({
         title: "Usuário adicionado",
         description: "Usuário adicionado ao grupo com sucesso!",
@@ -248,10 +252,12 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
       return await response.json();
     },
     onSuccess: () => {
-      refetchCurrentGroupMembers();
-      refetchGroups();
-      // Invalidar cache dos grupos para forçar nova busca
-      queryClient.invalidateQueries({ queryKey: ["/api/user-management/groups"] });
+      // Não fazer refetch imediato para evitar conflito de estado
+      setTimeout(() => {
+        refetchCurrentGroupMembers();
+        refetchGroups();
+        queryClient.invalidateQueries({ queryKey: ["/api/user-management/groups"] });
+      }, 1000);
       toast({
         title: "Usuário removido",
         description: "Usuário removido do grupo com sucesso!",
@@ -298,12 +304,13 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
     }
   }, [editingGroup]);
 
-  // Efeito para sincronizar usuários selecionados
+  // Efeito para sincronizar usuários selecionados apenas quando abrir o dialog
   useEffect(() => {
-    if (currentGroupMembers && Array.isArray(currentGroupMembers)) {
+    if (editingGroup && currentGroupMembers && Array.isArray(currentGroupMembers)) {
+      console.log('Setting initial selected users:', currentGroupMembers);
       setSelectedUsers(currentGroupMembers);
     }
-  }, [currentGroupMembers]);
+  }, [editingGroup?.id]); // Só executa quando mudar o grupo sendo editado
 
   // Função para fechar diálogo
   const handleCloseDialog = () => {
