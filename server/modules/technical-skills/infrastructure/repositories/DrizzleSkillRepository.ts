@@ -127,7 +127,13 @@ export class DrizzleSkillRepository implements ISkillRepository {
       .where(eq(skills.isActive, true))
       .orderBy(skills.category);
 
-    return results.map(r => r.category).filter(Boolean);
+    const existingCategories = results.map(r => r.category).filter(Boolean);
+    
+    // Garantir que as categorias padrão estejam sempre disponíveis
+    const defaultCategories = ['Técnica', 'Operacional', 'Administrativa'];
+    const allCategories = [...new Set([...defaultCategories, ...existingCategories])];
+    
+    return allCategories.sort();
   }
 
   async countByCategory(): Promise<{ category: string; count: number }[]> {

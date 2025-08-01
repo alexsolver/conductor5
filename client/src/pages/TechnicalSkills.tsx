@@ -40,6 +40,7 @@ const skillFormSchema = z.object({
 type SkillFormData = z.infer<typeof skillFormSchema>;
 
 // Categorias agora são carregadas dinamicamente do backend
+const DEFAULT_CATEGORIES = ["Técnica", "Operacional", "Administrativa"];
 
 interface Skill {
   id: string;
@@ -240,16 +241,26 @@ export default function TechnicalSkills() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Categoria</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Selecione uma categoria" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {(categories?.data || []).map((category) => (
+                          {DEFAULT_CATEGORIES.map((category: string) => (
                             <SelectItem key={category} value={category}>
-                              {category.charAt(0).toUpperCase() + category.slice(1)}
+                              {category}
+                            </SelectItem>
+                          ))}
+                          {categories?.data?.filter((category: string) => 
+                            !DEFAULT_CATEGORIES.includes(category)
+                          ).map((category: string) => (
+                            <SelectItem key={category} value={category}>
+                              {category}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -517,20 +528,30 @@ export default function TechnicalSkills() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Categoria</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                          {(categories?.data || []).map((category) => (
+                    <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {DEFAULT_CATEGORIES.map((category: string) => (
                             <SelectItem key={category} value={category}>
-                              {category.charAt(0).toUpperCase() + category.slice(1)}
+                              {category}
+                            </SelectItem>
+                          ))}
+                          {categories?.data?.filter((category: string) => 
+                            !DEFAULT_CATEGORIES.includes(category)
+                          ).map((category: string) => (
+                            <SelectItem key={category} value={category}>
+                              {category}
                             </SelectItem>
                           ))}
                         </SelectContent>
-                    </Select>
+                      </Select>
                     <FormMessage />
                   </FormItem>
                 )}
