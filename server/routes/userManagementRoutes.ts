@@ -5,9 +5,8 @@ import { requirePermission, requireTenantAccess } from '../middleware/rbacMiddle
 import { userManagementService } from '../services/UserManagementService';
 import { db } from '../db';
 import { userGroups, userGroupMemberships, insertUserGroupSchema, insertUserGroupMembershipSchema, users as usersTable } from '../../shared/schema.js';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, sql } from 'drizzle-orm';
 import crypto from 'crypto';
-import { z } from 'zod';
 
 // Add missing validation schema
 const updateUserGroupSchema = z.object({
@@ -202,22 +201,51 @@ router.post('/groups',
   async (req: AuthenticatedRequest, res) => {
     try {
       const tenantId = req.user!.tenantId;
-      const validatedData = insertUserGroupSchema.parse(req.body);
+      
+      if (!tenantId) {
+        return res.status(400).json({ message: 'Tenant ID is required' });
+      }
+      
+      // Create group data with tenantId
+      const groupData = {
+        ...req.body,
+        tenantId,
+        id: crypto.randomUUID(),
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      
+      // Validate the complete data
+      const validatedData = insertUserGroupSchema.parse(groupData);
       
       const [newGroup] = await db.insert(userGroups)
-        .values({
-          ...validatedData,
-          tenantId
-        })
+        .values(validatedData)
         .returning();
       
-      res.status(201).json({ group: newGroup });
+      res.status(201).json({ 
+        success: true,
+        group: newGroup,
+        message: 'Grupo criado com sucesso'
+      });
     } catch (error: any) {
       console.error('Error creating user group:', error);
       if (error?.code === '23505') { // Unique constraint violation
-        res.status(409).json({ message: 'Um grupo com esse nome já existe neste tenant' });
+        res.status(409).json({ 
+          success: false,
+          message: 'Um grupo com esse nome já existe neste tenant' 
+        });
+      } else if (error.name === 'ZodError') {
+        res.status(400).json({ 
+          success: false,
+          message: 'Dados inválidos fornecidos',
+          errors: error.errors 
+        });
       } else {
-        res.status(500).json({ message: 'Failed to create user group' });
+        res.status(500).json({ 
+          success: false,
+          message: 'Failed to create user group' 
+        });
       }
     }
   }
