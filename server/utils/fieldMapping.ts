@@ -87,3 +87,18 @@ export function normalizeFieldName(fieldName: string): string {
 export function toCamelCase(str: string): string {
   return str.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
 }
+
+// Mapeamento de campos específicos do ticket para nomes amigáveis e metadados
+export const TICKET_FIELD_MAPPING = {
+  // Campo Grupo de Atribuição
+  assignmentGroup: {
+    label: 'Grupo de Atribuição',
+    table: 'user_group_memberships',
+    column: 'id',
+    type: 'foreign_key',
+    reference: 'user_groups.id',
+    description: 'Grupo responsável pela atribuição do ticket',
+    api_endpoint: '/api/user-groups',
+    display_field: 'name'
+  },
+};

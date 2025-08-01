@@ -2983,7 +2983,39 @@ const TicketDetails = React.memo(() => {
           {/* Atribuído a Section */}
           <div className="mb-6">
             <h3 className="text-sm font-semibold text-gray-600 mb-3">ATRIBUÍDO A</h3>
+            
+            {/* Grupo de Atribuição */}
             <div className="mb-4">
+              <FormField
+                control={form.control}
+                name="assignmentGroup"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-medium text-gray-700">Grupo de Atribuição</FormLabel>
+                    <FormControl>
+                      {isEditMode ? (
+                        <DynamicSelect
+                          fieldName="assignmentGroup"
+                          value={field.value || ticket.assignment_group || ''}
+                          onValueChange={field.onChange}
+                          placeholder="Selecione o grupo"
+                          disabled={!isEditMode}
+                        />
+                      ) : (
+                        <div className="p-2 bg-gray-50 rounded text-sm">
+                          {field.value || ticket.assignment_group || 'Não especificado'}
+                        </div>
+                      )}
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Usuário Atribuído */}
+            <div className="mb-4">
+              <FormLabel className="text-sm font-medium text-gray-700 mb-2 block">Usuário Atribuído</FormLabel>
               <UserSelect
                 value={form.getValues('assignedToId') || ticket.assigned_to_id || ticket.assignedToId || ''}
                 onChange={(value) => form.setValue('assignedToId', value)}
