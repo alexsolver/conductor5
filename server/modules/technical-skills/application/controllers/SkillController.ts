@@ -187,4 +187,40 @@ export class SkillController {
       });
     }
   }
+
+  async getStatistics(req: Request, res: Response): Promise<void> {
+    try {
+      const tenantId = req.headers['x-tenant-id'] as string;
+
+      // Buscar estatísticas básicas das habilidades
+      const allSkills = await this.skillRepository.findAll({ tenantId });
+      
+      const totalSkills = allSkills.length;
+      const activeSkills = allSkills.filter(skill => skill.isActive).length;
+      const inactiveSkills = totalSkills - activeSkills;
+
+      // Agrupar por categoria
+      const categoriesCount = allSkills.reduce((acc, skill) => {
+        acc[skill.category] = (acc[skill.category] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+
+      res.json({
+        success: true,
+        data: {
+          totalSkills,
+          activeSkills,
+          inactiveSkills,
+          categoriesCount
+        }
+      });
+    } catch (error) {
+      console.error('Error fetching statistics:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Erro ao buscar estatísticas',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
 }
