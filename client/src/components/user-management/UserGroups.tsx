@@ -349,45 +349,27 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
   const handleToggleUserInGroup = async (userId: string, isCurrentlyInGroup: boolean) => {
     if (!editingGroup || isUpdatingMemberships) return;
 
-    console.log(`Toggling user ${userId} in group ${editingGroup.id}, currently in group: ${isCurrentlyInGroup}`);
     setIsUpdatingMemberships(true);
 
     try {
       if (isCurrentlyInGroup) {
         // Remove user from group
-        console.log(`Removing user ${userId} from group ${editingGroup.id}`);
         await removeUserFromGroupMutation.mutateAsync({
           groupId: editingGroup.id,
           userId: userId
         });
-
-        // Update local state immediately
-        setSelectedUsers(prev => prev.filter(id => id !== userId));
-        console.log(`User ${userId} removed successfully`);
       } else {
-        // Add user to group
-        console.log(`Adding user ${userId} to group ${editingGroup.id}`);
+        // Add user to group  
         await addUserToGroupMutation.mutateAsync({
           groupId: editingGroup.id,
           userId: userId
         });
-
-        // Update local state immediately
-        setSelectedUsers(prev => [...prev, userId]);
-        console.log(`User ${userId} added successfully`);
       }
-    } catch (error) {
-      console.error('Error toggling user in group:', error);
-
-      // Show more specific error message
-      const errorMessage = error?.message || 'Erro desconhecido';
+    } catch (error: any) {
+      const errorMessage = error?.message || 'Erro na operação';
       toast({
         title: "Erro na operação",
-        description: errorMessage.includes('already exists') || errorMessage.includes('unique constraint') 
-          ? "Este usuário já pertence ao grupo" 
-          : errorMessage.includes('already a member')
-          ? "Este usuário já é membro do grupo"
-          : errorMessage,
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -692,17 +674,16 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
                               className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
                             >
                               <Checkbox
-                                id={`member-${member.id}`}
                                 checked={isInGroup}
                                 onCheckedChange={(checked) => {
-                                  // Prevent multiple calls and only proceed if not already updating
+                                  // Simple boolean check without multiple conditions
                                   if (!isUpdatingMemberships) {
                                     handleToggleUserInGroup(member.id, isInGroup);
                                   }
                                 }}
                                 disabled={isUpdatingMemberships}
                               />
-                              <div className="flex-1 min-w-0">
+                              <div className="flex-1 min-w-0 ml-2">
                                 <div className="flex items-center space-x-2">
                                   <User className="h-4 w-4 text-gray-400" />
                                   <span className="font-medium truncate">{member.name}</span>
@@ -712,7 +693,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
                                 </p>
                               </div>
                               {isInGroup && (
-                                <CheckCircle className="h-4 w-4 text-green-500" />
+                                <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
                               )}
                             </div>
                           );
