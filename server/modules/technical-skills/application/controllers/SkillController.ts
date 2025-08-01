@@ -14,6 +14,12 @@ interface AuthenticatedRequest extends Request {
 }
 
 export class SkillController {
+  private skillRepository: any;
+
+  constructor() {
+    this.skillRepository = new DrizzleSkillRepository();
+  }
+
   async getSkills(req: AuthenticatedRequest, res: Response) {
     try {
       if (!req.user?.tenantId) {
@@ -280,7 +286,7 @@ export class SkillController {
         });
       }
 
-      const categories = await this.repository.getCategories(tenantId);
+      const categories = await this.skillRepository.getCategories(tenantId);
 
       // Ensure we always return an array
       const validCategories = Array.isArray(categories) ? categories : [];

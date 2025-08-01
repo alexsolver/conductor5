@@ -39,15 +39,7 @@ const skillFormSchema = z.object({
 
 type SkillFormData = z.infer<typeof skillFormSchema>;
 
-const SKILL_CATEGORIES = [
-  "telecomunicações",
-  "redes", 
-  "elétrica",
-  "manutenção",
-  "desenvolvimento",
-  "segurança",
-  "infraestrutura"
-];
+// Categorias agora são carregadas dinamicamente do backend
 
 interface Skill {
   id: string;
@@ -255,7 +247,7 @@ export default function TechnicalSkills() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {SKILL_CATEGORIES.map((category) => (
+                          {(categories?.data || []).map((category) => (
                             <SelectItem key={category} value={category}>
                               {category.charAt(0).toUpperCase() + category.slice(1)}
                             </SelectItem>

@@ -8,6 +8,7 @@ export class Skill {
     public certificationValidityMonths?: number,
     public description?: string,
     public observations?: string,
+    public tenantId?: string,
     public isActive: boolean = true,
     public readonly createdAt: Date = new Date(),
     public updatedAt: Date = new Date(),
@@ -80,6 +81,7 @@ export class Skill {
     description?: string;
     observations?: string;
     createdBy?: string;
+    tenantId?: string;
   }): Skill {
     return new Skill(
       crypto.randomUUID(),
@@ -90,6 +92,7 @@ export class Skill {
       data.certificationValidityMonths,
       data.description,
       data.observations,
+      data.tenantId,
       true,
       new Date(),
       new Date(),

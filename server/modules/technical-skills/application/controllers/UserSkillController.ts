@@ -19,6 +19,14 @@ export class UserSkillController {
   async getUserSkills(req: AuthenticatedRequest, res: Response) {
     try {
       const { userId, skillId, minLevel, validCertification } = req.query;
+      const tenantId = req.user?.tenantId;
+
+      if (!tenantId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Tenant ID é obrigatório'
+        });
+      }
 
       let userSkills: any[] = [];
 
