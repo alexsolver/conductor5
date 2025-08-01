@@ -291,7 +291,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
     });
   };
 
-  // Função para alternar membro no grupo
+  // Function to toggle user membership in group
   const handleToggleUserInGroup = async (userId: string, isCurrentlyInGroup: boolean) => {
     if (!editingGroup) return;
 
@@ -299,18 +299,36 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
     
     try {
       if (isCurrentlyInGroup) {
+        // Remove user from group
         await removeUserFromGroupMutation.mutateAsync({
           groupId: editingGroup.id,
           userId: userId
         });
+        
+        // Update local state immediately
+        setSelectedUsers(prev => prev.filter(id => id !== userId));
       } else {
+        // Add user to group
         await addUserToGroupMutation.mutateAsync({
           groupId: editingGroup.id,
           userId: userId
         });
+        
+        // Update local state immediately
+        setSelectedUsers(prev => [...prev, userId]);
       }
     } catch (error) {
       console.error('Error toggling user in group:', error);
+      
+      // Show more specific error message
+      const errorMessage = error?.message || 'Erro desconhecido';
+      toast({
+        title: "Erro na operação",
+        description: errorMessage.includes('already exists') || errorMessage.includes('unique constraint') 
+          ? "Este usuário já pertence ao grupo" 
+          : errorMessage,
+        variant: "destructive",
+      });
     } finally {
       setIsUpdatingMemberships(false);
     }

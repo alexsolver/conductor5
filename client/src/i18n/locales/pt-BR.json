@@ -281,6 +281,14 @@
     "analytics": "Analytics"
   },
   "userManagement": {
+    "role": "Papel",
+    "expiration": "Expiração", 
+    "groups": "Grupos",
+    "notes": "Notas",
+    "sendInvitationEmail": "Enviar email de convite automaticamente",
+    "inviteUser": "Convidar Usuário",
+    "inviteUserDesc": "Envie um convite por email para um novo usuário",
+    "email": "Email",
     "userGroups": "Grupos de Usuários",
     "userGroupsDesc": "Organize usuários em grupos para facilitar o gerenciamento de permissões",
     "createGroup": "Criar Grupo",

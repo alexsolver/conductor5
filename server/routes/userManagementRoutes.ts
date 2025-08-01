@@ -307,13 +307,22 @@ router.get('/groups/:groupId/members',
       const tenantId = req.user!.tenantId;
       
       // Query para buscar os membros do grupo específico com informações do usuário
-      const members = await db.select()
+      const members = await db.select({
+        membershipId: userGroupMemberships.id,
+        userId: userGroupMemberships.userId,
+        role: userGroupMemberships.role,
+        userName: usersTable.name,
+        userFirstName: usersTable.firstName,
+        userLastName: usersTable.lastName,
+        userEmail: usersTable.email
+      })
       .from(userGroupMemberships)
       .innerJoin(usersTable, eq(userGroupMemberships.userId, usersTable.id))
       .where(and(
         eq(userGroupMemberships.tenantId, tenantId),
         eq(userGroupMemberships.groupId, groupId),
-        eq(userGroupMemberships.isActive, true)
+        eq(userGroupMemberships.isActive, true),
+        eq(usersTable.isActive, true)
       ));
       
       res.json({ members });
@@ -364,18 +373,39 @@ router.post('/groups/:groupId/members',
         return res.status(404).json({ message: 'User not found' });
       }
       
-      // Verificar se a associação já existe
+      // Verificar se a associação já existe (ativa ou inativa)
       const existingMembership = await db.select().from(userGroupMemberships)
         .where(and(
           eq(userGroupMemberships.tenantId, tenantId),
           eq(userGroupMemberships.userId, userId),
-          eq(userGroupMemberships.groupId, groupId),
-          eq(userGroupMemberships.isActive, true)
+          eq(userGroupMemberships.groupId, groupId)
         ))
         .limit(1);
       
-      if (existingMembership.length) {
-        return res.status(409).json({ message: 'User is already a member of this group' });
+      if (existingMembership.length > 0) {
+        // Se existe mas está inativa, reativar
+        if (!existingMembership[0].isActive) {
+          const [reactivatedMembership] = await db.update(userGroupMemberships)
+            .set({
+              isActive: true,
+              updatedAt: new Date()
+            })
+            .where(and(
+              eq(userGroupMemberships.tenantId, tenantId),
+              eq(userGroupMemberships.userId, userId),
+              eq(userGroupMemberships.groupId, groupId)
+            ))
+            .returning();
+          
+          console.log(`Successfully reactivated user ${userId} in group ${groupId}`);
+          return res.status(200).json({ 
+            message: 'User membership reactivated successfully',
+            membership: reactivatedMembership
+          });
+        } else {
+          // Se já está ativa, retornar conflito
+          return res.status(409).json({ message: 'User is already a member of this group' });
+        }
       }
       
       // Criar a associação usuário-grupo
