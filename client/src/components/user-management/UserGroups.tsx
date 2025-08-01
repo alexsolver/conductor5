@@ -685,14 +685,15 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
                                 className="flex items-center"
                                 onClick={(e) => e.stopPropagation()}
                               >
-                                <Checkbox
+                                <input
+                                  type="checkbox"
                                   id={`member-checkbox-${member.id}`}
                                   checked={isInGroup}
-                                  onCheckedChange={(checked) => {
-                                    console.log(`Checkbox ${member.id} changed to:`, checked);
+                                  onChange={(e) => {
+                                    console.log(`Native checkbox ${member.id} changed to:`, e.target.checked);
                                     if (!isUpdatingMemberships) {
                                       // Update local state immediately
-                                      const newCheckedState = !!checked;
+                                      const newCheckedState = e.target.checked;
                                       if (newCheckedState && !selectedUsers.includes(member.id)) {
                                         setSelectedUsers(prev => [...prev, member.id]);
                                       } else if (!newCheckedState && selectedUsers.includes(member.id)) {
@@ -703,6 +704,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
                                     }
                                   }}
                                   disabled={isUpdatingMemberships}
+                                  className="h-4 w-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                                 />
                               </div>
                               <div className="flex-1 min-w-0 ml-2">
