@@ -80,23 +80,6 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [isUpdatingMemberships, setIsUpdatingMemberships] = useState(false);
 
-  // Query para buscar membros do grupo quando um grupo está sendo editado
-  const { data: groupMembersData, isLoading: membersLoading, refetch: refetchGroupMembers } = useQuery({
-    queryKey: ["/api/user-management/groups", editingGroup?.id, "members"],
-    enabled: !!editingGroup?.id,
-    staleTime: 0,
-    retry: 3,
-    retryDelay: 1000,
-    onError: (error: any) => {
-      console.error('Error fetching group members:', error);
-      toast({
-        title: "Erro ao carregar membros",
-        description: error?.message || "Falha ao carregar membros do grupo",
-        variant: "destructive"
-      });
-    }
-  });
-
   // Query para buscar grupos
   const { data: groupsData, isLoading: groupsLoading, refetch: refetchGroups } = useQuery<{ groups: UserGroup[] }>({
     queryKey: ["/api/user-management/groups"],
@@ -118,7 +101,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
   });
 
   // Query para buscar membros da equipe
-  const { data: teamMembersData, isLoading: membersLoading } = useQuery<TeamMember[]>({
+  const { data: teamMembersData, isLoading: teamMembersLoading } = useQuery<TeamMember[]>({
     queryKey: ["/api/team-management/members"],
     enabled: !!editingGroup,
     select: (data) => {
@@ -138,7 +121,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
   });
 
   // Query para buscar membros do grupo atual
-  const { data: groupMembersData, refetch: refetchGroupMembers } = useQuery({
+  const { data: currentGroupMembers, refetch: refetchCurrentGroupMembers } = useQuery({
     queryKey: ["/api/user-management/groups", editingGroup?.id, "members"],
     enabled: !!editingGroup?.id,
     select: (data: any) => {
@@ -232,7 +215,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
       return await response.json();
     },
     onSuccess: () => {
-      refetchGroupMembers();
+      refetchCurrentGroupMembers();
       refetchGroups();
       // Invalidar cache dos grupos para forçar nova busca
       queryClient.invalidateQueries({ queryKey: ["/api/user-management/groups"] });
@@ -265,7 +248,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
       return await response.json();
     },
     onSuccess: () => {
-      refetchGroupMembers();
+      refetchCurrentGroupMembers();
       refetchGroups();
       // Invalidar cache dos grupos para forçar nova busca
       queryClient.invalidateQueries({ queryKey: ["/api/user-management/groups"] });
@@ -317,10 +300,10 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
 
   // Efeito para sincronizar usuários selecionados
   useEffect(() => {
-    if (groupMembersData && Array.isArray(groupMembersData)) {
-      setSelectedUsers(groupMembersData);
+    if (currentGroupMembers && Array.isArray(currentGroupMembers)) {
+      setSelectedUsers(currentGroupMembers);
     }
-  }, [groupMembersData]);
+  }, [currentGroupMembers]);
 
   // Função para fechar diálogo
   const handleCloseDialog = () => {
@@ -692,7 +675,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
                   </Badge>
                 </div>
 
-                {membersLoading ? (
+                {teamMembersLoading ? (
                   <div className="flex items-center justify-center py-8">
                     <Loader2 className="h-6 w-6 animate-spin" />
                     <span className="ml-2">Carregando membros...</span>
