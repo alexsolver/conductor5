@@ -384,8 +384,6 @@ export const skills = pgTable("skills", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
   isActive: boolean("is_active").default(true),
-  suggestedCertification: varchar("suggested_certification", { length: 255 }),
-  certificationValidityMonths: integer("certification_validity_months"),
   observations: text("observations"),
 }, (table) => [
   index("skills_tenant_name_idx").on(table.tenantId, table.name),
@@ -587,7 +585,19 @@ export const insertTicketMessageSchema = createInsertSchema(ticketMessages);
 export const insertActivityLogSchema = createInsertSchema(activityLogs);
 export const insertLocationSchema = createInsertSchema(locations);
 export const insertCustomerCompanySchema = createInsertSchema(customerCompanies);
-export const insertSkillSchema = createInsertSchema(skills);
+// Schema manual para skills - evita referências a campos inexistentes
+export const insertSkillSchema = z.object({
+  name: z.string().min(1, "Nome é obrigatório"),
+  category: z.string().min(1, "Categoria é obrigatória"),
+  description: z.string().optional(),
+  levelMin: z.number().min(1).max(5).default(1),
+  levelMax: z.number().min(1).max(5).default(5),
+  certificationSuggested: z.string().optional(),
+  validityMonths: z.number().optional(),
+  observations: z.string().optional(),
+  isActive: z.boolean().default(true),
+  tenantId: z.string().optional(),
+});
 export const insertCertificationSchema = createInsertSchema(certifications);
 export const insertUserSkillSchema = createInsertSchema(userSkills);
 export const insertUserGroupSchema = createInsertSchema(userGroups);

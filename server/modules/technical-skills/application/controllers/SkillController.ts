@@ -116,7 +116,7 @@ export class SkillController {
       const skillRepository = new DrizzleSkillRepository(req.user.tenantId);
       
       // Validar dados básicos sem usar schema Zod temporariamente
-      const { name, category, minLevelRequired, description, observations, suggestedCertification, certificationValidityMonths } = req.body;
+      const { name, category, minLevelRequired, description, observations, certificationSuggested, validityMonths } = req.body;
       
       if (!name || !category) {
         return res.status(400).json({
@@ -131,8 +131,8 @@ export class SkillController {
         minLevelRequired: minLevelRequired || 1,
         description: description || null,
         observations: observations || null,
-        suggestedCertification: suggestedCertification || null,
-        certificationValidityMonths: certificationValidityMonths || null,
+        certificationSuggested: certificationSuggested || null,
+        validityMonths: validityMonths || null,
         createdBy: req.user?.id
       });
 
@@ -191,8 +191,8 @@ export class SkillController {
       if (validatedData.minLevelRequired) existingSkill.updateMinLevel(validatedData.minLevelRequired);
       if (validatedData.description !== undefined) existingSkill.description = validatedData.description;
       if (validatedData.observations !== undefined) existingSkill.observations = validatedData.observations;
-      if (validatedData.suggestedCertification !== undefined) existingSkill.suggestedCertification = validatedData.suggestedCertification;
-      if (validatedData.certificationValidityMonths !== undefined) existingSkill.certificationValidityMonths = validatedData.certificationValidityMonths;
+      if (validatedData.certificationSuggested !== undefined) existingSkill.certificationSuggested = validatedData.certificationSuggested;
+      if (validatedData.validityMonths !== undefined) existingSkill.validityMonths = validatedData.validityMonths;
 
       existingSkill.updatedBy = req.user?.id;
 
