@@ -11,14 +11,8 @@ export class DrizzleSkillRepository implements ISkillRepository {
       name: skill.name,
       category: skill.category,
       description: skill.description,
-      suggestedCertification: skill.suggestedCertification,
-      certificationValidityMonths: skill.certificationValidityMonths,
-      observations: skill.observations,
-      scaleOptions: skill.scaleOptions || [],
       tenantId: skill.tenantId,
-      isActive: skill.isActive,
-      createdAt: skill.createdAt,
-      updatedAt: skill.updatedAt,
+      isActive: true,
     }).returning();
 
     return this.mapToSkill(result);
@@ -40,7 +34,16 @@ export class DrizzleSkillRepository implements ISkillRepository {
     search?: string;
     tenantId?: string;
   }): Promise<Skill[]> {
-    let query = db.select().from(skills);
+    let query = db.select({
+      id: skills.id,
+      name: skills.name,
+      category: skills.category,
+      description: skills.description,
+      tenantId: skills.tenantId,
+      isActive: skills.isActive,
+      createdAt: skills.createdAt,
+      updatedAt: skills.updatedAt,
+    }).from(skills);
     const conditions = [];
 
     if (filters?.tenantId) {
@@ -152,21 +155,17 @@ export class DrizzleSkillRepository implements ISkillRepository {
   }
 
   private mapToSkill(row: any): Skill {
-    return new Skill(
-      row.id,
-      row.name,
-      row.category,
-      row.description,
-      row.suggestedCertification,
-      row.certificationValidityMonths,
-      row.observations,
-      row.scaleOptions || [],
-      row.tenantId,
-      row.isActive,
-      row.createdAt,
-      row.updatedAt,
-      row.createdBy,
-      row.updatedBy
-    );
+    return {
+      id: row.id,
+      name: row.name,
+      category: row.category,
+      description: row.description,
+      minLevelRequired: 1, // valor padrão
+      maxLevelRequired: 5, // valor padrão  
+      tenantId: row.tenantId,
+      isActive: row.isActive,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+    };
   }
 }
