@@ -1,4 +1,3 @@
-
 import { eq, and, ilike, count, desc } from 'drizzle-orm';
 import { db } from '../../../../db';
 import { skills } from '../../../../../shared/schema-master';
@@ -41,21 +40,21 @@ export class DrizzleSkillRepository implements ISkillRepository {
     tenantId?: string;
   }): Promise<Skill[]> {
     let query = db.select().from(skills);
-    
+
     const conditions = [];
-    
+
     if (filters?.tenantId) {
       conditions.push(eq(skills.tenantId, filters.tenantId));
     }
-    
+
     if (filters?.category) {
       conditions.push(eq(skills.category, filters.category));
     }
-    
+
     if (filters?.isActive !== undefined) {
       conditions.push(eq(skills.isActive, filters.isActive));
     }
-    
+
     if (filters?.search) {
       conditions.push(
         ilike(skills.name, `%${filters.search}%`)
@@ -128,11 +127,11 @@ export class DrizzleSkillRepository implements ISkillRepository {
       .orderBy(skills.category);
 
     const existingCategories = results.map(r => r.category).filter(Boolean);
-    
+
     // Garantir que as categorias padrão estejam sempre disponíveis
     const defaultCategories = ['Técnica', 'Operacional', 'Administrativa'];
     const allCategories = [...new Set([...defaultCategories, ...existingCategories])];
-    
+
     return allCategories.sort();
   }
 

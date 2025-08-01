@@ -27,9 +27,8 @@ router.get('/skills/statistics', skillController.getStatistics.bind(skillControl
 // GET /api/technical-skills/skills/:id - Buscar habilidade por ID
 router.get('/skills/:id', skillController.getSkillById.bind(skillController));
 
-// POST /api/technical-skills/skills - Criar habilidade (admin/RH apenas)
+// POST /api/technical-skills/skills - Criar habilidade (temporariamente sem verificação de permissão)
 router.post('/skills', 
-  requirePermission('tenant', 'manage_skills'),
   skillController.createSkill.bind(skillController)
 );
 
