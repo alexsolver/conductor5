@@ -18,10 +18,6 @@ export class DrizzleSkillRepository implements ISkillRepository {
       observations: skill.observations,
       tenantId: skill.tenantId,
       isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      suggestedCertification: skill.suggestedCertification,
-      certificationValidityMonths: skill.certificationValidityMonths,
     }).returning();
 
     return this.mapToSkill(result);
@@ -84,8 +80,6 @@ export class DrizzleSkillRepository implements ISkillRepository {
         description: skill.description,
         observations: skill.observations,
         updatedAt: new Date(),
-        suggestedCertification: skill.suggestedCertification,
-        certificationValidityMonths: skill.certificationValidityMonths,
       })
       .where(eq(skills.id, skill.id))
       .returning();
@@ -179,8 +173,8 @@ export class DrizzleSkillRepository implements ISkillRepository {
       category: data.category,
       minLevelRequired: data.levelMin || 1,
       maxLevelRequired: data.levelMax || 5,
-      suggestedCertification: data.suggestedCertification || data.certificationSuggested,
-      certificationValidityMonths: data.certificationValidityMonths || data.validityMonths,
+      suggestedCertification: data.certificationSuggested,
+      certificationValidityMonths: data.validityMonths,
       description: data.description,
       observations: data.observations,
       tenantId: data.tenantId,
