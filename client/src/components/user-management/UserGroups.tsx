@@ -191,19 +191,14 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
   // Mutation para adicionar usuário ao grupo
   const addUserToGroupMutation = useMutation({
     mutationFn: async ({ groupId, userId }: { groupId: string; userId: string }) => {
-      const response = await apiRequest(`/api/user-management/groups/${groupId}/members`, {
-        method: "POST",
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ userId }),
-      });
-
-      if (!response.success) {
-        throw new Error(response.message || 'Failed to add user to group');
+      const response = await apiRequest('POST', `/api/user-management/groups/${groupId}/members`, { userId });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to add user to group');
       }
 
-      return response;
+      return await response.json();
     },
     onSuccess: () => {
       refetchGroupMembers();
@@ -227,15 +222,14 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
   // Mutation para remover usuário do grupo
   const removeUserFromGroupMutation = useMutation({
     mutationFn: async ({ groupId, userId }: { groupId: string; userId: string }) => {
-      const response = await apiRequest(`/api/user-management/groups/${groupId}/members/${userId}`, {
-        method: "DELETE",
-      });
-
-      if (!response.success) {
-        throw new Error(response.message || 'Failed to remove user from group');
+      const response = await apiRequest('DELETE', `/api/user-management/groups/${groupId}/members/${userId}`);
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to remove user from group');
       }
 
-      return response;
+      return await response.json();
     },
     onSuccess: () => {
       refetchGroupMembers();
@@ -384,8 +378,9 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
 
     try {
       // Buscar membros atuais do grupo
-      const currentMembersResponse = await apiRequest(`/api/user-management/groups/${editingGroup.id}/members`);
-      const currentMemberIds = currentMembersResponse.members?.map((m: any) => m.userId) || [];
+      const membersResponse = await apiRequest('GET', `/api/user-management/groups/${editingGroup.id}/members`);
+      const currentMembersData = await membersResponse.json();
+      const currentMemberIds = currentMembersData.members?.map((m: any) => m.userId) || [];
 
       // Determinar usuários para adicionar e remover
       const usersToAdd = selectedUsers.filter(userId => !currentMemberIds.includes(userId));
