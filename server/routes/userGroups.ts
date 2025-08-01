@@ -151,14 +151,14 @@ userGroupsRouter.post('/:groupId/members', jwtAuth, async (req: AuthenticatedReq
       message: 'User added to group successfully',
       membershipId 
     });
-  } catch (error) {
-    console.error('Error adding user to group:', error);
-    res.status(500).json({ 
-      success: false,
-      message: 'Failed to add user to group',
-      error: error.message 
-    });
-  }
+  } catch (error: any) {
+      console.error('Error adding user to group:', error);
+      res.status(500).json({ 
+        success: false,
+        message: 'Failed to add user to group',
+        error: error?.message || 'Unknown error occurred' 
+      });
+    }
 });
 
 // Remove user from group
@@ -220,14 +220,14 @@ userGroupsRouter.delete('/:groupId/members/:userId', jwtAuth, async (req: Authen
       success: true,
       message: 'User removed from group successfully' 
     });
-  } catch (error) {
-    console.error('Error removing user from group:', error);
-    res.status(500).json({ 
-      success: false,
-      message: 'Failed to remove user from group',
-      error: error.message 
-    });
-  }
+  } catch (error: any) {
+      console.error('Error removing user from group:', error);
+      res.status(500).json({ 
+        success: false,
+        message: 'Failed to remove user from group',
+        error: error?.message || 'Unknown error occurred' 
+      });
+    }
 });
 
 export { userGroupsRouter };

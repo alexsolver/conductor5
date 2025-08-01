@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
@@ -65,18 +64,18 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
+
   // Estados principais
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingGroup, setEditingGroup] = useState<UserGroup | null>(null);
   const [activeTab, setActiveTab] = useState("info");
-  
+
   // Estados do formulário
   const [formData, setFormData] = useState({
     name: "",
     description: ""
   });
-  
+
   // Estados para gerenciamento de membros
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [isUpdatingMemberships, setIsUpdatingMemberships] = useState(false);
@@ -192,7 +191,19 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
   // Mutation para adicionar usuário ao grupo
   const addUserToGroupMutation = useMutation({
     mutationFn: async ({ groupId, userId }: { groupId: string; userId: string }) => {
-      return apiRequest('POST', `/api/user-management/groups/${groupId}/members`, { userId });
+      const response = await apiRequest(`/api/user-management/groups/${groupId}/members`, {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId }),
+      });
+
+      if (!response.success) {
+        throw new Error(response.message || 'Failed to add user to group');
+      }
+
+      return response;
     },
     onSuccess: () => {
       refetchGroupMembers();
@@ -203,9 +214,11 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
       });
     },
     onError: (error: any) => {
+      console.error("Error adding user to group:", error);
+      const errorMessage = error?.message || error?.response?.data?.message || 'Erro ao adicionar usuário ao grupo';
       toast({
         title: "Erro ao adicionar usuário",
-        description: error?.message || "Falha ao adicionar usuário ao grupo",
+        description: errorMessage,
         variant: "destructive",
       });
     },
@@ -214,7 +227,15 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
   // Mutation para remover usuário do grupo
   const removeUserFromGroupMutation = useMutation({
     mutationFn: async ({ groupId, userId }: { groupId: string; userId: string }) => {
-      return apiRequest('DELETE', `/api/user-management/groups/${groupId}/members/${userId}`);
+      const response = await apiRequest(`/api/user-management/groups/${groupId}/members/${userId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.success) {
+        throw new Error(response.message || 'Failed to remove user from group');
+      }
+
+      return response;
     },
     onSuccess: () => {
       refetchGroupMembers();
@@ -225,13 +246,34 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
       });
     },
     onError: (error: any) => {
+      console.error("Error removing user from group:", error);
+      const errorMessage = error?.message || error?.response?.data?.message || 'Erro ao remover usuário do grupo';
       toast({
         title: "Erro ao remover usuário",
-        description: error?.message || "Falha ao remover usuário do grupo",
+        description: errorMessage,
         variant: "destructive",
       });
     },
   });
+
+  // Função para alternar usuário no grupo
+  const toggleUserInGroup = async (groupId: string, userId: string, isCurrentlyInGroup: boolean) => {
+    try {
+      if (isCurrentlyInGroup) {
+        await removeUserFromGroupMutation.mutateAsync({ groupId, userId });
+      } else {
+        await addUserToGroupMutation.mutateAsync({ groupId, userId });
+      }
+    } catch (error: any) {
+      console.error("Error toggling user in group:", error);
+      const errorMessage = error?.message || error?.response?.data?.message || 'Erro ao alterar usuário no grupo';
+      toast({
+        title: "Erro na operação",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    }
+  };
 
   // Efeito para sincronizar formulário quando editando
   useEffect(() => {
@@ -296,7 +338,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
     if (!editingGroup) return;
 
     setIsUpdatingMemberships(true);
-    
+
     try {
       if (isCurrentlyInGroup) {
         // Remove user from group
@@ -304,7 +346,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
           groupId: editingGroup.id,
           userId: userId
         });
-        
+
         // Update local state immediately
         setSelectedUsers(prev => prev.filter(id => id !== userId));
       } else {
@@ -313,13 +355,13 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
           groupId: editingGroup.id,
           userId: userId
         });
-        
+
         // Update local state immediately
         setSelectedUsers(prev => [...prev, userId]);
       }
     } catch (error) {
       console.error('Error toggling user in group:', error);
-      
+
       // Show more specific error message
       const errorMessage = error?.message || 'Erro desconhecido';
       toast({
@@ -327,6 +369,49 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
         description: errorMessage.includes('already exists') || errorMessage.includes('unique constraint') 
           ? "Este usuário já pertence ao grupo" 
           : errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsUpdatingMemberships(false);
+    }
+  };
+
+  // Função para salvar alterações nos membros do grupo
+  const handleSaveMembershipChanges = async () => {
+    if (!editingGroup) return;
+
+    setIsUpdatingMemberships(true);
+
+    try {
+      // Buscar membros atuais do grupo
+      const currentMembersResponse = await apiRequest(`/api/user-management/groups/${editingGroup.id}/members`);
+      const currentMemberIds = currentMembersResponse.members?.map((m: any) => m.userId) || [];
+
+      // Determinar usuários para adicionar e remover
+      const usersToAdd = selectedUsers.filter(userId => !currentMemberIds.includes(userId));
+      const usersToRemove = currentMemberIds.filter((userId: string) => !selectedUsers.includes(userId));
+
+      // Executar operações sequencialmente para melhor controle de erro
+      for (const userId of usersToAdd) {
+        await addUserToGroupMutation.mutateAsync({ groupId: editingGroup.id, userId });
+      }
+
+      for (const userId of usersToRemove) {
+        await removeUserFromGroupMutation.mutateAsync({ groupId: editingGroup.id, userId });
+      }
+
+      toast({
+        title: "Sucesso",
+        description: "Membros do grupo atualizados com sucesso",
+      });
+
+      refetchGroups();
+    } catch (error: any) {
+      console.error("Error updating group memberships:", error);
+      const errorMessage = error?.message || error?.response?.data?.message || 'Erro ao atualizar membros do grupo';
+      toast({
+        title: "Erro",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
