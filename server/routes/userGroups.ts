@@ -115,17 +115,18 @@ userGroupsRouter.post('/:groupId/members', jwtAuth, async (req: AuthenticatedReq
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Check if membership already exists
+    // Check if membership already exists and is active
     const existingMembership = await db.select()
       .from(userGroupMemberships)
       .where(and(
         eq(userGroupMemberships.userId, userId),
-        eq(userGroupMemberships.groupId, groupId)
+        eq(userGroupMemberships.groupId, groupId),
+        eq(userGroupMemberships.isActive, true)
       ))
       .limit(1);
 
     if (existingMembership.length > 0) {
-      console.log(`User ${userId} is already a member of group ${groupId}`);
+      console.log(`User ${userId} is already an active member of group ${groupId}`);
       return res.status(409).json({ message: 'User is already a member of this group' });
     }
 
@@ -189,25 +190,27 @@ userGroupsRouter.delete('/:groupId/members/:userId', jwtAuth, async (req: Authen
       return res.status(404).json({ message: 'Group not found' });
     }
 
-    // Check if membership exists
+    // Check if active membership exists
     const existingMembership = await db.select()
       .from(userGroupMemberships)
       .where(and(
         eq(userGroupMemberships.userId, userId),
-        eq(userGroupMemberships.groupId, groupId)
+        eq(userGroupMemberships.groupId, groupId),
+        eq(userGroupMemberships.isActive, true)
       ))
       .limit(1);
 
     if (!existingMembership.length) {
-      console.log(`Membership not found for user ${userId} in group ${groupId}`);
+      console.log(`Active membership not found for user ${userId} in group ${groupId}`);
       return res.status(404).json({ message: 'User is not a member of this group' });
     }
 
-    // Remove user from group
+    // Remove user from group (only active memberships)
     const result = await db.delete(userGroupMemberships)
       .where(and(
         eq(userGroupMemberships.userId, userId),
-        eq(userGroupMemberships.groupId, groupId)
+        eq(userGroupMemberships.groupId, groupId),
+        eq(userGroupMemberships.isActive, true)
       ));
 
     if (result.rowCount === 0) {

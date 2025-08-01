@@ -306,6 +306,8 @@ router.get('/groups/:groupId/members',
       const { groupId } = req.params;
       const tenantId = req.user!.tenantId;
       
+      console.log(`Fetching members for group ${groupId} in tenant ${tenantId}`);
+      
       // Query para buscar os membros do grupo específico com informações do usuário
       const members = await db.select({
         membershipId: userGroupMemberships.id,
@@ -314,7 +316,8 @@ router.get('/groups/:groupId/members',
         userName: usersTable.name,
         userFirstName: usersTable.firstName,
         userLastName: usersTable.lastName,
-        userEmail: usersTable.email
+        userEmail: usersTable.email,
+        userPosition: usersTable.cargo
       })
       .from(userGroupMemberships)
       .innerJoin(usersTable, eq(userGroupMemberships.userId, usersTable.id))
@@ -324,11 +327,30 @@ router.get('/groups/:groupId/members',
         eq(userGroupMemberships.isActive, true),
         eq(usersTable.isActive, true)
       ));
+
+      // Format members data consistently
+      const formattedMembers = members.map(member => ({
+        membershipId: member.membershipId,
+        userId: member.userId,
+        role: member.role,
+        name: member.userName || `${member.userFirstName || ''} ${member.userLastName || ''}`.trim() || member.userEmail,
+        email: member.userEmail,
+        position: member.userPosition
+      }));
       
-      res.json({ members });
+      console.log(`Found ${formattedMembers.length} members for group ${groupId}`);
+      res.json({ 
+        success: true,
+        members: formattedMembers,
+        count: formattedMembers.length
+      });
     } catch (error) {
       console.error('Error fetching group members:', error);
-      res.status(500).json({ message: 'Failed to fetch group members' });
+      res.status(500).json({ 
+        success: false,
+        message: 'Failed to fetch group members',
+        error: error.message 
+      });s' });
     }
   }
 );

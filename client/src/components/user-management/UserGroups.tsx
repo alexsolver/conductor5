@@ -347,11 +347,13 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
   const handleToggleUserInGroup = async (userId: string, isCurrentlyInGroup: boolean) => {
     if (!editingGroup) return;
 
+    console.log(`Toggling user ${userId} in group ${editingGroup.id}, currently in group: ${isCurrentlyInGroup}`);
     setIsUpdatingMemberships(true);
 
     try {
       if (isCurrentlyInGroup) {
         // Remove user from group
+        console.log(`Removing user ${userId} from group ${editingGroup.id}`);
         await removeUserFromGroupMutation.mutateAsync({
           groupId: editingGroup.id,
           userId: userId
@@ -359,8 +361,10 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
 
         // Update local state immediately
         setSelectedUsers(prev => prev.filter(id => id !== userId));
+        console.log(`User ${userId} removed successfully`);
       } else {
         // Add user to group
+        console.log(`Adding user ${userId} to group ${editingGroup.id}`);
         await addUserToGroupMutation.mutateAsync({
           groupId: editingGroup.id,
           userId: userId
@@ -368,6 +372,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
 
         // Update local state immediately
         setSelectedUsers(prev => [...prev, userId]);
+        console.log(`User ${userId} added successfully`);
       }
     } catch (error) {
       console.error('Error toggling user in group:', error);
@@ -378,6 +383,8 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
         title: "Erro na operação",
         description: errorMessage.includes('already exists') || errorMessage.includes('unique constraint') 
           ? "Este usuário já pertence ao grupo" 
+          : errorMessage.includes('already a member')
+          ? "Este usuário já é membro do grupo"
           : errorMessage,
         variant: "destructive",
       });
@@ -565,7 +572,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
                     <Users className="h-4 w-4 mr-1" />
-                    <span>{group.memberCount || 0} membros</span>
+                    <span>{group.memberCount || group.memberships?.length || 0} membros</span>
                   </div>
                   <div className="flex space-x-1">
                     <Button
@@ -609,7 +616,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="info">Informações</TabsTrigger>
               <TabsTrigger value="members">
-                Membros ({editingGroup?.memberCount || 0})
+                Membros ({editingGroup?.memberCount || editingGroup?.memberships?.length || selectedUsers.length || 0})
               </TabsTrigger>
             </TabsList>
 
