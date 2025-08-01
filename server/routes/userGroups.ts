@@ -28,6 +28,25 @@ userGroupsRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
       ))
       .orderBy(userGroups.name);
 
+    // Se não há grupos cadastrados, retornar grupos padrão
+    if (groups.length === 0) {
+      const defaultGroups = [
+        { id: 'level1', name: 'Nível 1 - Suporte', description: 'Suporte de primeiro nível', isActive: true },
+        { id: 'level2', name: 'Nível 2 - Técnico', description: 'Suporte técnico especializado', isActive: true },
+        { id: 'level3', name: 'Nível 3 - Especialista', description: 'Especialistas e engenheiros', isActive: true },
+        { id: 'network', name: 'Equipe de Rede', description: 'Especialistas em infraestrutura de rede', isActive: true },
+        { id: 'security', name: 'Equipe de Segurança', description: 'Especialistas em segurança da informação', isActive: true },
+        { id: 'development', name: 'Desenvolvimento', description: 'Equipe de desenvolvimento de software', isActive: true }
+      ];
+
+      res.json({
+        success: true,
+        data: defaultGroups,
+        count: defaultGroups.length
+      });
+      return;
+    }
+
     res.json({
       success: true,
       data: groups,

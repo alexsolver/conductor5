@@ -71,9 +71,25 @@ export function DynamicSelect(props: DynamicSelectProps) {
           const filteredOptions = result.data.filter((option: any) => 
             option.field_name === fieldName
           );
+          
+          // Log para debug
+          console.log(`DynamicSelect ${fieldName}: Found ${filteredOptions.length} options from API`, filteredOptions);
 
-          console.log(`DynamicSelect ${fieldName}: Found ${filteredOptions.length} options from API`);
-          setFieldOptions(filteredOptions);
+          // Fallback para assignmentGroup se não há opções da API
+          if (fieldName === 'assignmentGroup' && filteredOptions.length === 0) {
+            const fallbackOptions = [
+              { value: 'level1', label: 'Nível 1 - Suporte', color: '#3b82f6' },
+              { value: 'level2', label: 'Nível 2 - Técnico', color: '#f59e0b' },
+              { value: 'level3', label: 'Nível 3 - Especialista', color: '#ef4444' },
+              { value: 'network', label: 'Equipe de Rede', color: '#10b981' },
+              { value: 'security', label: 'Equipe de Segurança', color: '#8b5cf6' },
+              { value: 'development', label: 'Desenvolvimento', color: '#06b6d4' }
+            ];
+            console.log(`Using fallback options for ${fieldName}:`, fallbackOptions);
+            setFieldOptions(fallbackOptions);
+          } else {
+            setFieldOptions(filteredOptions);
+          }
         } else {
           console.error('Invalid API response structure:', result);
           setFieldOptions([]);
