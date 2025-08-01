@@ -345,50 +345,74 @@ export class UserSkillController {
     }
   }
 
-  async getExpiredCertifications(req: AuthenticatedRequest, res: Response) {
+  async getExpiredCertifications(req: Request, res: Response) {
     try {
-      const expiredCertifications = await this.userSkillRepository.getExpiredCertifications();
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'Tenant ID é obrigatório',
+          data: []
+        });
+      }
 
-      res.json({
-        success: true,
-        data: expiredCertifications,
-        count: expiredCertifications.length
+      const expiredCerts = await this.userSkillRepository.getExpiredCertifications();
+      res.json({ 
+        success: true, 
+        data: expiredCerts,
+        count: expiredCerts.length
       });
-    } catch (error: any) {
-      console.error('Error fetching expired certifications', {
-        error: error.message,
-        userId: req.user?.id
+    } catch (error) {
+      console.error('Error fetching expired certifications', { 
+        error: error instanceof Error ? error.message : error, 
+        userId: req.user?.id,
+        tenantId: req.user?.tenantId
       });
-
-      res.status(500).json({
-        success: false,
-        message: 'Erro interno do servidor'
+      res.status(500).json({ 
+        success: false, 
+        error: 'Erro interno do servidor',
+        data: []
       });
     }
   }
 
-  async getExpiringCertifications(req: AuthenticatedRequest, res: Response) {
+  async getExpiringCertifications(req: Request, res: Response) {
     try {
-      const { daysAhead = 30 } = req.query;
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'Tenant ID é obrigatório',
+          data: []
+        });
+      }
 
-      const expiringCertifications = await this.userSkillRepository.getExpiringCertifications(
-        parseInt(daysAhead as string)
-      );
+      const daysAhead = parseInt(req.query.days as string) || 30;
+      if (daysAhead < 1 || daysAhead > 365) {
+        return res.status(400).json({
+          success: false,
+          error: 'Dias deve estar entre 1 e 365',
+          data: []
+        });
+      }
 
-      res.json({
-        success: true,
-        data: expiringCertifications,
-        count: expiringCertifications.length
+      const expiringCerts = await this.userSkillRepository.getExpiringCertifications(daysAhead);
+      res.json({ 
+        success: true, 
+        data: expiringCerts,
+        count: expiringCerts.length,
+        daysAhead
       });
-    } catch (error: any) {
-      console.error('Error fetching expiring certifications', {
-        error: error.message,
-        userId: req.user?.id
+    } catch (error) {
+      console.error('Error fetching expiring certifications', { 
+        error: error instanceof Error ? error.message : error, 
+        userId: req.user?.id,
+        tenantId: req.user?.tenantId
       });
-
-      res.status(500).json({
-        success: false,
-        message: 'Erro interno do servidor'
+      res.status(500).json({ 
+        success: false, 
+        error: 'Erro interno do servidor',
+        data: []
       });
     }
   }

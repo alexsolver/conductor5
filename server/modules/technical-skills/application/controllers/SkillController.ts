@@ -269,31 +269,37 @@ export class SkillController {
     }
   }
 
-  async getCategories(req: AuthenticatedRequest, res: Response) {
+  async getCategories(req: Request, res: Response) {
     try {
-      if (!req.user?.tenantId) {
-        return res.status(401).json({
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(400).json({ 
           success: false,
-          message: 'Tenant não identificado'
+          error: 'Tenant ID é obrigatório',
+          data: []
         });
       }
 
-      const skillRepository = new DrizzleSkillRepository(req.user.tenantId);
-      const categories = await skillRepository.getCategories();
+      const categories = await this.repository.getCategories(tenantId);
 
-      res.json({
-        success: true,
-        data: categories
+      // Ensure we always return an array
+      const validCategories = Array.isArray(categories) ? categories : [];
+
+      res.json({ 
+        success: true, 
+        data: validCategories,
+        count: validCategories.length
       });
-    } catch (error: any) {
-      console.error('Error fetching categories', {
-        error: error.message,
+    } catch (error) {
+      console.error('Erro ao buscar categorias:', {
+        error: error instanceof Error ? error.message : error,
+        tenantId: req.user?.tenantId,
         userId: req.user?.id
       });
-
-      res.status(500).json({
+      res.status(500).json({ 
         success: false,
-        message: 'Erro interno do servidor'
+        error: 'Erro interno do servidor',
+        data: []
       });
     }
   }

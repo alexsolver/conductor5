@@ -69,7 +69,7 @@ export default function TechnicalSkills() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingSkill, setEditingSkill] = useState<Skill | null>(null);
-  
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -214,7 +214,7 @@ export default function TechnicalSkills() {
           <h1 className="text-2xl font-bold text-gray-900">Habilidades Técnicas</h1>
           <p className="text-gray-600">Gerencie habilidades técnicas e certificações dos usuários</p>
         </div>
-        
+
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
             <Button>
@@ -241,7 +241,7 @@ export default function TechnicalSkills() {
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={createForm.control}
                   name="category"
@@ -291,7 +291,7 @@ export default function TechnicalSkills() {
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={createForm.control}
                   name="description"
@@ -352,7 +352,7 @@ export default function TechnicalSkills() {
                     </FormItem>
                   )}
                 />
-                
+
                 <div className="flex justify-end space-x-2">
                   <Button type="button" variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
                     Cancelar
@@ -379,7 +379,7 @@ export default function TechnicalSkills() {
             <p className="text-xs text-muted-foreground">Habilidades ativas</p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Certificações Vencidas</CardTitle>
@@ -390,7 +390,7 @@ export default function TechnicalSkills() {
             <p className="text-xs text-muted-foreground">Requerem atenção</p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Vencendo em 30 dias</CardTitle>
@@ -401,7 +401,7 @@ export default function TechnicalSkills() {
             <p className="text-xs text-muted-foreground">Certificações</p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Categorias</CardTitle>
@@ -425,7 +425,7 @@ export default function TechnicalSkills() {
             className="pl-10"
           />
         </div>
-        
+
         <Select value={selectedCategory} onValueChange={setSelectedCategory}>
           <SelectTrigger className="w-48">
             <SelectValue />
@@ -518,7 +518,7 @@ export default function TechnicalSkills() {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={editForm.control}
                 name="category"
@@ -532,12 +532,12 @@ export default function TechnicalSkills() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {SKILL_CATEGORIES.map((category) => (
-                          <SelectItem key={category} value={category}>
-                            {category.charAt(0).toUpperCase() + category.slice(1)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
+                          {(categories?.data || []).map((category) => (
+                            <SelectItem key={category} value={category}>
+                              {category.charAt(0).toUpperCase() + category.slice(1)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
                     </Select>
                     <FormMessage />
                   </FormItem>
@@ -568,7 +568,7 @@ export default function TechnicalSkills() {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={editForm.control}
                 name="description"
@@ -629,7 +629,7 @@ export default function TechnicalSkills() {
                   </FormItem>
                 )}
               />
-              
+
               <div className="flex justify-end space-x-2">
                 <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)}>
                   Cancelar
