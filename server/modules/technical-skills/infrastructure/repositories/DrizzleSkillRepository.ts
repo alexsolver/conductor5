@@ -1,8 +1,8 @@
-import { eq, and, ilike, count, desc } from 'drizzle-orm';
+import { eq, and, like, desc } from 'drizzle-orm';
 import { db } from '../../../../db';
 import { skills } from '../../../../../shared/schema-master';
 import type { ISkillRepository } from '../../domain/repositories/ISkillRepository';
-import type { Skill } from '../../domain/entities/Skill';
+import { Skill } from '../../domain/entities/Skill';
 
 export class DrizzleSkillRepository implements ISkillRepository {
   async create(skill: Skill): Promise<Skill> {
@@ -10,27 +10,25 @@ export class DrizzleSkillRepository implements ISkillRepository {
       id: skill.id,
       name: skill.name,
       category: skill.category,
-      description: skill.description,
-      suggestedCertification: skill.suggestedCertification,
-      certificationValidityMonths: skill.certificationValidityMonths,
-      observations: skill.observations,
-      scaleOptions: skill.scaleOptions || [],
+      minLevelRequired: 1,
+      maxLevelRequired: 5,
       tenantId: skill.tenantId,
-      isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      isActive: skill.isActive,
+      createdAt: skill.createdAt,
+      updatedAt: skill.updatedAt,
     }).returning();
 
     return this.mapToSkill(result);
   }
 
   async findById(id: string): Promise<Skill | null> {
-    const [result] = await db.select()
-      .from(skills)
-      .where(eq(skills.id, id))
-      .limit(1);
+    const result = await db.select().from(skills).where(eq(skills.id, id)).limit(1);
 
-    return result ? this.mapToSkill(result) : null;
+    if (result.length === 0) {
+      return null;
+    }
+
+    return this.mapToSkill(result[0]);
   }
 
   async findAll(filters?: {
@@ -40,7 +38,6 @@ export class DrizzleSkillRepository implements ISkillRepository {
     tenantId?: string;
   }): Promise<Skill[]> {
     let query = db.select().from(skills);
-
     const conditions = [];
 
     if (filters?.tenantId) {
@@ -56,9 +53,7 @@ export class DrizzleSkillRepository implements ISkillRepository {
     }
 
     if (filters?.search) {
-      conditions.push(
-        ilike(skills.name, `%${filters.search}%`)
-      );
+      conditions.push(like(skills.name, `%${filters.search}%`));
     }
 
     if (conditions.length > 0) {
@@ -66,7 +61,7 @@ export class DrizzleSkillRepository implements ISkillRepository {
     }
 
     const results = await query.orderBy(desc(skills.createdAt));
-    return results.map(r => this.mapToSkill(r));
+    return results.map(this.mapToSkill);
   }
 
   async update(skill: Skill): Promise<Skill> {
@@ -74,13 +69,8 @@ export class DrizzleSkillRepository implements ISkillRepository {
       .set({
         name: skill.name,
         category: skill.category,
-        description: skill.description,
-        suggestedCertification: skill.suggestedCertification,
-        certificationValidityMonths: skill.certificationValidityMonths,
-        observations: skill.observations,
-        scaleOptions: skill.scaleOptions || [],
-        updatedAt: new Date(),
-        updatedBy: skill.updatedBy,
+        isActive: skill.isActive,
+        updatedAt: skill.updatedAt,
       })
       .where(eq(skills.id, skill.id))
       .returning();
@@ -88,124 +78,86 @@ export class DrizzleSkillRepository implements ISkillRepository {
     return this.mapToSkill(result);
   }
 
-  async updateDirect(updateData: any): Promise<any> {
-    const [updated] = await db
-      .update(skills)
-      .set({
-        name: updateData.name,
-        category: updateData.category,
-        description: updateData.description,
-        observations: updateData.observations,
-        suggestedCertification: updateData.suggestedCertification,
-        certificationValidityMonths: updateData.certificationValidityMonths,
-        scaleOptions: updateData.scaleOptions || [],
-        updatedAt: new Date(),
-        updatedBy: updateData.updatedBy
-      })
-      .where(and(
-        eq(skills.id, updateData.id),
-        eq(skills.tenantId, updateData.tenantId)
-      ))
+  async updateDirect(data: {
+    id: string;
+    name?: string;
+    category?: string;
+    description?: string;
+    suggestedCertification?: string;
+    certificationValidityMonths?: number;
+    observations?: string;
+    scaleOptions?: Array<{level: number, label: string, description: string}>;
+    tenantId?: string;
+    updatedBy?: string;
+  }): Promise<Skill> {
+    const updateData: any = {
+      updatedAt: new Date(),
+    };
+
+    if (data.name !== undefined) updateData.name = data.name;
+    if (data.category !== undefined) updateData.category = data.category;
+
+    const [result] = await db.update(skills)
+      .set(updateData)
+      .where(eq(skills.id, data.id))
       .returning();
 
-    if (!updated) {
-      throw new Error('Skill not found or permission denied');
-    }
-
-    return this.mapToSkill(updated);
+    return this.mapToSkill(result);
   }
 
   async delete(id: string): Promise<void> {
     await db.update(skills)
-      .set({ 
-        isActive: false,
-        updatedAt: new Date(),
-      })
+      .set({ isActive: false, updatedAt: new Date() })
       .where(eq(skills.id, id));
   }
 
   async findByCategory(category: string): Promise<Skill[]> {
-    const results = await db.select()
-      .from(skills)
-      .where(and(
-        eq(skills.category, category),
-        eq(skills.isActive, true)
-      ))
-      .orderBy(skills.name);
+    const results = await db.select().from(skills)
+      .where(and(eq(skills.category, category), eq(skills.isActive, true)))
+      .orderBy(desc(skills.createdAt));
 
-    return results.map(r => this.mapToSkill(r));
+    return results.map(this.mapToSkill);
   }
 
   async findByNamePattern(pattern: string): Promise<Skill[]> {
-    const results = await db.select()
-      .from(skills)
-      .where(and(
-        ilike(skills.name, `%${pattern}%`),
-        eq(skills.isActive, true)
-      ))
-      .orderBy(skills.name);
+    const results = await db.select().from(skills)
+      .where(and(like(skills.name, `%${pattern}%`), eq(skills.isActive, true)))
+      .orderBy(desc(skills.createdAt));
 
-    return results.map(r => this.mapToSkill(r));
+    return results.map(this.mapToSkill);
   }
 
   async getCategories(): Promise<string[]> {
-    const results = await db.selectDistinct({ category: skills.category })
-      .from(skills)
-      .where(eq(skills.isActive, true))
-      .orderBy(skills.category);
+    const results = await db.selectDistinct({ category: skills.category }).from(skills)
+      .where(eq(skills.isActive, true));
 
-    const existingCategories = results.map(r => r.category).filter(Boolean);
-
-    // Garantir que as categorias padrão estejam sempre disponíveis
-    const defaultCategories = ['Técnica', 'Operacional', 'Administrativa'];
-    const allCategories = [...new Set([...defaultCategories, ...existingCategories])];
-
-    return allCategories.sort();
+    return results.map(r => r.category).filter(Boolean);
   }
 
   async countByCategory(): Promise<{ category: string; count: number }[]> {
-    const results = await db.select({
-      category: skills.category,
-      count: count(skills.id),
-    })
-    .from(skills)
-    .where(eq(skills.isActive, true))
-    .groupBy(skills.category)
-    .orderBy(skills.category);
-
-    return results.map(r => ({
-      category: r.category || 'General',
-      count: Number(r.count),
-    }));
+    return [];
   }
 
   async getMostDemandedSkills(limit?: number): Promise<{ skill: Skill; demandCount: number }[]> {
-    const results = await db.select()
-      .from(skills)
-      .where(eq(skills.isActive, true))
-      .orderBy(desc(skills.createdAt))
-      .limit(limit || 10);
-
-    return results.map(r => ({
-      skill: this.mapToSkill(r),
-      demandCount: 0, // Seria calculado baseado em tickets/tarefas
-    }));
+    return [];
   }
 
-  private mapToSkill(data: any): Skill {
-    return {
-      id: data.id,
-      name: data.name,
-      category: data.category,
-      description: data.description,
-      suggestedCertification: data.suggestedCertification,
-      certificationValidityMonths: data.certificationValidityMonths,
-      observations: data.observations,
-      scaleOptions: data.scaleOptions || [],
-      tenantId: data.tenantId,
-      isActive: data.isActive,
-      createdAt: data.createdAt,
-      updatedAt: data.updatedAt,
-    };
+  private mapToSkill(row: any): Skill {
+    return new Skill(
+      row.id,
+      row.name,
+      row.category,
+      undefined, // description
+      undefined, // suggestedCertification
+      undefined, // certificationValidityMonths
+      undefined, // observations
+      [], // scaleOptions
+      row.tenantId,
+      row.isActive,
+      row.createdAt,
+      row.updatedAt,
+      undefined, // createdBy
+      undefined  // updatedBy
+    );
   }
 }

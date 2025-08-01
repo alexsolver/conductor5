@@ -56,6 +56,15 @@ export class SkillController {
   async getSkills(req: Request, res: Response): Promise<void> {
     try {
       const tenantId = req.headers['x-tenant-id'] as string;
+      
+      if (!tenantId) {
+        res.status(400).json({
+          success: false,
+          message: 'Tenant ID é obrigatório'
+        });
+        return;
+      }
+
       const { category, search, isActive } = req.query;
 
       const filters: any = { tenantId };
