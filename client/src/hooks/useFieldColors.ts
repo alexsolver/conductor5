@@ -18,18 +18,17 @@ interface FieldColorsResponse {
 const colorsCache = new Map<string, Record<string, string>>();
 
 export const useFieldColors = () => {
-  const { data: fieldOptions, isLoading, error } = useQuery({
+  const { data: fieldOptions, isLoading } = useQuery({
     queryKey: ["/api/ticket-config/field-options"],
     queryFn: async () => {
       const response = await apiRequest("GET", "/api/ticket-config/field-options");
-      const result = await response.json();
-      console.log('🎨 Field colors response:', result);
-      return result;
+      return response.json();
     },
-    retry: 3,
-    staleTime: 2 * 60 * 1000, // Cache por 2 minutos (reduzido para debug)
-    cacheTime: 5 * 60 * 1000, // Manter em cache por 5 minutos
-    refetchOnWindowFocus: false, // Não refetch ao focar janela
+    staleTime: 15 * 60 * 1000, // Cache por 15 minutos - mais agressivo
+    gcTime: 30 * 60 * 1000, // Garbage collection em 30 minutos
+    refetchOnWindowFocus: false,
+    refetchOnMount: false, // Não refetch no mount se dados em cache
+    refetchInterval: false, // Disable auto-refetch
   });
 
   // Função para buscar cor de um campo específico
