@@ -702,17 +702,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
                                 }}
                                 disabled={isUpdatingMemberships}
                               />
-                              <label 
-                                htmlFor={`member-${member.id}`}
-                                className="flex-1 min-w-0 cursor-pointer"
-                                onClick={(e) => {
-                                  // Prevent double clicks when clicking on label
-                                  e.preventDefault();
-                                  if (!isUpdatingMemberships) {
-                                    handleToggleUserInGroup(member.id, isInGroup);
-                                  }
-                                }}
-                              >
+                              <div className="flex-1 min-w-0">
                                 <div className="flex items-center space-x-2">
                                   <User className="h-4 w-4 text-gray-400" />
                                   <span className="font-medium truncate">{member.name}</span>
@@ -720,7 +710,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
                                 <p className="text-xs text-gray-500 truncate">
                                   {member.email} {member.position && `• ${member.position}`}
                                 </p>
-                              </label>
+                              </div>
                               {isInGroup && (
                                 <CheckCircle className="h-4 w-4 text-green-500" />
                               )}
