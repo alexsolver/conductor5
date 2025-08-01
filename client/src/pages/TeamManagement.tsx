@@ -817,7 +817,7 @@ export default function TeamManagement() {
                           variant={member.status === 'active' ? 'destructive' : 'default'}
                           onClick={() => handleToggleMemberStatus(member)}
                           className="h-8"
-                          disabled={!user || (user.role !== 'tenant_admin' && user.role !== 'manager')}
+                          disabled={!user || (user.role !== 'tenant_admin' && user.role !== 'saas_admin' && user.role !== 'manager')}
                         >
                           {member.status === 'active' ? (
                             <>

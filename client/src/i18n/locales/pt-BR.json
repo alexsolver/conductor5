@@ -178,7 +178,13 @@
     "permissions": "Permissões",
     "groups": "Grupos",
     "status": "Status",
-    "actions": "Ações"
+    "actions": "Ações",
+    "inviteUser": "Convidar Usuário",
+    "inviteUserDesc": "Envie um convite por email para um novo usuário",
+    "email": "Email",
+    "role": "Papel",
+    "expiration": "Expiração",
+    "sendInvitationEmail": "Enviar email de convite automaticamente"
   },
   "teamManagement": {
     "title": "Gestão de Equipe",

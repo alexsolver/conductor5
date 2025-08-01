@@ -532,7 +532,7 @@ router.put('/members/:id/status', async (req: AuthenticatedRequest, res) => {
     }
 
     // Validate user permissions
-    if (!['tenant_admin', 'manager'].includes(user.role)) {
+    if (!['tenant_admin', 'saas_admin', 'manager'].includes(user.role)) {
       return res.status(403).json({ message: 'Insufficient permissions' });
     }
 
@@ -575,37 +575,81 @@ router.put('/members/:id', async (req: AuthenticatedRequest, res) => {
       return res.status(401).json({ message: 'User not authenticated' });
     }
 
-    // Update user data
+    console.log('Updating member:', id, 'with data:', updateData);
+
+    // Validate UUID format
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(id)) {
+      return res.status(400).json({ message: 'Invalid member ID format' });
+    }
+
+    // Update user data with proper field mapping
+    const updateFields = {
+      updatedAt: new Date()
+    };
+
+    if (updateData.firstName) updateFields.firstName = updateData.firstName;
+    if (updateData.lastName) updateFields.lastName = updateData.lastName;
+    if (updateData.email) updateFields.email = updateData.email;
+    if (updateData.phone) updateFields.phone = updateData.phone;
+    if (updateData.cellPhone) updateFields.cellPhone = updateData.cellPhone;
+    if (updateData.role) updateFields.role = updateData.role;
+    if (updateData.cargo) updateFields.position = updateData.cargo;
+    if (updateData.cep) updateFields.cep = updateData.cep;
+    if (updateData.state) updateFields.state = updateData.state;
+    if (updateData.city) updateFields.city = updateData.city;
+    if (updateData.streetAddress) updateFields.streetAddress = updateData.streetAddress;
+    if (updateData.employeeCode) updateFields.employeeCode = updateData.employeeCode;
+    if (updateData.pis) updateFields.pis = updateData.pis;
+    if (updateData.admissionDate) updateFields.admissionDate = new Date(updateData.admissionDate);
+
     const updatedMember = await db.update(users)
-      .set({
-        firstName: updateData.firstName || null,
-        lastName: updateData.lastName || null,
-        email: updateData.email,
-        phone: updateData.phone || null,
-        position: updateData.position || null,
-        departmentId: updateData.departmentId || null,
-        address: updateData.address || null,
-        city: updateData.city || null,
-        state: updateData.state || null,
-        zipCode: updateData.zipCode || null,
-        country: updateData.country || null,
-        hireDate: updateData.hireDate ? new Date(updateData.hireDate) : null,
-        salary: updateData.salary ? parseFloat(updateData.salary) : null,
-        employmentType: updateData.employmentType || null,
-        updatedAt: new Date()
-      })
+      .set(updateFields)
       .where(and(
         eq(users.id, id),
         eq(users.tenantId, user.tenantId)
-      ));
+      ))
+      .returning();
+
+    console.log('Member updated successfully:', updatedMember);
+
+    // Handle group memberships if provided
+    if (updateData.groupIds && Array.isArray(updateData.groupIds)) {
+      try {
+        // First, remove existing memberships
+        await db.execute(sql`
+          DELETE FROM user_group_memberships 
+          WHERE user_id = ${id}
+        `);
+
+        // Then add new memberships
+        if (updateData.groupIds.length > 0) {
+          for (const groupId of updateData.groupIds) {
+            await db.execute(sql`
+              INSERT INTO user_group_memberships (user_id, group_id, created_at)
+              VALUES (${id}, ${groupId}, NOW())
+              ON CONFLICT (user_id, group_id) DO NOTHING
+            `);
+          }
+        }
+        console.log('Group memberships updated for user:', id);
+      } catch (groupError) {
+        console.warn('Error updating group memberships:', groupError);
+        // Don't fail the whole operation if group update fails
+      }
+    }
 
     res.json({ 
       success: true, 
-      message: 'Member updated successfully'
+      message: 'Member updated successfully',
+      data: updatedMember[0] || null
     });
   } catch (error) {
     console.error('Error updating member:', error);
-    res.status(500).json({ message: 'Failed to update member' });
+    res.status(500).json({ 
+      message: 'Failed to update member',
+      error: error.message 
+    });
   }
 });
 
