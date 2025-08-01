@@ -188,13 +188,27 @@
     "analytics": "Analytics"
   },
   "userManagement": {
-    "email": "Email",
-    "role": "Papel",
-    "expiration": "Expiração",
-    "groups": "Grupos",
-    "notes": "Notas",
-    "sendInvitationEmail": "Enviar email de convite automaticamente",
-    "inviteUser": "Convidar Usuário",
-    "inviteUserDesc": "Envie um convite por email para um novo usuário"
+    "userGroups": "Grupos de Usuários",
+    "userGroupsDesc": "Organize usuários em grupos para facilitar o gerenciamento de permissões",
+    "createGroup": "Criar Grupo",
+    "createGroupDesc": "Crie um novo grupo para organizar usuários",
+    "groupName": "Nome do Grupo",
+    "groupNamePlaceholder": "Ex: Suporte Técnico",
+    "description": "Descrição",
+    "descriptionPlaceholder": "Descrição opcional do grupo",
+    "editGroup": "Editar Grupo",
+    "deleteGroup": "Excluir Grupo",
+    "active": "Ativo",
+    "inactive": "Inativo",
+    "noGroups": "Nenhum grupo foi criado ainda",
+    "createFirstGroup": "Criar primeiro grupo",
+    "success": "Sucesso",
+    "error": "Erro",
+    "groupCreated": "Grupo criado com sucesso",
+    "groupCreateError": "Erro ao criar grupo",
+    "groupUpdated": "Grupo atualizado com sucesso",
+    "groupUpdateError": "Erro ao atualizar grupo",
+    "groupDeleted": "Grupo excluído com sucesso",
+    "groupDeleteError": "Erro ao excluir grupo"
   }
 }

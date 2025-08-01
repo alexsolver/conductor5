@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth';
 import { db } from '../db';
 import { userGroups, userGroupMemberships } from '../../shared/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, sql } from 'drizzle-orm';
 import { users } from '../../shared/schema'; // Assuming users is in shared/schema
 import crypto from 'crypto';
 
@@ -15,24 +15,52 @@ userGroupsRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
       return res.status(400).json({ error: 'Tenant ID required' });
     }
 
-    const groups = await db
+    // Get groups with member count
+    const groupsWithCounts = await db
       .select({
         id: userGroups.id,
         name: userGroups.name,
         description: userGroups.description,
-        isActive: userGroups.isActive
+        isActive: userGroups.isActive,
+        createdAt: userGroups.createdAt,
+        memberCount: sql`COALESCE(COUNT(${userGroupMemberships.id}), 0)`.as('memberCount')
       })
       .from(userGroups)
+      .leftJoin(
+        userGroupMemberships, 
+        eq(userGroups.id, userGroupMemberships.groupId)
+      )
       .where(and(
         eq(userGroups.tenantId, req.user.tenantId),
         eq(userGroups.isActive, true)
       ))
+      .groupBy(userGroups.id, userGroups.name, userGroups.description, userGroups.isActive, userGroups.createdAt)
       .orderBy(userGroups.name);
+
+    // Get detailed memberships for each group
+    const groupsWithMemberships = await Promise.all(
+      groupsWithCounts.map(async (group) => {
+        const memberships = await db
+          .select({
+            id: userGroupMemberships.id,
+            userId: userGroupMemberships.userId,
+            role: userGroupMemberships.role
+          })
+          .from(userGroupMemberships)
+          .where(eq(userGroupMemberships.groupId, group.id));
+
+        return {
+          ...group,
+          memberships: memberships,
+          memberCount: Number(group.memberCount)
+        };
+      })
+    );
 
     res.json({
       success: true,
-      data: groups,
-      count: groups.length
+      groups: groupsWithMemberships,
+      count: groupsWithMemberships.length
     });
   } catch (error) {
     console.error('Error fetching user groups:', error);
@@ -106,9 +134,10 @@ userGroupsRouter.post('/:groupId/members', jwtAuth, async (req: AuthenticatedReq
     await db.insert(userGroupMemberships)
       .values({
         id: membershipId,
+        tenantId: tenantId,
         userId,
         groupId,
-        addedBy: req.user!.id,
+        addedById: req.user!.id,
         addedAt: new Date(),
         createdAt: new Date(),
         updatedAt: new Date()

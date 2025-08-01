@@ -28,6 +28,7 @@ interface UserGroup {
   isActive: boolean;
   createdAt: string;
   memberships?: Array<{ id: string; userId: string; role: string }>;
+  memberCount?: number;
 }
 
 interface UserGroupsProps {
@@ -509,7 +510,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center text-sm text-muted-foreground">
                     <Users className="mr-1 h-4 w-4" />
-                    {group.memberships?.length || 0} membros
+                    {group.memberCount || group.memberships?.length || 0} membros
                   </div>
                   <div className="flex items-center space-x-1">
                     <Button 
