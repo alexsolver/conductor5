@@ -8,8 +8,17 @@ export interface ISkillRepository {
     category?: string;
     isActive?: boolean;
     search?: string;
+    tenantId?: string;
   }): Promise<Skill[]>;
   update(skill: Skill): Promise<Skill>;
+  updateDirect(data: {
+    id: string;
+    name?: string;
+    category?: string;
+    description?: string;
+    tenantId?: string;
+    updatedBy?: string;
+  }): Promise<Skill>;
   delete(id: string): Promise<void>;
   
   // Operações específicas

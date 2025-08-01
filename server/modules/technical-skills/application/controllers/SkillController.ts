@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
 import type { ISkillRepository } from '../../domain/repositories/ISkillRepository';
-import { Skill } from '../../domain/entities/Skill';
+import { Skill, SkillEntity } from '../../domain/entities/Skill';
 import { DrizzleSkillRepository } from '../../infrastructure/repositories/DrizzleSkillRepository';
 
 export class SkillController {
@@ -24,7 +24,7 @@ export class SkillController {
         return;
       }
 
-      const skill = Skill.create({
+      const skill = SkillEntity.create({
         name,
         category,
         description,

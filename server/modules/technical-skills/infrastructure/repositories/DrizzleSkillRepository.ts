@@ -2,7 +2,7 @@ import { eq, and, like, desc } from 'drizzle-orm';
 import { db } from '../../../../db';
 import { skills } from '../../../../../shared/schema-master';
 import type { ISkillRepository } from '../../domain/repositories/ISkillRepository';
-import { Skill } from '../../domain/entities/Skill';
+import { Skill, SkillEntity } from '../../domain/entities/Skill';
 
 export class DrizzleSkillRepository implements ISkillRepository {
   async create(skill: Skill): Promise<Skill> {

@@ -1,4 +1,17 @@
-export class Skill {
+export interface Skill {
+  id: string;
+  name: string;
+  category: string;
+  description?: string;
+  minLevelRequired?: number;
+  maxLevelRequired?: number;
+  tenantId?: string;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export class SkillEntity {
   constructor(
     public readonly id: string,
     public name: string,
@@ -74,8 +87,8 @@ export class Skill {
     scaleOptions?: Array<{level: number, label: string, description: string}>;
     createdBy?: string;
     tenantId?: string;
-  }): Skill {
-    return new Skill(
+  }): SkillEntity {
+    return new SkillEntity(
       crypto.randomUUID(),
       data.name,
       data.category,
