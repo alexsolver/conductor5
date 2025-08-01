@@ -1,4 +1,3 @@
-
 import { eq, and, gte, lte, desc, asc, sql, inArray } from 'drizzle-orm';
 import { db } from '../../../../db';
 import { 
@@ -6,7 +5,6 @@ import {
   hourBankEntries,
   workSchedules,
   absenceRequests,
-  scheduleTemplates,
   users 
 } from '../../../../../shared/schema';
 
@@ -269,14 +267,38 @@ export class DrizzleTimecardRepository implements TimecardRepository {
   }
 
   async getScheduleTemplates(tenantId: string): Promise<any[]> {
-    return await db
-      .select()
-      .from(scheduleTemplates)
-      .where(and(
-        eq(scheduleTemplates.tenantId, tenantId),
-        eq(scheduleTemplates.isActive, true)
-      ))
-      .orderBy(asc(scheduleTemplates.name));
+    try {
+      const templates = await db
+        .select({
+          id: scheduleTemplates.id,
+          tenantId: scheduleTemplates.tenantId,
+          name: scheduleTemplates.name,
+          description: scheduleTemplates.description,
+          scheduleType: scheduleTemplates.scheduleType,
+          workDays: scheduleTemplates.workDays,
+          startTime: scheduleTemplates.startTime,
+          endTime: scheduleTemplates.endTime,
+          breakStart: scheduleTemplates.breakStart,
+          breakEnd: scheduleTemplates.breakEnd,
+          flexibilityWindow: scheduleTemplates.flexibilityWindow,
+          isActive: scheduleTemplates.isActive,
+          createdAt: scheduleTemplates.createdAt,
+          updatedAt: scheduleTemplates.updatedAt
+        })
+        .from(scheduleTemplates)
+        .where(
+          and(
+            eq(scheduleTemplates.tenantId, tenantId),
+            eq(scheduleTemplates.isActive, true)
+          )
+        )
+        .orderBy(desc(scheduleTemplates.createdAt));
+
+      return { templates };
+    } catch (error) {
+      console.error('Error fetching schedule templates:', error);
+      throw error;
+    }
   }
 
   async updateScheduleTemplate(id: string, tenantId: string, data: any): Promise<any> {

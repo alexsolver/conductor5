@@ -7,6 +7,11 @@ import { sql } from 'drizzle-orm';
 import ws from "ws";
 import * as schema from "@shared/schema";
 
+// Validate schema import
+if (!schema.scheduleTemplates || !schema.workSchedules || !schema.users) {
+  throw new Error("Critical schema tables are missing. Check @shared/schema imports.");
+}
+
 // Re-export sql for other modules
 export { sql };
 

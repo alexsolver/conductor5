@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -177,7 +176,7 @@ export default function WorkSchedules() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validações obrigatórias
     if (!formData.userId) {
       toast({
@@ -187,7 +186,7 @@ export default function WorkSchedules() {
       });
       return;
     }
-    
+
     if (!formData.startDate) {
       toast({
         title: 'Erro de validação',
@@ -196,7 +195,7 @@ export default function WorkSchedules() {
       });
       return;
     }
-    
+
     if (formData.workDays.length === 0) {
       toast({
         title: 'Erro de validação',
@@ -205,7 +204,7 @@ export default function WorkSchedules() {
       });
       return;
     }
-    
+
     // Mapear dados do frontend para o formato esperado pela API
     const apiData = {
       userId: formData.userId,
@@ -218,7 +217,7 @@ export default function WorkSchedules() {
       breakDurationMinutes: formData.breakDurationMinutes,
       isActive: formData.isActive
     };
-    
+
     if (selectedSchedule) {
       updateScheduleMutation.mutate({
         id: selectedSchedule.id,
@@ -434,29 +433,29 @@ export default function WorkSchedules() {
                         {scheduleTypeLabels[schedule.scheduleType]}
                       </Badge>
                     </div>
-                    
+
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                       <div className="flex items-center gap-2">
                         <Clock className="h-4 w-4 text-gray-500" />
                         <span>{schedule.startTime} - {schedule.endTime}</span>
                       </div>
-                      
+
                       <div className="flex items-center gap-2">
                         <Calendar className="h-4 w-4 text-gray-500" />
                         <span>{getWorkDaysText(schedule.workDays)}</span>
                       </div>
-                      
+
                       <div className="flex items-center gap-2">
                         <Settings className="h-4 w-4 text-gray-500" />
                         <span>Pausa: {schedule.breakDurationMinutes}min</span>
                       </div>
-                      
+
                       <div className="text-gray-600">
                         Início: {format(new Date(schedule.startDate), 'dd/MM/yyyy', { locale: ptBR })}
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="flex gap-2">
                     <Button
                       variant="outline"
