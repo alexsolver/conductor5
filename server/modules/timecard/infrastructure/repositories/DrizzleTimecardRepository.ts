@@ -1,3 +1,4 @@
+
 import { eq, and, gte, lte, desc, asc, sql, inArray } from 'drizzle-orm';
 import { db } from '../../../../db';
 import { 
@@ -121,47 +122,108 @@ export class DrizzleTimecardRepository implements TimecardRepository {
 
   // Work Schedules Implementation
   async createWorkSchedule(data: any): Promise<any> {
-    const [schedule] = await db
-      .insert(workSchedules)
-      .values(data)
-      .returning();
-    return schedule;
+    try {
+      const [schedule] = await db
+        .insert(workSchedules)
+        .values({
+          ...data,
+          workDays: typeof data.workDays === 'string' ? data.workDays : JSON.stringify(data.workDays)
+        })
+        .returning();
+      return schedule;
+    } catch (error) {
+      console.error('Error creating work schedule:', error);
+      throw error;
+    }
   }
 
   async getWorkSchedulesByUser(userId: string, tenantId: string): Promise<any[]> {
-    return await db
-      .select()
-      .from(workSchedules)
-      .leftJoin(users, eq(workSchedules.userId, users.id))
-      .where(and(
-        eq(workSchedules.userId, userId),
-        eq(workSchedules.tenantId, tenantId)
-      ))
-      .orderBy(desc(workSchedules.createdAt));
+    try {
+      const schedules = await db
+        .select()
+        .from(workSchedules)
+        .leftJoin(users, eq(workSchedules.userId, users.id))
+        .where(and(
+          eq(workSchedules.userId, userId),
+          eq(workSchedules.tenantId, tenantId)
+        ))
+        .orderBy(desc(workSchedules.createdAt));
+
+      return schedules.map(result => ({
+        ...result.work_schedules,
+        workDays: typeof result.work_schedules.workDays === 'string' 
+          ? JSON.parse(result.work_schedules.workDays) 
+          : result.work_schedules.workDays,
+        userName: result.users ? `${result.users.firstName} ${result.users.lastName}` : null
+      }));
+    } catch (error) {
+      console.error('Error fetching user work schedules:', error);
+      throw error;
+    }
   }
 
   async getAllWorkSchedules(tenantId: string): Promise<any[]> {
-    return await db
-      .select()
-      .from(workSchedules)
-      .leftJoin(users, eq(workSchedules.userId, users.id))
-      .where(eq(workSchedules.tenantId, tenantId))
-      .orderBy(desc(workSchedules.createdAt));
+    try {
+      const schedules = await db
+        .select({
+          id: workSchedules.id,
+          userId: workSchedules.userId,
+          scheduleType: workSchedules.scheduleType,
+          startDate: workSchedules.startDate,
+          endDate: workSchedules.endDate,
+          workDays: workSchedules.workDays,
+          startTime: workSchedules.startTime,
+          endTime: workSchedules.endTime,
+          breakDurationMinutes: workSchedules.breakDurationMinutes,
+          isActive: workSchedules.isActive,
+          createdAt: workSchedules.createdAt,
+          updatedAt: workSchedules.updatedAt,
+          userName: sql`CONCAT(${users.firstName}, ' ', ${users.lastName})`.as('userName')
+        })
+        .from(workSchedules)
+        .leftJoin(users, eq(workSchedules.userId, users.id))
+        .where(eq(workSchedules.tenantId, tenantId))
+        .orderBy(desc(workSchedules.createdAt));
+
+      return schedules.map(schedule => ({
+        ...schedule,
+        workDays: typeof schedule.workDays === 'string' 
+          ? JSON.parse(schedule.workDays) 
+          : schedule.workDays
+      }));
+    } catch (error) {
+      console.error('Error fetching work schedules:', error);
+      throw error;
+    }
   }
 
   async updateWorkSchedule(id: string, tenantId: string, data: any): Promise<any> {
-    const [schedule] = await db
-      .update(workSchedules)
-      .set({ ...data, updatedAt: new Date() })
-      .where(and(eq(workSchedules.id, id), eq(workSchedules.tenantId, tenantId)))
-      .returning();
-    return schedule;
+    try {
+      const [schedule] = await db
+        .update(workSchedules)
+        .set({ 
+          ...data, 
+          workDays: data.workDays ? JSON.stringify(data.workDays) : undefined,
+          updatedAt: new Date() 
+        })
+        .where(and(eq(workSchedules.id, id), eq(workSchedules.tenantId, tenantId)))
+        .returning();
+      return schedule;
+    } catch (error) {
+      console.error('Error updating work schedule:', error);
+      throw error;
+    }
   }
 
   async deleteWorkSchedule(id: string, tenantId: string): Promise<void> {
-    await db
-      .delete(workSchedules)
-      .where(and(eq(workSchedules.id, id), eq(workSchedules.tenantId, tenantId)));
+    try {
+      await db
+        .delete(workSchedules)
+        .where(and(eq(workSchedules.id, id), eq(workSchedules.tenantId, tenantId)));
+    } catch (error) {
+      console.error('Error deleting work schedule:', error);
+      throw error;
+    }
   }
 
   // Absence Requests Implementation
@@ -326,124 +388,29 @@ export class DrizzleTimecardRepository implements TimecardRepository {
     return result[0]?.totalBalance || 0;
   }
 
-  // Work Schedules methods
-  async createWorkSchedule(scheduleData: any, tenantId: string): Promise<any> {
-    try {
-      const [newSchedule] = await this.db
-        .insert(workSchedules)
-        .values({
-          ...scheduleData,
-          tenantId,
-          workDays: JSON.stringify(scheduleData.workDays)
-        })
-        .returning();
-
-      return newSchedule;
-    } catch (error) {
-      console.error('Error creating work schedule:', error);
-      throw error;
-    }
+  // Flexible Work Arrangements Implementation (placeholder)
+  async createFlexibleWorkArrangement(data: any): Promise<any> {
+    throw new Error('Not implemented yet');
   }
 
-  async getAllWorkSchedules(tenantId: string): Promise<any[]> {
-    try {
-      const schedules = await this.db
-        .select({
-          id: workSchedules.id,
-          userId: workSchedules.userId,
-          scheduleType: workSchedules.scheduleType,
-          startDate: workSchedules.startDate,
-          endDate: workSchedules.endDate,
-          workDays: workSchedules.workDays,
-          startTime: workSchedules.startTime,
-          endTime: workSchedules.endTime,
-          breakDurationMinutes: workSchedules.breakDurationMinutes,
-          isActive: workSchedules.isActive,
-          createdAt: workSchedules.createdAt,
-          updatedAt: workSchedules.updatedAt,
-          userName: sql`CONCAT(${users.firstName}, ' ', ${users.lastName})`.as('userName')
-        })
-        .from(workSchedules)
-        .leftJoin(users, eq(workSchedules.userId, users.id))
-        .where(eq(workSchedules.tenantId, tenantId))
-        .orderBy(desc(workSchedules.createdAt));
-
-      return schedules.map(schedule => ({
-        ...schedule,
-        workDays: typeof schedule.workDays === 'string' 
-          ? JSON.parse(schedule.workDays) 
-          : schedule.workDays
-      }));
-    } catch (error) {
-      console.error('Error fetching work schedules:', error);
-      throw error;
-    }
+  async getFlexibleWorkArrangements(tenantId: string): Promise<any[]> {
+    throw new Error('Not implemented yet');
   }
 
-  async getWorkSchedulesByUser(userId: string, tenantId: string): Promise<any[]> {
-    try {
-      const schedules = await this.db
-        .select()
-        .from(workSchedules)
-        .where(
-          and(
-            eq(workSchedules.userId, userId),
-            eq(workSchedules.tenantId, tenantId)
-          )
-        )
-        .orderBy(desc(workSchedules.createdAt));
-
-      return schedules.map(schedule => ({
-        ...schedule,
-        workDays: typeof schedule.workDays === 'string' 
-          ? JSON.parse(schedule.workDays) 
-          : schedule.workDays
-      }));
-    } catch (error) {
-      console.error('Error fetching user work schedules:', error);
-      throw error;
-    }
+  async updateFlexibleWorkArrangement(id: string, tenantId: string, data: any): Promise<any> {
+    throw new Error('Not implemented yet');
   }
 
-  async updateWorkSchedule(scheduleId: string, tenantId: string, updateData: any): Promise<any> {
-    try {
-      const [updatedSchedule] = await this.db
-        .update(workSchedules)
-        .set({
-          ...updateData,
-          workDays: updateData.workDays ? JSON.stringify(updateData.workDays) : undefined,
-          updatedAt: new Date()
-        })
-        .where(
-          and(
-            eq(workSchedules.id, scheduleId),
-            eq(workSchedules.tenantId, tenantId)
-          )
-        )
-        .returning();
-
-      return updatedSchedule;
-    } catch (error) {
-      console.error('Error updating work schedule:', error);
-      throw error;
-    }
+  // Shift Swap Requests Implementation (placeholder)
+  async createShiftSwapRequest(data: any): Promise<any> {
+    throw new Error('Not implemented yet');
   }
 
-  async deleteWorkSchedule(scheduleId: string, tenantId: string): Promise<boolean> {
-    try {
-      const result = await this.db
-        .delete(workSchedules)
-        .where(
-          and(
-            eq(workSchedules.id, scheduleId),
-            eq(workSchedules.tenantId, tenantId)
-          )
-        );
+  async getShiftSwapRequests(tenantId: string): Promise<any[]> {
+    throw new Error('Not implemented yet');
+  }
 
-      return result.rowCount > 0;
-    } catch (error) {
-      console.error('Error deleting work schedule:', error);
-      throw error;
-    }
+  async updateShiftSwapRequest(id: string, tenantId: string, data: any): Promise<any> {
+    throw new Error('Not implemented yet');
   }
 }
