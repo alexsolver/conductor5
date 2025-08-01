@@ -10,7 +10,7 @@ export class DrizzleSkillRepository implements ISkillRepository {
       id: skill.id,
       name: skill.name,
       category: skill.category,
-      description: skill.description,
+      description: skill.description || '',
       tenantId: skill.tenantId,
       isActive: true,
     }).returning();
@@ -19,7 +19,16 @@ export class DrizzleSkillRepository implements ISkillRepository {
   }
 
   async findById(id: string): Promise<Skill | null> {
-    const result = await db.select().from(skills).where(eq(skills.id, id)).limit(1);
+    const result = await db.select({
+      id: skills.id,
+      name: skills.name,
+      category: skills.category,
+      description: skills.description,
+      tenantId: skills.tenantId,
+      isActive: skills.isActive,
+      createdAt: skills.createdAt,
+      updatedAt: skills.updatedAt,
+    }).from(skills).where(eq(skills.id, id)).limit(1);
 
     if (result.length === 0) {
       return null;
@@ -89,10 +98,6 @@ export class DrizzleSkillRepository implements ISkillRepository {
     name?: string;
     category?: string;
     description?: string;
-    suggestedCertification?: string;
-    certificationValidityMonths?: number;
-    observations?: string;
-    scaleOptions?: Array<{level: number, label: string, description: string}>;
     tenantId?: string;
     updatedBy?: string;
   }): Promise<Skill> {
@@ -103,10 +108,6 @@ export class DrizzleSkillRepository implements ISkillRepository {
     if (data.name !== undefined) updateData.name = data.name;
     if (data.category !== undefined) updateData.category = data.category;
     if (data.description !== undefined) updateData.description = data.description;
-    if (data.suggestedCertification !== undefined) updateData.suggestedCertification = data.suggestedCertification;
-    if (data.certificationValidityMonths !== undefined) updateData.certificationValidityMonths = data.certificationValidityMonths;
-    if (data.observations !== undefined) updateData.observations = data.observations;
-    if (data.scaleOptions !== undefined) updateData.scaleOptions = data.scaleOptions;
     if (data.updatedBy !== undefined) updateData.updatedBy = data.updatedBy;
 
     const [result] = await db.update(skills)
@@ -124,7 +125,16 @@ export class DrizzleSkillRepository implements ISkillRepository {
   }
 
   async findByCategory(category: string): Promise<Skill[]> {
-    const results = await db.select().from(skills)
+    const results = await db.select({
+      id: skills.id,
+      name: skills.name,
+      category: skills.category,
+      description: skills.description,
+      tenantId: skills.tenantId,
+      isActive: skills.isActive,
+      createdAt: skills.createdAt,
+      updatedAt: skills.updatedAt,
+    }).from(skills)
       .where(and(eq(skills.category, category), eq(skills.isActive, true)))
       .orderBy(desc(skills.createdAt));
 
@@ -132,7 +142,16 @@ export class DrizzleSkillRepository implements ISkillRepository {
   }
 
   async findByNamePattern(pattern: string): Promise<Skill[]> {
-    const results = await db.select().from(skills)
+    const results = await db.select({
+      id: skills.id,
+      name: skills.name,
+      category: skills.category,
+      description: skills.description,
+      tenantId: skills.tenantId,
+      isActive: skills.isActive,
+      createdAt: skills.createdAt,
+      updatedAt: skills.updatedAt,
+    }).from(skills)
       .where(and(like(skills.name, `%${pattern}%`), eq(skills.isActive, true)))
       .orderBy(desc(skills.createdAt));
 
