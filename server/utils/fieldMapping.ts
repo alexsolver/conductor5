@@ -30,7 +30,7 @@ export const FRONTEND_TO_BACKEND_MAPPING: Record<string, string> = {
 
   businessImpact: 'business_impact',
   contactType: 'contact_type',
-  
+
   // Novos campos dinâmicos
   linkType: 'link_type',
   linkTicketNumber: 'link_ticket_number',
@@ -38,7 +38,8 @@ export const FRONTEND_TO_BACKEND_MAPPING: Record<string, string> = {
   templateAlternative: 'template_alternative',
   estimatedHours: 'estimated_hours',
   actualHours: 'actual_hours',
-  dueDate: 'due_date'
+  dueDate: 'due_date',
+  assignmentGroup: 'assignment_group'
 };
 
 export const BACKEND_TO_FRONTEND_MAPPING: Record<string, string> = Object.fromEntries(
@@ -50,12 +51,12 @@ export const BACKEND_TO_FRONTEND_MAPPING: Record<string, string> = Object.fromEn
  */
 export function mapFrontendToBackend(frontendData: any): any {
   const backendData: any = {};
-  
+
   for (const [frontendKey, value] of Object.entries(frontendData)) {
     const backendKey = FRONTEND_TO_BACKEND_MAPPING[frontendKey] || frontendKey;
     backendData[backendKey] = value;
   }
-  
+
   return backendData;
 }
 
@@ -64,12 +65,12 @@ export function mapFrontendToBackend(frontendData: any): any {
  */
 export function mapBackendToFrontend(backendData: any): any {
   const frontendData: any = {};
-  
+
   for (const [backendKey, value] of Object.entries(backendData)) {
     const frontendKey = BACKEND_TO_FRONTEND_MAPPING[backendKey] || backendKey;
     frontendData[frontendKey] = value;
   }
-  
+
   return frontendData;
 }
 

@@ -856,6 +856,25 @@ export default function TicketEdit() {
 
                       <FormField
                         control={form.control}
+                        name="assignmentGroup"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Grupo de Atribuição</FormLabel>
+                            <FormControl>
+                              <DynamicSelect
+                                fieldName="assignmentGroup"
+                                value={field.value}
+                                onValueChange={field.onChange}
+                                placeholder="Selecione um grupo"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
                         name="assignedToId"
                         render={({ field }) => (
                           <FormItem>
@@ -875,20 +894,6 @@ export default function TicketEdit() {
                                 ))}
                               </SelectContent>
                             </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="assignmentGroup"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Grupo de Atribuição</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Ex: Suporte N1, Infraestrutura" {...field} />
-                            </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}

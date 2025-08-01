@@ -349,6 +349,7 @@ export default function Tickets() {
       workaround: data.workaround || null,
       callerId: data.customerId, // Map to backend field
       customerCompanyId: data.companyId, // Map to backend field
+      assignment_group_id: data.assignmentGroup, // FK para user_group_memberships.id
     };
 
     createTicketMutation.mutate(ticketData);

@@ -1,4 +1,3 @@
-
 # 📋 ANÁLISE COMPLETA - MAPEAMENTO DE CAMPOS DA PÁGINA TICKET DETAILS
 
 ## 🎯 OBJETIVO DA ANÁLISE
@@ -32,7 +31,7 @@ Esta análise foi realizada como parte do processo de QA para garantir que:
 | Cliente/Solicitante | `customers` | `id` (FK) | Referenciado por `tickets.caller_id` | ✅ Mapeado |
 | Favorecido/Beneficiário | `customers` | `id` (FK) | Referenciado por `tickets.beneficiary_id` | ✅ Mapeado |
 | Atribuído a | `users` | `id` (FK) | Referenciado por `tickets.assigned_to_id` | ✅ Mapeado |
-| Grupo de Atribuição | `tickets` | `assignment_group` | varchar | ✅ Mapeado |
+| Grupo de Atribuição | `user_group_memberships` | `id` (FK) | Referenciado por `tickets.assignment_group_id` | ✅ Mapeado |
 
 ### 🏢 **CAMPOS DE EMPRESA E LOCALIZAÇÃO**
 | Campo na Tela | Tabela | Coluna no Banco | Observações | Status |
