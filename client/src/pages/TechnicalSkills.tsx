@@ -157,7 +157,8 @@ export default function TechnicalSkills() {
       apiRequest("POST", "/api/technical-skills/skills", data),
     onSuccess: () => {
       toast({ title: "Habilidade criada com sucesso!" });
-      queryClient.invalidateQueries({ queryKey: ["/api/technical-skills"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/technical-skills/skills"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/technical-skills/skills/categories"] });
       setIsCreateDialogOpen(false);
       createForm.reset();
     },
@@ -171,7 +172,8 @@ export default function TechnicalSkills() {
       apiRequest("PUT", `/api/technical-skills/skills/${id}`, data),
     onSuccess: () => {
       toast({ title: "Habilidade atualizada com sucesso!" });
-      queryClient.invalidateQueries({ queryKey: ["/api/technical-skills"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/technical-skills/skills"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/technical-skills/skills/categories"] });
       setIsEditDialogOpen(false);
       setEditingSkill(null);
     },
@@ -185,7 +187,8 @@ export default function TechnicalSkills() {
       apiRequest("DELETE", `/api/technical-skills/skills/${id}`),
     onSuccess: () => {
       toast({ title: "Habilidade desativada com sucesso!" });
-      queryClient.invalidateQueries({ queryKey: ["/api/technical-skills"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/technical-skills/skills"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/technical-skills/skills/categories"] });
     },
     onError: () => {
       toast({ title: "Erro ao desativar habilidade", variant: "destructive" });
