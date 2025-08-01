@@ -126,45 +126,73 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
     },
   });
 
-  // Mutação para adicionar usuário ao grupo
+  // Mutation to add user to group
   const addUserToGroupMutation = useMutation({
-    mutationFn: async ({ groupId, userId }: { groupId: string; userId: string }) => {
-      return apiRequest("POST", `/api/user-management/groups/${groupId}/members`, { userId });
+    mutationFn: async ({ groupId, userId }: { groupId: string, userId: string }) => {
+      console.log(`Mutation: Adding user ${userId} to group ${groupId}`);
+      const response = await apiRequest('POST', `/api/user-management/groups/${groupId}/members`, { userId });
+      console.log('Add user response:', response);
+      return response;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/user-management/groups"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/user-management/groups", editingGroup?.id, "members"] });
+    onSuccess: (data) => {
+      console.log('User added successfully:', data);
+      queryClient.invalidateQueries({ queryKey: ['/api/user-management/groups'] });
+      if (editingGroup?.id) {
+        queryClient.invalidateQueries({ queryKey: [`/api/user-management/groups/${editingGroup.id}/members`] });
+      }
+      // Refresh the editing group data
+      if (editingGroup) {
+        setTimeout(() => {
+          queryClient.invalidateQueries({ queryKey: ['/api/user-management/groups'] });
+        }, 500);
+      }
       toast({
-        title: "Sucesso",
-        description: "Usuário adicionado ao grupo com sucesso",
+        title: "Usuário adicionado",
+        description: "Usuário foi adicionado ao grupo com sucesso.",
       });
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error('Error adding user to group:', error);
+      const errorMessage = error?.response?.data?.message || error?.message || "Falha ao adicionar usuário ao grupo.";
       toast({
-        title: "Erro",
-        description: "Erro ao adicionar usuário ao grupo",
+        title: "Erro ao adicionar usuário",
+        description: errorMessage,
         variant: "destructive",
       });
     },
   });
 
-  // Mutação para remover usuário do grupo
+  // Mutation to remove user from group
   const removeUserFromGroupMutation = useMutation({
-    mutationFn: async ({ groupId, userId }: { groupId: string; userId: string }) => {
-      return apiRequest("DELETE", `/api/user-management/groups/${groupId}/members/${userId}`);
+    mutationFn: async ({ groupId, userId }: { groupId: string, userId: string }) => {
+      console.log(`Mutation: Removing user ${userId} from group ${groupId}`);
+      const response = await apiRequest('DELETE', `/api/user-management/groups/${groupId}/members/${userId}`);
+      console.log('Remove user response:', response);
+      return response;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/user-management/groups"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/user-management/groups", editingGroup?.id, "members"] });
+    onSuccess: (data) => {
+      console.log('User removed successfully:', data);
+      queryClient.invalidateQueries({ queryKey: ['/api/user-management/groups'] });
+      if (editingGroup?.id) {
+        queryClient.invalidateQueries({ queryKey: [`/api/user-management/groups/${editingGroup.id}/members`] });
+      }
+      // Refresh the editing group data
+      if (editingGroup) {
+        setTimeout(() => {
+          queryClient.invalidateQueries({ queryKey: ['/api/user-management/groups'] });
+        }, 500);
+      }
       toast({
-        title: "Sucesso",
-        description: "Usuário removido do grupo com sucesso",
+        title: "Usuário removido",
+        description: "Usuário foi removido do grupo com sucesso.",
       });
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error('Error removing user from group:', error);
+      const errorMessage = error?.response?.data?.message || error?.message || "Falha ao remover usuário do grupo.";
       toast({
-        title: "Erro",
-        description: "Erro ao remover usuário do grupo",
+        title: "Erro ao remover usuário",
+        description: errorMessage,
         variant: "destructive",
       });
     },
@@ -373,7 +401,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
                       {Array.isArray(usersData) && usersData.length > 0 ? (
                         usersData.map((user: any) => {
                           const isInGroup = editingGroup?.memberships?.some(m => m.userId === user.id);
-                          
+
                           // Criar handlers únicos para cada usuário para evitar conflitos de evento
                           const createAddHandler = (userId: string) => (e: React.MouseEvent) => {
                             e.preventDefault();
@@ -381,14 +409,14 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
                             console.log(`Adding user ${userId} to group`);
                             handleAddUserToGroup(userId);
                           };
-                          
+
                           const createRemoveHandler = (userId: string) => (e: React.MouseEvent) => {
                             e.preventDefault();
                             e.stopPropagation();
                             console.log(`Removing user ${userId} from group`);
                             handleRemoveUserFromGroup(userId);
                           };
-                          
+
                           return (
                             <div 
                               key={user.id} 
