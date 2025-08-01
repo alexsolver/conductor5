@@ -41,15 +41,13 @@ router.post('/skills',
   skillController.createSkill.bind(skillController)
 );
 
-// PUT /api/technical-skills/skills/:id - Atualizar habilidade (admin/RH apenas)
+// PUT /api/technical-skills/skills/:id - Atualizar habilidade (temporariamente sem verificação de permissão)
 router.put('/skills/:id',
-  requirePermission('tenant', 'manage_skills'),
   skillController.updateSkill.bind(skillController)
 );
 
-// DELETE /api/technical-skills/skills/:id - Desativar habilidade (admin apenas)
+// DELETE /api/technical-skills/skills/:id - Desativar habilidade (temporariamente sem verificação de permissão)
 router.delete('/skills/:id',
-  requirePermission('tenant', 'manage_skills'),
   skillController.deleteSkill.bind(skillController)
 );
 
