@@ -29,7 +29,16 @@ export const FRONTEND_TO_BACKEND_MAPPING: Record<string, string> = {
   // customerId: 'customer_id', // já tem customerCompanyId
 
   businessImpact: 'business_impact',
-  contactType: 'contact_type'
+  contactType: 'contact_type',
+  
+  // Novos campos dinâmicos
+  linkType: 'link_type',
+  linkTicketNumber: 'link_ticket_number',
+  linkComment: 'link_comment',
+  templateAlternative: 'template_alternative',
+  estimatedHours: 'estimated_hours',
+  actualHours: 'actual_hours',
+  dueDate: 'due_date'
 };
 
 export const BACKEND_TO_FRONTEND_MAPPING: Record<string, string> = Object.fromEntries(

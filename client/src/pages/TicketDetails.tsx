@@ -1432,9 +1432,24 @@ const TicketDetails = React.memo(() => {
                     <FormLabel>Ambiente</FormLabel>
                     <FormControl>
                       {isEditMode ? (
-                        <Input {...field} placeholder="Ex: Produção, Desenvolvimento, Teste" />
+                        <DynamicSelect
+                          fieldName="environment"
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          placeholder="Selecione o ambiente"
+                          disabled={!isEditMode}
+                          allowCustomInput={true}
+                        />
                       ) : (
-                        <div className="p-2 bg-gray-50 rounded">{field.value || 'Não especificado'}</div>
+                        <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
+                          <DynamicBadge 
+                            fieldName="environment"
+                            value={field.value}
+                            colorHex={getFieldColor('environment', field.value)}
+                          >
+                            {getFieldLabel('environment', field.value) || field.value || 'Não especificado'}
+                          </DynamicBadge>
+                        </div>
                       )}
                     </FormControl>
                     <FormMessage />
@@ -1495,26 +1510,22 @@ const TicketDetails = React.memo(() => {
                       <FormLabel>Tipo de Relacionamento</FormLabel>
                       <FormControl>
                         {isEditMode ? (
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione o tipo" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="relates_to">Relaciona-se com</SelectItem>
-                              <SelectItem value="blocks">Bloqueia</SelectItem>
-                              <SelectItem value="blocked_by">Bloqueado por</SelectItem>
-                              <SelectItem value="duplicates">Duplica</SelectItem>
-                              <SelectItem value="caused_by">Causado por</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <DynamicSelect
+                            fieldName="linkType"
+                            value={field.value}
+                            onValueChange={field.onChange}
+                            placeholder="Selecione o tipo de relacionamento"
+                            disabled={!isEditMode}
+                          />
                         ) : (
-                          <div className="p-2 bg-gray-50 rounded">
-                            {field.value === 'relates_to' && 'Relaciona-se com'}
-                            {field.value === 'blocks' && 'Bloqueia'}
-                            {field.value === 'blocked_by' && 'Bloqueado por'}
-                            {field.value === 'duplicates' && 'Duplica'}
-                            {field.value === 'caused_by' && 'Causado por'}
-                            {!field.value && 'Nenhum'}
+                          <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
+                            <DynamicBadge 
+                              fieldName="linkType"
+                              value={field.value}
+                              colorHex={getFieldColor('linkType', field.value)}
+                            >
+                              {getFieldLabel('linkType', field.value)}
+                            </DynamicBadge>
                           </div>
                         )}
                       </FormControl>

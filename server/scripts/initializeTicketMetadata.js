@@ -165,3 +165,47 @@ try {
     // Ignore cleanup errors
   }
 }
+// Adicionar configurações para novos campos
+const additionalFieldConfigurations = [
+  {
+    tenant_id: tenantId,
+    customer_id: '00000000-0000-0000-0000-000000000001',
+    field_name: 'environment',
+    display_name: 'Ambiente',
+    description: 'Ambiente onde o problema ocorreu',
+    field_type: 'select',
+    is_required: false,
+    is_system_field: false,
+    sort_order: 15,
+    is_active: true
+  },
+  {
+    tenant_id: tenantId,
+    customer_id: '00000000-0000-0000-0000-000000000001',
+    field_name: 'linkType',
+    display_name: 'Tipo de Relacionamento',
+    description: 'Tipo de relacionamento entre tickets',
+    field_type: 'select',
+    is_required: false,
+    is_system_field: false,
+    sort_order: 16,
+    is_active: true
+  }
+];
+
+// Opções para environment
+const environmentOptions = [
+  { value: 'production', label: 'Produção', color: '#dc2626', sort_order: 1 },
+  { value: 'staging', label: 'Homologação', color: '#f59e0b', sort_order: 2 },
+  { value: 'development', label: 'Desenvolvimento', color: '#10b981', sort_order: 3 },
+  { value: 'testing', label: 'Teste', color: '#3b82f6', sort_order: 4 }
+];
+
+// Opções para linkType
+const linkTypeOptions = [
+  { value: 'relates_to', label: 'Relaciona-se com', color: '#6b7280', sort_order: 1 },
+  { value: 'blocks', label: 'Bloqueia', color: '#dc2626', sort_order: 2 },
+  { value: 'blocked_by', label: 'Bloqueado por', color: '#f59e0b', sort_order: 3 },
+  { value: 'duplicates', label: 'Duplica', color: '#9333ea', sort_order: 4 },
+  { value: 'caused_by', label: 'Causado por', color: '#ef4444', sort_order: 5 }
+];
