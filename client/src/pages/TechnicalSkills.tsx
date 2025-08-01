@@ -46,7 +46,8 @@ interface Skill {
   id: string;
   name: string;
   category: string;
-  minLevelRequired: number;
+  levelMin?: number;
+  levelMax?: number;
   suggestedCertification?: string;
   certificationValidityMonths?: number;
   description?: string;
@@ -54,6 +55,32 @@ interface Skill {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+interface SkillsResponse {
+  success: boolean;
+  data: Skill[];
+  count: number;
+}
+
+interface CategoriesResponse {
+  success: boolean;
+  data: string[];
+}
+
+interface CertificationData {
+  userId: string;
+  userName: string;
+  skillName: string;
+  skillId: string;
+  expiresAt: string;
+  daysSinceExpiry?: number;
+}
+
+interface CertificationsResponse {
+  success: boolean;
+  data: CertificationData[];
+  count: number;
 }
 
 export default function TechnicalSkills() {
@@ -67,21 +94,27 @@ export default function TechnicalSkills() {
   const queryClient = useQueryClient();
 
   // Queries
-  const { data: skills, isLoading } = useQuery({
+  const { data: skillsResponse, isLoading } = useQuery<SkillsResponse>({
     queryKey: ["/api/technical-skills/skills"],
   });
 
-  const { data: categories } = useQuery({
+  const { data: categoriesResponse } = useQuery<CategoriesResponse>({
     queryKey: ["/api/technical-skills/skills/categories"],
   });
 
-  const { data: expiredCerts } = useQuery({
+  const { data: expiredCertsResponse } = useQuery<CertificationsResponse>({
     queryKey: ["/api/technical-skills/certifications/expired"],
   });
 
-  const { data: expiringCerts } = useQuery({
+  const { data: expiringCertsResponse } = useQuery<CertificationsResponse>({
     queryKey: ["/api/technical-skills/certifications/expiring"],
   });
+
+  // Extract data from responses
+  const skills = skillsResponse?.data || [];
+  const categories = categoriesResponse?.data || [];
+  const expiredCerts = expiredCertsResponse?.data || [];
+  const expiringCerts = expiringCertsResponse?.data || [];
 
   // Forms
   const createForm = useForm<SkillFormData>({

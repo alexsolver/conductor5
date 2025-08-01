@@ -4,6 +4,7 @@ export class Skill {
     public name: string,
     public category: string,
     public minLevelRequired: number,
+    public maxLevelRequired: number = 5,
     public suggestedCertification?: string,
     public certificationValidityMonths?: number,
     public description?: string,
@@ -76,6 +77,7 @@ export class Skill {
     name: string;
     category: string;
     minLevelRequired?: number;
+    maxLevelRequired?: number;
     suggestedCertification?: string;
     certificationValidityMonths?: number;
     description?: string;
@@ -88,6 +90,7 @@ export class Skill {
       data.name,
       data.category,
       data.minLevelRequired || 1,
+      data.maxLevelRequired || 5,
       data.suggestedCertification,
       data.certificationValidityMonths,
       data.description,

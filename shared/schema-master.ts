@@ -370,14 +370,17 @@ export const customerCompanies = pgTable("customer_companies", {
   index("customer_companies_tenant_size_idx").on(table.tenantId, table.size),
 ]);
 
-// Skills table - FIXED: tenant_id corrigido para UUID
+// Skills table - FIXED: alinhado com estrutura real do banco
 export const skills = pgTable("skills", {
   id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
+  tenantId: varchar("tenant_id", { length: 36 }).notNull(), // VARCHAR conforme banco
   name: varchar("name", { length: 255 }).notNull(),
   category: varchar("category", { length: 100 }).notNull(),
   description: text("description"),
-  minLevelRequired: integer("min_level_required").default(1),
+  levelMin: integer("level_min").default(1),
+  levelMax: integer("level_max").default(5),
+  certificationSuggested: varchar("certification_suggested", { length: 255 }),
+  validityMonths: integer("validity_months"),
   suggestedCertification: varchar("suggested_certification", { length: 255 }),
   certificationValidityMonths: integer("certification_validity_months"),
   observations: text("observations"),
