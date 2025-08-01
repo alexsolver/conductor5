@@ -84,6 +84,18 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
   const { data: groupsData, isLoading: groupsLoading, refetch: refetchGroups } = useQuery<{ groups: UserGroup[] }>({
     queryKey: ["/api/user-management/groups"],
     refetchInterval: 30000,
+    select: (data) => {
+      // Calcular memberCount real baseado nos memberships
+      if (data?.groups) {
+        return {
+          groups: data.groups.map(group => ({
+            ...group,
+            memberCount: group.memberships?.length || 0
+          }))
+        };
+      }
+      return data;
+    }
   });
 
   // Query para buscar membros da equipe
@@ -203,6 +215,8 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
     onSuccess: () => {
       refetchGroupMembers();
       refetchGroups();
+      // Invalidar cache dos grupos para forçar nova busca
+      queryClient.invalidateQueries({ queryKey: ["/api/user-management/groups"] });
       toast({
         title: "Usuário adicionado",
         description: "Usuário adicionado ao grupo com sucesso!",
@@ -234,6 +248,8 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
     onSuccess: () => {
       refetchGroupMembers();
       refetchGroups();
+      // Invalidar cache dos grupos para forçar nova busca
+      queryClient.invalidateQueries({ queryKey: ["/api/user-management/groups"] });
       toast({
         title: "Usuário removido",
         description: "Usuário removido do grupo com sucesso!",
