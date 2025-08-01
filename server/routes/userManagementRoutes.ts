@@ -350,7 +350,7 @@ router.get('/groups/:groupId/members',
         success: false,
         message: 'Failed to fetch group members',
         error: error.message 
-      });s' });
+      });
     }
   }
 );
