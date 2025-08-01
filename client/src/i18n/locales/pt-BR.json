@@ -212,6 +212,14 @@
     "editGroup": "Editar Grupo",
     "active": "Ativo",
     "deleteGroup": "Excluir Grupo",
-    "emailPlaceholder": "usuario@empresa.com"
+    "emailPlaceholder": "usuario@empresa.com",
+    "inviteUser": "Convidar Usuário",
+    "inviteUserDesc": "Envie um convite por email para um novo usuário",
+    "email": "Email",
+    "role": "Papel",
+    "expiration": "Expiração",
+    "groups": "Grupos",
+    "notes": "Notas",
+    "sendInvitationEmail": "Enviar email de convite automaticamente"
   }
 }
