@@ -122,35 +122,42 @@ router.get('/members', async (req: AuthenticatedRequest, res) => {
       eq(users.isActive, true)
     ));
 
-    // Get user group memberships with better error handling
+    // Get user group memberships with proper schema validation
     let groupMembershipMap = new Map();
     
     try {
-      const groupMemberships = await db.select({
-        userId: sql`ugm.user_id`,
-        groupId: sql`ugm.group_id`,
-        groupName: sql`ug.name`
-      })
-      .from(sql`user_group_memberships ugm`)
-      .innerJoin(sql`user_groups ug`, sql`ugm.group_id = ug.id`)
-      .where(and(
-        sql`ug.tenant_id = ${user.tenantId}`,
-        sql`ug.is_active = true`
-      ));
-
-      groupMemberships.forEach(membership => {
-        if (membership.userId && membership.groupId) {
-          if (!groupMembershipMap.has(membership.userId)) {
-            groupMembershipMap.set(membership.userId, []);
-          }
-          groupMembershipMap.get(membership.userId).push(membership.groupId);
-        }
-      });
+      // Check if user_group_memberships table exists
+      const tableCheck = await db.execute(sql`
+        SELECT EXISTS (
+          SELECT FROM information_schema.tables 
+          WHERE table_schema = 'public' 
+          AND table_name = 'user_group_memberships'
+        ) as table_exists
+      `);
       
-      console.log(`Team Management: Loaded ${groupMemberships.length} group memberships`);
+      if (tableCheck.rows[0]?.table_exists) {
+        const groupMemberships = await db.execute(sql`
+          SELECT ugm.user_id, ugm.group_id, ug.name as group_name
+          FROM user_group_memberships ugm
+          INNER JOIN user_groups ug ON ugm.group_id = ug.id
+          WHERE ug.tenant_id = ${user.tenantId} AND ug.is_active = true
+        `);
+
+        groupMemberships.rows.forEach((membership: any) => {
+          if (membership.user_id && membership.group_id) {
+            if (!groupMembershipMap.has(membership.user_id)) {
+              groupMembershipMap.set(membership.user_id, []);
+            }
+            groupMembershipMap.get(membership.user_id).push(membership.group_id);
+          }
+        });
+        
+        console.log(`Team Management: Loaded ${groupMemberships.rows.length} group memberships`);
+      } else {
+        console.log('Team Management: user_group_memberships table not found, skipping group data');
+      }
     } catch (groupError) {
       console.warn('Team Management: Error loading group memberships:', groupError);
-      // Continue without group data rather than failing
     }
 
     // Format the response
@@ -229,7 +236,7 @@ router.get('/stats', async (req: AuthenticatedRequest, res) => {
       totalMembers: String(totalMembersResult[0]?.count || 0),
       activeToday: String(activeTodayResult[0]?.count || 0),
       pendingApprovals: String(pendingApprovalsResult[0]?.count || 0),
-      averagePerformance: Number(avgPerformanceResult[0]?.average || 75)
+      averagePerformance: Number(avgPerformanceResult[0]?.average || 0)
     };
 
     res.json(stats);
@@ -353,8 +360,8 @@ router.get('/skills-matrix', async (req: AuthenticatedRequest, res) => {
       position: users.position,
       department: departments.name,
       experienceLevel: sql<string>`CASE 
-        WHEN EXTRACT(YEAR FROM AGE(NOW(), users.hire_date)) >= 5 THEN 'Avançado'
-        WHEN EXTRACT(YEAR FROM AGE(NOW(), users.hire_date)) >= 2 THEN 'Intermediário'
+        WHEN EXTRACT(YEAR FROM AGE(NOW(), users.created_at)) >= 5 THEN 'Avançado'
+        WHEN EXTRACT(YEAR FROM AGE(NOW(), users.created_at)) >= 2 THEN 'Intermediário'
         ELSE 'Básico'
       END`,
       performance: users.performance
@@ -499,8 +506,12 @@ router.put('/members/:id/status', async (req: AuthenticatedRequest, res) => {
     const { id } = req.params;
     const { status } = req.body;
 
+    if (!user) {
+      return res.status(401).json({ message: 'User not authenticated' });
+    }
+
     // Validate user permissions
-    if (!user || !['tenant_admin', 'manager'].includes(user.role)) {
+    if (!['tenant_admin', 'manager'].includes(user.role)) {
       return res.status(403).json({ message: 'Insufficient permissions' });
     }
 
@@ -508,10 +519,6 @@ router.put('/members/:id/status', async (req: AuthenticatedRequest, res) => {
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
     if (!uuidRegex.test(id)) {
       return res.status(400).json({ message: 'Invalid member ID format' });
-    }
-
-    if (!user) {
-      return res.status(401).json({ message: 'User not authenticated' });
     }
 
     if (!['active', 'inactive', 'pending'].includes(status)) {
