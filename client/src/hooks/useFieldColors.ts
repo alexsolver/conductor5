@@ -18,7 +18,7 @@ interface FieldColorsResponse {
 const colorsCache = new Map<string, Record<string, string>>();
 
 export const useFieldColors = () => {
-  const { data: fieldOptions, isLoading } = useQuery({
+  const { data: fieldOptions, isLoading, error } = useQuery({
     queryKey: ["/api/ticket-config/field-options"],
     queryFn: async () => {
       const response = await apiRequest("GET", "/api/ticket-config/field-options");
