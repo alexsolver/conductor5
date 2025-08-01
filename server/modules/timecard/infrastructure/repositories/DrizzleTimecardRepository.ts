@@ -178,7 +178,8 @@ export class DrizzleTimecardRepository implements TimecardRepository {
           isActive: workSchedules.isActive,
           createdAt: workSchedules.createdAt,
           updatedAt: workSchedules.updatedAt,
-          userName: sql`CONCAT(${users.firstName}, ' ', ${users.lastName})`.as('userName')
+          firstName: users.firstName,
+          lastName: users.lastName
         })
         .from(workSchedules)
         .leftJoin(users, eq(workSchedules.userId, users.id))
@@ -186,10 +187,23 @@ export class DrizzleTimecardRepository implements TimecardRepository {
         .orderBy(desc(workSchedules.createdAt));
 
       return schedules.map(schedule => ({
-        ...schedule,
-        workDays: typeof schedule.workDays === 'string' 
-          ? JSON.parse(schedule.workDays) 
-          : schedule.workDays
+        id: schedule.id,
+        userId: schedule.userId,
+        scheduleType: schedule.scheduleType,
+        startDate: schedule.startDate,
+        endDate: schedule.endDate,
+        workDays: schedule.workDays ? 
+          (typeof schedule.workDays === 'string' ? JSON.parse(schedule.workDays) : schedule.workDays) : 
+          [],
+        startTime: schedule.startTime,
+        endTime: schedule.endTime,
+        breakDurationMinutes: schedule.breakDurationMinutes,
+        isActive: schedule.isActive,
+        createdAt: schedule.createdAt,
+        updatedAt: schedule.updatedAt,
+        userName: schedule.firstName && schedule.lastName ? 
+          `${schedule.firstName} ${schedule.lastName}` : 
+          'Usuário'
       }));
     } catch (error) {
       console.error('Error fetching work schedules:', error);
