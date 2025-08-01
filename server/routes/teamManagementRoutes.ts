@@ -438,14 +438,10 @@ router.get('/skills-matrix', async (req: AuthenticatedRequest, res) => {
       });
     }
 
-    // Final fallback if no data available
+    // Final fallback - return empty arrays instead of mock data
     res.json({
-      topSkills: [
-        { name: 'Aguardando configuração de habilidades', count: 0, level: 'Configurando' }
-      ],
-      skillCategories: [
-        { category: 'Sistema em configuração', count: 0 }
-      ]
+      topSkills: [],
+      skillCategories: []
     });
 
   } catch (error) {
@@ -489,6 +485,17 @@ router.put('/members/:id/status', async (req: AuthenticatedRequest, res) => {
     const { user } = req;
     const { id } = req.params;
     const { status } = req.body;
+
+    // Validate user permissions
+    if (!user || !['tenant_admin', 'manager'].includes(user.role)) {
+      return res.status(403).json({ message: 'Insufficient permissions' });
+    }
+
+    // Validate UUID format
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(id)) {
+      return res.status(400).json({ message: 'Invalid member ID format' });
+    }
 
     if (!user) {
       return res.status(401).json({ message: 'User not authenticated' });

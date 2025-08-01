@@ -297,16 +297,15 @@ export default function LocalForm({ onSubmit, initialData, isLoading }: LocalFor
       const currentYear = new Date().getFullYear();
 
       // Call actual API endpoint using apiRequest for authentication
-      //const response = await apiRequest('GET', `/api/locations-new/holidays?municipio=${encodeURIComponent(municipio)}&estado=${encodeURIComponent(estado)}&ano=${currentYear}`);
-      //const result = await response.json();
-      const result = {
-        success: true,
-        data: {
-          municipais: [],
-          estaduais: [],
-          federais: []
+      // Call real API endpoint for holidays
+      const response = await fetch(`/api/locations-new/holidays?municipio=${encodeURIComponent(municipio)}&estado=${encodeURIComponent(estado)}&ano=${currentYear}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+          'Content-Type': 'application/json'
         }
-      };
+      });
+      
+      const result = await response.json();
 
       if (result.success && result.data) {
         setHolidays(result.data);

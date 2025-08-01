@@ -69,7 +69,7 @@ export default function TeamManagement() {
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterRole, setFilterRole] = useState("all");
   const [filterGroup, setFilterGroup] = useState("all");
-  
+
   // Dialog states for user management
   const [showCreateUser, setShowCreateUser] = useState(false);
   const [showInviteUser, setShowInviteUser] = useState(false);
@@ -171,7 +171,7 @@ export default function TeamManagement() {
     // Filtro por grupo agora funciona com array de groupIds do relacionamento
     const matchesGroup = filterGroup === "all" || 
                         (Array.isArray(member.groupIds) && member.groupIds.includes(filterGroup));
-    
+
     return matchesSearch && matchesDepartment && matchesStatus && matchesRole && matchesGroup;
   }) : [];
 
@@ -780,6 +780,7 @@ export default function TeamManagement() {
                           variant={member.status === 'active' ? 'destructive' : 'default'}
                           onClick={() => handleToggleMemberStatus(member)}
                           className="h-8"
+                          disabled={!user || (user.role !== 'tenant_admin' && user.role !== 'manager')}
                         >
                           {member.status === 'active' ? (
                             <>
@@ -950,7 +951,7 @@ export default function TeamManagement() {
                     </Button>
                   </Link>
                 </div>
-                
+
                 <div className="text-center py-8">
                   <Clock className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                   <p className="text-gray-600 mb-4">
@@ -991,7 +992,7 @@ export default function TeamManagement() {
                     </Button>
                   </Link>
                 </div>
-                
+
                 <div className="text-center py-8">
                   <Clock className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                   <p className="text-gray-600 mb-4">
