@@ -39,21 +39,19 @@ type ScheduleTemplateFormData = z.infer<typeof scheduleTemplateSchema>;
 
 interface ScheduleTemplate {
   id: string;
+  tenantId: string;
   name: string;
   description?: string;
-  category: string;
   scheduleType: string;
-  rotationCycleDays?: number;
-  configuration: {
-    workDays: number[];
-    startTime: string;
-    endTime: string;
-    breakDuration: number;
-    flexTimeWindow?: number;
-  };
-  requiresApproval: boolean;
+  workDays: number[] | null;
+  startTime: string | null;
+  endTime: string | null;
+  breakStart: string | null;
+  breakEnd: string | null;
+  flexibilityWindow: number;
   isActive: boolean;
   createdAt: string;
+  updatedAt: string;
 }
 
 const categoryLabels = {
@@ -148,10 +146,6 @@ export default function ScheduleTemplates() {
   });
 
   const templates = templatesData?.templates || [];
-  
-  console.log('Templates data:', templatesData);
-  console.log('Templates array:', templates);
-  console.log('Templates length:', templates.length);
 
   const handleSubmit = (data: ScheduleTemplateFormData) => {
     createTemplateMutation.mutate(data);
@@ -166,7 +160,8 @@ export default function ScheduleTemplates() {
     }
   };
 
-  const formatWorkDays = (workDays: number[]) => {
+  const formatWorkDays = (workDays: number[] | null) => {
+    if (!workDays || workDays.length === 0) return 'Não configurado';
     return workDays.map(day => dayNames[day]).join(', ');
   };
 
@@ -492,7 +487,7 @@ export default function ScheduleTemplates() {
                           </CardDescription>
                         </div>
                         <Badge variant="outline">
-                          {categoryLabels[template.category as keyof typeof categoryLabels]}
+                          {template.scheduleType}
                         </Badge>
                       </div>
                     </CardHeader>
@@ -500,25 +495,22 @@ export default function ScheduleTemplates() {
                       <div className="space-y-3">
                         <div className="flex items-center gap-2 text-sm">
                           <Calendar className="h-4 w-4 text-gray-400" />
-                          <span>{formatWorkDays(template.configuration.workDays)}</span>
+                          <span>{formatWorkDays(template.workDays)}</span>
                         </div>
                         
                         <div className="flex items-center gap-2 text-sm">
                           <Clock className="h-4 w-4 text-gray-400" />
                           <span>
-                            {template.configuration.startTime} - {template.configuration.endTime}
+                            {template.startTime && template.endTime 
+                              ? `${template.startTime} - ${template.endTime}`
+                              : 'Horário não configurado'
+                            }
                           </span>
                         </div>
 
                         <div className="flex items-center gap-2 text-sm">
                           <Users className="h-4 w-4 text-gray-400" />
-                          <span>
-                            {calculateWorkingHours(
-                              template.configuration.startTime,
-                              template.configuration.endTime,
-                              template.configuration.breakDuration
-                            )} por dia
-                          </span>
+                          <span>Escala {template.scheduleType}</span>
                         </div>
 
                         <div className="flex justify-between items-center pt-4">
