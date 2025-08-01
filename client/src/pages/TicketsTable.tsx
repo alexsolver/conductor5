@@ -305,10 +305,49 @@ const TicketsTable = React.memo(() => {
 
   // Função helper para obter cor com fallback durante carregamento
   const getFieldColorWithFallback = (fieldName: string, value: string): string => {
-    if (isFieldColorsLoading) {
-      return '#6b7280'; // Cor neutra (gray-500) durante carregamento
+    // 🚨 CORREÇÃO: Sempre tentar obter cor, mesmo durante carregamento
+    const color = getFieldColor(fieldName, value);
+    
+    // Se encontrou cor nas configurações, usar ela
+    if (color && color !== '#6b7280') {
+      return color;
     }
-    return getFieldColor(fieldName, value) || '#6b7280';
+
+    // Fallback para cores padrão da empresa Default (mesmo durante carregamento)
+    const defaultColors: Record<string, Record<string, string>> = {
+      category: {
+        'suporte_tecnico': '#3b82f6',
+        'atendimento_cliente': '#10b981', 
+        'financeiro': '#f59e0b',
+        'support': '#3b82f6',
+        'hardware': '#ef4444',
+        'software': '#22c55e',
+        'network': '#f97316',
+        'access': '#84cc16',
+        'other': '#64748b'
+      },
+      priority: {
+        'low': '#10b981',
+        'medium': '#22c55e', 
+        'high': '#9333ea',
+        'critical': '#dc2626'
+      },
+      status: {
+        'new': '#9333ea',
+        'open': '#3b82f6',
+        'in_progress': '#f59e0b',
+        'resolved': '#10b981',
+        'closed': '#6b7280'
+      },
+      urgency: {
+        'low': '#10b981',
+        'medium': '#f59e0b',
+        'high': '#f97316',
+        'critical': '#dc2626'
+      }
+    };
+
+    return defaultColors[fieldName]?.[value] || '#6b7280';
   };
 
   // Serviço centralizado de mapeamento de dados

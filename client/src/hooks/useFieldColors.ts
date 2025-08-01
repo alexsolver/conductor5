@@ -27,8 +27,10 @@ export const useFieldColors = () => {
     staleTime: 15 * 60 * 1000, // Cache por 15 minutos - mais agressivo
     gcTime: 30 * 60 * 1000, // Garbage collection em 30 minutos
     refetchOnWindowFocus: false,
-    refetchOnMount: false, // Não refetch no mount se dados em cache
+    refetchOnMount: true, // 🚨 CORREÇÃO: Permitir refetch no mount para garantir dados frescos
     refetchInterval: false, // Disable auto-refetch
+    retry: 1, // Reduzir tentativas para carregamento mais rápido
+    retryDelay: 1000, // Delay menor entre tentativas
   });
 
   // Função para buscar cor de um campo específico com fallback para empresa Default

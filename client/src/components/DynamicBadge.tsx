@@ -101,8 +101,13 @@ export function DynamicBadge(props: DynamicBadgeProps) {
   let dynamicClasses = '';
   let inlineStyles: React.CSSProperties = {};
 
-  // Implementar fallback robusto para cores
+  // Implementar fallback robusto para cores com priorização do colorHex
   const getFieldColorWithDefault = (fieldName: string, value: string): string => {
+    // Se colorHex foi fornecido, usar ele com prioridade
+    if (colorHex && colorHex.trim() !== '') {
+      return colorHex;
+    }
+
     // Fallback para cores padrão da empresa Default
     const defaultColors: Record<string, Record<string, string>> = {
       category: {
@@ -158,7 +163,7 @@ export function DynamicBadge(props: DynamicBadgeProps) {
     return '#6b7280'; // Cinza como último recurso
   };
 
-  const finalColor = colorHex || getFieldColorWithDefault(fieldName || '', value || '');
+  const finalColor = getFieldColorWithDefault(fieldName || '', value || '');
 
   // Converter cor hex para classes Tailwind ou usar inline styles
   const getBadgeStyles = (color: string) => {
