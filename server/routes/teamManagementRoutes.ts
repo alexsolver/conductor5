@@ -122,24 +122,36 @@ router.get('/members', async (req: AuthenticatedRequest, res) => {
       eq(users.isActive, true)
     ));
 
-    // Get user group memberships
-    const groupMemberships = await db.select({
-      userId: sql`user_group_memberships.user_id`,
-      groupId: sql`user_group_memberships.group_id`,
-      groupName: sql`user_groups.name`
-    })
-    .from(sql`user_group_memberships`)
-    .leftJoin(sql`user_groups`, sql`user_group_memberships.group_id = user_groups.id`)
-    .where(sql`user_groups.tenant_id = ${user.tenantId}`);
+    // Get user group memberships with better error handling
+    let groupMembershipMap = new Map();
+    
+    try {
+      const groupMemberships = await db.select({
+        userId: sql`ugm.user_id`,
+        groupId: sql`ugm.group_id`,
+        groupName: sql`ug.name`
+      })
+      .from(sql`user_group_memberships ugm`)
+      .innerJoin(sql`user_groups ug`, sql`ugm.group_id = ug.id`)
+      .where(and(
+        sql`ug.tenant_id = ${user.tenantId}`,
+        sql`ug.is_active = true`
+      ));
 
-    // Create group membership map
-    const groupMembershipMap = new Map();
-    groupMemberships.forEach(membership => {
-      if (!groupMembershipMap.has(membership.userId)) {
-        groupMembershipMap.set(membership.userId, []);
-      }
-      groupMembershipMap.get(membership.userId).push(membership.groupId);
-    });
+      groupMemberships.forEach(membership => {
+        if (membership.userId && membership.groupId) {
+          if (!groupMembershipMap.has(membership.userId)) {
+            groupMembershipMap.set(membership.userId, []);
+          }
+          groupMembershipMap.get(membership.userId).push(membership.groupId);
+        }
+      });
+      
+      console.log(`Team Management: Loaded ${groupMemberships.length} group memberships`);
+    } catch (groupError) {
+      console.warn('Team Management: Error loading group memberships:', groupError);
+      // Continue without group data rather than failing
+    }
 
     // Format the response
     const formattedMembers = members.map(member => ({
@@ -335,67 +347,17 @@ router.get('/skills-matrix', async (req: AuthenticatedRequest, res) => {
       return res.status(401).json({ message: 'User not authenticated' });
     }
 
-    // First, check if technical skills tables exist and have data
-    try {
-      // Get real skills data from technical skills module
-      const skillsData = await db.select({
-        skillName: sql<string>`skills.name`,
-        skillLevel: sql<string>`skills.level`,
-        userCount: sql<number>`COUNT(DISTINCT user_skills.user_id)`,
-        category: sql<string>`skills.category`
-      })
-      .from(sql`skills`)
-      .leftJoin(sql`user_skills`, sql`skills.id = user_skills.skill_id`)
-      .leftJoin(users, sql`user_skills.user_id = users.id`)
-      .where(and(
-        sql`skills.tenant_id = ${user.tenantId}`,
-        sql`skills.is_active = true`,
-        or(
-          sql`users.tenant_id = ${user.tenantId}`,
-          sql`users.id IS NULL`
-        )
-      ))
-      .groupBy(sql`skills.id, skills.name, skills.level, skills.category`)
-      .orderBy(sql`COUNT(DISTINCT user_skills.user_id) DESC`)
-      .limit(10);
-
-      if (skillsData && skillsData.length > 0) {
-        // Format real skills data
-        const topSkills = skillsData.map(skill => ({
-          name: skill.skillName,
-          count: Number(skill.userCount) || 0,
-          level: skill.skillLevel || 'Básico'
-        }));
-
-        // Group by categories
-        const categoryMap = new Map();
-        skillsData.forEach(skill => {
-          const category = skill.category || 'Geral';
-          if (!categoryMap.has(category)) {
-            categoryMap.set(category, 0);
-          }
-          categoryMap.set(category, categoryMap.get(category) + Number(skill.userCount));
-        });
-
-        const skillCategories = Array.from(categoryMap.entries()).map(([category, count]) => ({
-          category,
-          count
-        }));
-
-        return res.json({
-          topSkills,
-          skillCategories
-        });
-      }
-    } catch (skillsError) {
-      console.log('Technical skills tables not available, using fallback');
-    }
-
-    // Fallback: Get skills data from user positions and departments
-    const positionSkills = await db.select({
+    // Get real skills data from user competencies and positions
+    const userCompetencies = await db.select({
+      userId: users.id,
       position: users.position,
       department: departments.name,
-      userCount: sql<number>`COUNT(*)`
+      experienceLevel: sql<string>`CASE 
+        WHEN EXTRACT(YEAR FROM AGE(NOW(), users.hire_date)) >= 5 THEN 'Avançado'
+        WHEN EXTRACT(YEAR FROM AGE(NOW(), users.hire_date)) >= 2 THEN 'Intermediário'
+        ELSE 'Básico'
+      END`,
+      performance: users.performance
     })
     .from(users)
     .leftJoin(departments, eq(users.departmentId, departments.id))
@@ -403,34 +365,50 @@ router.get('/skills-matrix', async (req: AuthenticatedRequest, res) => {
       eq(users.tenantId, user.tenantId),
       eq(users.isActive, true),
       not(sql`${users.position} IS NULL`)
-    ))
-    .groupBy(users.position, departments.name);
+    ));
 
-    if (positionSkills.length > 0) {
-      // Generate skills based on actual positions
-      const topSkills = positionSkills.map(pos => ({
-        name: pos.position || 'Posição Geral',
-        count: Number(pos.userCount),
-        level: pos.department ? 'Intermediário' : 'Básico'
-      }));
+    if (userCompetencies.length > 0) {
+      // Aggregate skills by position
+      const skillsMap = new Map();
+      const categoriesMap = new Map();
 
-      // Generate categories based on departments
-      const departmentCategories = await db.select({
-        department: departments.name,
-        userCount: sql<number>`COUNT(users.id)`
-      })
-      .from(departments)
-      .leftJoin(users, and(
-        eq(users.departmentId, departments.id),
-        eq(users.isActive, true)
-      ))
-      .where(eq(departments.tenantId, user.tenantId))
-      .groupBy(departments.name);
+      userCompetencies.forEach(comp => {
+        const skillName = comp.position || 'Posição Geral';
+        const category = comp.department || 'Departamento Geral';
+        
+        if (!skillsMap.has(skillName)) {
+          skillsMap.set(skillName, {
+            name: skillName,
+            count: 0,
+            totalPerformance: 0,
+            level: comp.experienceLevel
+          });
+        }
+        
+        const skill = skillsMap.get(skillName);
+        skill.count += 1;
+        skill.totalPerformance += (comp.performance || 75);
+        
+        // Update level based on average performance
+        const avgPerformance = skill.totalPerformance / skill.count;
+        if (avgPerformance >= 90) skill.level = 'Avançado';
+        else if (avgPerformance >= 75) skill.level = 'Intermediário';
+        else skill.level = 'Básico';
 
-      const skillCategories = departmentCategories.map(dept => ({
-        category: dept.department || 'Sem Departamento',
-        count: Number(dept.userCount) || 0
-      }));
+        // Count by category
+        if (!categoriesMap.has(category)) {
+          categoriesMap.set(category, 0);
+        }
+        categoriesMap.set(category, categoriesMap.get(category) + 1);
+      });
+
+      const topSkills = Array.from(skillsMap.values())
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 10);
+
+      const skillCategories = Array.from(categoriesMap.entries())
+        .map(([category, count]) => ({ category, count }))
+        .sort((a, b) => b.count - a.count);
 
       return res.json({
         topSkills,
@@ -438,10 +416,45 @@ router.get('/skills-matrix', async (req: AuthenticatedRequest, res) => {
       });
     }
 
-    // Final fallback - return empty arrays instead of mock data
+    // If no specific competencies found, use general user distribution data
+    const userDistribution = await db.select({
+      role: users.role,
+      status: users.status,
+      userCount: sql<number>`COUNT(*)`
+    })
+    .from(users)
+    .where(and(
+      eq(users.tenantId, user.tenantId),
+      eq(users.isActive, true)
+    ))
+    .groupBy(users.role, users.status);
+
+    const roleSkills = userDistribution.map(dist => ({
+      name: `${dist.role || 'Função Geral'} (${dist.status})`,
+      count: Number(dist.userCount),
+      level: dist.role === 'tenant_admin' ? 'Avançado' : 'Intermediário'
+    }));
+
+    const departmentCategories = await db.select({
+      department: departments.name,
+      userCount: sql<number>`COUNT(users.id)`
+    })
+    .from(departments)
+    .leftJoin(users, and(
+      eq(users.departmentId, departments.id),
+      eq(users.isActive, true)
+    ))
+    .where(eq(departments.tenantId, user.tenantId))
+    .groupBy(departments.name);
+
+    const skillCategories = departmentCategories.map(dept => ({
+      category: dept.department || 'Sem Departamento',
+      count: Number(dept.userCount) || 0
+    }));
+
     res.json({
-      topSkills: [],
-      skillCategories: []
+      topSkills: roleSkills.length > 0 ? roleSkills : [],
+      skillCategories: skillCategories.length > 0 ? skillCategories : []
     });
 
   } catch (error) {
@@ -614,19 +627,42 @@ router.get('/roles', async (req: AuthenticatedRequest, res) => {
   }
 });
 
-// Invalidate cache when members are created/updated
-router.post('/members/refresh', async (req: AuthenticatedRequest, res) => {
+// Sync team data and ensure consistency
+router.post('/members/sync', async (req: AuthenticatedRequest, res) => {
   try {
     const { user } = req;
     if (!user) {
       return res.status(401).json({ message: 'User not authenticated' });
     }
 
-    // This endpoint can be called after creating/updating members to refresh data
-    res.json({ success: true, message: 'Cache refreshed' });
+    // Update user activity timestamps
+    await db.update(users)
+      .set({ lastActiveAt: new Date() })
+      .where(and(
+        eq(users.tenantId, user.tenantId),
+        eq(users.isActive, true)
+      ));
+
+    // Get sync statistics
+    const syncStats = await db.select({
+      totalUsers: sql<number>`COUNT(*)`,
+      activeUsers: sql<number>`SUM(CASE WHEN last_active_at > NOW() - INTERVAL '24 hours' THEN 1 ELSE 0 END)`,
+      userGroups: sql<number>`COUNT(DISTINCT department_id)`
+    })
+    .from(users)
+    .where(and(
+      eq(users.tenantId, user.tenantId),
+      eq(users.isActive, true)
+    ));
+
+    res.json({ 
+      success: true, 
+      message: 'Team data synchronized',
+      stats: syncStats[0] || { totalUsers: 0, activeUsers: 0, userGroups: 0 }
+    });
   } catch (error) {
-    console.error('Error refreshing cache:', error);
-    res.status(500).json({ message: 'Failed to refresh cache' });
+    console.error('Error syncing team data:', error);
+    res.status(500).json({ message: 'Failed to sync team data' });
   }
 });
 

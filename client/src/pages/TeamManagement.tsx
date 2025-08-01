@@ -170,7 +170,9 @@ export default function TeamManagement() {
     const matchesRole = filterRole === "all" || member.role === filterRole;
     // Filtro por grupo agora funciona com array de groupIds do relacionamento
     const matchesGroup = filterGroup === "all" || 
-                        (Array.isArray(member.groupIds) && member.groupIds.includes(filterGroup));
+                        (Array.isArray(member.groupIds) && member.groupIds.some(groupId => 
+                          String(groupId) === String(filterGroup)
+                        ));
 
     return matchesSearch && matchesDepartment && matchesStatus && matchesRole && matchesGroup;
   }) : [];
@@ -659,10 +661,19 @@ export default function TeamManagement() {
                       {Array.isArray(groupsData?.groups) ? groupsData.groups
                         .filter((group: any) => group?.id && group?.name)
                         .map((group: any) => (
-                          <SelectItem key={group.id} value={group.id || "unknown"}>
-                            {group.name || "Sem nome"}
+                          <SelectItem key={group.id} value={String(group.id)}>
+                            {group.name}
+                            {group.description && (
+                              <span className="text-xs text-gray-500 ml-1">
+                                - {group.description}
+                              </span>
+                            )}
                           </SelectItem>
-                        )) : null}
+                        )) : (
+                          <SelectItem value="no-groups" disabled>
+                            Nenhum grupo disponível
+                          </SelectItem>
+                        )}
                     </SelectContent>
                   </Select>
                 </div>

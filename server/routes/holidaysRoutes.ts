@@ -1,6 +1,8 @@
-
 import { Router } from 'express';
 import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth';
+import { db } from '../db';
+import { holidays } from '../../shared/schema';
+import { eq, and, sql } from 'drizzle-orm';
 
 const router = Router();
 
@@ -11,7 +13,7 @@ router.use(jwtAuth);
 router.get('/holidays', async (req: AuthenticatedRequest, res) => {
   try {
     const { municipio, estado, ano } = req.query;
-    
+
     if (!municipio || !estado || !ano) {
       return res.status(400).json({
         success: false,
@@ -19,36 +21,38 @@ router.get('/holidays', async (req: AuthenticatedRequest, res) => {
       });
     }
 
-    // Integration with Brazilian holidays API
     try {
-      const federalResponse = await fetch(`https://brasilapi.com.br/api/feriados/v1/${ano}`);
-      const federalHolidays = await federalResponse.json();
+      // Use Drizzle to query the database for holidays
+      const result = await db.select().from(holidays).where(and(eq(holidays.municipio, municipio), eq(holidays.estado, estado), eq(holidays.ano, parseInt(ano as string, 10))));
 
-      // For now, return federal holidays and empty arrays for state/municipal
-      // In production, integrate with state/municipal APIs
-      const result = {
-        federais: federalHolidays.map((holiday: any) => ({
-          data: holiday.date,
-          nome: holiday.name,
-          incluir: true
-        })),
-        estaduais: [],
-        municipais: []
-      };
+      if (result && result.length > 0) {
+        // Holidays found in the database
+        const formattedResult = {
+          federais: result.filter(h => h.tipo === 'federal').map(h => ({ data: h.data, nome: h.nome, incluir: h.incluir })),
+          estaduais: result.filter(h => h.tipo === 'estadual').map(h => ({ data: h.data, nome: h.nome, incluir: h.incluir })),
+          municipais: result.filter(h => h.tipo === 'municipal').map(h => ({ data: h.data, nome: h.nome, incluir: h.incluir }))
+        };
 
-      res.json({
-        success: true,
-        data: result
-      });
-    } catch (apiError) {
-      console.error('Error fetching holidays from API:', apiError);
-      res.json({
-        success: true,
-        data: {
-          federais: [],
-          estaduais: [],
-          municipais: []
-        }
+        res.json({
+          success: true,
+          data: formattedResult
+        });
+      } else {
+        // No holidays found in the database, return empty arrays
+        res.json({
+          success: true,
+          data: {
+            federais: [],
+            estaduais: [],
+            municipais: []
+          }
+        });
+      }
+    } catch (dbError) {
+      console.error('Error querying holidays from database:', dbError);
+      res.status(500).json({
+        success: false,
+        message: 'Erro ao buscar feriados no banco de dados'
       });
     }
   } catch (error) {

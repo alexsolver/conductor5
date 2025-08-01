@@ -116,28 +116,48 @@ export default function LocalForm({ onSubmit, initialData, isLoading }: LocalFor
 
   const loadTeamMembers = async () => {
     try {
+      const validToken = await validateAndRefreshToken();
+      
+      if (!validToken) {
+        console.error('No valid token for team members fetch');
+        setTeamMembers([]);
+        return;
+      }
+
       const response = await fetch('/api/team-management/members', {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${validToken}`,
+          'Content-Type': 'application/json'
         }
       });
       
       if (response.ok) {
         const members = await response.json();
-        const formattedMembers = Array.isArray(members) ? members.map((member: any) => ({
-          id: member.id,
-          name: member.name || `${member.firstName || ''} ${member.lastName || ''}`.trim(),
-          email: member.email,
-          role: member.position || member.role || 'Membro da Equipe'
-        })) : [];
+        console.log('LocalForm: Raw team members response:', members);
         
-        setTeamMembers(formattedMembers);
+        if (Array.isArray(members)) {
+          const formattedMembers = members
+            .filter(member => member.id && (member.name || member.firstName || member.lastName))
+            .map((member: any) => ({
+              id: member.id,
+              name: member.name || `${member.firstName || ''} ${member.lastName || ''}`.trim() || 'Sem nome',
+              email: member.email || 'Sem email',
+              role: member.position || member.role || 'Membro da Equipe'
+            }));
+          
+          console.log('LocalForm: Formatted team members:', formattedMembers);
+          setTeamMembers(formattedMembers);
+        } else {
+          console.warn('LocalForm: Invalid members data format:', members);
+          setTeamMembers([]);
+        }
       } else {
-        console.error('Failed to fetch team members');
+        const errorText = await response.text();
+        console.error('LocalForm: Failed to fetch team members:', response.status, errorText);
         setTeamMembers([]);
       }
     } catch (error) {
-      console.error('Error loading team members:', error);
+      console.error('LocalForm: Error loading team members:', error);
       setTeamMembers([]);
     }
   };
