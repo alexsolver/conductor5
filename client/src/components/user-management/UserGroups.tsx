@@ -346,24 +346,28 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
   };
 
   // Function to toggle user membership in group
-  const handleToggleUserInGroup = async (userId: string, isCurrentlyInGroup: boolean) => {
+  const handleToggleUserInGroup = async (userId: string, shouldBeInGroup: boolean) => {
     if (!editingGroup || isUpdatingMemberships) return;
 
     setIsUpdatingMemberships(true);
 
     try {
-      if (isCurrentlyInGroup) {
-        // Remove user from group
-        await removeUserFromGroupMutation.mutateAsync({
-          groupId: editingGroup.id,
-          userId: userId
-        });
-      } else {
+      if (shouldBeInGroup) {
         // Add user to group  
         await addUserToGroupMutation.mutateAsync({
           groupId: editingGroup.id,
           userId: userId
         });
+        // Update local state optimistically
+        setSelectedUsers(prev => [...prev.filter(id => id !== userId), userId]);
+      } else {
+        // Remove user from group
+        await removeUserFromGroupMutation.mutateAsync({
+          groupId: editingGroup.id,
+          userId: userId
+        });
+        // Update local state optimistically
+        setSelectedUsers(prev => prev.filter(id => id !== userId));
       }
     } catch (error: any) {
       const errorMessage = error?.message || 'Erro na operação';
@@ -674,11 +678,12 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
                               className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
                             >
                               <Checkbox
+                                id={`member-${member.id}`}
                                 checked={isInGroup}
                                 onCheckedChange={(checked) => {
-                                  // Simple boolean check without multiple conditions
+                                  // Use the checked value directly to avoid state conflicts
                                   if (!isUpdatingMemberships) {
-                                    handleToggleUserInGroup(member.id, isInGroup);
+                                    handleToggleUserInGroup(member.id, !!checked);
                                   }
                                 }}
                                 disabled={isUpdatingMemberships}
