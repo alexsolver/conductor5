@@ -7,6 +7,8 @@ export class Skill {
     public maxLevelRequired: number = 5,
     public certificationSuggested?: string,
     public validityMonths?: number,
+    public suggestedCertification?: string,
+    public certificationValidityMonths?: number,
     public description?: string,
     public observations?: string,
     public tenantId?: string,
@@ -80,6 +82,8 @@ export class Skill {
     maxLevelRequired?: number;
     certificationSuggested?: string;
     validityMonths?: number;
+    suggestedCertification?: string;
+    certificationValidityMonths?: number;
     description?: string;
     observations?: string;
     createdBy?: string;
@@ -93,6 +97,8 @@ export class Skill {
       data.maxLevelRequired || 5,
       data.certificationSuggested,
       data.validityMonths,
+      data.suggestedCertification,
+      data.certificationValidityMonths,
       data.description,
       data.observations,
       data.tenantId,

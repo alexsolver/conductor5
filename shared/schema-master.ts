@@ -370,7 +370,7 @@ export const customerCompanies = pgTable("customer_companies", {
   index("customer_companies_tenant_size_idx").on(table.tenantId, table.size),
 ]);
 
-// Skills table - FIXED: alinhado exatamente com estrutura real do banco
+// Skills table - FINAL: usando apenas campos confirmados no banco
 export const skills = pgTable("skills", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: varchar("tenant_id", { length: 36 }).notNull(),
@@ -384,6 +384,8 @@ export const skills = pgTable("skills", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
   isActive: boolean("is_active").default(true),
+  suggestedCertification: varchar("suggested_certification", { length: 255 }),
+  certificationValidityMonths: integer("certification_validity_months"),
   observations: text("observations"),
 }, (table) => [
   index("skills_tenant_name_idx").on(table.tenantId, table.name),
