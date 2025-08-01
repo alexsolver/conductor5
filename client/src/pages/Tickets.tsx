@@ -89,7 +89,7 @@ export default function Tickets() {
     const checkAndSetToken = async () => {
       let token = localStorage.getItem('accessToken');
       console.log('🔐 Current token in localStorage:', token ? 'EXISTS' : 'NOT_FOUND');
-      
+
       if (!token) {
         console.log('🔄 No token found, attempting login...');
         try {
@@ -98,7 +98,7 @@ export default function Tickets() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email: 'admin@conductor.com', password: 'admin123' })
           });
-          
+
           if (response.ok) {
             const data = await response.json();
             localStorage.setItem('accessToken', data.accessToken);
@@ -110,7 +110,7 @@ export default function Tickets() {
         }
       }
     };
-    
+
     checkAndSetToken();
   }, [queryClient]);
 
@@ -178,10 +178,10 @@ export default function Tickets() {
 
   // Extract customers with proper error handling
   const customers = Array.isArray(customersData?.customers) ? customersData.customers : [];
-  
+
   // Get raw companies and filter out Default if inactive
   const rawCompanies = Array.isArray(companiesData) ? companiesData : [];
-  
+
   // Filter companies directly removing Default if inactive
   const companies = rawCompanies
     .filter((company: any) => {
@@ -205,10 +205,10 @@ export default function Tickets() {
     isActive: c.is_active,
     isDefault: c.name?.toLowerCase().includes('default')
   })));
-  
+
   console.log('🔍 Raw companies from API before filtering:', rawCompanies.length);
   console.log('🔍 Filtered companies for dropdown:', companies.length);
-  
+
   // Additional debug for Default company filtering
   const defaultCompany = rawCompanies.find((c: any) => c.name?.toLowerCase().includes('default'));
   if (defaultCompany) {
@@ -217,7 +217,7 @@ export default function Tickets() {
   } else {
     console.log('✅ No Default company in raw API data');
   }
-  
+
   const users = (usersData as any)?.users || [];
 
   // Extract data for new modal fields with safe type checking
@@ -283,9 +283,9 @@ export default function Tickets() {
         console.log('Fetching customers for company:', selectedCompanyId);
         const response = await apiRequest("GET", `/api/companies/${selectedCompanyId}/customers`);
         const data = await response.json();
-        
+
         console.log('Company customers response:', data);
-        
+
         if (data.success && data.customers) {
           setFilteredCustomers(data.customers);
         } else {
@@ -330,7 +330,7 @@ export default function Tickets() {
   // Handle form submission  
   const onSubmit = (data: NewTicketModalData) => {
     console.log('🎫 New ticket form submitted:', data);
-    
+
     // Transform data to match backend API format
     const ticketData = {
       customerId: data.customerId,
@@ -350,7 +350,7 @@ export default function Tickets() {
       callerId: data.customerId, // Map to backend field
       customerCompanyId: data.companyId, // Map to backend field
     };
-    
+
     createTicketMutation.mutate(ticketData);
   };
 

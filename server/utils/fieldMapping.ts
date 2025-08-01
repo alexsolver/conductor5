@@ -15,7 +15,7 @@ export interface TicketFieldMapping {
 
 export const FRONTEND_TO_BACKEND_MAPPING: Record<string, string> = {
   callerId: 'caller_id',
-  beneficiaryId: 'beneficiary_id', 
+  beneficiaryId: 'beneficiary_id', // FK para tabela favorecidos
   assignedToId: 'assigned_to_id',
   customerCompanyId: 'customer_id', // MAPEAMENTO CORRETO
   // 🚨 CORREÇÃO CRÍTICA: location é campo texto, não FK
