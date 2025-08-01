@@ -394,13 +394,14 @@ router.get('/skills-matrix', async (req: AuthenticatedRequest, res) => {
         
         const skill = skillsMap.get(skillName);
         skill.count += 1;
-        skill.totalPerformance += (comp.performance || 75);
+        skill.totalPerformance += (comp.performance || 0);
         
-        // Update level based on average performance
+        // Calculate level based on actual performance and experience
         const avgPerformance = skill.totalPerformance / skill.count;
-        if (avgPerformance >= 90) skill.level = 'Avançado';
-        else if (avgPerformance >= 75) skill.level = 'Intermediário';
-        else skill.level = 'Básico';
+        if (avgPerformance >= 85 && comp.experienceLevel === 'Avançado') skill.level = 'Avançado';
+        else if (avgPerformance >= 70 && comp.experienceLevel === 'Intermediário') skill.level = 'Intermediário';
+        else if (avgPerformance > 0) skill.level = 'Básico';
+        else skill.level = 'Não avaliado';
 
         // Count by category
         if (!categoriesMap.has(category)) {
@@ -436,10 +437,30 @@ router.get('/skills-matrix', async (req: AuthenticatedRequest, res) => {
     ))
     .groupBy(users.role, users.status);
 
-    const roleSkills = userDistribution.map(dist => ({
-      name: `${dist.role || 'Função Geral'} (${dist.status})`,
-      count: Number(dist.userCount),
-      level: 'Não definido' // Will be calculated based on actual performance data
+    const roleSkills = await Promise.all(userDistribution.map(async (dist) => {
+      // Calculate actual skill level based on user performance in this role
+      const rolePerformance = await db.select({
+        avgPerformance: sql<number>`ROUND(AVG(${users.performance}), 2)`
+      })
+      .from(users)
+      .where(and(
+        eq(users.tenantId, user.tenantId),
+        eq(users.role, dist.role),
+        eq(users.status, dist.status),
+        not(isNull(users.performance))
+      ));
+
+      const avgPerf = rolePerformance[0]?.avgPerformance || 0;
+      let level = 'Não avaliado';
+      if (avgPerf >= 85) level = 'Avançado';
+      else if (avgPerf >= 70) level = 'Intermediário'; 
+      else if (avgPerf > 0) level = 'Básico';
+
+      return {
+        name: `${dist.role || 'Função Geral'} (${dist.status})`,
+        count: Number(dist.userCount),
+        level
+      };
     }));
 
     const departmentCategories = await db.select({
