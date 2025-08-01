@@ -31,10 +31,9 @@ export const useFieldColors = () => {
     refetchInterval: false, // Disable auto-refetch
   });
 
-  // Função para buscar cor de um campo específico
+  // Função para buscar cor de um campo específico com fallback para empresa Default
   const getFieldColor = (fieldName: string, value: string): string | undefined => {
     if (!fieldOptions?.data) {
-      // Não fazer log excessivo quando dados não estão carregados
       return undefined;
     }
 
@@ -42,25 +41,75 @@ export const useFieldColors = () => {
       return undefined;
     }
 
+    // Primeiro, tentar encontrar configuração específica
     const option = fieldOptions.data.find(
       (opt: FieldOption) => opt.field_name === fieldName && opt.value === value
     );
 
     if (option?.color) {
-      // Log apenas em modo debug mais específico
       if (process.env.NODE_ENV === 'development' && Math.random() < 0.1) {
         console.log(`🎨 Color found: ${fieldName}:${value} = ${option.color}`);
       }
       return option.color;
-    } else {
-      // Log apenas quando não encontrar cor esperada
-      if (process.env.NODE_ENV === 'development' && ['priority', 'status'].includes(fieldName)) {
-        console.log(`🎨 No color for ${fieldName}:${value}. Available:`, 
-          fieldOptions.data.filter(opt => opt.field_name === fieldName).map(opt => `${opt.value}:${opt.color}`).slice(0, 3)
-        );
-      }
-      return undefined;
     }
+
+    // Se não encontrou, fazer fallback para mapeamento de cores padrão da empresa Default
+    const defaultColorMap: Record<string, Record<string, string>> = {
+      category: {
+        'suporte_tecnico': '#3b82f6',
+        'atendimento_cliente': '#10b981', 
+        'financeiro': '#f59e0b',
+        'vendas': '#8b5cf6',
+        'support': '#6b7280',
+        'hardware': '#ef4444',
+        'software': '#22c55e',
+        'network': '#f97316',
+        'access': '#84cc16',
+        'other': '#64748b'
+      },
+      priority: {
+        'low': '#10b981',
+        'medium': '#22c55e', 
+        'high': '#9333ea',
+        'critical': '#dc2626'
+      },
+      status: {
+        'new': '#9333ea',
+        'open': '#3b82f6',
+        'in_progress': '#f59e0b',
+        'resolved': '#10b981',
+        'closed': '#6b7280'
+      },
+      urgency: {
+        'low': '#10b981',
+        'medium': '#f59e0b',
+        'high': '#f97316',
+        'critical': '#dc2626'
+      },
+      impact: {
+        'low': '#10b981',
+        'medium': '#f59e0b', 
+        'high': '#f97316',
+        'critical': '#dc2626'
+      }
+    };
+
+    const fallbackColor = defaultColorMap[fieldName]?.[value];
+    
+    if (fallbackColor) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`🎨 Using fallback color for ${fieldName}:${value} = ${fallbackColor}`);
+      }
+      return fallbackColor;
+    }
+
+    if (process.env.NODE_ENV === 'development' && ['priority', 'status', 'category'].includes(fieldName)) {
+      console.log(`🎨 No color found for ${fieldName}:${value}. Available:`, 
+        fieldOptions.data.filter(opt => opt.field_name === fieldName).map(opt => `${opt.value}:${opt.color}`).slice(0, 3)
+      );
+    }
+    
+    return undefined;
   };
 
   // Função para buscar label de um campo específico

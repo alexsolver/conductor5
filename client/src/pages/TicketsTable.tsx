@@ -839,7 +839,25 @@ const TicketsTable = React.memo(() => {
         case 'category':
           const rawCategoryValue = (ticket as any).category;
           const categoryValue = rawCategoryValue || 'support'; // Use raw value or default
-          const categoryColor = getFieldColorWithFallback('category', categoryValue);
+          let categoryColor = getFieldColor('category', categoryValue);
+          
+          // Se não encontrou cor específica, usar cor padrão baseada no valor
+          if (!categoryColor) {
+            const defaultCategoryColors: Record<string, string> = {
+              'suporte_tecnico': '#3b82f6',
+              'atendimento_cliente': '#10b981', 
+              'financeiro': '#f59e0b',
+              'vendas': '#8b5cf6',
+              'support': '#6b7280',
+              'hardware': '#ef4444',
+              'software': '#22c55e',
+              'network': '#f97316',
+              'access': '#84cc16',
+              'other': '#64748b'
+            };
+            categoryColor = defaultCategoryColors[categoryValue] || '#6b7280';
+          }
+          
           const categoryLabel = getFieldLabel('category', categoryValue) || categoryValue;
 
           console.log(`🎨 Category badge for ticket ${ticket.id}:`, {

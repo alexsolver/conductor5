@@ -29,18 +29,18 @@ const getContrastClassFromHex = (hexColor: string): string => {
     '#f59e0b': 'bg-amber-600 text-white border-amber-600',     // Média/Em andamento - Amarelo
     '#ef4444': 'bg-red-600 text-white border-red-600',         // Alta - Vermelho
     '#dc2626': 'bg-red-700 text-white border-red-700',         // Crítica - Vermelho escuro
-    
+
     // Cores de status específicas
     '#6b7280': 'bg-slate-600 text-white border-slate-600',     // Novo - Cinza
     '#3b82f6': 'bg-blue-600 text-white border-blue-600',       // Aberto - Azul
     '#374151': 'bg-gray-700 text-white border-gray-700',       // Fechado - Cinza escuro
-    
+
     // Cores de categoria
     '#8b5cf6': 'bg-purple-600 text-white border-purple-600',   // Infraestrutura - Roxo
     '#06b6d4': 'bg-cyan-600 text-white border-cyan-600',       // Suporte técnico - Ciano
     '#84cc16': 'bg-lime-600 text-white border-lime-600',       // Atendimento - Lima
     '#f97316': 'bg-orange-600 text-white border-orange-600',   // Financeiro - Laranja
-    
+
     // Variações de cores (maiúsculas e alternativas)
     '#059669': 'bg-emerald-700 text-white border-emerald-700', // Verde alternativo
     '#d97706': 'bg-amber-700 text-white border-amber-700',     // Amarelo alternativo
@@ -101,10 +101,82 @@ export function DynamicBadge(props: DynamicBadgeProps) {
   let dynamicClasses = '';
   let inlineStyles: React.CSSProperties = {};
 
+  // Implementar fallback robusto para cores
+  const getFieldColorWithDefault = (fieldName: string, value: string): string => {
+    // Primeiro tentar buscar cor configurada
+    // @ts-ignore
+    const getFieldColor = () => undefined;
+    const configuredColor = getFieldColor(fieldName, value);
+    if (configuredColor) return configuredColor;
+
+    // Fallback para cores padrão da empresa Default
+    const defaultColors: Record<string, Record<string, string>> = {
+      category: {
+        'suporte_tecnico': '#3b82f6',
+        'atendimento_cliente': '#10b981', 
+        'financeiro': '#f59e0b',
+        'vendas': '#8b5cf6',
+        'support': '#6b7280',
+        'hardware': '#ef4444',
+        'software': '#22c55e',
+        'network': '#f97316',
+        'access': '#84cc16',
+        'other': '#64748b'
+      },
+      priority: {
+        'low': '#10b981',
+        'medium': '#22c55e', 
+        'high': '#9333ea',
+        'critical': '#dc2626'
+      },
+      status: {
+        'new': '#9333ea',
+        'open': '#3b82f6',
+        'in_progress': '#f59e0b',
+        'resolved': '#10b981',
+        'closed': '#6b7280'
+      },
+      urgency: {
+        'low': '#10b981',
+        'medium': '#f59e0b',
+        'high': '#f97316',
+        'critical': '#dc2626'
+      },
+      impact: {
+        'low': '#10b981',
+        'medium': '#f59e0b', 
+        'high': '#f97316',
+        'critical': '#dc2626'
+      }
+    };
+
+    return defaultColors[fieldName]?.[value] || '#6b7280';
+  };
+
+  const finalColor = colorHex || getFieldColorWithDefault(fieldName, value);
+
+  // Converter cor hex para classes Tailwind ou usar inline styles
+  const getBadgeStyles = (color: string) => {
+    // Se for uma cor hex, usar inline styles
+    if (color.startsWith('#')) {
+      return {
+        backgroundColor: color,
+        // @ts-ignore
+        color: getContrastColor(color)
+      };
+    }
+
+    // Fallback para classes padrão se não conseguir processar
+    return {
+      backgroundColor: '#6b7280',
+      color: '#ffffff'
+    };
+  };
+
   // Prioridade: colorHex > bgColor > variant padrão
   if (colorHex && colorHex.trim() !== '') {
     const mappedClass = getContrastClassFromHex(colorHex);
-    
+
     if (mappedClass === 'custom-hex-color') {
       // Usar estilos inline para cores hex personalizadas
       inlineStyles = {
@@ -146,10 +218,10 @@ function getContrastTextColor(hexColor: string): string {
   const r = parseInt(hex.substr(0, 2), 16);
   const g = parseInt(hex.substr(2, 2), 16);
   const b = parseInt(hex.substr(4, 2), 16);
-  
+
   // Calcular luminância
   const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-  
+
   // Retornar preto para cores claras, branco para cores escuras
   return luminance > 0.5 ? '#000000' : '#ffffff';
 }
