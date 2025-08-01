@@ -32,7 +32,9 @@ export class SkillController {
       const skillRepository = new DrizzleSkillRepository(req.user.tenantId);
       const { category, search, isActive } = req.query;
 
-      const filters: any = {};
+      const filters: any = {
+        tenantId: req.user.tenantId  // Garantir que sempre filtre pelo tenant
+      };
       if (category) filters.category = category as string;
       if (search) filters.search = search as string;
       if (isActive !== undefined) filters.isActive = isActive === 'true';
