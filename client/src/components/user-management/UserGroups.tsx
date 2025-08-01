@@ -349,6 +349,7 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
   const handleToggleUserInGroup = async (userId: string, shouldBeInGroup: boolean) => {
     if (!editingGroup || isUpdatingMemberships) return;
 
+    console.log(`Toggle user ${userId} to ${shouldBeInGroup ? 'add' : 'remove'}`);
     setIsUpdatingMemberships(true);
 
     try {
@@ -358,18 +359,21 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
           groupId: editingGroup.id,
           userId: userId
         });
-        // Update local state optimistically
-        setSelectedUsers(prev => [...prev.filter(id => id !== userId), userId]);
       } else {
         // Remove user from group
         await removeUserFromGroupMutation.mutateAsync({
           groupId: editingGroup.id,
           userId: userId
         });
-        // Update local state optimistically
-        setSelectedUsers(prev => prev.filter(id => id !== userId));
       }
     } catch (error: any) {
+      // Revert local state on error
+      if (shouldBeInGroup) {
+        setSelectedUsers(prev => prev.filter(id => id !== userId));
+      } else {
+        setSelectedUsers(prev => [...prev, userId]);
+      }
+      
       const errorMessage = error?.message || 'Erro na operação';
       toast({
         title: "Erro na operação",
@@ -677,17 +681,30 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
                               key={member.id}
                               className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
                             >
-                              <Checkbox
-                                id={`member-${member.id}`}
-                                checked={isInGroup}
-                                onCheckedChange={(checked) => {
-                                  // Use the checked value directly to avoid state conflicts
-                                  if (!isUpdatingMemberships) {
-                                    handleToggleUserInGroup(member.id, !!checked);
-                                  }
-                                }}
-                                disabled={isUpdatingMemberships}
-                              />
+                              <div 
+                                className="flex items-center"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <Checkbox
+                                  id={`member-checkbox-${member.id}`}
+                                  checked={isInGroup}
+                                  onCheckedChange={(checked) => {
+                                    console.log(`Checkbox ${member.id} changed to:`, checked);
+                                    if (!isUpdatingMemberships) {
+                                      // Update local state immediately
+                                      const newCheckedState = !!checked;
+                                      if (newCheckedState && !selectedUsers.includes(member.id)) {
+                                        setSelectedUsers(prev => [...prev, member.id]);
+                                      } else if (!newCheckedState && selectedUsers.includes(member.id)) {
+                                        setSelectedUsers(prev => prev.filter(id => id !== member.id));
+                                      }
+                                      // Then make API call
+                                      handleToggleUserInGroup(member.id, newCheckedState);
+                                    }
+                                  }}
+                                  disabled={isUpdatingMemberships}
+                                />
+                              </div>
                               <div className="flex-1 min-w-0 ml-2">
                                 <div className="flex items-center space-x-2">
                                   <User className="h-4 w-4 text-gray-400" />
