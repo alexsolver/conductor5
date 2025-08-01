@@ -30,7 +30,6 @@ import {
 const skillFormSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório").max(255),
   category: z.string().min(1, "Categoria é obrigatória"),
-  minLevelRequired: z.number().min(1).max(5).default(1),
   suggestedCertification: z.string().optional(),
   certificationValidityMonths: z.number().positive().optional(),
   description: z.string().optional(),
@@ -60,8 +59,6 @@ interface Skill {
   id: string;
   name: string;
   category: string;
-  minLevelRequired?: number;
-  maxLevelRequired?: number;
   suggestedCertification?: string;
   certificationValidityMonths?: number;
   description?: string;
@@ -142,7 +139,6 @@ export default function TechnicalSkills() {
     defaultValues: {
       name: "",
       category: "",
-      minLevelRequired: 1,
       suggestedCertification: "",
       certificationValidityMonths: undefined,
       description: "",
@@ -222,7 +218,6 @@ export default function TechnicalSkills() {
     editForm.reset({
       name: skill.name,
       category: skill.category,
-      minLevelRequired: skill.minLevelRequired,
       suggestedCertification: skill.suggestedCertification || "",
       certificationValidityMonths: skill.certificationValidityMonths || undefined,
       description: skill.description || "",
@@ -232,21 +227,20 @@ export default function TechnicalSkills() {
     setIsEditDialogOpen(true);
   };
 
-  const renderStars = (level: number, skillScaleOptions?: typeof DEFAULT_SCALE_OPTIONS) => {
-    const options = skillScaleOptions || scaleOptions;
-    const levelOption = options.find(opt => opt.level === level);
-    const levelLabel = levelOption?.label || `Nível ${level}`;
+  const renderStars = (skillScaleOptions?: typeof DEFAULT_SCALE_OPTIONS) => {
+    const options = skillScaleOptions || DEFAULT_SCALE_OPTIONS;
+    const maxLevel = Math.max(...options.map(opt => opt.level));
 
     return (
       <div className="flex items-center space-x-1">
-        {Array.from({ length: 5 }, (_, i) => (
+        {Array.from({ length: maxLevel }, (_, i) => (
           <Star
             key={i}
-            className={`h-4 w-4 ${i < level ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`}
+            className={`h-4 w-4 fill-yellow-400 text-yellow-400`}
           />
         ))}
         <span className="ml-1 text-xs text-gray-500">
-          {levelLabel} mín.
+          {options.length} níveis
         </span>
       </div>
     );
@@ -334,30 +328,39 @@ export default function TechnicalSkills() {
                   )}
                 />
 
-                <FormField
-                  control={createForm.control}
-                  name="minLevelRequired"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Escala</FormLabel>
-                      <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString()}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione a escala" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {scaleOptions.map((option) => (
-                            <SelectItem key={option.level} value={option.level.toString()}>
-                              {option.label} - {option.description}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {/* Editor de Opções da Escala */}
+                <div className="space-y-4">
+                  <FormLabel>Opções da Escala</FormLabel>
+                  {scaleOptions.map((option, index) => (
+                    <div key={option.level} className="grid grid-cols-12 gap-2 items-center">
+                      <div className="col-span-1">
+                        <span className="text-sm font-medium">{option.level}</span>
+                      </div>
+                      <div className="col-span-3">
+                        <Input
+                          placeholder="Nome da escala"
+                          value={option.label}
+                          onChange={(e) => {
+                            const newOptions = [...scaleOptions];
+                            newOptions[index].label = e.target.value;
+                            setScaleOptions(newOptions);
+                          }}
+                        />
+                      </div>
+                      <div className="col-span-8">
+                        <Input
+                          placeholder="Descrição da escala"
+                          value={option.description}
+                          onChange={(e) => {
+                            const newOptions = [...scaleOptions];
+                            newOptions[index].description = e.target.value;
+                            setScaleOptions(newOptions);
+                          }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
 
                 <FormField
                   control={createForm.control}
@@ -527,7 +530,7 @@ export default function TechnicalSkills() {
                     <CardTitle className="text-lg">{skill.name}</CardTitle>
                     <div className="flex items-center space-x-2 mt-1">
                       <Badge variant="secondary">{skill.category}</Badge>
-                      {renderStars(skill.minLevelRequired || 1, skill.scaleOptions)}
+                      {renderStars(skill.scaleOptions)}
                     </div>
                   </div>
                   <div className="flex space-x-1">
@@ -619,31 +622,6 @@ export default function TechnicalSkills() {
                           ))}
                         </SelectContent>
                       </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={editForm.control}
-                name="minLevelRequired"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Escala</FormLabel>
-                    <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString()}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {scaleOptions.map((option) => (
-                          <SelectItem key={option.level} value={option.level.toString()}>
-                            {option.label} - {option.description}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}

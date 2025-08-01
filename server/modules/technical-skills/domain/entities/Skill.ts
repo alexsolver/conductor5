@@ -3,8 +3,11 @@ export class Skill {
     public readonly id: string,
     public name: string,
     public category: string,
-    public minLevelRequired: number,
-    public maxLevelRequired: number = 5,
+    public description?: string,
+    public suggestedCertification?: string,
+    public certificationValidityMonths?: number,
+    public observations?: string,
+    public scaleOptions: Array<{level: number, label: string, description: string}> = [],
     public tenantId?: string,
     public isActive: boolean = true,
     public readonly createdAt: Date = new Date(),
@@ -14,7 +17,6 @@ export class Skill {
   ) {
     this.validateName();
     this.validateCategory();
-    this.validateMinLevel();
   }
 
   private validateName(): void {
@@ -35,12 +37,6 @@ export class Skill {
     }
   }
 
-  private validateMinLevel(): void {
-    if (this.minLevelRequired < 1 || this.minLevelRequired > 5) {
-      throw new Error('Nível mínimo deve estar entre 1 e 5');
-    }
-  }
-
   updateName(newName: string): void {
     this.name = newName;
     this.validateName();
@@ -53,9 +49,8 @@ export class Skill {
     this.updatedAt = new Date();
   }
 
-  updateMinLevel(newLevel: number): void {
-    this.minLevelRequired = newLevel;
-    this.validateMinLevel();
+  updateScaleOptions(newScaleOptions: Array<{level: number, label: string, description: string}>): void {
+    this.scaleOptions = newScaleOptions;
     this.updatedAt = new Date();
   }
 
@@ -72,8 +67,11 @@ export class Skill {
   static create(data: {
     name: string;
     category: string;
-    minLevelRequired?: number;
-    maxLevelRequired?: number;
+    description?: string;
+    suggestedCertification?: string;
+    certificationValidityMonths?: number;
+    observations?: string;
+    scaleOptions?: Array<{level: number, label: string, description: string}>;
     createdBy?: string;
     tenantId?: string;
   }): Skill {
@@ -81,8 +79,11 @@ export class Skill {
       crypto.randomUUID(),
       data.name,
       data.category,
-      data.minLevelRequired || 1,
-      data.maxLevelRequired || 5,
+      data.description,
+      data.suggestedCertification,
+      data.certificationValidityMonths,
+      data.observations,
+      data.scaleOptions || [],
       data.tenantId,
       true,
       new Date(),

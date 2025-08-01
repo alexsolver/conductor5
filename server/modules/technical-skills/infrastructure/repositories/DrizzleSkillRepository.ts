@@ -90,14 +90,45 @@ export class DrizzleSkillRepository implements ISkillRepository {
       .set({
         name: skill.name,
         category: skill.category,
-        levelMin: skill.minLevelRequired || 1,
-        levelMax: skill.maxLevelRequired || 5,
+        description: skill.description,
+        suggestedCertification: skill.suggestedCertification,
+        certificationValidityMonths: skill.certificationValidityMonths,
+        observations: skill.observations,
+        scaleOptions: skill.scaleOptions || [],
         updatedAt: new Date(),
+        updatedBy: skill.updatedBy,
       })
       .where(eq(skills.id, skill.id))
       .returning();
 
     return this.mapToSkill(result);
+  }
+
+  async updateDirect(updateData: any): Promise<any> {
+    const [updated] = await db
+      .update(skills)
+      .set({
+        name: updateData.name,
+        category: updateData.category,
+        description: updateData.description,
+        observations: updateData.observations,
+        suggestedCertification: updateData.suggestedCertification,
+        certificationValidityMonths: updateData.certificationValidityMonths,
+        scaleOptions: updateData.scaleOptions || [],
+        updatedAt: new Date(),
+        updatedBy: updateData.updatedBy
+      })
+      .where(and(
+        eq(skills.id, updateData.id),
+        eq(skills.tenantId, updateData.tenantId)
+      ))
+      .returning();
+
+    if (!updated) {
+      throw new Error('Skill not found or permission denied');
+    }
+
+    return this.mapToSkill(updated);
   }
 
   async delete(id: string): Promise<void> {
