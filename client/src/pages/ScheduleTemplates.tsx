@@ -101,10 +101,6 @@ export default function ScheduleTemplates() {
   // Buscar templates de escalas
   const { data: templatesData, isLoading } = useQuery({
     queryKey: ['/api/timecard/schedule-templates'],
-    queryFn: async () => {
-      const response = await apiRequest('GET', '/api/timecard/schedule-templates');
-      return response;
-    },
   });
 
   // Criar template
