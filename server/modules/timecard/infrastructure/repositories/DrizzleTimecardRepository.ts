@@ -58,14 +58,14 @@ export class DrizzleTimecardRepository implements TimecardRepository {
   // Método auxiliar para calcular duração do intervalo
   private calculateBreakDurationMinutes(breakStart: string | null, breakEnd: string | null): number {
     if (!breakStart || !breakEnd) return 60; // Default 60 minutes
-    
+
     try {
       const [startHours, startMinutes] = breakStart.split(':').map(Number);
       const [endHours, endMinutes] = breakEnd.split(':').map(Number);
-      
+
       const startTotalMinutes = startHours * 60 + startMinutes;
       const endTotalMinutes = endHours * 60 + endMinutes;
-      
+
       return Math.max(0, endTotalMinutes - startTotalMinutes);
     } catch (error) {
       console.error('Error calculating break duration:', error);
@@ -141,7 +141,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
     try {
       // Ensure workDays is properly formatted as array
       const workDaysArray = Array.isArray(data.workDays) ? data.workDays : [1,2,3,4,5];
-      
+
       const [schedule] = await db
         .insert(workSchedules)
         .values({
@@ -160,7 +160,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
           isActive: data.isActive ?? true
         })
         .returning();
-      
+
       return schedule;
     } catch (error) {
       console.error('Error creating work schedule:', error);
@@ -199,7 +199,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
       return schedules.map(schedule => {
         // Safely process workDays
         let processedWorkDays: number[] = [1,2,3,4,5];
-        
+
         try {
           if (schedule.workDays) {
             if (Array.isArray(schedule.workDays)) {
@@ -220,13 +220,13 @@ export class DrizzleTimecardRepository implements TimecardRepository {
           tenantId: schedule.tenantId,
           userId: schedule.userId,
           userName: `${schedule.firstName || ''} ${schedule.lastName || ''}`.trim() || 'Usuário',
-          scheduleType: schedule.scheduleType || '5x2', // CORRIGIDO: usar campo correto
-          startDate: schedule.startDate?.toISOString() || new Date().toISOString(), // CORRIGIDO: usar campo correto
-          endDate: schedule.endDate?.toISOString() || null, // CORRIGIDO: usar campo correto
+          scheduleName: schedule.scheduleName || '5x2',
+          scheduleType: schedule.scheduleName || '5x2', // Alias para compatibilidade frontend
           workDays: processedWorkDays,
           startTime: schedule.startTime,
           endTime: schedule.endTime,
-          breakDurationMinutes: schedule.breakDurationMinutes || 60, // CORRIGIDO: simplificado
+          breakStart: schedule.breakStart,
+          breakEnd: schedule.breakEnd,
           isActive: schedule.isActive ?? true,
           createdAt: schedule.createdAt,
           updatedAt: schedule.updatedAt
@@ -241,7 +241,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
   async getAllWorkSchedules(tenantId: string): Promise<any[]> {
     try {
       console.log('[DRIZZLE-QA] Fetching work schedules for tenant:', tenantId);
-      
+
       const schedules = await db
         .select({
           id: workSchedules.id,
@@ -271,7 +271,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
       const mappedSchedules = schedules.map(schedule => {
         // Safely process workDays from JSONB field
         let processedWorkDays: number[] = [1,2,3,4,5]; // Default Monday-Friday
-        
+
         try {
           if (schedule.workDays) {
             if (Array.isArray(schedule.workDays)) {
@@ -294,13 +294,13 @@ export class DrizzleTimecardRepository implements TimecardRepository {
           tenantId: schedule.tenantId,
           userId: schedule.userId,
           userName: `${schedule.firstName || ''} ${schedule.lastName || ''}`.trim() || 'Usuário',
-          scheduleType: schedule.scheduleType || '5x2', // CORRIGIDO: usar campo correto
-          startDate: schedule.startDate?.toISOString() || new Date().toISOString(), // CORRIGIDO: usar campo correto
-          endDate: schedule.endDate?.toISOString() || null, // CORRIGIDO: usar campo correto
+          scheduleName: schedule.scheduleName || '5x2',
+          scheduleType: schedule.scheduleName || '5x2', // Alias para compatibilidade frontend
           workDays: processedWorkDays,
           startTime: schedule.startTime,
           endTime: schedule.endTime,
-          breakDurationMinutes: schedule.breakDurationMinutes || 60, // CORRIGIDO: simplificado
+          breakStart: schedule.breakStart,
+          breakEnd: schedule.breakEnd,
           isActive: schedule.isActive ?? true,
           createdAt: schedule.createdAt,
           updatedAt: schedule.updatedAt
@@ -319,7 +319,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
     try {
       // Ensure workDays is properly formatted
       const workDaysArray = Array.isArray(data.workDays) ? data.workDays : [1,2,3,4,5];
-      
+
       const updateData = {
         scheduleType: data.scheduleType || data.scheduleName,
         startDate: data.startDate ? new Date(data.startDate) : undefined,
@@ -347,7 +347,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
         .set(cleanUpdateData)
         .where(and(eq(workSchedules.id, id), eq(workSchedules.tenantId, tenantId)))
         .returning();
-      
+
       return schedule;
     } catch (error) {
       console.error('Error updating work schedule:', error);

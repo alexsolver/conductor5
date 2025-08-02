@@ -808,18 +808,17 @@ export const timecardEntries = pgTable("timecard_entries", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Work Schedules - Escalas de Trabalho (CORRIGIDO FINAL: campo real é schedule_type conforme verificação SQL)
+// Work Schedules - Escalas de Trabalho (CORRIGIDO: usar schedule_name conforme banco real)
 export const workSchedules = pgTable("work_schedules", {
   id: uuid("id").defaultRandom().primaryKey(),
   tenantId: uuid("tenant_id").notNull(),
   userId: uuid("user_id").notNull().references(() => users.id),
-  scheduleType: varchar("schedule_type", { length: 255 }).notNull(), // Confirmado: campo real do banco
-  startDate: date("start_date").notNull(), 
-  endDate: date("end_date"), 
-  workDays: integer("work_days").array().notNull(), // ARRAY type confirmado no banco
+  scheduleName: varchar("schedule_name", { length: 100 }).notNull(), // Campo real do banco conforme migração
+  workDays: jsonb("work_days").notNull(), // JSONB conforme migração real
   startTime: time("start_time").notNull(),
   endTime: time("end_time").notNull(),
-  breakDurationMinutes: integer("break_duration_minutes").default(60),
+  breakStart: time("break_start"),
+  breakEnd: time("break_end"),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
