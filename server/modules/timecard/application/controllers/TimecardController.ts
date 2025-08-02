@@ -245,6 +245,29 @@ export class TimecardController {
     }
   };
 
+  createBulkWorkSchedules = async (req: Request, res: Response) => {
+    try {
+      const { tenantId } = (req as any).user;
+      const { userIds, scheduleData } = req.body;
+
+      if (!Array.isArray(userIds) || userIds.length === 0) {
+        return res.status(400).json({ message: 'Lista de usuários é obrigatória' });
+      }
+
+      console.log('[BULK-QA] Processing bulk assignment for', userIds.length, 'users');
+
+      const schedules = await this.timecardRepository.createBulkWorkSchedules(userIds, scheduleData, tenantId);
+      
+      res.status(201).json({ 
+        message: `${schedules.length} escalas criadas com sucesso`,
+        schedules 
+      });
+    } catch (error) {
+      console.error('Error creating bulk work schedules:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+  };
+
   deleteWorkSchedule = async (req: Request, res: Response) => {
     try {
       const { tenantId } = (req as any).user;

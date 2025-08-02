@@ -205,7 +205,7 @@ function WorkSchedulesContent() {
         isActive: schedule.isActive ?? true
       }));
     } else if (schedulesData && typeof schedulesData === 'object') {
-      const rawSchedules = schedulesData.schedules || schedulesData.data || [];
+      const rawSchedules = (schedulesData as any).schedules || (schedulesData as any).data || [];
       schedules = Array.isArray(rawSchedules) ? rawSchedules : [];
     }
   } catch (error) {

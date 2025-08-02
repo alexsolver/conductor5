@@ -23,6 +23,10 @@ timecardRouter.delete('/work-schedules/:id', jwtAuth, (req, res) =>
   timecardController.deleteWorkSchedule(req, res)
 );
 
+timecardRouter.post('/work-schedules/bulk-assign', jwtAuth, (req, res) => 
+  timecardController.createBulkWorkSchedules(req, res)
+);
+
 // Schedule Templates routes
 timecardRouter.get('/schedule-templates', jwtAuth, (req, res) => 
   timecardController.getScheduleTemplates(req, res)

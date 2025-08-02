@@ -137,7 +137,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
     try {
       console.log('[DRIZZLE-QA] Fetching work schedules for tenant:', tenantId);
 
-      // Get users for this tenant to create mock schedules
+      // Get users for this tenant
       const usersList = await db
         .select({
           id: users.id,
@@ -153,44 +153,107 @@ export class DrizzleTimecardRepository implements TimecardRepository {
 
       console.log('[DRIZZLE-QA] Found users for schedules:', usersList.length);
 
-      // Return mock schedules based on users
-      return usersList.map(user => ({
-        id: `schedule-${user.id}`,
-        userId: user.id,
-        scheduleName: 'Escala Padrão',
-        workDays: [1, 2, 3, 4, 5], // Monday to Friday
-        startTime: '08:00',
-        endTime: '18:00',
-        breakStart: '12:00',
-        breakEnd: '13:00',
-        isActive: true,
-        tenantId: tenantId,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        userName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email || 'Usuário'
-      }));
+      // Buscar escalas armazenadas em memória
+      const storedSchedules = DrizzleTimecardRepository.workSchedulesStorage.get(tenantId) || [];
+      console.log('[STORAGE-QA] Found stored schedules:', storedSchedules.length);
+
+      // Combinar usuários com suas escalas
+      const schedulesWithUsers = usersList.map(user => {
+        const userSchedule = storedSchedules.find(s => s.userId === user.id);
+        
+        if (userSchedule) {
+          return {
+            ...userSchedule,
+            userName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email || 'Usuário'
+          };
+        }
+        
+        // Escala padrão para usuários sem escala definida
+        return {
+          id: `schedule-${user.id}`,
+          userId: user.id,
+          scheduleType: '5x2',
+          scheduleName: 'Escala Padrão',
+          workDays: [1, 2, 3, 4, 5],
+          startTime: '08:00',
+          endTime: '18:00',
+          breakStart: '12:00',
+          breakEnd: '13:00',
+          isActive: true,
+          tenantId: tenantId,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          userName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email || 'Usuário'
+        };
+      });
+
+      return schedulesWithUsers;
     } catch (error: any) {
       console.error('[DRIZZLE-QA] Error fetching work schedules:', error);
       return [];
     }
   }
 
+  // Armazenamento temporário de escalas em memória até tabela ser criada
+  private static workSchedulesStorage: Map<string, any[]> = new Map();
+
   async createWorkSchedule(data: any): Promise<any> {
-    console.log('Work schedule creation not implemented - table missing');
-    return {
+    console.log('[CONTROLLER-QA] Creating work schedule:', data);
+    
+    const newSchedule = {
       id: `schedule-${Date.now()}`,
       tenantId: data.tenantId,
       userId: data.userId,
-      scheduleName: data.scheduleName || 'Nova Escala',
+      scheduleType: data.scheduleType,
+      scheduleName: `Escala ${data.scheduleType}`,
       workDays: data.workDays || [1, 2, 3, 4, 5],
       startTime: data.startTime,
       endTime: data.endTime,
       breakStart: data.breakStart,
       breakEnd: data.breakEnd,
-      isActive: true,
+      breakDurationMinutes: data.breakDurationMinutes || 60,
+      isActive: data.isActive !== false,
+      startDate: data.startDate,
+      endDate: data.endDate,
       createdAt: new Date(),
       updatedAt: new Date()
     };
+
+    // Armazenar em memória temporariamente
+    const tenantKey = data.tenantId;
+    if (!DrizzleTimecardRepository.workSchedulesStorage.has(tenantKey)) {
+      DrizzleTimecardRepository.workSchedulesStorage.set(tenantKey, []);
+    }
+    
+    const tenantSchedules = DrizzleTimecardRepository.workSchedulesStorage.get(tenantKey)!;
+    
+    // Remover escala anterior do mesmo usuário se existir
+    const filteredSchedules = tenantSchedules.filter(s => s.userId !== data.userId);
+    filteredSchedules.push(newSchedule);
+    
+    DrizzleTimecardRepository.workSchedulesStorage.set(tenantKey, filteredSchedules);
+    
+    console.log('[STORAGE-QA] Stored schedule for user:', data.userId, 'Total schedules:', filteredSchedules.length);
+    
+    return newSchedule;
+  }
+
+  async createBulkWorkSchedules(userIds: string[], scheduleData: any, tenantId: string): Promise<any[]> {
+    console.log('[BULK-QA] Creating bulk schedules for', userIds.length, 'users');
+    
+    const createdSchedules = [];
+    
+    for (const userId of userIds) {
+      const newSchedule = await this.createWorkSchedule({
+        ...scheduleData,
+        userId,
+        tenantId
+      });
+      createdSchedules.push(newSchedule);
+    }
+    
+    console.log('[BULK-QA] Created', createdSchedules.length, 'schedules');
+    return createdSchedules;
   }
 
   async updateWorkSchedule(id: string, tenantId: string, data: any): Promise<any> {
@@ -433,6 +496,13 @@ export class DrizzleTimecardRepository implements TimecardRepository {
 
   async deleteScheduleTemplate(id: string, tenantId: string): Promise<void> {
     try {
+      // Não permitir deletar templates padrão (5x2, 6x1, 12x36)
+      const defaultTemplateIds = ['5x2', '6x1', '12x36'];
+      if (defaultTemplateIds.includes(id)) {
+        console.log('[TEMPLATES-DEBUG] Cannot delete default template:', id);
+        throw new Error('Não é possível deletar templates padrão do sistema');
+      }
+
       const { scheduleTemplates } = await import('@shared/schema');
       
       await db
@@ -442,7 +512,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
           eq(scheduleTemplates.tenantId, tenantId)
         ));
 
-      console.log('[TEMPLATES-DEBUG] Deleted template:', id);
+      console.log('[TEMPLATES-DEBUG] Deleted custom template:', id);
     } catch (error) {
       console.error('Error deleting schedule template:', error);
       throw error;
