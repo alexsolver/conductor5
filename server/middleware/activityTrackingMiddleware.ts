@@ -49,12 +49,27 @@ export const activityTrackingMiddleware = (activityType: string, resourceType?: 
           ActivityTrackingService.endActivity(activityId, {
             statusCode: res.statusCode,
             responseSize: JSON.stringify(data).length,
-            success: res.statusCode < 400
+            success: res.statusCode < 400,
+            duration_seconds: duration
           }).catch(console.error);
         }
 
         return originalJson.call(this, data);
       };
+
+      // Also handle cases where response ends without calling res.json
+      res.on('finish', () => {
+        if (activityId) {
+          const endTime = Date.now();
+          const duration = Math.floor((endTime - startTime) / 1000);
+          
+          ActivityTrackingService.endActivity(activityId, {
+            statusCode: res.statusCode,
+            success: res.statusCode < 400,
+            duration_seconds: duration
+          }).catch(console.error);
+        }
+      });
 
       next();
     } catch (error) {

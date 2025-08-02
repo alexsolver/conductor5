@@ -13,6 +13,7 @@ import { viteStabilityMiddleware, viteWebSocketStabilizer } from './middleware/v
 import { timecardRoutes } from './routes/timecardRoutes';
 import productivityRoutes from './routes/productivityRoutes';
 import { db, sql } from "./db";
+import { ActivityTrackingService } from './services/ActivityTrackingService';
 
 const app = express();
 
@@ -98,6 +99,9 @@ app.use((req, res, next) => {
 
   // Initialize production systems
   await productionInitializer.initialize();
+  
+  // Initialize activity tracking cleanup service
+  ActivityTrackingService.initializeCleanup();
 
   app.use('/api/timecard', timecardRoutes);
   app.use('/api/productivity', productivityRoutes);
@@ -135,7 +139,7 @@ app.use((req, res, next) => {
       res.status(500).json({
         status: 'error',
         message: 'Database connection failed',
-        error: error.message
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   });

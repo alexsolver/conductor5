@@ -19,6 +19,37 @@ interface ActivityData {
 
 export class ActivityTrackingService {
   private static activeActivities = new Map<string, any>();
+  
+  // Clean up activities older than 5 minutes (timeout)
+  static async cleanupStaleActivities(): Promise<void> {
+    const now = new Date();
+    const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
+    
+    const entries = Array.from(this.activeActivities.entries());
+    for (const [activityId, activity] of entries) {
+      if (activity.startTime < fiveMinutesAgo) {
+        // Force end stale activity with timeout duration
+        const durationSeconds = Math.floor((now.getTime() - activity.startTime.getTime()) / 1000);
+        
+        try {
+          await db.execute(sql`
+            UPDATE ${sql.identifier(this.getTenantSchema(activity.tenantId))}.user_activity_tracking 
+            SET end_time = ${now}, 
+                duration_seconds = ${durationSeconds},
+                action = 'timeout',
+                metadata = ${JSON.stringify({ ...activity.metadata, timeout: true })},
+                updated_at = ${now}
+            WHERE id = ${activityId}
+          `);
+          
+          this.activeActivities.delete(activityId);
+          console.log(`🧹 Cleaned up stale activity: ${activityId} (${durationSeconds}s)`);
+        } catch (error) {
+          console.error('Error cleaning up stale activity:', error);
+        }
+      }
+    }
+  }
 
   static async startActivity(data: ActivityData, req?: Request): Promise<string> {
     const activityId = crypto.randomUUID();
@@ -158,12 +189,23 @@ export class ActivityTrackingService {
     }
   }
 
+  // Initialize cleanup interval
+  static initializeCleanup(): void {
+    // Clean up stale activities every 2 minutes
+    setInterval(() => {
+      this.cleanupStaleActivities().catch(console.error);
+    }, 2 * 60 * 1000);
+    
+    console.log('🧹 Activity cleanup service initialized');
+  }
+
   private static getTenantSchema(tenantId: string): string {
     return `tenant_${tenantId.replace(/-/g, '_')}`;
   }
 
   private static extractSessionId(req?: Request): string {
-    return req?.sessionID || req?.headers['x-session-id'] as string || crypto.randomUUID();
+    // Cast req to any to access sessionID or use headers
+    return (req as any)?.sessionID || req?.headers['x-session-id'] as string || crypto.randomUUID();
   }
 
   private static extractIpAddress(req?: Request): string {
