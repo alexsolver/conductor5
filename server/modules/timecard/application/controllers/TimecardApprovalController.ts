@@ -349,9 +349,12 @@ export class TimecardApprovalController {
       res.json({ settings: result });
     } catch (error) {
       console.error('Error updating approval settings:', error);
-      console.error('Error details:', error.message);
-      console.error('Error stack:', error.stack);
-      res.status(500).json({ message: 'Erro interno do servidor', error: error.message });
+      console.error('Error details:', error instanceof Error ? error.message : 'Unknown error');
+      console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+      res.status(500).json({ 
+        message: 'Erro interno do servidor', 
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   };
 
