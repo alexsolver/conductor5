@@ -76,10 +76,7 @@ export default function TimecardApprovalSettings() {
   // Update settings mutation
   const updateSettingsMutation = useMutation({
     mutationFn: async (newSettings: Partial<ApprovalSettings>) => {
-      return await apiRequest('/api/timecard/approval/settings', {
-        method: 'PUT',
-        body: JSON.stringify(newSettings),
-      });
+      return await apiRequest('PUT', '/api/timecard/approval/settings', newSettings);
     },
     onSuccess: () => {
       toast({
@@ -101,10 +98,7 @@ export default function TimecardApprovalSettings() {
   // Create group mutation
   const createGroupMutation = useMutation({
     mutationFn: async (groupData: { name: string; description?: string }) => {
-      return await apiRequest('/api/timecard/approval/groups', {
-        method: 'POST',
-        body: JSON.stringify(groupData),
-      });
+      return await apiRequest('POST', '/api/timecard/approval/groups', groupData);
     },
     onSuccess: () => {
       toast({
@@ -129,9 +123,7 @@ export default function TimecardApprovalSettings() {
   // Delete group mutation
   const deleteGroupMutation = useMutation({
     mutationFn: async (groupId: string) => {
-      return await apiRequest(`/api/timecard/approval/groups/${groupId}`, {
-        method: 'DELETE',
-      });
+      return await apiRequest('DELETE', `/api/timecard/approval/groups/${groupId}`);
     },
     onSuccess: () => {
       toast({
