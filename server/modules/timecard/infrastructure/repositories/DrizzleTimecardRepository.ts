@@ -5,7 +5,8 @@ import {
   hourBankEntries, 
   users,
   workSchedules,
-  absenceRequests
+  absenceRequests,
+  scheduleTemplates
 } from '../../../../../shared/schema-master';
 
 export interface TimecardRepository {
@@ -450,73 +451,119 @@ export class DrizzleTimecardRepository implements TimecardRepository {
     }
   }
 
-  // Schedule Templates Implementation - Basic implementation
+  // Schedule Templates Implementation - Real Database Implementation
   async createScheduleTemplate(data: any): Promise<any> {
-    // Mock implementation - return dummy data
-    return {
-      id: 'template-' + Date.now(),
-      ...data,
-      isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
+    try {
+      console.log('[DRIZZLE-QA] Creating schedule template:', data);
+      
+      const [template] = await db
+        .insert(scheduleTemplates)
+        .values({
+          tenantId: data.tenantId,
+          name: data.name,
+          description: data.description,
+          scheduleType: data.scheduleType || data.scheduleName,
+          workDays: data.workDays,
+          startTime: data.startTime,
+          endTime: data.endTime,
+          breakStart: data.breakStart,
+          breakEnd: data.breakEnd,
+          flexibilityWindow: data.flexibilityWindow || 0,
+          isActive: true,
+          createdBy: data.createdBy
+        })
+        .returning();
+      
+      console.log('[DRIZZLE-QA] Template created with ID:', template.id);
+      return template;
+    } catch (error) {
+      console.error('[DRIZZLE-QA] Error creating schedule template:', error);
+      throw error;
+    }
   }
 
   async getScheduleTemplates(tenantId: string): Promise<any[]> {
     try {
       console.log('[DRIZZLE-QA] Fetching schedule templates for tenant:', tenantId);
+      
+      const templates = await db
+        .select()
+        .from(scheduleTemplates)
+        .where(and(
+          eq(scheduleTemplates.tenantId, tenantId),
+          eq(scheduleTemplates.isActive, true)
+        ))
+        .orderBy(asc(scheduleTemplates.name));
 
-      // Return basic predefined templates
-      return [
-        {
-          id: '5x2',
-          tenantId,
-          name: '5x2',
-          description: '5 dias úteis, 2 dias de folga',
-          scheduleName: '5x2',
-          workDays: [1,2,3,4,5],
-          startTime: '08:00',
-          endTime: '18:00',
-          breakStart: '12:00',
-          breakEnd: '13:00',
-          isActive: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        {
-          id: '6x1',
-          tenantId,
-          name: '6x1',
-          description: '6 dias úteis, 1 dia de folga',
-          scheduleName: '6x1',
-          workDays: [1,2,3,4,5,6],
-          startTime: '08:00',
-          endTime: '18:00',
-          breakStart: '12:00',
-          breakEnd: '13:00',
-          isActive: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        }
-      ];
+      console.log('[DRIZZLE-QA] Found templates:', templates.length);
+      
+      return templates.map(template => ({
+        id: template.id,
+        tenantId: template.tenantId,
+        name: template.name,
+        description: template.description,
+        scheduleName: template.scheduleType,
+        scheduleType: template.scheduleType,
+        workDays: template.workDays,
+        startTime: template.startTime,
+        endTime: template.endTime,
+        breakStart: template.breakStart,
+        breakEnd: template.breakEnd,
+        flexibilityWindow: template.flexibilityWindow,
+        isActive: template.isActive,
+        createdAt: template.createdAt,
+        updatedAt: template.updatedAt
+      }));
     } catch (error) {
-      console.error('Error fetching schedule templates:', error);
+      console.error('[DRIZZLE-QA] Error fetching schedule templates:', error);
       return [];
     }
   }
 
   async updateScheduleTemplate(id: string, tenantId: string, data: any): Promise<any> {
-    // Mock implementation - return dummy data
-    return {
-      id,
-      ...data,
-      updatedAt: new Date()
-    };
+    try {
+      console.log('[DRIZZLE-QA] Updating schedule template:', id, data);
+      
+      const [template] = await db
+        .update(scheduleTemplates)
+        .set({
+          ...data,
+          updatedAt: new Date()
+        })
+        .where(and(
+          eq(scheduleTemplates.id, id),
+          eq(scheduleTemplates.tenantId, tenantId)
+        ))
+        .returning();
+      
+      console.log('[DRIZZLE-QA] Template updated:', template.id);
+      return template;
+    } catch (error) {
+      console.error('[DRIZZLE-QA] Error updating schedule template:', error);
+      throw error;
+    }
   }
 
   async deleteScheduleTemplate(id: string, tenantId: string): Promise<void> {
-    // Mock implementation - do nothing
-    console.log(`Mock delete template ${id} for tenant ${tenantId}`);
+    try {
+      console.log('[DRIZZLE-QA] Deleting schedule template:', id, 'for tenant:', tenantId);
+      
+      await db
+        .update(scheduleTemplates)
+        .set({
+          isActive: false,
+          updatedAt: new Date()
+        })
+        .where(and(
+          eq(scheduleTemplates.id, id),
+          eq(scheduleTemplates.tenantId, tenantId)
+        ));
+      
+      console.log('[DRIZZLE-QA] Template soft deleted:', id);
+    } catch (error) {
+      console.error('[DRIZZLE-QA] Error deleting schedule template:', error);
+      throw error;
+    }
   }
 
   // Hour Bank Implementation
