@@ -128,15 +128,28 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
         });
       
       default: // 'hoje'
-        // Today from 6:00 to 24:00
-        return Array.from({ length: 19 }, (_, i) => {
-          const time = addHours(startOfDay(selectedDate), i + 6);
+        // Today from 0:00 to 24:00 (full day to catch all internal actions)
+        return Array.from({ length: 24 }, (_, i) => {
+          const time = addHours(startOfDay(selectedDate), i);
           return time;
         });
     }
   };
 
   const timeSlots = getTimeSlots();
+  
+  // Debug: Log time slots generation
+  React.useEffect(() => {
+    console.log('🔍 TIME SLOTS DEBUG:', {
+      selectedDate: selectedDate.toISOString(),
+      timeFilter,
+      totalSlots: timeSlots.length,
+      firstSlot: timeSlots[0]?.toISOString(),
+      lastSlot: timeSlots[timeSlots.length - 1]?.toISOString(),
+      slot19: timeSlots[19]?.toISOString(), // Slot for 19:00 (7 PM)
+      allSlots: timeSlots.map((slot, i) => `${i}: ${slot.getHours()}:00`).join(', ')
+    });
+  }, [timeSlots, selectedDate, timeFilter]);
 
   // Filter agents by search - fixed to handle firstName/lastName structure
   const filteredAgents = agents.filter(agent => {
