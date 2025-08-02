@@ -941,8 +941,6 @@ const TicketDetails = React.memo(() => {
   useEffect(() => {
     if (formDataMemo && ticket) {
       console.log('🎫 Optimized form reset with memoized data');
-      console.log('🚨 FORM RESET DEBUG - About to reset form');
-      console.log('📍 Reset call stack:', new Error().stack);
       form.reset(formDataMemo);
 
       // Update local states only if changed
@@ -959,10 +957,7 @@ const TicketDetails = React.memo(() => {
     }
   }, [formDataMemo, selectedCompany, followers]);
 
-  // Debug: Log when showInternalActionModal changes
-  useEffect(() => {
-    console.log('🔵 MODAL STATE CHANGE - showInternalActionModal:', showInternalActionModal);
-  }, [showInternalActionModal]);
+
 
   // Update mutation
   const updateTicketMutation = useMutation({
@@ -1088,9 +1083,6 @@ const TicketDetails = React.memo(() => {
   }), []);
 
   const onSubmit = useCallback((data: TicketFormData) => {
-    console.log("🚨 CRITICAL DEBUG - onSubmit called!");
-    console.log("📍 Call stack:", new Error().stack);
-    console.log("💾 onSubmit called with data:", data);
     
     const mappedData = {
       // Core fields - with proper status mapping
@@ -2049,10 +2041,7 @@ const TicketDetails = React.memo(() => {
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">⚙️ Ações Internas</h2>
               <Button 
-                onClick={() => {
-                  console.log("🔵 MODAL DEBUG - Opening internal action modal");
-                  setShowInternalActionModal(true);
-                }}
+                onClick={() => setShowInternalActionModal(true)}
                 className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
               >
                 <Plus className="h-4 w-4 mr-2" />
@@ -3314,7 +3303,7 @@ const TicketDetails = React.memo(() => {
           {/* Main Content */}
           <div className="h-full bg-white rounded-lg border p-6">
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit as any)}>
+              <form onSubmit={(e) => e.preventDefault()}>
                 {renderTabContent()}
               </form>
             </Form>
