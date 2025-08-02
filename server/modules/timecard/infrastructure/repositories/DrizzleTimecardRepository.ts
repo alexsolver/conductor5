@@ -280,50 +280,87 @@ export class DrizzleTimecardRepository implements TimecardRepository {
 
   // Schedule Templates Implementation - Mock templates
   async createScheduleTemplate(data: any): Promise<any> {
-    console.log('Schedule template creation not implemented - using mock');
-    return {
-      id: 'mock-template-' + Date.now(),
-      ...data,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
+    try {
+      const { scheduleTemplates } = await import('@shared/schema');
+      const tenantDb = getTenantDb(data.tenantId);
+      
+      const [template] = await tenantDb
+        .insert(scheduleTemplates)
+        .values({
+          tenantId: data.tenantId,
+          name: data.name,
+          description: data.description,
+          scheduleType: data.scheduleType,
+          workDays: JSON.stringify(data.workDays),
+          startTime: data.startTime,
+          endTime: data.endTime,
+          breakStart: data.breakStart,
+          breakEnd: data.breakEnd,
+          flexibilityWindow: data.flexibilityWindow || 0,
+          isActive: data.isActive ?? true,
+        })
+        .returning();
+
+      console.log('[TEMPLATES-DEBUG] Created new template:', template.name);
+      return template;
+    } catch (error) {
+      console.error('Error creating schedule template:', error);
+      throw error;
+    }
   }
 
   async getScheduleTemplates(tenantId: string): Promise<any[]> {
     try {
-      // Return basic predefined templates
-      return [
-        {
-          id: '5x2',
-          tenantId,
-          name: '5x2',
-          description: '5 dias úteis, 2 dias de folga',
-          scheduleName: '5x2',
-          workDays: [1,2,3,4,5],
-          startTime: '08:00',
-          endTime: '18:00',
-          breakStart: '12:00',
-          breakEnd: '13:00',
-          isActive: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        },
-        {
-          id: '6x1',
-          tenantId,
-          name: '6x1',
-          description: '6 dias úteis, 1 dia de folga',
-          scheduleName: '6x1',
-          workDays: [1,2,3,4,5,6],
-          startTime: '08:00',
-          endTime: '18:00',
-          breakStart: '12:00',
-          breakEnd: '13:00',
-          isActive: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        }
-      ];
+      // Get real templates from database
+      const { scheduleTemplates } = await import('@shared/schema');
+      const tenantDb = getTenantDb(tenantId);
+      
+      const templates = await tenantDb
+        .select()
+        .from(scheduleTemplates)
+        .where(eq(scheduleTemplates.tenantId, tenantId))
+        .orderBy(desc(scheduleTemplates.createdAt));
+
+      console.log(`[TEMPLATES-DEBUG] Found ${templates.length} real templates for tenant ${tenantId}`);
+      
+      // Se não há templates customizados, retornar templates padrão
+      if (templates.length === 0) {
+        console.log('[TEMPLATES-DEBUG] No custom templates found, returning default templates');
+        return [
+          {
+            id: '5x2',
+            tenantId,
+            name: '5x2',
+            description: '5 dias úteis, 2 dias de folga',
+            scheduleName: '5x2',
+            workDays: [1,2,3,4,5],
+            startTime: '08:00',
+            endTime: '18:00',
+            breakStart: '12:00',
+            breakEnd: '13:00',
+            isActive: true,
+            createdAt: new Date(),
+            updatedAt: new Date()
+          },
+          {
+            id: '6x1',
+            tenantId,
+            name: '6x1',
+            description: '6 dias úteis, 1 dia de folga',
+            scheduleName: '6x1',
+            workDays: [1,2,3,4,5,6],
+            startTime: '08:00',
+            endTime: '18:00',
+            breakStart: '12:00',
+            breakEnd: '13:00',
+            isActive: true,
+            createdAt: new Date(),
+            updatedAt: new Date()
+          }
+        ];
+      }
+
+      return templates;
     } catch (error) {
       console.error('Error fetching schedule templates:', error);
       return [];

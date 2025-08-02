@@ -794,7 +794,7 @@ export const timecardEntries = pgTable("timecard_entries", {
   id: uuid("id").defaultRandom().primaryKey(),
   tenantId: varchar("tenant_id", { length: 36 }).notNull(),
   userId: uuid("user_id").notNull().references(() => users.id),
-  checkIn: timestamp("check_in").notNull(),
+  checkIn: timestamp("check_in"), // Removido .notNull() para permitir registros parciais
   checkOut: timestamp("check_out"),
   breakStart: timestamp("break_start"),
   breakEnd: timestamp("break_end"),
