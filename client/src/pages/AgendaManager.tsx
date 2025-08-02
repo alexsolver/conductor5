@@ -114,25 +114,40 @@ const AgendaManager: React.FC = () => {
 
   const { data: agentsData, isLoading: agentsLoading } = useQuery({
     queryKey: ['/api/user-management/users'],
-    queryFn: () => apiRequest('GET', '/api/user-management/users'),
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/user-management/users');
+      return await response.json();
+    },
   });
   
   const agents = (agentsData as any)?.users || [];
+  console.log('[AGENDA-DEBUG] Agents data:', agentsData);
+  console.log('[AGENDA-DEBUG] Agents array:', agents);
 
   const { data: customersData } = useQuery({
     queryKey: ['/api/customers'],
-    queryFn: () => apiRequest('GET', '/api/customers'),
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/customers');
+      return await response.json();
+    },
   });
   
   const customers = (customersData as any)?.customers || [];
+  console.log('[AGENDA-DEBUG] Customers data:', customersData);
+  console.log('[AGENDA-DEBUG] Customers array:', customers);
 
   // Buscar grupos de usuários do módulo de gestão de equipes
   const { data: groupsData } = useQuery({
     queryKey: ['/api/user-management/groups'],
-    queryFn: () => apiRequest('GET', '/api/user-management/groups'),
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/user-management/groups');
+      return await response.json();
+    },
   });
   
   const groups = (groupsData as any)?.groups || [];
+  console.log('[AGENDA-DEBUG] Groups data:', groupsData);
+  console.log('[AGENDA-DEBUG] Groups array:', groups);
 
   // Buscar membros do grupo selecionado
   const { data: groupMembersData } = useQuery({
