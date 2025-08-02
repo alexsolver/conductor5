@@ -17,12 +17,12 @@ const createTimecardEntrySchema = z.object({
 const createWorkScheduleSchema = z.object({
   userId: z.string().uuid(),
   scheduleType: z.enum(['5x2', '6x1', '12x36', 'shift', 'flexible', 'intermittent']),
-  startDate: z.string(),
-  endDate: z.string().optional(),
-  workDays: z.array(z.number().min(0).max(6)),
-  startTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/),
-  endTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/),
-  breakDurationMinutes: z.number().min(0).default(60),
+  startDate: z.string().min(1, 'Data de início é obrigatória'),
+  endDate: z.string().optional().nullable(),
+  workDays: z.array(z.number().min(0).max(6)).min(1, 'Pelo menos um dia da semana deve ser selecionado'),
+  startTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Formato de hora inválido'),
+  endTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Formato de hora inválido'),
+  breakDurationMinutes: z.number().min(0).max(480).default(60),
   isActive: z.boolean().default(true),
 });
 

@@ -122,17 +122,24 @@ export class DrizzleTimecardRepository implements TimecardRepository {
   // Work Schedules Implementation
   async createWorkSchedule(data: any): Promise<any> {
     try {
+      // Ensure workDays is properly formatted as array
+      const workDaysArray = Array.isArray(data.workDays) ? data.workDays : [1,2,3,4,5];
+      
       const [schedule] = await db
         .insert(workSchedules)
         .values({
           tenantId: data.tenantId,
           userId: data.userId,
           scheduleName: data.scheduleType || 'Default Schedule',
-          workDays: data.workDays,
+          scheduleType: data.scheduleType || '5x2',
+          startDate: data.startDate ? new Date(data.startDate) : new Date(),
+          endDate: data.endDate ? new Date(data.endDate) : null,
+          workDays: workDaysArray,
           startTime: data.startTime,
           endTime: data.endTime,
-          breakStart: data.breakStart,
-          breakEnd: data.breakEnd,
+          breakStart: data.breakStart || null,
+          breakEnd: data.breakEnd || null,
+          breakDurationMinutes: data.breakDurationMinutes || 60,
           isActive: data.isActive ?? true
         })
         .returning();
@@ -171,19 +178,42 @@ export class DrizzleTimecardRepository implements TimecardRepository {
         ))
         .orderBy(desc(workSchedules.createdAt));
 
-      return schedules.map(schedule => ({
-        ...schedule,
-        userName: `${schedule.firstName || ''} ${schedule.lastName || ''}`.trim(),
-        scheduleType: schedule.scheduleName || '5x2',
-        startDate: schedule.createdAt,
-        breakDurationMinutes: 60,
-        // Fix workDays JSON parsing inconsistency
-        workDays: Array.isArray(schedule.workDays) 
-          ? schedule.workDays 
-          : (typeof schedule.workDays === 'string' 
-            ? JSON.parse(schedule.workDays) 
-            : [1,2,3,4,5])
-      }));
+      return schedules.map(schedule => {
+        // Safely process workDays
+        let processedWorkDays: number[] = [1,2,3,4,5];
+        
+        try {
+          if (schedule.workDays) {
+            if (Array.isArray(schedule.workDays)) {
+              processedWorkDays = schedule.workDays;
+            } else if (typeof schedule.workDays === 'string') {
+              processedWorkDays = JSON.parse(schedule.workDays);
+            } else {
+              processedWorkDays = schedule.workDays as number[];
+            }
+          }
+        } catch (error) {
+          console.error('Error processing workDays for user schedule:', error);
+          processedWorkDays = [1,2,3,4,5];
+        }
+
+        return {
+          id: schedule.id,
+          tenantId: schedule.tenantId,
+          userId: schedule.userId,
+          userName: `${schedule.firstName || ''} ${schedule.lastName || ''}`.trim() || 'Usuário',
+          scheduleType: schedule.scheduleName || '5x2',
+          startDate: schedule.createdAt?.toISOString() || new Date().toISOString(),
+          endDate: schedule.updatedAt?.toISOString() || null,
+          workDays: processedWorkDays,
+          startTime: schedule.startTime,
+          endTime: schedule.endTime,
+          breakDurationMinutes: schedule.breakDurationMinutes || 60,
+          isActive: schedule.isActive ?? true,
+          createdAt: schedule.createdAt,
+          updatedAt: schedule.updatedAt
+        };
+      });
     } catch (error) {
       console.error('Error fetching user work schedules:', error);
       throw error;
@@ -220,29 +250,41 @@ export class DrizzleTimecardRepository implements TimecardRepository {
       console.log('[DRIZZLE-QA] Raw schedules found:', schedules.length);
 
       const mappedSchedules = schedules.map(schedule => {
-        // Fix workDays data type inconsistency
-        let processedWorkDays = [1,2,3,4,5]; // Default Monday-Friday
+        // Safely process workDays from JSONB field
+        let processedWorkDays: number[] = [1,2,3,4,5]; // Default Monday-Friday
         
         try {
-          if (Array.isArray(schedule.workDays)) {
-            processedWorkDays = schedule.workDays;
-          } else if (typeof schedule.workDays === 'string') {
-            processedWorkDays = JSON.parse(schedule.workDays);
-          } else if (schedule.workDays) {
-            processedWorkDays = schedule.workDays;
+          if (schedule.workDays) {
+            if (Array.isArray(schedule.workDays)) {
+              processedWorkDays = schedule.workDays;
+            } else if (typeof schedule.workDays === 'string') {
+              processedWorkDays = JSON.parse(schedule.workDays);
+            } else {
+              // If it's already a parsed object from JSONB
+              processedWorkDays = schedule.workDays as number[];
+            }
           }
         } catch (parseError) {
           console.error('[DRIZZLE-QA] workDays parsing error:', parseError, schedule.workDays);
+          processedWorkDays = [1,2,3,4,5]; // Fallback to default
         }
 
+        // Map database fields to frontend expected format
         return {
-          ...schedule,
-          userName: `${schedule.firstName || ''} ${schedule.lastName || ''}`.trim(),
+          id: schedule.id,
+          tenantId: schedule.tenantId,
+          userId: schedule.userId,
+          userName: `${schedule.firstName || ''} ${schedule.lastName || ''}`.trim() || 'Usuário',
           scheduleType: schedule.scheduleName || '5x2',
-          startDate: schedule.createdAt,
-          endDate: schedule.updatedAt, // Add missing endDate
+          startDate: schedule.createdAt?.toISOString() || new Date().toISOString(),
+          endDate: schedule.updatedAt?.toISOString() || null,
           workDays: processedWorkDays,
-          breakDurationMinutes: 60 // Default value
+          startTime: schedule.startTime,
+          endTime: schedule.endTime,
+          breakDurationMinutes: schedule.breakDurationMinutes || 60,
+          isActive: schedule.isActive ?? true,
+          createdAt: schedule.createdAt,
+          updatedAt: schedule.updatedAt
         };
       });
 
@@ -256,16 +298,37 @@ export class DrizzleTimecardRepository implements TimecardRepository {
 
   async updateWorkSchedule(id: string, tenantId: string, data: any): Promise<any> {
     try {
+      // Ensure workDays is properly formatted
+      const workDaysArray = Array.isArray(data.workDays) ? data.workDays : [1,2,3,4,5];
+      
+      const updateData = {
+        scheduleName: data.scheduleType || data.scheduleName,
+        scheduleType: data.scheduleType,
+        startDate: data.startDate ? new Date(data.startDate) : undefined,
+        endDate: data.endDate ? new Date(data.endDate) : null,
+        workDays: workDaysArray,
+        startTime: data.startTime,
+        endTime: data.endTime,
+        breakStart: data.breakStart || null,
+        breakEnd: data.breakEnd || null,
+        breakDurationMinutes: data.breakDurationMinutes || 60,
+        isActive: data.isActive ?? true,
+        updatedAt: new Date()
+      };
+
+      // Remove undefined values
+      Object.keys(updateData).forEach(key => {
+        if (updateData[key] === undefined) {
+          delete updateData[key];
+        }
+      });
+
       const [schedule] = await db
         .update(workSchedules)
-        .set({ 
-          ...data, 
-          // Ensure workDays consistency - should be array in DB, not JSON string
-          workDays: Array.isArray(data.workDays) ? data.workDays : data.workDays,
-          updatedAt: new Date() 
-        })
+        .set(updateData)
         .where(and(eq(workSchedules.id, id), eq(workSchedules.tenantId, tenantId)))
         .returning();
+      
       return schedule;
     } catch (error) {
       console.error('Error updating work schedule:', error);

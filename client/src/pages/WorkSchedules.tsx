@@ -163,24 +163,34 @@ function WorkSchedulesContent() {
     },
   });
 
-  // Enhanced debug logging with QA tracking
-  console.log('[QA-DEBUG] Raw schedulesData:', schedulesData);
-  console.log('[QA-DEBUG] schedulesData type:', typeof schedulesData);
-  console.log('[QA-DEBUG] schedulesData isArray:', Array.isArray(schedulesData));
+  // Safe data processing with proper type checking
+  let schedules: WorkSchedule[] = [];
   
-  // Improved data processing with fallback handling
-  let schedules = [];
-  if (Array.isArray(schedulesData)) {
-    schedules = schedulesData;
-  } else if (schedulesData && typeof schedulesData === 'object') {
-    schedules = schedulesData.schedules || schedulesData.data || [];
+  try {
+    if (Array.isArray(schedulesData)) {
+      schedules = schedulesData.map(schedule => ({
+        ...schedule,
+        // Ensure workDays is always an array
+        workDays: Array.isArray(schedule.workDays) ? schedule.workDays : [1,2,3,4,5],
+        // Ensure required fields have defaults
+        userName: schedule.userName || 'Usuário',
+        scheduleType: schedule.scheduleType || '5x2',
+        breakDurationMinutes: schedule.breakDurationMinutes || 60,
+        isActive: schedule.isActive ?? true
+      }));
+    } else if (schedulesData && typeof schedulesData === 'object') {
+      const rawSchedules = schedulesData.schedules || schedulesData.data || [];
+      schedules = Array.isArray(rawSchedules) ? rawSchedules : [];
+    }
+  } catch (error) {
+    console.error('[QA-ERROR] Error processing schedules data:', error);
+    schedules = [];
   }
   
   const users = usersData?.users || [];
   
-  console.log('[QA-DEBUG] Final processed schedules:', schedules);
-  console.log('[QA-DEBUG] Schedules count:', schedules.length);
-  console.log('[QA-DEBUG] Users:', users);
+  console.log('[QA-DEBUG] Final processed schedules:', schedules.length, 'items');
+  console.log('[QA-DEBUG] Users available:', users.length, 'items');
   
   // Add error state handling
   if (schedulesError) {
@@ -224,7 +234,7 @@ function WorkSchedulesContent() {
       return;
     }
 
-    if (formData.workDays.length === 0) {
+    if (!Array.isArray(formData.workDays) || formData.workDays.length === 0) {
       toast({
         title: 'Erro de validação',
         description: 'Selecione pelo menos um dia da semana.',
@@ -233,18 +243,30 @@ function WorkSchedulesContent() {
       return;
     }
 
+    // Validação de horários
+    if (formData.startTime >= formData.endTime) {
+      toast({
+        title: 'Erro de validação',
+        description: 'Horário de saída deve ser posterior ao de entrada.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     // Mapear dados do frontend para o formato esperado pela API
     const apiData = {
       userId: formData.userId,
-      scheduleType: formData.scheduleType,
+      scheduleType: formData.scheduleType as '5x2' | '6x1' | '12x36' | 'shift' | 'flexible' | 'intermittent',
       startDate: formData.startDate,
       endDate: formData.endDate || null,
-      workDays: formData.workDays,
+      workDays: Array.from(new Set(formData.workDays)), // Remove duplicates
       startTime: formData.startTime,
       endTime: formData.endTime,
-      breakDurationMinutes: formData.breakDurationMinutes,
+      breakDurationMinutes: Math.max(0, Math.min(480, formData.breakDurationMinutes)), // Validate range
       isActive: formData.isActive
     };
+
+    console.log('[QA-DEBUG] Submitting schedule data:', apiData);
 
     if (selectedSchedule) {
       updateScheduleMutation.mutate({
