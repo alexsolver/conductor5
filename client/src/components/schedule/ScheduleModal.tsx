@@ -14,6 +14,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Calendar as CalendarIcon, Clock, Save, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useQuery } from '@tanstack/react-query';
 
 interface Schedule {
   id?: string;
@@ -95,6 +96,28 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({
   defaultTime,
   defaultAgentId,
 }) => {
+  // Buscar usuários do módulo de gestão de equipe
+  const { data: teamMembersData } = useQuery({
+    queryKey: ['/api/team-management/members'],
+    enabled: isOpen,
+  });
+
+  // Combinar agentes passados como props com usuários do módulo de gestão de equipe
+  const allAgents = React.useMemo(() => {
+    const teamAgents = teamMembersData ? teamMembersData.map((member: any) => ({
+      id: member.id,
+      name: member.name || `${member.firstName || ''} ${member.lastName || ''}`.trim(),
+      email: member.email
+    })) : [];
+
+    // Combinar e remover duplicatas
+    const combinedAgents = [...(agents || []), ...teamAgents];
+    const uniqueAgents = combinedAgents.filter((agent, index, self) => 
+      index === self.findIndex(a => a.id === agent.id)
+    );
+
+    return uniqueAgents;
+  }, [agents, teamMembersData]);
   const form = useForm<ScheduleFormData>({
     resolver: zodResolver(scheduleSchema),
     defaultValues: schedule ? {
@@ -227,7 +250,7 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {agents?.map((agent) => (
+                        {allAgents?.map((agent) => (
                           <SelectItem key={agent.id} value={agent.id}>
                             {agent.name}
                           </SelectItem>

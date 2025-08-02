@@ -67,17 +67,22 @@ export default function BulkScheduleAssignment() {
 
   const templates = templatesResponse?.templates || [];
 
-  // Buscar usuários do Team Management
-  const { data: availableUsers = [], isLoading: loadingUsers } = useQuery({
-    queryKey: ['/api/team-management/members'],
+  // Buscar usuários disponíveis para escalas de trabalho
+  const { data: availableUsersData, isLoading: loadingUsers } = useQuery({
+    queryKey: ['/api/timecard/available-users'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/team-management/members');
+      const response = await apiRequest('GET', '/api/timecard/available-users');
       return response;
     },
   });
 
-  // Garantir que availableUsers seja sempre um array
-  const users = Array.isArray(availableUsers) ? availableUsers : [];
+  // Transformar dados dos usuários para o formato esperado pelo UserMultiSelect
+  const availableUsers = availableUsersData?.users ? availableUsersData.users.map((user: any) => ({
+    id: user.id,
+    name: user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim(),
+    email: user.email,
+    role: user.role || 'Usuário'
+  })) : [];
 
   // Verificar escalas existentes para usuários selecionados
   const { data: existingSchedules = [] } = useQuery({
@@ -133,7 +138,7 @@ export default function BulkScheduleAssignment() {
   };
 
   const selectAllUsers = () => {
-    const allUserIds = users.map((user: any) => user.id);
+    const allUserIds = availableUsers.map((user: any) => user.id);
     setSelectedUsers(allUserIds);
   };
 
@@ -281,7 +286,7 @@ export default function BulkScheduleAssignment() {
                   {loadingUsers ? (
                     <p className="text-sm text-muted-foreground">Carregando funcionários...</p>
                   ) : (
-                    users.map((user: any) => {
+                    availableUsers.map((user: any) => {
                       const hasConflict = usersWithConflicts.includes(user.id);
                       return (
                         <div

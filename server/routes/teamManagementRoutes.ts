@@ -87,7 +87,7 @@ router.get('/overview', async (req: AuthenticatedRequest, res) => {
   }
 });
 
-// Get team members with department information
+// Get team members with enhanced data
 router.get('/members', async (req: AuthenticatedRequest, res) => {
   try {
     const { user } = req;
@@ -95,32 +95,37 @@ router.get('/members', async (req: AuthenticatedRequest, res) => {
       return res.status(401).json({ message: 'User not authenticated' });
     }
 
-    // Fetch team members with department information
+    console.log('[TEAM-MANAGEMENT] Fetching members for tenant:', user.tenantId);
+
     const members = await db.select({
       id: users.id,
+      name: sql<string>`COALESCE(${users.name}, CONCAT(COALESCE(${users.firstName}, ''), ' ', COALESCE(${users.lastName}, '')))`.as('name'),
       firstName: users.firstName,
       lastName: users.lastName,
       email: users.email,
-      position: users.position,
-      departmentId: users.departmentId,
-      departmentName: departments.name,
-      status: users.status,
-      phone: users.phone,
-      performance: users.performance,
-      lastActiveAt: users.lastActiveAt,
-      goals: users.goals,
-      completedGoals: users.completedGoals,
       role: users.role,
+      position: users.position,
+      department: users.department,
       isActive: users.isActive,
+      lastActiveAt: users.lastActiveAt,
       createdAt: users.createdAt,
-      profileImageUrl: users.profileImageUrl
+      profileImage: users.profileImage,
+      phone: users.phone,
+      // Group memberships count
+      groupMemberships: sql<number>`(
+        SELECT COUNT(*)::int 
+        FROM user_group_memberships ugm
+        WHERE ugm.user_id = ${users.id}
+      )`.as('groupMemberships')
     })
     .from(users)
-    .leftJoin(departments, eq(users.departmentId, departments.id))
     .where(and(
       eq(users.tenantId, user.tenantId),
       eq(users.isActive, true)
-    ));
+    ))
+    .orderBy(users.firstName, users.lastName);
+
+    console.log('[TEAM-MANAGEMENT] Found members:', members.length);
 
     // Get user group memberships with proper schema validation
     let groupMembershipMap = new Map();
@@ -163,20 +168,19 @@ router.get('/members', async (req: AuthenticatedRequest, res) => {
     // Format the response
     const formattedMembers = members.map(member => ({
       id: member.id,
-      name: `${member.firstName || ''} ${member.lastName || ''}`.trim(),
+      name: member.name,
+      firstName: member.firstName,
+      lastName: member.lastName,
       email: member.email,
-      position: member.position || 'Não informado',
-      department: member.departmentName || 'Sem departamento',
-      departmentId: member.departmentId,
-      status: member.status || 'active',
-      phone: member.phone || 'Não informado',
-      performance: member.performance,
-      lastActive: member.lastActiveAt || member.createdAt,
-      goals: member.goals,
-      completedGoals: member.completedGoals,
       role: member.role,
-      profileImageUrl: member.profileImageUrl,
-      groupIds: groupMembershipMap.get(member.id) || []
+      position: member.position,
+      department: member.department,
+      isActive: member.isActive,
+      lastActiveAt: member.lastActiveAt,
+      createdAt: member.createdAt,
+      profileImage: member.profileImage,
+      phone: member.phone,
+      groupMemberships: member.groupMemberships
     }));
 
     res.json(formattedMembers);

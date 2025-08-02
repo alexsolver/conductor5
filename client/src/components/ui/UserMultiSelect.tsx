@@ -42,6 +42,12 @@ export function UserMultiSelect({
 }: UserMultiSelectProps) {
   const [open, setOpen] = useState(false);
 
+  // Debug logs
+  React.useEffect(() => {
+    console.log('[UserMultiSelect] Users received:', users?.length, users);
+    console.log('[UserMultiSelect] Current value:', value);
+  }, [users, value]);
+
   const selectedUsers = users.filter(user => value.includes(user.id));
   const availableUsers = users.filter(user => !value.includes(user.id));
 
