@@ -617,7 +617,7 @@ ticketsRouter.get('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, res
       LEFT JOIN public.users au ON tia.agent_id = au.id
       WHERE th.tenant_id = $1::uuid 
         AND th.ticket_id = $2::uuid
-        AND th.action_type IN ('investigation', 'resolution', 'escalation', 'reassignment', 'follow_up', 'customer_contact', 'internal_note', 'workaround', 'root_cause_analysis')
+        AND th.action_type IN ('investigation', 'resolution', 'escalation', 'reassignment', 'follow_up', 'customer_contact', 'internal_note', 'workaround', 'root_cause_analysis', 'documentation', 'testing', 'deployment', 'maintenance', 'monitoring', 'backup', 'security_review', 'training', 'audit', 'consultation')
       ORDER BY th.created_at DESC
     `;
 
