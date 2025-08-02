@@ -96,13 +96,11 @@ function WorkSchedulesContent() {
     retryDelay: 1000
   });
 
-  // Buscar usuários/funcionários do tenant-admin
+  // Buscar usuários/funcionários do sistema
   const { data: usersData, error: usersError } = useQuery({
     queryKey: ['/api/tenant-admin/users'],
     queryFn: async () => {
-      console.log('[QA-DEBUG] Fetching tenant admin users...');
       const response = await apiRequest('GET', '/api/tenant-admin/users');
-      console.log('[QA-DEBUG] Tenant admin users response:', response);
       const data = await response.json();
       return data;
     },
@@ -212,12 +210,10 @@ function WorkSchedulesContent() {
   
   const users = Array.isArray(usersData) ? usersData : (usersData?.users || usersData?.members || []);
   
-  console.log('[QA-DEBUG] Final processed schedules:', schedules.length, 'items');
-  console.log('[QA-DEBUG] Users available:', users.length, 'items');
-  console.log('[QA-DEBUG] Raw users data:', usersData);
-  
-  if (usersError) {
-    console.error('[QA-DEBUG] Users fetch error:', usersError);
+  // Debug information for troubleshooting
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Work schedules loaded:', schedules.length);
+    console.log('Users available:', users.length);
   }
   
   // Add error state handling
