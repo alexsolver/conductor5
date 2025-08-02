@@ -235,6 +235,37 @@ export class CLTComplianceController {
     }
   }
 
+  /**
+   * 🔴 GET /api/timecard/compliance/reports
+   * Listar relatórios de compliance
+   */
+  async listComplianceReports(req: Request, res: Response) {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant não identificado' });
+      }
+
+      const { reportType, year } = req.query;
+
+      console.log(`[CLT-REPORTS] Listando relatórios para tenant: ${tenantId}`);
+
+      let whereConditions = [eq(complianceReports.tenantId, tenantId)];
+      
+      if (reportType) {
+        whereConditions.push(eq(complianceReports.reportType, reportType as string));
+      }
+      
+      if (year) {
+        const startOfYear = new Date(`${year}-01-01`);
+        const endOfYear = new Date(`${year}-12-31`);
+        whereConditions.push(
+          gte(complianceReports.periodStart, startOfYear),
+          lte(complianceReports.periodEnd, endOfYear)
+        );
+      }
+
+      const reports = await db
         .select({
           id: complianceReports.id,
           reportType: complianceReports.reportType,
