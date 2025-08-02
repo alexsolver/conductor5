@@ -82,24 +82,29 @@ export class CLTComplianceService {
    * 🔴 Hash de Integridade SHA-256 (OBRIGATÓRIO)
    */
   generateRecordHash(data: CLTTimecardEntry, nsr: number, previousHash?: string): string {
+    // Normaliza dados para evitar inconsistências
     const hashData = {
       id: data.id,
       tenantId: data.tenantId,
       userId: data.userId,
-      nsr,
-      checkIn: data.checkIn?.toISOString(),
-      checkOut: data.checkOut?.toISOString(),
-      breakStart: data.breakStart?.toISOString(),
-      breakEnd: data.breakEnd?.toISOString(),
-      totalHours: data.totalHours,
-      location: data.location,
-      isManualEntry: data.isManualEntry,
-      previousHash: previousHash || null,
-      timestamp: new Date().toISOString()
+      nsr: Number(nsr), // Garante formato numérico
+      checkIn: data.checkIn ? new Date(data.checkIn).toISOString() : null,
+      checkOut: data.checkOut ? new Date(data.checkOut).toISOString() : null,
+      breakStart: data.breakStart ? new Date(data.breakStart).toISOString() : null,
+      breakEnd: data.breakEnd ? new Date(data.breakEnd).toISOString() : null,
+      totalHours: data.totalHours || null,
+      location: data.location || null,
+      isManualEntry: Boolean(data.isManualEntry),
+      previousHash: previousHash || null
     };
 
-    const dataString = JSON.stringify(hashData, Object.keys(hashData).sort());
-    return crypto.createHash('sha256').update(dataString).digest('hex');
+    // Remove campos undefined/null para consistência
+    const cleanData = Object.fromEntries(
+      Object.entries(hashData).filter(([_, value]) => value !== undefined)
+    );
+
+    const dataString = JSON.stringify(cleanData, Object.keys(cleanData).sort());
+    return crypto.createHash('sha256').update(dataString, 'utf8').digest('hex');
   }
 
   /**
@@ -341,6 +346,102 @@ export class CLTComplianceService {
 
         previousHash = record.recordHash;
       }
+
+
+
+  /**
+   * 🔴 RECONSTITUIÇÃO DA CADEIA DE INTEGRIDADE
+   */
+  async rebuildIntegrityChain(tenantId: string): Promise<{ fixed: number; errors: string[] }> {
+    try {
+      console.log(`[CLT-REBUILD] Iniciando reconstituição para tenant: ${tenantId}`);
+      
+      // Busca todos os registros ordenados por data de criação
+      const records = await db
+        .select()
+        .from(timecardEntries)
+        .where(eq(timecardEntries.tenantId, tenantId))
+        .orderBy(timecardEntries.createdAt);
+
+      if (records.length === 0) {
+        return { fixed: 0, errors: ['Nenhum registro encontrado'] };
+      }
+
+      const errors: string[] = [];
+      let fixed = 0;
+      let previousHash: string | null = null;
+
+      // Reconstitui NSR sequencial e hashes
+      for (let i = 0; i < records.length; i++) {
+        const record = records[i];
+        const newNsr = i + 1; // NSR sequencial
+
+        // Gera novo hash correto
+        const correctHash = this.generateRecordHash(
+          {
+            id: record.id,
+            tenantId: record.tenantId,
+            userId: record.userId,
+            checkIn: record.checkIn || undefined,
+            checkOut: record.checkOut || undefined,
+            breakStart: record.breakStart || undefined,
+            breakEnd: record.breakEnd || undefined,
+            totalHours: record.totalHours || undefined,
+            notes: record.notes || undefined,
+            location: record.location || undefined,
+            isManualEntry: record.isManualEntry,
+            deviceInfo: record.deviceInfo,
+            ipAddress: record.ipAddress || undefined,
+            geoLocation: record.geoLocation
+          },
+          newNsr,
+          previousHash
+        );
+
+        // Atualiza registro se necessário
+        if (record.nsr !== newNsr || record.recordHash !== correctHash || record.previousRecordHash !== previousHash) {
+          await db
+            .update(timecardEntries)
+            .set({
+              nsr: newNsr,
+              recordHash: correctHash,
+              previousRecordHash: previousHash,
+              originalRecordHash: record.originalRecordHash || correctHash, // Preserva original se existir
+              updatedAt: new Date()
+            })
+            .where(eq(timecardEntries.id, record.id));
+
+          fixed++;
+          console.log(`[CLT-REBUILD] Corrigido NSR:${newNsr} Hash:${correctHash.substring(0, 8)}`);
+        }
+
+        previousHash = correctHash;
+      }
+
+      // Atualiza sequência NSR
+      await db
+        .insert(nsrSequences)
+        .values({
+          tenantId,
+          currentNsr: records.length,
+          lastUpdated: new Date()
+        })
+        .onConflictDoUpdate({
+          target: nsrSequences.tenantId,
+          set: {
+            currentNsr: records.length,
+            lastUpdated: new Date()
+          }
+        });
+
+      console.log(`[CLT-REBUILD] Concluído: ${fixed} registros corrigidos`);
+      return { fixed, errors };
+
+    } catch (error) {
+      console.error('[CLT-REBUILD] Erro na reconstituição:', error);
+      return { fixed: 0, errors: [`Erro interno: ${error.message}`] };
+    }
+  }
 
       return {
         isValid: errors.length === 0,

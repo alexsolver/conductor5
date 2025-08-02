@@ -197,6 +197,44 @@ export class CLTComplianceController {
       }
 
       const reports = await db
+
+
+  /**
+   * 🔴 RECONSTITUIÇÃO EMERGENCIAL DA CADEIA
+   */
+  async rebuildIntegrityChain(req: Request, res: Response): Promise<void> {
+    try {
+      const { tenantId } = (req as any).user;
+      
+      console.log(`[CLT-CONTROLLER] Iniciando reconstituição para tenant: ${tenantId}`);
+      
+      const result = await cltComplianceService.rebuildIntegrityChain(tenantId);
+      
+      if (result.errors.length > 0) {
+        res.status(400).json({
+          success: false,
+          message: 'Reconstituição completada com problemas',
+          data: result
+        });
+        return;
+      }
+
+      res.json({
+        success: true,
+        message: `Cadeia de integridade reconstituída: ${result.fixed} registros corrigidos`,
+        data: result
+      });
+
+    } catch (error) {
+      console.error('[CLT-CONTROLLER] Erro na reconstituição:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Erro interno ao reconstituir cadeia',
+        error: error.message
+      });
+    }
+  }
+
         .select({
           id: complianceReports.id,
           reportType: complianceReports.reportType,
