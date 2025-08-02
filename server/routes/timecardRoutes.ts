@@ -2,8 +2,9 @@ import { Router, Request, Response } from 'express';
 import { TimecardController } from '../modules/timecard/application/controllers/TimecardController';
 import { jwtAuth } from '../middleware/jwtAuth';
 import { AuthenticatedRequest } from '../middleware/jwtAuth';
-import { db } from '../db/db';
+import { db } from '../db';
 import { users } from '../db/schema';
+import { scheduleTemplates as scheduleTemplatesTable } from '@shared/schema';
 import { eq, and, sql } from 'drizzle-orm';
 
 const router = Router();
