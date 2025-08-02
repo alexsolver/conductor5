@@ -77,7 +77,6 @@ export class TimecardApprovalController {
         tenantId,
         name,
         description,
-        createdBy: userId,
         isActive: true
       };
 
@@ -285,6 +284,9 @@ export class TimecardApprovalController {
       const { tenantId, userId } = (req as any).user;
       const settingsData = req.body;
 
+      console.log('Settings data received:', settingsData);
+      console.log('Tenant ID:', tenantId);
+
       // Check if settings already exist
       const [existingSettings] = await db
         .select({ id: timecardApprovalSettings.id })
@@ -294,21 +296,45 @@ export class TimecardApprovalController {
       let result;
 
       if (existingSettings) {
+        console.log('Updating existing settings:', existingSettings.id);
         // Update existing settings
         [result] = await db
           .update(timecardApprovalSettings)
           .set({
-            ...settingsData,
+            approvalType: settingsData.approvalType,
+            autoApproveComplete: settingsData.autoApproveComplete,
+            autoApproveAfterHours: settingsData.autoApproveAfterHours,
+            requireApprovalFor: settingsData.requireApprovalFor,
+            defaultApprovers: settingsData.defaultApprovers,
+            approvalGroupId: settingsData.approvalGroupId === 'none' ? null : settingsData.approvalGroupId,
+            createAutoTickets: settingsData.createAutoTickets,
+            ticketRecurrence: settingsData.ticketRecurrence,
+            ticketDay: settingsData.ticketDay,
+            ticketTime: settingsData.ticketTime,
+            escalationRules: settingsData.escalationRules,
+            notificationSettings: settingsData.notificationSettings,
             updatedBy: userId,
             updatedAt: new Date()
           })
           .where(eq(timecardApprovalSettings.id, existingSettings.id))
           .returning();
       } else {
+        console.log('Creating new settings');
         // Create new settings
         const newSettings: InsertTimecardApprovalSettings = {
           tenantId,
-          ...settingsData,
+          approvalType: settingsData.approvalType,
+          autoApproveComplete: settingsData.autoApproveComplete,
+          autoApproveAfterHours: settingsData.autoApproveAfterHours,
+          requireApprovalFor: settingsData.requireApprovalFor,
+          defaultApprovers: settingsData.defaultApprovers,
+          approvalGroupId: settingsData.approvalGroupId === 'none' ? null : settingsData.approvalGroupId,
+          createAutoTickets: settingsData.createAutoTickets,
+          ticketRecurrence: settingsData.ticketRecurrence,
+          ticketDay: settingsData.ticketDay,
+          ticketTime: settingsData.ticketTime,
+          escalationRules: settingsData.escalationRules,
+          notificationSettings: settingsData.notificationSettings,
           createdBy: userId,
           isActive: true
         };
@@ -319,10 +345,13 @@ export class TimecardApprovalController {
           .returning();
       }
 
+      console.log('Settings saved successfully:', result);
       res.json({ settings: result });
     } catch (error) {
       console.error('Error updating approval settings:', error);
-      res.status(500).json({ message: 'Erro interno do servidor' });
+      console.error('Error details:', error.message);
+      console.error('Error stack:', error.stack);
+      res.status(500).json({ message: 'Erro interno do servidor', error: error.message });
     }
   };
 
