@@ -321,7 +321,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
       const workDaysArray = Array.isArray(data.workDays) ? data.workDays : [1,2,3,4,5];
       
       const updateData = {
-        scheduleName: data.scheduleType || data.scheduleName,
+        scheduleType: data.scheduleType || data.scheduleName,
         startDate: data.startDate ? new Date(data.startDate) : undefined,
         endDate: data.endDate ? new Date(data.endDate) : null,
         workDays: workDaysArray,

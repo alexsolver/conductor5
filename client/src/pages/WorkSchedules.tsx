@@ -87,11 +87,11 @@ function WorkSchedulesContent() {
     retryDelay: 1000
   });
 
-  // Buscar usuários
+  // Buscar usuários/funcionários do Team Management
   const { data: usersData } = useQuery({
-    queryKey: ['/api/tenant-admin/users'],
+    queryKey: ['/api/team-management/members'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/tenant-admin/users');
+      const response = await apiRequest('GET', '/api/team-management/members');
       return response;
     },
   });
@@ -187,7 +187,7 @@ function WorkSchedulesContent() {
     schedules = [];
   }
   
-  const users = usersData?.users || [];
+  const users = usersData?.members || [];
   
   console.log('[QA-DEBUG] Final processed schedules:', schedules.length, 'items');
   console.log('[QA-DEBUG] Users available:', users.length, 'items');

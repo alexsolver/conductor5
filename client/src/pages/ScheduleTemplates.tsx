@@ -72,7 +72,7 @@ const scheduleTypeOptions = [
 
 const dayNames = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
-export default function ScheduleTemplates() {
+export default function ScheduleTypes() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
