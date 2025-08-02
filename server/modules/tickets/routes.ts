@@ -1213,4 +1213,81 @@ ticketsRouter.delete('/relationships/:relationshipId', jwtAuth, async (req: Auth
   }
 });
 
+// Get internal actions for scheduling (by date range)
+ticketsRouter.get('/internal-actions/schedule/:startDate/:endDate', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.user?.tenantId) {
+      return res.status(400).json({ message: "User not associated with a tenant" });
+    }
+
+    const { startDate, endDate } = req.params;
+    const tenantId = req.user.tenantId;
+    const { pool } = await import('../../db');
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    const query = `
+      SELECT 
+        tia.id,
+        tia.title,
+        tia.description,
+        tia.action_type,
+        tia.start_time as "startDateTime",
+        tia.end_time as "endDateTime",
+        tia.status,
+        tia.priority,
+        tia.agent_id as "agentId",
+        tia.ticket_id as "ticketId",
+        tia.estimated_hours,
+        tia.actual_hours,
+        t.number as "ticketNumber",
+        t.subject as "ticketSubject",
+        u.first_name || ' ' || u.last_name as "agentName",
+        u.email as "agentEmail"
+      FROM "${schemaName}".ticket_internal_actions tia
+      LEFT JOIN "${schemaName}".tickets t ON tia.ticket_id = t.id
+      LEFT JOIN public.users u ON tia.agent_id = u.id
+      WHERE tia.tenant_id = $1::uuid 
+        AND tia.is_active = true
+        AND tia.start_time >= $2::timestamp
+        AND tia.start_time <= $3::timestamp
+      ORDER BY tia.start_time ASC
+    `;
+
+    const result = await pool.query(query, [tenantId, startDate, endDate]);
+
+    const internalActions = result.rows.map(row => ({
+      id: row.id,
+      title: `${row.action_type}: ${row.title}`,
+      description: row.description,
+      startDateTime: row.startDateTime,
+      endDateTime: row.endDateTime || row.startDateTime, // Use start time if no end time
+      status: row.status,
+      priority: row.priority,
+      agentId: row.agentId,
+      ticketId: row.ticketId,
+      ticketNumber: row.ticketNumber,
+      ticketSubject: row.ticketSubject,
+      agentName: row.agentName,
+      agentEmail: row.agentEmail,
+      type: 'internal_action', // Distinguish from regular schedules
+      actionType: row.action_type,
+      estimatedHours: row.estimated_hours,
+      actualHours: row.actual_hours
+    }));
+
+    res.json({
+      success: true,
+      data: internalActions,
+      count: internalActions.length
+    });
+  } catch (error) {
+    console.error("Error fetching internal actions for schedule:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch internal actions for schedule",
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 export { ticketsRouter };

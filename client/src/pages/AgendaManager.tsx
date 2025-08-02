@@ -40,6 +40,26 @@ interface Schedule {
   type: 'planned' | 'actual';
 }
 
+interface InternalAction {
+  id: string;
+  title: string;
+  description?: string;
+  startDateTime: string;
+  endDateTime: string;
+  status: string;
+  priority: string;
+  agentId: string;
+  ticketId: string;
+  ticketNumber: string;
+  ticketSubject: string;
+  agentName: string;
+  agentEmail: string;
+  type: 'internal_action';
+  actionType: string;
+  estimatedHours?: number;
+  actualHours?: number;
+}
+
 interface Agent {
   id: string;
   name: string;
@@ -186,6 +206,18 @@ const AgendaManager: React.FC = () => {
 
   const workSchedules = Array.isArray(workSchedulesData) ? workSchedulesData : [];
 
+  // Fetch internal actions for scheduling
+  const { data: internalActionsData, isLoading: internalActionsLoading } = useQuery({
+    queryKey: ['/api/tickets/internal-actions/schedule', startDate, endDate],
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/tickets/internal-actions/schedule/${startDate}/${endDate}`);
+      return await response.json();
+    },
+    enabled: !!startDate && !!endDate,
+  });
+
+  const internalActions = (internalActionsData as any)?.data || [];
+
   // Obter técnicos selecionados para exibir na timeline
   const selectedTechnicians = React.useMemo(() => {
     if (selectedAgents === 'todos') {
@@ -238,7 +270,30 @@ const AgendaManager: React.FC = () => {
     });
   };
 
-  const isLoading = schedulesLoading || activityTypesLoading || agentsLoading;
+  // Combine schedules and internal actions for unified agenda view
+  const combinedAgendaItems = React.useMemo(() => {
+    const items = [];
+    
+    // Add regular schedules
+    if (Array.isArray(schedules)) {
+      items.push(...schedules);
+    }
+    
+    // Add internal actions as schedule-like items
+    if (Array.isArray(internalActions)) {
+      const transformedActions = internalActions.map((action: any) => ({
+        ...action,
+        activityTypeId: 'internal-action', // Special type for internal actions
+        locationAddress: `Ticket ${action.ticketNumber}: ${action.ticketSubject}`,
+        customerId: null
+      }));
+      items.push(...transformedActions);
+    }
+    
+    return items;
+  }, [schedules, internalActions]);
+
+  const isLoading = schedulesLoading || activityTypesLoading || agentsLoading || internalActionsLoading;
 
   return (
     <div className="p-4 space-y-6">
@@ -386,7 +441,7 @@ const AgendaManager: React.FC = () => {
       <div className="mb-6">
         {view === 'timeline' ? (
           <TimelineScheduleGrid
-            schedules={schedules as Schedule[]}
+            schedules={combinedAgendaItems as Schedule[]}
             activityTypes={activityTypes}
             agents={selectedTechnicians}
             selectedDate={selectedDate}
@@ -396,7 +451,7 @@ const AgendaManager: React.FC = () => {
           />
         ) : (
           <WeeklyScheduleGrid
-            schedules={schedules as Schedule[]}
+            schedules={combinedAgendaItems as Schedule[]}
             activityTypes={activityTypes}
             agents={filteredAgents}
             startDate={selectedDate}

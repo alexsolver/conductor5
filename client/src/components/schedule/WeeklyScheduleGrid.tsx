@@ -296,15 +296,25 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
                               >
                                 {plannedSchedules.map((schedule) => {
                                   const activityType = getActivityType(schedule.activityTypeId);
+                                  const isInternalAction = schedule.activityTypeId === 'internal-action' || schedule.type === 'internal_action';
+                                  
                                   return (
                                     <div
                                       key={schedule.id}
-                                      className={`absolute inset-0 text-white text-xs cursor-pointer hover:opacity-80 ${getPriorityColor(schedule.priority)}`}
+                                      className={`absolute inset-0 text-white text-xs cursor-pointer hover:opacity-80 ${
+                                        isInternalAction 
+                                          ? 'bg-purple-600 border border-purple-400' 
+                                          : getPriorityColor(schedule.priority)
+                                      }`}
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         onScheduleClick(schedule);
                                       }}
-                                      title={`${schedule.title} - ${activityType?.name || 'N/A'}`}
+                                      title={
+                                        isInternalAction 
+                                          ? `Ação Interna: ${schedule.title} - ${activityType?.name || 'Ticket'}`
+                                          : `${schedule.title} - ${activityType?.name || 'N/A'}`
+                                      }
                                     />
                                   );
                                 })}
@@ -317,15 +327,25 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
                               >
                                 {actualSchedules.map((schedule) => {
                                   const activityType = getActivityType(schedule.activityTypeId);
+                                  const isInternalAction = schedule.activityTypeId === 'internal-action' || schedule.type === 'internal_action';
+                                  
                                   return (
                                     <div
                                       key={schedule.id}
-                                      className={`absolute inset-0 text-white text-xs cursor-pointer hover:opacity-80 ${getPriorityColor(schedule.priority)}`}
+                                      className={`absolute inset-0 text-white text-xs cursor-pointer hover:opacity-80 ${
+                                        isInternalAction 
+                                          ? 'bg-purple-600 border border-purple-400' 
+                                          : getPriorityColor(schedule.priority)
+                                      }`}
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         onScheduleClick(schedule);
                                       }}
-                                      title={`${schedule.title} - ${activityType?.name || 'N/A'}`}
+                                      title={
+                                        isInternalAction 
+                                          ? `Ação Interna: ${schedule.title} - ${activityType?.name || 'Ticket'}`
+                                          : `${schedule.title} - ${activityType?.name || 'N/A'}`
+                                      }
                                     />
                                   );
                                 })}

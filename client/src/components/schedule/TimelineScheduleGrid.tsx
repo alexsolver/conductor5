@@ -402,19 +402,30 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                           }`}></div>
                           {plannedSchedules.map((schedule) => {
                             const activityType = getActivityType(schedule.activityTypeId);
+                            const isInternalAction = schedule.activityTypeId === 'internal-action' || schedule.type === 'internal_action';
+                            
                             return (
                               <div
                                 key={schedule.id}
-                                className={`absolute inset-1 rounded text-white text-xs flex items-center justify-center cursor-pointer hover:opacity-80 ${getPriorityColor(schedule.priority)}`}
+                                className={`absolute inset-1 rounded text-white text-xs flex items-center justify-center cursor-pointer hover:opacity-80 ${
+                                  isInternalAction 
+                                    ? 'bg-purple-600 border border-purple-400' 
+                                    : getPriorityColor(schedule.priority)
+                                }`}
                                 style={{ opacity: 0.9 }}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   onScheduleClick(schedule);
                                 }}
-                                title={`${schedule.title} - ${format(parseISO(schedule.startDateTime), 'HH:mm')}`}
+                                title={
+                                  isInternalAction 
+                                    ? `Ação Interna: ${schedule.title} - ${format(parseISO(schedule.startDateTime), 'HH:mm')}`
+                                    : `${schedule.title} - ${format(parseISO(schedule.startDateTime), 'HH:mm')}`
+                                }
                               >
                                 <span className="truncate font-medium">
-                                  {schedule.priority === 'urgent' ? 'U' : 
+                                  {isInternalAction ? 'T' : // T for Ticket action
+                                   schedule.priority === 'urgent' ? 'U' : 
                                    schedule.priority === 'high' ? 'H' : 
                                    schedule.priority === 'low' ? 'L' : 'M'}
                                 </span>
