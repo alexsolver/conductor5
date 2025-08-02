@@ -6,7 +6,7 @@ import { insertTicketSchema, insertTicketMessageSchema } from "../../../shared/s
 import { sendSuccess, sendError, sendValidationError } from "../../utils/standardResponse";
 import { mapFrontendToBackend } from "../../utils/fieldMapping";
 import { z } from "zod";
-import { trackTicketView, trackTicketEdit, trackTicketCreate, trackNoteView, trackNoteCreate, trackInternalActionView, trackInternalActionCreate } from '../../middleware/activityTrackingMiddleware';
+import { trackTicketView, trackTicketEdit, trackTicketCreate, trackNoteView, trackNoteCreate } from '../../middleware/activityTrackingMiddleware';
 
 const ticketsRouter = Router();
 
@@ -527,7 +527,7 @@ ticketsRouter.delete('/:id/attachments/:attachmentId', jwtAuth, async (req: Auth
 });
 
 // Get ticket actions
-ticketsRouter.get('/:id/actions', jwtAuth, trackInternalActionView, async (req: AuthenticatedRequest, res) => {
+ticketsRouter.get('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     if (!req.user?.tenantId) {
       return res.status(400).json({ message: "User not associated with a tenant" });
@@ -584,7 +584,7 @@ ticketsRouter.get('/:id/actions', jwtAuth, trackInternalActionView, async (req: 
 });
 
 // Create ticket action
-ticketsRouter.post('/:id/actions', jwtAuth, trackInternalActionCreate, async (req: AuthenticatedRequest, res) => {
+ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     if (!req.user?.tenantId) {
       return res.status(400).json({ message: "User not associated with a tenant" });
