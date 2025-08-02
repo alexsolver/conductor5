@@ -33,6 +33,7 @@ import holidayRoutes from './routes/HolidayController';
 
 // Removed: journeyRoutes - functionality eliminated from system
 import { timecardRoutes } from './routes/timecardRoutes';
+import { cltComplianceController } from './controllers/CLTComplianceController';
 import scheduleRoutes from './modules/schedule-management/infrastructure/routes/scheduleRoutes';
 import { userProfileRoutes } from './routes/userProfileRoutes';
 import { teamManagementRoutes } from './routes/teamManagementRoutes';
@@ -1901,6 +1902,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Timecard routes - Registro de Ponto
   app.use('/api/timecard', jwtAuth, timecardRoutes);
+
+  // 🔴 CLT COMPLIANCE ROUTES - OBRIGATÓRIAS POR LEI
+  // Verificação de integridade da cadeia CLT
+  app.get('/api/timecard/compliance/integrity-check', jwtAuth, cltComplianceController.checkIntegrity.bind(cltComplianceController));
+  
+  // Trilha de auditoria completa
+  app.get('/api/timecard/compliance/audit-log', jwtAuth, cltComplianceController.getAuditLog.bind(cltComplianceController));
+  
+  // Relatórios de compliance para fiscalização
+  app.post('/api/timecard/compliance/generate-report', jwtAuth, cltComplianceController.generateComplianceReport.bind(cltComplianceController));
+  app.get('/api/timecard/compliance/reports', jwtAuth, cltComplianceController.listComplianceReports.bind(cltComplianceController));
+  app.get('/api/timecard/compliance/reports/:reportId', jwtAuth, cltComplianceController.downloadComplianceReport.bind(cltComplianceController));
+  
+  // Status dos backups
+  app.get('/api/timecard/compliance/backups', jwtAuth, cltComplianceController.getBackupStatus.bind(cltComplianceController));
+  app.post('/api/timecard/compliance/verify-backup', jwtAuth, cltComplianceController.verifyBackup.bind(cltComplianceController));
+  
+  // Status das chaves de assinatura digital
+  app.get('/api/timecard/compliance/keys', jwtAuth, cltComplianceController.getDigitalKeys.bind(cltComplianceController));
 
   // Contract Management routes - Gestão de Contratos
   app.use('/api/contracts', contractRoutes);

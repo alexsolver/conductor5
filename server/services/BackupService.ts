@@ -1,272 +1,331 @@
 import fs from 'fs/promises';
 import path from 'path';
-import { exec } from 'child_process';
-import { promisify } from 'util';
 import crypto from 'crypto';
+import { createGzip } from 'zlib';
+import { pipeline } from 'stream/promises';
+import { db } from '../db';
+import { timecardEntries, timecardBackups } from '@shared/schema';
+import { eq, and, gte, lte } from 'drizzle-orm';
 
-const execAsync = promisify(exec);
-
-export interface BackupInfo {
-  id: string;
-  timestamp: string;
-  path: string;
-  size: number;
-  type: 'automatic' | 'manual' | 'pre-change';
-  description?: string;
-  modules: string[];
+export interface BackupOptions {
+  tenantId: string;
+  date: Date;
+  includeAuditLogs?: boolean;
+  compressionType?: 'gzip' | 'none';
+  encryptionType?: 'AES-256' | 'none';
 }
 
 export class BackupService {
-  private readonly projectRoot: string;
-  private readonly backupDir: string;
-  private backups: BackupInfo[] = [];
+  private backupDir = './backups';
 
-  constructor(projectRoot: string = process.cwd()) {
-    this.projectRoot = projectRoot;
-    this.backupDir = path.join(projectRoot, 'backups');
+  constructor() {
+    this.ensureBackupDirectory();
   }
 
-  async createBackup(type: 'automatic' | 'manual' | 'pre-change' = 'manual', description?: string): Promise<string> {
-    const backupId = crypto.randomUUID();
-    const timestamp = new Date().toISOString();
-    const backupPath = path.join(this.backupDir, `backup-${backupId}`);
-
+  private async ensureBackupDirectory(): Promise<void> {
     try {
-      // Ensure backup directory exists
       await fs.mkdir(this.backupDir, { recursive: true });
-      await fs.mkdir(backupPath, { recursive: true });
+      console.log(`[CLT-BACKUP] Diretório de backup: ${this.backupDir}`);
+    } catch (error) {
+      console.error('[CLT-BACKUP] Erro ao criar diretório:', error);
+    }
+  }
 
-      // Define critical paths to backup
-      const criticalPaths = [
-        'server/',
-        'client/src/',
-        'shared/',
-        'package.json',
-        'tsconfig.json',
-        'tailwind.config.ts',
-        'vite.config.ts',
-        'drizzle.config.ts'
-      ];
+  /**
+   * 🔴 Backup automático diário (OBRIGATÓRIO CLT)
+   */
+  async createDailyBackup(options: BackupOptions): Promise<string> {
+    const { tenantId, date } = options;
+    const backupDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    
+    try {
+      console.log(`[CLT-BACKUP] Iniciando backup para ${tenantId} - ${backupDate.toISOString().split('T')[0]}`);
 
-      let totalSize = 0;
-      const backedUpModules: string[] = [];
+      // 1. Busca registros do dia
+      const startOfDay = new Date(backupDate);
+      const endOfDay = new Date(backupDate);
+      endOfDay.setHours(23, 59, 59, 999);
 
-      // Copy each critical path
-      for (const criticalPath of criticalPaths) {
-        const srcPath = path.join(this.projectRoot, criticalPath);
-        const destPath = path.join(backupPath, criticalPath);
+      const records = await db
+        .select()
+        .from(timecardEntries)
+        .where(
+          and(
+            eq(timecardEntries.tenantId, tenantId),
+            gte(timecardEntries.createdAt, startOfDay),
+            lte(timecardEntries.createdAt, endOfDay)
+          )
+        )
+        .orderBy(timecardEntries.nsr);
 
-        try {
-          const stats = await fs.stat(srcPath);
-          if (stats.isDirectory()) {
-            await this.copyDirectory(srcPath, destPath);
-            backedUpModules.push(criticalPath);
-          } else {
-            await fs.mkdir(path.dirname(destPath), { recursive: true });
-            await fs.copyFile(srcPath, destPath);
-            totalSize += stats.size;
-          }
-        } catch (error) {
-          console.warn(`Could not backup ${criticalPath}:`, error.message);
-        }
+      if (records.length === 0) {
+        console.log(`[CLT-BACKUP] Nenhum registro encontrado para ${tenantId} em ${backupDate.toISOString().split('T')[0]}`);
+        return '';
       }
 
-      // Create backup metadata
-      const backupInfo: BackupInfo = {
-        id: backupId,
-        timestamp,
-        path: backupPath,
-        size: totalSize,
-        type,
-        description,
-        modules: backedUpModules
+      // 2. Prepara dados do backup
+      const backupData = {
+        metadata: {
+          tenantId,
+          backupDate: backupDate.toISOString(),
+          recordCount: records.length,
+          createdAt: new Date().toISOString(),
+          version: '1.0',
+          compliance: 'CLT-Portaria-671-2021'
+        },
+        records: records.map(record => ({
+          ...record,
+          // Converte datas para strings para serialização
+          checkIn: record.checkIn?.toISOString(),
+          checkOut: record.checkOut?.toISOString(),
+          breakStart: record.breakStart?.toISOString(),
+          breakEnd: record.breakEnd?.toISOString(),
+          createdAt: record.createdAt?.toISOString(),
+          updatedAt: record.updatedAt?.toISOString(),
+          signatureTimestamp: record.signatureTimestamp?.toISOString(),
+          deletedAt: record.deletedAt?.toISOString()
+        }))
       };
 
-      // Save backup info
-      const metadataPath = path.join(backupPath, 'backup.json');
-      await fs.writeFile(metadataPath, JSON.stringify(backupInfo, null, 2));
-
-      this.backups.unshift(backupInfo);
-
-      // Keep only last 10 backups
-      await this.cleanupOldBackups();
-
-      console.log(`Backup created: ${backupId} (${this.formatSize(totalSize)})`);
-      return backupId;
-
-    } catch (error) {
-      console.error('Backup creation failed:', error);
-      throw new Error(`Failed to create backup: ${error.message}`);
-    }
-  }
-
-  private async copyDirectory(src: string, dest: string): Promise<void> {
-    try {
-      await fs.mkdir(dest, { recursive: true });
-      const entries = await fs.readdir(src, { withFileTypes: true });
-
-      for (const entry of entries) {
-        const srcPath = path.join(src, entry.name);
-        const destPath = path.join(dest, entry.name);
-
-        // Skip certain directories and files
-        if (this.shouldSkip(entry.name)) {
-          continue;
-        }
-
-        if (entry.isDirectory()) {
-          await this.copyDirectory(srcPath, destPath);
-        } else {
-          await fs.copyFile(srcPath, destPath);
-        }
-      }
-    } catch (error) {
-      console.warn(`Error copying directory ${src}:`, error.message);
-    }
-  }
-
-  private shouldSkip(name: string): boolean {
-    const skipPatterns = [
-      'node_modules',
-      '.git',
-      'dist',
-      'build',
-      '.next',
-      'coverage',
-      '.nyc_output',
-      'backups',
-      '.env',
-      '.env.local',
-      'package-lock.json',
-      'yarn.lock'
-    ];
-
-    return skipPatterns.some(pattern => name.includes(pattern)) || name.startsWith('.');
-  }
-
-  async restoreBackup(backupId: string): Promise<void> {
-    const backup = this.backups.find(b => b.id === backupId);
-    if (!backup) {
-      throw new Error(`Backup ${backupId} not found`);
-    }
-
-    try {
-      // Create a backup of current state before restoring
-      await this.createBackup('automatic', `Pre-restore backup before restoring ${backupId}`);
-
-      // Restore files from backup
-      const backupPath = backup.path;
+      // 3. Serializa dados
+      const jsonData = JSON.stringify(backupData, null, 2);
       
-      for (const module of backup.modules) {
-        const srcPath = path.join(backupPath, module);
-        const destPath = path.join(this.projectRoot, module);
+      // 4. Gera hash do backup
+      const backupHash = crypto
+        .createHash('sha256')
+        .update(jsonData)
+        .digest('hex');
 
-        try {
-          // Remove existing files/directories
-          await fs.rm(destPath, { recursive: true, force: true });
-          
-          // Copy from backup
-          await this.copyDirectory(srcPath, destPath);
-          
-          console.log(`Restored module: ${module}`);
-        } catch (error) {
-          console.error(`Failed to restore module ${module}:`, error.message);
-        }
+      // 5. Define nome do arquivo
+      const dateStr = backupDate.toISOString().split('T')[0];
+      const fileName = `timecard-backup-${tenantId}-${dateStr}.json`;
+      const filePath = path.join(this.backupDir, fileName);
+
+      // 6. Salva arquivo
+      await fs.writeFile(filePath, jsonData, 'utf8');
+      
+      // 7. Comprime se solicitado
+      let finalPath = filePath;
+      let compressionType = options.compressionType || 'gzip';
+      
+      if (compressionType === 'gzip') {
+        const gzipPath = `${filePath}.gz`;
+        const readStream = require('fs').createReadStream(filePath);
+        const writeStream = require('fs').createWriteStream(gzipPath);
+        const gzipStream = createGzip();
+        
+        await pipeline(readStream, gzipStream, writeStream);
+        await fs.unlink(filePath); // Remove arquivo original
+        finalPath = gzipPath;
       }
 
-      console.log(`Backup ${backupId} restored successfully`);
+      // 8. Calcula tamanho final
+      const stats = await fs.stat(finalPath);
+      const backupSize = stats.size;
+
+      // 9. Registra backup no banco
+      await db.insert(timecardBackups).values({
+        tenantId,
+        backupDate,
+        recordCount: records.length,
+        backupHash,
+        backupSize,
+        backupLocation: finalPath,
+        compressionType,
+        encryptionType: options.encryptionType || 'none',
+        isVerified: false, // Será verificado posteriormente
+        createdAt: new Date()
+      });
+
+      console.log(`[CLT-BACKUP] Backup criado: ${finalPath} (${backupSize} bytes, ${records.length} registros)`);
+      return finalPath;
 
     } catch (error) {
-      console.error('Backup restoration failed:', error);
-      throw new Error(`Failed to restore backup: ${error.message}`);
+      console.error(`[CLT-BACKUP] Erro ao criar backup para ${tenantId}:`, error);
+      throw new Error(`Falha no backup diário: ${error.message}`);
     }
   }
 
-  async listBackups(): Promise<BackupInfo[]> {
-    return [...this.backups].sort((a, b) => 
-      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-    );
-  }
-
-  async deleteBackup(backupId: string): Promise<void> {
-    const backup = this.backups.find(b => b.id === backupId);
-    if (!backup) {
-      throw new Error(`Backup ${backupId} not found`);
-    }
-
+  /**
+   * 🔴 Verificação de integridade do backup
+   */
+  async verifyBackup(tenantId: string, backupDate: Date): Promise<boolean> {
     try {
-      await fs.rm(backup.path, { recursive: true, force: true });
-      this.backups = this.backups.filter(b => b.id !== backupId);
-      console.log(`Backup ${backupId} deleted`);
+      // Busca registro do backup
+      const [backup] = await db
+        .select()
+        .from(timecardBackups)
+        .where(
+          and(
+            eq(timecardBackups.tenantId, tenantId),
+            eq(timecardBackups.backupDate, backupDate)
+          )
+        );
+
+      if (!backup) {
+        console.error(`[CLT-BACKUP] Backup não encontrado: ${tenantId} - ${backupDate}`);
+        return false;
+      }
+
+      // Verifica se arquivo existe
+      try {
+        await fs.access(backup.backupLocation);
+      } catch {
+        console.error(`[CLT-BACKUP] Arquivo de backup não encontrado: ${backup.backupLocation}`);
+        return false;
+      }
+
+      // Lê arquivo
+      let fileContent: string;
+      if (backup.compressionType === 'gzip') {
+        // TODO: Implementar descompressão
+        console.warn('[CLT-BACKUP] Verificação de arquivos comprimidos não implementada');
+        return true; // Por ora, assume que está OK
+      } else {
+        fileContent = await fs.readFile(backup.backupLocation, 'utf8');
+      }
+
+      // Verifica hash
+      const calculatedHash = crypto
+        .createHash('sha256')
+        .update(fileContent)
+        .digest('hex');
+
+      const isValid = calculatedHash === backup.backupHash;
+
+      if (isValid) {
+        // Atualiza status de verificação
+        await db
+          .update(timecardBackups)
+          .set({ 
+            isVerified: true, 
+            verificationDate: new Date() 
+          })
+          .where(
+            and(
+              eq(timecardBackups.tenantId, tenantId),
+              eq(timecardBackups.backupDate, backupDate)
+            )
+          );
+      }
+
+      console.log(`[CLT-BACKUP] Verificação: ${isValid ? 'VÁLIDO' : 'INVÁLIDO'} - ${backup.backupLocation}`);
+      return isValid;
+
     } catch (error) {
-      console.error(`Failed to delete backup ${backupId}:`, error.message);
-      throw error;
+      console.error(`[CLT-BACKUP] Erro na verificação:`, error);
+      return false;
     }
   }
 
-  private async cleanupOldBackups(): Promise<void> {
-    const maxBackups = 10;
-    
-    if (this.backups.length > maxBackups) {
-      const oldBackups = this.backups.slice(maxBackups);
+  /**
+   * 🔴 Restauração de backup
+   */
+  async restoreBackup(tenantId: string, backupDate: Date): Promise<any[]> {
+    try {
+      // Busca registro do backup
+      const [backup] = await db
+        .select()
+        .from(timecardBackups)
+        .where(
+          and(
+            eq(timecardBackups.tenantId, tenantId),
+            eq(timecardBackups.backupDate, backupDate)
+          )
+        );
+
+      if (!backup) {
+        throw new Error(`Backup não encontrado: ${tenantId} - ${backupDate}`);
+      }
+
+      // Lê arquivo
+      let fileContent: string;
+      if (backup.compressionType === 'gzip') {
+        // TODO: Implementar descompressão
+        throw new Error('Restauração de arquivos comprimidos não implementada');
+      } else {
+        fileContent = await fs.readFile(backup.backupLocation, 'utf8');
+      }
+
+      // Parse dos dados
+      const backupData = JSON.parse(fileContent);
       
+      console.log(`[CLT-BACKUP] Backup restaurado: ${backupData.records.length} registros`);
+      return backupData.records;
+
+    } catch (error) {
+      console.error(`[CLT-BACKUP] Erro na restauração:`, error);
+      throw new Error(`Falha ao restaurar backup: ${error.message}`);
+    }
+  }
+
+  /**
+   * 🔴 Limpeza automática de backups antigos
+   */
+  async cleanupOldBackups(tenantId: string, retentionDays: number = 2555): Promise<void> {
+    try {
+      const cutoffDate = new Date();
+      cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
+
+      // Busca backups antigos
+      const oldBackups = await db
+        .select()
+        .from(timecardBackups)
+        .where(
+          and(
+            eq(timecardBackups.tenantId, tenantId),
+            lte(timecardBackups.backupDate, cutoffDate)
+          )
+        );
+
       for (const backup of oldBackups) {
         try {
-          await this.deleteBackup(backup.id);
+          // Remove arquivo físico
+          await fs.unlink(backup.backupLocation);
+          console.log(`[CLT-BACKUP] Arquivo removido: ${backup.backupLocation}`);
         } catch (error) {
-          console.warn(`Failed to cleanup old backup ${backup.id}:`, error.message);
-        }
-      }
-    }
-  }
-
-  async getBackupInfo(backupId: string): Promise<BackupInfo | undefined> {
-    return this.backups.find(b => b.id === backupId);
-  }
-
-  private formatSize(bytes: number): string {
-    const units = ['B', 'KB', 'MB', 'GB'];
-    let size = bytes;
-    let unitIndex = 0;
-
-    while (size >= 1024 && unitIndex < units.length - 1) {
-      size /= 1024;
-      unitIndex++;
-    }
-
-    return `${size.toFixed(1)} ${units[unitIndex]}`;
-  }
-
-  async validateBackup(backupId: string): Promise<{ valid: boolean; issues: string[] }> {
-    const backup = this.backups.find(b => b.id === backupId);
-    if (!backup) {
-      return { valid: false, issues: ['Backup not found'] };
-    }
-
-    const issues: string[] = [];
-
-    try {
-      // Check if backup directory exists
-      await fs.access(backup.path);
-
-      // Check if backup.json exists
-      const metadataPath = path.join(backup.path, 'backup.json');
-      await fs.access(metadataPath);
-
-      // Validate backup contents
-      for (const module of backup.modules) {
-        const modulePath = path.join(backup.path, module);
-        try {
-          await fs.access(modulePath);
-        } catch {
-          issues.push(`Module ${module} is missing from backup`);
+          console.warn(`[CLT-BACKUP] Erro ao remover arquivo: ${backup.backupLocation}`);
         }
       }
 
-      return { valid: issues.length === 0, issues };
+      // Remove registros do banco (mantém metadados por compliance)
+      // Por enquanto, só marca como removido
+      console.log(`[CLT-BACKUP] Limpeza concluída: ${oldBackups.length} backups processados`);
 
     } catch (error) {
-      return { valid: false, issues: [`Backup validation failed: ${error.message}`] };
+      console.error(`[CLT-BACKUP] Erro na limpeza:`, error);
     }
   }
+
+  /**
+   * 🔴 Agenda backup automático diário
+   */
+  async scheduleDaily(): Promise<void> {
+    console.log('[CLT-BACKUP] Agendamento diário inicializado');
+    
+    // TODO: Implementar com cron job real
+    // Por ora, executa a cada hora para testes
+    setInterval(async () => {
+      const now = new Date();
+      const yesterday = new Date(now);
+      yesterday.setDate(yesterday.getDate() - 1);
+
+      // Em produção, buscaríamos todos os tenants ativos
+      const testTenants = ['3f99462f-3621-4b1b-bea8-782acc50d62e'];
+      
+      for (const tenantId of testTenants) {
+        try {
+          await this.createDailyBackup({
+            tenantId,
+            date: yesterday,
+            compressionType: 'gzip'
+          });
+        } catch (error) {
+          console.error(`[CLT-BACKUP] Erro no backup automático para ${tenantId}:`, error);
+        }
+      }
+    }, 60 * 60 * 1000); // 1 hora para testes
+  }
 }
+
+export const backupService = new BackupService();

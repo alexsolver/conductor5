@@ -74,6 +74,7 @@ import { ServicesManagement } from "./pages/ServicesManagement";
 import AssetManagement from "./pages/AssetManagement";
 import LpuManagement from "./pages/LpuManagement"; // Temporarily commented due to LSP errors
 import ComplianceManagement from "./pages/ComplianceManagement";
+import CLTCompliance from "./pages/CLTCompliance";
 import NotificationManagement from './pages/NotificationManagement';
 import CustomFieldsAdministrator from './pages/CustomFieldsAdministrator';
 import DragDropDemo from './pages/DragDropDemo';
@@ -132,6 +133,7 @@ function AppRouter() {
         <Route path="/analytics" component={Analytics} />
         <Route path="/roadmap" component={Roadmap} />
         <Route path="/compliance" component={Compliance} />
+        <Route path="/clt-compliance" component={CLTCompliance} />
         <Route path="/saas-admin" component={SaasAdmin} />
         <Route path="/saas-admin/performance" component={SaasAdminPerformance} />
         <Route path="/saas-admin/billing" component={SaasAdminBilling} />

@@ -1,5 +1,6 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
+import { backupService } from "./services/BackupService";
 import { setupVite, serveStatic, log } from "./vite";
 import cookieParser from "cookie-parser";
 import { enhancedWebsocketStability, configureServerForStability } from "./middleware/enhancedWebsocketStability";
@@ -255,5 +256,15 @@ app.use((req, res, next) => {
     keepAliveInitialDelay: 0
   }, () => {
     log(`serving on port ${port}`);
+    
+    // 🔴 INICIALIZA SERVIÇOS CLT OBRIGATÓRIOS
+    console.log('[CLT-COMPLIANCE] Inicializando serviços de compliance...');
+    try {
+      // Inicia backup automático diário
+      backupService.scheduleDaily();
+      console.log('✅ [CLT-COMPLIANCE] Backup automático iniciado com sucesso');
+    } catch (error) {
+      console.error('❌ [CLT-COMPLIANCE] Erro ao inicializar serviços:', error);
+    }
   });
 })();
