@@ -121,8 +121,6 @@ const AgendaManager: React.FC = () => {
   });
   
   const agents = (agentsData as any)?.users || [];
-  console.log('[AGENDA-DEBUG] Agents data:', agentsData);
-  console.log('[AGENDA-DEBUG] Agents array:', agents);
 
   const { data: customersData } = useQuery({
     queryKey: ['/api/customers'],
@@ -133,8 +131,6 @@ const AgendaManager: React.FC = () => {
   });
   
   const customers = (customersData as any)?.customers || [];
-  console.log('[AGENDA-DEBUG] Customers data:', customersData);
-  console.log('[AGENDA-DEBUG] Customers array:', customers);
 
   // Buscar grupos de usuários do módulo de gestão de equipes
   const { data: groupsData } = useQuery({
@@ -146,8 +142,6 @@ const AgendaManager: React.FC = () => {
   });
   
   const groups = (groupsData as any)?.groups || [];
-  console.log('[AGENDA-DEBUG] Groups data:', groupsData);
-  console.log('[AGENDA-DEBUG] Groups array:', groups);
 
   // Buscar membros do grupo selecionado
   const { data: groupMembersData } = useQuery({
@@ -246,11 +240,14 @@ const AgendaManager: React.FC = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="todos">Todos os clientes</SelectItem>
-                  {Array.isArray(customers) && customers.map((customer) => (
-                    <SelectItem key={customer.id} value={customer.id}>
-                      {customer.name}
-                    </SelectItem>
-                  ))}
+                  {Array.isArray(customers) && customers.map((customer) => {
+                    const customerName = customer.name || `${customer.firstName || customer.first_name || ''} ${customer.lastName || customer.last_name || ''}`.trim() || customer.email;
+                    return (
+                      <SelectItem key={customer.id} value={customer.id}>
+                        {customerName}
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </div>
@@ -282,11 +279,14 @@ const AgendaManager: React.FC = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="todos">Todos os técnicos</SelectItem>
-                  {Array.isArray(filteredAgents) && filteredAgents.map((agent) => (
-                    <SelectItem key={agent.id} value={agent.id}>
-                      {agent.name}
-                    </SelectItem>
-                  ))}
+                  {Array.isArray(filteredAgents) && filteredAgents.map((agent) => {
+                    const agentName = agent.name || `${agent.firstName || agent.first_name || ''} ${agent.lastName || agent.last_name || ''}`.trim() || agent.email;
+                    return (
+                      <SelectItem key={agent.id} value={agent.id}>
+                        {agentName}
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </div>
