@@ -66,23 +66,38 @@ export class TimecardController {
       let lastRecord = null;
 
       if (todayRecords.length > 0) {
-        lastRecord = todayRecords[todayRecords.length - 1];
+        // Sort records by creation time to get the most recent
+        const sortedRecords = todayRecords.sort((a, b) => 
+          new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime()
+        );
+        lastRecord = sortedRecords[0];
 
-        // Only consider complete records (with both checkIn and checkOut) and active check-ins
-        const completedRecords = todayRecords.filter(record => record.checkIn && record.checkOut);
-        const activeCheckIn = todayRecords.find(record => record.checkIn && !record.checkOut);
-        
-        // Check for break status
+        // Check for break status first (most specific)
         const onBreak = todayRecords.some(record => record.breakStart && !record.breakEnd);
-
+        
         if (onBreak) {
           status = 'on_break';
-        } else if (activeCheckIn) {
-          // Has an active check-in without check-out = currently working
-          status = 'working';
-        } else if (completedRecords.length > 0) {
-          // Only completed records exist = finished for the day
-          status = 'finished';
+        } else {
+          // Filter out invalid records (must have at least checkIn)
+          const validRecords = todayRecords.filter(record => record.checkIn);
+          
+          // Sort by creation time to get the most recent record for the current user
+          const sortedValidRecords = validRecords.sort((a, b) => 
+            new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime()
+          );
+          
+          // Use only the most recent record to determine status
+          const latestRecord = sortedValidRecords[0];
+          
+          if (latestRecord) {
+            if (latestRecord.checkIn && !latestRecord.checkOut) {
+              // Latest record has check-in but no check-out = currently working
+              status = 'working';
+            } else if (latestRecord.checkIn && latestRecord.checkOut) {
+              // Latest record is complete = finished for the day
+              status = 'finished';
+            }
+          }
         }
       }
 
