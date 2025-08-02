@@ -55,7 +55,7 @@ async function throwIfResNotOk(res: Response) {
 }
 
 export async function apiRequest(method: string, url: string, data?: any) {
-  const token = localStorage.getItem('accessToken');
+  const token = localStorage.getItem('access_token');
 
   if (!token) {
     throw new Error('No access token found');
@@ -81,7 +81,7 @@ export async function apiRequest(method: string, url: string, data?: any) {
 
   if (response.status === 401) {
     // Token expired or invalid
-    localStorage.removeItem('accessToken');
+    localStorage.removeItem('access_token');
     window.location.href = '/auth';
     throw new Error('Authentication required');
   }

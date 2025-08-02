@@ -89,28 +89,18 @@ function WorkSchedulesContent() {
   const { data: schedulesData, isLoading: schedulesLoading, error: schedulesError } = useQuery({
     queryKey: ['/api/timecard/work-schedules'],
     queryFn: async () => {
-      const token = localStorage.getItem('accessToken');
-
       console.log('[FRONTEND-QA] Fetching work schedules...');
-      console.log('[TOKEN-DEBUG] Token exists:', !!token);
-      console.log('[TOKEN-DEBUG] Token length:', token?.length || 0);
-
-      if (!token) {
-        console.error('[TOKEN-DEBUG] No token found in localStorage');
-        throw new Error('No access token found');
-      }
-
       try {
         const response = await apiRequest('GET', '/api/timecard/work-schedules');
         console.log('[FRONTEND-QA] Raw API Response:', response);
-
+        
         // Parse response if it's a Response object
         let data = response;
         if (response && typeof response.json === 'function') {
           data = await response.json();
           console.log('[FRONTEND-QA] Parsed JSON Response:', data);
         }
-
+        
         return data;
       } catch (error) {
         console.error('[FRONTEND-QA] API Request Error:', error);
@@ -226,16 +216,16 @@ function WorkSchedulesContent() {
 
   // Safe data processing with proper type checking
   let schedules: WorkSchedule[] = [];
-
+  
   try {
     console.log('[FRONTEND-DEBUG] Raw schedulesData:', schedulesData);
-
+    
     if (Array.isArray(schedulesData)) {
       schedules = schedulesData
         .filter(schedule => schedule && schedule.id) // Filter out invalid entries
         .map(schedule => {
           console.log('[FRONTEND-DEBUG] Processing schedule:', schedule);
-
+          
           return {
             ...schedule,
             // Ensure workDays is always an array
@@ -258,9 +248,9 @@ function WorkSchedulesContent() {
                           (schedulesData as any).data || 
                           (schedulesData as any).workSchedules || 
                           [];
-
+      
       console.log('[FRONTEND-DEBUG] Extracted raw schedules:', rawSchedules);
-
+      
       if (Array.isArray(rawSchedules)) {
         schedules = rawSchedules
           .filter(schedule => schedule && schedule.id)
@@ -278,16 +268,16 @@ function WorkSchedulesContent() {
           }));
       }
     }
-
+    
     console.log('[FRONTEND-DEBUG] Final processed schedules:', schedules);
-
+    
   } catch (error) {
     console.error('[QA-ERROR] Error processing schedules data:', error);
     schedules = [];
   }
-
+  
   const users = Array.isArray(usersData) ? usersData : (usersData?.users || usersData?.members || []);
-
+  
   // Debug information for troubleshooting
   if (process.env.NODE_ENV === 'development') {
     console.log('Work schedules loaded:', schedules.length);
@@ -299,15 +289,15 @@ function WorkSchedulesContent() {
     console.log('Active templates list:', scheduleTypesData?.templates?.filter((t: any) => t.isActive));
     console.log('Custom templates (excluding defaults):', scheduleTypesData?.templates?.filter((t: any) => t.isActive && !['5x2', '6x1', '12x36'].includes(t.name)));
   }
-
+  
   if (templatesError) {
     console.error('Templates fetch error:', templatesError);
   }
-
+  
   if (usersError) {
     console.error('Users fetch error:', usersError);
   }
-
+  
   // Add error state handling
   if (schedulesError) {
     console.error('[QA-DEBUG] Schedules fetch error:', schedulesError);
@@ -447,11 +437,11 @@ function WorkSchedulesContent() {
         userIds: selectedUsers, 
         scheduleData
       });
-
+      
       queryClient.invalidateQueries({ queryKey: ['/api/timecard/work-schedules'] });
       setBulkAssignOpen(false);
       setSelectedUsers([]);
-
+      
       toast({
         title: 'Sucesso!',
         description: `Escalas atribuídas para ${selectedUsers.length} funcionários.`,
@@ -540,7 +530,7 @@ function WorkSchedulesContent() {
           >
             🔍 Debug Escalas
           </Button>
-
+          
           <Dialog open={bulkAssignOpen} onOpenChange={setBulkAssignOpen}>
             <DialogTrigger asChild>
               <Button variant="outline">
@@ -579,7 +569,7 @@ function WorkSchedulesContent() {
                     ))}
                   </div>
                 </div>
-
+                
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="bulk-schedule-type">Tipo de Escala</Label>
@@ -601,7 +591,7 @@ function WorkSchedulesContent() {
                       </SelectContent>
                     </Select>
                   </div>
-
+                  
                   <div>
                     <Label htmlFor="bulk-start-date">Data de Início</Label>
                     <Input
@@ -613,7 +603,7 @@ function WorkSchedulesContent() {
                     />
                   </div>
                 </div>
-
+                
                 <div className="flex justify-end space-x-2">
                   <Button variant="outline" onClick={() => setBulkAssignOpen(false)}>
                     Cancelar
@@ -625,7 +615,7 @@ function WorkSchedulesContent() {
               </div>
             </DialogContent>
           </Dialog>
-
+          
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button onClick={handleNew}>
