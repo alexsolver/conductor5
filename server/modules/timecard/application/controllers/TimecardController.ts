@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { z } from 'zod';
-import { DrizzleTimecardRepository } from '../infrastructure/repositories/DrizzleTimecardRepository';
+import { DrizzleTimecardRepository } from '../../infrastructure/repositories/DrizzleTimecardRepository';
 
 // Validation schemas
 const createTimecardEntrySchema = z.object({
