@@ -2,10 +2,10 @@ import { eq, and, gte, lte, desc, asc, sql, inArray } from 'drizzle-orm';
 import { db } from '../../../../db';
 import { 
   timeRecords,
-  timeBank, 
-  users 
+  hourBankEntries, 
+  users,
+  workSchedules
 } from '../../../../../shared/schema-master';
-import { workSchedules } from '../../../../../shared/schema-master';
 
 export interface TimecardRepository {
   // Timecard Entries
@@ -513,7 +513,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
   // Hour Bank Implementation
   async createHourBankEntry(data: any): Promise<any> {
     const [entry] = await db
-      .insert(timeBank)
+      .insert(hourBankEntries)
       .values(data)
       .returning();
     return entry;
@@ -521,29 +521,29 @@ export class DrizzleTimecardRepository implements TimecardRepository {
 
   async getHourBankByUser(userId: string, tenantId: string, year?: number, month?: number): Promise<any[]> {
     const conditions = [
-      eq(timeBank.userId, userId),
-      eq(timeBank.tenantId, tenantId)
+      eq(hourBankEntries.userId, userId),
+      eq(hourBankEntries.tenantId, tenantId)
     ];
 
     if (year && month) {
       const startDate = new Date(year, month - 1, 1);
       const endDate = new Date(year, month, 0);
-      conditions.push(gte(timeBank.date, startDate));
-      conditions.push(lte(timeBank.date, endDate));
+      conditions.push(gte(hourBankEntries.date, startDate));
+      conditions.push(lte(hourBankEntries.date, endDate));
     }
 
     return await db
       .select()
-      .from(timeBank)
+      .from(hourBankEntries)
       .where(and(...conditions))
-      .orderBy(desc(timeBank.date));
+      .orderBy(desc(hourBankEntries.date));
   }
 
   async updateHourBankEntry(id: string, tenantId: string, data: any): Promise<any> {
     const [entry] = await db
-      .update(timeBank)
+      .update(hourBankEntries)
       .set({ ...data, updatedAt: new Date() })
-      .where(and(eq(timeBank.id, id), eq(timeBank.tenantId, tenantId)))
+      .where(and(eq(hourBankEntries.id, id), eq(hourBankEntries.tenantId, tenantId)))
       .returning();
     return entry;
   }
@@ -557,10 +557,10 @@ export class DrizzleTimecardRepository implements TimecardRepository {
           ELSE 0 
         END), 0)`
       })
-      .from(timeBank)
+      .from(hourBankEntries)
       .where(and(
-        eq(timeBank.userId, userId),
-        eq(timeBank.tenantId, tenantId)
+        eq(hourBankEntries.userId, userId),
+        eq(hourBankEntries.tenantId, tenantId)
       ));
 
     return result[0]?.totalBalance || 0;
