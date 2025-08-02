@@ -43,7 +43,7 @@ export default function TimecardReports() {
 
   // Buscar usuários para filtros
   const { data: users } = useQuery({
-    queryKey: ['/api/customers'],
+    queryKey: ['/api/tenant-admin/users'],
   });
 
   const handleExport = (format: 'pdf' | 'excel') => {
@@ -105,9 +105,9 @@ export default function TimecardReports() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos</SelectItem>
-                  {(users as any)?.customers?.map((user: any) => (
+                  {(users as any)?.users?.map((user: any) => (
                     <SelectItem key={user.id} value={user.id}>
-                      {user.name}
+                      {user.firstName} {user.lastName} - {user.role}
                     </SelectItem>
                   ))}
                 </SelectContent>
