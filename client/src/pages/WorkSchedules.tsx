@@ -441,14 +441,14 @@ function WorkSchedulesContent() {
                     <SelectContent>
                       {/* Templates padrão */}
                       {Object.entries(scheduleTypeLabels).map(([key, label]) => (
-                        <SelectItem key={key} value={key}>{label}</SelectItem>
+                        <SelectItem key={`default-${key}`} value={key}>{label}</SelectItem>
                       ))}
                       {/* Templates customizados criados pelo usuário */}
                       {scheduleTypesData?.templates?.filter((template: any) => 
-                        !['5x2', '6x1'].includes(template.id) // Filtrar os templates padrão duplicados
+                        template.isActive // Mostrar apenas templates ativos
                       ).map((template: any) => (
-                        <SelectItem key={template.id} value={template.scheduleType || template.name}>
-                          {template.name} - {template.description || 'Template personalizado'}
+                        <SelectItem key={`custom-${template.id}`} value={template.scheduleType || template.name}>
+                          {template.name} {template.description ? `- ${template.description}` : ''}
                         </SelectItem>
                       ))}
                     </SelectContent>
