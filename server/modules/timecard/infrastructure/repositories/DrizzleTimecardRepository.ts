@@ -159,12 +159,12 @@ export class DrizzleTimecardRepository implements TimecardRepository {
 
       // Primeiro, mapear todos os usuários
       const allUserIds = usersList.map(u => u.id);
-      
+
       // Separar escalas customizadas dos usuários com escalas padrão
       const customSchedules = storedSchedules.filter(s => allUserIds.includes(s.userId));
       const usersWithCustomSchedules = customSchedules.map(s => s.userId);
       const usersWithoutSchedules = usersList.filter(u => !usersWithCustomSchedules.includes(u.id));
-      
+
       // Escalas customizadas com nomes de usuários
       const customSchedulesWithUsers = customSchedules.map(schedule => ({
         ...schedule,
@@ -173,7 +173,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
           return user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email || 'Usuário' : 'Usuário';
         })()
       }));
-      
+
       // Escalas padrão para usuários sem escala customizada
       const defaultSchedules = usersWithoutSchedules.map(user => ({
         id: `schedule-${user.id}`,
@@ -205,7 +205,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
 
   async createWorkSchedule(data: any): Promise<any> {
     console.log('[CONTROLLER-QA] Creating work schedule:', data);
-    
+
     const newSchedule = {
       id: `schedule-${Date.now()}`,
       tenantId: data.tenantId,
@@ -230,25 +230,25 @@ export class DrizzleTimecardRepository implements TimecardRepository {
     if (!DrizzleTimecardRepository.workSchedulesStorage.has(tenantKey)) {
       DrizzleTimecardRepository.workSchedulesStorage.set(tenantKey, []);
     }
-    
+
     const tenantSchedules = DrizzleTimecardRepository.workSchedulesStorage.get(tenantKey)!;
-    
+
     // Remover escala anterior do mesmo usuário se existir
     const filteredSchedules = tenantSchedules.filter(s => s.userId !== data.userId);
     filteredSchedules.push(newSchedule);
-    
+
     DrizzleTimecardRepository.workSchedulesStorage.set(tenantKey, filteredSchedules);
-    
+
     console.log('[STORAGE-QA] Stored schedule for user:', data.userId, 'Schedule type:', data.scheduleType, 'Total schedules:', filteredSchedules.length);
-    
+
     return newSchedule;
   }
 
   async createBulkWorkSchedules(userIds: string[], scheduleData: any, tenantId: string): Promise<any[]> {
     console.log('[BULK-QA] Creating bulk schedules for', userIds.length, 'users');
-    
+
     const createdSchedules = [];
-    
+
     for (const userId of userIds) {
       const newSchedule = await this.createWorkSchedule({
         ...scheduleData,
@@ -257,7 +257,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
       });
       createdSchedules.push(newSchedule);
     }
-    
+
     console.log('[BULK-QA] Created', createdSchedules.length, 'schedules');
     return createdSchedules;
   }
@@ -274,7 +274,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
   async getWorkSchedulesByUser(userId: string, tenantId: string): Promise<any[]> {
     try {
       console.log('Fetching work schedules for user:', userId);
-      
+
       // Get user info
       const user = await db
         .select({
@@ -351,7 +351,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
   async createScheduleTemplate(data: any): Promise<any> {
     try {
       const { scheduleTemplates } = await import('@shared/schema');
-      
+
       const [template] = await db
         .insert(scheduleTemplates)
         .values({
@@ -381,7 +381,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
     try {
       // Get real templates from database using existing db connection
       const { scheduleTemplates } = await import('@shared/schema');
-      
+
       const templates = await db
         .select()
         .from(scheduleTemplates)
@@ -397,7 +397,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
         }
         return template;
       });
-      
+
       // Combinar templates reais com templates padrão
       const defaultTemplates = [
         {
@@ -543,7 +543,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
   async updateScheduleTemplate(id: string, tenantId: string, data: any): Promise<any> {
     try {
       const { scheduleTemplates } = await import('@shared/schema');
-      
+
       const [updated] = await db
         .update(scheduleTemplates)
         .set({ 
@@ -574,7 +574,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
       }
 
       const { scheduleTemplates } = await import('@shared/schema');
-      
+
       await db
         .delete(scheduleTemplates)
         .where(and(
