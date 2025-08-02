@@ -155,11 +155,10 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
   };
 
   const getSchedulesForTimeSlot = (agentId: string, timeSlot: Date, type: 'planned' | 'actual') => {
-    return schedules.filter(schedule => {
-      if (!schedule.agentId || !schedule.type || !schedule.startDateTime) return false;
+    const filtered = schedules.filter(schedule => {
+      if (!schedule.agentId || !schedule.startDateTime) return false;
       
       const scheduleStart = parseISO(schedule.startDateTime);
-      const scheduleEnd = parseISO(schedule.endDateTime);
       const timeSlotHour = timeSlot.getHours();
       const scheduleHour = scheduleStart.getHours();
       
@@ -167,11 +166,36 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
       const agentMatch = schedule.agentId === agentId || 
                         schedule.agentId.startsWith(agentId.substring(0, 8));
       
-      return agentMatch &&
-             schedule.type === type &&
+      // For internal actions, they don't have a 'type' field, so treat them as 'planned'
+      const typeMatch = schedule.type === type || 
+                       (schedule.type === 'internal_action' && type === 'planned') ||
+                       (schedule.activityTypeId === 'internal-action' && type === 'planned');
+      
+      const result = agentMatch && typeMatch && 
              scheduleHour === timeSlotHour &&
              scheduleStart.getDate() === timeSlot.getDate();
+             
+      // Debug log for internal actions
+      if (schedule.type === 'internal_action' || schedule.activityTypeId === 'internal-action') {
+        console.log('🔍 TIMELINE DEBUG - Internal action match:', {
+          scheduleId: schedule.id,
+          agentId,
+          scheduleAgentId: schedule.agentId,
+          agentMatch,
+          typeMatch,
+          type,
+          scheduleType: schedule.type,
+          activityTypeId: schedule.activityTypeId,
+          timeSlotHour,
+          scheduleHour,
+          result
+        });
+      }
+      
+      return result;
     });
+    
+    return filtered;
   };
 
   const getPriorityColor = (priority: string) => {
@@ -342,6 +366,19 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                     const workSchedule = workSchedules.find(ws => ws.userId === agent.id);
                     const dayOfWeek = timeSlot.getDay(); // 0 = domingo, 1 = segunda, etc.
                     const worksToday = workSchedule?.workDays.includes(dayOfWeek) || false;
+                    
+                    // Debug work schedule for this agent
+                    if (agent.id === 'ce432692-9b43-4d7a-befb-a9fb1c6a0c0a') { // Paulina's ID
+                      console.log('🔍 WORK SCHEDULE DEBUG - Paulina:', {
+                        agentId: agent.id,
+                        agentName: agent.name,
+                        workSchedule,
+                        dayOfWeek,
+                        worksToday,
+                        timeSlot: timeSlot.toISOString(),
+                        plannedSchedulesCount: plannedSchedules.length
+                      });
+                    }
                     
                     // Check if it's working hour based on actual schedule
                     const isWorkingHour = worksToday && workSchedule ? (() => {
