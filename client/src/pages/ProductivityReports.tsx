@@ -56,8 +56,9 @@ export default function ProductivityReports() {
       const params = new URLSearchParams(filters);
       console.log('🔍 Making API request to:', `/api/productivity/my-productivity?${params}`);
       const response = await apiRequest('GET', `/api/productivity/my-productivity?${params}`);
-      console.log('🔍 API Response received:', response);
-      return response;
+      const jsonData = await response.json();
+      console.log('🔍 API Response received:', jsonData);
+      return jsonData;
     },
   });
 
@@ -66,7 +67,7 @@ export default function ProductivityReports() {
     queryFn: async () => {
       const params = new URLSearchParams(filters);
       const response = await apiRequest('GET', `/api/productivity/team-productivity?${params}`);
-      return response;
+      return await response.json();
     },
   });
 
