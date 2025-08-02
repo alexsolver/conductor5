@@ -183,7 +183,7 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
                 );
                 
                 const slotsPerDay = dayTimeSlots.length;
-                const cellWidth = 24; // Fixed 24px width for better readability
+                const cellWidth = 32; // Fixed 32px width for better text readability
                 
                 return (
                   <div key={dayIndex} className="border-r">
@@ -199,7 +199,7 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
                       {dayTimeSlots.map((timeSlot, slotIndex) => (
                         <div 
                           key={slotIndex} 
-                          className={`flex-shrink-0 p-1 text-center border-r last:border-r-0`}
+                          className={`flex-shrink-0 px-1 py-2 text-center border-r last:border-r-0`}
                           style={{ width: `${cellWidth}px` }}
                         >
                           <div className="text-xs font-medium text-gray-900">
@@ -273,7 +273,7 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
                   slot.getFullYear() === day.getFullYear()
                 );
                 
-                const cellWidth = 24; // Fixed 24px width for better readability
+                const cellWidth = 32; // Fixed 32px width for better text readability
                 
                 return (
                   <div key={dayIndex} className="flex border-r">
