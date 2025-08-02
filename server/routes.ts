@@ -1921,6 +1921,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Status das chaves de assinatura digital
   app.get('/api/timecard/compliance/keys', jwtAuth, cltComplianceController.getDigitalKeys.bind(cltComplianceController));
+  
+  // Reconstituição da cadeia de integridade
+  app.post('/api/timecard/compliance/rebuild-integrity', jwtAuth, cltComplianceController.rebuildIntegrityChain.bind(cltComplianceController));
 
   // Contract Management routes - Gestão de Contratos
   app.use('/api/contracts', contractRoutes);

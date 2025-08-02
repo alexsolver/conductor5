@@ -236,7 +236,7 @@ export class CLTComplianceService {
       const previousHash = await this.getLastRecordHash(data.tenantId);
       
       // 3. Gera hash do registro atual
-      const recordHash = this.generateRecordHash(data, nsr, previousHash);
+      const recordHash = this.generateRecordHash(data, nsr, previousHash || undefined);
       
       // 4. Gera assinatura digital
       const digitalSignature = await this.generateDigitalSignature(
@@ -332,11 +332,11 @@ export class CLTComplianceService {
             notes: record.notes || undefined,
             location: record.location || undefined,
             isManualEntry: record.isManualEntry,
-            deviceInfo: record.deviceInfo,
+            deviceInfo: record.deviceInfo || undefined,
             ipAddress: record.ipAddress || undefined,
-            geoLocation: record.geoLocation
+            geoLocation: record.geoLocation || undefined
           },
-          record.nsr,
+          record.nsr || 0,
           previousHash
         );
 
@@ -395,9 +395,9 @@ export class CLTComplianceService {
             notes: record.notes || undefined,
             location: record.location || undefined,
             isManualEntry: record.isManualEntry,
-            deviceInfo: record.deviceInfo,
+            deviceInfo: record.deviceInfo || undefined,
             ipAddress: record.ipAddress || undefined,
-            geoLocation: record.geoLocation
+            geoLocation: record.geoLocation || undefined
           },
           newNsr,
           previousHash

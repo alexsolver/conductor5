@@ -15,7 +15,8 @@ import {
   CheckCircle,
   Clock,
   Hash,
-  Lock
+  Lock,
+  RefreshCw
 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -73,6 +74,33 @@ interface DigitalKey {
 export default function CLTCompliance() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Mutation para reconstituir cadeia de integridade
+  const rebuildIntegrityMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest('/api/timecard/compliance/rebuild-integrity', {
+        method: 'POST',
+        body: JSON.stringify({})
+      });
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Cadeia Reconstituída",
+        description: `${data.fixed || 0} registros corrigidos com sucesso`,
+        variant: "default"
+      });
+      // Atualiza a verificação de integridade
+      queryClient.invalidateQueries({ queryKey: ['/api/timecard/compliance/integrity-check'] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro na Reconstituição",
+        description: "Falha ao reconstituir cadeia de integridade",
+        variant: "destructive"
+      });
+      console.error('Erro na reconstituição:', error);
+    }
+  });
   const [selectedPeriod, setSelectedPeriod] = useState({
     start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     end: new Date().toISOString().split('T')[0]
@@ -239,6 +267,41 @@ export default function CLTCompliance() {
                       </span>
                     </div>
                   </div>
+                  
+                  {/* Botão para reconstituir cadeia comprometida */}
+                  {!integrityCheck.isValid && (
+                    <div className="mt-4 p-4 bg-red-50 dark:bg-red-950 rounded-lg border border-red-200 dark:border-red-800">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="font-semibold text-red-800 dark:text-red-200">
+                            Cadeia de Integridade Comprometida
+                          </h4>
+                          <p className="text-sm text-red-600 dark:text-red-300 mt-1">
+                            A cadeia de integridade dos registros CLT está comprometida e precisa ser reconstituída.
+                          </p>
+                        </div>
+                        <Button 
+                          onClick={() => rebuildIntegrityMutation.mutate()}
+                          disabled={rebuildIntegrityMutation.isPending}
+                          variant="outline"
+                          size="sm"
+                          className="ml-4 border-red-300 text-red-700 hover:bg-red-50"
+                        >
+                          {rebuildIntegrityMutation.isPending ? (
+                            <>
+                              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                              Reconstituindo...
+                            </>
+                          ) : (
+                            <>
+                              <RefreshCw className="h-4 w-4 mr-2" />
+                              Reconstituir Cadeia
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <Alert>

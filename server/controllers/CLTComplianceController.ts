@@ -477,6 +477,38 @@ export class CLTComplianceController {
       });
     }
   }
+
+  /**
+   * 🔴 POST /api/timecard/compliance/rebuild-integrity
+   * Reconstitui a cadeia de integridade CLT
+   */
+  async rebuildIntegrityChain(req: Request, res: Response): Promise<void> {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        res.status(400).json({ error: 'TenantId obrigatório' });
+        return;
+      }
+
+      console.log(`[CLT-REBUILD] Iniciando reconstituição para tenant: ${tenantId}`);
+      
+      const result = await this.cltComplianceService.rebuildIntegrityChain(tenantId);
+      
+      res.status(200).json({
+        success: true,
+        message: `Cadeia de integridade reconstituída: ${result.fixed} registros corrigidos`,
+        fixed: result.fixed,
+        errors: result.errors
+      });
+
+    } catch (error) {
+      console.error('[CLT-REBUILD] Erro na reconstituição:', error);
+      res.status(500).json({ 
+        error: 'Erro interno ao reconstituir cadeia de integridade',
+        details: (error as Error).message 
+      });
+    }
+  }
 }
 
 export const cltComplianceController = new CLTComplianceController();
