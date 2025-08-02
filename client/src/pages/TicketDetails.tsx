@@ -1081,6 +1081,8 @@ const TicketDetails = React.memo(() => {
   }), []);
 
   const onSubmit = useCallback((data: TicketFormData) => {
+    console.log("🚨 CRITICAL DEBUG - onSubmit called!");
+    console.log("📍 Call stack:", new Error().stack);
     console.log("💾 onSubmit called with data:", data);
     
     const mappedData = {
@@ -2040,7 +2042,10 @@ const TicketDetails = React.memo(() => {
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">⚙️ Ações Internas</h2>
               <Button 
-                onClick={() => setShowInternalActionModal(true)}
+                onClick={() => {
+                  console.log("🔵 MODAL DEBUG - Opening internal action modal");
+                  setShowInternalActionModal(true);
+                }}
                 className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
               >
                 <Plus className="h-4 w-4 mr-2" />
