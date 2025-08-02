@@ -159,8 +159,10 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
       if (!schedule.agentId || !schedule.startDateTime) return false;
       
       const scheduleStart = parseISO(schedule.startDateTime);
+      
+      // Convert to local timezone for comparison
       const timeSlotHour = timeSlot.getHours();
-      const scheduleHour = scheduleStart.getHours();
+      const scheduleLocalHour = scheduleStart.getHours();
       
       // Match agent ID (handle both UUID formats)
       const agentMatch = schedule.agentId === agentId || 
@@ -171,13 +173,19 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                        (schedule.type === 'internal_action' && type === 'planned') ||
                        (schedule.activityTypeId === 'internal-action' && type === 'planned');
       
-      const result = agentMatch && typeMatch && 
-             scheduleHour === timeSlotHour &&
-             scheduleStart.getDate() === timeSlot.getDate();
+      // Date matching - convert both to same date format for comparison
+      const timeSlotDate = timeSlot.toDateString();
+      const scheduleDate = scheduleStart.toDateString();
+      const dateMatch = timeSlotDate === scheduleDate;
+      
+      // Hour matching - check if schedule starts within this hour slot
+      const hourMatch = scheduleLocalHour === timeSlotHour;
+      
+      const result = agentMatch && typeMatch && dateMatch && hourMatch;
              
       // Debug log for internal actions
       if (schedule.type === 'internal_action' || schedule.activityTypeId === 'internal-action') {
-        console.log('🔍 TIMELINE DEBUG - Internal action match:', {
+        console.log('🔍 TIMELINE DEBUG - Internal action match (FIXED):', {
           scheduleId: schedule.id,
           agentId,
           scheduleAgentId: schedule.agentId,
@@ -185,9 +193,12 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
           typeMatch,
           type,
           scheduleType: schedule.type,
-          activityTypeId: schedule.activityTypeId,
+          timeSlotDate,
+          scheduleDate,
+          dateMatch,
           timeSlotHour,
-          scheduleHour,
+          scheduleLocalHour,
+          hourMatch,
           result
         });
       }
@@ -367,15 +378,18 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                     const dayOfWeek = timeSlot.getDay(); // 0 = domingo, 1 = segunda, etc.
                     const worksToday = workSchedule?.workDays.includes(dayOfWeek) || false;
                     
-                    // Debug work schedule for this agent - só para sexta-feira (dia 2 de agosto)
-                    if (agent.id === 'ce432692-9b43-4d7a-befb-a9fb1c6a0c0a' && timeSlot.getDate() === 2 && timeSlot.getMonth() === 7) { // Paulina's ID, 2 de agosto
-                      console.log('🔍 WORK SCHEDULE DEBUG - Paulina (2 de agosto):', {
+                    // Debug work schedule for Paulina on Aug 2nd during action hours (19:00-21:00)
+                    if (agent.id === 'ce432692-9b43-4d7a-befb-a9fb1c6a0c0a' && 
+                        timeSlot.getDate() === 2 && timeSlot.getMonth() === 7 && 
+                        timeSlot.getHours() >= 19 && timeSlot.getHours() <= 21) {
+                      console.log('🔍 WORK SCHEDULE DEBUG - Paulina (action time window):', {
                         agentId: agent.id,
                         agentName: agent.name,
                         workSchedule,
                         dayOfWeek,
                         worksToday,
                         timeSlot: timeSlot.toISOString(),
+                        hour: timeSlot.getHours(),
                         plannedSchedulesCount: plannedSchedules.length,
                         dateCheck: `${timeSlot.getDate()}/${timeSlot.getMonth() + 1}`
                       });
