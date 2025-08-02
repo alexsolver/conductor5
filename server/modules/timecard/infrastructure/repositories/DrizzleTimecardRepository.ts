@@ -189,11 +189,15 @@ export class DrizzleTimecardRepository implements TimecardRepository {
   }
 
   async createWorkSchedule(data: any): Promise<any> {
+    const workDaysArray = Array.isArray(data.workDays) 
+      ? data.workDays 
+      : (typeof data.workDays === 'string' ? JSON.parse(data.workDays) : [1,2,3,4,5]);
+
     const [schedule] = await db
       .insert(workSchedules)
       .values({
         ...data,
-        workDays: Array.isArray(data.workDays) ? data.workDays : JSON.parse(data.workDays || '[1,2,3,4,5]')
+        workDays: workDaysArray
       })
       .returning();
     return schedule;
