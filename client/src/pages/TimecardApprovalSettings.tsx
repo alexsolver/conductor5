@@ -79,31 +79,36 @@ export default function TimecardApprovalSettings() {
   const groups: ApprovalGroup[] = (groupsData as any)?.groups || [];
   const users: User[] = (usersData as any)?.users || [];
 
-  // Hook para contar membros de cada grupo
-  const [groupMemberCounts, setGroupMemberCounts] = useState<Record<string, number>>({});
+  // Query para buscar contadores de membros
+  const { data: memberCountsData } = useQuery({
+    queryKey: ['/api/timecard/approval/group-member-counts', groups.map(g => g.id)],
+    queryFn: async () => {
+      if (groups.length === 0) return {};
+      
+      const counts: Record<string, number> = {};
+      
+      for (const group of groups) {
+        try {
+          const data = await apiRequest('GET', `/api/timecard/approval/groups/${group.id}/members`);
+          console.log(`Raw API response for group ${group.id}:`, data);
+          console.log(`Members array:`, data.members);
+          console.log(`Members array length:`, data.members?.length);
+          counts[group.id] = data.members?.length || 0;
+          console.log(`Group ${group.name} (${group.id}) has ${counts[group.id]} members`);
+        } catch (error) {
+          console.error('Error fetching member count for group:', group.id, error);
+          counts[group.id] = 0;
+        }
+      }
+      
+      console.log('Final member counts:', counts);
+      return counts;
+    },
+    enabled: groups.length > 0,
+    staleTime: 30000, // Cache por 30 segundos
+  });
 
-  // Buscar contagem de membros para todos os grupos
-  useEffect(() => {
-    if (groups.length > 0) {
-      Promise.all(
-        groups.map(async (group: ApprovalGroup) => {
-          try {
-            const data = await apiRequest('GET', `/api/timecard/approval/groups/${group.id}/members`);
-            return { groupId: group.id, count: data.members?.length || 0 };
-          } catch (error) {
-            console.error('Error fetching member count for group:', group.id, error);
-            return { groupId: group.id, count: 0 };
-          }
-        })
-      ).then(results => {
-        const counts: Record<string, number> = {};
-        results.forEach(({ groupId, count }) => {
-          counts[groupId] = count;
-        });
-        setGroupMemberCounts(counts);
-      });
-    }
-  }, [groups]);
+  const groupMemberCounts = memberCountsData || {};
 
   // Fetch group members when a group is selected
   const { data: groupMembersData, isLoading: membersLoading } = useQuery({
@@ -199,14 +204,7 @@ export default function TimecardApprovalSettings() {
       });
       queryClient.invalidateQueries({ queryKey: ['/api/timecard/approval/groups'] });
       queryClient.invalidateQueries({ queryKey: ['/api/timecard/approval/groups', selectedGroup?.id, 'members'] });
-      
-      // Atualizar contadores manualmente
-      if (selectedGroup) {
-        setGroupMemberCounts(prev => ({
-          ...prev,
-          [selectedGroup.id]: selectedUsers.length
-        }));
-      }
+      queryClient.invalidateQueries({ queryKey: ['/api/timecard/approval/group-member-counts'] });
       
       setShowMembersDialog(false);
       setSelectedGroup(null);
