@@ -120,6 +120,32 @@ export default function TimecardApprovalSettings() {
     },
   });
 
+  // Update group mutation
+  const updateGroupMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: { name: string; description?: string } }) => {
+      return await apiRequest('PUT', `/api/timecard/approval/groups/${id}`, data);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Grupo atualizado",
+        description: "Grupo de aprovação atualizado com sucesso.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/timecard/approval/groups'] });
+      setShowGroupDialog(false);
+      setSelectedGroup(null);
+      setNewGroupName('');
+      setNewGroupDescription('');
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro",
+        description: "Falha ao atualizar o grupo.",
+        variant: "destructive",
+      });
+      console.error('Error updating group:', error);
+    },
+  });
+
   // Delete group mutation
   const deleteGroupMutation = useMutation({
     mutationFn: async (groupId: string) => {
@@ -179,6 +205,25 @@ export default function TimecardApprovalSettings() {
     createGroupMutation.mutate({
       name: newGroupName.trim(),
       description: newGroupDescription.trim() || undefined
+    });
+  };
+
+  const handleUpdateGroup = () => {
+    if (!selectedGroup || !newGroupName.trim()) {
+      toast({
+        title: "Erro",
+        description: "Nome do grupo é obrigatório.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    updateGroupMutation.mutate({
+      id: selectedGroup.id,
+      data: {
+        name: newGroupName.trim(),
+        description: newGroupDescription.trim() || undefined
+      }
     });
   };
 
@@ -391,9 +436,14 @@ export default function TimecardApprovalSettings() {
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Criar Grupo de Aprovação</DialogTitle>
+                  <DialogTitle>
+                    {selectedGroup ? 'Editar Grupo de Aprovação' : 'Criar Grupo de Aprovação'}
+                  </DialogTitle>
                   <DialogDescription>
-                    Crie um novo grupo para organizar os aprovadores de timecard.
+                    {selectedGroup 
+                      ? 'Edite as informações do grupo de aprovação.'
+                      : 'Crie um novo grupo para organizar os aprovadores de timecard.'
+                    }
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4">
@@ -416,14 +466,22 @@ export default function TimecardApprovalSettings() {
                     />
                   </div>
                   <div className="flex justify-end gap-2">
-                    <Button variant="outline" onClick={() => setShowGroupDialog(false)}>
+                    <Button variant="outline" onClick={() => {
+                      setShowGroupDialog(false);
+                      setSelectedGroup(null);
+                      setNewGroupName('');
+                      setNewGroupDescription('');
+                    }}>
                       Cancelar
                     </Button>
                     <Button 
-                      onClick={handleCreateGroup}
-                      disabled={createGroupMutation.isPending}
+                      onClick={selectedGroup ? handleUpdateGroup : handleCreateGroup}
+                      disabled={createGroupMutation.isPending || updateGroupMutation.isPending}
                     >
-                      {createGroupMutation.isPending ? 'Criando...' : 'Criar Grupo'}
+                      {selectedGroup 
+                        ? (updateGroupMutation.isPending ? 'Salvando...' : 'Salvar Alterações')
+                        : (createGroupMutation.isPending ? 'Criando...' : 'Criar Grupo')
+                      }
                     </Button>
                   </div>
                 </div>
@@ -468,7 +526,16 @@ export default function TimecardApprovalSettings() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                          setSelectedGroup(group);
+                          setNewGroupName(group.name);
+                          setNewGroupDescription(group.description || '');
+                          setShowGroupDialog(true);
+                        }}
+                      >
                         <Edit className="h-4 w-4 mr-2" />
                         Editar
                       </Button>
