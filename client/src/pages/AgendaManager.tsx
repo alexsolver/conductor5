@@ -100,11 +100,16 @@ const AgendaManager: React.FC = () => {
   const { startDate, endDate } = getDateRange();
 
   // Data queries
-  const { data: schedules = [], isLoading: schedulesLoading } = useQuery({
+  const { data: schedulesData, isLoading: schedulesLoading } = useQuery({
     queryKey: ['/api/schedule/schedules', startDate, endDate],
-    queryFn: () => apiRequest('GET', `/api/schedule/schedules/${startDate}/${endDate}`),
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/schedule/schedules/${startDate}/${endDate}`);
+      return await response.json();
+    },
     enabled: !!startDate && !!endDate,
   });
+  
+  const schedules = Array.isArray(schedulesData) ? schedulesData : [];
 
   const { data: activityTypesData, isLoading: activityTypesLoading } = useQuery({
     queryKey: ['/api/schedule/activity-types'],
