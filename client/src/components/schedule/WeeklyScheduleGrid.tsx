@@ -49,74 +49,20 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
   onTimeSlotClick,
 }) => {
   const [searchAgent, setSearchAgent] = useState('');
-  const [timeFilter, setTimeFilter] = useState<'hoje' | '2min' | '10min' | '30min' | '1hora' | '24horas'>('1hora');
+  const [timeFilter] = useState<'1hora'>('1hora'); // Fixed to 1 hour for 14-day view
 
   // Generate 14 days starting from selected date
   const days = Array.from({ length: 14 }, (_, i) => addDays(startDate, i));
 
-  // Generate time slots for all 14 days based on selected filter
+  // Generate hourly time slots for all 14 days (6:00 to 23:00)
   const getTimeSlots = () => {
     const slots: Date[] = [];
     
-    switch (timeFilter) {
-      case '2min':
-        days.forEach(day => {
-          for (let hour = 6; hour < 24; hour++) {
-            for (let minute = 0; minute < 60; minute += 5) {
-              slots.push(addMinutes(addHours(startOfDay(day), hour), minute));
-            }
-          }
-        });
-        break;
-      
-      case '10min':
-        days.forEach(day => {
-          for (let hour = 6; hour < 24; hour++) {
-            for (let minute = 0; minute < 60; minute += 10) {
-              slots.push(addMinutes(addHours(startOfDay(day), hour), minute));
-            }
-          }
-        });
-        break;
-      
-      case '30min':
-        days.forEach(day => {
-          for (let hour = 6; hour < 24; hour++) {
-            for (let minute = 0; minute < 60; minute += 30) {
-              slots.push(addMinutes(addHours(startOfDay(day), hour), minute));
-            }
-          }
-        });
-        break;
-      
-      case '1hora':
-        days.forEach(day => {
-          for (let hour = 6; hour < 24; hour++) {
-            slots.push(addHours(startOfDay(day), hour));
-          }
-        });
-        break;
-      
-      case '24horas':
-        days.forEach(day => {
-          [6, 12, 18, 24].forEach(hour => {
-            if (hour === 24) {
-              slots.push(startOfDay(addDays(day, 1)));
-            } else {
-              slots.push(addHours(startOfDay(day), hour));
-            }
-          });
-        });
-        break;
-      
-      default: // 'hoje'
-        days.forEach(day => {
-          for (let hour = 6; hour < 24; hour++) {
-            slots.push(addHours(startOfDay(day), hour));
-          }
-        });
-        break;
-    }
+    days.forEach(day => {
+      for (let hour = 6; hour < 24; hour++) {
+        slots.push(addHours(startOfDay(day), hour));
+      }
+    });
     
     return slots;
   };
@@ -167,21 +113,9 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
     });
   };
 
-  const getTimeSlotDuration = () => {
-    switch (timeFilter) {
-      case '2min': return 5;
-      case '10min': return 10;
-      case '30min': return 30;
-      case '1hora': return 60;
-      case '24horas': return 360; // 6 hours
-      default: return 60;
-    }
-  };
+  const getTimeSlotDuration = () => 60; // Always 1 hour for 14-day view
 
   const formatTimeSlot = (timeSlot: Date) => {
-    if (timeFilter === '24horas') {
-      return format(timeSlot, 'dd/MM');
-    }
     return format(timeSlot, 'HH:mm');
   };
 
@@ -203,7 +137,7 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
 
   return (
     <div className="w-full bg-white border border-gray-200 rounded-lg shadow-sm">
-      {/* Header with Search and Time Filters */}
+      {/* Header with Search */}
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center justify-between">
           <div className="relative w-64">
@@ -217,28 +151,9 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
             />
           </div>
           
-          {/* Time Filter Buttons */}
-          <div className="flex items-center space-x-1 bg-gray-100 rounded-lg p-1">
-            {[
-              { key: 'hoje', label: 'Hoje' },
-              { key: '2min', label: '2min' },
-              { key: '10min', label: '10min' },
-              { key: '30min', label: '30min' },
-              { key: '1hora', label: '1hora' },
-              { key: '24horas', label: '24horas' }
-            ].map((filter) => (
-              <button
-                key={filter.key}
-                onClick={() => setTimeFilter(filter.key as any)}
-                className={`px-3 py-1 text-sm rounded-md transition-colors ${
-                  timeFilter === filter.key
-                    ? 'bg-gray-700 text-white'
-                    : 'text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                {filter.label}
-              </button>
-            ))}
+          {/* Fixed to hourly view for 14 days */}
+          <div className="text-sm text-gray-600 bg-gray-100 px-3 py-2 rounded-lg">
+            Visualização por hora - 14 dias
           </div>
         </div>
       </div>
@@ -268,7 +183,7 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
                 );
                 
                 const slotsPerDay = dayTimeSlots.length;
-                const cellWidth = timeFilter === '1hora' ? 16 : timeFilter === '30min' ? 12 : timeFilter === '10min' ? 8 : 6;
+                const cellWidth = 24; // Fixed 24px width for better readability
                 
                 return (
                   <div key={dayIndex} className="border-r">
@@ -358,7 +273,7 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
                   slot.getFullYear() === day.getFullYear()
                 );
                 
-                const cellWidth = timeFilter === '1hora' ? 16 : timeFilter === '30min' ? 12 : timeFilter === '10min' ? 8 : 6;
+                const cellWidth = 24; // Fixed 24px width for better readability
                 
                 return (
                   <div key={dayIndex} className="flex border-r">
