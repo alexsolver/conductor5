@@ -185,30 +185,21 @@ export default function Timecard() {
   };
 
   const getNextAction = (status: string, todayRecords: TimeRecord[] = []) => {
-    // Verificar último registro do dia para determinar ação correta
-    const lastRecord = todayRecords?.[todayRecords.length - 1];
+    console.log('[TIMECARD-DEBUG] Determining next action for status:', status, 'Records:', todayRecords.length);
     
-    if (!lastRecord) {
-      return { type: 'clock_in', label: 'Registrar Entrada', color: 'bg-green-600' };
+    // Baseado no status do backend
+    switch (status) {
+      case 'not_started':
+        return { type: 'clock_in', label: 'Registrar Entrada', color: 'bg-green-600' };
+      case 'working':
+        return { type: 'clock_out', label: 'Registrar Saída', color: 'bg-red-600' };
+      case 'on_break':
+        return { type: 'break_end', label: 'Finalizar Pausa', color: 'bg-blue-600' };
+      case 'finished':
+        return { type: 'clock_in', label: 'Registrar Nova Entrada', color: 'bg-green-600' };
+      default:
+        return { type: 'clock_in', label: 'Registrar Entrada', color: 'bg-green-600' };
     }
-    
-    // Se há saída registrada, pode registrar nova entrada
-    if (lastRecord.checkOut && !lastRecord.checkIn) {
-      return { type: 'clock_in', label: 'Registrar Nova Entrada', color: 'bg-green-600' };
-    }
-    
-    // Se há entrada mas não saída, pode registrar saída
-    if (lastRecord.checkIn && !lastRecord.checkOut) {
-      return { type: 'clock_out', label: 'Registrar Saída', color: 'bg-red-600' };
-    }
-    
-    // Se tem entrada e saída no último registro, nova entrada
-    if (lastRecord.checkIn && lastRecord.checkOut) {
-      return { type: 'clock_in', label: 'Registrar Nova Entrada', color: 'bg-green-600' };
-    }
-    
-    // Padrão: registrar entrada
-    return { type: 'clock_in', label: 'Registrar Entrada', color: 'bg-green-600' };
   };
 
   const formatTime = (dateString: string) => {

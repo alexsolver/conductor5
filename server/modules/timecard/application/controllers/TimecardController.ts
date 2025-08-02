@@ -68,20 +68,23 @@ export class TimecardController {
       if (todayRecords.length > 0) {
         lastRecord = todayRecords[todayRecords.length - 1];
 
-        // Check if there's any checkout record today
-        const hasCheckOut = todayRecords.some(record => record.checkOut);
-        // Check if there's any checkin record today  
-        const hasCheckIn = todayRecords.some(record => record.checkIn);
+        // Check current work status based on last meaningful record
+        const checkInRecords = todayRecords.filter(record => record.checkIn);
+        const checkOutRecords = todayRecords.filter(record => record.checkOut);
+        
         // Check for break status
         const onBreak = todayRecords.some(record => record.breakStart && !record.breakEnd);
 
         if (onBreak) {
           status = 'on_break';
-        } else if (hasCheckOut && hasCheckIn) {
-          // Has both checkin and checkout - finished for the day
+        } else if (checkInRecords.length > checkOutRecords.length) {
+          // More check-ins than check-outs means currently working
+          status = 'working';
+        } else if (checkInRecords.length === checkOutRecords.length && checkInRecords.length > 0) {
+          // Equal check-ins and check-outs means finished for the day
           status = 'finished';
-        } else if (hasCheckIn) {
-          // Has checkin but no checkout - currently working
+        } else if (checkInRecords.length > 0) {
+          // Has some check-in records - determine based on the most recent action
           status = 'working';
         }
       }
