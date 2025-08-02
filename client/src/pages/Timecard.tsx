@@ -212,11 +212,23 @@ export default function Timecard() {
   };
 
   const formatTime = (dateString: string) => {
-    return format(new Date(dateString), 'HH:mm', { locale: ptBR });
+    if (!dateString) return '--:--';
+    try {
+      return format(new Date(dateString), 'HH:mm', { locale: ptBR });
+    } catch (error) {
+      console.warn('Error formatting time:', dateString, error);
+      return '--:--';
+    }
   };
 
   const formatDate = (dateString: string) => {
-    return format(new Date(dateString), 'dd/MM/yyyy', { locale: ptBR });
+    if (!dateString) return '--/--/----';
+    try {
+      return format(new Date(dateString), 'dd/MM/yyyy', { locale: ptBR });
+    } catch (error) {
+      console.warn('Error formatting date:', dateString, error);
+      return '--/--/----';
+    }
   };
 
 
@@ -301,17 +313,19 @@ export default function Timecard() {
                 <div key={record.id} className="flex justify-between items-center py-2 border-b">
                   <div>
                     <div className="font-medium">
-                      {record.recordType === 'clock_in' && 'Entrada'}
-                      {record.recordType === 'clock_out' && 'Saída'}
-                      {record.recordType === 'break_start' && 'Início da Pausa'}
-                      {record.recordType === 'break_end' && 'Fim da Pausa'}
+                      {record.checkIn && 'Entrada'}
+                      {record.checkOut && 'Saída'}
+                      {record.breakStart && 'Início da Pausa'}
+                      {record.breakEnd && 'Fim da Pausa'}
                     </div>
                     <div className="text-sm text-gray-500">
-                      Dispositivo: {record.deviceType}
+                      Status: {record.status || 'pending'}
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="font-mono">{formatTime(record.recordDateTime)}</div>
+                    <div className="font-mono">
+                      {formatTime(record.checkIn || record.checkOut || record.breakStart || record.breakEnd || record.createdAt)}
+                    </div>
                     {record.location && (
                       <div className="text-xs text-gray-400">
                         <MapPin className="h-3 w-3 inline mr-1" />
