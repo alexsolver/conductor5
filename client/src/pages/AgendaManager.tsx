@@ -69,7 +69,6 @@ const AgendaManager: React.FC = () => {
 
   // Filter states
   const [selectedClient, setSelectedClient] = useState<string>('todos');
-  const [selectedRegion, setSelectedRegion] = useState<string>('todas');
   const [selectedGroup, setSelectedGroup] = useState<string>('todos');
   const [selectedAgents, setSelectedAgents] = useState<string>('todos');
   const [taskTitleFilter, setTaskTitleFilter] = useState<string>('');
@@ -222,7 +221,7 @@ const AgendaManager: React.FC = () => {
           </div>
 
           {/* Filters Row */}
-          <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             {/* Client Filter */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Cliente</label>
@@ -241,25 +240,7 @@ const AgendaManager: React.FC = () => {
               </Select>
             </div>
 
-            {/* Region Filter */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Região</label>
-              <Select value={selectedRegion} onValueChange={setSelectedRegion}>
-                <SelectTrigger className="h-9">
-                  <SelectValue placeholder="Todas" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todas">Todas as regiões</SelectItem>
-                  <SelectItem value="norte">Norte</SelectItem>
-                  <SelectItem value="sul">Sul</SelectItem>
-                  <SelectItem value="leste">Leste</SelectItem>
-                  <SelectItem value="oeste">Oeste</SelectItem>
-                  <SelectItem value="centro">Centro</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Group Filter */}
+            {/* Group Filter - Grupos de membros da gestão de equipes */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Grupo</label>
               <Select value={selectedGroup} onValueChange={setSelectedGroup}>
