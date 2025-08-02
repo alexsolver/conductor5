@@ -160,8 +160,8 @@ export class TimecardApprovalController {
       const { getTenantDb } = await import('../../../../db-tenant');
       const tenantDb = await getTenantDb(tenantId);
       
-      // Use userGroupMemberships table since that's what exists
-      const { userGroupMemberships } = await import('@shared/schema-master');
+      // Use approvalGroupMembers table 
+      const { approvalGroupMembers } = await import('@shared/schema-master');
       
       const members = await tenantDb
         .select({
@@ -171,12 +171,12 @@ export class TimecardApprovalController {
           email: users.email,
           role: users.role
         })
-        .from(userGroupMemberships)
-        .innerJoin(users, eq(userGroupMemberships.userId, users.id))
+        .from(approvalGroupMembers)
+        .innerJoin(users, eq(approvalGroupMembers.userId, users.id))
         .where(and(
-          eq(userGroupMemberships.groupId, groupId),
-          eq(userGroupMemberships.tenantId, tenantId),
-          eq(userGroupMemberships.isActive, true)
+          eq(approvalGroupMembers.groupId, groupId),
+          eq(approvalGroupMembers.tenantId, tenantId),
+          eq(approvalGroupMembers.isActive, true)
         ));
 
       console.log('Found members:', members.length);
@@ -198,14 +198,14 @@ export class TimecardApprovalController {
       const { getTenantDb } = await import('../../../../db-tenant');
       const tenantDb = await getTenantDb(tenantId);
       
-      const { userGroupMemberships } = await import('@shared/schema-master');
+      const { approvalGroupMembers } = await import('@shared/schema-master');
 
       // Remove existing members first
       await tenantDb
-        .delete(userGroupMemberships)
+        .delete(approvalGroupMembers)
         .where(and(
-          eq(userGroupMemberships.groupId, groupId),
-          eq(userGroupMemberships.tenantId, tenantId)
+          eq(approvalGroupMembers.groupId, groupId),
+          eq(approvalGroupMembers.tenantId, tenantId)
         ));
 
       // Add new members
@@ -221,7 +221,7 @@ export class TimecardApprovalController {
           addedById: currentUserId
         }));
 
-        await tenantDb.insert(userGroupMemberships).values(membersToInsert);
+        await tenantDb.insert(approvalGroupMembers).values(membersToInsert);
         console.log('Added', membersToInsert.length, 'members to group');
       }
 
@@ -240,18 +240,18 @@ export class TimecardApprovalController {
       const { getTenantDb } = await import('../../../../db-tenant');
       const tenantDb = await getTenantDb(tenantId);
       
-      const { userGroupMemberships } = await import('@shared/schema-master');
+      const { approvalGroupMembers } = await import('@shared/schema-master');
 
       await tenantDb
-        .update(userGroupMemberships)
+        .update(approvalGroupMembers)
         .set({ 
           isActive: false,
           addedAt: new Date()
         })
         .where(and(
-          eq(userGroupMemberships.id, memberId),
-          eq(userGroupMemberships.groupId, groupId),
-          eq(userGroupMemberships.tenantId, tenantId)
+          eq(approvalGroupMembers.id, memberId),
+          eq(approvalGroupMembers.groupId, groupId),
+          eq(approvalGroupMembers.tenantId, tenantId)
         ));
 
       res.status(204).send();
