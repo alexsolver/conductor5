@@ -135,8 +135,9 @@ export default function Timecard() {
         title: 'Ponto registrado com sucesso!',
         description: 'Seu registro foi salvo e processado.',
       });
-      // Invalidar cache para atualizar dados automaticamente
+      // Invalidar cache e forçar nova busca para atualizar status
       queryClient.invalidateQueries({ queryKey: ['/api/timecard/current-status'] });
+      queryClient.refetchQueries({ queryKey: ['/api/timecard/current-status'] });
     },
     onError: (error: any) => {
       console.error('Erro ao registrar ponto:', error);
@@ -172,6 +173,7 @@ export default function Timecard() {
   };
 
   const getStatusBadge = (status: string) => {
+    console.log('[TIMECARD-DEBUG] Getting status badge for:', status);
     switch (status) {
       case 'working':
         return <Badge className="bg-green-500">Trabalhando</Badge>;
