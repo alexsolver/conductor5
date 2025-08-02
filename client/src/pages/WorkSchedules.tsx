@@ -128,18 +128,23 @@ function WorkSchedulesContent() {
   // Criar escala
   const createScheduleMutation = useMutation({
     mutationFn: async (data: any) => {
-      return await apiRequest('POST', '/api/timecard/work-schedules', data);
+      const response = await apiRequest('POST', '/api/timecard/work-schedules', data);
+      console.log('[SCHEDULE-CREATE] Response:', response);
+      return response;
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       toast({
         title: 'Escala criada!',
         description: 'A escala de trabalho foi criada com sucesso.',
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/timecard/work-schedules'] });
+      // Invalidar e reforçar o reload dos dados
+      await queryClient.invalidateQueries({ queryKey: ['/api/timecard/work-schedules'] });
+      await queryClient.refetchQueries({ queryKey: ['/api/timecard/work-schedules'] });
       setIsDialogOpen(false);
       resetForm();
     },
     onError: (error: any) => {
+      console.error('[SCHEDULE-CREATE-ERROR]:', error);
       toast({
         title: 'Erro ao criar escala',
         description: error.message || 'Tente novamente em alguns instantes.',
@@ -151,18 +156,22 @@ function WorkSchedulesContent() {
   // Atualizar escala
   const updateScheduleMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: any }) => {
-      return await apiRequest('PUT', `/api/timecard/work-schedules/${id}`, data);
+      const response = await apiRequest('PUT', `/api/timecard/work-schedules/${id}`, data);
+      console.log('[SCHEDULE-UPDATE] Response:', response);
+      return response;
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       toast({
         title: 'Escala atualizada!',
         description: 'A escala de trabalho foi atualizada com sucesso.',
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/timecard/work-schedules'] });
+      await queryClient.invalidateQueries({ queryKey: ['/api/timecard/work-schedules'] });
+      await queryClient.refetchQueries({ queryKey: ['/api/timecard/work-schedules'] });
       setIsDialogOpen(false);
       resetForm();
     },
     onError: (error: any) => {
+      console.error('[SCHEDULE-UPDATE-ERROR]:', error);
       toast({
         title: 'Erro ao atualizar escala',
         description: error.message || 'Tente novamente em alguns instantes.',
@@ -373,10 +382,9 @@ function WorkSchedulesContent() {
     };
 
     try {
-      await apiRequest('/api/timecard/work-schedules/bulk-assign', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userIds: selectedUsers, scheduleData })
+      await apiRequest('POST', '/api/timecard/work-schedules/bulk-assign', {
+        userIds: selectedUsers, 
+        scheduleData
       });
       
       queryClient.invalidateQueries({ queryKey: ['/api/timecard/work-schedules'] });
@@ -466,7 +474,7 @@ function WorkSchedulesContent() {
                 <div>
                   <Label>Funcionários</Label>
                   <div className="border rounded-md p-3 max-h-48 overflow-y-auto">
-                    {users.map((user) => (
+                    {users.map((user: User) => (
                       <div key={user.id} className="flex items-center space-x-2 py-1">
                         <Checkbox
                           id={user.id}
@@ -690,45 +698,69 @@ function WorkSchedulesContent() {
       <div className="grid gap-4">
         {schedules.length > 0 ? (
           schedules.map((schedule: WorkSchedule) => (
-            <Card key={schedule.id}>
+            <Card key={schedule.id} className="hover:shadow-md transition-shadow">
               <CardContent className="p-6">
                 <div className="flex justify-between items-start">
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-3">
-                      <h3 className="font-semibold">{schedule.userName || 'Usuário'}</h3>
+                  <div className="flex-1 space-y-3">
+                    {/* Cabeçalho com nome e badges */}
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <div className="flex items-center gap-2">
+                        <Users className="h-4 w-4 text-blue-600" />
+                        <h3 className="font-semibold text-lg">{schedule.userName || 'Usuário Não Identificado'}</h3>
+                      </div>
                       {getStatusBadge(schedule.isActive)}
-                      <Badge variant="outline">
-                        {scheduleTypeLabels[schedule.scheduleType]}
+                      <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                        {scheduleTypeLabels[schedule.scheduleType] || schedule.scheduleType}
                       </Badge>
                     </div>
 
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-gray-500" />
-                        <span>{schedule.startTime} - {schedule.endTime}</span>
+                    {/* Informações principais organizadas */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                      <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-md">
+                        <Clock className="h-4 w-4 text-gray-600" />
+                        <div>
+                          <div className="text-xs text-gray-500">Horário</div>
+                          <div className="font-medium">{schedule.startTime} - {schedule.endTime}</div>
+                        </div>
                       </div>
 
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-gray-500" />
-                        <span>{schedule?.workDays ? getWorkDaysText(schedule.workDays) : 'Não definido'}</span>
+                      <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-md">
+                        <Calendar className="h-4 w-4 text-gray-600" />
+                        <div>
+                          <div className="text-xs text-gray-500">Dias da Semana</div>
+                          <div className="font-medium text-sm">
+                            {schedule?.workDays ? getWorkDaysText(schedule.workDays) : 'Não definido'}
+                          </div>
+                        </div>
                       </div>
 
-                      <div className="flex items-center gap-2">
-                        <Settings className="h-4 w-4 text-gray-500" />
-                        <span>Pausa: {schedule.breakDurationMinutes}min</span>
+                      <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-md">
+                        <Settings className="h-4 w-4 text-gray-600" />
+                        <div>
+                          <div className="text-xs text-gray-500">Pausa</div>
+                          <div className="font-medium">{schedule.breakDurationMinutes} min</div>
+                        </div>
                       </div>
 
-                      <div className="text-gray-600">
-                        Início: {format(new Date(schedule.startDate), 'dd/MM/yyyy', { locale: ptBR })}
+                      <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-md">
+                        <Calendar className="h-4 w-4 text-gray-600" />
+                        <div>
+                          <div className="text-xs text-gray-500">Data de Início</div>
+                          <div className="font-medium">
+                            {format(new Date(schedule.startDate), 'dd/MM/yyyy', { locale: ptBR })}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex gap-2">
+                  {/* Botões de ação */}
+                  <div className="flex gap-2 ml-4">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => handleEdit(schedule)}
+                      className="hover:bg-blue-50"
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
@@ -737,6 +769,7 @@ function WorkSchedulesContent() {
                       size="sm"
                       onClick={() => handleDelete(schedule.id)}
                       disabled={deleteScheduleMutation.isPending}
+                      className="hover:bg-red-50 hover:text-red-600"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
