@@ -1458,7 +1458,7 @@ ticketsRouter.delete('/:ticketId/actions/:actionId', jwtAuth, async (req: Authen
     // 🚨 CORREÇÃO CRÍTICA: Adicionar entrada no histórico ANTES de excluir
     const historyInsertQuery = `
       INSERT INTO "${schemaName}".ticket_history 
-      (tenant_id, ticket_id, created_by_id, action_type, description, field_name, old_value, new_value, created_at)
+      (tenant_id, ticket_id, performed_by, action_type, description, field_name, old_value, new_value, created_at)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
       RETURNING *
     `;
