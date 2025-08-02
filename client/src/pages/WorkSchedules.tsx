@@ -446,12 +446,7 @@ function WorkSchedulesContent() {
                       {Object.entries(scheduleTypeLabels).map(([key, label]) => (
                         <SelectItem key={`default-${key}`} value={key}>{label}</SelectItem>
                       ))}
-                      {/* Separador visual */}
-                      {scheduleTypesData?.templates?.some((t: any) => t.isActive && !['5x2', '6x1', '12x36'].includes(t.name)) && (
-                        <SelectItem key="separator" value="" disabled>
-                          ――――――――――――――――――
-                        </SelectItem>
-                      )}
+                      {/* Separador visual removido para evitar erro de valor vazio */}
                       {/* Templates customizados criados pelo usuário */}
                       {scheduleTypesData?.templates?.filter((template: any) => 
                         template.isActive && !['5x2', '6x1', '12x36'].includes(template.name) // Filtrar templates padrão duplicados
