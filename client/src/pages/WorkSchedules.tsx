@@ -402,7 +402,7 @@ function WorkSchedulesContent() {
     setFormData({
       userId: schedule.userId,
       scheduleType: schedule.scheduleType,
-      startDate: schedule.startDate.split('T')[0],
+      startDate: schedule.startDate ? schedule.startDate.split('T')[0] : '',
       endDate: schedule.endDate ? schedule.endDate.split('T')[0] : '',
       workDays: schedule.workDays,
       startTime: schedule.startTime,
