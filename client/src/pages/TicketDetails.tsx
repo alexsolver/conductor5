@@ -48,6 +48,7 @@ import { UserSelect } from "@/components/ui/UserSelect";
 import { UserMultiSelect } from "@/components/ui/UserMultiSelect";
 import TicketLinkingModal from "@/components/tickets/TicketLinkingModal";
 import InternalActionModal from "@/components/tickets/InternalActionModal";
+import EditInternalActionModal from "@/components/tickets/EditInternalActionModal";
 
 
 // 🚨 CORREÇÃO CRÍTICA: Usar schema unificado para consistência
@@ -264,6 +265,10 @@ const TicketDetails = React.memo(() => {
   const [newInternalAction, setNewInternalAction] = useState('');
   const [internalActionType, setInternalActionType] = useState('');
   const [isPublicAction, setIsPublicAction] = useState(false);
+  
+  // Estados para edição de ação interna
+  const [editActionModalOpen, setEditActionModalOpen] = useState(false);
+  const [actionToEdit, setActionToEdit] = useState<any>(null);
 
 
   // Basic information - consolidated into single tab
@@ -1062,6 +1067,31 @@ const TicketDetails = React.memo(() => {
       toast({
         title: "Erro", 
         description: "Erro ao excluir ticket",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Delete internal action mutation
+  const deleteInternalActionMutation = useMutation({
+    mutationFn: async (actionId: string) => {
+      const response = await apiRequest("DELETE", `/api/tickets/${id}/actions/${actionId}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Sucesso",
+        description: "Ação interna excluída com sucesso",
+      });
+
+      // Invalidate queries to refresh the actions list and history
+      queryClient.invalidateQueries({ queryKey: ["/api/tickets", id, "actions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tickets", id, "history"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro",
+        description: error.message || "Falha ao excluir ação interna",
         variant: "destructive",
       });
     },
@@ -2105,12 +2135,11 @@ const TicketDetails = React.memo(() => {
                               variant="outline"
                               size="sm"
                               onClick={() => {
-                                toast({
-                                  title: "Em desenvolvimento",
-                                  description: "Funcionalidade de edição será implementada em breve",
-                                });
+                                setActionToEdit(action);
+                                setEditActionModalOpen(true);
                               }}
                               className="h-7 w-7 p-0"
+                              title="Editar ação interna"
                             >
                               <Edit className="h-3 w-3" />
                             </Button>
@@ -2118,12 +2147,13 @@ const TicketDetails = React.memo(() => {
                               variant="outline"
                               size="sm"
                               onClick={() => {
-                                toast({
-                                  title: "Em desenvolvimento",
-                                  description: "Funcionalidade de exclusão será implementada em breve",
-                                });
+                                if (confirm("Tem certeza que deseja excluir esta ação interna?")) {
+                                  deleteInternalActionMutation.mutate(action.id);
+                                }
                               }}
                               className="h-7 w-7 p-0 text-red-600 hover:text-red-700"
+                              disabled={deleteInternalActionMutation.isPending}
+                              title="Excluir ação interna"
                             >
                               <Trash2 className="h-3 w-3" />
                             </Button>
@@ -3949,6 +3979,17 @@ const TicketDetails = React.memo(() => {
         ticketId={id || ''} 
         isOpen={showInternalActionModal} 
         onClose={() => setShowInternalActionModal(false)} 
+      />
+
+      {/* Edit Internal Action Modal */}
+      <EditInternalActionModal
+        ticketId={id || ''}
+        action={actionToEdit}
+        isOpen={editActionModalOpen}
+        onClose={() => {
+          setEditActionModalOpen(false);
+          setActionToEdit(null);
+        }}
       />
 
     </div>

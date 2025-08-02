@@ -1340,4 +1340,137 @@ ticketsRouter.get('/internal-actions/schedule/:startDate/:endDate', jwtAuth, asy
   }
 });
 
+// Update internal action
+ticketsRouter.put('/:ticketId/actions/:actionId', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.user?.tenantId) {
+      return res.status(400).json({ message: "User not associated with a tenant" });
+    }
+
+    const { ticketId, actionId } = req.params;
+    const { 
+      actionType, 
+      workLog, 
+      description, 
+      timeSpent, 
+      startDateTime, 
+      endDateTime,
+      assignedToId,
+      status = 'pending',
+      is_public = false
+    } = req.body;
+    const tenantId = req.user.tenantId;
+    const { pool } = await import('../../db');
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    // Update in ticket_history table
+    const updateQuery = `
+      UPDATE "${schemaName}".ticket_history 
+      SET action_type = $1, description = $2, updated_at = NOW()
+      WHERE id = $3 AND tenant_id = $4 AND ticket_id = $5
+      RETURNING *
+    `;
+
+    const actionDescription = workLog || description || `${actionType} action updated`;
+    const result = await pool.query(updateQuery, [
+      actionType,
+      actionDescription,
+      actionId,
+      tenantId,
+      ticketId
+    ]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ 
+        success: false,
+        message: "Action not found" 
+      });
+    }
+
+    // Also update in ticket_internal_actions if exists
+    if (startDateTime) {
+      const finalAssignedId = (assignedToId && assignedToId !== 'unassigned') ? assignedToId : req.user.id;
+      const startTime = new Date(startDateTime);
+      const endTime = endDateTime ? new Date(endDateTime) : null;
+
+      await pool.query(`
+        UPDATE "${schemaName}".ticket_internal_actions 
+        SET action_type = $1, description = $2, agent_id = $3, start_time = $4, end_time = $5, status = $6, updated_at = NOW()
+        WHERE ticket_id = $7 AND tenant_id = $8 AND action_type = $9
+      `, [
+        actionType,
+        actionDescription,
+        finalAssignedId,
+        startTime,
+        endTime,
+        status,
+        ticketId,
+        tenantId,
+        actionType
+      ]);
+    }
+
+    res.json({
+      success: true,
+      message: "Ação interna atualizada com sucesso",
+      data: result.rows[0]
+    });
+  } catch (error) {
+    console.error("Error updating internal action:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to update internal action",
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// Delete internal action
+ticketsRouter.delete('/:ticketId/actions/:actionId', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.user?.tenantId) {
+      return res.status(400).json({ message: "User not associated with a tenant" });
+    }
+
+    const { ticketId, actionId } = req.params;
+    const tenantId = req.user.tenantId;
+    const { pool } = await import('../../db');
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    // Delete from ticket_history table
+    const deleteQuery = `
+      DELETE FROM "${schemaName}".ticket_history 
+      WHERE id = $1 AND tenant_id = $2 AND ticket_id = $3
+      RETURNING *
+    `;
+
+    const result = await pool.query(deleteQuery, [actionId, tenantId, ticketId]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ 
+        success: false,
+        message: "Action not found" 
+      });
+    }
+
+    // Also delete from ticket_internal_actions if exists
+    await pool.query(`
+      DELETE FROM "${schemaName}".ticket_internal_actions 
+      WHERE ticket_id = $1 AND tenant_id = $2
+    `, [ticketId, tenantId]);
+
+    res.json({
+      success: true,
+      message: "Ação interna excluída com sucesso"
+    });
+  } catch (error) {
+    console.error("Error deleting internal action:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to delete internal action",
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 export { ticketsRouter };
