@@ -77,7 +77,7 @@ interface Customer {
 }
 
 const AgendaManager: React.FC = () => {
-  const [selectedDate, setSelectedDate] = useState(new Date(2025, 6, 22)); // 22 de julho de 2025
+  const [selectedDate, setSelectedDate] = useState(new Date(2025, 7, 2)); // 2 de agosto de 2025
   const [view, setView] = useState<'timeline' | 'agenda'>('timeline');
   const [selectedAgentId, setSelectedAgentId] = useState<string>();
   const [isModalOpen, setIsModalOpen] = useState(false);
