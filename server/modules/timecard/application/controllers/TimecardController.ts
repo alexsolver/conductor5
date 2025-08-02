@@ -61,18 +61,27 @@ export class TimecardController {
       today.setHours(0, 0, 0, 0);
       const todayRecords = await this.timecardRepository.getTimecardEntriesByUserAndDate(userId, today.toISOString(), tenantId);
 
-      // Determine current status
+      // Determine current status by analyzing all records
       let status = 'not_started';
       let lastRecord = null;
 
       if (todayRecords.length > 0) {
         lastRecord = todayRecords[todayRecords.length - 1];
 
-        if (lastRecord.checkOut) {
-          status = 'finished';
-        } else if (lastRecord.breakStart && !lastRecord.breakEnd) {
+        // Check if there's any checkout record today
+        const hasCheckOut = todayRecords.some(record => record.checkOut);
+        // Check if there's any checkin record today  
+        const hasCheckIn = todayRecords.some(record => record.checkIn);
+        // Check for break status
+        const onBreak = todayRecords.some(record => record.breakStart && !record.breakEnd);
+
+        if (onBreak) {
           status = 'on_break';
-        } else if (lastRecord.checkIn) {
+        } else if (hasCheckOut && hasCheckIn) {
+          // Has both checkin and checkout - finished for the day
+          status = 'finished';
+        } else if (hasCheckIn) {
+          // Has checkin but no checkout - currently working
           status = 'working';
         }
       }
