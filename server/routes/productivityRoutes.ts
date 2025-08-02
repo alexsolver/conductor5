@@ -63,21 +63,6 @@ router.get('/my-productivity', jwtAuth, async (req: any, res) => {
       summary.activitiesByType[type].totalTime += parseInt(item.total_duration_seconds || '0');
     });
 
-    // Calculate averages
-    Object.keys(summary.activitiesByType).forEach(type => {
-      const typeData = summary.activitiesByType[type];
-      typeData.avgTime = typeData.count > 0 ? Math.floor(typeData.totalTime / typeData.count) : 0;
-    });
-
-    summary.averageSessionTime = summary.totalActivities > 0 ? 
-      Math.floor(summary.totalTimeSeconds / summary.totalActivities) : 0;
-
-    console.log('🔍 Final summary before response:', {
-      summary,
-      activitiesByTypeKeys: Object.keys(summary.activitiesByType),
-      dailyBreakdownKeys: Object.keys(summary.dailyBreakdown)
-    });
-
     // Daily breakdown
     data.forEach(item => {
       const date = item.activity_date;
@@ -95,6 +80,21 @@ router.get('/my-productivity', jwtAuth, async (req: any, res) => {
         count: parseInt(item.total_activities),
         time: parseInt(item.total_duration_seconds || '0')
       };
+    });
+
+    // Calculate averages
+    Object.keys(summary.activitiesByType).forEach(type => {
+      const typeData = summary.activitiesByType[type];
+      typeData.avgTime = typeData.count > 0 ? Math.floor(typeData.totalTime / typeData.count) : 0;
+    });
+
+    summary.averageSessionTime = summary.totalActivities > 0 ? 
+      Math.floor(summary.totalTimeSeconds / summary.totalActivities) : 0;
+
+    console.log('🔍 Final summary before response:', {
+      summary,
+      activitiesByTypeKeys: Object.keys(summary.activitiesByType),
+      dailyBreakdownKeys: Object.keys(summary.dailyBreakdown)
     });
 
     res.json(createSuccessResponse({
