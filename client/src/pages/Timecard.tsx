@@ -309,7 +309,14 @@ export default function Timecard() {
             </div>
           ) : currentStatus?.todayRecords?.length > 0 ? (
             <div className="space-y-3">
-              {currentStatus.todayRecords.map((record: TimeRecord) => (
+              {currentStatus.todayRecords
+                .sort((a, b) => {
+                  // Ordenar por data de criação, mais recente primeiro
+                  const dateA = new Date(a.createdAt || a.checkIn || a.checkOut || a.breakStart || a.breakEnd);
+                  const dateB = new Date(b.createdAt || b.checkIn || b.checkOut || b.breakStart || b.breakEnd);
+                  return dateB.getTime() - dateA.getTime();
+                })
+                .map((record: TimeRecord) => (
                 <div key={record.id} className="flex justify-between items-center py-2 border-b">
                   <div>
                     <div className="font-medium">

@@ -99,7 +99,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
           )`
         )
       )
-      .orderBy(asc(timecardEntries.createdAt));
+      .orderBy(desc(timecardEntries.createdAt));
   }
 
   async getTimecardEntriesByUser(userId: string, tenantId: string, startDate?: Date, endDate?: Date): Promise<any[]> {

@@ -75,16 +75,6 @@ export class TimecardController {
         // Check for break status
         const onBreak = todayRecords.some(record => record.breakStart && !record.breakEnd);
 
-        console.log(`[TIMECARD-STATUS-DEBUG] Records count: ${todayRecords.length}`);
-        console.log(`[TIMECARD-STATUS-DEBUG] hasCheckIn: ${hasCheckIn}, hasCheckOut: ${hasCheckOut}, onBreak: ${onBreak}`);
-        console.log(`[TIMECARD-STATUS-DEBUG] Last 3 records:`, todayRecords.slice(-3).map(r => ({
-          id: r.id,
-          checkIn: r.checkIn,
-          checkOut: r.checkOut,
-          breakStart: r.breakStart,
-          breakEnd: r.breakEnd
-        })));
-
         if (onBreak) {
           status = 'on_break';
         } else if (hasCheckOut && hasCheckIn) {
@@ -94,8 +84,6 @@ export class TimecardController {
           // Has checkin but no checkout - currently working
           status = 'working';
         }
-
-        console.log(`[TIMECARD-STATUS-DEBUG] Final status: ${status}`);
       }
 
       const response = {
