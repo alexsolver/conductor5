@@ -34,6 +34,7 @@ import holidayRoutes from './routes/HolidayController';
 // Removed: journeyRoutes - functionality eliminated from system
 import { timecardRoutes } from './routes/timecardRoutes';
 import { cltComplianceController } from './controllers/CLTComplianceController';
+import { TimecardApprovalController } from './modules/timecard/application/controllers/TimecardApprovalController';
 import scheduleRoutes from './modules/schedule-management/infrastructure/routes/scheduleRoutes';
 import { userProfileRoutes } from './routes/userProfileRoutes';
 import { teamManagementRoutes } from './routes/teamManagementRoutes';
@@ -1902,6 +1903,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Timecard routes - Registro de Ponto
   app.use('/api/timecard', jwtAuth, timecardRoutes);
+
+  // Timecard Approval Routes
+  const timecardApprovalController = new TimecardApprovalController();
+  
+  // Approval Groups
+  app.get('/api/timecard/approval/groups', jwtAuth, timecardApprovalController.getApprovalGroups);
+  app.post('/api/timecard/approval/groups', jwtAuth, timecardApprovalController.createApprovalGroup);
+  app.put('/api/timecard/approval/groups/:id', jwtAuth, timecardApprovalController.updateApprovalGroup);
+  app.delete('/api/timecard/approval/groups/:id', jwtAuth, timecardApprovalController.deleteApprovalGroup);
+  
+  // Group Members
+  app.get('/api/timecard/approval/groups/:groupId/members', jwtAuth, timecardApprovalController.getGroupMembers);
+  app.post('/api/timecard/approval/groups/:groupId/members', jwtAuth, timecardApprovalController.addGroupMember);
+  app.delete('/api/timecard/approval/groups/:groupId/members/:memberId', jwtAuth, timecardApprovalController.removeGroupMember);
+  
+  // Approval Settings
+  app.get('/api/timecard/approval/settings', jwtAuth, timecardApprovalController.getApprovalSettings);
+  app.put('/api/timecard/approval/settings', jwtAuth, timecardApprovalController.updateApprovalSettings);
+  
+  // Approval Actions
+  app.get('/api/timecard/approval/pending', jwtAuth, timecardApprovalController.getPendingApprovals);
+  app.post('/api/timecard/approval/approve/:entryId', jwtAuth, timecardApprovalController.approveTimecard);
+  app.post('/api/timecard/approval/reject/:entryId', jwtAuth, timecardApprovalController.rejectTimecard);
+  app.post('/api/timecard/approval/bulk-approve', jwtAuth, timecardApprovalController.bulkApproveTimecards);
+  
+  // Utility Routes
+  app.get('/api/timecard/approval/users', jwtAuth, timecardApprovalController.getAvailableUsers);
 
   // 🔴 CLT COMPLIANCE ROUTES - OBRIGATÓRIAS POR LEI
   // Verificação de integridade da cadeia CLT

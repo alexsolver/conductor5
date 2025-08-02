@@ -75,6 +75,7 @@ import AssetManagement from "./pages/AssetManagement";
 import LpuManagement from "./pages/LpuManagement"; // Temporarily commented due to LSP errors
 import ComplianceManagement from "./pages/ComplianceManagement";
 import CLTCompliance from "./pages/CLTCompliance";
+import TimecardApprovalSettings from "./pages/TimecardApprovalSettings";
 import NotificationManagement from './pages/NotificationManagement';
 import CustomFieldsAdministrator from './pages/CustomFieldsAdministrator';
 import DragDropDemo from './pages/DragDropDemo';
@@ -165,6 +166,7 @@ function AppRouter() {
         <Route path="/timecard" component={Timecard} />
         <Route path="/work-schedules" component={WorkSchedules} />
         <Route path="/timecard-reports" component={TimecardReports} />
+        <Route path="/timecard-approval-settings" component={TimecardApprovalSettings} />
         <Route path="/hour-bank" component={HourBank} />
         <Route path="/absence-management" component={AbsenceManagement} />
         <Route path="/schedule-templates" component={ScheduleTemplates} />

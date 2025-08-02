@@ -924,6 +924,109 @@ export const hourBankEntries = pgTable("hour_bank_entries", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Approval Groups - Grupos de Aprovação
+export const approvalGroups = pgTable("approval_groups", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  tenantId: uuid("tenant_id").notNull(),
+  name: varchar("name", { length: 100 }).notNull(),
+  description: text("description"),
+  isActive: boolean("is_active").default(true),
+  createdBy: uuid("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("approval_groups_tenant_idx").on(table.tenantId),
+  index("approval_groups_active_idx").on(table.tenantId, table.isActive),
+]);
+
+// Approval Group Members - Membros dos Grupos de Aprovação
+export const approvalGroupMembers = pgTable("approval_group_members", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  tenantId: uuid("tenant_id").notNull(),
+  groupId: uuid("group_id").notNull().references(() => approvalGroups.id, { onDelete: 'cascade' }),
+  userId: uuid("user_id").notNull().references(() => users.id),
+  role: varchar("role", { length: 20 }).default("member"), // 'member', 'approver'
+  isActive: boolean("is_active").default(true),
+  addedBy: uuid("added_by").references(() => users.id),
+  addedAt: timestamp("added_at").defaultNow(),
+}, (table) => [
+  index("approval_group_members_group_idx").on(table.groupId),
+  index("approval_group_members_user_idx").on(table.userId),
+  index("approval_group_members_tenant_idx").on(table.tenantId),
+  unique("approval_group_members_unique").on(table.groupId, table.userId),
+]);
+
+// Timecard Approval Settings - Configurações de Aprovação de Jornada
+export const timecardApprovalSettings = pgTable("timecard_approval_settings", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  tenantId: uuid("tenant_id").notNull(),
+  
+  // Tipo de aprovação
+  approvalType: varchar("approval_type", { length: 20 }).notNull(), // 'automatic', 'manual'
+  
+  // Configurações de aprovação automática
+  autoApproveComplete: boolean("auto_approve_complete").default(false), // Auto aprovar registros completos
+  autoApproveAfterHours: integer("auto_approve_after_hours").default(24), // Horas para auto aprovar
+  
+  // Configurações de aprovação manual
+  requireApprovalFor: jsonb("require_approval_for").default([]), // ['inconsistencies', 'overtime', 'absences', 'manual_entries', 'all']
+  
+  // Aprovadores
+  defaultApprovers: text("default_approvers").array(), // Lista de user IDs
+  approvalGroupId: uuid("approval_group_id").references(() => approvalGroups.id),
+  
+  // Configurações de ticket automático
+  createAutoTickets: boolean("create_auto_tickets").default(false),
+  ticketRecurrence: varchar("ticket_recurrence", { length: 20 }).default("weekly"), // 'daily', 'weekly', 'monthly'
+  ticketDay: integer("ticket_day").default(1), // Dia da semana/mês
+  ticketTime: time("ticket_time").default("09:00"), // Hora para criar o ticket
+  
+  // Configurações avançadas
+  escalationRules: jsonb("escalation_rules").default({}),
+  notificationSettings: jsonb("notification_settings").default({}),
+  
+  // Auditoria
+  isActive: boolean("is_active").default(true),
+  createdBy: uuid("created_by").references(() => users.id),
+  updatedBy: uuid("updated_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("timecard_approval_settings_tenant_idx").on(table.tenantId),
+  index("timecard_approval_settings_active_idx").on(table.tenantId, table.isActive),
+  unique("timecard_approval_settings_tenant_unique").on(table.tenantId),
+]);
+
+// Timecard Approval History - Histórico de Aprovações
+export const timecardApprovalHistory = pgTable("timecard_approval_history", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  tenantId: uuid("tenant_id").notNull(),
+  timecardEntryId: uuid("timecard_entry_id").notNull().references(() => timecardEntries.id),
+  
+  // Dados da aprovação
+  approvalStatus: varchar("approval_status", { length: 20 }).notNull(), // 'pending', 'approved', 'rejected'
+  approvedBy: uuid("approved_by").references(() => users.id),
+  approvalDate: timestamp("approval_date"),
+  rejectionReason: text("rejection_reason"),
+  comments: text("comments"),
+  
+  // Tipo de aprovação
+  approvalMethod: varchar("approval_method", { length: 20 }).notNull(), // 'automatic', 'manual', 'ticket'
+  ticketId: uuid("ticket_id"), // Referência ao ticket se aprovado via ticket
+  
+  // Dados do registro na aprovação
+  snapshotData: jsonb("snapshot_data"), // Snapshot dos dados no momento da aprovação
+  
+  // Auditoria
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("timecard_approval_history_entry_idx").on(table.timecardEntryId),
+  index("timecard_approval_history_approver_idx").on(table.approvedBy),
+  index("timecard_approval_history_tenant_date_idx").on(table.tenantId, table.approvalDate),
+  index("timecard_approval_history_status_idx").on(table.tenantId, table.approvalStatus),
+]);
+
 // Flexible Work Arrangements
 export const flexibleWorkArrangements = pgTable("flexible_work_arrangements", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -1339,6 +1442,25 @@ export type InsertHoliday = typeof holidays.$inferInsert;
 
 export type Session = typeof sessions.$inferSelect;
 export type InsertSession = typeof sessions.$inferInsert;
+
+// Timecard and Approval Types
+export type TimecardEntry = typeof timecardEntries.$inferSelect;
+export type InsertTimecardEntry = typeof timecardEntries.$inferInsert;
+
+export type WorkSchedule = typeof workSchedules.$inferSelect;
+export type InsertWorkSchedule = typeof workSchedules.$inferInsert;
+
+export type ApprovalGroup = typeof approvalGroups.$inferSelect;
+export type InsertApprovalGroup = typeof approvalGroups.$inferInsert;
+
+export type ApprovalGroupMember = typeof approvalGroupMembers.$inferSelect;
+export type InsertApprovalGroupMember = typeof approvalGroupMembers.$inferInsert;
+
+export type TimecardApprovalSettings = typeof timecardApprovalSettings.$inferSelect;
+export type InsertTimecardApprovalSettings = typeof timecardApprovalSettings.$inferInsert;
+
+export type TimecardApprovalHistory = typeof timecardApprovalHistory.$inferSelect;
+export type InsertTimecardApprovalHistory = typeof timecardApprovalHistory.$inferInsert;
 
 
 
@@ -2123,6 +2245,8 @@ export type NotificationTemplate = typeof notificationTemplates.$inferSelect;
 export type InsertNotificationTemplate = typeof notificationTemplates.$inferInsert;
 export type NotificationLog = typeof notificationLogs.$inferSelect;
 export type InsertNotificationLog = typeof notificationLogs.$inferInsert;
+
+
 
 // Zod Schemas for notifications
 export const insertNotificationSchema = createInsertSchema(notifications);
