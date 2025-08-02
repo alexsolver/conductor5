@@ -816,7 +816,7 @@ export const workSchedules = pgTable("work_schedules", {
   scheduleType: varchar("schedule_type", { length: 20 }).default("5x2"),
   startDate: date("start_date").notNull(),
   endDate: date("end_date"),
-  workDays: jsonb("work_days").default([1,2,3,4,5]),
+  workDays: jsonb("work_days").$type<number[]>().default('[1,2,3,4,5]'),
   startTime: time("start_time").default("08:00"),
   endTime: time("end_time").default("18:00"),
   breakDurationMinutes: integer("break_duration_minutes").default(60),
