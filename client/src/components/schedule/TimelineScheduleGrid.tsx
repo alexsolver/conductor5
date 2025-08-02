@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Clock, MapPin, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import SimpleAvatar from '@/components/ui/avatar';
+import InternalActionDetailsModal from './InternalActionDetailsModal';
 
 interface Schedule {
   id: string;
@@ -69,6 +70,8 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
 }) => {
   const [searchAgent, setSearchAgent] = useState('');
   const [timeFilter, setTimeFilter] = useState<'hoje' | '2min' | '10min' | '30min' | '1hora' | '24horas'>('hoje');
+  const [selectedInternalAction, setSelectedInternalAction] = useState<any>(null);
+  const [showInternalActionModal, setShowInternalActionModal] = useState(false);
   
   // Refs para sincronização de scroll
   const headerScrollRef = useRef<HTMLDivElement>(null);
@@ -484,7 +487,13 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                                 style={{ opacity: 0.9 }}
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  onScheduleClick(schedule);
+                                  if (isInternalAction) {
+                                    // Open custom internal action modal
+                                    setSelectedInternalAction(schedule);
+                                    setShowInternalActionModal(true);
+                                  } else {
+                                    onScheduleClick(schedule);
+                                  }
                                 }}
                                 title={
                                   isInternalAction 
@@ -566,6 +575,16 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Internal Action Details Modal */}
+      <InternalActionDetailsModal
+        internalAction={selectedInternalAction}
+        isOpen={showInternalActionModal}
+        onClose={() => {
+          setShowInternalActionModal(false);
+          setSelectedInternalAction(null);
+        }}
+      />
     </div>
   );
 };
