@@ -96,19 +96,20 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({
   defaultTime,
   defaultAgentId,
 }) => {
-  // Buscar usuários do módulo de gestão de equipe
+  // Buscar usuários do módulo de gestão de equipe - usando API que funciona
   const { data: teamMembersData } = useQuery({
-    queryKey: ['/api/team-management/members'],
+    queryKey: ['/api/user-management/users'],
     enabled: isOpen,
   });
 
   // Combinar agentes passados como props com usuários do módulo de gestão de equipe
   const allAgents = React.useMemo(() => {
-    const teamAgents = teamMembersData ? teamMembersData.map((member: any) => ({
-      id: member.id,
-      name: member.name || `${member.firstName || ''} ${member.lastName || ''}`.trim(),
-      email: member.email
-    })) : [];
+    const teamAgents = teamMembersData && teamMembersData.users && Array.isArray(teamMembersData.users) 
+      ? teamMembersData.users.map((member: any) => ({
+        id: member.id,
+        name: member.name || `${member.firstName || ''} ${member.lastName || ''}`.trim(),
+        email: member.email
+      })) : [];
 
     // Combinar e remover duplicatas
     const combinedAgents = [...(agents || []), ...teamAgents];
