@@ -667,8 +667,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
         .where(and(
           eq(users.tenantId, tenantId),
           eq(users.isActive, true)
-        ))
-        .orderBy(asc(users.firstName), asc(users.lastName));
+        ));
 
       console.log('[DRIZZLE-QA] Found users:', usersList.length);
       

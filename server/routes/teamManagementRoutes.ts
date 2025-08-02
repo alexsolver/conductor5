@@ -97,78 +97,25 @@ router.get('/members', async (req: AuthenticatedRequest, res) => {
 
     console.log('[TEAM-MANAGEMENT] Fetching members for tenant:', user.tenantId);
 
-    const members = await db.select({
-      id: users.id,
-      name: sql<string>`COALESCE(${users.name}, CONCAT(COALESCE(${users.firstName}, ''), ' ', COALESCE(${users.lastName}, '')))`.as('name'),
-      firstName: users.firstName,
-      lastName: users.lastName,
-      email: users.email,
-      role: users.role,
-      position: users.position,
-      department: users.department,
-      isActive: users.isActive,
-      lastActiveAt: users.lastActiveAt,
-      createdAt: users.createdAt,
-      profileImage: users.profileImage,
-      phone: users.phone,
-      // Group memberships count
-      groupMemberships: sql<number>`(
-        SELECT COUNT(*)::int 
-        FROM user_group_memberships ugm
-        WHERE ugm.user_id = ${users.id}
-      )`.as('groupMemberships')
-    })
-    .from(users)
-    .where(and(
-      eq(users.tenantId, user.tenantId),
-      eq(users.isActive, true)
-    ))
-    .orderBy(users.firstName, users.lastName);
+    const members = await db
+      .select({
+        id: users.id,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        email: users.email,
+        role: users.role,
+        isActive: users.isActive,
+        createdAt: users.createdAt
+      })
+      .from(users)
+      .where(and(
+        eq(users.tenantId, user.tenantId),
+        eq(users.isActive, true)
+      ));
 
-    console.log('[TEAM-MANAGEMENT] Found members:', members.length);
-
-    // Get user group memberships with proper schema validation
-    let groupMembershipMap = new Map();
-
-    try {
-      // Check if user_group_memberships table exists
-      const tableCheck = await db.execute(sql`
-        SELECT EXISTS (
-          SELECT FROM information_schema.tables 
-          WHERE table_schema = 'public' 
-          AND table_name = 'user_group_memberships'
-        ) as table_exists
-      `);
-
-      if (tableCheck.rows[0]?.table_exists) {
-        const groupMemberships = await db.execute(sql`
-          SELECT ugm.user_id, ugm.group_id, ug.name as group_name
-          FROM user_group_memberships ugm
-          INNER JOIN user_groups ug ON ugm.group_id = ug.id
-          WHERE ug.tenant_id = ${user.tenantId} AND ug.is_active = true
-        `);
-
-        groupMemberships.rows.forEach((membership: any) => {
-          if (membership.user_id && membership.group_id) {
-            if (!groupMembershipMap.has(membership.user_id)) {
-              groupMembershipMap.set(membership.user_id, []);
-            }
-            groupMembershipMap.get(membership.user_id).push(membership.group_id);
-          }
-        });
-
-        console.log(`Team Management: Loaded ${groupMemberships.rows.length} group memberships`);
-      } else {
-        console.log('Team Management: user_group_memberships table not found, skipping group data');
-      }
-    } catch (groupError) {
-      console.warn('Team Management: Error loading group memberships:', groupError);
-    }
-
-    // Format the response
-    const formattedMembers = members.map(member => ({
+    const processedMembers = members.map(member => ({
       id: member.id,
-      name: member.name,
+      name: `${member.firstName || ''} ${member.lastName || ''}`.trim() || member.email || 'Usuário',
       firstName: member.firstName,
       lastName: member.lastName,
       email: member.email,
@@ -176,14 +123,10 @@ router.get('/members', async (req: AuthenticatedRequest, res) => {
       position: member.position,
       department: member.department,
       isActive: member.isActive,
-      lastActiveAt: member.lastActiveAt,
-      createdAt: member.createdAt,
-      profileImage: member.profileImage,
-      phone: member.phone,
-      groupMemberships: member.groupMemberships
+      createdAt: member.createdAt
     }));
 
-    res.json(formattedMembers);
+    res.json({ members: processedMembers });
   } catch (error) {
     console.error('Error fetching team members:', error);
     res.status(500).json({ message: 'Failed to fetch members' });

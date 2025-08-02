@@ -65,28 +65,36 @@ router.get('/available-users', async (req: AuthenticatedRequest, res) => {
 
     console.log('[TIMECARD-USERS] Fetching available users for tenant:', user.tenantId);
 
-    // Buscar usuários ativos do tenant
-    const availableUsers = await db.select({
-      id: users.id,
-      name: sql<string>`COALESCE(${users.name}, CONCAT(COALESCE(${users.firstName}, ''), ' ', COALESCE(${users.lastName}, '')))`.as('name'),
-      firstName: users.firstName,
-      lastName: users.lastName,
-      email: users.email,
-      role: users.role,
-      position: users.position,
-      department: users.department,
-      isActive: users.isActive
-    })
-    .from(users)
-    .where(and(
-      eq(users.tenantId, user.tenantId),
-      eq(users.isActive, true)
-    ))
-    .orderBy(users.firstName, users.lastName);
+    // Buscar usuários ativos do tenant com query simplificada
+    const availableUsers = await db
+      .select({
+        id: users.id,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        email: users.email,
+        role: users.role,
+        isActive: users.isActive
+      })
+      .from(users)
+      .where(and(
+        eq(users.tenantId, user.tenantId),
+        eq(users.isActive, true)
+      ));
 
-    console.log('[TIMECARD-USERS] Found users:', availableUsers.length);
+    // Processar dados no backend para criar o campo name
+    const processedUsers = availableUsers.map(user => ({
+      id: user.id,
+      name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email || 'Usuário',
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      role: user.role,
+      isActive: user.isActive
+    }));
 
-    res.json({ users: availableUsers });
+    console.log('[TIMECARD-USERS] Found users:', processedUsers.length);
+
+    res.json({ users: processedUsers });
   } catch (error) {
     console.error('Error fetching available users for timecard:', error);
     res.status(500).json({ message: 'Failed to fetch available users' });
