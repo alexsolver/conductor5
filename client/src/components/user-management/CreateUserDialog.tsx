@@ -26,7 +26,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, User, MapPin, Briefcase, FileText } from "lucide-react";
+import { CalendarIcon, User, MapPin, Briefcase, FileText, Users, Upload } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { apiRequest } from "@/lib/queryClient";
@@ -103,6 +103,16 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
     customRoleIds: [] as string[],
     sendInvitation: true,
     isActive: true,
+    
+    // Documentos
+    documents: {
+      rg: null as File | null,
+      cpf: null as File | null,
+      cnpj: null as File | null,
+      contratoTrabalho: null as File | null,
+      carteiraVacina: null as File | null,
+      outros: [] as File[],
+    },
   });
 
   const { data: groupsData } = useQuery<{ groups: UserGroup[] }>({
@@ -189,6 +199,16 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
       customRoleIds: [],
       sendInvitation: true,
       isActive: true,
+      
+      // Documentos
+      documents: {
+        rg: null,
+        cpf: null,
+        cnpj: null,
+        contratoTrabalho: null,
+        carteiraVacina: null,
+        outros: [],
+      },
     });
   };
 
@@ -259,7 +279,7 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
           </DialogHeader>
 
           <Tabs defaultValue="basic" className="py-4">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="basic" className="flex items-center gap-2">
                 <User className="w-4 h-4" />
                 Dados Básicos
@@ -272,8 +292,12 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                 <Briefcase className="w-4 h-4" />
                 Dados RH
               </TabsTrigger>
+              <TabsTrigger value="groups" className="flex items-center gap-2">
+                <Users className="w-4 h-4" />
+                Grupos/Funções
+              </TabsTrigger>
               <TabsTrigger value="documents" className="flex items-center gap-2">
-                <FileText className="w-4 h-4" />
+                <Upload className="w-4 h-4" />
                 Documentos
               </TabsTrigger>
             </TabsList>
@@ -658,8 +682,8 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                       <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
                           mode="single"
-                          selected={formData.admissionDate}
-                          onSelect={(date) => setFormData({ ...formData, admissionDate: date })}
+                          selected={formData.admissionDate || undefined}
+                          onSelect={(date) => setFormData({ ...formData, admissionDate: date || null })}
                           locale={ptBR}
                           initialFocus
                         />
@@ -680,8 +704,8 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
               </ScrollArea>
             </TabsContent>
 
-            {/* Aba 4: Documentos (Permissões e Grupos) */}
-            <TabsContent value="documents">
+            {/* Aba 4: Grupos/Funções (Permissões e Grupos) */}
+            <TabsContent value="groups">
               <ScrollArea className="h-[400px] pr-4">
                 <div className="space-y-6">
                   {/* Papéis Customizados */}
@@ -788,6 +812,300 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
                         </div>
                       </div>
                     )}
+                  </div>
+                </div>
+              </ScrollArea>
+            </TabsContent>
+
+            {/* Aba 5: Documentos (Upload de Arquivos) */}
+            <TabsContent value="documents">
+              <ScrollArea className="h-[400px] pr-4">
+                <div className="space-y-6">
+                  <div className="text-center mb-6">
+                    <h4 className="font-medium mb-2 flex items-center justify-center gap-2">
+                      <Upload className="w-5 h-5" />
+                      Upload de Documentos
+                    </h4>
+                    <p className="text-sm text-muted-foreground">
+                      Anexe os documentos necessários para o cadastro do usuário
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* RG */}
+                    <div className="space-y-2">
+                      <Label htmlFor="rg-upload" className="flex items-center gap-2">
+                        <FileText className="w-4 h-4" />
+                        RG (Identidade)
+                      </Label>
+                      <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
+                        <input
+                          id="rg-upload"
+                          type="file"
+                          accept=".pdf,.jpg,.jpeg,.png"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              setFormData(prev => ({
+                                ...prev,
+                                documents: { ...prev.documents, rg: file }
+                              }));
+                            }
+                          }}
+                        />
+                        <Label htmlFor="rg-upload" className="cursor-pointer">
+                          {formData.documents.rg ? (
+                            <div className="text-green-600 dark:text-green-400">
+                              <FileText className="w-8 h-8 mx-auto mb-2" />
+                              <p className="text-sm font-medium">{formData.documents.rg.name}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {(formData.documents.rg.size / 1024 / 1024).toFixed(2)} MB
+                              </p>
+                            </div>
+                          ) : (
+                            <div className="text-muted-foreground">
+                              <Upload className="w-8 h-8 mx-auto mb-2" />
+                              <p className="text-sm">Clique para enviar RG</p>
+                              <p className="text-xs">PDF, JPG, PNG até 10MB</p>
+                            </div>
+                          )}
+                        </Label>
+                      </div>
+                    </div>
+
+                    {/* CPF */}
+                    <div className="space-y-2">
+                      <Label htmlFor="cpf-upload" className="flex items-center gap-2">
+                        <FileText className="w-4 h-4" />
+                        CPF
+                      </Label>
+                      <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
+                        <input
+                          id="cpf-upload"
+                          type="file"
+                          accept=".pdf,.jpg,.jpeg,.png"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              setFormData(prev => ({
+                                ...prev,
+                                documents: { ...prev.documents, cpf: file }
+                              }));
+                            }
+                          }}
+                        />
+                        <Label htmlFor="cpf-upload" className="cursor-pointer">
+                          {formData.documents.cpf ? (
+                            <div className="text-green-600 dark:text-green-400">
+                              <FileText className="w-8 h-8 mx-auto mb-2" />
+                              <p className="text-sm font-medium">{formData.documents.cpf.name}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {(formData.documents.cpf.size / 1024 / 1024).toFixed(2)} MB
+                              </p>
+                            </div>
+                          ) : (
+                            <div className="text-muted-foreground">
+                              <Upload className="w-8 h-8 mx-auto mb-2" />
+                              <p className="text-sm">Clique para enviar CPF</p>
+                              <p className="text-xs">PDF, JPG, PNG até 10MB</p>
+                            </div>
+                          )}
+                        </Label>
+                      </div>
+                    </div>
+
+                    {/* CNPJ */}
+                    <div className="space-y-2">
+                      <Label htmlFor="cnpj-upload" className="flex items-center gap-2">
+                        <FileText className="w-4 h-4" />
+                        CNPJ (se aplicável)
+                      </Label>
+                      <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
+                        <input
+                          id="cnpj-upload"
+                          type="file"
+                          accept=".pdf,.jpg,.jpeg,.png"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              setFormData(prev => ({
+                                ...prev,
+                                documents: { ...prev.documents, cnpj: file }
+                              }));
+                            }
+                          }}
+                        />
+                        <Label htmlFor="cnpj-upload" className="cursor-pointer">
+                          {formData.documents.cnpj ? (
+                            <div className="text-green-600 dark:text-green-400">
+                              <FileText className="w-8 h-8 mx-auto mb-2" />
+                              <p className="text-sm font-medium">{formData.documents.cnpj.name}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {(formData.documents.cnpj.size / 1024 / 1024).toFixed(2)} MB
+                              </p>
+                            </div>
+                          ) : (
+                            <div className="text-muted-foreground">
+                              <Upload className="w-8 h-8 mx-auto mb-2" />
+                              <p className="text-sm">Clique para enviar CNPJ</p>
+                              <p className="text-xs">PDF, JPG, PNG até 10MB</p>
+                            </div>
+                          )}
+                        </Label>
+                      </div>
+                    </div>
+
+                    {/* Contrato de Trabalho */}
+                    <div className="space-y-2">
+                      <Label htmlFor="contrato-upload" className="flex items-center gap-2">
+                        <FileText className="w-4 h-4" />
+                        Contrato de Trabalho
+                      </Label>
+                      <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
+                        <input
+                          id="contrato-upload"
+                          type="file"
+                          accept=".pdf,.jpg,.jpeg,.png"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              setFormData(prev => ({
+                                ...prev,
+                                documents: { ...prev.documents, contratoTrabalho: file }
+                              }));
+                            }
+                          }}
+                        />
+                        <Label htmlFor="contrato-upload" className="cursor-pointer">
+                          {formData.documents.contratoTrabalho ? (
+                            <div className="text-green-600 dark:text-green-400">
+                              <FileText className="w-8 h-8 mx-auto mb-2" />
+                              <p className="text-sm font-medium">{formData.documents.contratoTrabalho.name}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {(formData.documents.contratoTrabalho.size / 1024 / 1024).toFixed(2)} MB
+                              </p>
+                            </div>
+                          ) : (
+                            <div className="text-muted-foreground">
+                              <Upload className="w-8 h-8 mx-auto mb-2" />
+                              <p className="text-sm">Clique para enviar contrato</p>
+                              <p className="text-xs">PDF, JPG, PNG até 10MB</p>
+                            </div>
+                          )}
+                        </Label>
+                      </div>
+                    </div>
+
+                    {/* Carteira de Vacinação */}
+                    <div className="space-y-2">
+                      <Label htmlFor="vacina-upload" className="flex items-center gap-2">
+                        <FileText className="w-4 h-4" />
+                        Carteira de Vacinação
+                      </Label>
+                      <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
+                        <input
+                          id="vacina-upload"
+                          type="file"
+                          accept=".pdf,.jpg,.jpeg,.png"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              setFormData(prev => ({
+                                ...prev,
+                                documents: { ...prev.documents, carteiraVacina: file }
+                              }));
+                            }
+                          }}
+                        />
+                        <Label htmlFor="vacina-upload" className="cursor-pointer">
+                          {formData.documents.carteiraVacina ? (
+                            <div className="text-green-600 dark:text-green-400">
+                              <FileText className="w-8 h-8 mx-auto mb-2" />
+                              <p className="text-sm font-medium">{formData.documents.carteiraVacina.name}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {(formData.documents.carteiraVacina.size / 1024 / 1024).toFixed(2)} MB
+                              </p>
+                            </div>
+                          ) : (
+                            <div className="text-muted-foreground">
+                              <Upload className="w-8 h-8 mx-auto mb-2" />
+                              <p className="text-sm">Clique para enviar carteira</p>
+                              <p className="text-xs">PDF, JPG, PNG até 10MB</p>
+                            </div>
+                          )}
+                        </Label>
+                      </div>
+                    </div>
+
+                    {/* Outros Documentos */}
+                    <div className="space-y-2">
+                      <Label htmlFor="outros-upload" className="flex items-center gap-2">
+                        <FileText className="w-4 h-4" />
+                        Outros Documentos
+                      </Label>
+                      <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
+                        <input
+                          id="outros-upload"
+                          type="file"
+                          accept=".pdf,.jpg,.jpeg,.png"
+                          multiple
+                          className="hidden"
+                          onChange={(e) => {
+                            const files = Array.from(e.target.files || []);
+                            if (files.length > 0) {
+                              setFormData(prev => ({
+                                ...prev,
+                                documents: { 
+                                  ...prev.documents, 
+                                  outros: [...prev.documents.outros, ...files] 
+                                }
+                              }));
+                            }
+                          }}
+                        />
+                        <Label htmlFor="outros-upload" className="cursor-pointer">
+                          {formData.documents.outros.length > 0 ? (
+                            <div className="text-green-600 dark:text-green-400">
+                              <FileText className="w-8 h-8 mx-auto mb-2" />
+                              <p className="text-sm font-medium">
+                                {formData.documents.outros.length} arquivo(s) selecionado(s)
+                              </p>
+                              <div className="text-xs text-muted-foreground max-h-20 overflow-y-auto">
+                                {formData.documents.outros.map((file, index) => (
+                                  <div key={index} className="truncate">
+                                    {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="text-muted-foreground">
+                              <Upload className="w-8 h-8 mx-auto mb-2" />
+                              <p className="text-sm">Clique para enviar outros documentos</p>
+                              <p className="text-xs">Múltiplos arquivos: PDF, JPG, PNG até 10MB cada</p>
+                            </div>
+                          )}
+                        </Label>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Resumo dos documentos enviados */}
+                  <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                    <h5 className="font-medium mb-2 text-sm">Resumo dos Documentos:</h5>
+                    <div className="space-y-1 text-xs text-muted-foreground">
+                      <p>RG: {formData.documents.rg ? '✓ Enviado' : '○ Pendente'}</p>
+                      <p>CPF: {formData.documents.cpf ? '✓ Enviado' : '○ Pendente'}</p>
+                      <p>CNPJ: {formData.documents.cnpj ? '✓ Enviado' : '○ Opcional'}</p>
+                      <p>Contrato: {formData.documents.contratoTrabalho ? '✓ Enviado' : '○ Pendente'}</p>
+                      <p>Vacinação: {formData.documents.carteiraVacina ? '✓ Enviado' : '○ Pendente'}</p>
+                      <p>Outros: {formData.documents.outros.length > 0 ? `✓ ${formData.documents.outros.length} arquivo(s)` : '○ Nenhum'}</p>
+                    </div>
                   </div>
                 </div>
               </ScrollArea>
