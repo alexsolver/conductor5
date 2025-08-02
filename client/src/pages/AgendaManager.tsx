@@ -122,15 +122,16 @@ const AgendaManager: React.FC = () => {
   
   const agents = (agentsData as any)?.users || [];
 
-  const { data: customersData } = useQuery({
-    queryKey: ['/api/customers'],
+  // Buscar empresas clientes (não pessoas físicas)
+  const { data: companiesData } = useQuery({
+    queryKey: ['/api/customers/companies'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/customers');
+      const response = await apiRequest('GET', '/api/customers/companies');
       return await response.json();
     },
   });
   
-  const customers = (customersData as any)?.customers || [];
+  const companies = Array.isArray(companiesData) ? companiesData : [];
 
   // Buscar grupos de usuários do módulo de gestão de equipes
   const { data: groupsData } = useQuery({
@@ -239,12 +240,12 @@ const AgendaManager: React.FC = () => {
                   <SelectValue placeholder="Todos" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="todos">Todos os clientes</SelectItem>
-                  {Array.isArray(customers) && customers.map((customer) => {
-                    const customerName = customer.name || `${customer.firstName || customer.first_name || ''} ${customer.lastName || customer.last_name || ''}`.trim() || customer.email;
+                  <SelectItem value="todos">Todas as empresas</SelectItem>
+                  {Array.isArray(companies) && companies.map((company) => {
+                    const companyName = company.name || company.companyName || company.razaoSocial || company.id;
                     return (
-                      <SelectItem key={customer.id} value={customer.id}>
-                        {customerName}
+                      <SelectItem key={company.id} value={company.id}>
+                        {companyName}
                       </SelectItem>
                     );
                   })}
@@ -403,7 +404,7 @@ const AgendaManager: React.FC = () => {
         defaultAgentId={newScheduleDefaults.agentId}
         activityTypes={activityTypes}
         agents={filteredAgents}
-        customers={customers}
+        customers={companies}
       />
     </div>
   );
