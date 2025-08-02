@@ -156,6 +156,7 @@ export default function TimecardApprovalSettings() {
     autoApproveAfterHours: 24,
     requireApprovalFor: ['all'],
     defaultApprovers: [],
+    approvalGroupId: null,
     createAutoTickets: false,
     ticketRecurrence: 'weekly',
     ticketDay: 1,
@@ -169,6 +170,7 @@ export default function TimecardApprovalSettings() {
 
   const handleSettingsChange = (key: keyof ApprovalSettings, value: any) => {
     const updatedSettings = { ...currentSettings, [key]: value };
+    console.log('Sending settings update:', updatedSettings);
     updateSettingsMutation.mutate(updatedSettings);
   };
 
