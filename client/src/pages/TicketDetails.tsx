@@ -2092,7 +2092,7 @@ const TicketDetails = React.memo(() => {
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
+                          <div className="flex items-center gap-2 mb-2 flex-wrap">
                             <User className="w-4 h-4 text-gray-600" />
                             <span className="font-medium text-sm">{action.createdByName || action.agent_name || 'Sistema'}</span>
                             <Badge variant="secondary" className="text-xs">
@@ -2104,19 +2104,19 @@ const TicketDetails = React.memo(() => {
                             <Badge variant={action.status === 'completed' ? 'success' : 'warning'} className="text-xs">
                               {action.status === 'completed' ? 'Concluída' : 'Pendente'}
                             </Badge>
+                            {action.assigned_to_name && (
+                              <Badge 
+                                variant="outline" 
+                                className="text-xs bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200 text-purple-700 hover:from-purple-100 hover:to-blue-100"
+                              >
+                                <User className="w-3 h-3 mr-1" />
+                                Atribuído: {action.assigned_to_name}
+                              </Badge>
+                            )}
                             <span className="text-xs text-gray-500">
                               {action.created_at ? new Date(action.created_at).toLocaleString('pt-BR') : 'Data não disponível'}
                             </span>
                           </div>
-                          
-                          {action.assigned_to_name && (
-                            <div className="flex items-center gap-1 mb-2">
-                              <User className="w-3 h-3 text-gray-500" />
-                              <span className="text-xs text-gray-600">
-                                <strong>Atribuído a:</strong> {action.assigned_to_name}
-                              </span>
-                            </div>
-                          )}
                           
                           <div className="space-y-2">
                             <p className="text-gray-800 whitespace-pre-wrap">{action.content || action.description}</p>
