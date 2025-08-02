@@ -1,5 +1,5 @@
 import { eq, and, gte, lte, desc, asc, sql, inArray } from 'drizzle-orm';
-import { DrizzleTimecardRepository } from '../infrastructure/repositories/DrizzleTimecardRepository';
+import { DrizzleTimecardRepository } from '../../infrastructure/repositories/DrizzleTimecardRepository';
 import { Request, Response } from 'express';
 import { z } from 'zod';
 import { 
