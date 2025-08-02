@@ -1434,10 +1434,49 @@ ticketsRouter.delete('/:ticketId/actions/:actionId', jwtAuth, async (req: Authen
 
     const { ticketId, actionId } = req.params;
     const tenantId = req.user.tenantId;
+    const userId = req.user.id;
     const { pool } = await import('../../db');
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-    // Delete from ticket_history table
+    // 🚨 CORREÇÃO CRÍTICA: Primeiro capturar dados antes de excluir
+    const getActionQuery = `
+      SELECT * FROM "${schemaName}".ticket_history 
+      WHERE id = $1 AND tenant_id = $2 AND ticket_id = $3
+    `;
+
+    const actionResult = await pool.query(getActionQuery, [actionId, tenantId, ticketId]);
+
+    if (actionResult.rows.length === 0) {
+      return res.status(404).json({ 
+        success: false,
+        message: "Action not found" 
+      });
+    }
+
+    const deletedAction = actionResult.rows[0];
+
+    // 🚨 CORREÇÃO CRÍTICA: Adicionar entrada no histórico ANTES de excluir
+    const historyInsertQuery = `
+      INSERT INTO "${schemaName}".ticket_history 
+      (tenant_id, ticket_id, user_id, action_type, description, field_name, old_value, new_value, created_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
+      RETURNING *
+    `;
+
+    const historyDescription = `Ação interna excluída: ${deletedAction.description || deletedAction.action_type || 'Ação sem descrição'}`;
+    
+    await pool.query(historyInsertQuery, [
+      tenantId,
+      ticketId,
+      userId,
+      'action_deleted',
+      historyDescription,
+      'internal_action',
+      `ID: ${actionId}`,
+      null
+    ]);
+
+    // Agora excluir a ação interna do histórico
     const deleteQuery = `
       DELETE FROM "${schemaName}".ticket_history 
       WHERE id = $1 AND tenant_id = $2 AND ticket_id = $3
@@ -1445,13 +1484,6 @@ ticketsRouter.delete('/:ticketId/actions/:actionId', jwtAuth, async (req: Authen
     `;
 
     const result = await pool.query(deleteQuery, [actionId, tenantId, ticketId]);
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ 
-        success: false,
-        message: "Action not found" 
-      });
-    }
 
     // Also delete from ticket_internal_actions if exists
     await pool.query(`
