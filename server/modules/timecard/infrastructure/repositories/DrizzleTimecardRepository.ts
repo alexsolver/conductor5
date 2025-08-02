@@ -1,7 +1,7 @@
 import { eq, and, gte, lte, desc, asc, sql, inArray } from 'drizzle-orm';
 import { db } from '../../../../db';
 import { 
-  timeRecords,
+  timecardEntries,
   hourBankEntries, 
   users,
   workSchedules
@@ -56,7 +56,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
   // Timecard Entries Implementation
   async createTimecardEntry(data: any): Promise<any> {
     const [entry] = await db
-      .insert(timeRecords)
+      .insert(timecardEntries)
       .values(data)
       .returning();
     return entry;
@@ -88,51 +88,51 @@ export class DrizzleTimecardRepository implements TimecardRepository {
 
     return await db
       .select()
-      .from(timeRecords)
+      .from(timecardEntries)
       .where(
         and(
-          eq(timeRecords.tenantId, tenantId),
-          eq(timeRecords.userId, userId),
-          gte(timeRecords.checkIn, startOfDay),
-          lte(timeRecords.checkIn, endOfDay)
+          eq(timecardEntries.tenantId, tenantId),
+          eq(timecardEntries.userId, userId),
+          gte(timecardEntries.checkIn, startOfDay),
+          lte(timecardEntries.checkIn, endOfDay)
         )
       )
-      .orderBy(asc(timeRecords.checkIn));
+      .orderBy(asc(timecardEntries.checkIn));
   }
 
   async getTimecardEntriesByUser(userId: string, tenantId: string, startDate?: Date, endDate?: Date): Promise<any[]> {
     const conditions = [
-      eq(timeRecords.userId, userId),
-      eq(timeRecords.tenantId, tenantId)
+      eq(timecardEntries.userId, userId),
+      eq(timecardEntries.tenantId, tenantId)
     ];
 
     if (startDate) {
-      conditions.push(gte(timeRecords.checkIn, startDate));
+      conditions.push(gte(timecardEntries.checkIn, startDate));
     }
     if (endDate) {
-      conditions.push(lte(timeRecords.checkIn, endDate));
+      conditions.push(lte(timecardEntries.checkIn, endDate));
     }
 
     return await db
       .select()
-      .from(timeRecords)
+      .from(timecardEntries)
       .where(and(...conditions))
-      .orderBy(desc(timeRecords.checkIn));
+      .orderBy(desc(timecardEntries.checkIn));
   }
 
   async updateTimecardEntry(id: string, tenantId: string, data: any): Promise<any> {
     const [entry] = await db
-      .update(timeRecords)
+      .update(timecardEntries)
       .set({ ...data, updatedAt: new Date() })
-      .where(and(eq(timeRecords.id, id), eq(timeRecords.tenantId, tenantId)))
+      .where(and(eq(timecardEntries.id, id), eq(timecardEntries.tenantId, tenantId)))
       .returning();
     return entry;
   }
 
   async deleteTimecardEntry(id: string, tenantId: string): Promise<void> {
     await db
-      .delete(timeRecords)
-      .where(and(eq(timeRecords.id, id), eq(timeRecords.tenantId, tenantId)));
+      .delete(timecardEntries)
+      .where(and(eq(timecardEntries.id, id), eq(timecardEntries.tenantId, tenantId)));
   }
 
   async getAllWorkSchedules(tenantId: string): Promise<any[]> {
