@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Calendar, Clock, Users, Plus, Edit, Trash2, Settings } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -67,6 +68,8 @@ import { WorkScheduleErrorBoundary } from '@/components/WorkScheduleErrorBoundar
 function WorkSchedulesContent() {
   const [selectedSchedule, setSelectedSchedule] = useState<WorkSchedule | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [bulkAssignOpen, setBulkAssignOpen] = useState(false);
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [formData, setFormData] = useState({
     userId: '',
     scheduleType: '5x2',
@@ -348,6 +351,51 @@ function WorkSchedulesContent() {
     }
   };
 
+  const handleBulkAssign = async () => {
+    if (selectedUsers.length === 0) {
+      toast({
+        title: 'Erro',
+        description: 'Selecione pelo menos um funcionário.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const scheduleData = {
+      scheduleType: formData.scheduleType,
+      startDate: formData.startDate,
+      endDate: formData.endDate || null,
+      workDays: formData.workDays,
+      startTime: formData.startTime,
+      endTime: formData.endTime,
+      breakDurationMinutes: formData.breakDurationMinutes,
+      isActive: formData.isActive
+    };
+
+    try {
+      await apiRequest('/api/timecard/work-schedules/bulk-assign', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userIds: selectedUsers, scheduleData })
+      });
+      
+      queryClient.invalidateQueries({ queryKey: ['/api/timecard/work-schedules'] });
+      setBulkAssignOpen(false);
+      setSelectedUsers([]);
+      
+      toast({
+        title: 'Sucesso!',
+        description: `Escalas atribuídas para ${selectedUsers.length} funcionários.`,
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Erro na atribuição em lote',
+        description: error?.message || 'Erro interno',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const getWorkDaysText = (workDays: number[] | null | undefined) => {
     try {
       if (!workDays || !Array.isArray(workDays) || workDays.length === 0) return 'Não definido';
@@ -399,14 +447,100 @@ function WorkSchedulesContent() {
     <div className="p-4 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Escalas de Trabalho</h1>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={handleNew}>
-              <Plus className="h-4 w-4 mr-2" />
-              Nova Escala
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+        <div className="space-x-2">
+          <Dialog open={bulkAssignOpen} onOpenChange={setBulkAssignOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <Users className="h-4 w-4 mr-2" />
+                Atribuir em Lote
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Atribuição em Lote</DialogTitle>
+                <DialogDescription>
+                  Selecione os funcionários e configure a escala que será aplicada para todos.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label>Funcionários</Label>
+                  <div className="border rounded-md p-3 max-h-48 overflow-y-auto">
+                    {users.map((user) => (
+                      <div key={user.id} className="flex items-center space-x-2 py-1">
+                        <Checkbox
+                          id={user.id}
+                          checked={selectedUsers.includes(user.id)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedUsers([...selectedUsers, user.id]);
+                            } else {
+                              setSelectedUsers(selectedUsers.filter(id => id !== user.id));
+                            }
+                          }}
+                        />
+                        <Label htmlFor={user.id} className="cursor-pointer">
+                          {user.firstName} {user.lastName}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="bulk-schedule-type">Tipo de Escala</Label>
+                    <Select value={formData.scheduleType} onValueChange={(value) => setFormData(prev => ({ ...prev, scheduleType: value }))}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {scheduleTypeOptions.map(option => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                        {scheduleTypesData?.templates?.filter((t: any) => t.isActive).map((template: any) => (
+                          <SelectItem key={template.name} value={template.name}>
+                            {template.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="bulk-start-date">Data de Início</Label>
+                    <Input
+                      id="bulk-start-date"
+                      type="date"
+                      value={formData.startDate}
+                      onChange={(e) => setFormData(prev => ({ ...prev, startDate: e.target.value }))}
+                      required
+                    />
+                  </div>
+                </div>
+                
+                <div className="flex justify-end space-x-2">
+                  <Button variant="outline" onClick={() => setBulkAssignOpen(false)}>
+                    Cancelar
+                  </Button>
+                  <Button onClick={handleBulkAssign}>
+                    Atribuir para {selectedUsers.length} funcionários
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+          
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={handleNew}>
+                <Plus className="h-4 w-4 mr-2" />
+                Nova Escala
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>
                 {selectedSchedule ? 'Editar Escala' : 'Nova Escala de Trabalho'}
@@ -548,8 +682,9 @@ function WorkSchedulesContent() {
                 </Button>
               </div>
             </form>
-          </DialogContent>
-        </Dialog>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <div className="grid gap-4">

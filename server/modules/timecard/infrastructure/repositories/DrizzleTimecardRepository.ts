@@ -157,37 +157,43 @@ export class DrizzleTimecardRepository implements TimecardRepository {
       const storedSchedules = DrizzleTimecardRepository.workSchedulesStorage.get(tenantId) || [];
       console.log('[STORAGE-QA] Found stored schedules:', storedSchedules.length);
 
-      // Combinar usuários com suas escalas
-      const schedulesWithUsers = usersList.map(user => {
-        const userSchedule = storedSchedules.find(s => s.userId === user.id);
-        
-        if (userSchedule) {
-          return {
-            ...userSchedule,
-            userName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email || 'Usuário'
-          };
-        }
-        
-        // Escala padrão para usuários sem escala definida
-        return {
-          id: `schedule-${user.id}`,
-          userId: user.id,
-          scheduleType: '5x2',
-          scheduleName: 'Escala Padrão',
-          workDays: [1, 2, 3, 4, 5],
-          startTime: '08:00',
-          endTime: '18:00',
-          breakStart: '12:00',
-          breakEnd: '13:00',
-          isActive: true,
-          tenantId: tenantId,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          userName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email || 'Usuário'
-        };
-      });
+      // Primeiro, mapear todos os usuários
+      const allUserIds = usersList.map(u => u.id);
+      
+      // Separar escalas customizadas dos usuários com escalas padrão
+      const customSchedules = storedSchedules.filter(s => allUserIds.includes(s.userId));
+      const usersWithCustomSchedules = customSchedules.map(s => s.userId);
+      const usersWithoutSchedules = usersList.filter(u => !usersWithCustomSchedules.includes(u.id));
+      
+      // Escalas customizadas com nomes de usuários
+      const customSchedulesWithUsers = customSchedules.map(schedule => ({
+        ...schedule,
+        userName: (() => {
+          const user = usersList.find(u => u.id === schedule.userId);
+          return user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email || 'Usuário' : 'Usuário';
+        })()
+      }));
+      
+      // Escalas padrão para usuários sem escala customizada
+      const defaultSchedules = usersWithoutSchedules.map(user => ({
+        id: `schedule-${user.id}`,
+        userId: user.id,
+        scheduleType: '5x2',
+        scheduleName: 'Escala Padrão',
+        workDays: [1, 2, 3, 4, 5],
+        startTime: '08:00',
+        endTime: '18:00',
+        breakStart: '12:00',
+        breakEnd: '13:00',
+        isActive: true,
+        tenantId: tenantId,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        userName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email || 'Usuário'
+      }));
 
-      return schedulesWithUsers;
+      console.log('[STORAGE-QA] Custom schedules:', customSchedulesWithUsers.length, 'Default schedules:', defaultSchedules.length);
+      return [...customSchedulesWithUsers, ...defaultSchedules];
     } catch (error: any) {
       console.error('[DRIZZLE-QA] Error fetching work schedules:', error);
       return [];
@@ -233,7 +239,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
     
     DrizzleTimecardRepository.workSchedulesStorage.set(tenantKey, filteredSchedules);
     
-    console.log('[STORAGE-QA] Stored schedule for user:', data.userId, 'Total schedules:', filteredSchedules.length);
+    console.log('[STORAGE-QA] Stored schedule for user:', data.userId, 'Schedule type:', data.scheduleType, 'Total schedules:', filteredSchedules.length);
     
     return newSchedule;
   }
