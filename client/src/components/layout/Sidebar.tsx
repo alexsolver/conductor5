@@ -84,7 +84,8 @@ const baseNavigation: Array<{
       { name: "Calendário de Feriados", href: "/holiday-calendar", icon: Calendar },
       { name: "Relatórios", href: "/timecard-reports", icon: FileText },
       { name: "CLT Compliance", href: "/clt-compliance", icon: Shield },
-      { name: "Configuração de Aprovações", href: "/timecard-approval-settings", icon: CheckCircle },
+      { name: "Aprovação de Registros", href: "/timecard-approvals", icon: CheckCircle },
+      { name: "Configuração de Aprovações", href: "/timecard-approval-settings", icon: Settings },
       { name: "Gestão de Ausências", href: "/absence-management", icon: Calendar },
       { name: "Templates de Escalas", href: "/schedule-templates", icon: Settings },
     ]
