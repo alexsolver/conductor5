@@ -88,8 +88,7 @@ export default function TimecardApprovalSettings() {
       Promise.all(
         groups.map(async (group: ApprovalGroup) => {
           try {
-            const response = await fetch(`/api/timecard/approval/groups/${group.id}/members`);
-            const data = await response.json();
+            const data = await apiRequest('GET', `/api/timecard/approval/groups/${group.id}/members`);
             return { groupId: group.id, count: data.members?.length || 0 };
           } catch (error) {
             console.error('Error fetching member count for group:', group.id, error);
