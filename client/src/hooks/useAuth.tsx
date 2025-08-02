@@ -230,11 +230,11 @@ export function useAuth() {
   }
 
   const { logoutMutation: { mutate: logout } } = useAuthContext();
-  const [token, setToken] = React.useState(localStorage.getItem('access_token'));
+  const [token, setToken] = React.useState(localStorage.getItem('accessToken'));
 
   const refreshToken = async () => {
     try {
-      const refresh = localStorage.getItem('refresh_token');
+      const refresh = localStorage.getItem('refreshToken');
       if (!refresh) {
         console.warn('No refresh token available');
         logout();
@@ -251,9 +251,9 @@ export function useAuth() {
 
       if (response.ok) {
         const data = await response.json();
-        localStorage.setItem('access_token', data.accessToken);
+        localStorage.setItem('accessToken', data.accessToken);
         if (data.refreshToken) {
-          localStorage.setItem('refresh_token', data.refreshToken);
+          localStorage.setItem('refreshToken', data.refreshToken);
         }
         setToken(data.accessToken);
         return true;

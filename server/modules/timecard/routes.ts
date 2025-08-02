@@ -1,4 +1,3 @@
-
 import { Router } from 'express';
 import { jwtAuth } from '../../middleware/jwtAuth';
 import { TimecardController } from './application/controllers/TimecardController';
@@ -70,5 +69,11 @@ timecardRouter.get('/absence-requests/pending', jwtAuth, (req, res) =>
 timecardRouter.get('/reports/attendance/:period', jwtAuth, (req, res) => 
   timecardController.getAttendanceReport(req, res)
 );
+
+// User Created Schedules
+timecardRouter.get('/user-created-schedules', jwtAuth, (req, res) => {
+  console.log('[BACKEND-DEBUG] User created schedules route accessed');
+  return timecardController.getUserCreatedSchedules(req, res);
+});
 
 export { timecardRouter };
