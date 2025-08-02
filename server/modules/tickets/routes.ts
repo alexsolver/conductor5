@@ -544,7 +544,7 @@ ticketsRouter.get('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, res
         th.action_type as type,
         th.description as content,
         th.description,
-        'active' as status,
+        COALESCE(tia.status, 'pending') as status,
         0 as time_spent,
         th.created_at as start_time,
         th.created_at as end_time,
@@ -556,9 +556,12 @@ ticketsRouter.get('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, res
         th.created_at,
         th.performed_by as created_by,
         u.first_name || ' ' || u.last_name as agent_name,
-        u.first_name || ' ' || u.last_name as "createdByName"
+        u.first_name || ' ' || u.last_name as "createdByName",
+        COALESCE(au.first_name || ' ' || au.last_name, au.email) as "assigned_to_name"
       FROM "${schemaName}".ticket_history th
       LEFT JOIN public.users u ON th.performed_by = u.id
+      LEFT JOIN "${schemaName}".ticket_internal_actions tia ON th.ticket_id = tia.ticket_id AND th.action_type = tia.action_type AND DATE(th.created_at) = DATE(tia.created_at)
+      LEFT JOIN public.users au ON tia.agent_id = au.id
       WHERE th.tenant_id = $1::uuid 
         AND th.ticket_id = $2::uuid
         AND th.action_type IN ('investigation', 'resolution', 'escalation', 'reassignment', 'follow_up', 'customer_contact', 'internal_note', 'workaround', 'root_cause_analysis')
@@ -598,7 +601,9 @@ ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, re
       timeSpent, 
       startDateTime, 
       endDateTime,
-      assignedToId, 
+      assignedToId,
+      status = 'pending',
+      is_public = false
     } = req.body;
     const tenantId = req.user.tenantId;
     const { pool } = await import('../../db');
@@ -691,7 +696,7 @@ ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, re
         startTime,                        // $7 start_time
         endTime,                          // $8 end_time
         estimatedMinutes / 60,            // $9 estimated_hours (convert minutes to hours)
-        'pending',                        // $10 status
+        status,                           // $10 status (from frontend)
         'medium'                          // $11 priority
       ]);
     }

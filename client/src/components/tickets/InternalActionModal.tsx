@@ -38,6 +38,7 @@ export default function InternalActionModal({ ticketId, isOpen, onClose }: Inter
     actionType: "",
     workLog: "",
     description: "",
+    status: "pending", // New field for status
     attachments: [] as File[],
     assignedToId: ""
   });
@@ -102,6 +103,7 @@ export default function InternalActionModal({ ticketId, isOpen, onClose }: Inter
         actionType: "",
         workLog: "",
         description: "",
+        status: "pending",
         attachments: [],
         assignedToId: ""
       });
@@ -225,6 +227,27 @@ export default function InternalActionModal({ ticketId, isOpen, onClose }: Inter
                   </div>
                 </div>
 
+                {/* Action Type */}
+                <div>
+                  <Label htmlFor="action-type">Ação Interna *</Label>
+                  <Select value={formData.actionType} onValueChange={(value) => setFormData(prev => ({ ...prev, actionType: value }))}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Selecione o tipo de ação..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="analysis">Análise</SelectItem>
+                      <SelectItem value="investigation">Investigação</SelectItem>
+                      <SelectItem value="resolution">Resolução</SelectItem>
+                      <SelectItem value="escalation">Escalação</SelectItem>
+                      <SelectItem value="communication">Comunicação</SelectItem>
+                      <SelectItem value="testing">Teste</SelectItem>
+                      <SelectItem value="documentation">Documentação</SelectItem>
+                      <SelectItem value="follow_up">Acompanhamento</SelectItem>
+                      <SelectItem value="work_log">Registro de Trabalho</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 {/* Description - Simple Text Field */}
                 <div>
                   <Label htmlFor="description">Descrição</Label>
@@ -237,58 +260,50 @@ export default function InternalActionModal({ ticketId, isOpen, onClose }: Inter
                   />
                 </div>
 
-                {/* Action Type and Work Log */}
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="action-type">Ação Interna *</Label>
-                      <Select value={formData.actionType} onValueChange={(value) => setFormData(prev => ({ ...prev, actionType: value }))}>
-                        <SelectTrigger className="mt-1">
-                          <SelectValue placeholder="Selecione o tipo de ação..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="analysis">Análise</SelectItem>
-                          <SelectItem value="investigation">Investigação</SelectItem>
-                          <SelectItem value="resolution">Resolução</SelectItem>
-                          <SelectItem value="escalation">Escalação</SelectItem>
-                          <SelectItem value="communication">Comunicação</SelectItem>
-                          <SelectItem value="testing">Teste</SelectItem>
-                          <SelectItem value="documentation">Documentação</SelectItem>
-                          <SelectItem value="follow_up">Acompanhamento</SelectItem>
-                          <SelectItem value="work_log">Registro de Trabalho</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div>
-                      <Label htmlFor="assigned-to">Atribuído a</Label>
-                      <Select value={formData.assignedToId} onValueChange={(value) => setFormData(prev => ({ ...prev, assignedToId: value }))}>
-                        <SelectTrigger className="mt-1">
-                          <SelectValue placeholder="Selecione um membro da equipe..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="unassigned">-- Não atribuído --</SelectItem>
-                          {(teamMembers?.users || []).map((user: any) => (
-                            <SelectItem key={user.id} value={user.id}>
-                              {user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
+                {/* Status Toggle and Assignment */}
+                <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <Label htmlFor="work-log">Registro de Trabalho</Label>
-                    <Textarea
-                      id="work-log"
-                      placeholder="Descreva detalhadamente o trabalho realizado..."
-                      value={formData.workLog}
-                      onChange={(e) => setFormData(prev => ({ ...prev, workLog: e.target.value }))}
-                      rows={3}
-                      className="mt-1"
-                    />
+                    <div className="flex items-center space-x-2 mb-1">
+                      <Switch
+                        id="status-toggle"
+                        checked={formData.status === "completed"}
+                        onCheckedChange={(checked) => setFormData(prev => ({ ...prev, status: checked ? "completed" : "pending" }))}
+                      />
+                      <Label htmlFor="status-toggle" className="text-sm">
+                        {formData.status === "completed" ? "Concluída" : "Pendente"}
+                      </Label>
+                    </div>
                   </div>
+                  
+                  <div>
+                    <Label htmlFor="assigned-to">Atribuído a</Label>
+                    <Select value={formData.assignedToId} onValueChange={(value) => setFormData(prev => ({ ...prev, assignedToId: value }))}>
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="Selecione um membro..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="unassigned">-- Não atribuído --</SelectItem>
+                        {(teamMembers?.users || []).map((user: any) => (
+                          <SelectItem key={user.id} value={user.id}>
+                            {user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* Work Log */}
+                <div>
+                  <Label htmlFor="work-log">Registro de Trabalho</Label>
+                  <Textarea
+                    id="work-log"
+                    placeholder="Descreva detalhadamente o trabalho realizado..."
+                    value={formData.workLog}
+                    onChange={(e) => setFormData(prev => ({ ...prev, workLog: e.target.value }))}
+                    rows={3}
+                    className="mt-1"
+                  />
                 </div>
 
                 {/* File Upload */}
@@ -388,55 +403,7 @@ export default function InternalActionModal({ ticketId, isOpen, onClose }: Inter
             </CardContent>
           </Card>
 
-          {/* Existing Actions Display - Optional */}
-          <Card>
-            <CardContent className="p-6">
-              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                <Clock className="w-5 h-5" />
-                Ações Internas ({actions.length})
-              </h3>
-              
-              {isLoading ? (
-                <div className="text-center py-4">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-                  <p className="mt-2 text-sm text-gray-600">Carregando ações...</p>
-                </div>
-              ) : actions.length === 0 ? (
-                <p className="text-center text-gray-500 py-4">Nenhuma ação interna registrada ainda.</p>
-              ) : (
-                <div className="space-y-3">
-                  {actions.slice(0, 3).map((action: any) => (
-                    <div key={action.id} className="border rounded-lg p-4 bg-gray-50">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <Badge variant={action.is_public ? "default" : "secondary"}>
-                              {action.is_public ? "Público" : "Privado"}
-                            </Badge>
-                            <Badge variant="outline">{action.type}</Badge>
-                            <span className="text-sm text-gray-500">
-                              por {action.createdByName || action.created_by}
-                            </span>
-                          </div>
-                          <p className="text-sm text-gray-700 line-clamp-2">
-                            {action.content || action.description || "Sem descrição"}
-                          </p>
-                        </div>
-                        <div className="text-xs text-gray-500 ml-4">
-                          {new Date(action.created_at).toLocaleString('pt-BR')}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                  {actions.length > 3 && (
-                    <p className="text-center text-sm text-gray-500">
-                      ... e mais {actions.length - 3} ações
-                    </p>
-                  )}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          {/* Removed existing actions display as requested */}
         </div>
       </DialogContent>
     </Dialog>

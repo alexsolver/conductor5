@@ -2071,10 +2071,23 @@ const TicketDetails = React.memo(() => {
                             <Badge variant={action.is_public ? 'default' : 'secondary'}>
                               {action.is_public ? 'Público' : 'Privado'}
                             </Badge>
+                            <Badge variant={action.status === 'completed' ? 'success' : 'warning'} className="text-xs">
+                              {action.status === 'completed' ? 'Concluída' : 'Pendente'}
+                            </Badge>
                             <span className="text-xs text-gray-500">
                               {action.created_at ? new Date(action.created_at).toLocaleString('pt-BR') : 'Data não disponível'}
                             </span>
                           </div>
+                          
+                          {action.assigned_to_name && (
+                            <div className="flex items-center gap-1 mb-2">
+                              <User className="w-3 h-3 text-gray-500" />
+                              <span className="text-xs text-gray-600">
+                                <strong>Atribuído a:</strong> {action.assigned_to_name}
+                              </span>
+                            </div>
+                          )}
+                          
                           <div className="space-y-2">
                             <p className="text-gray-800 whitespace-pre-wrap">{action.content || action.description}</p>
                             {action.time_spent && action.time_spent !== '0:00:00:00' && (
@@ -2083,6 +2096,37 @@ const TicketDetails = React.memo(() => {
                                 Tempo gasto: {action.time_spent}
                               </div>
                             )}
+                          </div>
+                        </div>
+                        
+                        <div className="flex flex-col items-end gap-2 ml-4">
+                          <div className="flex gap-1">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                toast({
+                                  title: "Em desenvolvimento",
+                                  description: "Funcionalidade de edição será implementada em breve",
+                                });
+                              }}
+                              className="h-7 w-7 p-0"
+                            >
+                              <Edit className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                toast({
+                                  title: "Em desenvolvimento",
+                                  description: "Funcionalidade de exclusão será implementada em breve",
+                                });
+                              }}
+                              className="h-7 w-7 p-0 text-red-600 hover:text-red-700"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
                           </div>
                         </div>
                       </div>
