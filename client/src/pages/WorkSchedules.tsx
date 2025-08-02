@@ -220,8 +220,10 @@ function WorkSchedulesContent() {
     console.log('Work schedules loaded:', schedules.length);
     console.log('Users available:', users.length);
     console.log('Schedule templates:', scheduleTypesData?.templates?.length || 0);
+    console.log('Active templates:', scheduleTypesData?.templates?.filter((t: any) => t.isActive)?.length || 0);
     console.log('Raw users data:', usersData);
     console.log('Raw templates data:', scheduleTypesData);
+    console.log('Active templates list:', scheduleTypesData?.templates?.filter((t: any) => t.isActive));
   }
   
   if (templatesError) {
@@ -445,10 +447,10 @@ function WorkSchedulesContent() {
                       ))}
                       {/* Templates customizados criados pelo usuário */}
                       {scheduleTypesData?.templates?.filter((template: any) => 
-                        template.isActive // Mostrar apenas templates ativos
+                        template.isActive // Apenas templates ativos
                       ).map((template: any) => (
-                        <SelectItem key={`custom-${template.id}`} value={template.scheduleType || template.name}>
-                          {template.name} {template.description ? `- ${template.description}` : ''}
+                        <SelectItem key={`template-${template.id}`} value={template.name}>
+                          📋 {template.name} ({template.scheduleType})
                         </SelectItem>
                       ))}
                     </SelectContent>
