@@ -1266,7 +1266,6 @@ ticketsRouter.get('/internal-actions/schedule/:startDate/:endDate', jwtAuth, asy
         tia.agent_id as "agentId",
         tia.ticket_id as "ticketId",
         tia.estimated_hours,
-        tia.actual_hours,
         t.number as "ticketNumber",
         t.subject as "ticketSubject",
         u.first_name || ' ' || u.last_name as "agentName",
@@ -1275,7 +1274,6 @@ ticketsRouter.get('/internal-actions/schedule/:startDate/:endDate', jwtAuth, asy
       LEFT JOIN "${schemaName}".tickets t ON tia.ticket_id = t.id
       LEFT JOIN public.users u ON tia.agent_id = u.id
       WHERE tia.tenant_id = $1::uuid 
-        AND tia.is_active = true
         AND tia.start_time >= $2::timestamp
         AND tia.start_time <= $3::timestamp
       ORDER BY tia.start_time ASC
@@ -1300,7 +1298,7 @@ ticketsRouter.get('/internal-actions/schedule/:startDate/:endDate', jwtAuth, asy
       type: 'internal_action', // Distinguish from regular schedules
       actionType: row.action_type,
       estimatedHours: row.estimated_hours,
-      actualHours: row.actual_hours
+      actualHours: 0 // Default value since column doesn't exist
     }));
 
     res.json({
