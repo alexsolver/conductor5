@@ -813,7 +813,7 @@ export const workSchedules = pgTable("work_schedules", {
   id: uuid("id").defaultRandom().primaryKey(),
   tenantId: uuid("tenant_id").notNull(),
   userId: uuid("user_id").notNull().references(() => users.id),
-  scheduleType: varchar("schedule_type", { length: 20 }).notNull(), // CORRIGIDO: usar nome real do campo no DB
+  scheduleType: varchar("schedule_type", { length: 100 }).notNull(), // CORRIGIDO: alinhado com banco real
   startDate: date("start_date").notNull(), 
   endDate: date("end_date"), 
   workDays: integer("work_days").array().notNull(), 

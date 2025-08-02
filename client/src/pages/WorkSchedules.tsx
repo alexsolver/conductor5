@@ -96,6 +96,15 @@ function WorkSchedulesContent() {
     },
   });
 
+  // Buscar tipos de escalas personalizados
+  const { data: scheduleTypesData } = useQuery({
+    queryKey: ['/api/timecard/schedule-templates'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/timecard/schedule-templates');
+      return response;
+    },
+  });
+
   // Criar escala
   const createScheduleMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -396,6 +405,12 @@ function WorkSchedulesContent() {
                     <SelectContent>
                       {Object.entries(scheduleTypeLabels).map(([key, label]) => (
                         <SelectItem key={key} value={key}>{label}</SelectItem>
+                      ))}
+                      {/* Tipos personalizados criados */}
+                      {scheduleTypesData?.templates?.map((template: any) => (
+                        <SelectItem key={template.id} value={template.name}>
+                          {template.name} - {template.description || 'Tipo personalizado'}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
