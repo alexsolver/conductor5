@@ -1,50 +1,159 @@
-"use client"
+import React from 'react';
 
-import * as React from "react"
-import * as AvatarPrimitive from "@radix-ui/react-avatar"
+interface AvatarProps {
+  src?: string;
+  alt?: string;
+  name?: string;
+  size?: 'sm' | 'md' | 'lg';
+  className?: string;
+  children?: React.ReactNode;
+}
 
-import { cn } from "@/lib/utils"
+// Main Avatar component
+const Avatar: React.FC<AvatarProps> = ({ 
+  src, 
+  alt, 
+  name = '', 
+  size = 'md', 
+  className = '',
+  children
+}) => {
+  const sizeClasses = {
+    sm: 'w-6 h-6 text-xs',
+    md: 'w-8 h-8 text-sm',
+    lg: 'w-10 h-10 text-base'
+  };
 
-const Avatar = React.forwardRef<
-  React.ElementRef<typeof AvatarPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Root>
->(({ className, ...props }, ref) => (
-  <AvatarPrimitive.Root
-    ref={ref}
-    className={cn(
-      "relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full",
-      className
-    )}
-    {...props}
-  />
-))
-Avatar.displayName = AvatarPrimitive.Root.displayName
+  return (
+    <div className={`${sizeClasses[size]} rounded-full overflow-hidden ${className}`}>
+      {children}
+    </div>
+  );
+};
 
-const AvatarImage = React.forwardRef<
-  React.ElementRef<typeof AvatarPrimitive.Image>,
-  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image>
->(({ className, ...props }, ref) => (
-  <AvatarPrimitive.Image
-    ref={ref}
-    className={cn("aspect-square h-full w-full", className)}
-    {...props}
-  />
-))
-AvatarImage.displayName = AvatarPrimitive.Image.displayName
+// Avatar Image component
+const AvatarImage: React.FC<{ src?: string; alt?: string; className?: string }> = ({ 
+  src, 
+  alt, 
+  className = '' 
+}) => {
+  if (src) {
+    return (
+      <img
+        src={src}
+        alt={alt}
+        className={`w-full h-full object-cover ${className}`}
+      />
+    );
+  }
+  return null;
+};
 
-const AvatarFallback = React.forwardRef<
-  React.ElementRef<typeof AvatarPrimitive.Fallback>,
-  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Fallback>
->(({ className, ...props }, ref) => (
-  <AvatarPrimitive.Fallback
-    ref={ref}
-    className={cn(
-      "flex h-full w-full items-center justify-center rounded-full bg-muted",
-      className
-    )}
-    {...props}
-  />
-))
-AvatarFallback.displayName = AvatarPrimitive.Fallback.displayName
+// Avatar Fallback component
+const AvatarFallback: React.FC<{ name?: string; className?: string; children?: React.ReactNode }> = ({ 
+  name = '', 
+  className = '',
+  children 
+}) => {
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(word => word.charAt(0))
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
 
-export { Avatar, AvatarImage, AvatarFallback }
+  const getBackgroundColor = (name: string) => {
+    const colors = [
+      'bg-blue-500',
+      'bg-green-500',
+      'bg-purple-500',
+      'bg-pink-500',
+      'bg-indigo-500',
+      'bg-yellow-500',
+      'bg-red-500',
+      'bg-cyan-500'
+    ];
+    
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    
+    return colors[Math.abs(hash) % colors.length];
+  };
+
+  return (
+    <div
+      className={`w-full h-full flex items-center justify-center text-white font-medium ${getBackgroundColor(name)} ${className}`}
+    >
+      {children || getInitials(name)}
+    </div>
+  );
+};
+
+// Simple Avatar component for our use case
+const SimpleAvatar: React.FC<AvatarProps> = ({ 
+  src, 
+  alt, 
+  name = '', 
+  size = 'md', 
+  className = '' 
+}) => {
+  const sizeClasses = {
+    sm: 'w-6 h-6 text-xs',
+    md: 'w-8 h-8 text-sm',
+    lg: 'w-10 h-10 text-base'
+  };
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(word => word.charAt(0))
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  const getBackgroundColor = (name: string) => {
+    const colors = [
+      'bg-blue-500',
+      'bg-green-500',
+      'bg-purple-500',
+      'bg-pink-500',
+      'bg-indigo-500',
+      'bg-yellow-500',
+      'bg-red-500',
+      'bg-cyan-500'
+    ];
+    
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    
+    return colors[Math.abs(hash) % colors.length];
+  };
+
+  if (src) {
+    return (
+      <img
+        src={src}
+        alt={alt || name}
+        className={`${sizeClasses[size]} rounded-full object-cover ${className}`}
+      />
+    );
+  }
+
+  return (
+    <div
+      className={`${sizeClasses[size]} rounded-full flex items-center justify-center text-white font-medium ${getBackgroundColor(name)} ${className}`}
+    >
+      {getInitials(name)}
+    </div>
+  );
+};
+
+export { Avatar, AvatarImage, AvatarFallback };
+export default SimpleAvatar;

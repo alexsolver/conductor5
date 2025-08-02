@@ -4,6 +4,7 @@ import { ptBR } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
+import SimpleAvatar from '@/components/ui/avatar';
 
 interface Schedule {
   id: string;
@@ -195,10 +196,17 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
               return (
                 <div
                   key={agent.id}
-                  className="p-2 text-sm bg-gray-50 rounded border"
+                  className="p-2 text-sm bg-gray-50 rounded border flex items-center gap-2"
                 >
-                  <div className="font-medium text-gray-900">{agentName}</div>
-                  <div className="text-xs text-gray-500">{agent.email}</div>
+                  <SimpleAvatar 
+                    src={agent.profileImageUrl} 
+                    name={agentName} 
+                    size="sm" 
+                  />
+                  <div className="flex-1">
+                    <div className="font-medium text-gray-900">{agentName}</div>
+                    <div className="text-xs text-gray-500">{agent.email}</div>
+                  </div>
                 </div>
               );
             })}
