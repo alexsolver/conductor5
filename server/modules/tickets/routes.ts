@@ -1366,7 +1366,7 @@ ticketsRouter.put('/:ticketId/actions/:actionId', jwtAuth, async (req: Authentic
     // Update in ticket_history table
     const updateQuery = `
       UPDATE "${schemaName}".ticket_history 
-      SET action_type = $1, description = $2, updated_at = NOW()
+      SET action_type = $1, description = $2
       WHERE id = $3 AND tenant_id = $4 AND ticket_id = $5
       RETURNING *
     `;
