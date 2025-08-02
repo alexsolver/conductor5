@@ -183,17 +183,31 @@ export default function Timecard() {
     }
   };
 
-  const getNextAction = (status: string) => {
-    switch (status) {
-      case 'not_started':
-        return { type: 'clock_in', label: 'Registrar Entrada', color: 'bg-green-600' };
-      case 'working':
-        return { type: 'break_start', label: 'Iniciar Pausa', color: 'bg-yellow-600' };
-      case 'on_break':
-        return { type: 'break_end', label: 'Finalizar Pausa', color: 'bg-blue-600' };
-      default:
-        return { type: 'clock_out', label: 'Registrar Saída', color: 'bg-red-600' };
+  const getNextAction = (status: string, todayRecords: TimeRecord[] = []) => {
+    // Verificar último registro do dia para determinar ação correta
+    const lastRecord = todayRecords?.[todayRecords.length - 1];
+    
+    if (!lastRecord) {
+      return { type: 'clock_in', label: 'Registrar Entrada', color: 'bg-green-600' };
     }
+    
+    // Se há saída registrada, pode registrar nova entrada
+    if (lastRecord.checkOut && !lastRecord.checkIn) {
+      return { type: 'clock_in', label: 'Registrar Nova Entrada', color: 'bg-green-600' };
+    }
+    
+    // Se há entrada mas não saída, pode registrar saída
+    if (lastRecord.checkIn && !lastRecord.checkOut) {
+      return { type: 'clock_out', label: 'Registrar Saída', color: 'bg-red-600' };
+    }
+    
+    // Se tem entrada e saída no último registro, nova entrada
+    if (lastRecord.checkIn && lastRecord.checkOut) {
+      return { type: 'clock_in', label: 'Registrar Nova Entrada', color: 'bg-green-600' };
+    }
+    
+    // Padrão: registrar entrada
+    return { type: 'clock_in', label: 'Registrar Entrada', color: 'bg-green-600' };
   };
 
   const formatTime = (dateString: string) => {
@@ -207,12 +221,12 @@ export default function Timecard() {
 
 
   const status = currentStatus?.status || 'not_started';
-  const nextAction = getNextAction(status);
+  const nextAction = getNextAction(status, currentStatus?.todayRecords);
 
   return (
     <div className="p-4 space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Controle de Jornadas - Registro de Ponto</h1>
+        <h1 className="text-2xl font-bold">Registro de Ponto</h1>
         {getStatusBadge(status)}
       </div>
 

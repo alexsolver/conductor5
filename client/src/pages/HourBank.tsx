@@ -64,9 +64,9 @@ export default function HourBank() {
     enabled: selectedUserId !== 'default',
   });
 
-  // Buscar usuários
+  // Buscar usuários/funcionários
   const { data: users } = useQuery({
-    queryKey: ['/api/customers'],
+    queryKey: ['/api/timecard/available-users'],
   });
 
   // Buscar resumo geral
@@ -120,9 +120,9 @@ export default function HourBank() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="default">Selecione o funcionário</SelectItem>
-                  {(users as any)?.customers?.map((user: any) => (
+                  {(users as any)?.users?.map((user: any) => (
                     <SelectItem key={user.id} value={user.id}>
-                      {user.name}
+                      {user.firstName || user.first_name || user.name || ''} {user.lastName || user.last_name || ''}
                     </SelectItem>
                   ))}
                 </SelectContent>

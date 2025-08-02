@@ -405,7 +405,21 @@ export class DrizzleTimecardRepository implements TimecardRepository {
   }
 
   async deleteScheduleTemplate(id: string, tenantId: string): Promise<void> {
-    console.log('Schedule template deletion not implemented - using mock');
+    try {
+      const { scheduleTemplates } = await import('@shared/schema');
+      
+      await db
+        .delete(scheduleTemplates)
+        .where(and(
+          eq(scheduleTemplates.id, id),
+          eq(scheduleTemplates.tenantId, tenantId)
+        ));
+
+      console.log('[TEMPLATES-DEBUG] Deleted template:', id);
+    } catch (error) {
+      console.error('Error deleting schedule template:', error);
+      throw error;
+    }
   }
 
   // Hour Bank Implementation - Using hourBankEntries table

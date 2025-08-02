@@ -439,13 +439,16 @@ function WorkSchedulesContent() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
+                      {/* Templates padrão */}
                       {Object.entries(scheduleTypeLabels).map(([key, label]) => (
                         <SelectItem key={key} value={key}>{label}</SelectItem>
                       ))}
-                      {/* Tipos personalizados criados */}
-                      {scheduleTypesData?.templates?.map((template: any) => (
-                        <SelectItem key={template.id} value={template.name}>
-                          {template.name} - {template.description || 'Tipo personalizado'}
+                      {/* Templates customizados criados pelo usuário */}
+                      {scheduleTypesData?.templates?.filter((template: any) => 
+                        !['5x2', '6x1'].includes(template.id) // Filtrar os templates padrão duplicados
+                      ).map((template: any) => (
+                        <SelectItem key={template.id} value={template.scheduleType || template.name}>
+                          {template.name} - {template.description || 'Template personalizado'}
                         </SelectItem>
                       ))}
                     </SelectContent>
