@@ -82,7 +82,7 @@ export class CLTComplianceController {
       }
 
       const offset = (Number(page) - 1) * Number(limit);
-      
+
       const logs = await db
         .select()
         .from(timecardAuditLog)
@@ -128,7 +128,7 @@ export class CLTComplianceController {
     try {
       const tenantId = req.user?.tenantId;
       const userId = req.user?.id;
-      
+
       if (!tenantId || !userId) {
         return res.status(401).json({ message: 'Usuário não autenticado' });
       }
@@ -182,80 +182,11 @@ export class CLTComplianceController {
       console.log(`[CLT-REPORTS] Listando relatórios para tenant: ${tenantId}`);
 
       let whereConditions = [eq(complianceReports.tenantId, tenantId)];
-      
+
       if (reportType) {
         whereConditions.push(eq(complianceReports.reportType, reportType as string));
       }
-      
-      if (year) {
-        const startOfYear = new Date(`${year}-01-01`);
-        const endOfYear = new Date(`${year}-12-31`);
-        whereConditions.push(
-          gte(complianceReports.periodStart, startOfYear),
-          lte(complianceReports.periodEnd, endOfYear)
-        );
-      }
 
-      const reports = await db
-
-
-  /**
-   * 🔴 RECONSTITUIÇÃO EMERGENCIAL DA CADEIA
-   */
-  async rebuildIntegrityChain(req: Request, res: Response): Promise<void> {
-    try {
-      const { tenantId } = (req as any).user;
-      
-      console.log(`[CLT-CONTROLLER] Iniciando reconstituição para tenant: ${tenantId}`);
-      
-      const result = await cltComplianceService.rebuildIntegrityChain(tenantId);
-      
-      if (result.errors.length > 0) {
-        res.status(400).json({
-          success: false,
-          message: 'Reconstituição completada com problemas',
-          data: result
-        });
-        return;
-      }
-
-      res.json({
-        success: true,
-        message: `Cadeia de integridade reconstituída: ${result.fixed} registros corrigidos`,
-        data: result
-      });
-
-    } catch (error) {
-      console.error('[CLT-CONTROLLER] Erro na reconstituição:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Erro interno ao reconstituir cadeia',
-        error: error.message
-      });
-    }
-  }
-
-  /**
-   * 🔴 GET /api/timecard/compliance/reports
-   * Listar relatórios de compliance
-   */
-  async listComplianceReports(req: Request, res: Response) {
-    try {
-      const tenantId = req.user?.tenantId;
-      if (!tenantId) {
-        return res.status(401).json({ message: 'Tenant não identificado' });
-      }
-
-      const { reportType, year } = req.query;
-
-      console.log(`[CLT-REPORTS] Listando relatórios para tenant: ${tenantId}`);
-
-      let whereConditions = [eq(complianceReports.tenantId, tenantId)];
-      
-      if (reportType) {
-        whereConditions.push(eq(complianceReports.reportType, reportType as string));
-      }
-      
       if (year) {
         const startOfYear = new Date(`${year}-01-01`);
         const endOfYear = new Date(`${year}-12-31`);
@@ -298,6 +229,42 @@ export class CLTComplianceController {
       res.status(500).json({ 
         message: 'Erro ao listar relatórios',
         error: error.message 
+      });
+    }
+  }
+
+  /**
+   * 🔴 RECONSTITUIÇÃO EMERGENCIAL DA CADEIA
+   */
+  async rebuildIntegrityChain(req: Request, res: Response): Promise<void> {
+    try {
+      const { tenantId } = (req as any).user;
+
+      console.log(`[CLT-CONTROLLER] Iniciando reconstituição para tenant: ${tenantId}`);
+
+      const result = await cltComplianceService.rebuildIntegrityChain(tenantId);
+
+      if (result.errors.length > 0) {
+        res.status(400).json({
+          success: false,
+          message: 'Reconstituição completada com problemas',
+          data: result
+        });
+        return;
+      }
+
+      res.json({
+        success: true,
+        message: `Cadeia de integridade reconstituída: ${result.fixed} registros corrigidos`,
+        data: result
+      });
+
+    } catch (error) {
+      console.error('[CLT-CONTROLLER] Erro na reconstituição:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Erro interno ao reconstituir cadeia',
+        error: error.message
       });
     }
   }
@@ -481,8 +448,7 @@ export class CLTComplianceController {
           isActive: digitalSignatureKeys.isActive,
           expiresAt: digitalSignatureKeys.expiresAt,
           createdAt: digitalSignatureKeys.createdAt,
-          revokedAt: digitalSignatureKeys.revokedAt,
-          revocationReason: digitalSignatureKeys.revocationReason
+          revokedAt: digitalSignatureKeys.revocationReason
         })
         .from(digitalSignatureKeys)
         .where(eq(digitalSignatureKeys.tenantId, tenantId))
@@ -493,8 +459,7 @@ export class CLTComplianceController {
           ...key,
           expiresAt: key.expiresAt?.toISOString(),
           createdAt: key.createdAt?.toISOString(),
-          revokedAt: key.revokedAt?.toISOString(),
-          isExpired: key.expiresAt ? new Date() > key.expiresAt : false
+          revokedAt: key.revokedAt?.toISOString()
         })),
         summary: {
           totalKeys: keys.length,
