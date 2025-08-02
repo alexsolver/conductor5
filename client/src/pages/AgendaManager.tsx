@@ -401,10 +401,11 @@ const AgendaManager: React.FC = () => {
           <TimelineScheduleGrid
             schedules={schedules as Schedule[]}
             activityTypes={activityTypes}
-            agents={filteredAgents}
+            agents={selectedTechnicians}
             selectedDate={selectedDate}
             onScheduleClick={handleScheduleClick}
             onTimeSlotClick={handleTimeSlotClick}
+            workSchedules={workSchedules}
           />
         ) : (
           <WeeklyScheduleGrid
@@ -418,51 +419,7 @@ const AgendaManager: React.FC = () => {
         )}
       </div>
 
-      {/* Timeline dos Técnicos Selecionados */}
-      {selectedTechnicians.length > 0 && (
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold text-gray-900">
-              Técnicos - Linha do Tempo
-            </CardTitle>
-            <p className="text-sm text-gray-600">
-              Horários disponíveis baseados na jornada diária de cada técnico
-            </p>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {selectedTechnicians.map((technician) => {
-                const techSchedule = workSchedules.find((ws: any) => ws.userId === technician.id);
-                const techName = technician.name || `${technician.firstName || ''} ${technician.lastName || ''}`.trim() || technician.email;
-                
-                return (
-                  <div key={technician.id} className="border-l-4 border-blue-500 pl-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-medium text-gray-900">{techName}</h4>
-                      <Badge variant="outline" className="text-xs">
-                        {techSchedule?.scheduleType || 'Sem escala definida'}
-                      </Badge>
-                    </div>
-                    
-                    {techSchedule ? (
-                      <TechnicianTimeline
-                        technician={technician}
-                        workSchedule={techSchedule}
-                        selectedDate={selectedDate}
-                        schedules={schedules.filter((s: any) => s.agentId === technician.id)}
-                      />
-                    ) : (
-                      <div className="text-sm text-gray-500 py-4">
-                        Jornada de trabalho não definida para este técnico
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+
 
       {/* Schedule Modal */}
       <ScheduleModal
