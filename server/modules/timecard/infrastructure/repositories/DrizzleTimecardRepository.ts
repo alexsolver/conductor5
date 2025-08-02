@@ -90,11 +90,16 @@ export class DrizzleTimecardRepository implements TimecardRepository {
         and(
           eq(timecardEntries.tenantId, tenantId),
           eq(timecardEntries.userId, userId),
-          gte(timecardEntries.checkIn, startOfDay),
-          lte(timecardEntries.checkIn, endOfDay)
+          sql`(
+            (${timecardEntries.checkIn} >= ${startOfDay} AND ${timecardEntries.checkIn} <= ${endOfDay}) OR
+            (${timecardEntries.checkOut} >= ${startOfDay} AND ${timecardEntries.checkOut} <= ${endOfDay}) OR
+            (${timecardEntries.breakStart} >= ${startOfDay} AND ${timecardEntries.breakStart} <= ${endOfDay}) OR
+            (${timecardEntries.breakEnd} >= ${startOfDay} AND ${timecardEntries.breakEnd} <= ${endOfDay}) OR
+            (${timecardEntries.createdAt} >= ${startOfDay} AND ${timecardEntries.createdAt} <= ${endOfDay})
+          )`
         )
       )
-      .orderBy(asc(timecardEntries.checkIn));
+      .orderBy(asc(timecardEntries.createdAt));
   }
 
   async getTimecardEntriesByUser(userId: string, tenantId: string, startDate?: Date, endDate?: Date): Promise<any[]> {
