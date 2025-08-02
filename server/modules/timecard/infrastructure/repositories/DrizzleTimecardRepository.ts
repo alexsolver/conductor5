@@ -1,10 +1,11 @@
 import { eq, and, gte, lte, desc, asc, sql, inArray } from 'drizzle-orm';
 import { db } from '../../../../db';
 import { 
-  timecardEntries, 
-  hourBankEntries,
+  timecardEntries,
+  hourBankEntries, 
   workSchedules,
   absenceRequests,
+  scheduleTemplates,
   users 
 } from '../../../../../shared/schema';
 
@@ -121,15 +122,22 @@ export class DrizzleTimecardRepository implements TimecardRepository {
   // Work Schedules Implementation
   async createWorkSchedule(data: any): Promise<any> {
     try {
-      // Temporariamente retornando dados mockados até tabela ser criada
-      console.log('createWorkSchedule: Retornando dados mockados temporariamente');
-      const mockSchedule = {
-        id: `mock-${Date.now()}`,
-        ...data,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
-      return mockSchedule;
+      const [schedule] = await db
+        .insert(workSchedules)
+        .values({
+          tenantId: data.tenantId,
+          userId: data.userId,
+          scheduleName: data.scheduleType || 'Default Schedule',
+          workDays: data.workDays,
+          startTime: data.startTime,
+          endTime: data.endTime,
+          breakStart: data.breakStart,
+          breakEnd: data.breakEnd,
+          isActive: data.isActive ?? true
+        })
+        .returning();
+      
+      return schedule;
     } catch (error) {
       console.error('Error creating work schedule:', error);
       throw error;
@@ -149,9 +157,33 @@ export class DrizzleTimecardRepository implements TimecardRepository {
 
   async getAllWorkSchedules(tenantId: string): Promise<any[]> {
     try {
-      // Temporariamente retornando array vazio até tabela ser criada
-      console.log('getAllWorkSchedules: Retornando array vazio temporariamente');
-      return [];
+      const schedules = await db
+        .select({
+          id: workSchedules.id,
+          tenantId: workSchedules.tenantId,
+          userId: workSchedules.userId,
+          scheduleName: workSchedules.scheduleName,
+          workDays: workSchedules.workDays,
+          startTime: workSchedules.startTime,
+          endTime: workSchedules.endTime,
+          breakStart: workSchedules.breakStart,
+          breakEnd: workSchedules.breakEnd,
+          isActive: workSchedules.isActive,
+          createdAt: workSchedules.createdAt,
+          updatedAt: workSchedules.updatedAt
+        })
+        .from(workSchedules)
+        .leftJoin(users, eq(workSchedules.userId, users.id))
+        .where(eq(workSchedules.tenantId, tenantId))
+        .orderBy(desc(workSchedules.createdAt));
+
+      return schedules.map(schedule => ({
+        ...schedule,
+        userName: `${schedule.firstName || ''} ${schedule.lastName || ''}`.trim(),
+        scheduleType: schedule.scheduleName || '5x2',
+        startDate: schedule.createdAt,
+        breakDurationMinutes: 60 // Default value
+      }));
     } catch (error) {
       console.error('Error fetching work schedules:', error);
       throw error;
@@ -294,7 +326,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
         )
         .orderBy(desc(scheduleTemplates.createdAt));
 
-      return { templates };
+      return templates;
     } catch (error) {
       console.error('Error fetching schedule templates:', error);
       throw error;

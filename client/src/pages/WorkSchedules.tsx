@@ -156,7 +156,7 @@ export default function WorkSchedules() {
     },
   });
 
-  const schedules = schedulesData?.schedules || [];
+  const schedules = Array.isArray(schedulesData) ? schedulesData : (schedulesData?.schedules || []);
   const users = usersData?.users || [];
 
   const resetForm = () => {
@@ -255,7 +255,8 @@ export default function WorkSchedules() {
     }
   };
 
-  const getWorkDaysText = (workDays: number[]) => {
+  const getWorkDaysText = (workDays: number[] | null) => {
+    if (!workDays || !Array.isArray(workDays)) return 'Não definido';
     return workDays.map(day => weekDays.find(wd => wd.value === day)?.label).join(', ');
   };
 
