@@ -442,16 +442,15 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                       <div key={agent.id} className="border-b">
                         {/* Planned row - opaque background */}
                         <div 
-                          className={`h-10 relative border-b border-gray-100 cursor-pointer ${
+                          className={`h-10 relative border-b border-gray-100 ${
                             !worksToday 
-                              ? 'bg-gray-200 hover:bg-gray-300' 
+                              ? 'bg-gray-200' 
                               : isBreakTime 
-                                ? 'bg-orange-100 hover:bg-orange-200'
+                                ? 'bg-orange-100'
                                 : isWorkingHour 
-                                  ? 'bg-white hover:bg-gray-50' 
-                                  : 'bg-gray-100 hover:bg-gray-200'
+                                  ? 'bg-white' 
+                                  : 'bg-gray-100'
                           }`}
-                          onClick={() => onTimeSlotClick(timeSlot, formatTimeSlot(timeSlot), agent.id)}
                           title={
                             !worksToday 
                               ? 'Não trabalha neste dia'
@@ -514,16 +513,15 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                         
                         {/* Actual row - clear background */}
                         <div 
-                          className={`h-10 relative cursor-pointer ${
+                          className={`h-10 relative ${
                             !worksToday 
-                              ? 'bg-gray-200 hover:bg-gray-300' 
+                              ? 'bg-gray-200' 
                               : isBreakTime 
-                                ? 'bg-orange-100 hover:bg-orange-200'
+                                ? 'bg-orange-100'
                                 : isWorkingHour 
-                                  ? 'bg-white hover:bg-gray-50' 
-                                  : 'bg-gray-100 hover:bg-gray-200'
+                                  ? 'bg-white' 
+                                  : 'bg-gray-100'
                           }`}
-                          onClick={() => onTimeSlotClick(timeSlot, formatTimeSlot(timeSlot), agent.id)}
                           title={
                             !worksToday 
                               ? 'Não trabalha neste dia'
