@@ -8,6 +8,59 @@ import { mapFrontendToBackend } from "../../utils/fieldMapping";
 import { z } from "zod";
 import { trackTicketView, trackTicketEdit, trackTicketCreate, trackNoteView, trackNoteCreate } from '../../middleware/activityTrackingMiddleware';
 
+// 🚨 COMPLIANCE: Função auxiliar para auditoria completa
+async function createCompleteAuditEntry(
+  pool: any,
+  schemaName: string,
+  tenantId: string,
+  ticketId: string,
+  req: AuthenticatedRequest,
+  actionType: string,
+  description: string,
+  metadata: any = {},
+  fieldName?: string,
+  oldValue?: string,
+  newValue?: string
+) {
+  try {
+    const { getClientIP, getUserAgent, getSessionId } = await import('../../utils/ipCapture');
+    const ipAddress = getClientIP(req);
+    const userAgent = getUserAgent(req);
+    const sessionId = getSessionId(req);
+    
+    // Get user name
+    const userQuery = `SELECT first_name || ' ' || last_name as full_name FROM public.users WHERE id = $1`;
+    const userResult = await pool.query(userQuery, [req.user.id]);
+    const userName = userResult.rows[0]?.full_name || req.user?.email || 'Unknown User';
+
+    const insertQuery = `
+      INSERT INTO "${schemaName}".ticket_history 
+      (tenant_id, ticket_id, performed_by, performed_by_name, action_type, description, field_name, old_value, new_value, ip_address, user_agent, session_id, created_at, metadata)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW(), $13)
+      RETURNING *
+    `;
+
+    return await pool.query(insertQuery, [
+      tenantId,
+      ticketId,
+      req.user.id,
+      userName,
+      actionType,
+      description,
+      fieldName || null,
+      oldValue || null,
+      newValue || null,
+      ipAddress,
+      userAgent,
+      sessionId,
+      JSON.stringify(metadata)
+    ]);
+  } catch (error) {
+    console.error('⚠️ Erro na auditoria completa:', error);
+    throw error;
+  }
+}
+
 const ticketsRouter = Router();
 
 // Get all tickets with pagination and filters
@@ -658,11 +711,16 @@ ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, re
     // Determine who is assigned (use assignedToId if provided and not 'unassigned', otherwise current user)
     const finalAssignedId = (assignedToId && assignedToId !== 'unassigned') ? assignedToId : req.user.id;
 
+    // Get user name for complete audit trail
+    const userQuery = `SELECT first_name || ' ' || last_name as full_name FROM public.users WHERE id = $1`;
+    const userResult = await pool.query(userQuery, [req.user.id]);
+    const userName = userResult.rows[0]?.full_name || req.user?.email || 'Unknown User';
+
     // Insert action into ticket_history table using correct column names
     const insertQuery = `
       INSERT INTO "${schemaName}".ticket_history 
-      (id, tenant_id, ticket_id, action_type, description, performed_by, ip_address, user_agent, session_id, created_at)
-      VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, NOW())
+      (id, tenant_id, ticket_id, action_type, description, performed_by, performed_by_name, ip_address, user_agent, session_id, created_at, metadata)
+      VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), $10)
       RETURNING id, action_type, description, created_at
     `;
 
@@ -672,9 +730,18 @@ ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, re
       actionType,         // $3 action_type
       actionDescription,  // $4 description
       req.user.id,        // $5 performed_by
-      ipAddress,          // $6 ip_address  
-      userAgent,          // $7 user_agent
-      sessionId           // $8 session_id
+      userName,           // $6 performed_by_name
+      ipAddress,          // $7 ip_address  
+      userAgent,          // $8 user_agent
+      sessionId,          // $9 session_id
+      JSON.stringify({    // $10 metadata
+        action_type: actionType,
+        time_spent: timeSpent,
+        start_time: startDateTime,
+        end_time: endDateTime,
+        assigned_to: finalAssignedId,
+        status: status
+      })
     ]);
 
     // Also create entry in ticket_internal_actions for scheduling (only if start time provided)
@@ -709,11 +776,6 @@ ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, re
     }
 
     const newAction = result.rows[0];
-
-    // Get user name for response
-    const userQuery = `SELECT first_name || ' ' || last_name as full_name FROM public.users WHERE id = $1`;
-    const userResult = await pool.query(userQuery, [req.user.id]);
-    const userName = userResult.rows[0]?.full_name || 'Unknown User';
 
     // Update ticket's updated_at timestamp
     await pool.query(
