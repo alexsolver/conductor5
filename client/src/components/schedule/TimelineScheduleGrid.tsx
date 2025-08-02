@@ -105,8 +105,9 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
 
   // Filter agents by search
   const filteredAgents = agents.filter(agent => 
-    agent.name.toLowerCase().includes(searchAgent.toLowerCase()) ||
-    agent.email.toLowerCase().includes(searchAgent.toLowerCase())
+    agent && agent.name && agent.email &&
+    (agent.name.toLowerCase().includes(searchAgent.toLowerCase()) ||
+    agent.email.toLowerCase().includes(searchAgent.toLowerCase()))
   );
 
   const getActivityType = (activityTypeId: string) => {
