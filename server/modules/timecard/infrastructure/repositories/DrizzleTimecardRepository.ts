@@ -55,6 +55,23 @@ export interface TimecardRepository {
 }
 
 export class DrizzleTimecardRepository implements TimecardRepository {
+  // Método auxiliar para calcular duração do intervalo
+  private calculateBreakDurationMinutes(breakStart: string | null, breakEnd: string | null): number {
+    if (!breakStart || !breakEnd) return 60; // Default 60 minutes
+    
+    try {
+      const [startHours, startMinutes] = breakStart.split(':').map(Number);
+      const [endHours, endMinutes] = breakEnd.split(':').map(Number);
+      
+      const startTotalMinutes = startHours * 60 + startMinutes;
+      const endTotalMinutes = endHours * 60 + endMinutes;
+      
+      return Math.max(0, endTotalMinutes - startTotalMinutes);
+    } catch (error) {
+      console.error('Error calculating break duration:', error);
+      return 60; // Fallback to default
+    }
+  }
   // Timecard Entries Implementation
   async createTimecardEntry(data: any): Promise<any> {
     const [entry] = await db
@@ -158,12 +175,13 @@ export class DrizzleTimecardRepository implements TimecardRepository {
           id: workSchedules.id,
           tenantId: workSchedules.tenantId,
           userId: workSchedules.userId,
-          scheduleName: workSchedules.scheduleName,
+          scheduleType: workSchedules.scheduleType, // CORRIGIDO: usar campo real do DB
+          startDate: workSchedules.startDate, // CORRIGIDO: usar campo real do DB
+          endDate: workSchedules.endDate, // CORRIGIDO: usar campo real do DB
           workDays: workSchedules.workDays,
           startTime: workSchedules.startTime,
           endTime: workSchedules.endTime,
-          breakStart: workSchedules.breakStart,
-          breakEnd: workSchedules.breakEnd,
+          breakDurationMinutes: workSchedules.breakDurationMinutes,
           isActive: workSchedules.isActive,
           createdAt: workSchedules.createdAt,
           updatedAt: workSchedules.updatedAt,
@@ -202,13 +220,13 @@ export class DrizzleTimecardRepository implements TimecardRepository {
           tenantId: schedule.tenantId,
           userId: schedule.userId,
           userName: `${schedule.firstName || ''} ${schedule.lastName || ''}`.trim() || 'Usuário',
-          scheduleType: schedule.scheduleName || '5x2',
-          startDate: schedule.createdAt?.toISOString() || new Date().toISOString(),
-          endDate: schedule.updatedAt?.toISOString() || null,
+          scheduleType: schedule.scheduleType || '5x2', // CORRIGIDO: usar campo correto
+          startDate: schedule.startDate?.toISOString() || new Date().toISOString(), // CORRIGIDO: usar campo correto
+          endDate: schedule.endDate?.toISOString() || null, // CORRIGIDO: usar campo correto
           workDays: processedWorkDays,
           startTime: schedule.startTime,
           endTime: schedule.endTime,
-          breakDurationMinutes: schedule.breakDurationMinutes || 60,
+          breakDurationMinutes: schedule.breakDurationMinutes || 60, // CORRIGIDO: simplificado
           isActive: schedule.isActive ?? true,
           createdAt: schedule.createdAt,
           updatedAt: schedule.updatedAt
@@ -229,12 +247,13 @@ export class DrizzleTimecardRepository implements TimecardRepository {
           id: workSchedules.id,
           tenantId: workSchedules.tenantId,
           userId: workSchedules.userId,
-          scheduleName: workSchedules.scheduleName,
+          scheduleType: workSchedules.scheduleType, // CORRIGIDO: usar campo real do DB
+          startDate: workSchedules.startDate, // CORRIGIDO: usar campo real do DB  
+          endDate: workSchedules.endDate, // CORRIGIDO: usar campo real do DB
           workDays: workSchedules.workDays,
           startTime: workSchedules.startTime,
           endTime: workSchedules.endTime,
-          breakStart: workSchedules.breakStart,
-          breakEnd: workSchedules.breakEnd,
+          breakDurationMinutes: workSchedules.breakDurationMinutes,
           isActive: workSchedules.isActive,
           createdAt: workSchedules.createdAt,
           updatedAt: workSchedules.updatedAt,
@@ -275,13 +294,13 @@ export class DrizzleTimecardRepository implements TimecardRepository {
           tenantId: schedule.tenantId,
           userId: schedule.userId,
           userName: `${schedule.firstName || ''} ${schedule.lastName || ''}`.trim() || 'Usuário',
-          scheduleType: schedule.scheduleName || '5x2',
-          startDate: schedule.createdAt?.toISOString() || new Date().toISOString(),
-          endDate: schedule.updatedAt?.toISOString() || null,
+          scheduleType: schedule.scheduleType || '5x2', // CORRIGIDO: usar campo correto
+          startDate: schedule.startDate?.toISOString() || new Date().toISOString(), // CORRIGIDO: usar campo correto
+          endDate: schedule.endDate?.toISOString() || null, // CORRIGIDO: usar campo correto
           workDays: processedWorkDays,
           startTime: schedule.startTime,
           endTime: schedule.endTime,
-          breakDurationMinutes: schedule.breakDurationMinutes || 60,
+          breakDurationMinutes: schedule.breakDurationMinutes || 60, // CORRIGIDO: simplificado
           isActive: schedule.isActive ?? true,
           createdAt: schedule.createdAt,
           updatedAt: schedule.updatedAt
@@ -303,7 +322,6 @@ export class DrizzleTimecardRepository implements TimecardRepository {
       
       const updateData = {
         scheduleName: data.scheduleType || data.scheduleName,
-        scheduleType: data.scheduleType,
         startDate: data.startDate ? new Date(data.startDate) : undefined,
         endDate: data.endDate ? new Date(data.endDate) : null,
         workDays: workDaysArray,
@@ -316,16 +334,17 @@ export class DrizzleTimecardRepository implements TimecardRepository {
         updatedAt: new Date()
       };
 
-      // Remove undefined values
-      Object.keys(updateData).forEach(key => {
-        if (updateData[key] === undefined) {
-          delete updateData[key];
+      // Remove undefined values - safer type handling
+      const cleanUpdateData: any = {};
+      Object.entries(updateData).forEach(([key, value]) => {
+        if (value !== undefined) {
+          cleanUpdateData[key] = value;
         }
       });
 
       const [schedule] = await db
         .update(workSchedules)
-        .set(updateData)
+        .set(cleanUpdateData)
         .where(and(eq(workSchedules.id, id), eq(workSchedules.tenantId, tenantId)))
         .returning();
       

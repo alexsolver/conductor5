@@ -8,12 +8,10 @@ export * from "./schema-master";
 
 // Validation: Ensure all exports are properly typed
 import type { 
-  User, Customer, Ticket, Tenant, 
-  ScheduleTemplate, WorkSchedule
+  User, Customer, Ticket, Tenant
 } from "./schema-master";
 
 // Re-export types for consistency
 export type {
-  User, Customer, Ticket, Tenant,
-  ScheduleTemplate, WorkSchedule
+  User, Customer, Ticket, Tenant
 };
