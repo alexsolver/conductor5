@@ -178,11 +178,11 @@ export default function ScheduleTypes() {
 
   const handleDeleteTemplate = (id: string) => {
     // Verificar se é um template padrão
-    const defaultTemplates = ['5x2', '6x1', '12x36'];
+    const defaultTemplates = ['5x2', '6x1', '12x36', 'shift', 'flexible', 'intermittent'];
     if (defaultTemplates.includes(id)) {
       toast({
         title: 'Não é possível excluir',
-        description: 'Templates padrão do sistema (5x2, 6x1, 12x36) não podem ser excluídos.',
+        description: 'Templates padrão do sistema não podem ser excluídos.',
         variant: 'destructive',
       });
       return;
@@ -194,7 +194,7 @@ export default function ScheduleTypes() {
   };
 
   const isDefaultTemplate = (id: string) => {
-    return ['5x2', '6x1', '12x36'].includes(id);
+    return ['5x2', '6x1', '12x36', 'shift', 'flexible', 'intermittent'].includes(id);
   };
 
   if (isLoading) {

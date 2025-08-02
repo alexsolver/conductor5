@@ -431,6 +431,70 @@ export class DrizzleTimecardRepository implements TimecardRepository {
           isActive: true,
           createdAt: new Date(),
           updatedAt: new Date()
+        },
+        {
+          id: '12x36',
+          tenantId,
+          name: '12x36 (Plantões)',
+          description: '12 horas trabalhadas, 36 horas de folga',
+          scheduleName: '12x36 (Plantões)',
+          scheduleType: '12x36',
+          workDays: [1,3,5],
+          startTime: '07:00',
+          endTime: '19:00',
+          breakStart: '12:00',
+          breakEnd: '13:00',
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        {
+          id: 'shift',
+          tenantId,
+          name: 'Escalas por Turno',
+          description: 'Sistema de turnos rotativos',
+          scheduleName: 'Escalas por Turno',
+          scheduleType: 'shift',
+          workDays: [1,2,3,4,5],
+          startTime: '08:00',
+          endTime: '16:00',
+          breakStart: '12:00',
+          breakEnd: '13:00',
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        {
+          id: 'flexible',
+          tenantId,
+          name: 'Horário Flexível',
+          description: 'Jornada flexível com banco de horas',
+          scheduleName: 'Horário Flexível',
+          scheduleType: 'flexible',
+          workDays: [1,2,3,4,5],
+          startTime: '08:00',
+          endTime: '18:00',
+          breakStart: '12:00',
+          breakEnd: '13:00',
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        {
+          id: 'intermittent',
+          tenantId,
+          name: 'Trabalho Intermitente',
+          description: 'Trabalho por demanda/chamada',
+          scheduleName: 'Trabalho Intermitente',
+          scheduleType: 'intermittent',
+          workDays: [],
+          startTime: '00:00',
+          endTime: '23:59',
+          breakStart: null,
+          breakEnd: null,
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
         }
       ];
 
@@ -502,8 +566,8 @@ export class DrizzleTimecardRepository implements TimecardRepository {
 
   async deleteScheduleTemplate(id: string, tenantId: string): Promise<void> {
     try {
-      // Não permitir deletar templates padrão (5x2, 6x1, 12x36)
-      const defaultTemplateIds = ['5x2', '6x1', '12x36'];
+      // Não permitir deletar templates padrão
+      const defaultTemplateIds = ['5x2', '6x1', '12x36', 'shift', 'flexible', 'intermittent'];
       if (defaultTemplateIds.includes(id)) {
         console.log('[TEMPLATES-DEBUG] Cannot delete default template:', id);
         throw new Error('Não é possível deletar templates padrão do sistema');
