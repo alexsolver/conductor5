@@ -1,0 +1,89 @@
+🚨 PROBLEMAS CRÍTICOS IDENTIFICADOS
+1. ERRO FATAL DE SCHEMA - Campo Inexistente
+Problema: O código tenta acessar work_schedules.schedule_type mas o banco usa work_schedules.schedule_name
+Log de Erro: column work_schedules.schedule_type does not exist
+Impacto: 100% das operações de escala falham
+Localização:
+DrizzleTimecardRepository.ts (linhas 245+)
+shared/schema-master.ts inconsistente com migração real
+2. INCONSISTÊNCIAS DE MAPEAMENTO DE DADOS
+Frontend espera: scheduleType (string)
+Backend usa: schedule_type (inexistente) vs schedule_name (real)
+Repository mapeia: Campos incorretos em 6+ queries
+Controller: Validação usa campos que não existem no DB
+3. DADOS HARDCODED NO FRONTEND
+// DADOS MOCK IDENTIFICADOS:
+const scheduleTypeLabels = {
+  '5x2': '5x2 (Segunda a Sexta)',
+  '6x1': '6x1 (Seis dias com folga)',
+  // ... mais labels hardcoded
+};
+const weekDays = [
+  { value: 0, label: 'Domingo' },
+  // ... array completo hardcoded
+];
+4. PROBLEMAS DE VALIDAÇÃO
+Schema Zod: Valida scheduleType que não existe no DB
+Campo obrigatório: scheduleName não está sendo validado no frontend
+Tipos inconsistentes: Interface TypeScript não match com DB real
+5. ERROS DE MAPEAMENTO NO REPOSITORY
+// PROBLEMA: Seleciona campos inexistentes
+scheduleType: workSchedules.scheduleType, // ❌ Campo não existe
+startDate: workSchedules.startDate,       // ❌ Campo não existe  
+endDate: workSchedules.endDate,           // ❌ Campo não existe
+6. INCONSISTÊNCIAS DE RESPONSE
+API retorna: Array vazio [] sempre
+Frontend espera: Array de schedules com campos específicos
+Logs mostram: 0 schedules processados sempre
+Causa: Queries falham silenciosamente por campos inexistentes
+7. PROBLEMAS DE INTERFACE
+Campo scheduleName: Ausente na interface TypeScript
+Campo obrigatório: Não aparece no formulário
+Validação: Falta validação client-side para campo real do DB
+8. ERROS DE PROCESSAMENTO DE DADOS
+// workDays processing inconsistente
+let processedWorkDays: number[] = [1,2,3,4,5]; // Hardcoded fallback
+// Falha ao processar JSONB real do banco
+9. PROBLEMAS DE CONTROLLER
+Validation Schema: Usa campos inexistentes
+Error Handling: Silencia erros críticos de schema
+Response Format: Inconsistente entre endpoints
+10. MIGRATION VS SCHEMA MISMATCH
+Migration real: Cria schedule_name, work_days (jsonb)
+Schema atual: Define schedule_type, work_days (array)
+Resultado: Incompatibilidade total
+📊 DADOS RETORNADOS PELO SISTEMA
+Console Logs Atuais:
+[QA-DEBUG] Final processed schedules: 0 items
+[QA-DEBUG] Users available: 0 items  
+[FRONTEND-QA] API Response: {}
+Erro de Banco Real:
+column work_schedules.schedule_type does not exist
+hint: Perhaps you meant to reference the column "work_schedules.schedule_name"
+🔍 ANÁLISE DE FUNCIONALIDADE
+Funcionalidades NÃO OPERACIONAIS (0%):
+❌ Criar nova escala
+❌ Listar escalas existentes
+❌ Editar escala
+❌ Excluir escala
+❌ Validação de formulário
+❌ Mapeamento de dados
+Funcionalidades MOCK/Hardcoded:
+❌ Tipos de escala (hardcoded)
+❌ Dias da semana (hardcoded)
+❌ Labels de interface (hardcoded)
+❌ Validações (usando campos inexistentes)
+🎯 RESUMO EXECUTIVO
+STATUS ATUAL: ❌ 0% FUNCIONAL
+
+O módulo /work-schedules está COMPLETAMENTE INOPERANTE devido a inconsistências fundamentais entre:
+
+Schema de migração real do banco
+Schema Drizzle definido no código
+Validações e mapeamentos de dados
+Interface do usuário
+CAUSE RAIZ: Migração do banco criou campos diferentes dos definidos no código, resultando em falha total do sistema.
+
+IMPACTO: Usuários não conseguem criar, visualizar ou gerenciar escalas de trabalho.
+
+PRIORIDADE: 🚨 CRÍTICA - Requer correção imediata de schema e realinhamento completo do fullstack.
