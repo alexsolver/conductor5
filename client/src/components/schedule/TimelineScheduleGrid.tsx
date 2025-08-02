@@ -367,16 +367,17 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                     const dayOfWeek = timeSlot.getDay(); // 0 = domingo, 1 = segunda, etc.
                     const worksToday = workSchedule?.workDays.includes(dayOfWeek) || false;
                     
-                    // Debug work schedule for this agent
-                    if (agent.id === 'ce432692-9b43-4d7a-befb-a9fb1c6a0c0a') { // Paulina's ID
-                      console.log('🔍 WORK SCHEDULE DEBUG - Paulina:', {
+                    // Debug work schedule for this agent - só para sexta-feira (dia 2 de agosto)
+                    if (agent.id === 'ce432692-9b43-4d7a-befb-a9fb1c6a0c0a' && timeSlot.getDate() === 2 && timeSlot.getMonth() === 7) { // Paulina's ID, 2 de agosto
+                      console.log('🔍 WORK SCHEDULE DEBUG - Paulina (2 de agosto):', {
                         agentId: agent.id,
                         agentName: agent.name,
                         workSchedule,
                         dayOfWeek,
                         worksToday,
                         timeSlot: timeSlot.toISOString(),
-                        plannedSchedulesCount: plannedSchedules.length
+                        plannedSchedulesCount: plannedSchedules.length,
+                        dateCheck: `${timeSlot.getDate()}/${timeSlot.getMonth() + 1}`
                       });
                     }
                     

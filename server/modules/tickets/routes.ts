@@ -1243,6 +1243,9 @@ ticketsRouter.delete('/relationships/:relationshipId', jwtAuth, async (req: Auth
 
 // Get internal actions for scheduling (by date range)
 ticketsRouter.get('/internal-actions/schedule/:startDate/:endDate', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  const startDateParam = `${req.params.startDate} 00:00:00`;
+  const endDateParam = `${req.params.endDate} 23:59:59`;
+  
   try {
     if (!req.user?.tenantId) {
       return res.status(400).json({ message: "User not associated with a tenant" });
@@ -1252,6 +1255,16 @@ ticketsRouter.get('/internal-actions/schedule/:startDate/:endDate', jwtAuth, asy
     const tenantId = req.user.tenantId;
     const { pool } = await import('../../db');
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    // Debug logs
+    console.log('🔍 INTERNAL ACTIONS QUERY DEBUG:', {
+      startDate,
+      endDate,
+      startDateParam,
+      endDateParam,
+      tenantId,
+      schemaName
+    });
 
     const query = `
       SELECT 
@@ -1279,7 +1292,13 @@ ticketsRouter.get('/internal-actions/schedule/:startDate/:endDate', jwtAuth, asy
       ORDER BY tia.start_time ASC
     `;
 
-    const result = await pool.query(query, [tenantId, startDate, endDate]);
+    const result = await pool.query(query, [tenantId, startDateParam, endDateParam]);
+    
+    console.log('🔍 INTERNAL ACTIONS RESULT:', {
+      rowCount: result.rows.length,
+      queryParams: [tenantId, startDateParam, endDateParam],
+      firstRow: result.rows[0] || null
+    });
 
     const internalActions = result.rows.map(row => ({
       id: row.id,
