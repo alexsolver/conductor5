@@ -324,7 +324,7 @@ export default function TimecardApprovalSettings() {
                     <SelectValue placeholder="Selecione um grupo" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Nenhum grupo selecionado</SelectItem>
+                    <SelectItem value="none">Nenhum grupo selecionado</SelectItem>
                     {groups.map(group => (
                       <SelectItem key={group.id} value={group.id}>
                         {group.name} ({group.memberCount} membros)
