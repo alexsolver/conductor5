@@ -88,7 +88,8 @@ export default function Timecard() {
     queryKey: ['/api/timecard/current-status'],
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/timecard/current-status');
-      return response;
+      const data = await response.json();
+      return data;
     },
     enabled: true,
     refetchInterval: 30000, // Atualizar a cada 30 segundos
