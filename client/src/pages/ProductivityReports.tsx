@@ -54,10 +54,8 @@ export default function ProductivityReports() {
     queryKey: ['/api/productivity/my-productivity', filters],
     queryFn: async () => {
       const params = new URLSearchParams(filters);
-      console.log('🔍 Making API request to:', `/api/productivity/my-productivity?${params}`);
       const response = await apiRequest('GET', `/api/productivity/my-productivity?${params}`);
       const jsonData = await response.json();
-      console.log('🔍 API Response received:', jsonData);
       return jsonData;
     },
   });
@@ -111,7 +109,7 @@ export default function ProductivityReports() {
     return colors[type] || 'bg-gray-500';
   };
 
-  const summary: ProductivitySummary = myProductivity?.data?.data?.summary || {
+  const summary: ProductivitySummary = myProductivity?.data?.summary || {
     totalActivities: 0,
     totalTimeSeconds: 0,
     averageSessionTime: 0,
@@ -119,19 +117,7 @@ export default function ProductivityReports() {
     dailyBreakdown: {}
   };
 
-  // Debug logging
-  console.log('🔍 Productivity Debug:', {
-    loading: myProductivityLoading,
-    error: myProductivityError,
-    rawResponse: myProductivity,
-    responseData: myProductivity?.data,
-    responseNestedData: myProductivity?.data?.data,
-    responseDataType: typeof myProductivity?.data,
-    responseKeys: myProductivity?.data ? Object.keys(myProductivity.data) : 'no keys',
-    summary,
-    activitiesCount: Object.keys(summary.activitiesByType).length,
-    dailyCount: Object.keys(summary.dailyBreakdown).length
-  });
+
 
   return (
     <div className="p-4 space-y-6">
