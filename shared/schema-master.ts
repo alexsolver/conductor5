@@ -789,24 +789,68 @@ export const holidays = pgTable("holidays", {
   index("holidays_tenant_active_idx").on(table.tenantId, table.isActive),
 ]);
 
-// Timecard/Jornada tables
+// Timecard/Jornada tables - ENHANCED FOR CLT COMPLIANCE
 export const timecardEntries = pgTable("timecard_entries", {
   id: uuid("id").defaultRandom().primaryKey(),
   tenantId: varchar("tenant_id", { length: 36 }).notNull(),
   userId: uuid("user_id").notNull().references(() => users.id),
-  checkIn: timestamp("check_in"), // Removido .notNull() para permitir registros parciais
+  
+  // 🔴 CLT COMPLIANCE: NSR (Número Sequencial de Registro) - OBRIGATÓRIO
+  nsr: bigint("nsr", { mode: "number" }).notNull(), // Sequencial único por tenant
+  
+  // Timestamps básicos
+  checkIn: timestamp("check_in"),
   checkOut: timestamp("check_out"),
   breakStart: timestamp("break_start"),
   breakEnd: timestamp("break_end"),
   totalHours: decimal("total_hours", { precision: 4, scale: 2 }),
   notes: text("notes"),
   location: text("location"),
+  
+  // 🔴 CLT COMPLIANCE: Controle de integridade e auditoria
   isManualEntry: boolean("is_manual_entry").default(false),
   approvedBy: uuid("approved_by").references(() => users.id),
   status: varchar("status", { length: 20 }).default("pending"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
+  
+  // 🔴 CLT COMPLIANCE: Hash de integridade - OBRIGATÓRIO
+  recordHash: varchar("record_hash", { length: 64 }).notNull(), // SHA-256 hash do registro
+  previousRecordHash: varchar("previous_record_hash", { length: 64 }), // Hash do registro anterior (blockchain-like)
+  
+  // 🔴 CLT COMPLIANCE: Assinatura digital - OBRIGATÓRIO
+  digitalSignature: text("digital_signature"), // Assinatura digital do registro
+  signatureTimestamp: timestamp("signature_timestamp"),
+  signedBy: uuid("signed_by").references(() => users.id),
+  
+  // 🔴 CLT COMPLIANCE: Metadados para auditoria - OBRIGATÓRIO
+  deviceInfo: jsonb("device_info"), // Informações do dispositivo usado
+  ipAddress: varchar("ip_address", { length: 45 }), // IPv4/IPv6
+  geoLocation: jsonb("geo_location"), // Coordenadas GPS do registro
+  modificationHistory: jsonb("modification_history").default([]), // Histórico de alterações
+  
+  // 🔴 CLT COMPLIANCE: Controle de alterações - OBRIGATÓRIO
+  originalRecordHash: varchar("original_record_hash", { length: 64 }), // Hash original (antes de alterações)
+  modifiedBy: uuid("modified_by").references(() => users.id),
+  modificationReason: text("modification_reason"),
+  
+  // Timestamps de auditoria
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  
+  // 🔴 CLT COMPLIANCE: Soft delete para preservar histórico - OBRIGATÓRIO
+  isDeleted: boolean("is_deleted").default(false),
+  deletedAt: timestamp("deleted_at"),
+  deletedBy: uuid("deleted_by").references(() => users.id),
+  deletionReason: text("deletion_reason"),
+}, (table) => [
+  // Índices para performance e compliance
+  index("timecard_entries_tenant_nsr_idx").on(table.tenantId, table.nsr),
+  index("timecard_entries_tenant_user_date_idx").on(table.tenantId, table.userId, table.createdAt),
+  index("timecard_entries_hash_idx").on(table.recordHash),
+  index("timecard_entries_signature_idx").on(table.digitalSignature),
+  index("timecard_entries_device_idx").on(table.tenantId, table.deviceInfo),
+  index("timecard_entries_audit_idx").on(table.tenantId, table.modifiedBy, table.updatedAt),
+  unique("timecard_entries_tenant_nsr_unique").on(table.tenantId, table.nsr),
+]);
 
 // Work Schedules - Escalas de Trabalho
 export const workSchedules = pgTable("work_schedules", {
@@ -913,6 +957,135 @@ export const shiftSwapRequests = pgTable("shift_swap_requests", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
+
+// ========================================
+// CLT COMPLIANCE TABLES - OBRIGATÓRIAS
+// ========================================
+
+// 🔴 CLT COMPLIANCE: Sequência NSR por tenant - OBRIGATÓRIO
+export const nsrSequences = pgTable("nsr_sequences", {
+  tenantId: varchar("tenant_id", { length: 36 }).primaryKey(),
+  currentNsr: bigint("current_nsr", { mode: "number" }).default(0).notNull(),
+  lastUpdated: timestamp("last_updated").defaultNow().notNull(),
+});
+
+// 🔴 CLT COMPLIANCE: Backup automático de registros - OBRIGATÓRIO
+export const timecardBackups = pgTable("timecard_backups", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  tenantId: varchar("tenant_id", { length: 36 }).notNull(),
+  backupDate: date("backup_date").notNull(),
+  recordCount: integer("record_count").notNull(),
+  backupHash: varchar("backup_hash", { length: 64 }).notNull(), // Hash do backup completo
+  backupSize: bigint("backup_size", { mode: "number" }).notNull(), // Tamanho em bytes
+  backupLocation: text("backup_location").notNull(), // Caminho/URL do backup
+  compressionType: varchar("compression_type", { length: 20 }).default("gzip"),
+  encryptionType: varchar("encryption_type", { length: 20 }).default("AES-256"),
+  isVerified: boolean("is_verified").default(false),
+  verificationDate: timestamp("verification_date"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [
+  index("timecard_backups_tenant_date_idx").on(table.tenantId, table.backupDate),
+  index("timecard_backups_verification_idx").on(table.tenantId, table.isVerified),
+  unique("timecard_backups_tenant_date_unique").on(table.tenantId, table.backupDate),
+]);
+
+// 🔴 CLT COMPLIANCE: Trilha de auditoria completa - OBRIGATÓRIO
+export const timecardAuditLog = pgTable("timecard_audit_log", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  tenantId: varchar("tenant_id", { length: 36 }).notNull(),
+  timecardEntryId: uuid("timecard_entry_id").notNull(),
+  nsr: bigint("nsr", { mode: "number" }).notNull(),
+  action: varchar("action", { length: 50 }).notNull(), // 'CREATE', 'UPDATE', 'DELETE', 'APPROVE', 'REJECT'
+  performedBy: uuid("performed_by").notNull().references(() => users.id),
+  performedAt: timestamp("performed_at").defaultNow().notNull(),
+  
+  // Dados antes e depois da alteração
+  oldValues: jsonb("old_values"),
+  newValues: jsonb("new_values"),
+  
+  // Contexto da alteração
+  reason: text("reason"),
+  ipAddress: varchar("ip_address", { length: 45 }).notNull(),
+  userAgent: text("user_agent"),
+  deviceInfo: jsonb("device_info"),
+  
+  // Validação e integridade
+  auditHash: varchar("audit_hash", { length: 64 }).notNull(),
+  isSystemGenerated: boolean("is_system_generated").default(false),
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [
+  index("timecard_audit_tenant_entry_idx").on(table.tenantId, table.timecardEntryId),
+  index("timecard_audit_tenant_user_idx").on(table.tenantId, table.performedBy),
+  index("timecard_audit_tenant_date_idx").on(table.tenantId, table.performedAt),
+  index("timecard_audit_nsr_idx").on(table.tenantId, table.nsr),
+  index("timecard_audit_action_idx").on(table.tenantId, table.action),
+]);
+
+// 🔴 CLT COMPLIANCE: Relatórios de fiscalização - OBRIGATÓRIO
+export const complianceReports = pgTable("compliance_reports", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  tenantId: varchar("tenant_id", { length: 36 }).notNull(),
+  reportType: varchar("report_type", { length: 50 }).notNull(), // 'MONTHLY', 'QUARTERLY', 'ANNUAL', 'AUDIT'
+  periodStart: date("period_start").notNull(),
+  periodEnd: date("period_end").notNull(),
+  
+  // Estatísticas do relatório
+  totalRecords: integer("total_records").notNull(),
+  totalEmployees: integer("total_employees").notNull(),
+  totalHours: decimal("total_hours", { precision: 10, scale: 2 }).notNull(),
+  overtimeHours: decimal("overtime_hours", { precision: 10, scale: 2 }).default("0"),
+  
+  // Hash e validação
+  reportHash: varchar("report_hash", { length: 64 }).notNull(),
+  reportContent: jsonb("report_content").notNull(), // Dados completos do relatório
+  
+  // Assinatura digital do relatório
+  digitalSignature: text("digital_signature"),
+  signedBy: uuid("signed_by").references(() => users.id),
+  signedAt: timestamp("signed_at"),
+  
+  // Metadados
+  generatedBy: uuid("generated_by").notNull().references(() => users.id),
+  isSubmittedToAuthorities: boolean("is_submitted_to_authorities").default(false),
+  submissionDate: timestamp("submission_date"),
+  submissionProtocol: varchar("submission_protocol", { length: 100 }),
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  index("compliance_reports_tenant_type_idx").on(table.tenantId, table.reportType),
+  index("compliance_reports_tenant_period_idx").on(table.tenantId, table.periodStart, table.periodEnd),
+  index("compliance_reports_submission_idx").on(table.tenantId, table.isSubmittedToAuthorities),
+  unique("compliance_reports_tenant_period_type_unique").on(table.tenantId, table.reportType, table.periodStart, table.periodEnd),
+]);
+
+// 🔴 CLT COMPLIANCE: Chaves de assinatura digital - OBRIGATÓRIO
+export const digitalSignatureKeys = pgTable("digital_signature_keys", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  tenantId: varchar("tenant_id", { length: 36 }).notNull(),
+  keyName: varchar("key_name", { length: 100 }).notNull(),
+  publicKey: text("public_key").notNull(),
+  privateKeyHash: varchar("private_key_hash", { length: 64 }).notNull(), // Hash da chave privada (não a chave em si)
+  keyAlgorithm: varchar("key_algorithm", { length: 20 }).default("RSA-2048").notNull(),
+  
+  // Controle de validade
+  isActive: boolean("is_active").default(true),
+  expiresAt: timestamp("expires_at").notNull(),
+  
+  // Auditoria das chaves
+  createdBy: uuid("created_by").notNull().references(() => users.id),
+  revokedBy: uuid("revoked_by").references(() => users.id),
+  revokedAt: timestamp("revoked_at"),
+  revocationReason: text("revocation_reason"),
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  index("digital_signature_keys_tenant_active_idx").on(table.tenantId, table.isActive),
+  index("digital_signature_keys_expiry_idx").on(table.tenantId, table.expiresAt),
+  unique("digital_signature_keys_tenant_name_unique").on(table.tenantId, table.keyName),
+]);
 
 // ========================================
 // TICKET METADATA CONFIGURATION SYSTEM
