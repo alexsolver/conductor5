@@ -4,7 +4,7 @@ async function refreshAccessToken(): Promise<string | null> {
   try {
     // Get refresh token from localStorage (if stored) or cookies
     const refreshToken = localStorage.getItem('refreshToken');
-
+    
     if (!refreshToken) {
       console.log('No refresh token available');
       return null;
@@ -54,48 +54,71 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
-export async function apiRequest(method: string, url: string, data?: any) {
-  const token = localStorage.getItem('access_token');
-
-  if (!token) {
-    throw new Error('No access token found');
+export async function apiRequest(
+  method: string,
+  url: string,
+  data?: unknown | undefined,
+): Promise<Response> {
+  const headers: Record<string, string> = {};
+  
+  if (data) {
+    headers["Content-Type"] = "application/json";
+  }
+  
+  // Add authorization header if token exists (but skip redirect for login/register endpoints)
+  let token = localStorage.getItem('accessToken');
+  const isAuthEndpoint = url.includes('/auth/login') || url.includes('/auth/register');
+  
+  // Check if token exists (skip for auth endpoints)
+  if (!token && !isAuthEndpoint) {
+    console.log('No token found, redirecting to login');
+    window.location.href = '/auth';
+    return new Response('Unauthorized', { status: 401 });
+  }
+  
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const config: RequestInit = {
+  const fetchOptions: RequestInit = {
     method,
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
+    headers,
+    credentials: "include",
   };
 
-  if (data && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
-    config.body = JSON.stringify(data);
+  // Only add body for methods that support it
+  if (method !== 'GET' && method !== 'HEAD' && data) {
+    fetchOptions.body = JSON.stringify(data);
   }
 
-  console.log(`[API-REQUEST] ${method} ${url}`, data ? { data } : '');
+  let res = await fetch(url, fetchOptions);
 
-  const response = await fetch(url, config);
+  // If unauthorized, try to refresh token and retry
+  if (res.status === 401 && token) {
+    const newToken = await refreshAccessToken();
+    if (newToken) {
+      headers["Authorization"] = `Bearer ${newToken}`;
+      const retryOptions: RequestInit = {
+        method,
+        headers,
+        credentials: "include",
+      };
 
-  console.log(`[API-RESPONSE] ${method} ${url} - Status:`, response.status);
+      if (method !== 'GET' && method !== 'HEAD' && data) {
+        retryOptions.body = JSON.stringify(data);
+      }
 
-  if (response.status === 401) {
-    // Token expired or invalid
-    localStorage.removeItem('access_token');
-    window.location.href = '/auth';
-    throw new Error('Authentication required');
+      res = await fetch(url, retryOptions);
+    } else {
+      // If refresh failed, redirect to login
+      console.log('Token refresh failed, redirecting to login');
+      window.location.href = '/auth';
+      return new Response('Unauthorized', { status: 401 });
+    }
   }
 
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    console.error(`[API-ERROR] ${method} ${url}:`, errorData);
-    throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-  }
-
-  const responseData = await response.json();
-  console.log(`[API-DATA] ${method} ${url}:`, responseData);
-
-  return responseData;
+  await throwIfResNotOk(res);
+  return res;
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
@@ -105,16 +128,16 @@ export const getQueryFn: <T>(options: {
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
     const headers: Record<string, string> = {};
-
+    
     // Add authorization header if token exists
     let token = localStorage.getItem('accessToken');
-
+    
     // Check if token exists
     if (!token) {
       console.log('No token found for query');
       return null;
     }
-
+    
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
     }
