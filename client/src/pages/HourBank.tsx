@@ -64,9 +64,9 @@ export default function HourBank() {
     enabled: selectedUserId !== 'default',
   });
 
-  // Buscar usuários/funcionários
+  // Buscar usuários/funcionários via endpoint de admin que funciona
   const { data: users } = useQuery({
-    queryKey: ['/api/timecard/available-users'],
+    queryKey: ['/api/tenant-admin/users'],
   });
 
   // Buscar resumo geral

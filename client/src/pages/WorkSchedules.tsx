@@ -96,11 +96,11 @@ function WorkSchedulesContent() {
     retryDelay: 1000
   });
 
-  // Buscar usuários/funcionários do sistema via timecard endpoint que já funciona
+  // Buscar usuários/funcionários do sistema via endpoint de admin que funciona
   const { data: usersData, error: usersError } = useQuery({
-    queryKey: ['/api/timecard/available-users'],
+    queryKey: ['/api/tenant-admin/users'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/timecard/available-users');
+      const response = await apiRequest('GET', '/api/tenant-admin/users');
       const data = await response.json();
       console.log('[USERS-DEBUG] Users data received:', data);
       return data;
