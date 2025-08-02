@@ -160,8 +160,13 @@ export default function TeamManagement() {
   });
 
   // Filter team members - usando tenantMembers que funciona
+  console.log('TeamManagement - tenantMembers:', tenantMembers);
+  console.log('TeamManagement - tenantMembersLoading:', tenantMembersLoading);
+  
   const membersArray = Array.isArray(tenantMembers) ? tenantMembers : 
                        (tenantMembers && Array.isArray(tenantMembers.members) ? tenantMembers.members : []);
+  console.log('TeamManagement - membersArray:', membersArray);
+  
   const filteredMembers = membersArray.filter((member: any) => {
     const matchesSearch = member.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          member.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
