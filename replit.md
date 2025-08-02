@@ -36,6 +36,7 @@ Conductor follows a Clean Architecture with Domain-Driven Design principles.
     - **Project Management**: Full project and project actions system, including automatic project-ticket integration and detailed task tracking.
     - **Timecard/Journey Management**: Comprehensive CLT-compliant electronic timecard system with NSR (sequential numbering), SHA-256 integrity hashing, complete audit trails, digital signatures, automatic backups, and compliance reports. Fully compliant with Portaria 671/2021 MTE requirements for electronic timekeeping systems.
     - **Omnichannel Communication**: Unified communication center supporting multiple channels (email, WhatsApp, Slack) with real-time inbox processing, rule-based automation, and template management.
+    - **Agenda/Schedule Management**: Integrated scheduling system with filtering capabilities connecting client companies, team management groups, and users. Features timeline and 14-day agenda views with automatic filtering of technicians based on selected groups.
     - **Internationalization (i18n)**: Comprehensive i18n system with 5 languages, dynamic language switching, regional formatting, and a translation management interface for SaaS admins.
     - **Template System**: Dynamic UI customization system allowing professional themes and gradient styles via CSS variable integration.
     - **Module Integrity Control**: System for detecting code quality issues, security vulnerabilities (e.g., SQL injection, hardcoded credentials), and architectural compliance deviations.
