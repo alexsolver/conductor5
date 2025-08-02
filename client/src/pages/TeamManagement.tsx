@@ -160,9 +160,12 @@ export default function TeamManagement() {
   });
 
   // Filter team members - usando tenantMembers que funciona
-  const filteredMembers = Array.isArray(tenantMembers) ? tenantMembers.filter((member: any) => {
+  const membersArray = Array.isArray(tenantMembers) ? tenantMembers : 
+                       (tenantMembers && Array.isArray(tenantMembers.members) ? tenantMembers.members : []);
+  const filteredMembers = membersArray.filter((member: any) => {
     const matchesSearch = member.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         member.email?.toLowerCase().includes(searchTerm.toLowerCase());
+                         member.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         `${member.firstName || ''} ${member.lastName || ''}`.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesDepartment = filterDepartment === "all" || 
                              member.department === filterDepartment ||
                              member.departmentName === filterDepartment;
@@ -177,7 +180,7 @@ export default function TeamManagement() {
                         ));
 
     return matchesSearch && matchesDepartment && matchesStatus && matchesRole && matchesGroup;
-  }) : [];
+  });
 
   // Mutation to toggle member status
   const toggleMemberStatusMutation = useMutation({

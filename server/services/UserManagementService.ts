@@ -85,6 +85,35 @@ export class UserManagementService {
       throw error;
     }
   }
+
+  async getTenantTeamMembers(tenantId: string): Promise<EnhancedUser[]> {
+    return this.getUsers(tenantId);
+  }
+
+  async getTenantTeamStats(tenantId: string): Promise<any> {
+    try {
+      const allUsers = await this.getUsers(tenantId);
+      const activeUsers = allUsers.filter(user => user.isActive);
+      
+      return {
+        totalMembers: allUsers.length,
+        activeMembers: activeUsers.length,
+        inactiveMembers: allUsers.length - activeUsers.length,
+        newThisMonth: allUsers.filter(user => {
+          const monthAgo = new Date();
+          monthAgo.setMonth(monthAgo.getMonth() - 1);
+          return user.createdAt >= monthAgo;
+        }).length
+      };
+    } catch (error) {
+      console.error('Error fetching team stats:', error);
+      throw error;
+    }
+  }
+
+  async getTenantUsers(tenantId: string, options: UserManagementOptions = {}): Promise<EnhancedUser[]> {
+    return this.getUsers(tenantId, options);
+  }
 }
 
 export const userManagementService = new UserManagementService();
