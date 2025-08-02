@@ -361,7 +361,7 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                               : isBreakTime 
                                 ? 'bg-orange-100 hover:bg-orange-200'
                                 : isWorkingHour 
-                                  ? 'bg-green-50 hover:bg-green-100' 
+                                  ? 'bg-white hover:bg-gray-50' 
                                   : 'bg-gray-100 hover:bg-gray-200'
                           }`}
                           onClick={() => onTimeSlotClick(timeSlot, formatTimeSlot(timeSlot), agent.id)}
@@ -382,7 +382,7 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                               : isBreakTime 
                                 ? 'bg-orange-400'
                                 : isWorkingHour 
-                                  ? 'bg-green-400' 
+                                  ? 'bg-blue-400' 
                                   : 'bg-gray-300'
                           }`}></div>
                           {plannedSchedules.map((schedule) => {
@@ -416,7 +416,7 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                               : isBreakTime 
                                 ? 'bg-orange-100 hover:bg-orange-200'
                                 : isWorkingHour 
-                                  ? 'bg-blue-50 hover:bg-blue-100' 
+                                  ? 'bg-white hover:bg-gray-50' 
                                   : 'bg-gray-100 hover:bg-gray-200'
                           }`}
                           onClick={() => onTimeSlotClick(timeSlot, formatTimeSlot(timeSlot), agent.id)}
