@@ -426,9 +426,9 @@ export default function TimecardApprovalSettings() {
                   <div className="space-y-2">
                     {[
                       { value: 'all', label: 'Todos os registros' },
-                      { value: 'inconsistencies', label: 'Apenas inconsistências' },
-                      { value: 'overtime', label: 'Apenas horas extras' },
-                      { value: 'absences', label: 'Apenas faltas/atrasos' }
+                      { value: 'inconsistencies', label: 'Inconsistências' },
+                      { value: 'overtime', label: 'Horas extras' },
+                      { value: 'absences', label: 'Faltas/atrasos' }
                     ].map(option => (
                       <div key={option.value} className="flex items-center space-x-2">
                         <input
