@@ -120,6 +120,8 @@ export class DrizzleTimecardRepository implements TimecardRepository {
   // Work Schedules Implementation
   async getAllWorkSchedules(tenantId: string): Promise<any[]> {
     try {
+      console.log('[DRIZZLE-QA] Fetching work schedules for tenant:', tenantId);
+      
       const schedules = await db
         .select({
           id: workSchedules.id,
@@ -144,7 +146,33 @@ export class DrizzleTimecardRepository implements TimecardRepository {
         .where(eq(workSchedules.tenantId, tenantId))
         .orderBy(desc(workSchedules.createdAt));
 
-      return schedules;
+      console.log('[DRIZZLE-QA] Found schedules:', schedules.length);
+
+      // Processar workDays para garantir formato correto
+      const processedSchedules = schedules.map(schedule => {
+        let workDaysArray = [1,2,3,4,5]; // default
+        
+        try {
+          if (schedule.workDays) {
+            if (Array.isArray(schedule.workDays)) {
+              workDaysArray = schedule.workDays;
+            } else if (typeof schedule.workDays === 'string') {
+              workDaysArray = JSON.parse(schedule.workDays);
+            }
+          }
+        } catch (error) {
+          console.error('Error processing workDays:', error);
+          workDaysArray = [1,2,3,4,5];
+        }
+
+        return {
+          ...schedule,
+          workDays: workDaysArray,
+          userName: schedule.userName || 'Usuário'
+        };
+      });
+
+      return processedSchedules;
     } catch (error: any) {
       console.error('[DRIZZLE-QA] Error fetching work schedules:', error);
       return [];
