@@ -177,9 +177,24 @@ export default function ScheduleTypes() {
   };
 
   const handleDeleteTemplate = (id: string) => {
+    // Verificar se é um template padrão
+    const defaultTemplates = ['5x2', '6x1', '12x36'];
+    if (defaultTemplates.includes(id)) {
+      toast({
+        title: 'Não é possível excluir',
+        description: 'Templates padrão do sistema (5x2, 6x1, 12x36) não podem ser excluídos.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     if (confirm('Tem certeza que deseja excluir este template?')) {
       deleteTemplateMutation.mutate(id);
     }
+  };
+
+  const isDefaultTemplate = (id: string) => {
+    return ['5x2', '6x1', '12x36'].includes(id);
   };
 
   if (isLoading) {
@@ -481,9 +496,18 @@ export default function ScheduleTypes() {
                     <CardHeader>
                       <div className="flex justify-between items-start">
                         <div>
-                          <CardTitle className="text-lg">{template.name}</CardTitle>
+                          <CardTitle className="text-lg flex items-center gap-2">
+                            {template.name}
+                            {isDefaultTemplate(template.id) && (
+                              <Badge variant="secondary" className="text-xs">
+                                Sistema
+                              </Badge>
+                            )}
+                          </CardTitle>
                           <CardDescription className="mt-1">
-                            {template.description || 'Sem descrição'}
+                            {template.description || (isDefaultTemplate(template.id) 
+                              ? 'Template padrão do sistema' 
+                              : 'Sem descrição')}
                           </CardDescription>
                         </div>
                         <Badge variant="outline">
@@ -523,9 +547,10 @@ export default function ScheduleTypes() {
                               variant="outline"
                               size="sm"
                               onClick={() => handleDeleteTemplate(template.id)}
-                              disabled={deleteTemplateMutation.isPending}
+                              disabled={deleteTemplateMutation.isPending || isDefaultTemplate(template.id)}
+                              title={isDefaultTemplate(template.id) ? 'Templates padrão não podem ser excluídos' : 'Excluir template'}
                             >
-                              Excluir
+                              {isDefaultTemplate(template.id) ? 'Protegido' : 'Excluir'}
                             </Button>
                             <Button
                               size="sm"
