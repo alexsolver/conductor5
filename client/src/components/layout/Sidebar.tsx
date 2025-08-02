@@ -77,10 +77,12 @@ const baseNavigation: Array<{
     name: "Controle de Jornadas",
     icon: Clock,
     children: [
+      { name: "Registro de Ponto", href: "/timecard", icon: Clock },
       { name: "Escalas de Trabalho", href: "/work-schedules", icon: Calendar },
       { name: "Banco de Horas", href: "/hour-bank", icon: CreditCard },
       { name: "Calendário de Feriados", href: "/holiday-calendar", icon: Calendar },
       { name: "Relatórios", href: "/timecard-reports", icon: FileText },
+      { name: "CLT Compliance", href: "/clt-compliance", icon: Shield },
       { name: "Gestão de Ausências", href: "/absence-management", icon: Calendar },
       { name: "Templates de Escalas", href: "/schedule-templates", icon: Settings },
     ]
