@@ -176,7 +176,13 @@ export class DrizzleTimecardRepository implements TimecardRepository {
         userName: `${schedule.firstName || ''} ${schedule.lastName || ''}`.trim(),
         scheduleType: schedule.scheduleName || '5x2',
         startDate: schedule.createdAt,
-        breakDurationMinutes: 60
+        breakDurationMinutes: 60,
+        // Fix workDays JSON parsing inconsistency
+        workDays: Array.isArray(schedule.workDays) 
+          ? schedule.workDays 
+          : (typeof schedule.workDays === 'string' 
+            ? JSON.parse(schedule.workDays) 
+            : [1,2,3,4,5])
       }));
     } catch (error) {
       console.error('Error fetching user work schedules:', error);
@@ -228,7 +234,8 @@ export class DrizzleTimecardRepository implements TimecardRepository {
         .update(workSchedules)
         .set({ 
           ...data, 
-          workDays: data.workDays ? JSON.stringify(data.workDays) : undefined,
+          // Ensure workDays consistency - should be array in DB, not JSON string
+          workDays: Array.isArray(data.workDays) ? data.workDays : data.workDays,
           updatedAt: new Date() 
         })
         .where(and(eq(workSchedules.id, id), eq(workSchedules.tenantId, tenantId)))

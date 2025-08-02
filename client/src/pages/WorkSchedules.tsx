@@ -53,7 +53,9 @@ const weekDays = [
   { value: 6, label: 'Sábado' }
 ];
 
-export default function WorkSchedules() {
+import { WorkScheduleErrorBoundary } from '@/components/WorkScheduleErrorBoundary';
+
+function WorkSchedulesContent() {
   const [selectedSchedule, setSelectedSchedule] = useState<WorkSchedule | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -262,8 +264,13 @@ export default function WorkSchedules() {
   };
 
   const getWorkDaysText = (workDays: number[] | null | undefined) => {
-    if (!workDays || !Array.isArray(workDays) || workDays.length === 0) return 'Não definido';
-    return workDays.map(day => weekDays.find(wd => wd.value === day)?.label).filter(Boolean).join(', ');
+    try {
+      if (!workDays || !Array.isArray(workDays) || workDays.length === 0) return 'Não definido';
+      return workDays.map(day => weekDays.find(wd => wd.value === day)?.label).filter(Boolean).join(', ');
+    } catch (error) {
+      console.error('Error processing workDays:', error, workDays);
+      return 'Erro na formatação';
+    }
   };
 
   const getStatusBadge = (isActive: boolean) => {
@@ -501,5 +508,13 @@ export default function WorkSchedules() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function WorkSchedules() {
+  return (
+    <WorkScheduleErrorBoundary>
+      <WorkSchedulesContent />
+    </WorkScheduleErrorBoundary>
   );
 }
