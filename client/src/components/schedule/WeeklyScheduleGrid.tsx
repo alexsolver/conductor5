@@ -252,19 +252,51 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
             <div className="text-sm font-medium text-gray-700">Técnicos</div>
           </div>
           
-          {/* Time slots header */}
+          {/* Time slots header with day information */}
           <div 
             ref={headerScrollRef}
-            className="flex-1 flex overflow-x-auto"
+            className="flex-1 overflow-x-auto"
             onScroll={syncScrollToContent}
           >
-            {timeSlots.map((timeSlot, index) => (
-              <div key={index} className="flex-shrink-0 w-8 p-1 text-center border-r last:border-r-0">
-                <div className="text-xs font-medium text-gray-900">
-                  {formatTimeSlot(timeSlot)}
-                </div>
-              </div>
-            ))}
+            <div className="flex">
+              {/* Group time slots by day */}
+              {days.map((day, dayIndex) => {
+                const dayTimeSlots = timeSlots.filter(slot => 
+                  slot.getDate() === day.getDate() && 
+                  slot.getMonth() === day.getMonth() && 
+                  slot.getFullYear() === day.getFullYear()
+                );
+                
+                const slotsPerDay = dayTimeSlots.length;
+                const cellWidth = timeFilter === '1hora' ? 16 : timeFilter === '30min' ? 12 : timeFilter === '10min' ? 8 : 6;
+                
+                return (
+                  <div key={dayIndex} className="border-r">
+                    {/* Day header */}
+                    <div 
+                      className="bg-gray-200 border-b text-center py-1 text-xs font-semibold text-gray-700"
+                      style={{ width: `${slotsPerDay * cellWidth}px` }}
+                    >
+                      {format(day, 'eee. dd/MM', { locale: ptBR })}
+                    </div>
+                    {/* Time slots for this day */}
+                    <div className="flex">
+                      {dayTimeSlots.map((timeSlot, slotIndex) => (
+                        <div 
+                          key={slotIndex} 
+                          className={`flex-shrink-0 p-1 text-center border-r last:border-r-0`}
+                          style={{ width: `${cellWidth}px` }}
+                        >
+                          <div className="text-xs font-medium text-gray-900">
+                            {formatTimeSlot(timeSlot)}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
 
@@ -317,61 +349,80 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
             className="flex-1 overflow-x-auto"
             onScroll={syncScrollToHeader}
           >
-            <div className="flex" style={{ minWidth: `${timeSlots.length * 32}px` }}>
-              {timeSlots.map((timeSlot, timeIndex) => (
-                <div key={timeIndex} className="flex-shrink-0 w-8 border-r last:border-r-0">
-                  {filteredAgents.map((agent) => {
-                    const plannedSchedules = getSchedulesForTimeSlot(agent.id, timeSlot, 'planned');
-                    const actualSchedules = getSchedulesForTimeSlot(agent.id, timeSlot, 'actual');
-                    
-                    return (
-                      <div key={agent.id} className="border-b">
-                        {/* Planned row */}
-                        <div 
-                          className="h-10 relative border-b border-gray-100 cursor-pointer bg-white hover:bg-gray-50"
-                          onClick={() => onTimeSlotClick(timeSlot, format(timeSlot, 'HH:mm'), agent.id)}
-                        >
-                          {plannedSchedules.map((schedule) => {
-                            const activityType = getActivityType(schedule.activityTypeId);
-                            return (
-                              <div
-                                key={schedule.id}
-                                className={`absolute inset-0 text-white text-xs cursor-pointer hover:opacity-80 ${getPriorityColor(schedule.priority)}`}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  onScheduleClick(schedule);
-                                }}
-                                title={`${schedule.title} - ${activityType?.name || 'N/A'}`}
-                              />
-                            );
-                          })}
-                        </div>
-                        
-                        {/* Actual row */}
-                        <div 
-                          className="h-10 bg-gray-50 relative cursor-pointer hover:bg-gray-100"
-                          onClick={() => onTimeSlotClick(timeSlot, format(timeSlot, 'HH:mm'), agent.id)}
-                        >
-                          {actualSchedules.map((schedule) => {
-                            const activityType = getActivityType(schedule.activityTypeId);
-                            return (
-                              <div
-                                key={schedule.id}
-                                className={`absolute inset-0 text-white text-xs cursor-pointer hover:opacity-80 ${getPriorityColor(schedule.priority)}`}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  onScheduleClick(schedule);
-                                }}
-                                title={`${schedule.title} - ${activityType?.name || 'N/A'}`}
-                              />
-                            );
-                          })}
-                        </div>
+            <div className="flex">
+              {/* Group content by day to match header structure */}
+              {days.map((day, dayIndex) => {
+                const dayTimeSlots = timeSlots.filter(slot => 
+                  slot.getDate() === day.getDate() && 
+                  slot.getMonth() === day.getMonth() && 
+                  slot.getFullYear() === day.getFullYear()
+                );
+                
+                const cellWidth = timeFilter === '1hora' ? 16 : timeFilter === '30min' ? 12 : timeFilter === '10min' ? 8 : 6;
+                
+                return (
+                  <div key={dayIndex} className="flex border-r">
+                    {dayTimeSlots.map((timeSlot, timeIndex) => (
+                      <div 
+                        key={timeIndex} 
+                        className="border-r last:border-r-0"
+                        style={{ width: `${cellWidth}px` }}
+                      >
+                        {filteredAgents.map((agent) => {
+                          const plannedSchedules = getSchedulesForTimeSlot(agent.id, timeSlot, 'planned');
+                          const actualSchedules = getSchedulesForTimeSlot(agent.id, timeSlot, 'actual');
+                          
+                          return (
+                            <div key={agent.id} className="border-b">
+                              {/* Planned row */}
+                              <div 
+                                className="h-10 relative border-b border-gray-100 cursor-pointer bg-white hover:bg-gray-50"
+                                onClick={() => onTimeSlotClick(timeSlot, format(timeSlot, 'HH:mm'), agent.id)}
+                              >
+                                {plannedSchedules.map((schedule) => {
+                                  const activityType = getActivityType(schedule.activityTypeId);
+                                  return (
+                                    <div
+                                      key={schedule.id}
+                                      className={`absolute inset-0 text-white text-xs cursor-pointer hover:opacity-80 ${getPriorityColor(schedule.priority)}`}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        onScheduleClick(schedule);
+                                      }}
+                                      title={`${schedule.title} - ${activityType?.name || 'N/A'}`}
+                                    />
+                                  );
+                                })}
+                              </div>
+                              
+                              {/* Actual row */}
+                              <div 
+                                className="h-10 bg-gray-50 relative cursor-pointer hover:bg-gray-100"
+                                onClick={() => onTimeSlotClick(timeSlot, format(timeSlot, 'HH:mm'), agent.id)}
+                              >
+                                {actualSchedules.map((schedule) => {
+                                  const activityType = getActivityType(schedule.activityTypeId);
+                                  return (
+                                    <div
+                                      key={schedule.id}
+                                      className={`absolute inset-0 text-white text-xs cursor-pointer hover:opacity-80 ${getPriorityColor(schedule.priority)}`}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        onScheduleClick(schedule);
+                                      }}
+                                      title={`${schedule.title} - ${activityType?.name || 'N/A'}`}
+                                    />
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
-                    );
-                  })}
-                </div>
-              ))}
+                    ))}
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
