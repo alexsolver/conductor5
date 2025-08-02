@@ -159,14 +159,16 @@ export default function TeamManagement() {
     enabled: !!user,
   });
 
-  // Filter team members
-  const filteredMembers = Array.isArray(teamMembers) ? teamMembers.filter((member: any) => {
+  // Filter team members - usando tenantMembers que funciona
+  const filteredMembers = Array.isArray(tenantMembers) ? tenantMembers.filter((member: any) => {
     const matchesSearch = member.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          member.email?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesDepartment = filterDepartment === "all" || 
                              member.department === filterDepartment ||
                              member.departmentName === filterDepartment;
-    const matchesStatus = filterStatus === "all" || member.status === filterStatus;
+    const matchesStatus = filterStatus === "all" || member.status === filterStatus || 
+                         (member.isActive && filterStatus === "active") ||
+                         (!member.isActive && filterStatus === "inactive");
     const matchesRole = filterRole === "all" || member.role === filterRole;
     // Filtro por grupo agora funciona com array de groupIds do relacionamento
     const matchesGroup = filterGroup === "all" || 
@@ -739,15 +741,15 @@ export default function TeamManagement() {
                       <div className="col-span-3 flex items-center space-x-3">
                         <div className="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center flex-shrink-0">
                           <span className="text-white font-semibold text-sm">
-                            {member.name.charAt(0).toUpperCase()}
+                            {(member.name || member.email || 'U').charAt(0).toUpperCase()}
                           </span>
                         </div>
                         <div className="min-w-0 flex-1">
                           <h3 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
-                            {member.name}
+                            {member.name || `${member.firstName || ''} ${member.lastName || ''}`.trim() || member.email || 'Usuário'}
                           </h3>
                           <p className="text-xs text-gray-500 truncate">
-                            ID: {member.id.slice(-8)}
+                            ID: {member.id ? member.id.slice(-8) : 'N/A'}
                           </p>
                         </div>
                       </div>
@@ -781,18 +783,18 @@ export default function TeamManagement() {
                         <div className="flex items-center space-x-2">
                           <Badge 
                             variant={
-                              member.status === 'active' ? 'default' : 
-                              member.status === 'inactive' ? 'destructive' : 'secondary'
+                              (member.status === 'active' || member.isActive) ? 'default' : 
+                              (member.status === 'inactive' || !member.isActive) ? 'destructive' : 'secondary'
                             }
                             className="text-xs"
                           >
-                            {member.status === 'active' ? 'Ativo' : 
-                             member.status === 'inactive' ? 'Inativo' : 'Pendente'}
+                            {(member.status === 'active' || member.isActive) ? 'Ativo' : 
+                             (member.status === 'inactive' || !member.isActive) ? 'Inativo' : 'Pendente'}
                           </Badge>
-                          {member.status === 'active' && (
+                          {(member.status === 'active' || member.isActive) && (
                             <CheckCircle className="h-3 w-3 text-green-500" />
                           )}
-                          {member.status === 'inactive' && (
+                          {(member.status === 'inactive' || !member.isActive) && (
                             <XCircle className="h-3 w-3 text-red-500" />
                           )}
                           {member.status === 'pending' && (
@@ -814,12 +816,12 @@ export default function TeamManagement() {
                         </Button>
                         <Button
                           size="sm"
-                          variant={member.status === 'active' ? 'destructive' : 'default'}
+                          variant={(member.status === 'active' || member.isActive) ? 'destructive' : 'default'}
                           onClick={() => handleToggleMemberStatus(member)}
                           className="h-8"
                           disabled={!user || (user.role !== 'tenant_admin' && user.role !== 'saas_admin' && user.role !== 'manager')}
                         >
-                          {member.status === 'active' ? (
+                          {(member.status === 'active' || member.isActive) ? (
                             <>
                               <UserX className="h-3 w-3 mr-1" />
                               Desativar
