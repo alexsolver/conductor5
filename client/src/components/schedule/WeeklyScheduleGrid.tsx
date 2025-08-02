@@ -116,7 +116,7 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
   const getTimeSlotDuration = () => 60; // Always 1 hour for 14-day view
 
   const formatTimeSlot = (timeSlot: Date) => {
-    return format(timeSlot, 'HH:mm');
+    return format(timeSlot, 'HH'); // Show only hours (two digits)
   };
 
   // Scroll synchronization refs
