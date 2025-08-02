@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { cltComplianceService } from '../services/CLTComplianceService';
+import { cltComplianceService as complianceService } from '../services/CLTComplianceService';
 import { backupService } from '../services/BackupService';
 import { db } from '../db';
 import { 
@@ -25,7 +25,7 @@ export class CLTComplianceController {
 
       console.log(`[CLT-INTEGRITY] Verificando integridade para tenant: ${tenantId}`);
 
-      const result = await cltComplianceService.verifyIntegrityChain(tenantId);
+      const result = await complianceService.verifyIntegrityChain(tenantId);
 
       res.json({
         isValid: result.isValid,
@@ -492,7 +492,7 @@ export class CLTComplianceController {
 
       console.log(`[CLT-REBUILD] Iniciando reconstituição para tenant: ${tenantId}`);
       
-      const result = await this.cltComplianceService.rebuildIntegrityChain(tenantId);
+      const result = await complianceService.rebuildIntegrityChain(tenantId);
       
       res.status(200).json({
         success: true,
