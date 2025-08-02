@@ -106,12 +106,15 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
     }
   };
 
-  // Filter agents by search
-  const filteredAgents = agents.filter(agent => 
-    agent && agent.name && agent.email &&
-    (agent.name.toLowerCase().includes(searchAgent.toLowerCase()) ||
-    agent.email.toLowerCase().includes(searchAgent.toLowerCase()))
-  );
+  // Filter agents by search - fixed to handle firstName/lastName structure
+  const filteredAgents = agents.filter(agent => {
+    if (!agent || !agent.email) return false;
+    
+    const agentName = agent.name || `${agent.firstName || ''} ${agent.lastName || ''}`.trim() || agent.email;
+    
+    return agentName.toLowerCase().includes(searchAgent.toLowerCase()) ||
+           agent.email.toLowerCase().includes(searchAgent.toLowerCase());
+  });
 
   const getActivityType = (activityTypeId: string) => {
     return activityTypes.find(type => type.id === activityTypeId);
@@ -187,15 +190,18 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
         <div className="space-y-2">
           <h3 className="text-sm font-medium text-gray-700">Técnicos ({filteredAgents.length})</h3>
           <div className="space-y-1 max-h-96 overflow-y-auto">
-            {filteredAgents.map((agent) => (
-              <div
-                key={agent.id}
-                className="p-2 text-sm bg-gray-50 rounded border"
-              >
-                <div className="font-medium text-gray-900">{agent.name}</div>
-                <div className="text-xs text-gray-500">{agent.email}</div>
-              </div>
-            ))}
+            {filteredAgents.map((agent) => {
+              const agentName = agent.name || `${agent.firstName || ''} ${agent.lastName || ''}`.trim() || agent.email;
+              return (
+                <div
+                  key={agent.id}
+                  className="p-2 text-sm bg-gray-50 rounded border"
+                >
+                  <div className="font-medium text-gray-900">{agentName}</div>
+                  <div className="text-xs text-gray-500">{agent.email}</div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>

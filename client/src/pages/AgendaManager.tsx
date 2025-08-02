@@ -80,8 +80,9 @@ const AgendaManager: React.FC = () => {
   // Calculate date range based on view
   const getDateRange = () => {
     if (view === 'agenda') {
+      // For agenda view, show 14 days (2 weeks)
       const start = startOfWeek(selectedDate, { locale: ptBR });
-      const end = endOfWeek(selectedDate, { locale: ptBR });
+      const end = addWeeks(endOfWeek(selectedDate, { locale: ptBR }), 1); // Add one more week
       return { 
         startDate: format(start, 'yyyy-MM-dd'),
         endDate: format(end, 'yyyy-MM-dd')
