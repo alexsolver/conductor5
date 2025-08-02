@@ -941,6 +941,8 @@ const TicketDetails = React.memo(() => {
   useEffect(() => {
     if (formDataMemo && ticket) {
       console.log('🎫 Optimized form reset with memoized data');
+      console.log('🚨 FORM RESET DEBUG - About to reset form');
+      console.log('📍 Reset call stack:', new Error().stack);
       form.reset(formDataMemo);
 
       // Update local states only if changed
@@ -956,6 +958,11 @@ const TicketDetails = React.memo(() => {
       }
     }
   }, [formDataMemo, selectedCompany, followers]);
+
+  // Debug: Log when showInternalActionModal changes
+  useEffect(() => {
+    console.log('🔵 MODAL STATE CHANGE - showInternalActionModal:', showInternalActionModal);
+  }, [showInternalActionModal]);
 
   // Update mutation
   const updateTicketMutation = useMutation({
