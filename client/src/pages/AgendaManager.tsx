@@ -3,7 +3,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { format, startOfWeek, endOfWeek, addWeeks, subWeeks, addDays } from 'date-fns';
+import { format, startOfWeek, endOfWeek, addWeeks, subWeeks, addDays, subDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Calendar, Clock, User, MapPin, Filter, Plus, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -255,7 +255,10 @@ const AgendaManager: React.FC = () => {
 
   // Navigation functions
   const navigatePrevious = () => {
-    if (view === 'agenda') {
+    if (view === 'timeline') {
+      // Timeline: navegar dia por dia
+      setSelectedDate(prevDate => subDays(prevDate, 1));
+    } else if (view === 'agenda') {
       setSelectedDate(prevDate => subWeeks(prevDate, 2)); // 14 dias = 2 semanas
     } else {
       setSelectedDate(prevDate => subWeeks(prevDate, 1));
@@ -263,7 +266,10 @@ const AgendaManager: React.FC = () => {
   };
 
   const navigateNext = () => {
-    if (view === 'agenda') {
+    if (view === 'timeline') {
+      // Timeline: navegar dia por dia
+      setSelectedDate(prevDate => addDays(prevDate, 1));
+    } else if (view === 'agenda') {
       setSelectedDate(prevDate => addWeeks(prevDate, 2)); // 14 dias = 2 semanas
     } else {
       setSelectedDate(prevDate => addWeeks(prevDate, 1));
