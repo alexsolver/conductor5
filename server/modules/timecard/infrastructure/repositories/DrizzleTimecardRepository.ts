@@ -250,8 +250,6 @@ export class DrizzleTimecardRepository implements TimecardRepository {
     }
   }
 
-  
-
   async updateWorkSchedule(id: string, tenantId: string, data: any): Promise<any> {
     try {
       const workDaysArray = Array.isArray(data.workDays) ? data.workDays : [1,2,3,4,5];
