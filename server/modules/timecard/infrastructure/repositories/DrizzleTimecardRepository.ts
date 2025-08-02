@@ -4,7 +4,8 @@ import {
   timecardEntries,
   hourBankEntries, 
   users,
-  workSchedules
+  workSchedules,
+  absenceRequests
 } from '../../../../../shared/schema-master';
 
 export interface TimecardRepository {
@@ -50,6 +51,9 @@ export interface TimecardRepository {
   createShiftSwapRequest(data: any): Promise<any>;
   getShiftSwapRequests(tenantId: string): Promise<any[]>;
   updateShiftSwapRequest(id: string, tenantId: string, data: any): Promise<any>;
+
+  // Users
+  getUsers(tenantId: string): Promise<any[]>;
 }
 
 export class DrizzleTimecardRepository implements TimecardRepository {
@@ -340,57 +344,110 @@ export class DrizzleTimecardRepository implements TimecardRepository {
     }
   }
 
-  // Absence Requests Implementation - Basic implementation
+  // Absence Requests Implementation
   async createAbsenceRequest(data: any): Promise<any> {
-    // Mock implementation - return dummy data
-    return {
-      id: 'mock-' + Date.now(),
-      ...data,
-      status: 'pending',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
+    try {
+      const [request] = await db
+        .insert(absenceRequests)
+        .values({
+          tenantId: data.tenantId,
+          userId: data.userId,
+          absenceType: data.absenceType,
+          startDate: data.startDate,
+          endDate: data.endDate,
+          reason: data.reason,
+          status: 'pending'
+        })
+        .returning();
+      return request;
+    } catch (error) {
+      console.error('Error creating absence request:', error);
+      return [];
+    }
   }
 
   async getAbsenceRequestsByUser(userId: string, tenantId: string): Promise<any[]> {
-    // Mock implementation - return empty array
-    return [];
+    try {
+      return await db
+        .select()
+        .from(absenceRequests)
+        .where(and(
+          eq(absenceRequests.userId, userId),
+          eq(absenceRequests.tenantId, tenantId)
+        ))
+        .orderBy(desc(absenceRequests.createdAt));
+    } catch (error) {
+      console.error('Error fetching user absence requests:', error);
+      return [];
+    }
   }
 
   async getPendingAbsenceRequests(tenantId: string): Promise<any[]> {
-    // Mock implementation - return empty array
-    return [];
+    try {
+      return await db
+        .select()
+        .from(absenceRequests)
+        .where(and(
+          eq(absenceRequests.tenantId, tenantId),
+          eq(absenceRequests.status, 'pending')
+        ))
+        .orderBy(desc(absenceRequests.createdAt));
+    } catch (error) {
+      console.error('Error fetching pending absence requests:', error);
+      return [];
+    }
   }
 
   async updateAbsenceRequest(id: string, tenantId: string, data: any): Promise<any> {
-    // Mock implementation - return dummy data
-    return {
-      id,
-      ...data,
-      updatedAt: new Date()
-    };
+    try {
+      const [request] = await db
+        .update(absenceRequests)
+        .set({ ...data, updatedAt: new Date() })
+        .where(and(eq(absenceRequests.id, id), eq(absenceRequests.tenantId, tenantId)))
+        .returning();
+      return request;
+    } catch (error) {
+      console.error('Error updating absence request:', error);
+      throw error;
+    }
   }
 
   async approveAbsenceRequest(id: string, tenantId: string, approvedBy: string): Promise<any> {
-    // Mock implementation - return dummy data
-    return {
-      id,
-      status: 'approved',
-      approvedBy,
-      approvedAt: new Date(),
-      updatedAt: new Date()
-    };
+    try {
+      const [request] = await db
+        .update(absenceRequests)
+        .set({ 
+          status: 'approved',
+          approvedBy,
+          approvedAt: new Date(),
+          updatedAt: new Date()
+        })
+        .where(and(eq(absenceRequests.id, id), eq(absenceRequests.tenantId, tenantId)))
+        .returning();
+      return request;
+    } catch (error) {
+      console.error('Error approving absence request:', error);
+      throw error;
+    }
   }
 
   async rejectAbsenceRequest(id: string, tenantId: string, approvedBy: string, reason: string): Promise<any> {
-    // Mock implementation - return dummy data
-    return {
-      id,
-      status: 'rejected',
-      approvedBy,
-      rejectionReason: reason,
-      updatedAt: new Date()
-    };
+    try {
+      const [request] = await db
+        .update(absenceRequests)
+        .set({ 
+          status: 'rejected',
+          approvedBy,
+          rejectionReason: reason,
+          updatedAt: new Date()
+        })
+        .where(and(eq(absenceRequests.id, id), eq(absenceRequests.tenantId, tenantId)))
+        .returning();
+      return request;
+    } catch (error) {
+      console.error('Error rejecting absence request:', error);
+      throw error;
+    }
   }
 
   // Schedule Templates Implementation - Basic implementation
@@ -542,5 +599,45 @@ export class DrizzleTimecardRepository implements TimecardRepository {
 
   async updateShiftSwapRequest(id: string, tenantId: string, data: any): Promise<any> {
     throw new Error('Not implemented yet');
+  }
+
+  // Users Implementation - Critical for WorkSchedules page
+  async getUsers(tenantId: string): Promise<any[]> {
+    try {
+      console.log('[DRIZZLE-QA] Fetching users for tenant:', tenantId);
+      
+      const usersList = await db
+        .select({
+          id: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          email: users.email,
+          role: users.role,
+          tenantId: users.tenantId,
+          isActive: users.isActive
+        })
+        .from(users)
+        .where(and(
+          eq(users.tenantId, tenantId),
+          eq(users.isActive, true)
+        ))
+        .orderBy(asc(users.firstName), asc(users.lastName));
+
+      console.log('[DRIZZLE-QA] Found users:', usersList.length);
+      
+      return usersList.map(user => ({
+        id: user.id,
+        name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email || 'Usuário',
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role,
+        tenantId: user.tenantId,
+        isActive: user.isActive
+      }));
+    } catch (error) {
+      console.error('[DRIZZLE-QA] Error fetching users:', error);
+      return [];
+    }
   }
 }
