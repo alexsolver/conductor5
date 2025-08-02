@@ -127,6 +127,38 @@ const AgendaManager: React.FC = () => {
   
   const customers = (customersData as any)?.customers || [];
 
+  // Buscar grupos de usuários do módulo de gestão de equipes
+  const { data: groupsData } = useQuery({
+    queryKey: ['/api/user-management/groups'],
+    queryFn: () => apiRequest('GET', '/api/user-management/groups'),
+  });
+  
+  const groups = (groupsData as any)?.groups || [];
+
+  // Buscar membros do grupo selecionado
+  const { data: groupMembersData } = useQuery({
+    queryKey: ['/api/user-management/groups', selectedGroup, 'members'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/user-management/groups/${selectedGroup}/members`);
+      return await response.json();
+    },
+    enabled: selectedGroup !== 'todos' && !!selectedGroup,
+  });
+
+  // Filtrar agentes com base no grupo selecionado
+  const filteredAgents = React.useMemo(() => {
+    if (selectedGroup === 'todos') {
+      return agents;
+    }
+    
+    if (!groupMembersData || !groupMembersData.members) {
+      return [];
+    }
+    
+    const memberUserIds = groupMembersData.members.map((member: any) => member.userId);
+    return agents.filter((agent: any) => memberUserIds.includes(agent.id));
+  }, [agents, selectedGroup, groupMembersData]);
+
   // Navigation functions
   const navigatePrevious = () => {
     if (view === 'agenda') {
@@ -236,9 +268,11 @@ const AgendaManager: React.FC = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="todos">Todos os grupos</SelectItem>
-                  <SelectItem value="tecnico">Técnico</SelectItem>
-                  <SelectItem value="comercial">Comercial</SelectItem>
-                  <SelectItem value="suporte">Suporte</SelectItem>
+                  {Array.isArray(groups) && groups.map((group) => (
+                    <SelectItem key={group.id} value={group.id}>
+                      {group.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -252,7 +286,7 @@ const AgendaManager: React.FC = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="todos">Todos os técnicos</SelectItem>
-                  {Array.isArray(agents) && agents.map((agent) => (
+                  {Array.isArray(filteredAgents) && filteredAgents.map((agent) => (
                     <SelectItem key={agent.id} value={agent.id}>
                       {agent.name}
                     </SelectItem>
@@ -345,7 +379,7 @@ const AgendaManager: React.FC = () => {
           <TimelineScheduleGrid
             schedules={schedules as Schedule[]}
             activityTypes={activityTypes}
-            agents={agents}
+            agents={filteredAgents}
             selectedDate={selectedDate}
             onScheduleClick={handleScheduleClick}
             onTimeSlotClick={handleTimeSlotClick}
@@ -354,7 +388,7 @@ const AgendaManager: React.FC = () => {
           <WeeklyScheduleGrid
             schedules={schedules as Schedule[]}
             activityTypes={activityTypes}
-            agents={agents}
+            agents={filteredAgents}
             startDate={selectedDate}
             onScheduleClick={handleScheduleClick}
             onTimeSlotClick={handleTimeSlotClick}
@@ -372,7 +406,7 @@ const AgendaManager: React.FC = () => {
         defaultTime={newScheduleDefaults.time}
         defaultAgentId={newScheduleDefaults.agentId}
         activityTypes={activityTypes}
-        agents={agents}
+        agents={filteredAgents}
         customers={customers}
       />
     </div>
