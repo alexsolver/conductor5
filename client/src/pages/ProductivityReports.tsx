@@ -69,6 +69,7 @@ export default function ProductivityReports() {
   });
 
   const formatDuration = (seconds: number) => {
+    if (seconds === 0) return 'Em análise';
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     return `${hours}h ${minutes}m`;
@@ -124,6 +125,26 @@ export default function ProductivityReports() {
           Exportar
         </Button>
       </div>
+
+      {/* Status do Sistema */}
+      {summary.totalActivities > 0 && summary.totalTimeSeconds === 0 && (
+        <Card className="bg-blue-50 border-blue-200">
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              <div className="bg-blue-500 text-white p-1 rounded">
+                <Activity className="h-4 w-4" />
+              </div>
+              <div>
+                <h3 className="font-medium text-blue-900">Sistema de Tracking Ativo</h3>
+                <p className="text-sm text-blue-700 mt-1">
+                  O sistema está registrando suas atividades com sucesso. 
+                  O cálculo de tempo detalhado está sendo ajustado para fornecer métricas mais precisas.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Filtros */}
       <Card>
