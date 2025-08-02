@@ -44,16 +44,33 @@ interface TimeAlert {
 // Função para transformar dados do frontend para backend
 const transformTimecardData = (frontendData: any) => {
   const now = new Date().toISOString();
-  return {
-    userId: frontendData.userId || 'current-user', // Será preenchido pelo backend via JWT
-    checkIn: frontendData.recordType === 'clock_in' ? now : undefined,
-    checkOut: frontendData.recordType === 'clock_out' ? now : undefined,
-    breakStart: frontendData.recordType === 'break_start' ? now : undefined,
-    breakEnd: frontendData.recordType === 'break_end' ? now : undefined,
-    location: frontendData.location ? JSON.stringify(frontendData.location) : undefined,
+  const payload: any = {
     isManualEntry: frontendData.deviceType !== 'web',
     notes: frontendData.notes
   };
+
+  // Adicionar apenas o campo relevante baseado no tipo de registro
+  switch (frontendData.recordType) {
+    case 'clock_in':
+      payload.checkIn = now;
+      break;
+    case 'clock_out':
+      payload.checkOut = now;
+      break;
+    case 'break_start':
+      payload.breakStart = now;
+      break;
+    case 'break_end':
+      payload.breakEnd = now;
+      break;
+  }
+
+  // Adicionar localização se disponível
+  if (frontendData.location) {
+    payload.location = JSON.stringify(frontendData.location);
+  }
+
+  return payload;
 };
 
 export default function Timecard() {
@@ -80,6 +97,7 @@ export default function Timecard() {
   // Atualizar estado local quando dados chegarem
   useEffect(() => {
     if (statusData) {
+      console.log('[TIMECARD-DEBUG] Status data received:', statusData);
       setCurrentStatus(statusData);
     }
   }, [statusData]);
@@ -104,41 +122,35 @@ export default function Timecard() {
     mutationFn: async (data: { recordType: string; deviceType: string; location?: any; notes?: string }) => {
       // Transformar dados do frontend para formato backend
       const transformedData = transformTimecardData(data);
+      console.log('[TIMECARD-DEBUG] Sending data:', transformedData);
       const response = await apiRequest('POST', '/api/timecard/timecard-entries', transformedData);
-      return response;
+      const result = await response.json();
+      console.log('[TIMECARD-DEBUG] Response:', result);
+      return result;
     },
-    onSuccess: (result) => {
+    onSuccess: (result: TimeRecord) => {
       console.log('Registro de ponto bem-sucedido:', result);
       toast({
         title: 'Ponto registrado com sucesso!',
         description: 'Seu registro foi salvo e processado.',
       });
-      // Atualizar status baseado no registro
-      setCurrentStatus(prev => {
-        let newStatus = prev.status;
-        if (result.checkIn) {
-          newStatus = 'working';
-        } else if (result.breakStart) {
-          newStatus = 'on_break';
-        } else if (result.breakEnd) {
-          newStatus = 'working';
-        } else if (result.checkOut) {
-          newStatus = 'finished';
-        }
-        return {
-          ...prev,
-          status: newStatus,
-          todayRecords: [...prev.todayRecords, result]
-        };
-      });
-      // Invalidar cache para atualizar dados
+      // Invalidar cache para atualizar dados automaticamente
       queryClient.invalidateQueries({ queryKey: ['/api/timecard/current-status'] });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Erro ao registrar ponto:', error);
+      let errorMessage = 'Tente novamente em alguns instantes.';
+      
+      // Tentar extrair mensagem de erro específica
+      if (error?.message) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+      
       toast({
         title: 'Erro ao registrar ponto',
-        description: error.message || 'Tente novamente em alguns instantes.',
+        description: errorMessage,
         variant: 'destructive',
       });
     },
