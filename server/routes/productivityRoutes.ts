@@ -14,12 +14,25 @@ router.get('/my-productivity', jwtAuth, async (req: any, res) => {
     const start = startDate ? new Date(startDate as string) : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000); // Last 7 days
     const end = endDate ? new Date(endDate as string) : new Date();
 
+    console.log('🔍 Productivity API Debug:', {
+      userId: req.user.id,
+      tenantId: req.user.tenantId,
+      startDate: start,
+      endDate: end,
+      queryParams: req.query
+    });
+
     const data = await ActivityTrackingService.getProductivityReport(
       req.user.tenantId,
       req.user.id,
       start,
       end
     );
+
+    console.log('🔍 Raw data from service:', {
+      dataLength: data.length,
+      sampleData: data.slice(0, 3)
+    });
 
     // Process data for frontend
     const summary = {
@@ -29,6 +42,11 @@ router.get('/my-productivity', jwtAuth, async (req: any, res) => {
       activitiesByType: {},
       dailyBreakdown: {}
     };
+
+    console.log('🔍 Summary initialization:', {
+      totalActivities: summary.totalActivities,
+      totalTimeSeconds: summary.totalTimeSeconds
+    });
 
     // Group by activity type
     data.forEach(item => {
@@ -53,6 +71,12 @@ router.get('/my-productivity', jwtAuth, async (req: any, res) => {
 
     summary.averageSessionTime = summary.totalActivities > 0 ? 
       Math.floor(summary.totalTimeSeconds / summary.totalActivities) : 0;
+
+    console.log('🔍 Final summary before response:', {
+      summary,
+      activitiesByTypeKeys: Object.keys(summary.activitiesByType),
+      dailyBreakdownKeys: Object.keys(summary.dailyBreakdown)
+    });
 
     // Daily breakdown
     data.forEach(item => {

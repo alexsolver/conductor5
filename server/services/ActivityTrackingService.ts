@@ -125,6 +125,12 @@ export class ActivityTrackingService {
     }
 
     try {
+      console.log('🔍 ActivityTrackingService Query:', {
+        tenantSchema: this.getTenantSchema(tenantId),
+        whereConditions,
+        sqlConditions: whereConditions.join(' AND ')
+      });
+
       const result = await db.execute(sql`
         SELECT 
           user_id,
@@ -136,10 +142,14 @@ export class ActivityTrackingService {
           DATE(created_at) as activity_date
         FROM ${sql.identifier(this.getTenantSchema(tenantId))}.user_activity_tracking 
         WHERE ${sql.raw(whereConditions.join(' AND '))}
-          AND duration_seconds IS NOT NULL
         GROUP BY user_id, activity_type, resource_type, DATE(created_at)
         ORDER BY activity_date DESC, total_duration_seconds DESC
       `);
+
+      console.log('🔍 Query result:', {
+        rowCount: result.rows.length,
+        sampleRows: result.rows.slice(0, 3)
+      });
 
       return result.rows;
     } catch (error) {
