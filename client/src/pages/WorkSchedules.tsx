@@ -36,12 +36,21 @@ interface User {
 
 const scheduleTypeLabels = {
   '5x2': '5x2 (Segunda a Sexta)',
-  '6x1': '6x1 (Seis dias com folga)',
+  '6x1': '6x1 (Seis dias com folga)', 
   '12x36': '12x36 (Plantões)',
   'shift': 'Escalas por Turno',
   'flexible': 'Horário Flexível',
   'intermittent': 'Trabalho Intermitente'
 };
+
+const scheduleTypeOptions = [
+  { value: '5x2', label: '5x2 (Segunda a Sexta)' },
+  { value: '6x1', label: '6x1 (Seis dias com folga)' },
+  { value: '12x36', label: '12x36 (Plantões)' },
+  { value: 'shift', label: 'Escalas por Turno' },
+  { value: 'flexible', label: 'Horário Flexível' },
+  { value: 'intermittent', label: 'Trabalho Intermitente' }
+];
 
 const weekDays = [
   { value: 0, label: 'Domingo' },

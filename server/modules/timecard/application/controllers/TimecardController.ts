@@ -401,10 +401,10 @@ export class TimecardController {
   getAllScheduleOptions = async (req: Request, res: Response) => {
     try {
       const { tenantId } = (req as any).user;
-      
+
       // Buscar templates customizados
       const customTemplates = await this.timecardRepository.getScheduleTemplates(tenantId);
-      
+
       // Tipos de escala padrão
       const defaultScheduleTypes = [
         { id: '5x2', name: '5x2', description: '5 dias úteis, 2 dias de folga', scheduleType: '5x2', workDaysPerWeek: 5, hoursPerDay: '8h', isActive: true },
@@ -414,10 +414,10 @@ export class TimecardController {
         { id: 'flexible', name: 'Horário Flexível', description: 'Horário flexível conforme demanda', scheduleType: 'flexible', workDaysPerWeek: 5, hoursPerDay: '8h', isActive: true },
         { id: 'part-time', name: 'Meio Período', description: 'Trabalho em meio período', scheduleType: 'part-time', workDaysPerWeek: 5, hoursPerDay: '4h', isActive: true }
       ];
-      
+
       // Combinar templates customizados com tipos padrão
       const allTemplates = [...customTemplates, ...defaultScheduleTypes];
-      
+
       res.json({ templates: allTemplates });
     } catch (error) {
       console.error('Error fetching all schedule options:', error);

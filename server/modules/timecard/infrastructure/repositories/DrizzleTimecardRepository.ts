@@ -135,7 +135,71 @@ export class DrizzleTimecardRepository implements TimecardRepository {
       .where(and(eq(timecardEntries.id, id), eq(timecardEntries.tenantId, tenantId)));
   }
 
+  // Work Schedules Implementation
   async getAllWorkSchedules(tenantId: string): Promise<any[]> {
+    try {
+      const schedules = await db
+        .select({
+          id: workSchedules.id,
+          userId: workSchedules.userId,
+          scheduleType: workSchedules.scheduleType,
+          startDate: workSchedules.startDate,
+          endDate: workSchedules.endDate,
+          workDays: workSchedules.workDays,
+          startTime: workSchedules.startTime,
+          endTime: workSchedules.endTime,
+          breakDurationMinutes: workSchedules.breakDurationMinutes,
+          isActive: workSchedules.isActive,
+          tenantId: workSchedules.tenantId,
+          createdBy: workSchedules.createdBy,
+          updatedBy: workSchedules.updatedBy,
+          createdAt: workSchedules.createdAt,
+          updatedAt: workSchedules.updatedAt,
+          userName: sql<string>`COALESCE(${users.firstName} || ' ' || ${users.lastName}, 'Usuário')`
+        })
+        .from(workSchedules)
+        .leftJoin(users, eq(workSchedules.userId, users.id))
+        .where(eq(workSchedules.tenantId, tenantId))
+        .orderBy(desc(workSchedules.createdAt));
+
+      return schedules;
+    } catch (error: any) {
+      console.error('[DRIZZLE-QA] Error fetching work schedules:', error);
+      return [];
+    }
+  }
+
+  async createWorkSchedule(data: any): Promise<any> {
+    const [schedule] = await db
+      .insert(workSchedules)
+      .values({
+        ...data,
+        workDays: Array.isArray(data.workDays) ? data.workDays : JSON.parse(data.workDays || '[1,2,3,4,5]')
+      })
+      .returning();
+    return schedule;
+  }
+
+  async updateWorkSchedule(id: string, tenantId: string, data: any): Promise<any> {
+    const [schedule] = await db
+      .update(workSchedules)
+      .set({ 
+        ...data, 
+        workDays: Array.isArray(data.workDays) ? data.workDays : JSON.parse(data.workDays || '[1,2,3,4,5]'),
+        updatedAt: new Date() 
+      })
+      .where(and(eq(workSchedules.id, id), eq(workSchedules.tenantId, tenantId)))
+      .returning();
+    return schedule;
+  }
+
+  async deleteWorkSchedule(id: string, tenantId: string): Promise<void> {
+    await db
+      .delete(workSchedules)
+      .where(and(eq(workSchedules.id, id), eq(workSchedules.tenantId, tenantId)));
+  }
+
+  async getScheduleTemplates(tenantId: string): Promise<any[]> {
     try {
       console.log('[DRIZZLE-QA] Fetching work schedules for tenant:', tenantId);
 
