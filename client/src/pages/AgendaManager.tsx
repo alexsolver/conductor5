@@ -230,13 +230,20 @@ const AgendaManager: React.FC = () => {
 
   // Debug - verificar combinedAgendaItems
   React.useEffect(() => {
+    const combined = [...schedules, ...internalActions.map((action: any) => ({
+      ...action,
+      activityTypeId: 'internal-action',
+      locationAddress: `Ticket ${action.ticketNumber}: ${action.ticketSubject}`,
+      customerId: null
+    }))];
+    
     console.log('🔍 AGENDA DEBUG - Combined agenda items:', {
       schedulesCount: schedules.length,
       internalActionsCount: internalActions.length,
-      combinedCount: combinedAgendaItems.length,
-      combinedItems: combinedAgendaItems.slice(0, 5) // primeiros 5 itens
+      combinedCount: combined.length,
+      combinedItems: combined.slice(0, 5) // primeiros 5 itens
     });
-  }, [schedules, internalActions, combinedAgendaItems]);
+  }, [schedules, internalActions]);
 
   // Obter técnicos selecionados para exibir na timeline
   const selectedTechnicians = React.useMemo(() => {
