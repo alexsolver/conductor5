@@ -185,7 +185,7 @@ const AgendaManager: React.FC = () => {
 
   const workSchedules = Array.isArray(workSchedulesData) ? workSchedulesData : [];
 
-  // Obter técnicos selecionados para exibir na timeline inferior
+  // Obter técnicos selecionados para exibir na timeline
   const selectedTechnicians = React.useMemo(() => {
     if (selectedAgents === 'todos') {
       return filteredAgents;
