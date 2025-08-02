@@ -71,7 +71,30 @@ export class DrizzleTimecardRepository implements TimecardRepository {
         location: data.location,
         isManualEntry: data.isManualEntry || false,
         approvedBy: data.approvedBy,
-        status: data.status || 'pending'
+        status: data.status || 'pending',
+        // CLT compliance fields
+        nsr: data.nsr || 0,
+        recordHash: data.recordHash || '',
+        previousRecordHash: data.previousRecordHash,
+        digitalSignature: data.digitalSignature,
+        signatureTimestamp: data.signatureTimestamp,
+        signedBy: data.signedBy,
+        deviceInfo: data.deviceInfo,
+        ipAddress: data.ipAddress,
+        geoLocation: data.geoLocation,
+        modificationHistory: data.modificationHistory || [],
+        modifiedBy: data.modifiedBy,
+        modificationReason: data.modificationReason,
+        locationCoordinates: data.locationCoordinates,
+        locationAddress: data.locationAddress,
+        breaks: data.breaks || [],
+        overtimeHours: data.overtimeHours || '0',
+        verifiedBy: data.verifiedBy,
+        verificationDate: data.verificationDate,
+        isDeleted: data.isDeleted || false,
+        deletedAt: data.deletedAt,
+        deletedBy: data.deletedBy,
+        deletionReason: data.deletionReason
       })
       .returning();
     return entry;
