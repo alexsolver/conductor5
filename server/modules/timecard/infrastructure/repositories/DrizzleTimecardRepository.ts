@@ -62,24 +62,6 @@ export class DrizzleTimecardRepository implements TimecardRepository {
     return entry;
   }
 
-  // Método auxiliar para calcular duração do intervalo
-  private calculateBreakDurationMinutes(breakStart: string | null, breakEnd: string | null): number {
-    if (!breakStart || !breakEnd) return 60; // Default 60 minutes
-
-    try {
-      const [startHours, startMinutes] = breakStart.split(':').map(Number);
-      const [endHours, endMinutes] = breakEnd.split(':').map(Number);
-
-      const startTotalMinutes = startHours * 60 + startMinutes;
-      const endTotalMinutes = endHours * 60 + endMinutes;
-
-      return Math.max(0, endTotalMinutes - startTotalMinutes);
-    } catch (error) {
-      console.error('Error calculating break duration:', error);
-      return 60; // Fallback to default
-    }
-  }
-
   async getTimecardEntriesByUserAndDate(userId: string, date: string, tenantId: string): Promise<any[]> {
     const startOfDay = new Date(date);
     startOfDay.setHours(0, 0, 0, 0);
@@ -201,124 +183,46 @@ export class DrizzleTimecardRepository implements TimecardRepository {
 
   async getScheduleTemplates(tenantId: string): Promise<any[]> {
     try {
-      console.log('[DRIZZLE-QA] Fetching work schedules for tenant:', tenantId);
-
-      const schedules = await db
-        .select({
-          id: workSchedules.id,
-          tenantId: workSchedules.tenantId,
-          userId: workSchedules.userId,
-          scheduleType: workSchedules.scheduleType,
-          startDate: workSchedules.startDate,
-          endDate: workSchedules.endDate,
-          workDays: workSchedules.workDays,
-          startTime: workSchedules.startTime,
-          endTime: workSchedules.endTime,
-          breakDurationMinutes: workSchedules.breakDurationMinutes,
-          isActive: workSchedules.isActive,
-          createdAt: workSchedules.createdAt,
-          updatedAt: workSchedules.updatedAt,
-          createdBy: workSchedules.createdBy,
-          updatedBy: workSchedules.updatedBy,
-          firstName: users.firstName,
-          lastName: users.lastName
-        })
-        .from(workSchedules)
-        .leftJoin(users, eq(workSchedules.userId, users.id))
-        .where(eq(workSchedules.tenantId, tenantId))
-        .orderBy(desc(workSchedules.createdAt));
-
-      console.log('[DRIZZLE-QA] Raw schedules found:', schedules.length);
-
-      const mappedSchedules = schedules.map(schedule => {
-        // Safely process workDays from JSONB field
-        let processedWorkDays: number[] = [1,2,3,4,5]; // Default Monday-Friday
-
-        try {
-          if (schedule.workDays) {
-            if (Array.isArray(schedule.workDays)) {
-              processedWorkDays = schedule.workDays;
-            } else if (typeof schedule.workDays === 'string') {
-              processedWorkDays = JSON.parse(schedule.workDays);
-            }
-          }
-        } catch (error) {
-          console.error('Error processing workDays:', error);
-          processedWorkDays = [1,2,3,4,5];
-        }
-
-        return {
-          id: schedule.id,
-          tenantId: schedule.tenantId,
-          userId: schedule.userId,
-          userName: `${schedule.firstName || ''} ${schedule.lastName || ''}`.trim() || 'Usuário',
-          scheduleType: schedule.scheduleType || '5x2',
-          startDate: schedule.startDate,
-          endDate: schedule.endDate,
-          workDays: processedWorkDays,
-          startTime: schedule.startTime || '08:00',
-          endTime: schedule.endTime || '18:00',
-          breakDurationMinutes: schedule.breakDurationMinutes || 60,
-          isActive: schedule.isActive ?? true,
-          createdAt: schedule.createdAt,
-          updatedAt: schedule.updatedAt,
-          createdBy: schedule.createdBy,
-          updatedBy: schedule.updatedBy
-        };
-      });
-
-      console.log('[DRIZZLE-QA] Processed schedules:', mappedSchedules.length);
-      return mappedSchedules;
-    } catch (error) {
-      console.error('[DRIZZLE-QA] Error fetching work schedules:', error);
-      return []; // Return empty array instead of throwing
-    }
-  }
-
-  async createWorkSchedule(data: any): Promise<any> {
-    try {
-      const workDaysArray = Array.isArray(data.workDays) ? data.workDays : [1,2,3,4,5];
-
-      const [schedule] = await db
-        .insert(workSchedules)
-        .values({
-          tenantId: data.tenantId,
-          userId: data.userId,
-          scheduleType: data.scheduleType || '5x2',
-          startDate: data.startDate ? new Date(data.startDate) : new Date(),
-          endDate: data.endDate ? new Date(data.endDate) : null,
-          workDays: workDaysArray,
-          startTime: data.startTime || '08:00',
-          endTime: data.endTime || '18:00',
-          breakDurationMinutes: data.breakDurationMinutes || 60,
-          isActive: data.isActive ?? true,
-          createdBy: data.createdBy,
+      // Return basic predefined templates
+      return [
+        {
+          id: '5x2',
+          tenantId,
+          name: '5x2',
+          description: '5 dias úteis, 2 dias de folga',
+          scheduleType: '5x2',
+          workDays: [1,2,3,4,5],
+          startTime: '08:00',
+          endTime: '18:00',
+          breakStart: '12:00',
+          breakEnd: '13:00',
+          isActive: true,
           createdAt: new Date(),
           updatedAt: new Date()
-        })
-        .returning();
-
-      return {
-        id: schedule.id,
-        tenantId: schedule.tenantId,
-        userId: schedule.userId,
-        scheduleType: schedule.scheduleType,
-        startDate: schedule.startDate,
-        endDate: schedule.endDate,
-        workDays: Array.isArray(schedule.workDays) ? schedule.workDays : [1,2,3,4,5],
-        startTime: schedule.startTime,
-        endTime: schedule.endTime,
-        breakDurationMinutes: schedule.breakDurationMinutes,
-        isActive: schedule.isActive,
-        createdAt: schedule.createdAt,
-        updatedAt: schedule.updatedAt,
-        createdBy: schedule.createdBy
-      };
+        },
+        {
+          id: '6x1',
+          tenantId,
+          name: '6x1',
+          description: '6 dias úteis, 1 dia de folga',
+          scheduleType: '6x1',
+          workDays: [1,2,3,4,5,6],
+          startTime: '08:00',
+          endTime: '18:00',
+          breakStart: '12:00',
+          breakEnd: '13:00',
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
+      ];
     } catch (error) {
-      console.error('[DRIZZLE-QA] Error creating work schedule:', error);
-      throw error;
+      console.error('Error fetching schedule templates:', error);
+      return [];
     }
   }
+
+  
 
   async updateWorkSchedule(id: string, tenantId: string, data: any): Promise<any> {
     try {
