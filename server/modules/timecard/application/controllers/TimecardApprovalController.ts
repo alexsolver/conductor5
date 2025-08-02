@@ -155,25 +155,31 @@ export class TimecardApprovalController {
       const { tenantId } = (req as any).user;
       const { groupId } = req.params;
 
-      const members = await db
+      console.log('Fetching members for group:', groupId, 'tenant:', tenantId);
+
+      const { getTenantDb } = await import('../../../../db-tenant');
+      const tenantDb = await getTenantDb(tenantId);
+      
+      // Use userGroupMemberships table since that's what exists
+      const { userGroupMemberships } = await import('@shared/schema-master');
+      
+      const members = await tenantDb
         .select({
-          id: approvalGroupMembers.id,
-          userId: approvalGroupMembers.userId,
-          role: approvalGroupMembers.role,
-          isActive: approvalGroupMembers.isActive,
-          addedAt: approvalGroupMembers.addedAt,
+          id: users.id,
           firstName: users.firstName,
           lastName: users.lastName,
-          email: users.email
+          email: users.email,
+          role: users.role
         })
-        .from(approvalGroupMembers)
-        .innerJoin(users, eq(users.id, approvalGroupMembers.userId))
+        .from(userGroupMemberships)
+        .innerJoin(users, eq(userGroupMemberships.userId, users.id))
         .where(and(
-          eq(approvalGroupMembers.groupId, groupId),
-          eq(approvalGroupMembers.tenantId, tenantId),
-          eq(approvalGroupMembers.isActive, true)
+          eq(userGroupMemberships.groupId, groupId),
+          eq(userGroupMemberships.tenantId, tenantId),
+          eq(userGroupMemberships.isActive, true)
         ));
 
+      console.log('Found members:', members.length);
       res.json({ members });
     } catch (error) {
       console.error('Error fetching group members:', error);
@@ -185,29 +191,43 @@ export class TimecardApprovalController {
     try {
       const { tenantId, userId: currentUserId } = (req as any).user;
       const { groupId } = req.params;
-      const { userId, role } = req.body;
+      const { userIds } = req.body;
 
-      if (!userId) {
-        return res.status(400).json({ message: 'ID do usuário é obrigatório' });
+      console.log('Adding members to group:', groupId, 'userIds:', userIds);
+
+      const { getTenantDb } = await import('../../../../db-tenant');
+      const tenantDb = await getTenantDb(tenantId);
+      
+      const { userGroupMemberships } = await import('@shared/schema-master');
+
+      // Remove existing members first
+      await tenantDb
+        .delete(userGroupMemberships)
+        .where(and(
+          eq(userGroupMemberships.groupId, groupId),
+          eq(userGroupMemberships.tenantId, tenantId)
+        ));
+
+      // Add new members
+      if (userIds && userIds.length > 0) {
+        const membersToInsert = userIds.map((userId: string) => ({
+          id: crypto.randomUUID(),
+          groupId,
+          userId,
+          tenantId,
+          role: 'member',
+          isActive: true,
+          addedAt: new Date(),
+          addedById: currentUserId
+        }));
+
+        await tenantDb.insert(userGroupMemberships).values(membersToInsert);
+        console.log('Added', membersToInsert.length, 'members to group');
       }
 
-      const memberData: InsertApprovalGroupMember = {
-        tenantId,
-        groupId,
-        userId,
-        role: role || 'member',
-        addedBy: currentUserId,
-        isActive: true
-      };
-
-      const [newMember] = await db
-        .insert(approvalGroupMembers)
-        .values(memberData)
-        .returning();
-
-      res.status(201).json({ member: newMember });
+      res.status(200).json({ success: true });
     } catch (error) {
-      console.error('Error adding group member:', error);
+      console.error('Error adding group members:', error);
       res.status(500).json({ message: 'Erro interno do servidor' });
     }
   };
@@ -217,16 +237,21 @@ export class TimecardApprovalController {
       const { tenantId } = (req as any).user;
       const { groupId, memberId } = req.params;
 
-      await db
-        .update(approvalGroupMembers)
+      const { getTenantDb } = await import('../../../../db-tenant');
+      const tenantDb = await getTenantDb(tenantId);
+      
+      const { userGroupMemberships } = await import('@shared/schema-master');
+
+      await tenantDb
+        .update(userGroupMemberships)
         .set({ 
           isActive: false,
           addedAt: new Date()
         })
         .where(and(
-          eq(approvalGroupMembers.id, memberId),
-          eq(approvalGroupMembers.groupId, groupId),
-          eq(approvalGroupMembers.tenantId, tenantId)
+          eq(userGroupMemberships.id, memberId),
+          eq(userGroupMemberships.groupId, groupId),
+          eq(userGroupMemberships.tenantId, tenantId)
         ));
 
       res.status(204).send();

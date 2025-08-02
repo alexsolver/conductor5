@@ -1915,7 +1915,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Group Members
   app.get('/api/timecard/approval/groups/:groupId/members', jwtAuth, timecardApprovalController.getGroupMembers);
-  app.post('/api/timecard/approval/groups/:groupId/members', jwtAuth, timecardApprovalController.addGroupMember);
+  app.put('/api/timecard/approval/groups/:groupId/members', jwtAuth, timecardApprovalController.addGroupMember);
   app.delete('/api/timecard/approval/groups/:groupId/members/:memberId', jwtAuth, timecardApprovalController.removeGroupMember);
   
   // Approval Settings
