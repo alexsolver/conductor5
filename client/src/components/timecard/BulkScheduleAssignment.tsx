@@ -56,12 +56,12 @@ export default function BulkScheduleAssignment() {
     },
   });
 
-  // Buscar templates de escala disponíveis
+  // Buscar templates de escala disponíveis (somente templates criados, não tipos padrão)
   const { data: templatesResponse, isLoading: loadingTemplates } = useQuery({
     queryKey: ['/api/timecard/schedule-templates'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/timecard/schedule-templates?isActive=true');
-      return response.json();
+      const response = await apiRequest('GET', '/api/timecard/schedule-templates');
+      return response;
     },
   });
 

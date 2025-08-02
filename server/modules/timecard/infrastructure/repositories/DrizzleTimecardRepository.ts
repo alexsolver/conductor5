@@ -147,7 +147,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
         .values({
           tenantId: data.tenantId,
           userId: data.userId,
-          scheduleName: data.scheduleType || 'Default Schedule',
+
           scheduleType: data.scheduleType || '5x2',
           startDate: data.startDate ? new Date(data.startDate) : new Date(),
           endDate: data.endDate ? new Date(data.endDate) : null,
