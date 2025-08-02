@@ -347,7 +347,12 @@ export class CLTComplianceService {
         previousHash = record.recordHash;
       }
 
-
+      return { isValid: errors.length === 0, errors };
+    } catch (error) {
+      console.error('[CLT-INTEGRITY] Erro ao verificar integridade:', error);
+      return { isValid: false, errors: ['Erro interno ao verificar integridade'] };
+    }
+  }
 
   /**
    * 🔴 RECONSTITUIÇÃO DA CADEIA DE INTEGRIDADE
@@ -439,33 +444,20 @@ export class CLTComplianceService {
 
     } catch (error) {
       console.error('[CLT-REBUILD] Erro na reconstituição:', error);
-      return { fixed: 0, errors: [`Erro interno: ${error.message}`] };
-    }
-  }
-
-      return {
-        isValid: errors.length === 0,
-        errors
-      };
-    } catch (error) {
-      console.error('[CLT-VERIFY] Erro na verificação:', error);
-      return {
-        isValid: false,
-        errors: ['Erro interno na verificação de integridade']
-      };
+      return { fixed: 0, errors: [`Erro interno: ${(error as Error).message}`] };
     }
   }
 
   /**
-   * 🔴 Relatório de compliance para fiscalização
+   * 🔴 GERAÇÃO DE RELATÓRIOS DE COMPLIANCE
    */
   async generateComplianceReport(
     tenantId: string,
-    reportType: 'MONTHLY' | 'QUARTERLY' | 'ANNUAL' | 'AUDIT',
-    periodStart: Date,
-    periodEnd: Date,
+    reportType: string = 'MONTHLY',
+    periodStart: string,
+    periodEnd: string,
     generatedBy: string
-  ): Promise<string> {
+  ): Promise<{ success: boolean; reportId?: string; error?: string }> {
     try {
       // Busca registros do período
       const records = await db
@@ -474,8 +466,8 @@ export class CLTComplianceService {
         .where(
           and(
             eq(timecardEntries.tenantId, tenantId),
-            gte(timecardEntries.createdAt, periodStart),
-            lte(timecardEntries.createdAt, periodEnd)
+            gte(timecardEntries.createdAt, new Date(periodStart)),
+            lte(timecardEntries.createdAt, new Date(periodEnd))
           )
         )
         .orderBy(timecardEntries.nsr);
@@ -515,14 +507,14 @@ export class CLTComplianceService {
         .values({
           tenantId,
           reportType,
-          periodStart,
-          periodEnd,
+          periodStart: new Date(periodStart),
+          periodEnd: new Date(periodEnd),
           totalRecords,
           totalEmployees,
           totalHours: totalHours.toString(),
           overtimeHours: '0', // TODO: calcular horas extras
           reportHash,
-          reportContent,
+          reportContent: JSON.stringify(reportContent),
           generatedBy,
           createdAt: new Date(),
           updatedAt: new Date()
@@ -530,10 +522,10 @@ export class CLTComplianceService {
         .returning({ id: complianceReports.id });
 
       console.log(`[CLT-REPORT] Relatório gerado: ${reportType} - ${report.id}`);
-      return report.id;
+      return { success: true, reportId: report.id };
     } catch (error) {
       console.error('[CLT-REPORT] Erro ao gerar relatório:', error);
-      throw new Error('Falha ao gerar relatório de compliance');
+      return { success: false, error: 'Falha ao gerar relatório de compliance' };
     }
   }
 }
