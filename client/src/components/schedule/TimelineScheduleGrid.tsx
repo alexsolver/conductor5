@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { format, addDays, addHours, addMinutes, startOfDay, parseISO, differenceInMinutes } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
@@ -68,6 +68,25 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
 }) => {
   const [searchAgent, setSearchAgent] = useState('');
   const [timeFilter, setTimeFilter] = useState<'hoje' | '2min' | '10min' | '30min' | '1hora' | '24horas'>('hoje');
+  
+  // Refs para sincronização de scroll
+  const headerScrollRef = useRef<HTMLDivElement>(null);
+  const contentScrollRef = useRef<HTMLDivElement>(null);
+
+  // Sincronizar scroll horizontal entre cabeçalho e conteúdo
+  const syncScrollToContent = (e: React.UIEvent<HTMLDivElement>) => {
+    const scrollLeft = e.currentTarget.scrollLeft;
+    if (contentScrollRef.current) {
+      contentScrollRef.current.scrollLeft = scrollLeft;
+    }
+  };
+
+  const syncScrollToHeader = (e: React.UIEvent<HTMLDivElement>) => {
+    const scrollLeft = e.currentTarget.scrollLeft;
+    if (headerScrollRef.current) {
+      headerScrollRef.current.scrollLeft = scrollLeft;
+    }
+  };
 
   // Generate time slots based on selected filter
   const getTimeSlots = () => {
@@ -223,7 +242,11 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
           </div>
           
           {/* Time slots header */}
-          <div className="flex-1 flex overflow-x-auto">
+          <div 
+            ref={headerScrollRef}
+            className="flex-1 flex overflow-x-auto"
+            onScroll={syncScrollToContent}
+          >
             {timeSlots.map((timeSlot, index) => (
               <div key={index} className="flex-shrink-0 w-16 p-2 text-center border-r last:border-r-0">
                 <div className="text-xs font-medium text-gray-900">
@@ -288,7 +311,11 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
           </div>
 
           {/* Timeline grid */}
-          <div className="flex-1 overflow-x-auto">
+          <div 
+            ref={contentScrollRef}
+            className="flex-1 overflow-x-auto"
+            onScroll={syncScrollToHeader}
+          >
             <div className="flex" style={{ minWidth: `${timeSlots.length * 64}px` }}>
               {timeSlots.map((timeSlot, timeIndex) => (
                 <div key={timeIndex} className="flex-shrink-0 w-16 border-r last:border-r-0">
