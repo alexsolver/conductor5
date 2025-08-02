@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { format, addDays, addHours, addMinutes, startOfDay, parseISO, differenceInMinutes } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
@@ -49,50 +49,76 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
   onTimeSlotClick,
 }) => {
   const [searchAgent, setSearchAgent] = useState('');
-  const [timeFilter, setTimeFilter] = useState<'hoje' | '2min' | '10min' | '30min' | '1hora' | '24horas'>('hoje');
+  const [timeFilter, setTimeFilter] = useState<'hoje' | '2min' | '10min' | '30min' | '1hora' | '24horas'>('1hora');
 
   // Generate 14 days starting from selected date
   const days = Array.from({ length: 14 }, (_, i) => addDays(startDate, i));
 
-  // Generate time slots based on selected filter
+  // Generate time slots for all 14 days based on selected filter
   const getTimeSlots = () => {
+    const slots: Date[] = [];
+    
     switch (timeFilter) {
       case '2min':
-        return Array.from({ length: 24 }, (_, i) => {
-          const hour = Math.floor(i / 12) + 6; // Start from 6:00
-          const minute = (i % 12) * 5; // 5-minute intervals
-          return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+        days.forEach(day => {
+          for (let hour = 6; hour < 24; hour++) {
+            for (let minute = 0; minute < 60; minute += 5) {
+              slots.push(addMinutes(addHours(startOfDay(day), hour), minute));
+            }
+          }
         });
+        break;
       
       case '10min':
-        return Array.from({ length: 60 }, (_, i) => {
-          const hour = Math.floor(i / 6) + 6; // Start from 6:00
-          const minute = (i % 6) * 10; // 10-minute intervals
-          return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+        days.forEach(day => {
+          for (let hour = 6; hour < 24; hour++) {
+            for (let minute = 0; minute < 60; minute += 10) {
+              slots.push(addMinutes(addHours(startOfDay(day), hour), minute));
+            }
+          }
         });
+        break;
       
       case '30min':
-        return Array.from({ length: 36 }, (_, i) => {
-          const hour = Math.floor(i / 2) + 6; // Start from 6:00
-          const minute = (i % 2) * 30; // 30-minute intervals
-          return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+        days.forEach(day => {
+          for (let hour = 6; hour < 24; hour++) {
+            for (let minute = 0; minute < 60; minute += 30) {
+              slots.push(addMinutes(addHours(startOfDay(day), hour), minute));
+            }
+          }
         });
+        break;
       
       case '1hora':
-        return Array.from({ length: 18 }, (_, i) => {
-          const hour = i + 6; // Start from 6:00 to 23:00
-          return `${hour.toString().padStart(2, '0')}:00`;
+        days.forEach(day => {
+          for (let hour = 6; hour < 24; hour++) {
+            slots.push(addHours(startOfDay(day), hour));
+          }
         });
+        break;
       
       case '24horas':
-        return ['06:00', '12:00', '18:00', '24:00']; // 4 key times
+        days.forEach(day => {
+          [6, 12, 18, 24].forEach(hour => {
+            if (hour === 24) {
+              slots.push(startOfDay(addDays(day, 1)));
+            } else {
+              slots.push(addHours(startOfDay(day), hour));
+            }
+          });
+        });
+        break;
       
       default: // 'hoje'
-        return Array.from({ length: 18 }, (_, i) => {
-          const hour = i + 6; // From 6:00 to 23:00
-          return `${hour.toString().padStart(2, '0')}:00`;
+        days.forEach(day => {
+          for (let hour = 6; hour < 24; hour++) {
+            slots.push(addHours(startOfDay(day), hour));
+          }
         });
+        break;
     }
+    
+    return slots;
   };
 
   const timeSlots = getTimeSlots();
@@ -121,228 +147,232 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
     return activityTypes.find(type => type.id === activityTypeId);
   };
 
-  const getSchedulesForDayAndTime = (agentId: string, day: Date, timeSlot: string, type: 'planned' | 'actual') => {
+  const getSchedulesForTimeSlot = (agentId: string, timeSlot: Date, type: 'planned' | 'actual') => {
     return schedules.filter(schedule => {
       if (!schedule.agentId || !schedule.type || !schedule.startDateTime) return false;
       
       const scheduleStart = parseISO(schedule.startDateTime);
-      const scheduleHour = scheduleStart.getHours();
-      const scheduleMinute = scheduleStart.getMinutes();
-      const timeSlotTime = timeSlot.split(':');
-      const timeSlotHour = parseInt(timeSlotTime[0]);
-      const timeSlotMinute = parseInt(timeSlotTime[1]);
       
       // Match agent ID (handle both UUID formats)
       const agentMatch = schedule.agentId === agentId || 
                         schedule.agentId.startsWith(agentId.substring(0, 8));
       
-      // Check if schedule is on the same day
-      const dayMatch = scheduleStart.getDate() === day.getDate() &&
-                      scheduleStart.getMonth() === day.getMonth() &&
-                      scheduleStart.getFullYear() === day.getFullYear();
+      // Check if schedule overlaps with time slot
+      const scheduleEnd = schedule.endDateTime ? parseISO(schedule.endDateTime) : addHours(scheduleStart, 1);
+      const timeSlotEnd = addMinutes(timeSlot, getTimeSlotDuration());
       
-      // Check if schedule time overlaps with time slot
-      const timeMatch = scheduleHour === timeSlotHour && Math.abs(scheduleMinute - timeSlotMinute) < 30;
+      const timeMatch = scheduleStart < timeSlotEnd && scheduleEnd > timeSlot;
       
-      return agentMatch && schedule.type === type && dayMatch && timeMatch;
+      return agentMatch && schedule.type === type && timeMatch;
     });
   };
 
+  const getTimeSlotDuration = () => {
+    switch (timeFilter) {
+      case '2min': return 5;
+      case '10min': return 10;
+      case '30min': return 30;
+      case '1hora': return 60;
+      case '24horas': return 360; // 6 hours
+      default: return 60;
+    }
+  };
+
+  const formatTimeSlot = (timeSlot: Date) => {
+    if (timeFilter === '24horas') {
+      return format(timeSlot, 'dd/MM');
+    }
+    return format(timeSlot, 'HH:mm');
+  };
+
+  // Scroll synchronization refs
+  const headerScrollRef = useRef<HTMLDivElement>(null);
+  const contentScrollRef = useRef<HTMLDivElement>(null);
+
+  const syncScrollToContent = () => {
+    if (headerScrollRef.current && contentScrollRef.current) {
+      contentScrollRef.current.scrollLeft = headerScrollRef.current.scrollLeft;
+    }
+  };
+
+  const syncScrollToHeader = () => {
+    if (headerScrollRef.current && contentScrollRef.current) {
+      headerScrollRef.current.scrollLeft = contentScrollRef.current.scrollLeft;
+    }
+  };
+
   return (
-    <div className="flex h-full bg-white">
-      {/* Left sidebar with agents list */}
-      <div className="w-80 bg-gray-50 p-4 border-r overflow-y-auto">
-        {/* Search Agent */}
-        <div className="mb-4">
-          <div className="relative">
+    <div className="w-full bg-white border border-gray-200 rounded-lg shadow-sm">
+      {/* Header with Search and Time Filters */}
+      <div className="p-4 border-b border-gray-200">
+        <div className="flex items-center justify-between">
+          <div className="relative w-64">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
             <Input
               type="text"
               placeholder="Buscar técnico..."
+              className="pl-10"
               value={searchAgent}
               onChange={(e) => setSearchAgent(e.target.value)}
-              className="pl-10"
             />
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           </div>
-        </div>
-
-        {/* Filtered Agents List */}
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium text-gray-700">Técnicos ({filteredAgents.length})</h3>
-          <div className="space-y-1 max-h-96 overflow-y-auto">
-            {filteredAgents.map((agent) => {
-              const agentName = agent.name || `${agent.firstName || ''} ${agent.lastName || ''}`.trim() || agent.email;
-              return (
-                <div
-                  key={agent.id}
-                  className="p-2 text-sm bg-gray-50 rounded border flex items-center gap-2"
-                >
-                  <SimpleAvatar 
-                    src={agent.profileImageUrl} 
-                    name={agentName} 
-                    size="sm" 
-                  />
-                  <div className="flex-1">
-                    <div className="font-medium text-gray-900">{agentName}</div>
-                    <div className="text-xs text-gray-500">{agent.email}</div>
-                  </div>
-                </div>
-              );
-            })}
+          
+          {/* Time Filter Buttons */}
+          <div className="flex items-center space-x-1 bg-gray-100 rounded-lg p-1">
+            {[
+              { key: 'hoje', label: 'Hoje' },
+              { key: '2min', label: '2min' },
+              { key: '10min', label: '10min' },
+              { key: '30min', label: '30min' },
+              { key: '1hora', label: '1hora' },
+              { key: '24horas', label: '24horas' }
+            ].map((filter) => (
+              <button
+                key={filter.key}
+                onClick={() => setTimeFilter(filter.key as any)}
+                className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                  timeFilter === filter.key
+                    ? 'bg-gray-700 text-white'
+                    : 'text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                {filter.label}
+              </button>
+            ))}
           </div>
         </div>
       </div>
 
-      {/* Main timeline grid - horizontal continuous layout */}
-      <div className="flex-1 overflow-auto">
-        <div className="min-w-max">
-          {/* Header with date range and hours */}
-          <div className="sticky top-0 bg-white border-b border-gray-200 z-10">
-            {/* Date range header */}
-            <div className="flex bg-gray-100 border-b">
-              <div className="w-48 p-2 border-r border-gray-200 bg-gray-50 font-medium text-sm text-center">
-                {format(days[0], 'dd', { locale: ptBR })} - {format(days[days.length - 1], 'dd \'de\' MMM \'de\' yyyy', { locale: ptBR })}
-              </div>
-              {/* Day headers */}
-              {days.map((day) => (
-                <div key={day.toISOString()} className="flex">
-                  {Array.from({ length: 24 }, (_, hour) => (
-                    <div key={hour} className="w-4 border-r border-gray-100 text-center">
-                      {hour === 12 && (
-                        <div className="text-xs text-gray-600 bg-gray-200 px-1">
-                          {format(day, 'eee. dd/MM', { locale: ptBR })}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ))}
-            </div>
-            
-            {/* Hour numbers header */}
-            <div className="flex bg-gray-50">
-              <div className="w-48 p-1 border-r border-gray-200 text-xs text-center text-gray-500">
-                Linha do Tempo
-              </div>
-              {days.map((day) => (
-                <div key={day.toISOString()} className="flex">
-                  {Array.from({ length: 24 }, (_, hour) => (
-                    <div key={hour} className="w-4 border-r border-gray-100 text-xs text-center text-gray-500">
-                      {hour % 6 === 0 ? hour.toString().padStart(2, '0') : ''}
-                    </div>
-                  ))}
-                </div>
-              ))}
-            </div>
+      {/* Timeline Grid */}
+      <div className="border rounded-lg bg-white overflow-hidden">
+        {/* Header with time slots */}
+        <div className="flex border-b bg-gray-50">
+          {/* Left sidebar space */}
+          <div className="w-64 flex-shrink-0 border-r bg-gray-100 p-4">
+            <div className="text-sm font-medium text-gray-700">Técnicos</div>
           </div>
+          
+          {/* Time slots header */}
+          <div 
+            ref={headerScrollRef}
+            className="flex-1 flex overflow-x-auto"
+            onScroll={syncScrollToContent}
+          >
+            {timeSlots.map((timeSlot, index) => (
+              <div key={index} className="flex-shrink-0 w-8 p-1 text-center border-r last:border-r-0">
+                <div className="text-xs font-medium text-gray-900">
+                  {formatTimeSlot(timeSlot)}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
 
-          {/* Agents rows */}
-          <div className="divide-y divide-gray-200">
+        {/* Content area */}
+        <div className="flex">
+          {/* Left sidebar with agent list */}
+          <div className="w-64 flex-shrink-0 border-r bg-gray-50">
             {filteredAgents.map((agent) => {
               const agentName = agent.name || `${agent.firstName || ''} ${agent.lastName || ''}`.trim() || agent.email;
               
               return (
                 <div key={agent.id} className="border-b">
                   {/* Planned row */}
-                  <div className="flex items-center">
-                    <div className="w-48 p-2 border-r border-gray-200 bg-white flex items-center gap-2">
+                  <div className="h-10 px-4 py-2 bg-white border-b border-gray-100 flex items-center justify-between">
+                    <div className="text-sm flex-1 flex items-center gap-2">
                       <SimpleAvatar 
                         src={agent.profileImageUrl} 
                         name={agentName} 
                         size="sm" 
                       />
                       <div>
-                        <div className="text-xs font-medium text-gray-900">{agentName}</div>
+                        <div className="font-medium text-gray-900 text-xs">{agentName}</div>
                         <div className="text-xs text-green-600">Previsto</div>
                       </div>
-                    </div>
-                    {/* Timeline cells for each hour of each day */}
-                    <div className="flex">
-                      {days.map((day) => (
-                        <div key={day.toISOString()} className="flex">
-                          {Array.from({ length: 24 }, (_, hour) => {
-                            const timeSlot = `${hour.toString().padStart(2, '0')}:00`;
-                            const plannedSchedules = getSchedulesForDayAndTime(agent.id, day, timeSlot, 'planned');
-                            
-                            return (
-                              <div
-                                key={hour}
-                                className="w-4 h-8 border-r border-gray-100 relative cursor-pointer hover:bg-gray-50 bg-white"
-                                onClick={() => onTimeSlotClick(day, timeSlot, agent.id)}
-                              >
-                                {plannedSchedules.map((schedule) => {
-                                  const activityType = getActivityType(schedule.activityTypeId);
-                                  return (
-                                    <div
-                                      key={schedule.id}
-                                      className={`absolute inset-0 cursor-pointer ${getPriorityColor(schedule.priority)}`}
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        onScheduleClick(schedule);
-                                      }}
-                                      title={`${schedule.title} - ${activityType?.name || 'N/A'}`}
-                                    />
-                                  );
-                                })}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      ))}
                     </div>
                   </div>
                   
                   {/* Actual row */}
-                  <div className="flex items-center">
-                    <div className="w-48 p-2 border-r border-gray-200 bg-gray-50 flex items-center gap-2">
+                  <div className="h-10 px-4 py-2 bg-gray-50 flex items-center justify-between">
+                    <div className="text-sm flex-1 flex items-center gap-2">
                       <SimpleAvatar 
                         src={agent.profileImageUrl} 
                         name={agentName} 
                         size="sm" 
                       />
                       <div>
-                        <div className="text-xs font-medium text-gray-700">{agentName}</div>
+                        <div className="font-medium text-gray-700 text-xs">{agentName}</div>
                         <div className="text-xs text-blue-600">Realizado</div>
                       </div>
-                    </div>
-                    {/* Timeline cells for each hour of each day */}
-                    <div className="flex">
-                      {days.map((day) => (
-                        <div key={day.toISOString()} className="flex">
-                          {Array.from({ length: 24 }, (_, hour) => {
-                            const timeSlot = `${hour.toString().padStart(2, '0')}:00`;
-                            const actualSchedules = getSchedulesForDayAndTime(agent.id, day, timeSlot, 'actual');
-                            
-                            return (
-                              <div
-                                key={hour}
-                                className="w-4 h-8 bg-gray-50 border-r border-gray-100 relative cursor-pointer hover:bg-gray-100"
-                                onClick={() => onTimeSlotClick(day, timeSlot, agent.id)}
-                              >
-                                {actualSchedules.map((schedule) => {
-                                  const activityType = getActivityType(schedule.activityTypeId);
-                                  return (
-                                    <div
-                                      key={schedule.id}
-                                      className={`absolute inset-0 cursor-pointer ${getPriorityColor(schedule.priority)}`}
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        onScheduleClick(schedule);
-                                      }}
-                                      title={`${schedule.title} - ${activityType?.name || 'N/A'}`}
-                                    />
-                                  );
-                                })}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      ))}
                     </div>
                   </div>
                 </div>
               );
             })}
+          </div>
+
+          {/* Timeline grid */}
+          <div 
+            ref={contentScrollRef}
+            className="flex-1 overflow-x-auto"
+            onScroll={syncScrollToHeader}
+          >
+            <div className="flex" style={{ minWidth: `${timeSlots.length * 32}px` }}>
+              {timeSlots.map((timeSlot, timeIndex) => (
+                <div key={timeIndex} className="flex-shrink-0 w-8 border-r last:border-r-0">
+                  {filteredAgents.map((agent) => {
+                    const plannedSchedules = getSchedulesForTimeSlot(agent.id, timeSlot, 'planned');
+                    const actualSchedules = getSchedulesForTimeSlot(agent.id, timeSlot, 'actual');
+                    
+                    return (
+                      <div key={agent.id} className="border-b">
+                        {/* Planned row */}
+                        <div 
+                          className="h-10 relative border-b border-gray-100 cursor-pointer bg-white hover:bg-gray-50"
+                          onClick={() => onTimeSlotClick(timeSlot, format(timeSlot, 'HH:mm'), agent.id)}
+                        >
+                          {plannedSchedules.map((schedule) => {
+                            const activityType = getActivityType(schedule.activityTypeId);
+                            return (
+                              <div
+                                key={schedule.id}
+                                className={`absolute inset-0 text-white text-xs cursor-pointer hover:opacity-80 ${getPriorityColor(schedule.priority)}`}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onScheduleClick(schedule);
+                                }}
+                                title={`${schedule.title} - ${activityType?.name || 'N/A'}`}
+                              />
+                            );
+                          })}
+                        </div>
+                        
+                        {/* Actual row */}
+                        <div 
+                          className="h-10 bg-gray-50 relative cursor-pointer hover:bg-gray-100"
+                          onClick={() => onTimeSlotClick(timeSlot, format(timeSlot, 'HH:mm'), agent.id)}
+                        >
+                          {actualSchedules.map((schedule) => {
+                            const activityType = getActivityType(schedule.activityTypeId);
+                            return (
+                              <div
+                                key={schedule.id}
+                                className={`absolute inset-0 text-white text-xs cursor-pointer hover:opacity-80 ${getPriorityColor(schedule.priority)}`}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onScheduleClick(schedule);
+                                }}
+                                title={`${schedule.title} - ${activityType?.name || 'N/A'}`}
+                              />
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
