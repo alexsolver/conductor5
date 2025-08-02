@@ -146,9 +146,38 @@ export class DrizzleTimecardRepository implements TimecardRepository {
 
   async getWorkSchedulesByUser(userId: string, tenantId: string): Promise<any[]> {
     try {
-      // Temporariamente retornando array vazio até tabela ser criada
-      console.log('getWorkSchedulesByUser: Retornando array vazio temporariamente');
-      return [];
+      const schedules = await db
+        .select({
+          id: workSchedules.id,
+          tenantId: workSchedules.tenantId,
+          userId: workSchedules.userId,
+          scheduleName: workSchedules.scheduleName,
+          workDays: workSchedules.workDays,
+          startTime: workSchedules.startTime,
+          endTime: workSchedules.endTime,
+          breakStart: workSchedules.breakStart,
+          breakEnd: workSchedules.breakEnd,
+          isActive: workSchedules.isActive,
+          createdAt: workSchedules.createdAt,
+          updatedAt: workSchedules.updatedAt,
+          firstName: users.firstName,
+          lastName: users.lastName
+        })
+        .from(workSchedules)
+        .leftJoin(users, eq(workSchedules.userId, users.id))
+        .where(and(
+          eq(workSchedules.userId, userId),
+          eq(workSchedules.tenantId, tenantId)
+        ))
+        .orderBy(desc(workSchedules.createdAt));
+
+      return schedules.map(schedule => ({
+        ...schedule,
+        userName: `${schedule.firstName || ''} ${schedule.lastName || ''}`.trim(),
+        scheduleType: schedule.scheduleName || '5x2',
+        startDate: schedule.createdAt,
+        breakDurationMinutes: 60
+      }));
     } catch (error) {
       console.error('Error fetching user work schedules:', error);
       throw error;
@@ -170,7 +199,10 @@ export class DrizzleTimecardRepository implements TimecardRepository {
           breakEnd: workSchedules.breakEnd,
           isActive: workSchedules.isActive,
           createdAt: workSchedules.createdAt,
-          updatedAt: workSchedules.updatedAt
+          updatedAt: workSchedules.updatedAt,
+          // User fields from JOIN
+          firstName: users.firstName,
+          lastName: users.lastName
         })
         .from(workSchedules)
         .leftJoin(users, eq(workSchedules.userId, users.id))

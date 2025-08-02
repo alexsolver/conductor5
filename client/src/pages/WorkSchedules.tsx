@@ -156,8 +156,14 @@ export default function WorkSchedules() {
     },
   });
 
+  // Debug logging
+  console.log('Schedules response:', schedulesData);
+  
   const schedules = Array.isArray(schedulesData) ? schedulesData : (schedulesData?.schedules || []);
   const users = usersData?.users || [];
+  
+  console.log('Processed schedules:', schedules);
+  console.log('Users:', users);
 
   const resetForm = () => {
     setSelectedSchedule(null);
@@ -255,9 +261,9 @@ export default function WorkSchedules() {
     }
   };
 
-  const getWorkDaysText = (workDays: number[] | null) => {
-    if (!workDays || !Array.isArray(workDays)) return 'Não definido';
-    return workDays.map(day => weekDays.find(wd => wd.value === day)?.label).join(', ');
+  const getWorkDaysText = (workDays: number[] | null | undefined) => {
+    if (!workDays || !Array.isArray(workDays) || workDays.length === 0) return 'Não definido';
+    return workDays.map(day => weekDays.find(wd => wd.value === day)?.label).filter(Boolean).join(', ');
   };
 
   const getStatusBadge = (isActive: boolean) => {
@@ -443,7 +449,7 @@ export default function WorkSchedules() {
 
                       <div className="flex items-center gap-2">
                         <Calendar className="h-4 w-4 text-gray-500" />
-                        <span>{getWorkDaysText(schedule.workDays)}</span>
+                        <span>{schedule?.workDays ? getWorkDaysText(schedule.workDays) : 'Não definido'}</span>
                       </div>
 
                       <div className="flex items-center gap-2">
