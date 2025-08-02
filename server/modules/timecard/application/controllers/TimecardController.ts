@@ -7,7 +7,7 @@ import {
   createAbsenceRequestSchema,
   createScheduleTemplateSchema,
   createFlexibleWorkArrangementSchema
-} from '../../../../shared/timecard-validation';
+} from '../../../../../shared/timecard-validation';
 import { AuthenticatedRequest } from '../../middleware/isAuthenticated';
 
 // Validation schemas
