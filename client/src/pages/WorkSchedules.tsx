@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import { Calendar, Clock, Users, Plus, Edit, Trash2, Settings } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -377,6 +377,11 @@ function WorkSchedulesContent() {
               <DialogTitle>
                 {selectedSchedule ? 'Editar Escala' : 'Nova Escala de Trabalho'}
               </DialogTitle>
+              <DialogDescription>
+                {selectedSchedule 
+                  ? 'Modifique os dados da escala de trabalho existente.' 
+                  : 'Configure uma nova escala de trabalho para o funcionário selecionado.'}
+              </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
