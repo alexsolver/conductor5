@@ -124,9 +124,8 @@ export default function Timecard() {
       const transformedData = transformTimecardData(data);
       console.log('[TIMECARD-DEBUG] Sending data:', transformedData);
       const response = await apiRequest('POST', '/api/timecard/timecard-entries', transformedData);
-      const result = await response.json();
-      console.log('[TIMECARD-DEBUG] Response:', result);
-      return result;
+      console.log('[TIMECARD-DEBUG] Response:', response);
+      return response;
     },
     onSuccess: (result: TimeRecord) => {
       console.log('Registro de ponto bem-sucedido:', result);
