@@ -175,7 +175,9 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
       
       // Convert to local timezone for comparison
       const timeSlotHour = timeSlot.getHours();
-      const scheduleLocalHour = scheduleStart.getHours();
+      // Schedule comes in UTC, convert to local time
+      const scheduleLocalTime = new Date(scheduleStart.getTime() + (scheduleStart.getTimezoneOffset() * 60000));
+      const scheduleLocalHour = scheduleLocalTime.getHours();
       
       // Match agent ID (handle both UUID formats)
       const agentMatch = schedule.agentId === agentId || 
@@ -198,7 +200,7 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
              
       // Debug log for internal actions
       if (schedule.type === 'internal_action' || schedule.activityTypeId === 'internal-action') {
-        console.log('🔍 TIMELINE DEBUG - Internal action match (FIXED):', {
+        console.log('🔍 TIMELINE DEBUG - Internal action match (TIMEZONE FIXED):', {
           scheduleId: schedule.id,
           agentId,
           scheduleAgentId: schedule.agentId,
@@ -210,7 +212,9 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
           scheduleDate,
           dateMatch,
           timeSlotHour,
+          scheduleUTCHour: scheduleStart.getHours(),
           scheduleLocalHour,
+          timezoneOffset: scheduleStart.getTimezoneOffset(),
           hourMatch,
           result
         });
