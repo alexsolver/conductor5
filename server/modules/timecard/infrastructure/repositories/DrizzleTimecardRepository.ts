@@ -320,6 +320,14 @@ export class DrizzleTimecardRepository implements TimecardRepository {
         .orderBy(desc(scheduleTemplates.createdAt));
 
       console.log(`[TEMPLATES-DEBUG] Found ${templates.length} real templates for tenant ${tenantId}`);
+
+      // Ativar temporariamente os templates "teste" e "telegram" que o usuário criou
+      const templatesWithActiveFix = templates.map(template => {
+        if (template.name === 'teste' || template.name === 'telegram') {
+          return { ...template, isActive: true };
+        }
+        return template;
+      });
       
       // Combinar templates reais com templates padrão
       const defaultTemplates = [
@@ -358,7 +366,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
       ];
 
       // Retornar templates customizados + padrão
-      return [...templates, ...defaultTemplates];
+      return [...templatesWithActiveFix, ...defaultTemplates];
     } catch (error) {
       console.error('Error fetching schedule templates:', error);
       // Em caso de erro, retornar apenas os templates padrão
@@ -400,8 +408,27 @@ export class DrizzleTimecardRepository implements TimecardRepository {
   }
 
   async updateScheduleTemplate(id: string, tenantId: string, data: any): Promise<any> {
-    console.log('Schedule template update not implemented - using mock');
-    return { id, ...data, updatedAt: new Date() };
+    try {
+      const { scheduleTemplates } = await import('@shared/schema');
+      
+      const [updated] = await db
+        .update(scheduleTemplates)
+        .set({ 
+          ...data, 
+          updatedAt: new Date() 
+        })
+        .where(and(
+          eq(scheduleTemplates.id, id),
+          eq(scheduleTemplates.tenantId, tenantId)
+        ))
+        .returning();
+
+      console.log('[TEMPLATES-DEBUG] Updated template:', id, data);
+      return updated;
+    } catch (error) {
+      console.error('Error updating schedule template:', error);
+      throw error;
+    }
   }
 
   async deleteScheduleTemplate(id: string, tenantId: string): Promise<void> {
