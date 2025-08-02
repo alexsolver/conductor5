@@ -278,13 +278,12 @@ export class DrizzleTimecardRepository implements TimecardRepository {
     return { id, status: 'rejected', approvedBy, rejectionReason: reason };
   }
 
-  // Schedule Templates Implementation - Mock templates
+  // Schedule Templates Implementation
   async createScheduleTemplate(data: any): Promise<any> {
     try {
       const { scheduleTemplates } = await import('@shared/schema');
-      const tenantDb = getTenantDb(data.tenantId);
       
-      const [template] = await tenantDb
+      const [template] = await db
         .insert(scheduleTemplates)
         .values({
           tenantId: data.tenantId,
@@ -311,11 +310,10 @@ export class DrizzleTimecardRepository implements TimecardRepository {
 
   async getScheduleTemplates(tenantId: string): Promise<any[]> {
     try {
-      // Get real templates from database
+      // Get real templates from database using existing db connection
       const { scheduleTemplates } = await import('@shared/schema');
-      const tenantDb = getTenantDb(tenantId);
       
-      const templates = await tenantDb
+      const templates = await db
         .select()
         .from(scheduleTemplates)
         .where(eq(scheduleTemplates.tenantId, tenantId))
@@ -323,47 +321,81 @@ export class DrizzleTimecardRepository implements TimecardRepository {
 
       console.log(`[TEMPLATES-DEBUG] Found ${templates.length} real templates for tenant ${tenantId}`);
       
-      // Se não há templates customizados, retornar templates padrão
-      if (templates.length === 0) {
-        console.log('[TEMPLATES-DEBUG] No custom templates found, returning default templates');
-        return [
-          {
-            id: '5x2',
-            tenantId,
-            name: '5x2',
-            description: '5 dias úteis, 2 dias de folga',
-            scheduleName: '5x2',
-            workDays: [1,2,3,4,5],
-            startTime: '08:00',
-            endTime: '18:00',
-            breakStart: '12:00',
-            breakEnd: '13:00',
-            isActive: true,
-            createdAt: new Date(),
-            updatedAt: new Date()
-          },
-          {
-            id: '6x1',
-            tenantId,
-            name: '6x1',
-            description: '6 dias úteis, 1 dia de folga',
-            scheduleName: '6x1',
-            workDays: [1,2,3,4,5,6],
-            startTime: '08:00',
-            endTime: '18:00',
-            breakStart: '12:00',
-            breakEnd: '13:00',
-            isActive: true,
-            createdAt: new Date(),
-            updatedAt: new Date()
-          }
-        ];
-      }
+      // Combinar templates reais com templates padrão
+      const defaultTemplates = [
+        {
+          id: '5x2',
+          tenantId,
+          name: '5x2',
+          description: '5 dias úteis, 2 dias de folga',
+          scheduleName: '5x2',
+          scheduleType: '5x2',
+          workDays: [1,2,3,4,5],
+          startTime: '08:00',
+          endTime: '18:00',
+          breakStart: '12:00',
+          breakEnd: '13:00',
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        {
+          id: '6x1',
+          tenantId,
+          name: '6x1',
+          description: '6 dias úteis, 1 dia de folga',
+          scheduleName: '6x1',
+          scheduleType: '6x1',
+          workDays: [1,2,3,4,5,6],
+          startTime: '08:00',
+          endTime: '18:00',
+          breakStart: '12:00',
+          breakEnd: '13:00',
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
+      ];
 
-      return templates;
+      // Retornar templates customizados + padrão
+      return [...templates, ...defaultTemplates];
     } catch (error) {
       console.error('Error fetching schedule templates:', error);
-      return [];
+      // Em caso de erro, retornar apenas os templates padrão
+      return [
+        {
+          id: '5x2',
+          tenantId,
+          name: '5x2',
+          description: '5 dias úteis, 2 dias de folga',
+          scheduleName: '5x2',
+          scheduleType: '5x2',
+          workDays: [1,2,3,4,5],
+          startTime: '08:00',
+          endTime: '18:00',
+          breakStart: '12:00',
+          breakEnd: '13:00',
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        {
+          id: '6x1',
+          tenantId,
+          name: '6x1',
+          description: '6 dias úteis, 1 dia de folga',
+          scheduleName: '6x1',
+          scheduleType: '6x1',
+          workDays: [1,2,3,4,5,6],
+          startTime: '08:00',
+          endTime: '18:00',
+          breakStart: '12:00',
+          breakEnd: '13:00',
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
+      ];
     }
   }
 

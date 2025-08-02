@@ -96,12 +96,13 @@ function WorkSchedulesContent() {
     retryDelay: 1000
   });
 
-  // Buscar usuários/funcionários do sistema
+  // Buscar usuários/funcionários do sistema via timecard endpoint que já funciona
   const { data: usersData, error: usersError } = useQuery({
-    queryKey: ['/api/tenant-admin/users'],
+    queryKey: ['/api/timecard/available-users'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/tenant-admin/users');
+      const response = await apiRequest('GET', '/api/timecard/available-users');
       const data = await response.json();
+      console.log('[USERS-DEBUG] Users data received:', data);
       return data;
     },
     retry: 3,
@@ -219,10 +220,16 @@ function WorkSchedulesContent() {
     console.log('Work schedules loaded:', schedules.length);
     console.log('Users available:', users.length);
     console.log('Schedule templates:', scheduleTypesData?.templates?.length || 0);
+    console.log('Raw users data:', usersData);
+    console.log('Raw templates data:', scheduleTypesData);
   }
   
   if (templatesError) {
     console.error('Templates fetch error:', templatesError);
+  }
+  
+  if (usersError) {
+    console.error('Users fetch error:', usersError);
   }
   
   // Add error state handling
