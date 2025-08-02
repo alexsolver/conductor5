@@ -142,7 +142,9 @@ export default function Timecard() {
       let errorMessage = 'Tente novamente em alguns instantes.';
       
       // Tentar extrair mensagem de erro específica
-      if (error?.message) {
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.message) {
         errorMessage = error.message;
       } else if (typeof error === 'string') {
         errorMessage = error;
@@ -210,12 +212,24 @@ export default function Timecard() {
     return { type: 'clock_in', label: 'Registrar Entrada', color: 'bg-green-600' };
   };
 
-  const formatTime = (dateString: string) => {
-    return format(new Date(dateString), 'HH:mm', { locale: ptBR });
+  const formatTime = (dateString: string | null | undefined) => {
+    if (!dateString) return '--:--';
+    try {
+      return format(new Date(dateString), 'HH:mm', { locale: ptBR });
+    } catch (error) {
+      console.warn('Erro ao formatar hora:', dateString, error);
+      return '--:--';
+    }
   };
 
-  const formatDate = (dateString: string) => {
-    return format(new Date(dateString), 'dd/MM/yyyy', { locale: ptBR });
+  const formatDate = (dateString: string | null | undefined) => {
+    if (!dateString) return '--/--/----';
+    try {
+      return format(new Date(dateString), 'dd/MM/yyyy', { locale: ptBR });
+    } catch (error) {
+      console.warn('Erro ao formatar data:', dateString, error);
+      return '--/--/----';
+    }
   };
 
 
@@ -296,30 +310,57 @@ export default function Timecard() {
             </div>
           ) : currentStatus?.todayRecords?.length > 0 ? (
             <div className="space-y-3">
-              {currentStatus.todayRecords.map((record: TimeRecord) => (
-                <div key={record.id} className="flex justify-between items-center py-2 border-b">
-                  <div>
-                    <div className="font-medium">
-                      {record.recordType === 'clock_in' && 'Entrada'}
-                      {record.recordType === 'clock_out' && 'Saída'}
-                      {record.recordType === 'break_start' && 'Início da Pausa'}
-                      {record.recordType === 'break_end' && 'Fim da Pausa'}
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      Dispositivo: {record.deviceType}
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-mono">{formatTime(record.recordDateTime)}</div>
-                    {record.location && (
-                      <div className="text-xs text-gray-400">
-                        <MapPin className="h-3 w-3 inline mr-1" />
-                        Geo localizado
+              {currentStatus.todayRecords.map((record: TimeRecord) => {
+                // Determinar tipo de registro e horário baseado nos campos disponíveis
+                let recordType = 'Registro';
+                let recordTime = '';
+                
+                if (record.checkIn && !record.checkOut) {
+                  recordType = 'Entrada';
+                  recordTime = record.checkIn;
+                } else if (record.checkOut) {
+                  recordType = 'Saída';
+                  recordTime = record.checkOut;
+                } else if (record.breakStart && !record.breakEnd) {
+                  recordType = 'Início da Pausa';
+                  recordTime = record.breakStart;
+                } else if (record.breakEnd) {
+                  recordType = 'Fim da Pausa';
+                  recordTime = record.breakEnd;
+                } else if (record.createdAt) {
+                  recordTime = record.createdAt;
+                }
+
+                return (
+                  <div key={record.id} className="flex justify-between items-center py-2 border-b">
+                    <div>
+                      <div className="font-medium">{recordType}</div>
+                      <div className="text-sm text-gray-500">
+                        Status: {record.status || 'Pendente'}
                       </div>
-                    )}
+                      {record.notes && (
+                        <div className="text-xs text-gray-400">
+                          {record.notes}
+                        </div>
+                      )}
+                    </div>
+                    <div className="text-right">
+                      <div className="font-mono">{formatTime(recordTime)}</div>
+                      {record.location && (
+                        <div className="text-xs text-gray-400">
+                          <MapPin className="h-3 w-3 inline mr-1" />
+                          Geo localizado
+                        </div>
+                      )}
+                      {record.isManualEntry && (
+                        <div className="text-xs text-blue-400">
+                          Manual
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <div className="text-center text-gray-500 py-8">
