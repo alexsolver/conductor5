@@ -224,6 +224,7 @@ function WorkSchedulesContent() {
     console.log('Raw users data:', usersData);
     console.log('Raw templates data:', scheduleTypesData);
     console.log('Active templates list:', scheduleTypesData?.templates?.filter((t: any) => t.isActive));
+    console.log('Custom templates (excluding defaults):', scheduleTypesData?.templates?.filter((t: any) => t.isActive && !['5x2', '6x1', '12x36'].includes(t.name)));
   }
   
   if (templatesError) {
@@ -445,12 +446,18 @@ function WorkSchedulesContent() {
                       {Object.entries(scheduleTypeLabels).map(([key, label]) => (
                         <SelectItem key={`default-${key}`} value={key}>{label}</SelectItem>
                       ))}
+                      {/* Separador visual */}
+                      {scheduleTypesData?.templates?.some((t: any) => t.isActive && !['5x2', '6x1', '12x36'].includes(t.name)) && (
+                        <SelectItem key="separator" value="" disabled>
+                          ――――――――――――――――――
+                        </SelectItem>
+                      )}
                       {/* Templates customizados criados pelo usuário */}
                       {scheduleTypesData?.templates?.filter((template: any) => 
-                        template.isActive // Apenas templates ativos
+                        template.isActive && !['5x2', '6x1', '12x36'].includes(template.name) // Filtrar templates padrão duplicados
                       ).map((template: any) => (
-                        <SelectItem key={`template-${template.id}`} value={template.name}>
-                          📋 {template.name} ({template.scheduleType})
+                        <SelectItem key={`custom-${template.id}`} value={template.name}>
+                          📋 {template.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
