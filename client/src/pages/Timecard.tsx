@@ -224,6 +224,94 @@ export default function Timecard() {
     }
   };
 
+  // Calcular horas trabalhadas hoje
+  const calculateTodayHours = (records: TimeRecord[]) => {
+    let totalMinutes = 0;
+    const completedRecords = records.filter(r => r.checkIn && r.checkOut);
+    
+    completedRecords.forEach(record => {
+      if (record.checkIn && record.checkOut) {
+        const start = new Date(record.checkIn);
+        const end = new Date(record.checkOut);
+        const diff = end.getTime() - start.getTime();
+        totalMinutes += Math.max(0, diff / (1000 * 60));
+      }
+    });
+
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = Math.floor(totalMinutes % 60);
+    return `${hours}h ${minutes}m`;
+  };
+
+  // Componente do Espelho de Ponto
+  const TimecardMirror = () => {
+    const currentMonth = format(new Date(), 'yyyy-MM');
+    const { data: monthlyReport, isLoading: monthlyLoading } = useQuery({
+      queryKey: ['/api/timecard/reports/attendance', currentMonth],
+      queryFn: async () => {
+        const response = await apiRequest('GET', `/api/timecard/reports/attendance/${currentMonth}`);
+        return response.json();
+      }
+    });
+
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            Espelho de Ponto - {format(new Date(), 'MMMM yyyy', { locale: ptBR })}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {monthlyLoading ? (
+            <div className="text-center py-8">
+              <div className="animate-pulse">Carregando espelho...</div>
+            </div>
+          ) : monthlyReport?.records?.length > 0 ? (
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {monthlyReport.records
+                .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                .slice(0, 10)
+                .map((record: any, index: number) => (
+                <div key={index} className="flex justify-between items-center py-2 border-b text-sm">
+                  <div className="flex-1">
+                    <div className="font-medium">{formatDate(record.date)}</div>
+                    <div className="text-xs text-gray-500">
+                      {record.checkIn ? formatTime(record.checkIn) : '--:--'} → {record.checkOut ? formatTime(record.checkOut) : '--:--'}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-mono text-sm">
+                      {record.totalHours ? `${parseFloat(record.totalHours).toFixed(1)}h` : '0h'}
+                    </div>
+                    <div className="text-xs text-gray-400">
+                      {record.status || 'processed'}
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {monthlyReport.records.length > 10 && (
+                <div className="text-center pt-2">
+                  <Button variant="outline" size="sm" onClick={() => window.location.href = '/timecard-reports'}>
+                    Ver todos os registros ({monthlyReport.records.length})
+                  </Button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="text-center text-gray-500 py-8">
+              <div className="mb-2">📅</div>
+              <div className="font-medium">Nenhum registro mensal</div>
+              <div className="text-sm mt-1">
+                Seus registros aparecerão aqui quando processados
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    );
+  };
+
 
 
   const status = currentStatus?.status || 'not_started';
@@ -355,35 +443,44 @@ export default function Timecard() {
             <CardTitle className="text-sm font-medium">Horas Trabalhadas Hoje</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">8h 30m</div>
+            <div className="text-2xl font-bold">
+              {calculateTodayHours(currentStatus?.todayRecords || [])}
+            </div>
             <p className="text-xs text-gray-500">Meta: 8h</p>
           </CardContent>
         </Card>
         
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Banco de Horas</CardTitle>
+            <CardTitle className="text-sm font-medium">Total de Horas</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">+2h 15m</div>
-            <p className="text-xs text-gray-500">Saldo positivo</p>
+            <div className="text-2xl font-bold">
+              {currentStatus?.timesheet?.totalHours?.toFixed(1) || '0'}h
+            </div>
+            <p className="text-xs text-gray-500">Registradas hoje</p>
           </CardContent>
         </Card>
         
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Compliance</CardTitle>
+            <CardTitle className="text-sm font-medium">Status CLT</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">OK</div>
-            <p className="text-xs text-gray-500">CLT conforme</p>
+            <div className="text-2xl font-bold text-green-600">
+              {(currentStatus?.todayRecords?.length || 0) > 0 ? 'OK' : 'Pendente'}
+            </div>
+            <p className="text-xs text-gray-500">Conformidade</p>
           </CardContent>
         </Card>
       </div>
 
+      {/* Espelho de Ponto */}
+      <TimecardMirror />
+
       {/* Ações Rápidas */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="cursor-pointer hover:shadow-md transition-shadow">
+        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => window.location.href = '/timecard-reports'}>
           <CardContent className="p-4 text-center">
             <FileText className="h-8 w-8 mx-auto mb-2 text-blue-500" />
             <div className="font-medium">Espelho de Ponto</div>
@@ -391,7 +488,7 @@ export default function Timecard() {
           </CardContent>
         </Card>
 
-        <Card className="cursor-pointer hover:shadow-md transition-shadow">
+        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => window.location.href = '/clt-compliance'}>
           <CardContent className="p-4 text-center">
             <Clock className="h-8 w-8 mx-auto mb-2 text-green-500" />
             <div className="font-medium">Banco de Horas</div>
@@ -399,7 +496,7 @@ export default function Timecard() {
           </CardContent>
         </Card>
 
-        <Card className="cursor-pointer hover:shadow-md transition-shadow">
+        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => window.location.href = '/timecard-reports'}>
           <CardContent className="p-4 text-center">
             <BarChart3 className="h-8 w-8 mx-auto mb-2 text-purple-500" />
             <div className="font-medium">Relatórios</div>
