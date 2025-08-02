@@ -91,10 +91,11 @@ function WorkSchedulesContent() {
     queryFn: async () => {
       console.log('[FRONTEND-QA] Fetching work schedules...');
       const response = await apiRequest('GET', '/api/timecard/work-schedules');
-      console.log('[FRONTEND-QA] API Response:', response);
-      return response;
+      const data = await response.json();
+      console.log('[FRONTEND-QA] API Response:', data);
+      return data;
     },
-    staleTime: 30000, // Cache for 30 seconds
+    staleTime: 1000, // Reduzido para 1 segundo para ver mudanças mais rápido
     retry: 3,
     retryDelay: 1000
   });
@@ -204,22 +205,85 @@ function WorkSchedulesContent() {
   // Safe data processing with proper type checking
   let schedules: WorkSchedule[] = [];
   
+  console.log('[FRONTEND-DEBUG] Processing schedules data:', schedulesData);
+  console.log('[FRONTEND-DEBUG] Data type:', typeof schedulesData);
+  console.log('[FRONTEND-DEBUG] Is array:', Array.isArray(schedulesData));
+  
   try {
     if (Array.isArray(schedulesData)) {
-      schedules = schedulesData.map(schedule => ({
-        ...schedule,
-        // Ensure workDays is always an array
-        workDays: Array.isArray(schedule.workDays) ? schedule.workDays : [1,2,3,4,5],
-        // Ensure required fields have defaults
-        userName: schedule.userName || 'Usuário',
-        scheduleType: schedule.scheduleType || '5x2',
-        breakDurationMinutes: schedule.breakDurationMinutes || 60,
-        isActive: schedule.isActive ?? true
-      }));
+      console.log('[FRONTEND-DEBUG] Processing as direct array, length:', schedulesData.length);
+      schedules = schedulesData.map(schedule => {
+        try {
+          return {
+            ...schedule,
+            // Ensure workDays is always an array
+            workDays: Array.isArray(schedule.workDays) ? schedule.workDays : [1,2,3,4,5],
+            // Ensure required fields have defaults
+            userName: schedule.userName || 'Usuário',
+            scheduleType: schedule.scheduleType || '5x2',
+            breakDurationMinutes: schedule.breakDurationMinutes || 60,
+            isActive: schedule.isActive ?? true,
+            // Safe date handling
+            createdAt: schedule.createdAt ? new Date(schedule.createdAt).toISOString() : new Date().toISOString(),
+            updatedAt: schedule.updatedAt ? new Date(schedule.updatedAt).toISOString() : new Date().toISOString(),
+            startDate: schedule.startDate ? new Date(schedule.startDate).toISOString().split('T')[0] : null,
+            endDate: schedule.endDate ? new Date(schedule.endDate).toISOString().split('T')[0] : null
+          };
+        } catch (err) {
+          console.error('Error processing schedule:', err, schedule);
+          return {
+            ...schedule,
+            workDays: [1,2,3,4,5],
+            userName: 'Usuário',
+            scheduleType: '5x2',
+            breakDurationMinutes: 60,
+            isActive: true,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            startDate: null,
+            endDate: null
+          };
+        }
+      });
     } else if (schedulesData && typeof schedulesData === 'object') {
-      const rawSchedules = (schedulesData as any).schedules || (schedulesData as any).data || [];
-      schedules = Array.isArray(rawSchedules) ? rawSchedules : [];
+      console.log('[FRONTEND-DEBUG] Processing as object, looking for schedules/data property');
+      const rawSchedules = (schedulesData as any).schedules || (schedulesData as any).data || schedulesData;
+      console.log('[FRONTEND-DEBUG] Found raw schedules:', rawSchedules);
+      if (Array.isArray(rawSchedules)) {
+        schedules = rawSchedules.map(schedule => {
+          try {
+            return {
+              ...schedule,
+              workDays: Array.isArray(schedule.workDays) ? schedule.workDays : [1,2,3,4,5],
+              userName: schedule.userName || 'Usuário',
+              scheduleType: schedule.scheduleType || '5x2',
+              breakDurationMinutes: schedule.breakDurationMinutes || 60,
+              isActive: schedule.isActive ?? true,
+              // Safe date handling
+              createdAt: schedule.createdAt ? new Date(schedule.createdAt).toISOString() : new Date().toISOString(),
+              updatedAt: schedule.updatedAt ? new Date(schedule.updatedAt).toISOString() : new Date().toISOString(),
+              startDate: schedule.startDate ? new Date(schedule.startDate).toISOString().split('T')[0] : null,
+              endDate: schedule.endDate ? new Date(schedule.endDate).toISOString().split('T')[0] : null
+            };
+          } catch (err) {
+            console.error('Error processing schedule:', err, schedule);
+            return {
+              ...schedule,
+              workDays: [1,2,3,4,5],
+              userName: 'Usuário',
+              scheduleType: '5x2',
+              breakDurationMinutes: 60,
+              isActive: true,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+              startDate: null,
+              endDate: null
+            };
+          }
+        });
+      }
     }
+    console.log('[FRONTEND-DEBUG] Final processed schedules:', schedules.length);
   } catch (error) {
     console.error('[QA-ERROR] Error processing schedules data:', error);
     schedules = [];
