@@ -50,11 +50,13 @@ export default function ProductivityReports() {
     endDate: format(new Date(), 'yyyy-MM-dd'),
   });
 
-  const { data: myProductivity, isLoading: myProductivityLoading } = useQuery({
+  const { data: myProductivity, isLoading: myProductivityLoading, error: myProductivityError } = useQuery({
     queryKey: ['/api/productivity/my-productivity', filters],
     queryFn: async () => {
       const params = new URLSearchParams(filters);
+      console.log('🔍 Making API request to:', `/api/productivity/my-productivity?${params}`);
       const response = await apiRequest('GET', `/api/productivity/my-productivity?${params}`);
+      console.log('🔍 API Response received:', response);
       return response;
     },
   });
@@ -108,7 +110,7 @@ export default function ProductivityReports() {
     return colors[type] || 'bg-gray-500';
   };
 
-  const summary: ProductivitySummary = myProductivity?.data?.summary || {
+  const summary: ProductivitySummary = myProductivity?.data?.data?.summary || {
     totalActivities: 0,
     totalTimeSeconds: 0,
     averageSessionTime: 0,
@@ -119,7 +121,12 @@ export default function ProductivityReports() {
   // Debug logging
   console.log('🔍 Productivity Debug:', {
     loading: myProductivityLoading,
-    data: myProductivity,
+    error: myProductivityError,
+    rawResponse: myProductivity,
+    responseData: myProductivity?.data,
+    responseNestedData: myProductivity?.data?.data,
+    responseDataType: typeof myProductivity?.data,
+    responseKeys: myProductivity?.data ? Object.keys(myProductivity.data) : 'no keys',
     summary,
     activitiesCount: Object.keys(summary.activitiesByType).length,
     dailyCount: Object.keys(summary.dailyBreakdown).length
