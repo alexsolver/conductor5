@@ -80,6 +80,7 @@ import NotificationManagement from './pages/NotificationManagement';
 import CustomFieldsAdministrator from './pages/CustomFieldsAdministrator';
 import DragDropDemo from './pages/DragDropDemo';
 import ProductivityReports from './pages/ProductivityReports';
+import TimecardApprovals from './pages/TimecardApprovals';
 
 // import { GlobalGeolocation } from "./components/GlobalGeolocation"; // Temporarily disabled due to TypeScript syntax issue
 import Customers from "./pages/Customers";
@@ -167,6 +168,7 @@ function AppRouter() {
         <Route path="/work-schedules" component={WorkSchedules} />
         <Route path="/timecard-reports" component={TimecardReports} />
         <Route path="/timecard-approval-settings" component={TimecardApprovalSettings} />
+        <Route path="/timecard-approvals" component={TimecardApprovals} />
         <Route path="/hour-bank" component={HourBank} />
         <Route path="/absence-management" component={AbsenceManagement} />
         <Route path="/schedule-templates" component={ScheduleTemplates} />
