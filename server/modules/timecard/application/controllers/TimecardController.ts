@@ -49,38 +49,60 @@ export class TimecardController {
   // Get current status for user
   getCurrentStatus = async (req: Request, res: Response) => {
     try {
-      const tenantId = req.user?.tenantId;
       const userId = req.user?.id;
+      const { tenantId } = (req as any).user;
 
-      if (!tenantId || !userId) {
-        return res.status(401).json({ error: 'Unauthorized' });
+      if (!userId) {
+        return res.status(401).json({ error: 'User not authenticated' });
       }
 
       // Get today's records
       const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const todayRecords = await this.timecardRepository.getTimecardEntriesByUserAndDate(userId, today.toISOString(), tenantId);
+      const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999);
 
-      // Determine current status
+      const todayRecords = await this.timecardRepository.getTimecardEntriesByUser(
+        userId,
+        tenantId,
+        startOfDay,
+        endOfDay
+      );
+
+      console.log('[STATUS-DEBUG] Today records found:', todayRecords.length);
+
+      // Determinar status baseado na análise de todos os registros do dia
       let status = 'not_started';
-      let lastRecord = null;
+      let lastActiveRecord = null;
 
-      if (todayRecords.length > 0) {
-        lastRecord = todayRecords[todayRecords.length - 1];
-
-        if (lastRecord.checkOut) {
-          status = 'finished';
-        } else if (lastRecord.breakStart && !lastRecord.breakEnd) {
-          status = 'on_break';
-        } else if (lastRecord.checkIn) {
-          status = 'working';
+      // Encontrar o último registro ativo (com checkIn mas sem checkOut)
+      for (const record of todayRecords) {
+        if (record.checkIn && !record.checkOut) {
+          lastActiveRecord = record;
+          break; // Pegar o mais recente
         }
       }
+
+      if (lastActiveRecord) {
+        if (lastActiveRecord.breakStart && !lastActiveRecord.breakEnd) {
+          status = 'on_break';
+        } else {
+          status = 'working';
+        }
+      } else {
+        // Verificar se há algum registro hoje (finalizado)
+        const hasRecordsToday = todayRecords.some(r => r.checkIn || r.checkOut);
+        if (hasRecordsToday) {
+          status = 'finished';
+        }
+      }
+
+      console.log('[STATUS-DEBUG] Determined status:', status, 'Last active record:', lastActiveRecord?.id);
 
       const response = {
         status,
         todayRecords,
-        lastRecord,
+        lastRecord: todayRecords[0], // Most recent record
+        lastActiveRecord, // Record that's currently active
         timesheet: {
           totalHours: todayRecords.reduce((sum, record) => {
             return sum + (record.totalHours ? parseFloat(record.totalHours) : 0);
