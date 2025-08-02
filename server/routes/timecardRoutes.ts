@@ -3,8 +3,7 @@ import { TimecardController } from '../modules/timecard/application/controllers/
 import { jwtAuth } from '../middleware/jwtAuth';
 import { AuthenticatedRequest } from '../middleware/jwtAuth';
 import { db } from '../db';
-import { users } from '../db/schema';
-import { scheduleTemplates as scheduleTemplatesTable } from '@shared/schema';
+import { users, scheduleTemplates as scheduleTemplatesTable } from '@shared/schema';
 import { eq, and, sql } from 'drizzle-orm';
 
 const router = Router();
