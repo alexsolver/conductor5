@@ -74,12 +74,17 @@ function WorkSchedulesContent() {
   const queryClient = useQueryClient();
 
   // Buscar todas as escalas
-  const { data: schedulesData, isLoading: schedulesLoading } = useQuery({
+  const { data: schedulesData, isLoading: schedulesLoading, error: schedulesError } = useQuery({
     queryKey: ['/api/timecard/work-schedules'],
     queryFn: async () => {
+      console.log('[FRONTEND-QA] Fetching work schedules...');
       const response = await apiRequest('GET', '/api/timecard/work-schedules');
+      console.log('[FRONTEND-QA] API Response:', response);
       return response;
     },
+    staleTime: 30000, // Cache for 30 seconds
+    retry: 3,
+    retryDelay: 1000
   });
 
   // Buscar usuários
@@ -158,14 +163,29 @@ function WorkSchedulesContent() {
     },
   });
 
-  // Debug logging
-  console.log('Schedules response:', schedulesData);
+  // Enhanced debug logging with QA tracking
+  console.log('[QA-DEBUG] Raw schedulesData:', schedulesData);
+  console.log('[QA-DEBUG] schedulesData type:', typeof schedulesData);
+  console.log('[QA-DEBUG] schedulesData isArray:', Array.isArray(schedulesData));
   
-  const schedules = Array.isArray(schedulesData) ? schedulesData : (schedulesData?.schedules || []);
+  // Improved data processing with fallback handling
+  let schedules = [];
+  if (Array.isArray(schedulesData)) {
+    schedules = schedulesData;
+  } else if (schedulesData && typeof schedulesData === 'object') {
+    schedules = schedulesData.schedules || schedulesData.data || [];
+  }
+  
   const users = usersData?.users || [];
   
-  console.log('Processed schedules:', schedules);
-  console.log('Users:', users);
+  console.log('[QA-DEBUG] Final processed schedules:', schedules);
+  console.log('[QA-DEBUG] Schedules count:', schedules.length);
+  console.log('[QA-DEBUG] Users:', users);
+  
+  // Add error state handling
+  if (schedulesError) {
+    console.error('[QA-DEBUG] Schedules fetch error:', schedulesError);
+  }
 
   const resetForm = () => {
     setSelectedSchedule(null);
@@ -286,6 +306,25 @@ function WorkSchedulesContent() {
       <div className="p-4">
         <div className="flex items-center justify-center h-64">
           <div className="text-lg text-gray-600">Carregando escalas...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (schedulesError) {
+    return (
+      <div className="p-4">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="text-lg text-red-600 mb-2">Erro ao carregar escalas</div>
+            <div className="text-sm text-gray-600">{schedulesError.message}</div>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
+            >
+              Tentar Novamente
+            </button>
+          </div>
         </div>
       </div>
     );

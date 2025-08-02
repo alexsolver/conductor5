@@ -1,4 +1,3 @@
-
 import { Request, Response } from 'express';
 import { z } from 'zod';
 import { DrizzleTimecardRepository } from '../../infrastructure/repositories/DrizzleTimecardRepository';
@@ -91,7 +90,7 @@ export class TimecardController {
 
       if (todayRecords.length > 0) {
         lastRecord = todayRecords[todayRecords.length - 1];
-        
+
         if (lastRecord.checkOut) {
           status = 'finished';
         } else if (lastRecord.breakStart && !lastRecord.breakEnd) {
@@ -230,13 +229,19 @@ export class TimecardController {
 
   getAllWorkSchedules = async (req: Request, res: Response) => {
     try {
+      console.log('[CONTROLLER-QA] Getting work schedules for tenant:', (req as any).user.tenantId);
       const { tenantId } = (req as any).user;
-
       const schedules = await this.timecardRepository.getAllWorkSchedules(tenantId);
-      res.json({ schedules });
-    } catch (error) {
-      console.error('Error fetching all work schedules:', error);
-      res.status(500).json({ message: 'Erro interno do servidor' });
+
+      // Ensure frontend gets direct array, not wrapped object
+      console.log('[CONTROLLER-QA] Returning schedules count:', schedules.length);
+      res.json(schedules); // Direct array response
+    } catch (error: any) {
+      console.error('[CONTROLLER-QA] Error getting work schedules:', error);
+      res.status(500).json({ 
+        error: 'Failed to retrieve work schedules',
+        details: error.message 
+      });
     }
   };
 
@@ -501,7 +506,7 @@ export class TimecardController {
   markNotificationAsRead = async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      
+
       // Mock implementation - implementar lógica real de marcação
       res.json({ success: true, message: 'Notificação marcada como lida' });
     } catch (error) {
