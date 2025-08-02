@@ -607,7 +607,7 @@ const TicketsTable = React.memo(() => {
       }
 
       const response = await apiRequest('GET', `/api/tickets?${params.toString()}`);
-      return response.json();
+      return response; // apiRequest já retorna dados processados
     },
     retry: 3,
     staleTime: 30000, // Cache por 30 segundos
@@ -627,7 +627,7 @@ const TicketsTable = React.memo(() => {
     queryKey: ["/api/customers/companies"],
     queryFn: async () => {
       const response = await apiRequest("GET", "/api/customers/companies");
-      return response.json();
+      return response; // apiRequest já retorna dados processados
     },
     retry: 3,
   });
@@ -1403,17 +1403,8 @@ const TicketsTable = React.memo(() => {
       console.log('🚀 Starting ticket creation with data:', data);
       try {
         const response = await apiRequest("POST", "/api/tickets", data);
-        console.log('📡 API Response status:', response.status);
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          console.error('❌ API Error Response:', errorData);
-          throw new Error(errorData.message || "Erro ao criar ticket");
-        }
-
-        const result = await response.json();
-        console.log('✅ API Success Response:', result);
-        return result;
+        console.log('✅ API Success Response:', response);
+        return response; // apiRequest já retorna dados processados
       } catch (error) {
         console.error('💥 Mutation Error:', error);
         throw error;
