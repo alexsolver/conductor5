@@ -1458,22 +1458,34 @@ ticketsRouter.delete('/:ticketId/actions/:actionId', jwtAuth, async (req: Authen
     // 🚨 CORREÇÃO CRÍTICA: Adicionar entrada no histórico ANTES de excluir
     const historyInsertQuery = `
       INSERT INTO "${schemaName}".ticket_history 
-      (tenant_id, ticket_id, performed_by, action_type, description, field_name, old_value, new_value, created_at)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
+      (tenant_id, ticket_id, performed_by, performed_by_name, action_type, description, field_name, old_value, new_value, ip_address, user_agent, session_id, created_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW())
       RETURNING *
     `;
 
     const historyDescription = `Ação interna excluída: ${deletedAction.description || deletedAction.action_type || 'Ação sem descrição'}`;
     
+    // Capturar dados da sessão para auditoria completa
+    const ipAddress = req.ip || req.connection?.remoteAddress || null;
+    const userAgent = req.get('User-Agent') || null;
+    const sessionId = req.sessionID || 'no-session';
+    const performedByName = req.user?.firstName && req.user?.lastName 
+      ? `${req.user.firstName} ${req.user.lastName}` 
+      : req.user?.email || null;
+    
     await pool.query(historyInsertQuery, [
       tenantId,
       ticketId,
       userId,
+      performedByName,
       'action_deleted',
       historyDescription,
       'internal_action',
       `ID: ${actionId}`,
-      null
+      null,
+      ipAddress,
+      userAgent,
+      sessionId
     ]);
 
     // Agora excluir a ação interna do histórico

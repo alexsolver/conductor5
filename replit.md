@@ -29,7 +29,7 @@ Conductor follows a Clean Architecture with Domain-Driven Design principles.
 - **Multi-tenancy**: True schema separation where each tenant has a dedicated PostgreSQL schema (`tenant_{uuid}`).
 - **Key Features**:
     - **Authentication & Authorization**: Local JWT with access/refresh tokens, bcrypt hashing, and a four-tier RBAC system (saas_admin, tenant_admin, agent, customer) with granular permissions and tenant isolation.
-    - **Ticket Management**: Comprehensive system with ServiceNow-style fields, advanced specialized fields (attachments, notes, communication, history, internal actions), hierarchical configurations (category → subcategory → action), and dynamic metadata.
+    - **Ticket Management**: Comprehensive system with ServiceNow-style fields, advanced specialized fields (attachments, notes, communication, history, internal actions), hierarchical configurations (category → subcategory → action), and dynamic metadata. Full audit trail for internal action deletions with proper history logging using `performed_by` column.
     - **Customer & Beneficiary Management**: Flexible person management system for callers and beneficiaries, including sensitive data protection with agent password verification.
     - **Location Management**: Comprehensive system supporting 7 types of location records (Local, Região, Rota Dinâmica, Trecho, Rota de Trecho, Área, Agrupamento) with advanced UX features like CEP auto-fill, interactive map coordinate collection, and centralized operating hours.
     - **User & Team Management**: Consolidated system for user and team management with HR database schema expansion, user group memberships, and a list-based view for team members.
