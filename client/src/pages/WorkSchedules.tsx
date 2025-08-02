@@ -109,12 +109,16 @@ function WorkSchedulesContent() {
   });
 
   // Buscar tipos de escalas personalizados
-  const { data: scheduleTypesData } = useQuery({
+  const { data: scheduleTypesData, error: templatesError } = useQuery({
     queryKey: ['/api/timecard/schedule-templates'],
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/timecard/schedule-templates');
-      return response;
+      const data = await response.json();
+      console.log('[TEMPLATES-DEBUG] Schedule templates loaded:', data);
+      return data;
     },
+    retry: 3,
+    retryDelay: 1000
   });
 
   // Criar escala
@@ -214,6 +218,11 @@ function WorkSchedulesContent() {
   if (process.env.NODE_ENV === 'development') {
     console.log('Work schedules loaded:', schedules.length);
     console.log('Users available:', users.length);
+    console.log('Schedule templates:', scheduleTypesData?.templates?.length || 0);
+  }
+  
+  if (templatesError) {
+    console.error('Templates fetch error:', templatesError);
   }
   
   // Add error state handling
