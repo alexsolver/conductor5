@@ -12,8 +12,6 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { useEditor, EditorContent } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
 
 interface InternalActionModalProps {
   ticketId: string;
@@ -34,28 +32,29 @@ export default function InternalActionModal({ ticketId, isOpen, onClose }: Inter
   const [formData, setFormData] = useState({
     startDateTime: "",
     endDateTime: "",
-    timeSpent: "0:00:00:25",
+    estimatedMinutes: "0",
+    timeSpentMinutes: "0",
     alterTimeSpent: false,
     actionType: "",
     workLog: "",
     description: "",
     attachments: [] as File[],
-    assignedToId: "" // New field for assignment
+    assignedToId: ""
   });
   const [isPublic, setIsPublic] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Rich text editor for description
-  const editor = useEditor({
-    extensions: [StarterKit],
-    content: formData.description,
-    onUpdate: ({ editor }) => {
-      setFormData(prev => ({ ...prev, description: editor.getHTML() }));
-    },
-  });
+  // Function to handle time spent toggle
+  const handleTimeSpentToggle = (checked: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      alterTimeSpent: checked,
+      timeSpentMinutes: checked ? prev.timeSpentMinutes : "0"
+    }));
+  };
 
-  // Fetch internal actions - PROBLEMA 1 RESOLVED: Fix actions.map is not a function
+  // Fetch internal actions
   const { data: actionsResponse, isLoading } = useQuery({
     queryKey: ["/api/tickets", ticketId, "actions"],
     queryFn: async () => {
@@ -65,7 +64,7 @@ export default function InternalActionModal({ ticketId, isOpen, onClose }: Inter
     enabled: isOpen,
   });
 
-  // Extract data from response to avoid "actions.map is not a function" error
+  // Extract data from response
   const actions = actionsResponse?.success ? actionsResponse.data : [];
 
   // Fetch team members for assignment dropdown
@@ -97,7 +96,8 @@ export default function InternalActionModal({ ticketId, isOpen, onClose }: Inter
       setFormData({
         startDateTime: "",
         endDateTime: "",
-        timeSpent: "0:00:00:25",
+        estimatedMinutes: "0",
+        timeSpentMinutes: "0",
         alterTimeSpent: false,
         actionType: "",
         workLog: "",
@@ -107,19 +107,13 @@ export default function InternalActionModal({ ticketId, isOpen, onClose }: Inter
       });
       setIsPublic(false);
 
-      // Clear editor content
-      if (editor) {
-        editor.commands.clearContent();
-      }
-
       // Invalidate queries to refresh the actions list and history
       queryClient.invalidateQueries({ queryKey: ["/api/tickets", ticketId, "actions"] });
       queryClient.invalidateQueries({ queryKey: ["/api/tickets", ticketId, "history"] });
 
-      // Close modal after successful creation
       onClose();
     },
-    onError: (error: Error) => {
+    onError: (error: any) => {
       toast({
         title: "Erro",
         description: error.message || "Falha ao adicionar ação interna",
@@ -174,7 +168,7 @@ export default function InternalActionModal({ ticketId, isOpen, onClose }: Inter
           <Card>
             <CardContent className="p-6">
               <div className="space-y-6">
-                {/* First Row: Date/Time and Time Spent */}
+                {/* First Row: Date/Time and Time */}
                 <div className="grid grid-cols-4 gap-4">
                   <div>
                     <Label htmlFor="start-datetime">Data/Hora Início *</Label>
@@ -197,25 +191,50 @@ export default function InternalActionModal({ ticketId, isOpen, onClose }: Inter
                     />
                   </div>
                   <div>
+                    <Label htmlFor="estimated-minutes">Tempo previsto (min)</Label>
+                    <Input
+                      id="estimated-minutes"
+                      type="number"
+                      min="0"
+                      value={formData.estimatedMinutes}
+                      onChange={(e) => setFormData(prev => ({ ...prev, estimatedMinutes: e.target.value }))}
+                      placeholder="0"
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
                     <div className="flex items-center space-x-2 mb-1">
                       <Switch
                         id="alter-time"
                         checked={formData.alterTimeSpent}
-                        onCheckedChange={(checked) => setFormData(prev => ({ ...prev, alterTimeSpent: checked }))}
+                        onCheckedChange={handleTimeSpentToggle}
                       />
                       <Label htmlFor="alter-time" className="text-sm">Alterar tempo gasto</Label>
                     </div>
-                  </div>
-                  <div>
-                    <Label htmlFor="time-spent">Tempo gasto</Label>
                     <Input
                       id="time-spent"
-                      value={formData.timeSpent}
-                      onChange={(e) => setFormData(prev => ({ ...prev, timeSpent: e.target.value }))}
-                      placeholder="0:00:00:25"
+                      type="number"
+                      min="0"
+                      value={formData.timeSpentMinutes}
+                      onChange={(e) => setFormData(prev => ({ ...prev, timeSpentMinutes: e.target.value }))}
+                      placeholder="0"
+                      disabled={!formData.alterTimeSpent}
                       className="mt-1"
                     />
+                    <Label htmlFor="time-spent" className="text-xs text-gray-500">minutos</Label>
                   </div>
+                </div>
+
+                {/* Description - Simple Text Field */}
+                <div>
+                  <Label htmlFor="description">Descrição</Label>
+                  <Input
+                    id="description"
+                    value={formData.description}
+                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="Descrição da ação interna..."
+                    className="mt-1"
+                  />
                 </div>
 
                 {/* Action Type and Work Log */}
@@ -324,66 +343,6 @@ export default function InternalActionModal({ ticketId, isOpen, onClose }: Inter
                   </div>
                 </div>
 
-                {/* Rich Text Description */}
-                <div>
-                  <Label>Descrição</Label>
-                  <div className="mt-1 border rounded-md">
-                    {/* Toolbar */}
-                    <div className="border-b p-2 bg-gray-50 flex flex-wrap gap-1">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => editor?.chain().focus().toggleBold().run()}
-                        className={editor?.isActive('bold') ? 'bg-gray-200' : ''}
-                      >
-                        <strong>B</strong>
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => editor?.chain().focus().toggleItalic().run()}
-                        className={editor?.isActive('italic') ? 'bg-gray-200' : ''}
-                      >
-                        <em>I</em>
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => editor?.chain().focus().toggleStrike().run()}
-                        className={editor?.isActive('strike') ? 'bg-gray-200' : ''}
-                      >
-                        <s>S</s>
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => editor?.chain().focus().toggleBulletList().run()}
-                        className={editor?.isActive('bulletList') ? 'bg-gray-200' : ''}
-                      >
-                        •
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => editor?.chain().focus().toggleOrderedList().run()}
-                        className={editor?.isActive('orderedList') ? 'bg-gray-200' : ''}
-                      >
-                        1.
-                      </Button>
-                    </div>
-
-                    {/* Editor Content */}
-                    <div className="p-3 min-h-[120px] prose prose-sm max-w-none">
-                      <EditorContent editor={editor} />
-                    </div>
-                  </div>
-                </div>
-
                 {/* Submit Section */}
                 <div className="flex items-center justify-between border-t pt-4">
                   <div className="flex items-center space-x-2">
@@ -429,7 +388,55 @@ export default function InternalActionModal({ ticketId, isOpen, onClose }: Inter
             </CardContent>
           </Card>
 
-
+          {/* Existing Actions Display - Optional */}
+          <Card>
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                <Clock className="w-5 h-5" />
+                Ações Internas ({actions.length})
+              </h3>
+              
+              {isLoading ? (
+                <div className="text-center py-4">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+                  <p className="mt-2 text-sm text-gray-600">Carregando ações...</p>
+                </div>
+              ) : actions.length === 0 ? (
+                <p className="text-center text-gray-500 py-4">Nenhuma ação interna registrada ainda.</p>
+              ) : (
+                <div className="space-y-3">
+                  {actions.slice(0, 3).map((action: any) => (
+                    <div key={action.id} className="border rounded-lg p-4 bg-gray-50">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Badge variant={action.is_public ? "default" : "secondary"}>
+                              {action.is_public ? "Público" : "Privado"}
+                            </Badge>
+                            <Badge variant="outline">{action.type}</Badge>
+                            <span className="text-sm text-gray-500">
+                              por {action.createdByName || action.created_by}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-700 line-clamp-2">
+                            {action.content || action.description || "Sem descrição"}
+                          </p>
+                        </div>
+                        <div className="text-xs text-gray-500 ml-4">
+                          {new Date(action.created_at).toLocaleString('pt-BR')}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {actions.length > 3 && (
+                    <p className="text-center text-sm text-gray-500">
+                      ... e mais {actions.length - 3} ações
+                    </p>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </DialogContent>
     </Dialog>
