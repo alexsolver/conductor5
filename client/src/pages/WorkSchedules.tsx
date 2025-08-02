@@ -403,7 +403,7 @@ function WorkSchedulesContent() {
                     <SelectContent>
                       {users.map((user: any) => (
                         <SelectItem key={user.id} value={user.id}>
-                          {user.first_name} {user.last_name} - {user.role || 'Funcionário'}
+                          {user.firstName || user.first_name || ''} {user.lastName || user.last_name || ''} - {user.role || 'Funcionário'}
                         </SelectItem>
                       ))}
                     </SelectContent>

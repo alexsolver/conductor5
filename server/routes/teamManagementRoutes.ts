@@ -120,8 +120,6 @@ router.get('/members', async (req: AuthenticatedRequest, res) => {
       lastName: member.lastName,
       email: member.email,
       role: member.role,
-      position: member.position,
-      department: member.department,
       isActive: member.isActive,
       createdAt: member.createdAt
     }));
