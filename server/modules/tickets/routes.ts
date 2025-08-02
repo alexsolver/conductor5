@@ -598,9 +598,9 @@ ticketsRouter.get('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, res
         th.description as content,
         th.description,
         COALESCE(tia.status, 'pending') as status,
-        0 as time_spent,
-        th.created_at as start_time,
-        th.created_at as end_time,
+        COALESCE(tia.estimated_hours * 60, 0) as time_spent,
+        COALESCE(tia.start_time, th.created_at) as start_time,
+        COALESCE(tia.end_time, th.created_at) as end_time,
         '[]'::text as linked_items,
         false as has_file,
         'system' as contact_method,
@@ -617,7 +617,7 @@ ticketsRouter.get('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, res
       LEFT JOIN public.users au ON tia.agent_id = au.id
       WHERE th.tenant_id = $1::uuid 
         AND th.ticket_id = $2::uuid
-        AND th.action_type IN ('investigation', 'resolution', 'escalation', 'reassignment', 'follow_up', 'customer_contact', 'internal_note', 'workaround', 'root_cause_analysis', 'documentation', 'testing', 'deployment', 'maintenance', 'monitoring', 'backup', 'security_review', 'training', 'audit', 'consultation')
+        AND th.action_type NOT IN ('field_updated', 'status_changed', 'priority_changed', 'assignment_changed', 'note_added', 'communication_added', 'attachment_added')
       ORDER BY th.created_at DESC
     `;
 
