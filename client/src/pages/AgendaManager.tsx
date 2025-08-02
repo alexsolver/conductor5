@@ -218,6 +218,26 @@ const AgendaManager: React.FC = () => {
 
   const internalActions = (internalActionsData as any)?.data || [];
 
+  // Debug - verificar se ações internas estão sendo carregadas
+  React.useEffect(() => {
+    console.log('🔍 AGENDA DEBUG - Internal actions data:', {
+      internalActionsLoading,
+      internalActionsData,
+      internalActionsCount: internalActions.length,
+      internalActions: internalActions.slice(0, 3) // primeiras 3 ações
+    });
+  }, [internalActionsLoading, internalActionsData, internalActions]);
+
+  // Debug - verificar combinedAgendaItems
+  React.useEffect(() => {
+    console.log('🔍 AGENDA DEBUG - Combined agenda items:', {
+      schedulesCount: schedules.length,
+      internalActionsCount: internalActions.length,
+      combinedCount: combinedAgendaItems.length,
+      combinedItems: combinedAgendaItems.slice(0, 5) // primeiros 5 itens
+    });
+  }, [schedules, internalActions, combinedAgendaItems]);
+
   // Obter técnicos selecionados para exibir na timeline
   const selectedTechnicians = React.useMemo(() => {
     if (selectedAgents === 'todos') {
