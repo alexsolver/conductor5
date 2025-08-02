@@ -415,7 +415,7 @@ export default function TeamManagement() {
 
       {/* Main Content Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-10">
+        <TabsList className="grid w-full grid-cols-11">
           <TabsTrigger value="overview" className="flex items-center space-x-1">
             <BarChart3 className="h-3 w-3" />
             <span className="text-xs">Visão Geral</span>
@@ -424,9 +424,13 @@ export default function TeamManagement() {
             <Users className="h-3 w-3" />
             <span className="text-xs">Membros</span>
           </TabsTrigger>
-          <TabsTrigger value="groups" className="flex items-center space-x-1">
+          <TabsTrigger value="groups-roles" className="flex items-center space-x-1">
             <Building className="h-3 w-3" />
-            <span className="text-xs">Grupos</span>
+            <span className="text-xs">Grupos/Funções</span>
+          </TabsTrigger>
+          <TabsTrigger value="documents" className="flex items-center space-x-1">
+            <GraduationCap className="h-3 w-3" />
+            <span className="text-xs">Documentos</span>
           </TabsTrigger>
           <TabsTrigger value="roles" className="flex items-center space-x-1">
             <Shield className="h-3 w-3" />
