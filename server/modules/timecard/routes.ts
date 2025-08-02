@@ -71,9 +71,4 @@ timecardRouter.get('/reports/attendance/:period', jwtAuth, (req, res) =>
   timecardController.getAttendanceReport(req, res)
 );
 
-// Users route for reports
-timecardRouter.get('/users', jwtAuth, (req, res) => 
-  timecardController.getUsers(req, res)
-);
-
 export { timecardRouter };
