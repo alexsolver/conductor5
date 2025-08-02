@@ -149,41 +149,20 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
   };
 
   return (
-    <div className="flex h-full bg-gray-50">
-      {/* Left Sidebar - Time Filters and Agent Search */}
-      <div className="w-64 bg-white border-r border-gray-200 p-4 space-y-4">
-        {/* Time Filter Buttons */}
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium text-gray-700">Filtro de Tempo</h3>
-          <div className="grid grid-cols-2 gap-2">
-            {(['hoje', '2min', '10min', '30min', '1hora', '24horas'] as const).map((filter) => (
-              <button
-                key={filter}
-                onClick={() => setTimeFilter(filter)}
-                className={`px-3 py-2 text-xs rounded-md font-medium transition-colors ${
-                  timeFilter === filter
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                {filter === 'hoje' ? 'Hoje' : filter}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Agent Search */}
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium text-gray-700">Buscar Técnicos</h3>
+    <div className="flex h-full bg-white">
+      {/* Left sidebar with agents list */}
+      <div className="w-80 bg-gray-50 p-4 border-r overflow-y-auto">
+        {/* Search Agent */}
+        <div className="mb-4">
           <div className="relative">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
             <Input
               type="text"
               placeholder="Buscar técnico..."
               value={searchAgent}
               onChange={(e) => setSearchAgent(e.target.value)}
-              className="pl-9 text-sm"
+              className="pl-10"
             />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           </div>
         </div>
 
@@ -214,113 +193,157 @@ const WeeklyScheduleGrid: React.FC<WeeklyScheduleGridProps> = ({
         </div>
       </div>
 
-      {/* Main Grid - Days as Columns, Hours as Rows */}
+      {/* Main timeline grid - horizontal continuous layout */}
       <div className="flex-1 overflow-auto">
-        <div className="min-w-max bg-white">
-          {/* Header with Days */}
-          <div className="sticky top-0 bg-gray-50 border-b border-gray-200 z-10">
-            <div className="grid" style={{ gridTemplateColumns: `120px repeat(${days.length}, 100px)` }}>
-              <div className="p-3 border-r border-gray-200">
-                <div className="text-sm font-semibold text-gray-900">Horários</div>
+        <div className="min-w-max">
+          {/* Header with date range and hours */}
+          <div className="sticky top-0 bg-white border-b border-gray-200 z-10">
+            {/* Date range header */}
+            <div className="flex bg-gray-100 border-b">
+              <div className="w-48 p-2 border-r border-gray-200 bg-gray-50 font-medium text-sm text-center">
+                {format(days[0], 'dd', { locale: ptBR })} - {format(days[days.length - 1], 'dd \'de\' MMM \'de\' yyyy', { locale: ptBR })}
               </div>
-              {days.map((day, index) => (
-                <div key={index} className="p-3 border-r border-gray-200 text-center">
-                  <div className="text-xs text-gray-500">
-                    {format(day, 'eee', { locale: ptBR }).toUpperCase()}
-                  </div>
-                  <div className="text-sm font-semibold text-gray-900">
-                    {format(day, 'dd/MM', { locale: ptBR })}
-                  </div>
+              {/* Day headers */}
+              {days.map((day) => (
+                <div key={day.toISOString()} className="flex">
+                  {Array.from({ length: 24 }, (_, hour) => (
+                    <div key={hour} className="w-4 border-r border-gray-100 text-center">
+                      {hour === 12 && (
+                        <div className="text-xs text-gray-600 bg-gray-200 px-1">
+                          {format(day, 'eee. dd/MM', { locale: ptBR })}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+            
+            {/* Hour numbers header */}
+            <div className="flex bg-gray-50">
+              <div className="w-48 p-1 border-r border-gray-200 text-xs text-center text-gray-500">
+                Linha do Tempo
+              </div>
+              {days.map((day) => (
+                <div key={day.toISOString()} className="flex">
+                  {Array.from({ length: 24 }, (_, hour) => (
+                    <div key={hour} className="w-4 border-r border-gray-100 text-xs text-center text-gray-500">
+                      {hour % 6 === 0 ? hour.toString().padStart(2, '0') : ''}
+                    </div>
+                  ))}
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Time Slots as Rows */}
-          {timeSlots.map((timeSlot) => (
-            <div key={timeSlot} className="border-b border-gray-100">
-              {/* Time Label */}
-              <div className="grid" style={{ gridTemplateColumns: `120px repeat(${days.length}, 100px)` }}>
-                <div className="p-3 border-r border-gray-200 bg-gray-50">
-                  <div className="text-sm font-medium text-gray-900">{timeSlot}</div>
-                </div>
-                
-                {/* Day Columns */}
-                {days.map((day, dayIndex) => (
-                  <div key={dayIndex} className="border-r border-gray-200">
-                    {/* Each Agent gets two mini-rows: Planned and Actual */}
-                    {filteredAgents.map((agent, agentIndex) => (
-                      <div key={agent.id} className="border-b border-gray-100 last:border-b-0">
-                        {/* Planned Row */}
-                        <div 
-                          className="p-1 bg-green-50 min-h-[30px] relative text-xs cursor-pointer hover:bg-green-100"
-                          onClick={() => onTimeSlotClick(day, timeSlot, agent.id)}
-                        >
-                          {getSchedulesForDayAndTime(agent.id, day, timeSlot, 'planned').map((schedule) => {
-                            const activityType = getActivityType(schedule.activityTypeId);
-                            return (
-                              <div
-                                key={schedule.id}
-                                className="absolute inset-1 rounded text-white text-xs p-1 cursor-pointer hover:opacity-80 flex items-center justify-center"
-                                style={{ backgroundColor: activityType?.color || '#3b82f6' }}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  onScheduleClick(schedule);
-                                }}
-                              >
-                                <Badge variant="secondary" className="text-xs">
-                                  {schedule.priority === 'urgent' ? 'U' : 
-                                   schedule.priority === 'high' ? 'H' : 
-                                   schedule.priority === 'low' ? 'L' : 'M'}
-                                </Badge>
-                              </div>
-                            );
-                          })}
-                          {agentIndex === 0 && (
-                            <div className="absolute -left-20 top-1 text-xs text-green-600 font-medium">
-                              P
-                            </div>
-                          )}
-                        </div>
-                        
-                        {/* Actual Row */}
-                        <div 
-                          className="p-1 bg-blue-50 min-h-[30px] relative text-xs cursor-pointer hover:bg-blue-100"
-                          onClick={() => onTimeSlotClick(day, timeSlot, agent.id)}
-                        >
-                          {getSchedulesForDayAndTime(agent.id, day, timeSlot, 'actual').map((schedule) => {
-                            const activityType = getActivityType(schedule.activityTypeId);
-                            return (
-                              <div
-                                key={schedule.id}
-                                className="absolute inset-1 rounded text-white text-xs p-1 cursor-pointer hover:opacity-80 flex items-center justify-center"
-                                style={{ backgroundColor: activityType?.color || '#3b82f6' }}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  onScheduleClick(schedule);
-                                }}
-                              >
-                                <Badge variant="secondary" className="text-xs">
-                                  {schedule.priority === 'urgent' ? 'U' : 
-                                   schedule.priority === 'high' ? 'H' : 
-                                   schedule.priority === 'low' ? 'L' : 'M'}
-                                </Badge>
-                              </div>
-                            );
-                          })}
-                          {agentIndex === 0 && (
-                            <div className="absolute -left-20 top-1 text-xs text-blue-600 font-medium">
-                              R
-                            </div>
-                          )}
-                        </div>
+          {/* Agents rows */}
+          <div className="divide-y divide-gray-200">
+            {filteredAgents.map((agent) => {
+              const agentName = agent.name || `${agent.firstName || ''} ${agent.lastName || ''}`.trim() || agent.email;
+              
+              return (
+                <div key={agent.id} className="border-b">
+                  {/* Planned row */}
+                  <div className="flex items-center">
+                    <div className="w-48 p-2 border-r border-gray-200 bg-white flex items-center gap-2">
+                      <SimpleAvatar 
+                        src={agent.profileImageUrl} 
+                        name={agentName} 
+                        size="sm" 
+                      />
+                      <div>
+                        <div className="text-xs font-medium text-gray-900">{agentName}</div>
+                        <div className="text-xs text-green-600">Previsto</div>
                       </div>
-                    ))}
+                    </div>
+                    {/* Timeline cells for each hour of each day */}
+                    <div className="flex">
+                      {days.map((day) => (
+                        <div key={day.toISOString()} className="flex">
+                          {Array.from({ length: 24 }, (_, hour) => {
+                            const timeSlot = `${hour.toString().padStart(2, '0')}:00`;
+                            const plannedSchedules = getSchedulesForDayAndTime(agent.id, day, timeSlot, 'planned');
+                            
+                            return (
+                              <div
+                                key={hour}
+                                className="w-4 h-8 border-r border-gray-100 relative cursor-pointer hover:bg-gray-50 bg-white"
+                                onClick={() => onTimeSlotClick(day, timeSlot, agent.id)}
+                              >
+                                {plannedSchedules.map((schedule) => {
+                                  const activityType = getActivityType(schedule.activityTypeId);
+                                  return (
+                                    <div
+                                      key={schedule.id}
+                                      className={`absolute inset-0 cursor-pointer ${getPriorityColor(schedule.priority)}`}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        onScheduleClick(schedule);
+                                      }}
+                                      title={`${schedule.title} - ${activityType?.name || 'N/A'}`}
+                                    />
+                                  );
+                                })}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                ))}
-              </div>
-            </div>
-          ))}
+                  
+                  {/* Actual row */}
+                  <div className="flex items-center">
+                    <div className="w-48 p-2 border-r border-gray-200 bg-gray-50 flex items-center gap-2">
+                      <SimpleAvatar 
+                        src={agent.profileImageUrl} 
+                        name={agentName} 
+                        size="sm" 
+                      />
+                      <div>
+                        <div className="text-xs font-medium text-gray-700">{agentName}</div>
+                        <div className="text-xs text-blue-600">Realizado</div>
+                      </div>
+                    </div>
+                    {/* Timeline cells for each hour of each day */}
+                    <div className="flex">
+                      {days.map((day) => (
+                        <div key={day.toISOString()} className="flex">
+                          {Array.from({ length: 24 }, (_, hour) => {
+                            const timeSlot = `${hour.toString().padStart(2, '0')}:00`;
+                            const actualSchedules = getSchedulesForDayAndTime(agent.id, day, timeSlot, 'actual');
+                            
+                            return (
+                              <div
+                                key={hour}
+                                className="w-4 h-8 bg-gray-50 border-r border-gray-100 relative cursor-pointer hover:bg-gray-100"
+                                onClick={() => onTimeSlotClick(day, timeSlot, agent.id)}
+                              >
+                                {actualSchedules.map((schedule) => {
+                                  const activityType = getActivityType(schedule.activityTypeId);
+                                  return (
+                                    <div
+                                      key={schedule.id}
+                                      className={`absolute inset-0 cursor-pointer ${getPriorityColor(schedule.priority)}`}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        onScheduleClick(schedule);
+                                      }}
+                                      title={`${schedule.title} - ${activityType?.name || 'N/A'}`}
+                                    />
+                                  );
+                                })}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>
