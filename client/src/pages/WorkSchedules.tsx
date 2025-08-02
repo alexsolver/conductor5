@@ -387,9 +387,9 @@ function WorkSchedulesContent() {
                       <SelectValue placeholder="Selecione o funcionário" />
                     </SelectTrigger>
                     <SelectContent>
-                      {users.map((user: User) => (
+                      {users.map((user: any) => (
                         <SelectItem key={user.id} value={user.id}>
-                          {user.firstName} {user.lastName}
+                          {user.first_name} {user.last_name} - {user.role || 'Funcionário'}
                         </SelectItem>
                       ))}
                     </SelectContent>

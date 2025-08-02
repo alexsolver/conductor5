@@ -67,14 +67,17 @@ export default function BulkScheduleAssignment() {
 
   const templates = templatesResponse?.templates || [];
 
-  // Buscar usuários disponíveis
+  // Buscar usuários do Team Management
   const { data: availableUsers = [], isLoading: loadingUsers } = useQuery({
-    queryKey: ['/api/timecard/schedules/available-users'],
+    queryKey: ['/api/team-management/members'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/timecard/schedules/available-users');
-      return response.json();
+      const response = await apiRequest('GET', '/api/team-management/members');
+      return response;
     },
   });
+
+  // Garantir que availableUsers seja sempre um array
+  const users = Array.isArray(availableUsers) ? availableUsers : [];
 
   // Verificar escalas existentes para usuários selecionados
   const { data: existingSchedules = [] } = useQuery({
@@ -130,7 +133,7 @@ export default function BulkScheduleAssignment() {
   };
 
   const selectAllUsers = () => {
-    const allUserIds = availableUsers.map((user: User) => user.id);
+    const allUserIds = users.map((user: any) => user.id);
     setSelectedUsers(allUserIds);
   };
 
@@ -278,7 +281,7 @@ export default function BulkScheduleAssignment() {
                   {loadingUsers ? (
                     <p className="text-sm text-muted-foreground">Carregando funcionários...</p>
                   ) : (
-                    availableUsers.map((user: User) => {
+                    users.map((user: any) => {
                       const hasConflict = usersWithConflicts.includes(user.id);
                       return (
                         <div
@@ -302,7 +305,7 @@ export default function BulkScheduleAssignment() {
                                   {user.first_name} {user.last_name}
                                 </p>
                                 <p className="text-xs text-muted-foreground">
-                                  {user.email} • {user.role}
+                                  {user.email} • {user.role || 'Funcionário'}
                                 </p>
                               </div>
                               {hasConflict && (
