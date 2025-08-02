@@ -67,7 +67,7 @@ export default function Timecard() {
   const queryClient = useQueryClient();
 
   // Query para obter status atual
-  const { data: statusData } = useQuery({
+  const { data: statusData, isLoading: statusLoading, error: statusError } = useQuery({
     queryKey: ['/api/timecard/current-status'],
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/timecard/current-status');
@@ -256,7 +256,19 @@ export default function Timecard() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {currentStatus?.todayRecords?.length > 0 ? (
+          {statusLoading ? (
+            <div className="text-center text-gray-500 py-8">
+              <div className="animate-pulse">Carregando registros...</div>
+            </div>
+          ) : statusError ? (
+            <div className="text-center text-red-500 py-8">
+              <div className="flex items-center justify-center gap-2">
+                <AlertTriangle className="h-4 w-4" />
+                Erro ao carregar registros
+              </div>
+              <div className="text-sm mt-2">Tente recarregar a página</div>
+            </div>
+          ) : currentStatus?.todayRecords?.length > 0 ? (
             <div className="space-y-3">
               {currentStatus.todayRecords.map((record: TimeRecord) => (
                 <div key={record.id} className="flex justify-between items-center py-2 border-b">
@@ -285,7 +297,11 @@ export default function Timecard() {
             </div>
           ) : (
             <div className="text-center text-gray-500 py-8">
-              Nenhum registro encontrado para hoje
+              <div className="mb-2">📝</div>
+              <div className="font-medium">Nenhum registro para hoje</div>
+              <div className="text-sm mt-1">
+                Registre seu primeiro ponto do dia usando o botão acima
+              </div>
             </div>
           )}
         </CardContent>

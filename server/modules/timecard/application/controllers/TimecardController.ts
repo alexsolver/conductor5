@@ -1,20 +1,16 @@
+import { eq, and, gte, lte, desc, asc, sql, inArray } from 'drizzle-orm';
+import { DrizzleTimecardRepository } from '../infrastructure/repositories/DrizzleTimecardRepository';
 import { Request, Response } from 'express';
 import { z } from 'zod';
-import { DrizzleTimecardRepository } from '../../infrastructure/repositories/DrizzleTimecardRepository';
+import { 
+  createTimecardEntrySchema,
+  createAbsenceRequestSchema,
+  createScheduleTemplateSchema,
+  createFlexibleWorkArrangementSchema
+} from '../../../../shared/timecard-validation';
 import { AuthenticatedRequest } from '../../middleware/isAuthenticated';
 
 // Validation schemas
-const createTimecardEntrySchema = z.object({
-  userId: z.string().uuid().optional(), // Optional since it will be overridden by JWT
-  checkIn: z.string().datetime().optional(),
-  checkOut: z.string().datetime().optional(),
-  breakStart: z.string().datetime().optional(),
-  breakEnd: z.string().datetime().optional(),
-  notes: z.string().optional(),
-  location: z.string().optional(),
-  isManualEntry: z.boolean().default(false),
-});
-
 const createWorkScheduleSchema = z.object({
   userId: z.string().uuid(),
   scheduleType: z.enum(['5x2', '6x1', '12x36', 'shift', 'flexible', 'intermittent']),
@@ -25,16 +21,6 @@ const createWorkScheduleSchema = z.object({
   endTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Formato de hora inválido'),
   breakDurationMinutes: z.number().min(0).max(480).default(60),
   isActive: z.boolean().default(true),
-});
-
-const createAbsenceRequestSchema = z.object({
-  userId: z.string().uuid(),
-  absenceType: z.enum(['vacation', 'sick_leave', 'maternity', 'paternity', 'bereavement', 'personal', 'justified_absence', 'unjustified_absence']),
-  startDate: z.string(),
-  endDate: z.string(),
-  reason: z.string().min(10),
-  medicalCertificate: z.string().optional(),
-  coverUserId: z.string().uuid().optional(),
 });
 
 const createScheduleTemplateSchema = z.object({
@@ -51,16 +37,6 @@ const createScheduleTemplateSchema = z.object({
     flexTimeWindow: z.number().optional(),
   }),
   requiresApproval: z.boolean().default(true),
-});
-
-const createFlexibleWorkArrangementSchema = z.object({
-  userId: z.string().uuid(),
-  arrangementType: z.enum(['remote_work', 'flexible_hours', 'compressed_week']),
-  startDate: z.string(),
-  endDate: z.string().optional(),
-  workingHours: z.object({}).optional(),
-  workLocation: z.string().optional(),
-  justification: z.string().min(10),
 });
 
 export class TimecardController {
