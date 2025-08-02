@@ -12,6 +12,7 @@ import TimelineScheduleGrid from '@/components/schedule/TimelineScheduleGrid';
 import WeeklyScheduleGrid from '@/components/schedule/WeeklyScheduleGrid';
 import AgentList from '@/components/schedule/AgentList';
 import ScheduleModal from '@/components/schedule/ScheduleModal';
+import TechnicianTimeline from '@/components/schedule/TechnicianTimeline';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 
@@ -167,6 +168,25 @@ const AgendaManager: React.FC = () => {
     const memberUserIds = groupMembersData.members.map((member: any) => member.userId);
     return agents.filter((agent: any) => memberUserIds.includes(agent.id));
   }, [agents, selectedGroup, groupMembersData]);
+
+  // Buscar jornadas de trabalho dos técnicos
+  const { data: workSchedulesData } = useQuery({
+    queryKey: ['/api/timecard/work-schedules'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/timecard/work-schedules');
+      return await response.json();
+    },
+  });
+
+  const workSchedules = Array.isArray(workSchedulesData) ? workSchedulesData : [];
+
+  // Obter técnicos selecionados para exibir na timeline inferior
+  const selectedTechnicians = React.useMemo(() => {
+    if (selectedAgents === 'todos') {
+      return filteredAgents;
+    }
+    return filteredAgents.filter((agent: any) => agent.id === selectedAgents);
+  }, [filteredAgents, selectedAgents]);
 
   // Navigation functions
   const navigatePrevious = () => {
@@ -392,6 +412,52 @@ const AgendaManager: React.FC = () => {
           />
         )}
       </div>
+
+      {/* Timeline dos Técnicos Selecionados */}
+      {selectedTechnicians.length > 0 && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold text-gray-900">
+              Técnicos - Linha do Tempo
+            </CardTitle>
+            <p className="text-sm text-gray-600">
+              Horários disponíveis baseados na jornada diária de cada técnico
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {selectedTechnicians.map((technician) => {
+                const techSchedule = workSchedules.find((ws: any) => ws.userId === technician.id);
+                const techName = technician.name || `${technician.firstName || ''} ${technician.lastName || ''}`.trim() || technician.email;
+                
+                return (
+                  <div key={technician.id} className="border-l-4 border-blue-500 pl-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-medium text-gray-900">{techName}</h4>
+                      <Badge variant="outline" className="text-xs">
+                        {techSchedule?.scheduleType || 'Sem escala definida'}
+                      </Badge>
+                    </div>
+                    
+                    {techSchedule ? (
+                      <TechnicianTimeline
+                        technician={technician}
+                        workSchedule={techSchedule}
+                        selectedDate={selectedDate}
+                        schedules={schedules.filter((s: any) => s.agentId === technician.id)}
+                      />
+                    ) : (
+                      <div className="text-sm text-gray-500 py-4">
+                        Jornada de trabalho não definida para este técnico
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Schedule Modal */}
       <ScheduleModal
