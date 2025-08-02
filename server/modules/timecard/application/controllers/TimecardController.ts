@@ -111,12 +111,37 @@ export class TimecardController {
   createTimecardEntry = async (req: Request, res: Response) => {
     try {
       const { tenantId } = (req as any).user;
+      const userId = req.user?.id;
       const validatedData = createTimecardEntrySchema.parse(req.body);
+
+      // Get today's records to validate business rules
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const todayRecords = await this.timecardRepository.getTimecardEntriesByUserAndDate(userId, today.toISOString(), tenantId);
+
+      // If this is a check-out, validate that there's an active check-in
+      if (validatedData.checkOut && !validatedData.checkIn) {
+        const activeCheckIn = todayRecords.find(record => record.checkIn && !record.checkOut);
+        if (!activeCheckIn) {
+          return res.status(400).json({ 
+            message: 'Não é possível registrar saída sem uma entrada ativa' 
+          });
+        }
+        
+        // Update the existing check-in record with check-out time
+        const updatedEntry = await this.timecardRepository.updateTimecardEntry(
+          activeCheckIn.id,
+          tenantId,
+          { checkOut: new Date(validatedData.checkOut) }
+        );
+        
+        return res.status(201).json(updatedEntry);
+      }
 
       // Use authenticated user ID instead of body userId
       const entryData = {
         ...validatedData,
-        userId: req.user?.id || validatedData.userId,
+        userId: userId || validatedData.userId,
         tenantId,
         checkIn: validatedData.checkIn ? new Date(validatedData.checkIn) : null,
         checkOut: validatedData.checkOut ? new Date(validatedData.checkOut) : null,
