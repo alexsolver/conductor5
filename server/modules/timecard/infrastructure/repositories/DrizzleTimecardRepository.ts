@@ -259,61 +259,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
     }
   }
 
-  async updateWorkSchedule(id: string, tenantId: string, data: any): Promise<any> {
-    try {
-      const workDaysArray = Array.isArray(data.workDays) ? data.workDays : [1,2,3,4,5];
-
-      const updateData = {
-        scheduleType: data.scheduleType,
-        startDate: data.startDate ? new Date(data.startDate) : undefined,
-        endDate: data.endDate ? new Date(data.endDate) : null,
-        workDays: workDaysArray,
-        startTime: data.startTime,
-        endTime: data.endTime,
-        breakDurationMinutes: data.breakDurationMinutes || 60,
-        isActive: data.isActive ?? true,
-        updatedBy: data.updatedBy,
-        updatedAt: new Date()
-      };
-
-      // Remove undefined values
-      const cleanUpdateData: any = {};
-      Object.entries(updateData).forEach(([key, value]) => {
-        if (value !== undefined) {
-          cleanUpdateData[key] = value;
-        }
-      });
-
-      const [schedule] = await db
-        .update(workSchedules)
-        .set(cleanUpdateData)
-        .where(and(eq(workSchedules.id, id), eq(workSchedules.tenantId, tenantId)))
-        .returning();
-
-      if (!schedule) {
-        throw new Error('Schedule not found');
-      }
-
-      return {
-        id: schedule.id,
-        tenantId: schedule.tenantId,
-        userId: schedule.userId,
-        scheduleType: schedule.scheduleType,
-        startDate: schedule.startDate,
-        endDate: schedule.endDate,
-        workDays: Array.isArray(schedule.workDays) ? schedule.workDays : [1,2,3,4,5],
-        startTime: schedule.startTime,
-        endTime: schedule.endTime,
-        breakDurationMinutes: schedule.breakDurationMinutes,
-        isActive: schedule.isActive,
-        updatedAt: schedule.updatedAt,
-        updatedBy: schedule.updatedBy
-      };
-    } catch (error) {
-      console.error('[DRIZZLE-QA] Error updating work schedule:', error);
-      throw error;
-    }
-  }
+  
 
   async deleteWorkSchedule(id: string, tenantId: string): Promise<void> {
     try {
