@@ -383,6 +383,34 @@ export class TimecardController {
     }
   };
 
+  // Novo endpoint que retorna templates customizados + tipos padrão
+  getAllScheduleOptions = async (req: Request, res: Response) => {
+    try {
+      const { tenantId } = (req as any).user;
+      
+      // Buscar templates customizados
+      const customTemplates = await this.timecardRepository.getScheduleTemplates(tenantId);
+      
+      // Tipos de escala padrão
+      const defaultScheduleTypes = [
+        { id: '5x2', name: '5x2', description: '5 dias úteis, 2 dias de folga', scheduleType: '5x2', workDaysPerWeek: 5, hoursPerDay: '8h', isActive: true },
+        { id: '4x3', name: '4x3', description: '4 dias úteis, 3 dias de folga', scheduleType: '4x3', workDaysPerWeek: 4, hoursPerDay: '10h', isActive: true },
+        { id: '6x1', name: '6x1', description: '6 dias úteis, 1 dia de folga', scheduleType: '6x1', workDaysPerWeek: 6, hoursPerDay: '8h', isActive: true },
+        { id: '12x36', name: '12x36', description: '12 horas trabalhadas, 36 horas de descanso', scheduleType: '12x36', workDaysPerWeek: 3.5, hoursPerDay: '12h', isActive: true },
+        { id: 'flexible', name: 'Horário Flexível', description: 'Horário flexível conforme demanda', scheduleType: 'flexible', workDaysPerWeek: 5, hoursPerDay: '8h', isActive: true },
+        { id: 'part-time', name: 'Meio Período', description: 'Trabalho em meio período', scheduleType: 'part-time', workDaysPerWeek: 5, hoursPerDay: '4h', isActive: true }
+      ];
+      
+      // Combinar templates customizados com tipos padrão
+      const allTemplates = [...customTemplates, ...defaultScheduleTypes];
+      
+      res.json({ templates: allTemplates });
+    } catch (error) {
+      console.error('Error fetching all schedule options:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+  };
+
   updateScheduleTemplate = async (req: Request, res: Response) => {
     try {
       const { tenantId } = (req as any).user;

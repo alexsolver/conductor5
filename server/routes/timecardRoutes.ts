@@ -32,6 +32,7 @@ router.put('/absence-requests/:id/reject', timecardController.rejectAbsenceReque
 // Schedule Templates
 router.post('/schedule-templates', timecardController.createScheduleTemplate);
 router.get('/schedule-templates', timecardController.getScheduleTemplates);
+router.get('/schedule-templates/all', timecardController.getAllScheduleOptions);
 router.put('/schedule-templates/:id', timecardController.updateScheduleTemplate);
 router.delete('/schedule-templates/:id', timecardController.deleteScheduleTemplate);
 
