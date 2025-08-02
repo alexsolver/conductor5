@@ -3,11 +3,11 @@ import { db } from '../../../../db';
 import { 
   timecardEntries,
   hourBankEntries, 
-  workSchedules,
   absenceRequests,
   scheduleTemplates,
   users 
 } from '../../../../../shared/schema';
+import { workSchedules } from '../../../../../shared/schema-master';
 
 export interface TimecardRepository {
   // Timecard Entries
@@ -55,6 +55,15 @@ export interface TimecardRepository {
 }
 
 export class DrizzleTimecardRepository implements TimecardRepository {
+  // Timecard Entries Implementation
+  async createTimecardEntry(data: any): Promise<any> {
+    const [entry] = await db
+      .insert(timecardEntries)
+      .values(data)
+      .returning();
+    return entry;
+  }
+
   // Método auxiliar para calcular duração do intervalo
   private calculateBreakDurationMinutes(breakStart: string | null, breakEnd: string | null): number {
     if (!breakStart || !breakEnd) return 60; // Default 60 minutes
@@ -71,14 +80,6 @@ export class DrizzleTimecardRepository implements TimecardRepository {
       console.error('Error calculating break duration:', error);
       return 60; // Fallback to default
     }
-  }
-  // Timecard Entries Implementation
-  async createTimecardEntry(data: any): Promise<any> {
-    const [entry] = await db
-      .insert(timecardEntries)
-      .values(data)
-      .returning();
-    return entry;
   }
 
   async getTimecardEntriesByUserAndDate(userId: string, date: string, tenantId: string): Promise<any[]> {
@@ -136,108 +137,6 @@ export class DrizzleTimecardRepository implements TimecardRepository {
       .where(and(eq(timecardEntries.id, id), eq(timecardEntries.tenantId, tenantId)));
   }
 
-  // Work Schedules Implementation
-  async createWorkSchedule(data: any): Promise<any> {
-    try {
-      // Ensure workDays is properly formatted as array
-      const workDaysArray = Array.isArray(data.workDays) ? data.workDays : [1,2,3,4,5];
-
-      const [schedule] = await db
-        .insert(workSchedules)
-        .values({
-          tenantId: data.tenantId,
-          userId: data.userId,
-
-          scheduleType: data.scheduleType || '5x2',
-          startDate: data.startDate ? new Date(data.startDate) : new Date(),
-          endDate: data.endDate ? new Date(data.endDate) : null,
-          workDays: workDaysArray,
-          startTime: data.startTime,
-          endTime: data.endTime,
-          breakStart: data.breakStart || null,
-          breakEnd: data.breakEnd || null,
-          breakDurationMinutes: data.breakDurationMinutes || 60,
-          isActive: data.isActive ?? true
-        })
-        .returning();
-
-      return schedule;
-    } catch (error) {
-      console.error('Error creating work schedule:', error);
-      throw error;
-    }
-  }
-
-  async getWorkSchedulesByUser(userId: string, tenantId: string): Promise<any[]> {
-    try {
-      const schedules = await db
-        .select({
-          id: workSchedules.id,
-          tenantId: workSchedules.tenantId,
-          userId: workSchedules.userId,
-          scheduleType: workSchedules.scheduleType, // CORRIGIDO: usar campo real do DB
-          startDate: workSchedules.startDate, // CORRIGIDO: usar campo real do DB
-          endDate: workSchedules.endDate, // CORRIGIDO: usar campo real do DB
-          workDays: workSchedules.workDays,
-          startTime: workSchedules.startTime,
-          endTime: workSchedules.endTime,
-          breakDurationMinutes: workSchedules.breakDurationMinutes,
-          isActive: workSchedules.isActive,
-          createdAt: workSchedules.createdAt,
-          updatedAt: workSchedules.updatedAt,
-          firstName: users.firstName,
-          lastName: users.lastName
-        })
-        .from(workSchedules)
-        .leftJoin(users, eq(workSchedules.userId, users.id))
-        .where(and(
-          eq(workSchedules.userId, userId),
-          eq(workSchedules.tenantId, tenantId)
-        ))
-        .orderBy(desc(workSchedules.createdAt));
-
-      return schedules.map(schedule => {
-        // Safely process workDays
-        let processedWorkDays: number[] = [1,2,3,4,5];
-
-        try {
-          if (schedule.workDays) {
-            if (Array.isArray(schedule.workDays)) {
-              processedWorkDays = schedule.workDays;
-            } else if (typeof schedule.workDays === 'string') {
-              processedWorkDays = JSON.parse(schedule.workDays);
-            } else {
-              processedWorkDays = schedule.workDays as number[];
-            }
-          }
-        } catch (error) {
-          console.error('Error processing workDays for user schedule:', error);
-          processedWorkDays = [1,2,3,4,5];
-        }
-
-        return {
-          id: schedule.id,
-          tenantId: schedule.tenantId,
-          userId: schedule.userId,
-          userName: `${schedule.firstName || ''} ${schedule.lastName || ''}`.trim() || 'Usuário',
-          scheduleName: schedule.scheduleName || '5x2',
-          scheduleType: schedule.scheduleName || '5x2', // Alias para compatibilidade frontend
-          workDays: processedWorkDays,
-          startTime: schedule.startTime,
-          endTime: schedule.endTime,
-          breakStart: schedule.breakStart,
-          breakEnd: schedule.breakEnd,
-          isActive: schedule.isActive ?? true,
-          createdAt: schedule.createdAt,
-          updatedAt: schedule.updatedAt
-        };
-      });
-    } catch (error) {
-      console.error('Error fetching user work schedules:', error);
-      throw error;
-    }
-  }
-
   async getAllWorkSchedules(tenantId: string): Promise<any[]> {
     try {
       console.log('[DRIZZLE-QA] Fetching work schedules for tenant:', tenantId);
@@ -247,9 +146,9 @@ export class DrizzleTimecardRepository implements TimecardRepository {
           id: workSchedules.id,
           tenantId: workSchedules.tenantId,
           userId: workSchedules.userId,
-          scheduleType: workSchedules.scheduleType, // CORRIGIDO: usar campo real do DB
-          startDate: workSchedules.startDate, // CORRIGIDO: usar campo real do DB  
-          endDate: workSchedules.endDate, // CORRIGIDO: usar campo real do DB
+          scheduleType: workSchedules.scheduleType,
+          startDate: workSchedules.startDate,
+          endDate: workSchedules.endDate,
           workDays: workSchedules.workDays,
           startTime: workSchedules.startTime,
           endTime: workSchedules.endTime,
@@ -257,7 +156,8 @@ export class DrizzleTimecardRepository implements TimecardRepository {
           isActive: workSchedules.isActive,
           createdAt: workSchedules.createdAt,
           updatedAt: workSchedules.updatedAt,
-          // User fields from JOIN
+          createdBy: workSchedules.createdBy,
+          updatedBy: workSchedules.updatedBy,
           firstName: users.firstName,
           lastName: users.lastName
         })
@@ -278,32 +178,30 @@ export class DrizzleTimecardRepository implements TimecardRepository {
               processedWorkDays = schedule.workDays;
             } else if (typeof schedule.workDays === 'string') {
               processedWorkDays = JSON.parse(schedule.workDays);
-            } else {
-              // If it's already a parsed object from JSONB
-              processedWorkDays = schedule.workDays as number[];
             }
           }
-        } catch (parseError) {
-          console.error('[DRIZZLE-QA] workDays parsing error:', parseError, schedule.workDays);
-          processedWorkDays = [1,2,3,4,5]; // Fallback to default
+        } catch (error) {
+          console.error('Error processing workDays:', error);
+          processedWorkDays = [1,2,3,4,5];
         }
 
-        // Map database fields to frontend expected format
         return {
           id: schedule.id,
           tenantId: schedule.tenantId,
           userId: schedule.userId,
           userName: `${schedule.firstName || ''} ${schedule.lastName || ''}`.trim() || 'Usuário',
-          scheduleName: schedule.scheduleName || '5x2',
-          scheduleType: schedule.scheduleName || '5x2', // Alias para compatibilidade frontend
+          scheduleType: schedule.scheduleType || '5x2',
+          startDate: schedule.startDate,
+          endDate: schedule.endDate,
           workDays: processedWorkDays,
-          startTime: schedule.startTime,
-          endTime: schedule.endTime,
-          breakStart: schedule.breakStart,
-          breakEnd: schedule.breakEnd,
+          startTime: schedule.startTime || '08:00',
+          endTime: schedule.endTime || '18:00',
+          breakDurationMinutes: schedule.breakDurationMinutes || 60,
           isActive: schedule.isActive ?? true,
           createdAt: schedule.createdAt,
-          updatedAt: schedule.updatedAt
+          updatedAt: schedule.updatedAt,
+          createdBy: schedule.createdBy,
+          updatedBy: schedule.updatedBy
         };
       });
 
@@ -315,26 +213,69 @@ export class DrizzleTimecardRepository implements TimecardRepository {
     }
   }
 
+  async createWorkSchedule(data: any): Promise<any> {
+    try {
+      const workDaysArray = Array.isArray(data.workDays) ? data.workDays : [1,2,3,4,5];
+
+      const [schedule] = await db
+        .insert(workSchedules)
+        .values({
+          tenantId: data.tenantId,
+          userId: data.userId,
+          scheduleType: data.scheduleType || '5x2',
+          startDate: data.startDate ? new Date(data.startDate) : new Date(),
+          endDate: data.endDate ? new Date(data.endDate) : null,
+          workDays: workDaysArray,
+          startTime: data.startTime || '08:00',
+          endTime: data.endTime || '18:00',
+          breakDurationMinutes: data.breakDurationMinutes || 60,
+          isActive: data.isActive ?? true,
+          createdBy: data.createdBy,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+        .returning();
+
+      return {
+        id: schedule.id,
+        tenantId: schedule.tenantId,
+        userId: schedule.userId,
+        scheduleType: schedule.scheduleType,
+        startDate: schedule.startDate,
+        endDate: schedule.endDate,
+        workDays: Array.isArray(schedule.workDays) ? schedule.workDays : [1,2,3,4,5],
+        startTime: schedule.startTime,
+        endTime: schedule.endTime,
+        breakDurationMinutes: schedule.breakDurationMinutes,
+        isActive: schedule.isActive,
+        createdAt: schedule.createdAt,
+        updatedAt: schedule.updatedAt,
+        createdBy: schedule.createdBy
+      };
+    } catch (error) {
+      console.error('[DRIZZLE-QA] Error creating work schedule:', error);
+      throw error;
+    }
+  }
+
   async updateWorkSchedule(id: string, tenantId: string, data: any): Promise<any> {
     try {
-      // Ensure workDays is properly formatted
       const workDaysArray = Array.isArray(data.workDays) ? data.workDays : [1,2,3,4,5];
 
       const updateData = {
-        scheduleType: data.scheduleType || data.scheduleName,
+        scheduleType: data.scheduleType,
         startDate: data.startDate ? new Date(data.startDate) : undefined,
         endDate: data.endDate ? new Date(data.endDate) : null,
         workDays: workDaysArray,
         startTime: data.startTime,
         endTime: data.endTime,
-        breakStart: data.breakStart || null,
-        breakEnd: data.breakEnd || null,
         breakDurationMinutes: data.breakDurationMinutes || 60,
         isActive: data.isActive ?? true,
+        updatedBy: data.updatedBy,
         updatedAt: new Date()
       };
 
-      // Remove undefined values - safer type handling
+      // Remove undefined values
       const cleanUpdateData: any = {};
       Object.entries(updateData).forEach(([key, value]) => {
         if (value !== undefined) {
@@ -348,9 +289,27 @@ export class DrizzleTimecardRepository implements TimecardRepository {
         .where(and(eq(workSchedules.id, id), eq(workSchedules.tenantId, tenantId)))
         .returning();
 
-      return schedule;
+      if (!schedule) {
+        throw new Error('Schedule not found');
+      }
+
+      return {
+        id: schedule.id,
+        tenantId: schedule.tenantId,
+        userId: schedule.userId,
+        scheduleType: schedule.scheduleType,
+        startDate: schedule.startDate,
+        endDate: schedule.endDate,
+        workDays: Array.isArray(schedule.workDays) ? schedule.workDays : [1,2,3,4,5],
+        startTime: schedule.startTime,
+        endTime: schedule.endTime,
+        breakDurationMinutes: schedule.breakDurationMinutes,
+        isActive: schedule.isActive,
+        updatedAt: schedule.updatedAt,
+        updatedBy: schedule.updatedBy
+      };
     } catch (error) {
-      console.error('Error updating work schedule:', error);
+      console.error('[DRIZZLE-QA] Error updating work schedule:', error);
       throw error;
     }
   }
@@ -361,7 +320,74 @@ export class DrizzleTimecardRepository implements TimecardRepository {
         .delete(workSchedules)
         .where(and(eq(workSchedules.id, id), eq(workSchedules.tenantId, tenantId)));
     } catch (error) {
-      console.error('Error deleting work schedule:', error);
+      console.error('[DRIZZLE-QA] Error deleting work schedule:', error);
+      throw error;
+    }
+  }
+
+  async getWorkSchedulesByUser(userId: string, tenantId: string): Promise<any[]> {
+    try {
+      const schedules = await db
+        .select({
+          id: workSchedules.id,
+          tenantId: workSchedules.tenantId,
+          userId: workSchedules.userId,
+          scheduleType: workSchedules.scheduleType,
+          startDate: workSchedules.startDate,
+          endDate: workSchedules.endDate,
+          workDays: workSchedules.workDays,
+          startTime: workSchedules.startTime,
+          endTime: workSchedules.endTime,
+          breakDurationMinutes: workSchedules.breakDurationMinutes,
+          isActive: workSchedules.isActive,
+          createdAt: workSchedules.createdAt,
+          updatedAt: workSchedules.updatedAt,
+          firstName: users.firstName,
+          lastName: users.lastName
+        })
+        .from(workSchedules)
+        .leftJoin(users, eq(workSchedules.userId, users.id))
+        .where(and(
+          eq(workSchedules.userId, userId),
+          eq(workSchedules.tenantId, tenantId)
+        ))
+        .orderBy(desc(workSchedules.createdAt));
+
+      return schedules.map(schedule => {
+        let processedWorkDays: number[] = [1,2,3,4,5];
+
+        try {
+          if (schedule.workDays) {
+            if (Array.isArray(schedule.workDays)) {
+              processedWorkDays = schedule.workDays;
+            } else if (typeof schedule.workDays === 'string') {
+              processedWorkDays = JSON.parse(schedule.workDays);
+            }
+          }
+        } catch (error) {
+          console.error('Error processing workDays for user schedule:', error);
+          processedWorkDays = [1,2,3,4,5];
+        }
+
+        return {
+          id: schedule.id,
+          tenantId: schedule.tenantId,
+          userId: schedule.userId,
+          userName: `${schedule.firstName || ''} ${schedule.lastName || ''}`.trim() || 'Usuário',
+          scheduleType: schedule.scheduleType || '5x2',
+          startDate: schedule.startDate,
+          endDate: schedule.endDate,
+          workDays: processedWorkDays,
+          startTime: schedule.startTime,
+          endTime: schedule.endTime,
+          breakDurationMinutes: schedule.breakDurationMinutes,
+          isActive: schedule.isActive ?? true,
+          createdAt: schedule.createdAt,
+          updatedAt: schedule.updatedAt
+        };
+      });
+    } catch (error) {
+      console.error('Error fetching user work schedules:', error);
       throw error;
     }
   }

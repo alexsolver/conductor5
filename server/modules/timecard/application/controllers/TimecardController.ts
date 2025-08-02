@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { z } from 'zod';
-import { DrizzleTimecardRepository } from '../../infrastructure/repositories/DrizzleTimecardRepository';
+import { DrizzleTimecardRepository } from '../infrastructure/repositories/DrizzleTimecardRepository';
 
 // Validation schemas
 const createTimecardEntrySchema = z.object({
@@ -193,32 +193,12 @@ export class TimecardController {
     }
   };
 
-  // Work Schedules
-  createWorkSchedule = async (req: Request, res: Response) => {
-    try {
-      const { tenantId } = (req as any).user;
-      const validatedData = createWorkScheduleSchema.parse(req.body);
-
-      const schedule = await this.timecardRepository.createWorkSchedule({
-        ...validatedData,
-        tenantId,
-      });
-
-      res.status(201).json(schedule);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: 'Dados inválidos', errors: error.errors });
-      }
-      console.error('Error creating work schedule:', error);
-      res.status(500).json({ message: 'Erro interno do servidor' });
-    }
-  };
-
   getWorkSchedulesByUser = async (req: Request, res: Response) => {
     try {
-      const { tenantId } = (req as any).user;
       const { userId } = req.params;
+      const { tenantId } = (req as any).user;
 
+      console.log('[CONTROLLER-QA] Getting work schedules for user:', userId, 'tenant:', tenantId);
       const schedules = await this.timecardRepository.getWorkSchedulesByUser(userId, tenantId);
       res.json({ schedules });
     } catch (error) {
@@ -233,7 +213,6 @@ export class TimecardController {
       const { tenantId } = (req as any).user;
       const schedules = await this.timecardRepository.getAllWorkSchedules(tenantId);
 
-      // Ensure frontend gets direct array, not wrapped object
       console.log('[CONTROLLER-QA] Returning schedules count:', schedules.length);
       res.json(schedules); // Direct array response
     } catch (error: any) {
@@ -245,16 +224,47 @@ export class TimecardController {
     }
   };
 
+  createWorkSchedule = async (req: Request, res: Response) => {
+    try {
+      const { tenantId, userId: currentUserId } = (req as any).user;
+
+      const scheduleData = {
+        ...req.body,
+        tenantId,
+        createdBy: currentUserId
+      };
+
+      console.log('[CONTROLLER-QA] Creating work schedule:', scheduleData);
+      const schedule = await this.timecardRepository.createWorkSchedule(scheduleData);
+      res.status(201).json(schedule);
+    } catch (error: any) {
+      console.error('[CONTROLLER-QA] Error creating work schedule:', error);
+      res.status(500).json({ 
+        error: 'Failed to create work schedule',
+        details: error.message 
+      });
+    }
+  };
+
   updateWorkSchedule = async (req: Request, res: Response) => {
     try {
-      const { tenantId } = (req as any).user;
+      const { tenantId, userId: currentUserId } = (req as any).user;
       const { id } = req.params;
 
-      const schedule = await this.timecardRepository.updateWorkSchedule(id, tenantId, req.body);
+      const updateData = {
+        ...req.body,
+        updatedBy: currentUserId
+      };
+
+      console.log('[CONTROLLER-QA] Updating work schedule:', id, updateData);
+      const schedule = await this.timecardRepository.updateWorkSchedule(id, tenantId, updateData);
       res.json(schedule);
-    } catch (error) {
-      console.error('Error updating work schedule:', error);
-      res.status(500).json({ message: 'Erro interno do servidor' });
+    } catch (error: any) {
+      console.error('[CONTROLLER-QA] Error updating work schedule:', error);
+      res.status(500).json({ 
+        error: 'Failed to update work schedule',
+        details: error.message 
+      });
     }
   };
 
@@ -263,11 +273,15 @@ export class TimecardController {
       const { tenantId } = (req as any).user;
       const { id } = req.params;
 
+      console.log('[CONTROLLER-QA] Deleting work schedule:', id);
       await this.timecardRepository.deleteWorkSchedule(id, tenantId);
       res.status(204).send();
-    } catch (error) {
-      console.error('Error deleting work schedule:', error);
-      res.status(500).json({ message: 'Erro interno do servidor' });
+    } catch (error: any) {
+      console.error('[CONTROLLER-QA] Error deleting work schedule:', error);
+      res.status(500).json({ 
+        error: 'Failed to delete work schedule',
+        details: error.message 
+      });
     }
   };
 
