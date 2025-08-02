@@ -572,7 +572,7 @@ const TicketDetails = React.memo(() => {
   const availableCustomers = selectedCompanyCustomers.length > 0 ? selectedCompanyCustomers : customers;
 
   // Transform users data for UserSelect and UserMultiSelect components
-  const teamUsers = usersData?.users ? usersData.users.map((user: any) => ({
+  const teamUsers = (usersData as any)?.users ? (usersData as any).users.map((user: any) => ({
     id: user.id,
     name: user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim(),
     email: user.email,
@@ -2101,7 +2101,7 @@ const TicketDetails = React.memo(() => {
                             <Badge variant={action.is_public ? 'default' : 'secondary'}>
                               {action.is_public ? 'Público' : 'Privado'}
                             </Badge>
-                            <Badge variant={action.status === 'completed' ? 'success' : 'warning'} className="text-xs">
+                            <Badge variant={action.status === 'completed' ? 'default' : 'secondary'} className="text-xs">
                               {action.status === 'completed' ? 'Concluída' : 'Pendente'}
                             </Badge>
                             {action.assigned_to_name && (
