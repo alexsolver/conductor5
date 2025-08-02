@@ -1387,6 +1387,37 @@ ticketsRouter.put('/:ticketId/actions/:actionId', jwtAuth, async (req: Authentic
       });
     }
 
+    // 🚨 ADIÇÃO: Registrar edição no histórico
+    const editHistoryQuery = `
+      INSERT INTO "${schemaName}".ticket_history 
+      (tenant_id, ticket_id, performed_by, performed_by_name, action_type, description, field_name, old_value, new_value, ip_address, user_agent, session_id, created_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW())
+      RETURNING *
+    `;
+
+    const editDescription = `Ação interna editada: ${actionDescription}`;
+    const ipAddress = req.ip || req.connection?.remoteAddress || null;
+    const userAgent = req.get('User-Agent') || null;
+    const sessionId = req.sessionID || 'no-session';
+    const performedByName = req.user?.firstName && req.user?.lastName 
+      ? `${req.user.firstName} ${req.user.lastName}` 
+      : req.user?.email || null;
+
+    await pool.query(editHistoryQuery, [
+      tenantId,
+      ticketId,
+      req.user.id,
+      performedByName,
+      'action_updated',
+      editDescription,
+      'internal_action',
+      `ID: ${actionId}`,
+      actionDescription,
+      ipAddress,
+      userAgent,
+      sessionId
+    ]);
+
     // Also update in ticket_internal_actions if exists
     if (startDateTime) {
       const finalAssignedId = (assignedToId && assignedToId !== 'unassigned') ? assignedToId : req.user.id;
