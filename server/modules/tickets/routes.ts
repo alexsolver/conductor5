@@ -597,7 +597,8 @@ ticketsRouter.post('/:id/actions', jwtAuth, trackInternalActionCreate, async (re
       description, 
       timeSpent, 
       startDateTime, 
-      endDateTime, 
+      endDateTime,
+      assignedToId, 
     } = req.body;
     const tenantId = req.user.tenantId;
     const { pool } = await import('../../db');
@@ -649,6 +650,9 @@ ticketsRouter.post('/:id/actions', jwtAuth, trackInternalActionCreate, async (re
     const userAgent = getUserAgent(req);
     const sessionId = getSessionId(req);
 
+    // Determine who is assigned (use assignedToId if provided and not 'unassigned', otherwise current user)
+    const finalAssignedId = (assignedToId && assignedToId !== 'unassigned') ? assignedToId : req.user.id;
+
     // Insert action into ticket_history table using correct column names
     const insertQuery = `
       INSERT INTO "${schemaName}".ticket_history 
@@ -667,6 +671,30 @@ ticketsRouter.post('/:id/actions', jwtAuth, trackInternalActionCreate, async (re
       userAgent,          // $7 user_agent
       sessionId           // $8 session_id
     ]);
+
+    // Also create entry in ticket_internal_actions for scheduling (only if start time provided)
+    if (startDateTime) {
+      const internalActionQuery = `
+        INSERT INTO "${schemaName}".ticket_internal_actions 
+        (id, tenant_id, ticket_id, action_type, title, description, agent_id, start_time, end_time, estimated_hours, status, priority, created_at, updated_at)
+        VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW())
+        RETURNING id
+      `;
+
+      await pool.query(internalActionQuery, [
+        tenantId,                          // $1 tenant_id
+        id,                               // $2 ticket_id
+        actionType,                       // $3 action_type
+        `${actionType} - Ticket #${id.slice(0, 8)}`, // $4 title
+        actionDescription,                // $5 description
+        finalAssignedId,                  // $6 agent_id (assigned person)
+        startTime,                        // $7 start_time
+        endTime,                          // $8 end_time
+        estimatedMinutes / 60,            // $9 estimated_hours (convert minutes to hours)
+        'pending',                        // $10 status
+        'medium'                          // $11 priority
+      ]);
+    }
 
     if (result.rows.length === 0) {
       return res.status(500).json({ 

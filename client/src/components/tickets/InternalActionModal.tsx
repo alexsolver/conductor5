@@ -39,7 +39,8 @@ export default function InternalActionModal({ ticketId, isOpen, onClose }: Inter
     actionType: "",
     workLog: "",
     description: "",
-    attachments: [] as File[]
+    attachments: [] as File[],
+    assignedToId: "" // New field for assignment
   });
   const [isPublic, setIsPublic] = useState(false);
   const { toast } = useToast();
@@ -67,6 +68,16 @@ export default function InternalActionModal({ ticketId, isOpen, onClose }: Inter
   // Extract data from response to avoid "actions.map is not a function" error
   const actions = actionsResponse?.success ? actionsResponse.data : [];
 
+  // Fetch team members for assignment dropdown
+  const { data: teamMembers } = useQuery({
+    queryKey: ["/api/user-management/users"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/user-management/users");
+      return response.json();
+    },
+    enabled: isOpen,
+  });
+
   // Create internal action mutation
   const createActionMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -91,7 +102,8 @@ export default function InternalActionModal({ ticketId, isOpen, onClose }: Inter
         actionType: "",
         workLog: "",
         description: "",
-        attachments: []
+        attachments: [],
+        assignedToId: ""
       });
       setIsPublic(false);
 
@@ -208,24 +220,43 @@ export default function InternalActionModal({ ticketId, isOpen, onClose }: Inter
 
                 {/* Action Type and Work Log */}
                 <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="action-type">Ação Interna *</Label>
-                    <Select value={formData.actionType} onValueChange={(value) => setFormData(prev => ({ ...prev, actionType: value }))}>
-                      <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="Selecione o tipo de ação..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="analysis">Análise</SelectItem>
-                        <SelectItem value="investigation">Investigação</SelectItem>
-                        <SelectItem value="resolution">Resolução</SelectItem>
-                        <SelectItem value="escalation">Escalação</SelectItem>
-                        <SelectItem value="communication">Comunicação</SelectItem>
-                        <SelectItem value="testing">Teste</SelectItem>
-                        <SelectItem value="documentation">Documentação</SelectItem>
-                        <SelectItem value="follow_up">Acompanhamento</SelectItem>
-                        <SelectItem value="work_log">Registro de Trabalho</SelectItem>
-                      </SelectContent>
-                    </Select>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="action-type">Ação Interna *</Label>
+                      <Select value={formData.actionType} onValueChange={(value) => setFormData(prev => ({ ...prev, actionType: value }))}>
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Selecione o tipo de ação..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="analysis">Análise</SelectItem>
+                          <SelectItem value="investigation">Investigação</SelectItem>
+                          <SelectItem value="resolution">Resolução</SelectItem>
+                          <SelectItem value="escalation">Escalação</SelectItem>
+                          <SelectItem value="communication">Comunicação</SelectItem>
+                          <SelectItem value="testing">Teste</SelectItem>
+                          <SelectItem value="documentation">Documentação</SelectItem>
+                          <SelectItem value="follow_up">Acompanhamento</SelectItem>
+                          <SelectItem value="work_log">Registro de Trabalho</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="assigned-to">Atribuído a</Label>
+                      <Select value={formData.assignedToId} onValueChange={(value) => setFormData(prev => ({ ...prev, assignedToId: value }))}>
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Selecione um membro da equipe..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="unassigned">-- Não atribuído --</SelectItem>
+                          {(teamMembers?.users || []).map((user: any) => (
+                            <SelectItem key={user.id} value={user.id}>
+                              {user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
 
                   <div>
