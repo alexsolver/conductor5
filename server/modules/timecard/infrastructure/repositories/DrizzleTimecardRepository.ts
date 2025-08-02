@@ -121,7 +121,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
   async getAllWorkSchedules(tenantId: string): Promise<any[]> {
     try {
       console.log('[DRIZZLE-QA] Fetching work schedules for tenant:', tenantId);
-      
+
       const schedules = await db
         .select({
           id: workSchedules.id,
@@ -149,7 +149,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
       // Processar workDays para garantir formato correto
       const processedSchedules = schedules.map(schedule => {
         let workDaysArray = [1,2,3,4,5]; // default
-        
+
         try {
           if (schedule.workDays) {
             if (Array.isArray(schedule.workDays)) {
@@ -263,7 +263,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
     }
   }
 
-  
+
 
   async deleteWorkSchedule(id: string, tenantId: string): Promise<void> {
     try {
@@ -410,6 +410,8 @@ export class DrizzleTimecardRepository implements TimecardRepository {
 
   async getScheduleTemplates(tenantId: string): Promise<any[]> {
     try {
+      console.log('[DRIZZLE-QA] Fetching schedule templates for tenant:', tenantId);
+
       // Return basic predefined templates
       return [
         {

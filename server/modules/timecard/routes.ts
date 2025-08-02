@@ -36,14 +36,9 @@ timecardRouter.post('/schedule-templates', jwtAuth, (req, res) =>
 timecardRouter.get('/users', jwtAuth, async (req, res) => {
   try {
     const { tenantId } = (req as any).user;
-    // Mock users data for now
-    const users = [
-      { id: '1', firstName: 'João', lastName: 'Silva', email: 'joao@example.com', role: 'Funcionário' },
-      { id: '2', firstName: 'Maria', lastName: 'Santos', email: 'maria@example.com', role: 'Supervisor' },
-      { id: '3', firstName: 'Pedro', lastName: 'Costa', email: 'pedro@example.com', role: 'Gerente' }
-    ];
-    res.json(users);
+    const users = await timecardController.getUsers(req, res);
   } catch (error) {
+    console.error('[TIMECARD-ROUTES] Error fetching users:', error);
     res.status(500).json({ error: 'Failed to fetch users' });
   }
 });

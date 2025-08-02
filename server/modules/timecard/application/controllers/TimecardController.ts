@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { z } from 'zod';
 import { DrizzleTimecardRepository } from '../../infrastructure/repositories/DrizzleTimecardRepository';
+import { AuthenticatedRequest } from '../../middleware/isAuthenticated';
 
 // Validation schemas
 const createTimecardEntrySchema = z.object({
@@ -591,4 +592,68 @@ export class TimecardController {
       res.status(500).json({ message: 'Erro interno do servidor' });
     }
   };
+
+  async getAttendanceReport(req: AuthenticatedRequest, res: Response) {
+    try {
+      const { period } = req.params;
+      const tenantId = req.user?.tenantId;
+
+      if (!tenantId) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'Tenant ID é obrigatório' 
+        });
+      }
+
+      // TODO: Implementar relatório de ponto
+      const report = {
+        period,
+        data: [],
+        summary: {
+          totalHours: 0,
+          overtimeHours: 0,
+          absentDays: 0
+        }
+      };
+
+      res.json({
+        success: true,
+        report
+      });
+    } catch (error: any) {
+      console.error('[TIMECARD-CONTROLLER] Error generating attendance report:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: 'Erro ao gerar relatório',
+        details: error.message 
+      });
+    }
+  }
+
+  async getUsers(req: AuthenticatedRequest, res: Response) {
+    try {
+      const tenantId = req.user?.tenantId;
+
+      if (!tenantId) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'Tenant ID é obrigatório' 
+        });
+      }
+
+      const users = await this.timecardRepository.getUsers(tenantId);
+
+      res.json({
+        success: true,
+        users
+      });
+    } catch (error: any) {
+      console.error('[TIMECARD-CONTROLLER] Error fetching users:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: 'Erro ao buscar usuários',
+        details: error.message 
+      });
+    }
+  }
 }
