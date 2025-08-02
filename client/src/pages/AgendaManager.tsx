@@ -330,21 +330,7 @@ const AgendaManager: React.FC = () => {
               />
             </div>
 
-            {/* Actions */}
-            <div className="flex gap-2 items-end">
-              <Button size="sm" variant="outline" className="flex items-center gap-2">
-                <Filter className="h-4 w-4" />
-                Bulk edit
-              </Button>
-              <Button size="sm" variant="outline" className="flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                Generate
-              </Button>
-              <Button size="sm" className="flex items-center gap-2">
-                <Plus className="h-4 w-4" />
-                Publish
-              </Button>
-            </div>
+            {/* Actions - removed bulk edit, generate and publish buttons */}
           </div>
 
           {/* Date Navigation and View Toggles */}
