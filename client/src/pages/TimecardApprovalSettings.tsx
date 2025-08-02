@@ -79,22 +79,35 @@ export default function TimecardApprovalSettings() {
   const groups: ApprovalGroup[] = (groupsData as any)?.groups || [];
   const users: User[] = (usersData as any)?.users || [];
 
-  // Query para buscar contadores de membros
-  const { data: memberCountsData } = useQuery({
-    queryKey: ['/api/timecard/approval/group-member-counts', groups.map(g => g.id)],
-    queryFn: async () => {
-      if (groups.length === 0) return {};
+  // Estado para contadores de membros 
+  const [groupMemberCounts, setGroupMemberCounts] = useState<Record<string, number>>({});
+
+  // Buscar contadores de membros quando grupos mudarem
+  useEffect(() => {
+    const fetchMemberCounts = async () => {
+      if (groups.length === 0) return;
       
       const counts: Record<string, number> = {};
       
       for (const group of groups) {
         try {
-          const data = await apiRequest('GET', `/api/timecard/approval/groups/${group.id}/members`);
-          console.log(`Raw API response for group ${group.id}:`, data);
-          console.log(`Members array:`, data.members);
-          console.log(`Members array length:`, data.members?.length);
-          counts[group.id] = data.members?.length || 0;
-          console.log(`Group ${group.name} (${group.id}) has ${counts[group.id]} members`);
+          // Usar queries individuais para cada grupo para evitar problemas de cache
+          const response = await fetch(`/api/timecard/approval/groups/${group.id}/members`, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+              'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            counts[group.id] = data.members?.length || 0;
+            console.log(`Group ${group.name} (${group.id}) has ${counts[group.id]} members`);
+          } else {
+            console.error(`Failed to fetch members for group ${group.id}:`, response.status);
+            counts[group.id] = 0;
+          }
         } catch (error) {
           console.error('Error fetching member count for group:', group.id, error);
           counts[group.id] = 0;
@@ -102,13 +115,11 @@ export default function TimecardApprovalSettings() {
       }
       
       console.log('Final member counts:', counts);
-      return counts;
-    },
-    enabled: groups.length > 0,
-    staleTime: 30000, // Cache por 30 segundos
-  });
+      setGroupMemberCounts(counts);
+    };
 
-  const groupMemberCounts = memberCountsData || {};
+    fetchMemberCounts();
+  }, [groups]);
 
   // Fetch group members when a group is selected
   const { data: groupMembersData, isLoading: membersLoading } = useQuery({
@@ -122,7 +133,8 @@ export default function TimecardApprovalSettings() {
   // Update settings mutation
   const updateSettingsMutation = useMutation({
     mutationFn: async (newSettings: Partial<ApprovalSettings>) => {
-      return await apiRequest('PUT', '/api/timecard/approval/settings', newSettings);
+      const response = await apiRequest('PUT', '/api/timecard/approval/settings', newSettings);
+      return await response.json();
     },
     onSuccess: () => {
       toast({
