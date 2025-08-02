@@ -76,12 +76,44 @@ export default function TimecardApprovalSettings() {
     retry: false,
   });
 
+  const groups: ApprovalGroup[] = (groupsData as any)?.groups || [];
+  const users: User[] = (usersData as any)?.users || [];
+
+  // Hook para contar membros de cada grupo
+  const [groupMemberCounts, setGroupMemberCounts] = useState<Record<string, number>>({});
+
+  // Buscar contagem de membros para todos os grupos
+  useEffect(() => {
+    if (groups.length > 0) {
+      Promise.all(
+        groups.map(async (group: ApprovalGroup) => {
+          try {
+            const response = await fetch(`/api/timecard/approval/groups/${group.id}/members`);
+            const data = await response.json();
+            return { groupId: group.id, count: data.members?.length || 0 };
+          } catch (error) {
+            console.error('Error fetching member count for group:', group.id, error);
+            return { groupId: group.id, count: 0 };
+          }
+        })
+      ).then(results => {
+        const counts: Record<string, number> = {};
+        results.forEach(({ groupId, count }) => {
+          counts[groupId] = count;
+        });
+        setGroupMemberCounts(counts);
+      });
+    }
+  }, [groups]);
+
   // Fetch group members when a group is selected
   const { data: groupMembersData, isLoading: membersLoading } = useQuery({
     queryKey: ['/api/timecard/approval/groups', selectedGroup?.id, 'members'],
     enabled: !!selectedGroup?.id && showMembersDialog,
     retry: false,
   });
+
+  const groupMembers: User[] = (groupMembersData as any)?.members || [];
 
   // Update settings mutation
   const updateSettingsMutation = useMutation({
@@ -168,6 +200,15 @@ export default function TimecardApprovalSettings() {
       });
       queryClient.invalidateQueries({ queryKey: ['/api/timecard/approval/groups'] });
       queryClient.invalidateQueries({ queryKey: ['/api/timecard/approval/groups', selectedGroup?.id, 'members'] });
+      
+      // Atualizar contadores manualmente
+      if (selectedGroup) {
+        setGroupMemberCounts(prev => ({
+          ...prev,
+          [selectedGroup.id]: selectedUsers.length
+        }));
+      }
+      
       setShowMembersDialog(false);
       setSelectedGroup(null);
       setSelectedUsers([]);
@@ -219,9 +260,7 @@ export default function TimecardApprovalSettings() {
     notificationSettings: {}
   };
 
-  const groups: ApprovalGroup[] = (groupsData as any)?.groups || [];
-  const users: User[] = (usersData as any)?.users || [];
-  const groupMembers: User[] = (groupMembersData as any)?.members || [];
+
 
   const handleSettingsChange = (key: keyof ApprovalSettings, value: any) => {
     const updatedSettings = { ...currentSettings, [key]: value };
@@ -648,7 +687,7 @@ export default function TimecardApprovalSettings() {
                           <p className="text-sm text-muted-foreground">{group.description}</p>
                         )}
                         <div className="flex items-center gap-2 mt-1">
-                          <Badge variant="outline">{group.memberCount} membros</Badge>
+                          <Badge variant="outline">{groupMemberCounts[group.id] || 0} membros</Badge>
                           <Badge variant={group.isActive ? "default" : "secondary"}>
                             {group.isActive ? "Ativo" : "Inativo"}
                           </Badge>
