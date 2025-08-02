@@ -116,6 +116,15 @@ export default function ProductivityReports() {
     dailyBreakdown: {}
   };
 
+  // Debug logging
+  console.log('🔍 Productivity Debug:', {
+    loading: myProductivityLoading,
+    data: myProductivity,
+    summary,
+    activitiesCount: Object.keys(summary.activitiesByType).length,
+    dailyCount: Object.keys(summary.dailyBreakdown).length
+  });
+
   return (
     <div className="p-4 space-y-6">
       <div className="flex justify-between items-center">
@@ -252,29 +261,31 @@ export default function ProductivityReports() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {Object.entries(summary.activitiesByType).map(([type, data]) => (
-                    <div key={type} className="flex items-center justify-between p-4 border rounded">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-4 h-4 rounded ${getActivityColor(type)}`}></div>
-                        <div>
-                          <div className="font-medium">{getActivityTypeLabel(type)}</div>
-                          <div className="text-sm text-gray-600">
-                            {data.count} atividades • {formatDuration(data.avgTime)} média
+                  {Object.entries(summary.activitiesByType).length > 0 ? 
+                    Object.entries(summary.activitiesByType).map(([type, data]) => (
+                      <div key={type} className="flex items-center justify-between p-4 border rounded">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-4 h-4 rounded ${getActivityColor(type)}`}></div>
+                          <div>
+                            <div className="font-medium">{getActivityTypeLabel(type)}</div>
+                            <div className="text-sm text-gray-600">
+                              {data.count} atividades • {formatDuration(data.avgTime)} média
+                            </div>
                           </div>
                         </div>
+                        <div className="text-right">
+                          <div className="font-medium">{formatDuration(data.totalTime)}</div>
+                          <Badge variant="secondary">
+                            {formatPercentage(data.totalTime, summary.totalTimeSeconds)}
+                          </Badge>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <div className="font-medium">{formatDuration(data.totalTime)}</div>
-                        <Badge variant="secondary">
-                          {formatPercentage(data.totalTime, summary.totalTimeSeconds)}
-                        </Badge>
+                    )) : (
+                      <div className="text-center text-gray-500 py-8">
+                        Nenhuma atividade registrada no período
                       </div>
-                    </div>
-                  )) || (
-                    <div className="text-center text-gray-500 py-8">
-                      Nenhuma atividade registrada no período
-                    </div>
-                  )}
+                    )
+                  }
                 </div>
               )}
             </CardContent>
@@ -287,31 +298,33 @@ export default function ProductivityReports() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {Object.entries(summary.dailyBreakdown)
-                  .sort(([a], [b]) => new Date(b).getTime() - new Date(a).getTime())
-                  .map(([date, data]) => (
-                    <div key={date} className="flex items-center justify-between p-4 border rounded">
-                      <div>
-                        <div className="font-medium">
-                          {format(new Date(date), 'dd/MM/yyyy', { locale: ptBR })}
+                {Object.entries(summary.dailyBreakdown).length > 0 ?
+                  Object.entries(summary.dailyBreakdown)
+                    .sort(([a], [b]) => new Date(b).getTime() - new Date(a).getTime())
+                    .map(([date, data]) => (
+                      <div key={date} className="flex items-center justify-between p-4 border rounded">
+                        <div>
+                          <div className="font-medium">
+                            {format(new Date(date), 'dd/MM/yyyy', { locale: ptBR })}
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            {data.totalActivities} atividades • {formatDuration(data.totalTime)}
+                          </div>
                         </div>
-                        <div className="text-sm text-gray-600">
-                          {data.totalActivities} atividades • {formatDuration(data.totalTime)}
+                        <div className="flex gap-2">
+                          {Object.entries(data.activities).map(([actType, actData]) => (
+                            <Badge key={actType} variant="outline" className="text-xs">
+                              {getActivityTypeLabel(actType)}: {actData.count}
+                            </Badge>
+                          ))}
                         </div>
                       </div>
-                      <div className="flex gap-2">
-                        {Object.entries(data.activities).map(([actType, actData]) => (
-                          <Badge key={actType} variant="outline" className="text-xs">
-                            {getActivityTypeLabel(actType)}: {actData.count}
-                          </Badge>
-                        ))}
+                    )) : (
+                      <div className="text-center text-gray-500 py-8">
+                        Nenhuma atividade registrada no período
                       </div>
-                    </div>
-                  )) || (
-                    <div className="text-center text-gray-500 py-8">
-                      Nenhuma atividade registrada no período
-                    </div>
-                  )}
+                    )
+                }
               </div>
             </CardContent>
           </Card>
