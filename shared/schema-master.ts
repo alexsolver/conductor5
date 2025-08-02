@@ -1165,81 +1165,11 @@ export type InsertHoliday = typeof holidays.$inferInsert;
 export type Session = typeof sessions.$inferSelect;
 export type InsertSession = typeof sessions.$inferInsert;
 
-export type WorkSchedule = typeof workSchedules.$inferSelect;
-export type InsertWorkSchedule = typeof workSchedules.$inferInsert;
 
-export type ScheduleTemplate = typeof scheduleTemplates.$inferSelect;
-export type InsertScheduleTemplate = typeof scheduleTemplates.$inferInsert;
-
-export type TimecardEntry = typeof timecardEntries.$inferSelect;
-export type InsertTimecardEntry = typeof timecardEntries.$inferInsert;
 
 // ========================================
 // AGENDA/SCHEDULE MANAGEMENT TABLES
 // ========================================
-
-// Work Schedules table - for employee scheduling
-export const workSchedules = pgTable("work_schedules", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  tenantId: uuid("tenant_id").notNull(),
-  userId: uuid("user_id").notNull().references(() => users.id),
-  scheduleName: varchar("schedule_name", { length: 100 }).notNull(),
-  scheduleType: varchar("schedule_type", { length: 20 }).notNull().default('5x2'),
-  startDate: date("start_date").notNull(),
-  endDate: date("end_date"),
-  workDays: jsonb("work_days").notNull().$type<number[]>(),
-  startTime: time("start_time").notNull(),
-  endTime: time("end_time").notNull(),
-  breakStart: time("break_start"),
-  breakEnd: time("break_end"),
-  breakDurationMinutes: integer("break_duration_minutes").default(60),
-  isActive: boolean("is_active").default(true),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => [
-  index("work_schedules_tenant_user_idx").on(table.tenantId, table.userId),
-  index("work_schedules_active_idx").on(table.isActive, table.startDate),
-]);
-
-// Schedule Templates table - reusable schedule patterns
-export const scheduleTemplates = pgTable("schedule_templates", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  tenantId: uuid("tenant_id").notNull(),
-  templateName: varchar("template_name", { length: 100 }).notNull(),
-  templateType: varchar("template_type", { length: 20 }).notNull().default('5x2'),
-  workDays: jsonb("work_days").notNull().$type<number[]>(),
-  startTime: time("start_time").notNull(),
-  endTime: time("end_time").notNull(),
-  breakStart: time("break_start"),
-  breakEnd: time("break_end"),
-  breakDurationMinutes: integer("break_duration_minutes").default(60),
-  isActive: boolean("is_active").default(true),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => [
-  index("schedule_templates_tenant_idx").on(table.tenantId, table.isActive),
-]);
-
-// Timecard Entries table - for time tracking
-export const timecardEntries = pgTable("timecard_entries", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  tenantId: uuid("tenant_id").notNull(),
-  userId: uuid("user_id").notNull().references(() => users.id),
-  workScheduleId: uuid("work_schedule_id").references(() => workSchedules.id),
-  clockInTime: timestamp("clock_in_time").notNull(),
-  clockOutTime: timestamp("clock_out_time"),
-  breakStartTime: timestamp("break_start_time"),
-  breakEndTime: timestamp("break_end_time"),
-  totalWorkedMinutes: integer("total_worked_minutes"),
-  totalBreakMinutes: integer("total_break_minutes"),
-  isApproved: boolean("is_approved").default(false),
-  notes: text("notes"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => [
-  index("timecard_entries_tenant_user_idx").on(table.tenantId, table.userId),
-  index("timecard_entries_date_idx").on(table.clockInTime),
-]);
 
 // Activity Types for scheduling
 export const activityTypes = pgTable("activity_types", {
