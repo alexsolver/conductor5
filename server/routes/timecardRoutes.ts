@@ -63,7 +63,7 @@ router.get('/available-users', async (req: AuthenticatedRequest, res) => {
       return res.status(401).json({ message: 'User not authenticated' });
     }
 
-    console.log('[TIMECARD-USERS] Fetching available users for tenant:', user.tenantId);
+    console.log('[TIMECARD-USERS] Fetching available users for tenant:', user.tenantId);Id);
 
     // Buscar usuários ativos do tenant com query simplificada
     const availableUsers = await db
