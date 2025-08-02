@@ -218,7 +218,7 @@ export class TimecardApprovalController {
           role: 'member',
           isActive: true,
           addedAt: new Date(),
-          addedById: currentUserId
+          addedBy: currentUserId
         }));
 
         await tenantDb.insert(approvalGroupMembers).values(membersToInsert);

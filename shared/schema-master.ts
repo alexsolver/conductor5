@@ -947,7 +947,7 @@ export const approvalGroupMembers = pgTable("approval_group_members", {
   userId: uuid("user_id").notNull().references(() => users.id),
   role: varchar("role", { length: 20 }).default("member"), // 'member', 'approver'
   isActive: boolean("is_active").default(true),
-  addedBy: uuid("added_by").references(() => users.id),
+  addedBy: uuid("added_by_id").references(() => users.id),
   addedAt: timestamp("added_at").defaultNow(),
 }, (table) => [
   index("approval_group_members_group_idx").on(table.groupId),
