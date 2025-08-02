@@ -135,11 +135,15 @@ export default function TeamManagement() {
     refetchInterval: 30000,
   });
 
-  const { data: tenantMembers, isLoading: tenantMembersLoading } = useQuery({
-    queryKey: ["/api/tenant-admin/team/members"],
+  // Usar user-management/users que funciona em vez de tenant-admin/team/members
+  const { data: userManagementData, isLoading: tenantMembersLoading } = useQuery({
+    queryKey: ["/api/user-management/users"],
     enabled: !!user,
     refetchInterval: 60000,
   });
+
+  // Extrair users do objeto retornado
+  const tenantMembers = userManagementData?.users || [];
 
   // Fetch groups for filter
   const { data: groupsData } = useQuery({

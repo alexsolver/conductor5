@@ -34,7 +34,9 @@ router.get('/members',
   async (req: AuthenticatedRequest, res) => {
     try {
       const tenantId = req.user!.tenantId;
+      console.log('TENANT-ADMIN-TEAM: Getting members for tenant:', tenantId);
       const members = await userManagementService.getTenantTeamMembers(tenantId);
+      console.log('TENANT-ADMIN-TEAM: Found members:', members?.length || 0);
       res.json({ members });
     } catch (error) {
       console.error('Error fetching team members:', error);
