@@ -90,9 +90,22 @@ function WorkSchedulesContent() {
     queryKey: ['/api/timecard/work-schedules'],
     queryFn: async () => {
       console.log('[FRONTEND-QA] Fetching work schedules...');
-      const response = await apiRequest('GET', '/api/timecard/work-schedules');
-      console.log('[FRONTEND-QA] API Response:', response);
-      return response;
+      try {
+        const response = await apiRequest('GET', '/api/timecard/work-schedules');
+        console.log('[FRONTEND-QA] Raw API Response:', response);
+        
+        // Parse response if it's a Response object
+        let data = response;
+        if (response && typeof response.json === 'function') {
+          data = await response.json();
+          console.log('[FRONTEND-QA] Parsed JSON Response:', data);
+        }
+        
+        return data;
+      } catch (error) {
+        console.error('[FRONTEND-QA] API Request Error:', error);
+        throw error;
+      }
     },
     staleTime: 30000, // Cache for 30 seconds
     retry: 3,
@@ -205,21 +218,59 @@ function WorkSchedulesContent() {
   let schedules: WorkSchedule[] = [];
   
   try {
+    console.log('[FRONTEND-DEBUG] Raw schedulesData:', schedulesData);
+    
     if (Array.isArray(schedulesData)) {
-      schedules = schedulesData.map(schedule => ({
-        ...schedule,
-        // Ensure workDays is always an array
-        workDays: Array.isArray(schedule.workDays) ? schedule.workDays : [1,2,3,4,5],
-        // Ensure required fields have defaults
-        userName: schedule.userName || 'Usuário',
-        scheduleType: schedule.scheduleType || '5x2',
-        breakDurationMinutes: schedule.breakDurationMinutes || 60,
-        isActive: schedule.isActive ?? true
-      }));
+      schedules = schedulesData
+        .filter(schedule => schedule && schedule.id) // Filter out invalid entries
+        .map(schedule => {
+          console.log('[FRONTEND-DEBUG] Processing schedule:', schedule);
+          
+          return {
+            ...schedule,
+            // Ensure workDays is always an array
+            workDays: Array.isArray(schedule.workDays) ? schedule.workDays : [1,2,3,4,5],
+            // Ensure required fields have defaults
+            userName: schedule.userName || schedule.user?.firstName || schedule.user?.name || 'Usuário',
+            scheduleType: schedule.scheduleType || '5x2',
+            breakDurationMinutes: schedule.breakDurationMinutes || 60,
+            isActive: schedule.isActive ?? true,
+            // Ensure dates are properly formatted
+            startDate: schedule.startDate || new Date().toISOString(),
+            endDate: schedule.endDate || null,
+            startTime: schedule.startTime || '08:00',
+            endTime: schedule.endTime || '18:00'
+          };
+        });
     } else if (schedulesData && typeof schedulesData === 'object') {
-      const rawSchedules = (schedulesData as any).schedules || (schedulesData as any).data || [];
-      schedules = Array.isArray(rawSchedules) ? rawSchedules : [];
+      // Handle object responses with nested data
+      const rawSchedules = (schedulesData as any).schedules || 
+                          (schedulesData as any).data || 
+                          (schedulesData as any).workSchedules || 
+                          [];
+      
+      console.log('[FRONTEND-DEBUG] Extracted raw schedules:', rawSchedules);
+      
+      if (Array.isArray(rawSchedules)) {
+        schedules = rawSchedules
+          .filter(schedule => schedule && schedule.id)
+          .map(schedule => ({
+            ...schedule,
+            workDays: Array.isArray(schedule.workDays) ? schedule.workDays : [1,2,3,4,5],
+            userName: schedule.userName || schedule.user?.firstName || schedule.user?.name || 'Usuário',
+            scheduleType: schedule.scheduleType || '5x2',
+            breakDurationMinutes: schedule.breakDurationMinutes || 60,
+            isActive: schedule.isActive ?? true,
+            startDate: schedule.startDate || new Date().toISOString(),
+            endDate: schedule.endDate || null,
+            startTime: schedule.startTime || '08:00',
+            endTime: schedule.endTime || '18:00'
+          }));
+      }
     }
+    
+    console.log('[FRONTEND-DEBUG] Final processed schedules:', schedules);
+    
   } catch (error) {
     console.error('[QA-ERROR] Error processing schedules data:', error);
     schedules = [];
@@ -456,6 +507,30 @@ function WorkSchedulesContent() {
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Escalas de Trabalho</h1>
         <div className="space-x-2">
+          <Button 
+            variant="secondary" 
+            onClick={async () => {
+              try {
+                console.log('[DEBUG] Testando busca de escalas criadas...');
+                const response = await apiRequest('GET', '/api/timecard/user-created-schedules');
+                console.log('[DEBUG] Escalas criadas encontradas:', response);
+                toast({
+                  title: 'Debug - Escalas Criadas',
+                  description: `Encontradas ${response.total || 0} escalas. Veja o console para detalhes.`,
+                });
+              } catch (error: any) {
+                console.error('[DEBUG] Erro ao buscar escalas:', error);
+                toast({
+                  title: 'Erro no Debug',
+                  description: error.message,
+                  variant: 'destructive',
+                });
+              }
+            }}
+          >
+            🔍 Debug Escalas
+          </Button>
+          
           <Dialog open={bulkAssignOpen} onOpenChange={setBulkAssignOpen}>
             <DialogTrigger asChild>
               <Button variant="outline">

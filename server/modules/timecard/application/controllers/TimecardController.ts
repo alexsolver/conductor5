@@ -257,7 +257,7 @@ export class TimecardController {
       console.log('[BULK-QA] Processing bulk assignment for', userIds.length, 'users');
 
       const schedules = await this.timecardRepository.createBulkWorkSchedules(userIds, scheduleData, tenantId);
-      
+
       res.status(201).json({ 
         message: `${schedules.length} escalas criadas com sucesso`,
         schedules 
@@ -655,4 +655,58 @@ export class TimecardController {
       });
     }
   }
+
+  // User Created Schedules - Buscar escalas criadas pelo usuário
+  getUserCreatedSchedules = async (req: Request, res: Response) => {
+    try {
+      const { tenantId } = (req as any).user;
+
+      console.log('[USER-SCHEDULES] Buscando escalas criadas para tenant:', tenantId);
+
+      // Buscar escalas de todas as formas possíveis
+      const allSchedules = await this.timecardRepository.getAllWorkSchedules(tenantId);
+      console.log('[USER-SCHEDULES] Todas as escalas encontradas:', allSchedules.length);
+
+      // Buscar escalas armazenadas em memória
+      const storedSchedules = (this.timecardRepository as any).constructor.workSchedulesStorage?.get(tenantId) || [];
+      console.log('[USER-SCHEDULES] Escalas em memória:', storedSchedules.length);
+
+      // Buscar do banco de dados se possível
+      const dbSchedules = await this.timecardRepository.getUserCreatedSchedulesFromDB(tenantId);
+      console.log('[USER-SCHEDULES] Escalas do banco:', dbSchedules.length);
+
+      // Buscar templates personalizados do banco
+      const templates = await this.timecardRepository.getScheduleTemplates(tenantId);
+      const customTemplates = templates.filter(t => 
+        !['5x2', '6x1', '12x36', 'shift', 'flexible', 'intermittent'].includes(t.id)
+      );
+      console.log('[USER-SCHEDULES] Templates customizados:', customTemplates.length);
+
+      // Combinar todas as escalas encontradas
+      const combinedSchedules = [
+        ...allSchedules,
+        ...storedSchedules,
+        ...dbSchedules
+      ];
+
+      console.log('[USER-SCHEDULES] Total de escalas combinadas:', combinedSchedules.length);
+
+      const result = {
+        allSchedules: allSchedules,
+        workSchedules: storedSchedules,
+        dbSchedules: dbSchedules,
+        customTemplates: customTemplates,
+        combinedSchedules: combinedSchedules,
+        total: combinedSchedules.length
+      };
+
+      res.json(result);
+    } catch (error: any) {
+      console.error('[USER-SCHEDULES] Erro ao buscar escalas:', error);
+      res.status(500).json({ 
+        error: 'Failed to retrieve user created schedules',
+        details: error.message 
+      });
+    }
+  };
 }
