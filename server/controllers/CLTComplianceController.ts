@@ -143,7 +143,7 @@ export class CLTComplianceController {
 
       console.log(`[CLT-REPORT] Gerando relatório: ${reportType} para ${tenantId}`);
 
-      const reportId = await cltComplianceService.generateComplianceReport(
+      const result = await complianceService.generateComplianceReport(
         tenantId,
         reportType,
         new Date(periodStart),
@@ -151,11 +151,18 @@ export class CLTComplianceController {
         userId
       );
 
-      res.json({
-        reportId,
-        message: 'Relatório de compliance gerado com sucesso',
-        downloadUrl: `/api/timecard/compliance/reports/${reportId}`
-      });
+      if (result.success) {
+        res.json({
+          reportId: result.reportId,
+          message: 'Relatório de compliance gerado com sucesso',
+          downloadUrl: `/api/timecard/compliance/reports/${result.reportId}`
+        });
+      } else {
+        res.status(500).json({
+          message: 'Erro ao gerar relatório de compliance',
+          error: result.error
+        });
+      }
 
     } catch (error) {
       console.error('[CLT-REPORT] Erro na geração:', error);
@@ -242,7 +249,7 @@ export class CLTComplianceController {
 
       console.log(`[CLT-CONTROLLER] Iniciando reconstituição para tenant: ${tenantId}`);
 
-      const result = await cltComplianceService.rebuildIntegrityChain(tenantId);
+      const result = await complianceService.rebuildIntegrityChain(tenantId);
 
       if (result.errors.length > 0) {
         res.status(400).json({

@@ -78,10 +78,7 @@ export default function CLTCompliance() {
   // Mutation para reconstituir cadeia de integridade
   const rebuildIntegrityMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest('/api/timecard/compliance/rebuild-integrity', {
-        method: 'POST',
-        body: JSON.stringify({})
-      });
+      return await apiRequest('POST', '/api/timecard/compliance/rebuild-integrity', {});
     },
     onSuccess: (data) => {
       toast({
@@ -139,10 +136,7 @@ export default function CLTCompliance() {
   // 🔴 Gerar Relatório
   const generateReportMutation = useMutation({
     mutationFn: async (data: { reportType: string; periodStart: string; periodEnd: string }) => {
-      return await apiRequest('/api/timecard/compliance/generate-report', {
-        method: 'POST',
-        body: JSON.stringify(data)
-      });
+      return await apiRequest('POST', '/api/timecard/compliance/generate-report', data);
     },
     onSuccess: () => {
       toast({
@@ -164,10 +158,7 @@ export default function CLTCompliance() {
   // 🔴 Verificar Backup
   const verifyBackupMutation = useMutation({
     mutationFn: async (backupDate: string) => {
-      return await apiRequest('/api/timecard/compliance/verify-backup', {
-        method: 'POST',
-        body: JSON.stringify({ backupDate })
-      });
+      return await apiRequest('POST', '/api/timecard/compliance/verify-backup', { backupDate });
     },
     onSuccess: (data) => {
       toast({
