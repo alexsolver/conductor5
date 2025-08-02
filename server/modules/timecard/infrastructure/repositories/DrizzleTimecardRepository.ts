@@ -135,8 +135,6 @@ export class DrizzleTimecardRepository implements TimecardRepository {
           breakDurationMinutes: workSchedules.breakDurationMinutes,
           isActive: workSchedules.isActive,
           tenantId: workSchedules.tenantId,
-          createdBy: workSchedules.createdBy,
-          updatedBy: workSchedules.updatedBy,
           createdAt: workSchedules.createdAt,
           updatedAt: workSchedules.updatedAt,
           userName: sql<string>`COALESCE(${users.firstName} || ' ' || ${users.lastName}, 'Usuário')`
@@ -166,8 +164,19 @@ export class DrizzleTimecardRepository implements TimecardRepository {
         }
 
         return {
-          ...schedule,
+          id: schedule.id,
+          userId: schedule.userId,
+          scheduleType: schedule.scheduleType,
+          startDate: schedule.startDate,
+          endDate: schedule.endDate,
           workDays: workDaysArray,
+          startTime: schedule.startTime,
+          endTime: schedule.endTime,
+          breakDurationMinutes: schedule.breakDurationMinutes,
+          isActive: schedule.isActive,
+          tenantId: schedule.tenantId,
+          createdAt: schedule.createdAt,
+          updatedAt: schedule.updatedAt,
           userName: schedule.userName || 'Usuário'
         };
       });
