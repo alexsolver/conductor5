@@ -196,7 +196,7 @@ function WorkSchedulesContent() {
     schedules = [];
   }
   
-  const users = usersData?.members || [];
+  const users = Array.isArray(usersData) ? usersData : (usersData?.members || []);
   
   console.log('[QA-DEBUG] Final processed schedules:', schedules.length, 'items');
   console.log('[QA-DEBUG] Users available:', users.length, 'items');
