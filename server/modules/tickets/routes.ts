@@ -9,35 +9,45 @@ import { z } from "zod";
 import { trackTicketView, trackTicketEdit, trackTicketCreate, trackNoteView, trackNoteCreate } from '../../middleware/activityTrackingMiddleware';
 
 // Generate unique action number for internal actions
-async function generateActionNumber(pool: any, tenantId: string): Promise<string> {
+async function generateActionNumber(pool: any, tenantId: string, ticketId: string): Promise<string> {
   try {
-    // Initialize or increment action number sequence for this tenant
+    // Get ticket number first
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    const ticketQuery = `SELECT ticket_number FROM "${schemaName}".tickets WHERE id = $1`;
+    const ticketResult = await pool.query(ticketQuery, [ticketId]);
+    
+    if (!ticketResult.rows.length) {
+      throw new Error(`Ticket not found: ${ticketId}`);
+    }
+    
+    const ticketNumber = ticketResult.rows[0].ticket_number;
+    
+    // Create or get action sequence for this specific ticket
     const sequenceQuery = `
-      INSERT INTO public.action_number_sequences (tenant_id, current_number, last_updated)
-      VALUES ($1, 1, NOW())
-      ON CONFLICT (tenant_id) 
+      INSERT INTO public.ticket_action_sequences (tenant_id, ticket_id, current_number, last_updated)
+      VALUES ($1, $2, 1, NOW())
+      ON CONFLICT (tenant_id, ticket_id) 
       DO UPDATE SET 
-        current_number = action_number_sequences.current_number + 1,
+        current_number = ticket_action_sequences.current_number + 1,
         last_updated = NOW()
       RETURNING current_number
     `;
     
-    const result = await pool.query(sequenceQuery, [tenantId]);
+    const result = await pool.query(sequenceQuery, [tenantId, ticketId]);
     const sequenceNumber = result.rows[0].current_number;
     
-    // Format as AI-YYYY-NNNNNN (Action Internal - Year - 6-digit number)
-    const currentYear = new Date().getFullYear();
-    const formattedNumber = String(sequenceNumber).padStart(6, '0');
-    const actionNumber = `AI-${currentYear}-${formattedNumber}`;
+    // Format as {TICKET_NUMBER}AI{4-digit sequence} (e.g., T2025-000001AI0001)
+    const formattedSequence = String(sequenceNumber).padStart(4, '0');
+    const actionNumber = `${ticketNumber}AI${formattedSequence}`;
     
-    console.log(`✅ Generated action number: ${actionNumber} for tenant: ${tenantId}`);
+    console.log(`✅ Generated action number: ${actionNumber} for ticket: ${ticketNumber}`);
     return actionNumber;
     
   } catch (error) {
     console.error('⚠️ Error generating action number:', error);
     // Fallback to timestamp-based number if sequence fails
     const timestamp = Date.now();
-    return `AI-${new Date().getFullYear()}-${timestamp.toString().slice(-6)}`;
+    return `AI-FALLBACK-${timestamp.toString().slice(-6)}`;
   }
 }
 
@@ -780,7 +790,7 @@ ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, re
     // Also create entry in ticket_internal_actions for scheduling (only if start time provided)
     if (startDateTime) {
       // Generate unique action number
-      const actionNumber = await generateActionNumber(pool, tenantId);
+      const actionNumber = await generateActionNumber(pool, tenantId, id);
       
       const internalActionQuery = `
         INSERT INTO "${schemaName}".ticket_internal_actions 
