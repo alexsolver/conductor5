@@ -7,6 +7,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,7 +22,26 @@ import {
 } from "@/components/ui/select";
 import { FilteredUserSelect } from "@/components/FilteredUserSelect";
 import { UserGroupSelect } from "@/components/ui/UserGroupSelect";
-import { Clock, Calendar, User, Users, CalendarCheck, CalendarClock } from "lucide-react";
+import { 
+  Clock, 
+  Calendar, 
+  User, 
+  Users, 
+  CalendarCheck, 
+  CalendarClock, 
+  MessageSquare,
+  Eye,
+  EyeOff,
+  Send,
+  Paperclip,
+  Upload,
+  FileText
+} from "lucide-react";
+import { Switch } from "@/components/ui/switch"
+import {
+  Card,
+  CardContent,
+} from "@/components/ui/card"
 
 interface InternalActionModalProps {
   ticketId: string;
