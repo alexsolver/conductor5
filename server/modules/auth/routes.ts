@@ -215,7 +215,7 @@ authRouter.post('/logout', async (req, res) => {
   }
 });
 
-// Get current user endpoint
+// Get current user endpoint (both /user and /me for compatibility)
 authRouter.get('/user', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     if (!req.user) {
@@ -240,7 +240,43 @@ authRouter.get('/user', jwtAuth, async (req: AuthenticatedRequest, res) => {
       profileImageUrl: user.profileImageUrl,
       isActive: user.isActive,
       lastLoginAt: user.lastLoginAt,
-      createdAt: user.createdAt
+      createdAt: user.createdAt,
+      employmentType: user.employmentType || 'clt' // Add employment type field
+    });
+  } catch (error) {
+    const { logError } = await import('../../utils/logger');
+    logError('Get user error', error, { userId: req.user?.id });
+    res.status(500).json({ message: 'Failed to get user' });
+  }
+});
+
+// Alias for /me endpoint (compatibility)
+authRouter.get('/me', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ message: 'User not authenticated' });
+    }
+
+    // Get full user details
+    const userRepository = container.userRepository;
+    const user = await userRepository.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json({
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      role: user.role,
+      tenantId: user.tenantId,
+      profileImageUrl: user.profileImageUrl,
+      isActive: user.isActive,
+      lastLoginAt: user.lastLoginAt,
+      createdAt: user.createdAt,
+      employmentType: user.employmentType || 'clt' // Add employment type field
     });
   } catch (error) {
     const { logError } = await import('../../utils/logger');
@@ -284,7 +320,8 @@ authRouter.put('/user', jwtAuth, async (req: AuthenticatedRequest, res) => {
       profileImageUrl: updatedUser.profileImageUrl,
       isActive: updatedUser.isActive,
       lastLoginAt: updatedUser.lastLoginAt,
-      createdAt: updatedUser.createdAt
+      createdAt: updatedUser.createdAt,
+      employmentType: updatedUser.employmentType || 'clt' // Add employment type field
     });
   } catch (error) {
     const { logError } = await import('../../utils/logger');

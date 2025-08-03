@@ -14,6 +14,9 @@ export function useEmploymentDetection() {
       return response.json();
     },
     staleTime: 0, // Force fresh fetch for debugging
+    cacheTime: 0, // No cache
+    refetchOnMount: true,
+    refetchOnWindowFocus: true
   });
 
   // Detect employment type
