@@ -1700,7 +1700,7 @@ ticketsRouter.delete('/:ticketId/actions/:actionId', jwtAuth, async (req: Authen
     const { pool } = await import('../../db');
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-    // 🚨 CORREÇÃO CRÍTICA: Primeiro capturar dados antes de excluir
+    // Primeiro capturar dados antes de excluir
     const getActionQuery = `
       SELECT * FROM "${schemaName}".ticket_history 
       WHERE id = $1 AND tenant_id = $2 AND ticket_id = $3
@@ -1717,40 +1717,33 @@ ticketsRouter.delete('/:ticketId/actions/:actionId', jwtAuth, async (req: Authen
 
     const deletedAction = actionResult.rows[0];
 
-    // 🚨 CORREÇÃO CRÍTICA: Adicionar entrada no histórico ANTES de excluir
-    const historyInsertQuery = `
-      INSERT INTO "${schemaName}".ticket_history 
-      (tenant_id, ticket_id, performed_by, performed_by_name, action_type, description, field_name, old_value, new_value, ip_address, user_agent, session_id, created_at)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW())
-      RETURNING *
-    `;
+    // Criar entrada de auditoria usando o sistema padronizado
+    try {
+      await createCompleteAuditEntry(
+        pool,
+        schemaName,
+        tenantId,
+        ticketId,
+        req,
+        'action_deleted',
+        'Ação interna excluída',
+        {
+          deleted_action_id: actionId,
+          deleted_action_type: deletedAction.action_type,
+          deleted_action_description_preview: deletedAction.description ? 
+            deletedAction.description.substring(0, 100) : 'Sem descrição'
+        },
+        'internal_action',
+        `Ação ID: ${actionId}`,
+        null
+      );
 
-    const historyDescription = `Ação interna excluída: ${deletedAction.description || deletedAction.action_type || 'Ação sem descrição'}`;
-    
-    // Capturar dados da sessão para auditoria completa
-    const ipAddress = req.ip || req.connection?.remoteAddress || null;
-    const userAgent = req.get('User-Agent') || null;
-    const sessionId = req.sessionID || 'no-session';
-    const performedByName = req.user?.firstName && req.user?.lastName 
-      ? `${req.user.firstName} ${req.user.lastName}` 
-      : req.user?.email || null;
-    
-    await pool.query(historyInsertQuery, [
-      tenantId,
-      ticketId,
-      userId,
-      performedByName,
-      'action_deleted',
-      historyDescription,
-      'internal_action',
-      `ID: ${actionId}`,
-      null,
-      ipAddress,
-      userAgent,
-      sessionId
-    ]);
+      console.log('✅ Entrada de auditoria criada para exclusão da ação interna');
+    } catch (auditError) {
+      console.log('⚠️ Aviso: Não foi possível criar entrada de auditoria para exclusão:', auditError.message);
+    }
 
-    // Agora excluir a ação interna do histórico
+    // Excluir a ação interna do histórico
     const deleteQuery = `
       DELETE FROM "${schemaName}".ticket_history 
       WHERE id = $1 AND tenant_id = $2 AND ticket_id = $3
@@ -1759,11 +1752,11 @@ ticketsRouter.delete('/:ticketId/actions/:actionId', jwtAuth, async (req: Authen
 
     const result = await pool.query(deleteQuery, [actionId, tenantId, ticketId]);
 
-    // Also delete from ticket_internal_actions if exists
+    // Também excluir de ticket_internal_actions se existir
     await pool.query(`
       DELETE FROM "${schemaName}".ticket_internal_actions 
-      WHERE ticket_id = $1 AND tenant_id = $2
-    `, [ticketId, tenantId]);
+      WHERE ticket_id = $1 AND tenant_id = $2 AND action_type = $3
+    `, [ticketId, tenantId, deletedAction.action_type]);
 
     res.json({
       success: true,
