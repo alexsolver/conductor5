@@ -1590,88 +1590,82 @@ ticketsRouter.put('/:ticketId/actions/:actionId', jwtAuth, async (req: Authentic
     const { pool } = await import('../../db');
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-    // Update in ticket_history table
-    const updateQuery = `
+    console.log('🔧 PUT Update - Received data:', {
+      ticketId,
+      actionId,
+      actionType,
+      description,
+      workLog,
+      startDateTime,
+      endDateTime,
+      status
+    });
+
+    // ONLY update ticket_history table - DO NOT create new records
+    const updateHistoryQuery = `
       UPDATE "${schemaName}".ticket_history 
-      SET action_type = $1, description = $2
+      SET description = $1, action_type = $2, updated_at = NOW()
       WHERE id = $3 AND tenant_id = $4 AND ticket_id = $5
       RETURNING *
     `;
 
-    const actionDescription = workLog || description || `${actionType} action updated`;
-    const result = await pool.query(updateQuery, [
-      actionType,
-      actionDescription,
+    const finalDescription = workLog || description || 'Ação interna atualizada';
+    const finalActionType = actionType || 'ação interna';
+
+    const historyResult = await pool.query(updateHistoryQuery, [
+      finalDescription,
+      finalActionType,
       actionId,
       tenantId,
       ticketId
     ]);
 
-    if (result.rows.length === 0) {
+    if (historyResult.rows.length === 0) {
       return res.status(404).json({ 
         success: false,
-        message: "Action not found" 
+        message: "Action not found in history table" 
       });
     }
 
-    // 🚨 ADIÇÃO: Registrar edição no histórico
-    const editHistoryQuery = `
-      INSERT INTO "${schemaName}".ticket_history 
-      (tenant_id, ticket_id, performed_by, performed_by_name, action_type, description, field_name, old_value, new_value, ip_address, user_agent, session_id, created_at)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW())
-      RETURNING *
+    // Update corresponding ticket_internal_actions if it exists
+    const updateInternalQuery = `
+      UPDATE "${schemaName}".ticket_internal_actions 
+      SET 
+        description = $1,
+        action_type = $2,
+        start_time = $3,
+        end_time = $4,
+        status = $5,
+        agent_id = $6,
+        estimated_hours = $7,
+        updated_at = NOW()
+      WHERE ticket_id = $8 AND action_type = $9 AND tenant_id = $10
+        AND ABS(EXTRACT(EPOCH FROM (created_at - $11::timestamp))) < 120
     `;
 
-    const editDescription = `Ação interna editada: ${actionDescription}`;
-    const ipAddress = req.ip || req.connection?.remoteAddress || null;
-    const userAgent = req.get('User-Agent') || null;
-    const sessionId = req.sessionID || 'no-session';
-    const performedByName = req.user?.firstName && req.user?.lastName 
-      ? `${req.user.firstName} ${req.user.lastName}` 
-      : req.user?.email || null;
+    const startTime = startDateTime ? new Date(startDateTime).toISOString() : null;
+    const endTime = endDateTime ? new Date(endDateTime).toISOString() : null;
+    const estimatedHours = timeSpent ? parseInt(timeSpent) / 60 : 0;
+    const historyCreatedAt = historyResult.rows[0].created_at;
 
-    await pool.query(editHistoryQuery, [
-      tenantId,
+    await pool.query(updateInternalQuery, [
+      finalDescription,
+      finalActionType,
+      startTime,
+      endTime,
+      status,
+      assignedToId,
+      estimatedHours,
       ticketId,
-      req.user.id,
-      performedByName,
-      'action_updated',
-      editDescription,
-      'internal_action',
-      `ID: ${actionId}`,
-      actionDescription,
-      ipAddress,
-      userAgent,
-      sessionId
+      finalActionType,
+      tenantId,
+      historyCreatedAt
     ]);
-
-    // Also update in ticket_internal_actions if exists
-    if (startDateTime) {
-      const finalAssignedId = (assignedToId && assignedToId !== 'unassigned') ? assignedToId : req.user.id;
-      const startTime = new Date(startDateTime);
-      const endTime = endDateTime ? new Date(endDateTime) : null;
-
-      await pool.query(`
-        UPDATE "${schemaName}".ticket_internal_actions 
-        SET action_type = $1, description = $2, agent_id = $3, start_time = $4, end_time = $5, status = $6, updated_at = NOW()
-        WHERE ticket_id = $7 AND tenant_id = $8 AND action_type = $9
-      `, [
-        actionType,
-        actionDescription,
-        finalAssignedId,
-        startTime,
-        endTime,
-        status,
-        ticketId,
-        tenantId,
-        actionType
-      ]);
-    }
 
     res.json({
       success: true,
       message: "Ação interna atualizada com sucesso",
-      data: result.rows[0]
+      data: historyResult.rows[0]
     });
   } catch (error) {
     console.error("Error updating internal action:", error);
