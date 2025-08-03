@@ -1601,7 +1601,25 @@ ticketsRouter.put('/:ticketId/actions/:actionId', jwtAuth, async (req: Authentic
       status
     });
 
-    // Update ticket_history table - manter description original, só atualizar action_type se necessário
+    // Primeiro buscar os dados atuais da ação para comparação
+    const getCurrentActionQuery = `
+      SELECT * FROM "${schemaName}".ticket_history 
+      WHERE id = $1 AND tenant_id = $2 AND ticket_id = $3
+    `;
+    const currentActionResult = await pool.query(getCurrentActionQuery, [actionId, tenantId, ticketId]);
+    
+    if (currentActionResult.rows.length === 0) {
+      return res.status(404).json({ 
+        success: false,
+        message: "Action not found in history table" 
+      });
+    }
+
+    const currentAction = currentActionResult.rows[0];
+    const contentDescription = workLog || description || 'Ação interna atualizada';
+    const finalActionType = currentAction.action_type === 'ação interna' ? 'ação interna' : (actionType || currentAction.action_type);
+
+    // Update ticket_history table
     const updateHistoryQuery = `
       UPDATE "${schemaName}".ticket_history 
       SET description = $1, action_type = $2
@@ -1609,34 +1627,13 @@ ticketsRouter.put('/:ticketId/actions/:actionId', jwtAuth, async (req: Authentic
       RETURNING *
     `;
 
-    // Para o conteúdo da ação, usar o que foi fornecido
-    const contentDescription = workLog || description || 'Ação interna atualizada';
-    
-    // Primeiro buscar o action_type atual para mantê-lo
-    const getCurrentTypeQuery = `
-      SELECT action_type FROM "${schemaName}".ticket_history 
-      WHERE id = $1 AND tenant_id = $2 AND ticket_id = $3
-    `;
-    const currentTypeResult = await pool.query(getCurrentTypeQuery, [actionId, tenantId, ticketId]);
-    const currentActionType = currentTypeResult.rows[0]?.action_type || 'ação interna';
-    
-    // Manter o tipo original se for "ação interna", caso contrário usar o fornecido
-    const finalActionType = currentActionType === 'ação interna' ? 'ação interna' : (actionType || currentActionType);
-
     const historyResult = await pool.query(updateHistoryQuery, [
-      contentDescription, // Usar o conteúdo real digitado pelo usuário
+      contentDescription,
       finalActionType,
       actionId,
       tenantId,
       ticketId
     ]);
-
-    if (historyResult.rows.length === 0) {
-      return res.status(404).json({ 
-        success: false,
-        message: "Action not found in history table" 
-      });
-    }
 
     // Update corresponding ticket_internal_actions if it exists
     const updateInternalQuery = `
@@ -1656,10 +1653,9 @@ ticketsRouter.put('/:ticketId/actions/:actionId', jwtAuth, async (req: Authentic
     const startTime = startDateTime ? new Date(startDateTime).toISOString() : null;
     const endTime = endDateTime ? new Date(endDateTime).toISOString() : null;
     const estimatedHours = timeSpent ? parseInt(timeSpent) / 60 : 0;
-    const historyCreatedAt = historyResult.rows[0].created_at;
 
     await pool.query(updateInternalQuery, [
-      contentDescription, // Usar o conteúdo real para a tabela internal_actions
+      contentDescription,
       finalActionType,
       startTime,
       endTime,
@@ -1669,8 +1665,40 @@ ticketsRouter.put('/:ticketId/actions/:actionId', jwtAuth, async (req: Authentic
       ticketId,
       finalActionType,
       tenantId,
-      historyCreatedAt
+      currentAction.created_at
     ]);
+
+    // 🔥 NOVA FUNCIONALIDADE: Criar entrada de auditoria para a edição da ação
+    try {
+      await createCompleteAuditEntry(
+        pool,
+        schemaName,
+        tenantId,
+        ticketId,
+        req,
+        'action_updated',
+        `Ação interna editada: ${contentDescription.substring(0, 100)}${contentDescription.length > 100 ? '...' : ''}`,
+        {
+          action_id: actionId,
+          action_type: finalActionType,
+          old_description: currentAction.description,
+          new_description: contentDescription,
+          old_status: 'pending', // Status anterior não está sendo capturado atualmente
+          new_status: status,
+          start_time: startTime,
+          end_time: endTime,
+          assigned_to: assignedToId,
+          is_public: is_public
+        },
+        'internal_action',
+        currentAction.description,
+        contentDescription
+      );
+
+      console.log('✅ Entrada de auditoria criada para edição da ação interna');
+    } catch (auditError) {
+      console.log('⚠️ Aviso: Não foi possível criar entrada de auditoria para edição da ação:', auditError.message);
+    }
 
     res.json({
       success: true,
