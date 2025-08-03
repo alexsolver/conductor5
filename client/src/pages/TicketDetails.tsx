@@ -50,11 +50,8 @@ import { TicketDescriptionEditor } from "@/components/TicketDescriptionEditor";
 import { GroupSelect } from "@/components/GroupSelect";
 import { FilteredUserSelect } from "@/components/FilteredUserSelect";
 
-
 // 🚨 CORREÇÃO CRÍTICA: Usar schema unificado para consistência
 import { ticketFormSchema, type TicketFormData } from "../../../shared/ticket-validation";
-
-
 
 const TicketDetails = React.memo(() => {
   const { id } = useParams<{ id: string }>();
@@ -63,6 +60,15 @@ const TicketDetails = React.memo(() => {
   const queryClient = useQueryClient();
   const [isEditMode, setIsEditMode] = useState(false);
   const { getFieldColor, getFieldLabel } = useFieldColors();
+
+  // Fetch user groups for displaying names
+  const { data: userGroupsData } = useQuery({
+    queryKey: ['/api/user-groups'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/user-groups');
+      return response.json();
+    },
+  });
 
   // Sidebar sempre fixa e visível - tab padrão é informações
   const [activeTab, setActiveTab] = useState("informacoes");
@@ -2858,7 +2864,13 @@ const TicketDetails = React.memo(() => {
                   />
                 ) : (
                   <div className="p-2 bg-gray-50 rounded text-sm">
-                    {form.getValues('assignmentGroup') || ticket.assignment_group || 'Não especificado'}
+                    {(() => {
+                      const groupId = form.getValues('assignmentGroup') || ticket.assignment_group;
+                      if (!groupId) return <span className="text-gray-500">Não especificado</span>;
+                      const groups = userGroupsData?.data || [];
+                      const group = groups.find((g: any) => g.id === groupId);
+                      return <span>{group?.name || groupId}</span>;
+                    })()}
                   </div>
                 )}
               </div>
