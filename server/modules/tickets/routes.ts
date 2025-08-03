@@ -642,6 +642,8 @@ ticketsRouter.get('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, res
         th.description,
         COALESCE(tia.status, 'pending') as status,
         COALESCE(tia.estimated_hours * 60, 0) as time_spent,
+        COALESCE(tia.estimated_hours * 60, 0) as estimated_minutes,
+        0 as time_spent_minutes,
         COALESCE(tia.start_time, th.created_at) as start_time,
         COALESCE(tia.end_time, th.created_at) as end_time,
         tia.action_number,
@@ -652,9 +654,12 @@ ticketsRouter.get('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, res
         true as is_public,
         th.created_at,
         th.performed_by as created_by,
+        tia.agent_id as assigned_to_id,
         u.first_name || ' ' || u.last_name as agent_name,
         u.first_name || ' ' || u.last_name as "createdByName",
-        COALESCE(au.first_name || ' ' || au.last_name, au.email) as "assigned_to_name"
+        COALESCE(au.first_name || ' ' || au.last_name, au.email) as "assigned_to_name",
+        th.action_type as actionType,
+        '' as work_log
       FROM "${schemaName}".ticket_history th
       LEFT JOIN public.users u ON th.performed_by = u.id
       LEFT JOIN "${schemaName}".ticket_internal_actions tia ON th.ticket_id = tia.ticket_id AND th.action_type = tia.action_type AND DATE(th.created_at) = DATE(tia.created_at)
@@ -679,6 +684,73 @@ ticketsRouter.get('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, res
       success: true,
       data: [],
       count: 0
+    });
+  }
+});
+
+// Get single internal action for editing
+ticketsRouter.get('/:ticketId/actions/:actionId', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.user?.tenantId) {
+      return res.status(400).json({ message: "User not associated with a tenant" });
+    }
+
+    const { ticketId, actionId } = req.params;
+    const tenantId = req.user.tenantId;
+    const { pool } = await import('../../db');
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    const query = `
+      SELECT 
+        th.id,
+        th.action_type as actionType,
+        th.action_type as type,
+        th.description,
+        th.description as content,
+        th.performed_by as assigned_to_id,
+        COALESCE(tia.status, 'pending') as status,
+        COALESCE(tia.estimated_hours * 60, 0) as estimated_minutes,
+        0 as time_spent_minutes,
+        COALESCE(TO_CHAR(tia.start_time, 'YYYY-MM-DD"T"HH24:MI'), '') as start_time,
+        COALESCE(TO_CHAR(tia.end_time, 'YYYY-MM-DD"T"HH24:MI'), '') as end_time,
+        tia.action_number,
+        true as is_public,
+        '' as work_log,
+        th.created_at,
+        u.first_name || ' ' || u.last_name as "createdByName",
+        COALESCE(au.first_name || ' ' || au.last_name, au.email) as "assigned_to_name"
+      FROM "${schemaName}".ticket_history th
+      LEFT JOIN public.users u ON th.performed_by = u.id
+      LEFT JOIN "${schemaName}".ticket_internal_actions tia ON (
+        tia.ticket_id = th.ticket_id 
+        AND tia.action_type = th.action_type 
+        AND ABS(EXTRACT(EPOCH FROM (tia.created_at - th.created_at))) < 30
+      )
+      LEFT JOIN public.users au ON tia.agent_id = au.id
+      WHERE th.tenant_id = $1::uuid 
+        AND th.ticket_id = $2::uuid
+        AND th.id = $3::uuid
+        AND th.action_type NOT IN ('field_updated', 'status_changed', 'priority_changed', 'assignment_changed', 'note_added', 'communication_added', 'attachment_added')
+    `;
+
+    const result = await pool.query(query, [tenantId, ticketId, actionId]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "Action not found" 
+      });
+    }
+
+    res.json({
+      success: true,
+      data: result.rows[0]
+    });
+  } catch (error) {
+    console.error("Error fetching action for edit:", error);
+    res.status(500).json({ 
+      success: false, 
+      message: "Failed to fetch action" 
     });
   }
 });

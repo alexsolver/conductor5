@@ -634,7 +634,7 @@ ${schedule.locationAddress ? `Local: ${schedule.locationAddress}` : ''}`}
                                   return (
                                     <div
                                       key={`${schedule.id}-actual-layer-${layerIndex}`}
-                                      className={`absolute rounded text-white text-xs flex items-center gap-1 px-2 cursor-pointer hover:opacity-80 border ${
+                                      className={`absolute rounded text-white text-xs flex items-center gap-1 px-2 cursor-pointer hover:opacity-80 border mt-[0px] mb-[0px] pt-[6px] pb-[6px] ${
                                         layerColors[layerIndex % layerColors.length]
                                       }`}
                                       style={{ 

@@ -36,9 +36,39 @@ export default function EditInternalActionModal({ ticketId, action, isOpen, onCl
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Fetch detailed action data for editing
+  const { data: actionDetails, isLoading: actionLoading } = useQuery({
+    queryKey: ["/api/tickets", ticketId, "actions", action?.id],
+    queryFn: async () => {
+      if (!action?.id || !ticketId) return null;
+      const response = await apiRequest("GET", `/api/tickets/${ticketId}/actions/${action.id}`);
+      return response.json();
+    },
+    enabled: isOpen && !!action?.id && !!ticketId,
+  });
+
   // Populate form with existing action data
   useEffect(() => {
-    if (action && isOpen) {
+    if (actionDetails?.success && actionDetails.data && isOpen) {
+      const data = actionDetails.data;
+      console.log('🔍 EditModal: Loading action data:', data);
+      
+      setFormData({
+        startDateTime: data.start_time || "",
+        endDateTime: data.end_time || "",
+        estimatedMinutes: data.estimated_minutes?.toString() || "0",
+        timeSpentMinutes: data.time_spent_minutes?.toString() || "0",
+        alterTimeSpent: !!data.time_spent_minutes,
+        actionType: data.actionType || data.type || "",
+        workLog: data.work_log || "",
+        description: data.description || data.content || "",
+        status: data.status || "pending",
+        assignedToId: data.assigned_to_id || ""
+      });
+      setIsPublic(data.is_public || false);
+    } else if (action && isOpen && !actionDetails) {
+      // Fallback to passed action data
+      console.log('🔍 EditModal: Using fallback action data:', action);
       setFormData({
         startDateTime: action.start_time || "",
         endDateTime: action.end_time || "",
@@ -53,7 +83,7 @@ export default function EditInternalActionModal({ ticketId, action, isOpen, onCl
       });
       setIsPublic(action.is_public || false);
     }
-  }, [action, isOpen]);
+  }, [actionDetails, action, isOpen]);
 
   // Fetch team members for assignment dropdown
   const { data: teamMembers } = useQuery({
