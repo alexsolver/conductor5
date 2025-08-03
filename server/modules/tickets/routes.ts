@@ -1565,7 +1565,7 @@ ticketsRouter.put('/:ticketId/actions/:actionId', jwtAuth, async (req: Authentic
     }
 
     const currentAction = currentActionResult.rows[0];
-    const contentDescription = workLog || description || currentAction.description;
+    const contentDescription = description || workLog || currentAction.description;
     const finalActionType = actionType || currentAction.action_type;
 
     // Preparar dados de tempo
