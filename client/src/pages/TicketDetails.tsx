@@ -2103,7 +2103,7 @@ const TicketDetails = React.memo(() => {
                           {/* Action Number Display */}
                           <div className="mb-2">
                             <div className="text-xs text-gray-500 font-mono bg-gray-50 px-2 py-1 rounded border inline-block select-all">
-                              Número: {action.actionNumber || action.id}
+                              Número: {action.action_number || action.actionNumber || action.id}
                             </div>
                           </div>
                           

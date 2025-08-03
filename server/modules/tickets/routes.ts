@@ -644,6 +644,7 @@ ticketsRouter.get('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, res
         COALESCE(tia.estimated_hours * 60, 0) as time_spent,
         COALESCE(tia.start_time, th.created_at) as start_time,
         COALESCE(tia.end_time, th.created_at) as end_time,
+        tia.action_number,
         '[]'::text as linked_items,
         false as has_file,
         'system' as contact_method,
@@ -787,33 +788,31 @@ ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, re
       })
     ]);
 
-    // Also create entry in ticket_internal_actions for scheduling (only if start time provided)
-    if (startDateTime) {
-      // Generate unique action number
-      const actionNumber = await generateActionNumber(pool, tenantId, id);
-      
-      const internalActionQuery = `
-        INSERT INTO "${schemaName}".ticket_internal_actions 
-        (id, tenant_id, ticket_id, action_number, action_type, title, description, agent_id, start_time, end_time, estimated_hours, status, priority, created_at, updated_at)
-        VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW(), NOW())
-        RETURNING id, action_number
-      `;
+    // Generate unique action number for all internal actions
+    const actionNumber = await generateActionNumber(pool, tenantId, id);
+    
+    // Create entry in ticket_internal_actions for scheduling (always create for tracking)
+    const internalActionQuery = `
+      INSERT INTO "${schemaName}".ticket_internal_actions 
+      (id, tenant_id, ticket_id, action_number, action_type, title, description, agent_id, start_time, end_time, estimated_hours, status, priority, created_at, updated_at)
+      VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW(), NOW())
+      RETURNING id, action_number
+    `;
 
-      await pool.query(internalActionQuery, [
-        tenantId,                          // $1 tenant_id
-        id,                               // $2 ticket_id
-        actionNumber,                     // $3 action_number
-        actionType,                       // $4 action_type
-        `${actionType} - Ticket #${id.slice(0, 8)}`, // $5 title
-        actionDescription,                // $6 description
-        finalAssignedId,                  // $7 agent_id (assigned person)
-        startTime,                        // $8 start_time
-        endTime,                          // $9 end_time
-        estimatedMinutes / 60,            // $10 estimated_hours (convert minutes to hours)
-        status,                           // $11 status (from frontend)
-        'medium'                          // $12 priority
-      ]);
-    }
+    const internalActionResult = await pool.query(internalActionQuery, [
+      tenantId,                          // $1 tenant_id
+      id,                               // $2 ticket_id
+      actionNumber,                     // $3 action_number
+      actionType,                       // $4 action_type
+      `${actionType} - Ticket #${id.slice(0, 8)}`, // $5 title
+      actionDescription,                // $6 description
+      finalAssignedId,                  // $7 agent_id (assigned person)
+      startTime || null,                // $8 start_time (nullable)
+      endTime || null,                  // $9 end_time (nullable)
+      estimatedMinutes ? estimatedMinutes / 60 : 0, // $10 estimated_hours
+      status,                           // $11 status (from frontend)
+      'medium'                          // $12 priority
+    ]);
 
     if (result.rows.length === 0) {
       return res.status(500).json({ 
@@ -837,6 +836,7 @@ ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, re
       message: "Ação interna criada com sucesso",
       data: {
         id: newAction.id,
+        actionNumber: actionNumber,  // Include the generated action number
         actionType: newAction.action_type,
         type: newAction.action_type,
         content: newAction.description,
