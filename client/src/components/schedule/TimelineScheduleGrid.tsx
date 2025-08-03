@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { format, addDays, addHours, addMinutes, startOfDay, parseISO, differenceInMinutes } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -483,14 +482,22 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                                   const activityType = getActivityType(schedule.activityTypeId);
                                   const isInternalAction = schedule.activityTypeId === 'internal-action';
 
-                                  // Calculate if this is the starting slot for the action
+                                  // Calculate if this is the exact starting slot for the action
                                   const scheduleStart = parseISO(schedule.startDateTime);
                                   const scheduleEnd = schedule.endDateTime ? parseISO(schedule.endDateTime) : scheduleStart;
-                                  const isStartingSlot = timeSlot.getTime() <= scheduleStart.getTime() && 
-                                                         scheduleStart.getTime() < (timeSlot.getTime() + (60 * 60 * 1000));
 
-                                  // Skip non-starting slots to prevent partitioning
-                                  if (!isStartingSlot) return null;
+                                  // Get the exact hour of the schedule start
+                                  const scheduleStartHour = scheduleStart.getHours();
+                                  const timeSlotHour = timeSlot.getHours();
+
+                                  // Only render at the exact starting hour to prevent partitioning
+                                  const isExactStartingSlot = scheduleStartHour === timeSlotHour && 
+                                                             timeSlot.getDate() === scheduleStart.getDate() &&
+                                                             timeSlot.getMonth() === scheduleStart.getMonth() &&
+                                                             timeSlot.getFullYear() === scheduleStart.getFullYear();
+
+                                  // Skip non-exact starting slots to prevent partitioning
+                                  if (!isExactStartingSlot) return null;
 
                                   // Calculate duration for display
                                   const duration = calculateDuration(schedule.startDateTime, schedule.endDateTime);
@@ -600,14 +607,22 @@ ${schedule.locationAddress ? `Local: ${schedule.locationAddress}` : ''}`}
                                   const activityType = getActivityType(schedule.activityTypeId);
                                   const isInternalAction = schedule.activityTypeId === 'internal-action';
 
-                                  // Calculate if this is the starting slot for the action
+                                  // Calculate if this is the exact starting slot for the action
                                   const scheduleStart = parseISO(schedule.startDateTime);
                                   const scheduleEnd = schedule.endDateTime ? parseISO(schedule.endDateTime) : scheduleStart;
-                                  const isStartingSlot = timeSlot.getTime() <= scheduleStart.getTime() && 
-                                                         scheduleStart.getTime() < (timeSlot.getTime() + (60 * 60 * 1000));
 
-                                  // Skip non-starting slots to prevent partitioning
-                                  if (!isStartingSlot) return null;
+                                  // Get the exact hour of the schedule start
+                                  const scheduleStartHour = scheduleStart.getHours();
+                                  const timeSlotHour = timeSlot.getHours();
+
+                                  // Only render at the exact starting hour to prevent partitioning
+                                  const isExactStartingSlot = scheduleStartHour === timeSlotHour && 
+                                                             timeSlot.getDate() === scheduleStart.getDate() &&
+                                                             timeSlot.getMonth() === scheduleStart.getMonth() &&
+                                                             timeSlot.getFullYear() === scheduleStart.getFullYear();
+
+                                  // Skip non-exact starting slots to prevent partitioning
+                                  if (!isExactStartingSlot) return null;
 
                                   // Calculate duration for display
                                   const duration = calculateDuration(schedule.startDateTime, schedule.endDateTime);
