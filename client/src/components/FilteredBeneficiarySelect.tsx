@@ -35,10 +35,24 @@ export function FilteredBeneficiarySelect({
     queryFn: async () => {
       if (!selectedCustomerId || selectedCustomerId === 'unspecified') return { beneficiaries: [] };
       console.log(`[FilteredBeneficiarySelect] 🔄 Fetching beneficiaries for customer: ${selectedCustomerId}`);
-      const response = await apiRequest('GET', `/api/customers/${selectedCustomerId}/beneficiaries`);
-      const data = await response.json();
-      console.log(`[FilteredBeneficiarySelect] 📊 API response for customer ${selectedCustomerId}:`, data);
-      return data;
+      try {
+        const response = await apiRequest('GET', `/api/customers/${selectedCustomerId}/beneficiaries`);
+        console.log(`[FilteredBeneficiarySelect] 📋 Response status:`, response.status, response.statusText);
+        
+        if (!response.ok) {
+          console.error(`[FilteredBeneficiarySelect] ❌ API error:`, response.status, response.statusText);
+          const text = await response.text();
+          console.error(`[FilteredBeneficiarySelect] ❌ Response body:`, text);
+          return { beneficiaries: [] };
+        }
+        
+        const data = await response.json();
+        console.log(`[FilteredBeneficiarySelect] 📊 API response for customer ${selectedCustomerId}:`, data);
+        return data;
+      } catch (error) {
+        console.error(`[FilteredBeneficiarySelect] ❌ Error fetching beneficiaries:`, error);
+        return { beneficiaries: [] };
+      }
     },
     enabled: !!selectedCustomerId && selectedCustomerId !== 'unspecified',
   });

@@ -260,25 +260,49 @@ customersRouter.get('/:customerId/beneficiaries', jwtAuth, async (req: Authentic
     const pool = schemaManager.getPool();
     const schemaName = schemaManager.getSchemaName(req.user.tenantId);
 
-    console.log(`[BENEFICIARIES] Fetching beneficiaries for customer ${customerId} in tenant ${req.user.tenantId}`);
+    console.log(`[BENEFICIARIES-API] 🔍 Fetching beneficiaries for customer ${customerId} in tenant ${req.user.tenantId}`);
 
     const result = await pool.query(`
-      SELECT DISTINCT b.id, b.first_name, b.last_name, b.email, b.phone, b.cpf_cnpj, b.customer_id
+      SELECT DISTINCT 
+        b.id, 
+        b.first_name, 
+        b.last_name, 
+        COALESCE(NULLIF(TRIM(b.first_name || ' ' || b.last_name), ''), b.email) as name,
+        b.email, 
+        b.phone, 
+        b.cpf_cnpj, 
+        b.customer_id
       FROM "${schemaName}".beneficiaries b
       LEFT JOIN "${schemaName}".beneficiary_customer_relationships bcr ON b.id = bcr.beneficiary_id
       WHERE b.customer_id = $1 OR bcr.customer_id = $1
+      ORDER BY b.first_name, b.last_name
     `, [customerId]);
 
-    console.log(`[BENEFICIARIES] Found ${result.rows.length} beneficiaries for customer ${customerId}:`, result.rows);
+    const formattedBeneficiaries = result.rows.map(row => ({
+      id: row.id,
+      firstName: row.first_name,
+      lastName: row.last_name,
+      name: row.name,
+      email: row.email,
+      phone: row.phone,
+      cpfCnpj: row.cpf_cnpj,
+      customerId: row.customer_id
+    }));
+
+    console.log(`[BENEFICIARIES-API] ✅ Found ${result.rows.length} beneficiaries for customer ${customerId}:`, formattedBeneficiaries);
     
     res.json({
       success: true,
-      beneficiaries: result.rows,
-      count: result.rows.length
+      beneficiaries: formattedBeneficiaries,
+      count: formattedBeneficiaries.length
     });
   } catch (error) {
-    console.error('Error fetching customer beneficiaries:', error);
-    res.status(500).json({ error: 'Failed to fetch customer beneficiaries' });
+    console.error('[BENEFICIARIES-API] ❌ Error fetching customer beneficiaries:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to fetch customer beneficiaries',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 });
 
