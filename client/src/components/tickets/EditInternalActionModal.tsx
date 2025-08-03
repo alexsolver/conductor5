@@ -80,7 +80,7 @@ export default function EditInternalActionModal({ ticketId, action, isOpen, onCl
       estimatedMinutes: (dataToUse.estimated_minutes || dataToUse.estimatedMinutes || 0).toString(),
       timeSpentMinutes: (dataToUse.time_spent_minutes || dataToUse.timeSpentMinutes || 0).toString(),
       alterTimeSpent: !!(dataToUse.time_spent_minutes || dataToUse.timeSpentMinutes),
-      actionType: dataToUse.type || dataToUse.actionType || "",
+      actionType: dataToUse.type || dataToUse.actionType || dataToUse.actiontype || "",
       workLog: dataToUse.work_log || dataToUse.workLog || "",
       description: dataToUse.description || dataToUse.content || "",
       status: dataToUse.status || "pending",
