@@ -11,7 +11,7 @@ import {
   Link as LinkIcon,
   Heading2
 } from 'lucide-react'
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Input } from "./ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog"
 import { Label } from "./ui/label"
@@ -28,6 +28,47 @@ export function TicketDescriptionEditor({ content, onChange, placeholder }: Tick
   const [showLinkDialog, setShowLinkDialog] = useState(false)
   const [showImageDialog, setShowImageDialog] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  // Function to convert file to base64 data URL
+  const fileToDataURL = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(reader.result as string)
+      reader.onerror = reject
+      reader.readAsDataURL(file)
+    })
+  }
+
+  // Handle paste events for image insertion
+  useEffect(() => {
+    const handlePaste = async (e: ClipboardEvent) => {
+      if (!textareaRef.current || document.activeElement !== textareaRef.current) return
+      
+      const items = e.clipboardData?.items
+      if (!items) return
+
+      for (const item of Array.from(items)) {
+        if (item.type.startsWith('image/')) {
+          e.preventDefault()
+          const file = item.getAsFile()
+          if (file) {
+            try {
+              const dataURL = await fileToDataURL(file)
+              const markdownImage = `![Imagem colada](${dataURL})`
+              console.log('Inserindo imagem colada via Ctrl+V')
+              insertAtCursor(markdownImage)
+            } catch (error) {
+              console.error('Erro ao processar imagem colada:', error)
+            }
+          }
+          break
+        }
+      }
+    }
+
+    document.addEventListener('paste', handlePaste)
+    return () => document.removeEventListener('paste', handlePaste)
+  }, [])
 
   const insertAtCursor = (text: string) => {
     if (!textareaRef.current) {
@@ -189,14 +230,39 @@ export function TicketDescriptionEditor({ content, onChange, placeholder }: Tick
                   placeholder="https://exemplo.com/imagem.jpg"
                 />
               </div>
+              <div>
+                <Label htmlFor="imageFile">Ou selecione um arquivo</Label>
+                <Input
+                  id="imageFile"
+                  type="file"
+                  accept="image/*"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0]
+                    if (file) {
+                      try {
+                        const dataURL = await fileToDataURL(file)
+                        const markdownImage = `![${file.name}](${dataURL})`
+                        console.log('Inserindo imagem do arquivo:', file.name)
+                        insertAtCursor(markdownImage)
+                        setShowImageDialog(false)
+                      } catch (error) {
+                        console.error('Erro ao processar arquivo:', error)
+                      }
+                    }
+                  }}
+                />
+              </div>
               <Button 
                 onClick={addImage} 
                 className="w-full" 
                 type="button"
                 disabled={!imageUrl.trim()}
               >
-                Inserir Imagem
+                Inserir da URL
               </Button>
+              <p className="text-sm text-gray-500">
+                💡 Dica: Você também pode colar imagens diretamente com Ctrl+V
+              </p>
             </div>
           </DialogContent>
         </Dialog>
@@ -236,7 +302,7 @@ export function TicketDescriptionEditor({ content, onChange, placeholder }: Tick
           ref={textareaRef}
           value={content || ''}
           onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
+          placeholder={placeholder || "Digite a descrição... (Cole imagens com Ctrl+V)"}
           className="min-h-[120px] resize-none border-0 focus-visible:ring-0 focus-visible:ring-offset-0 p-3"
         />
       </div>
