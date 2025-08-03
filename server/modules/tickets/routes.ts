@@ -1601,7 +1601,7 @@ ticketsRouter.put('/:ticketId/actions/:actionId', jwtAuth, async (req: Authentic
       status
     });
 
-    // ONLY update ticket_history table - DO NOT create new records
+    // Update ticket_history table - manter description original, só atualizar action_type se necessário
     const updateHistoryQuery = `
       UPDATE "${schemaName}".ticket_history 
       SET description = $1, action_type = $2
@@ -1609,9 +1609,7 @@ ticketsRouter.put('/:ticketId/actions/:actionId', jwtAuth, async (req: Authentic
       RETURNING *
     `;
 
-    // Para o histórico, sempre mostrar "Ação interna" como descrição
-    const historyDescription = 'Ação interna';
-    // Para o conteúdo real da ação, usar o que foi fornecido
+    // Para o conteúdo da ação, usar o que foi fornecido
     const contentDescription = workLog || description || 'Ação interna atualizada';
     
     // Primeiro buscar o action_type atual para mantê-lo
@@ -1626,7 +1624,7 @@ ticketsRouter.put('/:ticketId/actions/:actionId', jwtAuth, async (req: Authentic
     const finalActionType = currentActionType === 'ação interna' ? 'ação interna' : (actionType || currentActionType);
 
     const historyResult = await pool.query(updateHistoryQuery, [
-      historyDescription, // Sempre "Ação interna" no histórico
+      contentDescription, // Usar o conteúdo real digitado pelo usuário
       finalActionType,
       actionId,
       tenantId,
