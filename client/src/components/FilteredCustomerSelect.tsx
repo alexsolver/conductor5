@@ -33,37 +33,41 @@ export function FilteredCustomerSelect({
   const { data: companyCustomersData, isLoading: isLoadingCompanyCustomers } = useQuery({
     queryKey: ['/api/companies', selectedCompanyId, 'customers'],
     queryFn: async () => {
-      if (!selectedCompanyId) return { customers: [] };
+      if (!selectedCompanyId || selectedCompanyId === 'unspecified') return { customers: [] };
       const response = await apiRequest('GET', `/api/companies/${selectedCompanyId}/customers`);
       return response.json();
     },
-    enabled: !!selectedCompanyId,
+    enabled: !!selectedCompanyId && selectedCompanyId !== 'unspecified',
   });
 
-  const isLoading = isLoadingCustomers || (selectedCompanyId && isLoadingCompanyCustomers);
+  const isLoading = isLoadingCustomers || (selectedCompanyId && selectedCompanyId !== 'unspecified' && isLoadingCompanyCustomers);
   
-  // Determinar quais clientes mostrar
+  // Determinar quais clientes mostrar baseado EXCLUSIVAMENTE na empresa
   let customersToShow = [];
-  if (selectedCompanyId && selectedCompanyId !== 'unspecified' && companyCustomersData?.customers) {
-    // Se uma empresa foi selecionada, mostrar apenas clientes da empresa
-    customersToShow = companyCustomersData.customers;
-    console.log('[FilteredCustomerSelect] Showing company customers:', {
-      companyId: selectedCompanyId, 
-      customersCount: customersToShow.length,
-      customers: customersToShow.map(c => ({ id: c.id, name: c.name || c.fullName, email: c.email }))
-    });
-  } else if (!selectedCompanyId || selectedCompanyId === 'unspecified') {
-    // Se nenhuma empresa foi selecionada, mostrar todos os clientes
-    customersToShow = allCustomersData?.success ? (allCustomersData.customers || []) : [];
-    console.log('[FilteredCustomerSelect] Showing all customers (no company selected):', {
-      companyId: selectedCompanyId,
-      customersCount: customersToShow.length,
-      customers: customersToShow.map(c => ({ id: c.id, name: c.name || c.fullName, email: c.email }))
-    });
+  
+  if (selectedCompanyId && selectedCompanyId !== 'unspecified') {
+    // Empresa selecionada - mostrar APENAS clientes desta empresa
+    if (companyCustomersData?.customers) {
+      customersToShow = companyCustomersData.customers;
+      console.log('[FilteredCustomerSelect] ✅ FILTERED by company:', {
+        companyId: selectedCompanyId, 
+        customersCount: customersToShow.length,
+        customers: customersToShow.map(c => ({ id: c.id, name: c.name || c.fullName, email: c.email }))
+      });
+    } else if (isLoadingCompanyCustomers) {
+      customersToShow = [];
+      console.log('[FilteredCustomerSelect] ⏳ Loading customers for company:', selectedCompanyId);
+    } else {
+      customersToShow = [];
+      console.log('[FilteredCustomerSelect] ❌ No customers found for company:', selectedCompanyId);
+    }
   } else {
-    // Empresa selecionada mas dados ainda carregando
-    customersToShow = [];
-    console.log('[FilteredCustomerSelect] Loading customers for company:', selectedCompanyId);
+    // Nenhuma empresa selecionada - mostrar todos os clientes
+    customersToShow = allCustomersData?.success ? (allCustomersData.customers || []) : [];
+    console.log('[FilteredCustomerSelect] 🌐 Showing ALL customers (no company filter):', {
+      companyId: selectedCompanyId,
+      customersCount: customersToShow.length
+    });
   }
 
   if (isLoading) {
