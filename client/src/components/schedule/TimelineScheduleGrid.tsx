@@ -217,10 +217,10 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
       const agentMatch = schedule.agentId === agentId || 
                         schedule.agentId.startsWith(agentId.substring(0, 8));
 
-      // For internal actions, show completed ones in 'actual' row and pending ones in 'planned' row
+      // For internal actions, always show in 'planned' row, and also show completed ones in 'actual' row
       const typeMatch = schedule.type === type || 
-                       (schedule.type === 'internal_action' && type === 'planned' && schedule.status !== 'completed' && schedule.status !== 'done') ||
-                       (schedule.activityTypeId === 'internal-action' && type === 'planned' && schedule.status !== 'completed' && schedule.status !== 'done') ||
+                       (schedule.type === 'internal_action' && type === 'planned') ||
+                       (schedule.activityTypeId === 'internal-action' && type === 'planned') ||
                        (schedule.type === 'internal_action' && type === 'actual' && (schedule.status === 'completed' || schedule.status === 'done')) ||
                        (schedule.activityTypeId === 'internal-action' && type === 'actual' && (schedule.status === 'completed' || schedule.status === 'done'));
 
