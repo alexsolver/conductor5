@@ -2655,10 +2655,11 @@ const TicketDetails = React.memo(() => {
                   value={form.getValues('callerId') || ''}
                   onChange={(value) => {
                     console.log('🔄 Setting new customer:', { oldValue: form.getValues('callerId'), newValue: value });
-                    form.setValue('callerId', value);
-                    form.setValue('beneficiaryId', ''); // Limpar favorecido quando cliente muda
+                    form.setValue('callerId', value, { shouldValidate: true, shouldDirty: true });
+                    form.setValue('beneficiaryId', '', { shouldValidate: true, shouldDirty: true });
+                    form.trigger('callerId'); // Force form re-render
                     handleCustomerChange(value, 'caller');
-                    console.log('👤 Customer change:', { customerId: value, type: 'caller' });
+                    console.log('👤 Customer change:', { customerId: value, type: 'caller', formValue: form.getValues('callerId') });
                   }}
                   selectedCompanyId={form.getValues('customerCompanyId') || '503389ff-7616-48e0-8759-c6b98faf5608'}
                   placeholder="Selecionar cliente"
@@ -2711,7 +2712,8 @@ const TicketDetails = React.memo(() => {
                   value={form.getValues('beneficiaryId') || ''}
                   onChange={(value) => {
                     console.log('🔄 Setting new beneficiary:', { oldValue: form.getValues('beneficiaryId'), newValue: value });
-                    form.setValue('beneficiaryId', value);
+                    form.setValue('beneficiaryId', value, { shouldValidate: true, shouldDirty: true });
+                    form.trigger('beneficiaryId'); // Force form re-render
                     handleCustomerChange(value, 'beneficiary');
                   }}
                   selectedCustomerId={form.getValues('callerId') || ''}

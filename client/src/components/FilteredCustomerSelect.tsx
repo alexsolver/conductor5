@@ -84,7 +84,11 @@ export function FilteredCustomerSelect({
     value, 
     disabled, 
     customersCount: customersToShow.length,
-    selectedCompanyId 
+    selectedCompanyId,
+    valueMatchesCustomer: (() => {
+      const foundCustomer = customersToShow.find(c => c.id === value);
+      return foundCustomer ? (foundCustomer.fullName || foundCustomer.name || foundCustomer.email) : 'NOT FOUND';
+    })()
   });
 
   return (
