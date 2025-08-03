@@ -80,10 +80,20 @@ export function FilteredCustomerSelect({
     );
   }
 
+  console.log('[FilteredCustomerSelect] Render:', { 
+    value, 
+    disabled, 
+    customersCount: customersToShow.length,
+    selectedCompanyId 
+  });
+
   return (
     <Select 
       value={value || '__none__'} 
-      onValueChange={(val) => onChange(val === '__none__' ? '' : val)} 
+      onValueChange={(val) => {
+        console.log('[FilteredCustomerSelect] Value change:', { from: value, to: val });
+        onChange(val === '__none__' ? '' : val);
+      }} 
       disabled={disabled}
     >
       <SelectTrigger className={className}>
