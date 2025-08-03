@@ -78,6 +78,8 @@ interface Customer {
 
 const AgendaManager: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [view, setView] = useState<'timeline' | 'agenda'>('timeline');
+  const [selectedAgentId, setSelectedAgentId] = useState<string>();
 
   // Auto-scroll to current time on mount
   useEffect(() => {
@@ -95,9 +97,7 @@ const AgendaManager: React.FC = () => {
     };
 
     scrollToCurrentTime();
-  }, [view]); // Data e horário atual
-  const [view, setView] = useState<'timeline' | 'agenda'>('timeline');
-  const [selectedAgentId, setSelectedAgentId] = useState<string>();
+  }, [view]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState<Schedule | undefined>();
   const [newScheduleDefaults, setNewScheduleDefaults] = useState<{
