@@ -2619,7 +2619,7 @@ const TicketDetails = React.memo(() => {
             ) : (
               <Badge 
                 variant="outline" 
-                className="px-3 py-2 text-sm font-semibold bg-gradient-to-r from-blue-500 to-indigo-600 text-white border-blue-500 shadow-md hover:shadow-lg transition-shadow duration-200 w-full justify-center cursor-pointer"
+                className="px-3 py-2 text-sm font-semibold bg-gradient-to-r from-blue-500 to-indigo-600 text-white border-blue-500 shadow-md hover:shadow-lg transition-shadow duration-200 w-full justify-start cursor-pointer"
                 onClick={() => setIsCompanyDetailsOpen(true)}
               >
                 <Building2 className="h-4 w-4 mr-2" />
