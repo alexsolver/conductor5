@@ -87,18 +87,26 @@ export function TicketDescriptionEditor({ content, onChange, placeholder }: Tick
   }
 
   const addImage = () => {
-    if (imageUrl) {
-      editor.chain().focus().setImage({ src: imageUrl }).run()
-      setImageUrl('')
-      setShowImageDialog(false)
+    try {
+      if (imageUrl && editor) {
+        editor.chain().focus().setImage({ src: imageUrl }).run()
+        setImageUrl('')
+        setShowImageDialog(false)
+      }
+    } catch (error) {
+      console.error('Add image error:', error)
     }
   }
 
   const addLink = () => {
-    if (linkUrl) {
-      editor.chain().focus().extendMarkRange('link').setLink({ href: linkUrl }).run()
-      setLinkUrl('')
-      setShowLinkDialog(false)
+    try {
+      if (linkUrl && editor) {
+        editor.chain().focus().extendMarkRange('link').setLink({ href: linkUrl }).run()
+        setLinkUrl('')
+        setShowLinkDialog(false)
+      }
+    } catch (error) {
+      console.error('Add link error:', error)
     }
   }
 
@@ -110,8 +118,14 @@ export function TicketDescriptionEditor({ content, onChange, placeholder }: Tick
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => editor.chain().focus().toggleBold().run()}
-          className={editor.isActive('bold') ? 'bg-gray-200' : ''}
+          onClick={() => {
+            try {
+              if (editor) editor.chain().focus().toggleBold().run()
+            } catch (error) {
+              console.error('Bold toggle error:', error)
+            }
+          }}
+          className={editor?.isActive('bold') ? 'bg-gray-200' : ''}
           type="button"
         >
           <Bold className="h-3 w-3" />
@@ -120,8 +134,14 @@ export function TicketDescriptionEditor({ content, onChange, placeholder }: Tick
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => editor.chain().focus().toggleItalic().run()}
-          className={editor.isActive('italic') ? 'bg-gray-200' : ''}
+          onClick={() => {
+            try {
+              if (editor) editor.chain().focus().toggleItalic().run()
+            } catch (error) {
+              console.error('Italic toggle error:', error)
+            }
+          }}
+          className={editor?.isActive('italic') ? 'bg-gray-200' : ''}
           type="button"
         >
           <Italic className="h-3 w-3" />
@@ -133,8 +153,14 @@ export function TicketDescriptionEditor({ content, onChange, placeholder }: Tick
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-          className={editor.isActive('heading', { level: 2 }) ? 'bg-gray-200' : ''}
+          onClick={() => {
+            try {
+              if (editor) editor.chain().focus().toggleHeading({ level: 2 }).run()
+            } catch (error) {
+              console.error('Heading toggle error:', error)
+            }
+          }}
+          className={editor?.isActive('heading', { level: 2 }) ? 'bg-gray-200' : ''}
           type="button"
         >
           <Heading2 className="h-3 w-3" />
@@ -146,8 +172,14 @@ export function TicketDescriptionEditor({ content, onChange, placeholder }: Tick
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => editor.chain().focus().toggleBulletList().run()}
-          className={editor.isActive('bulletList') ? 'bg-gray-200' : ''}
+          onClick={() => {
+            try {
+              if (editor) editor.chain().focus().toggleBulletList().run()
+            } catch (error) {
+              console.error('Bullet list toggle error:', error)
+            }
+          }}
+          className={editor?.isActive('bulletList') ? 'bg-gray-200' : ''}
           type="button"
         >
           <List className="h-3 w-3" />
@@ -156,8 +188,14 @@ export function TicketDescriptionEditor({ content, onChange, placeholder }: Tick
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => editor.chain().focus().toggleOrderedList().run()}
-          className={editor.isActive('orderedList') ? 'bg-gray-200' : ''}
+          onClick={() => {
+            try {
+              if (editor) editor.chain().focus().toggleOrderedList().run()
+            } catch (error) {
+              console.error('Ordered list toggle error:', error)
+            }
+          }}
+          className={editor?.isActive('orderedList') ? 'bg-gray-200' : ''}
           type="button"
         >
           <ListOrdered className="h-3 w-3" />
@@ -166,8 +204,14 @@ export function TicketDescriptionEditor({ content, onChange, placeholder }: Tick
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => editor.chain().focus().toggleBlockquote().run()}
-          className={editor.isActive('blockquote') ? 'bg-gray-200' : ''}
+          onClick={() => {
+            try {
+              if (editor) editor.chain().focus().toggleBlockquote().run()
+            } catch (error) {
+              console.error('Blockquote toggle error:', error)
+            }
+          }}
+          className={editor?.isActive('blockquote') ? 'bg-gray-200' : ''}
           type="button"
         >
           <Quote className="h-3 w-3" />
@@ -236,8 +280,16 @@ export function TicketDescriptionEditor({ content, onChange, placeholder }: Tick
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => editor.chain().focus().undo().run()}
-          disabled={!editor.can().undo()}
+          onClick={() => {
+            try {
+              if (editor && editor.can().undo()) {
+                editor.chain().focus().undo().run()
+              }
+            } catch (error) {
+              console.error('Undo error:', error)
+            }
+          }}
+          disabled={!editor || !editor.can().undo()}
           type="button"
         >
           <Undo className="h-3 w-3" />
@@ -246,8 +298,16 @@ export function TicketDescriptionEditor({ content, onChange, placeholder }: Tick
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => editor.chain().focus().redo().run()}
-          disabled={!editor.can().redo()}
+          onClick={() => {
+            try {
+              if (editor && editor.can().redo()) {
+                editor.chain().focus().redo().run()
+              }
+            } catch (error) {
+              console.error('Redo error:', error)
+            }
+          }}
+          disabled={!editor || !editor.can().redo()}
           type="button"
         >
           <Redo className="h-3 w-3" />
