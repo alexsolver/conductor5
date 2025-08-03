@@ -2571,10 +2571,12 @@ const TicketDetails = React.memo(() => {
               <div className="space-y-2">
                 <Select 
                   onValueChange={(value) => {
+                    console.log('🏢 Company change:', { newCompanyId: value, selectedCompany: form.getValues('customerCompanyId') || ticket.customer_company_id || ticket.customerCompanyId || ticket.company });
                     handleCompanyChange(value);
                     // Limpar cliente e favorecido quando empresa muda
                     form.setValue('callerId', '');
                     form.setValue('beneficiaryId', '');
+                    console.log('✅ Company state updated:', { newSelectedCompany: value, formValueAfter: form.getValues('customerCompanyId') });
                   }}
                   value={form.getValues('customerCompanyId') || ticket.customer_company_id || ticket.customerCompanyId || ticket.company || ''}
                 >
