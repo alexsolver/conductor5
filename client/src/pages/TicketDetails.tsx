@@ -2573,19 +2573,19 @@ const TicketDetails = React.memo(() => {
               <div className="space-y-2">
                 <Select 
                   onValueChange={(value) => {
-                    console.log('🏢 Company change:', { newCompanyId: value, selectedCompany: form.getValues('customerCompanyId') || ticket.customer_company_id || ticket.customerCompanyId || ticket.company });
+                    console.log('🏢 Company change:', { newCompanyId: value, selectedCompany });
                     handleCompanyChange(value);
                     // Limpar cliente e favorecido quando empresa muda
                     form.setValue('callerId', '');
                     form.setValue('beneficiaryId', '');
                     console.log('✅ Company state updated:', { newSelectedCompany: value, formValueAfter: form.getValues('customerCompanyId') });
                   }}
-                  value={form.getValues('customerCompanyId') || ticket.customer_company_id || ticket.customerCompanyId || ticket.company || ''}
+                  value={selectedCompany || ''}
                 >
                   <SelectTrigger className="h-8 text-xs">
                     <SelectValue placeholder="Selecione a empresa cliente">
                       {(() => {
-                        const currentValue = form.getValues('customerCompanyId') || ticket.customer_company_id || ticket.customerCompanyId || ticket.company;
+                        const currentValue = selectedCompany;
                         const companyData = (Array.isArray(companiesData) ? companiesData : companiesData?.data || []).find((c: any) => c.id === currentValue);
                         return companyData?.name || (currentValue && currentValue !== 'unspecified' ? 'Empresa não encontrada' : 'Selecione a empresa cliente');
                       })()}
