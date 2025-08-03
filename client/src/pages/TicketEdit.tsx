@@ -129,13 +129,16 @@ export default function TicketEdit() {
 
   // Initialize company from ticket data
   useEffect(() => {
-    if (ticket && !selectedCompanyId) {
+    if (ticket) {
       const companyId = ticket.customerCompanyId || ticket.company;
       if (companyId && companyId !== 'unspecified') {
-        setSelectedCompanyId(companyId);
+        // Only set if it's different from current selection
+        if (selectedCompanyId !== companyId) {
+          setSelectedCompanyId(companyId);
+        }
       }
     }
-  }, [ticket, selectedCompanyId]);
+  }, [ticket]);
 
   // Filter customers based on selected company
   useEffect(() => {

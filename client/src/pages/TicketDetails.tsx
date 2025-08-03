@@ -179,15 +179,17 @@ const TicketDetails = React.memo(() => {
       // Use the correct field mapping - customer_company_id is the main field
       const companyId = ticket?.customer_company_id || ticket?.customerCompanyId || ticket?.company;
 
-      // Skip if no company or same as current
-      if (!companyId || companyId === 'unspecified' || companyId === selectedCompany) {
-        if (!companyId || companyId === 'unspecified') {
-          setSelectedCompanyCustomers([]);
-        }
+      // Skip if no company
+      if (!companyId || companyId === 'unspecified') {
+        setSelectedCompanyCustomers([]);
+        setSelectedCompany('');
         return;
       }
 
-      setSelectedCompany(companyId);
+      // Only update if company actually changed
+      if (selectedCompany !== companyId) {
+        setSelectedCompany(companyId);
+      }
 
       try {
         const response = await apiRequest("GET", `/api/companies/${companyId}/customers`);
@@ -207,7 +209,7 @@ const TicketDetails = React.memo(() => {
     if (ticket) {
       fetchCompanyCustomers();
     }
-  }, [ticket?.customer_company_id, ticket?.customerCompanyId, ticket?.company, selectedCompany]);
+  }, [ticket?.customer_company_id, ticket?.customerCompanyId, ticket?.company]);
 
   // PROBLEMA 9 RESOLVIDO: Handle company change otimizado com debounce
   const handleCompanyChange = useCallback(
