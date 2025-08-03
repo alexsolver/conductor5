@@ -333,8 +333,8 @@ const TicketDetails = React.memo(() => {
       return data;
     },
     enabled: !!id,
-    staleTime: 10 * 60 * 1000, // 10 minutes - history changes less frequently
-    gcTime: 20 * 60 * 1000,
+    staleTime: 30 * 1000, // 30 seconds - faster updates for relationship changes
+    gcTime: 5 * 60 * 1000, // 5 minutes GC time
     refetchOnWindowFocus: false,
     refetchOnMount: false,
   });

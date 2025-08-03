@@ -155,8 +155,15 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
         description: "Chamado vinculado com sucesso",
       });
       if (currentTicket?.id) {
+        // Invalidate relationships
         queryClient.invalidateQueries({ queryKey: ["/api/tickets", currentTicket.id, "relationships"] });
         queryClient.invalidateQueries({ queryKey: ["/api/ticket-relationships", currentTicket.id, "relationships"] });
+        
+        // 🚀 CORREÇÃO: Invalidate history immediately to show link events
+        queryClient.invalidateQueries({ queryKey: ["/api/tickets", currentTicket.id, "history"] });
+        
+        // Invalidate general ticket queries for updated counts
+        queryClient.invalidateQueries({ queryKey: ["/api/tickets", currentTicket.id] });
       }
       setSelectedTickets([]);
       setRelationshipType("");
@@ -185,8 +192,15 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
         description: "Vínculo removido com sucesso",
       });
       if (currentTicket?.id) {
+        // Invalidate relationships
         queryClient.invalidateQueries({ queryKey: ["/api/tickets", currentTicket.id, "relationships"] });
         queryClient.invalidateQueries({ queryKey: ["/api/ticket-relationships", currentTicket.id, "relationships"] });
+        
+        // 🚀 CORREÇÃO: Invalidate history immediately to show unlink events
+        queryClient.invalidateQueries({ queryKey: ["/api/tickets", currentTicket.id, "history"] });
+        
+        // Invalidate general ticket queries for updated counts
+        queryClient.invalidateQueries({ queryKey: ["/api/tickets", currentTicket.id] });
       }
     },
     onError: (error: Error) => {
