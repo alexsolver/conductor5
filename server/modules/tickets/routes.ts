@@ -437,6 +437,26 @@ ticketsRouter.post('/:id/messages', jwtAuth, async (req: AuthenticatedRequest, r
       createdAt: new Date().toISOString()
     };
 
+    // ✅ AUDITORIA FALTANTE: Criação de mensagens
+    try {
+      const { pool } = await import('../../db');
+      const schemaName = `tenant_${req.user.tenantId.replace(/-/g, '_')}`;
+      
+      await createCompleteAuditEntry(
+        pool, schemaName, req.user.tenantId, ticketId, req,
+        'message_created',
+        `Mensagem adicionada: "${messageData.message.substring(0, 100)}..."`,
+        {
+          message_id: message.id,
+          message_content: messageData.message,
+          message_type: messageData.messageType || 'user',
+          created_time: new Date().toISOString()
+        }
+      );
+    } catch (historyError) {
+      console.log('⚠️ Aviso: Não foi possível criar entrada no histórico:', historyError.message);
+    }
+
     return sendSuccess(res, message, "Message added successfully", 201);
   } catch (error) {
     const { logError } = await import('../../utils/logger');
@@ -533,7 +553,28 @@ ticketsRouter.delete('/:id', jwtAuth, async (req: AuthenticatedRequest, res) => 
       return res.status(404).json({ message: "Ticket not found" });
     }
 
-    // TODO: Implement activity logging when createActivityLog method is available
+    // ✅ AUDITORIA FALTANTE: Exclusão de tickets
+    try {
+      const { pool } = await import('../../db');
+      const schemaName = `tenant_${req.user.tenantId.replace(/-/g, '_')}`;
+      
+      await createCompleteAuditEntry(
+        pool, schemaName, req.user.tenantId, ticketId, req,
+        'ticket_deleted',
+        `Ticket excluído: ${existingTicket.subject || 'Sem título'}`,
+        {
+          deleted_ticket_id: ticketId,
+          deleted_ticket_number: existingTicket.number,
+          deleted_ticket_subject: existingTicket.subject,
+          deleted_ticket_status: existingTicket.status,
+          deleted_ticket_priority: existingTicket.priority,
+          deleted_ticket_created_at: existingTicket.createdAt,
+          deletion_time: new Date().toISOString()
+        }
+      );
+    } catch (historyError) {
+      console.log('⚠️ Aviso: Não foi possível criar entrada no histórico:', historyError.message);
+    }
 
     res.status(204).send();
   } catch (error) {
@@ -1124,6 +1165,162 @@ ticketsRouter.post('/:id/emails', jwtAuth, async (req: AuthenticatedRequest, res
   } catch (error) {
     console.error("Error sending email:", error);
     res.status(500).json({ message: "Failed to send email" });
+  }
+});
+
+// ✅ AUDITORIA FALTANTE: Visualização de ticket
+ticketsRouter.post('/:id/views', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.user?.tenantId) {
+      return res.status(400).json({ message: "User not associated with a tenant" });
+    }
+
+    const { id } = req.params;
+    const tenantId = req.user.tenantId;
+    const { pool } = await import('../../db');
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    // Create audit trail for ticket view
+    try {
+      await createCompleteAuditEntry(
+        pool, schemaName, tenantId, id, req,
+        'ticket_viewed',
+        `Ticket visualizado`,
+        {
+          view_time: new Date().toISOString(),
+          view_method: 'web_interface'
+        }
+      );
+    } catch (historyError) {
+      console.log('⚠️ Aviso: Não foi possível criar entrada no histórico:', historyError.message);
+    }
+
+    res.json({ success: true, message: "View recorded" });
+  } catch (error) {
+    console.error("Error recording view:", error);
+    res.status(500).json({ message: "Failed to record view" });
+  }
+});
+
+// ✅ AUDITORIA FALTANTE: Mudança de status explícita
+ticketsRouter.post('/:id/status', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.user?.tenantId) {
+      return res.status(400).json({ message: "User not associated with a tenant" });
+    }
+
+    const { id } = req.params;
+    const { status, reason } = req.body;
+    const tenantId = req.user.tenantId;
+
+    // Get current ticket
+    const currentTicket = await storageSimple.getTicketById(tenantId, id);
+    if (!currentTicket) {
+      return res.status(404).json({ message: "Ticket not found" });
+    }
+
+    const oldStatus = currentTicket.status;
+
+    // Update ticket status
+    const updatedTicket = await storageSimple.updateTicket(tenantId, id, { status });
+
+    if (!updatedTicket) {
+      return res.status(500).json({ message: "Failed to update ticket status" });
+    }
+
+    // Create detailed audit trail for status change
+    try {
+      const { pool } = await import('../../db');
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      await createCompleteAuditEntry(
+        pool, schemaName, tenantId, id, req,
+        'status_changed',
+        `Status alterado de "${oldStatus}" para "${status}"${reason ? ` - Motivo: ${reason}` : ''}`,
+        {
+          old_status: oldStatus,
+          new_status: status,
+          change_reason: reason || null,
+          change_time: new Date().toISOString()
+        },
+        'status',
+        oldStatus,
+        status
+      );
+    } catch (historyError) {
+      console.log('⚠️ Aviso: Não foi possível criar entrada no histórico:', historyError.message);
+    }
+
+    res.json({ success: true, data: updatedTicket, message: "Status updated successfully" });
+  } catch (error) {
+    console.error("Error updating status:", error);
+    res.status(500).json({ message: "Failed to update status" });
+  }
+});
+
+// ✅ AUDITORIA FALTANTE: Reatribuição de ticket
+ticketsRouter.post('/:id/reassign', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.user?.tenantId) {
+      return res.status(400).json({ message: "User not associated with a tenant" });
+    }
+
+    const { id } = req.params;
+    const { fromAgentId, toAgentId, reason } = req.body;
+    const tenantId = req.user.tenantId;
+
+    // Get current ticket
+    const currentTicket = await storageSimple.getTicketById(tenantId, id);
+    if (!currentTicket) {
+      return res.status(404).json({ message: "Ticket not found" });
+    }
+
+    // Update ticket assignment
+    const updatedTicket = await storageSimple.updateTicket(tenantId, id, { 
+      assignedToId: toAgentId 
+    });
+
+    if (!updatedTicket) {
+      return res.status(500).json({ message: "Failed to reassign ticket" });
+    }
+
+    // Create detailed audit trail for reassignment
+    try {
+      const { pool } = await import('../../db');
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      // Get agent names
+      const userQuery = `SELECT first_name || ' ' || last_name as full_name FROM public.users WHERE id = $1`;
+      const fromAgentResult = fromAgentId ? await pool.query(userQuery, [fromAgentId]) : null;
+      const toAgentResult = toAgentId ? await pool.query(userQuery, [toAgentId]) : null;
+      
+      const fromAgentName = fromAgentResult?.rows[0]?.full_name || 'Não atribuído';
+      const toAgentName = toAgentResult?.rows[0]?.full_name || 'Não atribuído';
+      
+      await createCompleteAuditEntry(
+        pool, schemaName, tenantId, id, req,
+        'ticket_reassigned',
+        `Ticket reatribuído de "${fromAgentName}" para "${toAgentName}"${reason ? ` - Motivo: ${reason}` : ''}`,
+        {
+          from_agent_id: fromAgentId,
+          to_agent_id: toAgentId,
+          from_agent_name: fromAgentName,
+          to_agent_name: toAgentName,
+          reassignment_reason: reason || null,
+          reassignment_time: new Date().toISOString()
+        },
+        'assigned_to_id',
+        fromAgentId,
+        toAgentId
+      );
+    } catch (historyError) {
+      console.log('⚠️ Aviso: Não foi possível criar entrada no histórico:', historyError.message);
+    }
+
+    res.json({ success: true, data: updatedTicket, message: "Ticket reassigned successfully" });
+  } catch (error) {
+    console.error("Error reassigning ticket:", error);
+    res.status(500).json({ message: "Failed to reassign ticket" });
   }
 });
 
