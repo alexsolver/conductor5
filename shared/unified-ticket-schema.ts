@@ -26,17 +26,17 @@ export const ticketFormSchema = z.object({
   status: TicketStatusEnum.default('new'),
   category: TicketCategoryEnum.optional(),
   subcategory: z.string().optional(),
-  
+
   // ASSIGNMENT FIELDS - Campos de atribuição
   callerId: z.string().uuid().optional(),
   beneficiaryId: z.string().uuid().optional(), 
   assignedToId: z.string().uuid().optional(),
   customerCompanyId: z.string().uuid().optional(), // Note: maps to customer_id in backend
-  
+
   // LOCATION FIELD - Resolvendo inconsistência crítica 3
   location: z.string().optional(), // Definido como texto livre (não FK)
   locationId: z.string().optional(), // Para compatibilidade, será convertido para 'location'
-  
+
   // BUSINESS FIELDS
   impact: TicketImpactEnum.optional(),
   urgency: TicketUrgencyEnum.optional(),
@@ -48,10 +48,10 @@ export const ticketFormSchema = z.object({
   symptoms: z.string().optional(),
   workaround: z.string().optional(),
   costCenter: z.string().optional(), // Centro de Custo
-  
+
   // SLA FIELDS
   dueDate: z.string().datetime().optional(), // Data de vencimento do ticket
-  
+
   // TEMPLATE/ENVIRONMENT FIELDS
   environment: z.string().optional(),
   templateName: z.string().optional(),
@@ -64,16 +64,11 @@ export const ticketFormSchema = z.object({
   groupField: z.string().optional(),
   serviceVersion: z.string().optional(),
   summary: z.string().optional(),
-  publicationPriority: z.string().optional(),
-  responsibleTeam: z.string().optional(),
-  infrastructure: z.string().optional(),
-  environmentPublication: z.string().optional(),
-  closeToPublish: z.boolean().optional(),
-  
+
   // ARRAYS
   followers: z.array(z.string().uuid()).default([]),
   tags: z.array(z.string()).default([]),
-  
+
   // METADATA
   tenantId: z.string().uuid().optional(),
   createdAt: z.string().optional(),
@@ -130,15 +125,15 @@ export const ticketBackendSchema = z.object({
   status: TicketStatusEnum,
   category: TicketCategoryEnum.optional(),
   subcategory: z.string().optional(),
-  
+
   // Backend usa snake_case
   caller_id: z.string().uuid().optional(),
   beneficiary_id: z.string().uuid().optional(),
   assigned_to_id: z.string().uuid().optional(),
   customer_id: z.string().uuid().optional(), // customerCompanyId → customer_id
-  
+
   location: z.string().optional(), // Campo correto no banco
-  
+
   impact: TicketImpactEnum.optional(),
   urgency: TicketUrgencyEnum.optional(),
   caller_type: CallerTypeEnum.optional(),
@@ -149,13 +144,13 @@ export const ticketBackendSchema = z.object({
   symptoms: z.string().optional(),
   workaround: z.string().optional(),
   cost_center: z.string().optional(), // Centro de Custo (snake_case para backend)
-  
+
   // SLA fields (snake_case para backend)
   due_date: z.string().datetime().optional(), // Data de vencimento
-  
+
   followers: z.array(z.string().uuid()).default([]),
   tags: z.array(z.string()).default([]),
-  
+
   tenant_id: z.string().uuid(),
   created_at: z.string().optional(),
   updated_at: z.string().optional(),

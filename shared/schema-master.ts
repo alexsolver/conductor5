@@ -260,12 +260,7 @@ export const tickets = pgTable("tickets", {
   serviceVersion: varchar("service_version", { length: 100 }),
   summary: text("summary"),
 
-  // Assignment/Publication fields - Added to match frontend
-  publicationPriority: varchar("publication_priority", { length: 50 }),
-  responsibleTeam: varchar("responsible_team", { length: 100 }),
-  infrastructure: varchar("infrastructure", { length: 100 }),
-  environmentPublication: varchar("environment_publication", { length: 100 }),
-  closeToPublish: boolean("close_to_publish").default(false),
+  
 
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
