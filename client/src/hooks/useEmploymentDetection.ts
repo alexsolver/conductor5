@@ -13,11 +13,21 @@ export function useEmploymentDetection() {
       const response = await apiRequest('GET', '/api/auth/me');
       return response.json();
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 0, // Force fresh fetch for debugging
   });
 
   // Detect employment type
   const employmentType: EmploymentType = currentUser ? detectEmploymentType(currentUser) : 'clt';
+  
+  // Debug log for employment detection
+  if (currentUser) {
+    console.log('[EMPLOYMENT-DEBUG] User data:', {
+      email: currentUser.email,
+      role: currentUser.role,
+      employmentType: currentUser.employmentType,
+      detectedType: employmentType
+    });
+  }
   
   // Get appropriate terminology
   const terminology: TerminologyConfig = getEmploymentTerminology(employmentType);

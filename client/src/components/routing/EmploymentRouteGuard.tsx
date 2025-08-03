@@ -19,11 +19,19 @@ export function EmploymentRouteGuard({ children, requiredType = 'any' }: Employm
   useEffect(() => {
     if (isLoading) return;
 
+    console.log('[ROUTE-GUARD] Checking route guard:', {
+      currentPath: window.location.pathname,
+      employmentType,
+      requiredType,
+      isLoading
+    });
+
     // If accessing CLT timecard route but user is autonomous
     if (window.location.pathname.startsWith('/timecard') && 
         !window.location.pathname.startsWith('/timecard-autonomous') &&
         employmentType === 'autonomo') {
       const appropriateRoute = getEmploymentRoute('autonomo', 'main');
+      console.log('[ROUTE-GUARD] Redirecting autonomous user to:', appropriateRoute);
       setLocation(appropriateRoute);
       return;
     }
@@ -32,6 +40,7 @@ export function EmploymentRouteGuard({ children, requiredType = 'any' }: Employm
     if (window.location.pathname.startsWith('/timecard-autonomous') && 
         employmentType === 'clt') {
       const appropriateRoute = getEmploymentRoute('clt', 'main');
+      console.log('[ROUTE-GUARD] Redirecting CLT user to:', appropriateRoute);
       setLocation(appropriateRoute);
       return;
     }
@@ -39,9 +48,12 @@ export function EmploymentRouteGuard({ children, requiredType = 'any' }: Employm
     // Check specific type requirements
     if (requiredType !== 'any' && requiredType !== employmentType) {
       const appropriateRoute = getEmploymentRoute(employmentType, 'main');
+      console.log('[ROUTE-GUARD] Redirecting due to required type mismatch:', appropriateRoute);
       setLocation(appropriateRoute);
       return;
     }
+
+    console.log('[ROUTE-GUARD] No redirection needed');
   }, [employmentType, isLoading, setLocation, requiredType]);
 
   if (isLoading) {

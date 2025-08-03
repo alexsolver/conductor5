@@ -95,18 +95,29 @@ export function getEmploymentTerminology(employmentType: EmploymentType): Termin
  * Detect user employment type from user data
  */
 export function detectEmploymentType(user: any): EmploymentType {
-  // Check if user has employmentType field
+  console.log('[EMPLOYMENT-DETECTION] Input user:', {
+    email: user?.email,
+    role: user?.role,
+    employmentType: user?.employmentType,
+    position: user?.position
+  });
+
+  // Check if user has employmentType field (primary detection)
   if (user?.employmentType) {
-    return user.employmentType === 'autonomo' ? 'autonomo' : 'clt';
+    const detected = user.employmentType === 'autonomo' ? 'autonomo' : 'clt';
+    console.log('[EMPLOYMENT-DETECTION] Using employmentType field:', detected);
+    return detected;
   }
   
   // Fallback detection logic
   // Could be based on role, department, or other criteria
   if (user?.role === 'contractor' || user?.position?.toLowerCase().includes('freelancer')) {
+    console.log('[EMPLOYMENT-DETECTION] Using fallback logic: autonomo');
     return 'autonomo';
   }
   
   // Default to CLT
+  console.log('[EMPLOYMENT-DETECTION] Using default: clt');
   return 'clt';
 }
 
