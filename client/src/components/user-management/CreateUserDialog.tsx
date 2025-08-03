@@ -96,6 +96,7 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
     serieNumber: "",
     admissionDate: null as Date | null,
     costCenter: "",
+    employmentType: "clt" as "clt" | "autonomo",
     
     // Sistema (campos existentes)
     role: "agent",
@@ -192,6 +193,7 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
       serieNumber: "",
       admissionDate: null,
       costCenter: "",
+      employmentType: "clt" as "clt" | "autonomo",
       
       // Sistema
       role: "agent",
@@ -612,6 +614,34 @@ export function CreateUserDialog({ open, onOpenChange, tenantAdmin = false }: Cr
             <TabsContent value="hr">
               <ScrollArea className="h-[400px] pr-4">
                 <div className="space-y-4">
+                  {/* TIPO DE EMPREGO - Campo Fundamental */}
+                  <div className="p-4 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-lg border-2 border-purple-200 dark:border-purple-700">
+                    <div className="space-y-2">
+                      <Label htmlFor="employmentType" className="flex items-center gap-2 font-semibold text-purple-700 dark:text-purple-300">
+                        <Briefcase className="w-4 h-4" />
+                        Tipo de Emprego
+                      </Label>
+                      <Select 
+                        value={formData.employmentType} 
+                        onValueChange={(value: "clt" | "autonomo") => setFormData({ ...formData, employmentType: value })}
+                      >
+                        <SelectTrigger className="border-purple-300 dark:border-purple-600">
+                          <SelectValue placeholder="Selecione o tipo de emprego" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="clt">CLT (Consolidação das Leis do Trabalho)</SelectItem>
+                          <SelectItem value="autonomo">Autônomo/Prestador de Serviços</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-sm text-purple-600 dark:text-purple-400">
+                        {formData.employmentType === "clt" 
+                          ? "🕒 CLT: Sistema de Ponto Eletrônico com controle de jornada completo"
+                          : "📋 Autônomo: Registro de Jornada para atividades e projetos"
+                        }
+                      </p>
+                    </div>
+                  </div>
+
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="employeeCode">Código do Funcionário</Label>

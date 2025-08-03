@@ -62,6 +62,7 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
       employeeCode: '',
       pis: '',
       admissionDate: '',
+      employmentType: 'clt',
       groupIds: []
     }
   });
@@ -125,6 +126,7 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
         pis: memberData.pis || '',
         admissionDate: memberData.admissionDate || memberData.admission_date ? 
           new Date(memberData.admissionDate || memberData.admission_date).toISOString().split('T')[0] : '',
+        employmentType: memberData.employmentType || memberData.employment_type || 'clt',
         groupIds: memberData.groupIds || memberData.group_ids || []
       });
     }
@@ -275,6 +277,34 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
               </CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* TIPO DE EMPREGO - Campo Fundamental */}
+              <div className="col-span-full">
+                <div className="p-4 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-lg border-2 border-purple-200 dark:border-purple-700">
+                  <Label htmlFor="employmentType" className="flex items-center gap-2 font-semibold text-purple-700 dark:text-purple-300">
+                    <Briefcase className="w-4 h-4" />
+                    Tipo de Emprego
+                  </Label>
+                  <Select 
+                    value={form.watch('employmentType')} 
+                    onValueChange={(value) => form.setValue('employmentType', value)}
+                  >
+                    <SelectTrigger className="mt-2 border-purple-300 dark:border-purple-600">
+                      <SelectValue placeholder="Selecione o tipo de emprego" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="clt">CLT (Consolidação das Leis do Trabalho)</SelectItem>
+                      <SelectItem value="autonomo">Autônomo/Prestador de Serviços</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-sm text-purple-600 dark:text-purple-400 mt-2">
+                    {form.watch('employmentType') === 'clt' 
+                      ? "🕒 CLT: Sistema de Ponto Eletrônico com controle de jornada completo"
+                      : "📋 Autônomo: Registro de Jornada para atividades e projetos"
+                    }
+                  </p>
+                </div>
+              </div>
+              
               <div>
                 <Label htmlFor="role">Papel no Sistema</Label>
                 <Select 
