@@ -105,6 +105,10 @@ app.use((req, res, next) => {
 
   app.use('/api/timecard', timecardRoutes);
   app.use('/api/productivity', productivityRoutes);
+  
+  // Employment type detection and terminology routes
+  const employmentRoutes = await import('./routes/employmentRoutes');
+  app.use('/api/employment', employmentRoutes.default);
 
   app.get('/health', async (req, res) => {
     const memoryUsage = process.memoryUsage();

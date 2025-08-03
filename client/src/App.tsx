@@ -57,6 +57,8 @@ import ProjectActions from "./pages/ProjectActions"; // Import the Project Actio
 import OmniBridge from "./pages/OmniBridge";
 // Removed: JourneyControl - functionality eliminated from system
 import Timecard from "./pages/Timecard";
+import TimecardAutonomous from "./pages/TimecardAutonomous";
+import { EmploymentRouteGuard } from "./components/routing/EmploymentRouteGuard";
 import AbsenceManagement from "./pages/AbsenceManagement";
 import ScheduleTemplates from "./pages/ScheduleTemplates";
 import LocationsImplementationControl from "./pages/LocationsImplementationControl";
@@ -163,8 +165,21 @@ function AppRouter() {
         <Route path="/internal-forms" component={InternalForms} />
         <Route path="/projects" component={Projects} />
         <Route path="/project-actions" component={ProjectActions} />
-        {/* Removed: journey-control route - functionality eliminated */}
-        <Route path="/timecard" component={Timecard} />
+        {/* Employment-specific timecard routes with route guards */}
+        <Route path="/timecard">
+          {() => (
+            <EmploymentRouteGuard requiredType="clt">
+              <Timecard />
+            </EmploymentRouteGuard>
+          )}
+        </Route>
+        <Route path="/timecard-autonomous">
+          {() => (
+            <EmploymentRouteGuard requiredType="autonomo">
+              <TimecardAutonomous />
+            </EmploymentRouteGuard>
+          )}
+        </Route>
         <Route path="/work-schedules" component={WorkSchedules} />
         <Route path="/timecard-reports" component={TimecardReports} />
         <Route path="/timecard-approval-settings" component={TimecardApprovalSettings} />

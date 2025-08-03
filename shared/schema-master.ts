@@ -94,6 +94,9 @@ export const users = pgTable("users", {
   goals: integer("goals").default(0),
   completedGoals: integer("completed_goals").default(0),
 
+  // Employment Type for CLT vs Autonomous classification
+  employmentType: varchar("employment_type", { length: 20 }).default("clt"), // 'clt' or 'autonomo'
+
   // System fields
   isActive: boolean("is_active").default(true),
   lastLoginAt: timestamp("last_login_at"),

@@ -6,6 +6,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { useEmploymentDetection } from "@/hooks/useEmploymentDetection";
 import { useState } from "react";
 import { 
   BarChart3, 
@@ -181,6 +182,7 @@ const secondaryNavigation = [
 export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
   const [location] = useLocation();
   const { user, logoutMutation } = useAuth();
+  const { terminology, employmentType } = useEmploymentDetection();
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
 
   // Fetch tickets count for badge
@@ -203,11 +205,49 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
 
   const activeTicketsCount = Array.isArray(ticketsData) ? ticketsData.length : 0;
 
-  // Create navigation with dynamic badges
+  // Create navigation with dynamic badges and employment-specific terminology
   const navigation = baseNavigation.map(item => {
     if (item.name === "Tickets" && activeTicketsCount > 0) {
       return { ...item, badge: activeTicketsCount.toString() };
     }
+    
+    // Update timecard section based on employment type
+    if (item.name === "Controle de Jornadas") {
+      const timecardRoute = employmentType === 'autonomo' ? '/timecard-autonomous' : '/timecard';
+      return {
+        ...item,
+        name: employmentType === 'autonomo' ? 'Controle de Jornada' : 'Controle de Jornadas',
+        children: [
+          { 
+            name: terminology.recordLabel, 
+            href: timecardRoute, 
+            icon: Clock 
+          },
+          { name: "Escalas de Trabalho", href: "/work-schedules", icon: Calendar },
+          { 
+            name: terminology.timeControlLabel, 
+            href: "/hour-bank", 
+            icon: CreditCard 
+          },
+          { name: "Calendário de Feriados", href: "/holiday-calendar", icon: Calendar },
+          { 
+            name: terminology.reportLabel, 
+            href: "/timecard-reports", 
+            icon: FileText 
+          },
+          { name: "CLT Compliance", href: "/clt-compliance", icon: Shield },
+          { 
+            name: terminology.approvalLabel, 
+            href: "/timecard-approvals", 
+            icon: CheckCircle 
+          },
+          { name: "Configuração de Aprovações", href: "/timecard-approval-settings", icon: Settings },
+          { name: "Gestão de Ausências", href: "/absence-management", icon: Calendar },
+          { name: "Templates de Escalas", href: "/schedule-templates", icon: Settings },
+        ]
+      };
+    }
+    
     return item;
   });
 
