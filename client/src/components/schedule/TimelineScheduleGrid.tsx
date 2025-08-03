@@ -304,9 +304,9 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
       </div>
 
       {/* Timeline Grid */}
-      <div className="border rounded-lg bg-white overflow-hidden">
+      <div className="border rounded-lg bg-white overflow-hidden" style={{ maxHeight: 'calc(100vh - 300px)' }}>
         {/* Header with time slots */}
-        <div className="flex border-b bg-gray-50">
+        <div className="flex border-b bg-gray-50 sticky top-0 z-10">
           {/* Left sidebar space */}
           <div className="w-64 flex-shrink-0 border-r bg-gray-100 p-4">
             <div className="text-sm font-medium text-gray-700">Técnicos</div>
@@ -317,6 +317,7 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
             ref={headerScrollRef}
             className="flex-1 flex overflow-x-auto"
             onScroll={syncScrollToContent}
+            style={{ maxWidth: 'calc(100vw - 320px)' }}
           >
             {timeSlots.map((timeSlot, index) => (
               <div key={index} className="flex-shrink-0 w-16 p-2 text-center border-r last:border-r-0">
@@ -329,7 +330,7 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
         </div>
 
         {/* Content area */}
-        <div className="flex">
+        <div className="flex overflow-y-auto" style={{ maxHeight: 'calc(100vh - 380px)' }}>
           {/* Left sidebar with agent list */}
           <div className="w-64 flex-shrink-0 border-r bg-gray-50">
             {filteredAgents.map((agent) => {
@@ -400,8 +401,9 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
             ref={contentScrollRef}
             className="flex-1 overflow-x-auto"
             onScroll={syncScrollToHeader}
+            style={{ maxWidth: 'calc(100vw - 320px)' }}
           >
-            <div className="flex" style={{ minWidth: `${timeSlots.length * 64}px` }}>
+            <div className="flex" style={{ minWidth: `${timeSlots.length * 64}px`, width: 'max-content' }}>
               {timeSlots.map((timeSlot, timeIndex) => (
                 <div key={timeIndex} className="flex-shrink-0 w-16 border-r last:border-r-0">
                   {filteredAgents.map((agent) => {

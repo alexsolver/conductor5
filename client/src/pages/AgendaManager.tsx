@@ -329,7 +329,7 @@ const AgendaManager: React.FC = () => {
   const isLoading = schedulesLoading || activityTypesLoading || agentsLoading || internalActionsLoading;
 
   return (
-    <div className="p-4 space-y-6">
+    <div className="p-4 space-y-6 h-screen overflow-hidden flex flex-col">
       {/* Header */}
       <Card>
         <CardHeader className="space-y-4">
@@ -471,7 +471,7 @@ const AgendaManager: React.FC = () => {
       </Card>
 
       {/* Main Layout */}
-      <div className="mb-6">
+      <div className="flex-1 overflow-hidden">
         {view === 'timeline' ? (
           <TimelineScheduleGrid
             schedules={combinedAgendaItems as Schedule[]}

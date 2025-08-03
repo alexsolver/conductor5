@@ -153,57 +153,22 @@ export default function InternalActionDetailsModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <DialogTitle className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-purple-500"></div>
-                Ação Interna - {internalAction.ticketNumber}
-              </DialogTitle>
-              <DialogDescription className="space-y-1">
-                <div>{internalAction.ticketSubject}</div>
-                <div className="text-xs text-gray-500 font-mono">
-                  Número: {internalAction.actionNumber || internalAction.id}
-                </div>
-              </DialogDescription>
+      
+      <DialogContent className="sm:max-w-[600px] max-h-[85vh] overflow-hidden flex flex-col">
+        <DialogHeader className="flex-shrink-0">
+          <DialogTitle className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-purple-500"></div>
+            Ação Interna - {internalAction.ticketNumber}
+          </DialogTitle>
+          <DialogDescription className="space-y-1">
+            <div>{internalAction.ticketSubject}</div>
+            <div className="text-xs text-gray-500 font-mono">
+              Número: {internalAction.actionNumber || internalAction.id}
             </div>
-            <div className="flex gap-2">
-              {!isEditing ? (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsEditing(true)}
-                >
-                  <Edit2 className="w-4 h-4 mr-2" />
-                  Editar
-                </Button>
-              ) : (
-                <>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleCancel}
-                    disabled={updateActionMutation.isPending}
-                  >
-                    <X className="w-4 h-4 mr-2" />
-                    Cancelar
-                  </Button>
-                  <Button
-                    size="sm"
-                    onClick={handleSave}
-                    disabled={updateActionMutation.isPending}
-                  >
-                    <Save className="w-4 h-4 mr-2" />
-                    Salvar
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
+          </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="flex-1 overflow-y-auto space-y-6">
           {/* Technical Info Card */}
           <Card className="border-purple-200 bg-purple-50">
             <CardContent className="p-4">
@@ -377,6 +342,39 @@ export default function InternalActionDetailsModal({
               )}
             </CardContent>
           </Card>
+        </div>
+
+        <div className="flex-shrink-0 flex justify-end pt-4 border-t mt-4">
+          {!isEditing ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsEditing(true)}
+            >
+              <Edit2 className="w-4 h-4 mr-2" />
+              Editar
+            </Button>
+          ) : (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCancel}
+                disabled={updateActionMutation.isPending}
+              >
+                <X className="w-4 h-4 mr-2" />
+                Cancelar
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleSave}
+                disabled={updateActionMutation.isPending}
+              >
+                <Save className="w-4 h-4 mr-2" />
+                Salvar
+              </Button>
+            </>
+          )}
         </div>
       </DialogContent>
     </Dialog>
