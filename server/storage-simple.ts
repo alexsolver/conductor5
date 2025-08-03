@@ -768,7 +768,7 @@ export class DatabaseStorage implements IStorage {
       const tableCheck = await tenantDb.execute(sql`
         SELECT EXISTS (
           SELECT FROM information_schema.tables 
-          WHERE table_schema = ${schemaName} AND table_name = 'favorecidos'
+          WHERE table_schema = ${schemaName} AND table_name = 'beneficiaries'
         )
       `);
 
@@ -797,7 +797,7 @@ export class DatabaseStorage implements IStorage {
           contact_phone,
           created_at,
           updated_at
-        FROM ${sql.identifier(schemaName)}.favorecidos 
+        FROM ${sql.identifier(schemaName)}.beneficiaries 
         WHERE tenant_id = ${tenantId}
       `;
 
@@ -879,7 +879,7 @@ export class DatabaseStorage implements IStorage {
           contact_phone,
           created_at,
           updated_at
-        FROM ${sql.identifier(schemaName)}.favorecidos 
+        FROM ${sql.identifier(schemaName)}.beneficiaries 
         WHERE id = ${id} AND tenant_id = ${validatedTenantId}
       `);
 
@@ -978,7 +978,7 @@ export class DatabaseStorage implements IStorage {
 
       // ✅ CORREÇÃO CRÍTICA: Inserindo na tabela correta (beneficiaries)
       const result = await tenantDb.execute(sql`
-        INSERT INTO ${sql.identifier(schemaName)}.favorecidos
+        INSERT INTO ${sql.identifier(schemaName)}.beneficiaries
         (
           id,
           tenant_id,
@@ -1051,7 +1051,7 @@ export class DatabaseStorage implements IStorage {
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
       const result = await tenantDb.execute(sql`
-        UPDATE ${sql.identifier(schemaName)}.favorecidos
+        UPDATE ${sql.identifier(schemaName)}.beneficiaries
         SET 
           first_name = ${data.firstName},
           last_name = ${data.lastName || null},
@@ -1101,7 +1101,7 @@ export class DatabaseStorage implements IStorage {
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
       const result = await tenantDb.execute(sql`
-        DELETE FROM ${sql.identifier(schemaName)}.favorecidos
+        DELETE FROM ${sql.identifier(schemaName)}.beneficiaries
         WHERE id = ${id} AND tenant_id = ${validatedTenantId}
       `);
 
@@ -2860,7 +2860,7 @@ export class DatabaseStorage implements IStorage {
           l.postal_code,
           l.latitude,
           l.longitude
-        FROM ${sql.identifier(schemaName)}.favorecidos_locations fl
+        FROM ${sql.identifier(schemaName)}.beneficiaries_locations fl
         JOIN ${sql.identifier(schemaName)}.locations l ON fl.location_id = l.id
         WHERE fl.favorecido_id = ${beneficiaryId} AND fl.tenant_id = ${validatedTenantId}
         ORDER BY fl.is_primary DESC, l.name ASC
@@ -2897,14 +2897,14 @@ export class DatabaseStorage implements IStorage {
       // If setting as primary, remove primary from others
       if (isPrimary) {
         await tenantDb.execute(sql`
-          UPDATE ${sql.identifier(schemaName)}.favorecidos_locations 
+          UPDATE ${sql.identifier(schemaName)}.beneficiaries_locations 
           SET is_primary = false 
           WHERE favorecido_id = ${beneficiaryId} AND tenant_id = ${validatedTenantId}
         `);
       }
 
       const result = await tenantDb.execute(sql`
-        INSERT INTO ${sql.identifier(schemaName)}.favorecidos_locations (
+        INSERT INTO ${sql.identifier(schemaName)}.beneficiaries_locations (
           tenant_id, favorecido_id, location_id, is_primary
         ) VALUES (
           ${validatedTenantId}, ${beneficiaryId}, ${locationId}, ${isPrimary}
@@ -2926,7 +2926,7 @@ export class DatabaseStorage implements IStorage {
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
       const result = await tenantDb.execute(sql`
-        DELETE FROM ${sql.identifier(schemaName)}.favorecidos_locations 
+        DELETE FROM ${sql.identifier(schemaName)}.beneficiaries_locations 
         WHERE favorecido_id = ${beneficiaryId} 
           AND location_id = ${locationId} 
           AND tenant_id = ${validatedTenantId}
@@ -2949,14 +2949,14 @@ export class DatabaseStorage implements IStorage {
       // If setting as primary, remove primary from others
       if (isPrimary) {
         await tenantDb.execute(sql`
-          UPDATE ${sql.identifier(schemaName)}.favorecidos_locations 
+          UPDATE ${sql.identifier(schemaName)}.beneficiaries_locations 
           SET is_primary = false 
           WHERE favorecido_id = ${beneficiaryId} AND tenant_id = ${validatedTenantId}
         `);
       }
 
       const result = await tenantDb.execute(sql`
-        UPDATE ${sql.identifier(schemaName)}.favorecidos_locations 
+        UPDATE ${sql.identifier(schemaName)}.beneficiaries_locations 
         SET is_primary = ${isPrimary}
         WHERE favorecido_id = ${beneficiaryId} 
           AND location_id = ${locationId} 
@@ -2985,7 +2985,7 @@ export class DatabaseStorage implements IStorage {
       const tableCheck = await tenantDb.execute(sql`
         SELECT EXISTS (
           SELECT FROM information_schema.tables 
-          WHERE table_schema = ${schemaName} AND table_name = 'favorecidos'
+          WHERE table_schema = ${schemaName} AND table_name = 'beneficiaries'
         )
       `);
 
@@ -3014,7 +3014,7 @@ export class DatabaseStorage implements IStorage {
           contact_phone,
           created_at,
           updated_at
-        FROM ${sql.identifier(schemaName)}.favorecidos 
+        FROM ${sql.identifier(schemaName)}.beneficiaries 
         WHERE tenant_id = ${tenantId}
       `;
 
@@ -3098,7 +3098,7 @@ export class DatabaseStorage implements IStorage {
           contact_phone,
           created_at,
           updated_at
-        FROM ${sql.identifier(schemaName)}.favorecidos 
+        FROM ${sql.identifier(schemaName)}.beneficiaries 
         WHERE tenant_id = ${tenantId} AND customer_id = ${customerId} AND is_active = true
         ORDER BY first_name, last_name
       `);
