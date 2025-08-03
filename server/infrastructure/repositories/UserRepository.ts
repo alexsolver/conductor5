@@ -22,7 +22,8 @@ export class UserRepository implements IUserRepository {
         id: userData.id,
         email: userData.email,
         employmentType: userData.employmentType,
-        employmentTypeType: typeof userData.employmentType
+        employmentTypeType: typeof userData.employmentType,
+        allFields: Object.keys(userData)
       });
 
       const user = new User(
