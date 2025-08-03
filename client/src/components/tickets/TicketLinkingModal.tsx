@@ -340,15 +340,27 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                     <Building2 className="h-4 w-4" />
                     <span>Filtrar por Empresa</span>
                   </Label>
-                  <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId}>
+                  <Select value={selectedCompanyId || ""} onValueChange={(value) => {
+                    setSelectedCompanyId(value);
+                    // Reset customer selection when company changes
+                    setSelectedCustomerId("");
+                  }}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Todas as empresas" />
+                      <SelectValue placeholder="Todas as empresas">
+                        {selectedCompanyId ? (
+                          companies.find((c: any) => c.id === selectedCompanyId)?.company_name || 
+                          companies.find((c: any) => c.id === selectedCompanyId)?.name || 
+                          "Empresa selecionada"
+                        ) : (
+                          "Todas as empresas"
+                        )}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="">Todas as empresas</SelectItem>
                       {companies.map((company: any) => (
                         <SelectItem key={company.id} value={company.id}>
-                          {company.company_name || company.name}
+                          {company.company_name || company.name || `Empresa ${company.id.slice(-8)}`}
                         </SelectItem>
                       ))}
                     </SelectContent>
