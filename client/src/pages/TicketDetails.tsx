@@ -1097,6 +1097,32 @@ const TicketDetails = React.memo(() => {
     },
   });
 
+  // Delete note mutation
+  const deleteNoteMutation = useMutation({
+    mutationFn: async (noteId: string) => {
+      console.log('🗑️ Deleting note:', noteId);
+      const response = await apiRequest("DELETE", `/api/tickets/${id}/notes/${noteId}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Sucesso",
+        description: "Nota excluída com sucesso",
+      });
+
+      // Invalidate queries to refresh the notes list and history
+      queryClient.invalidateQueries({ queryKey: ["/api/tickets", id, "notes"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tickets", id, "history"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro",
+        description: error.message || "Falha ao excluir nota",
+        variant: "destructive",
+      });
+    },
+  });
+
   // PROBLEMA 3 RESOLVIDO: Mapeamento completo frontend-backend
   // Memoizar mapeamento de status para evitar recriação
   const statusMapping = useMemo(() => ({
@@ -1737,7 +1763,13 @@ const TicketDetails = React.memo(() => {
                         <Button 
                           variant="ghost" 
                           size="sm" 
-                          onClick={() => setNotes(prev => prev.filter(n => n.id !== note.id))}
+                          onClick={() => {
+                            if (confirm("Tem certeza que deseja excluir esta nota?")) {
+                              deleteNoteMutation.mutate(note.id);
+                            }
+                          }}
+                          disabled={deleteNoteMutation.isPending}
+                          title="Excluir nota"
                         >
                           <Trash className="h-4 w-4 text-red-500" />
                         </Button>
