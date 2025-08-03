@@ -804,8 +804,8 @@ const TicketDetails = React.memo(() => {
   ]); // Dependency array expandida para capturar mudanças importantes
 
   useEffect(() => {
-    if (formDataMemo && ticket && !isEditMode) {
-      console.log('🎫 Optimized form reset with memoized data (view mode only)');
+    if (formDataMemo && ticket && !isEditMode && !form.formState.isDirty) {
+      console.log('🎫 Optimized form reset with memoized data (view mode only, form not dirty)');
       form.reset(formDataMemo);
 
       // Update local states only if changed
