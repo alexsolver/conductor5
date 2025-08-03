@@ -306,6 +306,18 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
 
   const currentTimePosition = getCurrentTimePosition();
 
+  // Function to determine the color of internal actions based on their status
+  const getInternalActionColor = (status: string) => {
+    switch (status) {
+      case 'pending':   return 'bg-purple-600 border-purple-400'; // Roxo: Ações internas pendentes
+      case 'in_progress': return 'bg-orange-600 border-orange-400'; // Laranja: Ações internas em progresso
+      case 'completed': return 'bg-green-600 border-green-400';  // Verde: Ações internas concluídas
+      case 'done': return 'bg-green-600 border-green-400';  // Verde: Ações internas concluídas
+      case 'canceled':  return 'bg-red-600 border-red-400';    // Vermelho: Ações internas canceladas
+      default:        return 'bg-gray-600 border-gray-400';
+    }
+  };
+
   return (
     <div className="w-full bg-white border border-gray-200 rounded-lg shadow-sm">
       {/* Header with Search and Time Filters */}
@@ -607,8 +619,8 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                                   // Calculate the width based on number of slots
                                   const blockWidth = durationInSlots * currentSlotWidth - 4; // Current slot width minus margins
 
-                                  // Use consistent colors
-                                  const blockColor = isInternalAction ? 'bg-purple-600 border-purple-400' : 'bg-blue-600 border-blue-400';
+                                  // Use status-based colors for internal actions, blue for external
+                                  const blockColor = isInternalAction ? getInternalActionColor(schedule.status) : 'bg-blue-600 border-blue-400';
 
                                   return (
                                     <div
@@ -635,13 +647,13 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                                         const actionType = isInternalAction ? 'Ação Interna' : 'Ação Externa';
                                         const startTime = scheduleStart.getHours().toString().padStart(2, '0') + ':' + scheduleStart.getMinutes().toString().padStart(2, '0');
                                         const endTime = scheduleEnd.getHours().toString().padStart(2, '0') + ':' + scheduleEnd.getMinutes().toString().padStart(2, '0');
-                                        
+
                                         let tooltip = `${actionType}: ${schedule.title}\nHorário: ${startTime} - ${endTime}\nDuração: ${duration}\nStatus: ${schedule.status}\nPrioridade: ${schedule.priority}`;
-                                        
+
                                         if (schedule.description) tooltip += `\nDescrição: ${schedule.description}`;
                                         if (schedule.locationAddress) tooltip += `\nLocal: ${schedule.locationAddress}`;
                                         if (schedule.ticketNumber) tooltip += `\nTicket: ${schedule.ticketNumber}`;
-                                        
+
                                         return tooltip;
                                       })()}
                                     >
@@ -778,8 +790,8 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                                   // Calculate the width based on number of slots
                                   const blockWidth = durationInSlots * currentSlotWidth - 4; // Current slot width minus margins
 
-                                  // Use consistent colors
-                                  const blockColor = isInternalAction ? 'bg-purple-600 border-purple-400' : 'bg-blue-600 border-blue-400';
+                                  // Use status-based colors for internal actions, blue for external
+                                  const blockColor = isInternalAction ? getInternalActionColor(schedule.status) : 'bg-blue-600 border-blue-400';
 
                                   return (
                                     <div
@@ -807,13 +819,13 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                                         const actionType = isInternalAction ? 'Ação Interna' : 'Ação Externa';
                                         const startTime = scheduleStart.getHours().toString().padStart(2, '0') + ':' + scheduleStart.getMinutes().toString().padStart(2, '0');
                                         const endTime = scheduleEnd.getHours().toString().padStart(2, '0') + ':' + scheduleEnd.getMinutes().toString().padStart(2, '0');
-                                        
+
                                         let tooltip = `${actionType} (Realizada): ${schedule.title}\nHorário: ${startTime} - ${endTime}\nDuração: ${duration}\nStatus: ${schedule.status}\nPrioridade: ${schedule.priority}`;
-                                        
+
                                         if (schedule.description) tooltip += `\nDescrição: ${schedule.description}`;
                                         if (schedule.locationAddress) tooltip += `\nLocal: ${schedule.locationAddress}`;
                                         if (schedule.ticketNumber) tooltip += `\nTicket: ${schedule.ticketNumber}`;
-                                        
+
                                         return tooltip;
                                       })()}
                                     >
