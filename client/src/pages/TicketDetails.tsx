@@ -856,27 +856,38 @@ const TicketDetails = React.memo(() => {
         description: "Ticket atualizado com sucesso",
       });
       
-      // 🚀 INVALIDAÇÃO: Atualizar cache imediatamente após salvar
-      console.log('🔄 Invalidating cache after ticket update...');
+      // 🚀 ATUALIZAÇÃO OTIMIZADA: Update imediato sem esperar invalidação
+      console.log('⚡ Optimized cache update after ticket save...');
       
-      // Invalidar todas as queries relacionadas ao ticket
-      queryClient.invalidateQueries({ queryKey: ["/api/tickets", id] });
-      queryClient.invalidateQueries({ queryKey: ["/api/tickets"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/customers"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/beneficiaries"] });
+      // 1. Primeiro: Atualizar o cache do ticket específico IMEDIATAMENTE
+      if (data?.success && data?.data) {
+        queryClient.setQueryData(["/api/tickets", id], {
+          success: true,
+          data: data.data
+        });
+        console.log('⚡ Ticket cache updated immediately');
+        
+        // 2. Atualizar o form imediatamente com os dados salvos
+        const freshFormData = {
+          subject: data.data.subject || "",
+          description: data.data.description || "",
+          priority: data.data.priority || "medium",
+          status: data.data.status || "new",
+          callerId: data.data.caller_id || "",
+          beneficiaryId: data.data.beneficiary_id || "",
+          customerCompanyId: data.data.customer_company_id || "",
+          // ... outros campos conforme necessário
+        };
+        
+        form.reset(freshFormData);
+        console.log('⚡ Form updated immediately with fresh data');
+      }
       
-      console.log('✅ Cache invalidated successfully');
-      
-      // Força o form a refletir os dados atualizados
+      // 3. Invalidação em background (não bloqueia a UI)
       setTimeout(() => {
-        if (data?.success && data?.data) {
-          console.log('🔄 Updating form with fresh data after save...');
-          form.reset({
-            ...formDataMemo,
-            ...data.data
-          });
-        }
-      }, 100);
+        queryClient.invalidateQueries({ queryKey: ["/api/tickets"] });
+        console.log('🔄 Background cache refresh completed');
+      }, 200);
       
       setIsEditMode(false);
     },
