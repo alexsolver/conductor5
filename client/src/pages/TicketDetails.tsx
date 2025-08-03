@@ -47,6 +47,8 @@ import TicketLinkingModal from "@/components/tickets/TicketLinkingModal";
 import InternalActionModal from "@/components/tickets/InternalActionModal";
 import EditInternalActionModal from "@/components/tickets/EditInternalActionModal";
 import { TicketDescriptionEditor } from "@/components/TicketDescriptionEditor";
+import { GroupSelect } from "@/components/GroupSelect";
+import { FilteredUserSelect } from "@/components/FilteredUserSelect";
 
 
 // 🚨 CORREÇÃO CRÍTICA: Usar schema unificado para consistência
@@ -72,6 +74,13 @@ const TicketDetails = React.memo(() => {
       setActiveTab(hash);
     }
   }, []);
+
+  // Sync assignment group state with ticket data
+  useEffect(() => {
+    if (ticket?.assignmentGroupId || ticket?.assignment_group_id) {
+      setSelectedAssignmentGroup(ticket.assignmentGroupId || ticket.assignment_group_id);
+    }
+  }, [ticket?.assignmentGroupId, ticket?.assignment_group_id]);
   const [dragActive, setDragActive] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [attachments, setAttachments] = useState<any[]>([]);
@@ -98,6 +107,7 @@ const TicketDetails = React.memo(() => {
   const [isCompanyDetailsOpen, setIsCompanyDetailsOpen] = useState(false);
   const [isClientDetailsOpen, setIsClientDetailsOpen] = useState(false);
   const [isBeneficiaryDetailsOpen, setIsBeneficiaryDetailsOpen] = useState(false);
+  const [selectedAssignmentGroup, setSelectedAssignmentGroup] = useState<string>('');
 
 
 
@@ -2835,10 +2845,14 @@ const TicketDetails = React.memo(() => {
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">Grupo de Atribuição</label>
                 {isEditMode ? (
-                  <DynamicSelect
-                    fieldName="assignmentGroup"
-                    value={form.getValues('assignmentGroup') || ticket.assignment_group || ''}
-                    onValueChange={(value) => form.setValue('assignmentGroup', value)}
+                  <GroupSelect
+                    value={selectedAssignmentGroup || form.getValues('assignmentGroup') || ticket.assignment_group_id || ''}
+                    onChange={(value) => {
+                      setSelectedAssignmentGroup(value);
+                      form.setValue('assignmentGroup', value);
+                      // Limpar responsável quando grupo muda
+                      form.setValue('assignedToId', '');
+                    }}
                     placeholder="Selecione o grupo"
                     disabled={!isEditMode}
                   />
@@ -2853,13 +2867,19 @@ const TicketDetails = React.memo(() => {
             {/* Responsável */}
             <div className="mb-4">
               <label className="text-sm font-medium text-gray-700 mb-2 block">Responsável</label>
-              <UserSelect
-                value={form.getValues('assignedToId') || ticket.assigned_to_id || ticket.assignedToId || ''}
-                onChange={(value) => form.setValue('assignedToId', value)}
-                users={teamUsers}
-                placeholder="Selecionar membro da equipe"
-                disabled={!isEditMode}
-              />
+              {isEditMode ? (
+                <FilteredUserSelect
+                  value={form.getValues('assignedToId') || ticket.assigned_to_id || ticket.assignedToId || ''}
+                  onChange={(value) => form.setValue('assignedToId', value)}
+                  selectedGroupId={selectedAssignmentGroup || form.getValues('assignmentGroup') || ticket.assignment_group_id}
+                  placeholder="Selecionar responsável"
+                  disabled={!isEditMode}
+                />
+              ) : (
+                <div className="p-2 bg-gray-50 rounded text-sm">
+                  {ticket.assigned_to_name || 'Não especificado'}
+                </div>
+              )}
             </div>
           </div>
 

@@ -3672,6 +3672,105 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ==============================
+  // USER GROUPS ROUTES
+  // ==============================
+  
+  // Get all user groups
+  app.get('/api/user-groups', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant required' });
+      }
+
+      const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
+      const schemaName = schemaManager.getSchemaName(tenantId);
+
+      const groups = await tenantDb.execute(sql`
+        SELECT 
+          ug.id,
+          ug.name,
+          ug.description,
+          ug.is_active as "isActive",
+          ug.created_at as "createdAt",
+          COUNT(ugm.user_id) as "memberCount"
+        FROM ${sql.identifier(schemaName)}.user_groups ug
+        LEFT JOIN ${sql.identifier(schemaName)}.user_group_memberships ugm ON ug.id = ugm.group_id
+        WHERE ug.tenant_id = ${tenantId}
+        GROUP BY ug.id, ug.name, ug.description, ug.is_active, ug.created_at
+        ORDER BY ug.name
+      `);
+
+      res.json({ success: true, data: groups.rows });
+    } catch (error) {
+      console.error('Error fetching user groups:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch user groups' });
+    }
+  });
+
+  // Get users in a specific group
+  app.get('/api/user-groups/:groupId/members', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { groupId } = req.params;
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant required' });
+      }
+
+      const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
+      const schemaName = schemaManager.getSchemaName(tenantId);
+
+      const members = await tenantDb.execute(sql`
+        SELECT 
+          u.id,
+          u.name,
+          u.email,
+          u.role,
+          u.position,
+          ugm.role as "groupRole",
+          ugm.joined_at as "joinedAt"
+        FROM ${sql.identifier(schemaName)}.user_group_memberships ugm
+        INNER JOIN ${sql.identifier(schemaName)}.users u ON ugm.user_id = u.id
+        WHERE ugm.group_id = ${groupId} AND ugm.is_active = true
+        ORDER BY u.name
+      `);
+
+      res.json({ success: true, data: members.rows });
+    } catch (error) {
+      console.error('Error fetching group members:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch group members' });
+    }
+  });
+
+  // Create user group
+  app.post('/api/user-groups', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { name, description } = req.body;
+      const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
+      
+      if (!tenantId || !userId) {
+        return res.status(401).json({ message: 'Authentication required' });
+      }
+
+      const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
+      const schemaName = schemaManager.getSchemaName(tenantId);
+
+      const result = await tenantDb.execute(sql`
+        INSERT INTO ${sql.identifier(schemaName)}.user_groups 
+        (tenant_id, name, description, is_active, created_by, created_at, updated_at)
+        VALUES (${tenantId}, ${name}, ${description}, true, ${userId}, NOW(), NOW())
+        RETURNING *
+      `);
+
+      res.status(201).json({ success: true, data: result.rows[0] });
+    } catch (error) {
+      console.error('Error creating user group:', error);
+      res.status(500).json({ success: false, message: 'Failed to create user group' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
