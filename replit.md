@@ -13,6 +13,12 @@ Interface preference: Text-based hierarchical menus with dropdowns over visual c
 - **Route Management**: Automatic redirection to appropriate interfaces (/timecard vs /timecard-autonomous)
 - **Database Integration**: Fixed employmentType field mapping and API endpoint responses
 - **User Detection**: Real-time employment type detection with proper frontend/backend integration
+- **Rich Text Editor Enhancement**: Implemented comprehensive Markdown-based editor with image support
+  - Direct image pasting via Ctrl+V with automatic base64 conversion
+  - File upload functionality for local images
+  - URL-based image insertion
+  - Toolbar with formatting buttons (bold, italic, lists, headers, quotes)
+  - Replaced TipTap with stable Markdown editor to eliminate runtime errors
 
 ## System Architecture
 Conductor follows a Clean Architecture with Domain-Driven Design principles.
@@ -37,7 +43,7 @@ Conductor follows a Clean Architecture with Domain-Driven Design principles.
 - **Employment Type System**: Dual employment type support (CLT/Autonomous) with automatic detection, terminology mapping, and route redirection.
 - **Key Features**:
     - **Authentication & Authorization**: Local JWT with access/refresh tokens, bcrypt hashing, and a four-tier RBAC system (saas_admin, tenant_admin, agent, customer) with granular permissions and tenant isolation.
-    - **Ticket Management**: Comprehensive system with ServiceNow-style fields, advanced specialized fields (attachments, notes, communication, history, internal actions), hierarchical configurations (category → subcategory → action), and dynamic metadata. Full audit trail for internal action deletions with proper history logging using `performed_by` column.
+    - **Ticket Management**: Comprehensive system with ServiceNow-style fields, advanced specialized fields (attachments, notes, communication, history, internal actions), hierarchical configurations (category → subcategory → action), and dynamic metadata. Full audit trail for internal action deletions with proper history logging using `performed_by` column. Rich text description editor with Markdown support and multiple image insertion methods (paste, upload, URL).
     - **Customer & Beneficiary Management**: Flexible person management system for callers and beneficiaries, including sensitive data protection with agent password verification.
     - **Location Management**: Comprehensive system supporting 7 types of location records (Local, Região, Rota Dinâmica, Trecho, Rota de Trecho, Área, Agrupamento) with advanced UX features like CEP auto-fill, interactive map coordinate collection, and centralized operating hours.
     - **User & Team Management**: Consolidated system for user and team management with HR database schema expansion, user group memberships, and a list-based view for team members.
