@@ -2579,6 +2579,8 @@ const TicketDetails = React.memo(() => {
                     // Limpar cliente e favorecido quando empresa muda
                     form.setValue('callerId', '');
                     form.setValue('beneficiaryId', '');
+                    // Atualizar estado imediatamente
+                    setSelectedCompany(value);
                     console.log('✅ Company state updated:', { newSelectedCompany: value, formValueAfter: form.getValues('customerCompanyId') });
                   }}
                   value={selectedCompany || ''}
@@ -2654,6 +2656,9 @@ const TicketDetails = React.memo(() => {
                   onChange={(value) => {
                     handleCustomerChange(value, 'caller');
                     form.setValue('callerId', value);
+                    // Limpar favorecido quando cliente muda
+                    form.setValue('beneficiaryId', '');
+                    console.log('👤 Customer change:', { customerId: value, type: 'caller' });
                   }}
                   selectedCompanyId={form.getValues('customerCompanyId') || ticket.customer_company_id || ticket.customerCompanyId || ticket.company || ''}
                   placeholder="Selecionar cliente"

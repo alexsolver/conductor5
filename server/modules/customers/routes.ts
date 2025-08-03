@@ -263,9 +263,10 @@ customersRouter.get('/:customerId/beneficiaries', jwtAuth, async (req: Authentic
     console.log(`[BENEFICIARIES] Fetching beneficiaries for customer ${customerId} in tenant ${req.user.tenantId}`);
 
     const result = await pool.query(`
-      SELECT id, first_name, last_name, email, phone
-      FROM "${schemaName}".beneficiaries 
-      WHERE customer_id = $1
+      SELECT DISTINCT b.id, b.first_name, b.last_name, b.email, b.phone, b.cpf_cnpj, b.customer_id
+      FROM "${schemaName}".beneficiaries b
+      LEFT JOIN "${schemaName}".beneficiary_customer_relationships bcr ON b.id = bcr.beneficiary_id
+      WHERE b.customer_id = $1 OR bcr.customer_id = $1
     `, [customerId]);
 
     res.json({
