@@ -16,7 +16,7 @@ import {
   Undo,
   Redo
 } from 'lucide-react'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import { Input } from "./ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog"
 import { Label } from "./ui/label"
@@ -34,7 +34,11 @@ export function TicketDescriptionEditor({ content, onChange, placeholder }: Tick
   const [showImageDialog, setShowImageDialog] = useState(false)
 
   const handleUpdate = useCallback((newContent: string) => {
-    onChange(newContent)
+    try {
+      onChange(newContent)
+    } catch (error) {
+      console.error('Error updating content:', error)
+    }
   }, [onChange])
 
   const editor = useEditor({
@@ -45,6 +49,7 @@ export function TicketDescriptionEditor({ content, onChange, placeholder }: Tick
             class: 'mb-2',
           },
         },
+        link: false, // Disable StarterKit link to avoid conflicts
       }),
       Image.configure({
         HTMLAttributes: {
@@ -58,9 +63,13 @@ export function TicketDescriptionEditor({ content, onChange, placeholder }: Tick
         },
       }),
     ],
-    content,
+    content: content || '',
     onUpdate: ({ editor }) => {
-      handleUpdate(editor.getHTML())
+      try {
+        handleUpdate(editor.getHTML())
+      } catch (error) {
+        console.error('Editor update error:', error)
+      }
     },
     editorProps: {
       attributes: {
@@ -68,20 +77,6 @@ export function TicketDescriptionEditor({ content, onChange, placeholder }: Tick
       },
     },
   })
-
-  useEffect(() => {
-    if (editor && content !== editor.getHTML()) {
-      editor.commands.setContent(content)
-    }
-  }, [content, editor])
-
-  useEffect(() => {
-    return () => {
-      if (editor) {
-        editor.destroy()
-      }
-    }
-  }, [editor])
 
   if (!editor) {
     return (
