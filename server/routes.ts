@@ -3729,7 +3729,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           u.role,
           u.position,
           ugm.role as "groupRole",
-          ugm.joined_at as "joinedAt"
+          ugm.added_at as "joinedAt"
         FROM ${sql.identifier(schemaName)}.user_group_memberships ugm
         INNER JOIN public.users u ON ugm.user_id = u.id
         WHERE ugm.group_id = ${groupId} AND ugm.is_active = true
