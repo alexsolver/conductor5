@@ -77,7 +77,25 @@ interface Customer {
 }
 
 const AgendaManager: React.FC = () => {
-  const [selectedDate, setSelectedDate] = useState(new Date()); // Data e horário atual
+  const [selectedDate, setSelectedDate] = useState(new Date());
+
+  // Auto-scroll to current time on mount
+  useEffect(() => {
+    const scrollToCurrentTime = () => {
+      setTimeout(() => {
+        const timelineContainer = document.querySelector('[data-timeline-container]');
+        if (timelineContainer && view === 'timeline') {
+          const now = new Date();
+          const currentHour = now.getHours();
+          // Scroll to current hour position (64px per hour slot)
+          const scrollPosition = Math.max(0, (currentHour - 2) * 64); // Show 2 hours before current time
+          timelineContainer.scrollLeft = scrollPosition;
+        }
+      }, 100);
+    };
+
+    scrollToCurrentTime();
+  }, [view]); // Data e horário atual
   const [view, setView] = useState<'timeline' | 'agenda'>('timeline');
   const [selectedAgentId, setSelectedAgentId] = useState<string>();
   const [isModalOpen, setIsModalOpen] = useState(false);

@@ -264,9 +264,33 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
   // Calculate current time indicator position
   const getCurrentTimePosition = () => {
     const now = new Date();
+    
+    // Calculate slot width based on time filter
+    let slotWidthInMinutes = 60; // default 1 hour
+    switch (timeFilter) {
+      case '2min':
+        slotWidthInMinutes = 5;
+        break;
+      case '10min':
+        slotWidthInMinutes = 10;
+        break;
+      case '30min':
+        slotWidthInMinutes = 30;
+        break;
+      case '1hora':
+        slotWidthInMinutes = 60;
+        break;
+      case '24horas':
+        slotWidthInMinutes = 24 * 60; // 1 day
+        break;
+      default: // 'hoje'
+        slotWidthInMinutes = 60;
+        break;
+    }
+    
     const currentTimeSlotIndex = timeSlots.findIndex(slot => {
       const slotStart = slot.getTime();
-      const slotEnd = slotStart + (60 * 60 * 1000); // 1 hour slots
+      const slotEnd = slotStart + (slotWidthInMinutes * 60 * 1000);
       const nowTime = now.getTime();
       return nowTime >= slotStart && nowTime < slotEnd;
     });
@@ -420,6 +444,7 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
             className="flex-1 overflow-x-auto relative"
             onScroll={syncScrollToHeader}
             style={{ maxWidth: 'calc(100vw - 320px)' }}
+            data-timeline-container
           >
             <div className="flex relative" style={{ minWidth: `${timeSlots.length * 64}px`, width: 'max-content' }}>
               {/* Current time indicator line */}
