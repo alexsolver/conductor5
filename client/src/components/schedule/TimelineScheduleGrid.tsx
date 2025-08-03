@@ -540,10 +540,6 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                                   const activityType = getActivityType(schedule.activityTypeId);
                                   const isInternalAction = schedule.activityTypeId === 'internal-action' || schedule.type === 'internal_action';
 
-                                  // Calculate if this is the exact starting slot for the action
-                                  const scheduleStart = parseISO(schedule.startDateTime);
-                                  const scheduleEnd = schedule.endDateTime ? parseISO(schedule.endDateTime) : scheduleStart;
-
                                   // Find the starting time slot index for this schedule
                                   const startingSlotIndex = timeSlots.findIndex(slot => {
                                     const slotStart = slot.getTime();
@@ -558,6 +554,11 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
 
                                   // Only render in the correct starting slot
                                   if (timeIndex !== startingSlotIndex) return null;
+
+                                  // Calculate precise positioning within the slot based on minutes
+                                  const slotStart = timeSlots[timeIndex];
+                                  const minutesFromSlotStart = scheduleStart.getMinutes();
+                                  const minuteOffset = (minutesFromSlotStart / 60) * 64; // 64px per hour slot
 
                                   // Calculate duration for display
                                   const duration = calculateDuration(schedule.startDateTime, schedule.endDateTime);
@@ -575,7 +576,7 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                                       key={`${schedule.id}-planned-${index}`}
                                       className={`absolute rounded text-white text-xs flex items-center justify-center gap-1 px-2 cursor-pointer hover:opacity-80 border ${blockColor}`}
                                       style={{ 
-                                        left: '2px',
+                                        left: `${2 + minuteOffset}px`,
                                         top: `${Math.max(2, (rowHeight - 32) / 2 - 4)}px`,
                                         height: '32px',
                                         width: `${Math.min(blockWidth, 316)}px`, // Max width constraint
@@ -668,10 +669,6 @@ ${schedule.locationAddress ? `Local: ${schedule.locationAddress}` : ''}`}
                                   const activityType = getActivityType(schedule.activityTypeId);
                                   const isInternalAction = schedule.activityTypeId === 'internal-action' || schedule.type === 'internal_action';
 
-                                  // Calculate if this is the exact starting slot for the action
-                                  const scheduleStart = parseISO(schedule.startDateTime);
-                                  const scheduleEnd = schedule.endDateTime ? parseISO(schedule.endDateTime) : scheduleStart;
-
                                   // Find the starting time slot index for this schedule
                                   const startingSlotIndex = timeSlots.findIndex(slot => {
                                     const slotStart = slot.getTime();
@@ -686,6 +683,11 @@ ${schedule.locationAddress ? `Local: ${schedule.locationAddress}` : ''}`}
 
                                   // Only render in the correct starting slot
                                   if (timeIndex !== startingSlotIndex) return null;
+
+                                  // Calculate precise positioning within the slot based on minutes
+                                  const slotStart = timeSlots[timeIndex];
+                                  const minutesFromSlotStart = scheduleStart.getMinutes();
+                                  const minuteOffset = (minutesFromSlotStart / 60) * 64; // 64px per hour slot
 
                                   // Calculate duration for display
                                   const duration = calculateDuration(schedule.startDateTime, schedule.endDateTime);
@@ -703,7 +705,7 @@ ${schedule.locationAddress ? `Local: ${schedule.locationAddress}` : ''}`}
                                       key={`${schedule.id}-actual-${index}`}
                                       className={`absolute rounded text-white text-xs flex items-center justify-center gap-1 px-2 cursor-pointer hover:opacity-60 border ${blockColor}`}
                                       style={{ 
-                                        left: '2px',
+                                        left: `${2 + minuteOffset}px`,
                                         top: `${Math.max(2, (actualRowHeight - 32) / 2 - 4)}px`,
                                         height: '32px',
                                         opacity: 0.8, // Slightly more transparent for actual
