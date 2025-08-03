@@ -30,7 +30,10 @@ export function TicketDescriptionEditor({ content, onChange, placeholder }: Tick
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const insertAtCursor = (text: string) => {
-    if (!textareaRef.current) return
+    if (!textareaRef.current) {
+      console.log('Textarea ref não encontrado')
+      return
+    }
     
     const textarea = textareaRef.current
     const start = textarea.selectionStart
@@ -38,6 +41,7 @@ export function TicketDescriptionEditor({ content, onChange, placeholder }: Tick
     const currentValue = content || ''
     
     const newValue = currentValue.substring(0, start) + text + currentValue.substring(end)
+    console.log('Inserindo texto:', text, 'Posição:', start, 'Novo valor:', newValue.substring(0, 100) + '...')
     onChange(newValue)
     
     // Restore cursor position
@@ -71,11 +75,14 @@ export function TicketDescriptionEditor({ content, onChange, placeholder }: Tick
   }
 
   const addImage = () => {
-    if (imageUrl) {
-      const markdownImage = `![Imagem](${imageUrl})`
+    if (imageUrl.trim()) {
+      const markdownImage = `![Imagem](${imageUrl.trim()})`
+      console.log('Inserindo imagem:', markdownImage)
       insertAtCursor(markdownImage)
       setImageUrl('')
       setShowImageDialog(false)
+    } else {
+      console.log('URL da imagem está vazia')
     }
   }
 
@@ -182,7 +189,12 @@ export function TicketDescriptionEditor({ content, onChange, placeholder }: Tick
                   placeholder="https://exemplo.com/imagem.jpg"
                 />
               </div>
-              <Button onClick={addImage} className="w-full" type="button">
+              <Button 
+                onClick={addImage} 
+                className="w-full" 
+                type="button"
+                disabled={!imageUrl.trim()}
+              >
                 Inserir Imagem
               </Button>
             </div>
