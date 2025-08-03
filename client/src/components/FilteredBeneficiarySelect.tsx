@@ -16,7 +16,7 @@ export function FilteredBeneficiarySelect({
   value, 
   onChange, 
   selectedCustomerId,
-  placeholder = "Selecionar favorecido", 
+  placeholder = "Selecionar beneficiário", 
   disabled = false,
   className = ""
 }: FilteredBeneficiarySelectProps) {
@@ -87,7 +87,7 @@ export function FilteredBeneficiarySelect({
     return (
       <Select disabled>
         <SelectTrigger className={className}>
-          <SelectValue placeholder="Carregando favorecidos..." />
+          <SelectValue placeholder="Carregando beneficiários..." />
         </SelectTrigger>
       </Select>
     );
@@ -105,16 +105,16 @@ export function FilteredBeneficiarySelect({
       <SelectContent>
         {beneficiariesToShow.length === 0 && selectedCustomerId && selectedCustomerId !== 'unspecified' ? (
           <SelectItem value="__no_beneficiaries__" disabled>
-            Nenhum favorecido encontrado para este cliente
+            Nenhum beneficiário encontrado para este cliente
           </SelectItem>
         ) : (
           <>
-            <SelectItem value="__none__">Nenhum favorecido</SelectItem>
+            <SelectItem value="__none__">Nenhum beneficiário</SelectItem>
             <SelectItem value="unspecified">Não especificado</SelectItem>
             {beneficiariesToShow.map((beneficiary: any) => {
               const beneficiaryName = `${beneficiary.firstName || ''} ${beneficiary.lastName || ''}`.trim() || 
                                      beneficiary.fullName || beneficiary.name || 
-                                     beneficiary.email || 'Favorecido sem nome';
+                                     beneficiary.email || 'Beneficiário sem nome';
               return (
                 <SelectItem key={beneficiary.id} value={beneficiary.id}>
                   <div className="flex flex-col">
