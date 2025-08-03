@@ -2650,7 +2650,7 @@ const TicketDetails = React.memo(() => {
                 <span className="text-xs font-medium text-gray-600 uppercase tracking-wide">Cliente</span>
               </div>
               
-              {false ? (
+              {true ? (
                 <FilteredCustomerSelect
                   value={form.getValues('callerId') || ''}
                   onChange={(value) => {
@@ -2664,12 +2664,12 @@ const TicketDetails = React.memo(() => {
                   selectedCompanyId={form.getValues('customerCompanyId') || '503389ff-7616-48e0-8759-c6b98faf5608'}
                   placeholder="Selecionar cliente"
                   disabled={false}
-                  className="h-8 text-xs"
+                  className="h-8 text-xs text-left"
                 />
               ) : (
                 <Badge 
                   variant="outline" 
-                  className="px-3 py-2 text-sm font-semibold bg-gradient-to-r from-purple-500 to-violet-600 text-white border-purple-500 shadow-md hover:shadow-lg transition-shadow duration-200 w-full justify-start cursor-pointer"
+                  className="px-3 py-2 text-sm font-semibold bg-gradient-to-r from-purple-500 to-violet-600 text-white border-purple-500 shadow-md hover:shadow-lg transition-shadow duration-200 w-full justify-center cursor-pointer"
                   onClick={() => setIsClientDetailsOpen(true)}
                 >
                   <User className="h-4 w-4 mr-2" />
@@ -2707,7 +2707,7 @@ const TicketDetails = React.memo(() => {
                 <span className="text-xs font-medium text-gray-600 uppercase tracking-wide">Favorecido</span>
               </div>
               
-              {false ? (
+              {true ? (
                 <FilteredBeneficiarySelect
                   value={form.getValues('beneficiaryId') || ''}
                   onChange={(value) => {
@@ -2719,12 +2719,12 @@ const TicketDetails = React.memo(() => {
                   selectedCustomerId={form.getValues('callerId') || ''}
                   placeholder="Selecionar favorecido"
                   disabled={false}
-                  className="h-8 text-xs"
+                  className="h-8 text-xs text-left"
                 />
               ) : (
                 <Badge 
                   variant="outline" 
-                  className="px-3 py-2 text-sm font-semibold bg-gradient-to-r from-indigo-500 to-blue-600 text-white border-indigo-500 shadow-md hover:shadow-lg transition-shadow duration-200 w-full justify-start cursor-pointer"
+                  className="px-3 py-2 text-sm font-semibold bg-gradient-to-r from-indigo-500 to-blue-600 text-white border-indigo-500 shadow-md hover:shadow-lg transition-shadow duration-200 w-full justify-center cursor-pointer"
                   onClick={() => setIsBeneficiaryDetailsOpen(true)}
                 >
                   <Users className="h-4 w-4 mr-2" />
