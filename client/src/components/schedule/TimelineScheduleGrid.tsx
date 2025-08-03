@@ -399,13 +399,13 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
           {/* Timeline grid */}
           <div 
             ref={contentScrollRef}
-            className="flex-1 overflow-x-auto"
+            className="flex-1 overflow-x-auto relative"
             onScroll={syncScrollToHeader}
             style={{ maxWidth: 'calc(100vw - 320px)' }}
           >
             <div className="flex" style={{ minWidth: `${timeSlots.length * 64}px`, width: 'max-content' }}>
               {timeSlots.map((timeSlot, timeIndex) => (
-                <div key={timeIndex} className="flex-shrink-0 w-16 border-r last:border-r-0">
+                <div key={timeIndex} className="flex-shrink-0 w-16 border-r last:border-r-0 relative">
                   {filteredAgents.map((agent) => {
                     const plannedSchedules = getSchedulesForTimeSlot(agent.id, timeSlot, 'planned');
                     const actualSchedules = getSchedulesForTimeSlot(agent.id, timeSlot, 'actual');
@@ -508,7 +508,7 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                                   const duration = calculateDuration(schedule.startDateTime, schedule.endDateTime);
                                   const durationInMinutes = differenceInMinutes(scheduleEnd, scheduleStart);
                                   const durationInSlots = Math.max(1, Math.ceil(durationInMinutes / 60)); // Assuming 1-hour slots
-                                  
+
                                   // Calculate the width based on number of slots
                                   const blockWidth = durationInSlots * 64 - 4; // 64px per slot minus margins
 
@@ -636,7 +636,7 @@ ${schedule.locationAddress ? `Local: ${schedule.locationAddress}` : ''}`}
                                   const duration = calculateDuration(schedule.startDateTime, schedule.endDateTime);
                                   const durationInMinutes = differenceInMinutes(scheduleEnd, scheduleStart);
                                   const durationInSlots = Math.max(1, Math.ceil(durationInMinutes / 60)); // Assuming 1-hour slots
-                                  
+
                                   // Calculate the width based on number of slots
                                   const blockWidth = durationInSlots * 64 - 4; // 64px per slot minus margins
 
