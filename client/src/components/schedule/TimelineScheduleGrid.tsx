@@ -307,16 +307,62 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
   const currentTimePosition = getCurrentTimePosition();
 
   // Function to determine the color of internal actions based on their status
-  const getInternalActionColor = (status: string) => {
-    switch (status) {
-      case 'pending':   return 'bg-purple-600 border-purple-400'; // Roxo: Ações internas pendentes
-      case 'in_progress': return 'bg-orange-600 border-orange-400'; // Laranja: Ações internas em progresso
-      case 'completed': return 'bg-green-600 border-green-400';  // Verde: Ações internas concluídas
-      case 'done': return 'bg-green-600 border-green-400';  // Verde: Ações internas concluídas
-      case 'canceled':  return 'bg-red-600 border-red-400';    // Vermelho: Ações internas canceladas
-      default:        return 'bg-gray-600 border-gray-400';
+  const getInternalActionColor = (status: string, type: 'planned' | 'actual') => {
+    let baseColor = '';
+    let borderColor = '';
+
+    if (type === 'planned') {
+        switch (status) {
+            case 'pending':
+                baseColor = 'bg-purple-500';
+                borderColor = 'border-purple-300';
+                break;
+            case 'in_progress':
+                baseColor = 'bg-orange-500';
+                borderColor = 'border-orange-300';
+                break;
+            case 'completed':
+            case 'done':
+                baseColor = 'bg-green-500';
+                borderColor = 'border-green-300';
+                break;
+            case 'canceled':
+                baseColor = 'bg-red-500';
+                borderColor = 'border-red-300';
+                break;
+            default:
+                baseColor = 'bg-gray-500';
+                borderColor = 'border-gray-300';
+                break;
+        }
+    } else { // actual
+        switch (status) {
+            case 'pending':
+                baseColor = 'bg-purple-700';
+                borderColor = 'border-purple-500';
+                break;
+            case 'in_progress':
+                baseColor = 'bg-orange-700';
+                borderColor = 'border-orange-500';
+                break;
+            case 'completed':
+            case 'done':
+                baseColor = 'bg-green-700';
+                borderColor = 'border-green-500';
+                break;
+            case 'canceled':
+                baseColor = 'bg-red-700';
+                borderColor = 'border-red-500';
+                break;
+            default:
+                baseColor = 'bg-gray-700';
+                borderColor = 'border-gray-500';
+                break;
+        }
     }
-  };
+
+    return `${baseColor} ${borderColor}`;
+};
 
   return (
     <div className="w-full bg-white border border-gray-200 rounded-lg shadow-sm">
@@ -620,7 +666,7 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                                   const blockWidth = durationInSlots * currentSlotWidth - 4; // Current slot width minus margins
 
                                   // Use status-based colors for internal actions, blue for external
-                                  const blockColor = isInternalAction ? getInternalActionColor(schedule.status) : 'bg-blue-600 border-blue-400';
+                                  const blockColor = isInternalAction ? getInternalActionColor(schedule.status, 'planned') : 'bg-blue-500 border-blue-300';
 
                                   return (
                                     <div
@@ -791,7 +837,7 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                                   const blockWidth = durationInSlots * currentSlotWidth - 4; // Current slot width minus margins
 
                                   // Use status-based colors for internal actions, blue for external
-                                  const blockColor = isInternalAction ? getInternalActionColor(schedule.status) : 'bg-blue-600 border-blue-400';
+                                  const blockColor = isInternalAction ? getInternalActionColor(schedule.status, 'actual') : 'bg-blue-700 border-blue-500';
 
                                   return (
                                     <div
