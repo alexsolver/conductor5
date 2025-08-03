@@ -1717,51 +1717,51 @@ ticketsRouter.delete('/:ticketId/actions/:actionId', jwtAuth, async (req: Authen
 
     const deletedAction = actionResult.rows[0];
 
-    // Determinar se é ação interna ou externa baseado no action_type e source
-    const isInternalAction = deletedAction.action_type && (
-      deletedAction.action_type.includes('ação interna') || 
-      deletedAction.action_type.includes('internal') ||
-      deletedAction.action_type === 'action_deleted' ||
-      deletedAction.source === 'internal'
-    );
+    // Verificar se a ação sendo excluída já é uma entrada de auditoria
+    const isAuditEntry = deletedAction.action_type === 'action_deleted' || 
+                        deletedAction.description === 'Ação interna excluída' ||
+                        deletedAction.description === 'Ação externa excluída';
 
-    // Se não conseguiu determinar pelo action_type, assume como externa por padrão
-    // a menos que explicitamente indique ser interna
-    const isExternalAction = !isInternalAction && (
-      deletedAction.action_type?.includes('ação externa') ||
-      deletedAction.action_type?.includes('external') ||
-      deletedAction.source === 'external' ||
-      (!deletedAction.action_type?.includes('interna') && !deletedAction.action_type?.includes('internal'))
-    );
-
-    const auditDescription = isInternalAction ? 'Ação interna excluída' : 'Ação externa excluída';
-    const fieldName = isInternalAction ? 'internal_action' : 'external_action';
-    const logMessage = isInternalAction ? 'ação interna' : 'ação externa';
-
-    // Criar entrada de auditoria usando o sistema padronizado
-    try {
-      await createCompleteAuditEntry(
-        pool,
-        schemaName,
-        tenantId,
-        ticketId,
-        req,
-        'action_deleted',
-        auditDescription,
-        {
-          deleted_action_id: actionId,
-          deleted_action_type: deletedAction.action_type,
-          deleted_action_description_preview: deletedAction.description ? 
-            deletedAction.description.substring(0, 100) : 'Sem descrição'
-        },
-        fieldName,
-        `Ação ID: ${actionId}`,
-        null
+    // Se for uma entrada de auditoria, não criar outra entrada de auditoria
+    if (isAuditEntry) {
+      console.log('⚠️ Pulando criação de auditoria - ação já é uma entrada de auditoria');
+    } else {
+      // Determinar se é ação interna ou externa baseado no action_type e source
+      const isInternalAction = deletedAction.action_type && (
+        deletedAction.action_type.includes('ação interna') || 
+        deletedAction.action_type.includes('internal') ||
+        deletedAction.source === 'internal'
       );
 
-      console.log(`✅ Entrada de auditoria criada para exclusão da ${logMessage}`);
-    } catch (auditError) {
-      console.log('⚠️ Aviso: Não foi possível criar entrada de auditoria para exclusão:', auditError.message);
+      const auditDescription = isInternalAction ? 'Ação interna excluída' : 'Ação externa excluída';
+      const fieldName = isInternalAction ? 'internal_action' : 'external_action';
+      const logMessage = isInternalAction ? 'ação interna' : 'ação externa';
+
+      // Criar entrada de auditoria usando o sistema padronizado
+      try {
+        await createCompleteAuditEntry(
+          pool,
+          schemaName,
+          tenantId,
+          ticketId,
+          req,
+          'action_deleted',
+          auditDescription,
+          {
+            deleted_action_id: actionId,
+            deleted_action_type: deletedAction.action_type,
+            deleted_action_description_preview: deletedAction.description ? 
+              deletedAction.description.substring(0, 100) : 'Sem descrição'
+          },
+          fieldName,
+          `Ação ID: ${actionId}`,
+          null
+        );
+
+        console.log(`✅ Entrada de auditoria criada para exclusão da ${logMessage}`);
+      } catch (auditError) {
+        console.log('⚠️ Aviso: Não foi possível criar entrada de auditoria para exclusão:', auditError.message);
+      }
     }
 
     // Excluir a ação interna do histórico
@@ -1779,9 +1779,19 @@ ticketsRouter.delete('/:ticketId/actions/:actionId', jwtAuth, async (req: Authen
       WHERE ticket_id = $1 AND tenant_id = $2 AND action_type = $3
     `, [ticketId, tenantId, deletedAction.action_type]);
 
+    // Determinar tipo para mensagem de sucesso
+    const isInternalForMessage = !isAuditEntry && deletedAction.action_type && (
+      deletedAction.action_type.includes('ação interna') || 
+      deletedAction.action_type.includes('internal') ||
+      deletedAction.source === 'internal'
+    );
+
+    const actionTypeMessage = isAuditEntry ? 'Entrada de auditoria' : 
+                             (isInternalForMessage ? 'Ação interna' : 'Ação externa');
+
     res.json({
       success: true,
-      message: `${isInternalAction ? 'Ação interna' : 'Ação externa'} excluída com sucesso`
+      message: `${actionTypeMessage} excluída com sucesso`
     });
   } catch (error) {
     console.error("Error deleting internal action:", error);
