@@ -72,6 +72,8 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
   const [timeFilter, setTimeFilter] = useState<'hoje' | '2min' | '10min' | '30min' | '1hora' | '24horas'>('hoje');
   const [selectedInternalAction, setSelectedInternalAction] = useState<any>(null);
   const [showInternalActionModal, setShowInternalActionModal] = useState(false);
+
+
   
   // Refs para sincronização de scroll
   const headerScrollRef = useRef<HTMLDivElement>(null);
@@ -143,11 +145,11 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
   
 
 
-  // Filter agents by search - fixed to handle firstName/lastName structure
+  // Filter agents by search
   const filteredAgents = agents.filter(agent => {
     if (!agent || !agent.email) return false;
     
-    const agentName = agent.name || `${agent.firstName || ''} ${agent.lastName || ''}`.trim() || agent.email;
+    const agentName = agent.name || agent.email;
     
     return agentName.toLowerCase().includes(searchAgent.toLowerCase()) ||
            agent.email.toLowerCase().includes(searchAgent.toLowerCase());
@@ -339,7 +341,7 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
               const workSchedule = workSchedules.find(ws => ws.userId === agent.id);
               const dayOfWeek = selectedDate.getDay();
               const worksToday = workSchedule?.workDays.includes(dayOfWeek) || false;
-              const agentName = agent.name || `${agent.firstName || ''} ${agent.lastName || ''}`.trim() || agent.email;
+              const agentName = agent.name || agent.email;
               
               return (
                 <div key={agent.id} className="border-b">
@@ -486,7 +488,7 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                               {scheduleLayers.map((layer, layerIndex) => 
                                 layer.map((schedule) => {
                                   const activityType = getActivityType(schedule.activityTypeId);
-                                  const isInternalAction = schedule.activityTypeId === 'internal-action' || schedule.type === 'internal_action';
+                                  const isInternalAction = schedule.activityTypeId === 'internal-action';
                                   
                                   // Calculate if this is the starting slot for the action
                                   const scheduleStart = parseISO(schedule.startDateTime);
@@ -609,7 +611,7 @@ ${schedule.locationAddress ? `Local: ${schedule.locationAddress}` : ''}`}
                               {actualScheduleLayers.map((layer, layerIndex) => 
                                 layer.map((schedule) => {
                                   const activityType = getActivityType(schedule.activityTypeId);
-                                  const isInternalAction = schedule.activityTypeId === 'internal-action' || schedule.type === 'internal_action';
+                                  const isInternalAction = schedule.activityTypeId === 'internal-action';
                                   
                                   // Calculate if this is the starting slot for the action
                                   const scheduleStart = parseISO(schedule.startDateTime);

@@ -161,8 +161,11 @@ export default function InternalActionDetailsModal({
                 <div className="w-3 h-3 rounded-full bg-purple-500"></div>
                 Ação Interna - {internalAction.ticketNumber}
               </DialogTitle>
-              <DialogDescription>
-                {internalAction.ticketSubject}
+              <DialogDescription className="space-y-1">
+                <div>{internalAction.ticketSubject}</div>
+                <div className="text-xs text-gray-500 font-mono">
+                  UUID: {internalAction.id}
+                </div>
               </DialogDescription>
             </div>
             <div className="flex gap-2">
@@ -201,6 +204,20 @@ export default function InternalActionDetailsModal({
         </DialogHeader>
 
         <div className="space-y-6">
+          {/* Technical Info Card */}
+          <Card className="border-purple-200 bg-purple-50">
+            <CardContent className="p-4">
+              <div className="grid grid-cols-1 gap-2">
+                <div className="space-y-1">
+                  <Label className="text-sm font-medium text-purple-700">Identificador Único (UUID)</Label>
+                  <div className="text-xs text-purple-600 font-mono bg-white p-2 rounded border select-all">
+                    {internalAction.id}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Action Info Card */}
           <Card>
             <CardContent className="p-4">

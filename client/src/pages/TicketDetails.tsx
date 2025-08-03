@@ -2092,6 +2092,13 @@ const TicketDetails = React.memo(() => {
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
+                          {/* UUID Display */}
+                          <div className="mb-2">
+                            <div className="text-xs text-gray-500 font-mono bg-gray-50 px-2 py-1 rounded border inline-block select-all">
+                              UUID: {action.id}
+                            </div>
+                          </div>
+                          
                           <div className="flex items-center gap-2 mb-2 flex-wrap">
                             <User className="w-4 h-4 text-gray-600" />
                             <span className="font-medium text-sm">{action.createdByName || action.agent_name || 'Sistema'}</span>
