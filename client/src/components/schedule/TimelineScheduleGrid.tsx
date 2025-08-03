@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { format, addDays, addHours, addMinutes, startOfDay, parseISO, differenceInMinutes } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
-import { Clock, MapPin, Search } from 'lucide-react';
+import { Clock, MapPin, Search, Home, Navigation } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import SimpleAvatar from '@/components/ui/avatar';
 import InternalActionDetailsModal from './InternalActionDetailsModal';
@@ -157,6 +157,55 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
 
   const getActivityType = (activityTypeId: string) => {
     return activityTypes.find(type => type.id === activityTypeId);
+  };
+
+  // Function to calculate duration in hours and minutes
+  const calculateDuration = (startDateTime: string, endDateTime?: string) => {
+    const start = parseISO(startDateTime);
+    const end = endDateTime ? parseISO(endDateTime) : start;
+    const minutes = differenceInMinutes(end, start);
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    return `${hours.toString().padStart(2, '0')}:${remainingMinutes.toString().padStart(2, '0')}`;
+  };
+
+  // Function to organize schedules into layers to avoid overlaps
+  const organizeSchedulesInLayers = (schedules: Schedule[], timeSlot: Date) => {
+    const layers: Schedule[][] = [];
+    
+    schedules.forEach(schedule => {
+      const scheduleStart = parseISO(schedule.startDateTime);
+      const scheduleEnd = schedule.endDateTime ? parseISO(schedule.endDateTime) : scheduleStart;
+      
+      // Find a layer where this schedule doesn't overlap
+      let placedInLayer = false;
+      for (let i = 0; i < layers.length; i++) {
+        let hasOverlap = false;
+        for (const existingSchedule of layers[i]) {
+          const existingStart = parseISO(existingSchedule.startDateTime);
+          const existingEnd = existingSchedule.endDateTime ? parseISO(existingSchedule.endDateTime) : existingStart;
+          
+          // Check if schedules overlap
+          if (scheduleStart < existingEnd && scheduleEnd > existingStart) {
+            hasOverlap = true;
+            break;
+          }
+        }
+        
+        if (!hasOverlap) {
+          layers[i].push(schedule);
+          placedInLayer = true;
+          break;
+        }
+      }
+      
+      // If no suitable layer found, create a new one
+      if (!placedInLayer) {
+        layers.push([schedule]);
+      }
+    });
+    
+    return layers;
   };
 
   const getSchedulesForTimeSlot = (agentId: string, timeSlot: Date, type: 'planned' | 'actual') => {
@@ -394,146 +443,251 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                     
                     return (
                       <div key={agent.id} className="border-b">
-                        {/* Planned row - opaque background */}
-                        <div 
-                          className={`h-10 relative border-b border-gray-100 ${
-                            !worksToday 
-                              ? 'bg-gray-200' 
-                              : isBreakTime 
-                                ? 'bg-orange-100'
-                                : isWorkingHour 
-                                  ? 'bg-white' 
-                                  : 'bg-gray-100'
-                          }`}
-                          title={
-                            !worksToday 
-                              ? 'Não trabalha neste dia'
-                              : isBreakTime 
-                                ? 'Horário de intervalo'
-                                : isWorkingHour 
-                                  ? 'Horário disponível' 
-                                  : 'Fora do horário de trabalho'
-                          }
-                        >
-                          {/* Status indicator bar */}
-                          <div className={`absolute inset-x-0 bottom-0 h-1 ${
-                            !worksToday 
-                              ? 'bg-gray-400'
-                              : isBreakTime 
-                                ? 'bg-orange-400'
-                                : isWorkingHour 
-                                  ? 'bg-blue-400' 
-                                  : 'bg-gray-300'
-                          }`}></div>
-                          {plannedSchedules.map((schedule) => {
-                            const activityType = getActivityType(schedule.activityTypeId);
-                            const isInternalAction = schedule.activityTypeId === 'internal-action' || schedule.type === 'internal_action';
-                            
-                            // Calculate if this is the starting slot for the action
-                            const scheduleStart = parseISO(schedule.startDateTime);
-                            const scheduleEnd = schedule.endDateTime ? parseISO(schedule.endDateTime) : scheduleStart;
-                            const isStartingSlot = timeSlot.getTime() <= scheduleStart.getTime() && 
-                                                   scheduleStart.getTime() < (timeSlot.getTime() + (60 * 60 * 1000));
-                            
-                            // Calculate duration in hours for visual width
-                            const durationHours = Math.max(1, Math.ceil((scheduleEnd.getTime() - scheduleStart.getTime()) / (60 * 60 * 1000)));
-                            
-                            return (
-                              <div
-                                key={schedule.id}
-                                className={`absolute inset-1 rounded text-white text-xs flex items-center justify-center cursor-pointer hover:opacity-80 ${
-                                  isInternalAction 
-                                    ? 'bg-purple-600 border border-purple-400' 
-                                    : getPriorityColor(schedule.priority)
-                                }`}
-                                style={{ 
-                                  opacity: 0.9,
-                                  // Extend width for multi-hour actions only on starting slot
-                                  width: isStartingSlot && isInternalAction && durationHours > 1 
-                                    ? `${Math.min(durationHours * 64, 320)}px` // Max 5 hours visual
-                                    : undefined,
-                                  zIndex: isStartingSlot ? 10 : 5
-                                }}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  if (isInternalAction) {
-                                    // Open custom internal action modal
-                                    setSelectedInternalAction(schedule);
-                                    setShowInternalActionModal(true);
-                                  } else {
-                                    onScheduleClick(schedule);
-                                  }
-                                }}
-                                title={
-                                  isInternalAction 
-                                    ? `Ação Interna: ${schedule.title} - ${format(parseISO(schedule.startDateTime), 'HH:mm')} até ${format(parseISO(schedule.endDateTime || schedule.startDateTime), 'HH:mm')}`
-                                    : `${schedule.title} - ${format(parseISO(schedule.startDateTime), 'HH:mm')}`
-                                }
-                              >
-                                <span className="truncate font-medium">
-                                  {isInternalAction ? (isStartingSlot ? `T ${durationHours}h` : 'T') : // T for Ticket action with duration
-                                   schedule.priority === 'urgent' ? 'U' : 
-                                   schedule.priority === 'high' ? 'H' : 
-                                   schedule.priority === 'low' ? 'L' : 'M'}
-                                </span>
-                              </div>
-                            );
-                          })}
-                        </div>
+                        {(() => {
+                          // Organize schedules in layers to handle overlaps
+                          const scheduleLayers = organizeSchedulesInLayers(plannedSchedules, timeSlot);
+                          const totalLayers = scheduleLayers.length;
+                          const rowHeight = Math.max(40, totalLayers * 20); // Dynamic height based on layers
+                          
+                          return (
+                            <div 
+                              className={`relative border-b border-gray-100 ${
+                                !worksToday 
+                                  ? 'bg-gray-200' 
+                                  : isBreakTime 
+                                    ? 'bg-orange-100'
+                                    : isWorkingHour 
+                                      ? 'bg-white' 
+                                      : 'bg-gray-100'
+                              }`}
+                              style={{ height: `${rowHeight}px` }}
+                              title={
+                                !worksToday 
+                                  ? 'Não trabalha neste dia'
+                                  : isBreakTime 
+                                    ? 'Horário de intervalo'
+                                    : isWorkingHour 
+                                      ? 'Horário disponível' 
+                                      : 'Fora do horário de trabalho'
+                              }
+                            >
+                              {/* Status indicator bar */}
+                              <div className={`absolute inset-x-0 bottom-0 h-1 ${
+                                !worksToday 
+                                  ? 'bg-gray-400'
+                                  : isBreakTime 
+                                    ? 'bg-orange-400'
+                                    : isWorkingHour 
+                                      ? 'bg-blue-400' 
+                                      : 'bg-gray-300'
+                              }`}></div>
+                              
+                              {/* Render each layer */}
+                              {scheduleLayers.map((layer, layerIndex) => 
+                                layer.map((schedule) => {
+                                  const activityType = getActivityType(schedule.activityTypeId);
+                                  const isInternalAction = schedule.activityTypeId === 'internal-action' || schedule.type === 'internal_action';
+                                  
+                                  // Calculate if this is the starting slot for the action
+                                  const scheduleStart = parseISO(schedule.startDateTime);
+                                  const scheduleEnd = schedule.endDateTime ? parseISO(schedule.endDateTime) : scheduleStart;
+                                  const isStartingSlot = timeSlot.getTime() <= scheduleStart.getTime() && 
+                                                         scheduleStart.getTime() < (timeSlot.getTime() + (60 * 60 * 1000));
+                                  
+                                  // Calculate duration for display
+                                  const duration = calculateDuration(schedule.startDateTime, schedule.endDateTime);
+                                  const durationHours = Math.max(1, Math.ceil((scheduleEnd.getTime() - scheduleStart.getTime()) / (60 * 60 * 1000)));
+                                  
+                                  // Generate different colors for different layers
+                                  const layerColors = [
+                                    isInternalAction ? 'bg-purple-600 border-purple-400' : 'bg-blue-600 border-blue-400',
+                                    isInternalAction ? 'bg-purple-500 border-purple-300' : 'bg-green-600 border-green-400',
+                                    isInternalAction ? 'bg-purple-700 border-purple-500' : 'bg-orange-600 border-orange-400',
+                                    isInternalAction ? 'bg-purple-800 border-purple-600' : 'bg-red-600 border-red-400'
+                                  ];
+                                  
+                                  return (
+                                    <div
+                                      key={`${schedule.id}-layer-${layerIndex}`}
+                                      className={`absolute rounded text-white text-xs flex items-center gap-1 px-2 cursor-pointer hover:opacity-80 border ${
+                                        layerColors[layerIndex % layerColors.length]
+                                      }`}
+                                      style={{ 
+                                        left: '2px',
+                                        right: '2px',
+                                        top: `${2 + layerIndex * 18}px`,
+                                        height: '16px',
+                                        opacity: 0.9,
+                                        width: isStartingSlot && durationHours > 1 
+                                          ? `${Math.min(durationHours * 64, 320)}px` 
+                                          : undefined,
+                                        zIndex: isStartingSlot ? 10 : 5
+                                      }}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (isInternalAction) {
+                                          setSelectedInternalAction(schedule);
+                                          setShowInternalActionModal(true);
+                                        } else {
+                                          onScheduleClick(schedule);
+                                        }
+                                      }}
+                                      title={`${isInternalAction ? 'Ação Interna' : 'Ação Externa'}: ${schedule.title}
+Horário: ${format(parseISO(schedule.startDateTime), 'HH:mm')} - ${format(parseISO(schedule.endDateTime || schedule.startDateTime), 'HH:mm')}
+Duração: ${duration}
+Status: ${schedule.status}
+Prioridade: ${schedule.priority}
+${schedule.description ? `Descrição: ${schedule.description}` : ''}
+${schedule.locationAddress ? `Local: ${schedule.locationAddress}` : ''}`}
+                                    >
+                                      {/* Icon */}
+                                      {isInternalAction ? (
+                                        <Home className="w-3 h-3 flex-shrink-0" />
+                                      ) : (
+                                        <Navigation className="w-3 h-3 flex-shrink-0" />
+                                      )}
+                                      
+                                      {/* Duration */}
+                                      <span className="text-xs font-medium flex-shrink-0">
+                                        {duration}
+                                      </span>
+                                      
+                                      {/* Title (truncated) */}
+                                      {isStartingSlot && (
+                                        <span className="truncate text-xs">
+                                          {schedule.title.length > 15 ? `${schedule.title.substring(0, 15)}...` : schedule.title}
+                                        </span>
+                                      )}
+                                    </div>
+                                  );
+                                })
+                              )}
+                            </div>
+                          );
+                        })()}
                         
-                        {/* Actual row - clear background */}
-                        <div 
-                          className={`h-10 relative ${
-                            !worksToday 
-                              ? 'bg-gray-200' 
-                              : isBreakTime 
-                                ? 'bg-orange-100'
-                                : isWorkingHour 
-                                  ? 'bg-white' 
-                                  : 'bg-gray-100'
-                          }`}
-                          title={
-                            !worksToday 
-                              ? 'Não trabalha neste dia'
-                              : isBreakTime 
-                                ? 'Horário de intervalo'
-                                : isWorkingHour 
-                                  ? 'Horário disponível' 
-                                  : 'Fora do horário de trabalho'
-                          }
-                        >
-                          {/* Status indicator bar */}
-                          <div className={`absolute inset-x-0 bottom-0 h-1 ${
-                            !worksToday 
-                              ? 'bg-gray-400'
-                              : isBreakTime 
-                                ? 'bg-orange-400'
-                                : isWorkingHour 
-                                  ? 'bg-blue-400' 
-                                  : 'bg-gray-300'
-                          }`}></div>
-                          {actualSchedules.map((schedule) => {
-                            const activityType = getActivityType(schedule.activityTypeId);
-                            return (
-                              <div
-                                key={schedule.id}
-                                className={`absolute inset-1 rounded text-white text-xs flex items-center justify-center cursor-pointer hover:opacity-80 ${getPriorityColor(schedule.priority)}`}
-                                style={{ opacity: 0.5 }}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  onScheduleClick(schedule);
-                                }}
-                                title={`${schedule.title} - ${format(parseISO(schedule.startDateTime), 'HH:mm')}`}
-                              >
-                                <span className="truncate font-medium">
-                                  {schedule.priority === 'urgent' ? 'U' : 
-                                   schedule.priority === 'high' ? 'H' : 
-                                   schedule.priority === 'low' ? 'L' : 'M'}
-                                </span>
-                              </div>
-                            );
-                          })}
-                        </div>
+                        {(() => {
+                          // Organize actual schedules in layers to handle overlaps
+                          const actualScheduleLayers = organizeSchedulesInLayers(actualSchedules, timeSlot);
+                          const totalActualLayers = actualScheduleLayers.length;
+                          const actualRowHeight = Math.max(40, totalActualLayers * 20); // Dynamic height based on layers
+                          
+                          return (
+                            <div 
+                              className={`relative ${
+                                !worksToday 
+                                  ? 'bg-gray-200' 
+                                  : isBreakTime 
+                                    ? 'bg-orange-100'
+                                    : isWorkingHour 
+                                      ? 'bg-white' 
+                                      : 'bg-gray-100'
+                              }`}
+                              style={{ height: `${actualRowHeight}px` }}
+                              title={
+                                !worksToday 
+                                  ? 'Não trabalha neste dia'
+                                  : isBreakTime 
+                                    ? 'Horário de intervalo'
+                                    : isWorkingHour 
+                                      ? 'Horário disponível' 
+                                      : 'Fora do horário de trabalho'
+                              }
+                            >
+                              {/* Status indicator bar */}
+                              <div className={`absolute inset-x-0 bottom-0 h-1 ${
+                                !worksToday 
+                                  ? 'bg-gray-400'
+                                  : isBreakTime 
+                                    ? 'bg-orange-400'
+                                    : isWorkingHour 
+                                      ? 'bg-blue-400' 
+                                      : 'bg-gray-300'
+                              }`}></div>
+                              
+                              {/* Render each actual layer */}
+                              {actualScheduleLayers.map((layer, layerIndex) => 
+                                layer.map((schedule) => {
+                                  const activityType = getActivityType(schedule.activityTypeId);
+                                  const isInternalAction = schedule.activityTypeId === 'internal-action' || schedule.type === 'internal_action';
+                                  
+                                  // Calculate if this is the starting slot for the action
+                                  const scheduleStart = parseISO(schedule.startDateTime);
+                                  const scheduleEnd = schedule.endDateTime ? parseISO(schedule.endDateTime) : scheduleStart;
+                                  const isStartingSlot = timeSlot.getTime() <= scheduleStart.getTime() && 
+                                                         scheduleStart.getTime() < (timeSlot.getTime() + (60 * 60 * 1000));
+                                  
+                                  // Calculate duration for display
+                                  const duration = calculateDuration(schedule.startDateTime, schedule.endDateTime);
+                                  const durationHours = Math.max(1, Math.ceil((scheduleEnd.getTime() - scheduleStart.getTime()) / (60 * 60 * 1000)));
+                                  
+                                  // Generate different colors for different layers (darker for actual)
+                                  const layerColors = [
+                                    isInternalAction ? 'bg-purple-800 border-purple-600' : 'bg-blue-800 border-blue-600',
+                                    isInternalAction ? 'bg-purple-700 border-purple-500' : 'bg-green-800 border-green-600',
+                                    isInternalAction ? 'bg-purple-900 border-purple-700' : 'bg-orange-800 border-orange-600',
+                                    isInternalAction ? 'bg-purple-950 border-purple-800' : 'bg-red-800 border-red-600'
+                                  ];
+                                  
+                                  return (
+                                    <div
+                                      key={`${schedule.id}-actual-layer-${layerIndex}`}
+                                      className={`absolute rounded text-white text-xs flex items-center gap-1 px-2 cursor-pointer hover:opacity-80 border ${
+                                        layerColors[layerIndex % layerColors.length]
+                                      }`}
+                                      style={{ 
+                                        left: '2px',
+                                        right: '2px',
+                                        top: `${2 + layerIndex * 18}px`,
+                                        height: '16px',
+                                        opacity: 0.7, // Slightly more transparent for actual
+                                        width: isStartingSlot && durationHours > 1 
+                                          ? `${Math.min(durationHours * 64, 320)}px` 
+                                          : undefined,
+                                        zIndex: isStartingSlot ? 8 : 3 // Lower than planned
+                                      }}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (isInternalAction) {
+                                          setSelectedInternalAction(schedule);
+                                          setShowInternalActionModal(true);
+                                        } else {
+                                          onScheduleClick(schedule);
+                                        }
+                                      }}
+                                      title={`${isInternalAction ? 'Ação Interna' : 'Ação Externa'} (Realizada): ${schedule.title}
+Horário: ${format(parseISO(schedule.startDateTime), 'HH:mm')} - ${format(parseISO(schedule.endDateTime || schedule.startDateTime), 'HH:mm')}
+Duração: ${duration}
+Status: ${schedule.status}
+Prioridade: ${schedule.priority}
+${schedule.description ? `Descrição: ${schedule.description}` : ''}
+${schedule.locationAddress ? `Local: ${schedule.locationAddress}` : ''}`}
+                                    >
+                                      {/* Icon */}
+                                      {isInternalAction ? (
+                                        <Home className="w-3 h-3 flex-shrink-0" />
+                                      ) : (
+                                        <Navigation className="w-3 h-3 flex-shrink-0" />
+                                      )}
+                                      
+                                      {/* Duration */}
+                                      <span className="text-xs font-medium flex-shrink-0">
+                                        {duration}
+                                      </span>
+                                      
+                                      {/* Title (truncated) */}
+                                      {isStartingSlot && (
+                                        <span className="truncate text-xs">
+                                          {schedule.title.length > 15 ? `${schedule.title.substring(0, 15)}...` : schedule.title}
+                                        </span>
+                                      )}
+                                    </div>
+                                  );
+                                })
+                              )}
+                            </div>
+                          );
+                        })()}
                       </div>
                     );
                   })}
