@@ -63,12 +63,16 @@ export function FilteredUserSelect({
   }
 
   return (
-    <Select value={value || ''} onValueChange={onChange} disabled={disabled}>
+    <Select 
+      value={value || '__none__'} 
+      onValueChange={(val) => onChange(val === '__none__' ? '' : val)} 
+      disabled={disabled}
+    >
       <SelectTrigger className={className}>
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="">Nenhum responsável</SelectItem>
+        <SelectItem value="__none__">Nenhum responsável</SelectItem>
         {usersToShow.map((user: any) => (
           <SelectItem key={user.id} value={user.id}>
             <div className="flex flex-col">

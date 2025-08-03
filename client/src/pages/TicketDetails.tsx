@@ -775,7 +775,7 @@ const TicketDetails = React.memo(() => {
       callerType: ticket.caller_type || "customer",
       beneficiaryId: ticket.beneficiary_id || "",
       beneficiaryType: ticket.beneficiary_type || "customer", 
-      assignedToId: ticket.assigned_to_id || "",
+      responsibleId: ticket.assigned_to_id || "",
       assignmentGroup: ticket.assignment_group_id || ticket.assignmentGroupId || "",
       location: ticket.location || "",
       contactType: ticket.contact_type || "email",
@@ -2851,7 +2851,7 @@ const TicketDetails = React.memo(() => {
                       setSelectedAssignmentGroup(value);
                       form.setValue('assignmentGroup', value);
                       // Limpar responsável quando grupo muda
-                      form.setValue('assignedToId', '');
+                      form.setValue('responsibleId', '');
                     }}
                     placeholder="Selecione o grupo"
                     disabled={!isEditMode}
@@ -2869,8 +2869,8 @@ const TicketDetails = React.memo(() => {
               <label className="text-sm font-medium text-gray-700 mb-2 block">Responsável</label>
               {isEditMode ? (
                 <FilteredUserSelect
-                  value={form.getValues('assignedToId') || ticket.assigned_to_id || ticket.assignedToId || ''}
-                  onChange={(value) => form.setValue('assignedToId', value)}
+                  value={form.getValues('responsibleId') || ticket.assigned_to_id || ticket.responsibleId || ''}
+                  onChange={(value) => form.setValue('responsibleId', value)}
                   selectedGroupId={selectedAssignmentGroup || form.getValues('assignmentGroup') || ticket.assignment_group_id}
                   placeholder="Selecionar responsável"
                   disabled={!isEditMode}

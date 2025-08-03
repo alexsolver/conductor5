@@ -219,7 +219,9 @@ export const newTicketModalSchema = z.object({
   // Solução Temporária (opcional)
   workaround: z.string().max(1000, "Solução temporária não pode exceder 1000 caracteres").optional(),
   // Local (opcional)
-  location: z.string().optional()
+  location: z.string().optional(),
+  // Grupo de Atribuição (opcional)
+  assignmentGroup: z.string().optional()
 });
 
 // Schema para atualização de ticket (todos os campos opcionais)

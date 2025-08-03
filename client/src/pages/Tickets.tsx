@@ -534,7 +534,7 @@ export default function Tickets() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="">Nenhum favorecido</SelectItem>
+                            <SelectItem value="__none__">Nenhum favorecido</SelectItem>
                             {favorecidos.map((favorecido: any) => (
                               <SelectItem key={favorecido.id} value={favorecido.id}>
                                 {favorecido.name || favorecido.fullName || favorecido.full_name || `${favorecido.first_name || ''} ${favorecido.last_name || ''}`.trim()}
@@ -801,7 +801,7 @@ export default function Tickets() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="">Nenhum local específico</SelectItem>
+                            <SelectItem value="__none__">Nenhum local específico</SelectItem>
                             {locations.map((location: any) => (
                               <SelectItem key={location.id} value={location.id}>
                                 {location.name || location.nome}

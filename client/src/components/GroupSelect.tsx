@@ -39,12 +39,16 @@ export function GroupSelect({
   }
 
   return (
-    <Select value={value || ''} onValueChange={onChange} disabled={disabled}>
+    <Select 
+      value={value || '__none__'} 
+      onValueChange={(val) => onChange(val === '__none__' ? '' : val)} 
+      disabled={disabled}
+    >
       <SelectTrigger className={className}>
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="">Nenhum grupo</SelectItem>
+        <SelectItem value="__none__">Nenhum grupo</SelectItem>
         {groups.map((group: any) => (
           <SelectItem key={group.id} value={group.id}>
             <div className="flex flex-col">
