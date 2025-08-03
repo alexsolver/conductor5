@@ -540,6 +540,10 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                                   const activityType = getActivityType(schedule.activityTypeId);
                                   const isInternalAction = schedule.activityTypeId === 'internal-action' || schedule.type === 'internal_action';
 
+                                  // Parse schedule start and end times
+                                  const scheduleStart = parseISO(schedule.startDateTime);
+                                  const scheduleEnd = schedule.endDateTime ? parseISO(schedule.endDateTime) : scheduleStart;
+
                                   // Find the starting time slot index for this schedule
                                   const startingSlotIndex = timeSlots.findIndex(slot => {
                                     const slotStart = slot.getTime();
@@ -668,6 +672,10 @@ ${schedule.locationAddress ? `Local: ${schedule.locationAddress}` : ''}`}
                                 actualSchedules.map((schedule, index) => {
                                   const activityType = getActivityType(schedule.activityTypeId);
                                   const isInternalAction = schedule.activityTypeId === 'internal-action' || schedule.type === 'internal_action';
+
+                                  // Parse schedule start and end times
+                                  const scheduleStart = parseISO(schedule.startDateTime);
+                                  const scheduleEnd = schedule.endDateTime ? parseISO(schedule.endDateTime) : scheduleStart;
 
                                   // Find the starting time slot index for this schedule
                                   const startingSlotIndex = timeSlots.findIndex(slot => {
