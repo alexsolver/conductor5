@@ -476,9 +476,9 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                                       : 'bg-gray-300'
                               }`}></div>
 
-                              {/* Render each layer - Only show starting slots to avoid partitioning */}
-                              {scheduleLayers.map((layer, layerIndex) => 
-                                layer.map((schedule) => {
+                              {/* Render actions only in starting slot */}
+                              {plannedSchedules.length > 0 && 
+                                plannedSchedules.map((schedule, index) => {
                                   const activityType = getActivityType(schedule.activityTypeId);
                                   const isInternalAction = schedule.activityTypeId === 'internal-action';
 
@@ -486,34 +486,36 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                                   const scheduleStart = parseISO(schedule.startDateTime);
                                   const scheduleEnd = schedule.endDateTime ? parseISO(schedule.endDateTime) : scheduleStart;
 
-                                  // Get the exact hour of the schedule start
-                                  const scheduleStartHour = scheduleStart.getHours();
-                                  const timeSlotHour = timeSlot.getHours();
+                                  // Only render if this time slot matches the exact start time
+                                  const timeSlotStart = timeSlot.getTime();
+                                  const scheduleStartTime = scheduleStart.getTime();
+                                  
+                                  // Check if this timeslot is the start of the schedule (within the hour)
+                                  const hoursDiff = Math.abs(timeSlotStart - scheduleStartTime) / (1000 * 60 * 60);
+                                  const isStartingSlot = hoursDiff < 1 && 
+                                                        timeSlot.getHours() === scheduleStart.getHours() &&
+                                                        timeSlot.getDate() === scheduleStart.getDate() &&
+                                                        timeSlot.getMonth() === scheduleStart.getMonth() &&
+                                                        timeSlot.getFullYear() === scheduleStart.getFullYear();
 
-                                  // Only render at the exact starting hour to prevent partitioning
-                                  const isExactStartingSlot = scheduleStartHour === timeSlotHour && 
-                                                             timeSlot.getDate() === scheduleStart.getDate() &&
-                                                             timeSlot.getMonth() === scheduleStart.getMonth() &&
-                                                             timeSlot.getFullYear() === scheduleStart.getFullYear();
-
-                                  // Skip non-exact starting slots to prevent partitioning
-                                  if (!isExactStartingSlot) return null;
+                                  // Skip if not starting slot
+                                  if (!isStartingSlot) return null;
 
                                   // Calculate duration for display
                                   const duration = calculateDuration(schedule.startDateTime, schedule.endDateTime);
                                   const durationHours = Math.max(1, Math.ceil((scheduleEnd.getTime() - scheduleStart.getTime()) / (60 * 60 * 1000)));
 
-                                  // Use consistent colors without layers to avoid visual confusion
+                                  // Use consistent colors
                                   const blockColor = isInternalAction ? 'bg-purple-600 border-purple-400' : 'bg-blue-600 border-blue-400';
 
                                   return (
                                     <div
-                                      key={`${schedule.id}-unified`}
+                                      key={`${schedule.id}-planned-${index}`}
                                       className={`absolute rounded text-white text-xs flex items-center gap-1 px-2 cursor-pointer hover:opacity-80 border ${blockColor}`}
                                       style={{ 
                                         left: '2px',
                                         right: durationHours > 1 ? undefined : '2px',
-                                        top: `${2 + layerIndex * 20}px`,
+                                        top: `${2 + index * 20}px`,
                                         height: '18px',
                                         width: durationHours > 1 
                                           ? `${Math.min(durationHours * 64 - 4, 316)}px` 
@@ -557,7 +559,7 @@ ${schedule.locationAddress ? `Local: ${schedule.locationAddress}` : ''}`}
                                     </div>
                                   );
                                 })
-                              )}
+                              }
                             </div>
                           );
                         })()}
@@ -601,9 +603,9 @@ ${schedule.locationAddress ? `Local: ${schedule.locationAddress}` : ''}`}
                                       : 'bg-gray-300'
                               }`}></div>
 
-                              {/* Render each layer - Only show starting slots to avoid partitioning */}
-                              {actualScheduleLayers.map((layer, layerIndex) => 
-                                layer.map((schedule) => {
+                              {/* Render actual actions only in starting slot */}
+                              {actualSchedules.length > 0 && 
+                                actualSchedules.map((schedule, index) => {
                                   const activityType = getActivityType(schedule.activityTypeId);
                                   const isInternalAction = schedule.activityTypeId === 'internal-action';
 
@@ -611,34 +613,36 @@ ${schedule.locationAddress ? `Local: ${schedule.locationAddress}` : ''}`}
                                   const scheduleStart = parseISO(schedule.startDateTime);
                                   const scheduleEnd = schedule.endDateTime ? parseISO(schedule.endDateTime) : scheduleStart;
 
-                                  // Get the exact hour of the schedule start
-                                  const scheduleStartHour = scheduleStart.getHours();
-                                  const timeSlotHour = timeSlot.getHours();
+                                  // Only render if this time slot matches the exact start time
+                                  const timeSlotStart = timeSlot.getTime();
+                                  const scheduleStartTime = scheduleStart.getTime();
+                                  
+                                  // Check if this timeslot is the start of the schedule (within the hour)
+                                  const hoursDiff = Math.abs(timeSlotStart - scheduleStartTime) / (1000 * 60 * 60);
+                                  const isStartingSlot = hoursDiff < 1 && 
+                                                        timeSlot.getHours() === scheduleStart.getHours() &&
+                                                        timeSlot.getDate() === scheduleStart.getDate() &&
+                                                        timeSlot.getMonth() === scheduleStart.getMonth() &&
+                                                        timeSlot.getFullYear() === scheduleStart.getFullYear();
 
-                                  // Only render at the exact starting hour to prevent partitioning
-                                  const isExactStartingSlot = scheduleStartHour === timeSlotHour && 
-                                                             timeSlot.getDate() === scheduleStart.getDate() &&
-                                                             timeSlot.getMonth() === scheduleStart.getMonth() &&
-                                                             timeSlot.getFullYear() === scheduleStart.getFullYear();
-
-                                  // Skip non-exact starting slots to prevent partitioning
-                                  if (!isExactStartingSlot) return null;
+                                  // Skip if not starting slot
+                                  if (!isStartingSlot) return null;
 
                                   // Calculate duration for display
                                   const duration = calculateDuration(schedule.startDateTime, schedule.endDateTime);
                                   const durationHours = Math.max(1, Math.ceil((scheduleEnd.getTime() - scheduleStart.getTime()) / (60 * 60 * 1000)));
 
-                                  // Use consistent colors without layers to avoid visual confusion
+                                  // Use consistent colors
                                   const blockColor = isInternalAction ? 'bg-purple-600 border-purple-400' : 'bg-blue-600 border-blue-400';
 
                                   return (
                                     <div
-                                      key={`${schedule.id}-actual-unified`}
+                                      key={`${schedule.id}-actual-${index}`}
                                       className={`absolute rounded text-white text-xs flex items-center gap-1 px-2 cursor-pointer hover:opacity-60 border ${blockColor}`}
                                       style={{ 
                                         left: '2px',
                                         right: durationHours > 1 ? undefined : '2px',
-                                        top: `${2 + layerIndex * 20}px`,
+                                        top: `${2 + index * 20}px`,
                                         height: '18px',
                                         opacity: 0.8, // Slightly more transparent for actual
                                         width: durationHours > 1 
@@ -683,7 +687,7 @@ ${schedule.locationAddress ? `Local: ${schedule.locationAddress}` : ''}`}
                                     </div>
                                   );
                                 })
-                              )}
+                              }
                             </div>
                           );
                         })()}
