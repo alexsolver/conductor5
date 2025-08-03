@@ -75,12 +75,7 @@ const TicketDetails = React.memo(() => {
     }
   }, []);
 
-  // Sync assignment group state with ticket data
-  useEffect(() => {
-    if (ticket?.assignmentGroupId || ticket?.assignment_group_id) {
-      setSelectedAssignmentGroup(ticket.assignmentGroupId || ticket.assignment_group_id);
-    }
-  }, [ticket?.assignmentGroupId, ticket?.assignment_group_id]);
+
   const [dragActive, setDragActive] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [attachments, setAttachments] = useState<any[]>([]);
@@ -572,6 +567,11 @@ const TicketDetails = React.memo(() => {
       if (Array.isArray(ticket.tags)) {
         setTags(ticket.tags);
       }
+
+      // Sync assignment group state with ticket data
+      if (ticket.assignmentGroupId || ticket.assignment_group_id) {
+        setSelectedAssignmentGroup(ticket.assignmentGroupId || ticket.assignment_group_id);
+      }
     }
   }, [ticketCommunications, ticketAttachments, ticketNotes, ticketActions, ticketRelationships, ticket]);
 
@@ -776,7 +776,7 @@ const TicketDetails = React.memo(() => {
       beneficiaryId: ticket.beneficiary_id || "",
       beneficiaryType: ticket.beneficiary_type || "customer", 
       assignedToId: ticket.assigned_to_id || "",
-      assignmentGroup: ticket.assignment_group || "",
+      assignmentGroup: ticket.assignment_group_id || ticket.assignmentGroupId || "",
       location: ticket.location || "",
       contactType: ticket.contact_type || "email",
       followers: ticket.followers || [],
