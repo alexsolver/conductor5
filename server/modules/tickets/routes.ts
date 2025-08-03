@@ -1618,10 +1618,43 @@ ticketsRouter.put('/:ticketId/actions/:actionId', jwtAuth, async (req: Authentic
       const userAgent = getUserAgent(req);
       const sessionId = getSessionId(req);
 
-      // Buscar nome do usuário
+      // Buscar nomes dos usuários (editor e usuários atribuídos)
       const userQuery = `SELECT first_name || ' ' || last_name as full_name FROM public.users WHERE id = $1`;
       const userResult = await pool.query(userQuery, [req.user.id]);
       const userName = userResult.rows[0]?.full_name || req.user?.email || 'Unknown User';
+
+      // Buscar nomes dos usuários atribuídos (antigo e novo)
+      let oldAssignedName = 'N/A';
+      let newAssignedName = 'N/A';
+      
+      if (currentAction.agent_id) {
+        const oldUserResult = await pool.query(userQuery, [currentAction.agent_id]);
+        oldAssignedName = oldUserResult.rows[0]?.full_name || 'Unknown User';
+      }
+      
+      if (assignedToId || currentAction.agent_id) {
+        const newUserResult = await pool.query(userQuery, [assignedToId || currentAction.agent_id]);
+        newAssignedName = newUserResult.rows[0]?.full_name || 'Unknown User';
+      }
+
+      // Detectar mudanças e criar descrição detalhada
+      const changes = [];
+      if (currentAction.description !== contentDescription) {
+        changes.push(`descrição alterada`);
+      }
+      if (currentAction.action_type !== finalActionType) {
+        changes.push(`tipo alterado de "${currentAction.action_type}" para "${finalActionType}"`);
+      }
+      if (currentAction.status !== (status || currentAction.status)) {
+        changes.push(`status alterado de "${currentAction.status}" para "${status || currentAction.status}"`);
+      }
+      if (currentAction.agent_id !== (assignedToId || currentAction.agent_id)) {
+        changes.push(`atribuído de "${oldAssignedName}" para "${newAssignedName}"`);
+      }
+      
+      const changeDescription = changes.length > 0 
+        ? `Ação interna ${updatedAction.action_number} editada: ${changes.join(', ')}`
+        : `Ação interna ${updatedAction.action_number} editada`;
 
       await pool.query(`
         INSERT INTO "${schemaName}".ticket_history 
@@ -1631,7 +1664,7 @@ ticketsRouter.put('/:ticketId/actions/:actionId', jwtAuth, async (req: Authentic
         tenantId,
         ticketId,
         'internal_action_updated',
-        `Ação interna editada: ${contentDescription}`,
+        changeDescription,
         req.user.id,
         userName,
         ipAddress,
@@ -1643,7 +1676,14 @@ ticketsRouter.put('/:ticketId/actions/:actionId', jwtAuth, async (req: Authentic
           old_description: currentAction.description,
           new_description: contentDescription,
           old_status: currentAction.status,
-          new_status: status || currentAction.status
+          new_status: status || currentAction.status,
+          old_action_type: currentAction.action_type,
+          new_action_type: finalActionType,
+          old_assigned_to: currentAction.agent_id,
+          new_assigned_to: assignedToId || currentAction.agent_id,
+          old_assigned_name: oldAssignedName,
+          new_assigned_name: newAssignedName,
+          changes_detected: changes
         })
       ]);
     } catch (historyError) {
