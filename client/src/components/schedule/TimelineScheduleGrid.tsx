@@ -629,13 +629,19 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                                           onScheduleClick(schedule);
                                         }
                                       }}
-                                      title={`${isInternalAction ? 'Ação Interna' : 'Ação Externa'}: ${schedule.title}
-Horário: ${format(parseISO(schedule.startDateTime), 'HH:mm')} - ${format(parseISO(schedule.endDateTime || schedule.startDateTime), 'HH:mm')}
-Duração: ${duration}
-Status: ${schedule.status}
-Prioridade: ${schedule.priority}
-${schedule.description ? `Descrição: ${schedule.description}` : ''}
-${schedule.locationAddress ? `Local: ${schedule.locationAddress}` : ''}`}
+                                      title={(() => {
+                                        const actionType = isInternalAction ? 'Ação Interna' : 'Ação Externa';
+                                        const startTime = scheduleStart.getHours().toString().padStart(2, '0') + ':' + scheduleStart.getMinutes().toString().padStart(2, '0');
+                                        const endTime = scheduleEnd.getHours().toString().padStart(2, '0') + ':' + scheduleEnd.getMinutes().toString().padStart(2, '0');
+                                        
+                                        let tooltip = `${actionType}: ${schedule.title}\nHorário: ${startTime} - ${endTime}\nDuração: ${duration}\nStatus: ${schedule.status}\nPrioridade: ${schedule.priority}`;
+                                        
+                                        if (schedule.description) tooltip += `\nDescrição: ${schedule.description}`;
+                                        if (schedule.locationAddress) tooltip += `\nLocal: ${schedule.locationAddress}`;
+                                        if (schedule.ticketNumber) tooltip += `\nTicket: ${schedule.ticketNumber}`;
+                                        
+                                        return tooltip;
+                                      })()}
                                     >
                                       {/* Icon */}
                                       {isInternalAction ? (
@@ -795,13 +801,19 @@ ${schedule.locationAddress ? `Local: ${schedule.locationAddress}` : ''}`}
                                           onScheduleClick(schedule);
                                         }
                                       }}
-                                      title={`${isInternalAction ? 'Ação Interna' : 'Ação Externa'} (Realizada): ${schedule.title}
-Horário: ${format(parseISO(schedule.startDateTime), 'HH:mm')} - ${format(parseISO(schedule.endDateTime || schedule.startDateTime), 'HH:mm')}
-Duração: ${duration}
-Status: ${schedule.status}
-Prioridade: ${schedule.priority}
-${schedule.description ? `Descrição: ${schedule.description}` : ''}
-${schedule.locationAddress ? `Local: ${schedule.locationAddress}` : ''}`}
+                                      title={(() => {
+                                        const actionType = isInternalAction ? 'Ação Interna' : 'Ação Externa';
+                                        const startTime = scheduleStart.getHours().toString().padStart(2, '0') + ':' + scheduleStart.getMinutes().toString().padStart(2, '0');
+                                        const endTime = scheduleEnd.getHours().toString().padStart(2, '0') + ':' + scheduleEnd.getMinutes().toString().padStart(2, '0');
+                                        
+                                        let tooltip = `${actionType} (Realizada): ${schedule.title}\nHorário: ${startTime} - ${endTime}\nDuração: ${duration}\nStatus: ${schedule.status}\nPrioridade: ${schedule.priority}`;
+                                        
+                                        if (schedule.description) tooltip += `\nDescrição: ${schedule.description}`;
+                                        if (schedule.locationAddress) tooltip += `\nLocal: ${schedule.locationAddress}`;
+                                        if (schedule.ticketNumber) tooltip += `\nTicket: ${schedule.ticketNumber}`;
+                                        
+                                        return tooltip;
+                                      })()}
                                     >
                                       {/* Icon */}
                                       {isInternalAction ? (
