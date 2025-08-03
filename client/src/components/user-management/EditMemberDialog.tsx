@@ -48,21 +48,42 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
 
   const form = useForm({
     defaultValues: {
+      // Dados Básicos
       firstName: '',
       lastName: '',
       email: '',
-      phone: '',
+      integrationCode: '',
+      alternativeEmail: '',
       cellPhone: '',
-      role: '',
-      cargo: '',
+      phone: '',
+      ramal: '',
+      timeZone: 'America/Sao_Paulo',
+      vehicleType: '',
+      cpfCnpj: '',
+      
+      // Endereço
       cep: '',
+      country: 'Brasil',
       state: '',
       city: '',
       streetAddress: '',
+      houseType: '',
+      houseNumber: '',
+      complement: '',
+      neighborhood: '',
+      
+      // Dados RH
       employeeCode: '',
       pis: '',
+      cargo: '',
+      ctps: '',
+      serieNumber: '',
       admissionDate: '',
+      costCenter: '',
       employmentType: 'clt',
+      
+      // Sistema
+      role: '',
       groupIds: []
     }
   });
@@ -105,30 +126,55 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
     
     if (memberData && open && !memberLoading) {
       console.log('EditMemberDialog - Setting form data for member:', memberData);
+      console.log('EditMemberDialog - Available data keys:', Object.keys(memberData));
 
-      // Handle different data structures
-      const firstName = memberData.firstName || (memberData.name ? memberData.name.split(' ')[0] : '');
-      const lastName = memberData.lastName || (memberData.name ? memberData.name.split(' ').slice(1).join(' ') : '');
+      // Handle different data structures with more comprehensive mapping
+      const firstName = memberData.firstName || memberData.first_name || (memberData.name ? memberData.name.split(' ')[0] : '');
+      const lastName = memberData.lastName || memberData.last_name || (memberData.name ? memberData.name.split(' ').slice(1).join(' ') : '');
 
-      form.reset({
+      const formDataToSet = {
+        // Dados Básicos
         firstName,
         lastName,
         email: memberData.email || '',
-        phone: memberData.phone || '',
+        integrationCode: memberData.integrationCode || memberData.integration_code || '',
+        alternativeEmail: memberData.alternativeEmail || memberData.alternative_email || '',
         cellPhone: memberData.cellPhone || memberData.cell_phone || '',
-        role: memberData.role || '',
-        cargo: memberData.position || memberData.cargo || '',
+        phone: memberData.phone || '',
+        ramal: memberData.ramal || '',
+        timeZone: memberData.timeZone || memberData.time_zone || 'America/Sao_Paulo',
+        vehicleType: memberData.vehicleType || memberData.vehicle_type || '',
+        cpfCnpj: memberData.cpfCnpj || memberData.cpf_cnpj || '',
+        
+        // Endereço
         cep: memberData.cep || '',
+        country: memberData.country || 'Brasil',
         state: memberData.state || '',
         city: memberData.city || '',
-        streetAddress: memberData.streetAddress || memberData.address || memberData.street_address || '',
+        streetAddress: memberData.streetAddress || memberData.street_address || memberData.address || '',
+        houseType: memberData.houseType || memberData.house_type || '',
+        houseNumber: memberData.houseNumber || memberData.house_number || '',
+        complement: memberData.complement || '',
+        neighborhood: memberData.neighborhood || '',
+        
+        // Dados RH
         employeeCode: memberData.employeeCode || memberData.employee_code || '',
         pis: memberData.pis || '',
+        cargo: memberData.position || memberData.cargo || '',
+        ctps: memberData.ctps || '',
+        serieNumber: memberData.serieNumber || memberData.serie_number || '',
         admissionDate: memberData.admissionDate || memberData.admission_date ? 
           new Date(memberData.admissionDate || memberData.admission_date).toISOString().split('T')[0] : '',
+        costCenter: memberData.costCenter || memberData.cost_center || '',
         employmentType: memberData.employmentType || memberData.employment_type || 'clt',
+        
+        // Sistema
+        role: memberData.role || '',
         groupIds: memberData.groupIds || memberData.group_ids || []
-      });
+      };
+
+      console.log('EditMemberDialog - Setting form data:', formDataToSet);
+      form.reset(formDataToSet);
     }
   }, [memberDetails, member, open, memberLoading, form]);
 
@@ -265,6 +311,55 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
                   />
                 </div>
               </div>
+              <div>
+                <Label htmlFor="alternativeEmail">E-mail Alternativo</Label>
+                <Input
+                  id="alternativeEmail"
+                  type="email"
+                  {...form.register('alternativeEmail')}
+                  placeholder="email.alternativo@empresa.com"
+                />
+              </div>
+              <div>
+                <Label htmlFor="ramal">Ramal</Label>
+                <Input
+                  id="ramal"
+                  {...form.register('ramal')}
+                  placeholder="123"
+                />
+              </div>
+              <div>
+                <Label htmlFor="cpfCnpj">CPF/CNPJ</Label>
+                <Input
+                  id="cpfCnpj"
+                  {...form.register('cpfCnpj')}
+                  placeholder="000.000.000-00"
+                />
+              </div>
+              <div>
+                <Label htmlFor="integrationCode">Código de Integração</Label>
+                <Input
+                  id="integrationCode"
+                  {...form.register('integrationCode')}
+                  placeholder="COD_INT_123"
+                />
+              </div>
+              <div>
+                <Label htmlFor="vehicleType">Tipo de Veículo</Label>
+                <Select 
+                  value={form.watch('vehicleType')} 
+                  onValueChange={(value) => form.setValue('vehicleType', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Nenhum</SelectItem>
+                    <SelectItem value="particular">Particular</SelectItem>
+                    <SelectItem value="empresarial">Empresarial</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </CardContent>
           </Card>
 
@@ -371,6 +466,30 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
                   />
                 </div>
               </div>
+              <div>
+                <Label htmlFor="ctps">CTPS</Label>
+                <Input
+                  id="ctps"
+                  {...form.register('ctps')}
+                  placeholder="1234567890"
+                />
+              </div>
+              <div>
+                <Label htmlFor="serieNumber">Série CTPS</Label>
+                <Input
+                  id="serieNumber"
+                  {...form.register('serieNumber')}
+                  placeholder="001"
+                />
+              </div>
+              <div>
+                <Label htmlFor="costCenter">Centro de Custo</Label>
+                <Input
+                  id="costCenter"
+                  {...form.register('costCenter')}
+                  placeholder="CC001"
+                />
+              </div>
             </CardContent>
           </Card>
 
@@ -413,6 +532,46 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
                   id="streetAddress"
                   {...form.register('streetAddress')}
                   placeholder="Rua das Flores, 123"
+                />
+              </div>
+              <div>
+                <Label htmlFor="houseType">Tipo de Residência</Label>
+                <Input
+                  id="houseType"
+                  {...form.register('houseType')}
+                  placeholder="Casa, Apartamento, etc."
+                />
+              </div>
+              <div>
+                <Label htmlFor="houseNumber">Número</Label>
+                <Input
+                  id="houseNumber"
+                  {...form.register('houseNumber')}
+                  placeholder="123"
+                />
+              </div>
+              <div>
+                <Label htmlFor="complement">Complemento</Label>
+                <Input
+                  id="complement"
+                  {...form.register('complement')}
+                  placeholder="Apto 45, Bloco B"
+                />
+              </div>
+              <div>
+                <Label htmlFor="neighborhood">Bairro</Label>
+                <Input
+                  id="neighborhood"
+                  {...form.register('neighborhood')}
+                  placeholder="Centro"
+                />
+              </div>
+              <div>
+                <Label htmlFor="country">País</Label>
+                <Input
+                  id="country"
+                  {...form.register('country')}
+                  placeholder="Brasil"
                 />
               </div>
             </CardContent>
