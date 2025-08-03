@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Clock, User, FileText, Calendar, Edit2, Save, X } from "lucide-react";
+import { Clock, User, FileText, Calendar, Edit2, Save, X, ExternalLink } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -165,6 +165,15 @@ export default function InternalActionDetailsModal({
             <div className="text-xs text-gray-500 font-mono">
               Número: {internalAction.actionNumber || internalAction.id}
             </div>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => window.open(`/tickets/${internalAction.ticketId}#internal-actions`, '_blank')}
+              className="mt-2 text-xs h-6 px-2"
+            >
+              <ExternalLink className="w-3 h-3 mr-1" />
+              Ver no Ticket
+            </Button>
           </DialogDescription>
         </DialogHeader>
 

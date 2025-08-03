@@ -234,6 +234,14 @@ const TicketDetails = React.memo(() => {
 
   // Sidebar sempre fixa e visível - tab padrão é informações
   const [activeTab, setActiveTab] = useState("informacoes");
+
+  // Handle hash-based navigation for direct tab access
+  useEffect(() => {
+    const hash = window.location.hash.replace('#', '');
+    if (hash && ['informacoes', 'attachments', 'notes', 'communications', 'history', 'internal-actions', 'links', 'latest-interactions'].includes(hash)) {
+      setActiveTab(hash);
+    }
+  }, []);
   const [dragActive, setDragActive] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [attachments, setAttachments] = useState<any[]>([]);
