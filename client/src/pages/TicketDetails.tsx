@@ -1940,7 +1940,10 @@ const TicketDetails = React.memo(() => {
                             </span>
                             {historyViewMode === 'advanced' && (
                               <Badge variant="secondary" className="text-xs">
-                                {historyItem.action_type.toUpperCase()}
+                                {/* Para ações internas, mostrar o tipo específico da ação */}
+                                {(historyItem.action_type === 'internal_action' || historyItem.action_type === 'ação interna') && historyItem.metadata?.action_type ? 
+                                  historyItem.metadata.action_type.toUpperCase() : 
+                                  historyItem.action_type.toUpperCase()}
                               </Badge>
                             )}
                           </div>
