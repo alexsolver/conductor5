@@ -304,7 +304,7 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
       </div>
 
       {/* Timeline Grid */}
-      <div className="border rounded-lg bg-white overflow-hidden" style={{ maxHeight: 'calc(100vh - 300px)' }}>
+      <div className="border rounded-lg bg-white overflow-hidden" style={{ maxHeight: 'calc(100vh - 280px)' }}>
         {/* Header with time slots */}
         <div className="flex border-b bg-gray-50 sticky top-0 z-10">
           {/* Left sidebar space */}
@@ -330,7 +330,7 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
         </div>
 
         {/* Content area */}
-        <div className="flex overflow-y-auto" style={{ maxHeight: 'calc(100vh - 380px)' }}>
+        <div className="flex overflow-y-auto" style={{ maxHeight: 'calc(100vh - 360px)' }}>
           {/* Left sidebar with agent list */}
           <div className="w-64 flex-shrink-0 border-r bg-gray-50">
             {filteredAgents.map((agent) => {

@@ -329,7 +329,7 @@ const AgendaManager: React.FC = () => {
   const isLoading = schedulesLoading || activityTypesLoading || agentsLoading || internalActionsLoading;
 
   return (
-    <div className="p-4 space-y-6 h-screen overflow-hidden flex flex-col">
+    <div className="p-4 space-y-4 h-screen overflow-hidden flex flex-col">
       {/* Header */}
       <Card>
         <CardHeader className="space-y-4">

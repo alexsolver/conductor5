@@ -154,7 +154,7 @@ export default function InternalActionDetailsModal({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       
-      <DialogContent className="sm:max-w-[600px] max-h-[85vh] overflow-hidden flex flex-col">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-purple-500"></div>
@@ -168,7 +168,7 @@ export default function InternalActionDetailsModal({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto space-y-6">
+        <div className="flex-1 overflow-y-auto space-y-6" style={{ maxHeight: 'calc(90vh - 180px)' }}>
           {/* Technical Info Card */}
           <Card className="border-purple-200 bg-purple-50">
             <CardContent className="p-4">
@@ -344,7 +344,7 @@ export default function InternalActionDetailsModal({
           </Card>
         </div>
 
-        <div className="flex-shrink-0 flex justify-end pt-4 border-t mt-4">
+        <div className="flex-shrink-0 flex justify-end gap-2 pt-4 border-t mt-4 bg-white">
           {!isEditing ? (
             <Button
               variant="outline"
