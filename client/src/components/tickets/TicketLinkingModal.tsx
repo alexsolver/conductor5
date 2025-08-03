@@ -156,6 +156,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
       });
       if (currentTicket?.id) {
         queryClient.invalidateQueries({ queryKey: ["/api/tickets", currentTicket.id, "relationships"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/ticket-relationships", currentTicket.id, "relationships"] });
       }
       setSelectedTickets([]);
       setRelationshipType("");
@@ -183,6 +184,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
       });
       if (currentTicket?.id) {
         queryClient.invalidateQueries({ queryKey: ["/api/tickets", currentTicket.id, "relationships"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/ticket-relationships", currentTicket.id, "relationships"] });
       }
     },
     onError: (error: Error) => {
