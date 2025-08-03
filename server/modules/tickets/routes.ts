@@ -1869,6 +1869,8 @@ ticketsRouter.post('/:id/relationships', jwtAuth, async (req: AuthenticatedReque
     const { pool } = await import('../../db');
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
+    console.log('🔗 Creating relationship:', { id, targetTicketId, relationshipType });
+
     // Validate required fields
     if (!targetTicketId || !relationshipType) {
       return res.status(400).json({ message: "Target ticket ID and relationship type are required" });
@@ -1907,6 +1909,8 @@ ticketsRouter.post('/:id/relationships', jwtAuth, async (req: AuthenticatedReque
       tenantId, id, targetTicketId, relationshipType, description || null, req.user.id
     ]);
 
+    console.log('✅ Relationship created successfully:', result.rows[0]);
+
     // Create audit trail for relationship creation
     try {
       await createCompleteAuditEntry(
@@ -1931,12 +1935,19 @@ ticketsRouter.post('/:id/relationships', jwtAuth, async (req: AuthenticatedReque
       await pool.query(insertQuery, [
         tenantId, targetTicketId, id, relationshipType, description || null, req.user.id
       ]);
+      console.log('✅ Reciprocal relationship created');
     }
 
+    // Resposta otimizada com dados completos para cache imediato
     res.status(201).json({
       success: true,
-      data: result.rows[0],
-      message: "Relationship created successfully"
+      data: {
+        ...result.rows[0],
+        source_ticket_id: id,
+        target_ticket_id: targetTicketId
+      },
+      message: "Relationship created successfully",
+      timestamp: new Date().toISOString()
     });
 
   } catch (error) {
