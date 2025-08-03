@@ -1604,7 +1604,7 @@ ticketsRouter.put('/:ticketId/actions/:actionId', jwtAuth, async (req: Authentic
     // ONLY update ticket_history table - DO NOT create new records
     const updateHistoryQuery = `
       UPDATE "${schemaName}".ticket_history 
-      SET description = $1, action_type = $2, updated_at = NOW()
+      SET description = $1, action_type = $2
       WHERE id = $3 AND tenant_id = $4 AND ticket_id = $5
       RETURNING *
     `;
@@ -1637,8 +1637,7 @@ ticketsRouter.put('/:ticketId/actions/:actionId', jwtAuth, async (req: Authentic
         end_time = $4,
         status = $5,
         agent_id = $6,
-        estimated_hours = $7,
-        updated_at = NOW()
+        estimated_hours = $7
       WHERE ticket_id = $8 AND action_type = $9 AND tenant_id = $10
         AND ABS(EXTRACT(EPOCH FROM (created_at - $11::timestamp))) < 120
     `;
