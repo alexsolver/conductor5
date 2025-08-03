@@ -14,7 +14,7 @@ import { timecardRoutes } from './routes/timecardRoutes';
 import productivityRoutes from './routes/productivityRoutes';
 import { db, sql } from "./db";
 import { ActivityTrackingService } from './services/ActivityTrackingService';
-import userGroupsRoutes from './routes/userGroups';
+import { userGroupsRouter } from './routes/userGroups';
 import userGroupsByAgentRoutes from './routes/userGroupsByAgent';
 import userManagementRoutes from './routes/userManagementRoutes';
 
@@ -113,7 +113,7 @@ app.use((req, res, next) => {
   const employmentRoutes = await import('./routes/employmentRoutes');
   app.use('/api/employment', employmentRoutes.default);
 
-  app.use('/api', userGroupsRoutes);
+  app.use('/api/user-groups', userGroupsRouter);
   app.use('/api', userGroupsByAgentRoutes);
   app.use('/api', userManagementRoutes);
 
