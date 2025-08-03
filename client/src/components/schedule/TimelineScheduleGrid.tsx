@@ -476,8 +476,8 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                                       : 'bg-gray-300'
                               }`}></div>
 
-                              {/* Render actions only in starting slot */}
-                              {timeIndex === 0 && plannedSchedules.length > 0 && 
+                              {/* Render actions in their time slots */}
+                              {plannedSchedules.length > 0 && 
                                 plannedSchedules.map((schedule, index) => {
                                   const activityType = getActivityType(schedule.activityTypeId);
                                   const isInternalAction = schedule.activityTypeId === 'internal-action' || schedule.type === 'internal_action';
@@ -604,8 +604,8 @@ ${schedule.locationAddress ? `Local: ${schedule.locationAddress}` : ''}`}
                                       : 'bg-gray-300'
                               }`}></div>
 
-                              {/* Render actual actions only in starting slot */}
-                              {timeIndex === 0 && actualSchedules.length > 0 && 
+                              {/* Render actual actions in their time slots */}
+                              {actualSchedules.length > 0 && 
                                 actualSchedules.map((schedule, index) => {
                                   const activityType = getActivityType(schedule.activityTypeId);
                                   const isInternalAction = schedule.activityTypeId === 'internal-action' || schedule.type === 'internal_action';
