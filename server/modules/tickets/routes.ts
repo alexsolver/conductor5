@@ -22,26 +22,72 @@ async function generateActionNumber(pool: any, tenantId: string, ticketId: strin
     
     const ticketNumber = ticketResult.rows[0].number;
     
-    // Create or get action sequence for this specific ticket
-    const sequenceQuery = `
-      INSERT INTO public.ticket_action_sequences (tenant_id, ticket_id, current_number, last_updated)
-      VALUES ($1, $2, 1, NOW())
-      ON CONFLICT (tenant_id, ticket_id) 
-      DO UPDATE SET 
-        current_number = ticket_action_sequences.current_number + 1,
-        last_updated = NOW()
-      RETURNING current_number
+    // First, ensure the sequence table exists
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS public.ticket_action_sequences (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        tenant_id UUID NOT NULL,
+        ticket_id UUID NOT NULL,
+        current_number INTEGER DEFAULT 0,
+        last_updated TIMESTAMP DEFAULT NOW(),
+        CONSTRAINT unique_tenant_ticket_sequence UNIQUE(tenant_id, ticket_id)
+      )
+    `);
+    
+    // Get the current highest action number for this ticket to ensure uniqueness
+    const existingActionsQuery = `
+      SELECT action_number FROM "${schemaName}".ticket_internal_actions 
+      WHERE ticket_id = $1 AND tenant_id = $2 
+      AND action_number LIKE $3
+      ORDER BY created_at DESC
+      LIMIT 1
     `;
     
-    const result = await pool.query(sequenceQuery, [tenantId, ticketId]);
-    const sequenceNumber = result.rows[0].current_number;
+    const existingResult = await pool.query(existingActionsQuery, [
+      ticketId, 
+      tenantId, 
+      `${ticketNumber}AI%`
+    ]);
     
-    // Format as {TICKET_NUMBER}AI{4-digit sequence} (e.g., T2025-000001AI0001)
-    const formattedSequence = String(sequenceNumber).padStart(4, '0');
-    const actionNumber = `${ticketNumber}AI${formattedSequence}`;
+    let nextSequence = 1;
     
-    console.log(`✅ Generated action number: ${actionNumber} for ticket: ${ticketNumber}`);
-    return actionNumber;
+    if (existingResult.rows.length > 0) {
+      const lastActionNumber = existingResult.rows[0].action_number;
+      const sequenceMatch = lastActionNumber.match(/AI(\d+)$/);
+      if (sequenceMatch) {
+        nextSequence = parseInt(sequenceMatch[1]) + 1;
+      }
+    }
+    
+    // Double-check for uniqueness in a transaction
+    let finalSequence = nextSequence;
+    let attempts = 0;
+    const maxAttempts = 100;
+    
+    while (attempts < maxAttempts) {
+      const testActionNumber = `${ticketNumber}AI${String(finalSequence).padStart(4, '0')}`;
+      
+      const duplicateCheck = await pool.query(`
+        SELECT id FROM "${schemaName}".ticket_internal_actions 
+        WHERE action_number = $1 AND tenant_id = $2
+      `, [testActionNumber, tenantId]);
+      
+      if (duplicateCheck.rows.length === 0) {
+        // This number is unique
+        const actionNumber = testActionNumber;
+        console.log(`✅ Generated unique action number: ${actionNumber} for ticket: ${ticketNumber} (attempt ${attempts + 1})`);
+        return actionNumber;
+      }
+      
+      finalSequence++;
+      attempts++;
+    }
+    
+    // If we reach here, fallback to timestamp
+    const timestamp = Date.now();
+    const fallbackNumber = `${ticketNumber}AI-FB-${timestamp.toString().slice(-6)}`;
+    console.log(`⚠️ Using fallback action number: ${fallbackNumber}`);
+    return fallbackNumber;
     
   } catch (error) {
     console.error('⚠️ Error generating action number:', error);
