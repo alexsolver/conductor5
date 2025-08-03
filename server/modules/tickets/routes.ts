@@ -812,8 +812,7 @@ ticketsRouter.get('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, res
 
     res.json({
       success: true,
-      ```text
-data: result.rows,
+      data: result.rows,
       count: result.rows.length
     });
   } catch (error) {
