@@ -110,15 +110,15 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
         });
 
       case '30min':
-        // 24 hours with 30-minute intervals
-        return Array.from({ length: 48 }, (_, i) => {
+        // 48 hours with 30-minute intervals
+        return Array.from({ length: 96 }, (_, i) => {
           const time = addMinutes(startOfDay(selectedDate), i * 30);
           return time;
         });
 
       case '1hora':
-        // 24 hours with 1-hour intervals
-        return Array.from({ length: 24 }, (_, i) => {
+        // 48 hours with 1-hour intervals
+        return Array.from({ length: 48 }, (_, i) => {
           const time = addHours(startOfDay(selectedDate), i);
           return time;
         });
@@ -131,8 +131,8 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
         });
 
       default: // 'hoje'
-        // Today from 0:00 to 24:00 (full day to catch all internal actions)
-        return Array.from({ length: 24 }, (_, i) => {
+        // 48 hours from 0:00 (full 2 days to catch all internal actions)
+        return Array.from({ length: 48 }, (_, i) => {
           const time = addHours(startOfDay(selectedDate), i);
           return time;
         });
@@ -260,6 +260,24 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
     }
     return format(timeSlot, 'HH:mm');
   };
+
+  // Calculate current time indicator position
+  const getCurrentTimePosition = () => {
+    const now = new Date();
+    const currentTimeSlotIndex = timeSlots.findIndex(slot => {
+      const slotStart = slot.getTime();
+      const slotEnd = slotStart + (60 * 60 * 1000); // 1 hour slots
+      const nowTime = now.getTime();
+      return nowTime >= slotStart && nowTime < slotEnd;
+    });
+    
+    if (currentTimeSlotIndex >= 0) {
+      return currentTimeSlotIndex * 64 + 32; // 64px per slot, center at 32px
+    }
+    return null;
+  };
+
+  const currentTimePosition = getCurrentTimePosition();
 
   return (
     <div className="w-full bg-white border border-gray-200 rounded-lg shadow-sm">
@@ -403,7 +421,19 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
             onScroll={syncScrollToHeader}
             style={{ maxWidth: 'calc(100vw - 320px)' }}
           >
-            <div className="flex" style={{ minWidth: `${timeSlots.length * 64}px`, width: 'max-content' }}>
+            <div className="flex relative" style={{ minWidth: `${timeSlots.length * 64}px`, width: 'max-content' }}>
+              {/* Current time indicator line */}
+              {currentTimePosition !== null && (
+                <div
+                  className="absolute top-0 bottom-0 w-0.5 bg-red-500 z-20 pointer-events-none"
+                  style={{
+                    left: `${currentTimePosition}px`,
+                    boxShadow: '0 0 4px rgba(239, 68, 68, 0.5)'
+                  }}
+                  title={`Horário atual: ${format(new Date(), 'HH:mm')}`}
+                />
+              )}
+              
               {timeSlots.map((timeSlot, timeIndex) => (
                 <div key={timeIndex} className="flex-shrink-0 w-16 border-r last:border-r-0 relative">
                   {filteredAgents.map((agent) => {
