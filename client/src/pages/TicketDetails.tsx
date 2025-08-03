@@ -3109,42 +3109,6 @@ const TicketDetails = React.memo(() => {
               </Button>
               <div className="flex items-center gap-4">
                 <h1 className="text-xl font-semibold">Ticket #{ticket?.number || ticket?.ticketNumber || ticket?.id?.slice(0, 8) || 'N/A'}</h1>
-
-                {/* Priority and Status Fields */}
-                {isEditMode ? (
-                  <div className="flex items-center gap-2">
-                    <DynamicSelect
-                      fieldName="priority"
-                      value={ticket.priority}
-                      onValueChange={(value) => form.setValue('priority', value as any)}
-                      className="w-24 h-8"
-                    />
-
-                    <DynamicSelect
-                      fieldName="status"
-                      value={ticket.status}
-                      onValueChange={(value) => form.setValue('status', value as any)}
-                      className="w-32 h-8"
-                    />
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <DynamicBadge 
-                      fieldName="priority"
-                      value={ticket?.priority}
-                      colorHex={getFieldColor('priority', ticket?.priority)}
-                    >
-                      {getFieldLabel('priority', ticket?.priority)}
-                    </DynamicBadge>
-                    <DynamicBadge 
-                      fieldName="status"
-                      value={ticket?.status}
-                      colorHex={getFieldColor('status', ticket?.status)}
-                    >
-                      {getFieldLabel('status', ticket?.status)}
-                    </DynamicBadge>
-                  </div>
-                )}
               </div>
             </div>
 
