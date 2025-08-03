@@ -72,7 +72,7 @@ router.get("/:id", async (req: AuthenticatedRequest, res: Response) => {
     const { user } = req;
     const { id } = favorecidoIdSchema.parse(req.params);
 
-    const favorecido = await storage.getFavorecido(id, user.tenantId);
+    const favorecido = await storage.getBeneficiary(id, user.tenantId);
 
     if (!favorecido) {
       return sendError(res, "Favorecido not found", "Favorecido not found", 404);
@@ -91,7 +91,7 @@ router.post("/", async (req: AuthenticatedRequest, res: Response) => {
     const { user } = req;
     const favorecidoData: InsertFavorecido = req.body;
 
-    const favorecido = await storage.createFavorecido(user.tenantId, favorecidoData);
+    const favorecido = await storage.createBeneficiary(user.tenantId, favorecidoData);
 
     return sendSuccess(res, { favorecido }, "Favorecido created successfully", 201);
   } catch (error) {
@@ -114,7 +114,7 @@ router.put("/:id", async (req: AuthenticatedRequest, res: Response) => {
     console.log('Route params BEFORE calling storage:', { tenantId: user.tenantId, favorecidoId: id, updateData });
 
     // CRITICAL: Ensure correct parameter order: (tenantId, id, data)
-    const favorecido = await storage.updateFavorecido(user.tenantId, id, updateData);
+    const favorecido = await storage.updateBeneficiary(user.tenantId, id, updateData);
 
     if (!favorecido) {
       return sendError(res, "Favorecido not found", "Favorecido not found", 404);
@@ -137,7 +137,7 @@ router.delete("/:id", async (req: AuthenticatedRequest, res: Response) => {
 
     const { id } = favorecidoIdSchema.parse(req.params);
 
-    const deleted = await storage.deleteFavorecido(user.tenantId, id);
+    const deleted = await storage.deleteBeneficiary(user.tenantId, id);
 
     if (!deleted) {
       return sendError(res, "Favorecido not found", "Favorecido not found", 404);
@@ -157,12 +157,12 @@ router.get("/:id/locations", async (req: AuthenticatedRequest, res: Response) =>
     const { id } = favorecidoIdSchema.parse(req.params);
 
     // Verify favorecido exists and belongs to tenant
-    const favorecido = await storage.getFavorecido(id, user.tenantId);
+    const favorecido = await storage.getBeneficiary(id, user.tenantId);
     if (!favorecido) {
       return sendError(res, "Favorecido not found", "Favorecido not found", 404);
     }
 
-    const locations = await storage.getFavorecidoLocations(id, user.tenantId);
+    const locations = await storage.getBeneficiaryLocations(id, user.tenantId);
 
     return sendSuccess(res, { locations }, "Favorecido locations retrieved successfully");
   } catch (error) {
@@ -185,7 +185,7 @@ router.post("/:id/locations", async (req: AuthenticatedRequest, res: Response) =
     const { locationId, isPrimary } = addLocationSchema.parse(req.body);
 
     // Verify favorecido exists and belongs to tenant
-    const favorecido = await storage.getFavorecido(id, user.tenantId);
+    const favorecido = await storage.getBeneficiary(id, user.tenantId);
     if (!favorecido) {
       return sendError(res, "Favorecido not found", "Favorecido not found", 404);
     }
@@ -196,7 +196,7 @@ router.post("/:id/locations", async (req: AuthenticatedRequest, res: Response) =
       return sendError(res, "Location not found", "Location not found", 404);
     }
 
-    const favorecidoLocation = await storage.addFavorecidoLocation(id, locationId, user.tenantId, isPrimary);
+    const favorecidoLocation = await storage.addBeneficiaryLocation(id, locationId, user.tenantId, isPrimary);
 
     return sendSuccess(res, { favorecidoLocation }, "Location added to favorecido successfully", 201);
   } catch (error) {
@@ -216,12 +216,12 @@ router.delete("/:id/locations/:locationId", async (req: AuthenticatedRequest, re
     const { locationId } = locationIdSchema.parse(req.params);
 
     // Verify favorecido exists and belongs to tenant
-    const favorecido = await storage.getFavorecido(id, user.tenantId);
+    const favorecido = await storage.getBeneficiary(id, user.tenantId);
     if (!favorecido) {
       return sendError(res, "Favorecido not found", "Favorecido not found", 404);
     }
 
-    const success = await storage.removeFavorecidoLocation(id, locationId, user.tenantId);
+    const success = await storage.removeBeneficiaryLocation(id, locationId, user.tenantId);
 
     if (success) {
       return sendSuccess(res, null, "Location removed from favorecido successfully");
@@ -251,12 +251,12 @@ router.put("/:id/locations/:locationId/primary", async (req: AuthenticatedReques
     const { isPrimary } = updatePrimarySchema.parse(req.body);
 
     // Verify favorecido exists and belongs to tenant
-    const favorecido = await storage.getFavorecido(id, user.tenantId);
+    const favorecido = await storage.getBeneficiary(id, user.tenantId);
     if (!favorecido) {
       return sendError(res, "Favorecido not found", "Favorecido not found", 404);
     }
 
-    const success = await storage.updateFavorecidoLocationPrimary(id, locationId, user.tenantId, isPrimary);
+    const success = await storage.updateBeneficiaryLocationPrimary(id, locationId, user.tenantId, isPrimary);
 
     if (success) {
       return sendSuccess(res, null, "Location primary status updated successfully");

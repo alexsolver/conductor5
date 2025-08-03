@@ -1107,12 +1107,12 @@ export class DatabaseStorage implements IStorage {
 
       const deleted = Number(result.rowCount || 0) > 0;
       if (deleted) {
-        logInfo('Favorecido deleted successfully', { tenantId: validatedTenantId, favorecidoId: id });
+        logInfo('Beneficiary deleted successfully', { tenantId: validatedTenantId, beneficiaryId: id });
       }
 
       return deleted;
     } catch (error) {
-      logError('Error deleting favorecido', error, { id, tenantId });
+      logError('Error deleting beneficiary', error, { id, tenantId });
       throw error;
     }
   }
@@ -1645,7 +1645,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // ==============================
-  // FAVORECIDO-CUSTOMER RELATIONSHIPS METHODS
+  // BENEFICIARY-CUSTOMER RELATIONSHIPS METHODS
   // ==============================
 
   async getBeneficiaryCustomers(tenantId: string, beneficiaryId: string): Promise<any[]> {
@@ -1663,13 +1663,13 @@ export class DatabaseStorage implements IStorage {
           fcr.created_at as relationship_created_at
         FROM ${sql.identifier(schemaName)}.favorecido_customer_relationships fcr
         JOIN ${sql.identifier(schemaName)}.customers c ON c.id = fcr.customer_id
-        WHERE fcr.favorecido_id = ${favorecidoId}
+        WHERE fcr.favorecido_id = ${beneficiaryId}
         ORDER BY fcr.created_at DESC
       `);
 
       return result.rows || [];
     } catch (error) {
-      logError('Error fetching favorecido customers', error, { tenantId, favorecidoId });
+      logError('Error fetching beneficiary customers', error, { tenantId, beneficiaryId });
       return [];
     }
   }
@@ -1683,14 +1683,14 @@ export class DatabaseStorage implements IStorage {
       const result = await tenantDb.execute(sql`
         INSERT INTO ${sql.identifier(schemaName)}.favorecido_customer_relationships
         (favorecido_id, customer_id, created_at, updated_at)
-        VALUES (${favorecidoId}, ${customerId}, NOW(), NOW())
+        VALUES (${beneficiaryId}, ${customerId}, NOW(), NOW())
         ON CONFLICT (favorecido_id, customer_id) DO NOTHING
         RETURNING *
       `);
 
       return result.rows?.[0];
     } catch (error) {
-      logError('Error adding favorecido customer relationship', error, { tenantId, favorecidoId, customerId });
+      logError('Error adding beneficiary customer relationship', error, { tenantId, beneficiaryId, customerId });
       throw error;
     }
   }
@@ -1703,13 +1703,13 @@ export class DatabaseStorage implements IStorage {
 
       const result = await tenantDb.execute(sql`
         DELETE FROM ${sql.identifier(schemaName)}.favorecido_customer_relationships
-        WHERE favorecido_id = ${favorecidoId} 
+        WHERE favorecido_id = ${beneficiaryId} 
         AND customer_id = ${customerId}
       `);
 
       return (result.rowCount || 0) > 0;
     } catch (error) {
-      logError('Error removing favorecido customer relationship', error, { tenantId, favorecidoId, customerId });
+      logError('Error removing beneficiary customer relationship', error, { tenantId, beneficiaryId, customerId });
       throw error;
     }
   }
@@ -2840,8 +2840,8 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-   // Get favorecido locations
-   async getFavorecidoLocations(favorecidoId: string, tenantId: string): Promise<any[]> {
+   // Get beneficiary locations
+   async getBeneficiaryLocations(beneficiaryId: string, tenantId: string): Promise<any[]> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
@@ -2862,7 +2862,7 @@ export class DatabaseStorage implements IStorage {
           l.longitude
         FROM ${sql.identifier(schemaName)}.favorecidos_locations fl
         JOIN ${sql.identifier(schemaName)}.locations l ON fl.location_id = l.id
-        WHERE fl.favorecido_id = ${favorecidoId} AND fl.tenant_id = ${validatedTenantId}
+        WHERE fl.favorecido_id = ${beneficiaryId} AND fl.tenant_id = ${validatedTenantId}
         ORDER BY fl.is_primary DESC, l.name ASC
       `);
 
@@ -2882,13 +2882,13 @@ export class DatabaseStorage implements IStorage {
         }
       }));
     } catch (error) {
-      logError('Error fetching favorecido locations', error, { favorecidoId, tenantId });
+      logError('Error fetching beneficiary locations', error, { beneficiaryId, tenantId });
       throw error;
     }
   }
 
-  // Add location to favorecido
-  async addFavorecidoLocation(favorecidoId: string, locationId: string, tenantId: string, isPrimary: boolean = false): Promise<any> {
+  // Add location to beneficiary
+  async addBeneficiaryLocation(beneficiaryId: string, locationId: string, tenantId: string, isPrimary: boolean = false): Promise<any> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
@@ -2899,7 +2899,7 @@ export class DatabaseStorage implements IStorage {
         await tenantDb.execute(sql`
           UPDATE ${sql.identifier(schemaName)}.favorecidos_locations 
           SET is_primary = false 
-          WHERE favorecido_id = ${favorecidoId} AND tenant_id = ${validatedTenantId}
+          WHERE favorecido_id = ${beneficiaryId} AND tenant_id = ${validatedTenantId}
         `);
       }
 
@@ -2907,19 +2907,19 @@ export class DatabaseStorage implements IStorage {
         INSERT INTO ${sql.identifier(schemaName)}.favorecidos_locations (
           tenant_id, favorecido_id, location_id, is_primary
         ) VALUES (
-          ${validatedTenantId}, ${favorecidoId}, ${locationId}, ${isPrimary}
+          ${validatedTenantId}, ${beneficiaryId}, ${locationId}, ${isPrimary}
         ) RETURNING *
       `);
 
       return result.rows?.[0];
     } catch (error) {
-      logError('Error adding favorecido location', error, { favorecidoId, locationId, tenantId, isPrimary });
+      logError('Error adding beneficiary location', error, { beneficiaryId, locationId, tenantId, isPrimary });
       throw error;
     }
   }
 
-  // Remove location from favorecido
-  async removeFavorecidoLocation(favorecidoId: string, locationId: string, tenantId: string): Promise<boolean> {
+  // Remove location from beneficiary
+  async removeBeneficiaryLocation(beneficiaryId: string, locationId: string, tenantId: string): Promise<boolean> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
@@ -2927,20 +2927,20 @@ export class DatabaseStorage implements IStorage {
 
       const result = await tenantDb.execute(sql`
         DELETE FROM ${sql.identifier(schemaName)}.favorecidos_locations 
-        WHERE favorecido_id = ${favorecidoId} 
+        WHERE favorecido_id = ${beneficiaryId} 
           AND location_id = ${locationId} 
           AND tenant_id = ${validatedTenantId}
       `);
 
       return Number(result.rowCount || 0) > 0;
     } catch (error) {
-      logError('Error removing favorecido location', error, { favorecidoId, locationId, tenantId });
+      logError('Error removing beneficiary location', error, { beneficiaryId, locationId, tenantId });
       return false;
     }
   }
 
-  // Update primary status of favorecido location
-  async updateFavorecidoLocationPrimary(favorecidoId: string, locationId: string, tenantId: string, isPrimary: boolean): Promise<boolean> {
+  // Update primary status of beneficiary location
+  async updateBeneficiaryLocationPrimary(beneficiaryId: string, locationId: string, tenantId: string, isPrimary: boolean): Promise<boolean> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
@@ -2951,27 +2951,27 @@ export class DatabaseStorage implements IStorage {
         await tenantDb.execute(sql`
           UPDATE ${sql.identifier(schemaName)}.favorecidos_locations 
           SET is_primary = false 
-          WHERE favorecido_id = ${favorecidoId} AND tenant_id = ${validatedTenantId}
+          WHERE favorecido_id = ${beneficiaryId} AND tenant_id = ${validatedTenantId}
         `);
       }
 
       const result = await tenantDb.execute(sql`
         UPDATE ${sql.identifier(schemaName)}.favorecidos_locations 
         SET is_primary = ${isPrimary}
-        WHERE favorecido_id = ${favorecidoId} 
+        WHERE favorecido_id = ${beneficiaryId} 
           AND location_id = ${locationId} 
           AND tenant_id = ${validatedTenantId}
       `);
 
       return Number(result.rowCount || 0) > 0;
     } catch (error) {
-      logError('Error updating favorecido location primary status', error, { favorecidoId, locationId, tenantId, isPrimary });
+      logError('Error updating beneficiary location primary status', error, { beneficiaryId, locationId, tenantId, isPrimary });
       return false;
     }
   }
 
-    // Get favorecidos (beneficiaries) with pagination and search
-  async getFavorecidos(tenantId: string, options: {
+    // Get beneficiaries with pagination and search
+  async getBeneficiaries(tenantId: string, options: {
     limit?: number;
     offset?: number;
     search?: string;
