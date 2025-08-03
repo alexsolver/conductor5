@@ -75,6 +75,7 @@ export function FilteredBeneficiarySelect({
           email: b.email 
         }))
       });
+      console.log('[FilteredBeneficiarySelect] 🎯 RAW API DATA:', customerBeneficiariesData);
     } else if (isLoadingCustomerBeneficiaries) {
       beneficiariesToShow = [];
       console.log('[FilteredBeneficiarySelect] ⏳ Loading beneficiaries for customer:', selectedCustomerId);
