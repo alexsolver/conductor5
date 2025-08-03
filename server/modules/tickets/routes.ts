@@ -1609,7 +1609,10 @@ ticketsRouter.put('/:ticketId/actions/:actionId', jwtAuth, async (req: Authentic
       RETURNING *
     `;
 
-    const finalDescription = workLog || description || 'Ação interna atualizada';
+    // Para o histórico, sempre mostrar "Ação interna" como descrição
+    const historyDescription = 'Ação interna';
+    // Para o conteúdo real da ação, usar o que foi fornecido
+    const contentDescription = workLog || description || 'Ação interna atualizada';
     
     // Primeiro buscar o action_type atual para mantê-lo
     const getCurrentTypeQuery = `
@@ -1623,7 +1626,7 @@ ticketsRouter.put('/:ticketId/actions/:actionId', jwtAuth, async (req: Authentic
     const finalActionType = currentActionType === 'ação interna' ? 'ação interna' : (actionType || currentActionType);
 
     const historyResult = await pool.query(updateHistoryQuery, [
-      finalDescription,
+      historyDescription, // Sempre "Ação interna" no histórico
       finalActionType,
       actionId,
       tenantId,
@@ -1658,7 +1661,7 @@ ticketsRouter.put('/:ticketId/actions/:actionId', jwtAuth, async (req: Authentic
     const historyCreatedAt = historyResult.rows[0].created_at;
 
     await pool.query(updateInternalQuery, [
-      finalDescription,
+      contentDescription, // Usar o conteúdo real para a tabela internal_actions
       finalActionType,
       startTime,
       endTime,
