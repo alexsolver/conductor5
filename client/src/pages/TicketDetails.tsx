@@ -3187,22 +3187,34 @@ const TicketDetails = React.memo(() => {
                       console.log("📋 Form valid:", form.formState.isValid);
                       console.log("❌ Form errors:", form.formState.errors);
                       console.log("📝 Form values:", form.getValues());
+                      console.log("🔧 Form dirty fields:", form.formState.dirtyFields);
+                      console.log("📮 Form touched fields:", form.formState.touchedFields);
                       
-                      // Show validation errors to user
-                      if (!form.formState.isValid) {
-                        const errorMessages = Object.entries(form.formState.errors)
-                          .map(([field, error]) => `${field}: ${error?.message || 'Erro de validação'}`)
-                          .join('\n');
+                      // Force a manual validation first
+                      const formData = form.getValues();
+                      console.log("🧪 Manual validation attempt on:", formData);
+                      
+                      // Try to trigger validation manually
+                      form.trigger().then((isValid) => {
+                        console.log("🧪 Manual trigger validation result:", isValid);
+                        console.log("🧪 After trigger - errors:", form.formState.errors);
                         
-                        toast({
-                          title: "Erro de Validação",
-                          description: `Por favor, corrija os seguintes erros:\n${errorMessages}`,
-                          variant: "destructive",
-                        });
-                        return;
-                      }
-                      
-                      form.handleSubmit(onSubmit as any)();
+                        if (isValid) {
+                          console.log("✅ Form is valid, proceeding with onSubmit");
+                          onSubmit(formData);
+                        } else {
+                          console.log("❌ Form validation failed");
+                          const errorMessages = Object.entries(form.formState.errors)
+                            .map(([field, error]) => `${field}: ${error?.message || 'Erro de validação'}`)
+                            .join('\n');
+                          
+                          toast({
+                            title: "Erro de Validação",
+                            description: errorMessages ? `Por favor, corrija os seguintes erros:\n${errorMessages}` : "Dados do formulário são inválidos. Verifique todos os campos.",
+                            variant: "destructive",
+                          });
+                        }
+                      });
                     }}
                     disabled={updateTicketMutation.isPending}
                   >
