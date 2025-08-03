@@ -1802,7 +1802,6 @@ ticketsRouter.get('/:id/relationships', jwtAuth, async (req: AuthenticatedReques
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
     const query = `
-      const query = `
       SELECT 
         tr.id,
         tr.relationship_type as "relationshipType",
