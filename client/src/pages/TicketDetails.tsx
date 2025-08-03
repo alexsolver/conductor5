@@ -2650,7 +2650,7 @@ const TicketDetails = React.memo(() => {
                 <span className="text-xs font-medium text-gray-600 uppercase tracking-wide">Cliente</span>
               </div>
               
-              {true ? (
+              {false ? (
                 <FilteredCustomerSelect
                   value={form.getValues('callerId') || ''}
                   onChange={(value) => {
@@ -2669,7 +2669,7 @@ const TicketDetails = React.memo(() => {
               ) : (
                 <Badge 
                   variant="outline" 
-                  className="px-3 py-2 text-sm font-semibold bg-gradient-to-r from-purple-500 to-violet-600 text-white border-purple-500 shadow-md hover:shadow-lg transition-shadow duration-200 w-full justify-center cursor-pointer"
+                  className="px-3 py-2 text-sm font-semibold bg-gradient-to-r from-purple-500 to-violet-600 text-white border-purple-500 shadow-md hover:shadow-lg transition-shadow duration-200 w-full justify-start cursor-pointer"
                   onClick={() => setIsClientDetailsOpen(true)}
                 >
                   <User className="h-4 w-4 mr-2" />
@@ -2707,7 +2707,7 @@ const TicketDetails = React.memo(() => {
                 <span className="text-xs font-medium text-gray-600 uppercase tracking-wide">Favorecido</span>
               </div>
               
-              {true ? (
+              {false ? (
                 <FilteredBeneficiarySelect
                   value={form.getValues('beneficiaryId') || ''}
                   onChange={(value) => {
@@ -2724,7 +2724,7 @@ const TicketDetails = React.memo(() => {
               ) : (
                 <Badge 
                   variant="outline" 
-                  className="px-3 py-2 text-sm font-semibold bg-gradient-to-r from-indigo-500 to-blue-600 text-white border-indigo-500 shadow-md hover:shadow-lg transition-shadow duration-200 w-full justify-center cursor-pointer"
+                  className="px-3 py-2 text-sm font-semibold bg-gradient-to-r from-indigo-500 to-blue-600 text-white border-indigo-500 shadow-md hover:shadow-lg transition-shadow duration-200 w-full justify-start cursor-pointer"
                   onClick={() => setIsBeneficiaryDetailsOpen(true)}
                 >
                   <Users className="h-4 w-4 mr-2" />
