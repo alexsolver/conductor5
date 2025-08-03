@@ -16,11 +16,11 @@ export function FilteredBeneficiarySelect({
   value, 
   onChange, 
   selectedCustomerId,
-  placeholder = "Selecionar beneficiário", 
+  placeholder = "Selecionar favorecido", 
   disabled = false,
   className = ""
 }: FilteredBeneficiarySelectProps) {
-  // Buscar todos os beneficiários
+  // Buscar todos os favorecidos
   const { data: allBeneficiariesData, isLoading: isLoadingBeneficiaries } = useQuery({
     queryKey: ['/api/beneficiaries'],
     queryFn: async () => {
@@ -29,7 +29,7 @@ export function FilteredBeneficiarySelect({
     },
   });
 
-  // Buscar beneficiários do cliente se um cliente foi selecionado
+  // Buscar favorecidos do cliente se um cliente foi selecionado
   const { data: customerBeneficiariesData, isLoading: isLoadingCustomerBeneficiaries } = useQuery({
     queryKey: ['/api/customers', selectedCustomerId, 'beneficiaries'],
     queryFn: async () => {
@@ -42,11 +42,11 @@ export function FilteredBeneficiarySelect({
 
   const isLoading = isLoadingBeneficiaries || (selectedCustomerId && selectedCustomerId !== 'unspecified' && isLoadingCustomerBeneficiaries);
   
-  // Determinar quais beneficiários mostrar baseado no cliente selecionado
+  // Determinar quais favorecidos mostrar baseado no cliente selecionado
   let beneficiariesToShow = [];
   
   if (selectedCustomerId && selectedCustomerId !== 'unspecified') {
-    // Cliente selecionado - mostrar APENAS beneficiários deste cliente
+    // Cliente selecionado - mostrar APENAS favorecidos deste cliente
     if (customerBeneficiariesData?.success && customerBeneficiariesData?.beneficiaries) {
       beneficiariesToShow = customerBeneficiariesData.beneficiaries;
       console.log('[FilteredBeneficiarySelect] ✅ FILTERED by customer (API):', {
@@ -75,7 +75,7 @@ export function FilteredBeneficiarySelect({
       });
     }
   } else {
-    // Nenhum cliente selecionado - mostrar todos os beneficiários
+    // Nenhum cliente selecionado - mostrar todos os favorecidos
     beneficiariesToShow = allBeneficiariesData?.success ? (allBeneficiariesData.beneficiaries || []) : [];
     console.log('[FilteredBeneficiarySelect] 🌐 Showing ALL beneficiaries (no customer filter):', {
       customerId: selectedCustomerId,
@@ -87,7 +87,7 @@ export function FilteredBeneficiarySelect({
     return (
       <Select disabled>
         <SelectTrigger className={className}>
-          <SelectValue placeholder="Carregando beneficiários..." />
+          <SelectValue placeholder="Carregando favorecidos..." />
         </SelectTrigger>
       </Select>
     );
@@ -105,16 +105,16 @@ export function FilteredBeneficiarySelect({
       <SelectContent>
         {beneficiariesToShow.length === 0 && selectedCustomerId && selectedCustomerId !== 'unspecified' ? (
           <SelectItem value="__no_beneficiaries__" disabled>
-            Nenhum beneficiário encontrado para este cliente
+            Nenhum favorecido encontrado para este cliente
           </SelectItem>
         ) : (
           <>
-            <SelectItem value="__none__">Nenhum beneficiário</SelectItem>
+            <SelectItem value="__none__">Nenhum favorecido</SelectItem>
             <SelectItem value="unspecified">Não especificado</SelectItem>
             {beneficiariesToShow.map((beneficiary: any) => {
               const beneficiaryName = `${beneficiary.firstName || ''} ${beneficiary.lastName || ''}`.trim() || 
                                      beneficiary.fullName || beneficiary.name || 
-                                     beneficiary.email || 'Beneficiário sem nome';
+                                     beneficiary.email || 'Favorecido sem nome';
               return (
                 <SelectItem key={beneficiary.id} value={beneficiary.id}>
                   <div className="flex flex-col">

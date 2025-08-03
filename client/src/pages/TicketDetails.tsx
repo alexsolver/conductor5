@@ -265,7 +265,7 @@ const TicketDetails = React.memo(() => {
     
     if (type === 'caller') {
       form.setValue('callerId', customerId);
-      // Se não há beneficiário específico, usar o mesmo cliente
+      // Se não há favorecido específico, usar o mesmo cliente
       if (!form.getValues('beneficiaryId')) {
         form.setValue('beneficiaryId', customerId);
       }
@@ -2576,7 +2576,7 @@ const TicketDetails = React.memo(() => {
                   onValueChange={(value) => {
                     console.log('🏢 Company change:', { newCompanyId: value, selectedCompany });
                     handleCompanyChange(value);
-                    // Limpar cliente e beneficiário quando empresa muda
+                    // Limpar cliente e favorecido quando empresa muda
                     form.setValue('callerId', '');
                     form.setValue('beneficiaryId', '');
                     console.log('✅ Company state updated:', { newSelectedCompany: value, formValueAfter: form.getValues('customerCompanyId') });
@@ -2639,7 +2639,7 @@ const TicketDetails = React.memo(() => {
             )}
           </div>
 
-          {/* Cliente/Solicitante e Beneficiário Section */}
+          {/* Cliente/Solicitante e Favorecido Section */}
           <div className="mb-6 space-y-4">
             {/* Cliente/Solicitante */}
             <div>
@@ -2694,11 +2694,11 @@ const TicketDetails = React.memo(() => {
               )}
             </div>
 
-            {/* Beneficiário */}
+            {/* Favorecido */}
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <Users className="h-4 w-4 text-indigo-600" />
-                <span className="text-xs font-medium text-gray-600 uppercase tracking-wide">Beneficiário</span>
+                <span className="text-xs font-medium text-gray-600 uppercase tracking-wide">Favorecido</span>
               </div>
               
               {isEditMode ? (
@@ -2709,7 +2709,7 @@ const TicketDetails = React.memo(() => {
                     form.setValue('beneficiaryId', value);
                   }}
                   selectedCustomerId={form.getValues('callerId') || ticket.caller_id || ticket.callerId || ''}
-                  placeholder="Selecionar beneficiário"
+                  placeholder="Selecionar favorecido"
                   disabled={!isEditMode}
                   className="h-8 text-xs"
                 />
@@ -2726,12 +2726,12 @@ const TicketDetails = React.memo(() => {
                                       (Array.isArray(customersData?.customers) ? customersData.customers : []).find((c: any) => c.id === beneficiaryId);
                     
                     if (!beneficiary) {
-                      return (beneficiaryId === 'unspecified' || !beneficiaryId) ? 'Não especificado' : 'Beneficiário não encontrado';
+                      return (beneficiaryId === 'unspecified' || !beneficiaryId) ? 'Não especificado' : 'Favorecido não encontrado';
                     }
                     
                     return beneficiary.fullName || beneficiary.name || 
                            `${beneficiary.firstName || ''} ${beneficiary.lastName || ''}`.trim() || 
-                           beneficiary.email || 'Beneficiário sem nome';
+                           beneficiary.email || 'Favorecido sem nome';
                   })()}
                 </Badge>
               )}
@@ -3291,7 +3291,7 @@ const TicketDetails = React.memo(() => {
               </div>
             </div>
 
-            {/* Beneficiário - Compacto */}
+            {/* Favorecido - Compacto */}
             <div className="mb-3">
               <div className="flex items-center justify-between mb-1">
                 <h4 className="text-xs font-semibold text-gray-700">FAVORECIDO</h4>
@@ -3305,7 +3305,7 @@ const TicketDetails = React.memo(() => {
                     <DialogHeader>
                       <DialogTitle>Verificação de Segurança</DialogTitle>
                       <DialogDescription>
-                        Digite sua senha para acessar dados sensíveis do beneficiário
+                        Digite sua senha para acessar dados sensíveis do favorecido
                       </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
@@ -3798,7 +3798,7 @@ const TicketDetails = React.memo(() => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Users className="h-5 w-5 text-indigo-600" />
-              Detalhes do Beneficiário
+              Detalhes do Favorecido
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
@@ -3811,7 +3811,7 @@ const TicketDetails = React.memo(() => {
                 return (
                   <div className="text-center py-8 text-gray-500">
                     <Users className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                    <p>Nenhum beneficiário especificado</p>
+                    <p>Nenhum favorecido especificado</p>
                   </div>
                 );
               }
@@ -3820,14 +3820,14 @@ const TicketDetails = React.memo(() => {
                 return (
                   <div className="text-center py-8 text-gray-500">
                     <Users className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                    <p>Beneficiário não encontrado</p>
+                    <p>Favorecido não encontrado</p>
                   </div>
                 );
               }
               
               const beneficiaryName = beneficiary.fullName || beneficiary.name || 
                                      `${beneficiary.firstName || ''} ${beneficiary.lastName || ''}`.trim() || 
-                                     beneficiary.email || 'Beneficiário sem nome';
+                                     beneficiary.email || 'Favorecido sem nome';
               
               return (
                 <div className="space-y-3">
