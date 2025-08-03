@@ -2650,21 +2650,22 @@ const TicketDetails = React.memo(() => {
                 <span className="text-xs font-medium text-gray-600 uppercase tracking-wide">Cliente</span>
               </div>
               
-              <FilteredCustomerSelect
-                value={form.getValues('callerId') || ticket.caller_id || ticket.callerId || ''}
-                onChange={(value) => {
-                  handleCustomerChange(value, 'caller');
-                  form.setValue('callerId', value);
-                  // Limpar favorecido quando cliente muda
-                  form.setValue('beneficiaryId', '');
-                  console.log('👤 Customer change:', { customerId: value, type: 'caller' });
-                }}
-                selectedCompanyId={form.getValues('customerCompanyId') || ticket.customer_company_id || ticket.customerCompanyId || ticket.company || ''}
-                placeholder="Selecionar cliente"
-                disabled={false}
-                className="h-8 text-xs"
-              />
-              {!isEditMode && (
+              {true ? (
+                <FilteredCustomerSelect
+                  value={form.getValues('callerId') || ticket.caller_id || ticket.callerId || ''}
+                  onChange={(value) => {
+                    handleCustomerChange(value, 'caller');
+                    form.setValue('callerId', value);
+                    // Limpar favorecido quando cliente muda
+                    form.setValue('beneficiaryId', '');
+                    console.log('👤 Customer change:', { customerId: value, type: 'caller' });
+                  }}
+                  selectedCompanyId={form.getValues('customerCompanyId') || ticket.customer_company_id || ticket.customerCompanyId || ticket.company || ''}
+                  placeholder="Selecionar cliente"
+                  disabled={false}
+                  className="h-8 text-xs"
+                />
+              ) : (
                 <Badge 
                   variant="outline" 
                   className="px-3 py-2 text-sm font-semibold bg-gradient-to-r from-purple-500 to-violet-600 text-white border-purple-500 shadow-md hover:shadow-lg transition-shadow duration-200 w-full justify-center cursor-pointer"
@@ -2705,18 +2706,19 @@ const TicketDetails = React.memo(() => {
                 <span className="text-xs font-medium text-gray-600 uppercase tracking-wide">Favorecido</span>
               </div>
               
-              <FilteredBeneficiarySelect
-                value={form.getValues('beneficiaryId') || ticket.beneficiary_id || ticket.beneficiaryId || ''}
-                onChange={(value) => {
-                  handleCustomerChange(value, 'beneficiary');
-                  form.setValue('beneficiaryId', value);
-                }}
-                selectedCustomerId={form.getValues('callerId') || ticket.caller_id || ticket.callerId || ''}
-                placeholder="Selecionar favorecido"
-                disabled={false}
-                className="h-8 text-xs"
-              />
-              {!isEditMode && (
+              {true ? (
+                <FilteredBeneficiarySelect
+                  value={form.getValues('beneficiaryId') || ticket.beneficiary_id || ticket.beneficiaryId || ''}
+                  onChange={(value) => {
+                    handleCustomerChange(value, 'beneficiary');
+                    form.setValue('beneficiaryId', value);
+                  }}
+                  selectedCustomerId={form.getValues('callerId') || ticket.caller_id || ticket.callerId || ''}
+                  placeholder="Selecionar favorecido"
+                  disabled={false}
+                  className="h-8 text-xs"
+                />
+              ) : (
                 <Badge 
                   variant="outline" 
                   className="px-3 py-2 text-sm font-semibold bg-gradient-to-r from-indigo-500 to-blue-600 text-white border-indigo-500 shadow-md hover:shadow-lg transition-shadow duration-200 w-full justify-center cursor-pointer"
