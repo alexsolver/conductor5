@@ -856,58 +856,27 @@ const TicketDetails = React.memo(() => {
         description: "Ticket atualizado com sucesso",
       });
       
-      // 🚀 OTIMIZAÇÃO: Invalidação ultra-seletiva e inteligente
-      const formData = form.getValues();
-      const changedFields = Object.keys(formData).filter(key => 
-        formData[key as keyof typeof formData] !== ticket?.[key as keyof typeof ticket]
-      );
+      // 🚀 INVALIDAÇÃO: Atualizar cache imediatamente após salvar
+      console.log('🔄 Invalidating cache after ticket update...');
       
-      // Update cache optimistically primeiro
-      queryClient.setQueryData(["/api/tickets", id], (oldData: any) => ({
-        ...oldData,
-        data: { ...ticket, ...formData }
-      }));
+      // Invalidar todas as queries relacionadas ao ticket
+      queryClient.invalidateQueries({ queryKey: ["/api/tickets", id] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tickets"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/customers"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/beneficiaries"] });
       
-      // Batch invalidations para reduzir network requests
-      const criticalFields = ['status', 'priority', 'assigned_to_id'];
-      const hasCriticalChanges = changedFields.some(field => criticalFields.includes(field));
+      console.log('✅ Cache invalidated successfully');
       
-      if (hasCriticalChanges) {
-        // Invalidar apenas após 500ms para agrupar mudanças
-        setTimeout(() => {
-          queryClient.invalidateQueries({ 
-            queryKey: ["/api/tickets"],
-            exact: false 
+      // Força o form a refletir os dados atualizados
+      setTimeout(() => {
+        if (data?.success && data?.data) {
+          console.log('🔄 Updating form with fresh data after save...');
+          form.reset({
+            ...formDataMemo,
+            ...data.data
           });
-        }, 500);
-      }
-      
-      // Skip history invalidation for minor changes
-      const contentFields = ['description', 'subject'];
-      const hasContentChanges = changedFields.some(field => contentFields.includes(field));
-      
-      if (hasContentChanges) {
-        queryClient.invalidateQueries({ 
-          queryKey: ["/api/tickets", id, "history"] 
-        });
-      }
-      
-      // Invalidate relationships if linking fields changed
-      if (formData.linkTicketNumber || formData.linkType) {
-        queryClient.invalidateQueries({ 
-          queryKey: ["/api/ticket-relationships", id] 
-        });
-      }
-      
-      // Don't invalidate history/notes/communications unless content fields changed
-      const contentChanged = formData.description !== ticket?.description || 
-                           formData.subject !== ticket?.subject;
-      
-      if (contentChanged) {
-        queryClient.invalidateQueries({ 
-          queryKey: ["/api/tickets", id, "history"] 
-        });
-      }
+        }
+      }, 100);
       
       setIsEditMode(false);
     },
