@@ -34,8 +34,11 @@ export function FilteredBeneficiarySelect({
     queryKey: ['/api/customers', selectedCustomerId, 'beneficiaries'],
     queryFn: async () => {
       if (!selectedCustomerId || selectedCustomerId === 'unspecified') return { beneficiaries: [] };
+      console.log(`[FilteredBeneficiarySelect] 🔄 Fetching beneficiaries for customer: ${selectedCustomerId}`);
       const response = await apiRequest('GET', `/api/customers/${selectedCustomerId}/beneficiaries`);
-      return response.json();
+      const data = await response.json();
+      console.log(`[FilteredBeneficiarySelect] 📊 API response for customer ${selectedCustomerId}:`, data);
+      return data;
     },
     enabled: !!selectedCustomerId && selectedCustomerId !== 'unspecified',
   });

@@ -269,6 +269,8 @@ customersRouter.get('/:customerId/beneficiaries', jwtAuth, async (req: Authentic
       WHERE b.customer_id = $1 OR bcr.customer_id = $1
     `, [customerId]);
 
+    console.log(`[BENEFICIARIES] Found ${result.rows.length} beneficiaries for customer ${customerId}:`, result.rows);
+    
     res.json({
       success: true,
       beneficiaries: result.rows,
