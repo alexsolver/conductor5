@@ -576,8 +576,8 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                                       className={`absolute rounded text-white text-xs flex items-center justify-center gap-1 px-2 cursor-pointer hover:opacity-80 border ${blockColor}`}
                                       style={{ 
                                         left: '2px',
-                                        top: `${Math.max(2, (rowHeight - 34) / 2 - 4)}px`,
-                                        height: '34px',
+                                        top: `${Math.max(2, (rowHeight - 32) / 2 - 4)}px`,
+                                        height: '32px',
                                         width: `${Math.min(blockWidth, 316)}px`, // Max width constraint
                                         zIndex: 10,
                                         minWidth: '60px'
@@ -704,8 +704,8 @@ ${schedule.locationAddress ? `Local: ${schedule.locationAddress}` : ''}`}
                                       className={`absolute rounded text-white text-xs flex items-center justify-center gap-1 px-2 cursor-pointer hover:opacity-60 border ${blockColor}`}
                                       style={{ 
                                         left: '2px',
-                                        top: `${Math.max(2, (actualRowHeight - 34) / 2 - 4)}px`,
-                                        height: '34px',
+                                        top: `${Math.max(2, (actualRowHeight - 32) / 2 - 4)}px`,
+                                        height: '32px',
                                         opacity: 0.8, // Slightly more transparent for actual
                                         width: `${Math.min(blockWidth, 316)}px`, // Max width constraint
                                         zIndex: 8, // Lower than planned
