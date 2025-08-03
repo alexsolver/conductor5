@@ -57,14 +57,14 @@ router.get("/", async (req: AuthenticatedRequest, res: ExpressResponse) => {
     const { page, limit, search } = getBeneficiariesSchema.parse(req.query);
     
     const offset = (page - 1) * limit;
-    const beneficiaries = await storage.getFavorecidos(user.tenantId, {
+    const beneficiaries = await storage.getBeneficiaries(user.tenantId, {
       limit,
       offset,
       search,
     });
 
     // Get total count for pagination
-    const allBeneficiaries = await storage.getFavorecidos(user.tenantId, { search });
+    const allBeneficiaries = await storage.getBeneficiaries(user.tenantId, { search });
     const total = allBeneficiaries.length;
     const totalPages = Math.ceil(total / limit);
 
@@ -95,7 +95,7 @@ router.get("/:id", async (req: AuthenticatedRequest, res: ExpressResponse) => {
 
     const { id } = beneficiaryIdSchema.parse(req.params);
     
-    const beneficiary = await storage.getFavorecido(id, user.tenantId);
+    const beneficiary = await storage.getBeneficiary(id, user.tenantId);
     
     if (!beneficiary) {
       return sendError(res as any, "Beneficiary not found", "Beneficiary not found", 404);
@@ -118,7 +118,7 @@ router.post("/", async (req: AuthenticatedRequest, res: ExpressResponse) => {
 
     const beneficiaryData = beneficiarySchema.parse(req.body);
     
-    const beneficiary = await storage.createFavorecido(user.tenantId, beneficiaryData);
+    const beneficiary = await storage.createBeneficiary(user.tenantId, beneficiaryData);
     
     return sendSuccess(res as any, { beneficiary }, "Beneficiary created successfully", 201);
   } catch (error) {
@@ -141,7 +141,7 @@ router.put("/:id", async (req: AuthenticatedRequest, res: ExpressResponse) => {
     const { id } = beneficiaryIdSchema.parse(req.params);
     const beneficiaryData = beneficiarySchema.parse(req.body);
     
-    const beneficiary = await storage.updateFavorecido(user.tenantId, id, beneficiaryData);
+    const beneficiary = await storage.updateBeneficiary(user.tenantId, id, beneficiaryData);
     
     if (!beneficiary) {
       return sendError(res as any, "Beneficiary not found", "Beneficiary not found", 404);
@@ -167,7 +167,7 @@ router.delete("/:id", async (req: AuthenticatedRequest, res: ExpressResponse) =>
     
     const { id } = beneficiaryIdSchema.parse(req.params);
     
-    const deleted = await storage.deleteFavorecido(user.tenantId, id);
+    const deleted = await storage.deleteBeneficiary(user.tenantId, id);
     
     if (!deleted) {
       return sendError(res as any, "Beneficiary not found", "Beneficiary not found", 404);
@@ -180,7 +180,7 @@ router.delete("/:id", async (req: AuthenticatedRequest, res: ExpressResponse) =>
   }
 });
 
-// Get customers associated with a favorecido
+// Get customers associated with a beneficiary
 router.get('/:id/customers', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const tenantId = req.user?.tenantId;
@@ -189,23 +189,23 @@ router.get('/:id/customers', jwtAuth, async (req: AuthenticatedRequest, res) => 
     }
 
     const { id } = req.params;
-    const customers = await storage.getFavorecidoCustomers(tenantId, id);
+    const customers = await storage.getBeneficiaryCustomers(tenantId, id);
 
     res.json({
       success: true,
       data: customers,
-      message: 'Favorecido customers retrieved successfully'
+      message: 'Beneficiary customers retrieved successfully'
     });
   } catch (error) {
     console.error('Error fetching favorecido customers:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to fetch favorecido customers'
+      error: 'Failed to fetch beneficiary customers'
     });
   }
 });
 
-// Add customer to favorecido
+// Add customer to beneficiary
 router.post('/:id/customers', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const tenantId = req.user?.tenantId;
@@ -223,23 +223,23 @@ router.post('/:id/customers', jwtAuth, async (req: AuthenticatedRequest, res) =>
       });
     }
 
-    const relationship = await storage.addFavorecidoCustomer(tenantId, id, customerId);
+    const relationship = await storage.addBeneficiaryCustomer(tenantId, id, customerId);
 
     res.json({
       success: true,
       data: relationship,
-      message: 'Customer added to favorecido successfully'
+      message: 'Customer added to beneficiary successfully'
     });
   } catch (error) {
     console.error('Error adding customer to favorecido:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to add customer to favorecido'
+      error: 'Failed to add customer to beneficiary'
     });
   }
 });
 
-// Remove customer from favorecido
+// Remove customer from beneficiary
 router.delete('/:id/customers/:customerId', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const tenantId = req.user?.tenantId;
@@ -248,12 +248,12 @@ router.delete('/:id/customers/:customerId', jwtAuth, async (req: AuthenticatedRe
     }
 
     const { id, customerId } = req.params;
-    const success = await storage.removeFavorecidoCustomer(tenantId, id, customerId);
+    const success = await storage.removeBeneficiaryCustomer(tenantId, id, customerId);
 
     if (success) {
       res.json({
         success: true,
-        message: 'Customer removed from favorecido successfully'
+        message: 'Customer removed from beneficiary successfully'
       });
     } else {
       res.status(404).json({
@@ -262,10 +262,10 @@ router.delete('/:id/customers/:customerId', jwtAuth, async (req: AuthenticatedRe
       });
     }
   } catch (error) {
-    console.error('Error removing customer from favorecido:', error);
+    console.error('Error removing customer from beneficiary:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to remove customer from favorecido'
+      error: 'Failed to remove customer from beneficiary'
     });
   }
 });

@@ -100,7 +100,7 @@ export default function Beneficiaries() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingBeneficiary, setEditingBeneficiary] = useState<Beneficiary | null>(null);
-  const [favorecidoCustomers, setFavorecidoCustomers] = useState<any[]>([]);
+  const [beneficiaryCustomers, setBeneficiaryCustomers] = useState<any[]>([]);
   const [showCustomerSelector, setShowCustomerSelector] = useState(false);
 
   const { toast } = useToast();
@@ -141,8 +141,8 @@ export default function Beneficiaries() {
       });
       if (searchTerm) params.append('search', searchTerm);
 
-      // Usar endpoint unificado
-      const response = await fetch(`/api/favorecidos?${params}`, {
+      // Usar endpoint padronizado
+      const response = await fetch(`/api/beneficiaries?${params}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -167,18 +167,18 @@ export default function Beneficiaries() {
     gcTime: 30000,
   });
 
-  // Query for favorecido customers (when editing)
-  const { data: favorecidoCustomersData } = useQuery({
+  // Query for beneficiary customers (when editing)
+  const { data: beneficiaryCustomersData } = useQuery({
     queryKey: ["/api/beneficiaries", editingBeneficiary?.id, "customers"],
     enabled: !!editingBeneficiary?.id,
   });
 
-  // Update favorecidoCustomers when data changes
+  // Update beneficiaryCustomers when data changes
   React.useEffect(() => {
-    if (favorecidoCustomersData && 'data' in favorecidoCustomersData && favorecidoCustomersData.data) {
-      setFavorecidoCustomers(favorecidoCustomersData.data);
+    if (beneficiaryCustomersData && 'data' in beneficiaryCustomersData && beneficiaryCustomersData.data) {
+      setBeneficiaryCustomers(beneficiaryCustomersData.data);
     }
-  }, [favorecidoCustomersData]);
+  }, [beneficiaryCustomersData]);
 
   // Create beneficiary mutation
   const createBeneficiaryMutation = useMutation({
@@ -214,7 +214,7 @@ export default function Beneficiaries() {
       // Update local state
       const customer = (customersData as any)?.customers?.find((c: any) => c.id === customerId);
       if (customer) {
-        setFavorecidoCustomers(prev => [...prev, customer]);
+        setBeneficiaryCustomers(prev => [...prev, customer]);
       }
       
       setShowCustomerSelector(false);
@@ -238,7 +238,7 @@ export default function Beneficiaries() {
       await apiRequest("DELETE", `/api/beneficiaries/${editingBeneficiary.id}/customers/${customerId}`);
       
       // Update local state
-      setFavorecidoCustomers(prev => prev.filter(c => c.id !== customerId));
+      setBeneficiaryCustomers(prev => prev.filter(c => c.id !== customerId));
       
       toast({
         title: "Sucesso",
@@ -454,10 +454,10 @@ export default function Beneficiaries() {
                 
                 {/* Lista de clientes associados */}
                 <div className="space-y-2">
-                  {favorecidoCustomers.length === 0 ? (
+                  {beneficiaryCustomers.length === 0 ? (
                     <p className="text-sm text-muted-foreground">Nenhum cliente associado</p>
                   ) : (
-                    favorecidoCustomers.map((customer: any) => (
+                    beneficiaryCustomers.map((customer: any) => (
                       <div key={customer.id} className="flex items-center justify-between p-2 border rounded-md">
                         <span className="text-sm">
                           {customer.first_name} {customer.last_name} - {customer.email}
@@ -495,7 +495,7 @@ export default function Beneficiaries() {
                       </SelectTrigger>
                       <SelectContent>
                         {((customersData as any)?.customers || []).filter((customer: any) => 
-                          !favorecidoCustomers.some((fc: any) => fc.id === customer.id)
+                          !beneficiaryCustomers.some((fc: any) => fc.id === customer.id)
                         ).map((customer: any) => (
                           <SelectItem key={customer.id} value={customer.id}>
                             {customer.firstName || customer.first_name} {customer.lastName || customer.last_name} - {customer.email}

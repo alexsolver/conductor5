@@ -51,9 +51,10 @@ export interface IStorage {
 
   // External Contacts
   getSolicitantes(tenantId: string, options?: { limit?: number; offset?: number; search?: string }): Promise<any[]>;
-  getFavorecidos(tenantId: string, options?: { limit?: number; offset?: number; search?: string }): Promise<any[]>;
+  getBeneficiaries(tenantId: string, options?: { limit?: number; offset?: number; search?: string }): Promise<any[]>;
   createSolicitante(tenantId: string, data: any): Promise<any>;
-  createFavorecido(tenantId: string, data: any): Promise<any>;
+  createBeneficiary(tenantId: string, data: any): Promise<any>;
+  getBeneficiary(id: string, tenantId: string): Promise<any | null>;
 
   // Ticket Templates Management
   getTicketTemplates(tenantId: string, options?: { limit?: number; offset?: number; search?: string; category?: string }): Promise<any[]>;
@@ -104,6 +105,11 @@ export interface IStorage {
 
     // Beneficiary Management
     getCustomerBeneficiaries(tenantId: string, customerId: string): Promise<any[]>;
+    updateBeneficiary(tenantId: string, id: string, data: any): Promise<any>;
+    deleteBeneficiary(tenantId: string, id: string): Promise<boolean>;
+    getBeneficiaryCustomers(tenantId: string, beneficiaryId: string): Promise<any[]>;
+    addBeneficiaryCustomer(tenantId: string, beneficiaryId: string, customerId: string): Promise<any>;
+    removeBeneficiaryCustomer(tenantId: string, beneficiaryId: string, customerId: string): Promise<boolean>;
 }
 
 // ===========================
@@ -752,7 +758,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getFavorecidos(tenantId: string, options: { limit?: number; offset?: number; search?: string } = {}) {
+  async getBeneficiaries(tenantId: string, options: { limit?: number; offset?: number; search?: string } = {}) {
     const { limit = 20, offset = 0, search } = options;
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
@@ -847,7 +853,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getFavorecido(id: string, tenantId: string): Promise<any | null> {
+  async getBeneficiary(id: string, tenantId: string): Promise<any | null> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
@@ -964,7 +970,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async createFavorecido(tenantId: string, data: any): Promise<any> {
+  async createBeneficiary(tenantId: string, data: any): Promise<any> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
@@ -1028,7 +1034,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async updateFavorecido(tenantId: string, id: string, data: any): Promise<any> {
+  async updateBeneficiary(tenantId: string, id: string, data: any): Promise<any> {
     try {
       console.log('UPDATE DEBUG:', { tenantId, id, data });
 
@@ -1088,7 +1094,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async deleteFavorecido(tenantId: string, id: string): Promise<boolean> {
+  async deleteBeneficiary(tenantId: string, id: string): Promise<boolean> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
@@ -1642,7 +1648,7 @@ export class DatabaseStorage implements IStorage {
   // FAVORECIDO-CUSTOMER RELATIONSHIPS METHODS
   // ==============================
 
-  async getFavorecidoCustomers(tenantId: string, favorecidoId: string): Promise<any[]> {
+  async getBeneficiaryCustomers(tenantId: string, beneficiaryId: string): Promise<any[]> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
@@ -1668,7 +1674,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async addFavorecidoCustomer(tenantId: string, favorecidoId: string, customerId: string): Promise<any> {
+  async addBeneficiaryCustomer(tenantId: string, beneficiaryId: string, customerId: string): Promise<any> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
@@ -1689,7 +1695,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async removeFavorecidoCustomer(tenantId: string, favorecidoId: string, customerId: string): Promise<boolean> {
+  async removeBeneficiaryCustomer(tenantId: string, beneficiaryId: string, customerId: string): Promise<boolean> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
