@@ -36,24 +36,59 @@ export default function EditInternalActionModal({ ticketId, action, isOpen, onCl
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Fetch detailed action data for editing
+  const { data: actionDetails, isLoading: actionLoading } = useQuery({
+    queryKey: ["/api/tickets", ticketId, "actions", action?.id],
+    queryFn: async () => {
+      if (!action?.id || !ticketId) return null;
+      const response = await apiRequest("GET", `/api/tickets/${ticketId}/actions/${action.id}`);
+      return response.json();
+    },
+    enabled: isOpen && !!action?.id && !!ticketId,
+  });
+
   // Populate form with existing action data
   useEffect(() => {
-    if (action && isOpen) {
-      setFormData({
-        startDateTime: action.start_time || "",
-        endDateTime: action.end_time || "",
-        estimatedMinutes: action.estimated_minutes?.toString() || "0",
-        timeSpentMinutes: action.time_spent_minutes?.toString() || "0",
-        alterTimeSpent: !!action.time_spent_minutes,
-        actionType: action.type || action.actionType || "",
-        workLog: action.work_log || "",
-        description: action.description || action.content || "",
-        status: action.status || "pending",
-        assignedToId: action.assigned_to_id || ""
-      });
-      setIsPublic(action.is_public || false);
+    if (!isOpen || !action) return;
+
+    // Reset form data whenever modal opens
+    let dataToUse = action;
+    
+    // Use detailed data if available, otherwise use passed action data
+    if (actionDetails?.success && actionDetails.data) {
+      dataToUse = actionDetails.data;
+      console.log('🔍 EditModal: Loading detailed action data:', dataToUse);
+    } else {
+      console.log('🔍 EditModal: Loading passed action data:', dataToUse);
     }
-  }, [action, isOpen]);
+    
+    // Convert datetime fields to proper format for input[type="datetime-local"]
+    const formatDateTime = (dateTime) => {
+      if (!dateTime) return "";
+      try {
+        const date = new Date(dateTime);
+        return date.toISOString().slice(0, 16);
+      } catch (error) {
+        console.warn('Error formatting datetime:', dateTime, error);
+        return "";
+      }
+    };
+
+    setFormData({
+      startDateTime: formatDateTime(dataToUse.start_time || dataToUse.startDateTime),
+      endDateTime: formatDateTime(dataToUse.end_time || dataToUse.endDateTime),
+      estimatedMinutes: (dataToUse.estimated_minutes || dataToUse.estimatedMinutes || 0).toString(),
+      timeSpentMinutes: (dataToUse.time_spent_minutes || dataToUse.timeSpentMinutes || 0).toString(),
+      alterTimeSpent: !!(dataToUse.time_spent_minutes || dataToUse.timeSpentMinutes),
+      actionType: dataToUse.type || dataToUse.actionType || "",
+      workLog: dataToUse.work_log || dataToUse.workLog || "",
+      description: dataToUse.description || dataToUse.content || "",
+      status: dataToUse.status || "pending",
+      assignedToId: dataToUse.assigned_to_id || dataToUse.assignedToId || ""
+    });
+    
+    setIsPublic(dataToUse.is_public !== undefined ? dataToUse.is_public : dataToUse.isPublic || false);
+  }, [actionDetails, action, isOpen]);
 
   // Fetch team members for assignment dropdown
   const { data: teamMembers } = useQuery({
@@ -68,10 +103,24 @@ export default function EditInternalActionModal({ ticketId, action, isOpen, onCl
   // Update internal action mutation
   const updateActionMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest("PUT", `/api/tickets/${ticketId}/actions/${action.id}`, {
-        ...data,
+      const payload = {
+        ticketId,
+        actionId: action.id,
+        actionType: data.actionType,
+        description: data.description,
+        workLog: data.workLog,
+        startDateTime: data.startDateTime,
+        endDateTime: data.endDateTime,
+        estimatedMinutes: parseInt(data.estimatedMinutes) || 0,
+        timeSpentMinutes: data.alterTimeSpent ? parseInt(data.timeSpentMinutes) || 0 : 0,
+        status: data.status,
+        assignedToId: data.assignedToId,
         is_public: isPublic,
-      });
+      };
+      
+      console.log('🔧 PUT Update - Sending data:', payload);
+      
+      const response = await apiRequest("PUT", `/api/tickets/${ticketId}/actions/${action.id}`, payload);
       return response.json();
     },
     onSuccess: () => {
@@ -191,6 +240,29 @@ export default function EditInternalActionModal({ ticketId, action, isOpen, onCl
                 </div>
               </div>
 
+              {/* Assigned To - Highlighted */}
+              <Card className="border-blue-200 bg-blue-50">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <User className="w-4 h-4 text-blue-600" />
+                    <Label htmlFor="assigned-to" className="text-sm font-bold text-blue-700">Atribuído a</Label>
+                  </div>
+                  <Select value={formData.assignedToId} onValueChange={(value) => setFormData(prev => ({ ...prev, assignedToId: value }))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione um membro..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="unassigned">-- Não atribuído --</SelectItem>
+                      {(teamMembers?.users || []).map((user: any) => (
+                        <SelectItem key={user.id} value={user.id}>
+                          {user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </CardContent>
+              </Card>
+
               {/* Action Type */}
               <div>
                 <Label htmlFor="action-type">Ação Interna *</Label>
@@ -224,7 +296,7 @@ export default function EditInternalActionModal({ ticketId, action, isOpen, onCl
                 />
               </div>
 
-              {/* Status and Assignment */}
+              {/* Status */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <div className="flex items-center space-x-2 mb-1">
@@ -237,23 +309,6 @@ export default function EditInternalActionModal({ ticketId, action, isOpen, onCl
                       {formData.status === "completed" ? "Concluída" : "Pendente"}
                     </Label>
                   </div>
-                </div>
-                
-                <div>
-                  <Label htmlFor="assigned-to">Atribuído a</Label>
-                  <Select value={formData.assignedToId} onValueChange={(value) => setFormData(prev => ({ ...prev, assignedToId: value }))}>
-                    <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Selecione um membro..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="unassigned">-- Não atribuído --</SelectItem>
-                      {(teamMembers?.users || []).map((user: any) => (
-                        <SelectItem key={user.id} value={user.id}>
-                          {user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
                 </div>
               </div>
 
