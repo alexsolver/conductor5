@@ -1,7 +1,4 @@
-The code is modified to fix the partitioning issue in the action blocks rendering on the timeline schedule grid by ensuring only starting slots are rendered and using consistent colors.
-```
 
-```replit_final_file
 import React, { useState, useRef, useEffect } from 'react';
 import { format, addDays, addHours, addMinutes, startOfDay, parseISO, differenceInMinutes } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -77,8 +74,6 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
   const [selectedInternalAction, setSelectedInternalAction] = useState<any>(null);
   const [showInternalActionModal, setShowInternalActionModal] = useState(false);
 
-
-
   // Refs para sincronização de scroll
   const headerScrollRef = useRef<HTMLDivElement>(null);
   const contentScrollRef = useRef<HTMLDivElement>(null);
@@ -147,8 +142,6 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
 
   const timeSlots = getTimeSlots();
 
-
-
   // Filter agents by search
   const filteredAgents = agents.filter(agent => {
     if (!agent || !agent.email) return false;
@@ -158,8 +151,6 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
     return agentName.toLowerCase().includes(searchAgent.toLowerCase()) ||
            agent.email.toLowerCase().includes(searchAgent.toLowerCase());
   });
-
-
 
   const getActivityType = (activityTypeId: string) => {
     return activityTypes.find(type => type.id === activityTypeId);
@@ -421,8 +412,6 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                     const workSchedule = workSchedules.find(ws => ws.userId === agent.id);
                     const dayOfWeek = timeSlot.getDay(); // 0 = domingo, 1 = segunda, etc.
                     const worksToday = workSchedule?.workDays.includes(dayOfWeek) || false;
-
-
 
                     // Check if it's working hour based on actual schedule
                     const isWorkingHour = worksToday && workSchedule ? (() => {
