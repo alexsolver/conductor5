@@ -511,7 +511,7 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                                   return (
                                     <div
                                       key={`${schedule.id}-layer-${layerIndex}`}
-                                      className={`absolute rounded text-white text-xs flex items-center gap-1 px-2 cursor-pointer hover:opacity-80 border ${
+                                      className={`absolute rounded text-white text-xs flex items-center gap-1 px-2 cursor-pointer hover:opacity-80 border bg-purple-600 border-purple-400 pt-[8px] pb-[8px] ${
                                         layerColors[layerIndex % layerColors.length]
                                       }`}
                                       style={{ 
