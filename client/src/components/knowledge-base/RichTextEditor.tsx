@@ -48,6 +48,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
   const [imageUrl, setImageUrl] = useState('')
   const [showLinkDialog, setShowLinkDialog] = useState(false)
   const [showImageDialog, setShowImageDialog] = useState(false)
+  const [hasError, setHasError] = useState(false)
 
   const editor = useEditor({
     extensions: [
@@ -61,6 +62,10 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
           HTMLAttributes: {
             class: 'whitespace-pre-line',
           },
+        },
+        history: {
+          depth: 100,
+          newGroupDelay: 500,
         },
       }),
       Paragraph.configure({
@@ -93,7 +98,18 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
     ],
     content,
     onUpdate: ({ editor }) => {
-      onChange(editor.getHTML())
+      try {
+        onChange(editor.getHTML())
+      } catch (error) {
+        console.error('Error updating editor content:', error)
+      }
+    },
+    onCreate: ({ editor }) => {
+      // Ensure editor is fully initialized
+      console.log('TipTap editor created successfully')
+    },
+    onDestroy: () => {
+      console.log('TipTap editor destroyed')
     },
     editorProps: {
       attributes: {
@@ -101,21 +117,72 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
         style: 'white-space: pre-wrap; word-wrap: break-word;',
       },
       handleKeyDown: (view, event) => {
-        // Allow Enter to create new lines
-        if (event.key === 'Enter' && !event.shiftKey) {
-          return false; // Let the editor handle the Enter key
+        try {
+          // Handle Ctrl+Z (undo) explicitly to prevent conflicts
+          if (event.key === 'z' && (event.ctrlKey || event.metaKey) && !event.shiftKey) {
+            event.preventDefault();
+            event.stopPropagation();
+            if (editor && editor.can().undo()) {
+              return editor.chain().focus().undo().run();
+            }
+            return true;
+          }
+          
+          // Handle Ctrl+Shift+Z or Ctrl+Y (redo) explicitly
+          if ((event.key === 'z' && (event.ctrlKey || event.metaKey) && event.shiftKey) ||
+              (event.key === 'y' && (event.ctrlKey || event.metaKey))) {
+            event.preventDefault();
+            event.stopPropagation();
+            if (editor && editor.can().redo()) {
+              return editor.chain().focus().redo().run();
+            }
+            return true;
+          }
+          
+          // Allow Enter to create new lines
+          if (event.key === 'Enter' && !event.shiftKey) {
+            return false; // Let the editor handle the Enter key
+          }
+          
+          // Allow Shift+Enter for hard breaks
+          if (event.key === 'Enter' && event.shiftKey) {
+            return false; // Let the editor handle Shift+Enter
+          }
+          
+          return false;
+        } catch (error) {
+          console.error('Error handling keyboard event:', error)
+          return false;
         }
-        // Allow Shift+Enter for hard breaks
-        if (event.key === 'Enter' && event.shiftKey) {
-          return false; // Let the editor handle Shift+Enter
-        }
-        return false;
       },
     },
   })
 
+  if (hasError) {
+    return (
+      <div className="border border-red-200 rounded-lg p-4 bg-red-50">
+        <p className="text-red-700 text-sm">
+          Erro no editor de texto. Recarregue a página para tentar novamente.
+        </p>
+        <button 
+          onClick={() => {
+            setHasError(false);
+            window.location.reload();
+          }}
+          className="mt-2 px-3 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700"
+        >
+          Recarregar
+        </button>
+      </div>
+    )
+  }
+
   if (!editor) {
-    return null
+    return (
+      <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+        <p className="text-gray-600 text-sm">Carregando editor...</p>
+      </div>
+    )
   }
 
   const addImage = () => {
@@ -138,10 +205,11 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
     editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
   }
 
-  return (
-    <div className="border border-gray-200 rounded-lg">
-      {/* Toolbar */}
-      <div className="border-b border-gray-200 p-2 flex flex-wrap gap-1">
+  try {
+    return (
+      <div className="border border-gray-200 rounded-lg">
+        {/* Toolbar */}
+        <div className="border-b border-gray-200 p-2 flex flex-wrap gap-1">
         {/* Text Formatting */}
         <Button
           variant="ghost"
@@ -333,6 +401,17 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
           className="prose prose-sm max-w-none [&_p]:mb-2 [&_br]:block [&_br]:content-[''] [&_br]:mt-1"
         />
       </div>
-    </div>
-  )
+      </div>
+    )
+  } catch (error) {
+    console.error('RichTextEditor render error:', error)
+    setHasError(true)
+    return (
+      <div className="border border-red-200 rounded-lg p-4 bg-red-50">
+        <p className="text-red-700 text-sm">
+          Erro ao renderizar o editor de texto.
+        </p>
+      </div>
+    )
+  }
 }
