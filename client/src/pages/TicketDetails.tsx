@@ -1940,6 +1940,7 @@ const TicketDetails = React.memo(() => {
                       case 'communication': return { icon: MessageSquare, color: 'teal' };
                       case 'attachment_added': return { icon: Paperclip, color: 'pink' };
                       case 'note_added': return { icon: FileText, color: 'blue' };
+                      case 'note_deleted': return { icon: Trash2, color: 'red' };
                       case 'ação interna': return { icon: Settings, color: 'purple' };
                       default: return { icon: Activity, color: 'gray' };
                     }
@@ -1967,8 +1968,9 @@ const TicketDetails = React.memo(() => {
                               {historyItem.action_type === 'attachment_added' && 'Anexo Adicionado'}
                               {historyItem.action_type === 'internal_action' && 'Ação Interna'}
                               {historyItem.action_type === 'ação interna' && 'Ação Interna'}
-                              {historyItem.action_type === 'note_added' && 'Nota'}
-                              {!['created', 'assigned', 'assignment', 'status_changed', 'status_change', 'viewed', 'email_sent', 'email_received', 'communication', 'attachment_added', 'internal_action', 'ação interna', 'note_added'].includes(historyItem.action_type) && 'Atividade'}
+                              {historyItem.action_type === 'note_added' && 'Nota Adicionada'}
+                              {historyItem.action_type === 'note_deleted' && 'Nota Excluída'}
+                              {!['created', 'assigned', 'assignment', 'status_changed', 'status_change', 'viewed', 'email_sent', 'email_received', 'communication', 'attachment_added', 'internal_action', 'ação interna', 'note_added', 'note_deleted'].includes(historyItem.action_type) && 'Atividade'}
                             </span>
                             {historyViewMode === 'advanced' && (
                               <Badge variant="secondary" className="text-xs">
