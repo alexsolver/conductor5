@@ -3724,7 +3724,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const members = await tenantDb.execute(sql`
         SELECT 
           u.id,
-          u.name,
+          COALESCE(CONCAT(u.first_name, ' ', u.last_name), u.email) as name,
           u.email,
           u.role,
           u.position,
@@ -3733,7 +3733,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         FROM ${sql.identifier(schemaName)}.user_group_memberships ugm
         INNER JOIN public.users u ON ugm.user_id = u.id
         WHERE ugm.group_id = ${groupId} AND ugm.is_active = true
-        ORDER BY u.name
+        ORDER BY name
       `);
 
       res.json({ success: true, data: members.rows });

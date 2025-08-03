@@ -47,9 +47,19 @@ export function FilteredUserSelect({
   if (selectedGroupId && groupMembersData?.data) {
     // Se um grupo foi selecionado, mostrar apenas membros do grupo
     usersToShow = groupMembersData.data;
+    console.log('[FilteredUserSelect] Showing group members:', {
+      groupId: selectedGroupId, 
+      membersCount: usersToShow.length,
+      members: usersToShow.map(u => ({ id: u.id, name: u.name, email: u.email }))
+    });
   } else if (allUsersData?.success) {
     // Se nenhum grupo foi selecionado, mostrar todos os usuários
     usersToShow = allUsersData.users || [];
+    console.log('[FilteredUserSelect] Showing all users:', {
+      groupId: selectedGroupId,
+      usersCount: usersToShow.length,
+      users: usersToShow.map(u => ({ id: u.id, name: u.name, email: u.email }))
+    });
   }
 
   if (isLoading) {
