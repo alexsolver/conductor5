@@ -2,7 +2,7 @@ import { Router, Request, Response } from "express";
 import { z } from "zod";
 import { storage } from "../../storage-simple";
 import { jwtAuth } from "../../middleware/jwtAuth";
-import { insertFavorecidoSchema, type InsertFavorecido } from "@shared/schema";
+import { insertBeneficiarySchema, type InsertBeneficiary } from "@shared/schema";
 import { sendSuccess, sendError, sendValidationError } from "../../utils/standardResponse";
 
 // Add type for authenticated request
@@ -27,7 +27,7 @@ const getFavorecidosSchema = z.object({
   search: z.string().optional(),
 });
 
-const favorecidoIdSchema = z.object({
+const beneficiaryIdSchema = z.object({
   id: z.string().uuid("Invalid favorecido ID format"),
 });
 
@@ -61,8 +61,8 @@ router.get("/", async (req: AuthenticatedRequest, res: Response) => {
       },
     }, "Beneficiaries retrieved successfully");
   } catch (error) {
-    console.error("Error fetching favorecidos:", error);
-    return sendError(res, error as any, "Failed to fetch favorecidos", 500);
+    console.error("Error fetching beneficiaries:", error);
+    return sendError(res, error as any, "Failed to fetch beneficiaries", 500);
   }
 });
 
@@ -70,18 +70,18 @@ router.get("/", async (req: AuthenticatedRequest, res: Response) => {
 router.get("/:id", async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { user } = req;
-    const { id } = favorecidoIdSchema.parse(req.params);
+    const { id } = beneficiaryIdSchema.parse(req.params);
 
-    const favorecido = await storage.getBeneficiary(id, user.tenantId);
+    const beneficiary = await storage.getBeneficiary(id, user.tenantId);
 
-    if (!favorecido) {
-      return sendError(res, "Favorecido not found", "Favorecido not found", 404);
+    if (!beneficiary) {
+      return sendError(res, "Beneficiary not found", "Beneficiary not found", 404);
     }
 
-    return sendSuccess(res, { favorecido }, "Favorecido retrieved successfully");
+    return sendSuccess(res, { beneficiary }, "Beneficiary retrieved successfully");
   } catch (error) {
-    console.error("Error fetching favorecido:", error);
-    return sendError(res, error as any, "Failed to fetch favorecido", 500);
+    console.error("Error fetching beneficiary:", error);
+    return sendError(res, error as any, "Failed to fetch beneficiary", 500);
   }
 });
 
@@ -89,14 +89,14 @@ router.get("/:id", async (req: AuthenticatedRequest, res: Response) => {
 router.post("/", async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { user } = req;
-    const favorecidoData: InsertFavorecido = req.body;
+    const beneficiaryData: InsertBeneficiary = req.body;
 
-    const favorecido = await storage.createBeneficiary(user.tenantId, favorecidoData);
+    const beneficiary = await storage.createBeneficiary(user.tenantId, beneficiaryData);
 
-    return sendSuccess(res, { favorecido }, "Favorecido created successfully", 201);
+    return sendSuccess(res, { beneficiary }, "Beneficiary created successfully", 201);
   } catch (error) {
-    console.error("Error creating favorecido:", error);
-    return sendError(res, error as any, "Failed to create favorecido", 500);
+    console.error("Error creating beneficiary:", error);
+    return sendError(res, error as any, "Failed to create beneficiary", 500);
   }
 });
 
@@ -108,22 +108,22 @@ router.put("/:id", async (req: AuthenticatedRequest, res: Response) => {
       return sendError(res, "Authentication required", "Authentication required", 401);
     }
 
-    const { id } = favorecidoIdSchema.parse(req.params);
-    const updateData: Partial<InsertFavorecido> = req.body;
+    const { id } = beneficiaryIdSchema.parse(req.params);
+    const updateData: Partial<InsertBeneficiary> = req.body;
 
-    console.log('Route params BEFORE calling storage:', { tenantId: user.tenantId, favorecidoId: id, updateData });
+    console.log('Route params BEFORE calling storage:', { tenantId: user.tenantId, beneficiaryId: id, updateData });
 
     // CRITICAL: Ensure correct parameter order: (tenantId, id, data)
-    const favorecido = await storage.updateBeneficiary(user.tenantId, id, updateData);
+    const beneficiary = await storage.updateBeneficiary(user.tenantId, id, updateData);
 
-    if (!favorecido) {
-      return sendError(res, "Favorecido not found", "Favorecido not found", 404);
+    if (!beneficiary) {
+      return sendError(res, "Beneficiary not found", "Beneficiary not found", 404);
     }
 
-    return sendSuccess(res, { favorecido }, "Favorecido updated successfully");
+    return sendSuccess(res, { beneficiary }, "Beneficiary updated successfully");
   } catch (error) {
-    console.error("Error updating favorecido:", error);
-    return sendError(res, error as any, "Failed to update favorecido", 500);
+    console.error("Error updating beneficiary:", error);
+    return sendError(res, error as any, "Failed to update beneficiary", 500);
   }
 });
 
@@ -135,18 +135,18 @@ router.delete("/:id", async (req: AuthenticatedRequest, res: Response) => {
       return sendError(res, "Authentication required", "Authentication required", 401);
     }
 
-    const { id } = favorecidoIdSchema.parse(req.params);
+    const { id } = beneficiaryIdSchema.parse(req.params);
 
     const deleted = await storage.deleteBeneficiary(user.tenantId, id);
 
     if (!deleted) {
-      return sendError(res, "Favorecido not found", "Favorecido not found", 404);
+      return sendError(res, "Beneficiary not found", "Beneficiary not found", 404);
     }
 
-    return sendSuccess(res, null, "Favorecido deleted successfully");
+    return sendSuccess(res, null, "Beneficiary deleted successfully");
   } catch (error) {
-    console.error("Error deleting favorecido:", error);
-    return sendError(res, error as any, "Failed to delete favorecido", 500);
+    console.error("Error deleting beneficiary:", error);
+    return sendError(res, error as any, "Failed to delete beneficiary", 500);
   }
 });
 
@@ -154,20 +154,20 @@ router.delete("/:id", async (req: AuthenticatedRequest, res: Response) => {
 router.get("/:id/locations", async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { user } = req;
-    const { id } = favorecidoIdSchema.parse(req.params);
+    const { id } = beneficiaryIdSchema.parse(req.params);
 
     // Verify favorecido exists and belongs to tenant
-    const favorecido = await storage.getBeneficiary(id, user.tenantId);
-    if (!favorecido) {
-      return sendError(res, "Favorecido not found", "Favorecido not found", 404);
+    const beneficiary = await storage.getBeneficiary(id, user.tenantId);
+    if (!beneficiary) {
+      return sendError(res, "Beneficiary not found", "Beneficiary not found", 404);
     }
 
     const locations = await storage.getBeneficiaryLocations(id, user.tenantId);
 
-    return sendSuccess(res, { locations }, "Favorecido locations retrieved successfully");
+    return sendSuccess(res, { locations }, "Beneficiary locations retrieved successfully");
   } catch (error) {
-    console.error("Error fetching favorecido locations:", error);
-    return sendError(res, error as any, "Failed to fetch favorecido locations", 500);
+    console.error("Error fetching beneficiary locations:", error);
+    return sendError(res, error as any, "Failed to fetch beneficiary locations", 500);
   }
 });
 
@@ -175,7 +175,7 @@ router.get("/:id/locations", async (req: AuthenticatedRequest, res: Response) =>
 router.post("/:id/locations", async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { user } = req;
-    const { id } = favorecidoIdSchema.parse(req.params);
+    const { id } = beneficiaryIdSchema.parse(req.params);
 
     const addLocationSchema = z.object({
       locationId: z.string().uuid("Invalid location ID format"),
@@ -185,9 +185,9 @@ router.post("/:id/locations", async (req: AuthenticatedRequest, res: Response) =
     const { locationId, isPrimary } = addLocationSchema.parse(req.body);
 
     // Verify favorecido exists and belongs to tenant
-    const favorecido = await storage.getBeneficiary(id, user.tenantId);
-    if (!favorecido) {
-      return sendError(res, "Favorecido not found", "Favorecido not found", 404);
+    const beneficiary = await storage.getBeneficiary(id, user.tenantId);
+    if (!beneficiary) {
+      return sendError(res, "Beneficiary not found", "Beneficiary not found", 404);
     }
 
     // Verify location exists and belongs to tenant
@@ -198,10 +198,10 @@ router.post("/:id/locations", async (req: AuthenticatedRequest, res: Response) =
 
     const favorecidoLocation = await storage.addBeneficiaryLocation(id, locationId, user.tenantId, isPrimary);
 
-    return sendSuccess(res, { favorecidoLocation }, "Location added to favorecido successfully", 201);
+    return sendSuccess(res, { favorecidoLocation }, "Location added to beneficiary successfully", 201);
   } catch (error) {
-    console.error("Error adding location to favorecido:", error);
-    return sendError(res, error as any, "Failed to add location to favorecido", 500);
+    console.error("Error adding location to beneficiary:", error);
+    return sendError(res, error as any, "Failed to add location to beneficiary", 500);
   }
 });
 
@@ -209,28 +209,28 @@ router.post("/:id/locations", async (req: AuthenticatedRequest, res: Response) =
 router.delete("/:id/locations/:locationId", async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { user } = req;
-    const { id } = favorecidoIdSchema.parse(req.params);
+    const { id } = beneficiaryIdSchema.parse(req.params);
     const locationIdSchema = z.object({
       locationId: z.string().uuid("Invalid location ID format")
     });
     const { locationId } = locationIdSchema.parse(req.params);
 
     // Verify favorecido exists and belongs to tenant
-    const favorecido = await storage.getBeneficiary(id, user.tenantId);
-    if (!favorecido) {
-      return sendError(res, "Favorecido not found", "Favorecido not found", 404);
+    const beneficiary = await storage.getBeneficiary(id, user.tenantId);
+    if (!beneficiary) {
+      return sendError(res, "Beneficiary not found", "Beneficiary not found", 404);
     }
 
     const success = await storage.removeBeneficiaryLocation(id, locationId, user.tenantId);
 
     if (success) {
-      return sendSuccess(res, null, "Location removed from favorecido successfully");
+      return sendSuccess(res, null, "Location removed from beneficiary successfully");
     } else {
       return sendError(res, "Location association not found", "Location association not found", 404);
     }
   } catch (error) {
-    console.error("Error removing location from favorecido:", error);
-    return sendError(res, error as any, "Failed to remove location from favorecido", 500);
+    console.error("Error removing location from beneficiary:", error);
+    return sendError(res, error as any, "Failed to remove location from beneficiary", 500);
   }
 });
 
@@ -238,7 +238,7 @@ router.delete("/:id/locations/:locationId", async (req: AuthenticatedRequest, re
 router.put("/:id/locations/:locationId/primary", async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { user } = req;
-    const { id } = favorecidoIdSchema.parse(req.params);
+    const { id } = beneficiaryIdSchema.parse(req.params);
     const locationIdSchema = z.object({
       locationId: z.string().uuid("Invalid location ID format")
     });
@@ -251,9 +251,9 @@ router.put("/:id/locations/:locationId/primary", async (req: AuthenticatedReques
     const { isPrimary } = updatePrimarySchema.parse(req.body);
 
     // Verify favorecido exists and belongs to tenant
-    const favorecido = await storage.getBeneficiary(id, user.tenantId);
-    if (!favorecido) {
-      return sendError(res, "Favorecido not found", "Favorecido not found", 404);
+    const beneficiary = await storage.getBeneficiary(id, user.tenantId);
+    if (!beneficiary) {
+      return sendError(res, "Beneficiary not found", "Beneficiary not found", 404);
     }
 
     const success = await storage.updateBeneficiaryLocationPrimary(id, locationId, user.tenantId, isPrimary);
