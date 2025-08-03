@@ -803,8 +803,8 @@ const TicketDetails = React.memo(() => {
   ]); // Dependency array expandida para capturar mudanças importantes
 
   useEffect(() => {
-    if (formDataMemo && ticket) {
-      console.log('🎫 Optimized form reset with memoized data');
+    if (formDataMemo && ticket && !isEditMode) {
+      console.log('🎫 Optimized form reset with memoized data (view mode only)');
       form.reset(formDataMemo);
 
       // Update local states only if changed
@@ -819,7 +819,7 @@ const TicketDetails = React.memo(() => {
         setFollowers(ticket.followers);
       }
     }
-  }, [formDataMemo, selectedCompany, followers]);
+  }, [formDataMemo, selectedCompany, followers, isEditMode]);
 
 
 
