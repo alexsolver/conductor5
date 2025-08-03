@@ -252,6 +252,33 @@ customersRouter.post('/companies/:companyId/associate-multiple', jwtAuth, async 
   }
 });
 
+// GET /api/customers/:customerId/beneficiaries - Get beneficiaries for a specific customer
+customersRouter.get('/:customerId/beneficiaries', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    const { customerId } = req.params;
+    const { schemaManager } = await import('../../db');
+    const pool = schemaManager.getPool();
+    const schemaName = schemaManager.getSchemaName(req.user.tenantId);
+
+    console.log(`[BENEFICIARIES] Fetching beneficiaries for customer ${customerId} in tenant ${req.user.tenantId}`);
+
+    const result = await pool.query(`
+      SELECT id, first_name, last_name, email, phone
+      FROM "${schemaName}".favorecidos 
+      WHERE customer_id = $1
+    `, [customerId]);
+
+    res.json({
+      success: true,
+      beneficiaries: result.rows,
+      count: result.rows.length
+    });
+  } catch (error) {
+    console.error('Error fetching customer beneficiaries:', error);
+    res.status(500).json({ error: 'Failed to fetch customer beneficiaries' });
+  }
+});
+
 // POST /api/customers/companies - Create a new company
 customersRouter.post('/companies', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {

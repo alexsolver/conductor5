@@ -1,6 +1,6 @@
-import { eq, and, desc, asc, ilike, count, sql } from "drizzle-orm";
+import { eq, and, desc, asc, ilike, count, sql, or } from "drizzle-orm";
 import { db, schemaManager } from "./db";
-import { users, tenants, type User, type InsertUser } from "@shared/schema";
+import { users, tenants, type User, type InsertUser, favorecidos } from "@shared/schema";
 import { logInfo, logError } from "./utils/logger";
 import { poolManager } from "./database/ConnectionPoolManager";
 import { TenantValidator } from "./database/TenantValidator";
@@ -101,6 +101,9 @@ export interface IStorage {
   // Locations Management
   getLocations(tenantId: string): Promise<any[]>;
   createLocation(tenantId: string, locationData: any): Promise<any>;
+
+    // Beneficiary Management
+    getCustomerBeneficiaries(tenantId: string, customerId: string): Promise<any[]>;
 }
 
 // ===========================
@@ -2942,6 +2945,133 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       logError('Error updating favorecido location primary status', error, { favorecidoId, locationId, tenantId, isPrimary });
       return false;
+    }
+  }
+
+    // Get favorecidos (beneficiaries) with pagination and search
+  async getFavorecidos(tenantId: string, options: {
+    limit?: number;
+    offset?: number;
+    search?: string;
+  } = {}) {
+    const { limit = 20, offset = 0, search } = options;
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    try {
+      // First check if table exists
+      const tenantDb = await poolManager.getTenantConnection(tenantId);
+      const tableCheck = await tenantDb.execute(sql`
+        SELECT EXISTS (
+          SELECT FROM information_schema.tables 
+          WHERE table_schema = ${schemaName} AND table_name = 'favorecidos'
+        )
+      `);
+
+      if (!tableCheck.rows[0].exists) {
+        console.log(`Favorecidos table does not exist in schema ${schemaName}`);
+        return [];
+      }
+
+      let query = sql`
+        SELECT 
+          id,
+          tenant_id,
+          first_name,
+          last_name,
+          CONCAT(first_name, ' ', last_name) as full_name,
+          email,
+          birth_date,
+          rg,
+          cpf_cnpj,
+          is_active,
+          customer_code,
+          customer_id,
+          phone,
+          cell_phone,
+          contact_person,
+          contact_phone,
+          created_at,
+          updated_at
+        FROM ${sql.identifier(schemaName)}.favorecidos 
+        WHERE tenant_id = ${tenantId}
+      `;
+
+      if (search) {
+        query = sql`${query} AND (
+          first_name ILIKE ${`%${search}%`} OR 
+          last_name ILIKE ${`%${search}%`} OR 
+          email ILIKE ${`%${search}%`} OR
+          customer_code ILIKE ${`%${search}%`}
+        )`;
+      }
+
+      query = sql`${query} ORDER BY created_at DESC`;
+
+      if (limit > 0) {
+        query = sql`${query} LIMIT ${limit}`;
+
+        if (offset > 0) {
+          query = sql`${query} OFFSET ${offset}`;
+        }
+      }
+
+      const result = await tenantDb.execute(query);
+      console.log(`Found ${result.rows.length} favorecidos in ${schemaName}`);
+
+      // Adicionar fullName computed field para compatibilidade frontend em TODOS os registros
+      const favorecidos = (result.rows || []).map(favorecido => {
+        favorecido.fullName = `${favorecido.first_name || ''} ${favorecido.last_name || ''}`.trim();
+        return favorecido;
+      });
+
+      console.log(`Fetched ${favorecidos.length} favorecidos for tenant ${tenantId}`);
+      return favorecidos;
+    } catch (error) {
+      console.error('Error fetching favorecidos:', error);
+      return []; // Return empty array instead of throwing
+    }
+  }
+
+  // Get beneficiaries for a specific customer
+  async getCustomerBeneficiaries(tenantId: string, customerId: string) {
+    try {
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      console.log(`Fetching beneficiaries for customer ${customerId} in tenant ${tenantId}`);
+
+      const result = await tenantDb.execute(sql`
+        SELECT 
+          id,
+          tenant_id,
+          first_name,
+          last_name,
+          CONCAT(first_name, ' ', last_name) as full_name,
+          email,
+          birth_date,
+          rg,
+          cpf_cnpj,
+          is_active,
+          customer_code,
+          customer_id,
+          phone,
+          cell_phone,
+          contact_person,
+          contact_phone,
+          created_at,
+          updated_at
+        FROM ${sql.identifier(schemaName)}.favorecidos 
+        WHERE tenant_id = ${tenantId} AND customer_id = ${customerId} AND is_active = true
+        ORDER BY first_name, last_name
+      `);
+
+      const beneficiaries = result.rows || [];
+
+      console.log(`Found ${beneficiaries.length} beneficiaries for customer ${customerId}`);
+      return beneficiaries;
+    } catch (error) {
+      console.error('Error fetching customer beneficiaries:', error);
+      throw error;
     }
   }
 }

@@ -47,21 +47,28 @@ export function FilteredBeneficiarySelect({
   
   if (selectedCustomerId && selectedCustomerId !== 'unspecified') {
     // Cliente selecionado - mostrar APENAS beneficiários deste cliente
-    if (customerBeneficiariesData?.beneficiaries) {
+    if (customerBeneficiariesData?.success && customerBeneficiariesData?.beneficiaries) {
       beneficiariesToShow = customerBeneficiariesData.beneficiaries;
-      console.log('[FilteredBeneficiarySelect] ✅ FILTERED by customer:', {
+      console.log('[FilteredBeneficiarySelect] ✅ FILTERED by customer (API):', {
         customerId: selectedCustomerId, 
         beneficiariesCount: beneficiariesToShow.length,
-        beneficiaries: beneficiariesToShow.map(b => ({ id: b.id, name: b.firstName + ' ' + b.lastName, email: b.email }))
+        beneficiaries: beneficiariesToShow.map(b => ({ 
+          id: b.id, 
+          name: b.name || `${b.firstName || ''} ${b.lastName || ''}`.trim(),
+          email: b.email 
+        }))
       });
     } else if (isLoadingCustomerBeneficiaries) {
       beneficiariesToShow = [];
       console.log('[FilteredBeneficiarySelect] ⏳ Loading beneficiaries for customer:', selectedCustomerId);
     } else {
-      // Se não há endpoint específico, filtrar da lista geral por customerId
+      // Fallback: filtrar da lista geral por customerId
       const allBeneficiaries = allBeneficiariesData?.success ? (allBeneficiariesData.beneficiaries || []) : [];
-      beneficiariesToShow = allBeneficiaries.filter((b: any) => b.customerId === selectedCustomerId || b.customer_id === selectedCustomerId);
-      console.log('[FilteredBeneficiarySelect] 🔍 FILTERED from all beneficiaries by customerId:', {
+      beneficiariesToShow = allBeneficiaries.filter((b: any) => 
+        b.customerId === selectedCustomerId || 
+        b.customer_id === selectedCustomerId
+      );
+      console.log('[FilteredBeneficiarySelect] 🔍 FILTERED from all beneficiaries by customerId (fallback):', {
         customerId: selectedCustomerId,
         totalBeneficiaries: allBeneficiaries.length,
         filteredCount: beneficiariesToShow.length

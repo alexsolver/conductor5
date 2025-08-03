@@ -479,18 +479,39 @@ export const userGroupMemberships = pgTable("user_group_memberships", {
 export const favorecidos = pgTable("favorecidos", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
-  name: varchar("name", { length: 255 }).notNull(),        // Standardized: nome → name
+  
+  // Basic Information
+  firstName: varchar("first_name", { length: 255 }),       // Standardized for consistency
+  lastName: varchar("last_name", { length: 255 }),         // Standardized for consistency
+  name: varchar("name", { length: 255 }).notNull(),        // Full name or display name
   email: varchar("email", { length: 255 }),                // Already English ✓
   phone: varchar("phone", { length: 20 }),                 // Standardized: telefone → phone
   cellPhone: varchar("cell_phone", { length: 20 }),        // Standardized: celular → cell_phone
+  
+  // Brazilian Legal Documents
   cpf: varchar("cpf", { length: 14 }),                     // Keep Brazilian legal term ✓
   cnpj: varchar("cnpj", { length: 18 }),                   // Keep Brazilian legal term ✓
   rg: varchar("rg", { length: 20 }),                       // Keep Brazilian legal term ✓
-  integrationCode: varchar("integration_code", { length: 100 }), // Standardized: codigo_integracao → integration_code
+  
+  // Address Information
   address: text("address"),                                 // Standardized: endereco → address
   city: varchar("city", { length: 100 }),                  // Standardized: cidade → city
   state: varchar("state", { length: 2 }),                  // Standardized: estado → state
   zipCode: varchar("zip_code", { length: 10 }),            // Standardized: cep → zip_code
+  
+  // Contact Information
+  contactPerson: varchar("contact_person", { length: 255 }),
+  contactPhone: varchar("contact_phone", { length: 20 }),
+  
+  // Integration and Customer Relationship
+  integrationCode: varchar("integration_code", { length: 100 }), // Standardized: codigo_integracao → integration_code
+  customerId: uuid("customer_id").references(() => customers.id), // Relationship with customer
+  customerCode: varchar("customer_code", { length: 100 }),
+  
+  // Birth Date for benefits
+  birthDate: date("birth_date"),
+  
+  // Additional Information
   notes: text("notes"),                                     // Standardized: observacoes → notes
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
