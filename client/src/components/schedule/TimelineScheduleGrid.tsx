@@ -499,7 +499,7 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                           // Organize schedules in layers to handle overlaps
                           const scheduleLayers = organizeSchedulesInLayers(plannedSchedules, timeSlot);
                           const totalLayers = scheduleLayers.length;
-                          const rowHeight = Math.max(40, totalLayers * 20); // Dynamic height based on layers
+                          const rowHeight = Math.max(40, totalLayers * 40); // Dynamic height based on layers
 
                           return (
                             <div 
@@ -576,8 +576,8 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                                       className={`absolute rounded text-white text-xs flex items-center gap-1 px-2 cursor-pointer hover:opacity-80 border ${blockColor}`}
                                       style={{ 
                                         left: '2px',
-                                        top: `${2 + index * 20}px`,
-                                        height: '18px',
+                                        top: `${2 + index * 40}px`,
+                                        height: '36px',
                                         width: `${Math.min(blockWidth, 316)}px`, // Max width constraint
                                         zIndex: 10,
                                         minWidth: '60px'
@@ -627,7 +627,7 @@ ${schedule.locationAddress ? `Local: ${schedule.locationAddress}` : ''}`}
                           // Organize actual schedules in layers to handle overlaps
                           const actualScheduleLayers = organizeSchedulesInLayers(actualSchedules, timeSlot);
                           const totalActualLayers = actualScheduleLayers.length;
-                          const actualRowHeight = Math.max(40, totalActualLayers * 20); // Dynamic height based on layers
+                          const actualRowHeight = Math.max(40, totalActualLayers * 40); // Dynamic height based on layers
 
                           return (
                             <div 
@@ -704,8 +704,8 @@ ${schedule.locationAddress ? `Local: ${schedule.locationAddress}` : ''}`}
                                       className={`absolute rounded text-white text-xs flex items-center gap-1 px-2 cursor-pointer hover:opacity-60 border ${blockColor}`}
                                       style={{ 
                                         left: '2px',
-                                        top: `${2 + index * 20}px`,
-                                        height: '18px',
+                                        top: `${2 + index * 40}px`,
+                                        height: '36px',
                                         opacity: 0.8, // Slightly more transparent for actual
                                         width: `${Math.min(blockWidth, 316)}px`, // Max width constraint
                                         zIndex: 8, // Lower than planned
