@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { FilteredCustomerSelect } from "@/components/FilteredCustomerSelect";
 import { 
   Search, 
   Link2, 
@@ -27,7 +28,8 @@ import {
   ArrowRight,
   Copy,
   AlertTriangle,
-  Workflow
+  Workflow,
+  Building2
 } from "lucide-react";
 
 interface Ticket {
@@ -72,9 +74,20 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
   const [description, setDescription] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string>("");
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string>("");
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Fetch companies for filtering
+  const { data: companiesData } = useQuery({
+    queryKey: ["/api/customers/companies"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/customers/companies");
+      return response.json();
+    },
+  });
 
   // Fetch all tickets and filter locally for better UX
   const { data: ticketsData, isLoading } = useQuery({
@@ -88,7 +101,10 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
   // Ensure allTickets is always an array - correct data structure parsing
   const allTickets = Array.isArray(ticketsData?.data?.tickets) ? ticketsData.data.tickets : [];
 
-  // Filter tickets based on search term, status, priority and exclude current ticket
+  // Get companies list
+  const companies = Array.isArray(companiesData) ? companiesData : [];
+
+  // Filter tickets based on search term, status, priority, company, customer and exclude current ticket
   const filteredTickets = allTickets.filter((ticket: Ticket) => {
     if (currentTicket && ticket.id === currentTicket.id) return false;
 
@@ -97,6 +113,18 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
 
     // Priority filter  
     if (priorityFilter !== "all" && ticket.priority !== priorityFilter) return false;
+
+    // Company filter
+    if (selectedCompanyId && selectedCompanyId !== "all") {
+      const ticketCompanyId = (ticket as any).customer_company_id || (ticket as any).customerCompanyId || (ticket as any).company;
+      if (ticketCompanyId !== selectedCompanyId) return false;
+    }
+
+    // Customer filter
+    if (selectedCustomerId && selectedCustomerId !== "all") {
+      const ticketCustomerId = (ticket as any).customer_id || (ticket as any).customerId;
+      if (ticketCustomerId !== selectedCustomerId) return false;
+    }
 
     // Search filter
     if (searchTerm.length > 0) {
@@ -305,6 +333,40 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
 
             {/* Search and Filters */}
             <div className="space-y-4">
+              {/* Company and Customer Filters */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                <div>
+                  <Label htmlFor="company-filter" className="flex items-center space-x-2">
+                    <Building2 className="h-4 w-4" />
+                    <span>Filtrar por Empresa</span>
+                  </Label>
+                  <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Todas as empresas" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Todas as empresas</SelectItem>
+                      {companies.map((company: any) => (
+                        <SelectItem key={company.id} value={company.id}>
+                          {company.company_name || company.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="customer-filter">Filtrar por Cliente</Label>
+                  <FilteredCustomerSelect
+                    value={selectedCustomerId}
+                    onChange={setSelectedCustomerId}
+                    selectedCompanyId={selectedCompanyId}
+                    placeholder="Todos os clientes"
+                    className="w-full"
+                  />
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <Label htmlFor="search">Buscar Ticket</Label>
