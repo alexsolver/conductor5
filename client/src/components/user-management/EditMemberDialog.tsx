@@ -58,7 +58,7 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
       phone: '',
       ramal: '',
       timeZone: 'America/Sao_Paulo',
-      vehicleType: '',
+      vehicleType: 'nenhum',
       cpfCnpj: '',
       
       // Endereço
@@ -111,9 +111,16 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
       try {
         const response = await apiRequest('GET', `/api/user-management/users/${member.id}`);
         console.log('EditMemberDialog - Got complete member details:', response);
+        
+        // If the response is empty object or doesn't have essential fields, use member data
+        if (!response || Object.keys(response).length === 0 || !response.email) {
+          console.log('EditMemberDialog - API returned empty/invalid data, using member data:', member);
+          return member;
+        }
+        
         return response;
       } catch (error) {
-        console.log('EditMemberDialog - Fallback to basic member data:', member);
+        console.log('EditMemberDialog - API error, fallback to basic member data:', member);
         return member;
       }
     },
@@ -122,61 +129,62 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
 
   // Reset form when member details are loaded
   useEffect(() => {
-    const memberData = memberDetails || member;
-    
-    if (memberData && open && !memberLoading) {
-      console.log('EditMemberDialog - Setting form data for member:', memberData);
-      console.log('EditMemberDialog - Available data keys:', Object.keys(memberData));
+    if (open && member && !memberLoading) {
+      // Use member data as source since API returns empty object
+      const sourceData = member;
+      
+      console.log('EditMemberDialog - Setting form data for member:', sourceData);
+      console.log('EditMemberDialog - Available data keys:', Object.keys(sourceData));
 
       // Handle different data structures with more comprehensive mapping
-      const firstName = memberData.firstName || memberData.first_name || (memberData.name ? memberData.name.split(' ')[0] : '');
-      const lastName = memberData.lastName || memberData.last_name || (memberData.name ? memberData.name.split(' ').slice(1).join(' ') : '');
+      const firstName = sourceData.firstName || sourceData.first_name || (sourceData.name ? sourceData.name.split(' ')[0] : '');
+      const lastName = sourceData.lastName || sourceData.last_name || (sourceData.name ? sourceData.name.split(' ').slice(1).join(' ') : '');
 
       const formDataToSet = {
         // Dados Básicos
         firstName,
         lastName,
-        email: memberData.email || '',
-        integrationCode: memberData.integrationCode || memberData.integration_code || '',
-        alternativeEmail: memberData.alternativeEmail || memberData.alternative_email || '',
-        cellPhone: memberData.cellPhone || memberData.cell_phone || '',
-        phone: memberData.phone || '',
-        ramal: memberData.ramal || '',
-        timeZone: memberData.timeZone || memberData.time_zone || 'America/Sao_Paulo',
-        vehicleType: memberData.vehicleType || memberData.vehicle_type || '',
-        cpfCnpj: memberData.cpfCnpj || memberData.cpf_cnpj || '',
+        email: sourceData.email || '',
+        integrationCode: sourceData.integrationCode || sourceData.integration_code || '',
+        alternativeEmail: sourceData.alternativeEmail || sourceData.alternative_email || '',
+        cellPhone: sourceData.cellPhone || sourceData.cell_phone || '',
+        phone: sourceData.phone || '',
+        ramal: sourceData.ramal || '',
+        timeZone: sourceData.timeZone || sourceData.time_zone || 'America/Sao_Paulo',
+        vehicleType: sourceData.vehicleType || sourceData.vehicle_type || 'nenhum',
+        cpfCnpj: sourceData.cpfCnpj || sourceData.cpf_cnpj || '',
         
         // Endereço
-        cep: memberData.cep || '',
-        country: memberData.country || 'Brasil',
-        state: memberData.state || '',
-        city: memberData.city || '',
-        streetAddress: memberData.streetAddress || memberData.street_address || memberData.address || '',
-        houseType: memberData.houseType || memberData.house_type || '',
-        houseNumber: memberData.houseNumber || memberData.house_number || '',
-        complement: memberData.complement || '',
-        neighborhood: memberData.neighborhood || '',
+        cep: sourceData.cep || '',
+        country: sourceData.country || 'Brasil',
+        state: sourceData.state || '',
+        city: sourceData.city || '',
+        streetAddress: sourceData.streetAddress || sourceData.street_address || sourceData.address || '',
+        houseType: sourceData.houseType || sourceData.house_type || '',
+        houseNumber: sourceData.houseNumber || sourceData.house_number || '',
+        complement: sourceData.complement || '',
+        neighborhood: sourceData.neighborhood || '',
         
         // Dados RH
-        employeeCode: memberData.employeeCode || memberData.employee_code || '',
-        pis: memberData.pis || '',
-        cargo: memberData.position || memberData.cargo || '',
-        ctps: memberData.ctps || '',
-        serieNumber: memberData.serieNumber || memberData.serie_number || '',
-        admissionDate: memberData.admissionDate || memberData.admission_date ? 
-          new Date(memberData.admissionDate || memberData.admission_date).toISOString().split('T')[0] : '',
-        costCenter: memberData.costCenter || memberData.cost_center || '',
-        employmentType: memberData.employmentType || memberData.employment_type || 'clt',
+        employeeCode: sourceData.employeeCode || sourceData.employee_code || '',
+        pis: sourceData.pis || '',
+        cargo: sourceData.position || sourceData.cargo || '',
+        ctps: sourceData.ctps || '',
+        serieNumber: sourceData.serieNumber || sourceData.serie_number || '',
+        admissionDate: sourceData.admissionDate || sourceData.admission_date ? 
+          new Date(sourceData.admissionDate || sourceData.admission_date).toISOString().split('T')[0] : '',
+        costCenter: sourceData.costCenter || sourceData.cost_center || '',
+        employmentType: sourceData.employmentType || sourceData.employment_type || 'clt',
         
         // Sistema
-        role: memberData.role || '',
-        groupIds: memberData.groupIds || memberData.group_ids || []
+        role: sourceData.role || '',
+        groupIds: sourceData.groupIds || sourceData.group_ids || []
       };
 
-      console.log('EditMemberDialog - Setting form data:', formDataToSet);
+      console.log('EditMemberDialog - Final form data:', formDataToSet);
       form.reset(formDataToSet);
     }
-  }, [memberDetails, member, open, memberLoading, form]);
+  }, [member, open, memberLoading, form]);
 
   // Update member mutation
   const updateMemberMutation = useMutation({
@@ -354,7 +362,7 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
                     <SelectValue placeholder="Selecione..." />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Nenhum</SelectItem>
+                    <SelectItem value="nenhum">Nenhum</SelectItem>
                     <SelectItem value="particular">Particular</SelectItem>
                     <SelectItem value="empresarial">Empresarial</SelectItem>
                   </SelectContent>
@@ -414,11 +422,6 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
                     <SelectItem value="manager">Gerente</SelectItem>
                     <SelectItem value="tenant_admin">Administrador</SelectItem>
                     <SelectItem value="supervisor">Supervisor</SelectItem>
-                    {Array.isArray(rolesData?.roles) && rolesData.roles.map((role: any) => (
-                      <SelectItem key={role.id} value={role.id}>
-                        {role.name}
-                      </SelectItem>
-                    ))}
                   </SelectContent>
                 </Select>
               </div>
