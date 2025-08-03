@@ -1929,7 +1929,8 @@ const TicketDetails = React.memo(() => {
                   // Map action types to icons and colors
                   const getActionIcon = (actionType: string) => {
                     switch (actionType) {
-                      case 'created': return { icon: PlusCircle, color: 'green' };
+                      case 'created':
+                      case 'ticket_created': return { icon: PlusCircle, color: 'green' };
                       case 'assigned': 
                       case 'assignment': return { icon: User, color: 'blue' };
                       case 'status_changed':
@@ -1939,8 +1940,22 @@ const TicketDetails = React.memo(() => {
                       case 'email_received': return { icon: Mail, color: 'indigo' };
                       case 'communication': return { icon: MessageSquare, color: 'teal' };
                       case 'attachment_added': return { icon: Paperclip, color: 'pink' };
-                      case 'note_added': return { icon: FileText, color: 'blue' };
+                      case 'note_added':
+                      case 'note_created': return { icon: FileText, color: 'blue' };
                       case 'note_deleted': return { icon: Trash2, color: 'red' };
+                      case 'relationship_created': return { icon: Link2, color: 'green' };
+                      case 'relationship_deleted': return { icon: Link2, color: 'red' };
+                      case 'internal_action':
+                      case 'internal_action_created': return { icon: Plus, color: 'purple' };
+                      case 'internal_action_updated': return { icon: Edit, color: 'blue' };
+                      case 'internal_action_deleted': return { icon: Trash2, color: 'red' };
+                      case 'action_updated': return { icon: Edit, color: 'blue' };
+                      case 'action_deleted': return { icon: Trash2, color: 'red' };
+                      case 'resolution': return { icon: CheckCircle, color: 'green' };
+                      case 'investigation': return { icon: AlertCircle, color: 'orange' };
+                      case 'analysis': return { icon: BarChart3, color: 'blue' };
+                      case 'work_log': return { icon: Clock, color: 'indigo' };
+                      case 'documentation': return { icon: FileIcon, color: 'teal' };
                       case 'ação interna': return { icon: Settings, color: 'purple' };
                       default: return { icon: Activity, color: 'gray' };
                     }
@@ -1957,6 +1972,7 @@ const TicketDetails = React.memo(() => {
                             <Icon className={`h-4 w-4 text-${color}-600`} />
                             <span className="font-medium text-sm">
                               {historyItem.action_type === 'created' && 'Ticket Criado'}
+                              {historyItem.action_type === 'ticket_created' && 'Ticket Criado'}
                               {historyItem.action_type === 'assigned' && 'Atribuição'}
                               {historyItem.action_type === 'assignment' && 'Atribuição'}
                               {historyItem.action_type === 'status_changed' && 'Status Alterado'}
@@ -1967,10 +1983,23 @@ const TicketDetails = React.memo(() => {
                               {historyItem.action_type === 'communication' && 'Comunicação'}
                               {historyItem.action_type === 'attachment_added' && 'Anexo Adicionado'}
                               {historyItem.action_type === 'internal_action' && 'Ação Interna'}
+                              {historyItem.action_type === 'internal_action_created' && 'Ação Interna Criada'}
+                              {historyItem.action_type === 'internal_action_updated' && 'Ação Interna Atualizada'}
+                              {historyItem.action_type === 'internal_action_deleted' && 'Ação Interna Excluída'}
+                              {historyItem.action_type === 'action_updated' && 'Ação Atualizada'}
+                              {historyItem.action_type === 'action_deleted' && 'Ação Excluída'}
                               {historyItem.action_type === 'ação interna' && 'Ação Interna'}
                               {historyItem.action_type === 'note_added' && 'Nota Adicionada'}
+                              {historyItem.action_type === 'note_created' && 'Nota Criada'}
                               {historyItem.action_type === 'note_deleted' && 'Nota Excluída'}
-                              {!['created', 'assigned', 'assignment', 'status_changed', 'status_change', 'viewed', 'email_sent', 'email_received', 'communication', 'attachment_added', 'internal_action', 'ação interna', 'note_added', 'note_deleted'].includes(historyItem.action_type) && 'Atividade'}
+                              {historyItem.action_type === 'relationship_created' && 'Vínculo Criado'}
+                              {historyItem.action_type === 'relationship_deleted' && 'Vínculo Removido'}
+                              {historyItem.action_type === 'resolution' && 'Resolução'}
+                              {historyItem.action_type === 'investigation' && 'Investigação'}
+                              {historyItem.action_type === 'analysis' && 'Análise'}
+                              {historyItem.action_type === 'work_log' && 'Log de Trabalho'}
+                              {historyItem.action_type === 'documentation' && 'Documentação'}
+                              {!['created', 'ticket_created', 'assigned', 'assignment', 'status_changed', 'status_change', 'viewed', 'email_sent', 'email_received', 'communication', 'attachment_added', 'internal_action', 'internal_action_created', 'internal_action_updated', 'internal_action_deleted', 'action_updated', 'action_deleted', 'ação interna', 'note_added', 'note_created', 'note_deleted', 'relationship_created', 'relationship_deleted', 'resolution', 'investigation', 'analysis', 'work_log', 'documentation'].includes(historyItem.action_type) && 'Atividade'}
                             </span>
                             {historyViewMode === 'advanced' && (
                               <Badge variant="secondary" className="text-xs">
