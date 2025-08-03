@@ -29,7 +29,8 @@ export class UserRepository implements IUserRepository {
         userData.isActive ?? true,
         userData.lastLoginAt,
         userData.createdAt || new Date(),
-        userData.updatedAt || new Date()
+        userData.updatedAt || new Date(),
+        userData.employmentType as 'clt' | 'autonomo' || 'clt'
       );
     } catch (error) {
       logError('Error finding user by ID', error, { userId: id });
@@ -58,7 +59,8 @@ export class UserRepository implements IUserRepository {
         userData.isActive ?? true,
         userData.lastLoginAt,
         userData.createdAt || new Date(),
-        userData.updatedAt || new Date()
+        userData.updatedAt || new Date(),
+        userData.employmentType as 'clt' | 'autonomo' || 'clt'
       );
     } catch (error) {
       logError('Error finding user by email', error, { email: email.toLowerCase() });
@@ -90,7 +92,8 @@ export class UserRepository implements IUserRepository {
         data.isActive ?? true,
         data.lastLoginAt,
         data.createdAt || new Date(),
-        data.updatedAt || new Date()
+        data.updatedAt || new Date(),
+        data.employmentType as 'clt' | 'autonomo' || 'clt'
       ));
     } catch (error) {
       logError('Error finding users by tenant', error, { tenantId, limit, offset });
@@ -130,7 +133,8 @@ export class UserRepository implements IUserRepository {
         savedData.isActive ?? true,
         savedData.lastLoginAt,
         savedData.createdAt || new Date(),
-        savedData.updatedAt || new Date()
+        savedData.updatedAt || new Date(),
+        savedData.employmentType as 'clt' | 'autonomo' || 'clt'
       );
     } catch (error) {
       logError('Error saving user', error, { userId: user.id, email: user.email });
@@ -169,7 +173,8 @@ export class UserRepository implements IUserRepository {
         updatedData.isActive ?? true,
         updatedData.lastLoginAt,
         updatedData.createdAt || new Date(),
-        updatedData.updatedAt || new Date()
+        updatedData.updatedAt || new Date(),
+        updatedData.employmentType as 'clt' | 'autonomo' || 'clt'
       );
     } catch (error) {
       logError('Error updating user', error, { userId: user.id });
@@ -214,7 +219,8 @@ export class UserRepository implements IUserRepository {
         data.isActive ?? true,
         data.lastLoginAt,
         data.createdAt || new Date(),
-        data.updatedAt || new Date()
+        data.updatedAt || new Date(),
+        data.employmentType as 'clt' | 'autonomo' || 'clt'
       ));
     } catch (error) {
       logError('Error finding all users', error, { limit, offset });

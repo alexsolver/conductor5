@@ -14,7 +14,8 @@ export class User {
     public readonly isActive: boolean = true,
     public readonly lastLoginAt: Date | null = null,
     public readonly createdAt: Date = new Date(),
-    public readonly updatedAt: Date = new Date()
+    public readonly updatedAt: Date = new Date(),
+    public readonly employmentType: 'clt' | 'autonomo' = 'clt'
   ) {}
 
   // Business rules
@@ -76,7 +77,8 @@ export class User {
       true,
       null,
       new Date(),
-      new Date()
+      new Date(),
+      'clt'
     );
   }
 
@@ -87,6 +89,7 @@ export class User {
     tenantId: string;
     profileImageUrl: string;
     isActive: boolean;
+    employmentType: 'clt' | 'autonomo';
   }>): User {
     return new User(
       this.id,
@@ -100,7 +103,8 @@ export class User {
       props.isActive !== undefined ? props.isActive : this.isActive,
       this.lastLoginAt,
       this.createdAt,
-      new Date()
+      new Date(),
+      props.employmentType !== undefined ? props.employmentType : this.employmentType
     );
   }
 
@@ -117,7 +121,8 @@ export class User {
       this.isActive,
       this.lastLoginAt,
       this.createdAt,
-      new Date()
+      new Date(),
+      this.employmentType
     );
   }
 
@@ -134,7 +139,8 @@ export class User {
       this.isActive,
       new Date(),
       this.createdAt,
-      new Date()
+      new Date(),
+      this.employmentType
     );
   }
 }
