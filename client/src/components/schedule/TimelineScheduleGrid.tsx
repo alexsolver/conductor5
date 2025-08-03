@@ -96,9 +96,9 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
   const getTimeSlots = () => {
     switch (timeFilter) {
       case '2min':
-        // 2 hours with 5-minute intervals
-        return Array.from({ length: 24 }, (_, i) => {
-          const time = addMinutes(startOfDay(selectedDate), i * 5);
+        // 72 hours with 2-minute intervals (2160 slots)
+        return Array.from({ length: 2160 }, (_, i) => {
+          const time = addMinutes(startOfDay(selectedDate), i * 2);
           return time;
         });
 
@@ -264,7 +264,7 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
   // Calculate current time indicator position
   const getCurrentTimePosition = () => {
     const now = new Date();
-    
+
     // Calculate slot width based on time filter
     let slotWidthInMinutes = 60; // default 1 hour
     switch (timeFilter) {
@@ -287,14 +287,14 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
         slotWidthInMinutes = 60;
         break;
     }
-    
+
     const currentTimeSlotIndex = timeSlots.findIndex(slot => {
       const slotStart = slot.getTime();
       const slotEnd = slotStart + (slotWidthInMinutes * 60 * 1000);
       const nowTime = now.getTime();
       return nowTime >= slotStart && nowTime < slotEnd;
     });
-    
+
     if (currentTimeSlotIndex >= 0) {
       return currentTimeSlotIndex * 64 + 32; // 64px per slot, center at 32px
     }
@@ -458,7 +458,7 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                   title={`Horário atual: ${format(new Date(), 'HH:mm')}`}
                 />
               )}
-              
+
               {timeSlots.map((timeSlot, timeIndex) => (
                 <div key={timeIndex} className="flex-shrink-0 w-16 border-r last:border-r-0 relative">
                   {filteredAgents.map((agent) => {
