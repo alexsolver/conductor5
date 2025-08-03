@@ -96,6 +96,8 @@ const TicketDetails = React.memo(() => {
   const [isLinkingModalOpen, setIsLinkingModalOpen] = useState(false);
   const [relatedTickets, setRelatedTickets] = useState<any[]>([]);
   const [isCompanyDetailsOpen, setIsCompanyDetailsOpen] = useState(false);
+  const [isClientDetailsOpen, setIsClientDetailsOpen] = useState(false);
+  const [isBeneficiaryDetailsOpen, setIsBeneficiaryDetailsOpen] = useState(false);
 
 
 
@@ -2595,40 +2597,18 @@ const TicketDetails = React.memo(() => {
                 })()}
               </div>
             ) : (
-              <div className="space-y-2">
-                <Badge 
-                  variant="outline" 
-                  className="px-3 py-2 text-sm font-semibold bg-gradient-to-r from-blue-500 to-indigo-600 text-white border-blue-500 shadow-md hover:shadow-lg transition-shadow duration-200 w-full justify-center"
-                >
-                  <Building2 className="h-4 w-4 mr-2" />
-                  {(() => {
-                    const companyId = ticket.customer_company_id || ticket.customerCompanyId || ticket.company;
-                    const companyData = (Array.isArray(companiesData) ? companiesData : companiesData?.data || []).find((c: any) => c.id === companyId);
-                    return companyData?.name || ticket.customerCompany?.name || (companyId && companyId !== 'unspecified' ? 'Empresa não encontrada' : 'Não especificado');
-                  })()}
-                </Badge>
+              <Badge 
+                variant="outline" 
+                className="px-3 py-2 text-sm font-semibold bg-gradient-to-r from-blue-500 to-indigo-600 text-white border-blue-500 shadow-md hover:shadow-lg transition-shadow duration-200 w-full justify-center cursor-pointer"
+                onClick={() => setIsCompanyDetailsOpen(true)}
+              >
+                <Building2 className="h-4 w-4 mr-2" />
                 {(() => {
                   const companyId = ticket.customer_company_id || ticket.customerCompanyId || ticket.company;
                   const companyData = (Array.isArray(companiesData) ? companiesData : companiesData?.data || []).find((c: any) => c.id === companyId);
-                  const industry = ticket.customerCompany?.industry || companyData?.industry;
-                  const cnpj = ticket.customerCompany?.cnpj || companyData?.cnpj;
-                  
-                  return (
-                    <>
-                      {industry && (
-                        <div className="text-xs text-blue-600 mt-1 px-2">
-                          🏷️ Setor: {industry}
-                        </div>
-                      )}
-                      {cnpj && (
-                        <div className="text-xs text-blue-600 px-2">
-                          📄 CNPJ: {cnpj}
-                        </div>
-                      )}
-                    </>
-                  );
+                  return companyData?.name || ticket.customerCompany?.name || (companyId && companyId !== 'unspecified' ? 'Empresa não encontrada' : 'Não especificado');
                 })()}
-              </div>
+              </Badge>
             )}
           </div>
 
@@ -2683,67 +2663,38 @@ const TicketDetails = React.memo(() => {
                       ))}
                     </SelectContent>
                   </Select>
-                  {(() => {
-                    const callerId = ticket.caller_id || ticket.callerId;
-                    const customer = availableCustomers.find((c: any) => c.id === callerId) || 
-                                   (Array.isArray(customersData?.customers) ? customersData.customers : []).find((c: any) => c.id === callerId);
-                    
-                    if (customer && customer.email) {
-                      return (
-                        <div className="text-xs text-purple-600 px-2">
-                          📧 {customer.email}
-                        </div>
-                      );
-                    }
-                    return null;
-                  })()}
                 </div>
               ) : (
-                <div className="space-y-2">
-                  <Badge 
-                    variant="outline" 
-                    className="px-3 py-2 text-sm font-semibold bg-gradient-to-r from-purple-500 to-violet-600 text-white border-purple-500 shadow-md hover:shadow-lg transition-shadow duration-200 w-full justify-center"
-                  >
-                    <User className="h-4 w-4 mr-2" />
-                    {(() => {
-                      const callerId = ticket.caller_id || ticket.callerId;
-                      const customer = availableCustomers.find((c: any) => c.id === callerId);
-                      
-                      if (!customer && callerId && callerId !== 'unspecified') {
-                        const allCustomers = Array.isArray(customersData?.customers) ? customersData.customers : [];
-                        const fallbackCustomer = allCustomers.find((c: any) => c.id === callerId);
-                        if (fallbackCustomer) {
-                          return fallbackCustomer.fullName || fallbackCustomer.name || 
-                                 `${fallbackCustomer.firstName || ''} ${fallbackCustomer.lastName || ''}`.trim() || 
-                                 fallbackCustomer.email || 'Cliente encontrado';
-                        }
-                        return 'Cliente não encontrado';
-                      }
-                      
-                      if (!customer) {
-                        return (callerId === 'unspecified' || !callerId) ? 'Não especificado' : 'Cliente não encontrado';
-                      }
-                      
-                      return customer.fullName || customer.name || 
-                             `${customer.firstName || ''} ${customer.lastName || ''}`.trim() || 
-                             customer.email || 'Cliente sem nome';
-                    })()}
-                  </Badge>
+                <Badge 
+                  variant="outline" 
+                  className="px-3 py-2 text-sm font-semibold bg-gradient-to-r from-purple-500 to-violet-600 text-white border-purple-500 shadow-md hover:shadow-lg transition-shadow duration-200 w-full justify-center cursor-pointer"
+                  onClick={() => setIsClientDetailsOpen(true)}
+                >
+                  <User className="h-4 w-4 mr-2" />
                   {(() => {
                     const callerId = ticket.caller_id || ticket.callerId;
-                    const customer = availableCustomers.find((c: any) => c.id === callerId) || 
-                                   (Array.isArray(customersData?.customers) ? customersData.customers : []).find((c: any) => c.id === callerId);
+                    const customer = availableCustomers.find((c: any) => c.id === callerId);
                     
-                    if (customer && customer.email) {
-                      return (
-                        <div className="text-xs text-purple-600 px-2">
-                          📧 {customer.email}
-                        </div>
-                      );
+                    if (!customer && callerId && callerId !== 'unspecified') {
+                      const allCustomers = Array.isArray(customersData?.customers) ? customersData.customers : [];
+                      const fallbackCustomer = allCustomers.find((c: any) => c.id === callerId);
+                      if (fallbackCustomer) {
+                        return fallbackCustomer.fullName || fallbackCustomer.name || 
+                               `${fallbackCustomer.firstName || ''} ${fallbackCustomer.lastName || ''}`.trim() || 
+                               fallbackCustomer.email || 'Cliente encontrado';
+                      }
+                      return 'Cliente não encontrado';
                     }
-                    return null;
+                    
+                    if (!customer) {
+                      return (callerId === 'unspecified' || !callerId) ? 'Não especificado' : 'Cliente não encontrado';
+                    }
+                    
+                    return customer.fullName || customer.name || 
+                           `${customer.firstName || ''} ${customer.lastName || ''}`.trim() || 
+                           customer.email || 'Cliente sem nome';
                   })()}
-                </div>
+                </Badge>
               )}
             </div>
 
@@ -2786,69 +2737,28 @@ const TicketDetails = React.memo(() => {
                       ))}
                     </SelectContent>
                   </Select>
-                  {(() => {
-                    const beneficiaryId = ticket.beneficiary_id || ticket.beneficiaryId;
-                    const beneficiary = availableCustomers.find((c: any) => c.id === beneficiaryId) || 
-                                      (Array.isArray(customersData?.customers) ? customersData.customers : []).find((c: any) => c.id === beneficiaryId);
-                    
-                    return (
-                      <>
-                        {beneficiary && beneficiary.email && (
-                          <div className="text-xs text-indigo-600 px-2">
-                            📧 {beneficiary.email}
-                          </div>
-                        )}
-                        {beneficiary && beneficiary.phone && (
-                          <div className="text-xs text-indigo-600 px-2">
-                            📞 {beneficiary.phone}
-                          </div>
-                        )}
-                      </>
-                    );
-                  })()}
                 </div>
               ) : (
-                <div className="space-y-2">
-                  <Badge 
-                    variant="outline" 
-                    className="px-3 py-2 text-sm font-semibold bg-gradient-to-r from-indigo-500 to-blue-600 text-white border-indigo-500 shadow-md hover:shadow-lg transition-shadow duration-200 w-full justify-center"
-                  >
-                    <Users className="h-4 w-4 mr-2" />
-                    {(() => {
-                      const beneficiaryId = ticket.beneficiary_id || ticket.beneficiaryId;
-                      const beneficiary = availableCustomers.find((c: any) => c.id === beneficiaryId) || 
-                                        (Array.isArray(customersData?.customers) ? customersData.customers : []).find((c: any) => c.id === beneficiaryId);
-                      
-                      if (!beneficiary) {
-                        return (beneficiaryId === 'unspecified' || !beneficiaryId) ? 'Não especificado' : 'Favorecido não encontrado';
-                      }
-                      
-                      return beneficiary.fullName || beneficiary.name || 
-                             `${beneficiary.firstName || ''} ${beneficiary.lastName || ''}`.trim() || 
-                             beneficiary.email || 'Favorecido sem nome';
-                    })()}
-                  </Badge>
+                <Badge 
+                  variant="outline" 
+                  className="px-3 py-2 text-sm font-semibold bg-gradient-to-r from-indigo-500 to-blue-600 text-white border-indigo-500 shadow-md hover:shadow-lg transition-shadow duration-200 w-full justify-center cursor-pointer"
+                  onClick={() => setIsBeneficiaryDetailsOpen(true)}
+                >
+                  <Users className="h-4 w-4 mr-2" />
                   {(() => {
                     const beneficiaryId = ticket.beneficiary_id || ticket.beneficiaryId;
                     const beneficiary = availableCustomers.find((c: any) => c.id === beneficiaryId) || 
                                       (Array.isArray(customersData?.customers) ? customersData.customers : []).find((c: any) => c.id === beneficiaryId);
                     
-                    return (
-                      <>
-                        {beneficiary && beneficiary.email && (
-                          <div className="text-xs text-indigo-600 px-2">
-                            📧 {beneficiary.email}
-                          </div>
-                        )}
-                        {beneficiary && beneficiary.phone && (
-                          <div className="text-xs text-indigo-600 px-2">
-                            📞 {beneficiary.phone}
-                          </div>
-                        )}
-                      </>
-                    );
+                    if (!beneficiary) {
+                      return (beneficiaryId === 'unspecified' || !beneficiaryId) ? 'Não especificado' : 'Favorecido não encontrado';
+                    }
+                    
+                    return beneficiary.fullName || beneficiary.name || 
+                           `${beneficiary.firstName || ''} ${beneficiary.lastName || ''}`.trim() || 
+                           beneficiary.email || 'Favorecido sem nome';
                   })()}
-                </div>
+                </Badge>
               )}
             </div>
           </div>
@@ -3797,6 +3707,180 @@ const TicketDetails = React.memo(() => {
             <Button 
               variant="outline" 
               onClick={() => setIsCompanyDetailsOpen(false)}
+            >
+              Fechar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Client Details Modal */}
+      <Dialog open={isClientDetailsOpen} onOpenChange={setIsClientDetailsOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <User className="h-5 w-5 text-purple-600" />
+              Detalhes do Cliente
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {(() => {
+              const callerId = ticket.caller_id || ticket.callerId;
+              const customer = availableCustomers.find((c: any) => c.id === callerId) || 
+                             (Array.isArray(customersData?.customers) ? customersData.customers : []).find((c: any) => c.id === callerId);
+              
+              if (!customer && (!callerId || callerId === 'unspecified')) {
+                return (
+                  <div className="text-center py-8 text-gray-500">
+                    <User className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                    <p>Nenhum cliente especificado</p>
+                  </div>
+                );
+              }
+              
+              if (!customer) {
+                return (
+                  <div className="text-center py-8 text-gray-500">
+                    <User className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                    <p>Cliente não encontrado</p>
+                  </div>
+                );
+              }
+              
+              const customerName = customer.fullName || customer.name || 
+                                 `${customer.firstName || ''} ${customer.lastName || ''}`.trim() || 
+                                 customer.email || 'Cliente sem nome';
+              
+              return (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-center p-4 bg-gradient-to-r from-purple-500 to-violet-600 text-white rounded-lg">
+                    <User className="h-6 w-6 mr-2" />
+                    <span className="font-semibold">{customerName}</span>
+                  </div>
+                  
+                  {customer.email && (
+                    <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                      <span className="text-sm font-medium text-gray-600">Email:</span>
+                      <span className="text-sm text-gray-900">{customer.email}</span>
+                    </div>
+                  )}
+                  
+                  {customer.phone && (
+                    <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                      <span className="text-sm font-medium text-gray-600">Telefone:</span>
+                      <span className="text-sm text-gray-900">{customer.phone}</span>
+                    </div>
+                  )}
+                  
+                  {customer.cpf && (
+                    <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                      <span className="text-sm font-medium text-gray-600">CPF:</span>
+                      <span className="text-sm text-gray-900">{customer.cpf}</span>
+                    </div>
+                  )}
+                  
+                  {customer.address && (
+                    <div className="gap-2 p-3 bg-gray-50 rounded-lg">
+                      <span className="text-sm font-medium text-gray-600 block mb-1">Endereço:</span>
+                      <span className="text-sm text-gray-900">{customer.address}</span>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+          </div>
+          
+          <div className="flex justify-end pt-4 border-t">
+            <Button 
+              variant="outline" 
+              onClick={() => setIsClientDetailsOpen(false)}
+            >
+              Fechar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Beneficiary Details Modal */}
+      <Dialog open={isBeneficiaryDetailsOpen} onOpenChange={setIsBeneficiaryDetailsOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-indigo-600" />
+              Detalhes do Favorecido
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {(() => {
+              const beneficiaryId = ticket.beneficiary_id || ticket.beneficiaryId;
+              const beneficiary = availableCustomers.find((c: any) => c.id === beneficiaryId) || 
+                                (Array.isArray(customersData?.customers) ? customersData.customers : []).find((c: any) => c.id === beneficiaryId);
+              
+              if (!beneficiary && (!beneficiaryId || beneficiaryId === 'unspecified')) {
+                return (
+                  <div className="text-center py-8 text-gray-500">
+                    <Users className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                    <p>Nenhum favorecido especificado</p>
+                  </div>
+                );
+              }
+              
+              if (!beneficiary) {
+                return (
+                  <div className="text-center py-8 text-gray-500">
+                    <Users className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                    <p>Favorecido não encontrado</p>
+                  </div>
+                );
+              }
+              
+              const beneficiaryName = beneficiary.fullName || beneficiary.name || 
+                                     `${beneficiary.firstName || ''} ${beneficiary.lastName || ''}`.trim() || 
+                                     beneficiary.email || 'Favorecido sem nome';
+              
+              return (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-center p-4 bg-gradient-to-r from-indigo-500 to-blue-600 text-white rounded-lg">
+                    <Users className="h-6 w-6 mr-2" />
+                    <span className="font-semibold">{beneficiaryName}</span>
+                  </div>
+                  
+                  {beneficiary.email && (
+                    <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                      <span className="text-sm font-medium text-gray-600">Email:</span>
+                      <span className="text-sm text-gray-900">{beneficiary.email}</span>
+                    </div>
+                  )}
+                  
+                  {beneficiary.phone && (
+                    <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                      <span className="text-sm font-medium text-gray-600">Telefone:</span>
+                      <span className="text-sm text-gray-900">{beneficiary.phone}</span>
+                    </div>
+                  )}
+                  
+                  {beneficiary.cpf && (
+                    <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                      <span className="text-sm font-medium text-gray-600">CPF:</span>
+                      <span className="text-sm text-gray-900">{beneficiary.cpf}</span>
+                    </div>
+                  )}
+                  
+                  {beneficiary.address && (
+                    <div className="gap-2 p-3 bg-gray-50 rounded-lg">
+                      <span className="text-sm font-medium text-gray-600 block mb-1">Endereço:</span>
+                      <span className="text-sm text-gray-900">{beneficiary.address}</span>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+          </div>
+          
+          <div className="flex justify-end pt-4 border-t">
+            <Button 
+              variant="outline" 
+              onClick={() => setIsBeneficiaryDetailsOpen(false)}
             >
               Fechar
             </Button>
