@@ -647,8 +647,8 @@ ticketsRouter.get('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, res
         tia.start_time,
         tia.end_time,
         tia.action_number,
-        COALESCE(tia.linked_item_ids::text, '[]') as linked_items,
-        CASE WHEN array_length(tia.attachment_ids, 1) > 0 THEN true ELSE false END as has_file,
+        '[]' as linked_items,
+        false as has_file,
         'internal' as contact_method,
         '' as vendor,
         true as is_public,
@@ -659,12 +659,11 @@ ticketsRouter.get('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, res
         u.first_name || ' ' || u.last_name as "createdByName",
         u.first_name || ' ' || u.last_name as "assigned_to_name",
         tia.action_type as actionType,
-        COALESCE(tia.completion_notes, '') as work_log
+        tia.description as work_log
       FROM "${schemaName}".ticket_internal_actions tia
       LEFT JOIN public.users u ON tia.agent_id = u.id
       WHERE tia.tenant_id = $1::uuid 
         AND tia.ticket_id = $2::uuid
-        AND tia.is_active = true
       ORDER BY tia.created_at DESC
     `;
 
@@ -713,7 +712,7 @@ ticketsRouter.get('/:ticketId/actions/:actionId', jwtAuth, async (req: Authentic
         COALESCE(TO_CHAR(tia.end_time, 'YYYY-MM-DD"T"HH24:MI'), '') as end_time,
         tia.action_number,
         true as is_public,
-        COALESCE(tia.completion_notes, '') as work_log,
+        tia.description as work_log,
         tia.created_at,
         u.first_name || ' ' || u.last_name as "createdByName",
         u.first_name || ' ' || u.last_name as "assigned_to_name"
@@ -722,7 +721,6 @@ ticketsRouter.get('/:ticketId/actions/:actionId', jwtAuth, async (req: Authentic
       WHERE tia.tenant_id = $1::uuid 
         AND tia.ticket_id = $2::uuid
         AND tia.id = $3::uuid
-        AND tia.is_active = true
     `;
 
     const result = await pool.query(query, [tenantId, ticketId, actionId]);
@@ -1743,10 +1741,9 @@ ticketsRouter.delete('/:ticketId/actions/:actionId', jwtAuth, async (req: Authen
       console.log('⚠️ Aviso: Não foi possível criar entrada de auditoria:', auditError.message);
     }
 
-    // Excluir da tabela ticket_internal_actions (soft delete)
+    // Excluir da tabela ticket_internal_actions (hard delete - não há coluna is_active)
     const deleteQuery = `
-      UPDATE "${schemaName}".ticket_internal_actions 
-      SET is_active = false, updated_at = NOW()
+      DELETE FROM "${schemaName}".ticket_internal_actions 
       WHERE id = $1 AND tenant_id = $2 AND ticket_id = $3
       RETURNING *
     `;
