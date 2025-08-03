@@ -1,17 +1,27 @@
-import { useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { MessageSquare, Send, Eye, EyeOff, User, Clock, Paperclip, Upload, FileText } from "lucide-react";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
+import { useState, useEffect } from "react";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { FilteredUserSelect } from "@/components/FilteredUserSelect";
+import { UserGroupSelect } from "@/components/ui/UserGroupSelect";
+import { Clock, Calendar, User, Users, CalendarCheck, CalendarClock } from "lucide-react";
 
 interface InternalActionModalProps {
   ticketId: string;
@@ -28,7 +38,7 @@ interface InternalAction {
   createdAt: string;
 }
 
-export default function InternalActionModal({ ticketId, isOpen, onClose }: InternalActionModalProps) {
+export default function InternalActionModal({ isOpen, onClose, ticketId }: InternalActionModalProps) {
   const [formData, setFormData] = useState({
     startDateTime: "",
     endDateTime: "",
@@ -151,6 +161,71 @@ export default function InternalActionModal({ ticketId, isOpen, onClose }: Inter
       attachments: prev.attachments.filter((_, i) => i !== index)
     }));
   };
+
+    //Estados
+    const [actionType, setActionType] = useState("");
+    const [description, setDescription] = useState("");
+    const [assignedToId, setAssignedToId] = useState("");
+    const [assignmentGroupId, setAssignmentGroupId] = useState("");
+    const [timeSpent, setTimeSpent] = useState("");
+    const [status, setStatus] = useState("pending");
+    const [startDateTime, setStartDateTime] = useState("");
+    const [endDateTime, setEndDateTime] = useState("");
+
+    // Novos campos de data
+    const [plannedStartDate, setPlannedStartDate] = useState("");
+    const [plannedEndDate, setPlannedEndDate] = useState("");
+    const [actualStartDate, setActualStartDate] = useState("");
+    const [actualEndDate, setActualEndDate] = useState("");
+
+    const resetForm = () => {
+        setActionType("");
+        setDescription("");
+        setAssignedToId("");
+        setAssignmentGroupId("");
+        setTimeSpent("");
+        setStatus("pending");
+        setStartDateTime("");
+        setEndDateTime("");
+        setPlannedStartDate("");
+        setPlannedEndDate("");
+        setActualStartDate("");
+        setActualEndDate("");
+      };
+
+      // Limpar agente quando grupo muda
+      useEffect(() => {
+        // if (assignmentGroupId && assignedToId) {
+        //   // Verificar se o agente atual pertence ao grupo selecionado
+        //   const agentBelongsToGroup = groupAgents.some((agent: any) => agent.id === assignedToId);
+        //   if (!agentBelongsToGroup) {
+        //     setAssignedToId("");
+        //   }
+        // }
+      }, [assignmentGroupId, assignedToId]);
+
+    //Buscar membros do grupo
+    const [groupAgents, setGroupAgents] = useState<any[]>([]);
+    useEffect(() => {
+        if (assignmentGroupId) {
+            // ajustar a rota
+            apiRequest("GET", `/api/user-management/groups/${assignmentGroupId}/users`)
+                .then((response) => response.json())
+                .then((data) => {
+                    if (data?.users) {
+                        setGroupAgents(data.users);
+                    } else {
+                        setGroupAgents([]);
+                    }
+                })
+                .catch((error) => {
+                    console.error("Erro ao buscar agentes do grupo:", error);
+                    setGroupAgents([]);
+                });
+        } else {
+            setGroupAgents([]);
+        }
+    }, [assignmentGroupId]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -411,6 +486,104 @@ export default function InternalActionModal({ ticketId, isOpen, onClose }: Inter
 
           {/* Removed existing actions display as requested */}
         </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="assignmentGroup" className="flex items-center space-x-2">
+                <Users className="h-4 w-4" />
+                <span>Grupo de Atribuição</span>
+              </Label>
+              <UserGroupSelect
+                value={assignmentGroupId}
+                onChange={setAssignmentGroupId}
+                placeholder="Selecionar grupo..."
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="assignedTo" className="flex items-center space-x-2">
+                <User className="h-4 w-4" />
+                <span>Atribuir para</span>
+              </Label>
+              {assignmentGroupId ? (
+                <Select value={assignedToId} onValueChange={setAssignedToId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecionar agente do grupo..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {groupAgents.map((agent: any) => (
+                      <SelectItem key={agent.id} value={agent.id}>
+                        {agent.first_name} {agent.last_name} ({agent.group_role})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <FilteredUserSelect
+                  value={assignedToId}
+                  onChange={setAssignedToId}
+                  placeholder="Selecionar grupo primeiro..."
+                  roleFilter={["agent", "manager", "admin"]}
+                  disabled={true}
+                />
+              )}
+            </div>
+          </div>
+
+          {/* Datas Previstas */}
+          <div className="space-y-2">
+            <Label className="flex items-center space-x-2">
+              <CalendarClock className="h-4 w-4" />
+              <span>Datas Previstas</span>
+            </Label>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="plannedStartDate">Data Prevista Inicial</Label>
+                <Input
+                  id="plannedStartDate"
+                  type="datetime-local"
+                  value={plannedStartDate}
+                  onChange={(e) => setPlannedStartDate(e.target.value)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="plannedEndDate">Data Prevista Final</Label>
+                <Input
+                  id="plannedEndDate"
+                  type="datetime-local"
+                  value={plannedEndDate}
+                  onChange={(e) => setPlannedEndDate(e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Datas Realizadas */}
+          <div className="space-y-2">
+            <Label className="flex items-center space-x-2">
+              <CalendarCheck className="h-4 w-4" />
+              <span>Datas Realizadas</span>
+            </Label>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="actualStartDate">Data Realizada Inicial</Label>
+                <Input
+                  id="actualStartDate"
+                  type="datetime-local"
+                  value={actualStartDate}
+                  onChange={(e) => setActualStartDate(e.target.value)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="actualEndDate">Data Realizada Final</Label>
+                <Input
+                  id="actualEndDate"
+                  type="datetime-local"
+                  value={actualEndDate}
+                  onChange={(e) => setActualEndDate(e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
       </DialogContent>
     </Dialog>
   );

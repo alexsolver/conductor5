@@ -14,6 +14,9 @@ import { timecardRoutes } from './routes/timecardRoutes';
 import productivityRoutes from './routes/productivityRoutes';
 import { db, sql } from "./db";
 import { ActivityTrackingService } from './services/ActivityTrackingService';
+import userGroupsRoutes from './routes/userGroups';
+import userGroupsByAgentRoutes from './routes/userGroupsByAgent';
+import userManagementRoutes from './routes/userManagementRoutes';
 
 const app = express();
 
@@ -99,16 +102,20 @@ app.use((req, res, next) => {
 
   // Initialize production systems
   await productionInitializer.initialize();
-  
+
   // Initialize activity tracking cleanup service
   ActivityTrackingService.initializeCleanup();
 
   app.use('/api/timecard', timecardRoutes);
   app.use('/api/productivity', productivityRoutes);
-  
+
   // Employment type detection and terminology routes
   const employmentRoutes = await import('./routes/employmentRoutes');
   app.use('/api/employment', employmentRoutes.default);
+
+  app.use('/api', userGroupsRoutes);
+  app.use('/api', userGroupsByAgentRoutes);
+  app.use('/api', userManagementRoutes);
 
   app.get('/health', async (req, res) => {
     const memoryUsage = process.memoryUsage();
@@ -264,7 +271,7 @@ app.use((req, res, next) => {
     keepAliveInitialDelay: 0
   }, () => {
     log(`serving on port ${port}`);
-    
+
     // 🔴 INICIALIZA SERVIÇOS CLT OBRIGATÓRIOS
     console.log('[CLT-COMPLIANCE] Inicializando serviços de compliance...');
     try {

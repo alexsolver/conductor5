@@ -1681,12 +1681,26 @@ export const ticketInternalActions = pgTable("ticket_internal_actions", {
   actionType: varchar("action_type", { length: 100 }).notNull(), // analysis, investigation, escalation, resolution, follow_up
   title: varchar("title", { length: 255 }).notNull(),
   description: text("description"),
-  agentId: uuid("agent_id").references(() => users.id).notNull(),
-  groupId: varchar("group_id", { length: 100 }), // working group
-  startTime: timestamp("start_time").notNull(),
+  
+  // Atribuição hierárquica: Grupo → Agente
+  assignmentGroupId: uuid("assignment_group_id").references(() => userGroups.id), // Grupo de atribuição (prioridade sobre groupId)
+  groupId: varchar("group_id", { length: 100 }), // working group (manter para compatibilidade)
+  agentId: uuid("agent_id").references(() => users.id), // Agente responsável (opcional se apenas grupo atribuído)
+  
+  // Datas previstas (planejamento)
+  plannedStartDate: timestamp("planned_start_date"), // Data prevista inicial
+  plannedEndDate: timestamp("planned_end_date"), // Data prevista final
+  
+  // Datas realizadas (execução)
+  actualStartDate: timestamp("actual_start_date"), // Data realizada inicial
+  actualEndDate: timestamp("actual_end_date"), // Data realizada final
+  
+  // Campos de tempo legados (manter para compatibilidade)
+  startTime: timestamp("start_time"),
   endTime: timestamp("end_time"),
   estimatedHours: decimal("estimated_hours", { precision: 5, scale: 2 }),
   actualHours: decimal("actual_hours", { precision: 5, scale: 2 }),
+  
   status: varchar("status", { length: 50 }).default("pending"), // pending, in_progress, completed, cancelled
   priority: varchar("priority", { length: 20 }).default("medium"),
   linkedItemIds: jsonb("linked_item_ids").default([]), // array of UUIDs for related items
@@ -1700,8 +1714,12 @@ export const ticketInternalActions = pgTable("ticket_internal_actions", {
 }, (table) => [
   index("ticket_internal_actions_tenant_ticket_idx").on(table.tenantId, table.ticketId),
   index("ticket_internal_actions_tenant_agent_idx").on(table.tenantId, table.agentId),
+  index("ticket_internal_actions_tenant_group_idx").on(table.tenantId, table.assignmentGroupId),
   index("ticket_internal_actions_tenant_status_idx").on(table.tenantId, table.status),
   index("ticket_internal_actions_tenant_created_idx").on(table.tenantId, table.createdAt),
+  index("ticket_internal_actions_planned_dates_idx").on(table.tenantId, table.plannedStartDate, table.plannedEndDate),
+  index("ticket_internal_actions_actual_dates_idx").on(table.tenantId, table.actualStartDate, table.actualEndDate),
+  index("ticket_internal_actions_group_agent_idx").on(table.tenantId, table.assignmentGroupId, table.agentId),
 ]);
 
 // ========================================
