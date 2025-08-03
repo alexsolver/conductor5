@@ -257,32 +257,54 @@ authRouter.get('/me', jwtAuth, async (req: AuthenticatedRequest, res) => {
       return res.status(401).json({ message: 'User not authenticated' });
     }
 
-    // Get full user details
-    console.log('🔍 [AUTH-ME] About to call userRepository.findById for user:', req.user.id);
-    const userRepository = container.userRepository;
-    const user = await userRepository.findById(req.user.id);
-    console.log('🔍 [AUTH-ME] userRepository.findById returned user:', {
-      id: user?.id,
-      email: user?.email,
-      employmentType: user?.employmentType
-    });
+    // Direct SQL query to ensure employmentType is correctly retrieved
+    const { db } = await import('../../db');
+    const { users } = await import('@shared/schema');
+    const { eq } = await import('drizzle-orm');
+    
+    console.log('🔍 [AUTH-ME] Making direct DB query for user:', req.user.id);
+    
+    const [userData] = await db
+      .select({
+        id: users.id,
+        email: users.email,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        role: users.role,
+        tenantId: users.tenantId,
+        profileImageUrl: users.profileImageUrl,
+        isActive: users.isActive,
+        lastLoginAt: users.lastLoginAt,
+        createdAt: users.createdAt,
+        updatedAt: users.updatedAt,
+        employmentType: users.employmentType
+      })
+      .from(users)
+      .where(eq(users.id, req.user.id));
 
-    if (!user) {
+    if (!userData) {
       return res.status(404).json({ message: 'User not found' });
     }
 
+    console.log('🔍 [AUTH-ME] Direct DB query result:', {
+      id: userData.id,
+      email: userData.email,
+      employmentType: userData.employmentType,
+      employmentTypeType: typeof userData.employmentType
+    });
+
     res.json({
-      id: user.id,
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      role: user.role,
-      tenantId: user.tenantId,
-      profileImageUrl: user.profileImageUrl,
-      isActive: user.isActive,
-      lastLoginAt: user.lastLoginAt,
-      createdAt: user.createdAt,
-      employmentType: user.employmentType || 'clt' // Add employment type field
+      id: userData.id,
+      email: userData.email,
+      firstName: userData.firstName,
+      lastName: userData.lastName,
+      role: userData.role,
+      tenantId: userData.tenantId,
+      profileImageUrl: userData.profileImageUrl,
+      isActive: userData.isActive,
+      lastLoginAt: userData.lastLoginAt,
+      createdAt: userData.createdAt,
+      employmentType: userData.employmentType || 'clt' // Direct from DB
     });
   } catch (error) {
     const { logError } = await import('../../utils/logger');
