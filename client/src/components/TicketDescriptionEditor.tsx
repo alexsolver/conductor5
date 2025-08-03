@@ -1,7 +1,5 @@
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
-import Image from '@tiptap/extension-image'
-import Link from '@tiptap/extension-link'
 import { Button } from "./ui/button"
 import { Separator } from "./ui/separator"
 import { 
@@ -49,18 +47,6 @@ export function TicketDescriptionEditor({ content, onChange, placeholder }: Tick
             class: 'mb-2',
           },
         },
-        link: false, // Disable StarterKit link to avoid conflicts
-      }),
-      Image.configure({
-        HTMLAttributes: {
-          class: 'max-w-full h-auto rounded-lg my-2',
-        },
-      }),
-      Link.configure({
-        openOnClick: false,
-        HTMLAttributes: {
-          class: 'text-blue-600 hover:text-blue-800 underline',
-        },
       }),
     ],
     content: content || '',
@@ -89,7 +75,9 @@ export function TicketDescriptionEditor({ content, onChange, placeholder }: Tick
   const addImage = () => {
     try {
       if (imageUrl && editor) {
-        editor.chain().focus().setImage({ src: imageUrl }).run()
+        // Insert HTML directly as a workaround
+        const imgHtml = `<img src="${imageUrl}" alt="Imagem" class="max-w-full h-auto rounded-lg my-2" />`
+        editor.chain().focus().insertContent(imgHtml).run()
         setImageUrl('')
         setShowImageDialog(false)
       }
@@ -101,7 +89,9 @@ export function TicketDescriptionEditor({ content, onChange, placeholder }: Tick
   const addLink = () => {
     try {
       if (linkUrl && editor) {
-        editor.chain().focus().extendMarkRange('link').setLink({ href: linkUrl }).run()
+        // Insert HTML directly as a workaround
+        const linkHtml = `<a href="${linkUrl}" class="text-blue-600 hover:text-blue-800 underline" target="_blank">${linkUrl}</a>`
+        editor.chain().focus().insertContent(linkHtml).run()
         setLinkUrl('')
         setShowLinkDialog(false)
       }
