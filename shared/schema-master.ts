@@ -239,7 +239,7 @@ export const tickets = pgTable("tickets", {
   callerType: varchar("caller_type", { length: 50 }).default("customer"),
   beneficiaryId: uuid("beneficiary_id").references(() => favorecidos.id),
   beneficiaryType: varchar("beneficiary_type", { length: 50 }).default("customer"),
-  assignedToId: uuid("assigned_to_id").references(() => users.id),
+  responsibleId: uuid("responsible_id").references(() => users.id),
   assignmentGroupId: uuid("assignment_group_id").references(() => userGroups.id),
   locationId: uuid("location_id").references(() => locations.id),
   followerId: uuid("follower_id").references(() => users.id),
@@ -267,7 +267,7 @@ export const tickets = pgTable("tickets", {
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => [
   index("tickets_tenant_status_priority_idx").on(table.tenantId, table.status, table.priority),
-  index("tickets_tenant_assigned_idx").on(table.tenantId, table.assignedToId),
+  index("tickets_tenant_assigned_idx").on(table.tenantId, table.responsibleId),
   index("tickets_tenant_customer_idx").on(table.tenantId, table.callerId),
   index("tickets_tenant_environment_idx").on(table.tenantId, table.environment),
   index("tickets_tenant_template_idx").on(table.tenantId, table.templateName),
@@ -546,7 +546,7 @@ export const projectActions = pgTable("project_actions", {
   estimatedHours: integer("estimated_hours"),
   actualHours: integer("actual_hours"),
   scheduledDate: date("scheduled_date"),
-  assignedToId: uuid("assigned_to_id").references(() => users.id),      // Fixed: added FK reference
+  responsibleId: uuid("responsible_id").references(() => users.id),      // Fixed: added FK reference
   responsibleIds: uuid("responsible_ids").array().default([]),          // Fixed: JSONB → native array
   dependsOnActionIds: uuid("depends_on_action_ids").array().default([]), // Fixed: JSONB → native array
   blockedByActionIds: uuid("blocked_by_action_ids").array().default([]), // Fixed: JSONB → native array
@@ -560,7 +560,7 @@ export const projectActions = pgTable("project_actions", {
 }, (table) => [
   index("project_actions_tenant_project_idx").on(table.tenantId, table.projectId),
   index("project_actions_tenant_status_idx").on(table.tenantId, table.status),
-  index("project_actions_tenant_assigned_idx").on(table.tenantId, table.assignedToId),
+  index("project_actions_tenant_assigned_idx").on(table.tenantId, table.responsibleId),
   index("project_actions_project_status_idx").on(table.tenantId, table.projectId, table.status),
   index("project_actions_type_priority_idx").on(table.tenantId, table.type, table.priority),
   index("project_actions_scheduled_idx").on(table.tenantId, table.scheduledDate),

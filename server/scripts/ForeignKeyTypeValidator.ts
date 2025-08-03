@@ -64,7 +64,7 @@ class ForeignKeyTypeValidator {
     
     // Find all foreign key references to users.id
     const userReferences = [
-      { pattern: /assignedToId: uuid\("assigned_to_id"\)[^)]*\.references\(\(\) => users\.id\)/, field: 'assignedToId', table: 'tickets/projectActions' },
+      { pattern: /responsibleId: uuid\("responsible_id"\)[^)]*\.references\(\(\) => users\.id\)/, field: 'responsibleId', table: 'tickets/projectActions' },
       { pattern: /managerId: uuid\("manager_id"\)[^)]*\.references\(\(\) => users\.id\)/, field: 'managerId', table: 'projects' },
       { pattern: /userId: uuid\("user_id"\)[^)]*\.references\(\(\) => users\.id\)/, field: 'userId', table: 'various' },
       { pattern: /createdBy: uuid\("created_by"\)[^)]*\.references\(\(\) => users\.id\)/, field: 'createdBy', table: 'various' },

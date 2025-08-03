@@ -24,7 +24,7 @@ export const ticketFormValidationSchema = z.object({
   callerType: z.enum(['user', 'customer']).default('customer'),
   beneficiaryId: z.string().optional(),
   beneficiaryType: z.enum(['user', 'customer']).default('customer'),
-  assignedToId: z.string().optional(),
+  responsibleId: z.string().optional(),
   assignmentGroup: z.string().optional(),
   location: z.string().optional(),
   contactType: z.enum(['email', 'phone', 'chat', 'portal']).default('email'),
@@ -72,7 +72,7 @@ export const ticketFormSchema = z.object({
   callerType: CallerTypeEnum.default('customer'),
   beneficiaryId: z.string().refine(val => !val || z.string().uuid().safeParse(val).success, "ID do beneficiário deve ser um UUID válido").optional(),
   beneficiaryType: CallerTypeEnum.default('customer'),
-  assignedToId: z.string().refine(val => !val || z.string().uuid().safeParse(val).success, "ID do responsável deve ser um UUID válido").optional(),
+  responsibleId: z.string().refine(val => !val || z.string().uuid().safeParse(val).success, "ID do responsável deve ser um UUID válido").optional(),
 
   // Campo de localização (aceita string vazia)
   location: z.string().refine(val => !val || z.string().uuid().safeParse(val).success, "Localização deve ser um UUID válido").optional(),
@@ -162,7 +162,7 @@ const baseTicketSchema = z.object({
   callerType: CallerTypeEnum.default('customer'),
   beneficiaryId: z.string().uuid().optional(),
   beneficiaryType: CallerTypeEnum.default('customer'),
-  assignedToId: z.string().uuid().optional(),
+  responsibleId: z.string().uuid().optional(),
   location: z.union([
     z.string().uuid(),
     z.literal("unspecified")
@@ -236,7 +236,7 @@ export const ticketFiltersSchema = z.object({
   status: z.union([TicketStatusEnum, z.literal("all")]).default("all"),
   priority: z.union([TicketPriorityEnum, z.literal("all")]).default("all"),
   category: z.union([TicketCategoryEnum, z.literal("all")]).default("all"),
-  assignedToId: z.string().uuid().optional(),
+  responsibleId: z.string().uuid().optional(),
   customerCompanyId: z.string().uuid().optional(),
   dateFrom: z.string().datetime().optional(),
   dateTo: z.string().datetime().optional(),

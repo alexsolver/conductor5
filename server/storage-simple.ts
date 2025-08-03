@@ -519,7 +519,7 @@ export class DatabaseStorage implements IStorage {
         followersRaw: ticketData.followers,
         followersType: typeof ticketData.followers,
         customerIdRaw: ticketData.customer_id,
-        assignedToIdRaw: ticketData.assigned_to_id,
+        responsibleIdRaw: ticketData.responsible_id,
         allKeys: Object.keys(ticketData)
       });
 
@@ -540,7 +540,7 @@ export class DatabaseStorage implements IStorage {
           urgency = ${ticketData.urgency || null},
           caller_id = ${ticketData.caller_id || null},
           beneficiary_id = ${ticketData.beneficiary_id || null},
-          assigned_to_id = ${ticketData.assigned_to_id || null},
+          responsible_id = ${ticketData.responsible_id || null},
           assignment_group = ${ticketData.assignment_group || null},
           location = ${ticketData.location && ticketData.location !== 'unspecified' ? ticketData.location : null},
           contact_type = ${ticketData.contact_type || null},
@@ -1711,7 +1711,7 @@ export class DatabaseStorage implements IStorage {
         WHERE t.tenant_id = ${validatedTenantId}
       `);
 
-      return result.rows?.map(row => row.ticket_id) || [];
+      return result.rows?.map((row: any) => row.ticket_id as string) || [];
     } catch (error) {
       logError('Error fetching tickets with relationships', error, { tenantId });
       return [];
@@ -2486,7 +2486,7 @@ export class DatabaseStorage implements IStorage {
           '${actionData.priority || 'medium'}', 
           ${actionData.estimatedHours || 'NULL'}, 
           ${actionData.scheduledDate ? `'${actionData.scheduledDate}'` : 'NULL'},
-          ${actionData.assignedToId ? `'${actionData.assignedToId}'` : 'NULL'},
+          ${actionData.responsibleId ? `'${actionData.responsibleId}'` : 'NULL'},
           '${JSON.stringify(actionData.responsibleIds || [])}',
           '${JSON.stringify(actionData.dependsOnActionIds || [])}',
           '${JSON.stringify(actionData.blockedByActionIds || [])}',
@@ -2582,7 +2582,7 @@ export class DatabaseStorage implements IStorage {
           estimated_hours = ${actionData.estimatedHours || 'NULL'},
           actual_hours = ${actionData.actualHours || 'NULL'},
           scheduled_date = ${actionData.scheduledDate ? `'${actionData.scheduledDate}'` : 'NULL'},
-          assigned_to_id = ${actionData.assignedToId ? `'${actionData.assignedToId}'` : 'NULL'},
+          assigned_to_id = ${actionData.responsibleId ? `'${actionData.responsibleId}'` : 'NULL'},
           responsible_ids = '${JSON.stringify(actionData.responsibleIds || [])}',
           depends_on_action_ids = '${JSON.stringify(actionData.dependsOnActionIds || [])}',
           blocked_by_action_ids = '${JSON.stringify(actionData.blockedByActionIds || [])}',
@@ -2604,7 +2604,7 @@ export class DatabaseStorage implements IStorage {
               description = 'Ticket atualizado automaticamente - Ação: ${actionData.description || actionData.title}',
               status = ${actionData.status === 'completed' ? "'resolved'" : "'open'"},
               priority = '${actionData.priority}',
-              assigned_to_id = ${actionData.assignedToId ? `'${actionData.assignedToId}'` : 'NULL'},
+              responsible_id = ${actionData.responsibleId ? `'${actionData.responsibleId}'` : 'NULL'},
               updated_at = '${now}'
             WHERE id = '${updatedAction.related_ticket_id}' AND tenant_id = '${validatedTenantId}'
           `);
