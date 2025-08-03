@@ -164,7 +164,7 @@ export default function InternalActionDetailsModal({
               <DialogDescription className="space-y-1">
                 <div>{internalAction.ticketSubject}</div>
                 <div className="text-xs text-gray-500 font-mono">
-                  UUID: {internalAction.id}
+                  Número: {internalAction.actionNumber || internalAction.id}
                 </div>
               </DialogDescription>
             </div>
@@ -209,9 +209,9 @@ export default function InternalActionDetailsModal({
             <CardContent className="p-4">
               <div className="grid grid-cols-1 gap-2">
                 <div className="space-y-1">
-                  <Label className="text-sm font-medium text-purple-700">Identificador Único (UUID)</Label>
+                  <Label className="text-sm font-medium text-purple-700">Número da Ação</Label>
                   <div className="text-xs text-purple-600 font-mono bg-white p-2 rounded border select-all">
-                    {internalAction.id}
+                    {internalAction.actionNumber || internalAction.id}
                   </div>
                 </div>
               </div>

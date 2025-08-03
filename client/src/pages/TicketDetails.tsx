@@ -1119,7 +1119,7 @@ const TicketDetails = React.memo(() => {
       subject: data.subject,
       description: data.description,
       priority: data.priority,
-      status: statusMapping[data.status as keyof typeof statusMapping] || data.status,
+      status: (statusMapping[data.status as keyof typeof statusMapping] || data.status) as "open" | "new" | "in_progress" | "resolved" | "closed" | "novo" | "aberto" | "em_andamento" | "resolvido" | "fechado",
       category: data.category,
       subcategory: data.subcategory,
       impact: data.impact,
@@ -1128,8 +1128,10 @@ const TicketDetails = React.memo(() => {
       // Assignment mapping camelCase → snake_case
       caller_id: data.callerId,
       caller_type: data.callerType || 'customer',
+      callerType: data.callerType || 'customer', // Add explicit field for type validation
       beneficiary_id: data.beneficiaryId,
       beneficiary_type: data.beneficiaryType || 'customer',
+      beneficiaryType: data.beneficiaryType || 'customer', // Add explicit field for type validation
       assigned_to_id: data.assignedToId,
       assignment_group: data.assignmentGroup,
 
@@ -1137,6 +1139,7 @@ const TicketDetails = React.memo(() => {
       // 🚨 CORREÇÃO: location é campo texto, não locationId (FK inexistente)
       location: data.location || '',  // Campo texto livre conforme schema do banco
       contact_type: data.contactType || 'email',
+      contactType: data.contactType || 'email', // Add explicit field for type validation
 
       // Business fields
       business_impact: data.businessImpact,
@@ -1476,9 +1479,9 @@ const TicketDetails = React.memo(() => {
                           <DynamicBadge 
                             fieldName="environment"
                             value={field.value}
-                            colorHex={getFieldColor('environment', field.value)}
+                            colorHex={getFieldColor('environment', field.value || '')}
                           >
-                            {getFieldLabel('environment', field.value) || field.value || 'Não especificado'}
+                            {getFieldLabel('environment', field.value || '') || field.value || 'Não especificado'}
                           </DynamicBadge>
                         </div>
                       )}
@@ -1553,9 +1556,9 @@ const TicketDetails = React.memo(() => {
                             <DynamicBadge 
                               fieldName="linkType"
                               value={field.value}
-                              colorHex={getFieldColor('linkType', field.value)}
+                              colorHex={getFieldColor('linkType', field.value || '')}
                             >
-                              {getFieldLabel('linkType', field.value)}
+                              {getFieldLabel('linkType', field.value || '')}
                             </DynamicBadge>
                           </div>
                         )}
@@ -2092,10 +2095,10 @@ const TicketDetails = React.memo(() => {
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          {/* UUID Display */}
+                          {/* Action Number Display */}
                           <div className="mb-2">
                             <div className="text-xs text-gray-500 font-mono bg-gray-50 px-2 py-1 rounded border inline-block select-all">
-                              UUID: {action.id}
+                              Número: {action.actionNumber || action.id}
                             </div>
                           </div>
                           

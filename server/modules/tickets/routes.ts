@@ -8,6 +8,39 @@ import { mapFrontendToBackend } from "../../utils/fieldMapping";
 import { z } from "zod";
 import { trackTicketView, trackTicketEdit, trackTicketCreate, trackNoteView, trackNoteCreate } from '../../middleware/activityTrackingMiddleware';
 
+// Generate unique action number for internal actions
+async function generateActionNumber(pool: any, tenantId: string): Promise<string> {
+  try {
+    // Initialize or increment action number sequence for this tenant
+    const sequenceQuery = `
+      INSERT INTO public.action_number_sequences (tenant_id, current_number, last_updated)
+      VALUES ($1, 1, NOW())
+      ON CONFLICT (tenant_id) 
+      DO UPDATE SET 
+        current_number = action_number_sequences.current_number + 1,
+        last_updated = NOW()
+      RETURNING current_number
+    `;
+    
+    const result = await pool.query(sequenceQuery, [tenantId]);
+    const sequenceNumber = result.rows[0].current_number;
+    
+    // Format as AI-YYYY-NNNNNN (Action Internal - Year - 6-digit number)
+    const currentYear = new Date().getFullYear();
+    const formattedNumber = String(sequenceNumber).padStart(6, '0');
+    const actionNumber = `AI-${currentYear}-${formattedNumber}`;
+    
+    console.log(`✅ Generated action number: ${actionNumber} for tenant: ${tenantId}`);
+    return actionNumber;
+    
+  } catch (error) {
+    console.error('⚠️ Error generating action number:', error);
+    // Fallback to timestamp-based number if sequence fails
+    const timestamp = Date.now();
+    return `AI-${new Date().getFullYear()}-${timestamp.toString().slice(-6)}`;
+  }
+}
+
 // 🚨 COMPLIANCE: Função auxiliar para auditoria completa
 async function createCompleteAuditEntry(
   pool: any,
@@ -746,25 +779,29 @@ ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, re
 
     // Also create entry in ticket_internal_actions for scheduling (only if start time provided)
     if (startDateTime) {
+      // Generate unique action number
+      const actionNumber = await generateActionNumber(pool, tenantId);
+      
       const internalActionQuery = `
         INSERT INTO "${schemaName}".ticket_internal_actions 
-        (id, tenant_id, ticket_id, action_type, title, description, agent_id, start_time, end_time, estimated_hours, status, priority, created_at, updated_at)
-        VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW())
-        RETURNING id
+        (id, tenant_id, ticket_id, action_number, action_type, title, description, agent_id, start_time, end_time, estimated_hours, status, priority, created_at, updated_at)
+        VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW(), NOW())
+        RETURNING id, action_number
       `;
 
       await pool.query(internalActionQuery, [
         tenantId,                          // $1 tenant_id
         id,                               // $2 ticket_id
-        actionType,                       // $3 action_type
-        `${actionType} - Ticket #${id.slice(0, 8)}`, // $4 title
-        actionDescription,                // $5 description
-        finalAssignedId,                  // $6 agent_id (assigned person)
-        startTime,                        // $7 start_time
-        endTime,                          // $8 end_time
-        estimatedMinutes / 60,            // $9 estimated_hours (convert minutes to hours)
-        status,                           // $10 status (from frontend)
-        'medium'                          // $11 priority
+        actionNumber,                     // $3 action_number
+        actionType,                       // $4 action_type
+        `${actionType} - Ticket #${id.slice(0, 8)}`, // $5 title
+        actionDescription,                // $6 description
+        finalAssignedId,                  // $7 agent_id (assigned person)
+        startTime,                        // $8 start_time
+        endTime,                          // $9 end_time
+        estimatedMinutes / 60,            // $10 estimated_hours (convert minutes to hours)
+        status,                           // $11 status (from frontend)
+        'medium'                          // $12 priority
       ]);
     }
 
@@ -1336,6 +1373,7 @@ ticketsRouter.get('/internal-actions/schedule/:startDate/:endDate', jwtAuth, asy
     const query = `
       SELECT 
         tia.id,
+        tia.action_number,
         tia.title,
         tia.description,
         tia.action_type,
@@ -1369,6 +1407,7 @@ ticketsRouter.get('/internal-actions/schedule/:startDate/:endDate', jwtAuth, asy
 
     const internalActions = result.rows.map(row => ({
       id: row.id,
+      actionNumber: row.action_number, // Include the unique action number
       title: `${row.action_type}: ${row.title}`,
       description: row.description,
       startDateTime: row.startDateTime,
