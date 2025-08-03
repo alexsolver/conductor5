@@ -1175,11 +1175,16 @@ const TicketDetails = React.memo(() => {
                   <FormLabel>Descrição *</FormLabel>
                   <FormControl>
                     {isEditMode ? (
-                      <RichTextEditor 
-                        content={field.value || ticket?.description || ''}
-                        onChange={field.onChange}
-                        placeholder="Digite a descrição do ticket..."
-                      />
+                      <div className="border border-gray-200 rounded-lg">
+                        <div className="min-h-[150px] max-h-[400px] overflow-y-auto">
+                          <Textarea 
+                            {...field}
+                            className="min-h-[150px] resize-none border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                            placeholder="Digite a descrição do ticket..."
+                            value={field.value || ticket?.description || ''}
+                          />
+                        </div>
+                      </div>
                     ) : (
                       <div className="p-3 bg-gray-50 rounded min-h-[100px] prose prose-sm max-w-none" dangerouslySetInnerHTML={{ 
                         __html: ticket?.description || field.value || '<p>Não informado</p>' 
