@@ -258,8 +258,14 @@ authRouter.get('/me', jwtAuth, async (req: AuthenticatedRequest, res) => {
     }
 
     // Get full user details
+    console.log('🔍 [AUTH-ME] About to call userRepository.findById for user:', req.user.id);
     const userRepository = container.userRepository;
     const user = await userRepository.findById(req.user.id);
+    console.log('🔍 [AUTH-ME] userRepository.findById returned user:', {
+      id: user?.id,
+      email: user?.email,
+      employmentType: user?.employmentType
+    });
 
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
