@@ -2635,24 +2635,14 @@ const TicketDetails = React.memo(() => {
           {/* Cliente/Solicitante e Favorecido Section */}
           <div className="mb-6 space-y-4">
             {/* Cliente/Solicitante */}
-            <div className="p-3 bg-gradient-to-r from-purple-50 to-violet-50 border border-purple-200 rounded-lg">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-semibold text-purple-800 flex items-center gap-2">
-                  <User className="h-4 w-4" />
-                  CLIENTE
-                </h3>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 px-2 text-xs text-purple-600 hover:text-purple-700 hover:bg-purple-100"
-                  onClick={() => console.log('Open customer management')}
-                >
-                  <ExternalLink className="h-3 w-3 mr-1" />
-                  Gerenciar
-                </Button>
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <User className="h-4 w-4 text-purple-600" />
+                <span className="text-xs font-medium text-gray-600 uppercase tracking-wide">Cliente</span>
               </div>
-              <div className="space-y-2">
-                {isEditMode ? (
+              
+              {isEditMode ? (
+                <div className="space-y-2">
                   <Select 
                     onValueChange={(value) => handleCustomerChange(value, 'caller')} 
                     value={form.getValues('callerId') || ticket.caller_id || ticket.callerId || ''}
@@ -2664,7 +2654,6 @@ const TicketDetails = React.memo(() => {
                           const customer = availableCustomers.find((c: any) => c.id === currentValue);
                           
                           if (!customer && currentValue && currentValue !== 'unspecified') {
-                            // Se não encontrar nos disponíveis, buscar nos dados gerais dos customers
                             const allCustomers = Array.isArray(customersData?.customers) ? customersData.customers : [];
                             const fallbackCustomer = allCustomers.find((c: any) => c.id === currentValue);
                             if (fallbackCustomer) {
@@ -2694,74 +2683,79 @@ const TicketDetails = React.memo(() => {
                       ))}
                     </SelectContent>
                   </Select>
-                ) : (
-                  <div className="text-sm text-purple-900 font-medium cursor-pointer hover:text-purple-700 transition-colors"
-                       onClick={() => console.log('Open customer details')}>
-                    <span className="underline decoration-dotted">
-                      {(() => {
-                        // CORREÇÃO: Buscar cliente pelos dados reais do ticket
-                        const callerId = ticket.caller_id || ticket.callerId;
-                        const customer = availableCustomers.find((c: any) => c.id === callerId);
-                        
-                        if (!customer && callerId && callerId !== 'unspecified') {
-                          // Se não encontrar nos disponíveis, buscar nos dados gerais dos customers
-                          const allCustomers = Array.isArray(customersData?.customers) ? customersData.customers : [];
-                          const fallbackCustomer = allCustomers.find((c: any) => c.id === callerId);
-                          if (fallbackCustomer) {
-                            return fallbackCustomer.fullName || fallbackCustomer.name || 
-                                   `${fallbackCustomer.firstName || ''} ${fallbackCustomer.lastName || ''}`.trim() || 
-                                   fallbackCustomer.email || 'Cliente encontrado';
-                          }
-                          return 'Cliente não encontrado';
+                  {(() => {
+                    const callerId = ticket.caller_id || ticket.callerId;
+                    const customer = availableCustomers.find((c: any) => c.id === callerId) || 
+                                   (Array.isArray(customersData?.customers) ? customersData.customers : []).find((c: any) => c.id === callerId);
+                    
+                    if (customer && customer.email) {
+                      return (
+                        <div className="text-xs text-purple-600 px-2">
+                          📧 {customer.email}
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <Badge 
+                    variant="outline" 
+                    className="px-3 py-2 text-sm font-semibold bg-gradient-to-r from-purple-500 to-violet-600 text-white border-purple-500 shadow-md hover:shadow-lg transition-shadow duration-200 w-full justify-center"
+                  >
+                    <User className="h-4 w-4 mr-2" />
+                    {(() => {
+                      const callerId = ticket.caller_id || ticket.callerId;
+                      const customer = availableCustomers.find((c: any) => c.id === callerId);
+                      
+                      if (!customer && callerId && callerId !== 'unspecified') {
+                        const allCustomers = Array.isArray(customersData?.customers) ? customersData.customers : [];
+                        const fallbackCustomer = allCustomers.find((c: any) => c.id === callerId);
+                        if (fallbackCustomer) {
+                          return fallbackCustomer.fullName || fallbackCustomer.name || 
+                                 `${fallbackCustomer.firstName || ''} ${fallbackCustomer.lastName || ''}`.trim() || 
+                                 fallbackCustomer.email || 'Cliente encontrado';
                         }
-                        
-                        if (!customer) {
-                          return (callerId === 'unspecified' || !callerId) ? 'Não especificado' : 'Cliente não encontrado';
-                        }
-                        
-                        return customer.fullName || customer.name || 
-                               `${customer.firstName || ''} ${customer.lastName || ''}`.trim() || 
-                               customer.email || 'Cliente sem nome';
-                      })()}
-                    </span>
-                  </div>
-                )}
-                {(() => {
-                  const callerId = ticket.caller_id || ticket.callerId;
-                  const customer = availableCustomers.find((c: any) => c.id === callerId) || 
-                                 (Array.isArray(customersData?.customers) ? customersData.customers : []).find((c: any) => c.id === callerId);
-                  
-                  if (customer && customer.email) {
-                    return (
-                      <div className="text-xs text-purple-600">
-                        📧 {customer.email}
-                      </div>
-                    );
-                  }
-                  return null;
-                })()}
-              </div>
+                        return 'Cliente não encontrado';
+                      }
+                      
+                      if (!customer) {
+                        return (callerId === 'unspecified' || !callerId) ? 'Não especificado' : 'Cliente não encontrado';
+                      }
+                      
+                      return customer.fullName || customer.name || 
+                             `${customer.firstName || ''} ${customer.lastName || ''}`.trim() || 
+                             customer.email || 'Cliente sem nome';
+                    })()}
+                  </Badge>
+                  {(() => {
+                    const callerId = ticket.caller_id || ticket.callerId;
+                    const customer = availableCustomers.find((c: any) => c.id === callerId) || 
+                                   (Array.isArray(customersData?.customers) ? customersData.customers : []).find((c: any) => c.id === callerId);
+                    
+                    if (customer && customer.email) {
+                      return (
+                        <div className="text-xs text-purple-600 px-2">
+                          📧 {customer.email}
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
+                </div>
+              )}
             </div>
 
             {/* Favorecido */}
-            <div className="p-3 bg-gradient-to-r from-indigo-50 to-blue-50 border border-indigo-200 rounded-lg">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-semibold text-indigo-800 flex items-center gap-2">
-                  <Users className="h-4 w-4" />
-                  FAVORECIDO
-                </h3>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 px-2 text-xs text-indigo-600 hover:text-indigo-700 hover:bg-indigo-100"
-                  onClick={() => console.log('Open favorecido management')}
-                >
-                  <ExternalLink className="h-3 w-3 mr-1" />
-                  Gerenciar
-                </Button>
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <Users className="h-4 w-4 text-indigo-600" />
+                <span className="text-xs font-medium text-gray-600 uppercase tracking-wide">Favorecido</span>
               </div>
-              <div className="space-y-2">
-                {isEditMode ? (
+              
+              {isEditMode ? (
+                <div className="space-y-2">
                   <Select 
                     onValueChange={(value) => handleCustomerChange(value, 'beneficiary')} 
                     value={form.getValues('beneficiaryId') || ticket.beneficiary_id || ticket.beneficiaryId || ''}
@@ -2792,56 +2786,70 @@ const TicketDetails = React.memo(() => {
                       ))}
                     </SelectContent>
                   </Select>
-                ) : (
-                  <div className="text-sm text-indigo-900 font-medium cursor-pointer hover:text-indigo-700 transition-colors"
-                       onClick={() => console.log('Open favorecido details')}>
-                    <span className="underline decoration-dotted">
-                      {(() => {
-                        // CORREÇÃO: Buscar favorecido pelos dados reais do ticket
-                        const beneficiaryId = ticket.beneficiary_id || ticket.beneficiaryId;
-                        const beneficiary = availableCustomers.find((c: any) => c.id === beneficiaryId) || 
-                                          (Array.isArray(customersData?.customers) ? customersData.customers : []).find((c: any) => c.id === beneficiaryId);
-                        
-                        if (!beneficiary) {
-                          return (beneficiaryId === 'unspecified' || !beneficiaryId) ? 'Não especificado' : 'Favorecido não encontrado';
-                        }
-                        
-                        return beneficiary.fullName || beneficiary.name || 
-                               `${beneficiary.firstName || ''} ${beneficiary.lastName || ''}`.trim() || 
-                               beneficiary.email || 'Favorecido sem nome';
-                      })()}
-                    </span>
-                  </div>
-                )}
-                {(() => {
-                  const beneficiaryId = ticket.beneficiary_id || ticket.beneficiaryId;
-                  const beneficiary = availableCustomers.find((c: any) => c.id === beneficiaryId) || 
-                                    (Array.isArray(customersData?.customers) ? customersData.customers : []).find((c: any) => c.id === beneficiaryId);
-                  
-                  if (beneficiary && beneficiary.email) {
+                  {(() => {
+                    const beneficiaryId = ticket.beneficiary_id || ticket.beneficiaryId;
+                    const beneficiary = availableCustomers.find((c: any) => c.id === beneficiaryId) || 
+                                      (Array.isArray(customersData?.customers) ? customersData.customers : []).find((c: any) => c.id === beneficiaryId);
+                    
                     return (
-                      <div className="text-xs text-indigo-600">
-                        📧 {beneficiary.email}
-                      </div>
+                      <>
+                        {beneficiary && beneficiary.email && (
+                          <div className="text-xs text-indigo-600 px-2">
+                            📧 {beneficiary.email}
+                          </div>
+                        )}
+                        {beneficiary && beneficiary.phone && (
+                          <div className="text-xs text-indigo-600 px-2">
+                            📞 {beneficiary.phone}
+                          </div>
+                        )}
+                      </>
                     );
-                  }
-                  return null;
-                })()}
-                {(() => {
-                  const beneficiaryId = ticket.beneficiary_id || ticket.beneficiaryId;
-                  const beneficiary = availableCustomers.find((c: any) => c.id === beneficiaryId) || 
-                                    (Array.isArray(customersData?.customers) ? customersData.customers : []).find((c: any) => c.id === beneficiaryId);
-                  
-                  if (beneficiary && beneficiary.phone) {
+                  })()}
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <Badge 
+                    variant="outline" 
+                    className="px-3 py-2 text-sm font-semibold bg-gradient-to-r from-indigo-500 to-blue-600 text-white border-indigo-500 shadow-md hover:shadow-lg transition-shadow duration-200 w-full justify-center"
+                  >
+                    <Users className="h-4 w-4 mr-2" />
+                    {(() => {
+                      const beneficiaryId = ticket.beneficiary_id || ticket.beneficiaryId;
+                      const beneficiary = availableCustomers.find((c: any) => c.id === beneficiaryId) || 
+                                        (Array.isArray(customersData?.customers) ? customersData.customers : []).find((c: any) => c.id === beneficiaryId);
+                      
+                      if (!beneficiary) {
+                        return (beneficiaryId === 'unspecified' || !beneficiaryId) ? 'Não especificado' : 'Favorecido não encontrado';
+                      }
+                      
+                      return beneficiary.fullName || beneficiary.name || 
+                             `${beneficiary.firstName || ''} ${beneficiary.lastName || ''}`.trim() || 
+                             beneficiary.email || 'Favorecido sem nome';
+                    })()}
+                  </Badge>
+                  {(() => {
+                    const beneficiaryId = ticket.beneficiary_id || ticket.beneficiaryId;
+                    const beneficiary = availableCustomers.find((c: any) => c.id === beneficiaryId) || 
+                                      (Array.isArray(customersData?.customers) ? customersData.customers : []).find((c: any) => c.id === beneficiaryId);
+                    
                     return (
-                      <div className="text-xs text-indigo-600">
-                        📞 {beneficiary.phone}
-                      </div>
+                      <>
+                        {beneficiary && beneficiary.email && (
+                          <div className="text-xs text-indigo-600 px-2">
+                            📧 {beneficiary.email}
+                          </div>
+                        )}
+                        {beneficiary && beneficiary.phone && (
+                          <div className="text-xs text-indigo-600 px-2">
+                            📞 {beneficiary.phone}
+                          </div>
+                        )}
+                      </>
                     );
-                  }
-                  return null;
-                })()}
-              </div>
+                  })()}
+                </div>
+              )}
             </div>
           </div>
 

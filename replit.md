@@ -19,10 +19,13 @@ Interface preference: Text-based hierarchical menus with dropdowns over visual c
   - URL-based image insertion
   - Toolbar with formatting buttons (bold, italic, lists, headers, quotes)
   - Replaced TipTap with stable Markdown editor to eliminate runtime errors
-- **Ticket Details UI Enhancement**: Updated company display in ticket sidebar
-  - Changed company section from button-based to prominent badge display
-  - Removed "Ver Detalhes" button and implemented gradient badge with building icon
-  - Improved visual hierarchy with cleaner company information presentation
+- **Ticket Details UI Enhancement**: Complete sidebar redesign with badge-based layout
+  - **Company Section**: Changed from button-based to prominent blue gradient badge with building icon
+  - **Client Section**: Replaced card layout with purple gradient badge and user icon
+  - **Beneficiary Section**: Implemented indigo gradient badge with users icon
+  - Removed all management buttons ("Ver Detalhes", "Gerenciar") for cleaner interface
+  - Maintained dropdown functionality in edit mode while improving visual hierarchy
+  - Enhanced information display with consistent email/phone contact details
 
 ## System Architecture
 Conductor follows a Clean Architecture with Domain-Driven Design principles.
