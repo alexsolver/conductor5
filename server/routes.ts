@@ -3635,8 +3635,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Buscar usuários reais do banco de dados
-      const { users: usersTable } = await import('../shared/schema-master.js');
-      const { db } = await import('./db.js');
+      const { users: usersTable } = await import('./shared/schema-master.js');
+      const { db } = await import('./server/db.js');
       const { eq, and } = await import('drizzle-orm');
 
       const users = await db.select({

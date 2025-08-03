@@ -1119,7 +1119,7 @@ const TicketDetails = React.memo(() => {
       subject: data.subject,
       description: data.description,
       priority: data.priority,
-      status: (statusMapping[data.status as keyof typeof statusMapping] || data.status) as "open" | "new" | "in_progress" | "resolved" | "closed" | "novo" | "aberto" | "em_andamento" | "resolvido" | "fechado",
+      status: statusMapping[data.status as keyof typeof statusMapping] || data.status,
       category: data.category,
       subcategory: data.subcategory,
       impact: data.impact,
@@ -1128,10 +1128,8 @@ const TicketDetails = React.memo(() => {
       // Assignment mapping camelCase → snake_case
       caller_id: data.callerId,
       caller_type: data.callerType || 'customer',
-      callerType: data.callerType || 'customer', // Add explicit field for type validation
       beneficiary_id: data.beneficiaryId,
       beneficiary_type: data.beneficiaryType || 'customer',
-      beneficiaryType: data.beneficiaryType || 'customer', // Add explicit field for type validation
       assigned_to_id: data.assignedToId,
       assignment_group: data.assignmentGroup,
 
@@ -1139,7 +1137,6 @@ const TicketDetails = React.memo(() => {
       // 🚨 CORREÇÃO: location é campo texto, não locationId (FK inexistente)
       location: data.location || '',  // Campo texto livre conforme schema do banco
       contact_type: data.contactType || 'email',
-      contactType: data.contactType || 'email', // Add explicit field for type validation
 
       // Business fields
       business_impact: data.businessImpact,
@@ -1479,9 +1476,9 @@ const TicketDetails = React.memo(() => {
                           <DynamicBadge 
                             fieldName="environment"
                             value={field.value}
-                            colorHex={getFieldColor('environment', field.value || '')}
+                            colorHex={getFieldColor('environment', field.value)}
                           >
-                            {getFieldLabel('environment', field.value || '') || field.value || 'Não especificado'}
+                            {getFieldLabel('environment', field.value) || field.value || 'Não especificado'}
                           </DynamicBadge>
                         </div>
                       )}
@@ -1556,9 +1553,9 @@ const TicketDetails = React.memo(() => {
                             <DynamicBadge 
                               fieldName="linkType"
                               value={field.value}
-                              colorHex={getFieldColor('linkType', field.value || '')}
+                              colorHex={getFieldColor('linkType', field.value)}
                             >
-                              {getFieldLabel('linkType', field.value || '')}
+                              {getFieldLabel('linkType', field.value)}
                             </DynamicBadge>
                           </div>
                         )}
@@ -1908,7 +1905,6 @@ const TicketDetails = React.memo(() => {
                       case 'communication': return { icon: MessageSquare, color: 'teal' };
                       case 'attachment_added': return { icon: Paperclip, color: 'pink' };
                       case 'note_added': return { icon: FileText, color: 'blue' };
-                      case 'ação interna': return { icon: Settings, color: 'purple' };
                       default: return { icon: Activity, color: 'gray' };
                     }
                   };
@@ -1934,16 +1930,12 @@ const TicketDetails = React.memo(() => {
                               {historyItem.action_type === 'communication' && 'Comunicação'}
                               {historyItem.action_type === 'attachment_added' && 'Anexo Adicionado'}
                               {historyItem.action_type === 'internal_action' && 'Ação Interna'}
-                              {historyItem.action_type === 'ação interna' && 'Ação Interna'}
                               {historyItem.action_type === 'note_added' && 'Nota'}
-                              {!['created', 'assigned', 'assignment', 'status_changed', 'status_change', 'viewed', 'email_sent', 'email_received', 'communication', 'attachment_added', 'internal_action', 'ação interna', 'note_added'].includes(historyItem.action_type) && 'Atividade'}
+                              {!['created', 'assigned', 'assignment', 'status_changed', 'status_change', 'viewed', 'email_sent', 'email_received', 'communication', 'attachment_added', 'internal_action', 'note_added'].includes(historyItem.action_type) && 'Atividade'}
                             </span>
                             {historyViewMode === 'advanced' && (
                               <Badge variant="secondary" className="text-xs">
-                                {/* Para ações internas, mostrar o tipo específico da ação */}
-                                {(historyItem.action_type === 'internal_action' || historyItem.action_type === 'ação interna') && historyItem.metadata?.action_type ? 
-                                  historyItem.metadata.action_type.toUpperCase() : 
-                                  historyItem.action_type.toUpperCase()}
+                                {historyItem.action_type.toUpperCase()}
                               </Badge>
                             )}
                           </div>
@@ -2100,13 +2092,6 @@ const TicketDetails = React.memo(() => {
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          {/* Action Number Display */}
-                          <div className="mb-2">
-                            <div className="text-xs text-gray-500 font-mono bg-gray-50 px-2 py-1 rounded border inline-block select-all">
-                              Número: {action.action_number || action.actionNumber || action.id}
-                            </div>
-                          </div>
-                          
                           <div className="flex items-center gap-2 mb-2 flex-wrap">
                             <User className="w-4 h-4 text-gray-600" />
                             <span className="font-medium text-sm">{action.createdByName || action.agent_name || 'Sistema'}</span>

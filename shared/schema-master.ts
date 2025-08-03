@@ -1075,13 +1075,6 @@ export const nsrSequences = pgTable("nsr_sequences", {
   lastUpdated: timestamp("last_updated").defaultNow().notNull(),
 });
 
-// Action Number Sequences - Auto-generated unique numbers for internal actions
-export const actionNumberSequences = pgTable("action_number_sequences", {
-  tenantId: varchar("tenant_id", { length: 36 }).primaryKey(),
-  currentNumber: bigint("current_number", { mode: "number" }).default(0).notNull(),
-  lastUpdated: timestamp("last_updated").defaultNow().notNull(),
-});
-
 // 🔴 CLT COMPLIANCE: Backup automático de registros - OBRIGATÓRIO
 export const timecardBackups = pgTable("timecard_backups", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -1661,7 +1654,6 @@ export const ticketInternalActions = pgTable("ticket_internal_actions", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
   ticketId: uuid("ticket_id").references(() => tickets.id).notNull(),
-  actionNumber: varchar("action_number", { length: 50 }).notNull().unique(), // Auto-generated unique identifier like AI-2025-000001
   actionType: varchar("action_type", { length: 100 }).notNull(), // analysis, investigation, escalation, resolution, follow_up
   title: varchar("title", { length: 255 }).notNull(),
   description: text("description"),

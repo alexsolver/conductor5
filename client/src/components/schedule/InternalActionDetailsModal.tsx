@@ -161,11 +161,8 @@ export default function InternalActionDetailsModal({
                 <div className="w-3 h-3 rounded-full bg-purple-500"></div>
                 Ação Interna - {internalAction.ticketNumber}
               </DialogTitle>
-              <DialogDescription className="space-y-1">
-                <div>{internalAction.ticketSubject}</div>
-                <div className="text-xs text-gray-500 font-mono">
-                  Número: {internalAction.actionNumber || internalAction.id}
-                </div>
+              <DialogDescription>
+                {internalAction.ticketSubject}
               </DialogDescription>
             </div>
             <div className="flex gap-2">
@@ -204,61 +201,39 @@ export default function InternalActionDetailsModal({
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Technical Info Card */}
-          <Card className="border-purple-200 bg-purple-50">
-            <CardContent className="p-4">
-              <div className="grid grid-cols-1 gap-2">
-                <div className="space-y-1">
-                  <Label className="text-sm font-medium text-purple-700">Número da Ação</Label>
-                  <div className="text-xs text-purple-600 font-mono bg-white p-2 rounded border select-all">
-                    {internalAction.actionNumber || internalAction.id}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Assigned To Card - Highlighted */}
-          <Card className="border-blue-200 bg-blue-50">
-            <CardContent className="p-4">
-              <div className="space-y-2">
-                <Label className="text-sm font-bold text-blue-700 flex items-center gap-2">
-                  <User className="w-4 h-4" />
-                  Atribuído a
-                </Label>
-                {isEditing ? (
-                  <Select
-                    value={formData.assignedToId}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, assignedToId: value }))}
-                  >
-                    <SelectTrigger className="border-blue-300 focus:ring-blue-500">
-                      <SelectValue placeholder="Selecionar responsável" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {teamMembers?.users?.map((user: any) => (
-                        <SelectItem key={user.id} value={user.id}>
-                          <div className="flex items-center gap-2">
-                            <User className="w-4 h-4" />
-                            {user.name || user.email}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  <div className="flex items-center gap-2 text-sm font-medium text-blue-800 bg-white p-2 rounded border border-blue-200">
-                    <User className="w-4 h-4 text-blue-600" />
-                    {internalAction.agentName || internalAction.agentEmail}
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
           {/* Action Info Card */}
           <Card>
             <CardContent className="p-4">
               <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700">Responsável</Label>
+                  {isEditing ? (
+                    <Select
+                      value={formData.assignedToId}
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, assignedToId: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecionar responsável" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {teamMembers?.users?.map((user: any) => (
+                          <SelectItem key={user.id} value={user.id}>
+                            <div className="flex items-center gap-2">
+                              <User className="w-4 h-4" />
+                              {user.name || user.email}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <div className="flex items-center gap-2 text-sm">
+                      <User className="w-4 h-4 text-gray-500" />
+                      {internalAction.agentName || internalAction.agentEmail}
+                    </div>
+                  )}
+                </div>
+
                 <div className="space-y-2">
                   <Label className="text-sm font-medium text-gray-700">Status</Label>
                   <Badge 
@@ -268,32 +243,6 @@ export default function InternalActionDetailsModal({
                     {internalAction.status === 'completed' ? 'Concluída' : 
                      internalAction.status === 'in_progress' ? 'Em andamento' : 'Pendente'}
                   </Badge>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-gray-700">Tipo de Ação</Label>
-                  {isEditing ? (
-                    <Select
-                      value={formData.actionType}
-                      onValueChange={(value) => setFormData(prev => ({ ...prev, actionType: value }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecionar tipo" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {actionTypeOptions.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <div className="flex items-center gap-2 text-sm">
-                      <FileText className="w-4 h-4 text-gray-500" />
-                      {actionTypeOptions.find(opt => opt.value === internalAction.actionType)?.label || internalAction.actionType}
-                    </div>
-                  )}
                 </div>
               </div>
             </CardContent>
@@ -336,7 +285,33 @@ export default function InternalActionDetailsModal({
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 gap-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700">Tipo de Ação</Label>
+                  {isEditing ? (
+                    <Select
+                      value={formData.actionType}
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, actionType: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecionar tipo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {actionTypeOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <div className="flex items-center gap-2 text-sm">
+                      <FileText className="w-4 h-4 text-gray-500" />
+                      {actionTypeOptions.find(opt => opt.value === internalAction.actionType)?.label || internalAction.actionType}
+                    </div>
+                  )}
+                </div>
+
                 <div className="space-y-2">
                   <Label className="text-sm font-medium text-gray-700">Horas Estimadas</Label>
                   {isEditing ? (
