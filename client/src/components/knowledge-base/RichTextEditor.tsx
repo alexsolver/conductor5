@@ -36,6 +36,7 @@ import { useState } from 'react'
 import { Input } from "../ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog"
 import { Label } from "../ui/label"
+import React, { useEffect } from 'react';
 
 interface RichTextEditorProps {
   content: string
@@ -127,7 +128,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
             }
             return true;
           }
-          
+
           // Handle Ctrl+Shift+Z or Ctrl+Y (redo) explicitly
           if ((event.key === 'z' && (event.ctrlKey || event.metaKey) && event.shiftKey) ||
               (event.key === 'y' && (event.ctrlKey || event.metaKey))) {
@@ -138,17 +139,17 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
             }
             return true;
           }
-          
+
           // Allow Enter to create new lines
           if (event.key === 'Enter' && !event.shiftKey) {
             return false; // Let the editor handle the Enter key
           }
-          
+
           // Allow Shift+Enter for hard breaks
           if (event.key === 'Enter' && event.shiftKey) {
             return false; // Let the editor handle Shift+Enter
           }
-          
+
           return false;
         } catch (error) {
           console.error('Error handling keyboard event:', error)
@@ -157,6 +158,25 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
       },
     },
   })
+
+  useEffect(() => {
+    // Suppress ResizeObserver warnings
+    const originalError = console.error;
+    console.error = (...args) => {
+      if (typeof args[0] === 'string' && args[0].includes('ResizeObserver loop')) {
+        return; // Suppress ResizeObserver warnings
+      }
+      originalError.apply(console, args);
+    };
+
+    // Cleanup on unmount
+    return () => {
+      if (editor) {
+        editor.destroy();
+      }
+      console.error = originalError;
+    };
+  }, [editor]);
 
   if (hasError) {
     return (
@@ -219,7 +239,7 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
         >
           <Bold className="h-4 w-4" />
         </Button>
-        
+
         <Button
           variant="ghost"
           size="sm"
