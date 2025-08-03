@@ -49,40 +49,45 @@ export default function EditInternalActionModal({ ticketId, action, isOpen, onCl
 
   // Populate form with existing action data
   useEffect(() => {
-    if (actionDetails?.success && actionDetails.data && isOpen) {
-      const data = actionDetails.data;
-      console.log('🔍 EditModal: Loading action data:', data);
-      
-      setFormData({
-        startDateTime: data.start_time || "",
-        endDateTime: data.end_time || "",
-        estimatedMinutes: data.estimated_minutes?.toString() || "0",
-        timeSpentMinutes: data.time_spent_minutes?.toString() || "0",
-        alterTimeSpent: !!data.time_spent_minutes,
-        actionType: data.actionType || data.type || "",
-        workLog: data.work_log || "",
-        description: data.description || data.content || "",
-        status: data.status || "pending",
-        assignedToId: data.assigned_to_id || ""
-      });
-      setIsPublic(data.is_public || false);
-    } else if (action && isOpen && !actionDetails) {
-      // Fallback to passed action data
-      console.log('🔍 EditModal: Using fallback action data:', action);
-      setFormData({
-        startDateTime: action.start_time || "",
-        endDateTime: action.end_time || "",
-        estimatedMinutes: action.estimated_minutes?.toString() || "0",
-        timeSpentMinutes: action.time_spent_minutes?.toString() || "0",
-        alterTimeSpent: !!action.time_spent_minutes,
-        actionType: action.type || action.actionType || "",
-        workLog: action.work_log || "",
-        description: action.description || action.content || "",
-        status: action.status || "pending",
-        assignedToId: action.assigned_to_id || ""
-      });
-      setIsPublic(action.is_public || false);
+    if (!isOpen || !action) return;
+
+    // Reset form data whenever modal opens
+    let dataToUse = action;
+    
+    // Use detailed data if available, otherwise use passed action data
+    if (actionDetails?.success && actionDetails.data) {
+      dataToUse = actionDetails.data;
+      console.log('🔍 EditModal: Loading detailed action data:', dataToUse);
+    } else {
+      console.log('🔍 EditModal: Loading passed action data:', dataToUse);
     }
+    
+    // Convert datetime fields to proper format for input[type="datetime-local"]
+    const formatDateTime = (dateTime) => {
+      if (!dateTime) return "";
+      try {
+        const date = new Date(dateTime);
+        return date.toISOString().slice(0, 16);
+      } catch (error) {
+        console.warn('Error formatting datetime:', dateTime, error);
+        return "";
+      }
+    };
+
+    setFormData({
+      startDateTime: formatDateTime(dataToUse.start_time || dataToUse.startDateTime),
+      endDateTime: formatDateTime(dataToUse.end_time || dataToUse.endDateTime),
+      estimatedMinutes: (dataToUse.estimated_minutes || dataToUse.estimatedMinutes || 0).toString(),
+      timeSpentMinutes: (dataToUse.time_spent_minutes || dataToUse.timeSpentMinutes || 0).toString(),
+      alterTimeSpent: !!(dataToUse.time_spent_minutes || dataToUse.timeSpentMinutes),
+      actionType: dataToUse.type || dataToUse.actionType || "",
+      workLog: dataToUse.work_log || dataToUse.workLog || "",
+      description: dataToUse.description || dataToUse.content || "",
+      status: dataToUse.status || "pending",
+      assignedToId: dataToUse.assigned_to_id || dataToUse.assignedToId || ""
+    });
+    
+    setIsPublic(dataToUse.is_public !== undefined ? dataToUse.is_public : dataToUse.isPublic || false);
   }, [actionDetails, action, isOpen]);
 
   // Fetch team members for assignment dropdown
@@ -98,10 +103,24 @@ export default function EditInternalActionModal({ ticketId, action, isOpen, onCl
   // Update internal action mutation
   const updateActionMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest("PUT", `/api/tickets/${ticketId}/actions/${action.id}`, {
-        ...data,
+      const payload = {
+        ticketId,
+        actionId: action.id,
+        actionType: data.actionType,
+        description: data.description,
+        workLog: data.workLog,
+        startDateTime: data.startDateTime,
+        endDateTime: data.endDateTime,
+        estimatedMinutes: parseInt(data.estimatedMinutes) || 0,
+        timeSpentMinutes: data.alterTimeSpent ? parseInt(data.timeSpentMinutes) || 0 : 0,
+        status: data.status,
+        assignedToId: data.assignedToId,
         is_public: isPublic,
-      });
+      };
+      
+      console.log('🔧 PUT Update - Sending data:', payload);
+      
+      const response = await apiRequest("PUT", `/api/tickets/${ticketId}/actions/${action.id}`, payload);
       return response.json();
     },
     onSuccess: () => {
