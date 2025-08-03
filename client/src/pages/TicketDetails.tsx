@@ -173,8 +173,11 @@ const TicketDetails = React.memo(() => {
   const { data: beneficiariesData } = useQuery({
     queryKey: ["/api/beneficiaries"],
     queryFn: async () => {
+      console.log('🔍 Fetching beneficiaries data...');
       const response = await apiRequest("GET", "/api/beneficiaries");
-      return response.json();
+      const data = await response.json();
+      console.log('🔍 Beneficiaries API response:', data);
+      return data;
     },
   });
 
@@ -2744,9 +2747,23 @@ const TicketDetails = React.memo(() => {
                     let beneficiary = null;
                     
                     // Check if we have beneficiaries data from the API
-                    if (beneficiariesData?.beneficiaries && Array.isArray(beneficiariesData.beneficiaries)) {
+                    console.log('🔍 Available beneficiariesData:', { 
+                      data: beneficiariesData, 
+                      hasNestedBeneficiaries: !!beneficiariesData?.data?.beneficiaries,
+                      hasBeneficiaries: !!beneficiariesData?.beneficiaries,
+                      isNestedArray: Array.isArray(beneficiariesData?.data?.beneficiaries),
+                      isArray: Array.isArray(beneficiariesData?.beneficiaries),
+                      nestedCount: beneficiariesData?.data?.beneficiaries?.length || 0,
+                      count: beneficiariesData?.beneficiaries?.length || 0,
+                      searchingFor: beneficiaryId
+                    });
+                    
+                    if (beneficiariesData?.data?.beneficiaries && Array.isArray(beneficiariesData.data.beneficiaries)) {
+                      beneficiary = beneficiariesData.data.beneficiaries.find((b: any) => b.id === beneficiaryId);
+                      console.log('🔍 Found in beneficiariesData:', { beneficiary: beneficiary?.fullName || beneficiary?.name || null });
+                    } else if (beneficiariesData?.beneficiaries && Array.isArray(beneficiariesData.beneficiaries)) {
                       beneficiary = beneficiariesData.beneficiaries.find((b: any) => b.id === beneficiaryId);
-                      console.log('🔍 Found in beneficiariesData:', { beneficiary: beneficiary?.name || null });
+                      console.log('🔍 Found in beneficiariesData (alt path):', { beneficiary: beneficiary?.fullName || beneficiary?.name || null });
                     }
                     
                     // Fallback to customers data (if beneficiary is also a customer)
