@@ -1465,6 +1465,8 @@ ticketsRouter.delete('/:id/notes/:noteId', jwtAuth, async (req: AuthenticatedReq
     const { pool } = await import('../../db');
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
+    console.log('🗑️ Deleting note:', { ticketId: id, noteId, tenantId });
+
     // Get note before deletion for audit trail
     const noteQuery = `
       SELECT * FROM "${schemaName}".ticket_notes 
@@ -1473,10 +1475,15 @@ ticketsRouter.delete('/:id/notes/:noteId', jwtAuth, async (req: AuthenticatedReq
     const noteResult = await pool.query(noteQuery, [noteId, id, tenantId]);
     
     if (noteResult.rows.length === 0) {
+      console.log('❌ Note not found for deletion:', { noteId, ticketId: id });
       return res.status(404).json({ message: "Note not found" });
     }
 
     const deletedNote = noteResult.rows[0];
+    console.log('📝 Found note to delete:', { 
+      noteId: deletedNote.id, 
+      content: deletedNote.content.substring(0, 50) 
+    });
 
     // Soft delete the note
     const deleteQuery = `
@@ -1485,25 +1492,65 @@ ticketsRouter.delete('/:id/notes/:noteId', jwtAuth, async (req: AuthenticatedReq
       WHERE id = $1 AND ticket_id = $2 AND tenant_id = $3
     `;
 
-    await pool.query(deleteQuery, [noteId, id, tenantId]);
+    const deleteResult = await pool.query(deleteQuery, [noteId, id, tenantId]);
+    console.log('✅ Note soft deleted:', { rowsAffected: deleteResult.rowCount });
 
-    // Create audit trail
+    // 🚨 CORREÇÃO CRÍTICA: Criar entrada de auditoria com mais debugging
     try {
       await createCompleteAuditEntry(
         pool, schemaName, tenantId, id, req,
         'note_deleted',
-        `Nota excluída: "${deletedNote.content.substring(0, 100)}..."`,
+        `Nota excluída: "${deletedNote.content.substring(0, 100)}${deletedNote.content.length > 100 ? '...' : ''}"`,
         {
           deleted_note_id: noteId,
           deleted_content: deletedNote.content,
+          deleted_content_preview: deletedNote.content.substring(0, 200),
           deleted_note_type: deletedNote.note_type,
           deleted_is_internal: deletedNote.is_internal,
           deleted_is_public: deletedNote.is_public,
-          deleted_created_at: deletedNote.created_at
+          deleted_created_at: deletedNote.created_at,
+          deleted_created_by: deletedNote.created_by,
+          deletion_time: new Date().toISOString()
         }
       );
+      console.log('✅ Entrada de auditoria criada para exclusão de nota:', noteId);
     } catch (historyError) {
-      console.log('⚠️ Aviso: Não foi possível criar entrada no histórico:', historyError.message);
+      console.error('❌ ERRO ao criar entrada no histórico para exclusão:', historyError);
+      // Fallback simpler audit entry
+      try {
+        const { getClientIP, getUserAgent, getSessionId } = await import('../../utils/ipCapture');
+        const ipAddress = getClientIP(req);
+        const userAgent = getUserAgent(req);
+        const sessionId = getSessionId(req);
+
+        // Get user name
+        const userQuery = `SELECT first_name || ' ' || last_name as full_name FROM public.users WHERE id = $1`;
+        const userResult = await pool.query(userQuery, [req.user.id]);
+        const userName = userResult.rows[0]?.full_name || 'Unknown User';
+
+        await pool.query(`
+          INSERT INTO "${schemaName}".ticket_history 
+          (tenant_id, ticket_id, action_type, description, performed_by, performed_by_name, ip_address, user_agent, session_id, created_at, metadata)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), $10)
+        `, [
+          tenantId,
+          id,
+          'note_deleted',
+          `Nota excluída: "${deletedNote.content.substring(0, 100)}${deletedNote.content.length > 100 ? '...' : ''}"`,
+          req.user.id,
+          userName,
+          ipAddress,
+          userAgent,
+          sessionId,
+          JSON.stringify({
+            deleted_note_id: noteId,
+            deleted_content_preview: deletedNote.content.substring(0, 100)
+          })
+        ]);
+        console.log('✅ Fallback audit entry created for note deletion:', noteId);
+      } catch (fallbackError) {
+        console.error('❌ ERRO CRÍTICO: Falha total na auditoria de exclusão:', fallbackError);
+      }
     }
 
     res.json({
@@ -1512,7 +1559,7 @@ ticketsRouter.delete('/:id/notes/:noteId', jwtAuth, async (req: AuthenticatedReq
     });
 
   } catch (error) {
-    console.error("Error deleting note:", error);
+    console.error("❌ Error deleting note:", error);
     res.status(500).json({
       success: false,
       message: "Failed to delete note",
@@ -1539,6 +1586,8 @@ ticketsRouter.post('/:id/notes', jwtAuth, trackNoteCreate, async (req: Authentic
       return res.status(400).json({ message: "Note content is required" });
     }
 
+    console.log('📝 Creating note:', { ticketId: id, content: content.substring(0, 50), noteType, isInternal, isPublic });
+
     // Insert note into database
     const insertQuery = `
       INSERT INTO "${schemaName}".ticket_notes 
@@ -1562,6 +1611,7 @@ ticketsRouter.post('/:id/notes', jwtAuth, trackNoteCreate, async (req: Authentic
     }
 
     const newNote = result.rows[0];
+    console.log('✅ Note created successfully:', newNote.id);
 
     // Get user name for response
     const userQuery = `SELECT first_name || ' ' || last_name as author_name FROM public.users WHERE id = $1`;
@@ -1570,36 +1620,57 @@ ticketsRouter.post('/:id/notes', jwtAuth, trackNoteCreate, async (req: Authentic
     const userName = userResult.rows[0]?.author_name || 'Unknown User';
     newNote.author_name = userName;
 
-    // Create history entry for the note creation
+    // 🚨 CORREÇÃO CRÍTICA: Usar função de auditoria completa
     try {
-      const { getClientIP, getUserAgent, getSessionId } = await import('../../utils/ipCapture');
-      const ipAddress = getClientIP(req);
-      const userAgent = getUserAgent(req);
-      const sessionId = getSessionId(req);
-
-      await pool.query(`
-        INSERT INTO "${schemaName}".ticket_history 
-        (tenant_id, ticket_id, action_type, description, performed_by, performed_by_name, ip_address, user_agent, session_id, created_at, metadata)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), $10)
-      `, [
-        tenantId,
-        id,
-        'note_added',
-        `Nota adicionada: ${content.substring(0, 100)}${content.length > 100 ? '...' : ''}`,
-        req.user.id,
-        userName,
-        ipAddress,
-        userAgent,
-        sessionId,
-        JSON.stringify({
+      await createCompleteAuditEntry(
+        pool, schemaName, tenantId, id, req,
+        'note_created',
+        `Nota adicionada: "${content.substring(0, 100)}${content.length > 100 ? '...' : ''}"`,
+        {
+          note_id: newNote.id,
           note_type: noteType,
           is_internal: isInternal,
           is_public: isPublic,
-          content_preview: content.substring(0, 200)
-        })
-      ]);
+          content_preview: content.substring(0, 200),
+          content_length: content.length,
+          created_time: new Date().toISOString()
+        }
+      );
+      console.log('✅ Entrada de auditoria criada para nova nota:', newNote.id);
     } catch (historyError) {
-      console.log('⚠️ Aviso: Não foi possível criar entrada no histórico:', historyError.message);
+      console.error('❌ ERRO ao criar entrada no histórico:', historyError);
+      // Fallback simpler audit entry
+      try {
+        const { getClientIP, getUserAgent, getSessionId } = await import('../../utils/ipCapture');
+        const ipAddress = getClientIP(req);
+        const userAgent = getUserAgent(req);
+        const sessionId = getSessionId(req);
+
+        await pool.query(`
+          INSERT INTO "${schemaName}".ticket_history 
+          (tenant_id, ticket_id, action_type, description, performed_by, performed_by_name, ip_address, user_agent, session_id, created_at, metadata)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), $10)
+        `, [
+          tenantId,
+          id,
+          'note_created',
+          `Nota adicionada: ${content.substring(0, 100)}${content.length > 100 ? '...' : ''}`,
+          req.user.id,
+          userName,
+          ipAddress,
+          userAgent,
+          sessionId,
+          JSON.stringify({
+            note_id: newNote.id,
+            note_type: noteType,
+            is_internal: isInternal,
+            is_public: isPublic
+          })
+        ]);
+        console.log('✅ Fallback audit entry created for note:', newNote.id);
+      } catch (fallbackError) {
+        console.error('❌ ERRO CRÍTICO: Falha total na auditoria:', fallbackError);
+      }
     }
 
     res.status(201).json({
@@ -1609,7 +1680,7 @@ ticketsRouter.post('/:id/notes', jwtAuth, trackNoteCreate, async (req: Authentic
     });
 
   } catch (error) {
-    console.error("Error creating note:", error);
+    console.error("❌ Error creating note:", error);
     res.status(500).json({ 
       success: false,
       message: "Failed to create note",
