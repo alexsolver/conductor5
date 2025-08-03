@@ -1,5 +1,4 @@
-import { useEditor, EditorContent } from '@tiptap/react'
-import StarterKit from '@tiptap/starter-kit'
+import { Textarea } from "./ui/textarea"
 import { Button } from "./ui/button"
 import { Separator } from "./ui/separator"
 import { 
@@ -10,11 +9,9 @@ import {
   Quote,
   Image as ImageIcon,
   Link as LinkIcon,
-  Heading2,
-  Undo,
-  Redo
+  Heading2
 } from 'lucide-react'
-import { useState, useCallback } from 'react'
+import { useState, useRef } from 'react'
 import { Input } from "./ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog"
 import { Label } from "./ui/label"
@@ -30,73 +27,64 @@ export function TicketDescriptionEditor({ content, onChange, placeholder }: Tick
   const [imageUrl, setImageUrl] = useState('')
   const [showLinkDialog, setShowLinkDialog] = useState(false)
   const [showImageDialog, setShowImageDialog] = useState(false)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
-  const handleUpdate = useCallback((newContent: string) => {
-    try {
-      onChange(newContent)
-    } catch (error) {
-      console.error('Error updating content:', error)
-    }
-  }, [onChange])
+  const insertAtCursor = (text: string) => {
+    if (!textareaRef.current) return
+    
+    const textarea = textareaRef.current
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const currentValue = content || ''
+    
+    const newValue = currentValue.substring(0, start) + text + currentValue.substring(end)
+    onChange(newValue)
+    
+    // Restore cursor position
+    setTimeout(() => {
+      textarea.focus()
+      textarea.setSelectionRange(start + text.length, start + text.length)
+    }, 0)
+  }
 
-  const editor = useEditor({
-    extensions: [
-      StarterKit.configure({
-        paragraph: {
-          HTMLAttributes: {
-            class: 'mb-2',
-          },
-        },
-      }),
-    ],
-    content: content || '',
-    onUpdate: ({ editor }) => {
-      try {
-        handleUpdate(editor.getHTML())
-      } catch (error) {
-        console.error('Editor update error:', error)
+  const wrapSelection = (prefix: string, suffix: string = '') => {
+    if (!textareaRef.current) return
+    
+    const textarea = textareaRef.current
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const currentValue = content || ''
+    const selectedText = currentValue.substring(start, end)
+    
+    const newText = prefix + selectedText + suffix
+    const newValue = currentValue.substring(0, start) + newText + currentValue.substring(end)
+    onChange(newValue)
+    
+    setTimeout(() => {
+      textarea.focus()
+      if (selectedText) {
+        textarea.setSelectionRange(start + prefix.length, end + prefix.length)
+      } else {
+        textarea.setSelectionRange(start + prefix.length, start + prefix.length)
       }
-    },
-    editorProps: {
-      attributes: {
-        class: 'prose prose-sm max-w-none focus:outline-none min-h-[120px] p-3',
-      },
-    },
-  })
-
-  if (!editor) {
-    return (
-      <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-        <p className="text-gray-600 text-sm">Carregando editor...</p>
-      </div>
-    )
+    }, 0)
   }
 
   const addImage = () => {
-    try {
-      if (imageUrl && editor) {
-        // Insert HTML directly as a workaround
-        const imgHtml = `<img src="${imageUrl}" alt="Imagem" class="max-w-full h-auto rounded-lg my-2" />`
-        editor.chain().focus().insertContent(imgHtml).run()
-        setImageUrl('')
-        setShowImageDialog(false)
-      }
-    } catch (error) {
-      console.error('Add image error:', error)
+    if (imageUrl) {
+      const markdownImage = `![Imagem](${imageUrl})`
+      insertAtCursor(markdownImage)
+      setImageUrl('')
+      setShowImageDialog(false)
     }
   }
 
   const addLink = () => {
-    try {
-      if (linkUrl && editor) {
-        // Insert HTML directly as a workaround
-        const linkHtml = `<a href="${linkUrl}" class="text-blue-600 hover:text-blue-800 underline" target="_blank">${linkUrl}</a>`
-        editor.chain().focus().insertContent(linkHtml).run()
-        setLinkUrl('')
-        setShowLinkDialog(false)
-      }
-    } catch (error) {
-      console.error('Add link error:', error)
+    if (linkUrl) {
+      const markdownLink = `[${linkUrl}](${linkUrl})`
+      insertAtCursor(markdownLink)
+      setLinkUrl('')
+      setShowLinkDialog(false)
     }
   }
 
@@ -108,15 +96,9 @@ export function TicketDescriptionEditor({ content, onChange, placeholder }: Tick
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => {
-            try {
-              if (editor) editor.chain().focus().toggleBold().run()
-            } catch (error) {
-              console.error('Bold toggle error:', error)
-            }
-          }}
-          className={editor?.isActive('bold') ? 'bg-gray-200' : ''}
+          onClick={() => wrapSelection('**', '**')}
           type="button"
+          title="Negrito"
         >
           <Bold className="h-3 w-3" />
         </Button>
@@ -124,15 +106,9 @@ export function TicketDescriptionEditor({ content, onChange, placeholder }: Tick
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => {
-            try {
-              if (editor) editor.chain().focus().toggleItalic().run()
-            } catch (error) {
-              console.error('Italic toggle error:', error)
-            }
-          }}
-          className={editor?.isActive('italic') ? 'bg-gray-200' : ''}
+          onClick={() => wrapSelection('*', '*')}
           type="button"
+          title="Itálico"
         >
           <Italic className="h-3 w-3" />
         </Button>
@@ -143,15 +119,9 @@ export function TicketDescriptionEditor({ content, onChange, placeholder }: Tick
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => {
-            try {
-              if (editor) editor.chain().focus().toggleHeading({ level: 2 }).run()
-            } catch (error) {
-              console.error('Heading toggle error:', error)
-            }
-          }}
-          className={editor?.isActive('heading', { level: 2 }) ? 'bg-gray-200' : ''}
+          onClick={() => insertAtCursor('## ')}
           type="button"
+          title="Cabeçalho"
         >
           <Heading2 className="h-3 w-3" />
         </Button>
@@ -162,15 +132,9 @@ export function TicketDescriptionEditor({ content, onChange, placeholder }: Tick
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => {
-            try {
-              if (editor) editor.chain().focus().toggleBulletList().run()
-            } catch (error) {
-              console.error('Bullet list toggle error:', error)
-            }
-          }}
-          className={editor?.isActive('bulletList') ? 'bg-gray-200' : ''}
+          onClick={() => insertAtCursor('- ')}
           type="button"
+          title="Lista"
         >
           <List className="h-3 w-3" />
         </Button>
@@ -178,15 +142,9 @@ export function TicketDescriptionEditor({ content, onChange, placeholder }: Tick
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => {
-            try {
-              if (editor) editor.chain().focus().toggleOrderedList().run()
-            } catch (error) {
-              console.error('Ordered list toggle error:', error)
-            }
-          }}
-          className={editor?.isActive('orderedList') ? 'bg-gray-200' : ''}
+          onClick={() => insertAtCursor('1. ')}
           type="button"
+          title="Lista Numerada"
         >
           <ListOrdered className="h-3 w-3" />
         </Button>
@@ -194,15 +152,9 @@ export function TicketDescriptionEditor({ content, onChange, placeholder }: Tick
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => {
-            try {
-              if (editor) editor.chain().focus().toggleBlockquote().run()
-            } catch (error) {
-              console.error('Blockquote toggle error:', error)
-            }
-          }}
-          className={editor?.isActive('blockquote') ? 'bg-gray-200' : ''}
+          onClick={() => insertAtCursor('> ')}
           type="button"
+          title="Citação"
         >
           <Quote className="h-3 w-3" />
         </Button>
@@ -264,57 +216,17 @@ export function TicketDescriptionEditor({ content, onChange, placeholder }: Tick
           </DialogContent>
         </Dialog>
 
-        <Separator orientation="vertical" className="h-6" />
-
-        {/* Undo/Redo */}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => {
-            try {
-              if (editor && editor.can().undo()) {
-                editor.chain().focus().undo().run()
-              }
-            } catch (error) {
-              console.error('Undo error:', error)
-            }
-          }}
-          disabled={!editor || !editor.can().undo()}
-          type="button"
-        >
-          <Undo className="h-3 w-3" />
-        </Button>
-
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => {
-            try {
-              if (editor && editor.can().redo()) {
-                editor.chain().focus().redo().run()
-              }
-            } catch (error) {
-              console.error('Redo error:', error)
-            }
-          }}
-          disabled={!editor || !editor.can().redo()}
-          type="button"
-        >
-          <Redo className="h-3 w-3" />
-        </Button>
       </div>
 
       {/* Editor Content */}
       <div className="min-h-[120px] max-h-[300px] overflow-y-auto relative">
-        <EditorContent 
-          editor={editor} 
-          className="[&_p]:mb-2 [&_h2]:text-lg [&_h2]:font-bold [&_h2]:mb-2 [&_ul]:ml-4 [&_ol]:ml-4 [&_blockquote]:border-l-4 [&_blockquote]:border-gray-300 [&_blockquote]:pl-4 [&_blockquote]:italic"
+        <Textarea
+          ref={textareaRef}
+          value={content || ''}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          className="min-h-[120px] resize-none border-0 focus-visible:ring-0 focus-visible:ring-offset-0 p-3"
         />
-        {(!content || content === '<p></p>') && (
-          <div className="absolute top-3 left-3 text-gray-400 text-sm pointer-events-none">
-            {placeholder}
-          </div>
-        )}
       </div>
     </div>
   )
