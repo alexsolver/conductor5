@@ -2086,7 +2086,7 @@ const TicketDetails = React.memo(() => {
                   };
 
                   return (
-                    <Card key={`linked-${linkedTicket.id}-${linkedTicket.relationshipType}`} className={`border-l-4 ${getBorderColor(linkedTicket.relationshipType)} hover:shadow-md transition-shadow`}>
+                    <Card key={`linked-${linkedTicket.id}-${linkedTicket.relationshipType}-${linkedTicket.targetTicket?.id || Math.random()}`} className={`border-l-4 ${getBorderColor(linkedTicket.relationshipType)} hover:shadow-md transition-shadow`}>
                       <CardContent className="p-4">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
@@ -2100,7 +2100,7 @@ const TicketDetails = React.memo(() => {
                               </div>
                               
                               <Badge variant="outline" className="text-xs bg-blue-50 text-blue-600 font-mono">
-                                #{linkedTicket.targetTicket?.number || linkedTicket.number || `T-${linkedTicket.targetTicket?.id?.slice(0,8) || linkedTicket.id?.slice(0,8)}`}
+                                #{linkedTicket.targetTicket?.number || linkedTicket.number || 'T-000000'}
                               </Badge>
                               
                               <DynamicBadge 
