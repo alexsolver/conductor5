@@ -548,7 +548,7 @@ export class DatabaseStorage implements IStorage {
           impact = ${ticketData.impact || null},
           urgency = ${ticketData.urgency || null},
           caller_id = ${ticketData.caller_id || null},
-          favorecido_id = ${ticketData.favorecido_id || null},
+          beneficiary_id = ${ticketData.beneficiary_id || null},
           assigned_to_id = ${ticketData.responsible_id || ticketData.assigned_to_id || null},
           assignment_group = ${ticketData.assignment_group || null},
           location = ${ticketData.location && ticketData.location !== 'unspecified' ? ticketData.location : null},
@@ -1661,9 +1661,9 @@ export class DatabaseStorage implements IStorage {
           c.last_name,
           c.email,
           fcr.created_at as relationship_created_at
-        FROM ${sql.identifier(schemaName)}.favorecido_customer_relationships fcr
+        FROM ${sql.identifier(schemaName)}.beneficiary_customer_relationships fcr
         JOIN ${sql.identifier(schemaName)}.customers c ON c.id = fcr.customer_id
-        WHERE fcr.favorecido_id = ${beneficiaryId}
+        WHERE fcr.beneficiary_id = ${beneficiaryId}
         ORDER BY fcr.created_at DESC
       `);
 
@@ -1681,10 +1681,10 @@ export class DatabaseStorage implements IStorage {
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
       const result = await tenantDb.execute(sql`
-        INSERT INTO ${sql.identifier(schemaName)}.favorecido_customer_relationships
-        (favorecido_id, customer_id, created_at, updated_at)
+        INSERT INTO ${sql.identifier(schemaName)}.beneficiary_customer_relationships
+        (beneficiary_id, customer_id, created_at, updated_at)
         VALUES (${beneficiaryId}, ${customerId}, NOW(), NOW())
-        ON CONFLICT (favorecido_id, customer_id) DO NOTHING
+        ON CONFLICT (beneficiary_id, customer_id) DO NOTHING
         RETURNING *
       `);
 
@@ -1702,8 +1702,8 @@ export class DatabaseStorage implements IStorage {
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
       const result = await tenantDb.execute(sql`
-        DELETE FROM ${sql.identifier(schemaName)}.favorecido_customer_relationships
-        WHERE favorecido_id = ${beneficiaryId} 
+        DELETE FROM ${sql.identifier(schemaName)}.beneficiary_customer_relationships
+        WHERE beneficiary_id = ${beneficiaryId} 
         AND customer_id = ${customerId}
       `);
 
@@ -2862,7 +2862,7 @@ export class DatabaseStorage implements IStorage {
           l.longitude
         FROM ${sql.identifier(schemaName)}.beneficiaries_locations fl
         JOIN ${sql.identifier(schemaName)}.locations l ON fl.location_id = l.id
-        WHERE fl.favorecido_id = ${beneficiaryId} AND fl.tenant_id = ${validatedTenantId}
+        WHERE fl.beneficiary_id = ${beneficiaryId} AND fl.tenant_id = ${validatedTenantId}
         ORDER BY fl.is_primary DESC, l.name ASC
       `);
 
@@ -2899,13 +2899,13 @@ export class DatabaseStorage implements IStorage {
         await tenantDb.execute(sql`
           UPDATE ${sql.identifier(schemaName)}.beneficiaries_locations 
           SET is_primary = false 
-          WHERE favorecido_id = ${beneficiaryId} AND tenant_id = ${validatedTenantId}
+          WHERE beneficiary_id = ${beneficiaryId} AND tenant_id = ${validatedTenantId}
         `);
       }
 
       const result = await tenantDb.execute(sql`
         INSERT INTO ${sql.identifier(schemaName)}.beneficiaries_locations (
-          tenant_id, favorecido_id, location_id, is_primary
+          tenant_id, beneficiary_id, location_id, is_primary
         ) VALUES (
           ${validatedTenantId}, ${beneficiaryId}, ${locationId}, ${isPrimary}
         ) RETURNING *
@@ -2927,7 +2927,7 @@ export class DatabaseStorage implements IStorage {
 
       const result = await tenantDb.execute(sql`
         DELETE FROM ${sql.identifier(schemaName)}.beneficiaries_locations 
-        WHERE favorecido_id = ${beneficiaryId} 
+        WHERE beneficiary_id = ${beneficiaryId} 
           AND location_id = ${locationId} 
           AND tenant_id = ${validatedTenantId}
       `);
@@ -2951,14 +2951,14 @@ export class DatabaseStorage implements IStorage {
         await tenantDb.execute(sql`
           UPDATE ${sql.identifier(schemaName)}.beneficiaries_locations 
           SET is_primary = false 
-          WHERE favorecido_id = ${beneficiaryId} AND tenant_id = ${validatedTenantId}
+          WHERE beneficiary_id = ${beneficiaryId} AND tenant_id = ${validatedTenantId}
         `);
       }
 
       const result = await tenantDb.execute(sql`
         UPDATE ${sql.identifier(schemaName)}.beneficiaries_locations 
         SET is_primary = ${isPrimary}
-        WHERE favorecido_id = ${beneficiaryId} 
+        WHERE beneficiary_id = ${beneficiaryId} 
           AND location_id = ${locationId} 
           AND tenant_id = ${validatedTenantId}
       `);
