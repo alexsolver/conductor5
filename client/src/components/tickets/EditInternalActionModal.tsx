@@ -221,6 +221,29 @@ export default function EditInternalActionModal({ ticketId, action, isOpen, onCl
                 </div>
               </div>
 
+              {/* Assigned To - Highlighted */}
+              <Card className="border-blue-200 bg-blue-50">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <User className="w-4 h-4 text-blue-600" />
+                    <Label htmlFor="assigned-to" className="text-sm font-bold text-blue-700">Atribuído a</Label>
+                  </div>
+                  <Select value={formData.assignedToId} onValueChange={(value) => setFormData(prev => ({ ...prev, assignedToId: value }))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione um membro..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="unassigned">-- Não atribuído --</SelectItem>
+                      {(teamMembers?.users || []).map((user: any) => (
+                        <SelectItem key={user.id} value={user.id}>
+                          {user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </CardContent>
+              </Card>
+
               {/* Action Type */}
               <div>
                 <Label htmlFor="action-type">Ação Interna *</Label>
@@ -254,7 +277,7 @@ export default function EditInternalActionModal({ ticketId, action, isOpen, onCl
                 />
               </div>
 
-              {/* Status and Assignment */}
+              {/* Status */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <div className="flex items-center space-x-2 mb-1">
@@ -267,23 +290,6 @@ export default function EditInternalActionModal({ ticketId, action, isOpen, onCl
                       {formData.status === "completed" ? "Concluída" : "Pendente"}
                     </Label>
                   </div>
-                </div>
-                
-                <div>
-                  <Label htmlFor="assigned-to">Atribuído a</Label>
-                  <Select value={formData.assignedToId} onValueChange={(value) => setFormData(prev => ({ ...prev, assignedToId: value }))}>
-                    <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Selecione um membro..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="unassigned">-- Não atribuído --</SelectItem>
-                      {(teamMembers?.users || []).map((user: any) => (
-                        <SelectItem key={user.id} value={user.id}>
-                          {user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
                 </div>
               </div>
 
