@@ -51,12 +51,7 @@ export function GroupSelect({
         <SelectItem value="__none__">Nenhum grupo</SelectItem>
         {groups.map((group: any) => (
           <SelectItem key={group.id} value={group.id}>
-            <div className="flex flex-col">
-              <span>{group.name}</span>
-              {group.description && (
-                <span className="text-sm text-gray-500">{group.description}</span>
-              )}
-            </div>
+            {group.name}
           </SelectItem>
         ))}
       </SelectContent>

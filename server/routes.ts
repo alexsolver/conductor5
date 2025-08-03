@@ -3701,6 +3701,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ORDER BY ug.name
       `);
 
+      console.log('🏷️ [USER-GROUPS] Query result:', { groupCount: groups.rows.length, groups: groups.rows });
       res.json({ success: true, data: groups.rows });
     } catch (error) {
       console.error('Error fetching user groups:', error);

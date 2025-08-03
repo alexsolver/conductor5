@@ -519,7 +519,7 @@ export class DatabaseStorage implements IStorage {
         followersRaw: ticketData.followers,
         followersType: typeof ticketData.followers,
         customerIdRaw: ticketData.customer_id,
-        responsibleIdRaw: ticketData.responsible_id,
+        assignedToIdRaw: ticketData.responsible_id || ticketData.assigned_to_id,
         allKeys: Object.keys(ticketData)
       });
 
@@ -540,7 +540,7 @@ export class DatabaseStorage implements IStorage {
           urgency = ${ticketData.urgency || null},
           caller_id = ${ticketData.caller_id || null},
           beneficiary_id = ${ticketData.beneficiary_id || null},
-          responsible_id = ${ticketData.responsible_id || null},
+          assigned_to_id = ${ticketData.responsible_id || ticketData.assigned_to_id || null},
           assignment_group = ${ticketData.assignment_group || null},
           location = ${ticketData.location && ticketData.location !== 'unspecified' ? ticketData.location : null},
           contact_type = ${ticketData.contact_type || null},
@@ -2604,7 +2604,7 @@ export class DatabaseStorage implements IStorage {
               description = 'Ticket atualizado automaticamente - Ação: ${actionData.description || actionData.title}',
               status = ${actionData.status === 'completed' ? "'resolved'" : "'open'"},
               priority = '${actionData.priority}',
-              responsible_id = ${actionData.responsibleId ? `'${actionData.responsibleId}'` : 'NULL'},
+              assigned_to_id = ${actionData.responsibleId ? `'${actionData.responsibleId}'` : 'NULL'},
               updated_at = '${now}'
             WHERE id = '${updatedAction.related_ticket_id}' AND tenant_id = '${validatedTenantId}'
           `);
