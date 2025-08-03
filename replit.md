@@ -7,6 +7,13 @@ Conductor is a modern SaaS customer support platform providing omnichannel suppo
 Preferred communication style: Simple, everyday language.
 Interface preference: Text-based hierarchical menus with dropdowns over visual card-based interfaces.
 
+## Recent Changes (August 2025)
+- **Employment Type System**: Successfully implemented dual employment type support with automatic detection
+- **Terminology Engine**: Dynamic sidebar and interface terminology based on user's employment type (CLT vs Autonomous)
+- **Route Management**: Automatic redirection to appropriate interfaces (/timecard vs /timecard-autonomous)
+- **Database Integration**: Fixed employmentType field mapping and API endpoint responses
+- **User Detection**: Real-time employment type detection with proper frontend/backend integration
+
 ## System Architecture
 Conductor follows a Clean Architecture with Domain-Driven Design principles.
 
@@ -35,7 +42,7 @@ Conductor follows a Clean Architecture with Domain-Driven Design principles.
     - **Location Management**: Comprehensive system supporting 7 types of location records (Local, Região, Rota Dinâmica, Trecho, Rota de Trecho, Área, Agrupamento) with advanced UX features like CEP auto-fill, interactive map coordinate collection, and centralized operating hours.
     - **User & Team Management**: Consolidated system for user and team management with HR database schema expansion, user group memberships, and a list-based view for team members.
     - **Project Management**: Full project and project actions system, including automatic project-ticket integration and detailed task tracking.
-    - **Timecard/Journey Management**: Comprehensive CLT-compliant electronic timecard system with NSR (sequential numbering), SHA-256 integrity hashing, complete audit trails, digital signatures, automatic backups, and compliance reports. Fully compliant with Portaria 671/2021 MTE requirements for electronic timekeeping systems. **Dual Employment Support**: Complete system supporting both CLT and Autonomous workers with distinct interfaces and terminology ("Ponto"→"Registro de Jornada", "Entrada/Saída"→"Início/Fim de Atividade") while maintaining identical backend functionality. Automatic employment type detection and route redirection ensures users see appropriate interface.
+    - **Timecard/Journey Management**: Comprehensive CLT-compliant electronic timecard system with NSR (sequential numbering), SHA-256 integrity hashing, complete audit trails, digital signatures, automatic backups, and compliance reports. Fully compliant with Portaria 671/2021 MTE requirements for electronic timekeeping systems. **Dual Employment Support**: Complete system supporting both CLT and Autonomous workers with distinct interfaces and terminology ("Ponto"→"Registro de Jornada", "Entrada/Saída"→"Início/Fim de Atividade") while maintaining identical backend functionality. Automatic employment type detection and route redirection ensures users see appropriate interface. **Status**: ✅ FULLY IMPLEMENTED (August 2025) - Dynamic sidebar terminology, automatic route redirection, and employment type detection working correctly.
     - **Omnichannel Communication**: Unified communication center supporting multiple channels (email, WhatsApp, Slack) with real-time inbox processing, rule-based automation, and template management.
     - **Agenda/Schedule Management**: Integrated scheduling system with filtering capabilities connecting client companies, team management groups, and users. Features timeline and 14-day agenda views with automatic filtering of technicians based on selected groups.
     - **Internationalization (i18n)**: Comprehensive i18n system with 5 languages, dynamic language switching, regional formatting, and a translation management interface for SaaS admins.
