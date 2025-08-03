@@ -19,6 +19,10 @@ Interface preference: Text-based hierarchical menus with dropdowns over visual c
   - URL-based image insertion
   - Toolbar with formatting buttons (bold, italic, lists, headers, quotes)
   - Replaced TipTap with stable Markdown editor to eliminate runtime errors
+- **Ticket Details UI Enhancement**: Updated company display in ticket sidebar
+  - Changed company section from button-based to prominent badge display
+  - Removed "Ver Detalhes" button and implemented gradient badge with building icon
+  - Improved visual hierarchy with cleaner company information presentation
 
 ## System Architecture
 Conductor follows a Clean Architecture with Domain-Driven Design principles.

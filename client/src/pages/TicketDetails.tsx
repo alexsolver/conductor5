@@ -2541,25 +2541,15 @@ const TicketDetails = React.memo(() => {
       <div className="w-72 bg-white border-r flex-shrink-0 h-full overflow-y-auto">
         <div className="p-4 h-full">
 
-          {/* Empresa Cliente Section - Topo */}
-          <div className="mb-6 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-semibold text-blue-800 flex items-center gap-2">
-                <Building2 className="h-4 w-4" />
-                EMPRESA
-              </h3>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 px-2 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-100"
-                onClick={() => setIsCompanyDetailsOpen(true)}
-              >
-                <ExternalLink className="h-3 w-3 mr-1" />
-                Ver Detalhes
-              </Button>
+          {/* Empresa Cliente Section - Badge Destacado */}
+          <div className="mb-6">
+            <div className="flex items-center gap-2 mb-3">
+              <Building2 className="h-4 w-4 text-blue-600" />
+              <span className="text-xs font-medium text-gray-600 uppercase tracking-wide">Empresa</span>
             </div>
-            <div className="space-y-2">
-              {isEditMode ? (
+            
+            {isEditMode ? (
+              <div className="space-y-2">
                 <Select 
                   onValueChange={handleCompanyChange}
                   value={form.getValues('customerCompanyId') || ticket.customer_company_id || ticket.customerCompanyId || ticket.company || ''}
@@ -2582,41 +2572,64 @@ const TicketDetails = React.memo(() => {
                     ))}
                   </SelectContent>
                 </Select>
-              ) : (
-                <div className="text-sm cursor-pointer hover:text-blue-700 transition-colors"
-                     onClick={() => setIsCompanyDetailsOpen(true)}>
-                  <span className="font-medium text-blue-900 underline decoration-dotted">
-                    {(() => {
-                      // CORREÇÃO: Buscar empresa pelos dados reais do ticket
-                      const companyId = ticket.customer_company_id || ticket.customerCompanyId || ticket.company;
-                      const companyData = (Array.isArray(companiesData) ? companiesData : companiesData?.data || []).find((c: any) => c.id === companyId);
-                      return companyData?.name || ticket.customerCompany?.name || (companyId && companyId !== 'unspecified' ? 'Empresa não encontrada' : 'Não especificado');
-                    })()}
-                  </span>
-                </div>
-              )}
-              {(() => {
-                const companyId = ticket.customer_company_id || ticket.customerCompanyId || ticket.company;
-                const companyData = (Array.isArray(companiesData) ? companiesData : companiesData?.data || []).find((c: any) => c.id === companyId);
-                const industry = ticket.customerCompany?.industry || companyData?.industry;
-                const cnpj = ticket.customerCompany?.cnpj || companyData?.cnpj;
-                
-                return (
-                  <>
-                    {industry && (
-                      <div className="text-xs text-blue-600 mt-1">
-                        🏷️ Setor: {industry}
-                      </div>
-                    )}
-                    {cnpj && (
-                      <div className="text-xs text-blue-600">
-                        📄 CNPJ: {cnpj}
-                      </div>
-                    )}
-                  </>
-                );
-              })()}
-            </div>
+                {(() => {
+                  const companyId = ticket.customer_company_id || ticket.customerCompanyId || ticket.company;
+                  const companyData = (Array.isArray(companiesData) ? companiesData : companiesData?.data || []).find((c: any) => c.id === companyId);
+                  const industry = ticket.customerCompany?.industry || companyData?.industry;
+                  const cnpj = ticket.customerCompany?.cnpj || companyData?.cnpj;
+                  
+                  return (
+                    <>
+                      {industry && (
+                        <div className="text-xs text-blue-600 mt-1">
+                          🏷️ Setor: {industry}
+                        </div>
+                      )}
+                      {cnpj && (
+                        <div className="text-xs text-blue-600">
+                          📄 CNPJ: {cnpj}
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <Badge 
+                  variant="outline" 
+                  className="px-3 py-2 text-sm font-semibold bg-gradient-to-r from-blue-500 to-indigo-600 text-white border-blue-500 shadow-md hover:shadow-lg transition-shadow duration-200 w-full justify-center"
+                >
+                  <Building2 className="h-4 w-4 mr-2" />
+                  {(() => {
+                    const companyId = ticket.customer_company_id || ticket.customerCompanyId || ticket.company;
+                    const companyData = (Array.isArray(companiesData) ? companiesData : companiesData?.data || []).find((c: any) => c.id === companyId);
+                    return companyData?.name || ticket.customerCompany?.name || (companyId && companyId !== 'unspecified' ? 'Empresa não encontrada' : 'Não especificado');
+                  })()}
+                </Badge>
+                {(() => {
+                  const companyId = ticket.customer_company_id || ticket.customerCompanyId || ticket.company;
+                  const companyData = (Array.isArray(companiesData) ? companiesData : companiesData?.data || []).find((c: any) => c.id === companyId);
+                  const industry = ticket.customerCompany?.industry || companyData?.industry;
+                  const cnpj = ticket.customerCompany?.cnpj || companyData?.cnpj;
+                  
+                  return (
+                    <>
+                      {industry && (
+                        <div className="text-xs text-blue-600 mt-1 px-2">
+                          🏷️ Setor: {industry}
+                        </div>
+                      )}
+                      {cnpj && (
+                        <div className="text-xs text-blue-600 px-2">
+                          📄 CNPJ: {cnpj}
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
+              </div>
+            )}
           </div>
 
           {/* Cliente/Solicitante e Favorecido Section */}
