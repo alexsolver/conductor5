@@ -77,6 +77,17 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>("");
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>("");
 
+  // Reset filters when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedCompanyId("");
+      setSelectedCustomerId("");
+      setSearchTerm("");
+      setStatusFilter("all");
+      setPriorityFilter("all");
+    }
+  }, [isOpen]);
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -115,15 +126,15 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
     if (priorityFilter !== "all" && ticket.priority !== priorityFilter) return false;
 
     // Company filter
-    if (selectedCompanyId && selectedCompanyId !== "all") {
+    if (selectedCompanyId && selectedCompanyId !== "") {
       const ticketCompanyId = (ticket as any).customer_company_id || (ticket as any).customerCompanyId || (ticket as any).company;
-      if (ticketCompanyId !== selectedCompanyId) return false;
+      if (!ticketCompanyId || ticketCompanyId !== selectedCompanyId) return false;
     }
 
     // Customer filter
-    if (selectedCustomerId && selectedCustomerId !== "all") {
+    if (selectedCustomerId && selectedCustomerId !== "") {
       const ticketCustomerId = (ticket as any).customer_id || (ticket as any).customerId;
-      if (ticketCustomerId !== selectedCustomerId) return false;
+      if (!ticketCustomerId || ticketCustomerId !== selectedCustomerId) return false;
     }
 
     // Search filter
@@ -340,21 +351,17 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
                     <Building2 className="h-4 w-4" />
                     <span>Filtrar por Empresa</span>
                   </Label>
-                  <Select value={selectedCompanyId || ""} onValueChange={(value) => {
-                    setSelectedCompanyId(value);
-                    // Reset customer selection when company changes
-                    setSelectedCustomerId("");
-                  }}>
+                  <Select 
+                    value={selectedCompanyId || ""} 
+                    onValueChange={(value) => {
+                      console.log('Company selection changed:', value);
+                      setSelectedCompanyId(value === "" ? "" : value);
+                      // Reset customer selection when company changes
+                      setSelectedCustomerId("");
+                    }}
+                  >
                     <SelectTrigger>
-                      <SelectValue placeholder="Todas as empresas">
-                        {selectedCompanyId ? (
-                          companies.find((c: any) => c.id === selectedCompanyId)?.company_name || 
-                          companies.find((c: any) => c.id === selectedCompanyId)?.name || 
-                          "Empresa selecionada"
-                        ) : (
-                          "Todas as empresas"
-                        )}
-                      </SelectValue>
+                      <SelectValue placeholder="Todas as empresas" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="">Todas as empresas</SelectItem>
