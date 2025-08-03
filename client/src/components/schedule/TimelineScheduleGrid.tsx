@@ -357,7 +357,7 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
           {/* Time slots header */}
           <div 
             ref={headerScrollRef}
-            className="flex-1 flex overflow-x-auto"
+            className="flex-1 flex overflow-x-auto timeline-header-scroll"
             onScroll={syncScrollToContent}
             style={{ maxWidth: 'calc(100vw - 320px)' }}
           >
@@ -372,7 +372,7 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
         </div>
 
         {/* Content area */}
-        <div className="flex overflow-y-auto" style={{ maxHeight: 'calc(100vh - 360px)' }}>
+        <div className="flex overflow-y-auto timeline-content-scroll" style={{ maxHeight: 'calc(100vh - 360px)' }}>
           {/* Left sidebar with agent list */}
           <div className="w-64 flex-shrink-0 border-r bg-gray-50">
             {filteredAgents.map((agent) => {
@@ -441,7 +441,7 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
           {/* Timeline grid */}
           <div 
             ref={contentScrollRef}
-            className="flex-1 overflow-x-auto relative"
+            className="flex-1 overflow-x-auto relative timeline-content-scroll"
             onScroll={syncScrollToHeader}
             style={{ maxWidth: 'calc(100vw - 320px)' }}
             data-timeline-container
