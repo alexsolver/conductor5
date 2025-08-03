@@ -162,6 +162,8 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
       setRelationshipType("");
       setDescription("");
       setSearchTerm("");
+      // Fechar o modal após sucesso
+      onClose();
     },
     onError: (error: Error) => {
       toast({
