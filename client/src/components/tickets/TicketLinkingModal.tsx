@@ -202,6 +202,9 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
         // Invalidate general ticket queries for updated counts
         queryClient.invalidateQueries({ queryKey: ["/api/tickets", currentTicket.id] });
       }
+      
+      // 🚀 CORREÇÃO: Fechar o modal após remoção bem-sucedida
+      onClose();
     },
     onError: (error: Error) => {
       toast({
