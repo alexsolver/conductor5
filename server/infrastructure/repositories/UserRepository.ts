@@ -17,7 +17,15 @@ export class UserRepository implements IUserRepository {
 
       if (!userData) return null;
 
-      return new User(
+      // Debug log crítico para identificar o problema
+      console.log('🔍 [USER-REPO] findById - Raw data from DB:', {
+        id: userData.id,
+        email: userData.email,
+        employmentType: userData.employmentType,
+        employmentTypeType: typeof userData.employmentType
+      });
+
+      const user = new User(
         userData.id,
         userData.email!,
         userData.passwordHash!,
@@ -32,6 +40,14 @@ export class UserRepository implements IUserRepository {
         userData.updatedAt || new Date(),
         userData.employmentType as 'clt' | 'autonomo' || 'clt'
       );
+
+      console.log('🔍 [USER-REPO] findById - Created User object:', {
+        id: user.id,
+        email: user.email,
+        employmentType: user.employmentType
+      });
+
+      return user;
     } catch (error) {
       logError('Error finding user by ID', error, { userId: id });
       return null;
