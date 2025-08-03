@@ -11,6 +11,8 @@ import Table from '@tiptap/extension-table'
 import TableRow from '@tiptap/extension-table-row'
 import TableCell from '@tiptap/extension-table-cell'
 import TableHeader from '@tiptap/extension-table-header'
+import Paragraph from '@tiptap/extension-paragraph'
+import HardBreak from '@tiptap/extension-hard-break'
 import { Button } from "../ui/button"
 import { Separator } from "../ui/separator"
 import { 
@@ -49,7 +51,28 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
 
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        paragraph: {
+          HTMLAttributes: {
+            class: 'mb-2',
+          },
+        },
+        hardBreak: {
+          HTMLAttributes: {
+            class: 'whitespace-pre-line',
+          },
+        },
+      }),
+      Paragraph.configure({
+        HTMLAttributes: {
+          class: 'mb-2',
+        },
+      }),
+      HardBreak.configure({
+        HTMLAttributes: {
+          class: 'whitespace-pre-line',
+        },
+      }),
       Image.configure({
         HTMLAttributes: {
           class: 'max-w-full h-auto rounded-lg',
@@ -74,7 +97,19 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
     },
     editorProps: {
       attributes: {
-        class: 'prose max-w-none focus:outline-none min-h-[300px] p-4 border border-gray-200 rounded-md',
+        class: 'prose prose-sm max-w-none focus:outline-none min-h-[150px] p-4 border-0 whitespace-pre-wrap',
+        style: 'white-space: pre-wrap; word-wrap: break-word;',
+      },
+      handleKeyDown: (view, event) => {
+        // Allow Enter to create new lines
+        if (event.key === 'Enter' && !event.shiftKey) {
+          return false; // Let the editor handle the Enter key
+        }
+        // Allow Shift+Enter for hard breaks
+        if (event.key === 'Enter' && event.shiftKey) {
+          return false; // Let the editor handle Shift+Enter
+        }
+        return false;
       },
     },
   })
@@ -292,7 +327,12 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
       </div>
 
       {/* Editor Content */}
-      <EditorContent editor={editor} />
+      <div className="min-h-[150px] max-h-[400px] overflow-y-auto">
+        <EditorContent 
+          editor={editor} 
+          className="prose prose-sm max-w-none [&_p]:mb-2 [&_br]:block [&_br]:content-[''] [&_br]:mt-1"
+        />
+      </div>
     </div>
   )
 }
