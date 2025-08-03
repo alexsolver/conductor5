@@ -544,7 +544,7 @@ const TicketDetails = React.memo(() => {
         setTags(ticket.tags);
       }
     }
-  }, [ticketCommunications, ticketAttachments, ticketNotes, ticketActions, ticketRelationships, ticket]);
+  }, [ticketCommunications, ticketAttachments, ticketNotes, ticketActions, relationshipsList, ticket]);
 
   // Initialize real history data from API with comprehensive mapping
   useEffect(() => {
