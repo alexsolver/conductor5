@@ -1952,7 +1952,7 @@ const TicketDetails = React.memo(() => {
                                 className="text-xs bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200 text-purple-700 hover:from-purple-100 hover:to-blue-100"
                               >
                                 <User className="w-3 h-3 mr-1" />
-                                Atribuído: {action.assigned_to_name}
+                                Responsável: {action.assigned_to_name}
                               </Badge>
                             )}
                             <span className="text-xs text-gray-500">
@@ -2826,9 +2826,9 @@ const TicketDetails = React.memo(() => {
             </div>
           </div>
 
-          {/* Atribuído a Section */}
+          {/* Responsável Section */}
           <div className="mb-6">
-            <h3 className="text-sm font-semibold text-gray-600 mb-3">ATRIBUÍDO A</h3>
+            <h3 className="text-sm font-semibold text-gray-600 mb-3">RESPONSÁVEL</h3>
             
             {/* Grupo de Atribuição */}
             <div className="mb-4">
