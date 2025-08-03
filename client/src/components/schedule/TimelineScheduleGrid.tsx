@@ -477,33 +477,37 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                               }`}></div>
 
                               {/* Render actions only in starting slot */}
-                              {plannedSchedules.length > 0 && 
+                              {timeIndex === 0 && plannedSchedules.length > 0 && 
                                 plannedSchedules.map((schedule, index) => {
                                   const activityType = getActivityType(schedule.activityTypeId);
-                                  const isInternalAction = schedule.activityTypeId === 'internal-action';
+                                  const isInternalAction = schedule.activityTypeId === 'internal-action' || schedule.type === 'internal_action';
 
                                   // Calculate if this is the exact starting slot for the action
                                   const scheduleStart = parseISO(schedule.startDateTime);
                                   const scheduleEnd = schedule.endDateTime ? parseISO(schedule.endDateTime) : scheduleStart;
 
-                                  // Only render if this time slot matches the exact start time
-                                  const timeSlotStart = timeSlot.getTime();
-                                  const scheduleStartTime = scheduleStart.getTime();
-                                  
-                                  // Check if this timeslot is the start of the schedule (within the hour)
-                                  const hoursDiff = Math.abs(timeSlotStart - scheduleStartTime) / (1000 * 60 * 60);
-                                  const isStartingSlot = hoursDiff < 1 && 
-                                                        timeSlot.getHours() === scheduleStart.getHours() &&
-                                                        timeSlot.getDate() === scheduleStart.getDate() &&
-                                                        timeSlot.getMonth() === scheduleStart.getMonth() &&
-                                                        timeSlot.getFullYear() === scheduleStart.getFullYear();
+                                  // Find the starting time slot index for this schedule
+                                  const startingSlotIndex = timeSlots.findIndex(slot => {
+                                    const slotStart = slot.getTime();
+                                    const scheduleStartTime = scheduleStart.getTime();
+                                    const hoursDiff = Math.abs(slotStart - scheduleStartTime) / (1000 * 60 * 60);
+                                    return hoursDiff < 1 && 
+                                           slot.getHours() === scheduleStart.getHours() &&
+                                           slot.getDate() === scheduleStart.getDate() &&
+                                           slot.getMonth() === scheduleStart.getMonth() &&
+                                           slot.getFullYear() === scheduleStart.getFullYear();
+                                  });
 
-                                  // Skip if not starting slot
-                                  if (!isStartingSlot) return null;
+                                  // Only render in the correct starting slot
+                                  if (timeIndex !== startingSlotIndex) return null;
 
                                   // Calculate duration for display
                                   const duration = calculateDuration(schedule.startDateTime, schedule.endDateTime);
-                                  const durationHours = Math.max(1, Math.ceil((scheduleEnd.getTime() - scheduleStart.getTime()) / (60 * 60 * 1000)));
+                                  const durationInMinutes = differenceInMinutes(scheduleEnd, scheduleStart);
+                                  const durationInSlots = Math.max(1, Math.ceil(durationInMinutes / 60)); // Assuming 1-hour slots
+                                  
+                                  // Calculate the width based on number of slots
+                                  const blockWidth = durationInSlots * 64 - 4; // 64px per slot minus margins
 
                                   // Use consistent colors
                                   const blockColor = isInternalAction ? 'bg-purple-600 border-purple-400' : 'bg-blue-600 border-blue-400';
@@ -514,12 +518,9 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                                       className={`absolute rounded text-white text-xs flex items-center gap-1 px-2 cursor-pointer hover:opacity-80 border ${blockColor}`}
                                       style={{ 
                                         left: '2px',
-                                        right: durationHours > 1 ? undefined : '2px',
                                         top: `${2 + index * 20}px`,
                                         height: '18px',
-                                        width: durationHours > 1 
-                                          ? `${Math.min(durationHours * 64 - 4, 316)}px` 
-                                          : undefined,
+                                        width: `${Math.min(blockWidth, 316)}px`, // Max width constraint
                                         zIndex: 10,
                                         minWidth: '60px'
                                       }}
@@ -604,33 +605,37 @@ ${schedule.locationAddress ? `Local: ${schedule.locationAddress}` : ''}`}
                               }`}></div>
 
                               {/* Render actual actions only in starting slot */}
-                              {actualSchedules.length > 0 && 
+                              {timeIndex === 0 && actualSchedules.length > 0 && 
                                 actualSchedules.map((schedule, index) => {
                                   const activityType = getActivityType(schedule.activityTypeId);
-                                  const isInternalAction = schedule.activityTypeId === 'internal-action';
+                                  const isInternalAction = schedule.activityTypeId === 'internal-action' || schedule.type === 'internal_action';
 
                                   // Calculate if this is the exact starting slot for the action
                                   const scheduleStart = parseISO(schedule.startDateTime);
                                   const scheduleEnd = schedule.endDateTime ? parseISO(schedule.endDateTime) : scheduleStart;
 
-                                  // Only render if this time slot matches the exact start time
-                                  const timeSlotStart = timeSlot.getTime();
-                                  const scheduleStartTime = scheduleStart.getTime();
-                                  
-                                  // Check if this timeslot is the start of the schedule (within the hour)
-                                  const hoursDiff = Math.abs(timeSlotStart - scheduleStartTime) / (1000 * 60 * 60);
-                                  const isStartingSlot = hoursDiff < 1 && 
-                                                        timeSlot.getHours() === scheduleStart.getHours() &&
-                                                        timeSlot.getDate() === scheduleStart.getDate() &&
-                                                        timeSlot.getMonth() === scheduleStart.getMonth() &&
-                                                        timeSlot.getFullYear() === scheduleStart.getFullYear();
+                                  // Find the starting time slot index for this schedule
+                                  const startingSlotIndex = timeSlots.findIndex(slot => {
+                                    const slotStart = slot.getTime();
+                                    const scheduleStartTime = scheduleStart.getTime();
+                                    const hoursDiff = Math.abs(slotStart - scheduleStartTime) / (1000 * 60 * 60);
+                                    return hoursDiff < 1 && 
+                                           slot.getHours() === scheduleStart.getHours() &&
+                                           slot.getDate() === scheduleStart.getDate() &&
+                                           slot.getMonth() === scheduleStart.getMonth() &&
+                                           slot.getFullYear() === scheduleStart.getFullYear();
+                                  });
 
-                                  // Skip if not starting slot
-                                  if (!isStartingSlot) return null;
+                                  // Only render in the correct starting slot
+                                  if (timeIndex !== startingSlotIndex) return null;
 
                                   // Calculate duration for display
                                   const duration = calculateDuration(schedule.startDateTime, schedule.endDateTime);
-                                  const durationHours = Math.max(1, Math.ceil((scheduleEnd.getTime() - scheduleStart.getTime()) / (60 * 60 * 1000)));
+                                  const durationInMinutes = differenceInMinutes(scheduleEnd, scheduleStart);
+                                  const durationInSlots = Math.max(1, Math.ceil(durationInMinutes / 60)); // Assuming 1-hour slots
+                                  
+                                  // Calculate the width based on number of slots
+                                  const blockWidth = durationInSlots * 64 - 4; // 64px per slot minus margins
 
                                   // Use consistent colors
                                   const blockColor = isInternalAction ? 'bg-purple-600 border-purple-400' : 'bg-blue-600 border-blue-400';
@@ -641,13 +646,10 @@ ${schedule.locationAddress ? `Local: ${schedule.locationAddress}` : ''}`}
                                       className={`absolute rounded text-white text-xs flex items-center gap-1 px-2 cursor-pointer hover:opacity-60 border ${blockColor}`}
                                       style={{ 
                                         left: '2px',
-                                        right: durationHours > 1 ? undefined : '2px',
                                         top: `${2 + index * 20}px`,
                                         height: '18px',
                                         opacity: 0.8, // Slightly more transparent for actual
-                                        width: durationHours > 1 
-                                          ? `${Math.min(durationHours * 64 - 4, 316)}px` 
-                                          : undefined,
+                                        width: `${Math.min(blockWidth, 316)}px`, // Max width constraint
                                         zIndex: 8, // Lower than planned
                                         minWidth: '60px'
                                       }}
