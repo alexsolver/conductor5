@@ -573,14 +573,15 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                                   return (
                                     <div
                                       key={`${schedule.id}-planned-${index}`}
-                                      className={`absolute rounded text-white text-xs flex items-center gap-1 px-2 cursor-pointer hover:opacity-80 border ${blockColor}`}
+                                      className={`absolute rounded text-white text-xs flex items-center justify-center gap-1 px-2 cursor-pointer hover:opacity-80 border ${blockColor}`}
                                       style={{ 
                                         left: '2px',
                                         top: `${2 + index * 40}px`,
                                         height: '36px',
                                         width: `${Math.min(blockWidth, 316)}px`, // Max width constraint
                                         zIndex: 10,
-                                        minWidth: '60px'
+                                        minWidth: '60px',
+                                        transform: `translateY(${(rowHeight - 36) / 2 - 2 - index * 40}px)`
                                       }}
                                       onClick={(e) => {
                                         e.stopPropagation();
@@ -701,7 +702,7 @@ ${schedule.locationAddress ? `Local: ${schedule.locationAddress}` : ''}`}
                                   return (
                                     <div
                                       key={`${schedule.id}-actual-${index}`}
-                                      className={`absolute rounded text-white text-xs flex items-center gap-1 px-2 cursor-pointer hover:opacity-60 border ${blockColor}`}
+                                      className={`absolute rounded text-white text-xs flex items-center justify-center gap-1 px-2 cursor-pointer hover:opacity-60 border ${blockColor}`}
                                       style={{ 
                                         left: '2px',
                                         top: `${2 + index * 40}px`,
@@ -709,7 +710,8 @@ ${schedule.locationAddress ? `Local: ${schedule.locationAddress}` : ''}`}
                                         opacity: 0.8, // Slightly more transparent for actual
                                         width: `${Math.min(blockWidth, 316)}px`, // Max width constraint
                                         zIndex: 8, // Lower than planned
-                                        minWidth: '60px'
+                                        minWidth: '60px',
+                                        transform: `translateY(${(actualRowHeight - 36) / 2 - 2 - index * 40}px)`
                                       }}
                                       onClick={(e) => {
                                         e.stopPropagation();
