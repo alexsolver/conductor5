@@ -1668,37 +1668,9 @@ ticketsRouter.put('/:ticketId/actions/:actionId', jwtAuth, async (req: Authentic
       currentAction.created_at
     ]);
 
-    // 🔥 NOVA FUNCIONALIDADE: Criar entrada de auditoria para a edição da ação
-    try {
-      await createCompleteAuditEntry(
-        pool,
-        schemaName,
-        tenantId,
-        ticketId,
-        req,
-        'action_updated',
-        `Ação interna editada: ${contentDescription.substring(0, 100)}${contentDescription.length > 100 ? '...' : ''}`,
-        {
-          action_id: actionId,
-          action_type: finalActionType,
-          old_description: currentAction.description,
-          new_description: contentDescription,
-          old_status: 'pending', // Status anterior não está sendo capturado atualmente
-          new_status: status,
-          start_time: startTime,
-          end_time: endTime,
-          assigned_to: assignedToId,
-          is_public: is_public
-        },
-        'internal_action',
-        currentAction.description,
-        contentDescription
-      );
-
-      console.log('✅ Entrada de auditoria criada para edição da ação interna');
-    } catch (auditError) {
-      console.log('⚠️ Aviso: Não foi possível criar entrada de auditoria para edição da ação:', auditError.message);
-    }
+    // Nota: A ação já está sendo atualizada diretamente na tabela ticket_history
+    // Não é necessário criar uma entrada adicional de auditoria
+    console.log('✅ Ação interna atualizada com sucesso na tabela ticket_history');
 
     res.json({
       success: true,
