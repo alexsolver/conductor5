@@ -1823,9 +1823,17 @@ ticketsRouter.get('/:id/relationships', jwtAuth, async (req: AuthenticatedReques
           WHEN tr.target_ticket_id = $1 THEN t_source.priority
         END as "targetTicket.priority",
         CASE 
-          WHEN tr.source_ticket_id = $1 THEN t_target.number
-          WHEN tr.target_ticket_id = $1 THEN t_source.number
-        END as "targetTicket.number"
+          WHEN tr.source_ticket_id = $1 THEN COALESCE(t_target.number, CONCAT('T-', SUBSTRING(t_target.id::text, 1, 8)))
+          WHEN tr.target_ticket_id = $1 THEN COALESCE(t_source.number, CONCAT('T-', SUBSTRING(t_source.id::text, 1, 8)))
+        END as "targetTicket.number",
+        CASE 
+          WHEN tr.source_ticket_id = $1 THEN t_target.created_at
+          WHEN tr.target_ticket_id = $1 THEN t_source.created_at
+        END as "targetTicket.createdAt",
+        CASE 
+          WHEN tr.source_ticket_id = $1 THEN t_target.description
+          WHEN tr.target_ticket_id = $1 THEN t_source.description
+        END as "targetTicket.description"
       FROM "${schemaName}".ticket_relationships tr
       LEFT JOIN "${schemaName}".tickets t_target ON t_target.id = tr.target_ticket_id
       LEFT JOIN "${schemaName}".tickets t_source ON t_source.id = tr.source_ticket_id
@@ -1846,7 +1854,9 @@ ticketsRouter.get('/:id/relationships', jwtAuth, async (req: AuthenticatedReques
         subject: row['targetTicket.subject'],
         status: row['targetTicket.status'],
         priority: row['targetTicket.priority'],
-        number: row['targetTicket.number']
+        number: row['targetTicket.number'],
+        createdAt: row['targetTicket.createdAt'],
+        description: row['targetTicket.description']
       }
     }));
     res.json(relationships);
