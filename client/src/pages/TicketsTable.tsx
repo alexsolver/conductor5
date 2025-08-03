@@ -458,7 +458,7 @@ const TicketsTable = React.memo(() => {
     { id: "priority", label: "Prioridade" },
     { id: "impact", label: "Impacto" },
     { id: "urgency", label: "Urgência" },
-    { id: "assigned_to", label: "Atribuído a" },
+    { id: "assigned_to", label: "Responsável" },
     { id: "created_by", label: "Criado por" },
     { id: "created", label: "Criado em" },
     { id: "updated", label: "Atualizado em" },
@@ -1226,7 +1226,7 @@ const TicketsTable = React.memo(() => {
       { id: "priority", label: "Prioridade", visible: selectedColumns.includes("priority"), order: 6, width: 120 },
       { id: "urgency", label: "Urgência", visible: selectedColumns.includes("urgency"), order: 7, width: 120 },
       { id: "impact", label: "Impacto", visible: selectedColumns.includes("impact"), order: 8, width: 120 },
-      { id: "assigned_to", label: "Atribuído", visible: selectedColumns.includes("assigned_to"), order: 9, width: 150 },
+      { id: "assigned_to", label: "Responsável", visible: selectedColumns.includes("assigned_to"), order: 9, width: 150 },
       { id: "created", label: "Criado", visible: selectedColumns.includes("created"), order: 10, width: 150 }
     ];
 

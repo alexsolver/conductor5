@@ -2850,9 +2850,9 @@ const TicketDetails = React.memo(() => {
               </div>
             </div>
 
-            {/* Usuário Atribuído */}
+            {/* Responsável */}
             <div className="mb-4">
-              <label className="text-sm font-medium text-gray-700 mb-2 block">Usuário Atribuído</label>
+              <label className="text-sm font-medium text-gray-700 mb-2 block">Responsável</label>
               <UserSelect
                 value={form.getValues('assignedToId') || ticket.assigned_to_id || ticket.assignedToId || ''}
                 onChange={(value) => form.setValue('assignedToId', value)}
