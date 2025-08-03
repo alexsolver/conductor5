@@ -15,13 +15,13 @@ async function generateActionNumber(pool: any, tenantId: string, ticketId: strin
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
     const ticketQuery = `SELECT number FROM "${schemaName}".tickets WHERE id = $1`;
     const ticketResult = await pool.query(ticketQuery, [ticketId]);
-    
+
     if (!ticketResult.rows.length) {
       throw new Error(`Ticket not found: ${ticketId}`);
     }
-    
+
     const ticketNumber = ticketResult.rows[0].number;
-    
+
     // First, ensure the sequence table exists
     await pool.query(`
       CREATE TABLE IF NOT EXISTS public.ticket_action_sequences (
@@ -33,7 +33,7 @@ async function generateActionNumber(pool: any, tenantId: string, ticketId: strin
         CONSTRAINT unique_tenant_ticket_sequence UNIQUE(tenant_id, ticket_id)
       )
     `);
-    
+
     // Get the current highest action number for this ticket to ensure uniqueness
     const existingActionsQuery = `
       SELECT action_number FROM "${schemaName}".ticket_internal_actions 
@@ -42,15 +42,15 @@ async function generateActionNumber(pool: any, tenantId: string, ticketId: strin
       ORDER BY created_at DESC
       LIMIT 1
     `;
-    
+
     const existingResult = await pool.query(existingActionsQuery, [
       ticketId, 
       tenantId, 
       `${ticketNumber}AI%`
     ]);
-    
+
     let nextSequence = 1;
-    
+
     if (existingResult.rows.length > 0) {
       const lastActionNumber = existingResult.rows[0].action_number;
       const sequenceMatch = lastActionNumber.match(/AI(\d+)$/);
@@ -58,37 +58,37 @@ async function generateActionNumber(pool: any, tenantId: string, ticketId: strin
         nextSequence = parseInt(sequenceMatch[1]) + 1;
       }
     }
-    
+
     // Double-check for uniqueness in a transaction
     let finalSequence = nextSequence;
     let attempts = 0;
     const maxAttempts = 100;
-    
+
     while (attempts < maxAttempts) {
       const testActionNumber = `${ticketNumber}AI${String(finalSequence).padStart(4, '0')}`;
-      
+
       const duplicateCheck = await pool.query(`
         SELECT id FROM "${schemaName}".ticket_internal_actions 
         WHERE action_number = $1 AND tenant_id = $2
       `, [testActionNumber, tenantId]);
-      
+
       if (duplicateCheck.rows.length === 0) {
         // This number is unique
         const actionNumber = testActionNumber;
         console.log(`✅ Generated unique action number: ${actionNumber} for ticket: ${ticketNumber} (attempt ${attempts + 1})`);
         return actionNumber;
       }
-      
+
       finalSequence++;
       attempts++;
     }
-    
+
     // If we reach here, fallback to timestamp
     const timestamp = Date.now();
     const fallbackNumber = `${ticketNumber}AI-FB-${timestamp.toString().slice(-6)}`;
     console.log(`⚠️ Using fallback action number: ${fallbackNumber}`);
     return fallbackNumber;
-    
+
   } catch (error) {
     console.error('⚠️ Error generating action number:', error);
     // Fallback to timestamp-based number if sequence fails
@@ -116,7 +116,7 @@ async function createCompleteAuditEntry(
     const ipAddress = getClientIP(req);
     const userAgent = getUserAgent(req);
     const sessionId = getSessionId(req);
-    
+
     // Get user name
     const userQuery = `SELECT first_name || ' ' || last_name as full_name FROM public.users WHERE id = $1`;
     const userResult = await pool.query(userQuery, [req.user.id]);
@@ -487,7 +487,7 @@ ticketsRouter.post('/:id/messages', jwtAuth, async (req: AuthenticatedRequest, r
     try {
       const { pool } = await import('../../db');
       const schemaName = `tenant_${req.user.tenantId.replace(/-/g, '_')}`;
-      
+
       await createCompleteAuditEntry(
         pool, schemaName, req.user.tenantId, ticketId, req,
         'message_created',
@@ -603,7 +603,7 @@ ticketsRouter.delete('/:id', jwtAuth, async (req: AuthenticatedRequest, res) => 
     try {
       const { pool } = await import('../../db');
       const schemaName = `tenant_${req.user.tenantId.replace(/-/g, '_')}`;
-      
+
       await createCompleteAuditEntry(
         pool, schemaName, req.user.tenantId, ticketId, req,
         'ticket_deleted',
@@ -736,7 +736,7 @@ ticketsRouter.delete('/:id/attachments/:attachmentId', jwtAuth, async (req: Auth
         WHERE id = $1 AND ticket_id = $2 AND tenant_id = $3 AND is_active = true
       `;
       const attachmentResult = await pool.query(attachmentQuery, [attachmentId, id, tenantId]);
-      
+
       const attachmentInfo = attachmentResult.rows[0];
 
       await createCompleteAuditEntry(
@@ -812,7 +812,8 @@ ticketsRouter.get('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, res
 
     res.json({
       success: true,
-      data: result.rows,
+      ```text
+data: result.rows,
       count: result.rows.length
     });
   } catch (error) {
@@ -865,7 +866,7 @@ ticketsRouter.get('/:ticketId/actions/:actionId', jwtAuth, async (req: Authentic
     `;
 
     const result = await pool.query(query, [tenantId, ticketId, actionId]);
-    
+
     if (result.rows.length === 0) {
       return res.status(404).json({ 
         success: false, 
@@ -965,7 +966,7 @@ ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, re
 
     // Generate unique action number for all internal actions
     const actionNumber = await generateActionNumber(pool, tenantId, id);
-    
+
     // Create entry in ticket_internal_actions (primary table for internal actions)
     const internalActionQuery = `
       INSERT INTO "${schemaName}".ticket_internal_actions 
@@ -1278,7 +1279,7 @@ ticketsRouter.post('/:id/status', jwtAuth, async (req: AuthenticatedRequest, res
     try {
       const { pool } = await import('../../db');
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-      
+
       await createCompleteAuditEntry(
         pool, schemaName, tenantId, id, req,
         'status_changed',
@@ -1334,15 +1335,15 @@ ticketsRouter.post('/:id/reassign', jwtAuth, async (req: AuthenticatedRequest, r
     try {
       const { pool } = await import('../../db');
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-      
+
       // Get agent names
       const userQuery = `SELECT first_name || ' ' || last_name as full_name FROM public.users WHERE id = $1`;
       const fromAgentResult = fromAgentId ? await pool.query(userQuery, [fromAgentId]) : null;
       const toAgentResult = toAgentId ? await pool.query(userQuery, [toAgentId]) : null;
-      
+
       const fromAgentName = fromAgentResult?.rows[0]?.full_name || 'Não atribuído';
       const toAgentName = toAgentResult?.rows[0]?.full_name || 'Não atribuído';
-      
+
       await createCompleteAuditEntry(
         pool, schemaName, tenantId, id, req,
         'ticket_reassigned',
@@ -1436,7 +1437,7 @@ ticketsRouter.put('/:id/notes/:noteId', jwtAuth, async (req: AuthenticatedReques
       WHERE id = $1 AND ticket_id = $2 AND tenant_id = $3 AND is_active = true
     `;
     const currentNoteResult = await pool.query(currentNoteQuery, [noteId, id, tenantId]);
-    
+
     if (currentNoteResult.rows.length === 0) {
       return res.status(404).json({ message: "Note not found" });
     }
@@ -1519,7 +1520,7 @@ ticketsRouter.delete('/:id/notes/:noteId', jwtAuth, async (req: AuthenticatedReq
       WHERE id = $1 AND ticket_id = $2 AND tenant_id = $3 AND is_active = true
     `;
     const noteResult = await pool.query(noteQuery, [noteId, id, tenantId]);
-    
+
     if (noteResult.rows.length === 0) {
       console.log('❌ Note not found for deletion:', { noteId, ticketId: id });
       return res.status(404).json({ message: "Note not found" });
@@ -2013,7 +2014,7 @@ ticketsRouter.delete('/relationships/:relationshipId', jwtAuth, async (req: Auth
 ticketsRouter.get('/internal-actions/schedule/:startDate/:endDate', jwtAuth, async (req: AuthenticatedRequest, res) => {
   const startDateParam = `${req.params.startDate} 00:00:00`;
   const endDateParam = `${req.params.endDate} 23:59:59`;
-  
+
   try {
     if (!req.user?.tenantId) {
       return res.status(400).json({ message: "User not associated with a tenant" });
@@ -2062,7 +2063,7 @@ ticketsRouter.get('/internal-actions/schedule/:startDate/:endDate', jwtAuth, asy
     `;
 
     const result = await pool.query(query, [tenantId, startDateParam, endDateParam]);
-    
+
     console.log('🔍 INTERNAL ACTIONS RESULT:', {
       rowCount: result.rows.length,
       queryParams: [tenantId, startDateParam, endDateParam],
@@ -2145,7 +2146,7 @@ ticketsRouter.put('/:ticketId/actions/:actionId', jwtAuth, async (req: Authentic
       WHERE id = $1 AND tenant_id = $2 AND ticket_id = $3
     `;
     const currentActionResult = await pool.query(getCurrentActionQuery, [actionId, tenantId, ticketId]);
-    
+
     if (currentActionResult.rows.length === 0) {
       return res.status(404).json({ 
         success: false,
@@ -2215,12 +2216,12 @@ ticketsRouter.put('/:ticketId/actions/:actionId', jwtAuth, async (req: Authentic
       // Buscar nomes dos usuários atribuídos (antigo e novo)
       let oldAssignedName = 'N/A';
       let newAssignedName = 'N/A';
-      
+
       if (currentAction.agent_id) {
         const oldUserResult = await pool.query(userQuery, [currentAction.agent_id]);
         oldAssignedName = oldUserResult.rows[0]?.full_name || 'Unknown User';
       }
-      
+
       if (assignedToId || currentAction.agent_id) {
         const newUserResult = await pool.query(userQuery, [assignedToId || currentAction.agent_id]);
         newAssignedName = newUserResult.rows[0]?.full_name || 'Unknown User';
@@ -2240,7 +2241,7 @@ ticketsRouter.put('/:ticketId/actions/:actionId', jwtAuth, async (req: Authentic
       if (currentAction.agent_id !== (assignedToId || currentAction.agent_id)) {
         changes.push(`atribuído de "${oldAssignedName}" para "${newAssignedName}"`);
       }
-      
+
       const changeDescription = changes.length > 0 
         ? `Ação interna ${updatedAction.action_number} editada: ${changes.join(', ')}`
         : `Ação interna ${updatedAction.action_number} editada`;
@@ -2376,7 +2377,7 @@ ticketsRouter.delete('/:ticketId/actions/:actionId', jwtAuth, async (req: Authen
       WHERE id = $1 AND tenant_id = $2 AND ticket_id = $3
       RETURNING *
     `;
-    
+
     const result = await pool.query(deleteQuery, [actionId, tenantId, ticketId]);
 
     if (result.rows.length === 0) {

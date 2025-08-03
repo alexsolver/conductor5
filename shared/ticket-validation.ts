@@ -34,9 +34,7 @@ export const ticketFormValidationSchema = z.object({
   resolution: z.string().optional(),
   environment: z.string().optional(),
   templateAlternative: z.string().optional(),
-  linkTicketNumber: z.string().optional(),
-  linkType: z.string().optional(),
-  linkComment: z.string().optional(),
+  
   estimatedHours: z.number().min(0).optional(),
   actualHours: z.number().min(0).optional(),
   followers: z.array(z.string()).default([]),

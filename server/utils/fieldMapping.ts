@@ -32,9 +32,6 @@ export const FRONTEND_TO_BACKEND_MAPPING: Record<string, string> = {
   contactType: 'contact_type',
 
   // Novos campos dinâmicos
-  linkType: 'link_type',
-  linkTicketNumber: 'link_ticket_number',
-  linkComment: 'link_comment',
   templateAlternative: 'template_alternative',
   estimatedHours: 'estimated_hours',
   actualHours: 'actual_hours',
