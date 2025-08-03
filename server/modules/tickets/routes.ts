@@ -13,14 +13,14 @@ async function generateActionNumber(pool: any, tenantId: string, ticketId: strin
   try {
     // Get ticket number first
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-    const ticketQuery = `SELECT ticket_number FROM "${schemaName}".tickets WHERE id = $1`;
+    const ticketQuery = `SELECT number FROM "${schemaName}".tickets WHERE id = $1`;
     const ticketResult = await pool.query(ticketQuery, [ticketId]);
     
     if (!ticketResult.rows.length) {
       throw new Error(`Ticket not found: ${ticketId}`);
     }
     
-    const ticketNumber = ticketResult.rows[0].ticket_number;
+    const ticketNumber = ticketResult.rows[0].number;
     
     // Create or get action sequence for this specific ticket
     const sequenceQuery = `
@@ -662,7 +662,11 @@ ticketsRouter.get('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, res
         '' as work_log
       FROM "${schemaName}".ticket_history th
       LEFT JOIN public.users u ON th.performed_by = u.id
-      LEFT JOIN "${schemaName}".ticket_internal_actions tia ON th.ticket_id = tia.ticket_id AND th.action_type = tia.action_type AND DATE(th.created_at) = DATE(tia.created_at)
+      LEFT JOIN "${schemaName}".ticket_internal_actions tia ON (
+        tia.ticket_id = th.ticket_id 
+        AND tia.action_type = th.action_type 
+        AND ABS(EXTRACT(EPOCH FROM (tia.created_at - th.created_at))) < 120
+      )
       LEFT JOIN public.users au ON tia.agent_id = au.id
       WHERE th.tenant_id = $1::uuid 
         AND th.ticket_id = $2::uuid
@@ -672,10 +676,50 @@ ticketsRouter.get('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, res
 
     const result = await pool.query(query, [tenantId, id]);
 
+    // For actions without action_number, generate them on-the-fly
+    const processedRows = await Promise.all(result.rows.map(async (row) => {
+      if (!row.action_number && row.type === 'ação interna') {
+        try {
+          // Generate action number for existing actions
+          const actionNumber = await generateActionNumber(pool, tenantId, id);
+          
+          // Update the ticket_internal_actions table if it exists
+          const insertQuery = `
+            INSERT INTO "${schemaName}".ticket_internal_actions 
+            (id, tenant_id, ticket_id, action_number, action_type, title, description, agent_id, start_time, end_time, estimated_hours, status, priority, created_at, updated_at)
+            VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW())
+            ON CONFLICT DO NOTHING
+          `;
+          
+          await pool.query(insertQuery, [
+            tenantId,
+            id,
+            actionNumber,
+            row.actionType || 'internal',
+            `${row.actionType || 'Internal'} - Ticket #${id.slice(0, 8)}`,
+            row.description || row.content,
+            row.created_by,
+            row.start_time,
+            row.end_time,
+            (row.estimated_minutes || 0) / 60,
+            row.status || 'pending',
+            'medium',
+            row.created_at
+          ]);
+          
+          return { ...row, action_number: actionNumber };
+        } catch (err) {
+          console.error('Error generating action number for existing action:', err);
+          return row;
+        }
+      }
+      return row;
+    }));
+
     res.json({
       success: true,
-      data: result.rows,
-      count: result.rows.length
+      data: processedRows,
+      count: processedRows.length
     });
   } catch (error) {
     console.error("Error fetching actions:", error);
