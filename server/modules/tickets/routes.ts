@@ -1717,6 +1717,27 @@ ticketsRouter.delete('/:ticketId/actions/:actionId', jwtAuth, async (req: Authen
 
     const deletedAction = actionResult.rows[0];
 
+    // Determinar se é ação interna ou externa baseado no action_type e source
+    const isInternalAction = deletedAction.action_type && (
+      deletedAction.action_type.includes('ação interna') || 
+      deletedAction.action_type.includes('internal') ||
+      deletedAction.action_type === 'action_deleted' ||
+      deletedAction.source === 'internal'
+    );
+
+    // Se não conseguiu determinar pelo action_type, assume como externa por padrão
+    // a menos que explicitamente indique ser interna
+    const isExternalAction = !isInternalAction && (
+      deletedAction.action_type?.includes('ação externa') ||
+      deletedAction.action_type?.includes('external') ||
+      deletedAction.source === 'external' ||
+      (!deletedAction.action_type?.includes('interna') && !deletedAction.action_type?.includes('internal'))
+    );
+
+    const auditDescription = isInternalAction ? 'Ação interna excluída' : 'Ação externa excluída';
+    const fieldName = isInternalAction ? 'internal_action' : 'external_action';
+    const logMessage = isInternalAction ? 'ação interna' : 'ação externa';
+
     // Criar entrada de auditoria usando o sistema padronizado
     try {
       await createCompleteAuditEntry(
@@ -1726,19 +1747,19 @@ ticketsRouter.delete('/:ticketId/actions/:actionId', jwtAuth, async (req: Authen
         ticketId,
         req,
         'action_deleted',
-        'Ação interna excluída',
+        auditDescription,
         {
           deleted_action_id: actionId,
           deleted_action_type: deletedAction.action_type,
           deleted_action_description_preview: deletedAction.description ? 
             deletedAction.description.substring(0, 100) : 'Sem descrição'
         },
-        'internal_action',
+        fieldName,
         `Ação ID: ${actionId}`,
         null
       );
 
-      console.log('✅ Entrada de auditoria criada para exclusão da ação interna');
+      console.log(`✅ Entrada de auditoria criada para exclusão da ${logMessage}`);
     } catch (auditError) {
       console.log('⚠️ Aviso: Não foi possível criar entrada de auditoria para exclusão:', auditError.message);
     }
@@ -1760,7 +1781,7 @@ ticketsRouter.delete('/:ticketId/actions/:actionId', jwtAuth, async (req: Authen
 
     res.json({
       success: true,
-      message: "Ação interna excluída com sucesso"
+      message: `${isInternalAction ? 'Ação interna' : 'Ação externa'} excluída com sucesso`
     });
   } catch (error) {
     console.error("Error deleting internal action:", error);
