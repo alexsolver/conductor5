@@ -817,11 +817,27 @@ export class DatabaseStorage implements IStorage {
       const result = await tenantDb.execute(query);
       console.log(`Found ${result.rows.length} favorecidos in ${schemaName}`);
 
-      // Adicionar fullName computed field para compatibilidade frontend em TODOS os registros
-      const favorecidos = (result.rows || []).map(favorecido => {
-        favorecido.fullName = `${favorecido.first_name || ''} ${favorecido.last_name || ''}`.trim();
-        return favorecido;
-      });
+      // Padronizar mapeamento de dados para interfaceconsistente
+      const favorecidos = (result.rows || []).map(favorecido => ({
+        id: favorecido.id,
+        tenantId: favorecido.tenant_id,
+        firstName: favorecido.first_name,
+        lastName: favorecido.last_name,
+        fullName: `${favorecido.first_name || ''} ${favorecido.last_name || ''}`.trim(),
+        email: favorecido.email,
+        birthDate: favorecido.birth_date,
+        rg: favorecido.rg,
+        cpfCnpj: favorecido.cpf_cnpj,
+        isActive: favorecido.is_active,
+        customerCode: favorecido.customer_code,
+        customerId: favorecido.customer_id,
+        phone: favorecido.phone,
+        cellPhone: favorecido.cell_phone,
+        contactPerson: favorecido.contact_person,
+        contactPhone: favorecido.contact_phone,
+        createdAt: favorecido.created_at,
+        updatedAt: favorecido.updated_at
+      }));
 
       console.log(`Fetched ${favorecidos.length} favorecidos for tenant ${tenantId}`);
       return favorecidos;
@@ -3018,11 +3034,27 @@ export class DatabaseStorage implements IStorage {
       const result = await tenantDb.execute(query);
       console.log(`Found ${result.rows.length} favorecidos in ${schemaName}`);
 
-      // Adicionar fullName computed field para compatibilidade frontend em TODOS os registros
-      const favorecidos = (result.rows || []).map(favorecido => {
-        favorecido.fullName = `${favorecido.first_name || ''} ${favorecido.last_name || ''}`.trim();
-        return favorecido;
-      });
+      // Padronizar mapeamento de dados para interface consistente
+      const favorecidos = (result.rows || []).map(favorecido => ({
+        id: favorecido.id,
+        tenantId: favorecido.tenant_id,
+        firstName: favorecido.first_name,
+        lastName: favorecido.last_name,
+        fullName: `${favorecido.first_name || ''} ${favorecido.last_name || ''}`.trim(),
+        email: favorecido.email,
+        birthDate: favorecido.birth_date,
+        rg: favorecido.rg,
+        cpfCnpj: favorecido.cpf_cnpj,
+        isActive: favorecido.is_active,
+        customerCode: favorecido.customer_code,
+        customerId: favorecido.customer_id,
+        phone: favorecido.phone,
+        cellPhone: favorecido.cell_phone,
+        contactPerson: favorecido.contact_person,
+        contactPhone: favorecido.contact_phone,
+        createdAt: favorecido.created_at,
+        updatedAt: favorecido.updated_at
+      }));
 
       console.log(`Fetched ${favorecidos.length} favorecidos for tenant ${tenantId}`);
       return favorecidos;

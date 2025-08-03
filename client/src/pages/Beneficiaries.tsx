@@ -141,7 +141,8 @@ export default function Beneficiaries() {
       });
       if (searchTerm) params.append('search', searchTerm);
 
-      const response = await fetch(`/api/beneficiaries?${params}`, {
+      // Usar endpoint unificado
+      const response = await fetch(`/api/favorecidos?${params}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',

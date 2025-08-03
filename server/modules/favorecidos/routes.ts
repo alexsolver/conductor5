@@ -35,31 +35,31 @@ const favorecidoIdSchema = z.object({
 router.get("/", async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { user } = req;
-    const { page, limit, search } = getFavorecidosSchema.parse(req.query);
+    const { page, limit, search } = getBeneficiariesSchema.parse(req.query);
 
     const offset = (page - 1) * limit;
-    const favorecidos = await storage.getFavorecidos(user.tenantId, {
+    const beneficiaries = await storage.getBeneficiaries(user.tenantId, {
       limit,
       offset,
       search,
     });
 
     // Get total count for pagination
-    const allFavorecidos = await storage.getFavorecidos(user.tenantId, { search });
-    const total = allFavorecidos.length;
+    const allBeneficiaries = await storage.getBeneficiaries(user.tenantId, { search });
+    const total = allBeneficiaries.length;
     const totalPages = Math.ceil(total / limit);
 
-    console.log(`Fetched ${favorecidos.length} favorecidos for tenant ${user.tenantId}`);
+    console.log(`Fetched ${beneficiaries.length} beneficiaries for tenant ${user.tenantId}`);
 
     return sendSuccess(res, {
-      favorecidos,
+      beneficiaries,
       pagination: {
         page,
         limit,
         total,
         totalPages,
       },
-    }, "Favorecidos retrieved successfully");
+    }, "Beneficiaries retrieved successfully");
   } catch (error) {
     console.error("Error fetching favorecidos:", error);
     return sendError(res, error as any, "Failed to fetch favorecidos", 500);
