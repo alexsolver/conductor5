@@ -599,6 +599,29 @@ ticketsRouter.post('/:id/attachments', jwtAuth, async (req: AuthenticatedRequest
       return res.status(400).json({ message: "User not associated with a tenant" });
     }
 
+    const { id } = req.params;
+    const { filename, fileSize, contentType } = req.body;
+    const tenantId = req.user.tenantId;
+    const { pool } = await import('../../db');
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    // Create audit trail for attachment upload
+    try {
+      await createCompleteAuditEntry(
+        pool, schemaName, tenantId, id, req,
+        'attachment_uploaded',
+        `Anexo enviado: ${filename || 'arquivo'}`,
+        {
+          filename: filename,
+          file_size: fileSize,
+          content_type: contentType,
+          upload_time: new Date().toISOString()
+        }
+      );
+    } catch (historyError) {
+      console.log('⚠️ Aviso: Não foi possível criar entrada no histórico:', historyError.message);
+    }
+
     // Placeholder - return success for now
     res.json({ success: true, message: "Attachment uploaded successfully" });
   } catch (error) {
@@ -612,6 +635,37 @@ ticketsRouter.delete('/:id/attachments/:attachmentId', jwtAuth, async (req: Auth
   try {
     if (!req.user?.tenantId) {
       return res.status(400).json({ message: "User not associated with a tenant" });
+    }
+
+    const { id, attachmentId } = req.params;
+    const tenantId = req.user.tenantId;
+    const { pool } = await import('../../db');
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    // Get attachment info before deletion for audit trail
+    try {
+      const attachmentQuery = `
+        SELECT file_name, file_size, content_type FROM "${schemaName}".ticket_attachments 
+        WHERE id = $1 AND ticket_id = $2 AND tenant_id = $3 AND is_active = true
+      `;
+      const attachmentResult = await pool.query(attachmentQuery, [attachmentId, id, tenantId]);
+      
+      const attachmentInfo = attachmentResult.rows[0];
+
+      await createCompleteAuditEntry(
+        pool, schemaName, tenantId, id, req,
+        'attachment_deleted',
+        `Anexo excluído: ${attachmentInfo?.file_name || 'arquivo'}`,
+        {
+          deleted_attachment_id: attachmentId,
+          deleted_filename: attachmentInfo?.file_name,
+          deleted_file_size: attachmentInfo?.file_size,
+          deleted_content_type: attachmentInfo?.content_type,
+          deletion_time: new Date().toISOString()
+        }
+      );
+    } catch (historyError) {
+      console.log('⚠️ Aviso: Não foi possível criar entrada no histórico:', historyError.message);
     }
 
     // Placeholder - return success for now
@@ -1035,11 +1089,34 @@ ticketsRouter.post('/:id/emails', jwtAuth, async (req: AuthenticatedRequest, res
       return res.status(400).json({ message: "User not associated with a tenant" });
     }
 
-    const { to, subject, content } = req.body;
+    const { id } = req.params;
+    const { to, subject, content, cc, bcc } = req.body;
+    const tenantId = req.user.tenantId;
+    const { pool } = await import('../../db');
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
     // Validate required fields
     if (!to || !subject || !content) {
       return res.status(400).json({ message: "To, subject, and content are required" });
+    }
+
+    // Create audit trail for email sending
+    try {
+      await createCompleteAuditEntry(
+        pool, schemaName, tenantId, id, req,
+        'email_sent',
+        `Email enviado para: ${to} - Assunto: ${subject}`,
+        {
+          email_to: to,
+          email_subject: subject,
+          email_content_preview: content.substring(0, 200),
+          email_cc: cc || null,
+          email_bcc: bcc || null,
+          sent_time: new Date().toISOString()
+        }
+      );
+    } catch (historyError) {
+      console.log('⚠️ Aviso: Não foi possível criar entrada no histórico:', historyError.message);
     }
 
     // Placeholder - return success for now
@@ -1093,6 +1170,156 @@ tn.note_type,
       success: true,
       data: [],
       count: 0
+    });
+  }
+});
+
+// Update ticket note
+ticketsRouter.put('/:id/notes/:noteId', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.user?.tenantId) {
+      return res.status(400).json({ message: "User not associated with a tenant" });
+    }
+
+    const { id, noteId } = req.params;
+    const { content, noteType = 'general', isInternal = false, isPublic = true } = req.body;
+    const tenantId = req.user.tenantId;
+    const { pool } = await import('../../db');
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    // Get current note for audit trail
+    const currentNoteQuery = `
+      SELECT * FROM "${schemaName}".ticket_notes 
+      WHERE id = $1 AND ticket_id = $2 AND tenant_id = $3 AND is_active = true
+    `;
+    const currentNoteResult = await pool.query(currentNoteQuery, [noteId, id, tenantId]);
+    
+    if (currentNoteResult.rows.length === 0) {
+      return res.status(404).json({ message: "Note not found" });
+    }
+
+    const oldNote = currentNoteResult.rows[0];
+
+    // Update note
+    const updateQuery = `
+      UPDATE "${schemaName}".ticket_notes 
+      SET content = $1, note_type = $2, is_internal = $3, is_public = $4, updated_at = NOW()
+      WHERE id = $5 AND ticket_id = $6 AND tenant_id = $7
+      RETURNING *
+    `;
+
+    const result = await pool.query(updateQuery, [
+      content.trim(), noteType, isInternal, isPublic, noteId, id, tenantId
+    ]);
+
+    if (result.rows.length === 0) {
+      return res.status(500).json({ message: "Failed to update note" });
+    }
+
+    const updatedNote = result.rows[0];
+
+    // Create audit trail
+    try {
+      await createCompleteAuditEntry(
+        pool, schemaName, tenantId, id, req,
+        'note_updated',
+        `Nota editada: "${oldNote.content.substring(0, 50)}..." → "${content.substring(0, 50)}..."`,
+        {
+          note_id: noteId,
+          old_content: oldNote.content,
+          new_content: content,
+          old_note_type: oldNote.note_type,
+          new_note_type: noteType,
+          old_is_internal: oldNote.is_internal,
+          new_is_internal: isInternal,
+          old_is_public: oldNote.is_public,
+          new_is_public: isPublic
+        }
+      );
+    } catch (historyError) {
+      console.log('⚠️ Aviso: Não foi possível criar entrada no histórico:', historyError.message);
+    }
+
+    res.json({
+      success: true,
+      data: updatedNote,
+      message: "Note updated successfully"
+    });
+
+  } catch (error) {
+    console.error("Error updating note:", error);
+    res.status(500).json({ 
+      success: false,
+      message: "Failed to update note",
+      error: error instanceof Error ? error.message : "Unknown error"
+    });
+  }
+});
+
+// Delete ticket note
+ticketsRouter.delete('/:id/notes/:noteId', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.user?.tenantId) {
+      return res.status(400).json({ message: "User not associated with a tenant" });
+    }
+
+    const { id, noteId } = req.params;
+    const tenantId = req.user.tenantId;
+    const { pool } = await import('../../db');
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    // Get note before deletion for audit trail
+    const noteQuery = `
+      SELECT * FROM "${schemaName}".ticket_notes 
+      WHERE id = $1 AND ticket_id = $2 AND tenant_id = $3 AND is_active = true
+    `;
+    const noteResult = await pool.query(noteQuery, [noteId, id, tenantId]);
+    
+    if (noteResult.rows.length === 0) {
+      return res.status(404).json({ message: "Note not found" });
+    }
+
+    const deletedNote = noteResult.rows[0];
+
+    // Soft delete the note
+    const deleteQuery = `
+      UPDATE "${schemaName}".ticket_notes 
+      SET is_active = false, updated_at = NOW()
+      WHERE id = $1 AND ticket_id = $2 AND tenant_id = $3
+    `;
+
+    await pool.query(deleteQuery, [noteId, id, tenantId]);
+
+    // Create audit trail
+    try {
+      await createCompleteAuditEntry(
+        pool, schemaName, tenantId, id, req,
+        'note_deleted',
+        `Nota excluída: "${deletedNote.content.substring(0, 100)}..."`,
+        {
+          deleted_note_id: noteId,
+          deleted_content: deletedNote.content,
+          deleted_note_type: deletedNote.note_type,
+          deleted_is_internal: deletedNote.is_internal,
+          deleted_is_public: deletedNote.is_public,
+          deleted_created_at: deletedNote.created_at
+        }
+      );
+    } catch (historyError) {
+      console.log('⚠️ Aviso: Não foi possível criar entrada no histórico:', historyError.message);
+    }
+
+    res.json({
+      success: true,
+      message: "Note deleted successfully"
+    });
+
+  } catch (error) {
+    console.error("Error deleting note:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to delete note",
+      error: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 });
@@ -1366,6 +1593,24 @@ ticketsRouter.post('/:id/relationships', jwtAuth, async (req: AuthenticatedReque
       tenantId, id, targetTicketId, relationshipType, description || null, req.user.id
     ]);
 
+    // Create audit trail for relationship creation
+    try {
+      await createCompleteAuditEntry(
+        pool, schemaName, tenantId, id, req,
+        'relationship_created',
+        `Relacionamento criado: ${relationshipType} com ticket ${targetTicketId}`,
+        {
+          relationship_id: result.rows[0].id,
+          target_ticket_id: targetTicketId,
+          relationship_type: relationshipType,
+          description: description,
+          created_time: new Date().toISOString()
+        }
+      );
+    } catch (historyError) {
+      console.log('⚠️ Aviso: Não foi possível criar entrada no histórico:', historyError.message);
+    }
+
     // Create reciprocal relationship for bidirectional types
     const bidirectionalTypes = ['related', 'duplicate'];
     if (bidirectionalTypes.includes(relationshipType)) {
@@ -1398,6 +1643,15 @@ ticketsRouter.delete('/relationships/:relationshipId', jwtAuth, async (req: Auth
     const { pool } = await import('../../db');
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
+    // Get relationship info before deletion for audit trail
+    const relationshipQuery = `
+      SELECT source_ticket_id, target_ticket_id, relationship_type, description 
+      FROM "${schemaName}".ticket_relationships 
+      WHERE id = $1 AND tenant_id = $2
+    `;
+    const relationshipResult = await pool.query(relationshipQuery, [relationshipId, tenantId]);
+    const relationshipInfo = relationshipResult.rows[0];
+
     // Delete the relationship (hard delete since no is_active column)
     const result = await pool.query(
       `DELETE FROM "${schemaName}".ticket_relationships 
@@ -1407,6 +1661,27 @@ ticketsRouter.delete('/relationships/:relationshipId', jwtAuth, async (req: Auth
 
     if (result.rowCount === 0) {
       return res.status(404).json({ message: "Relationship not found" });
+    }
+
+    // Create audit trail for relationship deletion
+    if (relationshipInfo) {
+      try {
+        await createCompleteAuditEntry(
+          pool, schemaName, tenantId, relationshipInfo.source_ticket_id, req,
+          'relationship_deleted',
+          `Relacionamento removido: ${relationshipInfo.relationship_type} com ticket ${relationshipInfo.target_ticket_id}`,
+          {
+            deleted_relationship_id: relationshipId,
+            source_ticket_id: relationshipInfo.source_ticket_id,
+            target_ticket_id: relationshipInfo.target_ticket_id,
+            relationship_type: relationshipInfo.relationship_type,
+            description: relationshipInfo.description,
+            deletion_time: new Date().toISOString()
+          }
+        );
+      } catch (historyError) {
+        console.log('⚠️ Aviso: Não foi possível criar entrada no histórico:', historyError.message);
+      }
     }
 
     res.json({
