@@ -49,6 +49,7 @@ import EditInternalActionModal from "@/components/tickets/EditInternalActionModa
 import { TicketDescriptionEditor } from "@/components/TicketDescriptionEditor";
 import { GroupSelect } from "@/components/GroupSelect";
 import { FilteredUserSelect } from "@/components/FilteredUserSelect";
+import { FilteredCustomerSelect } from "@/components/FilteredCustomerSelect";
 
 // 🚨 CORREÇÃO CRÍTICA: Usar schema unificado para consistência
 import { ticketFormSchema, type TicketFormData } from "../../../shared/ticket-validation";
@@ -2569,7 +2570,12 @@ const TicketDetails = React.memo(() => {
             {isEditMode ? (
               <div className="space-y-2">
                 <Select 
-                  onValueChange={handleCompanyChange}
+                  onValueChange={(value) => {
+                    handleCompanyChange(value);
+                    // Limpar cliente e favorecido quando empresa muda
+                    form.setValue('callerId', '');
+                    form.setValue('beneficiaryId', '');
+                  }}
                   value={form.getValues('customerCompanyId') || ticket.customer_company_id || ticket.customerCompanyId || ticket.company || ''}
                 >
                   <SelectTrigger className="h-8 text-xs">
@@ -2638,48 +2644,17 @@ const TicketDetails = React.memo(() => {
               </div>
               
               {isEditMode ? (
-                <div className="space-y-2">
-                  <Select 
-                    onValueChange={(value) => handleCustomerChange(value, 'caller')} 
-                    value={form.getValues('callerId') || ticket.caller_id || ticket.callerId || ''}
-                  >
-                    <SelectTrigger className="h-8 text-xs">
-                      <SelectValue placeholder="Selecione o cliente">
-                        {(() => {
-                          const currentValue = form.getValues('callerId') || ticket.caller_id || ticket.callerId;
-                          const customer = availableCustomers.find((c: any) => c.id === currentValue);
-                          
-                          if (!customer && currentValue && currentValue !== 'unspecified') {
-                            const allCustomers = Array.isArray(customersData?.customers) ? customersData.customers : [];
-                            const fallbackCustomer = allCustomers.find((c: any) => c.id === currentValue);
-                            if (fallbackCustomer) {
-                              return fallbackCustomer.fullName || fallbackCustomer.name || 
-                                     `${fallbackCustomer.firstName || ''} ${fallbackCustomer.lastName || ''}`.trim() || 
-                                     fallbackCustomer.email || 'Cliente encontrado';
-                            }
-                            return 'Cliente não encontrado';
-                          }
-                          
-                          if (!customer) {
-                            return (currentValue === 'unspecified' || !currentValue) ? 'Selecione o cliente' : 'Cliente não encontrado';
-                          }
-                          
-                          return customer.fullName || customer.name || 
-                                 `${customer.firstName || ''} ${customer.lastName || ''}`.trim() || 
-                                 customer.email || 'Cliente sem nome';
-                        })()}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="unspecified">Não especificado</SelectItem>
-                      {availableCustomers.map((customer: any) => (
-                        <SelectItem key={customer.id} value={customer.id}>
-                          {customer.fullName || customer.name || `${customer.firstName || ''} ${customer.lastName || ''}`.trim() || customer.email}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                <FilteredCustomerSelect
+                  value={form.getValues('callerId') || ticket.caller_id || ticket.callerId || ''}
+                  onChange={(value) => {
+                    handleCustomerChange(value, 'caller');
+                    form.setValue('callerId', value);
+                  }}
+                  selectedCompanyId={form.getValues('customerCompanyId') || ticket.customer_company_id || ticket.customerCompanyId || ticket.company}
+                  placeholder="Selecionar cliente"
+                  disabled={!isEditMode}
+                  className="h-8 text-xs"
+                />
               ) : (
                 <Badge 
                   variant="outline" 
@@ -2722,38 +2697,17 @@ const TicketDetails = React.memo(() => {
               </div>
               
               {isEditMode ? (
-                <div className="space-y-2">
-                  <Select 
-                    onValueChange={(value) => handleCustomerChange(value, 'beneficiary')} 
-                    value={form.getValues('beneficiaryId') || ticket.beneficiary_id || ticket.beneficiaryId || ''}
-                  >
-                    <SelectTrigger className="h-8 text-xs">
-                      <SelectValue placeholder="Selecione o favorecido">
-                        {(() => {
-                          const currentValue = form.getValues('beneficiaryId') || ticket.beneficiary_id || ticket.beneficiaryId;
-                          const beneficiary = availableCustomers.find((c: any) => c.id === currentValue) || 
-                                            (Array.isArray(customersData?.customers) ? customersData.customers : []).find((c: any) => c.id === currentValue);
-                          
-                          if (!beneficiary) {
-                            return (currentValue === 'unspecified' || !currentValue) ? 'Selecione o favorecido' : 'Favorecido não encontrado';
-                          }
-                          
-                          return beneficiary.fullName || beneficiary.name || 
-                                 `${beneficiary.firstName || ''} ${beneficiary.lastName || ''}`.trim() || 
-                                 beneficiary.email || 'Favorecido sem nome';
-                        })()}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="unspecified">Não especificado</SelectItem>
-                      {availableCustomers.map((customer: any) => (
-                        <SelectItem key={customer.id} value={customer.id}>
-                          {customer.fullName || customer.name || `${customer.firstName || ''} ${customer.lastName || ''}`.trim() || customer.email}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                <FilteredCustomerSelect
+                  value={form.getValues('beneficiaryId') || ticket.beneficiary_id || ticket.beneficiaryId || ''}
+                  onChange={(value) => {
+                    handleCustomerChange(value, 'beneficiary');
+                    form.setValue('beneficiaryId', value);
+                  }}
+                  selectedCompanyId={form.getValues('customerCompanyId') || ticket.customer_company_id || ticket.customerCompanyId || ticket.company}
+                  placeholder="Selecionar favorecido"
+                  disabled={!isEditMode}
+                  className="h-8 text-xs"
+                />
               ) : (
                 <Badge 
                   variant="outline" 
