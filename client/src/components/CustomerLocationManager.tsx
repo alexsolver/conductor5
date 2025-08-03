@@ -59,7 +59,7 @@ export function CustomerLocationManager({
   });
 
   const customerLocations: CustomerLocation[] = customerLocationsData?.data || [];
-  const allLocations = allLocationsData?.data || [];
+  const allLocations = Array.isArray(allLocationsData?.data) ? allLocationsData.data : [];
   
   // Filter available locations (not already associated)
   const availableLocations = allLocations.filter(

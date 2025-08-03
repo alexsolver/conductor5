@@ -26,6 +26,12 @@ Interface preference: Text-based hierarchical menus with dropdowns over visual c
   - Removed all management buttons ("Ver Detalhes", "Gerenciar") for cleaner interface
   - Maintained dropdown functionality in edit mode while improving visual hierarchy
   - Enhanced information display with consistent email/phone contact details
+- **Nomenclature Standardization (August 2025)**: Complete unification of beneficiary/favorecido terminology
+  - **Database Schema**: Migrated all legacy "favorecidos" tables to "beneficiaries" across all tenants
+  - **Backend Consistency**: Consolidated duplicate modules, standardized all storage methods and API routes to use /api/beneficiaries
+  - **Frontend Translation**: Corrected Portuguese translation to display "Favorecido" for user-facing text while maintaining "beneficiary" in code
+  - **Relationship Tables**: Updated all foreign key relationships from favorecido_customer_relationships to beneficiary_customer_relationships
+  - **System Integration**: Fixed hierarchical selection (empresa → cliente → favorecido) with proper data loading and filtering
 
 ## System Architecture
 Conductor follows a Clean Architecture with Domain-Driven Design principles.
