@@ -264,7 +264,7 @@ customersRouter.get('/:customerId/beneficiaries', jwtAuth, async (req: Authentic
 
     const result = await pool.query(`
       SELECT id, first_name, last_name, email, phone
-      FROM "${schemaName}".favorecidos 
+      FROM "${schemaName}".beneficiaries 
       WHERE customer_id = $1
     `, [customerId]);
 

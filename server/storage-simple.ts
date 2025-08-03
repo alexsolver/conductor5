@@ -1,6 +1,6 @@
 import { eq, and, desc, asc, ilike, count, sql, or } from "drizzle-orm";
 import { db, schemaManager } from "./db";
-import { users, tenants, type User, type InsertUser, favorecidos } from "@shared/schema";
+import { users, tenants, type User, type InsertUser, beneficiaries } from "@shared/schema";
 import { logInfo, logError } from "./utils/logger";
 import { poolManager } from "./database/ConnectionPoolManager";
 import { TenantValidator } from "./database/TenantValidator";
@@ -548,7 +548,7 @@ export class DatabaseStorage implements IStorage {
           impact = ${ticketData.impact || null},
           urgency = ${ticketData.urgency || null},
           caller_id = ${ticketData.caller_id || null},
-          beneficiary_id = ${ticketData.beneficiary_id || null},
+          favorecido_id = ${ticketData.favorecido_id || null},
           assigned_to_id = ${ticketData.responsible_id || ticketData.assigned_to_id || null},
           assignment_group = ${ticketData.assignment_group || null},
           location = ${ticketData.location && ticketData.location !== 'unspecified' ? ticketData.location : null},
@@ -768,7 +768,7 @@ export class DatabaseStorage implements IStorage {
       const tableCheck = await tenantDb.execute(sql`
         SELECT EXISTS (
           SELECT FROM information_schema.tables 
-          WHERE table_schema = ${schemaName} AND table_name = 'favorecidos'
+          WHERE table_schema = ${schemaName} AND table_name = 'beneficiaries'
         )
       `);
 
@@ -821,10 +821,10 @@ export class DatabaseStorage implements IStorage {
       }
 
       const result = await tenantDb.execute(query);
-      console.log(`Found ${result.rows.length} favorecidos in ${schemaName}`);
+      console.log(`Found ${result.rows.length} beneficiaries in ${schemaName}`);
 
       // Padronizar mapeamento de dados para interfaceconsistente
-      const favorecidos = (result.rows || []).map(favorecido => ({
+      const beneficiaries = (result.rows || []).map(favorecido => ({
         id: favorecido.id,
         tenantId: favorecido.tenant_id,
         firstName: favorecido.first_name,
@@ -845,10 +845,10 @@ export class DatabaseStorage implements IStorage {
         updatedAt: favorecido.updated_at
       }));
 
-      console.log(`Fetched ${favorecidos.length} favorecidos for tenant ${tenantId}`);
-      return favorecidos;
+      console.log(`Fetched ${beneficiaries.length} beneficiaries for tenant ${tenantId}`);
+      return beneficiaries;
     } catch (error) {
-      console.error('Error fetching favorecidos:', error);
+      console.error('Error fetching beneficiaries:', error);
       return []; // Return empty array instead of throwing
     }
   }
@@ -976,7 +976,7 @@ export class DatabaseStorage implements IStorage {
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
-      // ✅ CORREÇÃO CRÍTICA: Inserindo na tabela correta (favorecidos)
+      // ✅ CORREÇÃO CRÍTICA: Inserindo na tabela correta (beneficiaries)
       const result = await tenantDb.execute(sql`
         INSERT INTO ${sql.identifier(schemaName)}.favorecidos
         (
@@ -2985,7 +2985,7 @@ export class DatabaseStorage implements IStorage {
       const tableCheck = await tenantDb.execute(sql`
         SELECT EXISTS (
           SELECT FROM information_schema.tables 
-          WHERE table_schema = ${schemaName} AND table_name = 'favorecidos'
+          WHERE table_schema = ${schemaName} AND table_name = 'beneficiaries'
         )
       `);
 
@@ -3038,10 +3038,10 @@ export class DatabaseStorage implements IStorage {
       }
 
       const result = await tenantDb.execute(query);
-      console.log(`Found ${result.rows.length} favorecidos in ${schemaName}`);
+      console.log(`Found ${result.rows.length} beneficiaries in ${schemaName}`);
 
       // Padronizar mapeamento de dados para interface consistente
-      const favorecidos = (result.rows || []).map(favorecido => ({
+      const beneficiaries = (result.rows || []).map(favorecido => ({
         id: favorecido.id,
         tenantId: favorecido.tenant_id,
         firstName: favorecido.first_name,
@@ -3062,10 +3062,10 @@ export class DatabaseStorage implements IStorage {
         updatedAt: favorecido.updated_at
       }));
 
-      console.log(`Fetched ${favorecidos.length} favorecidos for tenant ${tenantId}`);
-      return favorecidos;
+      console.log(`Fetched ${beneficiaries.length} beneficiaries for tenant ${tenantId}`);
+      return beneficiaries;
     } catch (error) {
-      console.error('Error fetching favorecidos:', error);
+      console.error('Error fetching beneficiaries:', error);
       return []; // Return empty array instead of throwing
     }
   }

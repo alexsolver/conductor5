@@ -197,7 +197,7 @@ router.get('/:id/customers', jwtAuth, async (req: AuthenticatedRequest, res) => 
       message: 'Beneficiary customers retrieved successfully'
     });
   } catch (error) {
-    console.error('Error fetching favorecido customers:', error);
+    console.error('Error fetching beneficiary customers:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to fetch beneficiary customers'
@@ -231,7 +231,7 @@ router.post('/:id/customers', jwtAuth, async (req: AuthenticatedRequest, res) =>
       message: 'Customer added to beneficiary successfully'
     });
   } catch (error) {
-    console.error('Error adding customer to favorecido:', error);
+    console.error('Error adding customer to beneficiary:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to add customer to beneficiary'
@@ -267,6 +267,142 @@ router.delete('/:id/customers/:customerId', jwtAuth, async (req: AuthenticatedRe
       success: false,
       error: 'Failed to remove customer from beneficiary'
     });
+  }
+});
+
+// GET /api/beneficiaries/:id/locations - Get locations associated with a beneficiary
+router.get("/:id/locations", async (req: AuthenticatedRequest, res: ExpressResponse) => {
+  try {
+    const { user } = req;
+    if (!user) {
+      return sendError(res as any, "Authentication required", "Authentication required", 401);
+    }
+
+    const { id } = beneficiaryIdSchema.parse(req.params);
+
+    // Verify beneficiary exists and belongs to tenant
+    const beneficiary = await storage.getBeneficiary(id, user.tenantId);
+    if (!beneficiary) {
+      return sendError(res as any, "Beneficiary not found", "Beneficiary not found", 404);
+    }
+
+    const locations = await storage.getBeneficiaryLocations(id, user.tenantId);
+
+    return sendSuccess(res as any, { locations }, "Beneficiary locations retrieved successfully");
+  } catch (error) {
+    console.error("Error fetching beneficiary locations:", error);
+    return sendError(res as any, error as any, "Failed to fetch beneficiary locations", 500);
+  }
+});
+
+// POST /api/beneficiaries/:id/locations - Add location to beneficiary
+router.post("/:id/locations", async (req: AuthenticatedRequest, res: ExpressResponse) => {
+  try {
+    const { user } = req;
+    if (!user) {
+      return sendError(res as any, "Authentication required", "Authentication required", 401);
+    }
+
+    const { id } = beneficiaryIdSchema.parse(req.params);
+
+    const addLocationSchema = z.object({
+      locationId: z.string().uuid("Invalid location ID format"),
+      isPrimary: z.boolean().optional().default(false)
+    });
+
+    const { locationId, isPrimary } = addLocationSchema.parse(req.body);
+
+    // Verify beneficiary exists and belongs to tenant
+    const beneficiary = await storage.getBeneficiary(id, user.tenantId);
+    if (!beneficiary) {
+      return sendError(res as any, "Beneficiary not found", "Beneficiary not found", 404);
+    }
+
+    // Verify location exists and belongs to tenant
+    const location = await storage.getLocations(user.tenantId);
+    const locationExists = location.some(loc => loc.id === locationId);
+    if (!locationExists) {
+      return sendError(res as any, "Location not found", "Location not found", 404);
+    }
+
+    const beneficiaryLocation = await storage.addBeneficiaryLocation(id, locationId, user.tenantId, isPrimary);
+
+    return sendSuccess(res as any, { beneficiaryLocation }, "Location added to beneficiary successfully", 201);
+  } catch (error) {
+    console.error("Error adding location to beneficiary:", error);
+    return sendError(res as any, error as any, "Failed to add location to beneficiary", 500);
+  }
+});
+
+// DELETE /api/beneficiaries/:id/locations/:locationId - Remove location from beneficiary
+router.delete("/:id/locations/:locationId", async (req: AuthenticatedRequest, res: ExpressResponse) => {
+  try {
+    const { user } = req;
+    if (!user) {
+      return sendError(res as any, "Authentication required", "Authentication required", 401);
+    }
+
+    const { id } = beneficiaryIdSchema.parse(req.params);
+    const locationIdSchema = z.object({
+      locationId: z.string().uuid("Invalid location ID format")
+    });
+    const { locationId } = locationIdSchema.parse(req.params);
+
+    // Verify beneficiary exists and belongs to tenant
+    const beneficiary = await storage.getBeneficiary(id, user.tenantId);
+    if (!beneficiary) {
+      return sendError(res as any, "Beneficiary not found", "Beneficiary not found", 404);
+    }
+
+    const success = await storage.removeBeneficiaryLocation(id, locationId, user.tenantId);
+
+    if (success) {
+      return sendSuccess(res as any, null, "Location removed from beneficiary successfully");
+    } else {
+      return sendError(res as any, "Location association not found", "Location association not found", 404);
+    }
+  } catch (error) {
+    console.error("Error removing location from beneficiary:", error);
+    return sendError(res as any, error as any, "Failed to remove location from beneficiary", 500);
+  }
+});
+
+// PUT /api/beneficiaries/:id/locations/:locationId/primary - Update primary status
+router.put("/:id/locations/:locationId/primary", async (req: AuthenticatedRequest, res: ExpressResponse) => {
+  try {
+    const { user } = req;
+    if (!user) {
+      return sendError(res as any, "Authentication required", "Authentication required", 401);
+    }
+
+    const { id } = beneficiaryIdSchema.parse(req.params);
+    const locationIdSchema = z.object({
+      locationId: z.string().uuid("Invalid location ID format")
+    });
+    const { locationId } = locationIdSchema.parse(req.params);
+
+    const updatePrimarySchema = z.object({
+      isPrimary: z.boolean()
+    });
+
+    const { isPrimary } = updatePrimarySchema.parse(req.body);
+
+    // Verify beneficiary exists and belongs to tenant
+    const beneficiary = await storage.getBeneficiary(id, user.tenantId);
+    if (!beneficiary) {
+      return sendError(res as any, "Beneficiary not found", "Beneficiary not found", 404);
+    }
+
+    const success = await storage.updateBeneficiaryLocationPrimary(id, locationId, user.tenantId, isPrimary);
+
+    if (success) {
+      return sendSuccess(res as any, null, "Location primary status updated successfully");
+    } else {
+      return sendError(res as any, "Location association not found", "Location association not found", 404);
+    }
+  } catch (error) {
+    console.error("Error updating location primary status:", error);
+    return sendError(res as any, error as any, "Failed to update location primary status", 500);
   }
 });
 
