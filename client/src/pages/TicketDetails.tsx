@@ -50,6 +50,7 @@ import { TicketDescriptionEditor } from "@/components/TicketDescriptionEditor";
 import { GroupSelect } from "@/components/GroupSelect";
 import { FilteredUserSelect } from "@/components/FilteredUserSelect";
 import { FilteredCustomerSelect } from "@/components/FilteredCustomerSelect";
+import { FilteredBeneficiarySelect } from "@/components/FilteredBeneficiarySelect";
 
 // 🚨 CORREÇÃO CRÍTICA: Usar schema unificado para consistência
 import { ticketFormSchema, type TicketFormData } from "../../../shared/ticket-validation";
@@ -2701,13 +2702,13 @@ const TicketDetails = React.memo(() => {
               </div>
               
               {isEditMode ? (
-                <FilteredCustomerSelect
+                <FilteredBeneficiarySelect
                   value={form.getValues('beneficiaryId') || ticket.beneficiary_id || ticket.beneficiaryId || ''}
                   onChange={(value) => {
                     handleCustomerChange(value, 'beneficiary');
                     form.setValue('beneficiaryId', value);
                   }}
-                  selectedCompanyId={form.getValues('customerCompanyId') || ticket.customer_company_id || ticket.customerCompanyId || ticket.company || ''}
+                  selectedCustomerId={form.getValues('callerId') || ticket.caller_id || ticket.callerId || ''}
                   placeholder="Selecionar favorecido"
                   disabled={!isEditMode}
                   className="h-8 text-xs"
