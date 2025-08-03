@@ -2662,7 +2662,7 @@ const TicketDetails = React.memo(() => {
                   }}
                   selectedCompanyId={form.getValues('customerCompanyId') || ticket.customer_company_id || ticket.customerCompanyId || ticket.company || ''}
                   placeholder="Selecionar cliente"
-                  disabled={!isEditMode}
+                  disabled={false}
                   className="h-8 text-xs"
                 />
               ) : (
@@ -2715,7 +2715,7 @@ const TicketDetails = React.memo(() => {
                   }}
                   selectedCustomerId={form.getValues('callerId') || ticket.caller_id || ticket.callerId || ''}
                   placeholder="Selecionar favorecido"
-                  disabled={!isEditMode}
+                  disabled={false}
                   className="h-8 text-xs"
                 />
               ) : (
