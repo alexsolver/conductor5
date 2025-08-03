@@ -141,18 +141,7 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
 
   const timeSlots = getTimeSlots();
   
-  // Debug: Log time slots generation
-  React.useEffect(() => {
-    console.log('🔍 TIME SLOTS DEBUG:', {
-      selectedDate: selectedDate.toISOString(),
-      timeFilter,
-      totalSlots: timeSlots.length,
-      firstSlot: timeSlots[0]?.toISOString(),
-      lastSlot: timeSlots[timeSlots.length - 1]?.toISOString(),
-      slot19: timeSlots[19]?.toISOString(), // Slot for 19:00 (7 PM)
-      allSlots: timeSlots.map((slot, i) => `${i}: ${slot.getHours()}:00`).join(', ')
-    });
-  }, [timeSlots, selectedDate, timeFilter]);
+
 
   // Filter agents by search - fixed to handle firstName/lastName structure
   const filteredAgents = agents.filter(agent => {
@@ -175,12 +164,7 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
       if (!schedule.agentId || !schedule.startDateTime) return false;
       
       const scheduleStart = parseISO(schedule.startDateTime);
-      
-      // Convert to local timezone for comparison
-      const timeSlotHour = timeSlot.getHours();
-      // Schedule comes in UTC, convert to local time
-      const scheduleLocalTime = new Date(scheduleStart.getTime() + (scheduleStart.getTimezoneOffset() * 60000));
-      const scheduleLocalHour = scheduleLocalTime.getHours();
+      const scheduleEnd = schedule.endDateTime ? parseISO(schedule.endDateTime) : scheduleStart;
       
       // Match agent ID (handle both UUID formats)
       const agentMatch = schedule.agentId === agentId || 
@@ -196,32 +180,17 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
       const scheduleDate = scheduleStart.toDateString();
       const dateMatch = timeSlotDate === scheduleDate;
       
-      // Hour matching - check if schedule starts within this hour slot
-      const hourMatch = scheduleLocalHour === timeSlotHour;
+      // Time range matching - check if time slot falls within schedule duration
+      const timeSlotStart = timeSlot.getTime();
+      const timeSlotEnd = timeSlotStart + (60 * 60 * 1000); // 1 hour slots
       
-      const result = agentMatch && typeMatch && dateMatch && hourMatch;
-             
-      // Debug log for internal actions
-      if (schedule.type === 'internal_action' || schedule.activityTypeId === 'internal-action') {
-        console.log('🔍 TIMELINE DEBUG - Internal action match (TIMEZONE FIXED):', {
-          scheduleId: schedule.id,
-          agentId,
-          scheduleAgentId: schedule.agentId,
-          agentMatch,
-          typeMatch,
-          type,
-          scheduleType: schedule.type,
-          timeSlotDate,
-          scheduleDate,
-          dateMatch,
-          timeSlotHour,
-          scheduleUTCHour: scheduleStart.getHours(),
-          scheduleLocalHour,
-          timezoneOffset: scheduleStart.getTimezoneOffset(),
-          hourMatch,
-          result
-        });
-      }
+      const scheduleStartTime = scheduleStart.getTime();
+      const scheduleEndTime = scheduleEnd.getTime();
+      
+      // Check if schedule overlaps with time slot
+      const timeOverlap = scheduleStartTime < timeSlotEnd && scheduleEndTime > timeSlotStart;
+      
+      const result = agentMatch && typeMatch && dateMatch && timeOverlap;
       
       return result;
     });
@@ -398,22 +367,7 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                     const dayOfWeek = timeSlot.getDay(); // 0 = domingo, 1 = segunda, etc.
                     const worksToday = workSchedule?.workDays.includes(dayOfWeek) || false;
                     
-                    // Debug work schedule for Paulina on Aug 2nd during action hours (19:00-21:00)
-                    if (agent.id === 'ce432692-9b43-4d7a-befb-a9fb1c6a0c0a' && 
-                        timeSlot.getDate() === 2 && timeSlot.getMonth() === 7 && 
-                        timeSlot.getHours() >= 19 && timeSlot.getHours() <= 21) {
-                      console.log('🔍 WORK SCHEDULE DEBUG - Paulina (action time window):', {
-                        agentId: agent.id,
-                        agentName: agent.name,
-                        workSchedule,
-                        dayOfWeek,
-                        worksToday,
-                        timeSlot: timeSlot.toISOString(),
-                        hour: timeSlot.getHours(),
-                        plannedSchedulesCount: plannedSchedules.length,
-                        dateCheck: `${timeSlot.getDate()}/${timeSlot.getMonth() + 1}`
-                      });
-                    }
+
                     
                     // Check if it's working hour based on actual schedule
                     const isWorkingHour = worksToday && workSchedule ? (() => {
@@ -475,6 +429,15 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                             const activityType = getActivityType(schedule.activityTypeId);
                             const isInternalAction = schedule.activityTypeId === 'internal-action' || schedule.type === 'internal_action';
                             
+                            // Calculate if this is the starting slot for the action
+                            const scheduleStart = parseISO(schedule.startDateTime);
+                            const scheduleEnd = schedule.endDateTime ? parseISO(schedule.endDateTime) : scheduleStart;
+                            const isStartingSlot = timeSlot.getTime() <= scheduleStart.getTime() && 
+                                                   scheduleStart.getTime() < (timeSlot.getTime() + (60 * 60 * 1000));
+                            
+                            // Calculate duration in hours for visual width
+                            const durationHours = Math.max(1, Math.ceil((scheduleEnd.getTime() - scheduleStart.getTime()) / (60 * 60 * 1000)));
+                            
                             return (
                               <div
                                 key={schedule.id}
@@ -483,7 +446,14 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                                     ? 'bg-purple-600 border border-purple-400' 
                                     : getPriorityColor(schedule.priority)
                                 }`}
-                                style={{ opacity: 0.9 }}
+                                style={{ 
+                                  opacity: 0.9,
+                                  // Extend width for multi-hour actions only on starting slot
+                                  width: isStartingSlot && isInternalAction && durationHours > 1 
+                                    ? `${Math.min(durationHours * 64, 320)}px` // Max 5 hours visual
+                                    : undefined,
+                                  zIndex: isStartingSlot ? 10 : 5
+                                }}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   if (isInternalAction) {
@@ -496,12 +466,12 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                                 }}
                                 title={
                                   isInternalAction 
-                                    ? `Ação Interna: ${schedule.title} - ${format(parseISO(schedule.startDateTime), 'HH:mm')}`
+                                    ? `Ação Interna: ${schedule.title} - ${format(parseISO(schedule.startDateTime), 'HH:mm')} até ${format(parseISO(schedule.endDateTime || schedule.startDateTime), 'HH:mm')}`
                                     : `${schedule.title} - ${format(parseISO(schedule.startDateTime), 'HH:mm')}`
                                 }
                               >
                                 <span className="truncate font-medium">
-                                  {isInternalAction ? 'T' : // T for Ticket action
+                                  {isInternalAction ? (isStartingSlot ? `T ${durationHours}h` : 'T') : // T for Ticket action with duration
                                    schedule.priority === 'urgent' ? 'U' : 
                                    schedule.priority === 'high' ? 'H' : 
                                    schedule.priority === 'low' ? 'L' : 'M'}
