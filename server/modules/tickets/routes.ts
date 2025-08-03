@@ -1917,15 +1917,30 @@ ticketsRouter.post('/:id/relationships', jwtAuth, async (req: AuthenticatedReque
       tenantId, id, targetTicketId, relationshipType, description || null, req.user.id
     ]);
 
+    // Get target ticket number for audit trail
+    let targetTicketNumber = targetTicketId;
+    try {
+      const targetTicketQuery = `
+        SELECT COALESCE(number, CONCAT('T-', SUBSTRING(id::text, 1, 8))) as number 
+        FROM "${schemaName}".tickets 
+        WHERE id = $1 AND tenant_id = $2
+      `;
+      const targetTicketResult = await pool.query(targetTicketQuery, [targetTicketId, tenantId]);
+      targetTicketNumber = targetTicketResult.rows[0]?.number || targetTicketId;
+    } catch (error) {
+      console.log('⚠️ Aviso: Não foi possível buscar número do ticket:', error.message);
+    }
+
     // Create audit trail for relationship creation
     try {
       await createCompleteAuditEntry(
         pool, schemaName, tenantId, id, req,
         'relationship_created',
-        `Relacionamento criado: ${relationshipType} com ticket ${targetTicketId}`,
+        `Relacionamento criado: ${relationshipType} com ticket ${targetTicketNumber}`,
         {
           relationship_id: result.rows[0].id,
           target_ticket_id: targetTicketId,
+          target_ticket_number: targetTicketNumber,
           relationship_type: relationshipType,
           description: description,
           created_time: new Date().toISOString()
@@ -1989,15 +2004,30 @@ ticketsRouter.delete('/relationships/:relationshipId', jwtAuth, async (req: Auth
 
     // Create audit trail for relationship deletion
     if (relationshipInfo) {
+      // Get target ticket number for audit trail
+      let targetTicketNumber = relationshipInfo.target_ticket_id;
+      try {
+        const targetTicketQuery = `
+          SELECT COALESCE(number, CONCAT('T-', SUBSTRING(id::text, 1, 8))) as number 
+          FROM "${schemaName}".tickets 
+          WHERE id = $1 AND tenant_id = $2
+        `;
+        const targetTicketResult = await pool.query(targetTicketQuery, [relationshipInfo.target_ticket_id, tenantId]);
+        targetTicketNumber = targetTicketResult.rows[0]?.number || relationshipInfo.target_ticket_id;
+      } catch (error) {
+        console.log('⚠️ Aviso: Não foi possível buscar número do ticket:', error.message);
+      }
+
       try {
         await createCompleteAuditEntry(
           pool, schemaName, tenantId, relationshipInfo.source_ticket_id, req,
           'relationship_deleted',
-          `Relacionamento removido: ${relationshipInfo.relationship_type} com ticket ${relationshipInfo.target_ticket_id}`,
+          `Relacionamento removido: ${relationshipInfo.relationship_type} com ticket ${targetTicketNumber}`,
           {
             deleted_relationship_id: relationshipId,
             source_ticket_id: relationshipInfo.source_ticket_id,
             target_ticket_id: relationshipInfo.target_ticket_id,
+            target_ticket_number: targetTicketNumber,
             relationship_type: relationshipInfo.relationship_type,
             description: relationshipInfo.description,
             deletion_time: new Date().toISOString()
