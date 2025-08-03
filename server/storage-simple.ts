@@ -768,7 +768,7 @@ export class DatabaseStorage implements IStorage {
       const tableCheck = await tenantDb.execute(sql`
         SELECT EXISTS (
           SELECT FROM information_schema.tables 
-          WHERE table_schema = ${schemaName} AND table_name = 'beneficiaries'
+          WHERE table_schema = ${schemaName} AND table_name = 'favorecidos'
         )
       `);
 
@@ -2985,7 +2985,7 @@ export class DatabaseStorage implements IStorage {
       const tableCheck = await tenantDb.execute(sql`
         SELECT EXISTS (
           SELECT FROM information_schema.tables 
-          WHERE table_schema = ${schemaName} AND table_name = 'beneficiaries'
+          WHERE table_schema = ${schemaName} AND table_name = 'favorecidos'
         )
       `);
 
