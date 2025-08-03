@@ -90,28 +90,30 @@ export function FilteredCustomerSelect({
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="__none__">Nenhum cliente</SelectItem>
-        <SelectItem value="unspecified">Não especificado</SelectItem>
         {customersToShow.length === 0 && selectedCompanyId && selectedCompanyId !== 'unspecified' ? (
           <SelectItem value="__no_customers__" disabled>
             Nenhum cliente encontrado para esta empresa
           </SelectItem>
         ) : (
-          customersToShow.map((customer: any) => {
-            const customerName = customer.fullName || customer.name || 
-                                `${customer.firstName || ''} ${customer.lastName || ''}`.trim() || 
-                                customer.email || 'Cliente sem nome';
-            return (
-              <SelectItem key={customer.id} value={customer.id}>
-                <div className="flex flex-col">
-                  <span>{customerName}</span>
-                  <span className="text-sm text-gray-500">
-                    {customer.email} {customer.cpf && `• CPF: ${customer.cpf}`}
-                  </span>
-                </div>
-              </SelectItem>
-            );
-          })
+          <>
+            <SelectItem value="__none__">Nenhum cliente</SelectItem>
+            <SelectItem value="unspecified">Não especificado</SelectItem>
+            {customersToShow.map((customer: any) => {
+              const customerName = customer.fullName || customer.name || 
+                                  `${customer.firstName || ''} ${customer.lastName || ''}`.trim() || 
+                                  customer.email || 'Cliente sem nome';
+              return (
+                <SelectItem key={customer.id} value={customer.id}>
+                  <div className="flex flex-col">
+                    <span>{customerName}</span>
+                    <span className="text-sm text-gray-500">
+                      {customer.email} {customer.cpf && `• CPF: ${customer.cpf}`}
+                    </span>
+                  </div>
+                </SelectItem>
+              );
+            })}
+          </>
         )}
       </SelectContent>
     </Select>
