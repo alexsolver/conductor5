@@ -615,3 +615,11 @@ const linkTicketsMutation = useMutation({
       setSelectedTickets([]);
       setRelationshipType("");
     },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro",
+        description: error.message || "Falha ao vincular tickets",
+        variant: "destructive",
+      });
+    },
+  });
