@@ -562,15 +562,47 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
                                   // Calculate precise positioning within the slot based on minutes
                                   const slotStart = timeSlots[timeIndex];
                                   const minutesFromSlotStart = scheduleStart.getMinutes();
-                                  const minuteOffset = (minutesFromSlotStart / 60) * 64; // 64px per hour slot
+
+                                  // Dynamic slot width calculation
+                                  let currentSlotWidth = 64;
+                                  let slotDurationMinutes = 60;
+
+                                  switch (timeFilter) {
+                                    case '2min':
+                                      currentSlotWidth = 32;
+                                      slotDurationMinutes = 2;
+                                      break;
+                                    case '10min':
+                                      currentSlotWidth = 48;
+                                      slotDurationMinutes = 10;
+                                      break;
+                                    case '30min':
+                                      currentSlotWidth = 64;
+                                      slotDurationMinutes = 30;
+                                      break;
+                                    case '1hora':
+                                      currentSlotWidth = 64;
+                                      slotDurationMinutes = 60;
+                                      break;
+                                    case '24horas':
+                                      currentSlotWidth = 128;
+                                      slotDurationMinutes = 24 * 60;
+                                      break;
+                                    default:
+                                      currentSlotWidth = 64;
+                                      slotDurationMinutes = 60;
+                                      break;
+                                  }
+
+                                  const minuteOffset = (minutesFromSlotStart / slotDurationMinutes) * currentSlotWidth;
 
                                   // Calculate duration for display
                                   const duration = calculateDuration(schedule.startDateTime, schedule.endDateTime);
                                   const durationInMinutes = differenceInMinutes(scheduleEnd, scheduleStart);
-                                  const durationInSlots = Math.max(1, Math.ceil(durationInMinutes / 60)); // Assuming 1-hour slots
+                                  const durationInSlots = Math.max(1, Math.ceil(durationInMinutes / slotDurationMinutes));
 
                                   // Calculate the width based on number of slots
-                                  const blockWidth = durationInSlots * 64 - 4; // 64px per slot minus margins
+                                  const blockWidth = durationInSlots * currentSlotWidth - 4; // Current slot width minus margins
 
                                   // Use consistent colors
                                   const blockColor = isInternalAction ? 'bg-purple-600 border-purple-400' : 'bg-blue-600 border-blue-400';
@@ -695,15 +727,47 @@ ${schedule.locationAddress ? `Local: ${schedule.locationAddress}` : ''}`}
                                   // Calculate precise positioning within the slot based on minutes
                                   const slotStart = timeSlots[timeIndex];
                                   const minutesFromSlotStart = scheduleStart.getMinutes();
-                                  const minuteOffset = (minutesFromSlotStart / 60) * 64; // 64px per hour slot
+
+                                  // Dynamic slot width calculation
+                                  let currentSlotWidth = 64;
+                                  let slotDurationMinutes = 60;
+
+                                  switch (timeFilter) {
+                                    case '2min':
+                                      currentSlotWidth = 32;
+                                      slotDurationMinutes = 2;
+                                      break;
+                                    case '10min':
+                                      currentSlotWidth = 48;
+                                      slotDurationMinutes = 10;
+                                      break;
+                                    case '30min':
+                                      currentSlotWidth = 64;
+                                      slotDurationMinutes = 30;
+                                      break;
+                                    case '1hora':
+                                      currentSlotWidth = 64;
+                                      slotDurationMinutes = 60;
+                                      break;
+                                    case '24horas':
+                                      currentSlotWidth = 128;
+                                      slotDurationMinutes = 24 * 60;
+                                      break;
+                                    default:
+                                      currentSlotWidth = 64;
+                                      slotDurationMinutes = 60;
+                                      break;
+                                  }
+
+                                  const minuteOffset = (minutesFromSlotStart / slotDurationMinutes) * currentSlotWidth;
 
                                   // Calculate duration for display
                                   const duration = calculateDuration(schedule.startDateTime, schedule.endDateTime);
                                   const durationInMinutes = differenceInMinutes(scheduleEnd, scheduleStart);
-                                  const durationInSlots = Math.max(1, Math.ceil(durationInMinutes / 60)); // Assuming 1-hour slots
+                                  const durationInSlots = Math.max(1, Math.ceil(durationInMinutes / slotDurationMinutes));
 
                                   // Calculate the width based on number of slots
-                                  const blockWidth = durationInSlots * 64 - 4; // 64px per slot minus margins
+                                  const blockWidth = durationInSlots * currentSlotWidth - 4; // Current slot width minus margins
 
                                   // Use consistent colors
                                   const blockColor = isInternalAction ? 'bg-purple-600 border-purple-400' : 'bg-blue-600 border-blue-400';
