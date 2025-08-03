@@ -2652,15 +2652,15 @@ const TicketDetails = React.memo(() => {
               
               {true ? (
                 <FilteredCustomerSelect
-                  value={form.getValues('callerId') || ticket.caller_id || ticket.callerId || ''}
+                  value={form.getValues('callerId') || ''}
                   onChange={(value) => {
-                    handleCustomerChange(value, 'caller');
+                    console.log('🔄 Setting new customer:', { oldValue: form.getValues('callerId'), newValue: value });
                     form.setValue('callerId', value);
-                    // Limpar favorecido quando cliente muda
-                    form.setValue('beneficiaryId', '');
+                    form.setValue('beneficiaryId', ''); // Limpar favorecido quando cliente muda
+                    handleCustomerChange(value, 'caller');
                     console.log('👤 Customer change:', { customerId: value, type: 'caller' });
                   }}
-                  selectedCompanyId={form.getValues('customerCompanyId') || ticket.customer_company_id || ticket.customerCompanyId || ticket.company || ''}
+                  selectedCompanyId={form.getValues('customerCompanyId') || '503389ff-7616-48e0-8759-c6b98faf5608'}
                   placeholder="Selecionar cliente"
                   disabled={false}
                   className="h-8 text-xs"
@@ -2708,12 +2708,13 @@ const TicketDetails = React.memo(() => {
               
               {true ? (
                 <FilteredBeneficiarySelect
-                  value={form.getValues('beneficiaryId') || ticket.beneficiary_id || ticket.beneficiaryId || ''}
+                  value={form.getValues('beneficiaryId') || ''}
                   onChange={(value) => {
-                    handleCustomerChange(value, 'beneficiary');
+                    console.log('🔄 Setting new beneficiary:', { oldValue: form.getValues('beneficiaryId'), newValue: value });
                     form.setValue('beneficiaryId', value);
+                    handleCustomerChange(value, 'beneficiary');
                   }}
-                  selectedCustomerId={form.getValues('callerId') || ticket.caller_id || ticket.callerId || ''}
+                  selectedCustomerId={form.getValues('callerId') || ''}
                   placeholder="Selecionar favorecido"
                   disabled={false}
                   className="h-8 text-xs"
