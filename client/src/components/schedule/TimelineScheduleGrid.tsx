@@ -143,12 +143,13 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
 
   // Filter agents by search
   const filteredAgents = agents.filter(agent => {
-    if (!agent || !agent.email) return false;
+    if (!agent) return false;
 
-    const agentName = agent.name || agent.email;
+    const agentName = agent.name || agent.email || '';
+    const agentEmail = agent.email || '';
 
     return agentName.toLowerCase().includes(searchAgent.toLowerCase()) ||
-           agent.email.toLowerCase().includes(searchAgent.toLowerCase());
+           agentEmail.toLowerCase().includes(searchAgent.toLowerCase());
   });
 
   const getActivityType = (activityTypeId: string) => {
@@ -335,7 +336,7 @@ const TimelineScheduleGrid: React.FC<TimelineScheduleGridProps> = ({
               const workSchedule = workSchedules.find(ws => ws.userId === agent.id);
               const dayOfWeek = selectedDate.getDay();
               const worksToday = workSchedule?.workDays.includes(dayOfWeek) || false;
-              const agentName = agent.name || agent.email;
+              const agentName = agent.name || `${agent.firstName || ''} ${agent.lastName || ''}`.trim() || agent.email || 'Técnico';
 
               return (
                 <div key={agent.id} className="border-b">

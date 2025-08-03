@@ -395,7 +395,7 @@ const AgendaManager: React.FC = () => {
                 <SelectContent>
                   <SelectItem value="todos">Todos os técnicos</SelectItem>
                   {Array.isArray(filteredAgents) && filteredAgents.map((agent) => {
-                    const agentName = agent.name || `${agent.firstName || agent.first_name || ''} ${agent.lastName || agent.last_name || ''}`.trim() || agent.email;
+                    const agentName = agent.name || `${agent.firstName || agent.first_name || ''} ${agent.lastName || agent.last_name || ''}`.trim() || agent.email || 'Técnico';
                     return (
                       <SelectItem key={agent.id} value={agent.id}>
                         {agentName}
