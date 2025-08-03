@@ -678,7 +678,7 @@ ticketsRouter.get('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, res
 
     // For actions without action_number, generate them on-the-fly
     const processedRows = await Promise.all(result.rows.map(async (row) => {
-      if (!row.action_number && row.type === 'ação interna') {
+      if (!row.action_number && (row.type === 'ação interna' || row.actionType === 'ação interna')) {
         try {
           // Generate action number for existing actions
           const actionNumber = await generateActionNumber(pool, tenantId, id);
@@ -1610,7 +1610,17 @@ ticketsRouter.put('/:ticketId/actions/:actionId', jwtAuth, async (req: Authentic
     `;
 
     const finalDescription = workLog || description || 'Ação interna atualizada';
-    const finalActionType = actionType || 'ação interna';
+    
+    // Primeiro buscar o action_type atual para mantê-lo
+    const getCurrentTypeQuery = `
+      SELECT action_type FROM "${schemaName}".ticket_history 
+      WHERE id = $1 AND tenant_id = $2 AND ticket_id = $3
+    `;
+    const currentTypeResult = await pool.query(getCurrentTypeQuery, [actionId, tenantId, ticketId]);
+    const currentActionType = currentTypeResult.rows[0]?.action_type || 'ação interna';
+    
+    // Manter o tipo original se for "ação interna", caso contrário usar o fornecido
+    const finalActionType = currentActionType === 'ação interna' ? 'ação interna' : (actionType || currentActionType);
 
     const historyResult = await pool.query(updateHistoryQuery, [
       finalDescription,
