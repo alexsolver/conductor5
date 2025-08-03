@@ -78,34 +78,57 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
     enabled: open,
   });
 
-  // Reset form when member changes
-  useEffect(() => {
-    if (member && open) {
-      console.log('EditMemberDialog - Setting form data for member:', member);
+  // Fetch complete member details when modal opens
+  const { data: memberDetails, isLoading: memberLoading } = useQuery({
+    queryKey: ['/api/team-management/members', member?.id],
+    queryFn: async () => {
+      if (!member?.id) return null;
+      console.log('EditMemberDialog - Fetching complete member details for:', member.id);
+      
+      // Try multiple endpoints to get complete user data
+      try {
+        const response = await apiRequest('GET', `/api/user-management/users/${member.id}`);
+        console.log('EditMemberDialog - Got complete member details:', response);
+        return response;
+      } catch (error) {
+        console.log('EditMemberDialog - Fallback to basic member data:', member);
+        return member;
+      }
+    },
+    enabled: open && !!member?.id,
+  });
 
-      const nameParts = member.name ? member.name.split(' ') : ['', ''];
-      const firstName = nameParts[0] || '';
-      const lastName = nameParts.slice(1).join(' ') || '';
+  // Reset form when member details are loaded
+  useEffect(() => {
+    const memberData = memberDetails || member;
+    
+    if (memberData && open && !memberLoading) {
+      console.log('EditMemberDialog - Setting form data for member:', memberData);
+
+      // Handle different data structures
+      const firstName = memberData.firstName || (memberData.name ? memberData.name.split(' ')[0] : '');
+      const lastName = memberData.lastName || (memberData.name ? memberData.name.split(' ').slice(1).join(' ') : '');
 
       form.reset({
         firstName,
         lastName,
-        email: member.email || '',
-        phone: member.phone || '',
-        cellPhone: member.cellPhone || '',
-        role: member.role || '',
-        cargo: member.position || member.cargo || '',
-        cep: member.cep || '',
-        state: member.state || '',
-        city: member.city || '',
-        streetAddress: member.streetAddress || member.address || '',
-        employeeCode: member.employeeCode || '',
-        pis: member.pis || '',
-        admissionDate: member.admissionDate ? new Date(member.admissionDate).toISOString().split('T')[0] : '',
-        groupIds: member.groupIds || []
+        email: memberData.email || '',
+        phone: memberData.phone || '',
+        cellPhone: memberData.cellPhone || memberData.cell_phone || '',
+        role: memberData.role || '',
+        cargo: memberData.position || memberData.cargo || '',
+        cep: memberData.cep || '',
+        state: memberData.state || '',
+        city: memberData.city || '',
+        streetAddress: memberData.streetAddress || memberData.address || memberData.street_address || '',
+        employeeCode: memberData.employeeCode || memberData.employee_code || '',
+        pis: memberData.pis || '',
+        admissionDate: memberData.admissionDate || memberData.admission_date ? 
+          new Date(memberData.admissionDate || memberData.admission_date).toISOString().split('T')[0] : '',
+        groupIds: memberData.groupIds || memberData.group_ids || []
       });
     }
-  }, [member, open, form]);
+  }, [memberDetails, member, open, memberLoading, form]);
 
   // Update member mutation
   const updateMemberMutation = useMutation({
@@ -171,9 +194,15 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-          {/* Personal Information */}
-          <Card>
+        {memberLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mr-2"></div>
+            <span>Carregando dados do membro...</span>
+          </div>
+        ) : (
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+            {/* Personal Information */}
+            <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center space-x-2">
                 <User className="h-4 w-4" />
@@ -436,7 +465,8 @@ export function EditMemberDialog({ open, onOpenChange, member }: EditMemberDialo
               )}
             </Button>
           </DialogFooter>
-        </form>
+          </form>
+        )}
       </DialogContent>
     </Dialog>
   );
