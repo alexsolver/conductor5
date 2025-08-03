@@ -20,6 +20,7 @@ interface Schedule {
   customerId?: string;
   activityTypeId: string;
   type: 'planned' | 'actual';
+  ticketNumber?: string;
 }
 
 interface ActivityType {
@@ -648,9 +649,9 @@ ${schedule.locationAddress ? `Local: ${schedule.locationAddress}` : ''}`}
                                         {duration}
                                       </span>
 
-                                      {/* Title (truncated) */}
+                                      {/* Ticket Number and Title (truncated) */}
                                       <span className="truncate text-xs font-medium">
-                                        {schedule.title}
+                                        {schedule.ticketNumber ? `#${schedule.ticketNumber} - ` : ''}{schedule.title}
                                       </span>
                                     </div>
                                   );
@@ -814,9 +815,9 @@ ${schedule.locationAddress ? `Local: ${schedule.locationAddress}` : ''}`}
                                         {duration}
                                       </span>
 
-                                      {/* Title (truncated) */}
+                                      {/* Ticket Number and Title (truncated) */}
                                       <span className="truncate text-xs font-medium">
-                                        {schedule.title}
+                                        {schedule.ticketNumber ? `#${schedule.ticketNumber} - ` : ''}{schedule.title}
                                       </span>
                                     </div>
                                   );
