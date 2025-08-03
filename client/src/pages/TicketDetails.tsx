@@ -170,6 +170,14 @@ const TicketDetails = React.memo(() => {
     },
   });
 
+  const { data: beneficiariesData } = useQuery({
+    queryKey: ["/api/beneficiaries"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/beneficiaries");
+      return response.json();
+    },
+  });
+
   // Fetch customers for selected company
   const [selectedCompanyCustomers, setSelectedCompanyCustomers] = useState<any[]>([]);
   const [selectedCompany, setSelectedCompany] = useState<string>('');
@@ -2730,16 +2738,35 @@ const TicketDetails = React.memo(() => {
                   <Users className="h-4 w-4 mr-2" />
                   {(() => {
                     const beneficiaryId = ticket.beneficiary_id || ticket.beneficiaryId;
-                    const beneficiary = availableCustomers.find((c: any) => c.id === beneficiaryId) || 
-                                      (Array.isArray(customersData?.customers) ? customersData.customers : []).find((c: any) => c.id === beneficiaryId);
+                    console.log('🎯 Badge beneficiary lookup:', { beneficiaryId, ticketBeneficiaryId: ticket.beneficiary_id });
+                    
+                    // Try to find in beneficiaries data first (correct data source)
+                    let beneficiary = null;
+                    
+                    // Check if we have beneficiaries data from the API
+                    if (beneficiariesData?.beneficiaries && Array.isArray(beneficiariesData.beneficiaries)) {
+                      beneficiary = beneficiariesData.beneficiaries.find((b: any) => b.id === beneficiaryId);
+                      console.log('🔍 Found in beneficiariesData:', { beneficiary: beneficiary?.name || null });
+                    }
+                    
+                    // Fallback to customers data (if beneficiary is also a customer)
+                    if (!beneficiary) {
+                      beneficiary = availableCustomers.find((c: any) => c.id === beneficiaryId) || 
+                                  (Array.isArray(customersData?.customers) ? customersData.customers : []).find((c: any) => c.id === beneficiaryId);
+                      console.log('🔍 Found in customers fallback:', { beneficiary: beneficiary?.name || null });
+                    }
                     
                     if (!beneficiary) {
+                      console.log('❌ Beneficiary not found:', { beneficiaryId, available: beneficiariesData?.beneficiaries?.length || 0 });
                       return (beneficiaryId === 'unspecified' || !beneficiaryId) ? 'Não especificado' : 'Favorecido não encontrado';
                     }
                     
-                    return beneficiary.fullName || beneficiary.name || 
+                    const displayName = beneficiary.fullName || beneficiary.name || 
                            `${beneficiary.firstName || ''} ${beneficiary.lastName || ''}`.trim() || 
                            beneficiary.email || 'Favorecido sem nome';
+                    
+                    console.log('✅ Beneficiary display name:', displayName);
+                    return displayName;
                   })()}
                 </Badge>
               )}
