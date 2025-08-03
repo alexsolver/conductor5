@@ -55,6 +55,8 @@ export function FilteredBeneficiarySelect({
       }
     },
     enabled: !!selectedCustomerId && selectedCustomerId !== 'unspecified',
+    retry: 3,
+    refetchOnWindowFocus: false,
   });
 
   const isLoading = isLoadingBeneficiaries || (selectedCustomerId && selectedCustomerId !== 'unspecified' && isLoadingCustomerBeneficiaries);

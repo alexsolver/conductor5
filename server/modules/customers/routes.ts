@@ -13,8 +13,7 @@ customersRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
     console.log('[GET-CUSTOMERS] Fetching customers for tenant:', req.user.tenantId);
 
     const result = await pool.query(`
-      SELECT id, first_name, last_name, email, phone, company, 
-             is_active, created_at, updated_at
+      SELECT id, first_name, last_name, email, phone, created_at, updated_at
       FROM "${schemaName}".customers 
       ORDER BY first_name, last_name
     `);
