@@ -760,7 +760,7 @@ ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, re
     const result = await pool.query(insertQuery, [
       tenantId,           // $1 tenant_id
       id,                 // $2 ticket_id
-      actionType,         // $3 action_type
+      'ação interna',     // $3 action_type - SEMPRE "ação interna" independente do tipo específico
       actionDescription,  // $4 description
       req.user.id,        // $5 performed_by
       userName,           // $6 performed_by_name
@@ -768,7 +768,7 @@ ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, re
       userAgent,          // $8 user_agent
       sessionId,          // $9 session_id
       JSON.stringify({    // $10 metadata
-        action_type: actionType,
+        action_type: actionType, // Manter tipo específico nos metadados para referência
         time_spent: timeSpent,
         start_time: startDateTime,
         end_time: endDateTime,
