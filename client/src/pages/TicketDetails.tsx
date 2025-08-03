@@ -41,7 +41,6 @@ import { DynamicSelect } from "@/components/DynamicSelect";
 import { DynamicBadge } from "@/components/DynamicBadge";
 import { useTicketMetadata } from "@/hooks/useTicketMetadata";
 import { useFieldColors } from "@/hooks/useFieldColors";
-import { useTicketRelationships } from "@/hooks/useTicketRelationships";
 import { UserSelect } from "@/components/ui/UserSelect";
 import { UserMultiSelect } from "@/components/ui/UserMultiSelect";
 import TicketLinkingModal from "@/components/tickets/TicketLinkingModal";
@@ -309,12 +308,19 @@ const TicketDetails = React.memo(() => {
     },
   });
 
-  // Usar hook personalizado para relacionamentos
-  const { 
-    relationships: relationshipsList, 
-    invalidateRelationships, 
-    refreshRelationships 
-  } = useTicketRelationships(id || '');
+  // Fetch ticket relationships (linked tickets) with optimized caching
+  const { data: ticketRelationships } = useQuery({
+    queryKey: ["/api/ticket-relationships", id, "relationships"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", `/api/ticket-relationships/${id}/relationships`);
+      return response.json();
+    },
+    enabled: !!id,
+    staleTime: 5 * 60 * 1000, // 5 minutes cache
+    gcTime: 15 * 60 * 1000, // 15 minutes garbage collection
+    refetchOnWindowFocus: false,
+    retry: 2, // Reduce retry attempts for faster failure detection
+  });
 
   // 🚀 OTIMIZAÇÃO: Individual queries with proper error handling and data extraction
   const { data: ticketHistoryData, isLoading: historyLoading, error: historyError } = useQuery({
@@ -518,10 +524,21 @@ const TicketDetails = React.memo(() => {
       setExternalActions([]);
     }
 
-    // Usar dados do hook personalizado
-    if (relationshipsList && relationshipsList.length > 0) {
-      console.log('🔗 Setting related tickets from hook:', relationshipsList.length, 'items');
-      setRelatedTickets(relationshipsList);
+    // Set related tickets from relationships API
+    if (ticketRelationships?.success && Array.isArray(ticketRelationships.data)) {
+      console.log('🔗 Setting related tickets from relationships:', ticketRelationships.data.length, 'items');
+      const transformedTickets = ticketRelationships.data.map((relationship: any) => ({
+        id: relationship.targetTicket?.id || relationship.id,
+        number: relationship.targetTicket?.number || relationship.number || 'N/A',
+        subject: relationship.targetTicket?.subject || relationship.subject || 'Sem assunto',
+        status: relationship.targetTicket?.status || relationship.status || 'unknown',
+        priority: relationship.targetTicket?.priority || relationship.priority || 'medium',
+        relationshipType: relationship.relationshipType || relationship.relationship_type || 'related',
+        description: relationship.description || '',
+        createdAt: relationship.createdAt || relationship.created_at || new Date().toISOString(),
+        targetTicket: relationship.targetTicket || {}
+      }));
+      setRelatedTickets(transformedTickets);
     } else {
       console.log('🔗 No related tickets found, setting empty array');
       setRelatedTickets([]);
@@ -544,7 +561,7 @@ const TicketDetails = React.memo(() => {
         setTags(ticket.tags);
       }
     }
-  }, [ticketCommunications, ticketAttachments, ticketNotes, ticketActions, relationshipsList, ticket]);
+  }, [ticketCommunications, ticketAttachments, ticketNotes, ticketActions, ticketRelationships, ticket]);
 
   // Initialize real history data from API with comprehensive mapping
   useEffect(() => {
