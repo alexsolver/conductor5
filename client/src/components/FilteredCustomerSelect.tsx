@@ -44,7 +44,7 @@ export function FilteredCustomerSelect({
   
   // Determinar quais clientes mostrar
   let customersToShow = [];
-  if (selectedCompanyId && companyCustomersData?.customers) {
+  if (selectedCompanyId && selectedCompanyId !== 'unspecified' && companyCustomersData?.customers) {
     // Se uma empresa foi selecionada, mostrar apenas clientes da empresa
     customersToShow = companyCustomersData.customers;
     console.log('[FilteredCustomerSelect] Showing company customers:', {
@@ -52,14 +52,18 @@ export function FilteredCustomerSelect({
       customersCount: customersToShow.length,
       customers: customersToShow.map(c => ({ id: c.id, name: c.name || c.fullName, email: c.email }))
     });
-  } else if (allCustomersData?.success) {
+  } else if (!selectedCompanyId || selectedCompanyId === 'unspecified') {
     // Se nenhuma empresa foi selecionada, mostrar todos os clientes
-    customersToShow = allCustomersData.customers || [];
-    console.log('[FilteredCustomerSelect] Showing all customers:', {
+    customersToShow = allCustomersData?.success ? (allCustomersData.customers || []) : [];
+    console.log('[FilteredCustomerSelect] Showing all customers (no company selected):', {
       companyId: selectedCompanyId,
       customersCount: customersToShow.length,
       customers: customersToShow.map(c => ({ id: c.id, name: c.name || c.fullName, email: c.email }))
     });
+  } else {
+    // Empresa selecionada mas dados ainda carregando
+    customersToShow = [];
+    console.log('[FilteredCustomerSelect] Loading customers for company:', selectedCompanyId);
   }
 
   if (isLoading) {

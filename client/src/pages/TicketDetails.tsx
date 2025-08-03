@@ -2650,7 +2650,7 @@ const TicketDetails = React.memo(() => {
                     handleCustomerChange(value, 'caller');
                     form.setValue('callerId', value);
                   }}
-                  selectedCompanyId={form.getValues('customerCompanyId') || ticket.customer_company_id || ticket.customerCompanyId || ticket.company}
+                  selectedCompanyId={form.getValues('customerCompanyId') || ticket.customer_company_id || ticket.customerCompanyId || ticket.company || ''}
                   placeholder="Selecionar cliente"
                   disabled={!isEditMode}
                   className="h-8 text-xs"
@@ -2703,7 +2703,7 @@ const TicketDetails = React.memo(() => {
                     handleCustomerChange(value, 'beneficiary');
                     form.setValue('beneficiaryId', value);
                   }}
-                  selectedCompanyId={form.getValues('customerCompanyId') || ticket.customer_company_id || ticket.customerCompanyId || ticket.company}
+                  selectedCompanyId={form.getValues('customerCompanyId') || ticket.customer_company_id || ticket.customerCompanyId || ticket.company || ''}
                   placeholder="Selecionar favorecido"
                   disabled={!isEditMode}
                   className="h-8 text-xs"
