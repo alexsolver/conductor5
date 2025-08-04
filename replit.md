@@ -45,7 +45,12 @@ Interface preference: Text-based hierarchical menus with dropdowns over visual c
   - **API Integration**: Full CRUD operations with backend (planned-items, consumed-items, costs-summary)
   - **LPU Integration**: Unified Price List system for cost calculations and pricing control
   - **Terminology Standardization**: Consistent use of "Itens" instead of "Materiais" throughout interface
-  - **Status**: ✅ FULLY FUNCTIONAL - Complete backend API, frontend integration, and DELETE operations working
+  - **Pricing Rules System**: Complete CRUD operations for pricing rules with database integration
+    - **Rule Types**: Percentual, Fixo, Escalonado, Dinâmico with priority system (1-10)
+    - **Database Structure**: pricing_rules table with JSONB conditions/actions fields
+    - **Interface**: Full form validation, table display with status badges, create/edit functionality
+    - **Backend Integration**: Working API endpoints with proper tenant isolation
+  - **Status**: ✅ FULLY FUNCTIONAL - Complete backend API, frontend integration, DELETE operations, and pricing rules creation working
 
 ## System Architecture
 Conductor follows a Clean Architecture with Domain-Driven Design principles.
