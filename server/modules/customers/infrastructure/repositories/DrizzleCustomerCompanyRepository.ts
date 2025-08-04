@@ -7,10 +7,10 @@
 import { eq, and, ilike, count, sql, or } from 'drizzle-orm';
 import { CustomerCompany } from '../../domain/entities/CustomerCompany';
 import { CustomerCompanyMembership } from '../../domain/entities/CustomerCompanyMembership';
-import { 
-  ICustomerCompanyRepository, 
+import {
+  ICustomerCompanyRepository,
   CustomerCompanyFilter,
-  CustomerCompanyMembershipFilter 
+  CustomerCompanyMembershipFilter
 } from '../../domain/ports/ICustomerCompanyRepository';
 import { customerCompanies, customerCompanyMemberships, customers } from '../../../../../shared/schema';
 import { schemaManager } from '../../../../db';
@@ -18,16 +18,16 @@ import { schemaManager } from '../../../../db';
 // Types will be inferred dynamically from tenant schema
 
 export class DrizzleCustomerCompanyRepository implements ICustomerCompanyRepository {
-  
+
   // Customer Company Operations
   async findById(id: string, tenantId: string): Promise<CustomerCompany | null> {
     const tenantConnection = await schemaManager.getTenantDb(tenantId);
     const { db: tenantDb } = tenantConnection;
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-    
+
     const escapedId = id.replace(/'/g, "''");
     const sqlQuery = `
-      SELECT * FROM ${schemaName}.customer_companies 
+      SELECT * FROM ${schemaName}.customer_companies
       WHERE id = '${escapedId}'
       LIMIT 1
     `;
@@ -53,7 +53,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
     // Escape the name parameter to prevent SQL injection
     const escapedName = name.replace(/'/g, "''");
     const sqlQuery = `
-      SELECT * FROM ${schemaName}.customer_companies 
+      SELECT * FROM ${schemaName}.customer_companies
       WHERE name = '${escapedName}'
       LIMIT 1
     `;
@@ -118,7 +118,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
     }
 
     let sqlQuery = `
-      SELECT * FROM ${schemaName}.customer_companies 
+      SELECT * FROM ${schemaName}.customer_companies
       ${whereClause ? `WHERE ${whereClause}` : ''}
       ORDER BY created_at DESC
     `;
@@ -154,9 +154,9 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
       // Update existing company - using direct SQL
       const escapedId = company.getId().replace(/'/g, "''");
       const now = new Date().toISOString();
-      
+
       // Debug logs removed for production security
-      
+
       // Helper function to safely handle null/undefined values
       const safeString = (value: any) => {
         if (value === null || value === undefined) {
@@ -164,10 +164,10 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
         }
         return `'${String(value).replace(/'/g, "''")}'`;
       };
-      
+
       const sqlQuery = `
-        UPDATE ${schemaName}.customer_companies 
-        SET 
+        UPDATE ${schemaName}.customer_companies
+        SET
           name = ${safeString(companyData.name)},
           display_name = ${safeString(companyData.display_name)},
           description = ${safeString(companyData.description)},
@@ -192,9 +192,9 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
     } else {
       // Insert new company - using direct SQL
       const now = new Date().toISOString();
-      
+
       // Debug logs removed for production security
-      
+
       // Helper function to safely handle null/undefined values
       const safeString = (value: unknown) => {
         if (value === null || value === undefined) {
@@ -202,11 +202,11 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
         }
         return `'${String(value).replace(/'/g, "''")}'`;
       };
-      
+
       const sqlQuery = `
         INSERT INTO ${schemaName}.customer_companies (
           id, name, display_name, description, industry, size, status,
-          email, phone, website, subscription_tier, is_active, 
+          email, phone, website, subscription_tier, is_active,
           tenant_id, created_at, updated_at, created_by, updated_by
         ) VALUES (
           ${safeString(companyData.id)},
@@ -239,7 +239,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
   async delete(id: string, tenantId: string): Promise<boolean> {
     const tenantConnection = await schemaManager.getTenantDb(tenantId);
     const { db: tenantDb, schema: tenantSchema } = tenantConnection;
-    
+
     const result = await tenantDb
       .delete(tenantSchema.customerCompanies)
       .where(eq(tenantSchema.customerCompanies.id, id));
@@ -294,8 +294,8 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
     }
 
     const sqlQuery = `
-      SELECT COUNT(*) as count 
-      FROM ${schemaName}.customer_companies 
+      SELECT COUNT(*) as count
+      FROM ${schemaName}.customer_companies
       ${whereClause ? `WHERE ${whereClause}` : ''}
     `;
 
@@ -314,7 +314,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
   async findMembershipById(id: string, tenantId: string): Promise<CustomerCompanyMembership | null> {
     const tenantConnection = await schemaManager.getTenantDb(tenantId);
     const { db: tenantDb, schema: tenantSchema } = tenantConnection;
-    
+
     const result = await tenantDb
       .select()
       .from(tenantSchema.customerCompanyMemberships)
@@ -331,7 +331,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
   async findMembershipsByCustomer(customerId: string, tenantId: string): Promise<CustomerCompanyMembership[]> {
     const tenantConnection = await schemaManager.getTenantDb(tenantId);
     const { db: tenantDb, schema: tenantSchema } = tenantConnection;
-    
+
     const results = await tenantDb
       .select()
       .from(tenantSchema.customerCompanyMemberships)
@@ -344,7 +344,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
   async findMembershipsByCompany(companyId: string, tenantId: string): Promise<CustomerCompanyMembership[]> {
     const tenantConnection = await schemaManager.getTenantDb(tenantId);
     const { db: tenantDb, schema: tenantSchema } = tenantConnection;
-    
+
     const results = await tenantDb
       .select()
       .from(tenantSchema.customerCompanyMemberships)
@@ -356,12 +356,12 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
   async findMemberships(filter: CustomerCompanyMembershipFilter): Promise<CustomerCompanyMembership[]> {
     const tenantConnection = await schemaManager.getTenantDb(filter.tenantId);
     const { db: tenantDb, schema: tenantSchema } = tenantConnection;
-    
+
     let query = tenantDb.select({
       membership: tenantSchema.customerCompanyMemberships,
     })
-    .from(tenantSchema.customerCompanyMemberships)
-    .innerJoin(tenantSchema.customerCompanies, eq(tenantSchema.customerCompanyMemberships.companyId, tenantSchema.customerCompanies.id));
+      .from(tenantSchema.customerCompanyMemberships)
+      .innerJoin(tenantSchema.customerCompanies, eq(tenantSchema.customerCompanyMemberships.companyId, tenantSchema.customerCompanies.id));
 
     const conditions = [];
 
@@ -436,7 +436,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
   async deleteMembership(customerId: string, companyId: string, tenantId: string): Promise<boolean> {
     const tenantConnection = await schemaManager.getTenantDb(tenantId);
     const { db: tenantDb, schema: tenantSchema } = tenantConnection;
-    
+
     const result = await tenantDb
       .delete(tenantSchema.customerCompanyMemberships)
       .where(and(
@@ -450,7 +450,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
   async countMemberships(filter: Omit<CustomerCompanyMembershipFilter, 'limit' | 'offset'>): Promise<number> {
     const tenantConnection = await schemaManager.getTenantDb(filter.tenantId);
     const { db: tenantDb, schema: tenantSchema } = tenantConnection;
-    
+
     const conditions = [];
 
     if (filter.customerId) {
@@ -481,11 +481,11 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
       .select({ count: count() })
       .from(tenantSchema.customerCompanyMemberships)
       .innerJoin(tenantSchema.customerCompanies, eq(tenantSchema.customerCompanyMemberships.companyId, tenantSchema.customerCompanies.id));
-      
+
     if (conditions.length > 0) {
       query = query.where(and(...conditions));
     }
-    
+
     const result = await query;
     return result[0]?.count || 0;
   }
@@ -494,7 +494,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
   async findPrimaryCompanyByCustomer(customerId: string, tenantId: string): Promise<CustomerCompany | null> {
     const tenantConnection = await schemaManager.getTenantDb(tenantId);
     const { db: tenantDb, schema: tenantSchema } = tenantConnection;
-    
+
     const result = await tenantDb
       .select({
         company: tenantSchema.customerCompanies,
@@ -518,7 +518,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
   async findCompaniesByCustomer(customerId: string, tenantId: string): Promise<CustomerCompany[]> {
     const tenantConnection = await schemaManager.getTenantDb(tenantId);
     const { db: tenantDb, schema: tenantSchema } = tenantConnection;
-    
+
     const results = await tenantDb
       .select({
         company: tenantSchema.customerCompanies,
@@ -536,7 +536,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
   async findCustomersByCompany(companyId: string, tenantId: string): Promise<{ customerId: string; role: string; title?: string }[]> {
     const tenantConnection = await schemaManager.getTenantDb(tenantId);
     const { db: tenantDb, schema: tenantSchema } = tenantConnection;
-    
+
     const results = await tenantDb
       .select({
         customerId: tenantSchema.customerCompanyMemberships.customerId,
@@ -564,7 +564,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
   }> {
     const tenantConnection = await schemaManager.getTenantDb(tenantId);
     const { db: tenantDb, schema: tenantSchema } = tenantConnection;
-    
+
     // Get customer counts
     const customerStats = await tenantDb
       .select({
@@ -680,5 +680,19 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
       left_at: membership.getLeftAt(),
       added_by: membership.getAddedBy(),
     };
+  }
+
+  // New method added to fetch all active companies for a tenant
+  async getAllByTenant(tenantId: string): Promise<CustomerCompany[]> {
+    const rows = await this.db
+      .select()
+      .from(customerCompanies)
+      .where(and(
+        eq(customerCompanies.tenantId, tenantId),
+        eq(customerCompanies.isActive, true)
+      ))
+      .orderBy(customerCompanies.name);
+
+    return rows.map(row => CustomerCompany.fromPersistence(row));
   }
 }

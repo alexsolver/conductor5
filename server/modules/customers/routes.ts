@@ -289,7 +289,7 @@ customersRouter.get('/:customerId/beneficiaries', jwtAuth, async (req: Authentic
     }));
 
     console.log(`[BENEFICIARIES-API] ✅ Found ${result.rows.length} beneficiaries for customer ${customerId}:`, formattedBeneficiaries);
-    
+
     res.json({
       success: true,
       beneficiaries: formattedBeneficiaries,

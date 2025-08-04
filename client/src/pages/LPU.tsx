@@ -505,6 +505,14 @@ function PriceListForm({
     customerCompanyId: undefined // Changed from customerId
   });
 
+  // Fetch customer companies
+  const { data: customerCompanies = [], isLoading: companiesLoading } = useQuery({
+    queryKey: ['/api/customers/companies'],
+    queryFn: () => apiRequest('GET', '/api/customers/companies'),
+    retry: 3,
+    staleTime: 30000,
+  });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit(formData);
@@ -569,17 +577,30 @@ function PriceListForm({
       <div className="grid grid-cols-2 gap-4">
         <div>
           <Label htmlFor="customerCompanyId">Empresa Cliente</Label>
-          <Input
-            id="customerCompanyId"
+          <Select
             value={formData.customerCompanyId}
-            onChange={(e) => setFormData(prev => ({ ...prev, customerCompanyId: e.target.value }))}
-            required
-          />
+            onValueChange={(value) => setFormData(prev => ({ ...prev, customerCompanyId: value }))}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder={companiesLoading ? "Carregando empresas..." : "Selecione uma empresa"} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Nenhuma empresa específica</SelectItem>
+              {companiesLoading ? (
+                <SelectItem value="loading" disabled>Carregando empresas...</SelectItem>
+              ) : (
+                Array.isArray(customerCompanies) && customerCompanies.map((company: any) => (
+                  <SelectItem key={company.id} value={company.id}>
+                    {company.name || company.displayName}
+                  </SelectItem>
+                ))
+              )}
+            </SelectContent>
+          </Select>
         </div>
         <div>
           <Label htmlFor="currency">Moeda</Label>
           <Select
-            id="currency"
             value={formData.currency}
             onValueChange={(value) => setFormData(prev => ({ ...prev, currency: value }))}
           >
