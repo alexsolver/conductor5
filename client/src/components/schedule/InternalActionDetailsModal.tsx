@@ -153,7 +153,7 @@ export default function InternalActionDetailsModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      
+
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center gap-2">

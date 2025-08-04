@@ -32,9 +32,6 @@ import {
   Upload,
   FileText,
   AlertCircle,
-  Play,
-  Pause,
-  Square
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch"
 import {
@@ -42,7 +39,6 @@ import {
   CardContent,
 } from "@/components/ui/card"
 
-import { useSimpleTimer } from "@/contexts/SimpleTimerContext";
 
 interface InternalActionModalProps {
   ticketId: string;
@@ -53,12 +49,11 @@ interface InternalActionModalProps {
 }
 
 export default function InternalActionModal({ isOpen, onClose, ticketId, editAction, onStartTimer }: InternalActionModalProps) {
-  const { startAction, hasRunningAction, getRunningActionId, checkForRunningActions } = useSimpleTimer();
   const [formData, setFormData] = useState({
     // Campos obrigatórios da tabela
     action_type: "",
     agent_id: "__none__",
-    
+
     // Campos opcionais da tabela
     title: "",
     description: "",
@@ -69,11 +64,11 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
     estimated_hours: "0",
     status: "pending",
     priority: "medium",
-    
+
     // Campos auxiliares
     attachments: [] as File[]
   });
-  
+
   const [isPublic, setIsPublic] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -145,30 +140,30 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
         // Required fields
         action_type: data.action_type,
         agent_id: data.agent_id === "__none__" ? null : data.agent_id,
-        
+
         // Optional text fields
         title: data.title?.trim() || null,
         description: data.description?.trim() || null,
-        
+
         // NEW: Planned date fields (testing the new database columns)
         planned_start_time: data.planned_start_time ? new Date(data.planned_start_time).toISOString() : null,
         planned_end_time: data.planned_end_time ? new Date(data.planned_end_time).toISOString() : null,
-        
+
         // Actual execution date fields
         start_time: data.start_time ? new Date(data.start_time).toISOString() : null,
         end_time: data.end_time ? new Date(data.end_time).toISOString() : null,
-        
+
         // Numeric fields with proper validation
         estimated_hours: data.estimated_hours ? parseFloat(data.estimated_hours) : 0,
-        
+
         // Status and priority with defaults
         status: data.status || 'pending',
         priority: data.priority || 'medium',
-        
+
         // Visibility flag
         is_public: isPublic,
       };
-      
+
       // Debug log to verify all fields are properly mapped
       console.log('🔍 Internal Action Form Data Being Sent:', {
         originalData: data,
@@ -177,13 +172,13 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
         hasPlannedEndTime: !!cleanedData.planned_end_time,
         allFields: Object.keys(cleanedData)
       });
-      
+
       const response = await apiRequest("POST", `/api/tickets/${ticketId}/actions`, cleanedData);
       return response.json();
     },
     onSuccess: (data) => {
       console.log('✅ Internal Action Created Successfully:', data);
-      
+
       toast({
         title: "Sucesso",
         description: "Ação interna adicionada com sucesso",
@@ -244,7 +239,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
     },
     onSuccess: (data) => {
       console.log('✅ Internal Action Updated Successfully:', data);
-      
+
       toast({
         title: "Sucesso",
         description: "Ação interna atualizada com sucesso",
@@ -292,7 +287,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
     if (formData.planned_start_time && formData.planned_end_time) {
       const startDate = new Date(formData.planned_start_time);
       const endDate = new Date(formData.planned_end_time);
-      
+
       if (endDate <= startDate) {
         toast({
           title: "Erro",
@@ -306,7 +301,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
     if (formData.start_time && formData.end_time) {
       const startDate = new Date(formData.start_time);
       const endDate = new Date(formData.end_time);
-      
+
       if (endDate <= startDate) {
         toast({
           title: "Erro",
@@ -387,21 +382,8 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
           </DialogDescription>
         </DialogHeader>
 
-        {/* Informação sobre Cronômetro */}
-        <div className="border rounded-lg p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950">
-          <div className="flex items-center gap-3">
-            <Clock className="w-5 h-5 text-green-600" />
-            <div>
-              <h3 className="font-medium text-green-900 dark:text-green-100">Cronômetro Simplificado</h3>
-              <p className="text-sm text-green-700 dark:text-green-300">
-                Use o botão "Iniciar Cronômetro" para criar a ação e começar a registrar tempo automaticamente
-              </p>
-            </div>
-          </div>
-        </div>
-
         <div className="space-y-6">
-          
+
           <Card>
             <CardContent className="p-6">
               <div className="space-y-6">
@@ -537,7 +519,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
                       const newValue = e.target.value;
                       setFormData(prev => {
                         const newData = { ...prev, estimated_hours: newValue };
-                        
+
                         // Auto-calculate planned end time if both estimated time and planned start time are filled
                         if (newValue && prev.planned_start_time) {
                           const estimatedMinutes = parseInt(newValue);
@@ -546,22 +528,22 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
                             const [datePart, timePart] = prev.planned_start_time.split('T');
                             const [year, month, day] = datePart.split('-').map(Number);
                             const [hour, minute] = timePart.split(':').map(Number);
-                            
+
                             // Create date in local timezone
                             const startTime = new Date(year, month - 1, day, hour, minute);
                             const endTime = new Date(startTime.getTime() + estimatedMinutes * 60000);
-                            
+
                             // Format back to datetime-local format
                             const endYear = endTime.getFullYear();
                             const endMonth = String(endTime.getMonth() + 1).padStart(2, '0');
                             const endDay = String(endTime.getDate()).padStart(2, '0');
                             const endHour = String(endTime.getHours()).padStart(2, '0');
                             const endMinute = String(endTime.getMinutes()).padStart(2, '0');
-                            
+
                             newData.planned_end_time = `${endYear}-${endMonth}-${endDay}T${endHour}:${endMinute}`;
                           }
                         }
-                        
+
                         return newData;
                       });
                     }}
@@ -587,11 +569,11 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
                           const newValue = e.target.value;
                           setFormData(prev => {
                             const newData = { ...prev, planned_start_time: newValue };
-                            
+
                             // Set initial planned end time to same as planned start time
                             if (newValue) {
                               newData.planned_end_time = newValue;
-                              
+
                               // If estimated time is also filled, calculate the proper end time
                               if (prev.estimated_hours) {
                                 const estimatedMinutes = parseInt(prev.estimated_hours);
@@ -600,23 +582,23 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
                                   const [datePart, timePart] = newValue.split('T');
                                   const [year, month, day] = datePart.split('-').map(Number);
                                   const [hour, minute] = timePart.split(':').map(Number);
-                                  
+
                                   // Create date in local timezone
                                   const startTime = new Date(year, month - 1, day, hour, minute);
                                   const endTime = new Date(startTime.getTime() + estimatedMinutes * 60000);
-                                  
+
                                   // Format back to datetime-local format
                                   const endYear = endTime.getFullYear();
                                   const endMonth = String(endTime.getMonth() + 1).padStart(2, '0');
                                   const endDay = String(endTime.getDate()).padStart(2, '0');
                                   const endHour = String(endTime.getHours()).padStart(2, '0');
                                   const endMinute = String(endTime.getMinutes()).padStart(2, '0');
-                                  
+
                                   newData.planned_end_time = `${endYear}-${endMonth}-${endDay}T${endHour}:${endMinute}`;
                                 }
                               }
                             }
-                            
+
                             return newData;
                           });
                         }}
@@ -768,161 +750,6 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
                       onClick={onClose}
                     >
                       Cancelar
-                    </Button>
-                    
-
-                    {/* Botão Iniciar Cronômetro - apenas no modo de criação */}
-                    <Button
-                      type="button"
-                      onClick={async () => {
-                        // Se é modo edição e tem cronômetro ativo para esta ação - PARAR cronômetro
-                        if (editAction && hasRunningAction && getRunningActionId() === editAction.id) {
-                          try {
-                            const endTime = new Date().toISOString().slice(0, 16);
-                            
-                            const updateData = {
-                              ...formData,
-                              end_time: endTime,
-                              status: "completed"
-                            };
-
-                            console.log('⏹️ [CRONOMETER-STOP] Stopping timer for action:', updateData);
-                            
-                            const response = await apiRequest("PATCH", `/api/tickets/${ticketId}/actions/${editAction.id}`, updateData);
-                            const result = await response.json();
-                            
-                            if (result.success) {
-                              console.log('✅ [CRONOMETER-STOP] Timer stopped and action completed:', result.data);
-                              
-                              // Limpar o cronômetro do contexto
-                              localStorage.removeItem('runningAction');
-                              
-                              toast({
-                                title: "Cronômetro Parado",
-                                description: `Tempo registrado: ${result.data.tempo_realizado || 0} minutos`,
-                              });
-                              
-                              queryClient.invalidateQueries({ queryKey: ["/api/tickets", ticketId, "actions"] });
-                              queryClient.invalidateQueries({ queryKey: ["/api/tickets", ticketId, "history"] });
-                              
-                              // Recarregar a página para atualizar o estado do cronômetro
-                              setTimeout(() => {
-                                window.location.reload();
-                              }, 1000);
-                              
-                              onClose();
-                            } else {
-                              throw new Error(result.message || 'Falha ao parar cronômetro');
-                            }
-                          } catch (error: any) {
-                            console.error('❌ [CRONOMETER-STOP] Error:', error);
-                            toast({
-                              title: "Erro",
-                              description: error.message || "Falha ao parar cronômetro",
-                              variant: "destructive",
-                            });
-                          }
-                          return;
-                        }
-
-                        // Validação para múltiplos cronômetros ao INICIAR
-                        if (hasRunningAction && (!editAction || getRunningActionId() !== editAction.id)) {
-                          toast({
-                            title: "Cronômetro Ativo", 
-                            description: "Já existe uma ação com cronômetro em andamento. Finalize-a antes de iniciar outra.",
-                            variant: "destructive",
-                          });
-                          return;
-                        }
-                        console.log('🚀 [CRONOMETER] Iniciar cronômetro clicked');
-                        
-                        // Validação básica
-                        if (!formData.action_type) {
-                          toast({
-                            title: "Erro",
-                            description: "Selecione um tipo de ação antes de iniciar o cronômetro",
-                            variant: "destructive",
-                          });
-                          return;
-                        }
-                        
-                        if (!formData.agent_id || formData.agent_id === "__none__") {
-                          toast({
-                            title: "Erro", 
-                            description: "Selecione um agente responsável antes de iniciar o cronômetro",
-                            variant: "destructive",
-                          });
-                          return;
-                        }
-
-                        try {
-                          // Preencher automaticamente hora de início
-                          const currentTime = new Date();
-                          const formattedTime = currentTime.toISOString().slice(0, 16);
-                          
-                          const dataWithStartTime = {
-                            ...formData,
-                            start_time: formattedTime,
-                            title: formData.title || "Cronômetro Ativo",
-                            description: formData.description || "Ação em andamento - tempo sendo registrado",
-                            status: "in_progress"
-                          };
-
-                          // Criar a ação com hora de início preenchida
-                          console.log('📝 [CRONOMETER] Creating action with start time:', dataWithStartTime);
-                          
-                          const response = await apiRequest("POST", `/api/tickets/${ticketId}/actions`, dataWithStartTime);
-                          const result = await response.json();
-                          
-                          if (result.success) {
-                            console.log('✅ [CRONOMETER] Action created:', result.data);
-                            
-                            // Iniciar o "cronômetro" - apenas guardar a ação em andamento
-                            startAction(ticketId, result.data.id);
-                            
-                            toast({
-                              title: "Cronômetro Iniciado",
-                              description: "Ação criada e cronômetro iniciado com sucesso",
-                            });
-                            
-                            // Invalidar queries para atualizar lista
-                            queryClient.invalidateQueries({ queryKey: ["/api/tickets", ticketId, "actions"] });
-                            queryClient.invalidateQueries({ queryKey: ["/api/tickets", ticketId, "history"] });
-                            
-                            // Resetar form e fechar modal
-                            resetForm();
-                            onClose();
-                          } else {
-                            throw new Error(result.message || 'Falha ao criar ação');
-                          }
-                        } catch (error: any) {
-                          console.error('❌ [CRONOMETER] Error:', error);
-                          toast({
-                            title: "Erro",
-                            description: error.message || "Falha ao iniciar cronômetro",
-                            variant: "destructive",
-                          });
-                        }
-                      }}
-                      disabled={
-                        createActionMutation.isPending || 
-                        !formData.action_type || 
-                        !formData.agent_id || 
-                        formData.agent_id === "__none__"
-                      }
-                      className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:opacity-50"
-                    >
-                      {hasRunningAction && editAction && getRunningActionId() === editAction.id ? (
-                        <Square className="w-4 h-4 mr-2" />
-                      ) : (
-                        <Play className="w-4 h-4 mr-2" />
-                      )}
-                      {createActionMutation.isPending 
-                        ? "Processando..." 
-                        : (hasRunningAction && editAction && getRunningActionId() === editAction.id 
-                          ? "Parar Cronômetro" 
-                          : "Iniciar Cronômetro")
-                      }
                     </Button>
 
                     <Button
