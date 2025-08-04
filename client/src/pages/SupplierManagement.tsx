@@ -606,7 +606,7 @@ export function SupplierManagement() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="edit-isPreferred">Fornecedor Preferencial</Label>
-                  <Select name="isPreferred" defaultValue={selectedSupplier.isPreferred.toString()}>
+                  <Select name="isPreferred" defaultValue={selectedSupplier?.isPreferred?.toString() || "false"}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
