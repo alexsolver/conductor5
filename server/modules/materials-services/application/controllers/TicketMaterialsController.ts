@@ -131,7 +131,7 @@ export class TicketMaterialsController {
         requiredFields: { itemId, plannedQuantity, lpuId, unitPriceAtPlanning }
       });
 
-      if (!tenantId || !ticketId || !itemId || !plannedQuantity || !lpuId || !unitPriceAtPlanning) {
+      if (!tenantId || !ticketId || !itemId || !plannedQuantity || !lpuId || unitPriceAtPlanning === undefined || unitPriceAtPlanning === null) {
         console.log('❌ [ADD-PLANNED] Missing fields check:', {
           tenantId: !!tenantId,
           ticketId: !!ticketId,

@@ -75,9 +75,7 @@ export function MaterialsServicesMiniSystem({ ticketId }: MaterialsServicesMiniS
         notes: ''
       };
 
-      const response = await apiRequest('POST', `/api/materials-services/tickets/${ticketId}/planned-items`, {
-        body: JSON.stringify(requestData)
-      });
+      const response = await apiRequest('POST', `/api/materials-services/tickets/${ticketId}/planned-items`, requestData);
       return response.json();
     },
     onSuccess: () => {
@@ -108,9 +106,7 @@ export function MaterialsServicesMiniSystem({ ticketId }: MaterialsServicesMiniS
         notes: ''
       };
 
-      const response = await apiRequest('POST', `/api/materials-services/tickets/${ticketId}/consumed-items`, {
-        body: JSON.stringify(requestData)
-      });
+      const response = await apiRequest('POST', `/api/materials-services/tickets/${ticketId}/consumed-items`, requestData);
       return response.json();
     },
     onSuccess: () => {
