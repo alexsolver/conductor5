@@ -2441,7 +2441,7 @@ ticketsRouter.patch('/:ticketId/actions/:actionId', jwtAuth, async (req: Authent
       values.push(action_type);
     }
     if (agent_id !== undefined) {
-      updateFields.push(`assigned_to_id = $${paramIndex++}`);
+      updateFields.push(`agent_id = $${paramIndex++}`);
       values.push(agent_id);
     }
     if (planned_start_time !== undefined) {
