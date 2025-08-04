@@ -387,41 +387,5 @@ export class LPURepository {
     return { success: true, updated: itemMargins?.length || 0 };
   }
 
-  // ESTATÍSTICAS LPU
-  async getLPUStats(tenantId: string) {
-    const allPriceLists = await db
-      .select()
-      .from(priceLists)
-      .where(eq(priceLists.tenantId, tenantId));
-
-    const totalLists = allPriceLists.length;
-    const activeLists = allPriceLists.filter(p => p.isActive).length;
-    const draftLists = allPriceLists.filter(p => !p.isActive).length;
-
-    // Estatísticas de versões
-    const allVersions = await db
-      .select()
-      .from(priceListVersions)
-      .where(eq(priceListVersions.tenantId, tenantId));
-
-    const pendingApproval = allVersions.filter(v => v.status === 'pending_approval').length;
-    const approvedVersions = allVersions.filter(v => v.status === 'approved').length;
-
-    // Regras de precificação
-    const activeRules = await db
-      .select()
-      .from(pricingRules)
-      .where(and(eq(pricingRules.tenantId, tenantId), eq(pricingRules.isActive, true)));
-
-    return {
-      totalLists,
-      activeLists,
-      draftLists,
-      pendingApproval,
-      approvedVersions,
-      activeRules: activeRules.length,
-      approvalRate: approvedVersions > 0 ? 
-        Math.round((approvedVersions / allVersions.length) * 100) : 0
-    };
-  }
+  
 }
