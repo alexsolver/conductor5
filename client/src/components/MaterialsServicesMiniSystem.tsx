@@ -238,7 +238,7 @@ export function MaterialsServicesMiniSystem({ ticketId }: MaterialsServicesMiniS
                         <div key={itemData.id} className="flex items-center justify-between p-3 border rounded-lg">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
-                              <p className="font-medium">{itemDetails.title || material.itemName || 'Item sem nome'}</p>
+                              <p className="font-medium">{itemDetails.name || material.itemName || 'Item sem nome'}</p>
                               <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
                                 {itemDetails.type || material.itemType || 'Tipo não informado'}
                               </span>
@@ -248,7 +248,7 @@ export function MaterialsServicesMiniSystem({ ticketId }: MaterialsServicesMiniS
                             )}
                             <div className="flex items-center gap-4 text-sm">
                               <span className="text-gray-600">Qtd: {itemData.plannedQuantity || material.plannedQuantity || material.quantity}</span>
-                              <span className="text-gray-600">Preço unit.: R$ {parseFloat(itemData.unitPriceAtPlanning || material.unitPriceAtPlanning || itemDetails.costPrice || material.itemUnitCost || 0).toFixed(2)}</span>
+                              <span className="text-gray-600">Preço unit.: R$ {parseFloat(itemData.unitPriceAtPlanning || material.unitPriceAtPlanning || 0).toFixed(2)}</span>
                               <span className="text-green-600 font-medium">Total: R$ {parseFloat(itemData.estimatedCost || material.estimatedCost || 0).toFixed(2)}</span>
                             </div>
                           </div>

@@ -333,9 +333,9 @@ export class TicketMaterialsController {
         priority: row.ticket_planned_items.priority,
         notes: row.ticket_planned_items.notes,
         createdAt: row.ticket_planned_items.createdAt,
-        itemName: row.items?.title || 'Item não encontrado',
+        itemName: row.items?.name || 'Item não encontrado',
         itemType: row.items?.type || 'Tipo não informado',
-        unitCost: parseFloat(row.items?.costPrice || '0'),
+        unitCost: 0, // Price will come from LPU
         itemDescription: row.items?.description || ''
       }));
 
