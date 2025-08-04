@@ -807,7 +807,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
                             start_time: formattedTime,
                             title: formData.title || "Cronômetro Ativo",
                             description: formData.description || "Ação em andamento - tempo sendo registrado",
-                            status: "pending"
+                            status: "in_progress"
                           };
 
                           // Criar a ação com hora de início preenchida

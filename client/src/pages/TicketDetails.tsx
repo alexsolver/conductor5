@@ -1960,7 +1960,11 @@ const TicketDetails = React.memo(() => {
                   return (
                   <Card 
                     key={`internal-action-${action.id}-${index}`} 
-                    className="border-l-4 border-l-blue-500"
+                    className={`border-l-4 ${
+                      action.status === 'in_progress' ? 'border-l-green-500 bg-green-50' :
+                      action.status === 'completed' ? 'border-l-gray-400 bg-gray-50' :
+                      'border-l-blue-500'
+                    }`}
                   >
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between">
@@ -1981,8 +1985,19 @@ const TicketDetails = React.memo(() => {
                             <Badge variant={action.is_public ? 'default' : 'secondary'}>
                               {action.is_public ? 'Público' : 'Privado'}
                             </Badge>
-                            <Badge variant={action.status === 'completed' ? 'default' : 'secondary'} className="text-xs">
-                              {action.status === 'completed' ? 'Concluída' : 'Pendente'}
+                            <Badge 
+                              variant={
+                                action.status === 'completed' ? 'default' : 
+                                action.status === 'in_progress' ? 'default' : 'secondary'
+                              } 
+                              className={`text-xs ${
+                                action.status === 'in_progress' ? 'bg-green-100 text-green-800 border-green-300' :
+                                action.status === 'completed' ? 'bg-gray-100 text-gray-800 border-gray-300' :
+                                ''
+                              }`}
+                            >
+                              {action.status === 'completed' ? 'Concluída' : 
+                               action.status === 'in_progress' ? 'Em Andamento' : 'Pendente'}
                             </Badge>
                             {action.assigned_to_name && (
                               <Badge 
