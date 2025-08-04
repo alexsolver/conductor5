@@ -46,11 +46,13 @@ interface InternalActionModalProps {
   ticketId: string;
   isOpen: boolean;
   onClose: () => void;
-  onStartTimer?: () => void;
+  onStartTimer?: (ticketId: string) => Promise<string>;
   timerState?: {
     isRunning: boolean;
     startTime: number | null;
     elapsedTime: number;
+    currentActionId: string | null;
+    currentTicketId: string | null;
   };
 }
 
@@ -346,9 +348,15 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, onStart
             <div className="flex gap-2">
               {!timerState || !timerState.isRunning ? (
                 <Button
-                  onClick={() => {
-                    onStartTimer?.();
-                    onClose();
+                  onClick={async () => {
+                    try {
+                      if (onStartTimer) {
+                        await onStartTimer(ticketId);
+                      }
+                      onClose();
+                    } catch (error) {
+                      console.error('Failed to start timer:', error);
+                    }
                   }}
                   variant="outline"
                   size="sm"

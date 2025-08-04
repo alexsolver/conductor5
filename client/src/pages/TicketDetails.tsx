@@ -1013,7 +1013,7 @@ const TicketDetails = React.memo(() => {
       beneficiary_id: data.beneficiaryId,
       beneficiary_type: data.beneficiaryType || 'customer',
       beneficiaryType: data.beneficiaryType || 'customer', // Add explicit field for type validation
-      assigned_to_id: data.assignedToId,
+      assigned_to_id: data.responsibleId,
       assignment_group: data.assignmentGroup,
 
       // CORREÇÃO PROBLEMA 3: Location field consistency - usar apenas location (campo texto)
@@ -1937,8 +1937,17 @@ const TicketDetails = React.memo(() => {
                   <p className="text-xs text-gray-400">Use o botão "Nova Ação" para começar</p>
                 </div>
               ) : (
-                internalActions.map((action, index) => (
-                  <Card key={`internal-action-${action.id}-${index}`} className="border-l-4 border-l-blue-500">
+                internalActions.map((action, index) => {
+                  const isRunningAction = timerState?.isRunning && timerState?.currentActionId === action.id;
+                  return (
+                  <Card 
+                    key={`internal-action-${action.id}-${index}`} 
+                    className={`border-l-4 ${
+                      isRunningAction 
+                        ? 'border-l-red-500 bg-red-50 dark:bg-red-950 ring-2 ring-red-200 dark:ring-red-800' 
+                        : 'border-l-blue-500'
+                    }`}
+                  >
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
@@ -2019,7 +2028,8 @@ const TicketDetails = React.memo(() => {
                       </div>
                     </CardContent>
                   </Card>
-                ))
+                  );
+                })
               )}
             </div>
           </div>

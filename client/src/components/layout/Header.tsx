@@ -66,6 +66,20 @@ export function Header({ timerState, onTimerClick }: HeaderProps = {}) {
         </div>
 
         <div className="flex items-center space-x-4">
+          {/* Timer Icon - Only visible when timer is running */}
+          {timerState?.isRunning && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="relative text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 animate-pulse"
+              onClick={onTimerClick}
+              title="Cronômetro ativo - Clique para finalizar"
+            >
+              <Clock className="h-5 w-5" />
+              <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-gray-800 animate-ping"></span>
+            </Button>
+          )}
+          
           {/* Notifications */}
           <Button
             variant="ghost"

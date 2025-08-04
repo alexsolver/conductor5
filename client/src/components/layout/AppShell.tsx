@@ -10,14 +10,19 @@ interface AppShellProps {
 
 export function AppShell({ children }: AppShellProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const { timerState } = useTimer();
+  const { timerState, finishCurrentAction } = useTimer();
   const [, navigate] = useLocation();
 
-  const handleTimerClick = () => {
-    // Navigate back to the ticket page when timer aura is clicked
-    // You might want to store the current ticket ID in the timer context
-    // For now, we'll just show an alert
-    alert('Timer is running! Click to return to the ticket where the timer was started.');
+  const handleTimerClick = async () => {
+    try {
+      await finishCurrentAction();
+      // Navigate to the ticket page if we have a current ticket
+      if (timerState.currentTicketId) {
+        navigate(`/tickets/${timerState.currentTicketId}`);
+      }
+    } catch (error) {
+      console.error('Failed to finish timer action:', error);
+    }
   };
 
   return (
