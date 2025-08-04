@@ -144,6 +144,42 @@ export default function ItemCatalog() {
     }
   });
 
+  const updateItemMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string, data: z.infer<typeof itemSchema> }) => {
+      const response = await fetch(`/api/materials-services/items/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to update item');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items/stats"] });
+      toast({
+        title: "Item atualizado com sucesso",
+        description: "As alterações foram salvas.",
+      });
+      setIsEditModalOpen(false);
+      form.reset();
+      setSelectedItem(null);
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro ao atualizar item",
+        description: "Ocorreu um erro ao atualizar o item. Tente novamente.",
+        variant: "destructive",
+      });
+    }
+  });
+
   // Extract data from API responses
   const items: Item[] = (itemsResponse as any)?.data || [];
   const itemStats = (itemStatsResponse as any)?.data || { total: 0, materials: 0, services: 0, active: 0 };
@@ -169,14 +205,7 @@ export default function ItemCatalog() {
 
   const onSubmit = async (data: z.infer<typeof itemSchema>) => {
     if (selectedItem) {
-      // TODO: Implementar edição de item
-      toast({
-        title: "Item atualizado com sucesso",
-        description: `${data.name} foi atualizado com sucesso.`,
-      });
-      setIsEditModalOpen(false);
-      form.reset();
-      setSelectedItem(null);
+      updateItemMutation.mutate({ id: selectedItem.id, data });
     } else {
       createItemMutation.mutate(data);
     }
@@ -407,9 +436,9 @@ export default function ItemCatalog() {
                     </FormItem>
                   )}
                 />
-                <Button type="submit" disabled={createItemMutation.isPending}>
-                  {createItemMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Salvar
+                <Button type="submit" disabled={createItemMutation.isPending || updateItemMutation.isPending}>
+                  {(createItemMutation.isPending || updateItemMutation.isPending) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {selectedItem ? 'Atualizar' : 'Salvar'}
                 </Button>
               </form>
             </Form>
@@ -588,8 +617,157 @@ export default function ItemCatalog() {
               Altere as informações do item selecionado
             </DialogDescription>
           </DialogHeader>
-          {/* TODO: Implementar formulário de edição */}
-          <p>Formulário de edição em desenvolvimento...</p>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+              <FormField
+                control={form.control}
+                name="type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tipo</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o tipo" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="material">Material</SelectItem>
+                        <SelectItem value="service">Serviço</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nome</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Nome do item" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="integrationCode"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Código de Integração</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Código de Integração" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Descrição</FormLabel>
+                    <FormControl>
+                      <Textarea placeholder="Descrição do item" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="measurementUnit"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Unidade de Medida</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione a unidade" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {measurementUnits.map((unit) => (
+                          <SelectItem key={unit.value} value={unit.value}>
+                            {unit.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="group"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Grupo</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Grupo do item" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="maintenancePlan"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Plano de Manutenção</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Plano de Manutenção" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="defaultChecklist"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Checklist Padrão</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Checklist Padrão" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="active"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel>Ativo</FormLabel>
+                      <FormDescription>
+                        Define se o item está ativo ou inativo.
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <Button type="submit" disabled={updateItemMutation.isPending}>
+                {updateItemMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Atualizar Item
+              </Button>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
     </div>
