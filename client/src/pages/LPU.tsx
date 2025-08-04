@@ -138,7 +138,13 @@ export default function LPU() {
   });
 
   const handleCreatePriceList = (data: Partial<PriceList>) => {
-    createPriceListMutation.mutate(data);
+    // Convert date string to Date object
+    const processedData = {
+      ...data,
+      validFrom: data.validFrom ? new Date(data.validFrom) : new Date(),
+      validTo: data.validTo ? new Date(data.validTo) : undefined
+    };
+    createPriceListMutation.mutate(processedData);
   };
 
   const handleCreatePricingRule = (data: Partial<PricingRule>) => {
