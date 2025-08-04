@@ -115,10 +115,13 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const finishCurrentAction = useCallback(async () => {
-    if (!timerState.currentActionId || !timerState.currentTicketId) {
-      console.log('🚫 [TIMER] Cannot finish - missing actionId or ticketId');
+    if (!timerState.currentActionId || !timerState.currentTicketId || !timerState.isRunning) {
+      console.log('🚫 [TIMER] Cannot finish - missing actionId, ticketId or timer not running');
       return;
     }
+
+    // Prevent multiple executions by immediately setting isRunning to false
+    setTimerState(prev => ({ ...prev, isRunning: false }));
 
     try {
       console.log('🏁 [TIMER] Finishing action:', timerState.currentActionId);
@@ -154,6 +157,7 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
         timerInterval.current = null;
       }
 
+      // Complete timer reset
       setTimerState({
         isRunning: false,
         startTime: null,
@@ -165,8 +169,20 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
       console.log('🎯 [TIMER] Timer finished and cache invalidated');
     } catch (error) {
       console.error('❌ [TIMER] Failed to finish action:', error);
+      // Reset timer state even on error
+      setTimerState({
+        isRunning: false,
+        startTime: null,
+        elapsedTime: 0,
+        currentActionId: null,
+        currentTicketId: null
+      });
+      if (timerInterval.current) {
+        clearInterval(timerInterval.current);
+        timerInterval.current = null;
+      }
     }
-  }, [timerState.currentActionId, timerState.currentTicketId, timerState.startTime]);
+  }, [timerState.currentActionId, timerState.currentTicketId, timerState.startTime, timerState.isRunning]);
 
   const resetTimer = useCallback(() => {
     if (timerInterval.current) {
