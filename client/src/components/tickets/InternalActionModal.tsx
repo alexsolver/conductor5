@@ -99,12 +99,33 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
 
 
 
-  // Reset form when modal opens
+  // Reset form when modal opens or load edit data
   useEffect(() => {
     if (isOpen) {
-      resetForm();
+      if (editAction) {
+        // Modo de edição - carregar dados da ação
+        console.log('🔧 [EDIT-MODE] Loading action data:', editAction);
+        setFormData({
+          action_type: editAction.type || editAction.action_type || "",
+          agent_id: editAction.assigned_to_id || "__none__",
+          title: editAction.title || "",
+          description: editAction.description || editAction.content || editAction.work_log || "",
+          planned_start_time: editAction.planned_start_time || "",
+          planned_end_time: editAction.planned_end_time || "",
+          start_time: editAction.start_time ? editAction.start_time.slice(0, 16) : "",
+          end_time: editAction.end_time ? editAction.end_time.slice(0, 16) : "",
+          estimated_hours: editAction.estimated_minutes ? (parseFloat(editAction.estimated_minutes) / 60).toString() : "0",
+          status: editAction.status || "pending",
+          priority: editAction.priority || "medium",
+          attachments: []
+        });
+        setIsPublic(editAction.is_public || false);
+      } else {
+        // Modo de criação - resetar form
+        resetForm();
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, editAction]);
 
   // Fetch team members for assignment dropdown
   const { data: teamMembers } = useQuery({
@@ -181,6 +202,67 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
       toast({
         title: "Erro",
         description: error.message || "Falha ao adicionar ação interna",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Update internal action mutation (for edit mode)
+  const updateActionMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const cleanedData = {
+        action_type: data.action_type,
+        agent_id: data.agent_id === "__none__" ? null : data.agent_id,
+        title: data.title?.trim() || null,
+        description: data.description?.trim() || null,
+        planned_start_time: data.planned_start_time ? new Date(data.planned_start_time).toISOString() : null,
+        planned_end_time: data.planned_end_time ? new Date(data.planned_end_time).toISOString() : null,
+        start_time: data.start_time ? new Date(data.start_time).toISOString() : null,
+        end_time: data.end_time ? new Date(data.end_time).toISOString() : null,
+        estimated_hours: data.estimated_hours ? parseFloat(data.estimated_hours) : 0,
+        status: data.status || 'pending',
+        priority: data.priority || 'medium',
+        is_public: isPublic,
+      };
+
+      console.log('🔧 [UPDATE] Updating action:', editAction.id, cleanedData);
+
+      const response = await fetch(`/api/tickets/${ticketId}/actions/${editAction.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(cleanedData)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error(`Failed to update action: ${response.status} ${errorData}`);
+      }
+
+      return response.json();
+    },
+    onSuccess: (data) => {
+      console.log('✅ Internal Action Updated Successfully:', data);
+      
+      toast({
+        title: "Sucesso",
+        description: "Ação interna atualizada com sucesso",
+      });
+
+      // Reset form data
+      resetForm();
+
+      // Invalidate queries to refresh the actions list and history
+      queryClient.invalidateQueries({ queryKey: ["/api/tickets", ticketId, "actions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tickets", ticketId, "history"] });
+
+      onClose();
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro",
+        description: error.message || "Falha ao atualizar ação interna",
         variant: "destructive",
       });
     },
@@ -264,7 +346,12 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
       return;
     }
 
-    createActionMutation.mutate(formData);
+    // Submit the form - use appropriate mutation based on mode
+    if (editAction) {
+      updateActionMutation.mutate(formData);
+    } else {
+      createActionMutation.mutate(formData);
+    }
   };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -290,10 +377,13 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <MessageSquare className="w-5 h-5" />
-            Nova Ação Interna
+            {editAction ? 'Editar Ação Interna' : 'Nova Ação Interna'}
           </DialogTitle>
           <DialogDescription>
-            Registre uma nova ação interna realizada neste ticket. Todos os campos marcados com * são obrigatórios.
+            {editAction 
+              ? 'Edite os dados da ação interna selecionada.'
+              : 'Registre uma nova ação interna realizada neste ticket. Todos os campos marcados com * são obrigatórios.'
+            }
           </DialogDescription>
         </DialogHeader>
 
@@ -681,9 +771,11 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
                     </Button>
                     
 
-                    <Button
-                      type="button"
-                      onClick={async () => {
+                    {/* Botão Iniciar Cronômetro - apenas no modo de criação */}
+                    {!editAction && (
+                      <Button
+                        type="button"
+                        onClick={async () => {
                         console.log('🚀 [CRONOMETER] Iniciar cronômetro clicked');
                         
                         // Validação básica
@@ -765,11 +857,12 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
                       <Play className="w-4 h-4 mr-2" />
                       {createActionMutation.isPending ? "Iniciando..." : "Iniciar Cronômetro"}
                     </Button>
+                    )}
 
                     <Button
                       onClick={handleSubmit}
                       disabled={
-                        createActionMutation.isPending || 
+                        (editAction ? updateActionMutation.isPending : createActionMutation.isPending) || 
                         !formData.action_type || 
                         !formData.agent_id || 
                         formData.agent_id === "__none__" ||
@@ -784,7 +877,10 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
                       className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:opacity-50"
                     >
                       <Send className="w-4 h-4 mr-2" />
-                      {createActionMutation.isPending ? "Salvando..." : "Salvar Ação"}
+                      {(editAction ? updateActionMutation.isPending : createActionMutation.isPending) 
+                        ? "Salvando..." 
+                        : (editAction ? "Atualizar Ação" : "Salvar Ação")
+                      }
                     </Button>
                   </div>
                 </div>

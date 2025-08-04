@@ -45,7 +45,7 @@ import { UserSelect } from "@/components/ui/UserSelect";
 import { UserMultiSelect } from "@/components/ui/UserMultiSelect";
 import TicketLinkingModal from "@/components/tickets/TicketLinkingModal";
 import InternalActionModal from "@/components/tickets/InternalActionModal";
-import EditInternalActionModal from "@/components/tickets/EditInternalActionModal";
+
 import { TicketDescriptionEditor } from "@/components/TicketDescriptionEditor";
 import { GroupSelect } from "@/components/GroupSelect";
 import { FilteredUserSelect } from "@/components/FilteredUserSelect";
@@ -3553,8 +3553,13 @@ const TicketDetails = React.memo(() => {
       {/* Internal Action Modal */}
       <InternalActionModal 
         ticketId={id || ''} 
-        isOpen={showInternalActionModal} 
-        onClose={() => setShowInternalActionModal(false)} 
+        isOpen={showInternalActionModal || editActionModalOpen} 
+        onClose={() => {
+          setShowInternalActionModal(false);
+          setEditActionModalOpen(false);
+          setActionToEdit(null);
+        }}
+        editAction={actionToEdit}
       />
 
       {/* Company Details Modal */}
@@ -3946,23 +3951,9 @@ const TicketDetails = React.memo(() => {
         currentTicket={ticket}
       />
 
-      {/* Internal Action Modal Second Instance */}
-      <InternalActionModal 
-        ticketId={id || ''} 
-        isOpen={showInternalActionModal} 
-        onClose={() => setShowInternalActionModal(false)} 
-      />
 
-      {/* Edit Internal Action Modal */}
-      <EditInternalActionModal
-        ticketId={id || ''}
-        action={actionToEdit}
-        isOpen={editActionModalOpen}
-        onClose={() => {
-          setEditActionModalOpen(false);
-          setActionToEdit(null);
-        }}
-      />
+
+
 
     </div>
   );
