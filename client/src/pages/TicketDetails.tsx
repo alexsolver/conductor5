@@ -21,7 +21,7 @@ import {
   Clock, Download, ExternalLink, Filter, MoreVertical, Trash, Link2,
   AlertTriangle, Mail, PlusCircle, Activity, RefreshCw, Ticket, Link, EyeOff,
   CheckCircle, Star, TrendingUp, Building2, MapPin, BarChart3,
-  Copy, ArrowDown, ArrowUp, Calendar
+  Copy, ArrowDown, ArrowUp, Calendar, Package
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -82,7 +82,7 @@ const TicketDetails = React.memo(() => {
   // Handle hash-based navigation for direct tab access
   useEffect(() => {
     const hash = window.location.hash.replace('#', '');
-    if (hash && ['informacoes', 'attachments', 'notes', 'communications', 'history', 'internal-actions', 'links', 'latest-interactions'].includes(hash)) {
+    if (hash && ['informacoes', 'attachments', 'notes', 'communications', 'history', 'internal-actions', 'links', 'materials', 'latest-interactions'].includes(hash)) {
       setActiveTab(hash);
     }
   }, []);
@@ -157,6 +157,7 @@ const TicketDetails = React.memo(() => {
     { id: "history", label: "Histórico", icon: History },
     { id: "internal-actions", label: "Ações Internas", icon: Settings },
     { id: "links", label: "Vínculos", icon: Link },
+    { id: "materials", label: "Materiais", icon: Package },
   ];
 
   // 🚀 OTIMIZAÇÃO: Parallel queries com cache inteligente
@@ -2437,6 +2438,61 @@ const TicketDetails = React.memo(() => {
           </div>
         );
 
+      case "materials":
+        return (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold flex items-center gap-2">
+                <Package className="h-5 w-5 text-blue-600" />
+                Materiais e Serviços
+              </h2>
+              <Button
+                onClick={() => navigate(`/tickets/${id}/materials`)}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+                size="sm"
+              >
+                <ExternalLink className="h-4 w-4 mr-2" />
+                Abrir Sistema Completo
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <Card className="p-4 text-center border-blue-200 bg-blue-50">
+                <h3 className="text-lg font-semibold text-blue-800">Planejados</h3>
+                <p className="text-sm text-blue-600 mt-1">Materiais programados para uso</p>
+                <div className="text-2xl font-bold text-blue-700 mt-2">-</div>
+              </Card>
+              
+              <Card className="p-4 text-center border-green-200 bg-green-50">
+                <h3 className="text-lg font-semibold text-green-800">Consumidos</h3>
+                <p className="text-sm text-green-600 mt-1">Realmente utilizados</p>
+                <div className="text-2xl font-bold text-green-700 mt-2">-</div>
+              </Card>
+              
+              <Card className="p-4 text-center border-purple-200 bg-purple-50">
+                <h3 className="text-lg font-semibold text-purple-800">Total Custo</h3>
+                <p className="text-sm text-purple-600 mt-1">Custo total estimado</p>
+                <div className="text-2xl font-bold text-purple-700 mt-2">R$ -</div>
+              </Card>
+            </div>
+
+            <Card className="p-6 border-2 border-dashed border-gray-300 text-center">
+              <Package className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+              <h3 className="text-lg font-medium text-gray-700 mb-2">Sistema de Materiais Completo</h3>
+              <p className="text-gray-500 mb-4">
+                Para planejar materiais, registrar consumo e controlar custos, acesse o sistema completo.
+              </p>
+              <Button
+                onClick={() => navigate(`/tickets/${id}/materials`)}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                <Package className="h-4 w-4 mr-2" />
+                Acessar Materiais
+              </Button>
+            </Card>
+          </div>
+        );
+
       default:
         return (
           <div className="space-y-4">
@@ -3261,6 +3317,18 @@ const TicketDetails = React.memo(() => {
             <Badge variant="outline" className="text-xs bg-blue-50 text-blue-600">
               {notes?.length || 0}
             </Badge>
+          </button>
+
+          <button
+            onClick={() => setActiveTab("materials")}
+            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
+              activeTab === "materials" 
+                ? 'bg-green-50 text-green-700 border border-green-200'
+                : 'hover:bg-gray-50'
+            }`}
+          >
+            <Package className="h-4 w-4" />
+            <span className="text-sm font-medium">Materiais</span>
           </button>
 
           <button
