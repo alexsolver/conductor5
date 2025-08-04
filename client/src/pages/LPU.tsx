@@ -64,6 +64,7 @@ export default function LPU() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [isCreateRuleDialogOpen, setIsCreateRuleDialogOpen] = useState(false);
   const [editingPriceList, setEditingPriceList] = useState<PriceList | null>(null);
 
   // Fetch price lists
@@ -166,6 +167,7 @@ export default function LPU() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/materials-services/lpu/pricing-rules'] });
+      setIsCreateRuleDialogOpen(false);
       toast({ title: "Regra de precificação criada com sucesso!" });
     },
     onError: (error) => {
@@ -312,7 +314,7 @@ export default function LPU() {
                   <Calculator className="w-5 h-5" />
                   Regras de Precificação
                 </CardTitle>
-                <Button onClick={() => {/* TODO: Implement create rule dialog */}} variant="outline">
+                <Button onClick={() => setIsCreateRuleDialogOpen(true)} variant="outline">
                   <Plus className="w-4 h-4 mr-2" />
                   Nova Regra
                 </Button>
@@ -399,6 +401,20 @@ export default function LPU() {
               isLoadingItems={itemsLoading}
             />
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Pricing Rule Dialog */}
+      <Dialog open={isCreateRuleDialogOpen} onOpenChange={setIsCreateRuleDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Nova Regra de Precificação</DialogTitle>
+          </DialogHeader>
+          <PricingRuleForm
+            onSubmit={(data: Partial<PricingRule>) => createPricingRuleMutation.mutate(data)}
+            isLoading={createPricingRuleMutation.isPending}
+            onCancel={() => setIsCreateRuleDialogOpen(false)}
+          />
         </DialogContent>
       </Dialog>
     </div>
@@ -641,5 +657,104 @@ function PriceListViewer({
         )}
       </div>
     </div>
+  );
+}
+
+// Pricing Rule Form Component
+function PricingRuleForm({ 
+  onSubmit, 
+  isLoading, 
+  onCancel 
+}: { 
+  onSubmit: (data: Partial<PricingRule>) => void; 
+  isLoading: boolean;
+  onCancel: () => void;
+}) {
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    ruleType: 'percentage',
+    priority: 1,
+    isActive: true,
+    conditions: {},
+    actions: {}
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit(formData);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="name">Nome da Regra</Label>
+          <Input
+            id="name"
+            value={formData.name}
+            onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor="ruleType">Tipo de Regra</Label>
+          <Select value={formData.ruleType} onValueChange={(value) => setFormData(prev => ({ ...prev, ruleType: value }))}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="percentage">Percentual</SelectItem>
+              <SelectItem value="fixed">Valor Fixo</SelectItem>
+              <SelectItem value="tiered">Escalonada</SelectItem>
+              <SelectItem value="dynamic">Dinâmica</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div>
+        <Label htmlFor="description">Descrição</Label>
+        <Textarea
+          id="description"
+          value={formData.description}
+          onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+          rows={3}
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="priority">Prioridade (1-10)</Label>
+        <Input
+          id="priority"
+          type="number"
+          min="1"
+          max="10"
+          value={formData.priority}
+          onChange={(e) => setFormData(prev => ({ ...prev, priority: parseInt(e.target.value) || 1 }))}
+        />
+      </div>
+
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          <input
+            type="checkbox"
+            id="isActive"
+            checked={formData.isActive}
+            onChange={(e) => setFormData(prev => ({ ...prev, isActive: e.target.checked }))}
+          />
+          <Label htmlFor="isActive">Regra Ativa</Label>
+        </div>
+        
+        <div className="flex gap-2">
+          <Button type="button" variant="outline" onClick={onCancel}>
+            Cancelar
+          </Button>
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? "Criando..." : "Criar Regra"}
+          </Button>
+        </div>
+      </div>
+    </form>
   );
 }
