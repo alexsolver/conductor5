@@ -12,11 +12,15 @@ import {
   Edit, 
   Eye, 
   Trash2,
-  Loader2
+  Loader2,
+  Link,
+  Building,
+  Users,
+  Truck
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
@@ -24,6 +28,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 
 // Types
@@ -78,6 +83,11 @@ export default function ItemCatalog() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [itemTypeTab, setItemTypeTab] = useState("materials");
+  
+  // Estados para vínculos
+  const [linkedItems, setLinkedItems] = useState<string[]>([]);
+  const [linkedCustomers, setLinkedCustomers] = useState<string[]>([]);
+  const [linkedSuppliers, setLinkedSuppliers] = useState<string[]>([]);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -105,6 +115,22 @@ export default function ItemCatalog() {
 
   const { data: itemStatsResponse } = useQuery({
     queryKey: ["/api/materials-services/items/stats"],
+    enabled: true
+  });
+
+  // Queries para vínculos
+  const { data: availableItems } = useQuery({
+    queryKey: ["/api/materials-services/items"],
+    enabled: true
+  });
+
+  const { data: availableCustomers } = useQuery({
+    queryKey: ["/api/customer-companies"],
+    enabled: true
+  });
+
+  const { data: availableSuppliers } = useQuery({
+    queryKey: ["/api/materials-services/suppliers"],
     enabled: true
   });
 
@@ -256,7 +282,7 @@ export default function ItemCatalog() {
           onClick={() => {
             setSelectedItem(item);
             form.reset(item);
-            setIsEditModalOpen(true);
+            setIsCreateModalOpen(true);
           }}
         >
           <Edit className="h-4 w-4" />
@@ -279,43 +305,59 @@ export default function ItemCatalog() {
             Ponto de entrada para cadastro de materiais e serviços
           </p>
         </div>
-        <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+        <Dialog open={isCreateModalOpen} onOpenChange={(open) => {
+          setIsCreateModalOpen(open);
+          if (!open) {
+            setSelectedItem(null);
+            form.reset();
+            setLinkedItems([]);
+            setLinkedCustomers([]);
+            setLinkedSuppliers([]);
+          }
+        }}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="h-4 w-4 mr-2" />
               Criar Item
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Criar Novo Item</DialogTitle>
+              <DialogTitle>{selectedItem ? 'Editar Item' : 'Criar Novo Item'}</DialogTitle>
               <DialogDescription>
-                Cadastre um novo material ou serviço no sistema
+                {selectedItem ? 'Altere as informações do item selecionado' : 'Cadastre um novo material ou serviço no sistema'}
               </DialogDescription>
             </DialogHeader>
-           <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                <FormField
-                  control={form.control}
-                  name="type"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Tipo</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione o tipo" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="material">Material</SelectItem>
-                          <SelectItem value="service">Serviço</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+            <Tabs defaultValue="basic" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="basic">Informações Básicas</TabsTrigger>
+                <TabsTrigger value="links">Vínculos</TabsTrigger>
+              </TabsList>
+              
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                  <TabsContent value="basic" className="space-y-6">
+                    <FormField
+                      control={form.control}
+                      name="type"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Tipo</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione o tipo" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="material">Material</SelectItem>
+                              <SelectItem value="service">Serviço</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                 <FormField
                   control={form.control}
                   name="name"
@@ -436,12 +478,126 @@ export default function ItemCatalog() {
                     </FormItem>
                   )}
                 />
-                <Button type="submit" disabled={createItemMutation.isPending || updateItemMutation.isPending}>
-                  {(createItemMutation.isPending || updateItemMutation.isPending) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  {selectedItem ? 'Atualizar' : 'Salvar'}
-                </Button>
-              </form>
-            </Form>
+                  </TabsContent>
+                  
+                  <TabsContent value="links" className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      {/* Vincular Itens */}
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2">
+                            <Link className="h-5 w-5" />
+                            Vincular Itens
+                          </CardTitle>
+                          <CardDescription>
+                            Vincule este item a outros itens do catálogo
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-3">
+                            {(availableItems as any)?.data?.filter((item: any) => item.id !== selectedItem?.id)?.map((item: any) => (
+                              <div key={item.id} className="flex items-center space-x-2">
+                                <Checkbox
+                                  id={`item-${item.id}`}
+                                  checked={linkedItems.includes(item.id)}
+                                  onCheckedChange={(checked) => {
+                                    if (checked) {
+                                      setLinkedItems([...linkedItems, item.id]);
+                                    } else {
+                                      setLinkedItems(linkedItems.filter(id => id !== item.id));
+                                    }
+                                  }}
+                                />
+                                <label htmlFor={`item-${item.id}`} className="text-sm">
+                                  {item.name}
+                                </label>
+                              </div>
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      {/* Vincular Clientes */}
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2">
+                            <Building className="h-5 w-5" />
+                            Vincular Clientes
+                          </CardTitle>
+                          <CardDescription>
+                            Vincule este item a empresas clientes
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-3">
+                            {(availableCustomers as any)?.map((customer: any) => (
+                              <div key={customer.id} className="flex items-center space-x-2">
+                                <Checkbox
+                                  id={`customer-${customer.id}`}
+                                  checked={linkedCustomers.includes(customer.id)}
+                                  onCheckedChange={(checked) => {
+                                    if (checked) {
+                                      setLinkedCustomers([...linkedCustomers, customer.id]);
+                                    } else {
+                                      setLinkedCustomers(linkedCustomers.filter(id => id !== customer.id));
+                                    }
+                                  }}
+                                />
+                                <label htmlFor={`customer-${customer.id}`} className="text-sm">
+                                  {customer.name}
+                                </label>
+                              </div>
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      {/* Vincular Fornecedores */}
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2">
+                            <Truck className="h-5 w-5" />
+                            Vincular Fornecedores
+                          </CardTitle>
+                          <CardDescription>
+                            Vincule este item a fornecedores
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-3">
+                            {(availableSuppliers as any)?.data?.map((supplier: any) => (
+                              <div key={supplier.id} className="flex items-center space-x-2">
+                                <Checkbox
+                                  id={`supplier-${supplier.id}`}
+                                  checked={linkedSuppliers.includes(supplier.id)}
+                                  onCheckedChange={(checked) => {
+                                    if (checked) {
+                                      setLinkedSuppliers([...linkedSuppliers, supplier.id]);
+                                    } else {
+                                      setLinkedSuppliers(linkedSuppliers.filter(id => id !== supplier.id));
+                                    }
+                                  }}
+                                />
+                                <label htmlFor={`supplier-${supplier.id}`} className="text-sm">
+                                  {supplier.name}
+                                </label>
+                              </div>
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </TabsContent>
+                  
+                  <div className="flex justify-end pt-6">
+                    <Button type="submit" disabled={createItemMutation.isPending || updateItemMutation.isPending}>
+                      {(createItemMutation.isPending || updateItemMutation.isPending) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      {selectedItem ? 'Atualizar' : 'Salvar'}
+                    </Button>
+                  </div>
+                </form>
+              </Form>
+            </Tabs>
           </DialogContent>
         </Dialog>
       </div>
@@ -608,168 +764,7 @@ export default function ItemCatalog() {
         </TabsContent>
       </Tabs>
 
-      {/* Modal de Edição */}
-      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Editar Item</DialogTitle>
-            <DialogDescription>
-              Altere as informações do item selecionado
-            </DialogDescription>
-          </DialogHeader>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-              <FormField
-                control={form.control}
-                name="type"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Tipo</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione o tipo" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="material">Material</SelectItem>
-                        <SelectItem value="service">Serviço</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nome</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Nome do item" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="integrationCode"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Código de Integração</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Código de Integração" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Descrição</FormLabel>
-                    <FormControl>
-                      <Textarea placeholder="Descrição do item" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="measurementUnit"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Unidade de Medida</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione a unidade" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {measurementUnits.map((unit) => (
-                          <SelectItem key={unit.value} value={unit.value}>
-                            {unit.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="group"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Grupo</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Grupo do item" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="maintenancePlan"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Plano de Manutenção</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Plano de Manutenção" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="defaultChecklist"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Checklist Padrão</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Checklist Padrão" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="active"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                    <div className="space-y-0.5">
-                      <FormLabel>Ativo</FormLabel>
-                      <FormDescription>
-                        Define se o item está ativo ou inativo.
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              <Button type="submit" disabled={updateItemMutation.isPending}>
-                {updateItemMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Atualizar Item
-              </Button>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
+      {/* Modal de Edição - usa o mesmo modal do criar */}
     </div>
   );
 }
