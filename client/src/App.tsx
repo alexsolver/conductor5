@@ -77,7 +77,7 @@ import LPU from "./pages/LPU";
 import { SupplierManagement } from "./pages/SupplierManagement";
 
 import AssetManagement from "./pages/AssetManagement";
-import LpuManagement from "./pages/LpuManagement"; // Temporarily commented due to LSP errors
+// Unified LPU Management - using LPU.tsx as primary component
 import ComplianceManagement from "./pages/ComplianceManagement";
 import CLTCompliance from "./pages/CLTCompliance";
 import TimecardApprovalSettings from "./pages/TimecardApprovalSettings";
@@ -202,9 +202,9 @@ function AppRouter() {
         <Route path="/stock-management" component={StockManagement} />
         <Route path="/supplier-management" component={SupplierManagement} />
         <Route path="/lpu" component={LPU} />
+        <Route path="/lpu-management" component={LPU} />
         
         <Route path="/asset-management" component={AssetManagement} />
-        <Route path="/lpu-management" component={LpuManagement} />
         <Route path="/compliance-management" component={ComplianceManagement} />
         <Route path="/notifications" component={NotificationManagement} />
         <Route path="/custom-fields-admin" component={CustomFieldsAdministrator} />

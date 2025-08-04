@@ -517,15 +517,14 @@ export const pricingRules = pgTable('pricing_rules', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id').notNull(),
   
-  name: varchar('name', { length: 100 }).notNull(),
-  type: varchar('type', { length: 20 }).notNull(), // markup, markdown, fixed, tier
+  name: varchar('name', { length: 255 }).notNull(),
+  description: text('description'),
+  ruleType: varchar('rule_type', { length: 50 }).notNull(), // percentual, fixo, escalonado, dinâmico
   conditions: jsonb('conditions'), // complex conditions for rule application
-  action: jsonb('action'), // price modification action
-  priority: integer('priority').default(0),
+  actions: jsonb('actions'), // price modification actions
+  priority: integer('priority').default(1),
   
-  active: boolean('active').default(true),
-  validFrom: timestamp('valid_from'),
-  validTo: timestamp('valid_to'),
+  isActive: boolean('is_active').default(true),
   
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),

@@ -17,7 +17,23 @@ export class LPURepository {
   // GESTÃO DE LISTAS DE PREÇOS
   async getAllPriceLists(tenantId: string) {
     return await db
-      .select()
+      .select({
+        id: priceLists.id,
+        tenantId: priceLists.tenantId,
+        name: priceLists.name,
+        code: priceLists.code,
+        version: priceLists.version,
+        currency: priceLists.currency,
+        validFrom: priceLists.validFrom,
+        validTo: priceLists.validTo,
+        automaticMargin: priceLists.automaticMargin,
+        notes: priceLists.notes,
+        isActive: priceLists.isActive,
+        createdAt: priceLists.createdAt,
+        updatedAt: priceLists.updatedAt,
+        createdBy: priceLists.createdBy,
+        updatedBy: priceLists.updatedBy,
+      })
       .from(priceLists)
       .where(eq(priceLists.tenantId, tenantId))
       .orderBy(desc(priceLists.createdAt));
@@ -46,6 +62,15 @@ export class LPURepository {
       .where(and(eq(priceLists.id, id), eq(priceLists.tenantId, tenantId)))
       .returning();
     return priceList;
+  }
+
+  // DELETE PRICE LIST  
+  async deletePriceListItem(id: string, tenantId: string) {
+    const [deleted] = await db
+      .delete(priceLists)
+      .where(and(eq(priceLists.id, id), eq(priceLists.tenantId, tenantId)))
+      .returning();
+    return deleted;
   }
 
   // VERSIONAMENTO DE LISTAS
@@ -158,7 +183,19 @@ export class LPURepository {
   // REGRAS DE PRECIFICAÇÃO
   async getAllPricingRules(tenantId: string) {
     return await db
-      .select()
+      .select({
+        id: pricingRules.id,
+        tenantId: pricingRules.tenantId,
+        name: pricingRules.name,
+        description: pricingRules.description,
+        ruleType: pricingRules.ruleType,
+        conditions: pricingRules.conditions,
+        actions: pricingRules.actions,
+        priority: pricingRules.priority,
+        isActive: pricingRules.isActive,
+        createdAt: pricingRules.createdAt,
+        updatedAt: pricingRules.updatedAt,
+      })
       .from(pricingRules)
       .where(eq(pricingRules.tenantId, tenantId))
       .orderBy(desc(pricingRules.priority), asc(pricingRules.name));

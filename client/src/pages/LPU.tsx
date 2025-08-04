@@ -69,41 +69,31 @@ export default function LPU() {
 
   // Fetch price lists
   const { data: priceLists, isLoading: priceListsLoading } = useQuery({
-    queryKey: ['/api/materials-services/lpu/price-lists'],
-    queryFn: async () => {
-      const response = await apiRequest('GET', '/api/materials-services/lpu/price-lists');
-      return response.json();
-    },
+    queryKey: ['/api/materials-services/price-lists'],
+    queryFn: () => apiRequest('GET', '/api/materials-services/price-lists'),
   });
 
   // Fetch pricing rules
   const { data: pricingRules, isLoading: rulesLoading } = useQuery({
-    queryKey: ['/api/materials-services/lpu/pricing-rules'],
-    queryFn: async () => {
-      const response = await apiRequest('GET', '/api/materials-services/lpu/pricing-rules');
-      return response.json();
-    },
+    queryKey: ['/api/materials-services/pricing-rules'],
+    queryFn: () => apiRequest('GET', '/api/materials-services/pricing-rules'),
   });
 
   // Fetch price list items for selected list
   const { data: priceListItems, isLoading: itemsLoading } = useQuery({
-    queryKey: ['/api/materials-services/lpu/price-lists', selectedPriceList?.id, 'items'],
-    queryFn: async () => {
+    queryKey: ['/api/materials-services/price-lists', selectedPriceList?.id, 'items'],
+    queryFn: () => {
       if (!selectedPriceList?.id) return [];
-      const response = await apiRequest('GET', `/api/materials-services/lpu/price-lists/${selectedPriceList.id}/items`);
-      return response.json();
+      return apiRequest('GET', `/api/materials-services/price-lists/${selectedPriceList.id}/items`);
     },
     enabled: !!selectedPriceList?.id,
   });
 
   // Create price list mutation
   const createPriceListMutation = useMutation({
-    mutationFn: async (data: Partial<PriceList>) => {
-      const response = await apiRequest('POST', '/api/materials-services/lpu/price-lists', data);
-      return response.json();
-    },
+    mutationFn: (data: Partial<PriceList>) => apiRequest('POST', '/api/materials-services/price-lists', data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/materials-services/lpu/price-lists'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/materials-services/price-lists'] });
       setIsCreateDialogOpen(false);
       toast({ title: "Lista de preços criada com sucesso!" });
     },
@@ -115,12 +105,10 @@ export default function LPU() {
 
   // Update price list mutation
   const updatePriceListMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: Partial<PriceList> }) => {
-      const response = await apiRequest('PUT', `/api/materials-services/lpu/price-lists/${id}`, data);
-      return response.json();
-    },
+    mutationFn: ({ id, data }: { id: string; data: Partial<PriceList> }) => 
+      apiRequest('PUT', `/api/materials-services/price-lists/${id}`, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/materials-services/lpu/price-lists'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/materials-services/price-lists'] });
       setIsEditDialogOpen(false);
       setEditingPriceList(null);
       toast({ title: "Lista de preços atualizada com sucesso!" });
@@ -133,10 +121,8 @@ export default function LPU() {
 
   // Duplicate price list mutation
   const duplicatePriceListMutation = useMutation({
-    mutationFn: async (originalList: PriceList) => {
-      const response = await apiRequest('POST', `/api/materials-services/price-lists/${originalList.id}/duplicate`, {});
-      return response.json();
-    },
+    mutationFn: (originalList: PriceList) => 
+      apiRequest('POST', `/api/materials-services/price-lists/${originalList.id}/duplicate`, {}),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/materials-services/price-lists'] });
       toast({ title: "Lista de preços duplicada com sucesso!" });
@@ -149,12 +135,10 @@ export default function LPU() {
 
   // Create pricing rule mutation
   const createPricingRuleMutation = useMutation({
-    mutationFn: async (data: Partial<PricingRule>) => {
-      const response = await apiRequest('POST', '/api/materials-services/lpu/pricing-rules', data);
-      return response.json();
-    },
+    mutationFn: (data: Partial<PricingRule>) => 
+      apiRequest('POST', '/api/materials-services/pricing-rules', data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/materials-services/lpu/pricing-rules'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/materials-services/pricing-rules'] });
       setIsCreateRuleDialogOpen(false);
       toast({ title: "Regra de precificação criada com sucesso!" });
     },
