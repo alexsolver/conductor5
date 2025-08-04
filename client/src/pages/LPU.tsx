@@ -368,6 +368,7 @@ export default function LPU() {
           <PriceListForm
             onSubmit={(data) => createPriceListMutation.mutate(data)}
             isLoading={createPriceListMutation.isPending}
+            onCancel={() => setIsCreateDialogOpen(false)}
           />
         </DialogContent>
       </Dialog>
@@ -383,6 +384,10 @@ export default function LPU() {
               initialData={editingPriceList}
               onSubmit={(data) => updatePriceListMutation.mutate({ id: editingPriceList.id, data })}
               isLoading={updatePriceListMutation.isPending}
+              onCancel={() => {
+                setIsEditDialogOpen(false);
+                setEditingPriceList(null);
+              }}
             />
           )}
         </DialogContent>
@@ -556,9 +561,16 @@ function PriceListForm({
           <Label htmlFor="isActive">Lista Ativa</Label>
         </div>
         
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? "Salvando..." : initialData ? "Atualizar" : "Criar"}
-        </Button>
+        <div className="flex gap-2">
+          {onCancel && (
+            <Button type="button" variant="outline" onClick={onCancel}>
+              Cancelar
+            </Button>
+          )}
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? "Salvando..." : initialData ? "Atualizar" : "Criar"}
+          </Button>
+        </div>
       </div>
     </form>
   );
