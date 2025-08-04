@@ -93,6 +93,47 @@ export class LPUController {
     }
   }
 
+  async duplicatePriceList(req: AuthenticatedRequest, res: Response) {
+    try {
+      const { id } = req.params;
+      const tenantId = req.user?.tenantId;
+      
+      if (!tenantId) {
+        return res.status(400).json({ error: 'Tenant ID é obrigatório' });
+      }
+
+      // Buscar a lista original
+      const originalList = await this.repository.getPriceListById(id, tenantId);
+      if (!originalList) {
+        return res.status(404).json({ error: 'Lista de preços não encontrada' });
+      }
+
+      // Criar dados para duplicação
+      const duplicateData = {
+        ...originalList,
+        name: `${originalList.name} (Cópia)`,
+        code: `${originalList.code}_COPY_${Date.now()}`,
+        version: "1.0",
+        validFrom: new Date().toISOString(),
+        validTo: null,
+        tenantId,
+        createdBy: req.user?.id,
+        updatedBy: req.user?.id
+      };
+
+      // Remover campos que não devem ser duplicados
+      delete (duplicateData as any).id;
+      delete (duplicateData as any).createdAt;
+      delete (duplicateData as any).updatedAt;
+
+      const duplicatedList = await this.repository.createPriceList(duplicateData);
+      res.status(201).json(duplicatedList);
+    } catch (error) {
+      console.error('Erro ao duplicar lista de preços:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  }
+
   async deletePriceList(req: AuthenticatedRequest, res: Response) {
     try {
       const { id } = req.params;

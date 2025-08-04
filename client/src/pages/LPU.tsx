@@ -134,23 +134,11 @@ export default function LPU() {
   // Duplicate price list mutation
   const duplicatePriceListMutation = useMutation({
     mutationFn: async (originalList: PriceList) => {
-      const duplicateData = {
-        ...originalList,
-        name: `${originalList.name} (Cópia)`,
-        code: `${originalList.code}_COPY_${Date.now()}`,
-        version: "1.0",
-        validFrom: new Date().toISOString(),
-        validTo: undefined,
-      };
-      delete (duplicateData as any).id;
-      delete (duplicateData as any).createdAt;
-      delete (duplicateData as any).updatedAt;
-      
-      const response = await apiRequest('POST', '/api/materials-services/lpu/price-lists', duplicateData);
+      const response = await apiRequest('POST', `/api/materials-services/price-lists/${originalList.id}/duplicate`, {});
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/materials-services/lpu/price-lists'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/materials-services/price-lists'] });
       toast({ title: "Lista de preços duplicada com sucesso!" });
     },
     onError: (error) => {
@@ -430,11 +418,13 @@ export default function LPU() {
 function PriceListForm({ 
   initialData, 
   onSubmit, 
-  isLoading 
+  isLoading,
+  onCancel 
 }: { 
   initialData?: PriceList; 
   onSubmit: (data: Partial<PriceList>) => void; 
   isLoading: boolean;
+  onCancel?: () => void;
 }) {
   const [formData, setFormData] = useState({
     name: initialData?.name || '',

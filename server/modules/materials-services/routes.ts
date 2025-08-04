@@ -273,6 +273,11 @@ router.put('/price-lists/:id', async (req: AuthenticatedRequest, res) => {
   return lpuController.updatePriceList(req, res);
 });
 
+router.post('/price-lists/:id/duplicate', async (req: AuthenticatedRequest, res) => {
+  const { lpuController } = await getControllers(req.user.tenantId);
+  return lpuController.duplicatePriceList(req, res);
+});
+
 // Price List Versions & Workflow
 router.get('/price-lists/:priceListId/versions', async (req: AuthenticatedRequest, res) => {
   const { lpuController } = await getControllers(req.user.tenantId);
