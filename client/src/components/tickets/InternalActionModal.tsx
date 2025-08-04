@@ -289,7 +289,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId }: Inter
                   </Label>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="actualStartDate">Data Realizada Inicial</Label>
+                      <Label htmlFor="actualStartDate">Data/Hora Início</Label>
                       <Input
                         id="actualStartDate"
                         type="datetime-local"
@@ -298,7 +298,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId }: Inter
                       />
                     </div>
                     <div>
-                      <Label htmlFor="actualEndDate">Data Realizada Final</Label>
+                      <Label htmlFor="actualEndDate">Data/Hora Fim</Label>
                       <Input
                         id="actualEndDate"
                         type="datetime-local"
