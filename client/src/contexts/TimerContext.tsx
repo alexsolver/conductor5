@@ -48,19 +48,17 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
 
       console.log('📤 [TIMER] Creating action with data:', actionData);
 
-      const response = await apiRequest(`/api/tickets/${ticketId}/actions`, {
-        method: 'POST',
-        body: JSON.stringify(actionData),
-      });
+      const response = await apiRequest('POST', `/api/tickets/${ticketId}/actions`, actionData);
+      const responseData = await response.json();
 
-      console.log('📥 [TIMER] Action creation response:', response);
+      console.log('📥 [TIMER] Action creation response:', responseData);
 
-      if (!response || !response.success) {
-        console.error('❌ [TIMER] API Error:', response);
-        throw new Error(`Failed to create action: ${response?.message || 'Unknown error'}`);
+      if (!responseData || !responseData.success) {
+        console.error('❌ [TIMER] API Error:', responseData);
+        throw new Error(`Failed to create action: ${responseData?.message || 'Unknown error'}`);
       }
 
-      const actionId = response.data.id;
+      const actionId = responseData.data.id;
       console.log('✅ [TIMER] Action created with ID:', actionId);
 
       // Start the timer with action ID
