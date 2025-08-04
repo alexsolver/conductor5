@@ -275,30 +275,10 @@ export default function InternalActionModal({ isOpen, onClose, ticketId }: Inter
           </DialogTitle>
           <DialogDescription>
             Registre uma nova ação interna realizada neste ticket. Todos os campos marcados com * são obrigatórios.
-            <br />
-            <span className="text-xs text-blue-600 mt-1 block">
-              Testando todos os campos da tabela ticket_internal_actions incluindo planned_start_time e planned_end_time
-            </span>
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Debug Information Panel (development only) */}
-          {process.env.NODE_ENV === 'development' && (
-            <Card className="border-blue-200 bg-blue-50">
-              <CardContent className="p-4">
-                <div className="text-xs space-y-2">
-                  <h4 className="font-semibold text-blue-800">Debug - Form State:</h4>
-                  <div className="grid grid-cols-2 gap-2 text-blue-700">
-                    <div>Required Fields: ✓ {formData.action_type ? '✓' : '✗'} Action Type, {formData.agent_id && formData.agent_id !== "__none__" ? '✓' : '✗'} Agent</div>
-                    <div>New Fields: {formData.planned_start_time ? '✓' : '✗'} Planned Start, {formData.planned_end_time ? '✓' : '✗'} Planned End</div>
-                    <div>Validation: {formData.title.length <= 255 ? '✓' : '✗'} Title Length, {formData.description.length <= 1000 ? '✓' : '✗'} Desc Length</div>
-                    <div>Date Logic: {(!formData.planned_start_time || !formData.planned_end_time || new Date(formData.planned_end_time) > new Date(formData.planned_start_time)) ? '✓' : '✗'} Planned Dates</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
           
           <Card>
             <CardContent className="p-6">
@@ -599,39 +579,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId }: Inter
                       Cancelar
                     </Button>
                     
-                    {/* Test Button for Quick Form Population */}
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        const now = new Date();
-                        const futureDate = new Date(now.getTime() + 24 * 60 * 60 * 1000); // +1 day
-                        const endDate = new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000); // +2 days
-                        
-                        setFormData(prev => ({
-                          ...prev,
-                          action_type: "analysis",
-                          title: "Teste de Ação Interna Completa",
-                          description: "Esta é uma ação de teste para validar todos os campos da tabela ticket_internal_actions, incluindo os novos campos planned_start_time e planned_end_time.",
-                          planned_start_time: futureDate.toISOString().slice(0, 16),
-                          planned_end_time: endDate.toISOString().slice(0, 16),
-                          start_time: now.toISOString().slice(0, 16),
-                          end_time: new Date(now.getTime() + 2 * 60 * 60 * 1000).toISOString().slice(0, 16), // +2 hours
-                          estimated_hours: "2.5",
-                          status: "in_progress",
-                          priority: "high"
-                        }));
-                        
-                        if (teamMembers?.users?.length > 0) {
-                          setFormData(prev => ({ ...prev, agent_id: teamMembers.users[0].id }));
-                        }
-                      }}
-                      className="text-xs"
-                    >
-                      Preencher Teste
-                    </Button>
-                    
+
                     <Button
                       onClick={handleSubmit}
                       disabled={
@@ -645,7 +593,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId }: Inter
                          new Date(formData.planned_end_time) <= new Date(formData.planned_start_time)) ||
                         (formData.start_time && formData.end_time && 
                          new Date(formData.end_time) <= new Date(formData.start_time)) ||
-                        (formData.estimated_hours && parseFloat(formData.estimated_hours) < 0)
+                        (formData.estimated_hours && formData.estimated_hours !== "" && parseFloat(formData.estimated_hours) < 0)
                       }
                       className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:opacity-50"
                     >
