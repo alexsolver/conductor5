@@ -15,13 +15,16 @@ export function AppShell({ children }: AppShellProps) {
 
   const handleTimerClick = async () => {
     try {
-      await finishCurrentAction();
-      // Navigate to the ticket page if we have a current ticket
+      console.log('🖱️ [APPSHELL] Timer clicked, finishing action...');
+      const finishedActionId = await finishCurrentAction();
+      console.log('✅ [APPSHELL] Action finished, navigating to ticket page...');
+      
+      // Navigate to the ticket page and let the page handle opening the action modal
       if (timerState.currentTicketId) {
-        navigate(`/tickets/${timerState.currentTicketId}`);
+        navigate(`/tickets/${timerState.currentTicketId}?openAction=${finishedActionId || timerState.currentActionId}`);
       }
     } catch (error) {
-      console.error('Failed to finish timer action:', error);
+      console.error('❌ [APPSHELL] Failed to finish timer action:', error);
     }
   };
 

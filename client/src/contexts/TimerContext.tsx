@@ -14,7 +14,7 @@ interface TimerContextValue {
   startTimer: (ticketId: string) => Promise<string>;
   stopTimer: () => void;
   resetTimer: () => void;
-  finishCurrentAction: () => Promise<void>;
+  finishCurrentAction: () => Promise<string | null>;
 }
 
 const TimerContext = createContext<TimerContextValue | undefined>(undefined);
@@ -94,10 +94,10 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error('❌ [TIMER] Failed to start timer:', error);
       console.error('❌ [TIMER] Error details:', {
-        message: error?.message,
-        stack: error?.stack,
-        name: error?.name,
-        cause: error?.cause
+        message: (error as any)?.message,
+        stack: (error as any)?.stack,
+        name: (error as any)?.name,
+        cause: (error as any)?.cause
       });
       throw error;
     }
@@ -114,17 +114,20 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
     }));
   }, []);
 
-  const finishCurrentAction = useCallback(async () => {
+  const finishCurrentAction = useCallback(async (): Promise<string | null> => {
     if (!timerState.currentActionId || !timerState.currentTicketId || !timerState.isRunning) {
       console.log('🚫 [TIMER] Cannot finish - missing actionId, ticketId or timer not running');
-      return;
+      return null;
     }
+
+    const actionId = timerState.currentActionId;
+    const ticketId = timerState.currentTicketId;
 
     // Prevent multiple executions by immediately setting isRunning to false
     setTimerState(prev => ({ ...prev, isRunning: false }));
 
     try {
-      console.log('🏁 [TIMER] Finishing action:', timerState.currentActionId);
+      console.log('🏁 [TIMER] Finishing action:', actionId);
       const endTime = Date.now();
       const startTime = timerState.startTime || endTime;
       const elapsedMs = endTime - startTime;
@@ -141,15 +144,12 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
 
       console.log('📝 [TIMER] Updating action with:', updateData);
 
-      const response = await apiRequest(`/api/tickets/${timerState.currentTicketId}/actions/${timerState.currentActionId}`, {
-        method: 'PATCH',
-        body: JSON.stringify(updateData),
-      });
+      const response = await apiRequest(`/api/tickets/${ticketId}/actions/${actionId}`, 'PATCH', updateData);
 
       console.log('✅ [TIMER] Action updated successfully:', response);
 
       // Invalidate queries to refresh the actions list
-      await queryClient.invalidateQueries({ queryKey: ['/api/tickets', timerState.currentTicketId, 'actions'] });
+      await queryClient.invalidateQueries({ queryKey: ['/api/tickets', ticketId, 'actions'] });
 
       // Stop the timer
       if (timerInterval.current) {
@@ -167,6 +167,7 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
       });
 
       console.log('🎯 [TIMER] Timer finished and cache invalidated');
+      return actionId;
     } catch (error) {
       console.error('❌ [TIMER] Failed to finish action:', error);
       // Reset timer state even on error
@@ -181,6 +182,7 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
         clearInterval(timerInterval.current);
         timerInterval.current = null;
       }
+      return null;
     }
   }, [timerState.currentActionId, timerState.currentTicketId, timerState.startTime, timerState.isRunning]);
 
