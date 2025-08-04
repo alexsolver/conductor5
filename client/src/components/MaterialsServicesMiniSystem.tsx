@@ -34,18 +34,18 @@ export function MaterialsServicesMiniSystem({ ticketId }: MaterialsServicesMiniS
 
   // Fetch planned materials
   const { data: plannedData, isLoading: plannedLoading } = useQuery({
-    queryKey: ['/api/materials-services/tickets', ticketId, 'planned'],
+    queryKey: ['/api/materials-services/tickets', ticketId, 'planned-items'],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/materials-services/tickets/${ticketId}/planned`);
+      const response = await apiRequest('GET', `/api/materials-services/tickets/${ticketId}/planned-items`);
       return response.json();
     },
   });
 
   // Fetch consumed materials
   const { data: consumedData, isLoading: consumedLoading } = useQuery({
-    queryKey: ['/api/materials-services/tickets', ticketId, 'consumed'],
+    queryKey: ['/api/materials-services/tickets', ticketId, 'consumed-items'],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/materials-services/tickets/${ticketId}/consumed`);
+      const response = await apiRequest('GET', `/api/materials-services/tickets/${ticketId}/consumed-items`);
       return response.json();
     },
   });
@@ -62,8 +62,21 @@ export function MaterialsServicesMiniSystem({ ticketId }: MaterialsServicesMiniS
   // Add planned material mutation
   const addPlannedMutation = useMutation({
     mutationFn: async (data: { itemId: string; quantity: number }) => {
-      const response = await apiRequest('POST', `/api/materials-services/tickets/${ticketId}/planned`, {
-        body: JSON.stringify(data)
+      // Get item details for pricing
+      const selectedItemData = items.find((item: any) => item.id === data.itemId);
+      if (!selectedItemData) throw new Error('Item not found');
+
+      const requestData = {
+        itemId: data.itemId,
+        plannedQuantity: data.quantity,
+        lpuId: '00000000-0000-0000-0000-000000000001', // Default LPU ID
+        unitPriceAtPlanning: selectedItemData.unitCost || 0,
+        priority: 'medium',
+        notes: ''
+      };
+
+      const response = await apiRequest('POST', `/api/materials-services/tickets/${ticketId}/planned-items`, {
+        body: JSON.stringify(requestData)
       });
       return response.json();
     },
@@ -73,7 +86,8 @@ export function MaterialsServicesMiniSystem({ ticketId }: MaterialsServicesMiniS
       setQuantity("");
       toast({ title: "Material planejado adicionado com sucesso!" });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Error adding planned material:', error);
       toast({ title: "Erro ao adicionar material planejado", variant: "destructive" });
     }
   });
@@ -81,8 +95,21 @@ export function MaterialsServicesMiniSystem({ ticketId }: MaterialsServicesMiniS
   // Add consumed material mutation
   const addConsumedMutation = useMutation({
     mutationFn: async (data: { itemId: string; quantityUsed: number }) => {
-      const response = await apiRequest('POST', `/api/materials-services/tickets/${ticketId}/consumed`, {
-        body: JSON.stringify(data)
+      // Get item details for pricing
+      const selectedItemData = items.find((item: any) => item.id === data.itemId);
+      if (!selectedItemData) throw new Error('Item not found');
+
+      const requestData = {
+        itemId: data.itemId,
+        actualQuantity: data.quantityUsed,
+        lpuId: '00000000-0000-0000-0000-000000000001', // Default LPU ID
+        unitPriceAtConsumption: selectedItemData.unitCost || 0,
+        consumptionType: 'actual',
+        notes: ''
+      };
+
+      const response = await apiRequest('POST', `/api/materials-services/tickets/${ticketId}/consumed-items`, {
+        body: JSON.stringify(requestData)
       });
       return response.json();
     },
@@ -92,7 +119,8 @@ export function MaterialsServicesMiniSystem({ ticketId }: MaterialsServicesMiniS
       setConsumedQuantity("");
       toast({ title: "Consumo registrado com sucesso!" });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Error adding consumed material:', error);
       toast({ title: "Erro ao registrar consumo", variant: "destructive" });
     }
   });
@@ -100,7 +128,7 @@ export function MaterialsServicesMiniSystem({ ticketId }: MaterialsServicesMiniS
   // Delete planned material mutation
   const deletePlannedMutation = useMutation({
     mutationFn: async (itemId: string) => {
-      const response = await apiRequest('DELETE', `/api/materials-services/tickets/${ticketId}/planned/${itemId}`);
+      const response = await apiRequest('DELETE', `/api/materials-services/tickets/${ticketId}/planned-items/${itemId}`);
       return response.json();
     },
     onSuccess: () => {
@@ -113,8 +141,8 @@ export function MaterialsServicesMiniSystem({ ticketId }: MaterialsServicesMiniS
   });
 
   const items = itemsData?.data || [];
-  const plannedMaterials = plannedData?.data || [];
-  const consumedMaterials = consumedData?.data || [];
+  const plannedMaterials = plannedData?.data?.plannedItems || [];
+  const consumedMaterials = consumedData?.data?.consumedItems || [];
   const costs = costsData?.data || {};
 
   const handleAddPlanned = () => {

@@ -551,6 +551,10 @@ router.post('/tickets/:ticketId/planned-items', (req: AuthenticatedRequest, res)
   return TicketMaterialsController.addPlannedItem(req, res);
 });
 
+router.delete('/tickets/:ticketId/planned-items/:itemId', (req: AuthenticatedRequest, res) => {
+  return TicketMaterialsController.removePlannedItem(req, res);
+});
+
 // Consumed items
 router.get('/tickets/:ticketId/consumed-items', (req: AuthenticatedRequest, res) => {
   return TicketMaterialsController.getConsumedItems(req, res);
