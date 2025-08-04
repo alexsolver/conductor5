@@ -80,7 +80,7 @@ interface LPUStats {
 export default function LPUManagement() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
+
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isCreateListOpen, setIsCreateListOpen] = useState(false);
@@ -93,10 +93,20 @@ export default function LPUManagement() {
     queryFn: () => apiRequest('GET', '/api/materials-services/price-lists')
   });
 
-  // Fetch LPU stats
-  const { data: stats } = useQuery<LPUStats>({
-    queryKey: ['/api/materials-services/price-lists/stats'],
-    queryFn: () => apiRequest('GET', '/api/materials-services/price-lists/stats')
+  // Fetch LPU stats with error handling
+  const { data: stats, isLoading: statsLoading, error: statsError } = useQuery<LPUStats>({
+    queryKey: ['/api/materials-services/lpu/stats'],
+    queryFn: () => apiRequest('GET', '/api/materials-services/lpu/stats'),
+    retry: 3,
+    staleTime: 30000,
+    onError: (error) => {
+      console.error('Error fetching LPU stats:', error);
+      toast({ 
+        title: 'Erro ao carregar estatísticas', 
+        description: 'Verifique sua conexão e tente novamente',
+        variant: 'destructive' 
+      });
+    }
   });
 
   // Fetch pricing rules
@@ -181,7 +191,7 @@ export default function LPUManagement() {
       active: 'default',
       archived: 'outline'
     } as const;
-    
+
     const labels = {
       draft: 'Rascunho',
       pending_approval: 'Pendente',
@@ -189,7 +199,7 @@ export default function LPUManagement() {
       active: 'Ativo',
       archived: 'Arquivado'
     };
-    
+
     return <Badge variant={variants[status as keyof typeof variants] || 'outline'}>
       {labels[status as keyof typeof labels] || status}
     </Badge>;
@@ -202,7 +212,7 @@ export default function LPUManagement() {
       fixed: 'Fixo',
       tier: 'Escalonado'
     };
-    
+
     return <Badge variant="outline">{labels[type as keyof typeof labels] || type}</Badge>;
   };
 
@@ -213,7 +223,7 @@ export default function LPUManagement() {
           <h1 className="text-3xl font-bold">LPU - Lista de Preços Unificada</h1>
           <p className="text-muted-foreground">Gestão completa de precificação com workflow de aprovação</p>
         </div>
-        
+
         <div className="flex gap-2">
           <Dialog open={isCreateListOpen} onOpenChange={setIsCreateListOpen}>
             <DialogTrigger asChild>
@@ -253,7 +263,7 @@ export default function LPUManagement() {
                     <Input name="code" required placeholder="Ex: LC2025" />
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="version">Versão</Label>
@@ -516,7 +526,7 @@ export default function LPUManagement() {
                           )}
                         </div>
                       </div>
-                      
+
                       <div className="flex gap-2">
                         <Button
                           variant="outline"
@@ -526,7 +536,7 @@ export default function LPUManagement() {
                           <FileText className="w-4 h-4 mr-1" />
                           Versões
                         </Button>
-                        
+
                         <Button variant="outline" size="sm">
                           <DollarSign className="w-4 h-4 mr-1" />
                           Itens
@@ -658,7 +668,7 @@ export default function LPUManagement() {
                           </div>
                         )}
                       </div>
-                      
+
                       <div className="flex gap-2">
                         <Button variant="outline" size="sm">
                           <Settings className="w-4 h-4 mr-1" />
