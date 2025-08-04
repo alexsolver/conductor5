@@ -413,16 +413,21 @@ export default function InternalActionModal({ isOpen, onClose, ticketId }: Inter
                     value={formData.estimated_hours}
                     onChange={(e) => {
                       const newValue = e.target.value;
-                      setFormData(prev => ({ ...prev, estimated_hours: newValue }));
-                      
-                      // Auto-calculate planned end time if both estimated time and planned start time are filled
-                      if (newValue && formData.planned_start_time) {
-                        const startTime = new Date(formData.planned_start_time);
-                        const estimatedMinutes = parseInt(newValue);
-                        const endTime = new Date(startTime.getTime() + estimatedMinutes * 60000);
-                        const endTimeString = endTime.toISOString().slice(0, 16);
-                        setFormData(prev => ({ ...prev, planned_end_time: endTimeString }));
-                      }
+                      setFormData(prev => {
+                        const newData = { ...prev, estimated_hours: newValue };
+                        
+                        // Auto-calculate planned end time if both estimated time and planned start time are filled
+                        if (newValue && prev.planned_start_time) {
+                          const startTime = new Date(prev.planned_start_time);
+                          const estimatedMinutes = parseInt(newValue);
+                          if (!isNaN(estimatedMinutes) && estimatedMinutes > 0) {
+                            const endTime = new Date(startTime.getTime() + estimatedMinutes * 60000);
+                            newData.planned_end_time = endTime.toISOString().slice(0, 16);
+                          }
+                        }
+                        
+                        return newData;
+                      });
                     }}
                     placeholder="0"
                     className="mt-1"
@@ -444,16 +449,21 @@ export default function InternalActionModal({ isOpen, onClose, ticketId }: Inter
                         value={formData.planned_start_time}
                         onChange={(e) => {
                           const newValue = e.target.value;
-                          setFormData(prev => ({ ...prev, planned_start_time: newValue }));
-                          
-                          // Auto-calculate planned end time if both planned start time and estimated time are filled
-                          if (newValue && formData.estimated_hours) {
-                            const startTime = new Date(newValue);
-                            const estimatedMinutes = parseInt(formData.estimated_hours);
-                            const endTime = new Date(startTime.getTime() + estimatedMinutes * 60000);
-                            const endTimeString = endTime.toISOString().slice(0, 16);
-                            setFormData(prev => ({ ...prev, planned_end_time: endTimeString }));
-                          }
+                          setFormData(prev => {
+                            const newData = { ...prev, planned_start_time: newValue };
+                            
+                            // Auto-calculate planned end time if both planned start time and estimated time are filled
+                            if (newValue && prev.estimated_hours) {
+                              const startTime = new Date(newValue);
+                              const estimatedMinutes = parseInt(prev.estimated_hours);
+                              if (!isNaN(estimatedMinutes) && estimatedMinutes > 0) {
+                                const endTime = new Date(startTime.getTime() + estimatedMinutes * 60000);
+                                newData.planned_end_time = endTime.toISOString().slice(0, 16);
+                              }
+                            }
+                            
+                            return newData;
+                          });
                         }}
                         className="mt-1"
                         placeholder="Quando a ação deve começar"
