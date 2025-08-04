@@ -157,7 +157,7 @@ const TicketDetails = React.memo(() => {
     { id: "history", label: "Histórico", icon: History },
     { id: "internal-actions", label: "Ações Internas", icon: Settings },
     { id: "links", label: "Vínculos", icon: Link },
-    { id: "materials", label: "Materiais", icon: Package },
+    { id: "materials", label: "Materiais e Serviços", icon: Package },
   ];
 
   // 🚀 OTIMIZAÇÃO: Parallel queries com cache inteligente
@@ -3328,7 +3328,7 @@ const TicketDetails = React.memo(() => {
             }`}
           >
             <Package className="h-4 w-4" />
-            <span className="text-sm font-medium">Materiais</span>
+            <span className="text-sm font-medium">Materiais e Serviços</span>
           </button>
 
           <button
