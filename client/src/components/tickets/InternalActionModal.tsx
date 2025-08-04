@@ -96,40 +96,14 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
     setIsPublic(false);
   };
 
-  // Timer utility functions
-  const formatElapsedTime = (milliseconds: number) => {
-    const totalSeconds = Math.floor(milliseconds / 1000);
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = totalSeconds % 60;
-    
-    if (hours > 0) {
-      return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-    }
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-  };
 
-  const formatDateTimeLocal = (timestamp: number) => {
-    const date = new Date(timestamp);
-    return date.toISOString().slice(0, 16);
-  };
 
-  // Reset form when modal opens, populate timer data if available
+  // Reset form when modal opens
   useEffect(() => {
     if (isOpen) {
       resetForm();
-      
-      // If timer finished, populate start and end times
-      if (timerState && timerState.startTime && !timerState.isRunning && timerState.elapsedTime > 0) {
-        const endTime = timerState.startTime + timerState.elapsedTime;
-        setFormData(prev => ({
-          ...prev,
-          start_time: formatDateTimeLocal(timerState.startTime),
-          end_time: formatDateTimeLocal(endTime)
-        }));
-      }
     }
-  }, [isOpen, timerState]);
+  }, [isOpen]);
 
   // Fetch team members for assignment dropdown
   const { data: teamMembers } = useQuery({
@@ -322,56 +296,15 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
           </DialogDescription>
         </DialogHeader>
 
-        {/* Timer Section */}
-        <div className="border rounded-lg p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Clock className="w-5 h-5 text-blue-600" />
-              <div>
-                <h3 className="font-medium text-blue-900 dark:text-blue-100">Cronômetro da Ação</h3>
-                {timerState && timerState.isRunning && (
-                  <p className="text-sm text-blue-700 dark:text-blue-300">
-                    Tempo decorrido: {formatElapsedTime(timerState.elapsedTime)}
-                  </p>
-                )}
-                {timerState && !timerState.isRunning && timerState.elapsedTime > 0 && (
-                  <p className="text-sm text-green-700 dark:text-green-300">
-                    Tempo total: {formatElapsedTime(timerState.elapsedTime)}
-                  </p>
-                )}
-              </div>
-            </div>
-            <div className="flex gap-2">
-              {!timerState || !timerState.isRunning ? (
-                <Button
-                  onClick={async () => {
-                    console.log('🔴 [MODAL] Timer button clicked for ticket:', ticketId);
-                    try {
-                      if (onStartTimer) {
-                        console.log('🔴 [MODAL] Calling onStartTimer function');
-                        await onStartTimer(ticketId);
-                        console.log('✅ [MODAL] Timer started successfully');
-                      } else {
-                        console.log('❌ [MODAL] onStartTimer function not provided');
-                      }
-                      onClose();
-                    } catch (error) {
-                      console.error('❌ [MODAL] Failed to start timer:', error);
-                    }
-                  }}
-                  variant="outline"
-                  size="sm"
-                  className="bg-green-50 hover:bg-green-100 border-green-200 text-green-700 dark:bg-green-950 dark:hover:bg-green-900 dark:border-green-800 dark:text-green-300"
-                >
-                  <Play className="w-4 h-4 mr-1" />
-                  Iniciar Cronômetro
-                </Button>
-              ) : (
-                <div className="text-sm font-medium text-amber-600 dark:text-amber-400 flex items-center gap-2">
-                  <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>
-                  Em execução...
-                </div>
-              )}
+        {/* Informação sobre Cronômetro */}
+        <div className="border rounded-lg p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950">
+          <div className="flex items-center gap-3">
+            <Clock className="w-5 h-5 text-green-600" />
+            <div>
+              <h3 className="font-medium text-green-900 dark:text-green-100">Cronômetro Simplificado</h3>
+              <p className="text-sm text-green-700 dark:text-green-300">
+                Use o botão "Iniciar Cronômetro" para criar a ação e começar a registrar tempo automaticamente
+              </p>
             </div>
           </div>
         </div>
