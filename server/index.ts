@@ -17,6 +17,11 @@ import { ActivityTrackingService } from './services/ActivityTrackingService';
 import { userGroupsRouter } from './routes/userGroups';
 import userGroupsByAgentRoutes from './routes/userGroupsByAgent';
 import userManagementRoutes from './routes/userManagementRoutes';
+import authRoutes from "./routes/authRoutes";
+import customerRoutes from "./routes/customerRoutes";
+import ticketRoutes from "./routes/ticketRoutes";
+import ticketMaterialsRoutes from "./routes/ticketMaterialsRoutes";
+import dashboardRoutes from "./routes/dashboardRoutes";
 
 const app = express();
 
@@ -116,6 +121,13 @@ app.use((req, res, next) => {
   app.use('/api/user-groups', userGroupsRouter);
   app.use('/api', userGroupsByAgentRoutes);
   app.use('/api', userManagementRoutes);
+
+  // Register all route modules
+  app.use("/api", authRoutes);
+  app.use("/api", customerRoutes);
+  app.use("/api", ticketRoutes);
+  app.use("/api", ticketMaterialsRoutes);
+  app.use("/api", dashboardRoutes);
 
   app.get('/health', async (req, res) => {
     const memoryUsage = process.memoryUsage();
