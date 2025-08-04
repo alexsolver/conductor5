@@ -12,7 +12,6 @@ import {
   type InsertDynamicPricing
 } from '../../../../../shared/schema-materials-services';
 import { eq, and, desc, asc, gte, lte } from 'drizzle-orm';
-import { db } from '../../../db';
 import { 
   priceLists, 
   priceListItems, 
