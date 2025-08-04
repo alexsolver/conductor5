@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -92,11 +91,11 @@ export default function LPU() {
   });
 
   // Safe data extraction with fallbacks
-  const priceLists = Array.isArray(priceListsResponse) 
-    ? priceListsResponse 
-    : priceListsResponse?.data 
-    ? Array.isArray(priceListsResponse.data) 
-      ? priceListsResponse.data 
+  const priceLists = Array.isArray(priceListsResponse)
+    ? priceListsResponse
+    : priceListsResponse?.data
+    ? Array.isArray(priceListsResponse.data)
+      ? priceListsResponse.data
       : []
     : [];
 
@@ -108,11 +107,11 @@ export default function LPU() {
     staleTime: 30000,
   });
 
-  const pricingRules = Array.isArray(pricingRulesResponse) 
-    ? pricingRulesResponse 
-    : pricingRulesResponse?.data 
-    ? Array.isArray(pricingRulesResponse.data) 
-      ? pricingRulesResponse.data 
+  const pricingRules = Array.isArray(pricingRulesResponse)
+    ? pricingRulesResponse
+    : pricingRulesResponse?.data
+    ? Array.isArray(pricingRulesResponse.data)
+      ? pricingRulesResponse.data
       : []
     : [];
 
@@ -136,10 +135,10 @@ export default function LPU() {
     onError: (error: any) => {
       console.error('Error creating price list:', error);
       const errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
-      toast({ 
-        title: "Erro ao criar lista de preços", 
+      toast({
+        title: "Erro ao criar lista de preços",
         description: errorMessage,
-        variant: "destructive" 
+        variant: "destructive"
       });
     }
   });
@@ -156,10 +155,10 @@ export default function LPU() {
     onError: (error: any) => {
       console.error('Error creating pricing rule:', error);
       const errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
-      toast({ 
-        title: "Erro ao criar regra de precificação", 
+      toast({
+        title: "Erro ao criar regra de precificação",
         description: errorMessage,
-        variant: "destructive" 
+        variant: "destructive"
       });
     }
   });
@@ -376,7 +375,7 @@ export default function LPU() {
                   </CardHeader>
                   <CardContent>
                     <div className="text-sm text-muted-foreground">
-                      Válida de {new Date(priceList.validFrom).toLocaleDateString()} 
+                      Válida de {new Date(priceList.validFrom).toLocaleDateString()}
                       {priceList.validTo && ` até ${new Date(priceList.validTo).toLocaleDateString()}`}
                     </div>
                   </CardContent>
@@ -502,7 +501,8 @@ function PriceListForm({
     currency: 'BRL',
     validFrom: new Date().toISOString().split('T')[0],
     isActive: true,
-    notes: ''
+    notes: '',
+    customerCompanyId: undefined // Changed from customerId
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -565,6 +565,36 @@ function PriceListForm({
         />
       </div>
 
+      {/* Corrected field name here */}
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="customerCompanyId">Empresa Cliente</Label>
+          <Input
+            id="customerCompanyId"
+            value={formData.customerCompanyId}
+            onChange={(e) => setFormData(prev => ({ ...prev, customerCompanyId: e.target.value }))}
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor="currency">Moeda</Label>
+          <Select
+            id="currency"
+            value={formData.currency}
+            onValueChange={(value) => setFormData(prev => ({ ...prev, currency: value }))}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione a moeda" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="BRL">BRL - Real Brasileiro</SelectItem>
+              <SelectItem value="USD">USD - Dólar Americano</SelectItem>
+              <SelectItem value="EUR">EUR - Euro</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <input
@@ -575,7 +605,7 @@ function PriceListForm({
           />
           <Label htmlFor="isActive">Lista Ativa</Label>
         </div>
-        
+
         <div className="flex gap-2">
           {onCancel && (
             <Button type="button" variant="outline" onClick={onCancel}>
@@ -676,7 +706,7 @@ function PricingRuleForm({
           />
           <Label htmlFor="isActive">Regra Ativa</Label>
         </div>
-        
+
         <div className="flex gap-2">
           {onCancel && (
             <Button type="button" variant="outline" onClick={onCancel}>

@@ -1,7 +1,7 @@
 import { db } from '../../../../db';
-import { 
-  priceLists, 
-  priceListItems, 
+import {
+  priceLists,
+  priceListItems,
   priceListVersions,
   pricingRules,
   dynamicPricing,
@@ -53,7 +53,7 @@ export class LPURepository {
         pendingApproval,
         approvedVersions,
         activeRules: activeRulesCount.length,
-        approvalRate: allVersions.length > 0 ? 
+        approvalRate: allVersions.length > 0 ?
           Math.round((approvedVersions / allVersions.length) * 100) : 0
       };
     } catch (error) {
@@ -120,7 +120,7 @@ export class LPURepository {
     return priceList;
   }
 
-  // DELETE PRICE LIST  
+  // DELETE PRICE LIST
   async deletePriceList(id: string, tenantId: string) {
     const [deleted] = await db
       .delete(priceLists)
@@ -327,7 +327,7 @@ export class LPURepository {
 
     // Fórmula de precificação dinâmica
     const dynamicPrice = basePrice * demandFactor * seasonalFactor * inventoryFactor * competitorFactor;
-    
+
     return Math.round(dynamicPrice * 100) / 100; // 2 casas decimais
   }
 
@@ -365,7 +365,7 @@ export class LPURepository {
 
         if (currentItem) {
           const newFinalPrice = this.calculatePriceWithMargin(
-            parseFloat(currentItem.unitPrice), 
+            parseFloat(currentItem.unitPrice),
             margin
           );
 
@@ -387,5 +387,5 @@ export class LPURepository {
     return { success: true, updated: itemMargins?.length || 0 };
   }
 
-  
+
 }

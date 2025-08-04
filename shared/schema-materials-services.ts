@@ -333,7 +333,7 @@ export const priceLists = pgTable('price_lists', {
   version: varchar('version', { length: 20 }).notNull(),
   
   // Aplicação
-  customerId: uuid('customer_id'),
+  customerCompanyId: uuid('customer_company_id'),
   contractId: uuid('contract_id'),
   costCenterId: uuid('cost_center_id'),
   
