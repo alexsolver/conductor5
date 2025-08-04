@@ -32,6 +32,13 @@ Interface preference: Text-based hierarchical menus with dropdowns over visual c
   - **Frontend Translation**: Corrected Portuguese translation to display "Favorecido" for user-facing text while maintaining "beneficiary" in code
   - **Relationship Tables**: Updated all foreign key relationships from favorecido_customer_relationships to beneficiary_customer_relationships
   - **System Integration**: Fixed hierarchical selection (empresa → cliente → favorecido) with proper data loading and filtering
+- **Simple Timer System (August 2025)**: Complete implementation of simplified action timer
+  - **SimpleTimerContext**: Replaced complex timer logic with simple start/finish action tracking
+  - **Automatic Timestamps**: Clicking "Iniciar Cronômetro" automatically fills start_time and creates action
+  - **Visual Feedback**: Red blinking clock in header when action is active
+  - **One-Click Finish**: Clicking header clock automatically fills end_time and completes action
+  - **Persistent State**: Running actions persist across page reloads via localStorage
+  - **Status**: ✅ FULLY FUNCTIONAL - All workflow steps working correctly
 
 ## System Architecture
 Conductor follows a Clean Architecture with Domain-Driven Design principles.

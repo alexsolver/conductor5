@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { apiRequest, queryClient } from '@/lib/queryClient';
 
 interface RunningAction {
   actionId: string;
@@ -55,6 +54,10 @@ export function SimpleTimerProvider({ children }: { children: React.ReactNode })
       return;
     }
 
+    // Limpar ação imediatamente para evitar múltiplas chamadas
+    setRunningAction(null);
+    localStorage.removeItem('runningAction');
+
     try {
       // Atualizar a ação com hora final
       const endTime = new Date().toISOString();
@@ -65,21 +68,24 @@ export function SimpleTimerProvider({ children }: { children: React.ReactNode })
 
       console.log('📝 [SIMPLE-TIMER] Updating action with:', updateData);
 
-      const response = await apiRequest('PATCH', `/api/tickets/${runningAction.ticketId}/actions/${actionId}`, {
-        body: updateData
+      const response = await fetch(`/api/tickets/${runningAction.ticketId}/actions/${actionId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updateData)
       });
       
       const result = await response.json();
       console.log('✅ [SIMPLE-TIMER] Action updated successfully:', result);
 
-      // Invalidar cache para atualizar lista de ações
-      await queryClient.invalidateQueries({ queryKey: ['/api/tickets', runningAction.ticketId, 'actions'] });
-
-      // Limpar ação em andamento
-      setRunningAction(null);
-      localStorage.removeItem('runningAction');
-
       console.log('🎯 [SIMPLE-TIMER] Action finished and timer cleared');
+      
+      // Recarregar a página após pequeno delay para atualizar dados
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+      
     } catch (error) {
       console.error('❌ [SIMPLE-TIMER] Failed to finish action:', error);
     }
