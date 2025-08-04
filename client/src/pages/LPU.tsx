@@ -506,12 +506,21 @@ function PriceListForm({
   });
 
   // Fetch customer companies
-  const { data: customerCompanies = [], isLoading: companiesLoading } = useQuery({
+  const { data: customerCompaniesResponse, isLoading: companiesLoading } = useQuery({
     queryKey: ['/api/customers/companies'],
     queryFn: () => apiRequest('GET', '/api/customers/companies'),
     retry: 3,
     staleTime: 30000,
   });
+
+  // Safe data extraction with fallbacks
+  const customerCompanies = Array.isArray(customerCompaniesResponse)
+    ? customerCompaniesResponse
+    : customerCompaniesResponse?.data
+    ? Array.isArray(customerCompaniesResponse.data)
+      ? customerCompaniesResponse.data
+      : []
+    : [];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -593,10 +602,12 @@ function PriceListForm({
               <SelectItem value="none">Nenhuma empresa específica</SelectItem>
               {companiesLoading ? (
                 <SelectItem value="loading" disabled>Carregando empresas...</SelectItem>
+              ) : customerCompanies.length === 0 ? (
+                <SelectItem value="no-companies" disabled>Nenhuma empresa encontrada</SelectItem>
               ) : (
-                Array.isArray(customerCompanies) && customerCompanies.map((company: any) => (
+                customerCompanies.map((company: any) => (
                   <SelectItem key={company.id} value={company.id}>
-                    {company.name || company.displayName}
+                    {company.name || company.display_name || company.displayName || 'Empresa sem nome'}
                   </SelectItem>
                 ))
               )}

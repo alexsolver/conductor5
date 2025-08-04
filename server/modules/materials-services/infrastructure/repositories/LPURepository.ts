@@ -11,63 +11,51 @@ import {
   type DynamicPricing,
   type InsertDynamicPricing
 } from '../../../../../shared/schema-materials-services';
-import { eq, and, desc, asc, gte, lte } from 'drizzle-orm';
+import { eq, and, desc, asc, gte, lte, sql } from 'drizzle-orm';
 
 export class LPURepository {
   constructor(private database = db) {}
 
   async getLPUStats(tenantId: string) {
-    try {
-      // Get basic counts
-      const allPriceLists = await this.database
-        .select()
-        .from(priceLists)
-        .where(eq(priceLists.tenantId, tenantId));
+    const result = await db.execute(sql`
+      WITH stats AS (
+        SELECT
+          COUNT(*) as total_lists,
+          COUNT(*) FILTER (WHERE is_active = true) as active_lists,
+          COUNT(*) FILTER (WHERE is_active = false) as draft_lists,
+          COUNT(*) FILTER (WHERE customer_company_id IS NOT NULL) as pending_approval,
+          COUNT(*) FILTER (WHERE is_active = true AND customer_company_id IS NOT NULL) as approved_versions,
+          0 as active_rules,
+          CASE 
+            WHEN COUNT(*) FILTER (WHERE customer_company_id IS NOT NULL) > 0 
+            THEN ROUND((COUNT(*) FILTER (WHERE is_active = true AND customer_company_id IS NOT NULL)::numeric / COUNT(*) FILTER (WHERE customer_company_id IS NOT NULL)::numeric) * 100, 2)
+            ELSE 0 
+          END as approval_rate
+        FROM ${priceLists}
+        WHERE tenant_id = ${tenantId}
+      )
+      SELECT * FROM stats
+    `);
 
-      const totalLists = allPriceLists.length;
-      const activeLists = allPriceLists.filter(p => p.isActive).length;
-      const draftLists = totalLists - activeLists;
+    const stats = result[0] || {
+      total_lists: 0,
+      active_lists: 0,
+      draft_lists: 0,
+      pending_approval: 0,
+      approved_versions: 0,
+      active_rules: 0,
+      approval_rate: 0
+    };
 
-      // Get versions stats
-      const allVersions = await this.database
-        .select()
-        .from(priceListVersions)
-        .where(eq(priceListVersions.tenantId, tenantId));
-
-      const pendingApproval = allVersions.filter(v => v.status === 'pending_approval').length;
-      const approvedVersions = allVersions.filter(v => v.status === 'approved').length;
-
-      // Get active rules
-      const activeRulesCount = await this.database
-        .select()
-        .from(pricingRules)
-        .where(and(
-          eq(pricingRules.tenantId, tenantId),
-          eq(pricingRules.isActive, true)
-        ));
-
-      return {
-        totalLists,
-        activeLists,
-        draftLists,
-        pendingApproval,
-        approvedVersions,
-        activeRules: activeRulesCount.length,
-        approvalRate: allVersions.length > 0 ?
-          Math.round((approvedVersions / allVersions.length) * 100) : 0
-      };
-    } catch (error) {
-      console.error('Error getting LPU stats:', error);
-      return {
-        totalLists: 0,
-        activeLists: 0,
-        draftLists: 0,
-        pendingApproval: 0,
-        approvedVersions: 0,
-        activeRules: 0,
-        approvalRate: 0
-      };
-    }
+    return {
+      totalLists: Number(stats.total_lists),
+      activeLists: Number(stats.active_lists),
+      draftLists: Number(stats.draft_lists),
+      pendingApproval: Number(stats.pending_approval),
+      approvedVersions: Number(stats.approved_versions),
+      activeRules: Number(stats.active_rules),
+      approvalRate: Number(stats.approval_rate)
+    };
   }
 
   // GESTÃO DE LISTAS DE PREÇOS

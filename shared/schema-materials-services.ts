@@ -53,7 +53,7 @@ export const itemAttachments = pgTable('item_attachments', {
 export const itemLinks = pgTable('item_links', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id').notNull(),
-  
+
   linkType: linkTypeEnum('link_type').notNull(),
   itemId: uuid('item_id').notNull(), // Item principal
 
@@ -162,11 +162,11 @@ export const stockMovements = pgTable('stock_movements', {
   // Referências
   referenceType: varchar('reference_type', { length: 50 }), // order, service, transfer
   referenceId: uuid('reference_id'),
-  
+
   // Rastreabilidade
   batchNumber: varchar('batch_number', { length: 100 }),
   serialNumber: varchar('serial_number', { length: 100 }),
-  
+
   notes: text('notes'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   createdBy: uuid('created_by').notNull()
@@ -183,7 +183,7 @@ export const suppliers = pgTable('suppliers', {
   document: varchar('document', { length: 20 }).notNull(), // Campo obrigatório conforme banco real
   email: varchar('email', { length: 255 }),
   phone: varchar('phone', { length: 20 }),
-  
+
   // Endereço
   address: text('address'),
   city: varchar('city', { length: 100 }),
@@ -255,7 +255,7 @@ export const serviceExecution = pgTable('service_execution', {
   actualDuration: integer('actual_duration'), // minutes
   technicianId: uuid('technician_id'),
   status: varchar('status', { length: 20 }).default('scheduled'), // scheduled, in_progress, completed, cancelled
-  
+
   checklistResults: jsonb('checklist_results'),
   itemsUsed: jsonb('items_used'),
   notes: text('notes'),
@@ -277,30 +277,30 @@ export const assets = pgTable('assets', {
   serialNumber: varchar('serial_number', { length: 100 }),
   model: varchar('model', { length: 100 }),
   manufacturer: varchar('manufacturer', { length: 100 }),
-  
+
   // Hierarquia
   parentAssetId: uuid('parent_asset_id'),
   assetLevel: varchar('asset_level', { length: 20 }), // machine, component, item
-  
+
   // Status e localização
   status: assetStatusEnum('status').default('active'),
   currentLocationId: uuid('current_location_id'),
   coordinates: jsonb('coordinates'),
-  
+
   // Ciclo de vida
   acquisitionDate: timestamp('acquisition_date'),
   acquisitionCost: decimal('acquisition_cost', { precision: 12, scale: 2 }),
   warrantyExpiry: timestamp('warranty_expiry'),
-  
+
   // Medidores
   hourMeter: decimal('hour_meter', { precision: 10, scale: 2 }),
   kilometerMeter: decimal('kilometer_meter', { precision: 10, scale: 2 }),
   usageTime: integer('usage_time'), // total minutes of usage
-  
+
   // QR/RFID
   qrCode: varchar('qr_code', { length: 255 }),
   rfidTag: varchar('rfid_tag', { length: 100 }),
-  
+
   isActive: boolean('is_active').default(true),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
@@ -331,21 +331,22 @@ export const priceLists = pgTable('price_lists', {
   name: varchar('name', { length: 255 }).notNull(),
   code: varchar('code', { length: 50 }).notNull(),
   version: varchar('version', { length: 20 }).notNull(),
-  
+
   // Aplicação
+  customerId: uuid('customer_id'),
   customerCompanyId: uuid('customer_company_id'),
   contractId: uuid('contract_id'),
   costCenterId: uuid('cost_center_id'),
-  
+
   // Vigência
   validFrom: timestamp('valid_from').notNull(),
   validTo: timestamp('valid_to'),
   isActive: boolean('is_active').default(true),
-  
+
   // Configurações
   currency: varchar('currency', { length: 3 }).default('BRL'),
   automaticMargin: decimal('automatic_margin', { precision: 5, scale: 2 }),
-  
+
   notes: text('notes'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
@@ -362,14 +363,14 @@ export const priceListItems = pgTable('price_list_items', {
 
   unitPrice: decimal('unit_price', { precision: 10, scale: 2 }).notNull(),
   specialPrice: decimal('special_price', { precision: 10, scale: 2 }),
-  
+
   // Descontos por escala
   scaleDiscounts: jsonb('scale_discounts'), // [{quantity: 100, discount: 5}, ...]
-  
+
   // Para serviços
   hourlyRate: decimal('hourly_rate', { precision: 10, scale: 2 }),
   travelCost: decimal('travel_cost', { precision: 10, scale: 2 }),
-  
+
   isActive: boolean('is_active').default(true),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull()
@@ -383,16 +384,16 @@ export const auditLogs = pgTable('audit_logs', {
   entityType: varchar('entity_type', { length: 50 }).notNull(), // item, stock, asset, etc
   entityId: uuid('entity_id').notNull(),
   action: varchar('action', { length: 20 }).notNull(), // create, update, delete
-  
+
   oldValues: jsonb('old_values'),
   newValues: jsonb('new_values'),
   changes: jsonb('changes'),
-  
+
   userId: uuid('user_id').notNull(),
   userEmail: varchar('user_email', { length: 255 }),
   ipAddress: varchar('ip_address', { length: 45 }),
   userAgent: text('user_agent'),
-  
+
   createdAt: timestamp('created_at').defaultNow().notNull()
 });
 
@@ -403,19 +404,19 @@ export const materialCertifications = pgTable('certifications', {
   name: varchar('name', { length: 255 }).notNull(),
   type: varchar('type', { length: 50 }).notNull(), // quality, environmental, safety
   issuingBody: varchar('issuing_body', { length: 255 }),
-  
+
   // Associações
   itemId: uuid('item_id'),
   supplierId: uuid('supplier_id'),
   assetId: uuid('asset_id'),
-  
+
   issueDate: timestamp('issue_date'),
   expiryDate: timestamp('expiry_date'),
   certificateNumber: varchar('certificate_number', { length: 100 }),
-  
+
   documentPath: varchar('document_path', { length: 500 }),
   isActive: boolean('is_active').default(true),
-  
+
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull()
 });
@@ -463,21 +464,21 @@ export const assetMaintenance = pgTable('asset_maintenance', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id').notNull(),
   assetId: uuid('asset_id').notNull(),
-  
+
   type: varchar('type', { length: 20 }).notNull(), // preventive, corrective, emergency
   status: varchar('status', { length: 20 }).notNull().default('scheduled'), // scheduled, in_progress, completed, cancelled
   priority: varchar('priority', { length: 10 }).default('medium'), // low, medium, high, critical
-  
+
   scheduledDate: timestamp('scheduled_date'),
   completedDate: timestamp('completed_date'),
   technicianId: uuid('technician_id'),
-  
+
   description: text('description'),
   workPerformed: text('work_performed'),
   partsUsed: jsonb('parts_used'),
   cost: decimal('cost', { precision: 12, scale: 2 }),
   downtime: integer('downtime'), // minutes
-  
+
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
@@ -486,14 +487,14 @@ export const assetMeters = pgTable('asset_meters', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id').notNull(),
   assetId: uuid('asset_id').notNull(),
-  
+
   meterType: varchar('meter_type', { length: 30 }).notNull(), // hours, kilometers, cycles, etc
   currentReading: decimal('current_reading', { precision: 15, scale: 3 }),
   previousReading: decimal('previous_reading', { precision: 15, scale: 3 }),
   readingDate: timestamp('reading_date').defaultNow(),
   unit: varchar('unit', { length: 10 }).notNull(),
   notes: text('notes'),
-  
+
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
@@ -501,12 +502,12 @@ export const assetLocations = pgTable('asset_locations', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id').notNull(),
   assetId: uuid('asset_id').notNull(),
-  
+
   latitude: decimal('latitude', { precision: 10, scale: 8 }),
   longitude: decimal('longitude', { precision: 11, scale: 8 }),
   address: text('address'),
   locationName: varchar('location_name', { length: 200 }),
-  
+
   isActive: boolean('is_active').default(true),
   recordedAt: timestamp('recorded_at').defaultNow(),
   recordedBy: uuid('recorded_by'),
@@ -516,16 +517,16 @@ export const assetLocations = pgTable('asset_locations', {
 export const pricingRules = pgTable('pricing_rules', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id').notNull(),
-  
+
   name: varchar('name', { length: 255 }).notNull(),
   description: text('description'),
   ruleType: varchar('rule_type', { length: 50 }).notNull(), // percentual, fixo, escalonado, dinâmico
   conditions: jsonb('conditions'), // complex conditions for rule application
   actions: jsonb('actions'), // price modification actions
   priority: integer('priority').default(1),
-  
+
   isActive: boolean('is_active').default(true),
-  
+
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
@@ -534,10 +535,10 @@ export const priceListVersions = pgTable('price_list_versions', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id').notNull(),
   priceListId: uuid('price_list_id').notNull(),
-  
+
   version: varchar('version', { length: 20 }).notNull(),
   status: varchar('status', { length: 20 }).notNull().default('draft'), // draft, pending_approval, approved, active, archived
-  
+
   // Workflow de aprovação
   submittedBy: uuid('submitted_by'),
   submittedAt: timestamp('submitted_at'),
@@ -546,17 +547,17 @@ export const priceListVersions = pgTable('price_list_versions', {
   rejectedBy: uuid('rejected_by'),
   rejectedAt: timestamp('rejected_at'),
   rejectionReason: text('rejection_reason'),
-  
+
   // Controle de margem
   baseMargin: decimal('base_margin', { precision: 5, scale: 2 }), // percentage
   marginOverride: jsonb('margin_override'), // specific overrides
-  
+
   effectiveDate: timestamp('effective_date'),
   expirationDate: timestamp('expiration_date'),
-  
+
   notes: text('notes'),
   changeLog: jsonb('change_log'),
-  
+
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
@@ -566,20 +567,20 @@ export const dynamicPricing = pgTable('dynamic_pricing', {
   tenantId: uuid('tenant_id').notNull(),
   priceListId: uuid('price_list_id').notNull(),
   itemId: uuid('item_id'),
-  
+
   // Preço dinâmico baseado em condições
   basePrice: decimal('base_price', { precision: 15, scale: 2 }).notNull(),
   currentPrice: decimal('current_price', { precision: 15, scale: 2 }).notNull(),
-  
+
   // Fatores de ajuste
   demandFactor: decimal('demand_factor', { precision: 5, scale: 4 }).default('1.0000'),
   seasonalFactor: decimal('seasonal_factor', { precision: 5, scale: 4 }).default('1.0000'),
   inventoryFactor: decimal('inventory_factor', { precision: 5, scale: 4 }).default('1.0000'),
   competitorFactor: decimal('competitor_factor', { precision: 5, scale: 4 }).default('1.0000'),
-  
+
   lastUpdated: timestamp('last_updated').defaultNow(),
   calculationRules: jsonb('calculation_rules'),
-  
+
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
@@ -587,31 +588,31 @@ export const dynamicPricing = pgTable('dynamic_pricing', {
 export const complianceAudits = pgTable('compliance_audits', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id').notNull(),
-  
+
   title: varchar('title', { length: 200 }).notNull(),
   type: varchar('type', { length: 30 }).notNull(), // internal, external, regulatory, certification
   status: varchar('status', { length: 20 }).notNull().default('planned'), // planned, in_progress, completed, cancelled
-  
+
   auditorName: varchar('auditor_name', { length: 100 }),
   auditorOrganization: varchar('auditor_organization', { length: 100 }),
-  
+
   scheduledDate: timestamp('scheduled_date'),
   startDate: timestamp('start_date'),
   completionDate: timestamp('completion_date'),
-  
+
   scope: text('scope'),
   methodology: text('methodology'),
   findings: jsonb('findings'),
   recommendations: text('recommendations'),
-  
+
   overallScore: decimal('overall_score', { precision: 5, scale: 2 }),
   criticalIssues: integer('critical_issues').default(0),
   majorIssues: integer('major_issues').default(0),
   minorIssues: integer('minor_issues').default(0),
-  
+
   responsiblePerson: uuid('responsible_person'),
   nextAuditDate: timestamp('next_audit_date'),
-  
+
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
@@ -619,13 +620,13 @@ export const complianceAudits = pgTable('compliance_audits', {
 export const complianceAlerts = pgTable('compliance_alerts', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id').notNull(),
-  
+
   title: varchar('title', { length: 255 }),
   description: text('description'),
   severity: varchar('severity', { length: 20 }),
   status: varchar('status', { length: 20 }),
   category: varchar('category', { length: 50 }),
-  
+
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull()
 });
@@ -633,25 +634,25 @@ export const complianceAlerts = pgTable('compliance_alerts', {
 export const complianceCertifications = pgTable('compliance_certifications', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id').notNull(),
-  
+
   name: varchar('name', { length: 100 }).notNull(),
   type: varchar('type', { length: 30 }).notNull(), // iso, industry, regulatory
   standard: varchar('standard', { length: 50 }).notNull(),
   issuingBody: varchar('issuing_body', { length: 100 }).notNull(),
-  
+
   certificateNumber: varchar('certificate_number', { length: 50 }),
   issueDate: timestamp('issue_date'),
   expirationDate: timestamp('expiration_date'),
-  
+
   status: varchar('status', { length: 20 }).notNull().default('active'), // active, expired, suspended, revoked
   scope: text('scope'),
   evidenceFiles: jsonb('evidence_files'),
   renewalNoticeDate: timestamp('renewal_notice_date'),
-  
+
   cost: decimal('cost', { precision: 12, scale: 2 }),
   responsiblePerson: uuid('responsible_person'),
   notes: text('notes'),
-  
+
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
@@ -661,26 +662,26 @@ export const complianceEvidence = pgTable('compliance_evidence', {
   tenantId: uuid('tenant_id').notNull(),
   auditId: uuid('audit_id'),
   certificationId: uuid('certification_id'),
-  
+
   title: varchar('title', { length: 200 }).notNull(),
   type: varchar('type', { length: 30 }).notNull(), // document, photo, record, measurement
-  
+
   fileName: varchar('file_name', { length: 255 }),
   filePath: varchar('file_path', { length: 500 }),
   fileSize: integer('file_size'),
   mimeType: varchar('mime_type', { length: 100 }),
-  
+
   description: text('description'),
   collectedDate: timestamp('collected_date').defaultNow(),
   collectedBy: uuid('collected_by'),
   verifiedBy: uuid('verified_by'),
   verifiedAt: timestamp('verified_at'),
-  
+
   isValid: boolean('is_valid').default(true),
   expirationDate: timestamp('expiration_date'),
   tags: text('tags').array(),
   metadata: jsonb('metadata'),
-  
+
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
@@ -688,22 +689,22 @@ export const complianceEvidence = pgTable('compliance_evidence', {
 export const complianceScores = pgTable('compliance_scores', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id').notNull(),
-  
+
   entityType: varchar('entity_type', { length: 30 }).notNull(), // item, supplier, asset, process
   entityId: uuid('entity_id').notNull(),
-  
+
   category: varchar('category', { length: 50 }).notNull(), // quality, safety, environmental, regulatory
   score: decimal('score', { precision: 5, scale: 2 }).notNull(), // 0-100
   maxScore: decimal('max_score', { precision: 5, scale: 2 }).default('100.00'),
-  
+
   criteria: jsonb('criteria'), // detailed scoring criteria
   gaps: jsonb('gaps'), // identified compliance gaps
   recommendations: text('recommendations'),
-  
+
   assessedBy: uuid('assessed_by'),
   assessedAt: timestamp('assessed_at').defaultNow(),
   nextAssessmentDate: timestamp('next_assessment_date'),
-  
+
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
