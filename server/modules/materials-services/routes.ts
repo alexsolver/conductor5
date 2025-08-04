@@ -23,7 +23,7 @@ async function getControllers(tenantId: string) {
   const itemRepository = new ItemRepository(db);
   const supplierRepository = new SupplierRepository(db);
   const stockRepository = new StockRepository(db);
-  
+
   return {
     itemController: new ItemController(itemRepository),
     supplierController: new SupplierController(supplierRepository),
@@ -513,7 +513,6 @@ router.get('/dashboard', async (req: AuthenticatedRequest, res) => {
         items: { total: 0, active: 0 },
         suppliers: { total: 0, active: 0 },
         stock: { locations: 0, movements: 0 },
-        services: { types: 0, executions: 0 },
         assets: { total: 0, active: 0, maintenance: 0 },
         priceLists: { total: 0, active: 0, pendingApproval: 0 },
         compliance: { audits: 0, certifications: 0, activeAlerts: 0 }

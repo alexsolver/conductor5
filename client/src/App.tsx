@@ -73,7 +73,7 @@ import MaterialsServicesControl from "./pages/MaterialsServicesControl";
 import ItemCatalog from "./pages/ItemCatalog";
 import { StockManagement } from "./pages/StockManagement";
 import { SupplierManagement } from "./pages/SupplierManagement";
-import { ServicesManagement } from "./pages/ServicesManagement";
+
 import AssetManagement from "./pages/AssetManagement";
 import LpuManagement from "./pages/LpuManagement"; // Temporarily commented due to LSP errors
 import ComplianceManagement from "./pages/ComplianceManagement";
@@ -198,7 +198,7 @@ function AppRouter() {
         <Route path="/item-catalog" component={ItemCatalog} />
         <Route path="/stock-management" component={StockManagement} />
         <Route path="/supplier-management" component={SupplierManagement} />
-        <Route path="/services-management" component={ServicesManagement} />
+        
         <Route path="/asset-management" component={AssetManagement} />
         <Route path="/lpu-management" component={LpuManagement} />
         <Route path="/compliance-management" component={ComplianceManagement} />
