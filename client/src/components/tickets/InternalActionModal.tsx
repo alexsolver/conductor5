@@ -429,8 +429,15 @@ export default function InternalActionModal({ isOpen, onClose, ticketId }: Inter
                         if (newValue && prev.planned_start_time) {
                           const startTime = new Date(prev.planned_start_time);
                           const estimatedMinutes = parseInt(newValue);
+                          console.log('🔧 Calculation Debug:', {
+                            newValue,
+                            estimatedMinutes,
+                            startTime: startTime.toISOString(),
+                            calculation: `${startTime.toISOString()} + ${estimatedMinutes} minutes`
+                          });
                           if (!isNaN(estimatedMinutes) && estimatedMinutes > 0) {
                             const endTime = new Date(startTime.getTime() + estimatedMinutes * 60000);
+                            console.log('✅ End time calculated:', endTime.toISOString());
                             newData.planned_end_time = endTime.toISOString().slice(0, 16);
                           }
                         }
@@ -469,8 +476,16 @@ export default function InternalActionModal({ isOpen, onClose, ticketId }: Inter
                               if (prev.estimated_hours) {
                                 const startTime = new Date(newValue);
                                 const estimatedMinutes = parseInt(prev.estimated_hours);
+                                console.log('🔧 Start Time Change Debug:', {
+                                  newValue,
+                                  estimatedHours: prev.estimated_hours,
+                                  estimatedMinutes,
+                                  startTime: startTime.toISOString(),
+                                  calculation: `${startTime.toISOString()} + ${estimatedMinutes} minutes`
+                                });
                                 if (!isNaN(estimatedMinutes) && estimatedMinutes > 0) {
                                   const endTime = new Date(startTime.getTime() + estimatedMinutes * 60000);
+                                  console.log('✅ End time calculated from start change:', endTime.toISOString());
                                   newData.planned_end_time = endTime.toISOString().slice(0, 16);
                                 }
                               }
