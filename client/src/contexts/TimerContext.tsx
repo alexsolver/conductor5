@@ -38,12 +38,12 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
       // Create the action first
       const actionData = {
         action_type: "investigation", // Changed to supported type
-        agent_id: "auto", // Will be set by backend
         title: "Cronômetro Ativo",
         description: "Ação em andamento - tempo sendo registrado",
         start_time: new Date(now).toISOString(),
         status: "pending",
         priority: "medium"
+        // agent_id will be set automatically by backend based on JWT
       };
 
       console.log('📤 [TIMER] Creating action with data:', actionData);
