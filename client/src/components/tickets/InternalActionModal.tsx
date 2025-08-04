@@ -265,6 +265,62 @@ export default function InternalActionModal({ isOpen, onClose, ticketId }: Inter
           <Card>
             <CardContent className="p-6">
               <div className="space-y-6">
+                {/* Datas Previstas - Moved to top */}
+                <div className="space-y-2">
+                  <Label className="flex items-center space-x-2">
+                    <CalendarClock className="h-4 w-4" />
+                    <span>Datas Previstas</span>
+                  </Label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="plannedStartDate">Data Prevista Inicial</Label>
+                      <Input
+                        id="plannedStartDate"
+                        type="datetime-local"
+                        value={plannedStartDate}
+                        onChange={(e) => setPlannedStartDate(e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="plannedEndDate">Data Prevista Final</Label>
+                      <Input
+                        id="plannedEndDate"
+                        type="datetime-local"
+                        value={plannedEndDate}
+                        onChange={(e) => setPlannedEndDate(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Datas Realizadas - Moved to top */}
+                <div className="space-y-2">
+                  <Label className="flex items-center space-x-2">
+                    <CalendarCheck className="h-4 w-4" />
+                    <span>Datas Realizadas</span>
+                  </Label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="actualStartDate">Data Realizada Inicial</Label>
+                      <Input
+                        id="actualStartDate"
+                        type="datetime-local"
+                        value={actualStartDate}
+                        onChange={(e) => setActualStartDate(e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="actualEndDate">Data Realizada Final</Label>
+                      <Input
+                        id="actualEndDate"
+                        type="datetime-local"
+                        value={actualEndDate}
+                        onChange={(e) => setActualEndDate(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                </div>
+
                 {/* First Row: Date/Time and Time */}
                 <div className="grid grid-cols-4 gap-4">
                   <div>
@@ -506,104 +562,6 @@ export default function InternalActionModal({ isOpen, onClose, ticketId }: Inter
 
           {/* Removed existing actions display as requested */}
         </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="assignmentGroup" className="flex items-center space-x-2">
-                <Users className="h-4 w-4" />
-                <span>Grupo de Atribuição</span>
-              </Label>
-              <UserGroupSelect
-                value={assignmentGroupId}
-                onChange={setAssignmentGroupId}
-                placeholder="Selecionar grupo..."
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="assignedTo" className="flex items-center space-x-2">
-                <User className="h-4 w-4" />
-                <span>Atribuir para</span>
-              </Label>
-              {assignmentGroupId ? (
-                <Select value={assignedToId} onValueChange={setAssignedToId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecionar agente do grupo..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {groupAgents.map((agent: any) => (
-                      <SelectItem key={agent.id} value={agent.id}>
-                        {agent.first_name} {agent.last_name} ({agent.group_role})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              ) : (
-                <FilteredUserSelect
-                  value={assignedToId}
-                  onChange={setAssignedToId}
-                  placeholder="Selecionar grupo primeiro..."
-                  roleFilter={["agent", "manager", "admin"]}
-                  disabled={true}
-                />
-              )}
-            </div>
-          </div>
-
-          {/* Datas Previstas */}
-          <div className="space-y-2">
-            <Label className="flex items-center space-x-2">
-              <CalendarClock className="h-4 w-4" />
-              <span>Datas Previstas</span>
-            </Label>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="plannedStartDate">Data Prevista Inicial</Label>
-                <Input
-                  id="plannedStartDate"
-                  type="datetime-local"
-                  value={plannedStartDate}
-                  onChange={(e) => setPlannedStartDate(e.target.value)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="plannedEndDate">Data Prevista Final</Label>
-                <Input
-                  id="plannedEndDate"
-                  type="datetime-local"
-                  value={plannedEndDate}
-                  onChange={(e) => setPlannedEndDate(e.target.value)}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Datas Realizadas */}
-          <div className="space-y-2">
-            <Label className="flex items-center space-x-2">
-              <CalendarCheck className="h-4 w-4" />
-              <span>Datas Realizadas</span>
-            </Label>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="actualStartDate">Data Realizada Inicial</Label>
-                <Input
-                  id="actualStartDate"
-                  type="datetime-local"
-                  value={actualStartDate}
-                  onChange={(e) => setActualStartDate(e.target.value)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="actualEndDate">Data Realizada Final</Label>
-                <Input
-                  id="actualEndDate"
-                  type="datetime-local"
-                  value={actualEndDate}
-                  onChange={(e) => setActualEndDate(e.target.value)}
-                />
-              </div>
-            </div>
-          </div>
       </DialogContent>
     </Dialog>
   );
