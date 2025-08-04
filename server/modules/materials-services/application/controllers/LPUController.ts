@@ -5,8 +5,8 @@ import { LPURepository } from '../../infrastructure/repositories/LPURepository';
 export class LPUController {
   private repository: LPURepository;
 
-  constructor() {
-    this.repository = new LPURepository();
+  constructor(database?: any) {
+    this.repository = new LPURepository(database);
   }
 
   // GESTÃO DE LISTAS DE PREÇOS
@@ -53,10 +53,13 @@ export class LPUController {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
 
+      // Handle date conversion properly
       const priceListData = {
         ...req.body,
         tenantId,
-        createdBy: req.user?.id
+        createdBy: req.user?.id,
+        validFrom: req.body.validFrom ? new Date(req.body.validFrom) : new Date(),
+        validTo: req.body.validTo ? new Date(req.body.validTo) : null
       };
 
       const priceList = await this.repository.createPriceList(priceListData);

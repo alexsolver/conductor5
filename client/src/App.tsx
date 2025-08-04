@@ -77,7 +77,7 @@ import LPU from "./pages/LPU";
 import { SupplierManagement } from "./pages/SupplierManagement";
 
 import AssetManagement from "./pages/AssetManagement";
-// Unified LPU Management - using LPU.tsx as primary component
+import LPU from "./pages/LPU";
 import ComplianceManagement from "./pages/ComplianceManagement";
 import CLTCompliance from "./pages/CLTCompliance";
 import TimecardApprovalSettings from "./pages/TimecardApprovalSettings";

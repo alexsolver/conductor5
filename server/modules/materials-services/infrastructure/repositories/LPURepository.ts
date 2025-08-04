@@ -12,11 +12,79 @@ import {
   type InsertDynamicPricing
 } from '../../../../../shared/schema-materials-services';
 import { eq, and, desc, asc, gte, lte } from 'drizzle-orm';
+import { db } from '../../../db';
+import { 
+  priceLists, 
+  priceListItems, 
+  priceListVersions, 
+  pricingRules, 
+  dynamicPricing 
+} from '../../../../../shared/schema-materials-services';
+import type { 
+  InsertPricingRule, 
+  InsertDynamicPricing 
+} from '../../../../../shared/schema-materials-services';
 
 export class LPURepository {
+  constructor(private database = db) {}
+
+  async getLPUStats(tenantId: string) {
+    try {
+      // Get basic counts
+      const allPriceLists = await this.database
+        .select()
+        .from(priceLists)
+        .where(eq(priceLists.tenantId, tenantId));
+
+      const totalLists = allPriceLists.length;
+      const activeLists = allPriceLists.filter(p => p.isActive).length;
+      const draftLists = totalLists - activeLists;
+
+      // Get versions stats
+      const allVersions = await this.database
+        .select()
+        .from(priceListVersions)
+        .where(eq(priceListVersions.tenantId, tenantId));
+
+      const pendingApproval = allVersions.filter(v => v.status === 'pending_approval').length;
+      const approvedVersions = allVersions.filter(v => v.status === 'approved').length;
+
+      // Get active rules
+      const activeRulesCount = await this.database
+        .select()
+        .from(pricingRules)
+        .where(and(
+          eq(pricingRules.tenantId, tenantId),
+          eq(pricingRules.isActive, true)
+        ));
+
+      return {
+        totalLists,
+        activeLists,
+        draftLists,
+        pendingApproval,
+        approvedVersions,
+        activeRules: activeRulesCount.length,
+        approvalRate: allVersions.length > 0 ? 
+          Math.round((approvedVersions / allVersions.length) * 100) : 0
+      };
+    } catch (error) {
+      console.error('Error getting LPU stats:', error);
+      return {
+        totalLists: 0,
+        activeLists: 0,
+        draftLists: 0,
+        pendingApproval: 0,
+        approvedVersions: 0,
+        activeRules: 0,
+        approvalRate: 0
+      };
+    }
+  }
+
   // GESTÃO DE LISTAS DE PREÇOS
   async getAllPriceLists(tenantId: string) {
-    return await db
+    return await this.database
       .select({
         id: priceLists.id,
         tenantId: priceLists.tenantId,

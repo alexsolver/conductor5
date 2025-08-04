@@ -29,7 +29,7 @@ async function getControllers(tenantId: string) {
     supplierController: new SupplierController(supplierRepository),
     stockController: new StockController(stockRepository),
     assetController: new AssetManagementController(),
-    lpuController: new LPUController(),
+    lpuController: new LPUController(db),
     complianceController: new ComplianceController()
   };
 }
