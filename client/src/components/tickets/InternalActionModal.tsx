@@ -427,18 +427,25 @@ export default function InternalActionModal({ isOpen, onClose, ticketId }: Inter
                         
                         // Auto-calculate planned end time if both estimated time and planned start time are filled
                         if (newValue && prev.planned_start_time) {
-                          const startTime = new Date(prev.planned_start_time);
                           const estimatedMinutes = parseInt(newValue);
-                          console.log('🔧 Calculation Debug:', {
-                            newValue,
-                            estimatedMinutes,
-                            startTime: startTime.toISOString(),
-                            calculation: `${startTime.toISOString()} + ${estimatedMinutes} minutes`
-                          });
                           if (!isNaN(estimatedMinutes) && estimatedMinutes > 0) {
+                            // Parse the datetime-local value directly without timezone conversion
+                            const [datePart, timePart] = prev.planned_start_time.split('T');
+                            const [year, month, day] = datePart.split('-').map(Number);
+                            const [hour, minute] = timePart.split(':').map(Number);
+                            
+                            // Create date in local timezone
+                            const startTime = new Date(year, month - 1, day, hour, minute);
                             const endTime = new Date(startTime.getTime() + estimatedMinutes * 60000);
-                            console.log('✅ End time calculated:', endTime.toISOString());
-                            newData.planned_end_time = endTime.toISOString().slice(0, 16);
+                            
+                            // Format back to datetime-local format
+                            const endYear = endTime.getFullYear();
+                            const endMonth = String(endTime.getMonth() + 1).padStart(2, '0');
+                            const endDay = String(endTime.getDate()).padStart(2, '0');
+                            const endHour = String(endTime.getHours()).padStart(2, '0');
+                            const endMinute = String(endTime.getMinutes()).padStart(2, '0');
+                            
+                            newData.planned_end_time = `${endYear}-${endMonth}-${endDay}T${endHour}:${endMinute}`;
                           }
                         }
                         
@@ -474,19 +481,25 @@ export default function InternalActionModal({ isOpen, onClose, ticketId }: Inter
                               
                               // If estimated time is also filled, calculate the proper end time
                               if (prev.estimated_hours) {
-                                const startTime = new Date(newValue);
                                 const estimatedMinutes = parseInt(prev.estimated_hours);
-                                console.log('🔧 Start Time Change Debug:', {
-                                  newValue,
-                                  estimatedHours: prev.estimated_hours,
-                                  estimatedMinutes,
-                                  startTime: startTime.toISOString(),
-                                  calculation: `${startTime.toISOString()} + ${estimatedMinutes} minutes`
-                                });
                                 if (!isNaN(estimatedMinutes) && estimatedMinutes > 0) {
+                                  // Parse the datetime-local value directly without timezone conversion
+                                  const [datePart, timePart] = newValue.split('T');
+                                  const [year, month, day] = datePart.split('-').map(Number);
+                                  const [hour, minute] = timePart.split(':').map(Number);
+                                  
+                                  // Create date in local timezone
+                                  const startTime = new Date(year, month - 1, day, hour, minute);
                                   const endTime = new Date(startTime.getTime() + estimatedMinutes * 60000);
-                                  console.log('✅ End time calculated from start change:', endTime.toISOString());
-                                  newData.planned_end_time = endTime.toISOString().slice(0, 16);
+                                  
+                                  // Format back to datetime-local format
+                                  const endYear = endTime.getFullYear();
+                                  const endMonth = String(endTime.getMonth() + 1).padStart(2, '0');
+                                  const endDay = String(endTime.getDate()).padStart(2, '0');
+                                  const endHour = String(endTime.getHours()).padStart(2, '0');
+                                  const endMinute = String(endTime.getMinutes()).padStart(2, '0');
+                                  
+                                  newData.planned_end_time = `${endYear}-${endMonth}-${endDay}T${endHour}:${endMinute}`;
                                 }
                               }
                             }
