@@ -101,7 +101,6 @@ const baseNavigation: Array<{
       { name: "Catálogo de Itens", href: "/item-catalog", icon: Package },
       { name: "Gestão de Estoque", href: "/stock-management", icon: Warehouse },
       { name: "Gestão de Fornecedores", href: "/supplier-management", icon: Building2 },
-      { name: "Gestão de Serviços", href: "/services-management", icon: Wrench },
       { name: "Controle de Ativos", href: "/asset-management", icon: HardDrive },
       { name: "LPU - Lista de Preços", href: "/lpu-management", icon: DollarSign },
       { name: "Gestão de Compliance", href: "/compliance-management", icon: Shield },
