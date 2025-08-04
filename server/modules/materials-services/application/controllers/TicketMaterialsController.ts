@@ -100,30 +100,9 @@ export class TicketMaterialsController {
       }
 
       const plannedItems = await db
-        .select({
-          id: ticketPlannedItems.id,
-          tenantId: ticketPlannedItems.tenantId,
-          ticketId: ticketPlannedItems.ticketId,
-          itemId: ticketPlannedItems.itemId,
-          plannedQuantity: ticketPlannedItems.plannedQuantity,
-          lpuId: ticketPlannedItems.lpuId,
-          unitPriceAtPlanning: ticketPlannedItems.unitPriceAtPlanning,
-          estimatedCost: ticketPlannedItems.estimatedCost,
-          priority: ticketPlannedItems.priority,
-          notes: ticketPlannedItems.notes,
-          status: ticketPlannedItems.status,
-          plannedById: ticketPlannedItems.plannedById,
-          plannedAt: ticketPlannedItems.plannedAt,
-          createdAt: ticketPlannedItems.createdAt,
-          isActive: ticketPlannedItems.isActive,
-          // Item details
-          itemName: items.name,
-          itemType: items.type,
-          itemDescription: items.description,
-          itemUnitCost: items.unitCost
-        })
+        .select()
         .from(ticketPlannedItems)
-        .innerJoin(items, eq(ticketPlannedItems.itemId, items.id))
+        .leftJoin(items, eq(ticketPlannedItems.itemId, items.id))
         .where(and(
           eq(ticketPlannedItems.tenantId, tenantId),
           eq(ticketPlannedItems.ticketId, ticketId),
@@ -334,27 +313,31 @@ export class TicketMaterialsController {
       }
 
       // Query planned items with their details and remaining quantities
-      const plannedItems = await db
-        .select({
-          id: ticketPlannedItems.id,
-          itemId: ticketPlannedItems.itemId,
-          plannedQuantity: ticketPlannedItems.plannedQuantity,
-          unitPriceAtPlanning: ticketPlannedItems.unitPriceAtPlanning,
-          priority: ticketPlannedItems.priority,
-          notes: ticketPlannedItems.notes,
-          createdAt: ticketPlannedItems.createdAt,
-          itemName: items.name,
-          itemType: items.type,
-          unitCost: items.unitCost,
-          itemDescription: items.description
-        })
+      const plannedItemsRaw = await db
+        .select()
         .from(ticketPlannedItems)
-        .innerJoin(items, eq(ticketPlannedItems.itemId, items.id))
+        .leftJoin(items, eq(ticketPlannedItems.itemId, items.id))
         .where(and(
           eq(ticketPlannedItems.tenantId, tenantId),
-          eq(ticketPlannedItems.ticketId, ticketId)
+          eq(ticketPlannedItems.ticketId, ticketId),
+          eq(ticketPlannedItems.isActive, true)
         ))
         .orderBy(desc(ticketPlannedItems.createdAt));
+
+      // Transform the results to a cleaner format
+      const plannedItems = plannedItemsRaw.map(row => ({
+        id: row.ticket_planned_items.id,
+        itemId: row.ticket_planned_items.itemId,
+        plannedQuantity: parseFloat(row.ticket_planned_items.plannedQuantity || '0'),
+        unitPriceAtPlanning: parseFloat(row.ticket_planned_items.unitPriceAtPlanning || '0'),
+        priority: row.ticket_planned_items.priority,
+        notes: row.ticket_planned_items.notes,
+        createdAt: row.ticket_planned_items.createdAt,
+        itemName: row.items?.name || 'Item não encontrado',
+        itemType: row.items?.type || 'Tipo não informado',
+        unitCost: parseFloat(row.items?.unitCost || '0'),
+        itemDescription: row.items?.description || ''
+      }));
 
       // Get consumed quantities for each item
       const consumedItems = await db

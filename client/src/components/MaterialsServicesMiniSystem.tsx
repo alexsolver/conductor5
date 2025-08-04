@@ -229,33 +229,39 @@ export function MaterialsServicesMiniSystem({ ticketId }: MaterialsServicesMiniS
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {plannedMaterials.map((material: any) => (
-                      <div key={material.id} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <p className="font-medium">{material.itemName || 'Item sem nome'}</p>
-                            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                              {material.itemType || 'Tipo não informado'}
-                            </span>
+                    {plannedMaterials.map((material: any) => {
+                      // Handle both old and new data structures
+                      const itemData = material.ticket_planned_items || material;
+                      const itemDetails = material.items || {};
+                      
+                      return (
+                        <div key={itemData.id} className="flex items-center justify-between p-3 border rounded-lg">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <p className="font-medium">{itemDetails.name || material.itemName || 'Item sem nome'}</p>
+                              <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                                {itemDetails.type || material.itemType || 'Tipo não informado'}
+                              </span>
+                            </div>
+                            {(itemDetails.description || material.itemDescription) && (
+                              <p className="text-sm text-gray-500 mb-1">{itemDetails.description || material.itemDescription}</p>
+                            )}
+                            <div className="flex items-center gap-4 text-sm">
+                              <span className="text-gray-600">Qtd: {itemData.plannedQuantity || material.plannedQuantity || material.quantity}</span>
+                              <span className="text-gray-600">Preço unit.: R$ {parseFloat(itemData.unitPriceAtPlanning || material.unitPriceAtPlanning || itemDetails.unitCost || material.itemUnitCost || 0).toFixed(2)}</span>
+                              <span className="text-green-600 font-medium">Total: R$ {parseFloat(itemData.estimatedCost || material.estimatedCost || 0).toFixed(2)}</span>
+                            </div>
                           </div>
-                          {material.itemDescription && (
-                            <p className="text-sm text-gray-500 mb-1">{material.itemDescription}</p>
-                          )}
-                          <div className="flex items-center gap-4 text-sm">
-                            <span className="text-gray-600">Qtd: {material.plannedQuantity || material.quantity}</span>
-                            <span className="text-gray-600">Preço unit.: R$ {parseFloat(material.unitPriceAtPlanning || material.itemUnitCost || 0).toFixed(2)}</span>
-                            <span className="text-green-600 font-medium">Total: R$ {parseFloat(material.estimatedCost || 0).toFixed(2)}</span>
-                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => deletePlannedMutation.mutate(itemData.id)}
+                          >
+                            <Trash2 className="h-4 w-4 text-red-500" />
+                          </Button>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => deletePlannedMutation.mutate(material.id)}
-                        >
-                          <Trash2 className="h-4 w-4 text-red-500" />
-                        </Button>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </CardContent>
