@@ -370,6 +370,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId }: Inter
                 {/* Descrição */}
                 <div>
                   <div className="flex justify-between">
+                    <Label htmlFor="description">Descrição</Label>
                     <span className={`text-xs ${formData.description.length > 1000 ? 'text-red-600' : 'text-gray-500'}`}>
                       {formData.description.length}/1000
                     </span>
