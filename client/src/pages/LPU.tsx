@@ -1,18 +1,21 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
-import { Plus, Eye, Edit, Copy, Trash2, Search, Filter, DollarSign, Calculator } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { useForm } from "react-hook-form";
+import { Plus, Search, Edit, Eye, Copy, Trash2, TrendingUp, DollarSign, Settings, BarChart3 } from "lucide-react";
 
 interface PriceList {
   id: string;
@@ -68,16 +71,20 @@ export default function LPU() {
   const [editingPriceList, setEditingPriceList] = useState<PriceList | null>(null);
 
   // Fetch price lists
-  const { data: priceLists, isLoading: priceListsLoading } = useQuery({
+  const { data: priceListsData, isLoading: priceListsLoading } = useQuery({
     queryKey: ['/api/materials-services/price-lists'],
     queryFn: () => apiRequest('GET', '/api/materials-services/price-lists'),
   });
 
+  const priceLists = Array.isArray(priceListsData) ? priceListsData : [];
+
   // Fetch pricing rules
-  const { data: pricingRules, isLoading: rulesLoading } = useQuery({
+  const { data: pricingRulesData, isLoading: rulesLoading } = useQuery({
     queryKey: ['/api/materials-services/pricing-rules'],
     queryFn: () => apiRequest('GET', '/api/materials-services/pricing-rules'),
   });
+
+  const pricingRules = Array.isArray(pricingRulesData) ? pricingRulesData : [];
 
   // Fetch price list items for selected list
   const { data: priceListItems, isLoading: itemsLoading } = useQuery({
@@ -103,40 +110,9 @@ export default function LPU() {
     }
   });
 
-  // Update price list mutation
-  const updatePriceListMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<PriceList> }) => 
-      apiRequest('PUT', `/api/materials-services/price-lists/${id}`, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/materials-services/price-lists'] });
-      setIsEditDialogOpen(false);
-      setEditingPriceList(null);
-      toast({ title: "Lista de preços atualizada com sucesso!" });
-    },
-    onError: (error) => {
-      console.error('Error updating price list:', error);
-      toast({ title: "Erro ao atualizar lista de preços", variant: "destructive" });
-    }
-  });
-
-  // Duplicate price list mutation
-  const duplicatePriceListMutation = useMutation({
-    mutationFn: (originalList: PriceList) => 
-      apiRequest('POST', `/api/materials-services/price-lists/${originalList.id}/duplicate`, {}),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/materials-services/price-lists'] });
-      toast({ title: "Lista de preços duplicada com sucesso!" });
-    },
-    onError: (error) => {
-      console.error('Error duplicating price list:', error);
-      toast({ title: "Erro ao duplicar lista de preços", variant: "destructive" });
-    }
-  });
-
   // Create pricing rule mutation
   const createPricingRuleMutation = useMutation({
-    mutationFn: (data: Partial<PricingRule>) => 
-      apiRequest('POST', '/api/materials-services/pricing-rules', data),
+    mutationFn: (data: Partial<PricingRule>) => apiRequest('POST', '/api/materials-services/pricing-rules', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/materials-services/pricing-rules'] });
       setIsCreateRuleDialogOpen(false);
@@ -148,542 +124,185 @@ export default function LPU() {
     }
   });
 
-  const handleView = (priceList: PriceList) => {
-    setSelectedPriceList(priceList);
-    setIsViewDialogOpen(true);
+  // Delete pricing rule mutation
+  const deletePricingRuleMutation = useMutation({
+    mutationFn: (id: string) => apiRequest('DELETE', `/api/materials-services/pricing-rules/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/materials-services/pricing-rules'] });
+      toast({ title: "Regra de precificação excluída com sucesso!" });
+    },
+    onError: (error) => {
+      console.error('Error deleting pricing rule:', error);
+      toast({ title: "Erro ao excluir regra de precificação", variant: "destructive" });
+    }
+  });
+
+  const handleCreatePriceList = (data: Partial<PriceList>) => {
+    createPriceListMutation.mutate(data);
   };
 
-  const handleEdit = (priceList: PriceList) => {
-    setEditingPriceList(priceList);
-    setIsEditDialogOpen(true);
+  const handleCreatePricingRule = (data: Partial<PricingRule>) => {
+    createPricingRuleMutation.mutate(data);
   };
 
-  const handleDuplicate = (priceList: PriceList) => {
-    duplicatePriceListMutation.mutate(priceList);
+  const handleDeletePricingRule = (id: string) => {
+    if (confirm('Tem certeza que deseja excluir esta regra de precificação?')) {
+      deletePricingRuleMutation.mutate(id);
+    }
   };
 
-  const filteredPriceLists = priceLists?.filter((list: PriceList) =>
-    list.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    list.code.toLowerCase().includes(searchTerm.toLowerCase())
-  ) || [];
+  const filteredPriceLists = priceLists.filter((list: PriceList) =>
+    list.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    list.code?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">LPU - Lista de Preços Unitários</h1>
+          <h1 className="text-3xl font-bold">LPU - Lista de Preços Unificada</h1>
           <p className="text-muted-foreground">Gestão completa de listas de preços e regras de precificação</p>
-        </div>
-        <div className="flex gap-2">
-          <Button onClick={() => setIsCreateDialogOpen(true)} className="bg-gradient-to-r from-blue-600 to-purple-600">
-            <Plus className="w-4 h-4 mr-2" />
-            Nova Lista de Preços
-          </Button>
         </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="price-lists">Listas de Preços</TabsTrigger>
           <TabsTrigger value="pricing-rules">Regras de Precificação</TabsTrigger>
-          <TabsTrigger value="margins">Controle de Margem</TabsTrigger>
-          <TabsTrigger value="analytics">Análises</TabsTrigger>
         </TabsList>
 
         <TabsContent value="price-lists" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="w-5 h-5" />
-                  Listas de Preços
-                </CardTitle>
-                <div className="flex items-center gap-2">
-                  <div className="relative">
-                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Buscar listas..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-8 w-64"
-                    />
+          <div className="flex items-center justify-between">
+            <div className="relative w-72">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar listas de preços..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <Button onClick={() => setIsCreateDialogOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Nova Lista de Preços
+            </Button>
+          </div>
+
+          <div className="grid gap-4">
+            {filteredPriceLists.map((priceList: PriceList) => (
+              <Card key={priceList.id}>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <div>
+                    <CardTitle className="text-base">{priceList.name}</CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      Código: {priceList.code} • Versão: {priceList.version}
+                    </p>
                   </div>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {priceListsLoading ? (
-                <div className="text-center py-4">Carregando listas de preços...</div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Nome</TableHead>
-                      <TableHead>Código</TableHead>
-                      <TableHead>Versão</TableHead>
-                      <TableHead>Vigência</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Moeda</TableHead>
-                      <TableHead className="text-right">Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredPriceLists.map((priceList: PriceList) => (
-                      <TableRow key={priceList.id}>
-                        <TableCell className="font-medium">{priceList.name}</TableCell>
-                        <TableCell>{priceList.code}</TableCell>
-                        <TableCell>{priceList.version}</TableCell>
-                        <TableCell>
-                          {new Date(priceList.validFrom).toLocaleDateString()} 
-                          {priceList.validTo ? ` - ${new Date(priceList.validTo).toLocaleDateString()}` : ' - Indeterminado'}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={priceList.isActive ? "default" : "secondary"}>
-                            {priceList.isActive ? "Ativa" : "Inativa"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{priceList.currency}</TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleView(priceList)}
-                            >
-                              <Eye className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleEdit(priceList)}
-                            >
-                              <Edit className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleDuplicate(priceList)}
-                              disabled={duplicatePriceListMutation.isPending}
-                            >
-                              <Copy className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </Card>
+                  <div className="flex items-center space-x-2">
+                    <Badge variant={priceList.isActive ? "default" : "secondary"}>
+                      {priceList.isActive ? "Ativa" : "Inativa"}
+                    </Badge>
+                    <Button variant="outline" size="sm" onClick={() => {
+                      setSelectedPriceList(priceList);
+                      setIsViewDialogOpen(true);
+                    }}>
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-sm text-muted-foreground">
+                    Válida de {new Date(priceList.validFrom).toLocaleDateString()} 
+                    {priceList.validTo && ` até ${new Date(priceList.validTo).toLocaleDateString()}`}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </TabsContent>
 
         <TabsContent value="pricing-rules" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <Calculator className="w-5 h-5" />
-                  Regras de Precificação
-                </CardTitle>
-                <Button onClick={() => setIsCreateRuleDialogOpen(true)} variant="outline">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Nova Regra
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {rulesLoading ? (
-                <div className="text-center py-4">Carregando regras de precificação...</div>
-              ) : pricingRules && pricingRules.length > 0 ? (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Nome</TableHead>
-                      <TableHead>Tipo</TableHead>
-                      <TableHead>Prioridade</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Descrição</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {pricingRules.map((rule: any) => (
-                      <TableRow key={rule.id}>
-                        <TableCell className="font-medium">{rule.name}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline">{rule.ruleType}</Badge>
-                        </TableCell>
-                        <TableCell>{rule.priority}</TableCell>
-                        <TableCell>
-                          <Badge variant={rule.isActive ? "default" : "secondary"}>
-                            {rule.isActive ? "Ativa" : "Inativa"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="max-w-xs truncate">{rule.description}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  Nenhuma regra de precificação encontrada. Clique em "Nova Regra" para começar.
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-semibold">Regras de Precificação</h2>
+              <p className="text-muted-foreground">Gerenciar regras automáticas de precificação</p>
+            </div>
+            <Button onClick={() => setIsCreateRuleDialogOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Nova Regra
+            </Button>
+          </div>
 
-        <TabsContent value="margins" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Controle de Margem</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                Funcionalidade de controle de margem em desenvolvimento.
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="analytics" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Análises LPU</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                Análises e relatórios em desenvolvimento.
-              </div>
-            </CardContent>
-          </Card>
+          <div className="grid gap-4">
+            {pricingRules.map((rule: PricingRule) => (
+              <Card key={rule.id}>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <div>
+                    <CardTitle className="text-base">{rule.name}</CardTitle>
+                    <p className="text-sm text-muted-foreground">{rule.description}</p>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Badge variant="outline">{rule.ruleType}</Badge>
+                    <Badge variant="secondary">Prioridade: {rule.priority}</Badge>
+                    <Badge variant={rule.isActive ? "default" : "secondary"}>
+                      {rule.isActive ? "Ativa" : "Inativa"}
+                    </Badge>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => handleDeletePricingRule(rule.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardHeader>
+              </Card>
+            ))}
+          </div>
         </TabsContent>
       </Tabs>
 
       {/* Create Price List Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>Nova Lista de Preços</DialogTitle>
           </DialogHeader>
           <PriceListForm
-            onSubmit={(data) => createPriceListMutation.mutate(data)}
+            onSubmit={handleCreatePriceList}
             isLoading={createPriceListMutation.isPending}
             onCancel={() => setIsCreateDialogOpen(false)}
           />
         </DialogContent>
       </Dialog>
 
-      {/* Edit Price List Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Editar Lista de Preços</DialogTitle>
-          </DialogHeader>
-          {editingPriceList && (
-            <PriceListForm
-              initialData={editingPriceList}
-              onSubmit={(data) => updatePriceListMutation.mutate({ id: editingPriceList.id, data })}
-              isLoading={updatePriceListMutation.isPending}
-              onCancel={() => {
-                setIsEditDialogOpen(false);
-                setEditingPriceList(null);
-              }}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* View Price List Dialog */}
-      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="max-w-4xl">
-          <DialogHeader>
-            <DialogTitle>Visualizar Lista de Preços</DialogTitle>
-          </DialogHeader>
-          {selectedPriceList && (
-            <PriceListViewer
-              priceList={selectedPriceList}
-              items={priceListItems || []}
-              isLoadingItems={itemsLoading}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
-
       {/* Create Pricing Rule Dialog */}
       <Dialog open={isCreateRuleDialogOpen} onOpenChange={setIsCreateRuleDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>Nova Regra de Precificação</DialogTitle>
           </DialogHeader>
           <PricingRuleForm
-            onSubmit={(data: Partial<PricingRule>) => createPricingRuleMutation.mutate(data)}
+            onSubmit={handleCreatePricingRule}
             isLoading={createPricingRuleMutation.isPending}
             onCancel={() => setIsCreateRuleDialogOpen(false)}
           />
         </DialogContent>
       </Dialog>
-    </div>
-  );
-}
 
-// Price List Form Component
-function PriceListForm({ 
-  initialData, 
-  onSubmit, 
-  isLoading,
-  onCancel 
-}: { 
-  initialData?: PriceList; 
-  onSubmit: (data: Partial<PriceList>) => void; 
-  isLoading: boolean;
-  onCancel?: () => void;
-}) {
-  const [formData, setFormData] = useState({
-    name: initialData?.name || '',
-    code: initialData?.code || '',
-    version: initialData?.version || '1.0',
-    currency: initialData?.currency || 'BRL',
-    validFrom: initialData?.validFrom ? new Date(initialData.validFrom).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-    validTo: initialData?.validTo ? new Date(initialData.validTo).toISOString().split('T')[0] : '',
-    automaticMargin: initialData?.automaticMargin || 0,
-    notes: initialData?.notes || '',
-    isActive: initialData?.isActive ?? true,
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    const submitData = {
-      ...formData,
-      validFrom: new Date(formData.validFrom).toISOString(),
-      validTo: formData.validTo ? new Date(formData.validTo).toISOString() : undefined,
-    };
-    
-    onSubmit(submitData);
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="name">Nome da Lista</Label>
-          <Input
-            id="name"
-            value={formData.name}
-            onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-            required
-          />
-        </div>
-        <div>
-          <Label htmlFor="code">Código</Label>
-          <Input
-            id="code"
-            value={formData.code}
-            onChange={(e) => setFormData(prev => ({ ...prev, code: e.target.value }))}
-            required
-          />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-3 gap-4">
-        <div>
-          <Label htmlFor="version">Versão</Label>
-          <Input
-            id="version"
-            value={formData.version}
-            onChange={(e) => setFormData(prev => ({ ...prev, version: e.target.value }))}
-            required
-          />
-        </div>
-        <div>
-          <Label htmlFor="currency">Moeda</Label>
-          <Select value={formData.currency} onValueChange={(value) => setFormData(prev => ({ ...prev, currency: value }))}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="BRL">BRL - Real</SelectItem>
-              <SelectItem value="USD">USD - Dólar</SelectItem>
-              <SelectItem value="EUR">EUR - Euro</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <Label htmlFor="automaticMargin">Margem Automática (%)</Label>
-          <Input
-            id="automaticMargin"
-            type="number"
-            step="0.01"
-            value={formData.automaticMargin}
-            onChange={(e) => setFormData(prev => ({ ...prev, automaticMargin: parseFloat(e.target.value) || 0 }))}
-          />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="validFrom">Válido De</Label>
-          <Input
-            id="validFrom"
-            type="date"
-            value={formData.validFrom}
-            onChange={(e) => setFormData(prev => ({ ...prev, validFrom: e.target.value }))}
-            required
-          />
-        </div>
-        <div>
-          <Label htmlFor="validTo">Válido Até</Label>
-          <Input
-            id="validTo"
-            type="date"
-            value={formData.validTo}
-            onChange={(e) => setFormData(prev => ({ ...prev, validTo: e.target.value }))}
-          />
-        </div>
-      </div>
-
-      <div>
-        <Label htmlFor="notes">Observações</Label>
-        <Textarea
-          id="notes"
-          value={formData.notes}
-          onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-          rows={3}
-        />
-      </div>
-
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <input
-            type="checkbox"
-            id="isActive"
-            checked={formData.isActive}
-            onChange={(e) => setFormData(prev => ({ ...prev, isActive: e.target.checked }))}
-          />
-          <Label htmlFor="isActive">Lista Ativa</Label>
-        </div>
-        
-        <div className="flex gap-2">
-          {onCancel && (
-            <Button type="button" variant="outline" onClick={onCancel}>
-              Cancelar
-            </Button>
-          )}
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? "Salvando..." : initialData ? "Atualizar" : "Criar"}
-          </Button>
-        </div>
-      </div>
-    </form>
-  );
-}
-
-// Price List Viewer Component
-function PriceListViewer({ 
-  priceList, 
-  items, 
-  isLoadingItems 
-}: { 
-  priceList: PriceList; 
-  items: PriceListItem[]; 
-  isLoadingItems: boolean;
-}) {
-  return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-2 gap-6">
-        <div className="space-y-3">
-          <div>
-            <Label className="text-sm font-medium text-muted-foreground">Nome</Label>
-            <p className="text-lg">{priceList.name}</p>
-          </div>
-          <div>
-            <Label className="text-sm font-medium text-muted-foreground">Código</Label>
-            <p>{priceList.code}</p>
-          </div>
-          <div>
-            <Label className="text-sm font-medium text-muted-foreground">Versão</Label>
-            <p>{priceList.version}</p>
-          </div>
-        </div>
-        <div className="space-y-3">
-          <div>
-            <Label className="text-sm font-medium text-muted-foreground">Vigência</Label>
-            <p>
-              {new Date(priceList.validFrom).toLocaleDateString()} 
-              {priceList.validTo ? ` até ${new Date(priceList.validTo).toLocaleDateString()}` : ' - Indeterminado'}
-            </p>
-          </div>
-          <div>
-            <Label className="text-sm font-medium text-muted-foreground">Status</Label>
-            <div>
-              <Badge variant={priceList.isActive ? "default" : "secondary"}>
-                {priceList.isActive ? "Ativa" : "Inativa"}
-              </Badge>
-            </div>
-          </div>
-          <div>
-            <Label className="text-sm font-medium text-muted-foreground">Moeda</Label>
-            <p>{priceList.currency}</p>
-          </div>
-        </div>
-      </div>
-      
-      {priceList.notes && (
-        <div>
-          <Label className="text-sm font-medium text-muted-foreground">Observações</Label>
-          <p className="mt-1">{priceList.notes}</p>
-        </div>
-      )}
-
-      <div>
-        <h3 className="text-lg font-semibold mb-3">Itens da Lista</h3>
-        {isLoadingItems ? (
-          <div className="text-center py-4">Carregando itens...</div>
-        ) : items.length > 0 ? (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Item/Serviço</TableHead>
-                <TableHead>Preço Unitário</TableHead>
-                <TableHead>Preço Especial</TableHead>
-                <TableHead>Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {items.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell>{item.itemId || item.serviceTypeId}</TableCell>
-                  <TableCell>R$ {item.unitPrice.toFixed(2)}</TableCell>
-                  <TableCell>{item.specialPrice ? `R$ ${item.specialPrice.toFixed(2)}` : '-'}</TableCell>
-                  <TableCell>
-                    <Badge variant={item.isActive ? "default" : "secondary"}>
-                      {item.isActive ? "Ativo" : "Inativo"}
-                    </Badge>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        ) : (
-          <div className="text-center py-8 text-muted-foreground">
-            Nenhum item cadastrado nesta lista.
-          </div>
-        )}
-      </div>
     </div>
   );
 }
 
 // Pricing Rule Form Component
-function PricingRuleForm({ 
-  onSubmit, 
-  isLoading, 
-  onCancel 
-}: { 
-  onSubmit: (data: Partial<PricingRule>) => void; 
+function PricingRuleForm({
+  onSubmit,
+  isLoading,
+  onCancel
+}: {
+  onSubmit: (data: Partial<PricingRule>) => void;
   isLoading: boolean;
-  onCancel: () => void;
+  onCancel?: () => void;
 }) {
   const [formData, setFormData] = useState({
     name: '',
@@ -722,7 +341,7 @@ function PricingRuleForm({
               <SelectItem value="percentual">Percentual</SelectItem>
               <SelectItem value="fixo">Valor Fixo</SelectItem>
               <SelectItem value="escalonado">Escalonada</SelectItem>
-              <SelectItem value="dinâmico">Dinâmica</SelectItem>
+              <SelectItem value="dinamico">Dinâmica</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -762,11 +381,119 @@ function PricingRuleForm({
         </div>
         
         <div className="flex gap-2">
-          <Button type="button" variant="outline" onClick={onCancel}>
-            Cancelar
-          </Button>
+          {onCancel && (
+            <Button type="button" variant="outline" onClick={onCancel}>
+              Cancelar
+            </Button>
+          )}
           <Button type="submit" disabled={isLoading}>
             {isLoading ? "Criando..." : "Criar Regra"}
+          </Button>
+        </div>
+      </div>
+    </form>
+  );
+}
+
+// Price List Form Component
+function PriceListForm({
+  onSubmit,
+  isLoading,
+  onCancel
+}: {
+  onSubmit: (data: Partial<PriceList>) => void;
+  isLoading: boolean;
+  onCancel?: () => void;
+}) {
+  const [formData, setFormData] = useState({
+    name: '',
+    code: '',
+    version: '1.0',
+    currency: 'BRL',
+    validFrom: new Date().toISOString().split('T')[0],
+    isActive: true,
+    notes: ''
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit(formData);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="name">Nome da Lista</Label>
+          <Input
+            id="name"
+            value={formData.name}
+            onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor="code">Código</Label>
+          <Input
+            id="code"
+            value={formData.code}
+            onChange={(e) => setFormData(prev => ({ ...prev, code: e.target.value }))}
+            required
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="version">Versão</Label>
+          <Input
+            id="version"
+            value={formData.version}
+            onChange={(e) => setFormData(prev => ({ ...prev, version: e.target.value }))}
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor="validFrom">Válida a partir de</Label>
+          <Input
+            id="validFrom"
+            type="date"
+            value={formData.validFrom}
+            onChange={(e) => setFormData(prev => ({ ...prev, validFrom: e.target.value }))}
+            required
+          />
+        </div>
+      </div>
+
+      <div>
+        <Label htmlFor="notes">Observações</Label>
+        <Textarea
+          id="notes"
+          value={formData.notes}
+          onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+          rows={3}
+        />
+      </div>
+
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          <input
+            type="checkbox"
+            id="isActive"
+            checked={formData.isActive}
+            onChange={(e) => setFormData(prev => ({ ...prev, isActive: e.target.checked }))}
+          />
+          <Label htmlFor="isActive">Lista Ativa</Label>
+        </div>
+        
+        <div className="flex gap-2">
+          {onCancel && (
+            <Button type="button" variant="outline" onClick={onCancel}>
+              Cancelar
+            </Button>
+          )}
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? "Criando..." : "Criar Lista"}
           </Button>
         </div>
       </div>
