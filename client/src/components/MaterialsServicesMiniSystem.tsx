@@ -199,7 +199,7 @@ export function MaterialsServicesMiniSystem({ ticketId }: MaterialsServicesMiniS
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-          <TabsTrigger value="planned">Planejar Material</TabsTrigger>
+          <TabsTrigger value="planned">Planejar Item</TabsTrigger>
           <TabsTrigger value="consumed">Registrar Consumo</TabsTrigger>
         </TabsList>
 
@@ -210,7 +210,7 @@ export function MaterialsServicesMiniSystem({ ticketId }: MaterialsServicesMiniS
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Package className="h-5 w-5 text-blue-600" />
-                  Materiais Planejados
+                  Itens Planejados
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -219,7 +219,7 @@ export function MaterialsServicesMiniSystem({ ticketId }: MaterialsServicesMiniS
                 ) : plannedMaterials.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
                     <Package className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    <p>Nenhum material planejado</p>
+                    <p>Nenhum item planejado</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -249,7 +249,7 @@ export function MaterialsServicesMiniSystem({ ticketId }: MaterialsServicesMiniS
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Calculator className="h-5 w-5 text-green-600" />
-                  Materiais Consumidos
+                  Itens Consumidos
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -282,7 +282,7 @@ export function MaterialsServicesMiniSystem({ ticketId }: MaterialsServicesMiniS
         <TabsContent value="planned" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Adicionar Material Planejado</CardTitle>
+              <CardTitle>Adicionar Item Planejado</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">

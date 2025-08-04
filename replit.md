@@ -39,6 +39,13 @@ Interface preference: Text-based hierarchical menus with dropdowns over visual c
   - **One-Click Finish**: Clicking header clock automatically fills end_time and completes action
   - **Persistent State**: Running actions persist across page reloads via localStorage
   - **Status**: ✅ FULLY FUNCTIONAL - All workflow steps working correctly
+- **Materials Management System (August 2025)**: Comprehensive item catalog with embedded ticket integration
+  - **Embedded Interface**: Complete materials system integrated within ticket details page (no external navigation)
+  - **Three-Phase Workflow**: Planning → Execution → Control phases with separate tabs
+  - **API Integration**: Full CRUD operations with backend (planned-items, consumed-items, costs-summary)
+  - **LPU Integration**: Unified Price List system for cost calculations and pricing control
+  - **Terminology Standardization**: Consistent use of "Itens" instead of "Materiais" throughout interface
+  - **Status**: ✅ FULLY FUNCTIONAL - Complete backend API, frontend integration, and DELETE operations working
 
 ## System Architecture
 Conductor follows a Clean Architecture with Domain-Driven Design principles.

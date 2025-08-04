@@ -123,7 +123,23 @@ export class TicketMaterialsController {
       const tenantId = req.user?.tenantId;
       const userId = req.user?.id;
 
+      console.log('🔍 [ADD-PLANNED] Request data:', {
+        ticketId,
+        body: req.body,
+        tenantId,
+        userId,
+        requiredFields: { itemId, plannedQuantity, lpuId, unitPriceAtPlanning }
+      });
+
       if (!tenantId || !ticketId || !itemId || !plannedQuantity || !lpuId || !unitPriceAtPlanning) {
+        console.log('❌ [ADD-PLANNED] Missing fields check:', {
+          tenantId: !!tenantId,
+          ticketId: !!ticketId,
+          itemId: !!itemId,
+          plannedQuantity: !!plannedQuantity,
+          lpuId: !!lpuId,
+          unitPriceAtPlanning: !!unitPriceAtPlanning
+        });
         return sendError(res, 'Missing required fields', 'Missing required fields', 400);
       }
 
