@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -69,6 +69,32 @@ export default function InternalActionModal({ isOpen, onClose, ticketId }: Inter
   const [isPublic, setIsPublic] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Reset form function
+  const resetForm = () => {
+    setFormData({
+      action_type: "",
+      agent_id: "__none__",
+      title: "",
+      description: "",
+      planned_start_time: "",
+      planned_end_time: "",
+      start_time: "",
+      end_time: "",
+      estimated_hours: "0",
+      status: "pending",
+      priority: "medium",
+      attachments: []
+    });
+    setIsPublic(false);
+  };
+
+  // Reset form when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      resetForm();
+    }
+  }, [isOpen]);
 
   // Fetch team members for assignment dropdown
   const { data: teamMembers } = useQuery({
@@ -246,24 +272,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId }: Inter
     }));
   };
 
-  // Reset form function
-  const resetForm = () => {
-    setFormData({
-      action_type: "",
-      agent_id: "__none__",
-      title: "",
-      description: "",
-      planned_start_time: "",
-      planned_end_time: "",
-      start_time: "",
-      end_time: "",
-      estimated_hours: "0",
-      status: "pending",
-      priority: "medium",
-      attachments: []
-    });
-    setIsPublic(false);
-  };
+
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
