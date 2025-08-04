@@ -4,7 +4,16 @@ import { Bell, Menu, BarChart3, Ticket, Calendar, LogOut, User, Settings, Clock,
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 
-export function Header() {
+interface HeaderProps {
+  timerState?: {
+    isRunning: boolean;
+    startTime: number | null;
+    elapsedTime: number;
+  };
+  onTimerClick?: () => void;
+}
+
+export function Header({ timerState, onTimerClick }: HeaderProps = {}) {
   const { user, logoutMutation } = useAuth();
 
   return (
@@ -71,14 +80,23 @@ export function Header() {
           {user && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="relative h-8 w-8 rounded-full bg-purple-600 hover:bg-purple-700"
-                >
-                  <span className="text-white text-sm font-semibold">
-                    {user?.firstName ? user.firstName.charAt(0).toUpperCase() : user?.email?.charAt(0).toUpperCase()}
-                  </span>
-                </Button>
+                <div className="relative">
+                  {/* Timer Aura Animation */}
+                  {timerState?.isRunning && (
+                    <div className="absolute inset-0 rounded-full animate-pulse bg-yellow-400 opacity-50 scale-150"></div>
+                  )}
+                  <Button
+                    variant="ghost"
+                    className={`relative h-8 w-8 rounded-full bg-purple-600 hover:bg-purple-700 ${
+                      timerState?.isRunning ? 'ring-2 ring-yellow-400 ring-opacity-75' : ''
+                    }`}
+                    onClick={timerState?.isRunning ? onTimerClick : undefined}
+                  >
+                    <span className="text-white text-sm font-semibold">
+                      {user?.firstName ? user.firstName.charAt(0).toUpperCase() : user?.email?.charAt(0).toUpperCase()}
+                    </span>
+                  </Button>
+                </div>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">

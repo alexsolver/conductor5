@@ -31,7 +31,10 @@ import {
   Paperclip,
   Upload,
   FileText,
-  AlertCircle
+  AlertCircle,
+  Play,
+  Pause,
+  Square
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch"
 import {
@@ -43,9 +46,15 @@ interface InternalActionModalProps {
   ticketId: string;
   isOpen: boolean;
   onClose: () => void;
+  onStartTimer?: () => void;
+  timerState?: {
+    isRunning: boolean;
+    startTime: number | null;
+    elapsedTime: number;
+  };
 }
 
-export default function InternalActionModal({ isOpen, onClose, ticketId }: InternalActionModalProps) {
+export default function InternalActionModal({ isOpen, onClose, ticketId, onStartTimer, timerState }: InternalActionModalProps) {
   const [formData, setFormData] = useState({
     // Campos obrigatórios da tabela
     action_type: "",
@@ -89,12 +98,40 @@ export default function InternalActionModal({ isOpen, onClose, ticketId }: Inter
     setIsPublic(false);
   };
 
-  // Reset form when modal opens
+  // Timer utility functions
+  const formatElapsedTime = (milliseconds: number) => {
+    const totalSeconds = Math.floor(milliseconds / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    
+    if (hours > 0) {
+      return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+
+  const formatDateTimeLocal = (timestamp: number) => {
+    const date = new Date(timestamp);
+    return date.toISOString().slice(0, 16);
+  };
+
+  // Reset form when modal opens, populate timer data if available
   useEffect(() => {
     if (isOpen) {
       resetForm();
+      
+      // If timer finished, populate start and end times
+      if (timerState && timerState.startTime && !timerState.isRunning && timerState.elapsedTime > 0) {
+        const endTime = timerState.startTime + timerState.elapsedTime;
+        setFormData(prev => ({
+          ...prev,
+          start_time: formatDateTimeLocal(timerState.startTime),
+          end_time: formatDateTimeLocal(endTime)
+        }));
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, timerState]);
 
   // Fetch team members for assignment dropdown
   const { data: teamMembers } = useQuery({
@@ -286,6 +323,49 @@ export default function InternalActionModal({ isOpen, onClose, ticketId }: Inter
             Registre uma nova ação interna realizada neste ticket. Todos os campos marcados com * são obrigatórios.
           </DialogDescription>
         </DialogHeader>
+
+        {/* Timer Section */}
+        <div className="border rounded-lg p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Clock className="w-5 h-5 text-blue-600" />
+              <div>
+                <h3 className="font-medium text-blue-900 dark:text-blue-100">Cronômetro da Ação</h3>
+                {timerState && timerState.isRunning && (
+                  <p className="text-sm text-blue-700 dark:text-blue-300">
+                    Tempo decorrido: {formatElapsedTime(timerState.elapsedTime)}
+                  </p>
+                )}
+                {timerState && !timerState.isRunning && timerState.elapsedTime > 0 && (
+                  <p className="text-sm text-green-700 dark:text-green-300">
+                    Tempo total: {formatElapsedTime(timerState.elapsedTime)}
+                  </p>
+                )}
+              </div>
+            </div>
+            <div className="flex gap-2">
+              {!timerState || !timerState.isRunning ? (
+                <Button
+                  onClick={() => {
+                    onStartTimer?.();
+                    onClose();
+                  }}
+                  variant="outline"
+                  size="sm"
+                  className="bg-green-50 hover:bg-green-100 border-green-200 text-green-700 dark:bg-green-950 dark:hover:bg-green-900 dark:border-green-800 dark:text-green-300"
+                >
+                  <Play className="w-4 h-4 mr-1" />
+                  Iniciar Cronômetro
+                </Button>
+              ) : (
+                <div className="text-sm font-medium text-amber-600 dark:text-amber-400 flex items-center gap-2">
+                  <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>
+                  Em execução...
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
 
         <div className="space-y-6">
           

@@ -54,6 +54,7 @@ import { FilteredBeneficiarySelect } from "@/components/FilteredBeneficiarySelec
 
 // 🚨 CORREÇÃO CRÍTICA: Usar schema unificado para consistência
 import { ticketFormSchema, type TicketFormData } from "../../../shared/ticket-validation";
+import { useTimer } from "../contexts/TimerContext";
 
 const TicketDetails = React.memo(() => {
   const { id } = useParams<{ id: string }>();
@@ -122,6 +123,9 @@ const TicketDetails = React.memo(() => {
   // Estados para edição de ação interna
   const [editActionModalOpen, setEditActionModalOpen] = useState(false);
   const [actionToEdit, setActionToEdit] = useState<any>(null);
+
+  // Use global timer context
+  const { timerState, startTimer, stopTimer } = useTimer();
 
 
   // Basic information - consolidated into single tab
@@ -3527,6 +3531,8 @@ const TicketDetails = React.memo(() => {
         ticketId={id || ''} 
         isOpen={showInternalActionModal} 
         onClose={() => setShowInternalActionModal(false)} 
+        onStartTimer={startTimer}
+        timerState={timerState}
       />
 
       {/* Company Details Modal */}
