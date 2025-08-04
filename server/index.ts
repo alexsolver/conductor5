@@ -17,7 +17,6 @@ import { ActivityTrackingService } from './services/ActivityTrackingService';
 import { userGroupsRouter } from './routes/userGroups';
 import userGroupsByAgentRoutes from './routes/userGroupsByAgent';
 import userManagementRoutes from './routes/userManagementRoutes';
-import authRoutes from "./routes/authRoutes";
 import customerRoutes from "./routes/customerRoutes";
 import ticketRoutes from "./routes/ticketRoutes";
 import ticketMaterialsRoutes from "./routes/ticketMaterialsRoutes";
@@ -123,7 +122,6 @@ app.use((req, res, next) => {
   app.use('/api', userManagementRoutes);
 
   // Register all route modules
-  app.use("/api", authRoutes);
   app.use("/api", customerRoutes);
   app.use("/api", ticketRoutes);
   app.use("/api", ticketMaterialsRoutes);
