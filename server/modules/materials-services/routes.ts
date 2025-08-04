@@ -564,6 +564,11 @@ router.post('/tickets/:ticketId/consumed-items', (req: AuthenticatedRequest, res
   return TicketMaterialsController.addConsumedItem(req, res);
 });
 
+// Available items for consumption
+router.get('/tickets/:ticketId/available-for-consumption', (req: AuthenticatedRequest, res) => {
+  return TicketMaterialsController.getAvailableItemsForConsumption(req, res);
+});
+
 // Costs summary
 router.get('/tickets/:ticketId/costs-summary', (req: AuthenticatedRequest, res) => {
   return TicketMaterialsController.getCostsSummary(req, res);

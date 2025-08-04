@@ -23,11 +23,20 @@ export function MaterialsServicesMiniSystem({ ticketId }: MaterialsServicesMiniS
   const [quantity, setQuantity] = useState("");
   const [consumedQuantity, setConsumedQuantity] = useState("");
 
-  // Fetch available items
+  // Fetch all items for planning selection
   const { data: itemsData, isLoading: itemsLoading } = useQuery({
     queryKey: ['/api/materials-services/items'],
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/materials-services/items');
+      return response.json();
+    },
+  });
+
+  // Fetch available items for consumption (only planned items)
+  const { data: availableItemsData, isLoading: availableItemsLoading } = useQuery({
+    queryKey: ['/api/materials-services/tickets', ticketId, 'available-for-consumption'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/materials-services/tickets/${ticketId}/available-for-consumption`);
       return response.json();
     },
   });
@@ -93,15 +102,15 @@ export function MaterialsServicesMiniSystem({ ticketId }: MaterialsServicesMiniS
   // Add consumed material mutation
   const addConsumedMutation = useMutation({
     mutationFn: async (data: { itemId: string; quantityUsed: number }) => {
-      // Get item details for pricing
-      const selectedItemData = items.find((item: any) => item.id === data.itemId);
-      if (!selectedItemData) throw new Error('Item not found');
+      // Get item details for pricing from available items
+      const selectedItemData = availableItems.find((item: any) => item.itemId === data.itemId);
+      if (!selectedItemData) throw new Error('Item not found in available items');
 
       const requestData = {
         itemId: data.itemId,
         actualQuantity: data.quantityUsed,
         lpuId: '00000000-0000-0000-0000-000000000001', // Default LPU ID
-        unitPriceAtConsumption: selectedItemData.unitCost || 0,
+        unitPriceAtConsumption: selectedItemData.unitPriceAtPlanning || selectedItemData.unitCost || 0,
         consumptionType: 'actual',
         notes: ''
       };
@@ -137,6 +146,7 @@ export function MaterialsServicesMiniSystem({ ticketId }: MaterialsServicesMiniS
   });
 
   const items = itemsData?.data || [];
+  const availableItems = availableItemsData || [];
   const plannedMaterials = plannedData?.data?.plannedItems || [];
   const consumedMaterials = consumedData?.data?.consumedItems || [];
   const costs = costsData?.data || {};
@@ -331,18 +341,24 @@ export function MaterialsServicesMiniSystem({ ticketId }: MaterialsServicesMiniS
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="consumed-item-select">Item</Label>
-                {itemsLoading ? (
-                  <div className="text-center py-2">Carregando itens...</div>
+                <Label htmlFor="consumed-item-select">Item (apenas itens planejados)</Label>
+                {availableItemsLoading ? (
+                  <div className="text-center py-2">Carregando itens disponíveis...</div>
+                ) : availableItems.length === 0 ? (
+                  <div className="text-center py-4 text-gray-500">
+                    <AlertTriangle className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p>Nenhum item planejado disponível para consumo</p>
+                    <p className="text-sm">Adicione itens no planejamento primeiro</p>
+                  </div>
                 ) : (
                   <Select value={selectedItem} onValueChange={setSelectedItem}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Selecione um item" />
+                      <SelectValue placeholder="Selecione um item planejado" />
                     </SelectTrigger>
                     <SelectContent>
-                      {items.map((item: any) => (
-                        <SelectItem key={item.id} value={item.id}>
-                          {item.name} - {item.type} (R$ {parseFloat(item.unitCost || 0).toFixed(2)})
+                      {availableItems.map((item: any) => (
+                        <SelectItem key={item.itemId} value={item.itemId}>
+                          {item.itemName} - {item.itemType} (Disponível: {item.remainingQuantity}) - R$ {parseFloat(item.unitPriceAtPlanning || 0).toFixed(2)}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -363,7 +379,7 @@ export function MaterialsServicesMiniSystem({ ticketId }: MaterialsServicesMiniS
 
               <Button 
                 onClick={handleAddConsumed}
-                disabled={addConsumedMutation.isPending}
+                disabled={addConsumedMutation.isPending || availableItems.length === 0}
                 className="w-full"
               >
                 <Calculator className="h-4 w-4 mr-2" />

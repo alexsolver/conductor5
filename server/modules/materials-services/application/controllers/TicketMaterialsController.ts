@@ -294,6 +294,87 @@ export class TicketMaterialsController {
     }
   }
 
+  // Get available planned items for consumption
+  static async getAvailableItemsForConsumption(req: AuthenticatedRequest, res: Response) {
+    try {
+      const { ticketId } = req.params;
+      const tenantId = req.user?.tenantId;
+
+      console.log('🔍 [AVAILABLE-FOR-CONSUMPTION] Request data:', {
+        ticketId,
+        tenantId
+      });
+
+      if (!tenantId || !ticketId) {
+        console.log('❌ [AVAILABLE-FOR-CONSUMPTION] Missing required fields');
+        return sendError(res, 'Missing tenant ID or ticket ID', 'Missing tenant ID or ticket ID', 400);
+      }
+
+      // Query planned items with their details and remaining quantities
+      const plannedItems = await db
+        .select({
+          id: ticketPlannedItems.id,
+          itemId: ticketPlannedItems.itemId,
+          plannedQuantity: ticketPlannedItems.plannedQuantity,
+          unitPriceAtPlanning: ticketPlannedItems.unitPriceAtPlanning,
+          priority: ticketPlannedItems.priority,
+          notes: ticketPlannedItems.notes,
+          createdAt: ticketPlannedItems.createdAt,
+          itemName: items.name,
+          itemType: items.type,
+          unitCost: items.unitCost,
+          itemDescription: items.description
+        })
+        .from(ticketPlannedItems)
+        .innerJoin(items, eq(ticketPlannedItems.itemId, items.id))
+        .where(and(
+          eq(ticketPlannedItems.tenantId, tenantId),
+          eq(ticketPlannedItems.ticketId, ticketId)
+        ))
+        .orderBy(desc(ticketPlannedItems.createdAt));
+
+      // Get consumed quantities for each item
+      const consumedItems = await db
+        .select({
+          itemId: ticketConsumedItems.itemId,
+          totalConsumed: sql<number>`SUM(${ticketConsumedItems.actualQuantity})`.as('totalConsumed')
+        })
+        .from(ticketConsumedItems)
+        .where(and(
+          eq(ticketConsumedItems.tenantId, tenantId),
+          eq(ticketConsumedItems.ticketId, ticketId)
+        ))
+        .groupBy(ticketConsumedItems.itemId);
+
+      // Create a map of consumed quantities
+      const consumedMap = new Map(
+        consumedItems.map(item => [item.itemId, item.totalConsumed || 0])
+      );
+
+      // Filter items that still have remaining quantity
+      const availableItems = plannedItems
+        .map(item => {
+          const consumed = consumedMap.get(item.itemId) || 0;
+          const remainingQuantity = (item.plannedQuantity || 0) - consumed;
+          
+          return {
+            ...item,
+            totalConsumed: consumed,
+            remainingQuantity
+          };
+        })
+        .filter(item => item.remainingQuantity > 0);
+
+      console.log('✅ [AVAILABLE-FOR-CONSUMPTION] Found items:', availableItems.length);
+
+      return sendSuccess(res, availableItems, 'Available items for consumption retrieved successfully');
+
+    } catch (error) {
+      console.error('❌ [AVAILABLE-FOR-CONSUMPTION] Error:', error);
+      return sendError(res, error, 'Failed to retrieve available items for consumption');
+    }
+  }
+
   // Get costs summary for a ticket
   static async getCostsSummary(req: AuthenticatedRequest, res: Response) {
     try {
