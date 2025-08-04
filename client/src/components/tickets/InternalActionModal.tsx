@@ -261,7 +261,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId }: Inter
                   </Label>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="plannedStartDate">Data Prevista Inicial</Label>
+                      <Label htmlFor="plannedStartDate">Data/Hora Início</Label>
                       <Input
                         id="plannedStartDate"
                         type="datetime-local"
@@ -270,7 +270,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId }: Inter
                       />
                     </div>
                     <div>
-                      <Label htmlFor="plannedEndDate">Data Prevista Final</Label>
+                      <Label htmlFor="plannedEndDate">Data/Hora Fim</Label>
                       <Input
                         id="plannedEndDate"
                         type="datetime-local"
