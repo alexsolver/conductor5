@@ -35,15 +35,20 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
     const now = Date.now();
     
     try {
+      // Get current user info from localStorage
+      const userString = localStorage.getItem('user');
+      const currentUser = userString ? JSON.parse(userString) : null;
+      const agentId = currentUser?.id || '550e8400-e29b-41d4-a716-446655440001'; // fallback to current logged user
+
       // Create the action first
       const actionData = {
-        action_type: "investigation", // Changed to supported type
+        action_type: "investigation",
         title: "Cronômetro Ativo",
         description: "Ação em andamento - tempo sendo registrado",
         start_time: new Date(now).toISOString(),
         status: "pending",
-        priority: "medium"
-        // agent_id will be set automatically by backend based on JWT
+        priority: "medium",
+        agent_id: agentId
       };
 
       console.log('📤 [TIMER] Creating action with data:', actionData);
