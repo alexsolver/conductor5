@@ -79,7 +79,7 @@ export class ItemRepository {
         measurementUnit: items.measurementUnit,
         maintenancePlan: items.maintenancePlan,
         defaultChecklist: items.defaultChecklist,
-        groupName: items.groupName,
+        groupName: sql<string>`${items.groupName}`.as('groupName'),
         status: items.status,
         createdAt: items.createdAt,
         updatedAt: items.updatedAt,
