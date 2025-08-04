@@ -55,8 +55,9 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
 
       console.log('📥 [TIMER] Action creation response:', response);
 
-      if (!response.success) {
-        throw new Error('Failed to create action');
+      if (!response || !response.success) {
+        console.error('❌ [TIMER] API Error:', response);
+        throw new Error(`Failed to create action: ${response?.message || 'Unknown error'}`);
       }
 
       const actionId = response.data.id;
@@ -82,6 +83,12 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
       return actionId;
     } catch (error) {
       console.error('❌ [TIMER] Failed to start timer:', error);
+      console.error('❌ [TIMER] Error details:', {
+        message: error?.message,
+        stack: error?.stack,
+        name: error?.name,
+        cause: error?.cause
+      });
       throw error;
     }
   }, []);

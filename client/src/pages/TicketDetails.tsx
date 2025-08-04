@@ -3961,6 +3961,8 @@ const TicketDetails = React.memo(() => {
         ticketId={id || ''} 
         isOpen={showInternalActionModal} 
         onClose={() => setShowInternalActionModal(false)} 
+        onStartTimer={startTimer}
+        timerState={timerState}
       />
 
       {/* Edit Internal Action Modal */}
