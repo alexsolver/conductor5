@@ -84,11 +84,6 @@ export function SimpleTimerProvider({ children }: { children: React.ReactNode })
 
       console.log('🎯 [SIMPLE-TIMER] Action finished and timer cleared');
       
-      // Recarregar a página após pequeno delay para atualizar dados
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
-      
     } catch (error) {
       console.error('❌ [SIMPLE-TIMER] Failed to finish action:', error);
     }
