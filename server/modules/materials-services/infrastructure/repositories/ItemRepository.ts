@@ -79,6 +79,7 @@ export class ItemRepository {
         measurementUnit: items.measurementUnit,
         maintenancePlan: items.maintenancePlan,
         defaultChecklist: items.defaultChecklist,
+        groupName: items.groupName,
         status: items.status,
         createdAt: items.createdAt,
         updatedAt: items.updatedAt,
