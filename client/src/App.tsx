@@ -77,7 +77,6 @@ import LPU from "./pages/LPU";
 import { SupplierManagement } from "./pages/SupplierManagement";
 
 import AssetManagement from "./pages/AssetManagement";
-import LPU from "./pages/LPU";
 import ComplianceManagement from "./pages/ComplianceManagement";
 import CLTCompliance from "./pages/CLTCompliance";
 import TimecardApprovalSettings from "./pages/TimecardApprovalSettings";
