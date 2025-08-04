@@ -1,5 +1,5 @@
 import { Response } from 'express';
-import { AuthenticatedRequest } from '../../../../types/auth';
+import { AuthenticatedRequest } from '../../../middleware/jwtAuth';
 import { LPURepository } from '../../infrastructure/repositories/LPURepository';
 
 export class LPUController {

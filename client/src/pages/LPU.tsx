@@ -311,6 +311,35 @@ export default function LPU() {
             <CardContent>
               {rulesLoading ? (
                 <div className="text-center py-4">Carregando regras de precificação...</div>
+              ) : pricingRules && pricingRules.length > 0 ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Nome</TableHead>
+                      <TableHead>Tipo</TableHead>
+                      <TableHead>Prioridade</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Descrição</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {pricingRules.map((rule: any) => (
+                      <TableRow key={rule.id}>
+                        <TableCell className="font-medium">{rule.name}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{rule.ruleType}</Badge>
+                        </TableCell>
+                        <TableCell>{rule.priority}</TableCell>
+                        <TableCell>
+                          <Badge variant={rule.isActive ? "default" : "secondary"}>
+                            {rule.isActive ? "Ativa" : "Inativa"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="max-w-xs truncate">{rule.description}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
                   Nenhuma regra de precificação encontrada. Clique em "Nova Regra" para começar.
@@ -675,7 +704,7 @@ function PricingRuleForm({
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    ruleType: 'percentage',
+    ruleType: 'percentual',
     priority: 1,
     isActive: true,
     conditions: {},
@@ -706,10 +735,10 @@ function PricingRuleForm({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="percentage">Percentual</SelectItem>
-              <SelectItem value="fixed">Valor Fixo</SelectItem>
-              <SelectItem value="tiered">Escalonada</SelectItem>
-              <SelectItem value="dynamic">Dinâmica</SelectItem>
+              <SelectItem value="percentual">Percentual</SelectItem>
+              <SelectItem value="fixo">Valor Fixo</SelectItem>
+              <SelectItem value="escalonado">Escalonada</SelectItem>
+              <SelectItem value="dinâmico">Dinâmica</SelectItem>
             </SelectContent>
           </Select>
         </div>
