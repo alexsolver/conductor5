@@ -71,6 +71,7 @@ import TeamManagement from "./pages/TeamManagement";
 import ContractManagement from "./pages/ContractManagement";
 import MaterialsServicesControl from "./pages/MaterialsServicesControl";
 import ItemCatalog from "./pages/ItemCatalog";
+import TicketMaterials from "./pages/TicketMaterials";
 import { StockManagement } from "./pages/StockManagement";
 import { SupplierManagement } from "./pages/SupplierManagement";
 
@@ -196,6 +197,7 @@ function AppRouter() {
         <Route path="/contract-management" component={ContractManagement} />
         <Route path="/materials-services-control" component={MaterialsServicesControl} />
         <Route path="/item-catalog" component={ItemCatalog} />
+        <Route path="/tickets/:id/materials" component={TicketMaterials} />
         <Route path="/stock-management" component={StockManagement} />
         <Route path="/supplier-management" component={SupplierManagement} />
         

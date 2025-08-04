@@ -2274,6 +2274,160 @@ export const suppliers = pgTable("suppliers", {
   updatedBy: uuid("updated_by")
 });
 
+// ========================================
+// TICKET MATERIALS AND SERVICES CONSUMPTION SYSTEM
+// ========================================
+
+// LPU Settings per ticket - Links tickets to specific price lists
+export const ticketLpuSettings = pgTable("ticket_lpu_settings", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  ticketId: uuid("ticket_id").references(() => tickets.id, { onDelete: 'cascade' }).notNull(),
+  lpuId: uuid("lpu_id").notNull(), // References LPU table
+  appliedAt: timestamp("applied_at").defaultNow().notNull(),
+  appliedById: uuid("applied_by_id").references(() => users.id),
+  isActive: boolean("is_active").default(true),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  index("ticket_lpu_settings_tenant_ticket_idx").on(table.tenantId, table.ticketId),
+  index("ticket_lpu_settings_tenant_lpu_idx").on(table.tenantId, table.lpuId),
+  index("ticket_lpu_settings_tenant_active_idx").on(table.tenantId, table.isActive),
+]);
+
+// Planned items consumption (before service execution)
+export const ticketPlannedItems = pgTable("ticket_planned_items", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  ticketId: uuid("ticket_id").references(() => tickets.id, { onDelete: 'cascade' }).notNull(),
+  itemId: uuid("item_id").references(() => items.id).notNull(),
+  plannedQuantity: decimal("planned_quantity", { precision: 15, scale: 4 }).notNull(),
+  lpuId: uuid("lpu_id").notNull(), // LPU used for pricing
+  unitPriceAtPlanning: decimal("unit_price_at_planning", { precision: 15, scale: 4 }).notNull(),
+  estimatedCost: decimal("estimated_cost", { precision: 15, scale: 2 }).notNull(),
+  status: varchar("status", { length: 20 }).default("planned").notNull(), // planned, approved, cancelled
+  plannedById: uuid("planned_by_id").references(() => users.id),
+  approvedById: uuid("approved_by_id").references(() => users.id),
+  approvedAt: timestamp("approved_at"),
+  notes: text("notes"),
+  priority: varchar("priority", { length: 20 }).default("medium"), // low, medium, high, critical
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  index("ticket_planned_items_tenant_ticket_idx").on(table.tenantId, table.ticketId),
+  index("ticket_planned_items_tenant_item_idx").on(table.tenantId, table.itemId),
+  index("ticket_planned_items_tenant_status_idx").on(table.tenantId, table.status),
+  index("ticket_planned_items_tenant_lpu_idx").on(table.tenantId, table.lpuId),
+]);
+
+// Actual items consumption (after service execution)
+export const ticketConsumedItems = pgTable("ticket_consumed_items", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  ticketId: uuid("ticket_id").references(() => tickets.id, { onDelete: 'cascade' }).notNull(),
+  plannedItemId: uuid("planned_item_id").references(() => ticketPlannedItems.id), // Optional - links to planned item
+  itemId: uuid("item_id").references(() => items.id).notNull(),
+  plannedQuantity: decimal("planned_quantity", { precision: 15, scale: 4 }).default("0"),
+  actualQuantity: decimal("actual_quantity", { precision: 15, scale: 4 }).notNull(),
+  lpuId: uuid("lpu_id").notNull(), // LPU used for final pricing
+  unitPriceAtConsumption: decimal("unit_price_at_consumption", { precision: 15, scale: 4 }).notNull(),
+  totalCost: decimal("total_cost", { precision: 15, scale: 2 }).notNull(),
+  technicianId: uuid("technician_id").references(() => users.id).notNull(),
+  stockLocationId: uuid("stock_location_id").references(() => stockLocations.id),
+  consumedAt: timestamp("consumed_at").defaultNow().notNull(),
+  consumptionType: varchar("consumption_type", { length: 50 }).default("used"), // used, wasted, returned
+  notes: text("notes"),
+  batchNumber: varchar("batch_number", { length: 100 }),
+  serialNumber: varchar("serial_number", { length: 100 }),
+  warrantyPeriod: integer("warranty_period"), // Days
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  index("ticket_consumed_items_tenant_ticket_idx").on(table.tenantId, table.ticketId),
+  index("ticket_consumed_items_tenant_item_idx").on(table.tenantId, table.itemId),
+  index("ticket_consumed_items_tenant_technician_idx").on(table.tenantId, table.technicianId),
+  index("ticket_consumed_items_tenant_consumed_idx").on(table.tenantId, table.consumedAt),
+  index("ticket_consumed_items_tenant_lpu_idx").on(table.tenantId, table.lpuId),
+  index("ticket_consumed_items_tenant_location_idx").on(table.tenantId, table.stockLocationId),
+]);
+
+// Costs summary per ticket
+export const ticketCostsSummary = pgTable("ticket_costs_summary", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  ticketId: uuid("ticket_id").references(() => tickets.id, { onDelete: 'cascade' }).notNull(),
+  totalPlannedCost: decimal("total_planned_cost", { precision: 15, scale: 2 }).default("0"),
+  totalActualCost: decimal("total_actual_cost", { precision: 15, scale: 2 }).default("0"),
+  costVariance: decimal("cost_variance", { precision: 15, scale: 2 }).default("0"), // actual - planned
+  costVariancePercentage: decimal("cost_variance_percentage", { precision: 5, scale: 2 }).default("0"),
+  materialsCount: integer("materials_count").default(0),
+  servicesCount: integer("services_count").default(0),
+  totalItemsCount: integer("total_items_count").default(0),
+  currency: varchar("currency", { length: 3 }).default("BRL"),
+  lastCalculatedAt: timestamp("last_calculated_at").defaultNow().notNull(),
+  calculatedById: uuid("calculated_by_id").references(() => users.id),
+  status: varchar("status", { length: 20 }).default("draft"), // draft, approved, closed
+  approvedById: uuid("approved_by_id").references(() => users.id),
+  approvedAt: timestamp("approved_at"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  index("ticket_costs_summary_tenant_ticket_idx").on(table.tenantId, table.ticketId),
+  index("ticket_costs_summary_tenant_status_idx").on(table.tenantId, table.status),
+  index("ticket_costs_summary_tenant_calculated_idx").on(table.tenantId, table.lastCalculatedAt),
+  unique("ticket_costs_summary_unique_ticket").on(table.tenantId, table.ticketId),
+]);
+
+// Stock movements triggered by ticket consumption
+export const ticketStockMovements = pgTable("ticket_stock_movements", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  ticketId: uuid("ticket_id").references(() => tickets.id, { onDelete: 'cascade' }).notNull(),
+  consumedItemId: uuid("consumed_item_id").references(() => ticketConsumedItems.id, { onDelete: 'cascade' }).notNull(),
+  stockLocationId: uuid("stock_location_id").references(() => stockLocations.id).notNull(),
+  itemId: uuid("item_id").references(() => items.id).notNull(),
+  movementType: varchar("movement_type", { length: 20 }).notNull(), // out, return, adjustment
+  quantity: decimal("quantity", { precision: 15, scale: 4 }).notNull(),
+  previousStock: decimal("previous_stock", { precision: 15, scale: 4 }).notNull(),
+  newStock: decimal("new_stock", { precision: 15, scale: 4 }).notNull(),
+  unitCost: decimal("unit_cost", { precision: 15, scale: 4 }),
+  totalCost: decimal("total_cost", { precision: 15, scale: 2 }),
+  technicianId: uuid("technician_id").references(() => users.id).notNull(),
+  movementDate: timestamp("movement_date").defaultNow().notNull(),
+  reason: text("reason"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [
+  index("ticket_stock_movements_tenant_ticket_idx").on(table.tenantId, table.ticketId),
+  index("ticket_stock_movements_tenant_location_idx").on(table.tenantId, table.stockLocationId),
+  index("ticket_stock_movements_tenant_item_idx").on(table.tenantId, table.itemId),
+  index("ticket_stock_movements_tenant_technician_idx").on(table.tenantId, table.technicianId),
+  index("ticket_stock_movements_tenant_date_idx").on(table.tenantId, table.movementDate),
+]);
+
+// Types for ticket materials consumption
+export type TicketLpuSetting = typeof ticketLpuSettings.$inferSelect;
+export type InsertTicketLpuSetting = typeof ticketLpuSettings.$inferInsert;
+export type TicketPlannedItem = typeof ticketPlannedItems.$inferSelect;
+export type InsertTicketPlannedItem = typeof ticketPlannedItems.$inferInsert;
+export type TicketConsumedItem = typeof ticketConsumedItems.$inferSelect;
+export type InsertTicketConsumedItem = typeof ticketConsumedItems.$inferInsert;
+export type TicketCostsSummary = typeof ticketCostsSummary.$inferSelect;
+export type InsertTicketCostsSummary = typeof ticketCostsSummary.$inferInsert;
+export type TicketStockMovement = typeof ticketStockMovements.$inferSelect;
+export type InsertTicketStockMovement = typeof ticketStockMovements.$inferInsert;
+
+// Zod schemas for validation
+export const insertTicketLpuSettingSchema = createInsertSchema(ticketLpuSettings);
+export const insertTicketPlannedItemSchema = createInsertSchema(ticketPlannedItems);
+export const insertTicketConsumedItemSchema = createInsertSchema(ticketConsumedItems);
+export const insertTicketCostsSummarySchema = createInsertSchema(ticketCostsSummary);
+export const insertTicketStockMovementSchema = createInsertSchema(ticketStockMovements);
+
 // Types for parts and services
 export type Item = typeof items.$inferSelect;
 export type InsertItem = typeof items.$inferInsert;

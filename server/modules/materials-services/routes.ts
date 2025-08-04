@@ -527,4 +527,42 @@ router.get('/dashboard', async (req: AuthenticatedRequest, res) => {
   }
 });
 
+// ===================================
+// TICKET MATERIALS CONSUMPTION ROUTES
+// ===================================
+
+import { TicketMaterialsController } from './application/controllers/TicketMaterialsController';
+
+// LPU Settings for tickets
+router.get('/tickets/:ticketId/lpu-settings', (req: AuthenticatedRequest, res) => {
+  return TicketMaterialsController.getTicketLpuSettings(req, res);
+});
+
+router.post('/tickets/:ticketId/lpu-settings', (req: AuthenticatedRequest, res) => {
+  return TicketMaterialsController.setTicketLpu(req, res);
+});
+
+// Planned items
+router.get('/tickets/:ticketId/planned-items', (req: AuthenticatedRequest, res) => {
+  return TicketMaterialsController.getPlannedItems(req, res);
+});
+
+router.post('/tickets/:ticketId/planned-items', (req: AuthenticatedRequest, res) => {
+  return TicketMaterialsController.addPlannedItem(req, res);
+});
+
+// Consumed items
+router.get('/tickets/:ticketId/consumed-items', (req: AuthenticatedRequest, res) => {
+  return TicketMaterialsController.getConsumedItems(req, res);
+});
+
+router.post('/tickets/:ticketId/consumed-items', (req: AuthenticatedRequest, res) => {
+  return TicketMaterialsController.addConsumedItem(req, res);
+});
+
+// Costs summary
+router.get('/tickets/:ticketId/costs-summary', (req: AuthenticatedRequest, res) => {
+  return TicketMaterialsController.getCostsSummary(req, res);
+});
+
 export { router as materialsServicesRoutes };
