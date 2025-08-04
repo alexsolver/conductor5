@@ -58,11 +58,15 @@ import { useTimer } from "../contexts/TimerContext";
 
 const TicketDetails = React.memo(() => {
   const { id } = useParams<{ id: string }>();
-  const [, navigate] = useLocation();
+  const [location, navigate] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isEditMode, setIsEditMode] = useState(false);
   const { getFieldColor, getFieldLabel } = useFieldColors();
+
+  // Extract query parameters from URL
+  const urlParams = new URLSearchParams(location.split('?')[1] || '');
+  const openActionId = urlParams.get('openAction');
 
   // Fetch user groups for displaying names
   const { data: userGroupsData } = useQuery({
@@ -123,6 +127,20 @@ const TicketDetails = React.memo(() => {
   // Estados para edição de ação interna
   const [editActionModalOpen, setEditActionModalOpen] = useState(false);
   const [actionToEdit, setActionToEdit] = useState<any>(null);
+
+  // Handle automatic action opening from URL parameter
+  useEffect(() => {
+    if (openActionId && internalActions.length > 0) {
+      const actionToOpen = internalActions.find((action: any) => action.id === openActionId);
+      if (actionToOpen) {
+        console.log('🎯 [AUTO-OPEN] Opening action automatically:', openActionId);
+        setActionToEdit(actionToOpen);
+        setEditActionModalOpen(true);
+        // Clean URL parameter
+        navigate(`/tickets/${id}`, { replace: true });
+      }
+    }
+  }, [openActionId, internalActions, id, navigate]);
 
   // Use global timer context
   const { timerState, startTimer, stopTimer } = useTimer();

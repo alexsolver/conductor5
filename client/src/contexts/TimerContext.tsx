@@ -144,7 +144,9 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
 
       console.log('📝 [TIMER] Updating action with:', updateData);
 
-      const response = await apiRequest('PATCH', `/api/tickets/${ticketId}/actions/${actionId}`, updateData);
+      const response = await apiRequest('PATCH', `/api/tickets/${ticketId}/actions/${actionId}`, {
+        body: updateData
+      });
       
       const result = await response.json();
 
@@ -169,6 +171,13 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
       });
 
       console.log('🎯 [TIMER] Timer finished and cache invalidated');
+      
+      // Navigate to ticket page with openAction parameter for automatic modal opening
+      setTimeout(() => {
+        console.log('🧭 [TIMER] Navigating to ticket with openAction:', actionId);
+        window.location.href = `/tickets/${ticketId}?openAction=${actionId}`;
+      }, 500);
+      
       return actionId;
     } catch (error) {
       console.error('❌ [TIMER] Failed to finish action:', error);

@@ -2228,7 +2228,7 @@ ticketsRouter.put('/:ticketId/actions/:actionId', jwtAuth, async (req: Authentic
     const contentDescription = description || workLog || currentAction.description;
     const finalActionType = actionType || currentAction.action_type;
 
-    // Preparar dados de tempo
+    // Preparar dados de tempo - TIMER CORRECTION
     const startTime = startDateTime ? new Date(startDateTime).toISOString() : currentAction.start_time;
     const endTime = endDateTime ? new Date(endDateTime).toISOString() : currentAction.end_time; 
     const estimatedHours = timeSpent ? parseInt(timeSpent) / 60 : currentAction.estimated_hours;
@@ -2363,6 +2363,95 @@ ticketsRouter.put('/:ticketId/actions/:actionId', jwtAuth, async (req: Authentic
       success: false,
       message: "Failed to update internal action",
       error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// PATCH Update ticket action - for timer system
+ticketsRouter.patch('/:ticketId/actions/:actionId', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    const { ticketId, actionId } = req.params;
+    const { 
+      status, 
+      description, 
+      title, 
+      estimated_hours, 
+      end_time 
+    } = req.body;
+    
+    const tenantId = req.user?.tenantId;
+    if (!tenantId) {
+      return res.status(400).json({ message: "User not associated with a tenant" });
+    }
+
+    console.log('🔧 [PATCH] Updating action with:', { status, description, title, estimated_hours, end_time });
+
+    const { pool } = await import('../../db');
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    const updateFields: string[] = [];
+    const values: any[] = [];
+    let paramIndex = 1;
+
+    if (status !== undefined) {
+      updateFields.push(`status = $${paramIndex++}`);
+      values.push(status);
+    }
+    if (description !== undefined) {
+      updateFields.push(`description = $${paramIndex++}`);
+      values.push(description);
+    }
+    if (title !== undefined) {
+      updateFields.push(`title = $${paramIndex++}`);
+      values.push(title);
+    }
+    if (estimated_hours !== undefined) {
+      updateFields.push(`estimated_hours = $${paramIndex++}`);
+      values.push(estimated_hours);
+    }
+    if (end_time !== undefined) {
+      updateFields.push(`end_time = $${paramIndex++}`);
+      values.push(end_time);
+    }
+
+    if (updateFields.length === 0) {
+      return res.status(400).json({ message: "No fields to update" });
+    }
+
+    const query = `
+      UPDATE "${schemaName}".ticket_internal_actions 
+      SET ${updateFields.join(', ')}, updated_at = NOW()
+      WHERE tenant_id = $${paramIndex++}::uuid 
+        AND ticket_id = $${paramIndex++}::uuid 
+        AND id = $${paramIndex++}::uuid
+      RETURNING *
+    `;
+
+    values.push(tenantId, ticketId, actionId);
+
+    console.log('🔧 [PATCH] Query:', query);
+    console.log('🔧 [PATCH] Values:', values);
+
+    const result = await pool.query(query, values);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "Internal action not found" 
+      });
+    }
+
+    console.log('✅ [PATCH] Action updated successfully:', result.rows[0]);
+
+    res.json({
+      success: true,
+      data: result.rows[0]
+    });
+  } catch (error) {
+    console.error("Error updating internal action:", error);
+    res.status(500).json({ 
+      success: false, 
+      message: "Failed to update internal action" 
     });
   }
 });
