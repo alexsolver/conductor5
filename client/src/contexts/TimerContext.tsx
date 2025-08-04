@@ -144,9 +144,11 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
 
       console.log('📝 [TIMER] Updating action with:', updateData);
 
-      const response = await apiRequest(`/api/tickets/${ticketId}/actions/${actionId}`, 'PATCH', updateData);
+      const response = await apiRequest('PATCH', `/api/tickets/${ticketId}/actions/${actionId}`, updateData);
+      
+      const result = await response.json();
 
-      console.log('✅ [TIMER] Action updated successfully:', response);
+      console.log('✅ [TIMER] Action updated successfully:', result);
 
       // Invalidate queries to refresh the actions list
       await queryClient.invalidateQueries({ queryKey: ['/api/tickets', ticketId, 'actions'] });
