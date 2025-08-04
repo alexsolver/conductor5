@@ -515,7 +515,12 @@ function PriceListForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    // Convert 'none' back to undefined/null for API
+    const submitData = {
+      ...formData,
+      customerCompanyId: formData.customerCompanyId === 'none' ? undefined : formData.customerCompanyId
+    };
+    onSubmit(submitData);
   };
 
   return (
