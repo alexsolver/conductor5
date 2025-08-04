@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useRef, useCallback, useEffect } from 'react';
-import { apiRequest } from '@/lib/queryClient';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 
 interface TimerState {
   isRunning: boolean;
@@ -75,6 +75,13 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
         currentTicketId: ticketId
       });
 
+      console.log('📊 [TIMER] Timer state set:', {
+        isRunning: true,
+        startTime: now,
+        currentActionId: actionId,
+        currentTicketId: ticketId
+      });
+
       timerInterval.current = setInterval(() => {
         setTimerState(prev => ({
           ...prev,
@@ -109,10 +116,12 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
 
   const finishCurrentAction = useCallback(async () => {
     if (!timerState.currentActionId || !timerState.currentTicketId) {
+      console.log('🚫 [TIMER] Cannot finish - missing actionId or ticketId');
       return;
     }
 
     try {
+      console.log('🏁 [TIMER] Finishing action:', timerState.currentActionId);
       const endTime = Date.now();
       const startTime = timerState.startTime || endTime;
       const elapsedMs = endTime - startTime;
@@ -121,16 +130,23 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
       // Update the action with end time and duration
       const updateData = {
         end_time: new Date(endTime).toISOString(),
-        estimated_hours: elapsedHours,
+        estimated_hours: parseFloat(elapsedHours),
         status: "completed",
         title: `Cronômetro Finalizado - ${elapsedHours}h`,
         description: `Ação concluída. Tempo total: ${elapsedHours} horas`
       };
 
-      await apiRequest(`/api/tickets/${timerState.currentTicketId}/actions/${timerState.currentActionId}`, {
+      console.log('📝 [TIMER] Updating action with:', updateData);
+
+      const response = await apiRequest(`/api/tickets/${timerState.currentTicketId}/actions/${timerState.currentActionId}`, {
         method: 'PATCH',
         body: JSON.stringify(updateData),
       });
+
+      console.log('✅ [TIMER] Action updated successfully:', response);
+
+      // Invalidate queries to refresh the actions list
+      await queryClient.invalidateQueries({ queryKey: ['/api/tickets', timerState.currentTicketId, 'actions'] });
 
       // Stop the timer
       if (timerInterval.current) {
@@ -145,8 +161,10 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
         currentActionId: null,
         currentTicketId: null
       });
+
+      console.log('🎯 [TIMER] Timer finished and cache invalidated');
     } catch (error) {
-      console.error('Failed to finish action:', error);
+      console.error('❌ [TIMER] Failed to finish action:', error);
     }
   }, [timerState.currentActionId, timerState.currentTicketId, timerState.startTime]);
 
