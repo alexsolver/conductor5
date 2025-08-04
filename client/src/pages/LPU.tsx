@@ -590,7 +590,7 @@ function PriceListForm({
               <SelectValue placeholder={companiesLoading ? "Carregando empresas..." : "Selecione uma empresa"} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Nenhuma empresa específica</SelectItem>
+              <SelectItem value="none">Nenhuma empresa específica</SelectItem>
               {companiesLoading ? (
                 <SelectItem value="loading" disabled>Carregando empresas...</SelectItem>
               ) : (
