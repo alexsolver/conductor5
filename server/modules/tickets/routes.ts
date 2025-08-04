@@ -2446,11 +2446,11 @@ ticketsRouter.patch('/:ticketId/actions/:actionId', jwtAuth, async (req: Authent
     }
     if (planned_start_time !== undefined) {
       updateFields.push(`planned_start_time = $${paramIndex++}`);
-      values.push(planned_start_time);
+      values.push(planned_start_time || null);
     }
     if (planned_end_time !== undefined) {
       updateFields.push(`planned_end_time = $${paramIndex++}`);
-      values.push(planned_end_time);
+      values.push(planned_end_time || null);
     }
     if (priority !== undefined) {
       updateFields.push(`priority = $${paramIndex++}`);
