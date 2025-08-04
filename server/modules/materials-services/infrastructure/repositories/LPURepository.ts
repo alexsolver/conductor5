@@ -12,17 +12,6 @@ import {
   type InsertDynamicPricing
 } from '../../../../../shared/schema-materials-services';
 import { eq, and, desc, asc, gte, lte } from 'drizzle-orm';
-import { 
-  priceLists, 
-  priceListItems, 
-  priceListVersions, 
-  pricingRules, 
-  dynamicPricing 
-} from '../../../../../shared/schema-materials-services';
-import type { 
-  InsertPricingRule, 
-  InsertDynamicPricing 
-} from '../../../../../shared/schema-materials-services';
 
 export class LPURepository {
   constructor(private database = db) {}
@@ -132,7 +121,7 @@ export class LPURepository {
   }
 
   // DELETE PRICE LIST  
-  async deletePriceListItem(id: string, tenantId: string) {
+  async deletePriceList(id: string, tenantId: string) {
     const [deleted] = await db
       .delete(priceLists)
       .where(and(eq(priceLists.id, id), eq(priceLists.tenantId, tenantId)))
@@ -422,7 +411,7 @@ export class LPURepository {
     const activeRules = await db
       .select()
       .from(pricingRules)
-      .where(and(eq(pricingRules.tenantId, tenantId), eq(pricingRules.active, true)));
+      .where(and(eq(pricingRules.tenantId, tenantId), eq(pricingRules.isActive, true)));
 
     return {
       totalLists,

@@ -146,7 +146,7 @@ export class LPUController {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
 
-      await this.repository.deletePriceListItem(id, tenantId);
+      await this.repository.deletePriceList(id, tenantId);
       res.status(204).send();
     } catch (error) {
       console.error('Erro ao excluir lista de preços:', error);
