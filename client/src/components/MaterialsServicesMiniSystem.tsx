@@ -224,7 +224,7 @@ export function MaterialsServicesMiniSystem({ ticketId }: MaterialsServicesMiniS
                         <div className="flex-1">
                           <p className="font-medium">{material.itemName}</p>
                           <p className="text-sm text-gray-600">Qtd: {material.quantity}</p>
-                          <p className="text-sm text-green-600">R$ {material.estimatedCost?.toFixed(2)}</p>
+                          <p className="text-sm text-green-600">R$ {parseFloat(material.estimatedCost || 0).toFixed(2)}</p>
                         </div>
                         <Button
                           variant="ghost"
@@ -262,7 +262,7 @@ export function MaterialsServicesMiniSystem({ ticketId }: MaterialsServicesMiniS
                       <div key={material.id} className="p-3 border rounded-lg">
                         <p className="font-medium">{material.itemName}</p>
                         <p className="text-sm text-gray-600">Qtd Usada: {material.quantityUsed}</p>
-                        <p className="text-sm text-green-600">R$ {material.actualCost?.toFixed(2)}</p>
+                        <p className="text-sm text-green-600">R$ {parseFloat(material.totalCost || material.actualCost || 0).toFixed(2)}</p>
                         <p className="text-xs text-gray-500">
                           {new Date(material.createdAt).toLocaleDateString('pt-BR')}
                         </p>
@@ -293,7 +293,7 @@ export function MaterialsServicesMiniSystem({ ticketId }: MaterialsServicesMiniS
                     <SelectContent>
                       {items.map((item: any) => (
                         <SelectItem key={item.id} value={item.id}>
-                          {item.name} - {item.type} (R$ {item.unitCost?.toFixed(2)})
+                          {item.name} - {item.type} (R$ {parseFloat(item.unitCost || 0).toFixed(2)})
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -342,7 +342,7 @@ export function MaterialsServicesMiniSystem({ ticketId }: MaterialsServicesMiniS
                     <SelectContent>
                       {items.map((item: any) => (
                         <SelectItem key={item.id} value={item.id}>
-                          {item.name} - {item.type} (R$ {item.unitCost?.toFixed(2)})
+                          {item.name} - {item.type} (R$ {parseFloat(item.unitCost || 0).toFixed(2)})
                         </SelectItem>
                       ))}
                     </SelectContent>
