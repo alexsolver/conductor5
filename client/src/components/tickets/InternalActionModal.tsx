@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -20,15 +20,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FilteredUserSelect } from "@/components/FilteredUserSelect";
-import { UserGroupSelect } from "@/components/ui/UserGroupSelect";
 import { 
   Clock, 
   Calendar, 
   User, 
-  Users, 
-  CalendarCheck, 
-  CalendarClock, 
   MessageSquare,
   Eye,
   EyeOff,
@@ -49,59 +44,28 @@ interface InternalActionModalProps {
   onClose: () => void;
 }
 
-interface InternalAction {
-  id: string;
-  content: string;
-  isPublic: boolean;
-  createdBy: string;
-  createdByName: string;
-  createdAt: string;
-}
-
 export default function InternalActionModal({ isOpen, onClose, ticketId }: InternalActionModalProps) {
   const [formData, setFormData] = useState({
-    startDateTime: "",
-    endDateTime: "",
-    estimatedMinutes: "0",
-    timeSpentMinutes: "0",
-    alterTimeSpent: false,
-    actionType: "",
-    workLog: "",
+    // Campos obrigatórios da tabela
+    action_type: "",
+    agent_id: "__none__",
+    
+    // Campos opcionais da tabela
+    title: "",
     description: "",
+    start_time: "",
+    end_time: "",
+    estimated_hours: "0",
     status: "pending",
-    attachments: [] as File[],
-    assignedToId: "__none__",
-    plannedStartDate: "",
-    plannedEndDate: "",
-    actualStartDate: "",
-    actualEndDate: "",
-    assignmentGroupId: "__none__"
+    priority: "medium",
+    
+    // Campos auxiliares
+    attachments: [] as File[]
   });
+  
   const [isPublic, setIsPublic] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
-  // Function to handle time spent toggle
-  const handleTimeSpentToggle = (checked: boolean) => {
-    setFormData(prev => ({
-      ...prev,
-      alterTimeSpent: checked,
-      timeSpentMinutes: checked ? prev.timeSpentMinutes : "0"
-    }));
-  };
-
-  // Fetch internal actions
-  const { data: actionsResponse, isLoading } = useQuery({
-    queryKey: ["/api/tickets", ticketId, "actions"],
-    queryFn: async () => {
-      const response = await apiRequest("GET", `/api/tickets/${ticketId}/actions`);
-      return response.json();
-    },
-    enabled: isOpen,
-  });
-
-  // Extract data from response
-  const actions = actionsResponse?.success ? actionsResponse.data : [];
 
   // Fetch team members for assignment dropdown
   const { data: teamMembers } = useQuery({
@@ -116,11 +80,17 @@ export default function InternalActionModal({ isOpen, onClose, ticketId }: Inter
   // Create internal action mutation
   const createActionMutation = useMutation({
     mutationFn: async (data: any) => {
-      // Convert __none__ values back to empty strings for the API
+      // Map form data to database structure
       const cleanedData = {
-        ...data,
-        assignedToId: data.assignedToId === "__none__" ? "" : data.assignedToId,
-        assignmentGroupId: data.assignmentGroupId === "__none__" ? "" : data.assignmentGroupId,
+        action_type: data.action_type,
+        agent_id: data.agent_id === "__none__" ? null : data.agent_id,
+        title: data.title || null,
+        description: data.description || null,
+        start_time: data.start_time || null,
+        end_time: data.end_time || null,
+        estimated_hours: parseFloat(data.estimated_hours) || 0,
+        status: data.status || 'pending',
+        priority: data.priority || 'medium',
         is_public: isPublic,
       };
       const response = await apiRequest("POST", `/api/tickets/${ticketId}/actions`, cleanedData);
@@ -151,10 +121,19 @@ export default function InternalActionModal({ isOpen, onClose, ticketId }: Inter
   });
 
   const handleSubmit = () => {
-    if (!formData.actionType) {
+    if (!formData.action_type) {
       toast({
         title: "Erro",
         description: "Por favor, selecione o tipo de ação interna",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!formData.agent_id || formData.agent_id === "__none__") {
+      toast({
+        title: "Erro",
+        description: "Por favor, selecione um agente responsável",
         variant: "destructive",
       });
       return;
@@ -178,302 +157,175 @@ export default function InternalActionModal({ isOpen, onClose, ticketId }: Inter
     }));
   };
 
-    // Reset form function
+  // Reset form function
   const resetForm = () => {
     setFormData({
-      startDateTime: "",
-      endDateTime: "",
-      estimatedMinutes: "0",
-      timeSpentMinutes: "0",
-      alterTimeSpent: false,
-      actionType: "",
-      workLog: "",
+      action_type: "",
+      agent_id: "__none__",
+      title: "",
       description: "",
+      start_time: "",
+      end_time: "",
+      estimated_hours: "0",
       status: "pending",
-      attachments: [],
-      assignedToId: "__none__",
-      plannedStartDate: "",
-      plannedEndDate: "",
-      actualStartDate: "",
-      actualEndDate: "",
-      assignmentGroupId: "__none__"
+      priority: "medium",
+      attachments: []
     });
     setIsPublic(false);
   };
 
-  // Group agents state
-  const [groupAgents, setGroupAgents] = useState<any[]>([]);
-  
-  // Fetch group members when assignment group changes
-  useEffect(() => {
-    if (formData.assignmentGroupId && formData.assignmentGroupId !== "__none__") {
-      apiRequest("GET", `/api/user-management/groups/${formData.assignmentGroupId}/users`)
-        .then((response) => response.json())
-        .then((data) => {
-          if (data?.users) {
-            setGroupAgents(data.users);
-          } else {
-            setGroupAgents([]);
-          }
-        })
-        .catch((error) => {
-          console.error("Erro ao buscar agentes do grupo:", error);
-          setGroupAgents([]);
-        });
-    } else {
-      setGroupAgents([]);
-    }
-  }, [formData.assignmentGroupId]);
-
-  // Clear agent when group changes
-  useEffect(() => {
-    if (formData.assignmentGroupId && formData.assignmentGroupId !== "__none__" && formData.assignedToId && formData.assignedToId !== "__none__") {
-      const agentBelongsToGroup = groupAgents.some((agent: any) => agent.id === formData.assignedToId);
-      if (!agentBelongsToGroup) {
-        setFormData(prev => ({ ...prev, assignedToId: "__none__" }));
-      }
-    }
-  }, [formData.assignmentGroupId, formData.assignedToId, groupAgents]);
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <MessageSquare className="w-5 h-5" />
             Nova Ação Interna
           </DialogTitle>
           <DialogDescription>
-            Registre uma nova ação interna realizada neste ticket. Defina se a ação será visível ao solicitante ou apenas para agentes.
+            Registre uma nova ação interna realizada neste ticket. Todos os campos marcados com * são obrigatórios.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* New Action Form */}
           <Card>
             <CardContent className="p-6">
               <div className="space-y-6">
-                {/* Datas Previstas - Moved to top */}
-                <div className="space-y-2">
-                  <Label className="flex items-center space-x-2">
-                    <CalendarClock className="h-4 w-4" />
-                    <span>Datas Previstas</span>
-                  </Label>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="plannedStartDate">Data/Hora Início</Label>
-                      <Input
-                        id="plannedStartDate"
-                        type="datetime-local"
-                        value={formData.plannedStartDate}
-                        onChange={(e) => setFormData(prev => ({ ...prev, plannedStartDate: e.target.value }))}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="plannedEndDate">Data/Hora Fim</Label>
-                      <Input
-                        id="plannedEndDate"
-                        type="datetime-local"
-                        value={formData.plannedEndDate}
-                        onChange={(e) => setFormData(prev => ({ ...prev, plannedEndDate: e.target.value }))}
-                      />
-                    </div>
+
+                {/* Campos Obrigatórios */}
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Tipo de Ação */}
+                  <div>
+                    <Label htmlFor="action-type">Tipo de Ação *</Label>
+                    <Select value={formData.action_type} onValueChange={(value) => setFormData(prev => ({ ...prev, action_type: value }))}>
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="Selecione o tipo de ação..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="analysis">Análise</SelectItem>
+                        <SelectItem value="investigation">Investigação</SelectItem>
+                        <SelectItem value="resolution">Resolução</SelectItem>
+                        <SelectItem value="escalation">Escalação</SelectItem>
+                        <SelectItem value="communication">Comunicação</SelectItem>
+                        <SelectItem value="testing">Teste</SelectItem>
+                        <SelectItem value="documentation">Documentação</SelectItem>
+                        <SelectItem value="follow_up">Acompanhamento</SelectItem>
+                        <SelectItem value="work_log">Registro de Trabalho</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Agente Responsável */}
+                  <div>
+                    <Label htmlFor="agent">Agente Responsável *</Label>
+                    <Select value={formData.agent_id} onValueChange={(value) => setFormData(prev => ({ ...prev, agent_id: value }))}>
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="Selecione um agente..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__none__">-- Selecione um agente --</SelectItem>
+                        {teamMembers?.users?.map((user: any) => (
+                          <SelectItem key={user.id} value={user.id}>
+                            {user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
 
-                {/* Datas Realizadas - Moved to top */}
-                <div className="space-y-2">
-                  <Label className="flex items-center space-x-2">
-                    <CalendarCheck className="h-4 w-4" />
-                    <span>Datas Realizadas</span>
-                  </Label>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="actualStartDate">Data/Hora Início</Label>
-                      <Input
-                        id="actualStartDate"
-                        type="datetime-local"
-                        value={formData.actualStartDate}
-                        onChange={(e) => setFormData(prev => ({ ...prev, actualStartDate: e.target.value }))}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="actualEndDate">Data/Hora Fim</Label>
-                      <Input
-                        id="actualEndDate"
-                        type="datetime-local"
-                        value={formData.actualEndDate}
-                        onChange={(e) => setFormData(prev => ({ ...prev, actualEndDate: e.target.value }))}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* First Row: Date/Time and Time */}
-                <div className="grid grid-cols-4 gap-4">
-                  <div>
-                    <Label htmlFor="start-datetime">Data/Hora Início *</Label>
-                    <Input
-                      id="start-datetime"
-                      type="datetime-local"
-                      value={formData.startDateTime}
-                      onChange={(e) => setFormData(prev => ({ ...prev, startDateTime: e.target.value }))}
-                      className="mt-1"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="end-datetime">Data/Hora Fim</Label>
-                    <Input
-                      id="end-datetime"
-                      type="datetime-local"
-                      value={formData.endDateTime}
-                      onChange={(e) => setFormData(prev => ({ ...prev, endDateTime: e.target.value }))}
-                      className="mt-1"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="estimated-minutes">Tempo previsto (min)</Label>
-                    <Input
-                      id="estimated-minutes"
-                      type="number"
-                      min="0"
-                      value={formData.estimatedMinutes}
-                      onChange={(e) => setFormData(prev => ({ ...prev, estimatedMinutes: e.target.value }))}
-                      placeholder="0"
-                      className="mt-1"
-                    />
-                  </div>
-                  <div>
-                    <div className="flex items-center space-x-2 mb-1">
-                      <Switch
-                        id="alter-time"
-                        checked={formData.alterTimeSpent}
-                        onCheckedChange={handleTimeSpentToggle}
-                      />
-                      <Label htmlFor="alter-time" className="text-sm">Alterar tempo gasto</Label>
-                    </div>
-                    <Input
-                      id="time-spent"
-                      type="number"
-                      min="0"
-                      value={formData.timeSpentMinutes}
-                      onChange={(e) => setFormData(prev => ({ ...prev, timeSpentMinutes: e.target.value }))}
-                      placeholder="0"
-                      disabled={!formData.alterTimeSpent}
-                      className="mt-1"
-                    />
-                    <Label htmlFor="time-spent" className="text-xs text-gray-500">minutos</Label>
-                  </div>
-                </div>
-
-                {/* Assignment Group and User - Highlighted */}
-                <Card className="border-blue-200 bg-blue-50">
-                  <CardContent className="p-4">
-                    <div className="space-y-4">
-                      {/* Assignment Group */}
-                      <div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <Users className="w-4 h-4 text-blue-600" />
-                          <Label htmlFor="assignment-group" className="text-sm font-bold text-blue-700">Grupo de Atribuição</Label>
-                        </div>
-                        <Select 
-                          value={formData.assignmentGroupId} 
-                          onValueChange={(value) => setFormData(prev => ({ ...prev, assignmentGroupId: value, assignedToId: "__none__" }))}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione um grupo..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="__none__">-- Nenhum grupo --</SelectItem>
-                            {/* Add your groups here */}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      {/* Assigned User */}
-                      <div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <User className="w-4 h-4 text-blue-600" />
-                          <Label htmlFor="assigned-to" className="text-sm font-bold text-blue-700">Atribuído a</Label>
-                        </div>
-                        <Select value={formData.assignedToId} onValueChange={(value) => setFormData(prev => ({ ...prev, assignedToId: value }))}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione um membro..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="__none__">-- Não atribuído --</SelectItem>
-                            {(formData.assignmentGroupId ? groupAgents : teamMembers?.users || []).map((user: any) => (
-                              <SelectItem key={user.id} value={user.id}>
-                                {user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Action Type */}
+                {/* Título */}
                 <div>
-                  <Label htmlFor="action-type">Ação Interna *</Label>
-                  <Select value={formData.actionType} onValueChange={(value) => setFormData(prev => ({ ...prev, actionType: value }))}>
-                    <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Selecione o tipo de ação..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="analysis">Análise</SelectItem>
-                      <SelectItem value="investigation">Investigação</SelectItem>
-                      <SelectItem value="resolution">Resolução</SelectItem>
-                      <SelectItem value="escalation">Escalação</SelectItem>
-                      <SelectItem value="communication">Comunicação</SelectItem>
-                      <SelectItem value="testing">Teste</SelectItem>
-                      <SelectItem value="documentation">Documentação</SelectItem>
-                      <SelectItem value="follow_up">Acompanhamento</SelectItem>
-                      <SelectItem value="work_log">Registro de Trabalho</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="title">Título</Label>
+                  <Input
+                    id="title"
+                    value={formData.title}
+                    onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                    placeholder="Título resumido da ação..."
+                    className="mt-1"
+                  />
                 </div>
 
-                {/* Description - Simple Text Field */}
+                {/* Descrição */}
                 <div>
                   <Label htmlFor="description">Descrição</Label>
-                  <Input
+                  <Textarea
                     id="description"
                     value={formData.description}
                     onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                    placeholder="Descrição da ação interna..."
+                    placeholder="Descrição detalhada da ação realizada..."
+                    rows={4}
                     className="mt-1"
                   />
                 </div>
 
-                {/* Status Toggle */}
+                {/* Datas e Tempo */}
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <div className="flex items-center space-x-2 mb-1">
-                      <Switch
-                        id="status-toggle"
-                        checked={formData.status === "completed"}
-                        onCheckedChange={(checked) => setFormData(prev => ({ ...prev, status: checked ? "completed" : "pending" }))}
-                      />
-                      <Label htmlFor="status-toggle" className="text-sm">
-                        {formData.status === "completed" ? "Concluída" : "Pendente"}
-                      </Label>
-                    </div>
+                    <Label htmlFor="start-time">Data/Hora Início</Label>
+                    <Input
+                      id="start-time"
+                      type="datetime-local"
+                      value={formData.start_time}
+                      onChange={(e) => setFormData(prev => ({ ...prev, start_time: e.target.value }))}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="end-time">Data/Hora Fim</Label>
+                    <Input
+                      id="end-time"
+                      type="datetime-local"
+                      value={formData.end_time}
+                      onChange={(e) => setFormData(prev => ({ ...prev, end_time: e.target.value }))}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="estimated-hours">Horas Estimadas</Label>
+                    <Input
+                      id="estimated-hours"
+                      type="number"
+                      min="0"
+                      step="0.25"
+                      value={formData.estimated_hours}
+                      onChange={(e) => setFormData(prev => ({ ...prev, estimated_hours: e.target.value }))}
+                      placeholder="0"
+                      className="mt-1"
+                    />
                   </div>
                 </div>
 
-                {/* Work Log */}
-                <div>
-                  <Label htmlFor="work-log">Registro de Trabalho</Label>
-                  <Textarea
-                    id="work-log"
-                    placeholder="Descreva detalhadamente o trabalho realizado..."
-                    value={formData.workLog}
-                    onChange={(e) => setFormData(prev => ({ ...prev, workLog: e.target.value }))}
-                    rows={3}
-                    className="mt-1"
-                  />
+                {/* Status e Prioridade */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="status">Status</Label>
+                    <Select value={formData.status} onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}>
+                      <SelectTrigger className="mt-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pending">Pendente</SelectItem>
+                        <SelectItem value="in_progress">Em Andamento</SelectItem>
+                        <SelectItem value="completed">Concluída</SelectItem>
+                        <SelectItem value="cancelled">Cancelada</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="priority">Prioridade</Label>
+                    <Select value={formData.priority} onValueChange={(value) => setFormData(prev => ({ ...prev, priority: value }))}>
+                      <SelectTrigger className="mt-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="low">Baixa</SelectItem>
+                        <SelectItem value="medium">Média</SelectItem>
+                        <SelectItem value="high">Alta</SelectItem>
+                        <SelectItem value="critical">Crítica</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 {/* File Upload */}
@@ -561,19 +413,17 @@ export default function InternalActionModal({ isOpen, onClose, ticketId }: Inter
                     </Button>
                     <Button
                       onClick={handleSubmit}
-                      disabled={createActionMutation.isPending || !formData.actionType}
+                      disabled={createActionMutation.isPending || !formData.action_type || !formData.agent_id || formData.agent_id === "__none__"}
                       className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                     >
                       <Send className="w-4 h-4 mr-2" />
-                      {createActionMutation.isPending ? "Salvando..." : "Salvar e Continuar"}
+                      {createActionMutation.isPending ? "Salvando..." : "Salvar Ação"}
                     </Button>
                   </div>
                 </div>
               </div>
             </CardContent>
           </Card>
-
-          {/* Removed existing actions display as requested */}
         </div>
       </DialogContent>
     </Dialog>
