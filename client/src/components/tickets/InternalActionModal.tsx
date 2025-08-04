@@ -49,9 +49,10 @@ interface InternalActionModalProps {
   isOpen: boolean;
   onClose: () => void;
   editAction?: any; // Para modo de edição
+  onStartTimer?: (ticketId: string) => Promise<void>;
 }
 
-export default function InternalActionModal({ isOpen, onClose, ticketId, editAction }: InternalActionModalProps) {
+export default function InternalActionModal({ isOpen, onClose, ticketId, editAction, onStartTimer }: InternalActionModalProps) {
   const { startAction } = useSimpleTimer();
   const [formData, setFormData] = useState({
     // Campos obrigatórios da tabela
@@ -778,7 +779,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
                          new Date(formData.planned_end_time) <= new Date(formData.planned_start_time)) ||
                         (formData.start_time && formData.end_time && 
                          new Date(formData.end_time) <= new Date(formData.start_time)) ||
-                        (formData.estimated_hours && formData.estimated_hours !== "" && parseFloat(formData.estimated_hours) < 0)
+                        (formData.estimated_hours !== "" && parseFloat(formData.estimated_hours) < 0)
                       }
                       className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:opacity-50"
                     >
