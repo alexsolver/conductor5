@@ -452,13 +452,18 @@ export default function InternalActionModal({ isOpen, onClose, ticketId }: Inter
                           setFormData(prev => {
                             const newData = { ...prev, planned_start_time: newValue };
                             
-                            // Auto-calculate planned end time if both planned start time and estimated time are filled
-                            if (newValue && prev.estimated_hours) {
-                              const startTime = new Date(newValue);
-                              const estimatedMinutes = parseInt(prev.estimated_hours);
-                              if (!isNaN(estimatedMinutes) && estimatedMinutes > 0) {
-                                const endTime = new Date(startTime.getTime() + estimatedMinutes * 60000);
-                                newData.planned_end_time = endTime.toISOString().slice(0, 16);
+                            // Set initial planned end time to same as planned start time
+                            if (newValue) {
+                              newData.planned_end_time = newValue;
+                              
+                              // If estimated time is also filled, calculate the proper end time
+                              if (prev.estimated_hours) {
+                                const startTime = new Date(newValue);
+                                const estimatedMinutes = parseInt(prev.estimated_hours);
+                                if (!isNaN(estimatedMinutes) && estimatedMinutes > 0) {
+                                  const endTime = new Date(startTime.getTime() + estimatedMinutes * 60000);
+                                  newData.planned_end_time = endTime.toISOString().slice(0, 16);
+                                }
                               }
                             }
                             
