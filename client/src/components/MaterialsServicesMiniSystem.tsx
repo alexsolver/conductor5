@@ -232,9 +232,20 @@ export function MaterialsServicesMiniSystem({ ticketId }: MaterialsServicesMiniS
                     {plannedMaterials.map((material: any) => (
                       <div key={material.id} className="flex items-center justify-between p-3 border rounded-lg">
                         <div className="flex-1">
-                          <p className="font-medium">{material.itemName}</p>
-                          <p className="text-sm text-gray-600">Qtd: {material.quantity}</p>
-                          <p className="text-sm text-green-600">R$ {parseFloat(material.estimatedCost || 0).toFixed(2)}</p>
+                          <div className="flex items-center gap-2 mb-1">
+                            <p className="font-medium">{material.itemName || 'Item sem nome'}</p>
+                            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                              {material.itemType || 'Tipo não informado'}
+                            </span>
+                          </div>
+                          {material.itemDescription && (
+                            <p className="text-sm text-gray-500 mb-1">{material.itemDescription}</p>
+                          )}
+                          <div className="flex items-center gap-4 text-sm">
+                            <span className="text-gray-600">Qtd: {material.plannedQuantity || material.quantity}</span>
+                            <span className="text-gray-600">Preço unit.: R$ {parseFloat(material.unitPriceAtPlanning || material.itemUnitCost || 0).toFixed(2)}</span>
+                            <span className="text-green-600 font-medium">Total: R$ {parseFloat(material.estimatedCost || 0).toFixed(2)}</span>
+                          </div>
                         </div>
                         <Button
                           variant="ghost"

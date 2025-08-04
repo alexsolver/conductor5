@@ -4,9 +4,10 @@ import {
   ticketLpuSettings, 
   ticketPlannedItems, 
   ticketConsumedItems, 
-  ticketCostsSummary
+  ticketCostsSummary,
+  items
 } from '../../../../../shared/schema-master';
-import { eq, and, desc } from 'drizzle-orm';
+import { eq, and, desc, sql } from 'drizzle-orm';
 import { sendSuccess, sendError } from '../../../../utils/standardResponse';
 
 interface AuthenticatedRequest extends Request {
@@ -99,8 +100,30 @@ export class TicketMaterialsController {
       }
 
       const plannedItems = await db
-        .select()
+        .select({
+          id: ticketPlannedItems.id,
+          tenantId: ticketPlannedItems.tenantId,
+          ticketId: ticketPlannedItems.ticketId,
+          itemId: ticketPlannedItems.itemId,
+          plannedQuantity: ticketPlannedItems.plannedQuantity,
+          lpuId: ticketPlannedItems.lpuId,
+          unitPriceAtPlanning: ticketPlannedItems.unitPriceAtPlanning,
+          estimatedCost: ticketPlannedItems.estimatedCost,
+          priority: ticketPlannedItems.priority,
+          notes: ticketPlannedItems.notes,
+          status: ticketPlannedItems.status,
+          plannedById: ticketPlannedItems.plannedById,
+          plannedAt: ticketPlannedItems.plannedAt,
+          createdAt: ticketPlannedItems.createdAt,
+          isActive: ticketPlannedItems.isActive,
+          // Item details
+          itemName: items.name,
+          itemType: items.type,
+          itemDescription: items.description,
+          itemUnitCost: items.unitCost
+        })
         .from(ticketPlannedItems)
+        .innerJoin(items, eq(ticketPlannedItems.itemId, items.id))
         .where(and(
           eq(ticketPlannedItems.tenantId, tenantId),
           eq(ticketPlannedItems.ticketId, ticketId),
