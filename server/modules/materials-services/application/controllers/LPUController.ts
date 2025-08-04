@@ -1,4 +1,5 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
+import { AuthenticatedRequest } from '../../../../types/auth';
 import { LPURepository } from '../../infrastructure/repositories/LPURepository';
 
 export class LPUController {
@@ -9,7 +10,7 @@ export class LPUController {
   }
 
   // GESTÃO DE LISTAS DE PREÇOS
-  async getAllPriceLists(req: Request, res: Response) {
+  async getAllPriceLists(req: AuthenticatedRequest, res: Response) {
     try {
       const tenantId = req.user?.tenantId;
       if (!tenantId) {
@@ -24,7 +25,7 @@ export class LPUController {
     }
   }
 
-  async getPriceListById(req: Request, res: Response) {
+  async getPriceListById(req: AuthenticatedRequest, res: Response) {
     try {
       const { id } = req.params;
       const tenantId = req.user?.tenantId;
@@ -45,7 +46,7 @@ export class LPUController {
     }
   }
 
-  async createPriceList(req: Request, res: Response) {
+  async createPriceList(req: AuthenticatedRequest, res: Response) {
     try {
       const tenantId = req.user?.tenantId;
       if (!tenantId) {
@@ -66,7 +67,7 @@ export class LPUController {
     }
   }
 
-  async updatePriceList(req: Request, res: Response) {
+  async updatePriceList(req: AuthenticatedRequest, res: Response) {
     try {
       const { id } = req.params;
       const tenantId = req.user?.tenantId;
@@ -92,8 +93,25 @@ export class LPUController {
     }
   }
 
+  async deletePriceList(req: AuthenticatedRequest, res: Response) {
+    try {
+      const { id } = req.params;
+      const tenantId = req.user?.tenantId;
+      
+      if (!tenantId) {
+        return res.status(400).json({ error: 'Tenant ID é obrigatório' });
+      }
+
+      await this.repository.deletePriceList(id, tenantId);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Erro ao excluir lista de preços:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  }
+
   // VERSIONAMENTO E WORKFLOW DE APROVAÇÃO
-  async getPriceListVersions(req: Request, res: Response) {
+  async getPriceListVersions(req: AuthenticatedRequest, res: Response) {
     try {
       const { priceListId } = req.params;
       const tenantId = req.user?.tenantId;
@@ -110,7 +128,7 @@ export class LPUController {
     }
   }
 
-  async createPriceListVersion(req: Request, res: Response) {
+  async createPriceListVersion(req: AuthenticatedRequest, res: Response) {
     try {
       const tenantId = req.user?.tenantId;
       if (!tenantId) {
@@ -130,7 +148,7 @@ export class LPUController {
     }
   }
 
-  async submitForApproval(req: Request, res: Response) {
+  async submitForApproval(req: AuthenticatedRequest, res: Response) {
     try {
       const { versionId } = req.params;
       const tenantId = req.user?.tenantId;
@@ -147,7 +165,7 @@ export class LPUController {
     }
   }
 
-  async approvePriceList(req: Request, res: Response) {
+  async approvePriceList(req: AuthenticatedRequest, res: Response) {
     try {
       const { versionId } = req.params;
       const tenantId = req.user?.tenantId;
@@ -164,7 +182,7 @@ export class LPUController {
     }
   }
 
-  async rejectPriceList(req: Request, res: Response) {
+  async rejectPriceList(req: AuthenticatedRequest, res: Response) {
     try {
       const { versionId } = req.params;
       const { reason } = req.body;
@@ -187,7 +205,7 @@ export class LPUController {
   }
 
   // ITENS DA LISTA DE PREÇOS
-  async getPriceListItems(req: Request, res: Response) {
+  async getPriceListItems(req: AuthenticatedRequest, res: Response) {
     try {
       const { priceListId } = req.params;
       const tenantId = req.user?.tenantId;
@@ -204,7 +222,7 @@ export class LPUController {
     }
   }
 
-  async addPriceListItem(req: Request, res: Response) {
+  async addPriceListItem(req: AuthenticatedRequest, res: Response) {
     try {
       const tenantId = req.user?.tenantId;
       if (!tenantId) {
@@ -224,7 +242,7 @@ export class LPUController {
     }
   }
 
-  async updatePriceListItem(req: Request, res: Response) {
+  async updatePriceListItem(req: AuthenticatedRequest, res: Response) {
     try {
       const { id } = req.params;
       const tenantId = req.user?.tenantId;
@@ -245,7 +263,7 @@ export class LPUController {
     }
   }
 
-  async deletePriceListItem(req: Request, res: Response) {
+  async deletePriceListItem(req: AuthenticatedRequest, res: Response) {
     try {
       const { id } = req.params;
       const tenantId = req.user?.tenantId;
@@ -263,7 +281,7 @@ export class LPUController {
   }
 
   // REGRAS DE PRECIFICAÇÃO
-  async getAllPricingRules(req: Request, res: Response) {
+  async getAllPricingRules(req: AuthenticatedRequest, res: Response) {
     try {
       const tenantId = req.user?.tenantId;
       if (!tenantId) {
@@ -278,7 +296,7 @@ export class LPUController {
     }
   }
 
-  async createPricingRule(req: Request, res: Response) {
+  async createPricingRule(req: AuthenticatedRequest, res: Response) {
     try {
       const tenantId = req.user?.tenantId;
       if (!tenantId) {
@@ -298,7 +316,7 @@ export class LPUController {
     }
   }
 
-  async updatePricingRule(req: Request, res: Response) {
+  async updatePricingRule(req: AuthenticatedRequest, res: Response) {
     try {
       const { id } = req.params;
       const tenantId = req.user?.tenantId;
@@ -319,7 +337,7 @@ export class LPUController {
     }
   }
 
-  async deletePricingRule(req: Request, res: Response) {
+  async deletePricingRule(req: AuthenticatedRequest, res: Response) {
     try {
       const { id } = req.params;
       const tenantId = req.user?.tenantId;
@@ -337,7 +355,7 @@ export class LPUController {
   }
 
   // PRECIFICAÇÃO DINÂMICA
-  async getDynamicPricing(req: Request, res: Response) {
+  async getDynamicPricing(req: AuthenticatedRequest, res: Response) {
     try {
       const { priceListId } = req.params;
       const tenantId = req.user?.tenantId;
@@ -354,7 +372,7 @@ export class LPUController {
     }
   }
 
-  async updateDynamicPricing(req: Request, res: Response) {
+  async updateDynamicPricing(req: AuthenticatedRequest, res: Response) {
     try {
       const tenantId = req.user?.tenantId;
       if (!tenantId) {
@@ -375,7 +393,7 @@ export class LPUController {
   }
 
   // CONTROLE DE MARGEM
-  async bulkUpdateMargins(req: Request, res: Response) {
+  async bulkUpdateMargins(req: AuthenticatedRequest, res: Response) {
     try {
       const { priceListId } = req.params;
       const tenantId = req.user?.tenantId;
@@ -393,7 +411,7 @@ export class LPUController {
   }
 
   // ESTATÍSTICAS
-  async getLPUStats(req: Request, res: Response) {
+  async getLPUStats(req: AuthenticatedRequest, res: Response) {
     try {
       const tenantId = req.user?.tenantId;
       if (!tenantId) {
