@@ -157,7 +157,7 @@ export default function LPU() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pl-[9px] pr-[9px]">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">LPU - Lista de Preços Unificada</h1>
