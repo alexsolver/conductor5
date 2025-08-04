@@ -70,12 +70,12 @@ export default function InternalActionModal({ isOpen, onClose, ticketId }: Inter
     description: "",
     status: "pending",
     attachments: [] as File[],
-    assignedToId: "",
+    assignedToId: "__none__",
     plannedStartDate: "",
     plannedEndDate: "",
     actualStartDate: "",
     actualEndDate: "",
-    assignmentGroupId: ""
+    assignmentGroupId: "__none__"
   });
   const [isPublic, setIsPublic] = useState(false);
   const { toast } = useToast();
@@ -116,10 +116,14 @@ export default function InternalActionModal({ isOpen, onClose, ticketId }: Inter
   // Create internal action mutation
   const createActionMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest("POST", `/api/tickets/${ticketId}/actions`, {
+      // Convert __none__ values back to empty strings for the API
+      const cleanedData = {
         ...data,
+        assignedToId: data.assignedToId === "__none__" ? "" : data.assignedToId,
+        assignmentGroupId: data.assignmentGroupId === "__none__" ? "" : data.assignmentGroupId,
         is_public: isPublic,
-      });
+      };
+      const response = await apiRequest("POST", `/api/tickets/${ticketId}/actions`, cleanedData);
       return response.json();
     },
     onSuccess: () => {
@@ -187,12 +191,12 @@ export default function InternalActionModal({ isOpen, onClose, ticketId }: Inter
       description: "",
       status: "pending",
       attachments: [],
-      assignedToId: "",
+      assignedToId: "__none__",
       plannedStartDate: "",
       plannedEndDate: "",
       actualStartDate: "",
       actualEndDate: "",
-      assignmentGroupId: ""
+      assignmentGroupId: "__none__"
     });
     setIsPublic(false);
   };
@@ -202,7 +206,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId }: Inter
   
   // Fetch group members when assignment group changes
   useEffect(() => {
-    if (formData.assignmentGroupId) {
+    if (formData.assignmentGroupId && formData.assignmentGroupId !== "__none__") {
       apiRequest("GET", `/api/user-management/groups/${formData.assignmentGroupId}/users`)
         .then((response) => response.json())
         .then((data) => {
@@ -223,10 +227,10 @@ export default function InternalActionModal({ isOpen, onClose, ticketId }: Inter
 
   // Clear agent when group changes
   useEffect(() => {
-    if (formData.assignmentGroupId && formData.assignedToId) {
+    if (formData.assignmentGroupId && formData.assignmentGroupId !== "__none__" && formData.assignedToId && formData.assignedToId !== "__none__") {
       const agentBelongsToGroup = groupAgents.some((agent: any) => agent.id === formData.assignedToId);
       if (!agentBelongsToGroup) {
-        setFormData(prev => ({ ...prev, assignedToId: "" }));
+        setFormData(prev => ({ ...prev, assignedToId: "__none__" }));
       }
     }
   }, [formData.assignmentGroupId, formData.assignedToId, groupAgents]);
@@ -374,13 +378,13 @@ export default function InternalActionModal({ isOpen, onClose, ticketId }: Inter
                         </div>
                         <Select 
                           value={formData.assignmentGroupId} 
-                          onValueChange={(value) => setFormData(prev => ({ ...prev, assignmentGroupId: value, assignedToId: "" }))}
+                          onValueChange={(value) => setFormData(prev => ({ ...prev, assignmentGroupId: value, assignedToId: "__none__" }))}
                         >
                           <SelectTrigger>
                             <SelectValue placeholder="Selecione um grupo..." />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="">-- Nenhum grupo --</SelectItem>
+                            <SelectItem value="__none__">-- Nenhum grupo --</SelectItem>
                             {/* Add your groups here */}
                           </SelectContent>
                         </Select>
@@ -397,7 +401,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId }: Inter
                             <SelectValue placeholder="Selecione um membro..." />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="">-- Não atribuído --</SelectItem>
+                            <SelectItem value="__none__">-- Não atribuído --</SelectItem>
                             {(formData.assignmentGroupId ? groupAgents : teamMembers?.users || []).map((user: any) => (
                               <SelectItem key={user.id} value={user.id}>
                                 {user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email}
