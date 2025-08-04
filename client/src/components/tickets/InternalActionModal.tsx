@@ -68,9 +68,14 @@ export default function InternalActionModal({ isOpen, onClose, ticketId }: Inter
     actionType: "",
     workLog: "",
     description: "",
-    status: "pending", // New field for status
+    status: "pending",
     attachments: [] as File[],
-    assignedToId: ""
+    assignedToId: "",
+    plannedStartDate: "",
+    plannedEndDate: "",
+    actualStartDate: "",
+    actualEndDate: "",
+    assignmentGroupId: ""
   });
   const [isPublic, setIsPublic] = useState(false);
   const { toast } = useToast();
@@ -124,20 +129,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId }: Inter
       });
 
       // Reset form data
-      setFormData({
-        startDateTime: "",
-        endDateTime: "",
-        estimatedMinutes: "0",
-        timeSpentMinutes: "0",
-        alterTimeSpent: false,
-        actionType: "",
-        workLog: "",
-        description: "",
-        status: "pending",
-        attachments: [],
-        assignedToId: ""
-      });
-      setIsPublic(false);
+      resetForm();
 
       // Invalidate queries to refresh the actions list and history
       queryClient.invalidateQueries({ queryKey: ["/api/tickets", ticketId, "actions"] });
@@ -182,70 +174,62 @@ export default function InternalActionModal({ isOpen, onClose, ticketId }: Inter
     }));
   };
 
-    //Estados
-    const [actionType, setActionType] = useState("");
-    const [description, setDescription] = useState("");
-    const [assignedToId, setAssignedToId] = useState("");
-    const [assignmentGroupId, setAssignmentGroupId] = useState("");
-    const [timeSpent, setTimeSpent] = useState("");
-    const [status, setStatus] = useState("pending");
-    const [startDateTime, setStartDateTime] = useState("");
-    const [endDateTime, setEndDateTime] = useState("");
+    // Reset form function
+  const resetForm = () => {
+    setFormData({
+      startDateTime: "",
+      endDateTime: "",
+      estimatedMinutes: "0",
+      timeSpentMinutes: "0",
+      alterTimeSpent: false,
+      actionType: "",
+      workLog: "",
+      description: "",
+      status: "pending",
+      attachments: [],
+      assignedToId: "",
+      plannedStartDate: "",
+      plannedEndDate: "",
+      actualStartDate: "",
+      actualEndDate: "",
+      assignmentGroupId: ""
+    });
+    setIsPublic(false);
+  };
 
-    // Novos campos de data
-    const [plannedStartDate, setPlannedStartDate] = useState("");
-    const [plannedEndDate, setPlannedEndDate] = useState("");
-    const [actualStartDate, setActualStartDate] = useState("");
-    const [actualEndDate, setActualEndDate] = useState("");
-
-    const resetForm = () => {
-        setActionType("");
-        setDescription("");
-        setAssignedToId("");
-        setAssignmentGroupId("");
-        setTimeSpent("");
-        setStatus("pending");
-        setStartDateTime("");
-        setEndDateTime("");
-        setPlannedStartDate("");
-        setPlannedEndDate("");
-        setActualStartDate("");
-        setActualEndDate("");
-      };
-
-      // Limpar agente quando grupo muda
-      useEffect(() => {
-        // if (assignmentGroupId && assignedToId) {
-        //   // Verificar se o agente atual pertence ao grupo selecionado
-        //   const agentBelongsToGroup = groupAgents.some((agent: any) => agent.id === assignedToId);
-        //   if (!agentBelongsToGroup) {
-        //     setAssignedToId("");
-        //   }
-        // }
-      }, [assignmentGroupId, assignedToId]);
-
-    //Buscar membros do grupo
-    const [groupAgents, setGroupAgents] = useState<any[]>([]);
-    useEffect(() => {
-        if (assignmentGroupId) {
-            // ajustar a rota
-            apiRequest("GET", `/api/user-management/groups/${assignmentGroupId}/users`)
-                .then((response) => response.json())
-                .then((data) => {
-                    if (data?.users) {
-                        setGroupAgents(data.users);
-                    } else {
-                        setGroupAgents([]);
-                    }
-                })
-                .catch((error) => {
-                    console.error("Erro ao buscar agentes do grupo:", error);
-                    setGroupAgents([]);
-                });
-        } else {
+  // Group agents state
+  const [groupAgents, setGroupAgents] = useState<any[]>([]);
+  
+  // Fetch group members when assignment group changes
+  useEffect(() => {
+    if (formData.assignmentGroupId) {
+      apiRequest("GET", `/api/user-management/groups/${formData.assignmentGroupId}/users`)
+        .then((response) => response.json())
+        .then((data) => {
+          if (data?.users) {
+            setGroupAgents(data.users);
+          } else {
             setGroupAgents([]);
-        }
-    }, [assignmentGroupId]);
+          }
+        })
+        .catch((error) => {
+          console.error("Erro ao buscar agentes do grupo:", error);
+          setGroupAgents([]);
+        });
+    } else {
+      setGroupAgents([]);
+    }
+  }, [formData.assignmentGroupId]);
+
+  // Clear agent when group changes
+  useEffect(() => {
+    if (formData.assignmentGroupId && formData.assignedToId) {
+      const agentBelongsToGroup = groupAgents.some((agent: any) => agent.id === formData.assignedToId);
+      if (!agentBelongsToGroup) {
+        setFormData(prev => ({ ...prev, assignedToId: "" }));
+      }
+    }
+  }, [formData.assignmentGroupId, formData.assignedToId, groupAgents]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -277,8 +261,8 @@ export default function InternalActionModal({ isOpen, onClose, ticketId }: Inter
                       <Input
                         id="plannedStartDate"
                         type="datetime-local"
-                        value={plannedStartDate}
-                        onChange={(e) => setPlannedStartDate(e.target.value)}
+                        value={formData.plannedStartDate}
+                        onChange={(e) => setFormData(prev => ({ ...prev, plannedStartDate: e.target.value }))}
                       />
                     </div>
                     <div>
@@ -286,8 +270,8 @@ export default function InternalActionModal({ isOpen, onClose, ticketId }: Inter
                       <Input
                         id="plannedEndDate"
                         type="datetime-local"
-                        value={plannedEndDate}
-                        onChange={(e) => setPlannedEndDate(e.target.value)}
+                        value={formData.plannedEndDate}
+                        onChange={(e) => setFormData(prev => ({ ...prev, plannedEndDate: e.target.value }))}
                       />
                     </div>
                   </div>
@@ -305,8 +289,8 @@ export default function InternalActionModal({ isOpen, onClose, ticketId }: Inter
                       <Input
                         id="actualStartDate"
                         type="datetime-local"
-                        value={actualStartDate}
-                        onChange={(e) => setActualStartDate(e.target.value)}
+                        value={formData.actualStartDate}
+                        onChange={(e) => setFormData(prev => ({ ...prev, actualStartDate: e.target.value }))}
                       />
                     </div>
                     <div>
@@ -314,8 +298,8 @@ export default function InternalActionModal({ isOpen, onClose, ticketId }: Inter
                       <Input
                         id="actualEndDate"
                         type="datetime-local"
-                        value={actualEndDate}
-                        onChange={(e) => setActualEndDate(e.target.value)}
+                        value={formData.actualEndDate}
+                        onChange={(e) => setFormData(prev => ({ ...prev, actualEndDate: e.target.value }))}
                       />
                     </div>
                   </div>
@@ -378,26 +362,51 @@ export default function InternalActionModal({ isOpen, onClose, ticketId }: Inter
                   </div>
                 </div>
 
-                {/* Assigned To - Highlighted */}
+                {/* Assignment Group and User - Highlighted */}
                 <Card className="border-blue-200 bg-blue-50">
                   <CardContent className="p-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <User className="w-4 h-4 text-blue-600" />
-                      <Label htmlFor="assigned-to" className="text-sm font-bold text-blue-700">Atribuído a</Label>
+                    <div className="space-y-4">
+                      {/* Assignment Group */}
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <Users className="w-4 h-4 text-blue-600" />
+                          <Label htmlFor="assignment-group" className="text-sm font-bold text-blue-700">Grupo de Atribuição</Label>
+                        </div>
+                        <Select 
+                          value={formData.assignmentGroupId} 
+                          onValueChange={(value) => setFormData(prev => ({ ...prev, assignmentGroupId: value, assignedToId: "" }))}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione um grupo..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="">-- Nenhum grupo --</SelectItem>
+                            {/* Add your groups here */}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Assigned User */}
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <User className="w-4 h-4 text-blue-600" />
+                          <Label htmlFor="assigned-to" className="text-sm font-bold text-blue-700">Atribuído a</Label>
+                        </div>
+                        <Select value={formData.assignedToId} onValueChange={(value) => setFormData(prev => ({ ...prev, assignedToId: value }))}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione um membro..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="">-- Não atribuído --</SelectItem>
+                            {(formData.assignmentGroupId ? groupAgents : teamMembers?.users || []).map((user: any) => (
+                              <SelectItem key={user.id} value={user.id}>
+                                {user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
-                    <Select value={formData.assignedToId} onValueChange={(value) => setFormData(prev => ({ ...prev, assignedToId: value }))}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione um membro..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="unassigned">-- Não atribuído --</SelectItem>
-                        {(teamMembers?.users || []).map((user: any) => (
-                          <SelectItem key={user.id} value={user.id}>
-                            {user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
                   </CardContent>
                 </Card>
 
