@@ -11,6 +11,8 @@ interface SimpleTimerContextValue {
   startAction: (ticketId: string, actionId: string) => void;
   finishAction: (actionId: string) => Promise<void>;
   hasRunningAction: boolean;
+  getRunningActionId: () => string | null;
+  checkForRunningActions: () => boolean;
 }
 
 const SimpleTimerContext = createContext<SimpleTimerContextValue | undefined>(undefined);
@@ -59,11 +61,12 @@ export function SimpleTimerProvider({ children }: { children: React.ReactNode })
     localStorage.removeItem('runningAction');
 
     try {
-      // Atualizar a ação com hora final
+      // Atualizar a ação com hora final e cálculo automático do tempo
       const endTime = new Date().toISOString();
       const updateData = {
         end_time: endTime,
         status: "completed"
+        // O backend calculará automaticamente o tempo_realizado
       };
 
       console.log('📝 [SIMPLE-TIMER] Updating action with:', updateData);
@@ -93,12 +96,22 @@ export function SimpleTimerProvider({ children }: { children: React.ReactNode })
 
   const hasRunningAction = runningAction !== null;
 
+  const getRunningActionId = useCallback(() => {
+    return runningAction?.actionId || null;
+  }, [runningAction]);
+
+  const checkForRunningActions = useCallback(() => {
+    return !!runningAction;
+  }, [runningAction]);
+
   return (
     <SimpleTimerContext.Provider value={{
       runningAction,
       startAction,
       finishAction,
-      hasRunningAction
+      hasRunningAction,
+      getRunningActionId,
+      checkForRunningActions
     }}>
       {children}
     </SimpleTimerContext.Provider>

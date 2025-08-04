@@ -53,7 +53,7 @@ interface InternalActionModalProps {
 }
 
 export default function InternalActionModal({ isOpen, onClose, ticketId, editAction, onStartTimer }: InternalActionModalProps) {
-  const { startAction } = useSimpleTimer();
+  const { startAction, hasRunningAction, getRunningActionId, checkForRunningActions } = useSimpleTimer();
   const [formData, setFormData] = useState({
     // Campos obrigatórios da tabela
     action_type: "",
@@ -772,10 +772,68 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
                     
 
                     {/* Botão Iniciar Cronômetro - apenas no modo de criação */}
-                    {!editAction && (
-                      <Button
-                        type="button"
-                        onClick={async () => {
+                    <Button
+                      type="button"
+                      onClick={async () => {
+                        // Se é modo edição e tem cronômetro ativo para esta ação - PARAR cronômetro
+                        if (editAction && hasRunningAction && getRunningActionId() === editAction.id) {
+                          try {
+                            const endTime = new Date().toISOString().slice(0, 16);
+                            
+                            const updateData = {
+                              ...formData,
+                              end_time: endTime,
+                              status: "completed"
+                            };
+
+                            console.log('⏹️ [CRONOMETER-STOP] Stopping timer for action:', updateData);
+                            
+                            const response = await apiRequest("PATCH", `/api/tickets/${ticketId}/actions/${editAction.id}`, updateData);
+                            const result = await response.json();
+                            
+                            if (result.success) {
+                              console.log('✅ [CRONOMETER-STOP] Timer stopped and action completed:', result.data);
+                              
+                              // Limpar o cronômetro do contexto
+                              localStorage.removeItem('runningAction');
+                              
+                              toast({
+                                title: "Cronômetro Parado",
+                                description: `Tempo registrado: ${result.data.tempo_realizado || 0} minutos`,
+                              });
+                              
+                              queryClient.invalidateQueries({ queryKey: ["/api/tickets", ticketId, "actions"] });
+                              queryClient.invalidateQueries({ queryKey: ["/api/tickets", ticketId, "history"] });
+                              
+                              // Recarregar a página para atualizar o estado do cronômetro
+                              setTimeout(() => {
+                                window.location.reload();
+                              }, 1000);
+                              
+                              onClose();
+                            } else {
+                              throw new Error(result.message || 'Falha ao parar cronômetro');
+                            }
+                          } catch (error: any) {
+                            console.error('❌ [CRONOMETER-STOP] Error:', error);
+                            toast({
+                              title: "Erro",
+                              description: error.message || "Falha ao parar cronômetro",
+                              variant: "destructive",
+                            });
+                          }
+                          return;
+                        }
+
+                        // Validação para múltiplos cronômetros ao INICIAR
+                        if (hasRunningAction && (!editAction || getRunningActionId() !== editAction.id)) {
+                          toast({
+                            title: "Cronômetro Ativo", 
+                            description: "Já existe uma ação com cronômetro em andamento. Finalize-a antes de iniciar outra.",
+                            variant: "destructive",
+                          });
+                          return;
+                        }
                         console.log('🚀 [CRONOMETER] Iniciar cronômetro clicked');
                         
                         // Validação básica
@@ -854,10 +912,18 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
                       }
                       className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:opacity-50"
                     >
-                      <Play className="w-4 h-4 mr-2" />
-                      {createActionMutation.isPending ? "Iniciando..." : "Iniciar Cronômetro"}
+                      {hasRunningAction && editAction && getRunningActionId() === editAction.id ? (
+                        <Square className="w-4 h-4 mr-2" />
+                      ) : (
+                        <Play className="w-4 h-4 mr-2" />
+                      )}
+                      {createActionMutation.isPending 
+                        ? "Processando..." 
+                        : (hasRunningAction && editAction && getRunningActionId() === editAction.id 
+                          ? "Parar Cronômetro" 
+                          : "Iniciar Cronômetro")
+                      }
                     </Button>
-                    )}
 
                     <Button
                       onClick={handleSubmit}

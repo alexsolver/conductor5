@@ -2376,7 +2376,13 @@ ticketsRouter.patch('/:ticketId/actions/:actionId', jwtAuth, async (req: Authent
       description, 
       title, 
       estimated_hours, 
-      end_time 
+      start_time,
+      end_time,
+      action_type,
+      agent_id,
+      planned_start_time,
+      planned_end_time,
+      priority
     } = req.body;
     
     const tenantId = req.user?.tenantId;
@@ -2388,6 +2394,19 @@ ticketsRouter.patch('/:ticketId/actions/:actionId', jwtAuth, async (req: Authent
 
     const { pool } = await import('../../db');
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    // First, get the current action to calculate tempo_realizado if needed
+    let currentAction = null;
+    if (end_time !== undefined || start_time !== undefined) {
+      const currentQuery = `
+        SELECT start_time, end_time FROM "${schemaName}".ticket_internal_actions 
+        WHERE tenant_id = $1::uuid AND ticket_id = $2::uuid AND id = $3::uuid
+      `;
+      const currentResult = await pool.query(currentQuery, [tenantId, ticketId, actionId]);
+      if (currentResult.rows.length > 0) {
+        currentAction = currentResult.rows[0];
+      }
+    }
 
     const updateFields: string[] = [];
     const values: any[] = [];
@@ -2409,9 +2428,59 @@ ticketsRouter.patch('/:ticketId/actions/:actionId', jwtAuth, async (req: Authent
       updateFields.push(`estimated_hours = $${paramIndex++}`);
       values.push(estimated_hours);
     }
+    if (start_time !== undefined) {
+      updateFields.push(`start_time = $${paramIndex++}`);
+      values.push(start_time);
+    }
     if (end_time !== undefined) {
       updateFields.push(`end_time = $${paramIndex++}`);
       values.push(end_time);
+    }
+    if (action_type !== undefined) {
+      updateFields.push(`action_type = $${paramIndex++}`);
+      values.push(action_type);
+    }
+    if (agent_id !== undefined) {
+      updateFields.push(`assigned_to_id = $${paramIndex++}`);
+      values.push(agent_id);
+    }
+    if (planned_start_time !== undefined) {
+      updateFields.push(`planned_start_time = $${paramIndex++}`);
+      values.push(planned_start_time);
+    }
+    if (planned_end_time !== undefined) {
+      updateFields.push(`planned_end_time = $${paramIndex++}`);
+      values.push(planned_end_time);
+    }
+    if (priority !== undefined) {
+      updateFields.push(`priority = $${paramIndex++}`);
+      values.push(priority);
+    }
+
+    // Calcular tempo_realizado automaticamente se temos start_time e end_time
+    let calculatedMinutes = null;
+    if (currentAction || (start_time !== undefined && end_time !== undefined)) {
+      const actionStartTime = start_time || currentAction?.start_time;
+      const actionEndTime = end_time || currentAction?.end_time;
+      
+      if (actionStartTime && actionEndTime) {
+        const startDateTime = new Date(actionStartTime);
+        const endDateTime = new Date(actionEndTime);
+        
+        if (!isNaN(startDateTime.getTime()) && !isNaN(endDateTime.getTime()) && endDateTime > startDateTime) {
+          const timeDiffMs = endDateTime.getTime() - startDateTime.getTime();
+          calculatedMinutes = Math.round(timeDiffMs / (1000 * 60)); // Converter para minutos
+          
+          updateFields.push(`tempo_realizado = $${paramIndex++}`);
+          values.push(calculatedMinutes);
+          
+          console.log('⏱️ [TEMPO-CALC] Calculated tempo_realizado:', {
+            start: actionStartTime,
+            end: actionEndTime,
+            minutes: calculatedMinutes
+          });
+        }
+      }
     }
 
     if (updateFields.length === 0) {

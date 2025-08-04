@@ -1701,6 +1701,9 @@ export const ticketInternalActions = pgTable("ticket_internal_actions", {
   estimatedHours: decimal("estimated_hours", { precision: 5, scale: 2 }),
   actualHours: decimal("actual_hours", { precision: 5, scale: 2 }),
   
+  // Campo de tempo realizado em minutos (calculado automaticamente)
+  tempoRealizado: integer("tempo_realizado"), // tempo em minutos entre start_time e end_time
+  
   status: varchar("status", { length: 50 }).default("pending"), // pending, in_progress, completed, cancelled
   priority: varchar("priority", { length: 20 }).default("medium"),
   linkedItemIds: jsonb("linked_item_ids").default([]), // array of UUIDs for related items
