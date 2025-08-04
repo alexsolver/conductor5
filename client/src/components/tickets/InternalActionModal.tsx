@@ -401,6 +401,34 @@ export default function InternalActionModal({ isOpen, onClose, ticketId }: Inter
                   )}
                 </div>
 
+                {/* Tempo Estimado */}
+                <div>
+                  <Label htmlFor="estimated-hours">Tempo Estimado (minutos)</Label>
+                  <Input
+                    id="estimated-hours"
+                    type="number"
+                    min="0"
+                    step="1"
+                    max="9999"
+                    value={formData.estimated_hours}
+                    onChange={(e) => {
+                      const newValue = e.target.value;
+                      setFormData(prev => ({ ...prev, estimated_hours: newValue }));
+                      
+                      // Auto-calculate planned end time if both estimated time and planned start time are filled
+                      if (newValue && formData.planned_start_time) {
+                        const startTime = new Date(formData.planned_start_time);
+                        const estimatedMinutes = parseInt(newValue);
+                        const endTime = new Date(startTime.getTime() + estimatedMinutes * 60000);
+                        const endTimeString = endTime.toISOString().slice(0, 16);
+                        setFormData(prev => ({ ...prev, planned_end_time: endTimeString }));
+                      }
+                    }}
+                    placeholder="0"
+                    className="mt-1"
+                  />
+                </div>
+
                 {/* Datas Previstas */}
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2">
@@ -414,7 +442,19 @@ export default function InternalActionModal({ isOpen, onClose, ticketId }: Inter
                         id="planned-start-time"
                         type="datetime-local"
                         value={formData.planned_start_time}
-                        onChange={(e) => setFormData(prev => ({ ...prev, planned_start_time: e.target.value }))}
+                        onChange={(e) => {
+                          const newValue = e.target.value;
+                          setFormData(prev => ({ ...prev, planned_start_time: newValue }));
+                          
+                          // Auto-calculate planned end time if both planned start time and estimated time are filled
+                          if (newValue && formData.estimated_hours) {
+                            const startTime = new Date(newValue);
+                            const estimatedMinutes = parseInt(formData.estimated_hours);
+                            const endTime = new Date(startTime.getTime() + estimatedMinutes * 60000);
+                            const endTimeString = endTime.toISOString().slice(0, 16);
+                            setFormData(prev => ({ ...prev, planned_end_time: endTimeString }));
+                          }
+                        }}
                         className="mt-1"
                         placeholder="Quando a ação deve começar"
                       />
@@ -447,7 +487,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId }: Inter
                     <Clock className="w-4 h-4" />
                     Execução e Tempo
                   </Label>
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="start-time">Data/Hora Início Realizado</Label>
                       <Input
@@ -469,20 +509,6 @@ export default function InternalActionModal({ isOpen, onClose, ticketId }: Inter
                         className="mt-1"
                         placeholder="Quando a ação realmente terminou"
                         min={formData.start_time || undefined}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="estimated-hours">Tempo Estimado (minutos)</Label>
-                      <Input
-                        id="estimated-hours"
-                        type="number"
-                        min="0"
-                        step="1"
-                        max="9999"
-                        value={formData.estimated_hours}
-                        onChange={(e) => setFormData(prev => ({ ...prev, estimated_hours: e.target.value }))}
-                        placeholder="0"
-                        className="mt-1"
                       />
                     </div>
                   </div>
