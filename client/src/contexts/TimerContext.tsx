@@ -31,30 +31,36 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
   const timerInterval = useRef<NodeJS.Timeout | null>(null);
 
   const startTimer = useCallback(async (ticketId: string): Promise<string> => {
+    console.log('🚀 [TIMER] Starting timer for ticket:', ticketId);
     const now = Date.now();
     
     try {
       // Create the action first
       const actionData = {
-        action_type: "timer_tracking",
+        action_type: "investigation", // Changed to supported type
         agent_id: "auto", // Will be set by backend
         title: "Cronômetro Ativo",
         description: "Ação em andamento - tempo sendo registrado",
         start_time: new Date(now).toISOString(),
-        status: "in_progress",
+        status: "pending",
         priority: "medium"
       };
+
+      console.log('📤 [TIMER] Creating action with data:', actionData);
 
       const response = await apiRequest(`/api/tickets/${ticketId}/actions`, {
         method: 'POST',
         body: JSON.stringify(actionData),
       });
 
+      console.log('📥 [TIMER] Action creation response:', response);
+
       if (!response.success) {
         throw new Error('Failed to create action');
       }
 
       const actionId = response.data.id;
+      console.log('✅ [TIMER] Action created with ID:', actionId);
 
       // Start the timer with action ID
       setTimerState({
@@ -72,9 +78,10 @@ export function TimerProvider({ children }: { children: React.ReactNode }) {
         }));
       }, 1000);
 
+      console.log('⏱️ [TIMER] Timer started successfully');
       return actionId;
     } catch (error) {
-      console.error('Failed to start timer:', error);
+      console.error('❌ [TIMER] Failed to start timer:', error);
       throw error;
     }
   }, []);

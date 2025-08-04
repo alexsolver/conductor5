@@ -349,13 +349,18 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, onStart
               {!timerState || !timerState.isRunning ? (
                 <Button
                   onClick={async () => {
+                    console.log('🔴 [MODAL] Timer button clicked for ticket:', ticketId);
                     try {
                       if (onStartTimer) {
+                        console.log('🔴 [MODAL] Calling onStartTimer function');
                         await onStartTimer(ticketId);
+                        console.log('✅ [MODAL] Timer started successfully');
+                      } else {
+                        console.log('❌ [MODAL] onStartTimer function not provided');
                       }
                       onClose();
                     } catch (error) {
-                      console.error('Failed to start timer:', error);
+                      console.error('❌ [MODAL] Failed to start timer:', error);
                     }
                   }}
                   variant="outline"

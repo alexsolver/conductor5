@@ -127,6 +127,19 @@ const TicketDetails = React.memo(() => {
   // Use global timer context
   const { timerState, startTimer, stopTimer } = useTimer();
 
+  // Test timer function
+  const handleTestTimer = async () => {
+    console.log('🧪 [TEST] Test timer button clicked');
+    try {
+      if (id) {
+        await startTimer(id);
+        console.log('🧪 [TEST] Timer started successfully');
+      }
+    } catch (error) {
+      console.error('🧪 [TEST] Timer failed:', error);
+    }
+  };
+
 
   // Basic information - consolidated into single tab
   const basicTabs = [
@@ -1920,13 +1933,22 @@ const TicketDetails = React.memo(() => {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">⚙️ Ações Internas</h2>
-              <Button 
-                onClick={() => setShowInternalActionModal(true)}
-                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Nova Ação
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  onClick={handleTestTimer}
+                  variant="outline"
+                  className="bg-red-50 hover:bg-red-100 border-red-200 text-red-700"
+                >
+                  🧪 Test Timer
+                </Button>
+                <Button 
+                  onClick={() => setShowInternalActionModal(true)}
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Nova Ação
+                </Button>
+              </div>
             </div>
 
             <div className="space-y-4">
