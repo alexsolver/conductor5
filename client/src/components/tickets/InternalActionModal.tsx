@@ -472,13 +472,13 @@ export default function InternalActionModal({ isOpen, onClose, ticketId }: Inter
                       />
                     </div>
                     <div>
-                      <Label htmlFor="estimated-hours">Horas Estimadas</Label>
+                      <Label htmlFor="estimated-hours">Tempo Estimado (minutos)</Label>
                       <Input
                         id="estimated-hours"
                         type="number"
                         min="0"
-                        step="0.25"
-                        max="999.99"
+                        step="1"
+                        max="9999"
                         value={formData.estimated_hours}
                         onChange={(e) => setFormData(prev => ({ ...prev, estimated_hours: e.target.value }))}
                         placeholder="0"
