@@ -30,7 +30,8 @@ import {
   Send,
   Paperclip,
   Upload,
-  FileText
+  FileText,
+  AlertCircle
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch"
 import {
@@ -53,6 +54,8 @@ export default function InternalActionModal({ isOpen, onClose, ticketId }: Inter
     // Campos opcionais da tabela
     title: "",
     description: "",
+    planned_start_time: "",
+    planned_end_time: "",
     start_time: "",
     end_time: "",
     estimated_hours: "0",
@@ -80,23 +83,50 @@ export default function InternalActionModal({ isOpen, onClose, ticketId }: Inter
   // Create internal action mutation
   const createActionMutation = useMutation({
     mutationFn: async (data: any) => {
-      // Map form data to database structure
+      // Map form data to database structure with comprehensive field mapping
       const cleanedData = {
+        // Required fields
         action_type: data.action_type,
         agent_id: data.agent_id === "__none__" ? null : data.agent_id,
-        title: data.title || null,
-        description: data.description || null,
-        start_time: data.start_time || null,
-        end_time: data.end_time || null,
-        estimated_hours: parseFloat(data.estimated_hours) || 0,
+        
+        // Optional text fields
+        title: data.title?.trim() || null,
+        description: data.description?.trim() || null,
+        
+        // NEW: Planned date fields (testing the new database columns)
+        planned_start_time: data.planned_start_time ? new Date(data.planned_start_time).toISOString() : null,
+        planned_end_time: data.planned_end_time ? new Date(data.planned_end_time).toISOString() : null,
+        
+        // Actual execution date fields
+        start_time: data.start_time ? new Date(data.start_time).toISOString() : null,
+        end_time: data.end_time ? new Date(data.end_time).toISOString() : null,
+        
+        // Numeric fields with proper validation
+        estimated_hours: data.estimated_hours ? parseFloat(data.estimated_hours) : 0,
+        
+        // Status and priority with defaults
         status: data.status || 'pending',
         priority: data.priority || 'medium',
+        
+        // Visibility flag
         is_public: isPublic,
       };
+      
+      // Debug log to verify all fields are properly mapped
+      console.log('🔍 Internal Action Form Data Being Sent:', {
+        originalData: data,
+        cleanedData,
+        hasPlannedStartTime: !!cleanedData.planned_start_time,
+        hasPlannedEndTime: !!cleanedData.planned_end_time,
+        allFields: Object.keys(cleanedData)
+      });
+      
       const response = await apiRequest("POST", `/api/tickets/${ticketId}/actions`, cleanedData);
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('✅ Internal Action Created Successfully:', data);
+      
       toast({
         title: "Sucesso",
         description: "Ação interna adicionada com sucesso",
@@ -121,6 +151,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId }: Inter
   });
 
   const handleSubmit = () => {
+    // Validate required fields
     if (!formData.action_type) {
       toast({
         title: "Erro",
@@ -134,6 +165,64 @@ export default function InternalActionModal({ isOpen, onClose, ticketId }: Inter
       toast({
         title: "Erro",
         description: "Por favor, selecione um agente responsável",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate date logic
+    if (formData.planned_start_time && formData.planned_end_time) {
+      const startDate = new Date(formData.planned_start_time);
+      const endDate = new Date(formData.planned_end_time);
+      
+      if (endDate <= startDate) {
+        toast({
+          title: "Erro",
+          description: "A data de fim previsto deve ser posterior à data de início previsto",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    if (formData.start_time && formData.end_time) {
+      const startDate = new Date(formData.start_time);
+      const endDate = new Date(formData.end_time);
+      
+      if (endDate <= startDate) {
+        toast({
+          title: "Erro",
+          description: "A data de fim realizado deve ser posterior à data de início realizado",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    // Validate numeric fields
+    if (formData.estimated_hours && parseFloat(formData.estimated_hours) < 0) {
+      toast({
+        title: "Erro",
+        description: "As horas estimadas não podem ser negativas",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate text field lengths (based on typical database constraints)
+    if (formData.title && formData.title.length > 255) {
+      toast({
+        title: "Erro",
+        description: "O título não pode exceder 255 caracteres",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (formData.description && formData.description.length > 65535) {
+      toast({
+        title: "Erro",
+        description: "A descrição é muito longa",
         variant: "destructive",
       });
       return;
@@ -164,6 +253,8 @@ export default function InternalActionModal({ isOpen, onClose, ticketId }: Inter
       agent_id: "__none__",
       title: "",
       description: "",
+      planned_start_time: "",
+      planned_end_time: "",
       start_time: "",
       end_time: "",
       estimated_hours: "0",
@@ -184,10 +275,31 @@ export default function InternalActionModal({ isOpen, onClose, ticketId }: Inter
           </DialogTitle>
           <DialogDescription>
             Registre uma nova ação interna realizada neste ticket. Todos os campos marcados com * são obrigatórios.
+            <br />
+            <span className="text-xs text-blue-600 mt-1 block">
+              Testando todos os campos da tabela ticket_internal_actions incluindo planned_start_time e planned_end_time
+            </span>
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
+          {/* Debug Information Panel (development only) */}
+          {process.env.NODE_ENV === 'development' && (
+            <Card className="border-blue-200 bg-blue-50">
+              <CardContent className="p-4">
+                <div className="text-xs space-y-2">
+                  <h4 className="font-semibold text-blue-800">Debug - Form State:</h4>
+                  <div className="grid grid-cols-2 gap-2 text-blue-700">
+                    <div>Required Fields: ✓ {formData.action_type ? '✓' : '✗'} Action Type, {formData.agent_id && formData.agent_id !== "__none__" ? '✓' : '✗'} Agent</div>
+                    <div>New Fields: {formData.planned_start_time ? '✓' : '✗'} Planned Start, {formData.planned_end_time ? '✓' : '✗'} Planned End</div>
+                    <div>Validation: {formData.title.length <= 255 ? '✓' : '✗'} Title Length, {formData.description.length <= 1000 ? '✓' : '✗'} Desc Length</div>
+                    <div>Date Logic: {(!formData.planned_start_time || !formData.planned_end_time || new Date(formData.planned_end_time) > new Date(formData.planned_start_time)) ? '✓' : '✗'} Planned Dates</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+          
           <Card>
             <CardContent className="p-6">
               <div className="space-y-6">
@@ -236,64 +348,138 @@ export default function InternalActionModal({ isOpen, onClose, ticketId }: Inter
 
                 {/* Título */}
                 <div>
-                  <Label htmlFor="title">Título</Label>
+                  <div className="flex justify-between">
+                    <Label htmlFor="title">Título</Label>
+                    <span className={`text-xs ${formData.title.length > 255 ? 'text-red-600' : 'text-gray-500'}`}>
+                      {formData.title.length}/255
+                    </span>
+                  </div>
                   <Input
                     id="title"
                     value={formData.title}
                     onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
                     placeholder="Título resumido da ação..."
-                    className="mt-1"
+                    className={`mt-1 ${formData.title.length > 255 ? 'border-red-500' : ''}`}
+                    maxLength={255}
                   />
+                  {formData.title.length > 255 && (
+                    <p className="text-sm text-red-600 mt-1">Título muito longo</p>
+                  )}
                 </div>
 
                 {/* Descrição */}
                 <div>
-                  <Label htmlFor="description">Descrição</Label>
+                  <div className="flex justify-between">
+                    <span className={`text-xs ${formData.description.length > 1000 ? 'text-red-600' : 'text-gray-500'}`}>
+                      {formData.description.length}/1000
+                    </span>
+                  </div>
                   <Textarea
                     id="description"
                     value={formData.description}
                     onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                     placeholder="Descrição detalhada da ação realizada..."
                     rows={4}
-                    className="mt-1"
+                    className={`mt-1 ${formData.description.length > 1000 ? 'border-red-500' : ''}`}
+                    maxLength={1000}
                   />
+                  {formData.description.length > 1000 && (
+                    <p className="text-sm text-red-600 mt-1">Descrição muito longa</p>
+                  )}
                 </div>
 
-                {/* Datas e Tempo */}
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <Label htmlFor="start-time">Data/Hora Início</Label>
-                    <Input
-                      id="start-time"
-                      type="datetime-local"
-                      value={formData.start_time}
-                      onChange={(e) => setFormData(prev => ({ ...prev, start_time: e.target.value }))}
-                      className="mt-1"
-                    />
+                {/* Datas Previstas */}
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4" />
+                    Datas Previstas
+                  </Label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="planned-start-time">Data/Hora Início Previsto</Label>
+                      <Input
+                        id="planned-start-time"
+                        type="datetime-local"
+                        value={formData.planned_start_time}
+                        onChange={(e) => setFormData(prev => ({ ...prev, planned_start_time: e.target.value }))}
+                        className="mt-1"
+                        placeholder="Quando a ação deve começar"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="planned-end-time">Data/Hora Fim Previsto</Label>
+                      <Input
+                        id="planned-end-time"
+                        type="datetime-local"
+                        value={formData.planned_end_time}
+                        onChange={(e) => setFormData(prev => ({ ...prev, planned_end_time: e.target.value }))}
+                        className="mt-1"
+                        placeholder="Quando a ação deve terminar"
+                        min={formData.planned_start_time || undefined}
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <Label htmlFor="end-time">Data/Hora Fim</Label>
-                    <Input
-                      id="end-time"
-                      type="datetime-local"
-                      value={formData.end_time}
-                      onChange={(e) => setFormData(prev => ({ ...prev, end_time: e.target.value }))}
-                      className="mt-1"
-                    />
+                  {formData.planned_start_time && formData.planned_end_time && 
+                   new Date(formData.planned_end_time) <= new Date(formData.planned_start_time) && (
+                    <p className="text-sm text-red-600 flex items-center gap-1">
+                      <AlertCircle className="w-4 h-4" />
+                      A data de fim deve ser posterior à data de início
+                    </p>
+                  )}
+                </div>
+
+                {/* Datas Realizadas e Tempo */}
+                <div className="space-y-4">
+                  <Label className="flex items-center gap-2">
+                    <Clock className="w-4 h-4" />
+                    Execução e Tempo
+                  </Label>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <Label htmlFor="start-time">Data/Hora Início Realizado</Label>
+                      <Input
+                        id="start-time"
+                        type="datetime-local"
+                        value={formData.start_time}
+                        onChange={(e) => setFormData(prev => ({ ...prev, start_time: e.target.value }))}
+                        className="mt-1"
+                        placeholder="Quando a ação realmente começou"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="end-time">Data/Hora Fim Realizado</Label>
+                      <Input
+                        id="end-time"
+                        type="datetime-local"
+                        value={formData.end_time}
+                        onChange={(e) => setFormData(prev => ({ ...prev, end_time: e.target.value }))}
+                        className="mt-1"
+                        placeholder="Quando a ação realmente terminou"
+                        min={formData.start_time || undefined}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="estimated-hours">Horas Estimadas</Label>
+                      <Input
+                        id="estimated-hours"
+                        type="number"
+                        min="0"
+                        step="0.25"
+                        max="999.99"
+                        value={formData.estimated_hours}
+                        onChange={(e) => setFormData(prev => ({ ...prev, estimated_hours: e.target.value }))}
+                        placeholder="0"
+                        className="mt-1"
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <Label htmlFor="estimated-hours">Horas Estimadas</Label>
-                    <Input
-                      id="estimated-hours"
-                      type="number"
-                      min="0"
-                      step="0.25"
-                      value={formData.estimated_hours}
-                      onChange={(e) => setFormData(prev => ({ ...prev, estimated_hours: e.target.value }))}
-                      placeholder="0"
-                      className="mt-1"
-                    />
-                  </div>
+                  {formData.start_time && formData.end_time && 
+                   new Date(formData.end_time) <= new Date(formData.start_time) && (
+                    <p className="text-sm text-red-600 flex items-center gap-1">
+                      <AlertCircle className="w-4 h-4" />
+                      A data de fim realizado deve ser posterior à data de início realizado
+                    </p>
+                  )}
                 </div>
 
                 {/* Status e Prioridade */}
@@ -411,10 +597,56 @@ export default function InternalActionModal({ isOpen, onClose, ticketId }: Inter
                     >
                       Cancelar
                     </Button>
+                    
+                    {/* Test Button for Quick Form Population */}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const now = new Date();
+                        const futureDate = new Date(now.getTime() + 24 * 60 * 60 * 1000); // +1 day
+                        const endDate = new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000); // +2 days
+                        
+                        setFormData(prev => ({
+                          ...prev,
+                          action_type: "analysis",
+                          title: "Teste de Ação Interna Completa",
+                          description: "Esta é uma ação de teste para validar todos os campos da tabela ticket_internal_actions, incluindo os novos campos planned_start_time e planned_end_time.",
+                          planned_start_time: futureDate.toISOString().slice(0, 16),
+                          planned_end_time: endDate.toISOString().slice(0, 16),
+                          start_time: now.toISOString().slice(0, 16),
+                          end_time: new Date(now.getTime() + 2 * 60 * 60 * 1000).toISOString().slice(0, 16), // +2 hours
+                          estimated_hours: "2.5",
+                          status: "in_progress",
+                          priority: "high"
+                        }));
+                        
+                        if (teamMembers?.users?.length > 0) {
+                          setFormData(prev => ({ ...prev, agent_id: teamMembers.users[0].id }));
+                        }
+                      }}
+                      className="text-xs"
+                    >
+                      Preencher Teste
+                    </Button>
+                    
                     <Button
                       onClick={handleSubmit}
-                      disabled={createActionMutation.isPending || !formData.action_type || !formData.agent_id || formData.agent_id === "__none__"}
-                      className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                      disabled={
+                        createActionMutation.isPending || 
+                        !formData.action_type || 
+                        !formData.agent_id || 
+                        formData.agent_id === "__none__" ||
+                        formData.title.length > 255 ||
+                        formData.description.length > 1000 ||
+                        (formData.planned_start_time && formData.planned_end_time && 
+                         new Date(formData.planned_end_time) <= new Date(formData.planned_start_time)) ||
+                        (formData.start_time && formData.end_time && 
+                         new Date(formData.end_time) <= new Date(formData.start_time)) ||
+                        (formData.estimated_hours && parseFloat(formData.estimated_hours) < 0)
+                      }
+                      className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:opacity-50"
                     >
                       <Send className="w-4 h-4 mr-2" />
                       {createActionMutation.isPending ? "Salvando..." : "Salvar Ação"}

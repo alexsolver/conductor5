@@ -895,25 +895,55 @@ ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, re
 
     const { id } = req.params;
     const { 
+      action_type, 
+      agent_id,
+      title,
+      description, 
+      planned_start_time,
+      planned_end_time,
+      start_time, 
+      end_time,
+      estimated_hours,
+      status = 'pending',
+      priority = 'medium',
+      is_public = false,
+      // Backwards compatibility with old field names
       actionType, 
       workLog, 
-      description, 
       timeSpent, 
       startDateTime, 
       endDateTime,
-      assignedToId,
-      status = 'pending',
-      is_public = false
+      assignedToId
     } = req.body;
     const tenantId = req.user.tenantId;
     const { pool } = await import('../../db');
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
+    // Use new field names if available, fallback to old names for backwards compatibility
+    const finalActionType = action_type || actionType;
+    const finalAgentId = agent_id || assignedToId;
+    const finalTitle = title;
+    const finalDescription = description || workLog;
+    const finalPlannedStartTime = planned_start_time ? new Date(planned_start_time) : null;
+    const finalPlannedEndTime = planned_end_time ? new Date(planned_end_time) : null;
+    const finalStartTime = start_time ? new Date(start_time) : (startDateTime ? new Date(startDateTime) : null);
+    const finalEndTime = end_time ? new Date(end_time) : (endDateTime ? new Date(endDateTime) : null);
+    const finalEstimatedHours = estimated_hours ? parseFloat(estimated_hours) : 0;
+    const finalStatus = status;
+    const finalPriority = priority;
+
     // Validate required fields
-    if (!actionType) {
+    if (!finalActionType) {
       return res.status(400).json({ 
         success: false,
         message: "Action type is required" 
+      });
+    }
+
+    if (!finalAgentId) {
+      return res.status(400).json({ 
+        success: false,
+        message: "Agent is required" 
       });
     }
 
@@ -930,24 +960,23 @@ ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, re
       });
     }
 
-    // Parse time spent (format: "0:00:00:25" -> total minutes)
-    let estimatedMinutes = 0;
+    // Parse time spent for backwards compatibility (format: "0:00:00:25" -> total minutes)
+    let legacyEstimatedMinutes = 0;
     if (timeSpent) {
       const timeParts = timeSpent.split(':');
       if (timeParts.length >= 3) {
         const hours = parseInt(timeParts[0]) || 0;
         const minutes = parseInt(timeParts[1]) || 0;
         const seconds = parseInt(timeParts[2]) || 0;
-        estimatedMinutes = (hours * 60) + minutes + Math.round(seconds / 60);
+        legacyEstimatedMinutes = (hours * 60) + minutes + Math.round(seconds / 60);
       }
     }
 
-    // Parse start and end times
-    const startTime = startDateTime ? new Date(startDateTime) : new Date();
-    const endTime = endDateTime ? new Date(endDateTime) : null;
+    // Use final estimated hours, fallback to legacy calculation
+    const finalEstimatedHoursFinal = finalEstimatedHours || (legacyEstimatedMinutes / 60);
 
-    // Prepare description and work log
-    const actionDescription = workLog || description || `${actionType} action performed`;
+    // Prepare description
+    const actionDescription = finalDescription || `${finalActionType} action performed`;
 
     // Get user info for IP capture
     const { getClientIP, getUserAgent, getSessionId } = await import('../../utils/ipCapture');
@@ -955,8 +984,8 @@ ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, re
     const userAgent = getUserAgent(req);
     const sessionId = getSessionId(req);
 
-    // Determine who is assigned (use assignedToId if provided and not 'unassigned', otherwise current user)
-    const finalAssignedId = (assignedToId && assignedToId !== 'unassigned') ? assignedToId : req.user.id;
+    // Determine who is assigned (use finalAgentId if provided and not 'unassigned', otherwise current user)
+    const finalAssignedId = (finalAgentId && finalAgentId !== 'unassigned' && finalAgentId !== '__none__') ? finalAgentId : req.user.id;
 
     // Get user name for complete audit trail
     const userQuery = `SELECT first_name || ' ' || last_name as full_name FROM public.users WHERE id = $1`;
@@ -969,8 +998,8 @@ ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, re
     // Create entry in ticket_internal_actions (primary table for internal actions)
     const internalActionQuery = `
       INSERT INTO "${schemaName}".ticket_internal_actions 
-      (id, tenant_id, ticket_id, action_number, action_type, title, description, agent_id, start_time, end_time, estimated_hours, status, priority, created_at, updated_at)
-      VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW(), NOW())
+      (id, tenant_id, ticket_id, action_number, action_type, title, description, agent_id, planned_start_time, planned_end_time, start_time, end_time, estimated_hours, status, priority, created_at, updated_at)
+      VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, NOW(), NOW())
       RETURNING id, action_number, action_type, description, created_at
     `;
 
@@ -978,15 +1007,17 @@ ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, re
       tenantId,                          // $1 tenant_id
       id,                               // $2 ticket_id
       actionNumber,                     // $3 action_number
-      actionType,                       // $4 action_type
-      `${actionType} - Ticket #${id.slice(0, 8)}`, // $5 title
+      finalActionType,                  // $4 action_type
+      finalTitle || `${finalActionType} - Ticket #${id.slice(0, 8)}`, // $5 title
       actionDescription,                // $6 description
       finalAssignedId,                  // $7 agent_id (assigned person)
-      startTime || null,                // $8 start_time (nullable)
-      endTime || null,                  // $9 end_time (nullable)
-      estimatedMinutes ? estimatedMinutes / 60 : 0, // $10 estimated_hours
-      status,                           // $11 status (from frontend)
-      'medium'                          // $12 priority
+      finalPlannedStartTime || null,    // $8 planned_start_time (new field)
+      finalPlannedEndTime || null,      // $9 planned_end_time (new field)
+      finalStartTime || null,           // $10 start_time (nullable)
+      finalEndTime || null,             // $11 end_time (nullable)
+      finalEstimatedHoursFinal,         // $12 estimated_hours
+      finalStatus,                      // $13 status (from frontend)
+      finalPriority                     // $14 priority
     ]);
 
     if (result.rows.length === 0) {
