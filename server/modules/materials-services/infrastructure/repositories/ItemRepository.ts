@@ -1,12 +1,18 @@
-import { db } from '../../../../db';
 import { eq, and, like, desc, sql, or } from 'drizzle-orm';
 import { items, itemAttachments, itemLinks, itemCustomerLinks, itemSupplierLinks } from '../../../../../shared/schema-materials-services';
 import type { Item } from '../../domain/entities';
+import type { ExtractTablesWithRelations } from 'drizzle-orm';
+import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
 export class ItemRepository {
+  private db: NodePgDatabase<any>;
+  
+  constructor(db: NodePgDatabase<any>) {
+    this.db = db;
+  }
 
   async create(data: Omit<Item, 'id' | 'createdAt' | 'updatedAt'>): Promise<Item> {
-    const [item] = await db
+    const [item] = await this.db
       .insert(items)
       .values({
         ...data,
@@ -61,7 +67,7 @@ export class ItemRepository {
       conditions.push(eq(items.active, options.active));
     }
 
-    let query = this.db
+    const baseQuery = this.db
       .select({
         id: items.id,
         tenantId: items.tenantId,
@@ -84,12 +90,12 @@ export class ItemRepository {
       .orderBy(desc(items.createdAt));
 
     if (options?.limit && options?.offset) {
-      query = query.limit(options.limit).offset(options.offset);
+      return await baseQuery.limit(options.limit).offset(options.offset);
     } else if (options?.limit) {
-      query = query.limit(options.limit);
+      return await baseQuery.limit(options.limit);
     }
 
-    return await query;
+    return await baseQuery;
   }
 
   async update(id: string, tenantId: string, data: Partial<Item>): Promise<Item | null> {

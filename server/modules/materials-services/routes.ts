@@ -36,31 +36,37 @@ async function getControllers(tenantId: string) {
 
 // Items routes
 router.post('/items', async (req: AuthenticatedRequest, res) => {
+  if (!req.user?.tenantId) return res.status(401).json({ message: 'Tenant ID required' });
   const { itemController } = await getControllers(req.user.tenantId);
   return itemController.createItem(req, res);
 });
 
 router.get('/items', async (req: AuthenticatedRequest, res) => {
+  if (!req.user?.tenantId) return res.status(401).json({ message: 'Tenant ID required' });
   const { itemController } = await getControllers(req.user.tenantId);
   return itemController.getItems(req, res);
 });
 
 router.get('/items/stats', async (req: AuthenticatedRequest, res) => {
+  if (!req.user?.tenantId) return res.status(401).json({ message: 'Tenant ID required' });
   const { itemController } = await getControllers(req.user.tenantId);
   return itemController.getStats(req, res);
 });
 
 router.get('/items/:id', async (req: AuthenticatedRequest, res) => {
+  if (!req.user?.tenantId) return res.status(401).json({ message: 'Tenant ID required' });
   const { itemController } = await getControllers(req.user.tenantId);
   return itemController.getItem(req, res);
 });
 
 router.put('/items/:id', async (req: AuthenticatedRequest, res) => {
+  if (!req.user?.tenantId) return res.status(401).json({ message: 'Tenant ID required' });
   const { itemController } = await getControllers(req.user.tenantId);
   return itemController.updateItem(req, res);
 });
 
 router.delete('/items/:id', async (req: AuthenticatedRequest, res) => {
+  if (!req.user?.tenantId) return res.status(401).json({ message: 'Tenant ID required' });
   const { itemController } = await getControllers(req.user.tenantId);
   return itemController.deleteItem(req, res);
 });

@@ -80,6 +80,7 @@ export default function ItemCatalog() {
   const [itemTypeTab, setItemTypeTab] = useState("materials");
 
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const form = useForm<z.infer<typeof itemSchema>>({
     resolver: zodResolver(itemSchema),
@@ -107,6 +108,42 @@ export default function ItemCatalog() {
     enabled: true
   });
 
+  // Mutations
+  const createItemMutation = useMutation({
+    mutationFn: async (data: z.infer<typeof itemSchema>) => {
+      const response = await fetch('/api/materials-services/items', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to create item');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items/stats"] });
+      toast({
+        title: "Item criado com sucesso",
+        description: "O item foi adicionado ao catálogo.",
+      });
+      setIsCreateModalOpen(false);
+      form.reset();
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro ao criar item",
+        description: "Ocorreu um erro ao criar o item. Tente novamente.",
+        variant: "destructive",
+      });
+    }
+  });
+
   // Extract data from API responses
   const items: Item[] = (itemsResponse as any)?.data || [];
   const itemStats = (itemStatsResponse as any)?.data || { total: 0, materials: 0, services: 0, active: 0 };
@@ -131,23 +168,17 @@ export default function ItemCatalog() {
   });
 
   const onSubmit = async (data: z.infer<typeof itemSchema>) => {
-    try {
-      // Implementar criação/edição de item
+    if (selectedItem) {
+      // TODO: Implementar edição de item
       toast({
-        title: "Item salvo com sucesso",
-        description: `${data.name} foi ${selectedItem ? 'atualizado' : 'criado'} com sucesso.`,
+        title: "Item atualizado com sucesso",
+        description: `${data.name} foi atualizado com sucesso.`,
       });
-
-      setIsCreateModalOpen(false);
       setIsEditModalOpen(false);
       form.reset();
       setSelectedItem(null);
-    } catch (error) {
-      toast({
-        title: "Erro ao salvar item",
-        description: "Ocorreu um erro ao salvar o item. Tente novamente.",
-        variant: "destructive",
-      });
+    } else {
+      createItemMutation.mutate(data);
     }
   };
 
@@ -376,7 +407,10 @@ export default function ItemCatalog() {
                     </FormItem>
                   )}
                 />
-                <Button type="submit">Salvar</Button>
+                <Button type="submit" disabled={createItemMutation.isPending}>
+                  {createItemMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Salvar
+                </Button>
               </form>
             </Form>
           </DialogContent>
