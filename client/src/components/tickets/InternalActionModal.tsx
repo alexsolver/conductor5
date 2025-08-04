@@ -42,21 +42,17 @@ import {
   CardContent,
 } from "@/components/ui/card"
 
+import { useSimpleTimer } from "@/contexts/SimpleTimerContext";
+
 interface InternalActionModalProps {
   ticketId: string;
   isOpen: boolean;
   onClose: () => void;
-  onStartTimer?: (ticketId: string) => Promise<string>;
-  timerState?: {
-    isRunning: boolean;
-    startTime: number | null;
-    elapsedTime: number;
-    currentActionId: string | null;
-    currentTicketId: string | null;
-  };
+  editAction?: any; // Para modo de edição
 }
 
-export default function InternalActionModal({ isOpen, onClose, ticketId, onStartTimer, timerState }: InternalActionModalProps) {
+export default function InternalActionModal({ isOpen, onClose, ticketId, editAction }: InternalActionModalProps) {
+  const { startAction } = useSimpleTimer();
   const [formData, setFormData] = useState({
     // Campos obrigatórios da tabela
     action_type: "",
@@ -750,6 +746,91 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, onStart
                       Cancelar
                     </Button>
                     
+
+                    <Button
+                      type="button"
+                      onClick={async () => {
+                        console.log('🚀 [CRONOMETER] Iniciar cronômetro clicked');
+                        
+                        // Validação básica
+                        if (!formData.action_type) {
+                          toast({
+                            title: "Erro",
+                            description: "Selecione um tipo de ação antes de iniciar o cronômetro",
+                            variant: "destructive",
+                          });
+                          return;
+                        }
+                        
+                        if (!formData.agent_id || formData.agent_id === "__none__") {
+                          toast({
+                            title: "Erro", 
+                            description: "Selecione um agente responsável antes de iniciar o cronômetro",
+                            variant: "destructive",
+                          });
+                          return;
+                        }
+
+                        try {
+                          // Preencher automaticamente hora de início
+                          const currentTime = new Date();
+                          const formattedTime = currentTime.toISOString().slice(0, 16);
+                          
+                          const dataWithStartTime = {
+                            ...formData,
+                            start_time: formattedTime,
+                            title: formData.title || "Cronômetro Ativo",
+                            description: formData.description || "Ação em andamento - tempo sendo registrado",
+                            status: "pending"
+                          };
+
+                          // Criar a ação com hora de início preenchida
+                          console.log('📝 [CRONOMETER] Creating action with start time:', dataWithStartTime);
+                          
+                          const response = await apiRequest("POST", `/api/tickets/${ticketId}/actions`, dataWithStartTime);
+                          const result = await response.json();
+                          
+                          if (result.success) {
+                            console.log('✅ [CRONOMETER] Action created:', result.data);
+                            
+                            // Iniciar o "cronômetro" - apenas guardar a ação em andamento
+                            startAction(ticketId, result.data.id);
+                            
+                            toast({
+                              title: "Cronômetro Iniciado",
+                              description: "Ação criada e cronômetro iniciado com sucesso",
+                            });
+                            
+                            // Invalidar queries para atualizar lista
+                            queryClient.invalidateQueries({ queryKey: ["/api/tickets", ticketId, "actions"] });
+                            queryClient.invalidateQueries({ queryKey: ["/api/tickets", ticketId, "history"] });
+                            
+                            // Resetar form e fechar modal
+                            resetForm();
+                            onClose();
+                          } else {
+                            throw new Error(result.message || 'Falha ao criar ação');
+                          }
+                        } catch (error: any) {
+                          console.error('❌ [CRONOMETER] Error:', error);
+                          toast({
+                            title: "Erro",
+                            description: error.message || "Falha ao iniciar cronômetro",
+                            variant: "destructive",
+                          });
+                        }
+                      }}
+                      disabled={
+                        createActionMutation.isPending || 
+                        !formData.action_type || 
+                        !formData.agent_id || 
+                        formData.agent_id === "__none__"
+                      }
+                      className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:opacity-50"
+                    >
+                      <Play className="w-4 h-4 mr-2" />
+                      {createActionMutation.isPending ? "Iniciando..." : "Iniciar Cronômetro"}
+                    </Button>
 
                     <Button
                       onClick={handleSubmit}

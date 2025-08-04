@@ -54,7 +54,6 @@ import { FilteredBeneficiarySelect } from "@/components/FilteredBeneficiarySelec
 
 // 🚨 CORREÇÃO CRÍTICA: Usar schema unificado para consistência
 import { ticketFormSchema, type TicketFormData } from "../../../shared/ticket-validation";
-import { useTimer } from "../contexts/TimerContext";
 
 const TicketDetails = React.memo(() => {
   const { id } = useParams<{ id: string }>();
@@ -142,21 +141,7 @@ const TicketDetails = React.memo(() => {
     }
   }, [openActionId, internalActions, id, navigate]);
 
-  // Use global timer context
-  const { timerState, startTimer, stopTimer } = useTimer();
-
-  // Test timer function
-  const handleTestTimer = async () => {
-    console.log('🧪 [TEST] Test timer button clicked');
-    try {
-      if (id) {
-        await startTimer(id);
-        console.log('🧪 [TEST] Timer started successfully');
-      }
-    } catch (error) {
-      console.error('🧪 [TEST] Timer failed:', error);
-    }
-  };
+  // Test timer function - removed since using simple timer in modal
 
 
   // Basic information - consolidated into single tab
@@ -1952,13 +1937,7 @@ const TicketDetails = React.memo(() => {
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">⚙️ Ações Internas</h2>
               <div className="flex gap-2">
-                <Button 
-                  onClick={handleTestTimer}
-                  variant="outline"
-                  className="bg-red-50 hover:bg-red-100 border-red-200 text-red-700"
-                >
-                  🧪 Test Timer
-                </Button>
+
                 <Button 
                   onClick={() => setShowInternalActionModal(true)}
                   className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
@@ -1978,15 +1957,10 @@ const TicketDetails = React.memo(() => {
                 </div>
               ) : (
                 internalActions.map((action, index) => {
-                  const isRunningAction = timerState?.isRunning && timerState?.currentActionId === action.id;
                   return (
                   <Card 
                     key={`internal-action-${action.id}-${index}`} 
-                    className={`border-l-4 ${
-                      isRunningAction 
-                        ? 'border-l-red-500 bg-red-50 dark:bg-red-950 ring-2 ring-red-200 dark:ring-red-800' 
-                        : 'border-l-blue-500'
-                    }`}
+                    className="border-l-4 border-l-blue-500"
                   >
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between">
@@ -3581,8 +3555,6 @@ const TicketDetails = React.memo(() => {
         ticketId={id || ''} 
         isOpen={showInternalActionModal} 
         onClose={() => setShowInternalActionModal(false)} 
-        onStartTimer={startTimer}
-        timerState={timerState}
       />
 
       {/* Company Details Modal */}
@@ -3974,13 +3946,11 @@ const TicketDetails = React.memo(() => {
         currentTicket={ticket}
       />
 
-      {/* Internal Action Modal */}
+      {/* Internal Action Modal Second Instance */}
       <InternalActionModal 
         ticketId={id || ''} 
         isOpen={showInternalActionModal} 
         onClose={() => setShowInternalActionModal(false)} 
-        onStartTimer={startTimer}
-        timerState={timerState}
       />
 
       {/* Edit Internal Action Modal */}

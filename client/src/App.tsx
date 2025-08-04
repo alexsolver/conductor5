@@ -4,7 +4,7 @@ import { Route, Switch } from "wouter";
 // Auth
 import { AuthProvider, useAuth } from "./hooks/useAuth";
 import { queryClient } from "./lib/queryClient";
-import { TimerProvider } from "./contexts/TimerContext";
+import { SimpleTimerProvider } from "./contexts/SimpleTimerContext";
 
 // UI Components
 import { Toaster } from "@/components/ui/toaster";
@@ -218,12 +218,12 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <TimerProvider>
+        <SimpleTimerProvider>
           <TooltipProvider>
             <AppRouter />
             <Toaster />
           </TooltipProvider>
-        </TimerProvider>
+        </SimpleTimerProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

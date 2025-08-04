@@ -1,20 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Bell, Menu, BarChart3, Ticket, Calendar, LogOut, User, Settings, Clock, Folder, UserCircle } from "lucide-react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
+import { useSimpleTimer } from "@/contexts/SimpleTimerContext";
 
-interface HeaderProps {
-  timerState?: {
-    isRunning: boolean;
-    startTime: number | null;
-    elapsedTime: number;
-  };
-  onTimerClick?: () => void;
-}
-
-export function Header({ timerState, onTimerClick }: HeaderProps = {}) {
+export function Header() {
   const { user, logoutMutation } = useAuth();
+  const { runningAction, finishAction } = useSimpleTimer();
+  const [, setLocation] = useLocation();
 
   return (
     <div className="relative z-10 flex-shrink-0 flex h-16 bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
@@ -66,13 +60,24 @@ export function Header({ timerState, onTimerClick }: HeaderProps = {}) {
         </div>
 
         <div className="flex items-center space-x-4">
-          {/* Timer Icon - Only visible when timer is running */}
-          {timerState?.isRunning && (
+          {/* Timer Icon - Only visible when there's a running action */}
+          {runningAction && (
             <Button
               variant="ghost"
               size="sm"
               className="relative text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 animate-pulse"
-              onClick={onTimerClick}
+              onClick={async () => {
+                console.log('🔴 [HEADER] Timer icon clicked, finishing action:', runningAction.actionId);
+                try {
+                  // Finalizar a ação preenchendo hora fim
+                  await finishAction(runningAction.actionId);
+                  
+                  // Navegar para o ticket e abrir a ação editada
+                  setLocation(`/tickets/${runningAction.ticketId}?openAction=${runningAction.actionId}`);
+                } catch (error) {
+                  console.error('❌ [HEADER] Error finishing action:', error);
+                }
+              }}
               title="Cronômetro ativo - Clique para finalizar"
             >
               <Clock className="h-5 w-5" />
@@ -94,23 +99,14 @@ export function Header({ timerState, onTimerClick }: HeaderProps = {}) {
           {user && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <div className="relative">
-                  {/* Timer Aura Animation */}
-                  {timerState?.isRunning && (
-                    <div className="absolute inset-0 rounded-full animate-pulse bg-yellow-400 opacity-50 scale-150"></div>
-                  )}
-                  <Button
-                    variant="ghost"
-                    className={`relative h-8 w-8 rounded-full bg-purple-600 hover:bg-purple-700 ${
-                      timerState?.isRunning ? 'ring-2 ring-yellow-400 ring-opacity-75' : ''
-                    }`}
-                    onClick={timerState?.isRunning ? onTimerClick : undefined}
-                  >
-                    <span className="text-white text-sm font-semibold">
-                      {user?.firstName ? user.firstName.charAt(0).toUpperCase() : user?.email?.charAt(0).toUpperCase()}
-                    </span>
-                  </Button>
-                </div>
+                <Button
+                  variant="ghost"
+                  className="relative h-8 w-8 rounded-full bg-purple-600 hover:bg-purple-700"
+                >
+                  <span className="text-white text-sm font-semibold">
+                    {user?.firstName ? user.firstName.charAt(0).toUpperCase() : user?.email?.charAt(0).toUpperCase()}
+                  </span>
+                </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
