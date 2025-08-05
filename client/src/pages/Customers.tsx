@@ -91,13 +91,20 @@ export default function Customers() {
   const getInitials = (customer: any) => {
     const firstName = customer.firstName || customer.first_name;
     const lastName = customer.lastName || customer.last_name;
+    
     if (firstName && lastName) {
-      return `${firstName[0]}${lastName[0]}`.toUpperCase();
+      return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
     }
     if (firstName) {
-      return firstName[0].toUpperCase();
+      return firstName.charAt(0).toUpperCase();
     }
-    return "?";
+    if (lastName) {
+      return lastName.charAt(0).toUpperCase();
+    }
+    if (customer.email) {
+      return customer.email.charAt(0).toUpperCase();
+    }
+    return "U";
   };
 
   // Componente para renderizar empresas associadas
@@ -252,7 +259,7 @@ export default function Customers() {
                   <TableCell>
                     <Avatar className="h-8 w-8">
                       <AvatarFallback className="bg-purple-100 text-purple-600 font-semibold text-sm">
-                        {getInitials(customer)}
+                        {getInitials(customer) || "U"}
                       </AvatarFallback>
                     </Avatar>
                   </TableCell>
