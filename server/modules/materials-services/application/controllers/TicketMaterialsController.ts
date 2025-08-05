@@ -243,7 +243,7 @@ export class TicketMaterialsController {
       const tenantId = req.user?.tenantId;
       const userId = req.user?.id;
 
-      if (!tenantId || !ticketId || !itemId || !actualQuantity || !lpuId || !unitPriceAtConsumption) {
+      if (!tenantId || !ticketId || !itemId || !actualQuantity || !lpuId || unitPriceAtConsumption === undefined || unitPriceAtConsumption === null) {
         return sendError(res, 'Missing required fields', 'Missing required fields', 400);
       }
 

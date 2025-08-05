@@ -126,7 +126,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
         plannedItemId: selectedItemData.plannedItemId || selectedItemData.id, // Include planned item ID
         actualQuantity: data.quantityUsed,
         lpuId: selectedItemData.lpuId || '00000000-0000-0000-0000-000000000001', // Use LPU from planned item
-        unitPriceAtConsumption: selectedItemData.unitPriceAtPlanning || selectedItemData.unitCost || 0,
+        unitPriceAtConsumption: parseFloat(selectedItemData.unitPriceAtPlanning || selectedItemData.unitCost || '0'), // Ensure numeric value
         consumptionType: 'used',
         notes: ''
       };
