@@ -12,11 +12,21 @@ customersRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
 
     console.log('[GET-CUSTOMERS] Fetching customers for tenant:', req.user.tenantId);
 
-    // Check if is_active column exists, otherwise filter by a status-like field
+    // Check if is_active column exists first
+    const columnCheck = await pool.query(`
+      SELECT 1 FROM information_schema.columns 
+      WHERE table_schema = $1 AND table_name = 'customers' AND column_name = 'is_active'
+    `, [schemaName]);
+    
+    let whereClause = '';
+    if (columnCheck.rows.length > 0) {
+      whereClause = 'WHERE COALESCE(is_active, true) = true';
+    }
+    
     const result = await pool.query(`
       SELECT id, first_name, last_name, email, phone, created_at, updated_at
       FROM "${schemaName}".customers 
-      WHERE COALESCE(is_active, true) = true
+      ${whereClause}
       ORDER BY first_name, last_name
     `);
 
@@ -65,13 +75,24 @@ customersRouter.get('/companies/:companyId/associated', jwtAuth, async (req: Aut
 
     console.log('[ASSOCIATED-CUSTOMERS] Getting associated customers for company', companyId);
 
+    // Check if is_active column exists first
+    const columnCheck = await pool.query(`
+      SELECT 1 FROM information_schema.columns 
+      WHERE table_schema = $1 AND table_name = 'customers' AND column_name = 'is_active'
+    `, [schemaName]);
+    
+    let customerActiveFilter = '';
+    if (columnCheck.rows.length > 0) {
+      customerActiveFilter = 'AND COALESCE(c.is_active, true) = true';
+    }
+    
     const query = `
       SELECT c.*, ccm.role, ccm.is_primary, ccm.is_active as membership_active
       FROM "${schemaName}".customers c
       JOIN "${schemaName}".customer_company_memberships ccm ON c.id = ccm.customer_id
       WHERE ccm.company_id = $1 AND ccm.tenant_id = $2 
       AND ccm.is_active = true 
-      AND COALESCE(c.is_active, true) = true
+      ${customerActiveFilter}
       ORDER BY ccm.is_primary DESC, c.first_name, c.last_name
     `;
 
