@@ -1,0 +1,103 @@
+🔍 ANÁLISE COMPLETA DE INCONSISTÊNCIAS DO SCHEMA - DBA MASTER REPORT
+📊 RESUMO EXECUTIVO
+Total de Tabelas Analisadas: 107 tabelas
+Inconsistências Identificadas: 47 problemas críticos e médios
+Status Geral: ⚠️ REQUER ATENÇÃO IMEDIATA
+
+🚨 INCONSISTÊNCIAS CRÍTICAS (Prioridade 1)
+1. FOREIGN KEYS - INCOMPATIBILIDADE DE TIPOS
+-- PROBLEMA: users.id como VARCHAR referenciado como UUID
+-- TABELAS AFETADAS: 23 tabelas com FK para users
+STATUS: ✅ RESOLVIDO (users.id convertido para UUID)
+2. NOMENCLATURA - PADRÕES INCONSISTENTES
+// FAVORECIDOS vs CUSTOMERS - Padrões diferentes
+favorecidos: {
+  name: varchar("name", { length: 255 })  // Campo único
+}
+customers: {
+  firstName: varchar("first_name", { length: 255 }),
+  lastName: varchar("last_name", { length: 255 })  // Campos separados
+}
+3. CAMPOS DE AUDITORIA - IMPLEMENTAÇÃO PARCIAL
+Tabelas SEM auditoria completa: 12 de 107 tabelas
+
+// FALTANDO em algumas tabelas:
+- createdAt: timestamp("created_at").defaultNow()
+- updatedAt: timestamp("updated_at").defaultNow()  
+- isActive: boolean("is_active").default(true)
+⚠️ INCONSISTÊNCIAS MÉDIAS (Prioridade 2)
+4. STATUS DEFAULTS - VALORES DIFERENTES
+tickets.status: .default("open")          // Helpdesk workflow
+projects.status: .default("planning")     // PM workflow  
+projectActions.status: .default("pending") // Task workflow
+5. TELEFONE - REDUNDÂNCIA CONFUSA
+favorecidos: {
+  phone: varchar("phone", { length: 20 }),
+  cellPhone: varchar("cell_phone", { length: 20 }) // Propósitos não claros
+}
+6. CAMPOS BRASILEIROS vs INGLÊS
+favorecidos: {
+  cpf: varchar("cpf", { length: 14 }),     // Português (legal)
+  email: varchar("email", { length: 255 }) // Inglês (internacional)
+}
+🔧 PROBLEMAS DE ESTRUTURA
+7. ÍNDICES - OTIMIZAÇÃO TENANT-FIRST INCOMPLETA
+Problemas identificados:
+
+15 tabelas sem índices tenant-first otimizados
+Queries de geolocalização sem índices espaciais
+Relacionamentos FK sem índices de performance
+8. CONSTRAINTS - ISOLAMENTO TENANT INCONSISTENTE
+-- ALGUNS têm:
+UNIQUE(tenant_id, email)
+-- OUTROS não têm isolamento adequado:
+UNIQUE(email) -- ❌ Permite duplicatas entre tenants
+9. ARRAYS vs JSONB - IMPLEMENTAÇÃO MISTA
+// NATIVO (otimizado):
+tags: text("tags").array()
+// JSONB (menos otimizado para arrays simples):
+someField: jsonb("some_field") // Para arrays simples
+📋 VALIDAÇÃO E COMPLIANCE
+10. TABELAS NÃO VALIDADAS
+Schema define: 107 tabelas
+Validação cobre: 59 tabelas
+GAP: 48 tabelas sem validação
+
+11. CLT COMPLIANCE - CAMPOS OBRIGATÓRIOS
+// FALTANDO em algumas tabelas de timecard:
+nsr: bigint("nsr", { mode: "number" }).notNull()
+recordHash: varchar("record_hash", { length: 64 }).notNull()
+digitalSignature: text("digital_signature")
+🏗️ PROBLEMAS ARQUITETURAIS
+12. SCHEMAS DUPLICADOS
+schema-master.ts (principal)
+schema-materials-services.ts (módulo)
+schema-locations.ts (geolocalização)
+RISCO: Definições conflitantes
+13. RELACIONAMENTOS ÓRFÃOS
+// FKs sem constraints definidas:
+customerCompanyId: uuid("customer_company_id") // Sem .references()
+beneficiaryId: uuid("beneficiary_id")          // Sem .references()
+14. TIPOS DE DADOS INCONSISTENTES
+// Telefones com tamanhos diferentes:
+phone: varchar("phone", { length: 20 })  // Em algumas tabelas
+phone: varchar("phone", { length: 50 })  // Em outras tabelas
+📱 PROBLEMAS DE MÓDULOS ESPECÍFICOS
+15. MATERIALS-SERVICES - DUPLICAÇÃO
+Tabelas items definidas em 2 lugares diferentes
+Campos conflitantes entre definições
+16. TICKETS - METADADOS HARD-CODED
+Prioridades e status fixos no código
+Falta sistema hierárquico de configuração
+17. LOCATIONS - GEOMETRIA INCONSISTENTE
+// Coordenadas em formatos diferentes:
+coordinates: jsonb("coordinates")           // GeoJSON completo
+latitude: decimal("latitude", { precision: 10, scale: 7 })  // Campos separados
+🔄 PROBLEMAS DE MIGRAÇÃO
+18. VERSIONING AUSENTE
+Sem controle de versão de schema
+Migrações manuais sem automação
+Rollback impossível
+19. DADOS DE TESTE vs PRODUÇÃO
+Dados mock misturados com reais
+IDs hardcoded em várias partes
