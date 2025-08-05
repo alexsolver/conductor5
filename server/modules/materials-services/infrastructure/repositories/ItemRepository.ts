@@ -1,4 +1,4 @@
-import { eq, and, like, desc, sql, or } from 'drizzle-orm';
+import { eq, and, like, desc, or, sql } from 'drizzle-orm';
 import { items, itemAttachments, itemLinks, itemCustomerLinks, itemSupplierLinks } from '../../../../../shared/schema-materials-services';
 import type { Item } from '../../domain/entities';
 import type { ExtractTablesWithRelations } from 'drizzle-orm';
@@ -79,7 +79,7 @@ export class ItemRepository {
         measurementUnit: items.measurementUnit,
         maintenancePlan: items.maintenancePlan,
         defaultChecklist: items.defaultChecklist,
-        groupName: sql<string>`${items.groupName}`.as('group_name'),
+        groupName: items.groupName,
         status: items.status,
         createdAt: items.createdAt,
         updatedAt: items.updatedAt,
