@@ -210,6 +210,7 @@ router.get('/stock/items', async (req: AuthenticatedRequest, res) => {
 // ===== TICKET MATERIALS ROUTES =====
 router.get('/tickets/:ticketId/planned-items', TicketMaterialsController.getPlannedItems);
 router.post('/tickets/:ticketId/planned-items', TicketMaterialsController.addPlannedItem);
+router.delete('/tickets/:ticketId/planned-items/:itemId', TicketMaterialsController.removePlannedItem);
 
 router.get('/tickets/:ticketId/consumed-items', TicketMaterialsController.getConsumedItems);
 router.post('/tickets/:ticketId/consumed-items', TicketMaterialsController.addConsumedItem);

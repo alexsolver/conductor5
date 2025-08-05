@@ -9,7 +9,7 @@ import {
 import { items } from '../../../../../shared/schema-materials-services';
 import { eq, and, desc, sql } from 'drizzle-orm';
 import { sendSuccess, sendError } from '../../../../utils/standardResponse';
-import type { AuthenticatedRequest } from '../../../middleware/jwtAuth';
+import type { AuthenticatedRequest } from '../../../../middleware/jwtAuth';
 
 
 
