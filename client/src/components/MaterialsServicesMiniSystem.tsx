@@ -151,7 +151,9 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
   });
 
   const items = itemsData?.data || [];
-  const availableItems = availableItemsData || [];
+  const availableItems = Array.isArray(availableItemsData?.data) ? availableItemsData.data : 
+                         Array.isArray(availableItemsData?.availableItems) ? availableItemsData.availableItems :
+                         Array.isArray(availableItemsData) ? availableItemsData : [];
   const plannedMaterials = plannedData?.data?.plannedItems || [];
   const consumedMaterials = consumedData?.data?.consumedItems || [];
   const costs = costsData?.data || {};
