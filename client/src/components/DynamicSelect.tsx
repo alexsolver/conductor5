@@ -97,7 +97,8 @@ export function DynamicSelect(props: DynamicSelectProps) {
           id: opt.id,
           value: opt.value,
           label: opt.label,
-          field_name: opt.field_name
+          field_name: opt.field_name,
+          color: opt.color
         }))
       });
       
