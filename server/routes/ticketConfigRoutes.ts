@@ -556,6 +556,18 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => 
         AND active = true
         ORDER BY sort_order, name
       `);
+      
+      // Sincronização automática: garantir que cores existam na ticket_field_options
+      for (const row of result.rows) {
+        await db.execute(sql`
+          INSERT INTO "${sql.raw(schemaName)}".ticket_field_options 
+          (tenant_id, customer_id, field_name, value, label, color, sort_order, is_active, is_default)
+          VALUES (${tenantId}, ${companyId}, 'category', ${row.value}, ${row.label}, ${row.color}, ${row.sort_order || 0}, true, false)
+          ON CONFLICT (tenant_id, customer_id, field_name, value) 
+          DO UPDATE SET color = EXCLUDED.color, label = EXCLUDED.label
+        `);
+      }
+      console.log(`🔄 Auto-synced ${result.rows.length} category colors to ticket_field_options`);
     } else if (fieldName === 'subcategory') {
       if (dependsOn) {
         // Buscar subcategorias para uma categoria específica
@@ -579,6 +591,18 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => 
           ORDER BY s.sort_order, s.name
         `);
         console.log(`🏷️ Subcategories found for category '${dependsOn}': ${result.rows.length} records`);
+        
+        // Sincronização automática: garantir que cores existam na ticket_field_options
+        for (const row of result.rows) {
+          await db.execute(sql`
+            INSERT INTO "${sql.raw(schemaName)}".ticket_field_options 
+            (tenant_id, customer_id, field_name, value, label, color, sort_order, is_active, is_default)
+            VALUES (${tenantId}, ${companyId}, 'subcategory', ${row.value}, ${row.label}, ${row.color}, ${row.sort_order || 0}, true, false)
+            ON CONFLICT (tenant_id, customer_id, field_name, value) 
+            DO UPDATE SET color = EXCLUDED.color, label = EXCLUDED.label
+          `);
+        }
+        console.log(`🔄 Auto-synced ${result.rows.length} subcategory colors to ticket_field_options`);
       } else {
         // Retornar array vazio se não há dependência selecionada
         result = { rows: [] };
@@ -607,6 +631,18 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => 
           ORDER BY a.sort_order, a.name
         `);
         console.log(`🏷️ Actions found for subcategory '${dependsOn}': ${result.rows.length} records`);
+        
+        // Sincronização automática: garantir que cores existam na ticket_field_options
+        for (const row of result.rows) {
+          await db.execute(sql`
+            INSERT INTO "${sql.raw(schemaName)}".ticket_field_options 
+            (tenant_id, customer_id, field_name, value, label, color, sort_order, is_active, is_default)
+            VALUES (${tenantId}, ${companyId}, 'action', ${row.value}, ${row.label}, ${row.color}, ${row.sort_order || 0}, true, false)
+            ON CONFLICT (tenant_id, customer_id, field_name, value) 
+            DO UPDATE SET color = EXCLUDED.color, label = EXCLUDED.label
+          `);
+        }
+        console.log(`🔄 Auto-synced ${result.rows.length} action colors to ticket_field_options`);
       } else {
         // Retornar array vazio se não há dependência selecionada
         result = { rows: [] };
