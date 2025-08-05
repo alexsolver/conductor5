@@ -1289,13 +1289,16 @@ router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res) =
     `);
     
     console.log(`🔍 Found ${sourceFieldOptions.rows.length} source field options to copy`);
+    console.log(`🔍 Source field options:`, sourceFieldOptions.rows.map(o => `${o.field_name}:${o.value}`));
     
     let copiedFieldOptionsCount = 0;
     
-    // Insert each field option individually with ON CONFLICT handling  
+    // Insert each field option individually with detailed logging  
     for (const option of sourceFieldOptions.rows) {
       try {
-        await db.execute(sql`
+        console.log(`🔄 Copying field option: ${option.field_name}:${option.value} from ${sourceCompanyIdToUse} to ${targetCompanyId}`);
+        
+        const insertResult = await db.execute(sql`
           INSERT INTO "${sql.raw(schemaName)}"."ticket_field_options" 
           (id, tenant_id, customer_id, field_name, value, label, color, sort_order, is_default, is_active, status_type, created_at, updated_at)
           VALUES (
@@ -1313,11 +1316,17 @@ router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res) =
             NOW(),
             NOW()
           )
-          ON CONFLICT (tenant_id, field_name, value) DO NOTHING
+          RETURNING id
         `);
-        copiedFieldOptionsCount++;
+        
+        if (insertResult.rows.length > 0) {
+          copiedFieldOptionsCount++;
+          console.log(`✅ Successfully copied ${option.field_name}:${option.value}`);
+        } else {
+          console.log(`⚠️ No rows returned for ${option.field_name}:${option.value}`);
+        }
       } catch (error) {
-        console.log(`⚠️ Skipped field option ${option.field_name}:${option.value} - already exists`);
+        console.log(`❌ Failed to copy field option ${option.field_name}:${option.value}:`, error.message);
       }
     }
     
