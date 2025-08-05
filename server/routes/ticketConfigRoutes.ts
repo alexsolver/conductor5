@@ -632,7 +632,7 @@ router.delete('/field-options/:id', jwtAuth, async (req: AuthenticatedRequest, r
 
     // First check if the field option exists
     const checkResult = await db.execute(sql`
-      SELECT id, display_label, field_name FROM ${sql.identifier(schemaName)}.ticket_field_options 
+      SELECT id, label, field_name FROM "${sql.raw(schemaName)}"."ticket_field_options" 
       WHERE id = ${optionId} AND tenant_id = ${tenantId}
     `);
 
@@ -645,7 +645,7 @@ router.delete('/field-options/:id', jwtAuth, async (req: AuthenticatedRequest, r
 
     // Delete the field option
     const deleteResult = await db.execute(sql`
-      DELETE FROM ${sql.identifier(schemaName)}.ticket_field_options 
+      DELETE FROM "${sql.raw(schemaName)}"."ticket_field_options" 
       WHERE id = ${optionId} AND tenant_id = ${tenantId}
     `);
 
@@ -947,7 +947,7 @@ router.put('/field-options/:id', jwtAuth, async (req: AuthenticatedRequest, res)
 
     // First check if the field option exists
     const checkResult = await db.execute(sql`
-      SELECT id, field_name, label FROM ${sql.identifier(schemaName)}.ticket_field_options 
+      SELECT id, field_name, label FROM "${sql.raw(schemaName)}"."ticket_field_options" 
       WHERE id = ${optionId} AND tenant_id = ${tenantId}
     `);
 
@@ -1037,7 +1037,7 @@ router.put('/field-options/:id/status', jwtAuth, async (req: AuthenticatedReques
 
     // First check if the field option exists
     const checkResult = await db.execute(sql`
-      SELECT id, field_name, label, is_active FROM ${sql.identifier(schemaName)}.ticket_field_options 
+      SELECT id, field_name, label, is_active FROM "${sql.raw(schemaName)}"."ticket_field_options" 
       WHERE id = ${optionId} AND tenant_id = ${tenantId}
     `);
 
@@ -1059,7 +1059,7 @@ router.put('/field-options/:id/status', jwtAuth, async (req: AuthenticatedReques
 
     // Update the active status
     const updateResult = await db.execute(sql`
-      UPDATE ${sql.identifier(schemaName)}.ticket_field_options 
+      UPDATE "${sql.raw(schemaName)}"."ticket_field_options" 
       SET 
         is_active = ${active},
         updated_at = NOW()
@@ -1075,7 +1075,7 @@ router.put('/field-options/:id/status', jwtAuth, async (req: AuthenticatedReques
 
     // Verify the update
     const verifyResult = await db.execute(sql`
-      SELECT is_active FROM ${sql.identifier(schemaName)}.ticket_field_options 
+      SELECT is_active FROM "${sql.raw(schemaName)}"."ticket_field_options" 
       WHERE id = ${optionId} AND tenant_id = ${tenantId}
     `);
 
