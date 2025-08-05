@@ -75,6 +75,7 @@ import TicketMaterials from "./pages/TicketMaterials";
 import { StockManagement } from "./pages/StockManagement";
 import LPU from "./pages/LPU";
 import { SupplierManagement } from "./pages/SupplierManagement";
+import { CustomerItemMappings } from "./pages/CustomerItemMappings";
 
 import AssetManagement from "./pages/AssetManagement";
 import ComplianceManagement from "./pages/ComplianceManagement";
@@ -200,6 +201,7 @@ function AppRouter() {
         <Route path="/tickets/:id/materials" component={TicketMaterials} />
         <Route path="/stock-management" component={StockManagement} />
         <Route path="/supplier-management" component={SupplierManagement} />
+        <Route path="/customer-item-mappings" component={CustomerItemMappings} />
         <Route path="/lpu" component={LPU} />
         <Route path="/lpu-management" component={LPU} />
         
