@@ -62,7 +62,7 @@ const TicketDetails = React.memo(() => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isEditMode, setIsEditMode] = useState(false);
-  const { getFieldColor, getFieldLabel } = useFieldColors();
+  const { getFieldColor, getFieldLabel, isLoading: isFieldColorsLoading } = useFieldColors();
 
   // Extract query parameters from URL
   const urlParams = new URLSearchParams(location.split('?')[1] || '');
@@ -1133,6 +1133,7 @@ const TicketDetails = React.memo(() => {
                               fieldName="priority"
                               value={field.value}
                               colorHex={getFieldColor('priority', field.value)}
+                              isLoading={isFieldColorsLoading}
                             >
                               {getFieldLabel('priority', field.value)}
                             </DynamicBadge>
@@ -1166,6 +1167,7 @@ const TicketDetails = React.memo(() => {
                               fieldName="status"
                               value={field.value}
                               colorHex={getFieldColor('status', field.value)}
+                              isLoading={isFieldColorsLoading}
                             >
                               {getFieldLabel('status', field.value)}
                             </DynamicBadge>
@@ -1199,6 +1201,7 @@ const TicketDetails = React.memo(() => {
                               fieldName="urgency"
                               value={field.value}
                               colorHex={getFieldColor('urgency', field.value)}
+                              isLoading={isFieldColorsLoading}
                             >
                               {getFieldLabel('urgency', field.value)}
                             </DynamicBadge>
@@ -1232,6 +1235,7 @@ const TicketDetails = React.memo(() => {
                               fieldName="impact"
                               value={field.value}
                               colorHex={getFieldColor('impact', field.value)}
+                              isLoading={isFieldColorsLoading}
                             >
                               {getFieldLabel('impact', field.value)}
                             </DynamicBadge>
@@ -1274,6 +1278,7 @@ const TicketDetails = React.memo(() => {
                                 fieldName="category"
                                 value={field.value || ticket?.category}
                                 colorHex={getFieldColor('category', field.value || ticket?.category)}
+                                isLoading={isFieldColorsLoading}
                               >
                                 {getFieldLabel('category', field.value || ticket?.category)}
                               </DynamicBadge>
@@ -1354,6 +1359,7 @@ const TicketDetails = React.memo(() => {
                                 fieldName="action"
                                 value={field.value || ticket?.action}
                                 colorHex={getFieldColor('action', field.value || ticket?.action)}
+                                isLoading={isFieldColorsLoading}
                               >
                                 {getFieldLabel('action', field.value || ticket?.action)}
                               </DynamicBadge>
@@ -1566,6 +1572,7 @@ const TicketDetails = React.memo(() => {
                             fieldName="environment"
                             value={field.value}
                             colorHex={getFieldColor('environment', field.value || '')}
+                            isLoading={isFieldColorsLoading}
                           >
                             {getFieldLabel('environment', field.value || '') || field.value || 'Não especificado'}
                           </DynamicBadge>
@@ -2344,6 +2351,7 @@ const TicketDetails = React.memo(() => {
                                 fieldName="status"
                                 value={linkedTicket.targetTicket?.status || linkedTicket.status}
                                 colorHex={getFieldColor('status', linkedTicket.targetTicket?.status || linkedTicket.status)}
+                                isLoading={isFieldColorsLoading}
                               >
                                 {getFieldLabel('status', linkedTicket.targetTicket?.status || linkedTicket.status)}
                               </DynamicBadge>
@@ -2352,6 +2360,7 @@ const TicketDetails = React.memo(() => {
                                 fieldName="priority"
                                 value={linkedTicket.targetTicket?.priority || linkedTicket.priority}
                                 colorHex={getFieldColor('priority', linkedTicket.targetTicket?.priority || linkedTicket.priority)}
+                                isLoading={isFieldColorsLoading}
                               >
                                 {getFieldLabel('priority', linkedTicket.targetTicket?.priority || linkedTicket.priority)}
                               </DynamicBadge>

@@ -928,6 +928,7 @@ const TicketsTable = React.memo(() => {
                 fieldName="category"
                 value={rawCategoryValue}
                 colorHex={categoryColor}
+                isLoading={isFieldColorsLoading}
               >
                 {categoryLabel}
               </DynamicBadge>
@@ -953,6 +954,7 @@ const TicketsTable = React.memo(() => {
                 fieldName="status"
                 value={statusValue}
                 colorHex={statusColor}
+                isLoading={isFieldColorsLoading}
               >
                 {statusLabel}
               </DynamicBadge>
@@ -969,6 +971,7 @@ const TicketsTable = React.memo(() => {
                 fieldName="priority"
                 value={priorityValue}
                 colorHex={priorityColor}
+                isLoading={isFieldColorsLoading}
               >
                 {priorityLabel}
               </DynamicBadge>
@@ -981,6 +984,7 @@ const TicketsTable = React.memo(() => {
                 fieldName="impact"
                 value={mapImpactValue((ticket as any).impact)}
                 colorHex={getFieldColorWithFallback('impact', mapImpactValue((ticket as any).impact))}
+                isLoading={isFieldColorsLoading}
               >
                 {getFieldLabel('impact', mapImpactValue((ticket as any).impact))}
               </DynamicBadge>

@@ -12,6 +12,7 @@ interface DynamicBadgeProps {
   className?: string;
   fieldName?: string; // Aceita mas não passa para o DOM
   value?: string; // Aceita mas não passa para o DOM
+  isLoading?: boolean; // Novo prop para loading state
   [key: string]: any; // Para permitir outras props que serão filtradas
 }
 
@@ -93,19 +94,34 @@ export function DynamicBadge(props: DynamicBadgeProps) {
     className,
     fieldName,
     value,
+    isLoading = false,
     ...restProps 
   } = props;
 
-
-
   // 🚨 CORREÇÃO: Filtragem consistente de props usando utilitário
-  const cleanProps = filterDOMProps(restProps, ['fieldName', 'value']);
+  const cleanProps = filterDOMProps(restProps, ['fieldName', 'value', 'isLoading']);
   let dynamicClasses = '';
   let inlineStyles: React.CSSProperties = {};
 
   // Debug log para verificar a cor recebida
   if (process.env.NODE_ENV === 'development') {
     console.log(`🎨 DynamicBadge: fieldName=${fieldName}, value=${value}, colorHex=${colorHex}`);
+  }
+
+  // Se estiver carregando, mostrar um skeleton badge
+  if (isLoading) {
+    return (
+      <Badge 
+        variant="outline"
+        className={cn(
+          'font-medium text-xs px-2 py-1 rounded-md animate-pulse bg-gray-200 text-gray-400 border-gray-300',
+          className
+        )}
+        {...cleanProps}
+      >
+        {children}
+      </Badge>
+    );
   }
 
   // 🚨 CORREÇÃO: Simplificar lógica e sempre usar cores inline
