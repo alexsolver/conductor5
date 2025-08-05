@@ -237,6 +237,7 @@ export const tickets = pgTable("tickets", {
   businessImpact: text("business_impact"),
   callerId: uuid("caller_id").references(() => customers.id),
   callerType: varchar("caller_type", { length: 50 }).default("customer"),
+  customerCompanyId: uuid("customer_company_id").references(() => customerCompanies.id), // CRITICAL: Company the ticket belongs to
   beneficiaryId: uuid("beneficiary_id").references(() => favorecidos.id),
   beneficiaryType: varchar("beneficiary_type", { length: 50 }).default("customer"),
   responsibleId: uuid("responsible_id").references(() => users.id),
@@ -269,6 +270,7 @@ export const tickets = pgTable("tickets", {
   index("tickets_tenant_status_priority_idx").on(table.tenantId, table.status, table.priority),
   index("tickets_tenant_assigned_idx").on(table.tenantId, table.responsibleId),
   index("tickets_tenant_customer_idx").on(table.tenantId, table.callerId),
+  index("tickets_tenant_company_idx").on(table.tenantId, table.customerCompanyId), // CRITICAL: Index for company filtering
   index("tickets_tenant_environment_idx").on(table.tenantId, table.environment),
   index("tickets_tenant_template_idx").on(table.tenantId, table.templateName),
 ]);
@@ -2658,7 +2660,7 @@ export const insertSlaMetricSchema = createInsertSchema(slaMetrics);
 export const ticketTemplates = pgTable("ticket_templates", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
-  customerCompanyId: uuid("customer_company_id").references(() => customers.id, { onDelete: 'cascade' }),
+  customerCompanyId: uuid("customer_company_id").references(() => customerCompanies.id, { onDelete: 'cascade' }),
   
   // Identificação
   name: varchar("name", { length: 255 }).notNull(),

@@ -51,6 +51,13 @@ Interface preference: Text-based hierarchical menus with dropdowns over visual c
     - **Interface**: Full form validation, table display with status badges, create/edit functionality
     - **Backend Integration**: Working API endpoints with proper tenant isolation
   - **Status**: ✅ FULLY FUNCTIONAL - Complete backend API, frontend integration, DELETE operations, and pricing rules creation working
+- **Schema FK Consistency Fix (August 2025)**: Critical architectural fix for Foreign Key inconsistencies
+  - **Problem Identified**: Inconsistent FK naming (customerId vs customerCompanyId) and wrong table references
+  - **tickets table**: Added missing `customerCompanyId` field with proper FK to customer_companies.id
+  - **FK Reference Fix**: Corrected ticketTemplates.customerCompanyId to reference customerCompanies.id instead of customers.id
+  - **Indexing**: Added critical index tickets_tenant_company_idx for performance
+  - **Materials Filtering**: Fixed MaterialsServicesMiniSystem to use correct customerCompanyId field
+  - **Status**: ✅ CRITICAL FIXES APPLIED - Schema consistency restored, company filtering working correctly
 
 ## System Architecture
 Conductor follows a Clean Architecture with Domain-Driven Design principles.

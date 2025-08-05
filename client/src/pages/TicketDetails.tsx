@@ -210,8 +210,8 @@ const TicketDetails = React.memo(() => {
   // PROBLEMA 9 RESOLVIDO: Otimizar fetch de customers - sem logs redundantes
   useEffect(() => {
     const fetchCompanyCustomers = async () => {
-      // Use the correct field mapping - customer_company_id is the main field
-      const companyId = ticket?.customer_company_id || ticket?.customerCompanyId || ticket?.company;
+      // Use the correct field mapping - customerCompanyId is the standardized field
+      const companyId = ticket?.customerCompanyId;
 
       // Skip if no company
       if (!companyId || companyId === 'unspecified') {
@@ -243,7 +243,7 @@ const TicketDetails = React.memo(() => {
     if (ticket) {
       fetchCompanyCustomers();
     }
-  }, [ticket?.customer_company_id, ticket?.customerCompanyId, ticket?.company]);
+  }, [ticket?.customerCompanyId]);
 
   // PROBLEMA 9 RESOLVIDO: Handle company change otimizado com debounce
   const handleCompanyChange = useCallback(

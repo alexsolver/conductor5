@@ -26,15 +26,15 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
 
   // Fetch items filtered by company (only items linked to ticket's customer company)
   const { data: itemsData, isLoading: itemsLoading } = useQuery({
-    queryKey: ['/api/materials-services/items', ticket?.customer_company_id],
+    queryKey: ['/api/materials-services/items', ticket?.customerCompanyId],
     queryFn: async () => {
       // Add company filter to only show items linked to the ticket's customer company
-      const companyId = ticket?.customer_company_id || ticket?.customerCompanyId;
+      const companyId = ticket?.customerCompanyId;
       const params = companyId ? `?companyId=${companyId}` : '';
       const response = await apiRequest('GET', `/api/materials-services/items${params}`);
       return response.json();
     },
-    enabled: !!ticket && (!!ticket.customer_company_id || !!ticket.customerCompanyId), // Only run when ticket has company data
+    enabled: !!ticket && !!ticket.customerCompanyId, // Only run when ticket has company data
   });
 
   // Fetch available items for consumption (only planned items)
