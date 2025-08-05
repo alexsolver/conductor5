@@ -515,6 +515,8 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => 
   try {
     const tenantId = req.user?.tenantId;
     let companyId = req.query.companyId as string;
+    const fieldName = req.query.fieldName as string;
+    const dependsOn = req.query.dependsOn as string; // Para hierarquias (categoria → subcategoria → ação)
 
     if (!tenantId) {
       return res.status(400).json({ success: false, message: "User not associated with a tenant" });
@@ -526,55 +528,103 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => 
       console.log('🎯 No company selected, using Default company for field options');
     }
 
-    console.log('🔍 Fetching field options for:', { tenantId, companyId });
+    console.log('🔍 Fetching field options for:', { tenantId, companyId, fieldName, dependsOn });
 
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    let result: any;
 
-    // Primeiro, tentar buscar configurações específicas da empresa (INCLUINDO INATIVAS)
-    const result = await db.execute(sql`
-      SELECT 
-        id,
-        tenant_id,
-        customer_id,
-        field_name,
-        value,
-        label,
-        color,
-        sort_order,
-        is_active,
-        is_default,
-        status_type,
-        created_at,
-        updated_at
-      FROM "${sql.raw(schemaName)}".ticket_field_options 
-      WHERE tenant_id = ${tenantId}
-      AND customer_id = ${companyId}
-      AND is_active = true
-      ORDER BY field_name, sort_order, label
-    `);
-
-    // Removido: Sem fallback - cada empresa deve ter suas próprias classificações
-    console.log(`🏢 Company-specific field options found: ${result.rows.length} records`);
-
-    if (result.rows.length === 0) {
-      console.log(`⚠️ No field options found for company ${companyId} - company needs to configure its own classifications`);
+    // Handle hierarchical field types
+    if (fieldName === 'category') {
+      // Buscar categorias
+      result = await db.execute(sql`
+        SELECT 
+          id,
+          name as label,
+          name as value,
+          color,
+          sort_order,
+          active as is_active,
+          created_at,
+          updated_at
+        FROM "${sql.raw(schemaName)}".ticket_categories 
+        WHERE tenant_id = ${tenantId}
+        AND company_id = ${companyId}
+        AND active = true
+        ORDER BY sort_order, name
+      `);
+    } else if (fieldName === 'subcategory' && dependsOn) {
+      // Buscar subcategorias para uma categoria específica
+      result = await db.execute(sql`
+        SELECT 
+          s.id,
+          s.name as label,
+          s.name as value,
+          s.color,
+          s.sort_order,
+          s.active as is_active,
+          s.category_id,
+          s.created_at,
+          s.updated_at
+        FROM "${sql.raw(schemaName)}".ticket_subcategories s
+        JOIN "${sql.raw(schemaName)}".ticket_categories c ON s.category_id = c.id
+        WHERE s.tenant_id = ${tenantId}
+        AND s.company_id = ${companyId}
+        AND c.name = ${dependsOn}
+        AND s.active = true
+        ORDER BY s.sort_order, s.name
+      `);
+    } else if (fieldName === 'action' && dependsOn) {
+      // Buscar ações para uma subcategoria específica
+      result = await db.execute(sql`
+        SELECT 
+          a.id,
+          a.name as label,
+          a.name as value,
+          a.color,
+          a.sort_order,
+          a.active as is_active,
+          a.subcategory_id,
+          a.created_at,
+          a.updated_at
+        FROM "${sql.raw(schemaName)}".ticket_actions a
+        JOIN "${sql.raw(schemaName)}".ticket_subcategories s ON a.subcategory_id = s.id
+        WHERE a.tenant_id = ${tenantId}
+        AND a.company_id = ${companyId}
+        AND s.name = ${dependsOn}
+        AND a.active = true
+        ORDER BY a.sort_order, a.name
+      `);
+    } else {
+      // Buscar opções de campos normais (status, priority, impact, urgency)
+      result = await db.execute(sql`
+        SELECT 
+          id,
+          tenant_id,
+          customer_id,
+          field_name,
+          value,
+          label,
+          color,
+          sort_order,
+          is_active,
+          is_default,
+          status_type,
+          created_at,
+          updated_at
+        FROM "${sql.raw(schemaName)}".ticket_field_options 
+        WHERE tenant_id = ${tenantId}
+        AND customer_id = ${companyId}
+        AND is_active = true
+        ${fieldName ? sql`AND field_name = ${fieldName}` : sql``}
+        ORDER BY field_name, sort_order, label
+      `);
     }
 
-    console.log('🔍 Field options query result for company:', companyId, {
-      totalRows: result.rows.length,
-      byFieldName: result.rows.reduce((acc: any, row: any) => {
-        acc[row.field_name] = (acc[row.field_name] || 0) + 1;
-        return acc;
-      }, {}),
-      statusRows: result.rows.filter((row: any) => row.field_name === 'status').map((row: any) => ({
-        id: row.id,
-        value: row.value,
-        label: row.label,
-        is_default: row.is_default,
-        customer_id: row.customer_id,
-        created_at: row.created_at
-      }))
-    });
+    console.log(`🏢 Field options found: ${result.rows.length} records for ${fieldName || 'all fields'}`);
+
+    if (result.rows.length === 0) {
+      console.log(`⚠️ No field options found for ${fieldName || 'any field'} in company ${companyId}`);
+    }
 
     // Force fresh response headers
     res.set({

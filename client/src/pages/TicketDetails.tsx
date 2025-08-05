@@ -354,29 +354,7 @@ const TicketDetails = React.memo(() => {
   });
 
   // Fetch field options for impact, urgency, and locations
-  const { data: impactOptions } = useQuery({
-    queryKey: ["/api/ticket-metadata/field-options", "impact"],
-    queryFn: async () => {
-      const response = await apiRequest("GET", "/api/ticket-metadata/field-options/impact");
-      return response.json();
-    },
-    staleTime: 30 * 60 * 1000, // 30 minutos cache
-    gcTime: 60 * 60 * 1000, // 1 hora garbage collection
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-  });
-
-  const { data: urgencyOptions } = useQuery({
-    queryKey: ["/api/ticket-metadata/field-options", "urgency"],
-    queryFn: async () => {
-      const response = await apiRequest("GET", "/api/ticket-metadata/field-options/urgency");
-      return response.json();
-    },
-    staleTime: 30 * 60 * 1000, // 30 minutos cache
-    gcTime: 60 * 60 * 1000, // 1 hora garbage collection
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-  });
+  // Removendo queries antigas - impact e urgency agora usam DynamicSelect
 
   const { data: locationsData } = useQuery({
     queryKey: ["/api/locations"],
@@ -1132,7 +1110,7 @@ const TicketDetails = React.memo(() => {
             <div className="border-t pt-4 mt-6">
               <h3 className="text-sm font-semibold text-gray-600 mb-4">CLASSIFICAÇÃO</h3>
 
-              <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="grid grid-cols-4 gap-4 mb-4">
                 <FormField
                   control={form.control as any}
                   name="priority"
@@ -1147,6 +1125,7 @@ const TicketDetails = React.memo(() => {
                             onValueChange={field.onChange}
                             placeholder="Selecione a prioridade"
                             disabled={!isEditMode}
+                            customerId={ticket?.customerCompanyId || ticket?.customer_company_id}
                           />
                         ) : (
                           <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
@@ -1179,6 +1158,7 @@ const TicketDetails = React.memo(() => {
                             onValueChange={field.onChange}
                             placeholder="Selecione o status"
                             disabled={!isEditMode}
+                            customerId={ticket?.customerCompanyId || ticket?.customer_company_id}
                           />
                         ) : (
                           <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
@@ -1188,6 +1168,72 @@ const TicketDetails = React.memo(() => {
                               colorHex={getFieldColor('status', field.value)}
                             >
                               {getFieldLabel('status', field.value)}
+                            </DynamicBadge>
+                          </div>
+                        )}
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control as any}
+                  name="urgency"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Urgência</FormLabel>
+                      <FormControl>
+                        {isEditMode ? (
+                          <DynamicSelect
+                            fieldName="urgency"
+                            value={field.value}
+                            onValueChange={field.onChange}
+                            placeholder="Selecione a urgência"
+                            disabled={!isEditMode}
+                            customerId={ticket?.customerCompanyId || ticket?.customer_company_id}
+                          />
+                        ) : (
+                          <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
+                            <DynamicBadge
+                              fieldName="urgency"
+                              value={field.value}
+                              colorHex={getFieldColor('urgency', field.value)}
+                            >
+                              {getFieldLabel('urgency', field.value)}
+                            </DynamicBadge>
+                          </div>
+                        )}
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control as any}
+                  name="impact"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Impacto</FormLabel>
+                      <FormControl>
+                        {isEditMode ? (
+                          <DynamicSelect
+                            fieldName="impact"
+                            value={field.value}
+                            onValueChange={field.onChange}
+                            placeholder="Selecione o impacto"
+                            disabled={!isEditMode}
+                            customerId={ticket?.customerCompanyId || ticket?.customer_company_id}
+                          />
+                        ) : (
+                          <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
+                            <DynamicBadge
+                              fieldName="impact"
+                              value={field.value}
+                              colorHex={getFieldColor('impact', field.value)}
+                            >
+                              {getFieldLabel('impact', field.value)}
                             </DynamicBadge>
                           </div>
                         )}
