@@ -29,8 +29,13 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
     queryKey: ['/api/materials-services/items', ticket?.customerCompanyId || 'all'],
     queryFn: async () => {
       // Add company filter to only show items linked to the ticket's customer company
-      const companyId = ticket?.customerCompanyId;
+      const companyId = ticket?.customerCompanyId || ticket?.customer_company_id;
       console.log('🔍 [MaterialsSystem] Fetching items with companyId:', companyId);
+      console.log('🔍 [MaterialsSystem] Available ticket fields:', {
+        customerCompanyId: ticket?.customerCompanyId,
+        customer_company_id: ticket?.customer_company_id,
+        ticketKeys: ticket ? Object.keys(ticket) : 'no ticket'
+      });
       const params = companyId ? `?companyId=${companyId}` : '';
       const response = await apiRequest('GET', `/api/materials-services/items${params}`);
       const result = await response.json();
