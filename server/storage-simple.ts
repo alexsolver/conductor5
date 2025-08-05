@@ -35,6 +35,7 @@ export interface IStorage {
   updateTicket(tenantId: string, ticketId: string, ticketData: any): Promise<any>;
   deleteTicket(tenantId: string, ticketId: string): Promise<boolean>;
   searchTickets(tenantId: string, query: string): Promise<any[]>;
+  getTicketsCount(tenantId: string): Promise<number>;
 
   // Ticket Relationships Management
   getTicketRelationships(tenantId: string, ticketId: string): Promise<any[]>;
@@ -82,6 +83,11 @@ export interface IStorage {
 
   // Email Management
   getEmailInboxMessages(tenantId: string): Promise<any[]>;
+  markEmailAsRead(tenantId: string, messageId: string): Promise<void>;
+  archiveEmail(tenantId: string, messageId: string): Promise<void>;
+  deleteEmail(tenantId: string, messageId: string): Promise<void>;
+  getClientesCount(tenantId: string): Promise<number>;
+
 
   // Project Management
   getProjects(tenantId: string, options?: { limit?: number; offset?: number; search?: string; status?: string }): Promise<any[]>;
@@ -102,6 +108,11 @@ export interface IStorage {
   // Locations Management
   getLocations(tenantId: string): Promise<any[]>;
   createLocation(tenantId: string, locationData: any): Promise<any>;
+  getBeneficiaryLocations(beneficiaryId: string, tenantId: string): Promise<any[]>;
+  addBeneficiaryLocation(beneficiaryId: string, locationId: string, tenantId: string, isPrimary?: boolean): Promise<any>;
+  removeBeneficiaryLocation(beneficiaryId: string, locationId: string, tenantId: string): Promise<boolean>;
+  updateBeneficiaryLocationPrimary(beneficiaryId: string, locationId: string, tenantId: string, isPrimary: boolean): Promise<boolean>;
+
 
     // Beneficiary Management
     getCustomerBeneficiaries(tenantId: string, customerId: string): Promise<any[]>;
@@ -602,6 +613,26 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       logError('Error deleting ticket', error, { tenantId, ticketId });
       throw error;
+    }
+  }
+
+  // Get tickets count for pagination
+  async getTicketsCount(tenantId: string): Promise<number> {
+    try {
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+
+      const result = await tenantDb.execute(sql`
+        SELECT COUNT(*) as count
+        FROM ${sql.identifier(schemaName)}.tickets 
+        WHERE tenant_id = ${validatedTenantId}
+      `);
+      
+      return parseInt((result.rows?.[0]?.count as string) || '0');
+    } catch (error) {
+      logError('Error getting tickets count', error, { tenantId });
+      return 0;
     }
   }
 
@@ -1497,126 +1528,6 @@ export class DatabaseStorage implements IStorage {
         )
       `);
 
-      const defaultIntegrations = [
-        // Comunicação
-        {
-          id: 'gmail-oauth2',
-          name: 'Gmail OAuth2',
-          description: 'Integração OAuth2 com Gmail para envio e recebimento seguro de emails',
-          category: 'Comunicação',
-          icon: 'Mail',
-          features: ['OAuth2 Authentication', 'Send/Receive Emails', 'Auto-sync', 'Secure Token Management']
-        },
-        {
-          id: 'outlook-oauth2',
-          name: 'Outlook OAuth2',
-          description: 'Integração OAuth2 com Microsoft Outlook para emails corporativos',
-          category: 'Comunicação',
-          icon: 'Mail',
-          features: ['OAuth2 Authentication', 'Exchange Integration', 'Calendar Sync', 'Corporate Email']
-        },
-        {
-          id: 'email-smtp',
-          name: 'Email SMTP',
-          description: 'Configuração de servidor SMTP para envio de emails automáticos e notificações',
-          category: 'Comunicação',
-          icon: 'Mail',
-          features: ['Notificações por email', 'Tickets por email', 'Relatórios automáticos']
-        },
-        {
-          id: 'imap-email',
-          name: 'IMAP Email',
-          description: 'Conecte sua caixa de email via IMAP para sincronização de tickets',
-          category: 'Comunicação',
-          icon: 'Inbox',
-          features: ['Sincronização bidirecional', 'Auto-resposta', 'Filtros avançados']
-        },
-        {
-          id: 'whatsapp-business',
-          name: 'WhatsApp Business',
-          description: 'Integração com WhatsApp Business API para atendimento via WhatsApp',
-          category: 'Comunicação',
-          icon: 'MessageSquare',
-          features: ['Mensagens automáticas', 'Templates aprovados', 'Webhooks']
-        },
-        {
-          id: 'slack',
-          name: 'Slack',
-          description: 'Notificações e gerenciamento de tickets através do Slack',
-          category: 'Comunicação',
-          icon: 'MessageCircle',
-          features: ['Notificações de tickets', 'Comandos slash', 'Bot integrado']
-        },
-        {
-          id: 'twilio-sms',
-          name: 'Twilio SMS',
-          description: 'Envio de SMS para notificações e alertas importantes',
-          category: 'Comunicação',
-          icon: 'Phone',
-          features: ['SMS automático', 'Notificações críticas', 'Verificação 2FA']
-        },
-        // Automação
-        {
-          id: 'zapier',
-          name: 'Zapier',
-          description: 'Conecte com mais de 3000 aplicativos através de automações Zapier',
-          category: 'Automação',
-          icon: 'Zap',
-          features: ['Workflows automáticos', '3000+ integrações', 'Triggers personalizados']
-        },
-        {
-          id: 'webhooks',
-          name: 'Webhooks',
-          description: 'Receba notificações em tempo real de eventos do sistema',
-          category: 'Automação',
-          icon: 'Webhook',
-          features: ['Eventos em tempo real', 'Custom endpoints', 'Retry automático']
-        },
-        // Dados
-        {
-          id: 'crm-integration',
-          name: 'CRM Integration',
-          description: 'Sincronização com sistemas CRM para gestão unificada de clientes',
-          category: 'Dados',
-          icon: 'Database',
-          features: ['Sincronização bidirecionais', 'Mapeamento de campos', 'Histórico unificado']
-        },
-        {
-          id: 'dropbox-personal',
-          name: 'Dropbox Pessoal',
-          description: 'Backup automático de dados e arquivos importantes',
-          category: 'Dados',
-          icon: 'Cloud',
-          features: ['Backup automático', 'Sincronização de arquivos', 'Versionamento']
-        },
-        // Segurança
-        {
-          id: 'sso-saml',
-          name: 'SSO/SAML',
-          description: 'Single Sign-On para autenticação corporativa segura',
-          category: 'Segurança',
-          icon: 'Shield',
-          features: ['Single Sign-On', 'SAML 2.0', 'Active Directory', 'Multi-factor Authentication']
-        },
-        // Produtividade
-        {
-          id: 'google-workspace',
-          name: 'Google Workspace',
-          description: 'Integração completa com Gmail, Drive e Calendar',
-          category: 'Produtividade',
-          icon: 'Calendar',
-          features: ['Gmail sync', 'Drive backup', 'Calendar integration']
-        },
-        {
-          id: 'chatbot-ai',
-          name: 'Chatbot IA',
-          description: 'Assistente virtual inteligente para atendimento automatizado',
-          category: 'Produtividade',
-          icon: 'Bot',
-          features: ['Respostas automáticas', 'Machine Learning', 'Escalação inteligente']
-        }
-      ];
-
       // Use raw SQL since Drizzle has issues with TEXT[] arrays - ALL 14 INTEGRATIONS
       const insertQuery = `
         INSERT INTO ${schemaName}.integrations 
@@ -2237,12 +2148,6 @@ export class DatabaseStorage implements IStorage {
       return 0;
     }
   }
-
-  // REMOVED DUPLICATE FUNCTION - Using implementation below
-
-  // DUPLICATE FUNCTIONS REMOVED - Using implementations at end of file
-
-  // DUPLICATE FUNCTION REMOVED - Using implementation at end of file
 
   // ===========================
   // PROJECT MANAGEMENT
