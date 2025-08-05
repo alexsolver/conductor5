@@ -1,4 +1,4 @@
-import { Response } from 'express';
+import type { Response } from 'express';
 import { db } from '../../../../db-tenant';
 import { 
   ticketLpuSettings, 
@@ -81,7 +81,7 @@ export class TicketMaterialsController {
       return sendSuccess(res, { lpuSettings }, 'LPU settings retrieved successfully');
     } catch (error) {
       console.error('Error fetching LPU settings:', error);
-      return sendError(res, error, 'Failed to retrieve LPU settings');
+      return sendError(res, error as Error, 'Failed to retrieve LPU settings');
     }
   }
 
@@ -125,7 +125,7 @@ export class TicketMaterialsController {
       return sendSuccess(res, { lpuSetting: newLpuSetting }, 'LPU setting created successfully', 201);
     } catch (error) {
       console.error('Error setting LPU:', error);
-      return sendError(res, error, 'Failed to set LPU');
+      return sendError(res, error as Error, 'Failed to set LPU');
     }
   }
 
@@ -153,7 +153,7 @@ export class TicketMaterialsController {
       return sendSuccess(res, { plannedItems }, 'Planned items retrieved successfully');
     } catch (error) {
       console.error('Error fetching planned items:', error);
-      return sendError(res, error, 'Failed to retrieve planned items');
+      return sendError(res, error as Error, 'Failed to retrieve planned items');
     }
   }
 
@@ -206,6 +206,13 @@ export class TicketMaterialsController {
 
       // 📝 Registrar no histórico do ticket
       try {
+        console.log('🔍 [HISTORY] Iniciando registro de histórico para item planejado:', {
+          ticketId,
+          itemId,
+          plannedQuantity,
+          tenantId
+        });
+
         const { pool } = await import('../../../../db');
         const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
@@ -218,6 +225,12 @@ export class TicketMaterialsController {
 
         const itemName = itemDetails[0]?.name || 'Item desconhecido';
         const itemType = itemDetails[0]?.type || 'Tipo desconhecido';
+
+        console.log('🔍 [HISTORY] Detalhes do item obtidos:', {
+          itemName,
+          itemType,
+          schemaName
+        });
 
         await createCompleteAuditEntry(
           pool, schemaName, tenantId, ticketId, req,
@@ -236,14 +249,17 @@ export class TicketMaterialsController {
             estimated_cost: estimatedCost.toString()
           }
         );
-      } catch (historyError) {
+
+        console.log('✅ [HISTORY] Entrada de histórico criada com sucesso para item planejado');
+      } catch (historyError: any) {
+        console.error('❌ [HISTORY] Erro ao criar entrada no histórico:', historyError);
         console.log('⚠️ Aviso: Não foi possível criar entrada no histórico:', historyError.message);
       }
 
       return sendSuccess(res, { plannedItem }, 'Planned item added successfully', 201);
     } catch (error) {
       console.error('Error adding planned item:', error);
-      return sendError(res, error, 'Failed to add planned item');
+      return sendError(res, error as Error, 'Failed to add planned item');
     }
   }
 
@@ -305,14 +321,14 @@ export class TicketMaterialsController {
             }
           );
         }
-      } catch (historyError) {
+      } catch (historyError: any) {
         console.log('⚠️ Aviso: Não foi possível criar entrada no histórico:', historyError.message);
       }
 
       return sendSuccess(res, {}, 'Planned item removed successfully');
     } catch (error) {
       console.error('Error removing planned item:', error);
-      return sendError(res, error, 'Failed to remove planned item');
+      return sendError(res, error as Error, 'Failed to remove planned item');
     }
   }
 
@@ -329,31 +345,31 @@ export class TicketMaterialsController {
       const consumedItems = await db
         .select()
         .from(ticketConsumedItems)
+        .leftJoin(items, eq(ticketConsumedItems.itemId, items.id))
         .where(and(
           eq(ticketConsumedItems.tenantId, tenantId),
           eq(ticketConsumedItems.ticketId, ticketId),
           eq(ticketConsumedItems.isActive, true)
         ))
-        .orderBy(desc(ticketConsumedItems.consumedAt));
+        .orderBy(desc(ticketConsumedItems.createdAt));
 
       return sendSuccess(res, { consumedItems }, 'Consumed items retrieved successfully');
     } catch (error) {
       console.error('Error fetching consumed items:', error);
-      return sendError(res, error, 'Failed to retrieve consumed items');
+      return sendError(res, error as Error, 'Failed to retrieve consumed items');
     }
   }
 
-  // Add consumed item (technician reports actual usage)
+  // Add consumed item to ticket
   static async addConsumedItem(req: AuthenticatedRequest, res: Response) {
     try {
       const { ticketId } = req.params;
-      const { 
-        itemId, 
+      const {
+        itemId,
         plannedItemId,
-        actualQuantity, 
-        lpuId, 
+        actualQuantity,
+        plannedQuantity,
         unitPriceAtConsumption,
-        stockLocationId,
         consumptionType,
         notes,
         batchNumber,
@@ -363,41 +379,27 @@ export class TicketMaterialsController {
       const tenantId = req.user?.tenantId;
       const userId = req.user?.id;
 
-      if (!tenantId || !ticketId || !itemId || !actualQuantity || !lpuId || unitPriceAtConsumption === undefined || unitPriceAtConsumption === null) {
+      if (!tenantId || !ticketId || !itemId || !actualQuantity || !unitPriceAtConsumption) {
         return sendError(res, 'Missing required fields', 'Missing required fields', 400);
       }
 
       const totalCost = parseFloat(actualQuantity) * parseFloat(unitPriceAtConsumption);
-
-      // Get planned quantity if planned item exists
-      let plannedQuantity = '0';
-      if (plannedItemId) {
-        const planned = await db
-          .select({ plannedQuantity: ticketPlannedItems.plannedQuantity })
-          .from(ticketPlannedItems)
-          .where(eq(ticketPlannedItems.id, plannedItemId))
-          .limit(1);
-        
-        if (planned.length > 0) {
-          plannedQuantity = planned[0].plannedQuantity;
-        }
-      }
 
       const [consumedItem] = await db
         .insert(ticketConsumedItems)
         .values({
           tenantId,
           ticketId,
-          plannedItemId,
           itemId,
-          plannedQuantity,
+          plannedItemId,
           actualQuantity: actualQuantity.toString(),
-          lpuId,
+          plannedQuantity: plannedQuantity?.toString() || '0',
           unitPriceAtConsumption: unitPriceAtConsumption.toString(),
           totalCost: totalCost.toString(),
-          technicianId: userId!,
-          stockLocationId,
-          consumptionType: consumptionType || 'used',
+          consumptionType: consumptionType || 'direct',
+          consumedById: userId,
+          consumedAt: new Date(),
+          status: 'consumed',
           notes,
           batchNumber,
           serialNumber,
@@ -407,6 +409,13 @@ export class TicketMaterialsController {
 
       // 📝 Registrar no histórico do ticket
       try {
+        console.log('🔍 [HISTORY] Iniciando registro de histórico para item consumido:', {
+          ticketId,
+          itemId,
+          actualQuantity,
+          tenantId
+        });
+
         const { pool } = await import('../../../../db');
         const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
@@ -419,6 +428,12 @@ export class TicketMaterialsController {
 
         const itemName = itemDetails[0]?.name || 'Item desconhecido';
         const itemType = itemDetails[0]?.type || 'Tipo desconhecido';
+
+        console.log('🔍 [HISTORY] Detalhes do item obtidos para consumo:', {
+          itemName,
+          itemType,
+          schemaName
+        });
 
         await createCompleteAuditEntry(
           pool, schemaName, tenantId, ticketId, req,
@@ -439,14 +454,17 @@ export class TicketMaterialsController {
             notes: notes || ''
           }
         );
-      } catch (historyError) {
+
+        console.log('✅ [HISTORY] Entrada de histórico criada com sucesso para item consumido');
+      } catch (historyError: any) {
+        console.error('❌ [HISTORY] Erro ao criar entrada no histórico:', historyError);
         console.log('⚠️ Aviso: Não foi possível criar entrada no histórico:', historyError.message);
       }
 
       return sendSuccess(res, { consumedItem }, 'Consumed item added successfully', 201);
     } catch (error) {
       console.error('Error adding consumed item:', error);
-      return sendError(res, error, 'Failed to add consumed item');
+      return sendError(res, error as Error, 'Failed to add consumed item');
     }
   }
 
@@ -508,19 +526,80 @@ export class TicketMaterialsController {
             }
           );
         }
-      } catch (historyError) {
+      } catch (historyError: any) {
         console.log('⚠️ Aviso: Não foi possível criar entrada no histórico:', historyError.message);
       }
 
       return sendSuccess(res, {}, 'Consumed item removed successfully');
     } catch (error) {
       console.error('Error removing consumed item:', error);
-      return sendError(res, error, 'Failed to remove consumed item');
+      return sendError(res, error as Error, 'Failed to remove consumed item');
     }
   }
 
-  // Get available planned items for consumption
-  static async getAvailableItemsForConsumption(req: AuthenticatedRequest, res: Response) {
+  // Get cost summary for a ticket
+  static async getCostsSummary(req: AuthenticatedRequest, res: Response) {
+    try {
+      const { ticketId } = req.params;
+      const tenantId = req.user?.tenantId;
+
+      if (!tenantId || !ticketId) {
+        return sendError(res, 'Missing tenant ID or ticket ID', 'Missing tenant ID or ticket ID', 400);
+      }
+
+      // Calculate planned costs
+      const plannedCostsQuery = await db
+        .select({
+          totalEstimatedCost: sql<number>`SUM(CAST(${ticketPlannedItems.estimatedCost} as DECIMAL))`,
+          totalPlannedItems: sql<number>`COUNT(*)`
+        })
+        .from(ticketPlannedItems)
+        .where(and(
+          eq(ticketPlannedItems.tenantId, tenantId),
+          eq(ticketPlannedItems.ticketId, ticketId),
+          eq(ticketPlannedItems.isActive, true)
+        ));
+
+      // Calculate consumed costs
+      const consumedCostsQuery = await db
+        .select({
+          totalActualCost: sql<number>`SUM(CAST(${ticketConsumedItems.totalCost} as DECIMAL))`,
+          totalConsumedItems: sql<number>`COUNT(*)`
+        })
+        .from(ticketConsumedItems)
+        .where(and(
+          eq(ticketConsumedItems.tenantId, tenantId),
+          eq(ticketConsumedItems.ticketId, ticketId),
+          eq(ticketConsumedItems.isActive, true)
+        ));
+
+      const plannedCosts = plannedCostsQuery[0];
+      const consumedCosts = consumedCostsQuery[0];
+
+      const summary = {
+        planned: {
+          totalEstimatedCost: plannedCosts.totalEstimatedCost || 0,
+          totalItems: plannedCosts.totalPlannedItems || 0
+        },
+        consumed: {
+          totalActualCost: consumedCosts.totalActualCost || 0,
+          totalItems: consumedCosts.totalConsumedItems || 0
+        },
+        variance: {
+          costDifference: (consumedCosts.totalActualCost || 0) - (plannedCosts.totalEstimatedCost || 0),
+          itemsDifference: (consumedCosts.totalConsumedItems || 0) - (plannedCosts.totalPlannedItems || 0)
+        }
+      };
+
+      return sendSuccess(res, { summary }, 'Costs summary retrieved successfully');
+    } catch (error) {
+      console.error('Error fetching costs summary:', error);
+      return sendError(res, error as Error, 'Failed to retrieve costs summary');
+    }
+  }
+
+  // Get available items for consumption (items that were planned but not fully consumed)
+  static async getAvailableForConsumption(req: AuthenticatedRequest, res: Response) {
     try {
       const { ticketId } = req.params;
       const tenantId = req.user?.tenantId;
@@ -531,122 +610,46 @@ export class TicketMaterialsController {
       });
 
       if (!tenantId || !ticketId) {
-        console.log('❌ [AVAILABLE-FOR-CONSUMPTION] Missing required fields');
         return sendError(res, 'Missing tenant ID or ticket ID', 'Missing tenant ID or ticket ID', 400);
       }
 
-      // Query planned items with their details and remaining quantities
-      const plannedItemsRaw = await db
-        .select()
+      // Get all planned items with their consumption data
+      const availableItems = await db
+        .select({
+          plannedItem: ticketPlannedItems,
+          item: items,
+          consumedQuantity: sql<number>`COALESCE(SUM(CAST(consumed.actual_quantity as DECIMAL)), 0)`
+        })
         .from(ticketPlannedItems)
         .leftJoin(items, eq(ticketPlannedItems.itemId, items.id))
+        .leftJoin(
+          ticketConsumedItems, 
+          and(
+            eq(ticketConsumedItems.plannedItemId, ticketPlannedItems.id),
+            eq(ticketConsumedItems.isActive, true)
+          ),
+          'consumed'
+        )
         .where(and(
           eq(ticketPlannedItems.tenantId, tenantId),
           eq(ticketPlannedItems.ticketId, ticketId),
           eq(ticketPlannedItems.isActive, true)
         ))
-        .orderBy(desc(ticketPlannedItems.createdAt));
+        .groupBy(ticketPlannedItems.id, items.id);
 
-      // Transform the results to a cleaner format
-      const plannedItems = plannedItemsRaw.map(row => ({
-        id: row.ticket_planned_items.id,
-        itemId: row.ticket_planned_items.itemId,
-        plannedQuantity: parseFloat(row.ticket_planned_items.plannedQuantity || '0'),
-        unitPriceAtPlanning: parseFloat(row.ticket_planned_items.unitPriceAtPlanning || '0'),
-        priority: row.ticket_planned_items.priority,
-        notes: row.ticket_planned_items.notes,
-        createdAt: row.ticket_planned_items.createdAt,
-        itemName: row.items?.name || 'Item não encontrado',
-        itemType: row.items?.type || 'Tipo não informado',
-        unitCost: 0, // Price will come from LPU
-        itemDescription: row.items?.description || ''
-      }));
+      // Filter items that still have available quantity
+      const itemsWithAvailableQuantity = availableItems.filter(item => {
+        const plannedQty = parseFloat(item.plannedItem.plannedQuantity);
+        const consumedQty = item.consumedQuantity || 0;
+        return plannedQty > consumedQty;
+      });
 
-      // Get consumed quantities for each item
-      const consumedItems = await db
-        .select({
-          itemId: ticketConsumedItems.itemId,
-          totalConsumed: sql<number>`SUM(${ticketConsumedItems.actualQuantity})`.as('totalConsumed')
-        })
-        .from(ticketConsumedItems)
-        .where(and(
-          eq(ticketConsumedItems.tenantId, tenantId),
-          eq(ticketConsumedItems.ticketId, ticketId)
-        ))
-        .groupBy(ticketConsumedItems.itemId);
+      console.log(`✅ [AVAILABLE-FOR-CONSUMPTION] Found items: ${itemsWithAvailableQuantity.length}`);
 
-      // Create a map of consumed quantities
-      const consumedMap = new Map(
-        consumedItems.map(item => [item.itemId, item.totalConsumed || 0])
-      );
-
-      // Filter items that still have remaining quantity
-      const availableItems = plannedItems
-        .map(item => {
-          const consumed = consumedMap.get(item.itemId) || 0;
-          const remainingQuantity = (item.plannedQuantity || 0) - consumed;
-          
-          return {
-            ...item,
-            totalConsumed: consumed,
-            remainingQuantity
-          };
-        })
-        .filter(item => item.remainingQuantity > 0);
-
-      console.log('✅ [AVAILABLE-FOR-CONSUMPTION] Found items:', availableItems.length);
-
-      return sendSuccess(res, availableItems, 'Available items for consumption retrieved successfully');
-
+      return sendSuccess(res, { availableItems: itemsWithAvailableQuantity }, 'Available items retrieved successfully');
     } catch (error) {
-      console.error('❌ [AVAILABLE-FOR-CONSUMPTION] Error:', error);
-      return sendError(res, error, 'Failed to retrieve available items for consumption');
-    }
-  }
-
-  // Get costs summary for a ticket
-  static async getCostsSummary(req: AuthenticatedRequest, res: Response) {
-    try {
-      const { ticketId } = req.params;
-      const tenantId = req.user?.tenantId;
-
-      if (!tenantId || !ticketId) {
-        return sendError(res, 'Missing tenant ID or ticket ID', 'Missing tenant ID or ticket ID', 400);
-      }
-
-      const [summary] = await db
-        .select()
-        .from(ticketCostsSummary)
-        .where(and(
-          eq(ticketCostsSummary.tenantId, tenantId),
-          eq(ticketCostsSummary.ticketId, ticketId)
-        ))
-        .limit(1);
-
-      if (!summary) {
-        // Create initial summary if it doesn't exist
-        const [newSummary] = await db
-          .insert(ticketCostsSummary)
-          .values({
-            tenantId,
-            ticketId,
-            totalPlannedCost: '0',
-            totalActualCost: '0',
-            costVariance: '0',
-            costVariancePercentage: '0',
-            materialsCount: 0,
-            servicesCount: 0,
-            totalItemsCount: 0
-          })
-          .returning();
-
-        return sendSuccess(res, { summary: newSummary }, 'Costs summary retrieved successfully');
-      }
-
-      return sendSuccess(res, { summary }, 'Costs summary retrieved successfully');
-    } catch (error) {
-      console.error('Error fetching costs summary:', error);
-      return sendError(res, error, 'Failed to retrieve costs summary');
+      console.error('Error fetching available items for consumption:', error);
+      return sendError(res, error as Error, 'Failed to retrieve available items');
     }
   }
 }
