@@ -258,7 +258,7 @@ export default function Customers() {
                 <TableRow key={customer.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
                   <TableCell>
                     <Avatar className="h-8 w-8">
-                      <AvatarFallback className="bg-purple-100 text-purple-600 font-semibold text-sm">
+                      <AvatarFallback className="bg-purple-500 text-white font-semibold text-sm">
                         {getInitials(customer) || "U"}
                       </AvatarFallback>
                     </Avatar>
