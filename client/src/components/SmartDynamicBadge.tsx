@@ -15,6 +15,7 @@ interface SmartDynamicBadgeProps {
   variant?: 'default' | 'secondary' | 'destructive' | 'outline';
   showIcon?: boolean;
   size?: 'default' | 'sm' | 'lg';
+  loading?: boolean;
   [key: string]: any;
 }
 
@@ -25,6 +26,7 @@ export function SmartDynamicBadge({
   variant = "secondary", 
   showIcon = false, 
   size = "default",
+  loading = false,
   ...props 
 }: SmartDynamicBadgeProps) {
   const { getFieldColor, getFieldLabel, isLoading, isReady } = useFieldColors();
@@ -33,16 +35,33 @@ export function SmartDynamicBadge({
     return null;
   }
 
+  // Size-specific classes
+  const sizeClasses = {
+    sm: "text-xs px-2 py-1 h-5",
+    default: "text-sm px-2.5 py-1.5 h-6", 
+    lg: "text-base px-3 py-2 h-8"
+  };
+
+  const iconSizes = {
+    sm: "h-2.5 w-2.5",
+    default: "h-3 w-3",
+    lg: "h-4 w-4"
+  };
+
   // 🚨 CORREÇÃO CRÍTICA: Aguardar dados estarem prontos antes de renderizar
-  if (isLoading || !isReady) {
+  if (isLoading || !isReady || loading) {
     return (
       <Badge 
         variant="outline" 
-        className={cn("inline-flex items-center gap-1 bg-gray-50 text-gray-500 border-gray-200", className)}
+        className={cn(
+          "inline-flex items-center gap-1 bg-gray-50 text-gray-500 border-gray-200",
+          sizeClasses[size],
+          className
+        )}
         {...props}
       >
-        <Loader2 className="h-3 w-3 animate-spin" />
-        <span className="text-xs">Carregando...</span>
+        <Loader2 className={cn("animate-spin", iconSizes[size])} />
+        <span>Carregando...</span>
       </Badge>
     );
   }
@@ -76,11 +95,11 @@ export function SmartDynamicBadge({
   return (
     <Badge 
       variant="default"
-      className={cn("inline-flex items-center gap-1 border", className)}
+      className={cn("inline-flex items-center gap-1 border", sizeClasses[size], className)}
       style={inlineStyles}
       {...props}
     >
-      {showIcon && <div className="w-2 h-2 rounded-full bg-current opacity-75" />}
+      {showIcon && <div className={cn("rounded-full bg-current opacity-75", iconSizes[size])} />}
       {label}
     </Badge>
   );

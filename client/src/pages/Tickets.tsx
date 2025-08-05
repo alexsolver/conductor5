@@ -17,7 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Plus, Filter } from "lucide-react";
 import { DynamicSelect } from "@/components/DynamicSelect";
-import { DynamicBadge } from "@/components/DynamicBadge";
+import { SmartDynamicBadge } from "@/components/SmartDynamicBadge";
 import { useFieldColors } from "@/hooks/useFieldColors";
 import { TicketViewSelector } from "@/components/TicketViewSelector";
 import { useLocation } from "wouter";
@@ -33,7 +33,7 @@ export default function Tickets() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
-  const { getFieldColor, getFieldLabel } = useFieldColors();
+  const { getFieldColor, getFieldLabel, isLoading: isFieldColorsLoading, isReady } = useFieldColors();
 
   // Status mapping - manter valores em inglês conforme banco de dados 
   const statusMapping: Record<string, string> = {
@@ -367,7 +367,7 @@ export default function Tickets() {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || isFieldColorsLoading || !isReady) {
     return (
       <div className="p-4 space-y-6">
         <div className="h-8 bg-gray-200 rounded w-48 animate-pulse"></div>
@@ -378,6 +378,11 @@ export default function Tickets() {
                 <div className="space-y-3">
                   <div className="h-4 bg-gray-200 rounded w-3/4"></div>
                   <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                  <div className="flex space-x-2">
+                    <div className="h-6 bg-gray-200 rounded-full w-16"></div>
+                    <div className="h-6 bg-gray-200 rounded-full w-16"></div>
+                    <div className="h-6 bg-gray-200 rounded-full w-20"></div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -836,32 +841,37 @@ export default function Tickets() {
           <Card key={ticket.id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate(`/tickets/${ticket.id}`)}>
             <CardContent className="p-6">
               <div className="flex items-start justify-between">
-                <div className="flex-1"></div>
-                  <div className="flex items-center space-x-3 mb-2">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                <div className="flex-1">
+                  <div className="flex items-start justify-between mb-3">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mr-4">
                       #{ticket.number || ticket.id} - {ticket.subject || 'Sem título'}
                     </h3>
-                    <DynamicBadge 
-                      fieldName="priority" 
-                      value={mapPriorityValue(ticket.priority)}
-                      colorHex={getFieldColor('priority', mapPriorityValue(ticket.priority))}
-                    >
-                      {getFieldLabel('priority', mapPriorityValue(ticket.priority))}
-                    </DynamicBadge>
-                    <DynamicBadge 
-                      fieldName="status" 
-                      value={mapStatusValue(ticket.status)}
-                      colorHex={getFieldColor('status', mapStatusValue(ticket.status))}
-                    >
-                      {getFieldLabel('status', mapStatusValue(ticket.status))}
-                    </DynamicBadge>
-                    <DynamicBadge 
+                    <div className="flex items-center space-x-2 flex-shrink-0"></div>
+                    <SmartDynamicBadge 
+                        fieldName="priority" 
+                        value={mapPriorityValue(ticket.priority)}
+                        showIcon={true}
+                        className="font-medium"
+                        size="sm"
+                      />
+                      <SmartDynamicBadge 
+                        fieldName="status" 
+                        value={mapStatusValue(ticket.status)}
+                        showIcon={true}
+                        className="font-medium"
+                        size="sm"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2 mb-3">
+                    <SmartDynamicBadge 
                       fieldName="category" 
                       value={mapCategoryValue(ticket.category)}
-                      colorHex={getFieldColor('category', mapCategoryValue(ticket.category))}
-                    >
-                      {getFieldLabel('category', mapCategoryValue(ticket.category))}
-                    </DynamicBadge>
+                      showIcon={false}
+                      className="font-medium text-xs"
+                      size="sm"
+                    />
                   </div>
                   <p className="text-gray-600 dark:text-gray-400 mb-3">
                     {ticket.description ? 
