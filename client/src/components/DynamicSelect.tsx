@@ -50,16 +50,29 @@ export function DynamicSelect(props: DynamicSelectProps) {
   const { data: fieldOptionsData, isLoading, error } = useQuery({
     queryKey: ["/api/ticket-config/field-options", fieldName, customerId, dependsOn],
     queryFn: async () => {
+      // CRÍTICO: Garantir que fieldName sempre é enviado
+      if (!fieldName) {
+        console.error('❌ DynamicSelect: fieldName é obrigatório!', { fieldName, customerId, dependsOn });
+        throw new Error('fieldName é obrigatório para buscar opções');
+      }
+      
       const params: any = { fieldName };
       if (customerId) params.companyId = customerId; // API expects companyId, not customerId
       if (dependsOn) params.dependsOn = dependsOn;
+
+      console.log(`🔍 DynamicSelect API call for ${fieldName}:`, {
+        fieldName,
+        companyId: customerId,
+        dependsOn,
+        params
+      });
 
       const response = await apiRequest("GET", "/api/ticket-config/field-options", {
         params
       });
       return response.json();
     },
-    enabled: !!fieldName && (!dependsOn || !!dependsOn), // Só executa se fieldName existe e se dependsOn não é necessário ou tem valor
+    enabled: !!fieldName, // Só executa se fieldName existe
     staleTime: 5 * 60 * 1000, // 5 minutos
     refetchOnWindowFocus: false,
   });

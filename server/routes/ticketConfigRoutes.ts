@@ -533,6 +533,10 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => 
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
     let result: any;
 
+    // CRÍTICO: Verificar se é campo hierárquico
+    const isHierarchical = ['category', 'subcategory', 'action'].includes(fieldName);
+    console.log(`🔧 Processing field: ${fieldName}, hierarchical: ${isHierarchical}, dependsOn: ${dependsOn}`);
+
     // Handle hierarchical field types
     if (fieldName === 'category') {
       // Buscar categorias
@@ -574,9 +578,11 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => 
           AND s.active = true
           ORDER BY s.sort_order, s.name
         `);
+        console.log(`🏷️ Subcategories found for category '${dependsOn}': ${result.rows.length} records`);
       } else {
         // Retornar array vazio se não há dependência selecionada
         result = { rows: [] };
+        console.log(`🏷️ Subcategory: No category selected, returning empty array`);
       }
     } else if (fieldName === 'action') {
       if (dependsOn) {
@@ -600,9 +606,11 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => 
           AND a.active = true
           ORDER BY a.sort_order, a.name
         `);
+        console.log(`🏷️ Actions found for subcategory '${dependsOn}': ${result.rows.length} records`);
       } else {
         // Retornar array vazio se não há dependência selecionada
         result = { rows: [] };
+        console.log(`🏷️ Action: No subcategory selected, returning empty array`);
       }
     } else {
       // Buscar opções de campos normais (status, priority, impact, urgency)
