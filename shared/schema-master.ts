@@ -2295,6 +2295,7 @@ export const suppliers = pgTable("suppliers", {
   state: varchar("state", { length: 2 }),
   zipCode: varchar("zip_code", { length: 10 }),
   status: varchar("status", { length: 20 }).default("active"),
+  active: boolean("active").default(true),
   rating: varchar("rating", { length: 10 }),
   notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow(),

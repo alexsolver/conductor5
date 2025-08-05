@@ -13,8 +13,8 @@ export function useEmploymentDetection() {
       const response = await apiRequest('GET', '/api/auth/me');
       return response.json();
     },
-    staleTime: 0, // Force fresh fetch for debugging
-    cacheTime: 0, // No cache
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
     refetchOnMount: true,
     refetchOnWindowFocus: true
   });
