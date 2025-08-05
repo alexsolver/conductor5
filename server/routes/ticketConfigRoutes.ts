@@ -140,6 +140,19 @@ router.put('/categories/:id', jwtAuth, async (req: AuthenticatedRequest, res) =>
       WHERE id = ${categoryId} AND tenant_id = ${tenantId}
     `);
 
+    // Sync color with ticket_field_options
+    await db.execute(sql`
+      UPDATE "${sql.raw(schemaName)}"."ticket_field_options" 
+      SET 
+        color = ${color || '#3b82f6'},
+        updated_at = NOW()
+      WHERE field_name = 'category' 
+      AND value = ${name}
+      AND tenant_id = ${tenantId}
+    `);
+
+    console.log(`🔄 Synced category color: ${name} = ${color || '#3b82f6'}`);
+
     res.json({
       success: true,
       message: 'Category updated successfully'
@@ -317,6 +330,69 @@ router.post('/subcategories', jwtAuth, async (req: AuthenticatedRequest, res) =>
   }
 });
 
+// PUT /api/ticket-config/subcategories/:id
+router.put('/subcategories/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    const tenantId = req.user?.tenantId;
+    const subcategoryId = req.params.id;
+
+    if (!tenantId) {
+      return res.status(401).json({ message: 'Tenant required' });
+    }
+
+    const {
+      name,
+      description,
+      categoryId,
+      color,
+      icon,
+      active,
+      sortOrder
+    } = req.body;
+
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    // Update subcategory
+    await db.execute(sql`
+      UPDATE "${sql.raw(schemaName)}"."ticket_subcategories" 
+      SET 
+        name = ${name},
+        description = ${description || null},
+        category_id = ${categoryId},
+        color = ${color || '#3b82f6'},
+        icon = ${icon || null},
+        active = ${active !== false},
+        sort_order = ${sortOrder || 1},
+        updated_at = NOW()
+      WHERE id = ${subcategoryId} AND tenant_id = ${tenantId}
+    `);
+
+    // Sync color with ticket_field_options
+    await db.execute(sql`
+      UPDATE "${sql.raw(schemaName)}"."ticket_field_options" 
+      SET 
+        color = ${color || '#3b82f6'},
+        updated_at = NOW()
+      WHERE field_name = 'subcategory' 
+      AND value = ${name}
+      AND tenant_id = ${tenantId}
+    `);
+
+    console.log(`🔄 Synced subcategory color: ${name} = ${color || '#3b82f6'}`);
+
+    res.json({
+      success: true,
+      message: 'Subcategory updated successfully'
+    });
+  } catch (error) {
+    console.error('Error updating subcategory:', error);
+    res.status(500).json({
+      error: 'Failed to update subcategory',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 // DELETE /api/ticket-config/subcategories/:id
 router.delete('/subcategories/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
@@ -471,6 +547,69 @@ router.post('/actions', jwtAuth, async (req: AuthenticatedRequest, res) => {
     console.error('Error creating action:', error);
     res.status(500).json({
       error: 'Failed to create action',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// PUT /api/ticket-config/actions/:id
+router.put('/actions/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    const tenantId = req.user?.tenantId;
+    const actionId = req.params.id;
+
+    if (!tenantId) {
+      return res.status(401).json({ message: 'Tenant required' });
+    }
+
+    const {
+      name,
+      description,
+      subcategoryId,
+      color,
+      icon,
+      active,
+      sortOrder
+    } = req.body;
+
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    // Update action
+    await db.execute(sql`
+      UPDATE "${sql.raw(schemaName)}"."ticket_actions" 
+      SET 
+        name = ${name},
+        description = ${description || null},
+        subcategory_id = ${subcategoryId},
+        color = ${color || '#3b82f6'},
+        icon = ${icon || null},
+        active = ${active !== false},
+        sort_order = ${sortOrder || 1},
+        updated_at = NOW()
+      WHERE id = ${actionId} AND tenant_id = ${tenantId}
+    `);
+
+    // Sync color with ticket_field_options
+    await db.execute(sql`
+      UPDATE "${sql.raw(schemaName)}"."ticket_field_options" 
+      SET 
+        color = ${color || '#3b82f6'},
+        updated_at = NOW()
+      WHERE field_name = 'action' 
+      AND value = ${name}
+      AND tenant_id = ${tenantId}
+    `);
+
+    console.log(`🔄 Synced action color: ${name} = ${color || '#3b82f6'}`);
+
+    res.json({
+      success: true,
+      message: 'Action updated successfully'
+    });
+  } catch (error) {
+    console.error('Error updating action:', error);
+    res.status(500).json({
+      error: 'Failed to update action',
       details: error instanceof Error ? error.message : 'Unknown error'
     });
   }

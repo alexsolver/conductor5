@@ -374,6 +374,52 @@ const TicketConfiguration: React.FC = () => {
     }
   });
 
+  // UPDATE MUTATIONS - Adicionando funcionalidade de edição
+  const updateCategoryMutation = useMutation({
+    mutationFn: async (data: z.infer<typeof categorySchema> & { id: string }) => {
+      const { id, ...updateData } = data;
+      const response = await apiRequest('PUT', `/api/ticket-config/categories/${id}`, updateData);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categories', selectedCompany] });
+      queryClient.invalidateQueries({ queryKey: ['field-options'] }); // Invalidar cache das cores
+      setDialogOpen(false);
+      categoryForm.reset();
+      toast({ title: "Categoria atualizada com sucesso" });
+    }
+  });
+
+  const updateSubcategoryMutation = useMutation({
+    mutationFn: async (data: z.infer<typeof subcategorySchema> & { id: string }) => {
+      const { id, ...updateData } = data;
+      const response = await apiRequest('PUT', `/api/ticket-config/subcategories/${id}`, updateData);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['subcategories', selectedCompany] });
+      queryClient.invalidateQueries({ queryKey: ['field-options'] }); // Invalidar cache das cores
+      setDialogOpen(false);
+      subcategoryForm.reset();
+      toast({ title: "Subcategoria atualizada com sucesso" });
+    }
+  });
+
+  const updateActionMutation = useMutation({
+    mutationFn: async (data: z.infer<typeof actionSchema> & { id: string }) => {
+      const { id, ...updateData } = data;
+      const response = await apiRequest('PUT', `/api/ticket-config/actions/${id}`, updateData);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['actions', selectedCompany] });
+      queryClient.invalidateQueries({ queryKey: ['field-options'] }); // Invalidar cache das cores
+      setDialogOpen(false);
+      actionForm.reset();
+      toast({ title: "Ação atualizada com sucesso" });
+    }
+  });
+
   const createFieldOptionMutation = useMutation({
     mutationFn: async (data: z.infer<typeof fieldOptionSchema>) => {
       const response = await apiRequest('POST', '/api/ticket-config/field-options', {
