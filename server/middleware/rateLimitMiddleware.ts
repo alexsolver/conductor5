@@ -19,6 +19,9 @@ interface LoginAttempt {
 // Memory-based rate limiting - Redis removed for stability
 const attemptStore = new Map<string, LoginAttempt>();
 
+// Clear all existing rate limit attempts for development
+attemptStore.clear();
+
 export class RateLimitService {
   private config: RateLimitConfig;
 
@@ -122,11 +125,11 @@ export class RateLimitService {
   }
 }
 
-// Default configuration
+// Default configuration - more permissive for development
 const defaultConfig: RateLimitConfig = {
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  maxAttempts: 5,
-  blockDurationMs: 30 * 60 * 1000 // 30 minutes
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  maxAttempts: 100, // More permissive for development
+  blockDurationMs: 2 * 60 * 1000 // 2 minutes
 };
 
 export const rateLimitService = new RateLimitService(defaultConfig);

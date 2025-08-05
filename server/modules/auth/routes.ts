@@ -10,11 +10,11 @@ import { z } from "zod";
 const authRouter = Router();
 const container = DependencyContainer.getInstance();
 
-// Rate limiting middleware
+// Rate limiting middleware - more permissive for development
 const authRateLimit = createRateLimitMiddleware({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  maxAttempts: 5,
-  blockDurationMs: 30 * 60 * 1000 // 30 minutes
+  windowMs: 2 * 60 * 1000, // 2 minutes
+  maxAttempts: 50, // More permissive for development
+  blockDurationMs: 1 * 60 * 1000 // 1 minute
 });
 
 // Refresh Token Endpoint
