@@ -1269,13 +1269,13 @@ const TicketDetails = React.memo(() => {
                           />
                         ) : (
                           <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
-                            {field.value ? (
+                            {(field.value || ticket?.category) ? (
                               <DynamicBadge
                                 fieldName="category"
-                                value={field.value}
-                                colorHex={getFieldColor('category', field.value)}
+                                value={field.value || ticket?.category}
+                                colorHex={getFieldColor('category', field.value || ticket?.category)}
                               >
-                                {getFieldLabel('category', field.value)}
+                                {getFieldLabel('category', field.value || ticket?.category)}
                               </DynamicBadge>
                             ) : (
                               <span className="text-gray-400 text-sm">Não especificado</span>
@@ -1311,13 +1311,13 @@ const TicketDetails = React.memo(() => {
                           />
                         ) : (
                           <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
-                            {field.value ? (
+                            {(field.value || ticket?.subcategory) ? (
                               <DynamicBadge
                                 fieldName="subcategory"
-                                value={field.value}
-                                colorHex={getFieldColor('subcategory', field.value)}
+                                value={field.value || ticket?.subcategory}
+                                colorHex={getFieldColor('subcategory', field.value || ticket?.subcategory)}
                               >
-                                {getFieldLabel('subcategory', field.value)}
+                                {getFieldLabel('subcategory', field.value || ticket?.subcategory)}
                               </DynamicBadge>
                             ) : (
                               <span className="text-gray-400 text-sm">Não especificado</span>
@@ -1349,13 +1349,13 @@ const TicketDetails = React.memo(() => {
                           />
                         ) : (
                           <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
-                            {field.value ? (
+                            {(field.value || ticket?.action) ? (
                               <DynamicBadge
                                 fieldName="action"
-                                value={field.value}
-                                colorHex={getFieldColor('action', field.value)}
+                                value={field.value || ticket?.action}
+                                colorHex={getFieldColor('action', field.value || ticket?.action)}
                               >
-                                {getFieldLabel('action', field.value)}
+                                {getFieldLabel('action', field.value || ticket?.action)}
                               </DynamicBadge>
                             ) : (
                               <span className="text-gray-400 text-sm">Não especificado</span>
