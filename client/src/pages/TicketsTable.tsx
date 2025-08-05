@@ -898,9 +898,15 @@ const TicketsTable = React.memo(() => {
         case 'category':
           const rawCategoryValue = (ticket as any).category;
           const categoryValue = mapCategoryValue(rawCategoryValue);
-          const categoryColor = getFieldColor('category', categoryValue) || '#3b82f6'; // Sempre ter uma cor
-          const categoryLabel = getFieldLabel('category', categoryValue) || 
-                               (categoryValue === 'suporte_tecnico' ? 'Suporte Técnico' : categoryValue);
+          
+          // Tentar buscar cor pelo valor original primeiro, depois pelo normalizado
+          const categoryColor = getFieldColor('category', rawCategoryValue) || 
+                               getFieldColor('category', categoryValue) || 
+                               '#3b82f6';
+          
+          const categoryLabel = getFieldLabel('category', rawCategoryValue) || 
+                               getFieldLabel('category', categoryValue) || 
+                               rawCategoryValue;
 
           console.log(`🎨 Category badge for ticket ${ticket.id}:`, {
             rawValue: rawCategoryValue,
@@ -913,7 +919,7 @@ const TicketsTable = React.memo(() => {
             <TableCell className="overflow-hidden" style={cellStyle}>
               <DynamicBadge 
                 fieldName="category"
-                value={categoryValue}
+                value={rawCategoryValue}
                 colorHex={categoryColor}
               >
                 {categoryLabel}
@@ -1012,9 +1018,28 @@ const TicketsTable = React.memo(() => {
             </TableCell>
           );
         case 'subcategory':
+          const rawSubcategoryValue = (ticket as any).subcategory;
+          
+          if (!rawSubcategoryValue) {
+            return (
+              <TableCell className="overflow-hidden" style={cellStyle}>
+                <span className="text-gray-400 text-sm">-</span>
+              </TableCell>
+            );
+          }
+
+          const subcategoryColor = getFieldColor('subcategory', rawSubcategoryValue) || '#64748b';
+          const subcategoryLabel = getFieldLabel('subcategory', rawSubcategoryValue) || rawSubcategoryValue;
+
           return (
-            <TableCell>
-              {(ticket as any).subcategory || '-'}
+            <TableCell className="overflow-hidden" style={cellStyle}>
+              <DynamicBadge 
+                fieldName="subcategory"
+                value={rawSubcategoryValue}
+                colorHex={subcategoryColor}
+              >
+                {subcategoryLabel}
+              </DynamicBadge>
             </TableCell>
           );
         case 'urgency':
