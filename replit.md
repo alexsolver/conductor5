@@ -43,7 +43,7 @@ Interface preference: Text-based hierarchical menus with dropdowns over visual c
   - **Embedded Interface**: Complete materials system integrated within ticket details page (no external navigation)
   - **Three-Phase Workflow**: Planning → Execution → Control phases with separate tabs
   - **API Integration**: Full CRUD operations with backend (planned-items, consumed-items, costs-summary)
-  - **LPU Integration**: Unified Price List system for cost calculations and pricing control
+  - **LPU Integration**: Unit Price List system for cost calculations and pricing control
   - **Terminology Standardization**: Consistent use of "Itens" instead of "Materiais" throughout interface
   - **Pricing Rules System**: Complete CRUD operations for pricing rules with database integration
     - **Rule Types**: Percentual, Fixo, Escalonado, Dinâmico with priority system (1-10)

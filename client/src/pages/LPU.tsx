@@ -193,7 +193,7 @@ export default function LPU() {
     <div className="space-y-6 pl-[9px] pr-[9px]">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">LPU - Lista de Preços Unificada</h1>
+          <h1 className="text-3xl font-bold">LPU - Lista de Preços Unitários</h1>
           <p className="text-muted-foreground">Gestão completa de listas de preços e regras de precificação</p>
         </div>
       </div>
