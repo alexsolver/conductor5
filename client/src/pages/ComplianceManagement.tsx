@@ -560,12 +560,12 @@ export default function ComplianceManagement() {
 
         <TabsContent value="certifications" className="space-y-4">
           <div className="grid gap-4">
-            {certifications.length === 0 ? (
+            {(certifications?.data || []).length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 Nenhuma certificação encontrada
               </div>
             ) : (
-              certifications.map((cert) => (
+              (certifications?.data || []).map((cert) => (
                 <Card key={cert.id}>
                   <CardContent className="p-6">
                     <div className="flex justify-between items-start">
