@@ -24,16 +24,17 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
   const [quantity, setQuantity] = useState("");
   const [consumedQuantity, setConsumedQuantity] = useState("");
 
-  // Fetch items filtered by company (only items linked to ticket's company)
+  // Fetch items filtered by company (only items linked to ticket's customer company)
   const { data: itemsData, isLoading: itemsLoading } = useQuery({
-    queryKey: ['/api/materials-services/items', ticket?.companyId],
+    queryKey: ['/api/materials-services/items', ticket?.customer_company_id],
     queryFn: async () => {
-      // Add company filter to only show items linked to the ticket's company
-      const params = ticket?.companyId ? `?companyId=${ticket.companyId}` : '';
+      // Add company filter to only show items linked to the ticket's customer company
+      const companyId = ticket?.customer_company_id || ticket?.customerCompanyId;
+      const params = companyId ? `?companyId=${companyId}` : '';
       const response = await apiRequest('GET', `/api/materials-services/items${params}`);
       return response.json();
     },
-    enabled: !!ticket, // Only run when ticket data is available
+    enabled: !!ticket && (!!ticket.customer_company_id || !!ticket.customerCompanyId), // Only run when ticket has company data
   });
 
   // Fetch available items for consumption (only planned items)
@@ -323,7 +324,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                   <div className="text-center py-4 text-gray-500">
                     <Package className="h-8 w-8 mx-auto mb-2 opacity-50" />
                     <p>Nenhum item disponível para esta empresa</p>
-                    <p className="text-sm">Vincule itens à empresa {ticket?.companyName || 'do ticket'} no catálogo</p>
+                    <p className="text-sm">Vincule itens à empresa cliente do ticket no catálogo</p>
                   </div>
                 ) : (
                   <Select value={selectedItem} onValueChange={setSelectedItem}>
