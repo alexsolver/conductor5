@@ -30,6 +30,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 
 // Types
 interface Item {
@@ -143,11 +144,13 @@ export default function ItemCatalog() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // Include session cookies
         body: JSON.stringify(data),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create item');
+        const errorText = await response.text();
+        throw new Error(`Failed to create item: ${errorText}`);
       }
 
       return response.json();
@@ -189,11 +192,13 @@ export default function ItemCatalog() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // Include session cookies
         body: JSON.stringify(data),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update item');
+        const errorText = await response.text();
+        throw new Error(`Failed to update item: ${errorText}`);
       }
 
       return response.json();
@@ -232,10 +237,12 @@ export default function ItemCatalog() {
     mutationFn: async (id: string) => {
       const response = await fetch(`/api/materials-services/items/${id}`, {
         method: 'DELETE',
+        credentials: 'include', // Include session cookies
       });
 
       if (!response.ok) {
-        throw new Error('Failed to delete item');
+        const errorText = await response.text();
+        throw new Error(`Failed to delete item: ${errorText}`);
       }
 
       return response.json();
