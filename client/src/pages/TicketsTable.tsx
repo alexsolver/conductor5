@@ -406,7 +406,7 @@ const TicketsTable = React.memo(() => {
   // Função de mapeamento para categoria com fallback mais robusto
   const mapCategoryValue = (value: string): string => {
     if (!value || value === null || value === 'null' || value === '' || typeof value !== 'string') {
-      return 'suporte_tecnico'; // Valor padrão da empresa Default
+      return ''; // Retornar vazio ao invés de forçar suporte_tecnico
     }
 
     // Mapeamento de valores legados para valores configurados
@@ -897,6 +897,16 @@ const TicketsTable = React.memo(() => {
           );
         case 'category':
           const rawCategoryValue = (ticket as any).category;
+          
+          // 🚨 CORREÇÃO: Aguardar cores carregarem para evitar race condition
+          if (isFieldColorsLoading) {
+            return (
+              <TableCell className="overflow-hidden" style={cellStyle}>
+                <div className="h-5 w-16 bg-gray-200 animate-pulse rounded"></div>
+              </TableCell>
+            );
+          }
+
           const categoryValue = mapCategoryValue(rawCategoryValue);
           
           // Tentar buscar cor pelo valor original primeiro, depois pelo normalizado
@@ -912,7 +922,8 @@ const TicketsTable = React.memo(() => {
             rawValue: rawCategoryValue,
             mappedValue: categoryValue,
             color: categoryColor,
-            label: categoryLabel
+            label: categoryLabel,
+            isLoading: isFieldColorsLoading
           });
 
           return (
@@ -927,6 +938,15 @@ const TicketsTable = React.memo(() => {
             </TableCell>
           );
         case 'status':
+          // 🚨 CORREÇÃO: Aguardar cores carregarem para evitar race condition
+          if (isFieldColorsLoading) {
+            return (
+              <TableCell className="overflow-hidden" style={cellStyle}>
+                <div className="h-5 w-16 bg-gray-200 animate-pulse rounded"></div>
+              </TableCell>
+            );
+          }
+
           const statusValue = mapStatusValue((ticket as any).state || ticket.status);
           const statusColor = getFieldColorWithFallback('status', statusValue);
           const statusLabel = getFieldLabel('status', statusValue);
