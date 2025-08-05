@@ -36,6 +36,7 @@ export const useFieldColors = () => {
   // Função para buscar cor de um campo específico com fallback para empresa Default
   const getFieldColor = (fieldName: string, value: string): string | undefined => {
     if (!fieldOptions?.data) {
+      console.log(`🚨 No field options data available for ${fieldName}:${value}`);
       return undefined;
     }
 
@@ -43,15 +44,17 @@ export const useFieldColors = () => {
       return undefined;
     }
 
+    // Debug: Log todas as opções disponíveis para este campo
+    const fieldData = fieldOptions.data.filter((opt: FieldOption) => opt.field_name === fieldName);
+    console.log(`🔍 Available options for ${fieldName}:`, fieldData.map(opt => `${opt.value}:${opt.color}`));
+
     // Primeiro, tentar encontrar configuração específica (busca exata)
     const option = fieldOptions.data.find(
       (opt: FieldOption) => opt.field_name === fieldName && opt.value === value
     );
 
     if (option?.color) {
-      if (process.env.NODE_ENV === 'development' && Math.random() < 0.1) {
-        console.log(`🎨 Color found: ${fieldName}:${value} = ${option.color}`);
-      }
+      console.log(`✅ Color found for ${fieldName}:${value} = ${option.color}`);
       return option.color;
     }
 
@@ -61,9 +64,7 @@ export const useFieldColors = () => {
     );
 
     if (optionByLabel?.color) {
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`🎨 Color found by label: ${fieldName}:${value} = ${optionByLabel.color}`);
-      }
+      console.log(`✅ Color found by label: ${fieldName}:${value} = ${optionByLabel.color}`);
       return optionByLabel.color;
     }
 
@@ -114,9 +115,7 @@ export const useFieldColors = () => {
     const fallbackColor = defaultColorMap[fieldName]?.[value];
     
     if (fallbackColor) {
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`🎨 Using fallback color for ${fieldName}:${value} = ${fallbackColor}`);
-      }
+      console.log(`⚠️ Using fallback color for ${fieldName}:${value} = ${fallbackColor} (no config found)`);
       return fallbackColor;
     }
 
