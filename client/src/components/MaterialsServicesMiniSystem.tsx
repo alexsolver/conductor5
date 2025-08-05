@@ -19,7 +19,7 @@ interface MaterialsServicesMiniSystemProps {
 export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServicesMiniSystemProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState("planned");
   const [selectedItem, setSelectedItem] = useState("");
   const [quantity, setQuantity] = useState("");
   const [consumedQuantity, setConsumedQuantity] = useState("");
@@ -223,23 +223,73 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
 
       {/* Main Content with Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="planned">Planejar Item</TabsTrigger>
           <TabsTrigger value="consumed">Registrar Consumo</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Planned Materials */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
+
+
+        <TabsContent value="planned" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Adicionar Item Planejado</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-3 gap-4">
+                <div className="col-span-2 space-y-2">
+                  <Label htmlFor="item-select">Item</Label>
+                  {itemsLoading ? (
+                    <div className="text-center py-2">Carregando itens...</div>
+                  ) : items.length === 0 ? (
+                    <div className="text-center py-4 text-gray-500">
+                      <Package className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <p>Nenhum item disponível para esta empresa</p>
+                      <p className="text-sm">Vincule itens à empresa cliente do ticket no catálogo</p>
+                    </div>
+                  ) : (
+                    <Select value={selectedItem} onValueChange={setSelectedItem}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione um item" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {items.map((item: any) => (
+                          <SelectItem key={item.id} value={item.id}>
+                            {item.name} - {item.type} (R$ {parseFloat(item.unitCost || 0).toFixed(2)})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="quantity">Quantidade</Label>
+                  <Input
+                    id="quantity"
+                    type="number"
+                    value={quantity}
+                    onChange={(e) => setQuantity(e.target.value)}
+                    placeholder="Qtd"
+                  />
+                </div>
+              </div>
+
+              <Button 
+                onClick={handleAddPlanned}
+                disabled={addPlannedMutation.isPending || items.length === 0}
+                className="w-full"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                {addPlannedMutation.isPending ? "Adicionando..." : "Adicionar Planejado"}
+              </Button>
+
+              {/* Lista de Itens Planejados */}
+              <div className="mt-6">
+                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
                   <Package className="h-5 w-5 text-blue-600" />
                   Itens Planejados
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+                </h3>
                 {plannedLoading ? (
                   <div className="text-center py-4">Carregando...</div>
                 ) : plannedMaterials.length === 0 ? (
@@ -284,18 +334,71 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                     })}
                   </div>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-            {/* Consumed Materials */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
+        <TabsContent value="consumed" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Registrar Consumo Real</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-3 gap-4">
+                <div className="col-span-2 space-y-2">
+                  <Label htmlFor="consumed-item-select">Item</Label>
+                  {availableItemsLoading ? (
+                    <div className="text-center py-2">Carregando itens disponíveis...</div>
+                  ) : availableItems.length === 0 ? (
+                    <div className="text-center py-4 text-gray-500">
+                      <AlertTriangle className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <p>Nenhum item planejado disponível para consumo</p>
+                      <p className="text-sm">Adicione itens no planejamento primeiro</p>
+                    </div>
+                  ) : (
+                    <Select value={selectedItem} onValueChange={setSelectedItem}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione um item planejado" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableItems.map((item: any) => (
+                          <SelectItem key={item.itemId} value={item.itemId}>
+                            {item.itemName} - {item.itemType} (Disponível: {item.remainingQuantity}) - R$ {parseFloat(item.unitPriceAtPlanning || 0).toFixed(2)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="consumed-quantity">Quantidade</Label>
+                  <Input
+                    id="consumed-quantity"
+                    type="number"
+                    value={consumedQuantity}
+                    onChange={(e) => setConsumedQuantity(e.target.value)}
+                    placeholder="Qtd"
+                  />
+                </div>
+              </div>
+
+              <Button 
+                onClick={handleAddConsumed}
+                disabled={addConsumedMutation.isPending || availableItems.length === 0}
+                className="w-full"
+              >
+                <Calculator className="h-4 w-4 mr-2" />
+                {addConsumedMutation.isPending ? "Registrando..." : "Registrar Consumo"}
+              </Button>
+
+              {/* Lista de Itens Consumidos */}
+              <div className="mt-6">
+                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
                   <Calculator className="h-5 w-5 text-green-600" />
                   Itens Consumidos
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+                </h3>
                 {consumedLoading ? (
                   <div className="text-center py-4">Carregando...</div>
                 ) : consumedMaterials.length === 0 ? (
@@ -307,127 +410,24 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                   <div className="space-y-3">
                     {consumedMaterials.map((material: any) => (
                       <div key={material.id} className="p-3 border rounded-lg">
-                        <p className="font-medium">{material.itemName}</p>
-                        <p className="text-sm text-gray-600">Qtd Usada: {material.quantityUsed}</p>
-                        <p className="text-sm text-green-600">R$ {parseFloat(material.totalCost || material.actualCost || 0).toFixed(2)}</p>
-                        <p className="text-xs text-gray-500">
-                          {new Date(material.createdAt).toLocaleDateString('pt-BR')}
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="font-medium">{material.itemName}</p>
+                          <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                            {material.itemType || 'Material'}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-4 text-sm">
+                          <span className="text-gray-600">Qtd Usada: {material.quantityUsed || material.actualQuantity}</span>
+                          <span className="text-green-600 font-medium">R$ {parseFloat(material.totalCost || material.actualCost || 0).toFixed(2)}</span>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {new Date(material.createdAt || material.consumedAt).toLocaleDateString('pt-BR')}
                         </p>
                       </div>
                     ))}
                   </div>
                 )}
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="planned" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Adicionar Item Planejado</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="item-select">Item (apenas itens vinculados à empresa)</Label>
-                {itemsLoading ? (
-                  <div className="text-center py-2">Carregando itens...</div>
-                ) : items.length === 0 ? (
-                  <div className="text-center py-4 text-gray-500">
-                    <Package className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    <p>Nenhum item disponível para esta empresa</p>
-                    <p className="text-sm">Vincule itens à empresa cliente do ticket no catálogo</p>
-                  </div>
-                ) : (
-                  <Select value={selectedItem} onValueChange={setSelectedItem}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione um item" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {items.map((item: any) => (
-                        <SelectItem key={item.id} value={item.id}>
-                          {item.name} - {item.type} (R$ {parseFloat(item.unitCost || 0).toFixed(2)})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
               </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="quantity">Quantidade</Label>
-                <Input
-                  id="quantity"
-                  type="number"
-                  value={quantity}
-                  onChange={(e) => setQuantity(e.target.value)}
-                  placeholder="Quantidade planejada"
-                />
-              </div>
-
-              <Button 
-                onClick={handleAddPlanned}
-                disabled={addPlannedMutation.isPending || items.length === 0}
-                className="w-full"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                {addPlannedMutation.isPending ? "Adicionando..." : "Adicionar Planejado"}
-              </Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="consumed" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Registrar Consumo Real</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="consumed-item-select">Item (apenas itens planejados)</Label>
-                {availableItemsLoading ? (
-                  <div className="text-center py-2">Carregando itens disponíveis...</div>
-                ) : availableItems.length === 0 ? (
-                  <div className="text-center py-4 text-gray-500">
-                    <AlertTriangle className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    <p>Nenhum item planejado disponível para consumo</p>
-                    <p className="text-sm">Adicione itens no planejamento primeiro</p>
-                  </div>
-                ) : (
-                  <Select value={selectedItem} onValueChange={setSelectedItem}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione um item planejado" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableItems.map((item: any) => (
-                        <SelectItem key={item.itemId} value={item.itemId}>
-                          {item.itemName} - {item.itemType} (Disponível: {item.remainingQuantity}) - R$ {parseFloat(item.unitPriceAtPlanning || 0).toFixed(2)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="consumed-quantity">Quantidade Consumida</Label>
-                <Input
-                  id="consumed-quantity"
-                  type="number"
-                  value={consumedQuantity}
-                  onChange={(e) => setConsumedQuantity(e.target.value)}
-                  placeholder="Quantidade realmente utilizada"
-                />
-              </div>
-
-              <Button 
-                onClick={handleAddConsumed}
-                disabled={addConsumedMutation.isPending || availableItems.length === 0}
-                className="w-full"
-              >
-                <Calculator className="h-4 w-4 mr-2" />
-                {addConsumedMutation.isPending ? "Registrando..." : "Registrar Consumo"}
-              </Button>
             </CardContent>
           </Card>
         </TabsContent>
