@@ -18,11 +18,8 @@ export const items = pgTable('items', {
   active: boolean('active').default(true).notNull(),
   type: varchar('type', { length: 20 }).notNull(), // material/service
   name: varchar('name', { length: 255 }).notNull(),
-  integrationCode: varchar('integration_code', { length: 100 }),
   description: text('description'),
   measurementUnit: varchar('measurement_unit', { length: 10 }).default('UN'),
-  maintenancePlan: text('maintenance_plan'),
-  defaultChecklist: jsonb('default_checklist'),
   status: varchar('status', { length: 20 }).default('active'),
 
   // Metadados de auditoria

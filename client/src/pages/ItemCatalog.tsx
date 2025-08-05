@@ -124,7 +124,7 @@ export default function ItemCatalog() {
   const [selectedCustomerMapping, setSelectedCustomerMapping] = useState("");
   const [mappingDialogOpen, setMappingDialogOpen] = useState(false);
   const [editingMapping, setEditingMapping] = useState<CustomerItemMapping | null>(null);
-  
+
   // Form state para mapeamentos
   const [mappingFormData, setMappingFormData] = useState({
     customer_id: "",
@@ -232,12 +232,9 @@ export default function ItemCatalog() {
       form.reset({
         name: '',
         type: 'material',
-        integrationCode: '',
         description: '',
         measurementUnit: 'UN',
         // groupName: '',
-        maintenancePlan: '',
-        defaultChecklist: '',
         active: true,
       });
       setSelectedItem(null);
@@ -267,12 +264,9 @@ export default function ItemCatalog() {
       form.reset({
         name: '',
         type: 'material',
-        integrationCode: '',
         description: '',
         measurementUnit: 'UN',
         // groupName: '',
-        maintenancePlan: '',
-        defaultChecklist: '',
         active: true,
       });
       setSelectedItem(null);
@@ -426,7 +420,7 @@ export default function ItemCatalog() {
                          mapping.item_name.toLowerCase().includes(mappingSearchTerm.toLowerCase()) ||
                          mapping.customer_first_name.toLowerCase().includes(mappingSearchTerm.toLowerCase()) ||
                          mapping.customer_last_name.toLowerCase().includes(mappingSearchTerm.toLowerCase());
-    
+
     const matchesCustomer = selectedCustomerMapping === "" || 
                            selectedCustomerMapping === "all-customers" || 
                            mapping.customer_id === selectedCustomerMapping;
@@ -505,21 +499,21 @@ export default function ItemCatalog() {
               defaultChecklist: item.defaultChecklist || '',
               active: item.active !== undefined ? item.active : true,
             });
-            
+
             // 🔧 CORREÇÃO: Carregar vínculos existentes do item
             try {
               const response = await apiRequest('GET', `/api/materials-services/items/${item.id}`);
               const itemData = await response.json();
-              
+
               if (itemData.success && itemData.data.links) {
                 // Carregar vínculos de clientes
                 const customerIds = itemData.data.links.customers?.map((link: any) => link.customerId) || [];
                 setLinkedCustomers(customerIds);
-                
+
                 // Carregar vínculos de itens
                 const itemIds = itemData.data.links.items?.map((link: any) => link.linkedItemId) || [];
                 setLinkedItems(itemIds);
-                
+
                 // Carregar vínculos de fornecedores
                 const supplierIds = itemData.data.links.suppliers?.map((link: any) => link.supplierId) || [];
                 setLinkedSuppliers(supplierIds);
@@ -531,7 +525,7 @@ export default function ItemCatalog() {
               setLinkedItems([]);
               setLinkedSuppliers([]);
             }
-            
+
             setIsCreateModalOpen(true);
           }}
         >
@@ -578,12 +572,9 @@ export default function ItemCatalog() {
             form.reset({
               name: '',
               type: 'material',
-              integrationCode: '',
               description: '',
               measurementUnit: 'UN',
               // groupName: '',
-              maintenancePlan: '',
-              defaultChecklist: '',
               active: true,
             });
             setLinkedItems([]);
@@ -597,12 +588,8 @@ export default function ItemCatalog() {
               form.reset({
                 name: '',
                 type: 'material',
-                integrationCode: '',
                 description: '',
                 measurementUnit: 'UN',
-
-                maintenancePlan: '',
-                defaultChecklist: '',
                 active: true,
               });
               setLinkedItems([]);
@@ -1068,7 +1055,7 @@ export default function ItemCatalog() {
                         Configure como um item aparece para uma empresa cliente específica
                       </DialogDescription>
                     </DialogHeader>
-                    
+
                     <form onSubmit={(e) => {
                       e.preventDefault();
                       if (editingMapping) {
@@ -1213,7 +1200,7 @@ export default function ItemCatalog() {
                   </DialogContent>
                 </Dialog>
               </div>
-              
+
               {/* Filtros para mapeamentos */}
               <div className="flex flex-col sm:flex-row gap-4 mt-4">
                 <div className="flex-1">
@@ -1381,7 +1368,7 @@ export default function ItemCatalog() {
               Visualização completa das informações do item
             </DialogDescription>
           </DialogHeader>
-          
+
           {selectedItem && (
             <div className="space-y-6">
               <div className="grid grid-cols-2 gap-6">
