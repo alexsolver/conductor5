@@ -3337,19 +3337,12 @@ const TicketDetails = React.memo(() => {
                       console.log("💾 Botão Salvar clicado!");
                       console.log("📋 Form valid:", form.formState.isValid);
                       console.log("❌ Form errors:", form.formState.errors);
-                      console.log("📝 Form values:", form.getValues());
-                      console.log("🔧 Form dirty fields:", form.formState.dirtyFields);
-                      console.log("📮 Form touched fields:", form.formState.touchedFields);
 
                       // Force a manual validation first
                       const formData = form.getValues();
-                      console.log("🧪 Manual validation attempt on:", formData);
-
+                      
                       // Try to trigger validation manually
                       form.trigger().then((isValid) => {
-                        console.log("🧪 Manual trigger validation result:", isValid);
-                        console.log("🧪 After trigger - errors:", form.formState.errors);
-
                         if (isValid) {
                           console.log("✅ Form is valid, proceeding with onSubmit");
                           onSubmit(formData);
@@ -3367,10 +3360,23 @@ const TicketDetails = React.memo(() => {
                         }
                       });
                     }}
-                    disabled={updateTicketMutation.isPending}
+                    disabled={updateTicketMutation.isPending || !isEditMode}
+                    className="relative"
+                    aria-label={updateTicketMutation.isPending ? "Salvando alterações..." : "Salvar alterações do ticket"}
                   >
-                    <Save className="h-4 w-4 mr-2" />
-                    {updateTicketMutation.isPending ? "Salvando..." : "Salvar"}
+                    {updateTicketMutation.isPending && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div 
+                          className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" 
+                          aria-hidden="true"
+                          aria-label="Carregando"
+                        ></div>
+                      </div>
+                    )}
+                    <div className={updateTicketMutation.isPending ? "opacity-0" : "flex items-center gap-2"}>
+                      <Save className="h-4 w-4" />
+                      <span className="hidden sm:inline">{updateTicketMutation.isPending ? "Salvando..." : "Salvar"}</span>
+                    </div>
                   </Button>
                 </>
               )}
@@ -3378,9 +3384,9 @@ const TicketDetails = React.memo(() => {
           </div>
 
           {/* Main Content */}
-          <div className="h-full bg-white rounded-lg border p-6">
+          <div className="h-full bg-white rounded-lg border p-6" id="tab-content" aria-live="polite">
             <Form {...form}>
-              <form onSubmit={(e) => e.preventDefault()}>
+              <form onSubmit={(e) => e.preventDefault()} role="main" aria-label="Formulário de edição de ticket">
                 {renderTabContent()}
               </form>
             </Form>
@@ -3392,15 +3398,23 @@ const TicketDetails = React.memo(() => {
         <div className="p-4 lg:p-6 border-b">
           <h3 className="font-semibold text-lg">Explorar</h3>
         </div>
-        <div className="p-2 lg:p-4 space-y-1">
+        <div 
+          className="p-2 lg:p-4 space-y-2" 
+          role="tablist" 
+          aria-label="Seções do ticket"
+          aria-orientation="vertical"
+        >
           {/* Informações Tab */}
           <button
             onClick={() => setActiveTab("informacoes")}
-            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ${
               activeTab === "informacoes"
-                ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                : 'hover:bg-gray-50'
+                ? 'bg-blue-100 text-blue-900 border-2 border-blue-300 shadow-md font-semibold'
+                : 'hover:bg-gray-100 text-gray-700 border border-transparent'
             }`}
+            role="tab"
+            aria-selected={activeTab === "informacoes"}
+            aria-controls="tab-content"
           >
             <FileText className="h-4 w-4" />
             <span className="text-sm font-medium">Detalhes</span>
@@ -3419,18 +3433,21 @@ const TicketDetails = React.memo(() => {
               <MessageSquare className="h-4 w-4" />
               <span className="text-sm font-medium">Comunicação</span>
             </div>
-            <Badge variant="outline" className="text-xs bg-green-50 text-green-600">
+            <Badge variant="outline" className="text-xs bg-green-50 text-green-600 border-green-300">
               {communications?.length || 0}
             </Badge>
           </button>
 
           <button
             onClick={() => setActiveTab("attachments")}
-            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ${
               activeTab === "attachments"
-                ? 'bg-green-50 text-green-700 border border-green-200'
-                : 'hover:bg-gray-50'
+                ? 'bg-purple-100 text-purple-900 border-2 border-purple-300 shadow-md font-semibold'
+                : 'hover:bg-gray-100 text-gray-700 border border-transparent'
             }`}
+            role="tab"
+            aria-selected={activeTab === "attachments"}
+            aria-controls="tab-content"
           >
             <Paperclip className="h-4 w-4" />
             <span className="text-sm font-medium">Anexos</span>
@@ -3438,28 +3455,35 @@ const TicketDetails = React.memo(() => {
 
           <button
             onClick={() => setActiveTab("notes")}
-            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left transition-colors ${
+            className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-all duration-200 ${
               activeTab === "notes"
-                ? 'bg-green-50 text-green-700 border border-green-200'
-                : 'hover:bg-gray-50'
+                ? 'bg-indigo-100 text-indigo-900 border-2 border-indigo-300 shadow-md font-semibold'
+                : 'hover:bg-gray-100 text-gray-700 border border-transparent'
             }`}
+            role="tab"
+            aria-selected={activeTab === "notes"}
+            aria-controls="tab-content"
+            aria-label={`Notas - ${notes?.length || 0} itens`}
           >
             <div className="flex items-center gap-3">
               <FileText className="h-4 w-4" />
               <span className="text-sm font-medium">Notas</span>
             </div>
-            <Badge variant="outline" className="text-xs bg-blue-50 text-blue-600">
+            <Badge variant="outline" className="text-xs bg-blue-50 text-blue-600 border-blue-300">
               {notes?.length || 0}
             </Badge>
           </button>
 
           <button
             onClick={() => setActiveTab("materials")}
-            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ${
               activeTab === "materials"
-                ? 'bg-green-50 text-green-700 border border-green-200'
-                : 'hover:bg-gray-50'
+                ? 'bg-amber-100 text-amber-900 border-2 border-amber-300 shadow-md font-semibold'
+                : 'hover:bg-gray-100 text-gray-700 border border-transparent'
             }`}
+            role="tab"
+            aria-selected={activeTab === "materials"}
+            aria-controls="tab-content"
           >
             <Package className="h-4 w-4" />
             <span className="text-sm font-medium">Materiais e Serviços</span>
@@ -3467,45 +3491,56 @@ const TicketDetails = React.memo(() => {
 
           <button
             onClick={() => setActiveTab("internal-actions")}
-            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left transition-colors ${
+            className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-all duration-200 ${
               activeTab === "internal-actions"
-                ? 'bg-green-50 text-green-700 border border-green-200'
-                : 'hover:bg-gray-50'
+                ? 'bg-violet-100 text-violet-900 border-2 border-violet-300 shadow-md font-semibold'
+                : 'hover:bg-gray-100 text-gray-700 border border-transparent'
             }`}
+            role="tab"
+            aria-selected={activeTab === "internal-actions"}
+            aria-controls="tab-content"
+            aria-label={`Ações Internas - ${internalActions?.length || 0} itens`}
           >
             <div className="flex items-center gap-3">
               <Settings className="h-4 w-4" />
               <span className="text-sm font-medium">Ações Internas</span>
             </div>
-            <Badge variant="outline" className="text-xs bg-purple-50 text-purple-600">
+            <Badge variant="outline" className="text-xs bg-purple-50 text-purple-600 border-purple-300">
               {internalActions?.length || 0}
             </Badge>
           </button>
 
           <button
             onClick={() => setActiveTab("external-actions")}
-            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left transition-colors ${
+            className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-all duration-200 ${
               activeTab === "external-actions"
-                ? 'bg-green-50 text-green-700 border border-green-200'
-                : 'hover:bg-gray-50'
+                ? 'bg-teal-100 text-teal-900 border-2 border-teal-300 shadow-md font-semibold'
+                : 'hover:bg-gray-100 text-gray-700 border border-transparent'
             }`}
+            role="tab"
+            aria-selected={activeTab === "external-actions"}
+            aria-controls="tab-content"
+            aria-label={`Ações Externas - ${externalActions.length} itens`}
           >
             <div className="flex items-center gap-3">
               <ExternalLink className="h-4 w-4" />
               <span className="text-sm font-medium">Ações Externas</span>
             </div>
-            <Badge variant="outline" className="text-xs bg-blue-50 text-blue-600">
+            <Badge variant="outline" className="text-xs bg-blue-50 text-blue-600 border-blue-300">
               {externalActions.length}
             </Badge>
           </button>
 
           <button
             onClick={() => setActiveTab("history")}
-            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ${
               activeTab === "history"
-                ? 'bg-green-50 text-green-700 border border-green-200'
-                : 'hover:bg-gray-50'
+                ? 'bg-gray-100 text-gray-900 border-2 border-gray-300 shadow-md font-semibold'
+                : 'hover:bg-gray-100 text-gray-700 border border-transparent'
             }`}
+            role="tab"
+            aria-selected={activeTab === "history"}
+            aria-controls="tab-content"
           >
             <History className="h-4 w-4" />
             <span className="text-sm font-medium">Histórico</span>
@@ -3513,11 +3548,14 @@ const TicketDetails = React.memo(() => {
 
           <button
             onClick={() => setActiveTab("links")}
-            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left transition-colors ${
+            className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-all duration-200 ${
               activeTab === "links"
-                ? 'bg-green-50 text-green-700 border border-green-200'
-                : 'hover:bg-gray-50'
+                ? 'bg-cyan-100 text-cyan-900 border-2 border-cyan-300 shadow-md font-semibold'
+                : 'hover:bg-gray-100 text-gray-700 border border-transparent'
             }`}
+            role="tab"
+            aria-selected={activeTab === "links"}
+            aria-controls="tab-content"
           >
             <div className="flex items-center gap-3">
               <Link className="h-4 w-4" />
