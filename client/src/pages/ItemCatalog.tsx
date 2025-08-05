@@ -253,10 +253,18 @@ export default function ItemCatalog() {
   });
 
   const onSubmit = async (data: z.infer<typeof itemSchema>) => {
+    // Adicionar vínculos aos dados enviados
+    const formDataWithLinks = {
+      ...data,
+      linkedCustomers,
+      linkedItems,
+      linkedSuppliers
+    };
+
     if (selectedItem) {
-      updateItemMutation.mutate({ id: selectedItem.id, data });
+      updateItemMutation.mutate({ id: selectedItem.id, data: formDataWithLinks });
     } else {
-      createItemMutation.mutate(data);
+      createItemMutation.mutate(formDataWithLinks);
     }
   };
 
@@ -302,7 +310,7 @@ export default function ItemCatalog() {
         <Button 
           variant="outline" 
           size="sm"
-          onClick={() => {
+          onClick={async () => {
             setSelectedItem(item);
             form.reset({
               name: item.name || '',
@@ -315,6 +323,33 @@ export default function ItemCatalog() {
               defaultChecklist: item.defaultChecklist || '',
               active: item.active !== undefined ? item.active : true,
             });
+            
+            // 🔧 CORREÇÃO: Carregar vínculos existentes do item
+            try {
+              const response = await apiRequest('GET', `/api/materials-services/items/${item.id}`);
+              const itemData = await response.json();
+              
+              if (itemData.success && itemData.data.links) {
+                // Carregar vínculos de clientes
+                const customerIds = itemData.data.links.customers?.map((link: any) => link.customerId) || [];
+                setLinkedCustomers(customerIds);
+                
+                // Carregar vínculos de itens
+                const itemIds = itemData.data.links.items?.map((link: any) => link.linkedItemId) || [];
+                setLinkedItems(itemIds);
+                
+                // Carregar vínculos de fornecedores
+                const supplierIds = itemData.data.links.suppliers?.map((link: any) => link.supplierId) || [];
+                setLinkedSuppliers(supplierIds);
+              }
+            } catch (error) {
+              console.error('Erro ao carregar vínculos do item:', error);
+              // Usar arrays vazios em caso de erro
+              setLinkedCustomers([]);
+              setLinkedItems([]);
+              setLinkedSuppliers([]);
+            }
+            
             setIsCreateModalOpen(true);
           }}
         >

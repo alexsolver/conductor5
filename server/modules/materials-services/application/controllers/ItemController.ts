@@ -138,8 +138,11 @@ export class ItemController {
         return res.status(401).json({ message: 'Tenant required' });
       }
 
+      // Separar vínculos dos dados básicos do item
+      const { linkedCustomers, linkedItems, linkedSuppliers, ...itemData } = req.body;
+      
       const updateData = {
-        ...req.body,
+        ...itemData,
         updatedBy: req.user?.id
       };
 
@@ -150,6 +153,15 @@ export class ItemController {
           success: false,
           message: 'Item not found'
         });
+      }
+
+      // 🔧 CORREÇÃO: Processar vínculos se fornecidos
+      if (linkedCustomers || linkedItems || linkedSuppliers) {
+        await this.itemRepository.updateItemLinks(id, tenantId, {
+          customers: linkedCustomers || [],
+          items: linkedItems || [],
+          suppliers: linkedSuppliers || []
+        }, req.user?.id);
       }
 
       res.json({

@@ -283,7 +283,80 @@ export class ItemRepository {
     return {
       total: totalItems[0]?.count || 0,
       active: activeItems[0]?.count || 0,
-      byType: itemsByType
+      materials: itemsByType.find(item => item.type === 'material')?.count || 0,
+      services: itemsByType.find(item => item.type === 'service')?.count || 0
     };
+  }
+
+  // 🔧 NOVO MÉTODO: Atualizar vínculos de item
+  async updateItemLinks(itemId: string, tenantId: string, links: {
+    customers: string[];
+    items: string[];
+    suppliers: string[];
+  }, createdBy?: string) {
+    // 1. Remover vínculos existentes
+    await Promise.all([
+      this.db.delete(itemCustomerLinks).where(and(
+        eq(itemCustomerLinks.itemId, itemId),
+        eq(itemCustomerLinks.tenantId, tenantId)
+      )),
+      this.db.delete(itemLinks).where(and(
+        eq(itemLinks.itemId, itemId),
+        eq(itemLinks.tenantId, tenantId)
+      )),
+      this.db.delete(itemSupplierLinks).where(and(
+        eq(itemSupplierLinks.itemId, itemId),
+        eq(itemSupplierLinks.tenantId, tenantId)
+      ))
+    ]);
+
+    // 2. Inserir novos vínculos
+    const promises = [];
+
+    // Vínculos de clientes
+    if (links.customers.length > 0) {
+      const customerLinkData = links.customers.map(customerId => ({
+        tenantId,
+        itemId,
+        customerId,
+        isActive: true,
+        createdBy,
+        createdAt: new Date()
+      }));
+      promises.push(this.db.insert(itemCustomerLinks).values(customerLinkData));
+    }
+
+    // Vínculos de itens
+    if (links.items.length > 0) {
+      const itemLinkData = links.items.map(linkedItemId => ({
+        tenantId,
+        itemId,
+        linkedItemId,
+        linkType: 'item_item' as any,
+        relationship: 'related',
+        isActive: true,
+        createdBy,
+        createdAt: new Date()
+      }));
+      promises.push(this.db.insert(itemLinks).values(itemLinkData));
+    }
+
+    // Vínculos de fornecedores
+    if (links.suppliers.length > 0) {
+      const supplierLinkData = links.suppliers.map(supplierId => ({
+        tenantId,
+        itemId,
+        supplierId,
+        createdBy,
+        createdAt: new Date()
+      }));
+      promises.push(this.db.insert(itemSupplierLinks).values(supplierLinkData));
+    }
+
+    if (promises.length > 0) {
+      await Promise.all(promises);
+    }
+
+    return true;
   }
 }
