@@ -281,31 +281,45 @@ export class ItemRepository {
   }
 
   async getCustomerLinks(itemId: string, tenantId: string) {
-    return await this.db
-      .select()
-      .from(itemCustomerLinks)
-      .where(and(eq(itemCustomerLinks.itemId, itemId), eq(itemCustomerLinks.tenantId, tenantId)))
-      .orderBy(desc(itemCustomerLinks.createdAt));
+    try {
+      return await this.db
+        .select()
+        .from(itemCustomerLinks)
+        .where(and(eq(itemCustomerLinks.itemId, itemId), eq(itemCustomerLinks.tenantId, tenantId)))
+        .orderBy(desc(itemCustomerLinks.createdAt));
+    } catch (error: any) {
+      if (error.code === '42P01') { // relation does not exist
+        return [];
+      }
+      throw error;
+    }
   }
 
   async getSupplierLinks(itemId: string, tenantId: string) {
-    return await this.db
-      .select({
-        id: itemSupplierLinks.id,
-        tenantId: itemSupplierLinks.tenantId,
-        itemId: itemSupplierLinks.itemId,
-        supplierId: itemSupplierLinks.supplierId,
-        supplierItemCode: itemSupplierLinks.supplierItemCode,
-        supplierItemName: itemSupplierLinks.supplierItemName,
-        leadTime: itemSupplierLinks.leadTime,
-        minimumOrder: itemSupplierLinks.minimumOrder,
-        isPreferred: itemSupplierLinks.isPreferred,
-        isActive: itemSupplierLinks.isActive,
-        createdAt: itemSupplierLinks.createdAt
-      })
-      .from(itemSupplierLinks)
-      .where(and(eq(itemSupplierLinks.itemId, itemId), eq(itemSupplierLinks.tenantId, tenantId)))
-      .orderBy(desc(itemSupplierLinks.createdAt));
+    try {
+      return await this.db
+        .select({
+          id: itemSupplierLinks.id,
+          tenantId: itemSupplierLinks.tenantId,
+          itemId: itemSupplierLinks.itemId,
+          supplierId: itemSupplierLinks.supplierId,
+          supplierItemCode: itemSupplierLinks.supplierItemCode,
+          supplierItemName: itemSupplierLinks.supplierItemName,
+          leadTime: itemSupplierLinks.leadTime,
+          minimumOrder: itemSupplierLinks.minimumOrder,
+          isPreferred: itemSupplierLinks.isPreferred,
+          isActive: itemSupplierLinks.isActive,
+          createdAt: itemSupplierLinks.createdAt
+        })
+        .from(itemSupplierLinks)
+        .where(and(eq(itemSupplierLinks.itemId, itemId), eq(itemSupplierLinks.tenantId, tenantId)))
+        .orderBy(desc(itemSupplierLinks.createdAt));
+    } catch (error: any) {
+      if (error.code === '42P01') { // relation does not exist
+        return [];
+      }
+      throw error;
+    }
   }
 
   async getStats(tenantId: string) {
