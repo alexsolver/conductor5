@@ -555,29 +555,11 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => 
       ORDER BY field_name, sort_order, label
     `);
 
-    // Se não encontrar configurações específicas e não for a empresa Default, buscar na Default (INCLUINDO INATIVAS)
-    if (result.rows.length === 0 && companyId !== '00000000-0000-0000-0000-000000000001') {
-      console.log('🔄 No specific company config found, falling back to Default company');
-      result = await db.execute(sql`
-        SELECT 
-          id,
-          tenant_id,
-          customer_id,
-          field_name,
-          value,
-          label,
-          color,
-          sort_order,
-          is_active,
-          is_default,
-          status_type,
-          created_at,
-          updated_at
-        FROM "${sql.raw(schemaName)}".ticket_field_options 
-        WHERE tenant_id = ${tenantId}
-        AND customer_id = '00000000-0000-0000-0000-000000000001'
-        ORDER BY field_name, sort_order, label
-      `);
+    // Removido: Sem fallback - cada empresa deve ter suas próprias classificações
+    console.log(`🏢 Company-specific field options found: ${result.rows.length} records`);
+    
+    if (result.rows.length === 0) {
+      console.log(`⚠️ No field options found for company ${companyId} - company needs to configure its own classifications`);
     }
 
     console.log('🔍 Field options query result for company:', companyId, {
@@ -1316,6 +1298,7 @@ router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res) =
             NOW(),
             NOW()
           )
+          ON CONFLICT (tenant_id, customer_id, field_name, value) DO NOTHING
           RETURNING id
         `);
         
