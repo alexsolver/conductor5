@@ -67,6 +67,13 @@ Interface preference: Text-based hierarchical menus with dropdowns over visual c
   - **Performance Optimization**: Tenant-first indexing strategy maintaining 40-60% query performance improvement
   - **Type Safety**: Complete TypeScript interface consolidation for all Materials, Assets, and Compliance modules
   - **Status**: ✅ 19/19 CRITICAL ISSUES RESOLVED - System evolved from critical/unstable to production-ready
+- **Visual Work Status Indicator (August 2025)**: Real-time visual feedback for working status
+  - **Yellow Aura**: Avatar displays yellow glowing ring when user has active timecard status = "working"
+  - **Universal Support**: Works for both CLT and Autonomous users automatically
+  - **Green Clock Icon**: Additional status indicator appears in header when working
+  - **Real-time Updates**: Status refreshes every 30 seconds to maintain accuracy
+  - **Integrated Detection**: Connected to timecard/ponto eletrônico system for authentic status tracking
+  - **Status**: ✅ FULLY FUNCTIONAL - Visual indicators working correctly for all employment types
 
 ## System Architecture
 Conductor follows a Clean Architecture with Domain-Driven Design principles.
