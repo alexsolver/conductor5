@@ -2704,26 +2704,6 @@ export const complianceScores = pgTable("compliance_scores", {
   index("compliance_scores_tenant_entity_idx").on(table.tenantId, table.entityId, table.entityType),
 ]);
 
-// Asset Locations table  
-export const assetLocations = pgTable("asset_locations", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
-  assetId: uuid("asset_id").references(() => assets.id, { onDelete: 'cascade' }).notNull(),
-  locationName: varchar("location_name", { length: 255 }).notNull(),
-  building: varchar("building", { length: 100 }),
-  floor: varchar("floor", { length: 50 }),
-  room: varchar("room", { length: 50 }),
-  coordinates: jsonb("coordinates"), // Geographic coordinates
-  notes: text("notes"),
-  recordedAt: timestamp("recorded_at").defaultNow(), // When location was recorded
-  isActive: boolean("is_active").default(true),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => [
-  index("asset_locations_tenant_asset_idx").on(table.tenantId, table.assetId),
-  index("asset_locations_tenant_building_idx").on(table.tenantId, table.building),
-]);
-
 // Customer Item Mappings - Personalized item configurations per customer
 export const customerItemMappings = pgTable("customer_item_mappings", {
   id: uuid("id").primaryKey().defaultRandom(),
