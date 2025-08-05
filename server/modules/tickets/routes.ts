@@ -318,6 +318,17 @@ ticketsRouter.put('/:id', jwtAuth, trackTicketEdit, async (req: AuthenticatedReq
 
     // CORREÇÃO CRÍTICA 1: Aplicar mapeamento centralizado Frontend→Backend
     const backendUpdates = mapFrontendToBackend(frontendUpdates);
+    
+    // Standardize field naming consistency
+    if (frontendUpdates.customerCompanyId !== undefined) {
+      backendUpdates.customer_company_id = frontendUpdates.customerCompanyId;
+      delete backendUpdates.customerCompanyId;
+    }
+    
+    if (frontendUpdates.assignedToId !== undefined) {
+      backendUpdates.assigned_to_id = frontendUpdates.assignedToId;
+      delete backendUpdates.assignedToId;
+    }
 
     // DEBUG: Log after mapping
     console.log('🔍 DEBUGGING TICKET UPDATE - After mapping:', {

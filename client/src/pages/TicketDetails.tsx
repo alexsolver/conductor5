@@ -376,17 +376,16 @@ const TicketDetails = React.memo(() => {
   const { data: ticketHistoryData, isLoading: historyLoading, error: historyError } = useQuery({
     queryKey: ["/api/tickets", id, "history"],
     queryFn: async () => {
-      console.log('🗂️ Fetching ticket history for:', id);
       const response = await apiRequest("GET", `/api/tickets/${id}/history`);
       const data = await response.json();
-      console.log('🗂️ History API response:', data);
       return data;
     },
     enabled: !!id,
-    staleTime: 30 * 1000, // 30 seconds - faster updates for relationship changes
-    gcTime: 5 * 60 * 1000, // 5 minutes GC time
+    staleTime: 5 * 60 * 1000, // 5 minutes - reduce API calls
+    gcTime: 15 * 60 * 1000, // 15 minutes GC time
     refetchOnWindowFocus: false,
     refetchOnMount: false,
+    retry: 1, // Reduce retry attempts
   });
 
   const { data: ticketCommunications, isLoading: communicationsLoading, error: communicationsError } = useQuery({
@@ -469,14 +468,6 @@ const TicketDetails = React.memo(() => {
 
   // Initialize data from API responses with comprehensive error handling and logging
   useEffect(() => {
-    console.log('🔄 Initializing ticket data:', {
-      ticketId: id,
-      hasCommunications: !!ticketCommunications,
-      hasNotes: !!ticketNotes,
-      hasActions: !!ticketActions,
-      hasAttachments: !!ticketAttachments,
-      hasRelationships: !!ticketRelationships
-    });
 
     // Set communications from API with fallback
     if (ticketCommunications?.success && Array.isArray(ticketCommunications.data)) {
@@ -616,7 +607,7 @@ const TicketDetails = React.memo(() => {
         setSelectedAssignmentGroup(ticket.assignmentGroupId || ticket.assignment_group_id);
       }
     }
-  }, [ticketCommunications, ticketAttachments, ticketNotes, ticketActions, ticketRelationships, ticket]);
+  }, [ticketCommunications?.data, ticketAttachments?.data, ticketNotes?.data, ticketActions?.data, ticketRelationships?.data]);
 
   // Initialize real history data from API with comprehensive mapping
   useEffect(() => {
@@ -1089,6 +1080,14 @@ const TicketDetails = React.memo(() => {
 
 
   // First check if ticket exists
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+      </div>
+    );
+  }
+
   if (!ticket) {
     return (
       <div className="flex items-center justify-center h-64">
