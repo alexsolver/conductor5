@@ -1252,13 +1252,27 @@ router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res) =
     // 4. Copy Field Options - Fixed logic for Default company fallback
     console.log(`🔍 Copying field options from ${sourceCompanyId} to ${targetCompanyId}`);
     
-    // First, delete existing field options for the target company to avoid conflicts
+    // Delete existing field options for the target company to avoid conflicts
     const deleteExistingResult = await db.execute(sql`
       DELETE FROM "${sql.raw(schemaName)}"."ticket_field_options"
       WHERE tenant_id = ${tenantId} 
-      AND customer_id = ${targetCompanyId}
+      AND customer_id = ${targetCompanyId}::uuid
     `);
     console.log(`🗑️ Deleted ${deleteExistingResult.rowCount} existing field options for target company`);
+
+    // Also delete any conflicting global entries that might exist
+    const deleteConflictsResult = await db.execute(sql`
+      DELETE FROM "${sql.raw(schemaName)}"."ticket_field_options"
+      WHERE tenant_id = ${tenantId} 
+      AND customer_id != ${sourceCompanyIdToUse}::uuid
+      AND (field_name, value) IN (
+        SELECT field_name, value 
+        FROM "${sql.raw(schemaName)}"."ticket_field_options" 
+        WHERE tenant_id = ${tenantId} 
+        AND customer_id = ${sourceCompanyIdToUse}::uuid
+      )
+    `);
+    console.log(`🗑️ Deleted ${deleteConflictsResult.rowCount} conflicting field options`);
 
     // Try to copy from source company first, then fallback to Default company if none found
     let sourceCompanyIdToUse = sourceCompanyId;
@@ -1279,7 +1293,7 @@ router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res) =
       console.log(`🔄 Source company has no field options, using Default company as source`);
     }
 
-    // Now insert the field options with proper company mapping
+    // Now insert the field options with proper company mapping and conflict handling
     const fieldOptionsResult = await db.execute(sql`
       INSERT INTO "${sql.raw(schemaName)}"."ticket_field_options" 
       (id, tenant_id, customer_id, field_name, value, label, color, sort_order, is_default, is_active, status_type, created_at, updated_at)
@@ -1300,6 +1314,12 @@ router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res) =
       FROM "${sql.raw(schemaName)}"."ticket_field_options" source
       WHERE source.tenant_id = ${tenantId} 
       AND source.customer_id = ${sourceCompanyIdToUse}::uuid
+      AND NOT EXISTS (
+        SELECT 1 FROM "${sql.raw(schemaName)}"."ticket_field_options" existing
+        WHERE existing.tenant_id = ${tenantId}
+        AND existing.field_name = source.field_name
+        AND existing.value = source.value
+      )
       RETURNING id
     `);
     copiedItems.fieldOptions = fieldOptionsResult.rows.length;
