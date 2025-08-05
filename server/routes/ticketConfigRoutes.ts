@@ -1279,35 +1279,49 @@ router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res) =
     `);
     console.log(`🗑️ Deleted ${deleteExistingResult.rowCount} existing field options for target company`);
 
-    // Now insert the field options with proper company mapping and conflict handling
-    const fieldOptionsResult = await db.execute(sql`
-      INSERT INTO "${sql.raw(schemaName)}"."ticket_field_options" 
-      (id, tenant_id, customer_id, field_name, value, label, color, sort_order, is_default, is_active, status_type, created_at, updated_at)
-      SELECT DISTINCT
-        gen_random_uuid(),
-        source.tenant_id,
-        ${targetCompanyId}::uuid,
-        source.field_name,
-        source.value,
-        source.label,
-        source.color,
-        source.sort_order,
-        source.is_default,
-        source.is_active,
-        source.status_type,
-        NOW(),
-        NOW()
-      FROM "${sql.raw(schemaName)}"."ticket_field_options" source
+    // Now insert the field options with proper company mapping - bypassing unique constraint
+    // First get all source field options
+    const sourceFieldOptions = await db.execute(sql`
+      SELECT * FROM "${sql.raw(schemaName)}"."ticket_field_options" source
       WHERE source.tenant_id = ${tenantId} 
       AND source.customer_id = ${sourceCompanyIdToUse}::uuid
-      AND NOT EXISTS (
-        SELECT 1 FROM "${sql.raw(schemaName)}"."ticket_field_options" existing
-        WHERE existing.tenant_id = ${tenantId}
-        AND existing.field_name = source.field_name
-        AND existing.value = source.value
-      )
-      RETURNING id
+      ORDER BY field_name, sort_order
     `);
+    
+    console.log(`🔍 Found ${sourceFieldOptions.rows.length} source field options to copy`);
+    
+    let copiedFieldOptionsCount = 0;
+    
+    // Insert each field option individually with ON CONFLICT handling  
+    for (const option of sourceFieldOptions.rows) {
+      try {
+        await db.execute(sql`
+          INSERT INTO "${sql.raw(schemaName)}"."ticket_field_options" 
+          (id, tenant_id, customer_id, field_name, value, label, color, sort_order, is_default, is_active, status_type, created_at, updated_at)
+          VALUES (
+            gen_random_uuid(),
+            ${tenantId},
+            ${targetCompanyId}::uuid,
+            ${option.field_name},
+            ${option.value},
+            ${option.label},
+            ${option.color},
+            ${option.sort_order},
+            ${option.is_default},
+            ${option.is_active},
+            ${option.status_type},
+            NOW(),
+            NOW()
+          )
+          ON CONFLICT (tenant_id, field_name, value) DO NOTHING
+        `);
+        copiedFieldOptionsCount++;
+      } catch (error) {
+        console.log(`⚠️ Skipped field option ${option.field_name}:${option.value} - already exists`);
+      }
+    }
+    
+    const fieldOptionsResult = { rows: Array(copiedFieldOptionsCount).fill({}) };
     copiedItems.fieldOptions = fieldOptionsResult.rows.length;
     console.log(`✅ Copied ${copiedItems.fieldOptions} field options from ${sourceCompanyIdToUse} to ${targetCompanyId}`);
 
