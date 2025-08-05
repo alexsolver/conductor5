@@ -36,7 +36,6 @@ export const useFieldColors = () => {
   // Função para buscar cor de um campo específico com fallback para empresa Default
   const getFieldColor = (fieldName: string, value: string): string | undefined => {
     if (!fieldOptions?.data) {
-      console.log(`🚨 No field options data available for ${fieldName}:${value}`);
       return undefined;
     }
 
@@ -44,17 +43,12 @@ export const useFieldColors = () => {
       return undefined;
     }
 
-    // Debug: Log todas as opções disponíveis para este campo
-    const fieldData = fieldOptions.data.filter((opt: FieldOption) => opt.field_name === fieldName);
-    console.log(`🔍 Available options for ${fieldName}:`, fieldData.map(opt => `${opt.value}:${opt.color}`));
-
     // Primeiro, tentar encontrar configuração específica (busca exata)
     const option = fieldOptions.data.find(
       (opt: FieldOption) => opt.field_name === fieldName && opt.value === value
     );
 
     if (option?.color) {
-      console.log(`✅ Color found for ${fieldName}:${value} = ${option.color}`);
       return option.color;
     }
 

@@ -188,8 +188,6 @@ export function DynamicBadge(props: DynamicBadgeProps) {
   // Prioridade: colorHex > bgColor > variant padrão
   if (colorHex && colorHex.trim() !== '') {
     const mappedClass = getContrastClassFromHex(colorHex);
-    console.log(`🎨 DynamicBadge: ${fieldName}:${value} colorHex=${colorHex} mappedClass=${mappedClass}`);
-
     if (mappedClass === 'custom-hex-color') {
       // Usar estilos inline para cores hex personalizadas
       inlineStyles = {
@@ -198,14 +196,11 @@ export function DynamicBadge(props: DynamicBadgeProps) {
         borderColor: colorHex,
       };
       dynamicClasses = 'border';
-      console.log(`🎨 Using inline styles for ${fieldName}:${value}`, inlineStyles);
     } else {
       dynamicClasses = mappedClass;
-      console.log(`🎨 Using CSS class for ${fieldName}:${value}: ${mappedClass}`);
     }
   } else if (bgColor) {
     dynamicClasses = getLegacyColorMapping(bgColor);
-    console.log(`🎨 Using legacy color for ${fieldName}:${value}: ${dynamicClasses}`);
   }
 
   // Se temos classes dinâmicas ou estilos inline, usar variant outline para não conflitar
