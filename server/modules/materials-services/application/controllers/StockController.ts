@@ -1,97 +1,243 @@
 import { Request, Response } from 'express';
-import { AuthenticatedRequest } from '../../../middleware/jwtAuth';
+import { StockRepository } from '../../infrastructure/repositories/StockRepository';
+import type { AuthenticatedRequest } from '../../../../middleware/jwtAuth';
 
 export class StockController {
+  constructor(private stockRepository: StockRepository) {}
+
   async getStockItems(req: AuthenticatedRequest, res: Response) {
     try {
-      const stockItems = [
-        {
-          id: '1',
-          itemId: '1',
-          itemName: 'Item de Exemplo',
-          quantity: 100,
-          reservedQuantity: 10,
-          availableQuantity: 90,
-          location: 'Estoque Principal',
-          lastUpdated: new Date().toISOString()
-        }
-      ];
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({
+          success: false,
+          message: 'Tenant ID required'
+        });
+      }
 
-      res.json({ success: true, data: stockItems });
+      const {
+        limit,
+        offset,
+        search,
+        warehouseId,
+        status
+      } = req.query;
+
+      const options = {
+        limit: limit ? parseInt(limit as string) : undefined,
+        offset: offset ? parseInt(offset as string) : undefined,
+        search: search as string,
+        warehouseId: warehouseId as string,
+        status: status as string
+      };
+
+      const stockItems = await this.stockRepository.getStockItems(tenantId, options);
+
+      res.json({
+        success: true,
+        data: stockItems
+      });
     } catch (error) {
-      console.error('Error fetching stock items:', error);
-      res.status(500).json({ success: false, message: 'Failed to fetch stock items' });
+      console.error('Error getting stock items:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to get stock items'
+      });
     }
   }
 
-  async createStockItem(req: AuthenticatedRequest, res: Response) {
+  async getStockStats(req: AuthenticatedRequest, res: Response) {
     try {
-      const { itemId, quantity, location } = req.body;
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({
+          success: false,
+          message: 'Tenant ID required'
+        });
+      }
 
-      const newStockItem = {
-        id: Date.now().toString(),
+      const stats = await this.stockRepository.getStockStats(tenantId);
+
+      res.json({
+        success: true,
+        data: stats
+      });
+    } catch (error) {
+      console.error('Error getting stock stats:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to get stock stats'
+      });
+    }
+  }
+
+  async getStockMovements(req: AuthenticatedRequest, res: Response) {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({
+          success: false,
+          message: 'Tenant ID required'
+        });
+      }
+
+      const {
+        limit,
+        offset,
         itemId,
+        warehouseId,
+        movementType
+      } = req.query;
+
+      const options = {
+        limit: limit ? parseInt(limit as string) : undefined,
+        offset: offset ? parseInt(offset as string) : undefined,
+        itemId: itemId as string,
+        warehouseId: warehouseId as string,
+        movementType: movementType as string
+      };
+
+      const movements = await this.stockRepository.getStockMovements(tenantId, options);
+
+      res.json({
+        success: true,
+        data: movements
+      });
+    } catch (error) {
+      console.error('Error getting stock movements:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to get stock movements'
+      });
+    }
+  }
+
+  async getWarehouses(req: AuthenticatedRequest, res: Response) {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({
+          success: false,
+          message: 'Tenant ID required'
+        });
+      }
+
+      const warehouses = await this.stockRepository.getWarehouses(tenantId);
+
+      res.json({
+        success: true,
+        data: warehouses
+      });
+    } catch (error) {
+      console.error('Error getting warehouses:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to get warehouses'
+      });
+    }
+  }
+
+  async createStockMovement(req: AuthenticatedRequest, res: Response) {
+    try {
+      const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
+      
+      if (!tenantId || !userId) {
+        return res.status(401).json({
+          success: false,
+          message: 'Authentication required'
+        });
+      }
+
+      const {
+        itemId,
+        warehouseId,
+        movementType,
         quantity,
-        reservedQuantity: 0,
-        availableQuantity: quantity,
-        location,
-        createdAt: new Date().toISOString()
+        unitCost,
+        reason
+      } = req.body;
+
+      // Basic validation
+      if (!itemId || !warehouseId || !movementType || !quantity || !reason) {
+        return res.status(400).json({
+          success: false,
+          message: 'Missing required fields'
+        });
+      }
+
+      const movementData = {
+        itemId,
+        warehouseId,
+        movementType,
+        quantity: parseInt(quantity),
+        unitCost: unitCost ? parseFloat(unitCost) : undefined,
+        reason,
+        createdBy: userId
       };
 
-      res.status(201).json({ success: true, data: newStockItem });
+      const movement = await this.stockRepository.createStockMovement(tenantId, movementData);
+
+      res.status(201).json({
+        success: true,
+        data: movement
+      });
     } catch (error) {
-      console.error('Error creating stock item:', error);
-      res.status(500).json({ success: false, message: 'Failed to create stock item' });
+      console.error('Error creating stock movement:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to create stock movement'
+      });
     }
   }
 
-  async getStockItemById(req: AuthenticatedRequest, res: Response) {
+  async createStockAdjustment(req: AuthenticatedRequest, res: Response) {
     try {
-      const { id } = req.params;
+      const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
+      
+      if (!tenantId || !userId) {
+        return res.status(401).json({
+          success: false,
+          message: 'Authentication required'
+        });
+      }
 
-      const stockItem = {
-        id,
-        itemId: '1',
-        itemName: 'Item de Exemplo',
-        quantity: 100,
-        reservedQuantity: 10,
-        availableQuantity: 90,
-        location: 'Estoque Principal'
+      const {
+        itemId,
+        warehouseId,
+        newQuantity,
+        reason
+      } = req.body;
+
+      // Basic validation
+      if (!itemId || !warehouseId || newQuantity === undefined || !reason) {
+        return res.status(400).json({
+          success: false,
+          message: 'Missing required fields'
+        });
+      }
+
+      const adjustmentData = {
+        itemId,
+        warehouseId,
+        newQuantity: parseInt(newQuantity),
+        reason,
+        createdBy: userId
       };
 
-      res.json({ success: true, data: stockItem });
+      const adjustment = await this.stockRepository.createStockAdjustment(tenantId, adjustmentData);
+
+      res.status(201).json({
+        success: true,
+        data: adjustment
+      });
     } catch (error) {
-      console.error('Error fetching stock item:', error);
-      res.status(500).json({ success: false, message: 'Failed to fetch stock item' });
-    }
-  }
-
-  async updateStockItem(req: AuthenticatedRequest, res: Response) {
-    try {
-      const { id } = req.params;
-      const updateData = req.body;
-
-      const updatedStockItem = {
-        id,
-        ...updateData,
-        updatedAt: new Date().toISOString()
-      };
-
-      res.json({ success: true, data: updatedStockItem });
-    } catch (error) {
-      console.error('Error updating stock item:', error);
-      res.status(500).json({ success: false, message: 'Failed to update stock item' });
-    }
-  }
-
-  async deleteStockItem(req: AuthenticatedRequest, res: Response) {
-    try {
-      const { id } = req.params;
-
-      res.json({ success: true, message: 'Stock item deleted successfully' });
-    } catch (error) {
-      console.error('Error deleting stock item:', error);
-      res.status(500).json({ success: false, message: 'Failed to delete stock item' });
+      console.error('Error creating stock adjustment:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to create stock adjustment'
+      });
     }
   }
 }

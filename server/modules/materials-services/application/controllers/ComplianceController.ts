@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import { ComplianceRepository } from '../../infrastructure/repositories/ComplianceRepository';
-import { AuthenticatedRequest } from '../../../middleware/jwtAuth';
 
 export class ComplianceController {
   private repository: ComplianceRepository;
@@ -520,49 +519,6 @@ export class ComplianceController {
     } catch (error) {
       console.error('Erro ao gerar alertas de vencimento:', error);
       res.status(500).json({ error: 'Erro interno do servidor' });
-    }
-  }
-
-  // New methods from edited snippet
-  async getComplianceReports(req: AuthenticatedRequest, res: Response) {
-    try {
-      const reports = [
-        {
-          id: '1',
-          title: 'Relatório de Conformidade Mensal',
-          type: 'monthly',
-          status: 'Aprovado',
-          generatedDate: new Date().toISOString(),
-          items: 25,
-          conformityRate: 98.5
-        }
-      ];
-
-      res.json({ success: true, data: reports });
-    } catch (error) {
-      console.error('Error fetching compliance reports:', error);
-      res.status(500).json({ success: false, message: 'Failed to fetch compliance reports' });
-    }
-  }
-
-  async createAuditReport(req: AuthenticatedRequest, res: Response) {
-    try {
-      const { title, type, description } = req.body;
-
-      const newReport = {
-        id: Date.now().toString(),
-        title,
-        type,
-        description,
-        status: 'Em Análise',
-        generatedDate: new Date().toISOString(),
-        createdBy: req.user?.id
-      };
-
-      res.status(201).json({ success: true, data: newReport });
-    } catch (error) {
-      console.error('Error creating audit report:', error);
-      res.status(500).json({ success: false, message: 'Failed to create audit report' });
     }
   }
 }

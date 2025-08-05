@@ -1,103 +1,230 @@
 import { Request, Response } from 'express';
+import { SupplierRepository } from '../../infrastructure/repositories/SupplierRepository';
 import { AuthenticatedRequest } from '../../../middleware/jwtAuth';
 
 export class SupplierController {
-  async getSuppliers(req: AuthenticatedRequest, res: Response) {
-    try {
-      const suppliers = [
-        {
-          id: '1',
-          name: 'Fornecedor Exemplo Ltda',
-          document: '12.345.678/0001-90',
-          email: 'contato@fornecedor.com',
-          phone: '(11) 1234-5678',
-          address: 'Rua Exemplo, 123',
-          city: 'São Paulo',
-          state: 'SP',
-          isActive: true
-        }
-      ];
-
-      res.json({ success: true, data: suppliers });
-    } catch (error) {
-      console.error('Error fetching suppliers:', error);
-      res.status(500).json({ success: false, message: 'Failed to fetch suppliers' });
-    }
-  }
+  constructor(private supplierRepository: SupplierRepository) {}
 
   async createSupplier(req: AuthenticatedRequest, res: Response) {
     try {
-      const { name, document, email, phone, address, city, state } = req.body;
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant required' });
+      }
 
-      const newSupplier = {
-        id: Date.now().toString(),
-        name,
-        document,
-        email,
-        phone,
-        address,
-        city,
-        state,
-        isActive: true,
-        createdAt: new Date().toISOString()
+      const supplierData = {
+        ...req.body,
+        tenantId,
+        createdBy: req.user?.id
       };
 
-      res.status(201).json({ success: true, data: newSupplier });
+      const supplier = await this.supplierRepository.create(supplierData);
+      
+      res.status(201).json({
+        success: true,
+        data: supplier,
+        message: 'Supplier created successfully'
+      });
     } catch (error) {
       console.error('Error creating supplier:', error);
-      res.status(500).json({ success: false, message: 'Failed to create supplier' });
+      res.status(500).json({
+        success: false,
+        message: 'Failed to create supplier'
+      });
     }
   }
 
-  async getSupplierById(req: AuthenticatedRequest, res: Response) {
+  async getSuppliers(req: AuthenticatedRequest, res: Response) {
     try {
-      const { id } = req.params;
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant required' });
+      }
 
-      const supplier = {
-        id,
-        name: 'Fornecedor Exemplo Ltda',
-        document: '12.345.678/0001-90',
-        email: 'contato@fornecedor.com',
-        phone: '(11) 1234-5678',
-        address: 'Rua Exemplo, 123',
-        city: 'São Paulo',
-        state: 'SP',
-        isActive: true
+      const {
+        limit = 50,
+        offset = 0,
+        search,
+        active
+      } = req.query;
+
+      const options = {
+        limit: parseInt(limit as string),
+        offset: parseInt(offset as string),
+        search: search as string,
+        active: active === 'true' ? true : active === 'false' ? false : undefined
       };
 
-      res.json({ success: true, data: supplier });
+      const suppliers = await this.supplierRepository.findByTenant(tenantId, options);
+      
+      res.json({
+        success: true,
+        data: suppliers
+      });
+    } catch (error) {
+      console.error('Error fetching suppliers:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch suppliers'
+      });
+    }
+  }
+
+  async getSupplier(req: AuthenticatedRequest, res: Response) {
+    try {
+      const tenantId = req.user?.tenantId;
+      const { id } = req.params;
+      
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant required' });
+      }
+
+      const supplier = await this.supplierRepository.findById(id, tenantId);
+      
+      if (!supplier) {
+        return res.status(404).json({
+          success: false,
+          message: 'Supplier not found'
+        });
+      }
+
+      // Get catalog
+      const catalog = await this.supplierRepository.getCatalog(id, tenantId);
+
+      res.json({
+        success: true,
+        data: {
+          ...supplier,
+          catalog
+        }
+      });
     } catch (error) {
       console.error('Error fetching supplier:', error);
-      res.status(500).json({ success: false, message: 'Failed to fetch supplier' });
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch supplier'
+      });
     }
   }
 
   async updateSupplier(req: AuthenticatedRequest, res: Response) {
     try {
+      const tenantId = req.user?.tenantId;
       const { id } = req.params;
-      const updateData = req.body;
+      
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant required' });
+      }
 
-      const updatedSupplier = {
-        id,
-        ...updateData,
-        updatedAt: new Date().toISOString()
+      const updateData = {
+        ...req.body,
+        updatedBy: req.user?.id
       };
 
-      res.json({ success: true, data: updatedSupplier });
+      const supplier = await this.supplierRepository.update(id, tenantId, updateData);
+      
+      if (!supplier) {
+        return res.status(404).json({
+          success: false,
+          message: 'Supplier not found'
+        });
+      }
+
+      res.json({
+        success: true,
+        data: supplier,
+        message: 'Supplier updated successfully'
+      });
     } catch (error) {
       console.error('Error updating supplier:', error);
-      res.status(500).json({ success: false, message: 'Failed to update supplier' });
+      res.status(500).json({
+        success: false,
+        message: 'Failed to update supplier'
+      });
     }
   }
 
   async deleteSupplier(req: AuthenticatedRequest, res: Response) {
     try {
+      const tenantId = req.user?.tenantId;
       const { id } = req.params;
+      
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant required' });
+      }
 
-      res.json({ success: true, message: 'Supplier deleted successfully' });
+      const deleted = await this.supplierRepository.delete(id, tenantId);
+      
+      if (!deleted) {
+        return res.status(404).json({
+          success: false,
+          message: 'Supplier not found'
+        });
+      }
+
+      res.json({
+        success: true,
+        message: 'Supplier deleted successfully'
+      });
     } catch (error) {
       console.error('Error deleting supplier:', error);
-      res.status(500).json({ success: false, message: 'Failed to delete supplier' });
+      res.status(500).json({
+        success: false,
+        message: 'Failed to delete supplier'
+      });
+    }
+  }
+
+  async addCatalogItem(req: AuthenticatedRequest, res: Response) {
+    try {
+      const tenantId = req.user?.tenantId;
+      const { id } = req.params;
+      
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant required' });
+      }
+
+      const catalogData = {
+        ...req.body,
+        tenantId,
+        supplierId: id
+      };
+
+      const catalogItem = await this.supplierRepository.addCatalogItem(catalogData);
+      
+      res.status(201).json({
+        success: true,
+        data: catalogItem,
+        message: 'Catalog item added successfully'
+      });
+    } catch (error) {
+      console.error('Error adding catalog item:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to add catalog item'
+      });
+    }
+  }
+
+  async getStats(req: AuthenticatedRequest, res: Response) {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant required' });
+      }
+
+      const stats = await this.supplierRepository.getStats(tenantId);
+      
+      res.json({
+        success: true,
+        data: stats
+      });
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch stats'
+      });
     }
   }
 }
