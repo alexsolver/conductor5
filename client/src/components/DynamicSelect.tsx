@@ -47,7 +47,7 @@ export function DynamicSelect(props: DynamicSelectProps) {
   const { user } = useAuth();
 
   // Query principal para buscar opções do campo
-  const { data: fieldOptionsData, isLoading, error } = useQuery({
+  const { data: fieldOptionsData, isLoading, error, refetch } = useQuery({
     queryKey: ["/api/ticket-config/field-options", fieldName, customerId, dependsOn],
     queryFn: async () => {
       // CRÍTICO: Garantir que fieldName sempre é enviado
@@ -71,8 +71,9 @@ export function DynamicSelect(props: DynamicSelectProps) {
       return response.json();
     },
     enabled: !!fieldName, // Só executa se fieldName existe
-    staleTime: 5 * 60 * 1000, // 5 minutos
-    refetchOnWindowFocus: false,
+    staleTime: 0, // ⚡ Cache mais agressivo para refletir mudanças imediatamente
+    cacheTime: 30 * 1000, // 30 segundos
+    refetchOnWindowFocus: true, // ⚡ Refetch quando focar na janela
   });
 
   useEffect(() => {

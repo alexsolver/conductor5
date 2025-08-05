@@ -29,9 +29,9 @@ export const useFieldColors = (companyId?: string) => {
       console.log('🎨 [useFieldColors] Field options loaded:', result?.data?.length || 0, 'options');
       return result;
     },
-    staleTime: 30 * 60 * 1000, // Cache por 30 minutos
-    gcTime: 60 * 60 * 1000, // Garbage collection em 1 hora
-    refetchOnWindowFocus: false,
+    staleTime: 0, // ⚡ Cache mais agressivo para refletir mudanças imediatamente  
+    gcTime: 30 * 1000, // Garbage collection em 30 segundos
+    refetchOnWindowFocus: true, // ⚡ Refetch quando focar na janela
     refetchOnMount: true,
     refetchInterval: false,
     retry: 3, // Mais tentativas
