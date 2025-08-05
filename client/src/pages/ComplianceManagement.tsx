@@ -452,9 +452,9 @@ export default function ComplianceManagement() {
             <FileSearch className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.audits.total || 0}</div>
+            <div className="text-2xl font-bold">{stats?.audits?.total || 0}</div>
             <p className="text-xs text-muted-foreground">
-              {stats?.audits.completed || 0} concluídas
+              {stats?.audits?.completed || 0} concluídas
             </p>
           </CardContent>
         </Card>
@@ -465,9 +465,9 @@ export default function ComplianceManagement() {
             <Award className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.certifications.total || 0}</div>
+            <div className="text-2xl font-bold">{stats?.certifications?.total || 0}</div>
             <p className="text-xs text-muted-foreground">
-              {stats?.certifications.active || 0} ativas
+              {stats?.certifications?.active || 0} ativas
             </p>
           </CardContent>
         </Card>
@@ -478,9 +478,9 @@ export default function ComplianceManagement() {
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.alerts.active || 0}</div>
+            <div className="text-2xl font-bold">{stats?.alerts?.active || 0}</div>
             <p className="text-xs text-muted-foreground">
-              {stats?.alerts.critical || 0} críticos
+              {stats?.alerts?.critical || 0} críticos
             </p>
           </CardContent>
         </Card>
@@ -491,7 +491,7 @@ export default function ComplianceManagement() {
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.certifications.expiring || 0}</div>
+            <div className="text-2xl font-bold">{stats?.certifications?.expiring || 0}</div>
             <p className="text-xs text-muted-foreground">
               próximos 30 dias
             </p>

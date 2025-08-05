@@ -117,7 +117,20 @@ const TicketDetails = React.memo(() => {
   const [isBeneficiaryDetailsOpen, setIsBeneficiaryDetailsOpen] = useState(false);
   const [selectedAssignmentGroup, setSelectedAssignmentGroup] = useState<string>('');
 
-
+  // 🚨 CRÍTICO: Form declaration must be BEFORE its first use
+  const form = useForm<TicketFormData>({
+    resolver: zodResolver(ticketFormSchema),
+    defaultValues: useMemo(() => ({
+      subject: "",
+      description: "",
+      priority: "medium" as const,
+      status: "open" as const,
+      callerId: "",
+      callerType: "customer" as const,
+      beneficiaryType: "customer" as const,
+      contactType: "email" as const,
+    }), []),
+  });
 
   // Estados para modal de ação interna
   const [newInternalAction, setNewInternalAction] = useState('');
@@ -781,22 +794,6 @@ const TicketDetails = React.memo(() => {
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
-
-
-
-  const form = useForm<TicketFormData>({
-    resolver: zodResolver(ticketFormSchema),
-    defaultValues: useMemo(() => ({
-      subject: "",
-      description: "",
-      priority: "medium" as const,
-      status: "open" as const,
-      callerId: "",
-      callerType: "customer" as const,
-      beneficiaryType: "customer" as const,
-      contactType: "email" as const,
-    }), []),
-  });
 
   // 🚀 OTIMIZAÇÃO: Form reset otimizado com shallow comparison e memoização
   const formDataMemo = useMemo(() => {
