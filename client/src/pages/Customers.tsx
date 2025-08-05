@@ -294,8 +294,8 @@ export default function Customers() {
                   </TableCell>
                   <TableCell>
                     <Badge 
-                      variant={customer.status === 'Ativo' ? "default" : "secondary"}
-                      className={customer.status === 'Ativo' ? "bg-blue-600 text-white hover:bg-blue-700" : ""}
+                      variant={customer.status === 'Ativo' ? "outline" : "secondary"}
+                      className={customer.status === 'Ativo' ? "bg-blue-600 text-white hover:bg-blue-700 border-blue-600" : ""}
                     >
                       {customer.status || "Ativo"}
                     </Badge>
