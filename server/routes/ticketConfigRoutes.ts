@@ -534,7 +534,7 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => 
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
     // Primeiro, tentar buscar configurações específicas da empresa (INCLUINDO INATIVAS)
-    let result = await db.execute(sql`
+    const result = await db.execute(sql`
       SELECT 
         id,
         tenant_id,
@@ -552,12 +552,13 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => 
       FROM "${sql.raw(schemaName)}".ticket_field_options 
       WHERE tenant_id = ${tenantId}
       AND customer_id = ${companyId}
+      AND is_active = true
       ORDER BY field_name, sort_order, label
     `);
 
     // Removido: Sem fallback - cada empresa deve ter suas próprias classificações
     console.log(`🏢 Company-specific field options found: ${result.rows.length} records`);
-    
+
     if (result.rows.length === 0) {
       console.log(`⚠️ No field options found for company ${companyId} - company needs to configure its own classifications`);
     }
@@ -1120,7 +1121,7 @@ router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res) =
     console.log(`🔄 Copying hierarchy from ${sourceCompanyId} to ${targetCompanyId} for tenant ${tenantId}`);
 
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-    
+
     let copiedItems = {
       categories: 0,
       subcategories: 0,
@@ -1233,10 +1234,10 @@ router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res) =
 
     // 4. Copy Field Options - Fixed logic for Default company fallback
     console.log(`🔍 Copying field options from ${sourceCompanyId} to ${targetCompanyId}`);
-    
+
     // Try to copy from source company first, then fallback to Default company if none found
     let sourceCompanyIdToUse = sourceCompanyId;
-    
+
     // Check if source company has specific field options
     const sourceOptionsCheck = await db.execute(sql`
       SELECT COUNT(*) as count 
@@ -1244,9 +1245,9 @@ router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res) =
       WHERE tenant_id = ${tenantId} 
       AND customer_id = ${sourceCompanyId}
     `);
-    
+
     const sourceHasOptions = Number(sourceOptionsCheck.rows[0]?.count) > 0;
-    
+
     if (!sourceHasOptions) {
       // Fallback to Default company
       sourceCompanyIdToUse = '00000000-0000-0000-0000-000000000001';
@@ -1269,17 +1270,17 @@ router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res) =
       AND source.customer_id = ${sourceCompanyIdToUse}::uuid
       ORDER BY field_name, sort_order
     `);
-    
+
     console.log(`🔍 Found ${sourceFieldOptions.rows.length} source field options to copy`);
     console.log(`🔍 Source field options:`, sourceFieldOptions.rows.map(o => `${o.field_name}:${o.value}`));
-    
+
     let copiedFieldOptionsCount = 0;
-    
+
     // Insert each field option individually with detailed logging  
     for (const option of sourceFieldOptions.rows) {
       try {
         console.log(`🔄 Copying field option: ${option.field_name}:${option.value} from ${sourceCompanyIdToUse} to ${targetCompanyId}`);
-        
+
         const insertResult = await db.execute(sql`
           INSERT INTO "${sql.raw(schemaName)}"."ticket_field_options" 
           (id, tenant_id, customer_id, field_name, value, label, color, sort_order, is_default, is_active, status_type, created_at, updated_at)
@@ -1301,7 +1302,7 @@ router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res) =
           ON CONFLICT (tenant_id, customer_id, field_name, value) DO NOTHING
           RETURNING id
         `);
-        
+
         if (insertResult.rows.length > 0) {
           copiedFieldOptionsCount++;
           console.log(`✅ Successfully copied ${option.field_name}:${option.value}`);
@@ -1312,31 +1313,31 @@ router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res) =
         console.log(`❌ Failed to copy field option ${option.field_name}:${option.value}:`, error.message);
       }
     }
-    
+
     const fieldOptionsResult = { rows: Array(copiedFieldOptionsCount).fill({}) };
     copiedItems.fieldOptions = fieldOptionsResult.rows.length;
     console.log(`✅ Copied ${copiedItems.fieldOptions} field options from ${sourceCompanyIdToUse} to ${targetCompanyId}`);
 
     // 5. Copy Numbering Configuration - Fixed logic with fallback
     console.log(`🔍 Copying numbering config from ${sourceCompanyId} to ${targetCompanyId}`);
-    
+
     // Delete existing numbering config for target company
     await db.execute(sql`
       DELETE FROM "${sql.raw(schemaName)}"."ticket_numbering_config"
       WHERE tenant_id = ${tenantId} AND company_id = ${targetCompanyId}
     `);
-    
+
     // Try to copy from source company first, then fallback to Default company
     let numberingSourceId = sourceCompanyId;
-    
+
     const sourceNumberingCheck = await db.execute(sql`
       SELECT COUNT(*) as count 
       FROM "${sql.raw(schemaName)}"."ticket_numbering_config"
       WHERE tenant_id = ${tenantId} AND company_id = ${sourceCompanyId}
     `);
-    
+
     const sourceHasNumbering = Number(sourceNumberingCheck.rows[0]?.count) > 0;
-    
+
     if (!sourceHasNumbering) {
       // Fallback to Default company
       numberingSourceId = '00000000-0000-0000-0000-000000000001';

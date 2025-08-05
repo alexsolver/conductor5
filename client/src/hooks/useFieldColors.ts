@@ -24,10 +24,10 @@ export const useFieldColors = () => {
       const response = await apiRequest("GET", "/api/ticket-config/field-options");
       return response.json();
     },
-    staleTime: 15 * 60 * 1000, // Cache por 15 minutos - mais agressivo
-    gcTime: 30 * 60 * 1000, // Garbage collection em 30 minutos
+    staleTime: 30 * 60 * 1000, // Cache por 30 minutos - mais agressivo
+    gcTime: 60 * 60 * 1000, // Garbage collection em 1 hora
     refetchOnWindowFocus: false,
-    refetchOnMount: true, // 🚨 CORREÇÃO: Permitir refetch no mount para garantir dados frescos
+    refetchOnMount: false, // Evitar refetch desnecessário
     refetchInterval: false, // Disable auto-refetch
     retry: 1, // Reduzir tentativas para carregamento mais rápido
     retryDelay: 1000, // Delay menor entre tentativas

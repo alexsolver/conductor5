@@ -128,7 +128,7 @@ export function DynamicSelect(props: DynamicSelectProps) {
           <SelectItem value="all">Todos</SelectItem>
         )}
         {fieldOptions.map((option, index) => (
-          <SelectItem key={`${fieldName}-${option.value}-${option.id || index}`} value={option.value}>
+          <SelectItem key={`${fieldName}-${option.value}-${index}`} value={option.value}>
             <div className="flex items-center gap-2">
               {option.color && (
                 <div

@@ -308,7 +308,7 @@ const TicketDetails = React.memo(() => {
 );
 
   // Handle customer selection with proper form updates
-  const handleCustomerChange = (customerId: string, type: 'caller' | 'beneficiary') => {
+  const handleCustomerChange = useCallback((customerId: string, type: 'caller' | 'beneficiary') => {
     console.log('👤 Customer change:', { customerId, type });
 
     if (type === 'caller') {
@@ -320,7 +320,7 @@ const TicketDetails = React.memo(() => {
     } else {
       form.setValue('beneficiaryId', customerId);
     }
-  };
+  }, [form]);
 
   // Fetch users for assignment
   const { data: users = [] } = useQuery({
@@ -482,15 +482,20 @@ const TicketDetails = React.memo(() => {
   })) : [];
 
   // Initialize data from API responses with comprehensive error handling and logging
+  const communicationsData = useMemo(() => ticketCommunications?.data, [ticketCommunications?.data]);
+  const attachmentsData = useMemo(() => ticketAttachments?.data, [ticketAttachments?.data]);
+  const notesData = useMemo(() => ticketNotes?.data, [ticketNotes?.data]);
+  const actionsData = useMemo(() => ticketActions?.data, [ticketActions?.data]);
+
   useEffect(() => {
 
     // Set communications from API with fallback
-    if (ticketCommunications?.success && Array.isArray(ticketCommunications.data)) {
+    if (ticketCommunications?.success && Array.isArray(communicationsData)) {
       console.log('💬 Setting communications:', ticketCommunications.data.length, 'items');
       setCommunications(ticketCommunications.data);
-    } else if (ticketCommunications?.data && Array.isArray(ticketCommunications.data)) {
-      console.log('💬 Setting communications (no success flag):', ticketCommunications.data.length, 'items');
-      setCommunications(ticketCommunications.data);
+    } else if (ticketCommunications?.data && Array.isArray(communicationsData)) {
+      console.log('💬 Setting communications (no success flag):', communicationsData.length, 'items');
+      setCommunications(communicationsData);
     } else if (ticketRelationships?.communications && Array.isArray(ticketRelationships.communications)) {
       console.log('💬 Setting communications from relationships:', ticketRelationships.communications.length, 'items');
       setCommunications(ticketRelationships.communications);
