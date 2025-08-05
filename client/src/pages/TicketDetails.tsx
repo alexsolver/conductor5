@@ -784,21 +784,18 @@ const TicketDetails = React.memo(() => {
 
 
 
-  // Form setup with memoized default values
-  const defaultValues = useMemo(() => ({
-    subject: "",
-    description: "",
-    priority: "medium" as const,
-    status: "open" as const,
-    callerId: "",
-    callerType: "customer" as const,
-    beneficiaryType: "customer" as const,
-    contactType: "email" as const,
-  }), []);
-
   const form = useForm<TicketFormData>({
     resolver: zodResolver(ticketFormSchema),
-    defaultValues,
+    defaultValues: useMemo(() => ({
+      subject: "",
+      description: "",
+      priority: "medium" as const,
+      status: "open" as const,
+      callerId: "",
+      callerType: "customer" as const,
+      beneficiaryType: "customer" as const,
+      contactType: "email" as const,
+    }), []),
   });
 
   // 🚀 OTIMIZAÇÃO: Form reset otimizado com shallow comparison e memoização
@@ -1062,7 +1059,7 @@ const TicketDetails = React.memo(() => {
 
       // Time tracking
       estimated_hours: data.estimatedHours,
-      actual_hours: data.actualHours,
+      actualHours: data.actualHours,
 
       // Collections - CORREÇÃO: Usar state ao invés de form data
       followers: followers.length > 0 ? followers : (data.followers || []),
