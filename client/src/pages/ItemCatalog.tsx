@@ -642,6 +642,30 @@ export default function ItemCatalog() {
                         </CardHeader>
                         <CardContent>
                           <div className="space-y-3">
+                            {/* Selecionar/Desselecionar Todas */}
+                            {(availableCustomers as any)?.length > 0 && (
+                              <div className="flex items-center space-x-2 pb-2 border-b">
+                                <Checkbox
+                                  id="select-all-customers"
+                                  checked={
+                                    (availableCustomers as any)?.length > 0 && 
+                                    linkedCustomers.length === (availableCustomers as any)?.length
+                                  }
+                                  onCheckedChange={(checked) => {
+                                    if (checked) {
+                                      // Selecionar todas as empresas
+                                      setLinkedCustomers((availableCustomers as any)?.map((customer: any) => customer.id) || []);
+                                    } else {
+                                      // Desselecionar todas
+                                      setLinkedCustomers([]);
+                                    }
+                                  }}
+                                />
+                                <label htmlFor="select-all-customers" className="text-sm font-medium">
+                                  Selecionar Todas ({(availableCustomers as any)?.length || 0})
+                                </label>
+                              </div>
+                            )}
                             {(availableCustomers as any)?.map((customer: any) => (
                               <div key={customer.id} className="flex items-center space-x-2">
                                 <Checkbox
