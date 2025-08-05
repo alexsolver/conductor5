@@ -600,9 +600,10 @@ export default function ItemCatalog() {
               </DialogDescription>
             </DialogHeader>
             <Tabs defaultValue="basic" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="basic">Informações Básicas</TabsTrigger>
                 <TabsTrigger value="links">Vínculos</TabsTrigger>
+                <TabsTrigger value="personalizations">Personalização</TabsTrigger>
               </TabsList>
 
               <Form {...form}>
@@ -883,6 +884,125 @@ export default function ItemCatalog() {
                           </div>
                         </CardContent>
                       </Card>
+                    </div>
+                  </TabsContent>
+
+                  {/* Nova Aba de Personalização */}
+                  <TabsContent value="personalizations" className="space-y-6">
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <h3 className="text-lg font-semibold">Personalização por Empresa Cliente</h3>
+                          <p className="text-sm text-muted-foreground">
+                            Configure como este item aparece para diferentes empresas clientes
+                          </p>
+                        </div>
+                        {selectedItem && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => {
+                              setMappingFormData({
+                                customer_id: "",
+                                item_id: selectedItem.id,
+                                custom_sku: "",
+                                custom_name: selectedItem.name,
+                                custom_description: selectedItem.description || "",
+                                customer_reference: "",
+                                special_instructions: "",
+                                notes: ""
+                              });
+                              setEditingMapping(null);
+                              setMappingDialogOpen(true);
+                            }}
+                          >
+                            <Plus className="h-4 w-4 mr-2" />
+                            Adicionar Personalização
+                          </Button>
+                        )}
+                      </div>
+
+                      {selectedItem ? (
+                        <div className="space-y-4">
+                          {/* Lista de personalizações existentes para este item */}
+                          <Card>
+                            <CardHeader>
+                              <CardTitle className="text-base">Personalizações Existentes</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              {mappings
+                                .filter((mapping: CustomerItemMapping) => mapping.item_id === selectedItem.id)
+                                .map((mapping: CustomerItemMapping) => (
+                                  <div key={mapping.id} className="flex items-center justify-between p-3 border rounded-lg">
+                                    <div className="space-y-1">
+                                      <div className="flex items-center space-x-2">
+                                        <Badge variant="outline">{mapping.custom_sku || 'Sem SKU'}</Badge>
+                                        <span className="font-medium">{mapping.custom_name}</span>
+                                      </div>
+                                      <div className="text-sm text-muted-foreground">
+                                        Cliente: {mapping.customer_first_name} {mapping.customer_last_name}
+                                      </div>
+                                      {mapping.custom_description && (
+                                        <div className="text-sm text-muted-foreground">
+                                          {mapping.custom_description}
+                                        </div>
+                                      )}
+                                    </div>
+                                    <div className="flex space-x-2">
+                                      <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => {
+                                          setEditingMapping(mapping);
+                                          setMappingFormData({
+                                            customer_id: mapping.customer_id,
+                                            item_id: mapping.item_id,
+                                            custom_sku: mapping.custom_sku,
+                                            custom_name: mapping.custom_name,
+                                            custom_description: mapping.custom_description || "",
+                                            customer_reference: mapping.customer_reference,
+                                            special_instructions: mapping.special_instructions || "",
+                                            notes: mapping.notes || ""
+                                          });
+                                          setMappingDialogOpen(true);
+                                        }}
+                                      >
+                                        <Edit className="h-4 w-4" />
+                                      </Button>
+                                      <Button
+                                        type="button"
+                                        variant="destructive"
+                                        size="sm"
+                                        onClick={() => {
+                                          if (confirm('Tem certeza que deseja excluir esta personalização?')) {
+                                            deleteMappingMutation.mutate(mapping.id);
+                                          }
+                                        }}
+                                      >
+                                        <Trash2 className="h-4 w-4" />
+                                      </Button>
+                                    </div>
+                                  </div>
+                                ))}
+                              {mappings.filter((mapping: CustomerItemMapping) => mapping.item_id === selectedItem.id).length === 0 && (
+                                <div className="text-center py-8">
+                                  <Building className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                                  <p className="text-muted-foreground">Nenhuma personalização configurada para este item</p>
+                                  <p className="text-sm text-muted-foreground">
+                                    Adicione uma personalização para que o item apareça com nomes diferentes para cada empresa cliente
+                                  </p>
+                                </div>
+                              )}
+                            </CardContent>
+                          </Card>
+                        </div>
+                      ) : (
+                        <div className="text-center py-8">
+                          <Tag className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                          <p className="text-muted-foreground">Salve o item primeiro para configurar personalizações</p>
+                        </div>
+                      )}
                     </div>
                   </TabsContent>
 

@@ -75,7 +75,7 @@ export class ItemRepository {
         .from(itemCustomerLinks)
         .where(and(
           eq(itemCustomerLinks.tenantId, tenantId),
-          eq(itemCustomerLinks.customerId, options.companyId),
+          eq(itemCustomerLinks.customerCompanyId, options.companyId),
           eq(itemCustomerLinks.isActive, true)
         ));
       
@@ -262,13 +262,13 @@ export class ItemRepository {
         tenantId: itemSupplierLinks.tenantId,
         itemId: itemSupplierLinks.itemId,
         supplierId: itemSupplierLinks.supplierId,
-        partNumber: itemSupplierLinks.partNumber,
-        description: itemSupplierLinks.description,
-        qrCode: itemSupplierLinks.qrCode,
-        barcode: itemSupplierLinks.barcode,
-        unitPrice: itemSupplierLinks.unitPrice,
-        createdAt: itemSupplierLinks.createdAt,
-        createdBy: itemSupplierLinks.createdBy
+        supplierItemCode: itemSupplierLinks.supplierItemCode,
+        supplierItemName: itemSupplierLinks.supplierItemName,
+        leadTime: itemSupplierLinks.leadTime,
+        minimumOrder: itemSupplierLinks.minimumOrder,
+        isPreferred: itemSupplierLinks.isPreferred,
+        isActive: itemSupplierLinks.isActive,
+        createdAt: itemSupplierLinks.createdAt
       })
       .from(itemSupplierLinks)
       .where(and(eq(itemSupplierLinks.itemId, itemId), eq(itemSupplierLinks.tenantId, tenantId)))
