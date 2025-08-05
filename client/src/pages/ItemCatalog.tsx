@@ -139,20 +139,7 @@ export default function ItemCatalog() {
   // Mutations
   const createItemMutation = useMutation({
     mutationFn: async (data: z.infer<typeof itemSchema>) => {
-      const response = await fetch('/api/materials-services/items', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include', // Include session cookies
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Failed to create item: ${errorText}`);
-      }
-
+      const response = await apiRequest('POST', '/api/materials-services/items', data);
       return response.json();
     },
     onSuccess: () => {
@@ -187,20 +174,7 @@ export default function ItemCatalog() {
 
   const updateItemMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string, data: z.infer<typeof itemSchema> }) => {
-      const response = await fetch(`/api/materials-services/items/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include', // Include session cookies
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Failed to update item: ${errorText}`);
-      }
-
+      const response = await apiRequest('PUT', `/api/materials-services/items/${id}`, data);
       return response.json();
     },
     onSuccess: () => {
@@ -235,16 +209,7 @@ export default function ItemCatalog() {
 
   const deleteItemMutation = useMutation({
     mutationFn: async (id: string) => {
-      const response = await fetch(`/api/materials-services/items/${id}`, {
-        method: 'DELETE',
-        credentials: 'include', // Include session cookies
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Failed to delete item: ${errorText}`);
-      }
-
+      const response = await apiRequest('DELETE', `/api/materials-services/items/${id}`);
       return response.json();
     },
     onSuccess: () => {
@@ -418,7 +383,7 @@ export default function ItemCatalog() {
                 integrationCode: '',
                 description: '',
                 measurementUnit: 'UN',
-                groupName: '',
+
                 maintenancePlan: '',
                 defaultChecklist: '',
                 active: true,
@@ -992,7 +957,18 @@ export default function ItemCatalog() {
               onClick={() => {
                 setIsViewModalOpen(false);
                 setSelectedItem(null);
-                form.reset(selectedItem);
+                if (selectedItem) {
+                  form.reset({
+                    name: selectedItem.name,
+                    type: selectedItem.type,
+                    integrationCode: selectedItem.integrationCode || '',
+                    description: selectedItem.description || '',
+                    measurementUnit: selectedItem.measurementUnit,
+                    maintenancePlan: selectedItem.maintenancePlan || '',
+                    defaultChecklist: selectedItem.defaultChecklist || '',
+                    active: selectedItem.active,
+                  });
+                }
                 setIsCreateModalOpen(true);
               }}
             >
