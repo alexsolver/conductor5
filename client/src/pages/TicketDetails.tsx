@@ -2440,7 +2440,7 @@ const TicketDetails = React.memo(() => {
         );
 
       case "materials":
-        return <MaterialsServicesMiniSystem ticketId={id} />;
+        return <MaterialsServicesMiniSystem ticketId={id} ticket={ticket} />;
 
       default:
         return (

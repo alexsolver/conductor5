@@ -1,4 +1,4 @@
-import { eq, and, like, desc, or, sql } from 'drizzle-orm';
+import { eq, and, like, desc, or, sql, inArray } from 'drizzle-orm';
 import { items, itemAttachments, itemLinks, itemCustomerLinks, itemSupplierLinks } from '../../../../../shared/schema-materials-services';
 import type { Item } from '../../domain/entities';
 import type { ExtractTablesWithRelations } from 'drizzle-orm';
@@ -42,6 +42,7 @@ export class ItemRepository {
     type?: string;
     status?: string;
     active?: boolean;
+    companyId?: string;
   }): Promise<Item[]> {
     const conditions = [eq(items.tenantId, tenantId)];
 
@@ -65,6 +66,26 @@ export class ItemRepository {
 
     if (options?.active !== undefined) {
       conditions.push(eq(items.active, options.active));
+    }
+
+    // Filter by company - only show items linked to specific company
+    if (options?.companyId) {
+      const linkedItemIds = await this.db
+        .select({ itemId: itemCustomerLinks.itemId })
+        .from(itemCustomerLinks)
+        .where(and(
+          eq(itemCustomerLinks.tenantId, tenantId),
+          eq(itemCustomerLinks.customerId, options.companyId),
+          eq(itemCustomerLinks.isActive, true)
+        ));
+      
+      const itemIds = linkedItemIds.map(link => link.itemId);
+      if (itemIds.length > 0) {
+        conditions.push(inArray(items.id, itemIds));
+      } else {
+        // If no items are linked to this company, return empty array
+        return [];
+      }
     }
 
     const baseQuery = this.db

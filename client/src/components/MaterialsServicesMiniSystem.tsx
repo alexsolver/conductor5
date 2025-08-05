@@ -13,9 +13,10 @@ import { apiRequest } from "@/lib/queryClient";
 
 interface MaterialsServicesMiniSystemProps {
   ticketId: string;
+  ticket?: any; // Add ticket data to get company information
 }
 
-export function MaterialsServicesMiniSystem({ ticketId }: MaterialsServicesMiniSystemProps) {
+export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServicesMiniSystemProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("overview");
@@ -23,13 +24,16 @@ export function MaterialsServicesMiniSystem({ ticketId }: MaterialsServicesMiniS
   const [quantity, setQuantity] = useState("");
   const [consumedQuantity, setConsumedQuantity] = useState("");
 
-  // Fetch all items for planning selection
+  // Fetch items filtered by company (only items linked to ticket's company)
   const { data: itemsData, isLoading: itemsLoading } = useQuery({
-    queryKey: ['/api/materials-services/items'],
+    queryKey: ['/api/materials-services/items', ticket?.companyId],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/materials-services/items');
+      // Add company filter to only show items linked to the ticket's company
+      const params = ticket?.companyId ? `?companyId=${ticket.companyId}` : '';
+      const response = await apiRequest('GET', `/api/materials-services/items${params}`);
       return response.json();
     },
+    enabled: !!ticket, // Only run when ticket data is available
   });
 
   // Fetch available items for consumption (only planned items)
@@ -71,8 +75,9 @@ export function MaterialsServicesMiniSystem({ ticketId }: MaterialsServicesMiniS
   // Add planned material mutation
   const addPlannedMutation = useMutation({
     mutationFn: async (data: { itemId: string; quantity: number }) => {
-      // Get item details for pricing
-      const selectedItemData = items.find((item: any) => item.id === data.itemId);
+      // Get item details for pricing from itemsData
+      const itemsList = itemsData?.data || [];
+      const selectedItemData = itemsList.find((item: any) => item.id === data.itemId);
       if (!selectedItemData) throw new Error('Item not found');
 
       const requestData = {

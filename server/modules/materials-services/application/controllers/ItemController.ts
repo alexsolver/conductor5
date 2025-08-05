@@ -53,7 +53,8 @@ export class ItemController {
         search,
         type,
         status,
-        active
+        active,
+        companyId
       } = req.query;
 
       const options = {
@@ -62,7 +63,8 @@ export class ItemController {
         search: search as string,
         type: type as string,
         status: status as string,
-        active: active === 'true' ? true : active === 'false' ? false : undefined
+        active: active === 'true' ? true : active === 'false' ? false : undefined,
+        companyId: companyId as string
       };
 
       const items = await this.itemRepository.findByTenant(tenantId, options);
