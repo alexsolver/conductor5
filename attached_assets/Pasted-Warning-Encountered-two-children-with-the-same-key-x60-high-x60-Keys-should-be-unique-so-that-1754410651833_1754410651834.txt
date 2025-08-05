@@ -1,0 +1,179 @@
+Warning: Encountered two children with the same key, &#x60;high&#x60;. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.
+    at select
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-BLFKFOSO.js?v=f4471f18:79:13
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-BLFKFOSO.js?v=f4471f18:56:13
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-DYURU5X6.js?v=f4471f18:42:13
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-2G5BXHSW.js?v=f4471f18:37:20
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-select.js?v=e42744dc:1116:13
+    at Provider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-C6BJTAFJ.js?v=f4471f18:37:15)
+    at Provider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-C6BJTAFJ.js?v=f4471f18:37:15)
+    at Popper (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-3HOB4NX7.js?v=f4471f18:1921:11)
+    at Select (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-select.js?v=e42744dc:86:5)
+    at DynamicSelect (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/components/DynamicSelect.tsx:28:5)
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-BLFKFOSO.js?v=f4471f18:79:13
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-BLFKFOSO.js?v=f4471f18:56:13
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/components/ui/form.tsx:124:9
+    at div
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/components/ui/form.tsx:72:6
+    at Controller (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-EFI6BCH5.js?v=f4471f18:345:35)
+    at FormField (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/components/ui/form.tsx:33:6)
+    at div
+    at div
+    at div
+    at div
+    at form
+    at FormProvider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-EFI6BCH5.js?v=f4471f18:101:11)
+    at div
+    at div
+    at div
+    at div
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/pages/TicketDetails.tsx:101:18
+    at Route (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=34ef18f9:190:16)
+    at Switch (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=34ef18f9:246:17)
+    at main
+    at div
+    at div
+    at AppShell (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/components/layout/AppShell.tsx:21:28)
+    at AppRouter (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/App.tsx?v=DTxPQGoAFZzFPBmmiWhyI:97:42)
+    at Provider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-C6BJTAFJ.js?v=f4471f18:37:15)
+    at TooltipProvider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=d09a5d95:63:5)
+    at SimpleTimerProvider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/contexts/SimpleTimerContext.tsx:20:39)
+    at AuthProvider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/hooks/useAuth.tsx:22:32)
+    at QueryClientProvider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=f69fecc0:2747:3)
+    at App
+Warning: Encountered two children with the same key, &#x60;low&#x60;. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.
+    at select
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-BLFKFOSO.js?v=f4471f18:79:13
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-BLFKFOSO.js?v=f4471f18:56:13
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-DYURU5X6.js?v=f4471f18:42:13
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-2G5BXHSW.js?v=f4471f18:37:20
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-select.js?v=e42744dc:1116:13
+    at Provider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-C6BJTAFJ.js?v=f4471f18:37:15)
+    at Provider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-C6BJTAFJ.js?v=f4471f18:37:15)
+    at Popper (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-3HOB4NX7.js?v=f4471f18:1921:11)
+    at Select (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-select.js?v=e42744dc:86:5)
+    at DynamicSelect (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/components/DynamicSelect.tsx:28:5)
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-BLFKFOSO.js?v=f4471f18:79:13
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-BLFKFOSO.js?v=f4471f18:56:13
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/components/ui/form.tsx:124:9
+    at div
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/components/ui/form.tsx:72:6
+    at Controller (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-EFI6BCH5.js?v=f4471f18:345:35)
+    at FormField (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/components/ui/form.tsx:33:6)
+    at div
+    at div
+    at div
+    at div
+    at form
+    at FormProvider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-EFI6BCH5.js?v=f4471f18:101:11)
+    at div
+    at div
+    at div
+    at div
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/pages/TicketDetails.tsx:101:18
+    at Route (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=34ef18f9:190:16)
+    at Switch (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=34ef18f9:246:17)
+    at main
+    at div
+    at div
+    at AppShell (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/components/layout/AppShell.tsx:21:28)
+    at AppRouter (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/App.tsx?v=DTxPQGoAFZzFPBmmiWhyI:97:42)
+    at Provider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-C6BJTAFJ.js?v=f4471f18:37:15)
+    at TooltipProvider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=d09a5d95:63:5)
+    at SimpleTimerProvider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/contexts/SimpleTimerContext.tsx:20:39)
+    at AuthProvider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/hooks/useAuth.tsx:22:32)
+    at QueryClientProvider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=f69fecc0:2747:3)
+    at App
+Warning: Encountered two children with the same key, &#x60;medium&#x60;. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.
+    at select
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-BLFKFOSO.js?v=f4471f18:79:13
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-BLFKFOSO.js?v=f4471f18:56:13
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-DYURU5X6.js?v=f4471f18:42:13
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-2G5BXHSW.js?v=f4471f18:37:20
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-select.js?v=e42744dc:1116:13
+    at Provider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-C6BJTAFJ.js?v=f4471f18:37:15)
+    at Provider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-C6BJTAFJ.js?v=f4471f18:37:15)
+    at Popper (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-3HOB4NX7.js?v=f4471f18:1921:11)
+    at Select (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-select.js?v=e42744dc:86:5)
+    at DynamicSelect (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/components/DynamicSelect.tsx:28:5)
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-BLFKFOSO.js?v=f4471f18:79:13
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-BLFKFOSO.js?v=f4471f18:56:13
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/components/ui/form.tsx:124:9
+    at div
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/components/ui/form.tsx:72:6
+    at Controller (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-EFI6BCH5.js?v=f4471f18:345:35)
+    at FormField (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/components/ui/form.tsx:33:6)
+    at div
+    at div
+    at div
+    at div
+    at form
+    at FormProvider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-EFI6BCH5.js?v=f4471f18:101:11)
+    at div
+    at div
+    at div
+    at div
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/pages/TicketDetails.tsx:101:18
+    at Route (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=34ef18f9:190:16)
+    at Switch (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=34ef18f9:246:17)
+    at main
+    at div
+    at div
+    at AppShell (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/components/layout/AppShell.tsx:21:28)
+    at AppRouter (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/App.tsx?v=DTxPQGoAFZzFPBmmiWhyI:97:42)
+    at Provider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-C6BJTAFJ.js?v=f4471f18:37:15)
+    at TooltipProvider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=d09a5d95:63:5)
+    at SimpleTimerProvider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/contexts/SimpleTimerContext.tsx:20:39)
+    at AuthProvider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/hooks/useAuth.tsx:22:32)
+    at QueryClientProvider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=f69fecc0:2747:3)
+    at App
+Warning: Encountered two children with the same key, &#x60;high&#x60;. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.
+    at select
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-BLFKFOSO.js?v=f4471f18:79:13
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-BLFKFOSO.js?v=f4471f18:56:13
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-DYURU5X6.js?v=f4471f18:42:13
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-2G5BXHSW.js?v=f4471f18:37:20
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-select.js?v=e42744dc:1116:13
+    at Provider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-C6BJTAFJ.js?v=f4471f18:37:15)
+    at Provider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-C6BJTAFJ.js?v=f4471f18:37:15)
+    at Popper (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-3HOB4NX7.js?v=f4471f18:1921:11)
+    at Select (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-select.js?v=e42744dc:86:5)
+    at DynamicSelect (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/components/DynamicSelect.tsx:28:5)
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-BLFKFOSO.js?v=f4471f18:79:13
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-BLFKFOSO.js?v=f4471f18:56:13
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/components/ui/form.tsx:124:9
+    at div
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/components/ui/form.tsx:72:6
+    at Controller (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-EFI6BCH5.js?v=f4471f18:345:35)
+    at FormField (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/components/ui/form.tsx:33:6)
+    at div
+    at div
+    at div
+    at div
+    at form
+    at FormProvider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-EFI6BCH5.js?v=f4471f18:101:11)
+    at div
+    at div
+    at div
+    at div
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/pages/TicketDetails.tsx:101:18
+    at Route (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=34ef18f9:190:16)
+    at Switch (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=34ef18f9:246:17)
+    at main
+    at div
+    at div
+    at AppShell (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/components/layout/AppShell.tsx:21:28)
+    at AppRouter (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/App.tsx?v=DTxPQGoAFZzFPBmmiWhyI:97:42)
+    at Provider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-C6BJTAFJ.js?v=f4471f18:37:15)
+    at TooltipProvider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=d09a5d95:63:5)
+    at SimpleTimerProvider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/contexts/SimpleTimerContext.tsx:20:39)
+    at AuthProvider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/hooks/useAuth.tsx:22:32)
+    at QueryClientProvider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=f69fecc0:2747:3)
+    at App
+❌ Error copying hierarchy: 
+Error {}
+message: "500: {"success":false,"error":"Failed to copy hierarchy","details":"duplicate key value violates unique constraint \"ticket_field_options_tenant_id_field_name_value_key\""}"
+stack: "Error: 500: {"success":false,"error":"Failed to copy hierarchy","details":"duplicate key value violates unique constraint \"ticket_field_options_tenant_id_field_name_value_key\""}↵ at throwIfResNotOk (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/lib/queryClient.ts:46:11)↵ at async apiRequest (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/lib/queryClient.ts:92:3)↵ at async Object.mutationFn (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/pages/TicketConfiguration.tsx:445:24)"
+get stack: ƒ ()
+set stack: ƒ ()
+[[Prototype]]: Object

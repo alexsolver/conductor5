@@ -1208,6 +1208,7 @@ const TicketDetails = React.memo(() => {
                               }}
                               placeholder="Selecione a categoria"
                               disabled={!isEditMode}
+                              customerId={ticket?.customerCompanyId || ticket?.customer_company_id}
                             />
                           ) : (
                             <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
@@ -1249,6 +1250,7 @@ const TicketDetails = React.memo(() => {
                               placeholder="Selecione a subcategoria"
                               disabled={!isEditMode || !form.watch('category')}
                               dependsOn={form.watch('category')}
+                              customerId={ticket?.customerCompanyId || ticket?.customer_company_id}
                             />
                           ) : (
                             <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
@@ -1286,6 +1288,7 @@ const TicketDetails = React.memo(() => {
                               placeholder="Selecione a ação"
                               disabled={!isEditMode || !form.watch('subcategory')}
                               dependsOn={form.watch('subcategory')}
+                              customerId={ticket?.customerCompanyId || ticket?.customer_company_id}
                             />
                           ) : (
                             <div className="p-2 bg-gray-50 rounded flex items-center gap-2">

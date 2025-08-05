@@ -51,7 +51,7 @@ export function DynamicSelect(props: DynamicSelectProps) {
     queryKey: ["/api/ticket-config/field-options", fieldName, customerId, dependsOn],
     queryFn: async () => {
       const params: any = { fieldName };
-      if (customerId) params.customerId = customerId;
+      if (customerId) params.companyId = customerId; // API expects companyId, not customerId
       if (dependsOn) params.dependsOn = dependsOn;
 
       const response = await apiRequest("GET", "/api/ticket-config/field-options", {
@@ -128,7 +128,7 @@ export function DynamicSelect(props: DynamicSelectProps) {
           <SelectItem value="all">Todos</SelectItem>
         )}
         {fieldOptions.map((option, index) => (
-          <SelectItem key={`${option.value}-${index}`} value={option.value}>
+          <SelectItem key={`${fieldName}-${option.value}-${option.id || index}`} value={option.value}>
             <div className="flex items-center gap-2">
               {option.color && (
                 <div
