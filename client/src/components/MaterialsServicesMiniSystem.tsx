@@ -163,6 +163,21 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
     }
   });
 
+  // Delete consumed material mutation
+  const deleteConsumedMutation = useMutation({
+    mutationFn: async (itemId: string) => {
+      const response = await apiRequest('DELETE', `/api/materials-services/tickets/${ticketId}/consumed-items/${itemId}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/materials-services/tickets', ticketId] });
+      toast({ title: "Consumo removido com sucesso!" });
+    },
+    onError: () => {
+      toast({ title: "Erro ao remover consumo", variant: "destructive" });
+    }
+  });
+
   const items = itemsData?.data || [];
   const availableItems = Array.isArray(availableItemsData?.data) ? availableItemsData.data : 
                          Array.isArray(availableItemsData?.availableItems) ? availableItemsData.availableItems :
@@ -409,20 +424,29 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                 ) : (
                   <div className="space-y-3">
                     {consumedMaterials.map((material: any) => (
-                      <div key={material.id} className="p-3 border rounded-lg">
-                        <div className="flex items-center gap-2 mb-1">
-                          <p className="font-medium">{material.itemName}</p>
-                          <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
-                            {material.itemType || 'Material'}
-                          </span>
+                      <div key={material.id} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <p className="font-medium">{material.itemName}</p>
+                            <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                              {material.itemType || 'Material'}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-4 text-sm">
+                            <span className="text-gray-600">Qtd Usada: {material.quantityUsed || material.actualQuantity}</span>
+                            <span className="text-green-600 font-medium">R$ {parseFloat(material.totalCost || material.actualCost || 0).toFixed(2)}</span>
+                          </div>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {new Date(material.createdAt || material.consumedAt).toLocaleDateString('pt-BR')}
+                          </p>
                         </div>
-                        <div className="flex items-center gap-4 text-sm">
-                          <span className="text-gray-600">Qtd Usada: {material.quantityUsed || material.actualQuantity}</span>
-                          <span className="text-green-600 font-medium">R$ {parseFloat(material.totalCost || material.actualCost || 0).toFixed(2)}</span>
-                        </div>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {new Date(material.createdAt || material.consumedAt).toLocaleDateString('pt-BR')}
-                        </p>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => deleteConsumedMutation.mutate(material.id)}
+                        >
+                          <Trash2 className="h-4 w-4 text-red-500" />
+                        </Button>
                       </div>
                     ))}
                   </div>

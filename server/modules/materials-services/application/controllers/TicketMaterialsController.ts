@@ -292,6 +292,35 @@ export class TicketMaterialsController {
     }
   }
 
+  // Remove consumed item from ticket
+  static async removeConsumedItem(req: AuthenticatedRequest, res: Response) {
+    try {
+      const { ticketId, itemId } = req.params;
+      const tenantId = req.user?.tenantId;
+
+      if (!tenantId || !ticketId || !itemId) {
+        return sendError(res, 'Missing required fields', 'Missing required fields', 400);
+      }
+
+      await db
+        .update(ticketConsumedItems)
+        .set({ 
+          isActive: false,
+          updatedAt: new Date()
+        })
+        .where(and(
+          eq(ticketConsumedItems.tenantId, tenantId),
+          eq(ticketConsumedItems.ticketId, ticketId),
+          eq(ticketConsumedItems.id, itemId)
+        ));
+
+      return sendSuccess(res, {}, 'Consumed item removed successfully');
+    } catch (error) {
+      console.error('Error removing consumed item:', error);
+      return sendError(res, error, 'Failed to remove consumed item');
+    }
+  }
+
   // Get available planned items for consumption
   static async getAvailableItemsForConsumption(req: AuthenticatedRequest, res: Response) {
     try {

@@ -214,6 +214,7 @@ router.delete('/tickets/:ticketId/planned-items/:itemId', TicketMaterialsControl
 
 router.get('/tickets/:ticketId/consumed-items', TicketMaterialsController.getConsumedItems);
 router.post('/tickets/:ticketId/consumed-items', TicketMaterialsController.addConsumedItem);
+router.delete('/tickets/:ticketId/consumed-items/:itemId', TicketMaterialsController.removeConsumedItem);
 
 router.get('/tickets/:ticketId/available-for-consumption', TicketMaterialsController.getAvailableItemsForConsumption);
 router.get('/tickets/:ticketId/costs-summary', TicketMaterialsController.getCostsSummary);
