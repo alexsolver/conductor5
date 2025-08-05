@@ -66,10 +66,14 @@ export const useFieldColors = () => {
     const defaultColorMap: Record<string, Record<string, string>> = {
       category: {
         'suporte_tecnico': '#3b82f6',
+        'Suporte Técnico': '#3b82f6',
         'atendimento_cliente': '#10b981', 
+        'Atendimento ao Cliente': '#10b981',
         'financeiro': '#f59e0b',
+        'Financeiro': '#f59e0b',
+        'Administrativo': '#8b5cf6',
         'vendas': '#8b5cf6',
-        'support': '#3b82f6', // Mapear para suporte_tecnico
+        'support': '#3b82f6',
         'hardware': '#ef4444',
         'software': '#22c55e',
         'network': '#f97316',
@@ -109,7 +113,6 @@ export const useFieldColors = () => {
     const fallbackColor = defaultColorMap[fieldName]?.[value];
     
     if (fallbackColor) {
-      console.log(`⚠️ Using fallback color for ${fieldName}:${value} = ${fallbackColor} (no config found)`);
       return fallbackColor;
     }
 
