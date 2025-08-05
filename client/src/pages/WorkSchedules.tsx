@@ -560,11 +560,6 @@ function WorkSchedulesContent() {
                             {option.label}
                           </SelectItem>
                         ))}
-                        {scheduleTypesData?.templates?.filter((t: any) => t.isActive).map((template: any) => (
-                          <SelectItem key={template.name} value={template.name}>
-                            {template.name}
-                          </SelectItem>
-                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -636,17 +631,9 @@ function WorkSchedulesContent() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {/* Templates padrão */}
-                      {Object.entries(scheduleTypeLabels).map(([key, label]) => (
-                        <SelectItem key={`default-${key}`} value={key}>{label}</SelectItem>
-                      ))}
-                      {/* Separador visual removido para evitar erro de valor vazio */}
-                      {/* Templates customizados criados pelo usuário */}
-                      {scheduleTypesData?.templates?.filter((template: any) => 
-                        template.isActive && !['5x2', '6x1', '12x36'].includes(template.name) // Filtrar templates padrão duplicados
-                      ).map((template: any) => (
-                        <SelectItem key={`custom-${template.id}`} value={template.name}>
-                          📋 {template.name}
+                      {scheduleTypeOptions.map(option => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
