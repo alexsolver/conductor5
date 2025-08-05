@@ -96,6 +96,16 @@ export function DynamicBadge(props: DynamicBadgeProps) {
     ...restProps 
   } = props;
 
+  // Debug log para "Reclamações"
+  if (process.env.NODE_ENV === 'development' && value === 'Reclamações') {
+    console.log(`🎨 DynamicBadge DEBUG for ${fieldName}:${value}:`, {
+      colorHex,
+      bgColor,
+      textColor,
+      children
+    });
+  }
+
   // 🚨 CORREÇÃO: Filtragem consistente de props usando utilitário
   const cleanProps = filterDOMProps(restProps, ['fieldName', 'value']);
   let dynamicClasses = '';
