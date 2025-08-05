@@ -1249,28 +1249,37 @@ router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res) =
       }
     }
 
-    // 4. Copy Field Options - with enhanced duplicate checking
-    // First, check if there are existing field options for the target company
-    const existingFieldOptionsCheck = await db.execute(sql`
-      SELECT COUNT(*) as count 
-      FROM "${sql.raw(schemaName)}"."ticket_field_options"
+    // 4. Copy Field Options - Fixed logic for Default company fallback
+    console.log(`🔍 Copying field options from ${sourceCompanyId} to ${targetCompanyId}`);
+    
+    // First, delete existing field options for the target company to avoid conflicts
+    const deleteExistingResult = await db.execute(sql`
+      DELETE FROM "${sql.raw(schemaName)}"."ticket_field_options"
       WHERE tenant_id = ${tenantId} 
       AND customer_id = ${targetCompanyId}
     `);
+    console.log(`🗑️ Deleted ${deleteExistingResult.rowCount} existing field options for target company`);
 
-    const hasExistingOptions = Number(existingFieldOptionsCheck.rows[0]?.count) > 0;
-
-    if (hasExistingOptions) {
-      // Delete existing field options for the target company to avoid conflicts
-      await db.execute(sql`
-        DELETE FROM "${sql.raw(schemaName)}"."ticket_field_options"
-        WHERE tenant_id = ${tenantId} 
-        AND customer_id = ${targetCompanyId}
-      `);
-      console.log(`🗑️ Deleted existing field options for target company ${targetCompanyId}`);
+    // Try to copy from source company first, then fallback to Default company if none found
+    let sourceCompanyIdToUse = sourceCompanyId;
+    
+    // Check if source company has specific field options
+    const sourceOptionsCheck = await db.execute(sql`
+      SELECT COUNT(*) as count 
+      FROM "${sql.raw(schemaName)}"."ticket_field_options"
+      WHERE tenant_id = ${tenantId} 
+      AND customer_id = ${sourceCompanyId}
+    `);
+    
+    const sourceHasOptions = Number(sourceOptionsCheck.rows[0]?.count) > 0;
+    
+    if (!sourceHasOptions) {
+      // Fallback to Default company
+      sourceCompanyIdToUse = '00000000-0000-0000-0000-000000000001';
+      console.log(`🔄 Source company has no field options, using Default company as source`);
     }
 
-    // Now insert the field options from source with proper deduplication
+    // Now insert the field options with proper company mapping
     const fieldOptionsResult = await db.execute(sql`
       INSERT INTO "${sql.raw(schemaName)}"."ticket_field_options" 
       (id, tenant_id, customer_id, field_name, value, label, color, sort_order, is_default, is_active, status_type, created_at, updated_at)
@@ -1290,20 +1299,45 @@ router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res) =
         NOW()
       FROM "${sql.raw(schemaName)}"."ticket_field_options" source
       WHERE source.tenant_id = ${tenantId} 
-      AND source.customer_id = ${sourceCompanyId}
-      ON CONFLICT (tenant_id, field_name, value) DO NOTHING
+      AND source.customer_id = ${sourceCompanyIdToUse}::uuid
       RETURNING id
     `);
     copiedItems.fieldOptions = fieldOptionsResult.rows.length;
+    console.log(`✅ Copied ${copiedItems.fieldOptions} field options from ${sourceCompanyIdToUse} to ${targetCompanyId}`);
 
-    // 5. Copy Numbering Configuration
+    // 5. Copy Numbering Configuration - Fixed logic with fallback
+    console.log(`🔍 Copying numbering config from ${sourceCompanyId} to ${targetCompanyId}`);
+    
+    // Delete existing numbering config for target company
+    await db.execute(sql`
+      DELETE FROM "${sql.raw(schemaName)}"."ticket_numbering_config"
+      WHERE tenant_id = ${tenantId} AND company_id = ${targetCompanyId}
+    `);
+    
+    // Try to copy from source company first, then fallback to Default company
+    let numberingSourceId = sourceCompanyId;
+    
+    const sourceNumberingCheck = await db.execute(sql`
+      SELECT COUNT(*) as count 
+      FROM "${sql.raw(schemaName)}"."ticket_numbering_config"
+      WHERE tenant_id = ${tenantId} AND company_id = ${sourceCompanyId}
+    `);
+    
+    const sourceHasNumbering = Number(sourceNumberingCheck.rows[0]?.count) > 0;
+    
+    if (!sourceHasNumbering) {
+      // Fallback to Default company
+      numberingSourceId = '00000000-0000-0000-0000-000000000001';
+      console.log(`🔄 Source company has no numbering config, using Default company as source`);
+    }
+
     const numberingResult = await db.execute(sql`
       INSERT INTO "${sql.raw(schemaName)}"."ticket_numbering_config" 
       (id, tenant_id, company_id, prefix, year_format, sequential_digits, separator, reset_yearly, first_separator, created_at, updated_at)
       SELECT 
         gen_random_uuid(),
         tenant_id,
-        ${targetCompanyId},
+        ${targetCompanyId}::uuid,
         prefix,
         year_format,
         sequential_digits,
@@ -1313,15 +1347,11 @@ router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res) =
         NOW(),
         NOW()
       FROM "${sql.raw(schemaName)}"."ticket_numbering_config"
-      WHERE tenant_id = ${tenantId} AND company_id = ${sourceCompanyId}
-      AND NOT EXISTS (
-        SELECT 1 FROM "${sql.raw(schemaName)}"."ticket_numbering_config" target
-        WHERE target.tenant_id = ${tenantId} 
-        AND target.company_id = ${targetCompanyId}
-      )
+      WHERE tenant_id = ${tenantId} AND company_id = ${numberingSourceId}::uuid
       RETURNING id
     `);
     copiedItems.numberingConfig = numberingResult.rows.length;
+    console.log(`✅ Copied ${copiedItems.numberingConfig} numbering config from ${numberingSourceId} to ${targetCompanyId}`);
 
     const summary = `Copiados: ${copiedItems.categories} categorias, ${copiedItems.subcategories} subcategorias, ${copiedItems.actions} ações, ${copiedItems.fieldOptions} opções de campos, ${copiedItems.numberingConfig} configuração de numeração`;
 
