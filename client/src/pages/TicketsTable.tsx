@@ -1626,6 +1626,11 @@ const TicketsTable = React.memo(() => {
     createTicketMutation.mutate(submitData);
   };
 
+  const handleEdit = (ticket: any) => {
+    console.log('Edit ticket:', ticket.id);
+    navigate(`/tickets/${ticket.id}`);
+  };
+
   const handleDelete = (ticketId: string) => {
     if (confirm("Are you sure you want to delete this ticket?")) {
       // Redirect to the unified page where delete functionality is handled
