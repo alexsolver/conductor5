@@ -151,6 +151,11 @@ export default function Tickets() {
 
   // Extract customers with proper error handling
   const customers = Array.isArray(customersData?.customers) ? customersData.customers : [];
+  
+  // Handle customer loading errors
+  if (customersData?.error || customersError) {
+    console.error('Customer loading error:', customersData?.error || customersError);
+  }
 
   // Get raw companies and filter out Default if inactive
   const rawCompanies = Array.isArray(companiesData) ? companiesData : [];

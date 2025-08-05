@@ -206,22 +206,26 @@ ticketsRouter.post('/', jwtAuth, trackTicketCreate, async (req: AuthenticatedReq
     // Debug: Log the incoming request body
     console.log('🔍 Incoming request body:', req.body);
 
-    // Ensure we have the required customer ID from either field
-    const customerId = req.body.customerId || req.body.caller_id;
-    if (!customerId) {
+    // Standardize field mapping - frontend sends customerId, backend uses caller_id
+    const callerId = req.body.customerId || req.body.caller_id;
+    if (!callerId) {
       return res.status(400).json({ 
         success: false,
-        message: "Customer ID or caller ID is required" 
+        message: "Customer ID is required" 
       });
     }
 
     const ticketData = {
       ...req.body,
       tenantId: req.user.tenantId,
-      customerId: customerId,
-      caller_id: customerId,
+      caller_id: callerId,
+      customer_company_id: req.body.companyId,
       status: req.body.status || req.body.state || 'new'
     };
+    
+    // Remove frontend-specific fields to avoid confusion
+    delete ticketData.customerId;
+    delete ticketData.companyId;
 
     // Debug: Log the processed ticket data
     console.log('🔍 Processed ticket data:', ticketData);

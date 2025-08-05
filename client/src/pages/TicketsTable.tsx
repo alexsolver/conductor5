@@ -308,7 +308,7 @@ const TicketsTable = React.memo(() => {
   const getFieldColorWithFallback = (fieldName: string, value: string): string => {
     // 🚨 CORREÇÃO: Sempre tentar obter cor, mesmo durante carregamento
     const color = getFieldColor(fieldName, value);
-    
+
     // Se encontrou cor nas configurações, usar ela
     if (color && color !== '#6b7280') {
       return color;
@@ -408,7 +408,7 @@ const TicketsTable = React.memo(() => {
     if (!value || value === null || value === 'null' || value === '' || typeof value !== 'string') {
       return 'suporte_tecnico'; // Valor padrão da empresa Default
     }
-    
+
     // Mapeamento de valores legados para valores configurados
     const categoryLegacyMapping: Record<string, string> = {
       'support': 'suporte_tecnico',
