@@ -6,11 +6,14 @@ import type { Supplier } from '../../domain/entities';
 export class SupplierRepository {
 
   async create(data: Omit<Supplier, 'id' | 'createdAt' | 'updatedAt'>): Promise<Supplier> {
+    // Filter out any properties that don't exist in the database schema
+    const { status, rating, ...validData } = data as any;
+    
     const [supplier] = await db
       .insert(suppliers)
       .values({
-        ...data,
-        document: data.document || '', // Campo obrigatório conforme banco
+        ...validData,
+        document: validData.document || '', // Campo obrigatório conforme banco
         createdAt: new Date(),
         updatedAt: new Date()
       })
@@ -45,29 +48,30 @@ export class SupplierRepository {
       conditions.push(eq(suppliers.active, options.active));
     }
 
-    let query = db
+    let baseQuery = db
       .select()
       .from(suppliers)
       .where(and(...conditions))
       .orderBy(desc(suppliers.createdAt));
 
-    if (options?.limit) {
-      query = query.limit(options.limit);
+    if (options?.limit && options?.offset) {
+      return await baseQuery.limit(options.limit).offset(options.offset);
+    } else if (options?.limit) {
+      return await baseQuery.limit(options.limit);
     }
 
-    if (options?.offset) {
-      query = query.offset(options.offset);
-    }
-
-    const result = await query;
+    const result = await baseQuery;
     return result as Supplier[];
   }
 
   async update(id: string, tenantId: string, data: Partial<Supplier>): Promise<Supplier | null> {
+    // Filter out any properties that don't exist in the database schema
+    const { status, rating, ...validData } = data as any;
+    
     const [supplier] = await db
       .update(suppliers)
       .set({
-        ...data,
+        ...validData,
         updatedAt: new Date()
       })
       .where(and(eq(suppliers.id, id), eq(suppliers.tenantId, tenantId)))

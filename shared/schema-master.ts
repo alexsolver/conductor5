@@ -2294,15 +2294,13 @@ export const suppliers = pgTable("suppliers", {
   city: varchar("city", { length: 100 }),
   state: varchar("state", { length: 2 }),
   zipCode: varchar("zip_code", { length: 10 }),
-  status: varchar("status", { length: 20 }).default("active"),
   active: boolean("active").default(true),
-  rating: varchar("rating", { length: 10 }),
   notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => [
   index("suppliers_tenant_name_idx").on(table.tenantId, table.name),
-  index("suppliers_tenant_status_idx").on(table.tenantId, table.status),
+  index("suppliers_tenant_active_idx").on(table.tenantId, table.active),
   unique("suppliers_tenant_document_unique").on(table.tenantId, table.document),
 ]);
 
