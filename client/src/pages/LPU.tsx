@@ -496,7 +496,7 @@ function PriceListForm({
     validFrom: new Date().toISOString().split('T')[0],
     isActive: true,
     notes: '',
-    customerCompanyId: undefined
+    customerCompanyId: undefined as string | undefined
   });
 
   // Fetch customer companies
@@ -511,10 +511,7 @@ function PriceListForm({
     ? customerCompaniesResponse
     : [];
 
-  console.log('Price lists loading:', priceListsLoading);
-  console.log('Price lists response:', priceListsResponse);
-  console.log('Price lists array:', priceLists);
-  console.log('Filtered price lists:', filteredPriceLists);
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -577,7 +574,7 @@ function PriceListForm({
           <Label htmlFor="customerCompanyId">Empresa Cliente</Label>
           <Select
             value={formData.customerCompanyId}
-            onValueChange={(value) => setFormData(prev => ({ ...prev, customerCompanyId: value }))}
+            onValueChange={(value) => setFormData(prev => ({ ...prev, customerCompanyId: value === 'none' ? undefined : value }))}
           >
             <SelectTrigger>
               <SelectValue placeholder={companiesLoading ? "Carregando empresas..." : "Selecione uma empresa"} />
