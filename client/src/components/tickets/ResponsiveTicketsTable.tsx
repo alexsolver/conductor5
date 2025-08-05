@@ -381,13 +381,13 @@ export const ResponsiveTicketsTable: React.FC<ResponsiveTicketsTableProps> = ({
                             <div key={rel.relationshipId} className="flex items-center gap-3 text-sm">
                               <span className="text-gray-500">{rel.relationshipType}:</span>
                               <Link 
-                                href={`/tickets/${rel.id}`}
+                                href={`/tickets/${rel.targetTicket?.id || rel.id}`}
                                 className="font-mono text-blue-600 hover:underline"
                               >
-                                #{rel.number}
+                                #{rel.targetTicket?.number || rel.number}
                               </Link>
-                              <span className="truncate">{rel.subject}</span>
-                              <SmartDynamicBadge fieldName="status" value={rel.status} className="text-xs" />
+                              <span className="truncate">{rel.targetTicket?.subject || rel.subject}</span>
+                              <SmartDynamicBadge fieldName="status" value={rel.targetTicket?.status || rel.status} className="text-xs" />
                             </div>
                           ))}
                         </div>
