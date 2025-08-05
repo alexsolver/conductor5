@@ -527,6 +527,10 @@ function PriceListForm({
       : []
     : [];
 
+  console.log('Companies loading:', companiesLoading);
+  console.log('Companies response:', customerCompaniesResponse);
+  console.log('Companies array:', customerCompanies);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Convert 'none' back to undefined/null for API
