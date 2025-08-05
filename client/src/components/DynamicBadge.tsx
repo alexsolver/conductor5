@@ -25,8 +25,8 @@ const getContrastClassFromHex = (hexColor: string): string => {
   // Mapear cores hex específicas para classes CSS com bom contraste
   const colorMap: Record<string, string> = {
     // Cores de prioridade
-    '#10b981': 'bg-emerald-600 text-white border-emerald-600', // Baixa/Resolvido - Verde
-    '#f59e0b': 'bg-amber-600 text-white border-amber-600',     // Média/Em andamento - Amarelo
+    '#10b981': 'bg-green-600 text-white border-green-600',     // Verde - usar green-600 em vez de emerald-600
+    '#f59e0b': 'bg-yellow-600 text-black border-yellow-600',   // Amarelo - usar yellow-600 com texto preto
     '#ef4444': 'bg-red-600 text-white border-red-600',         // Alta - Vermelho
     '#dc2626': 'bg-red-700 text-white border-red-700',         // Crítica - Vermelho escuro
 
@@ -42,13 +42,13 @@ const getContrastClassFromHex = (hexColor: string): string => {
     '#f97316': 'bg-orange-600 text-white border-orange-600',   // Financeiro - Laranja
 
     // Variações de cores (maiúsculas e alternativas)
-    '#059669': 'bg-emerald-700 text-white border-emerald-700', // Verde alternativo
-    '#d97706': 'bg-amber-700 text-white border-amber-700',     // Amarelo alternativo
+    '#059669': 'bg-green-700 text-white border-green-700',     // Verde alternativo
+    '#d97706': 'bg-yellow-700 text-black border-yellow-700',   // Amarelo alternativo
     '#ea580c': 'bg-orange-600 text-white border-orange-600',   // Laranja alternativo
     '#DC2626': 'bg-red-600 text-white border-red-600',         // Vermelho maiúsculo
     '#3B82F6': 'bg-blue-600 text-white border-blue-600',       // Azul maiúsculo
-    '#F59E0B': 'bg-amber-600 text-white border-amber-600',     // Amarelo maiúsculo
-    '#10B981': 'bg-emerald-600 text-white border-emerald-600', // Verde maiúsculo
+    '#F59E0B': 'bg-yellow-600 text-black border-yellow-600',   // Amarelo maiúsculo
+    '#10B981': 'bg-green-600 text-white border-green-600',     // Verde maiúsculo
     '#6B7280': 'bg-slate-600 text-white border-slate-600',     // Cinza maiúsculo
     '#22c55e': 'bg-green-600 text-white border-green-600',     // Verde claro
   };
