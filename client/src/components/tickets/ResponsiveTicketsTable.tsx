@@ -8,7 +8,7 @@ import { Link } from "wouter";
 import { MoreHorizontal, Eye, Edit, Trash2, ChevronDown, ChevronRight, GitBranch } from "lucide-react";
 import { DynamicBadge } from "@/components/DynamicBadge";
 import { SmartDynamicBadge } from "@/components/SmartDynamicBadge";
-import { LoadingStateManager, useComponentLoading } from "@/components/LoadingStateManager";
+import { useComponentLoading } from "@/components/LoadingStateManager";
 import { AccessibilityIndicator } from "@/components/AccessibilityIndicator";
 import { useFieldColors } from "@/hooks/useFieldColors";
 
@@ -73,7 +73,13 @@ const MobileTicketCard: React.FC<{
           {/* Header with ticket number and actions */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="font-mono text-sm text-gray-600">#{ticket.number || ticket.id?.slice(0, 8)}</span>
+              <Link 
+                href={`/tickets/${ticket.id}`}
+                className="font-mono text-sm text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+                aria-label={`Ver detalhes do ticket ${ticket.number || ticket.id?.slice(0, 8)}`}
+              >
+                #{ticket.number || ticket.id?.slice(0, 8)}
+              </Link>
               {hasRelationships && (
                 <Button
                   variant="ghost"
@@ -283,7 +289,13 @@ export const ResponsiveTicketsTable: React.FC<ResponsiveTicketsTableProps> = ({
                           }
                         </Button>
                       )}
-                      <span>#{ticket.number || ticket.id?.slice(0, 8)}</span>
+                      <Link 
+                        href={`/tickets/${ticket.id}`}
+                        className="font-mono text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+                        aria-label={`Ver detalhes do ticket ${ticket.number || ticket.id?.slice(0, 8)}`}
+                      >
+                        #{ticket.number || ticket.id?.slice(0, 8)}
+                      </Link>
                     </div>
                   </TableCell>
                   
