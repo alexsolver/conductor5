@@ -2,7 +2,7 @@
 import { Request, Response } from 'express';
 import { AuthenticatedRequest } from '../../../middleware/jwtAuth';
 import { ItemRepository } from '../../infrastructure/repositories/ItemRepository';
-import { db } from '../../../db';
+import { db } from '../../../../db';
 
 export class ItemCustomerLinksController {
   private itemRepository: ItemRepository;
