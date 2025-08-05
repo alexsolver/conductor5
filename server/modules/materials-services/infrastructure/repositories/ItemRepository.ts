@@ -16,6 +16,7 @@ export class ItemRepository {
       .insert(items)
       .values({
         ...data,
+        // Remove title reference - column doesn't exist in actual schema
         maintenancePlan: data.maintenancePlan || null,
         createdAt: new Date(),
         updatedAt: new Date()
@@ -27,7 +28,23 @@ export class ItemRepository {
 
   async findById(id: string, tenantId: string): Promise<Item | null> {
     const [item] = await this.db
-      .select()
+      .select({
+        id: items.id,
+        tenantId: items.tenantId,
+        name: items.name,
+        description: items.description,
+        type: items.type,
+        integrationCode: items.integrationCode,
+        measurementUnit: items.measurementUnit,
+        maintenancePlan: items.maintenancePlan,
+        defaultChecklist: items.defaultChecklist,
+        status: items.status,
+        active: items.active,
+        createdAt: items.createdAt,
+        updatedAt: items.updatedAt,
+        createdBy: items.createdBy,
+        updatedBy: items.updatedBy
+      })
       .from(items)
       .where(and(eq(items.id, id), eq(items.tenantId, tenantId)))
       .limit(1);
@@ -128,6 +145,7 @@ export class ItemRepository {
       .update(items)
       .set({
         ...validData,
+        // Remove title reference - column doesn't exist in actual schema
         updatedAt: new Date()
       })
       .where(and(eq(items.id, id), eq(items.tenantId, tenantId)))
@@ -166,11 +184,19 @@ export class ItemRepository {
   }
 
   async getAttachments(itemId: string, tenantId: string) {
-    return await this.db
-      .select()
-      .from(itemAttachments)
-      .where(and(eq(itemAttachments.itemId, itemId), eq(itemAttachments.tenantId, tenantId)))
-      .orderBy(desc(itemAttachments.createdAt));
+    // Return empty array if table doesn't exist
+    try {
+      return await this.db
+        .select()
+        .from(itemAttachments)
+        .where(and(eq(itemAttachments.itemId, itemId), eq(itemAttachments.tenantId, tenantId)))
+        .orderBy(desc(itemAttachments.createdAt));
+    } catch (error: any) {
+      if (error.code === '42P01') { // relation does not exist
+        return [];
+      }
+      throw error;
+    }
   }
 
   async addItemLink(linkData: {
@@ -237,14 +263,21 @@ export class ItemRepository {
   }
 
   async getItemLinks(itemId: string, tenantId: string) {
-    return await this.db
-      .select()
-      .from(itemLinks)
-      .where(and(
-        eq(itemLinks.itemId, itemId), 
-        eq(itemLinks.tenantId, tenantId)
-      ))
-      .orderBy(desc(itemLinks.createdAt));
+    try {
+      return await this.db
+        .select()
+        .from(itemLinks)
+        .where(and(
+          eq(itemLinks.itemId, itemId), 
+          eq(itemLinks.tenantId, tenantId)
+        ))
+        .orderBy(desc(itemLinks.createdAt));
+    } catch (error: any) {
+      if (error.code === '42P01') { // relation does not exist
+        return [];
+      }
+      throw error;
+    }
   }
 
   async getCustomerLinks(itemId: string, tenantId: string) {
