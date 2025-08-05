@@ -11,6 +11,50 @@ import { eq, and, desc, sql } from 'drizzle-orm';
 import { sendSuccess, sendError } from '../../../../utils/standardResponse';
 import type { AuthenticatedRequest } from '../../../../middleware/jwtAuth';
 
+// Import audit function
+async function createCompleteAuditEntry(
+  pool: any,
+  schemaName: string,
+  tenantId: string,
+  ticketId: string,
+  req: AuthenticatedRequest,
+  actionType: string,
+  description: string,
+  metadata: any = {}
+) {
+  try {
+    const { getClientIP, getUserAgent, getSessionId } = await import('../../../../utils/ipCapture');
+    const ipAddress = getClientIP(req);
+    const userAgent = getUserAgent(req);
+    const sessionId = getSessionId(req);
+
+    // Get user name for history record
+    const userQuery = `SELECT first_name || ' ' || last_name as full_name FROM public.users WHERE id = $1`;
+    const userResult = await pool.query(userQuery, [req.user?.id]);
+    const userName = userResult.rows[0]?.full_name || 'Unknown User';
+
+    await pool.query(`
+      INSERT INTO "${schemaName}".ticket_history 
+      (tenant_id, ticket_id, action_type, description, performed_by, performed_by_name, ip_address, user_agent, session_id, created_at, metadata)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), $10)
+    `, [
+      tenantId,
+      ticketId,
+      actionType,
+      description,
+      req.user?.id,
+      userName,
+      ipAddress,
+      userAgent,
+      sessionId,
+      JSON.stringify(metadata)
+    ]);
+  } catch (error) {
+    console.error('Error creating audit entry:', error);
+    throw error;
+  }
+}
+
 
 
 export class TicketMaterialsController {
@@ -160,6 +204,42 @@ export class TicketMaterialsController {
         })
         .returning();
 
+      // 📝 Registrar no histórico do ticket
+      try {
+        const { pool } = await import('../../../../db');
+        const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+        // Get item name for better description
+        const itemDetails = await db
+          .select({ name: items.name, type: items.type })
+          .from(items)
+          .where(eq(items.id, itemId))
+          .limit(1);
+
+        const itemName = itemDetails[0]?.name || 'Item desconhecido';
+        const itemType = itemDetails[0]?.type || 'Tipo desconhecido';
+
+        await createCompleteAuditEntry(
+          pool, schemaName, tenantId, ticketId, req,
+          'material_planned',
+          `Item planejado adicionado: ${itemName} (Qtd: ${plannedQuantity})`,
+          {
+            action: 'planned_item_added',
+            item_id: itemId,
+            item_name: itemName,
+            item_type: itemType,
+            planned_quantity: plannedQuantity,
+            priority: priority || 'medium',
+            notes: notes || '',
+            lpu_id: lpuId,
+            planned_item_id: plannedItem.id,
+            estimated_cost: estimatedCost.toString()
+          }
+        );
+      } catch (historyError) {
+        console.log('⚠️ Aviso: Não foi possível criar entrada no histórico:', historyError.message);
+      }
+
       return sendSuccess(res, { plannedItem }, 'Planned item added successfully', 201);
     } catch (error) {
       console.error('Error adding planned item:', error);
@@ -177,6 +257,18 @@ export class TicketMaterialsController {
         return sendError(res, 'Missing required fields', 'Missing required fields', 400);
       }
 
+      // Get item details before deletion for history
+      const itemToDelete = await db
+        .select()
+        .from(ticketPlannedItems)
+        .leftJoin(items, eq(ticketPlannedItems.itemId, items.id))
+        .where(and(
+          eq(ticketPlannedItems.tenantId, tenantId),
+          eq(ticketPlannedItems.ticketId, ticketId),
+          eq(ticketPlannedItems.id, itemId)
+        ))
+        .limit(1);
+
       await db
         .update(ticketPlannedItems)
         .set({ 
@@ -188,6 +280,34 @@ export class TicketMaterialsController {
           eq(ticketPlannedItems.ticketId, ticketId),
           eq(ticketPlannedItems.id, itemId)
         ));
+
+      // 📝 Registrar no histórico do ticket
+      try {
+        const { pool } = await import('../../../../db');
+        const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+        if (itemToDelete.length > 0) {
+          const deletedItem = itemToDelete[0];
+          const itemName = deletedItem.items?.name || 'Item desconhecido';
+          const quantity = deletedItem.ticket_planned_items.plannedQuantity;
+
+          await createCompleteAuditEntry(
+            pool, schemaName, tenantId, ticketId, req,
+            'material_planned_removed',
+            `Item planejado removido: ${itemName} (Qtd: ${quantity})`,
+            {
+              action: 'planned_item_removed',
+              item_id: deletedItem.ticket_planned_items.itemId,
+              item_name: itemName,
+              planned_quantity: quantity,
+              planned_item_id: itemId,
+              removal_reason: 'manual_deletion'
+            }
+          );
+        }
+      } catch (historyError) {
+        console.log('⚠️ Aviso: Não foi possível criar entrada no histórico:', historyError.message);
+      }
 
       return sendSuccess(res, {}, 'Planned item removed successfully');
     } catch (error) {
@@ -285,6 +405,44 @@ export class TicketMaterialsController {
         })
         .returning();
 
+      // 📝 Registrar no histórico do ticket
+      try {
+        const { pool } = await import('../../../../db');
+        const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+        // Get item name for better description
+        const itemDetails = await db
+          .select({ name: items.name, type: items.type })
+          .from(items)
+          .where(eq(items.id, itemId))
+          .limit(1);
+
+        const itemName = itemDetails[0]?.name || 'Item desconhecido';
+        const itemType = itemDetails[0]?.type || 'Tipo desconhecido';
+
+        await createCompleteAuditEntry(
+          pool, schemaName, tenantId, ticketId, req,
+          'material_consumed',
+          `Item consumido registrado: ${itemName} (Qtd: ${actualQuantity})`,
+          {
+            action: 'consumed_item_added',
+            item_id: itemId,
+            item_name: itemName,
+            item_type: itemType,
+            planned_item_id: plannedItemId,
+            actual_quantity: actualQuantity,
+            planned_quantity: plannedQuantity,
+            total_cost: totalCost.toString(),
+            unit_price: unitPriceAtConsumption.toString(),
+            consumption_type: consumptionType,
+            consumed_item_id: consumedItem.id,
+            notes: notes || ''
+          }
+        );
+      } catch (historyError) {
+        console.log('⚠️ Aviso: Não foi possível criar entrada no histórico:', historyError.message);
+      }
+
       return sendSuccess(res, { consumedItem }, 'Consumed item added successfully', 201);
     } catch (error) {
       console.error('Error adding consumed item:', error);
@@ -302,6 +460,18 @@ export class TicketMaterialsController {
         return sendError(res, 'Missing required fields', 'Missing required fields', 400);
       }
 
+      // Get item details before deletion for history
+      const itemToDelete = await db
+        .select()
+        .from(ticketConsumedItems)
+        .leftJoin(items, eq(ticketConsumedItems.itemId, items.id))
+        .where(and(
+          eq(ticketConsumedItems.tenantId, tenantId),
+          eq(ticketConsumedItems.ticketId, ticketId),
+          eq(ticketConsumedItems.id, itemId)
+        ))
+        .limit(1);
+
       await db
         .update(ticketConsumedItems)
         .set({ 
@@ -313,6 +483,34 @@ export class TicketMaterialsController {
           eq(ticketConsumedItems.ticketId, ticketId),
           eq(ticketConsumedItems.id, itemId)
         ));
+
+      // 📝 Registrar no histórico do ticket
+      try {
+        const { pool } = await import('../../../../db');
+        const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+        if (itemToDelete.length > 0) {
+          const deletedItem = itemToDelete[0];
+          const itemName = deletedItem.items?.name || 'Item desconhecido';
+          const quantity = deletedItem.ticket_consumed_items.actualQuantity;
+
+          await createCompleteAuditEntry(
+            pool, schemaName, tenantId, ticketId, req,
+            'material_consumed_removed',
+            `Item consumido removido: ${itemName} (Qtd: ${quantity})`,
+            {
+              action: 'consumed_item_removed',
+              item_id: deletedItem.ticket_consumed_items.itemId,
+              item_name: itemName,
+              actual_quantity: quantity,
+              consumed_item_id: itemId,
+              removal_reason: 'manual_deletion'
+            }
+          );
+        }
+      } catch (historyError) {
+        console.log('⚠️ Aviso: Não foi possível criar entrada no histórico:', historyError.message);
+      }
 
       return sendSuccess(res, {}, 'Consumed item removed successfully');
     } catch (error) {
