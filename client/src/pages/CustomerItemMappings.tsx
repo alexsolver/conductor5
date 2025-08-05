@@ -81,7 +81,7 @@ export function CustomerItemMappings() {
       const params = new URLSearchParams({
         tenantId,
         ...(searchTerm && { search: searchTerm }),
-        ...(selectedCustomer && { customerId: selectedCustomer })
+        ...(selectedCustomer && selectedCustomer !== "all-customers" && { customerId: selectedCustomer })
       });
       
       const response = await apiRequest('GET', `/api/materials-services/customer-item-mappings?${params}`);
@@ -92,12 +92,12 @@ export function CustomerItemMappings() {
     enabled: !!tenantId,
   });
 
-  // Fetch customers for filter
-  const { data: customersData } = useQuery({
-    queryKey: ['/api/customers'],
+  // Fetch customer companies for filter
+  const { data: customerCompaniesData } = useQuery({
+    queryKey: ['/api/customer-companies'],
     queryFn: async () => {
       if (!tenantId) return [];
-      const response = await apiRequest('GET', `/api/customers?tenantId=${tenantId}`);
+      const response = await apiRequest('GET', `/api/customer-companies?tenantId=${tenantId}`);
       return response.json();
     },
     enabled: !!tenantId,
@@ -249,19 +249,19 @@ export function CustomerItemMappings() {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="customer_id">Cliente</Label>
+                    <Label htmlFor="customer_id">Empresa Cliente</Label>
                     <Select 
                       value={formData.customer_id} 
                       onValueChange={(value) => setFormData(prev => ({ ...prev, customer_id: value }))}
                       disabled={!!editingMapping}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Selecione um cliente" />
+                        <SelectValue placeholder="Selecione uma empresa" />
                       </SelectTrigger>
                       <SelectContent>
-                        {customersData?.map((customer: any) => (
-                          <SelectItem key={customer.id} value={customer.id}>
-                            {customer.firstName} {customer.lastName} - {customer.email}
+                        {customerCompaniesData?.map((company: any) => (
+                          <SelectItem key={company.id} value={company.id}>
+                            {company.name} {company.tradeName && `(${company.tradeName})`}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -416,16 +416,16 @@ export function CustomerItemMappings() {
                 </div>
               </div>
               <div>
-                <Label htmlFor="customer-filter">Cliente</Label>
+                <Label htmlFor="customer-filter">Empresa Cliente</Label>
                 <Select value={selectedCustomer} onValueChange={setSelectedCustomer}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Todos os clientes" />
+                    <SelectValue placeholder="Todas as empresas" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todos os clientes</SelectItem>
-                    {customersData?.map((customer: any) => (
-                      <SelectItem key={customer.id} value={customer.id}>
-                        {customer.firstName} {customer.lastName}
+                    <SelectItem value="all-customers">Todas as empresas</SelectItem>
+                    {customerCompaniesData?.map((company: any) => (
+                      <SelectItem key={company.id} value={company.id}>
+                        {company.name} {company.tradeName && `(${company.tradeName})`}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -438,7 +438,7 @@ export function CustomerItemMappings() {
                     <SelectValue placeholder="Todos os tipos" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todos os tipos</SelectItem>
+                    <SelectItem value="all-types">Todos os tipos</SelectItem>
                     <SelectItem value="material">Material</SelectItem>
                     <SelectItem value="service">Serviço</SelectItem>
                     <SelectItem value="asset">Ativo</SelectItem>
