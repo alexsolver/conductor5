@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { SupplierRepository } from '../../infrastructure/repositories/SupplierRepository';
-import { AuthenticatedRequest } from '../../../middleware/jwtAuth';
+import { AuthenticatedRequest } from '../../../../middleware/jwtAuth';
 
 export class SupplierController {
   constructor(private supplierRepository: SupplierRepository) {}
@@ -224,6 +224,35 @@ export class SupplierController {
       res.status(500).json({
         success: false,
         message: 'Failed to fetch stats'
+      });
+    }
+  }
+
+  async getSupplierStats(req: AuthenticatedRequest, res: Response) {
+    try {
+      const tenantId = req.user?.tenantId;
+      
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant required' });
+      }
+
+      // Basic stats for now
+      const suppliers = await this.supplierRepository.findByTenant(tenantId);
+      const activeSuppliers = suppliers.filter(s => s.active);
+
+      res.json({
+        success: true,
+        data: {
+          total: suppliers.length,
+          active: activeSuppliers.length,
+          inactive: suppliers.length - activeSuppliers.length
+        }
+      });
+    } catch (error) {
+      console.error('Error fetching supplier stats:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch supplier stats'
       });
     }
   }

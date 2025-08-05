@@ -201,6 +201,18 @@ router.get('/suppliers', async (req: AuthenticatedRequest, res) => {
   return supplierController.getSuppliers(req, res);
 });
 
+router.get('/suppliers/stats', async (req: AuthenticatedRequest, res) => {
+  if (!req.user?.tenantId) return res.status(401).json({ message: 'Tenant ID required' });
+  const { supplierController } = await getControllers(req.user.tenantId);
+  return supplierController.getSupplierStats(req, res);
+});
+
+router.delete('/suppliers/:id', async (req: AuthenticatedRequest, res) => {
+  if (!req.user?.tenantId) return res.status(401).json({ message: 'Tenant ID required' });
+  const { supplierController } = await getControllers(req.user.tenantId);
+  return supplierController.deleteSupplier(req, res);
+});
+
 // ===== STOCK ROUTES =====
 router.get('/stock/items', async (req: AuthenticatedRequest, res) => {
   if (!req.user?.tenantId) return res.status(401).json({ message: 'Tenant ID required' });
