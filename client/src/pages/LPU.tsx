@@ -546,9 +546,6 @@ function PriceListForm({
           required
           placeholder="Digite o nome da lista de preços"
         />
-        <p className="text-xs text-muted-foreground mt-1">
-          O código será gerado automaticamente baseado no nome
-        </p>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
