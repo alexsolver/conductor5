@@ -851,7 +851,7 @@ export default function Tickets() {
           <Card key={ticket.id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate(`/tickets/${ticket.id}`)}>
             <CardContent className="p-6">
               <div className="flex items-start justify-between">
-                <div className="flex-1">
+                <div className="flex-1"></div>
                   <div className="flex items-center space-x-3 mb-2">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                       #{ticket.number || ticket.id} - {ticket.subject || 'Sem título'}

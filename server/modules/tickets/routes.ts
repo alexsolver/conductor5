@@ -11,87 +11,35 @@ import { trackTicketView, trackTicketEdit, trackTicketCreate, trackNoteView, tra
 // Generate unique action number for internal actions
 async function generateActionNumber(pool: any, tenantId: string, ticketId: string): Promise<string> {
   try {
-    // Get ticket number first
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    
+    // Get ticket number
     const ticketQuery = `SELECT number FROM "${schemaName}".tickets WHERE id = $1`;
     const ticketResult = await pool.query(ticketQuery, [ticketId]);
-
+    
     if (!ticketResult.rows.length) {
       throw new Error(`Ticket not found: ${ticketId}`);
     }
 
     const ticketNumber = ticketResult.rows[0].number;
-
-    // First, ensure the sequence table exists
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS public.ticket_action_sequences (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        tenant_id UUID NOT NULL,
-        ticket_id UUID NOT NULL,
-        current_number INTEGER DEFAULT 0,
-        last_updated TIMESTAMP DEFAULT NOW(),
-        CONSTRAINT unique_tenant_ticket_sequence UNIQUE(tenant_id, ticket_id)
-      )
-    `);
-
-    // Get the current highest action number for this ticket to ensure uniqueness
-    const existingActionsQuery = `
-      SELECT action_number FROM "${schemaName}".ticket_internal_actions 
+    
+    // Get next sequence number
+    const sequenceQuery = `
+      SELECT COALESCE(MAX(CAST(SUBSTRING(action_number FROM '${ticketNumber}AI(\\d+)') AS INTEGER)), 0) + 1 as next_seq
+      FROM "${schemaName}".ticket_internal_actions 
       WHERE ticket_id = $1 AND tenant_id = $2 
-      AND action_number LIKE $3
-      ORDER BY created_at DESC
-      LIMIT 1
+      AND action_number ~ '^${ticketNumber}AI\\d+$'
     `;
-
-    const existingResult = await pool.query(existingActionsQuery, [
-      ticketId, 
-      tenantId, 
-      `${ticketNumber}AI%`
-    ]);
-
-    let nextSequence = 1;
-
-    if (existingResult.rows.length > 0) {
-      const lastActionNumber = existingResult.rows[0].action_number;
-      const sequenceMatch = lastActionNumber.match(/AI(\d+)$/);
-      if (sequenceMatch) {
-        nextSequence = parseInt(sequenceMatch[1]) + 1;
-      }
-    }
-
-    // Double-check for uniqueness in a transaction
-    let finalSequence = nextSequence;
-    let attempts = 0;
-    const maxAttempts = 100;
-
-    while (attempts < maxAttempts) {
-      const testActionNumber = `${ticketNumber}AI${String(finalSequence).padStart(4, '0')}`;
-
-      const duplicateCheck = await pool.query(`
-        SELECT id FROM "${schemaName}".ticket_internal_actions 
-        WHERE action_number = $1 AND tenant_id = $2
-      `, [testActionNumber, tenantId]);
-
-      if (duplicateCheck.rows.length === 0) {
-        // This number is unique
-        const actionNumber = testActionNumber;
-        console.log(`✅ Generated unique action number: ${actionNumber} for ticket: ${ticketNumber} (attempt ${attempts + 1})`);
-        return actionNumber;
-      }
-
-      finalSequence++;
-      attempts++;
-    }
-
-    // If we reach here, fallback to timestamp
-    const timestamp = Date.now();
-    const fallbackNumber = `${ticketNumber}AI-FB-${timestamp.toString().slice(-6)}`;
-    console.log(`⚠️ Using fallback action number: ${fallbackNumber}`);
-    return fallbackNumber;
+    
+    const sequenceResult = await pool.query(sequenceQuery, [ticketId, tenantId]);
+    const nextSequence = sequenceResult.rows[0]?.next_seq || 1;
+    
+    const actionNumber = `${ticketNumber}AI${String(nextSequence).padStart(4, '0')}`;
+    console.log(`✅ Generated action number: ${actionNumber}`);
+    return actionNumber;
 
   } catch (error) {
     console.error('⚠️ Error generating action number:', error);
-    // Fallback to timestamp-based number if sequence fails
     const timestamp = Date.now();
     return `AI-FALLBACK-${timestamp.toString().slice(-6)}`;
   }
@@ -166,7 +114,7 @@ ticketsRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
     const assignedTo = req.query.assignedTo as string;
 
     const offset = (page - 1) * limit;
-    let tickets = await storageSimple.getTickets(req.user.tenantId);
+    let tickets = await storageSimple.getTickets(req.user.tenantId, limit, offset);
 
     // Apply filters
     if (status) {
@@ -179,12 +127,17 @@ ticketsRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
       tickets = tickets.filter(ticket => ticket.assignedToId === assignedTo);
     }
 
+    // Get total count for pagination
+    const totalTickets = await storageSimple.getTicketsCount(req.user.tenantId);
+
     return sendSuccess(res, {
       tickets,
       pagination: {
         page,
         limit,
-        total: tickets.length
+        total: totalTickets,
+        hasNextPage: (page * limit) < totalTickets,
+        hasPreviousPage: page > 1
       },
       filters: { status, priority, assignedTo }
     }, "Tickets retrieved successfully");
