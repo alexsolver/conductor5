@@ -511,9 +511,8 @@ function PriceListForm({
   });
 
   // Fetch customer companies
-  const { data: customerCompaniesResponse, isLoading: companiesLoading } = useQuery({
+  const { data: customerCompaniesResponse, isLoading: companiesLoading, error: companiesError } = useQuery({
     queryKey: ['/api/customers/companies'],
-    queryFn: () => apiRequest('GET', '/api/customers/companies'),
     retry: 3,
     staleTime: 30000,
   });
@@ -521,13 +520,10 @@ function PriceListForm({
   // Safe data extraction with fallbacks
   const customerCompanies = Array.isArray(customerCompaniesResponse)
     ? customerCompaniesResponse
-    : customerCompaniesResponse?.data
-    ? Array.isArray(customerCompaniesResponse.data)
-      ? customerCompaniesResponse.data
-      : []
     : [];
 
   console.log('Companies loading:', companiesLoading);
+  console.log('Companies error:', companiesError);
   console.log('Companies response:', customerCompaniesResponse);
   console.log('Companies array:', customerCompanies);
 
