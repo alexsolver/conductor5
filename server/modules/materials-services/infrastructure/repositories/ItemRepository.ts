@@ -240,7 +240,10 @@ export class ItemRepository {
     return await this.db
       .select()
       .from(itemLinks)
-      .where(and(eq(itemLinks.itemId, itemId), eq(itemLinks.tenantId, tenantId)))
+      .where(and(
+        eq(itemLinks.itemId, itemId), 
+        eq(itemLinks.tenantId, tenantId)
+      ))
       .orderBy(desc(itemLinks.createdAt));
   }
 
@@ -254,7 +257,19 @@ export class ItemRepository {
 
   async getSupplierLinks(itemId: string, tenantId: string) {
     return await this.db
-      .select()
+      .select({
+        id: itemSupplierLinks.id,
+        tenantId: itemSupplierLinks.tenantId,
+        itemId: itemSupplierLinks.itemId,
+        supplierId: itemSupplierLinks.supplierId,
+        partNumber: itemSupplierLinks.partNumber,
+        description: itemSupplierLinks.description,
+        qrCode: itemSupplierLinks.qrCode,
+        barcode: itemSupplierLinks.barcode,
+        unitPrice: itemSupplierLinks.unitPrice,
+        createdAt: itemSupplierLinks.createdAt,
+        createdBy: itemSupplierLinks.createdBy
+      })
       .from(itemSupplierLinks)
       .where(and(eq(itemSupplierLinks.itemId, itemId), eq(itemSupplierLinks.tenantId, tenantId)))
       .orderBy(desc(itemSupplierLinks.createdAt));
