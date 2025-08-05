@@ -52,7 +52,6 @@ const customerSchema = z.object({
   manager: z.string().optional(),
 
   // Campos técnicos (mantidos)
-  company: z.string().optional(),
   verified: z.boolean().default(false),
   active: z.boolean().default(true),
   suspended: z.boolean().default(false),
@@ -117,7 +116,6 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
       supervisor: "",
       coordinator: "",
       manager: "",
-      company: "",
       verified: false,
       active: true,
       suspended: false,
@@ -257,7 +255,6 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
         supervisor: customer.supervisor || "",
         coordinator: customer.coordinator || "",
         manager: customer.manager || "",
-        company: customer.company || "",
         verified: customer.verified || false,
         active: customer.active ?? true,
         suspended: customer.suspended || false,
@@ -291,7 +288,6 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
         supervisor: "",
         coordinator: "",
         manager: "",
-        company: "",
         verified: false,
         active: true,
         suspended: false,
@@ -753,21 +749,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="company"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Empresa</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Nome da empresa onde trabalha" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+                  
                 </TabsContent>
 
                 <TabsContent value="hierarquia" className="space-y-4">
@@ -1024,19 +1006,13 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                         <div className="mt-4 space-y-2">
                           <FormLabel className="text-sm font-medium">Adicionar Empresa</FormLabel>
                           <div className="flex gap-2">
-                            <FormField
-                              control={form.control}
-                              name="company"
-                              render={({ field }) => (
-                                <FormItem className="flex-1">
-                                  <FormControl>
-                                    <Select 
-                                      onValueChange={(value) => {
-                                        field.onChange(value);
-                                        setSelectedCompanyId(value);
-                                      }} 
-                                      value={field.value}
-                                    >
+                            <FormItem className="flex-1">
+                              <Select 
+                                onValueChange={(value) => {
+                                  setSelectedCompanyId(value);
+                                }} 
+                                value={selectedCompanyId}
+                              >
                                       <SelectTrigger>
                                         <SelectValue placeholder="Selecionar empresa para associar" />
                                       </SelectTrigger>
@@ -1092,11 +1068,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                                         })()}
                                       </SelectContent>
                                     </Select>
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
+                            </FormItem>
 
                             <Button
                               type="button"
