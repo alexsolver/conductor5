@@ -106,7 +106,7 @@ export default function LPU() {
 
   // Create price list mutation with better error handling
   const createPriceListMutation = useMutation({
-    mutationFn: (data: Partial<PriceList>) => {
+    mutationFn: async (data: Partial<PriceList>) => {
       console.log('Creating price list with data:', data);
       // Ensure dates are properly formatted
       const processedData = {
@@ -115,7 +115,8 @@ export default function LPU() {
         validTo: data.validTo ? new Date(data.validTo).toISOString() : undefined
       };
       console.log('Processed data for API:', processedData);
-      return apiRequest('POST', '/api/materials-services/price-lists', processedData);
+      const response = await apiRequest('POST', '/api/materials-services/price-lists', processedData);
+      return response.json();
     },
     onSuccess: () => {
       // Force invalidate all related queries
@@ -140,7 +141,10 @@ export default function LPU() {
 
   // Create pricing rule mutation
   const createPricingRuleMutation = useMutation({
-    mutationFn: (data: Partial<PricingRule>) => apiRequest('POST', '/api/materials-services/pricing-rules', data),
+    mutationFn: async (data: Partial<PricingRule>) => {
+      const response = await apiRequest('POST', '/api/materials-services/pricing-rules', data);
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/materials-services/pricing-rules'] });
       queryClient.invalidateQueries({ queryKey: ['/api/materials-services/price-lists/stats'] });

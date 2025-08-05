@@ -1,8 +1,7 @@
 import { Response } from 'express';
-import { AuthenticatedRequest } from '../../../middleware/jwtAuth';
-import { LPURepository } from '../infrastructure/repositories/LPURepository';
-import { PricingRulesEngine } from '../application/services/PricingRulesEngine';
-import { Database } from 'better-sqlite3';
+import { AuthenticatedRequest } from '../../../../middleware/jwtAuth';
+import { LPURepository } from '../../infrastructure/repositories/LPURepository';
+import { PricingRulesEngine } from '../services/PricingRulesEngine';
 
 export class LPUController {
   private repository: LPURepository;
