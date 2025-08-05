@@ -127,16 +127,16 @@ export function DynamicSelect(props: DynamicSelectProps) {
         {showAllOption && (
           <SelectItem value="all">Todos</SelectItem>
         )}
-        {fieldOptions.map((option) => (
-          <SelectItem key={option.id || option.value} value={option.value}>
+        {fieldOptions.map((option, index) => (
+          <SelectItem key={`${option.value}-${index}`} value={option.value}>
             <div className="flex items-center gap-2">
               {option.color && (
                 <div
-                  className="w-3 h-3 rounded-full"
+                  className="w-3 h-3 rounded-full flex-shrink-0"
                   style={{ backgroundColor: option.color }}
                 />
               )}
-              <span>{option.label}</span>
+              <span className="truncate">{option.label}</span>
             </div>
           </SelectItem>
         ))}

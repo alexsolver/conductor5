@@ -1250,18 +1250,31 @@ router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res) =
     }
 
     // 4. Copy Field Options - with enhanced duplicate checking
-    // First, delete any existing field options for the target company to avoid conflicts
-    await db.execute(sql`
-      DELETE FROM "${sql.raw(schemaName)}"."ticket_field_options"
+    // First, check if there are existing field options for the target company
+    const existingFieldOptionsCheck = await db.execute(sql`
+      SELECT COUNT(*) as count 
+      FROM "${sql.raw(schemaName)}"."ticket_field_options"
       WHERE tenant_id = ${tenantId} 
       AND customer_id = ${targetCompanyId}
     `);
 
-    // Now insert the field options from source
+    const hasExistingOptions = Number(existingFieldOptionsCheck.rows[0]?.count) > 0;
+
+    if (hasExistingOptions) {
+      // Delete existing field options for the target company to avoid conflicts
+      await db.execute(sql`
+        DELETE FROM "${sql.raw(schemaName)}"."ticket_field_options"
+        WHERE tenant_id = ${tenantId} 
+        AND customer_id = ${targetCompanyId}
+      `);
+      console.log(`🗑️ Deleted existing field options for target company ${targetCompanyId}`);
+    }
+
+    // Now insert the field options from source with proper deduplication
     const fieldOptionsResult = await db.execute(sql`
       INSERT INTO "${sql.raw(schemaName)}"."ticket_field_options" 
       (id, tenant_id, customer_id, field_name, value, label, color, sort_order, is_default, is_active, status_type, created_at, updated_at)
-      SELECT 
+      SELECT DISTINCT
         gen_random_uuid(),
         source.tenant_id,
         ${targetCompanyId},
@@ -1278,6 +1291,7 @@ router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res) =
       FROM "${sql.raw(schemaName)}"."ticket_field_options" source
       WHERE source.tenant_id = ${tenantId} 
       AND source.customer_id = ${sourceCompanyId}
+      ON CONFLICT (tenant_id, field_name, value) DO NOTHING
       RETURNING id
     `);
     copiedItems.fieldOptions = fieldOptionsResult.rows.length;
