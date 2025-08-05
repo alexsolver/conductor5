@@ -476,10 +476,7 @@ const TicketsTable = React.memo(() => {
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
 
-  // Limpar cache de cores dos campos na inicialização para debug
-  React.useEffect(() => {
-    queryClient.invalidateQueries({ queryKey: ["/api/ticket-config/field-options"] });
-  }, []);  // Executar apenas uma vez
+
 
   // Função para buscar relacionamentos de tickets
   const fetchTicketRelationships = async (ticketId: string) => {
@@ -918,13 +915,7 @@ const TicketsTable = React.memo(() => {
                                getFieldLabel('category', categoryValue) || 
                                rawCategoryValue;
 
-          console.log(`🎨 Category badge for ticket ${ticket.id}:`, {
-            rawValue: rawCategoryValue,
-            mappedValue: categoryValue,
-            color: categoryColor,
-            label: categoryLabel,
-            isLoading: isFieldColorsLoading
-          });
+
 
           return (
             <TableCell className="overflow-hidden" style={cellStyle}>

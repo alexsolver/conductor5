@@ -177,9 +177,6 @@ export function DynamicSelect(props: DynamicSelectProps) {
                   />
                 )}
                 <span className="truncate">{option.label}</span>
-                {process.env.NODE_ENV === 'development' && option.value === 'Reclamações' && (
-                  <span className="text-xs opacity-50">({option.color})</span>
-                )}
               </div>
             </SelectItem>
           );
