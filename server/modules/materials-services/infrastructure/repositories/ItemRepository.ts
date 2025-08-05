@@ -255,6 +255,37 @@ export class ItemRepository {
       .orderBy(desc(itemCustomerLinks.createdAt));
   }
 
+  async updateCustomerLink(linkId: string, updateData: {
+    alias?: string;
+    sku?: string;
+    barcode?: string;
+    qrCode?: string;
+    isAsset?: boolean;
+  }) {
+    const [result] = await this.db
+      .update(itemCustomerLinks)
+      .set({
+        ...updateData,
+        updatedAt: new Date()
+      })
+      .where(eq(itemCustomerLinks.id, linkId))
+      .returning();
+    
+    return result;
+  }
+
+  async deleteCustomerLink(linkId: string, tenantId: string) {
+    const [result] = await this.db
+      .delete(itemCustomerLinks)
+      .where(and(
+        eq(itemCustomerLinks.id, linkId),
+        eq(itemCustomerLinks.tenantId, tenantId)
+      ))
+      .returning();
+    
+    return result;
+  }
+
   async getSupplierLinks(itemId: string, tenantId: string) {
     return await this.db
       .select({
