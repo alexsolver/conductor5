@@ -35,7 +35,7 @@ const ticketSchema = z.object({
   category: z.string().optional(),
   subcategory: z.string().optional(),
   priority: z.enum(["low", "medium", "high", "critical"]),
-  impact: z.enum(["low", "medium", "high"]).optional(),
+  impact: z.enum(["low", "medium", "high", "critical"]).optional(),
   urgency: z.enum(["low", "medium", "high"]).optional(),
   state: z.enum(["new", "in_progress", "resolved", "closed", "cancelled"]).optional(),
 
