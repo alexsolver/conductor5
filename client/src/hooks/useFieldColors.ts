@@ -18,26 +18,62 @@ interface FieldColorsResponse {
 const colorsCache = new Map<string, Record<string, string>>();
 
 export const useFieldColors = (companyId?: string) => {
-  // 🚨 CORREÇÃO: Buscar ALL field options sem filtro de company
-  // para garantir que todas as cores sejam carregadas na inicialização
-  const { data: fieldOptions, isLoading, error } = useQuery({
+  // 🚨 CORREÇÃO CRÍTICA: Query otimizada com loading garantido
+  const { data: fieldOptions, isLoading, error, isFetched } = useQuery({
     queryKey: ["/api/ticket-config/field-options", "all"], 
     queryFn: async () => {
+      console.log('🎨 [useFieldColors] Starting field options fetch...');
       const response = await apiRequest("GET", "/api/ticket-config/field-options");
-      return response.json();
+      const result = await response.json();
+      console.log('🎨 [useFieldColors] Field options loaded:', result?.data?.length || 0, 'options');
+      return result;
     },
-    staleTime: 30 * 60 * 1000, // Cache por 30 minutos - mais agressivo
+    staleTime: 30 * 60 * 1000, // Cache por 30 minutos
     gcTime: 60 * 60 * 1000, // Garbage collection em 1 hora
     refetchOnWindowFocus: false,
-    refetchOnMount: true, // 🚨 CRÍTICO: permitir mount para garantir carregamento inicial
-    refetchInterval: false, // Disable auto-refetch
-    retry: 2, // Aumentar tentativas para garantir carregamento
-    retryDelay: 500, // Delay menor entre tentativas
+    refetchOnMount: true,
+    refetchInterval: false,
+    retry: 3, // Mais tentativas
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
+    // 🚨 CRÍTICO: Garantir que dados estejam sempre disponíveis
+    initialData: () => {
+      // Tentar recuperar do cache do navegador como fallback
+      const cached = sessionStorage.getItem('fieldColors_cache');
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached);
+          if (Date.now() - parsed.timestamp < 600000) { // 10 minutos
+            console.log('🎨 [useFieldColors] Using cached field options');
+            return parsed.data;
+          }
+        } catch (e) {
+          console.warn('🎨 [useFieldColors] Cache corrupted, ignoring');
+        }
+      }
+      return undefined;
+    },
   });
 
-  // Função para buscar cor de um campo específico priorizando configurações
+  // 🚨 CORREÇÃO: Cache proativo e melhoria de performance
+  React.useEffect(() => {
+    if (fieldOptions?.data && isFetched) {
+      // Salvar no cache do navegador para próximas visitas
+      const cacheData = {
+        data: fieldOptions,
+        timestamp: Date.now()
+      };
+      sessionStorage.setItem('fieldColors_cache', JSON.stringify(cacheData));
+      console.log('🎨 [useFieldColors] Field options cached for next visit');
+    }
+  }, [fieldOptions, isFetched]);
+
+  // Função para buscar cor de um campo específico com fallbacks inteligentes
   const getFieldColor = (fieldName: string, value: string): string | undefined => {
-    if (!fieldOptions?.data) {
+    // 🚨 CORREÇÃO CRÍTICA: Verificar se dados estão realmente disponíveis
+    if (!fieldOptions?.data || !isFetched) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`🔄 [getFieldColor] Waiting for field options to load: ${fieldName}:${value}`);
+      }
       return undefined;
     }
 
@@ -116,8 +152,15 @@ export const useFieldColors = (companyId?: string) => {
     getFieldColor,
     getFieldLabel,
     getFieldColorMap,
-    isLoading,
+    isLoading: isLoading || !isFetched, // 🚨 CRÍTICO: Loading até dados estarem completamente disponíveis
+    isReady: isFetched && !!fieldOptions?.data, // Novo flag para indicar quando está pronto
     fieldOptions: fieldOptions?.data || [],
-    error
+    error,
+    // Debug info para desenvolvimento
+    _debug: process.env.NODE_ENV === 'development' ? {
+      isFetched,
+      hasData: !!fieldOptions?.data,
+      dataLength: fieldOptions?.data?.length || 0
+    } : undefined
   };
 };

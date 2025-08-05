@@ -220,8 +220,8 @@ const TicketsTable = React.memo(() => {
   const [ticketRelationships, setTicketRelationships] = useState<Record<string, any[]>>({});
   const [ticketsWithRelationships, setTicketsWithRelationships] = useState<Set<string>>(new Set());
 
-  // Hook para buscar cores dos campos personalizados
-  const { getFieldColor, getFieldLabel, isLoading: isFieldColorsLoading } = useFieldColors();
+  // Hook para buscar cores dos campos personalizados com estado aprimorado
+  const { getFieldColor, getFieldLabel, isLoading: isFieldColorsLoading, isReady: isFieldColorsReady } = useFieldColors();
 
   // Hook para resolver nomes de empresas
   const { getCompanyName } = useCompanyNameResolver();
@@ -895,8 +895,8 @@ const TicketsTable = React.memo(() => {
         case 'category':
           const rawCategoryValue = (ticket as any).category;
 
-          // 🚨 CORREÇÃO: Aguardar cores carregarem para evitar race condition
-          if (isFieldColorsLoading) {
+          // 🚨 CORREÇÃO CRÍTICA: Aguardar cores estarem prontas (não apenas loading)
+          if (!isFieldColorsReady) {
             return (
               <TableCell className="overflow-hidden" style={cellStyle}>
                 <div className="h-5 w-16 bg-gray-200 animate-pulse rounded"></div>
@@ -935,8 +935,8 @@ const TicketsTable = React.memo(() => {
             </TableCell>
           );
         case 'status':
-          // 🚨 CORREÇÃO: Aguardar cores carregarem para evitar race condition
-          if (isFieldColorsLoading) {
+          // 🚨 CORREÇÃO CRÍTICA: Aguardar cores estarem prontas
+          if (!isFieldColorsReady) {
             return (
               <TableCell className="overflow-hidden" style={cellStyle}>
                 <div className="h-5 w-16 bg-gray-200 animate-pulse rounded"></div>
@@ -961,8 +961,8 @@ const TicketsTable = React.memo(() => {
             </TableCell>
           );
         case 'priority':
-          // 🚨 CORREÇÃO: Aguardar cores carregarem para evitar race condition com priority
-          if (isFieldColorsLoading) {
+          // 🚨 CORREÇÃO CRÍTICA: Aguardar cores estarem prontas
+          if (!isFieldColorsReady) {
             return (
               <TableCell className="overflow-hidden" style={cellStyle}>
                 <div className="h-5 w-16 bg-gray-200 animate-pulse rounded"></div>
@@ -987,8 +987,8 @@ const TicketsTable = React.memo(() => {
             </TableCell>
           );
         case 'impact':
-          // 🚨 CORREÇÃO: Aguardar cores carregarem para evitar race condition com impact
-          if (isFieldColorsLoading) {
+          // 🚨 CORREÇÃO CRÍTICA: Aguardar cores estarem prontas
+          if (!isFieldColorsReady) {
             return (
               <TableCell className="overflow-hidden" style={cellStyle}>
                 <div className="h-5 w-16 bg-gray-200 animate-pulse rounded"></div>
@@ -1066,8 +1066,8 @@ const TicketsTable = React.memo(() => {
             );
           }
 
-          // 🚨 CORREÇÃO: Aguardar cores carregarem para evitar race condition com subcategory
-          if (isFieldColorsLoading) {
+          // 🚨 CORREÇÃO CRÍTICA: Aguardar cores estarem prontas
+          if (!isFieldColorsReady) {
             return (
               <TableCell className="overflow-hidden" style={cellStyle}>
                 <div className="h-5 w-20 bg-gray-200 animate-pulse rounded"></div>
@@ -1091,8 +1091,8 @@ const TicketsTable = React.memo(() => {
             </TableCell>
           );
         case 'urgency':
-          // 🚨 CORREÇÃO: Aguardar cores carregarem para evitar race condition com urgency
-          if (isFieldColorsLoading) {
+          // 🚨 CORREÇÃO CRÍTICA: Aguardar cores estarem prontas
+          if (!isFieldColorsReady) {
             return (
               <TableCell className="overflow-hidden" style={cellStyle}>
                 <div className="h-5 w-16 bg-gray-200 animate-pulse rounded"></div>
@@ -2134,11 +2134,13 @@ const TicketsTable = React.memo(() => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-        {isLoading ? (
+        {(isLoading || !isFieldColorsReady) ? (
       <div className="p-4 space-y-6">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-          <span className="text-sm text-gray-600">Carregando tickets e configurações...</span>
+          <span className="text-sm text-gray-600">
+            Carregando {!isFieldColorsReady ? 'configurações de cores' : 'tickets'}...
+          </span>
         </div>
 
         {/* Progress indicator */}
