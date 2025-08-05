@@ -1113,4 +1113,218 @@ router.put('/field-options/:id/status', jwtAuth, async (req: AuthenticatedReques
   }
 });
 
+// ============================================================================
+// COPY HIERARCHY - Copiar estrutura hierárquica entre empresas
+// ============================================================================
+
+// POST /api/ticket-config/copy-hierarchy
+router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    const tenantId = req.user?.tenantId;
+    const { sourceCompanyId, targetCompanyId } = req.body;
+
+    if (!tenantId) {
+      return res.status(401).json({ message: 'Tenant required' });
+    }
+
+    if (!sourceCompanyId || !targetCompanyId) {
+      return res.status(400).json({ message: 'Source and target company IDs are required' });
+    }
+
+    if (sourceCompanyId === targetCompanyId) {
+      return res.status(400).json({ message: 'Source and target companies cannot be the same' });
+    }
+
+    console.log(`🔄 Copying hierarchy from ${sourceCompanyId} to ${targetCompanyId} for tenant ${tenantId}`);
+
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    
+    let copiedItems = {
+      categories: 0,
+      subcategories: 0,
+      actions: 0,
+      fieldOptions: 0,
+      numberingConfig: 0
+    };
+
+    // 1. Copy Categories
+    const categoriesResult = await db.execute(sql`
+      INSERT INTO "${sql.raw(schemaName)}"."ticket_categories" 
+      (id, tenant_id, company_id, name, description, color, icon, active, sort_order, created_at, updated_at)
+      SELECT 
+        gen_random_uuid(), 
+        tenant_id, 
+        ${targetCompanyId}, 
+        name, 
+        description, 
+        color, 
+        icon, 
+        active, 
+        sort_order, 
+        NOW(), 
+        NOW()
+      FROM "${sql.raw(schemaName)}"."ticket_categories"
+      WHERE tenant_id = ${tenantId} AND company_id = ${sourceCompanyId}
+      AND NOT EXISTS (
+        SELECT 1 FROM "${sql.raw(schemaName)}"."ticket_categories" target
+        WHERE target.tenant_id = ${tenantId} 
+        AND target.company_id = ${targetCompanyId}
+        AND target.name = "${sql.raw(schemaName)}"."ticket_categories".name
+      )
+      RETURNING id
+    `);
+    copiedItems.categories = categoriesResult.rows.length;
+
+    // 2. Copy Subcategories (with category mapping)
+    if (copiedItems.categories > 0) {
+      const subcategoriesResult = await db.execute(sql`
+        INSERT INTO "${sql.raw(schemaName)}"."ticket_subcategories" 
+        (id, tenant_id, company_id, category_id, name, description, color, icon, active, sort_order, created_at, updated_at)
+        SELECT 
+          gen_random_uuid(),
+          s.tenant_id,
+          ${targetCompanyId},
+          tc.id,
+          s.name,
+          s.description,
+          s.color,
+          s.icon,
+          s.active,
+          s.sort_order,
+          NOW(),
+          NOW()
+        FROM "${sql.raw(schemaName)}"."ticket_subcategories" s
+        JOIN "${sql.raw(schemaName)}"."ticket_categories" sc ON s.category_id = sc.id
+        JOIN "${sql.raw(schemaName)}"."ticket_categories" tc ON sc.name = tc.name 
+          AND tc.company_id = ${targetCompanyId} AND tc.tenant_id = ${tenantId}
+        WHERE s.tenant_id = ${tenantId} 
+        AND sc.company_id = ${sourceCompanyId}
+        AND NOT EXISTS (
+          SELECT 1 FROM "${sql.raw(schemaName)}"."ticket_subcategories" target
+          WHERE target.tenant_id = ${tenantId} 
+          AND target.category_id = tc.id
+          AND target.name = s.name
+        )
+        RETURNING id
+      `);
+      copiedItems.subcategories = subcategoriesResult.rows.length;
+
+      // 3. Copy Actions (with subcategory mapping)
+      if (copiedItems.subcategories > 0) {
+        const actionsResult = await db.execute(sql`
+          INSERT INTO "${sql.raw(schemaName)}"."ticket_actions" 
+          (id, tenant_id, company_id, subcategory_id, name, description, estimated_time_minutes, color, icon, active, sort_order, created_at, updated_at)
+          SELECT 
+            gen_random_uuid(),
+            a.tenant_id,
+            ${targetCompanyId},
+            ts.id,
+            a.name,
+            a.description,
+            a.estimated_time_minutes,
+            a.color,
+            a.icon,
+            a.active,
+            a.sort_order,
+            NOW(),
+            NOW()
+          FROM "${sql.raw(schemaName)}"."ticket_actions" a
+          JOIN "${sql.raw(schemaName)}"."ticket_subcategories" ss ON a.subcategory_id = ss.id
+          JOIN "${sql.raw(schemaName)}"."ticket_categories" sc ON ss.category_id = sc.id
+          JOIN "${sql.raw(schemaName)}"."ticket_categories" tc ON sc.name = tc.name 
+            AND tc.company_id = ${targetCompanyId} AND tc.tenant_id = ${tenantId}
+          JOIN "${sql.raw(schemaName)}"."ticket_subcategories" ts ON ss.name = ts.name 
+            AND ts.category_id = tc.id AND ts.tenant_id = ${tenantId}
+          WHERE a.tenant_id = ${tenantId} 
+          AND sc.company_id = ${sourceCompanyId}
+          AND NOT EXISTS (
+            SELECT 1 FROM "${sql.raw(schemaName)}"."ticket_actions" target
+            WHERE target.tenant_id = ${tenantId} 
+            AND target.subcategory_id = ts.id
+            AND target.name = a.name
+          )
+          RETURNING id
+        `);
+        copiedItems.actions = actionsResult.rows.length;
+      }
+    }
+
+    // 4. Copy Field Options
+    const fieldOptionsResult = await db.execute(sql`
+      INSERT INTO "${sql.raw(schemaName)}"."ticket_field_options" 
+      (id, tenant_id, customer_id, field_name, value, label, color, sort_order, is_default, is_active, status_type, created_at, updated_at)
+      SELECT 
+        gen_random_uuid(),
+        tenant_id,
+        ${targetCompanyId},
+        field_name,
+        value,
+        label,
+        color,
+        sort_order,
+        is_default,
+        is_active,
+        status_type,
+        NOW(),
+        NOW()
+      FROM "${sql.raw(schemaName)}"."ticket_field_options"
+      WHERE tenant_id = ${tenantId} AND customer_id = ${sourceCompanyId}
+      AND NOT EXISTS (
+        SELECT 1 FROM "${sql.raw(schemaName)}"."ticket_field_options" target
+        WHERE target.tenant_id = ${tenantId} 
+        AND target.customer_id = ${targetCompanyId}
+        AND target.field_name = "${sql.raw(schemaName)}"."ticket_field_options".field_name
+        AND target.value = "${sql.raw(schemaName)}"."ticket_field_options".value
+      )
+      RETURNING id
+    `);
+    copiedItems.fieldOptions = fieldOptionsResult.rows.length;
+
+    // 5. Copy Numbering Configuration
+    const numberingResult = await db.execute(sql`
+      INSERT INTO "${sql.raw(schemaName)}"."ticket_numbering_config" 
+      (id, tenant_id, company_id, prefix, year_format, sequential_digits, separator, reset_yearly, first_separator, created_at, updated_at)
+      SELECT 
+        gen_random_uuid(),
+        tenant_id,
+        ${targetCompanyId},
+        prefix,
+        year_format,
+        sequential_digits,
+        separator,
+        reset_yearly,
+        first_separator,
+        NOW(),
+        NOW()
+      FROM "${sql.raw(schemaName)}"."ticket_numbering_config"
+      WHERE tenant_id = ${tenantId} AND company_id = ${sourceCompanyId}
+      AND NOT EXISTS (
+        SELECT 1 FROM "${sql.raw(schemaName)}"."ticket_numbering_config" target
+        WHERE target.tenant_id = ${tenantId} 
+        AND target.company_id = ${targetCompanyId}
+      )
+      RETURNING id
+    `);
+    copiedItems.numberingConfig = numberingResult.rows.length;
+
+    const summary = `Copiados: ${copiedItems.categories} categorias, ${copiedItems.subcategories} subcategorias, ${copiedItems.actions} ações, ${copiedItems.fieldOptions} opções de campos, ${copiedItems.numberingConfig} configuração de numeração`;
+
+    console.log('✅ Hierarchy copy completed:', copiedItems);
+
+    res.json({
+      success: true,
+      message: 'Hierarchy copied successfully',
+      data: copiedItems,
+      summary: summary
+    });
+  } catch (error) {
+    console.error('Error copying hierarchy:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to copy hierarchy',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 export default router;

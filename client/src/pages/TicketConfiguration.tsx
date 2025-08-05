@@ -553,6 +553,51 @@ const TicketConfiguration: React.FC = () => {
     }
   });
 
+  // Mutation para copiar estrutura hierárquica
+  const copyHierarchyMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('POST', '/api/ticket-config/copy-hierarchy', {
+        sourceCompanyId: '00000000-0000-0000-0000-000000000001', // Default company
+        targetCompanyId: selectedCompany
+      });
+      return response.json();
+    },
+    onSuccess: async (result) => {
+      console.log('✅ Hierarchy copied successfully:', result);
+      
+      // Invalidate all related queries to refresh data
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['categories', selectedCompany] }),
+        queryClient.invalidateQueries({ queryKey: ['subcategories', selectedCompany] }),
+        queryClient.invalidateQueries({ queryKey: ['actions', selectedCompany] }),
+        queryClient.invalidateQueries({ queryKey: ['field-options', selectedCompany] }),
+        queryClient.invalidateQueries({ queryKey: ['/api/ticket-config/numbering', selectedCompany] })
+      ]);
+      
+      // Force refetch to ensure UI updates
+      await Promise.all([
+        queryClient.refetchQueries({ queryKey: ['categories', selectedCompany] }),
+        queryClient.refetchQueries({ queryKey: ['subcategories', selectedCompany] }),
+        queryClient.refetchQueries({ queryKey: ['actions', selectedCompany] }),
+        queryClient.refetchQueries({ queryKey: ['field-options', selectedCompany] }),
+        queryClient.refetchQueries({ queryKey: ['/api/ticket-config/numbering', selectedCompany] })
+      ]);
+      
+      toast({ 
+        title: "Estrutura copiada com sucesso",
+        description: `${result.summary || 'Toda a estrutura hierárquica foi copiada da empresa Default.'}`
+      });
+    },
+    onError: (error: any) => {
+      console.error('❌ Error copying hierarchy:', error);
+      toast({ 
+        title: "Erro ao copiar estrutura",
+        description: error.message || "Não foi possível copiar a estrutura hierárquica.",
+        variant: "destructive"
+      });
+    }
+  });
+
   // Helper functions
   const toggleCategoryExpansion = (categoryId: string) => {
     const newExpanded = new Set(expandedCategories);
@@ -626,6 +671,12 @@ const TicketConfiguration: React.FC = () => {
     setDialogOpen(false);
   };
 
+  const handleCopyHierarchy = () => {
+    if (confirm(`Tem certeza que deseja copiar toda a estrutura hierárquica da empresa Default para esta empresa?\n\nEsta ação irá:\n• Copiar todas as categorias, subcategorias e ações\n• Copiar todas as opções de campos (status, prioridade, impacto, urgência)\n• Copiar configuração de numeração\n\nEsta operação não pode ser desfeita.`)) {
+      copyHierarchyMutation.mutate();
+    }
+  };
+
   const filteredCategories = categories.filter((cat: Category) =>
     cat.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -659,7 +710,7 @@ const TicketConfiguration: React.FC = () => {
             Selecione a empresa para configurar os metadados dos tickets
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           <Select value={selectedCompany} onValueChange={setSelectedCompany}>
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Selecione uma empresa cliente" />
@@ -672,6 +723,36 @@ const TicketConfiguration: React.FC = () => {
               ))}
             </SelectContent>
           </Select>
+          
+          {/* Botão para copiar estrutura da empresa Default */}
+          {selectedCompany && selectedCompany !== '00000000-0000-0000-0000-000000000001' && (
+            <div className="flex items-center space-x-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="flex-1">
+                <h4 className="font-medium text-blue-900">Copiar Estrutura Hierárquica</h4>
+                <p className="text-sm text-blue-700 mt-1">
+                  Copie toda a estrutura hierárquica (categorias, subcategorias, ações e opções de campos) 
+                  da empresa Default para esta empresa como ponto de partida.
+                </p>
+              </div>
+              <Button
+                onClick={() => handleCopyHierarchy()}
+                disabled={copyHierarchyMutation.isPending}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                {copyHierarchyMutation.isPending ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                    Copiando...
+                  </>
+                ) : (
+                  <>
+                    <FolderTree className="w-4 h-4 mr-2" />
+                    Copiar Estrutura
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
 
