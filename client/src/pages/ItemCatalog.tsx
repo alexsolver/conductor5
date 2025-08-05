@@ -62,9 +62,6 @@ interface CustomerItemMapping {
   custom_name: string;
   custom_description?: string;
   customer_reference: string;
-  negotiated_price: string;
-  minimum_quantity: string;
-  discount_percent: string;
   special_instructions?: string;
   notes?: string;
   is_active: boolean;
@@ -133,9 +130,6 @@ export default function ItemCatalog() {
     custom_name: "",
     custom_description: "",
     customer_reference: "",
-    negotiated_price: "",
-    minimum_quantity: "1",
-    discount_percent: "0",
     special_instructions: "",
     notes: ""
   });
@@ -384,9 +378,7 @@ export default function ItemCatalog() {
       custom_name: "",
       custom_description: "",
       customer_reference: "",
-      negotiated_price: "",
-      minimum_quantity: "1",
-      discount_percent: "0",
+
       special_instructions: "",
       notes: ""
     });
@@ -1139,42 +1131,7 @@ export default function ItemCatalog() {
                         />
                       </div>
 
-                      <div className="grid grid-cols-3 gap-4">
-                        <div>
-                          <Label htmlFor="negotiated_price">Preço Negociado (R$)</Label>
-                          <Input
-                            id="negotiated_price"
-                            type="number"
-                            step="0.01"
-                            value={mappingFormData.negotiated_price}
-                            onChange={(e) => setMappingFormData(prev => ({ ...prev, negotiated_price: e.target.value }))}
-                            placeholder="0.00"
-                          />
-                        </div>
 
-                        <div>
-                          <Label htmlFor="minimum_quantity">Quantidade Mínima</Label>
-                          <Input
-                            id="minimum_quantity"
-                            type="number"
-                            value={mappingFormData.minimum_quantity}
-                            onChange={(e) => setMappingFormData(prev => ({ ...prev, minimum_quantity: e.target.value }))}
-                            placeholder="1"
-                          />
-                        </div>
-
-                        <div>
-                          <Label htmlFor="discount_percent">Desconto (%)</Label>
-                          <Input
-                            id="discount_percent"
-                            type="number"
-                            step="0.01"
-                            value={mappingFormData.discount_percent}
-                            onChange={(e) => setMappingFormData(prev => ({ ...prev, discount_percent: e.target.value }))}
-                            placeholder="0.00"
-                          />
-                        </div>
-                      </div>
 
                       <div>
                         <Label htmlFor="special_instructions">Instruções Especiais</Label>
@@ -1266,8 +1223,6 @@ export default function ItemCatalog() {
                       <TableHead>Item Base</TableHead>
                       <TableHead>SKU Personalizado</TableHead>
                       <TableHead>Nome Personalizado</TableHead>
-                      <TableHead>Preço Negociado</TableHead>
-                      <TableHead>Desconto</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Ações</TableHead>
                     </TableRow>
@@ -1298,17 +1253,7 @@ export default function ItemCatalog() {
                           </Badge>
                         </TableCell>
                         <TableCell>{mapping.custom_name}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center space-x-1">
-                            <DollarSign className="h-4 w-4 text-green-600" />
-                            <span>R$ {parseFloat(mapping.negotiated_price).toFixed(2)}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="secondary">
-                            {parseFloat(mapping.discount_percent).toFixed(1)}%
-                          </Badge>
-                        </TableCell>
+
                         <TableCell>
                           <Badge variant={mapping.is_active ? "default" : "secondary"}>
                             {mapping.is_active ? "Ativo" : "Inativo"}
@@ -1328,9 +1273,6 @@ export default function ItemCatalog() {
                                   custom_name: mapping.custom_name,
                                   custom_description: mapping.custom_description || "",
                                   customer_reference: mapping.customer_reference,
-                                  negotiated_price: mapping.negotiated_price,
-                                  minimum_quantity: mapping.minimum_quantity,
-                                  discount_percent: mapping.discount_percent,
                                   special_instructions: mapping.special_instructions || "",
                                   notes: mapping.notes || ""
                                 });

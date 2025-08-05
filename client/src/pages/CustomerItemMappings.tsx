@@ -314,8 +314,6 @@ export function CustomerItemMappings() {
                   />
                 </div>
 
-
-
                 <div>
                   <Label htmlFor="special_instructions">Instruções Especiais</Label>
                   <Textarea
@@ -420,7 +418,7 @@ export function CustomerItemMappings() {
                 <div>
                   <p className="text-sm font-medium">Clientes Ativos</p>
                   <p className="text-2xl font-bold">
-                    {new Set(mappings.map(m => m.customer_id)).size}
+                    {new Set(mappings.map((m: CustomerItemMapping) => m.customer_id)).size}
                   </p>
                 </div>
               </div>
@@ -455,7 +453,7 @@ export function CustomerItemMappings() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {mappings.map((mapping) => (
+                {mappings.map((mapping: CustomerItemMapping) => (
                   <TableRow key={mapping.id}>
                     <TableCell>
                       <div>
