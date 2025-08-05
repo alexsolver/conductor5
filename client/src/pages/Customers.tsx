@@ -293,7 +293,10 @@ export default function Customers() {
                     <CustomerCompanies customerId={customer.id} />
                   </TableCell>
                   <TableCell>
-                    <Badge variant={customer.status === 'Ativo' ? "default" : "secondary"}>
+                    <Badge 
+                      variant={customer.status === 'Ativo' ? "default" : "secondary"}
+                      className={customer.status === 'Ativo' ? "bg-blue-600 text-white hover:bg-blue-700" : ""}
+                    >
                       {customer.status || "Ativo"}
                     </Badge>
                   </TableCell>
