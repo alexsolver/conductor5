@@ -2129,77 +2129,71 @@ export type InsertContractEquipment = typeof contractEquipment.$inferInsert;
 export type ContractEquipment = typeof contractEquipment.$inferSelect;
 
 // Contract validation schemas
-export const insertContractSchema = createInsertSchema(contracts).omit({
-  id: true,
-  createdAt: true,
-});
-
-export const insertContractSlaSchema = createInsertSchema(contractSlas).omit({
-  id: true,
-  createdAt: true,
-});
-
-export const insertContractServiceSchema = createInsertSchema(contractServices).omit({
-  id: true,
-  createdAt: true,
-});
-
-export const insertContractDocumentSchema = createInsertSchema(contractDocuments).omit({
-  id: true,
-  createdAt: true,
-  uploadedById: true,
-});
-
-export const insertContractRenewalSchema = createInsertSchema(contractRenewals).omit({
-  id: true,
-  createdAt: true,
-});
-
-export const insertContractBillingSchema = createInsertSchema(contractBilling).omit({
-  id: true,
-  createdAt: true,
-  generatedById: true,
-});
-
-export const insertContractEquipmentSchema = createInsertSchema(contractEquipment).omit({
-  id: true,
-  createdAt: true,
-});
+export const insertContractSchema = createInsertSchema(contracts);
+export const insertContractSlaSchema = createInsertSchema(contractSlas);  
+export const insertContractServiceSchema = createInsertSchema(contractServices);
+export const insertContractDocumentSchema = createInsertSchema(contractDocuments);
+export const insertContractRenewalSchema = createInsertSchema(contractRenewals);
+export const insertContractBillingSchema = createInsertSchema(contractBilling);
+export const insertContractEquipmentSchema = createInsertSchema(contractEquipment);
 
 // ============================================
 // PARTS & SERVICES MODULE
 // ============================================
 
-// Items table
+// Items table - Unified schema for Materials & Services
 export const items = pgTable("items", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
+  
+  // Primary naming fields (both title and name for compatibility)
   title: varchar("title", { length: 255 }).notNull(),
+  name: varchar("name", { length: 255 }).notNull(), // For compatibility with repository
   description: text("description"),
-  type: varchar("type", { length: 50 }).notNull(), // 'part' | 'service' | 'kit'
+  
+  // Item classification
+  type: varchar("type", { length: 50 }).notNull(), // 'part' | 'service' | 'kit' | 'material'
   category: varchar("category", { length: 100 }),
   subcategory: varchar("subcategory", { length: 100 }),
+  
+  // Identification codes
   internalCode: varchar("internal_code", { length: 100 }).notNull(),
+  integrationCode: varchar("integration_code", { length: 100 }), // For external system integration
   manufacturerCode: varchar("manufacturer_code", { length: 100 }),
   supplierCode: varchar("supplier_code", { length: 100 }),
   barcode: varchar("barcode", { length: 255 }),
   sku: varchar("sku", { length: 100 }),
+  
+  // Product details
   manufacturer: varchar("manufacturer", { length: 255 }),
   model: varchar("model", { length: 255 }),
   specifications: jsonb("specifications"),
   technicalDetails: text("technical_details"),
+  
+  // Pricing and units
   costPrice: decimal("cost_price", { precision: 10, scale: 2 }),
   salePrice: decimal("sale_price", { precision: 10, scale: 2 }),
   currency: varchar("currency", { length: 3 }).default("BRL"),
   unit: varchar("unit", { length: 50 }).default("UN"),
+  measurementUnit: varchar("measurement_unit", { length: 10 }).default("UN"), // For compatibility
+  
+  // Classification and control
   abcClassification: varchar("abc_classification", { length: 1 }),
   criticality: varchar("criticality", { length: 20 }),
   status: varchar("status", { length: 20 }).notNull().default("active"),
   active: boolean("active").notNull().default(true),
+  
+  // Maintenance and operational
+  maintenancePlan: jsonb("maintenance_plan"),
+  defaultChecklist: jsonb("default_checklist"),
+  
+  // Audit fields
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   createdBy: uuid("created_by"),
   updatedBy: uuid("updated_by"),
+  
+  // Additional metadata
   tags: text("tags").array(),
   customFields: jsonb("custom_fields"),
   notes: text("notes")
@@ -2997,16 +2991,8 @@ export const insertTicketListViewSchema = createInsertSchema(ticketListViews).ex
   })).optional(),
 }).omit({ id: true, createdAt: true, updatedAt: true });
 
-export const insertTicketViewShareSchema = createInsertSchema(ticketViewShares).omit({ 
-  id: true, 
-  sharedAt: true 
-});
-
-export const insertUserViewPreferenceSchema = createInsertSchema(userViewPreferences).omit({ 
-  id: true, 
-  createdAt: true, 
-  updatedAt: true 
-});
+export const insertTicketViewShareSchema = createInsertSchema(ticketViewShares);
+export const insertUserViewPreferenceSchema = createInsertSchema(userViewPreferences);
 
 // Customer Item Mappings validation schema
 export const insertCustomerItemMappingSchema = createInsertSchema(customerItemMappings).extend({
@@ -3016,10 +3002,4 @@ export const insertCustomerItemMappingSchema = createInsertSchema(customerItemMa
   minimumQuantity: z.string().refine(val => !val || parseFloat(val) > 0, "Quantidade mínima deve ser maior que zero").optional(),
   leadTimeDays: z.number().int().min(0, "Dias de entrega deve ser positivo").optional(),
   discountPercent: z.string().refine(val => !val || (parseFloat(val) >= 0 && parseFloat(val) <= 100), "Desconto deve estar entre 0 e 100%").optional(),
-}).omit({ 
-  id: true, 
-  createdAt: true, 
-  updatedAt: true,
-  createdBy: true,
-  updatedBy: true
 });

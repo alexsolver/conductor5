@@ -1,5 +1,10 @@
 import { pgTable, uuid, varchar, text, boolean, timestamp, decimal, integer, jsonb, pgEnum } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
+// Import items from master schema instead of redefining
+import { items } from './schema-master';
+
+// Export the items table from master schema
+export { items };
 
 // Enums específicos do módulo Materiais e Serviços
 export const itemTypeEnum = pgEnum('item_type', ['material', 'service', 'asset']);
@@ -8,33 +13,6 @@ export const itemStatusEnum = pgEnum('item_status', ['active', 'under_review', '
 export const movementTypeEnum = pgEnum('movement_type', ['entry', 'exit', 'transfer', 'adjustment', 'return', 'inventory']);
 export const assetStatusEnum = pgEnum('asset_status', ['active', 'inactive', 'maintenance', 'disposed']);
 export const linkTypeEnum = pgEnum('link_type', ['item_item', 'item_customer', 'item_supplier']);
-
-// 1. CATÁLOGO E CADASTRO DE ITENS
-export const items = pgTable('items', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  tenantId: uuid('tenant_id').notNull(),
-
-  // Campos básicos conforme especificação
-  active: boolean('active').default(true).notNull(),
-  type: varchar('type', { length: 20 }).notNull(), // material/service
-  name: varchar('name', { length: 255 }).notNull(),
-  description: text('description'),
-  measurementUnit: varchar('measurement_unit', { length: 10 }).default('UN'),
-  status: varchar('status', { length: 20 }).default('active'),
-  
-  // Campos de integração e códigos
-  integrationCode: varchar('integration_code', { length: 100 }),
-  
-  // Campos de manutenção e listas de verificação
-  maintenancePlan: jsonb('maintenance_plan'),
-  defaultChecklist: jsonb('default_checklist'),
-
-  // Metadados de auditoria
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
-  createdBy: uuid('created_by'),
-  updatedBy: uuid('updated_by')
-});
 
 // Anexos de itens
 export const itemAttachments = pgTable('item_attachments', {
