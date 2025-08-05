@@ -20,7 +20,7 @@ export interface CreateTicketInput {
   category?: string;
   subcategory?: string;
   priority: 'low' | 'medium' | 'high' | 'urgent';
-  impact?: 'low' | 'medium' | 'high';
+  impact?: 'low' | 'medium' | 'high' | 'critical';
   urgency?: 'low' | 'medium' | 'high';
   assignedToId?: string;
   beneficiaryId?: string;

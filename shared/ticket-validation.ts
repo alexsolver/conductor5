@@ -4,7 +4,7 @@ import { z } from 'zod';
 // Enums alinhados com dados reais do banco de dados (valores em inglês)
 export const TicketStatusEnum = z.enum(['new', 'open', 'in_progress', 'resolved', 'closed']);
 export const TicketPriorityEnum = z.enum(['low', 'medium', 'high', 'critical']);
-export const TicketImpactEnum = z.enum(['low', 'medium', 'high']);
+export const TicketImpactEnum = z.enum(['low', 'medium', 'high', 'critical']);
 export const TicketUrgencyEnum = z.enum(['low', 'medium', 'high']);
 
 // Schema para validação de formulário - aceita valores do banco E mapeamento frontend

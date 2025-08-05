@@ -21,7 +21,7 @@ export class CreateTicketCommand implements ICommand<CreateTicketOutput> {
     public readonly category?: string,
     public readonly subcategory?: string,
     public readonly priority: 'low' | 'medium' | 'high' | 'urgent' = 'medium',
-    public readonly impact?: 'low' | 'medium' | 'high',
+    public readonly impact?: 'low' | 'medium' | 'high' | 'critical',
     public readonly urgency?: 'low' | 'medium' | 'high',
     public readonly assignedToId?: string,
     public readonly beneficiaryId?: string,

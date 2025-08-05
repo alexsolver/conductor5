@@ -14,7 +14,7 @@ export interface CreateTicketRequest {
   category?: string;
   subcategory?: string;
   priority?: 'low' | 'medium' | 'high' | 'critical';
-  impact?: 'low' | 'medium' | 'high';
+  impact?: 'low' | 'medium' | 'high' | 'critical';
   urgency?: 'low' | 'medium' | 'high';
   
   // Enhanced person referencing

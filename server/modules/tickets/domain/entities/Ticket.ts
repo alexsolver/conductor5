@@ -15,7 +15,7 @@ export interface TicketCreateProps {
   category?: string;
   subcategory?: string;
   priority: 'low' | 'medium' | 'high' | 'urgent';
-  impact?: 'low' | 'medium' | 'high';
+  impact?: 'low' | 'medium' | 'high' | 'critical';
   urgency?: 'low' | 'medium' | 'high';
   state?: string;
   status?: string;
@@ -52,7 +52,7 @@ export class Ticket {
     private category: string,
     private subcategory: string,
     private priority: 'low' | 'medium' | 'high' | 'urgent',
-    private impact: 'low' | 'medium' | 'high',
+    private impact: 'low' | 'medium' | 'high' | 'critical',
     private urgency: 'low' | 'medium' | 'high',
     private state: string,
     private status: string,
@@ -93,7 +93,7 @@ export class Ticket {
   getCategory(): string { return this.category; }
   getSubcategory(): string { return this.subcategory; }
   getPriority(): 'low' | 'medium' | 'high' | 'urgent' { return this.priority; }
-  getImpact(): 'low' | 'medium' | 'high' { return this.impact; }
+  getImpact(): 'low' | 'medium' | 'high' | 'critical' { return this.impact; }
   getUrgency(): 'low' | 'medium' | 'high' { return this.urgency; }
   getState(): string { return this.state; }
   getStatus(): string { return this.status; }
