@@ -24,17 +24,21 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
   const [quantity, setQuantity] = useState("");
   const [consumedQuantity, setConsumedQuantity] = useState("");
 
-  // Fetch items filtered by company (only items linked to ticket's customer company)
+  // Fetch items filtered by company (only items linked to ticket's customer company)  
   const { data: itemsData, isLoading: itemsLoading } = useQuery({
-    queryKey: ['/api/materials-services/items', ticket?.customerCompanyId],
+    queryKey: ['/api/materials-services/items', ticket?.customerCompanyId || 'all'],
     queryFn: async () => {
       // Add company filter to only show items linked to the ticket's customer company
       const companyId = ticket?.customerCompanyId;
+      console.log('🔍 [MaterialsSystem] Fetching items with companyId:', companyId);
       const params = companyId ? `?companyId=${companyId}` : '';
       const response = await apiRequest('GET', `/api/materials-services/items${params}`);
-      return response.json();
+      const result = await response.json();
+      console.log('📦 [MaterialsSystem] Items fetched:', result.data?.length || 0, 'items');
+      return result;
     },
-    enabled: !!ticket && !!ticket.customerCompanyId, // Only run when ticket has company data
+    enabled: !!ticket, // Always run when ticket is available - fallback to all items if no company
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
 
   // Fetch available items for consumption (only planned items)
