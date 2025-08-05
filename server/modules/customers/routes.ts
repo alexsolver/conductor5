@@ -31,7 +31,7 @@ customersRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
         email, 
         phone, 
         customer_type,
-        status,
+        state,
         cpf,
         cnpj,
         company_name,
