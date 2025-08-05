@@ -316,9 +316,15 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="item-select">Item</Label>
+                <Label htmlFor="item-select">Item (apenas itens vinculados à empresa)</Label>
                 {itemsLoading ? (
                   <div className="text-center py-2">Carregando itens...</div>
+                ) : items.length === 0 ? (
+                  <div className="text-center py-4 text-gray-500">
+                    <Package className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p>Nenhum item disponível para esta empresa</p>
+                    <p className="text-sm">Vincule itens à empresa {ticket?.companyName || 'do ticket'} no catálogo</p>
+                  </div>
                 ) : (
                   <Select value={selectedItem} onValueChange={setSelectedItem}>
                     <SelectTrigger>
@@ -348,7 +354,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
 
               <Button 
                 onClick={handleAddPlanned}
-                disabled={addPlannedMutation.isPending}
+                disabled={addPlannedMutation.isPending || items.length === 0}
                 className="w-full"
               >
                 <Plus className="h-4 w-4 mr-2" />
