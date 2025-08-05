@@ -57,7 +57,7 @@ const renderFieldByType = (
   isReadOnly?: boolean
 ) => {
   const fieldKey = field.customId || field.id;
-  const IconComponent = getIconComponent(field.icon || 'Type');
+  const IconComponent = getIconComponent((field as any).icon || 'Type');
 
   const handleChange = (value: any) => {
     if (onFieldChange) {
