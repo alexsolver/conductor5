@@ -1309,13 +1309,11 @@ const TicketDetails = React.memo(() => {
                         ) : (
                           <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
                             {(field.value || ticket?.subcategory) ? (
-                              <DynamicBadge
+                              <SmartDynamicBadge
                                 fieldName="subcategory"
                                 value={field.value || ticket?.subcategory}
-                                colorHex={getFieldColor('subcategory', field.value || ticket?.subcategory)}
-                              >
-                                {getFieldLabel('subcategory', field.value || ticket?.subcategory)}
-                              </DynamicBadge>
+                                showIcon={true}
+                              />
                             ) : (
                               <span className="text-gray-400 text-sm">Não especificado</span>
                             )}
@@ -1347,14 +1345,11 @@ const TicketDetails = React.memo(() => {
                         ) : (
                           <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
                             {(field.value || ticket?.action) ? (
-                              <DynamicBadge
+                              <SmartDynamicBadge
                                 fieldName="action"
                                 value={field.value || ticket?.action}
-                                colorHex={getFieldColor('action', field.value || ticket?.action)}
-                                isLoading={isFieldColorsLoading}
-                              >
-                                {getFieldLabel('action', field.value || ticket?.action)}
-                              </DynamicBadge>
+                                showIcon={true}
+                              />
                             ) : (
                               <span className="text-gray-400 text-sm">Não especificado</span>
                             )}
@@ -2667,9 +2662,9 @@ const TicketDetails = React.memo(() => {
     const progress = getLoadingProgress();
 
     return (
-      <div className="h-screen flex bg-gray-50">
-        {/* Loading Sidebar */}
-        <div className="w-72 bg-white border-r p-4">
+      <div className="min-h-screen flex bg-gray-50">
+        {/* Loading Sidebar - responsivo */}
+        <div className="w-full lg:w-72 bg-white border-r p-4">
           <div className="space-y-4" role="status" aria-live="polite">
             <div className="flex items-center gap-2 mb-4">
               <div
@@ -2777,10 +2772,10 @@ const TicketDetails = React.memo(() => {
   }
 
   return (
-    <div className="h-screen flex bg-gray-50">
-      {/* Left Sidebar - Fixa */}
-      <div className="w-72 bg-white border-r flex-shrink-0 h-full overflow-y-auto">
-        <div className="p-4 h-full">
+    <div className="min-h-screen flex flex-col lg:flex-row bg-gray-50">
+      {/* Left Sidebar - Responsivo */}
+      <div className="w-full lg:w-72 bg-white border-r lg:border-r flex-shrink-0 h-auto lg:h-screen overflow-y-auto order-2 lg:order-1">
+        <div className="p-4 lg:p-6 h-full">
 
           {/* Empresa Cliente Section - Badge Destacado */}
           <div className="mb-6">
@@ -3279,31 +3274,41 @@ const TicketDetails = React.memo(() => {
         </div>
       </div>
 
-      {/* Main Content Area */}
-      <div className="flex-1">
-        <div className="p-4 h-full">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="sm" onClick={() => navigate("/tickets")}>
+      {/* Main Content Area - Responsivo */}
+      <div className="flex-1 order-1 lg:order-2 overflow-hidden">
+        <div className="p-4 lg:p-6 h-full">
+          {/* Header - Responsivo */}
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-6 gap-4">
+            <div className="flex flex-col lg:flex-row lg:items-center gap-4">
+              <Button variant="ghost" size="sm" onClick={() => navigate("/tickets")} className="self-start">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Voltar
               </Button>
-              <div className="flex items-center gap-4">
-                <h1 className="text-xl font-semibold">Ticket #{ticket?.number || ticket?.ticketNumber || ticket?.id?.slice(0, 8) || 'N/A'}</h1>
+              <div className="flex flex-col lg:flex-row lg:items-center gap-2">
+                <h1 className="text-lg lg:text-xl font-semibold break-words">Ticket #{ticket?.number || ticket?.ticketNumber || ticket?.id?.slice(0, 8) || 'N/A'}</h1>
               </div>
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               {!isEditMode ? (
                 <>
-                  <Button variant="outline" size="sm" onClick={() => setIsEditMode(true)}>
-                    <Edit className="h-4 w-4 mr-2" />
-                    Editar
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setIsEditMode(true)}
+                    className="flex items-center gap-2"
+                  >
+                    <Edit className="h-4 w-4" />
+                    <span className="hidden sm:inline">Editar</span>
                   </Button>
-                  <Button variant="outline" size="sm" onClick={handleDelete}>
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Excluir
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleDelete}
+                    className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    <span className="hidden sm:inline">Excluir</span>
                   </Button>
                 </>
               ) : (
@@ -3382,12 +3387,12 @@ const TicketDetails = React.memo(() => {
           </div>
         </div>
       </div>
-      {/* Right Sidebar - Navigation Tabs */}
-      <div className="w-80 bg-white border-l flex-shrink-0 h-full overflow-y-auto">
-        <div className="p-4 border-b">
+      {/* Right Sidebar - Navigation Tabs - Responsivo */}
+      <div className="w-full lg:w-80 bg-white border-l lg:border-l flex-shrink-0 h-auto lg:h-full overflow-y-auto order-3">
+        <div className="p-4 lg:p-6 border-b">
           <h3 className="font-semibold text-lg">Explorar</h3>
         </div>
-        <div className="p-2 space-y-1">
+        <div className="p-2 lg:p-4 space-y-1">
           {/* Informações Tab */}
           <button
             onClick={() => setActiveTab("informacoes")}

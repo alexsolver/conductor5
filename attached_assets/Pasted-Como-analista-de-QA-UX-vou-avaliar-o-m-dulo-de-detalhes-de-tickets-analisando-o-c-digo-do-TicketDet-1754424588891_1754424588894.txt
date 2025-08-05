@@ -1,0 +1,100 @@
+Como analista de QA/UX, vou avaliar o módulo de detalhes de tickets analisando o código do TicketDetails.tsx e identificar as inconsistências visuais e de experiência do usuário:
+
+🔍 ANÁLISE CRÍTICA - INCONSISTÊNCIAS ENCONTRADAS
+1. PROBLEMAS DE CARREGAMENTO E ESTADOS
+❌ Inconsistência: Badges aparecem azuis após carregamento inicial
+
+Localização: useFieldColors hook + DynamicBadge components
+Problema: Race condition onde badges são renderizadas antes das cores serem carregadas
+Impacto: Experiência visual inconsistente, usuário vê cores erradas inicialmente
+❌ Loading states inconsistentes
+
+Problema: Diferentes componentes mostram loading de formas diferentes
+Localização: Múltiplos useQuery hooks sem coordenação
+Impacto: Interface "saltitante" durante carregamento
+2. PROBLEMAS DE LAYOUT E RESPONSIVIDADE
+❌ Sidebar fixa sem responsividade
+
+Localização: <div className="w-72 bg-white border-r flex-shrink-0">
+Problema: Width fixo de 288px não adapta para telas menores
+Impacto: Layout quebra em dispositivos móveis
+❌ Sidebar direita também fixa
+
+Localização: <div className="w-80 bg-white border-l flex-shrink-0">
+Problema: Width fixo de 320px
+Impacto: Em telas pequenas, sobra pouco espaço para conteúdo principal
+3. INCONSISTÊNCIAS DE CORES E BADGES
+❌ Sistema de cores falha silenciosamente
+
+Problema: Fallback colors não seguem padrão visual consistente
+Localização: useFieldColors hook
+Impacto: Campos podem aparecer com cores diferentes do esperado
+❌ Badges sem loading state
+
+Problema: DynamicBadge renderiza sem aguardar cores
+Impacto: Usuário vê "flash" de cores incorretas
+4. PROBLEMAS DE FORMULÁRIO E VALIDAÇÃO
+❌ Validação assíncrona sem feedback visual
+
+Localização: Form submission no botão Salvar
+Problema: Usuário não recebe feedback imediato sobre erros
+Impacto: Pode tentar salvar múltiplas vezes
+❌ Estados de form não sincronizados
+
+Problema: isEditMode não coordena com estados de loading
+Impacto: Usuário pode editar durante saves
+5. PROBLEMAS DE NAVEGAÇÃO E USABILIDADE
+❌ Tabs na sidebar direita sem indicação visual clara
+
+Problema: Tabs ativas usam cores sutis demais
+Impacato: Usuário pode não perceber qual tab está ativa
+❌ Breadcrumb/navegação inadequada
+
+Problema: Apenas botão "Voltar" sem contexto
+Impacto: Usuário perde noção de onde está no sistema
+6. INCONSISTÊNCIAS DE DADOS E SINCRONIZAÇÃO
+❌ Estados locais não sincronizam com servidor
+
+Localização: followers, tags states
+Problema: Mudanças locais podem ser perdidas
+Impacto: Dados inconsistentes
+❌ Refresh necessário para ver dados atualizados
+
+Problema: Cache não invalida corretamente
+Impacto: Usuário precisa fazer refresh manual
+7. PROBLEMAS DE ACESSIBILIDADE
+❌ Falta de indicadores de loading semânticos
+
+Problema: Spinners sem aria-labels adequados
+Impacto: Usuários com screen readers não sabem o que está carregando
+❌ Contraste de cores inadequado
+
+Problema: Algumas badges podem ter contraste insuficiente
+Impacto: Dificulta leitura para usuários com deficiência visual
+8. PROBLEMAS DE PERFORMANCE
+❌ Múltiplas queries desnecessárias
+
+Problema: Cada aba faz queries independentes
+Impacto: Performance ruim, múltiplas chamadas à API
+❌ Re-renders excessivos
+
+Problema: useEffect chains causam re-renders desnecessários
+Impacto: Interface lenta e não responsiva
+9. INCONSISTÊNCIAS DE CONTEÚDO
+❌ Textos hardcoded misturados com i18n
+
+Problema: Alguns textos em português, outros podem estar em inglês
+Impacto: Experiência inconsistente para usuários internacionais
+❌ Formatação de datas inconsistente
+
+Localização: Múltiplos formatos de data ao longo do componente
+Impacto: Confusão visual para o usuário
+10. PROBLEMAS DE MODAL E OVERLAY
+❌ Modais sem gerenciamento de foco
+
+Problema: Foco não é capturado nos modais
+Impacto: Problemas de acessibilidade
+❌ Z-index conflicts potenciais
+
+Problema: Múltiplos modais podem sobrepor incorretamente
+Impacto: Interface quebrada com múltiplos overlays
