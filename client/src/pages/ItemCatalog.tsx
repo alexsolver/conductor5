@@ -39,7 +39,7 @@ interface Item {
   integrationCode?: string;
   description?: string;
   measurementUnit: string;
-  group?: string;
+  groupName?: string; // Alterado de 'group' para 'groupName'
   maintenancePlan?: string;
   defaultChecklist?: string;
   status: 'active' | 'under_review' | 'discontinued';
@@ -56,7 +56,7 @@ const itemSchema = z.object({
   integrationCode: z.string().optional(),
   description: z.string().optional(),
   measurementUnit: z.string().min(1, "Unidade de medida é obrigatória"),
-  group: z.string().optional(),
+  groupName: z.string().optional(), // Alterado de 'group' para 'groupName'
   maintenancePlan: z.string().optional(),
   defaultChecklist: z.string().optional(),
   active: z.boolean().default(true),
@@ -83,7 +83,7 @@ export default function ItemCatalog() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [itemTypeTab, setItemTypeTab] = useState("materials");
-  
+
   // Estados para vínculos
   const [linkedItems, setLinkedItems] = useState<string[]>([]);
   const [linkedCustomers, setLinkedCustomers] = useState<string[]>([]);
@@ -100,7 +100,7 @@ export default function ItemCatalog() {
       integrationCode: '',
       description: '',
       measurementUnit: 'UN',
-      group: '',
+      groupName: '', // Alterado de 'group' para 'groupName'
       maintenancePlan: '',
       defaultChecklist: '',
       active: true,
@@ -144,11 +144,11 @@ export default function ItemCatalog() {
         },
         body: JSON.stringify(data),
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to create item');
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
@@ -179,11 +179,11 @@ export default function ItemCatalog() {
         },
         body: JSON.stringify(data),
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to update item');
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
@@ -261,8 +261,8 @@ export default function ItemCatalog() {
             {item.integrationCode && (
               <span>Código: {item.integrationCode}</span>
             )}
-            {item.group && (
-              <span>Grupo: {item.group}</span>
+            {item.groupName && ( // Alterado de 'item.group' para 'item.groupName'
+              <span>Grupo: {item.groupName}</span>
             )}
             <span>Unidade: {item.measurementUnit}</span>
           </div>
@@ -333,7 +333,7 @@ export default function ItemCatalog() {
                 <TabsTrigger value="basic">Informações Básicas</TabsTrigger>
                 <TabsTrigger value="links">Vínculos</TabsTrigger>
               </TabsList>
-              
+
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
                   <TabsContent value="basic" className="space-y-6">
@@ -421,10 +421,10 @@ export default function ItemCatalog() {
                 />
                 <FormField
                   control={form.control}
-                  name="group"
+                  name="groupName" // Alterado de 'group' para 'groupName'
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Grupo</FormLabel>
+                      <FormLabel>Grupo</FormLabel> 
                       <FormControl>
                         <Input placeholder="Grupo" {...field} />
                       </FormControl>
@@ -479,7 +479,7 @@ export default function ItemCatalog() {
                   )}
                 />
                   </TabsContent>
-                  
+
                   <TabsContent value="links" className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                       {/* Vincular Itens */}
@@ -588,7 +588,7 @@ export default function ItemCatalog() {
                       </Card>
                     </div>
                   </TabsContent>
-                  
+
                   <div className="flex justify-end pt-6">
                     <Button type="submit" disabled={createItemMutation.isPending || updateItemMutation.isPending}>
                       {(createItemMutation.isPending || updateItemMutation.isPending) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
