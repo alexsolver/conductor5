@@ -6,6 +6,7 @@ import { StockController } from './application/controllers/StockController';
 import { AssetManagementController } from './application/controllers/AssetManagementController';
 import { LPUController } from './application/controllers/LPUController';
 import { ComplianceController } from './application/controllers/ComplianceController';
+import { TicketMaterialsController } from './application/controllers/TicketMaterialsController';
 import { ItemRepository } from './infrastructure/repositories/ItemRepository';
 import { SupplierRepository } from './infrastructure/repositories/SupplierRepository';
 import { StockRepository } from './infrastructure/repositories/StockRepository';
@@ -205,6 +206,16 @@ router.get('/stock/items', async (req: AuthenticatedRequest, res) => {
   const { stockController } = await getControllers(req.user.tenantId);
   return stockController.getStockItems(req, res);
 });
+
+// ===== TICKET MATERIALS ROUTES =====
+router.get('/tickets/:ticketId/planned-items', TicketMaterialsController.getPlannedItems);
+router.post('/tickets/:ticketId/planned-items', TicketMaterialsController.addPlannedItem);
+
+router.get('/tickets/:ticketId/consumed-items', TicketMaterialsController.getConsumedItems);
+router.post('/tickets/:ticketId/consumed-items', TicketMaterialsController.addConsumedItem);
+
+router.get('/tickets/:ticketId/available-for-consumption', TicketMaterialsController.getAvailableItemsForConsumption);
+router.get('/tickets/:ticketId/costs-summary', TicketMaterialsController.getCostsSummary);
 
 // Dashboard overview
 router.get('/dashboard', async (req: AuthenticatedRequest, res) => {

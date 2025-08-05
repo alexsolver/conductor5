@@ -1,21 +1,17 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { db } from '../../../../db-tenant';
 import { 
   ticketLpuSettings, 
   ticketPlannedItems, 
   ticketConsumedItems, 
-  ticketCostsSummary,
-  items
+  ticketCostsSummary
 } from '../../../../../shared/schema-master';
+import { items } from '../../../../../shared/schema-materials-services';
 import { eq, and, desc, sql } from 'drizzle-orm';
 import { sendSuccess, sendError } from '../../../../utils/standardResponse';
+import type { AuthenticatedRequest } from '../../../middleware/jwtAuth';
 
-interface AuthenticatedRequest extends Request {
-  user?: {
-    id: string;
-    tenantId: string;
-  };
-}
+
 
 export class TicketMaterialsController {
   // Get LPU settings for a ticket
