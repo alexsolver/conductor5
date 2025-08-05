@@ -17,9 +17,11 @@ interface FieldColorsResponse {
 // Cache de cores para evitar múltiplas chamadas
 const colorsCache = new Map<string, Record<string, string>>();
 
-export const useFieldColors = () => {
+export const useFieldColors = (companyId?: string) => {
+  // 🚨 CORREÇÃO: Buscar ALL field options sem filtro de company
+  // para garantir que todas as cores sejam carregadas na inicialização
   const { data: fieldOptions, isLoading, error } = useQuery({
-    queryKey: ["/api/ticket-config/field-options"],
+    queryKey: ["/api/ticket-config/field-options", "all"], 
     queryFn: async () => {
       const response = await apiRequest("GET", "/api/ticket-config/field-options");
       return response.json();
@@ -27,10 +29,10 @@ export const useFieldColors = () => {
     staleTime: 30 * 60 * 1000, // Cache por 30 minutos - mais agressivo
     gcTime: 60 * 60 * 1000, // Garbage collection em 1 hora
     refetchOnWindowFocus: false,
-    refetchOnMount: false, // Evitar refetch desnecessário
+    refetchOnMount: true, // 🚨 CRÍTICO: permitir mount para garantir carregamento inicial
     refetchInterval: false, // Disable auto-refetch
-    retry: 1, // Reduzir tentativas para carregamento mais rápido
-    retryDelay: 1000, // Delay menor entre tentativas
+    retry: 2, // Aumentar tentativas para garantir carregamento
+    retryDelay: 500, // Delay menor entre tentativas
   });
 
   // Função para buscar cor de um campo específico priorizando configurações
