@@ -27,6 +27,10 @@ import { useFieldColors } from "@/hooks/useFieldColors";
 import { useCompanyNameResolver } from "@/hooks/useCompanyName";
 import TicketLinkingModal from "@/components/tickets/TicketLinkingModal";
 import TicketHierarchyView from "@/components/tickets/TicketHierarchyView";
+import { LoadingStateProvider } from "@/components/LoadingStateManager";
+import { ResponsiveTicketsTable } from "@/components/tickets/ResponsiveTicketsTable";
+import { OptimizedBadge } from "@/components/tickets/OptimizedBadge";
+import { useOptimizedQuery } from "@/hooks/useOptimizedQuery";
 
 // Schema for ticket creation/editing - ServiceNow style
 const ticketSchema = z.object({
@@ -584,8 +588,15 @@ const TicketsTable = React.memo(() => {
     }
   };
 
-  // Fetch tickets with pagination and filters - OTIMIZADO
-  const { data: ticketsData, isLoading, error: ticketsError } = useQuery({
+  // Fetch tickets with pagination and filters - SUPER OTIMIZADO com useOptimizedQuery
+  const { 
+    data: ticketsData, 
+    isLoading, 
+    error: ticketsError, 
+    refetch: refetchTickets,
+    isCached,
+    isOptimized
+  } = useOptimizedQuery({
     queryKey: ["/api/tickets", currentPage, statusFilter, priorityFilter, searchTerm],
     queryFn: async () => {
       const params = new URLSearchParams({
@@ -603,12 +614,21 @@ const TicketsTable = React.memo(() => {
         params.append("search", searchTerm);
       }
 
+      console.log('🎫 [TicketsTable] Fetching tickets with filters:', {
+        page: currentPage,
+        statusFilter,
+        priorityFilter,
+        searchTerm,
+        cached: isCached,
+        optimized: isOptimized
+      });
+
       const response = await apiRequest('GET', `/api/tickets?${params.toString()}`);
       return response.json();
     },
-    retry: 3,
-    staleTime: 30000, // Cache por 30 segundos
-    cacheTime: 300000, // Manter em cache por 5 minutos
+    staleTime: 2 * 60 * 1000, // 2 minutes for tickets (frequent updates)
+    keepPreviousData: true, // Prevent flash of empty state
+    refetchOnWindowFocus: true
   });
 
   // Legacy customer system removed - using PersonSelector for modern person management
@@ -2019,26 +2039,27 @@ const TicketsTable = React.memo(() => {
 
 
   return (
-    <div className="space-y-6" style={{
-      userSelect: isResizing ? 'none' : 'auto',
-      cursor: isResizing ? 'col-resize' : 'default'
-    }}>
-      {/* Header */}
-      <div className="flex justify-between items-center ml-[20px] mr-[20px]">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Support Tickets</h1>
-          <p className="text-gray-600 dark:text-gray-400">Manage and track customer support requests</p>
+    <LoadingStateProvider>
+      <div className="space-y-6" style={{
+        userSelect: isResizing ? 'none' : 'auto',
+        cursor: isResizing ? 'col-resize' : 'default'
+      }}>
+        {/* Header */}
+        <div className="flex justify-between items-center ml-[20px] mr-[20px]">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Support Tickets</h1>
+            <p className="text-gray-600 dark:text-gray-400">Manage and track customer support requests</p>
+          </div>
+          <div className="flex gap-3">
+            <Button 
+              onClick={() => setIsNewTicketModalOpen(true)}
+              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Novo Ticket
+            </Button>
+          </div>
         </div>
-        <div className="flex gap-3">
-          <Button 
-            onClick={() => setIsNewTicketModalOpen(true)}
-            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Novo Ticket
-          </Button>
-        </div>
-      </div>
       {/* Seletor de Visualizações */}
       <Card className="mb-6">
         <CardHeader className="flex flex-col space-y-1.5 p-6 pt-[3px] pb-[3px]">
@@ -2134,45 +2155,18 @@ const TicketsTable = React.memo(() => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-        {(isLoading || !isFieldColorsReady) ? (
-      <div className="p-4 space-y-6">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-          <span className="text-sm text-gray-600">
-            Carregando {!isFieldColorsReady ? 'configurações de cores' : 'tickets'}...
-          </span>
-        </div>
-
-        {/* Progress indicator */}
-        <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
-          <div className="bg-blue-600 h-2 rounded-full animate-pulse" style={{width: '60%'}}></div>
-        </div>
-
-        <div className="space-y-4">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <Card key={i} className="animate-pulse">
-              <CardContent className="p-6">
-                <div className="flex items-center space-x-4">
-                  <div className="w-10 h-10 bg-gray-300 rounded"></div>
-                  <div className="space-y-2 flex-1">
-                    <div className="h-4 bg-gray-300 rounded w-3/4"></div>
-                    <div className="h-3 bg-gray-300 rounded w-1/2"></div>
-                  </div>
-                  <div className="space-x-2">
-                    <div className="w-16 h-6 bg-gray-300 rounded-full"></div>
-                    <div className="w-20 h-6 bg-gray-300 rounded-full"></div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        <div className="text-xs text-gray-500 text-center">
-          Processando {tickets?.length || 0} tickets...
-        </div>
-      </div>
-    ) : (
+        <ResponsiveTicketsTable
+          tickets={tickets}
+          isLoading={isLoading || !isFieldColorsReady}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          onToggleExpand={toggleTicketExpansion}
+          expandedTickets={expandedTickets}
+          ticketRelationships={ticketRelationships}
+          ticketsWithRelationships={ticketsWithRelationships}
+          columnOrder={visibleColumns.map(col => col.id)}
+          columnWidths={columnWidths}
+        />
           <div className="rounded-md border">
             <Table>
               <TableHeader>
@@ -2377,7 +2371,6 @@ const TicketsTable = React.memo(() => {
               </TableBody>
             </Table>
           </div>
-)}
         </CardContent>
       </Card>
 
@@ -2533,7 +2526,8 @@ const TicketsTable = React.memo(() => {
         isOpen={isLinkingModalOpen}
         onClose={() => setIsLinkingModalOpen(false)}
       />
-    </div>
+      </div>
+    </LoadingStateProvider>
   );
 });
 
