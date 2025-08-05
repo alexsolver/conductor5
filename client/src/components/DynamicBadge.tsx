@@ -103,69 +103,8 @@ export function DynamicBadge(props: DynamicBadgeProps) {
   let dynamicClasses = '';
   let inlineStyles: React.CSSProperties = {};
 
-  // Implementar fallback robusto para cores com priorização do colorHex
-  const getFieldColorWithDefault = (fieldName: string, value: string): string => {
-    // Se colorHex foi fornecido, usar ele com prioridade
-    if (colorHex && colorHex.trim() !== '') {
-      return colorHex;
-    }
-
-    // Fallback para cores padrão da empresa Default
-    const defaultColors: Record<string, Record<string, string>> = {
-      category: {
-        'suporte_tecnico': '#3b82f6',
-        'atendimento_cliente': '#10b981', 
-        'financeiro': '#f59e0b',
-        'vendas': '#8b5cf6',
-        'support': '#3b82f6', // Mapear para azul como suporte_tecnico
-        'hardware': '#ef4444',
-        'software': '#22c55e',
-        'network': '#f97316',
-        'access': '#84cc16',
-        'other': '#64748b',
-        'technical_support': '#3b82f6',
-        'customer_service': '#10b981',
-        'infrastructure': '#8b5cf6'
-      },
-      priority: {
-        'low': '#10b981',
-        'medium': '#22c55e', 
-        'high': '#9333ea',
-        'critical': '#dc2626'
-      },
-      status: {
-        'new': '#9333ea',
-        'open': '#3b82f6',
-        'in_progress': '#f59e0b',
-        'resolved': '#10b981',
-        'closed': '#6b7280'
-      },
-      urgency: {
-        'low': '#10b981',
-        'medium': '#f59e0b',
-        'high': '#f97316',
-        'critical': '#dc2626'
-      },
-      impact: {
-        'low': '#10b981',
-        'medium': '#f59e0b', 
-        'high': '#f97316',
-        'critical': '#dc2626'
-      }
-    };
-
-    const color = defaultColors[fieldName]?.[value];
-    if (color) return color;
-    
-    // Fallback final por campo
-    if (fieldName === 'category') return '#3b82f6'; // Azul padrão
-    if (fieldName === 'priority') return '#22c55e'; // Verde padrão
-    if (fieldName === 'status') return '#3b82f6'; // Azul padrão
-    
-    return '#6b7280'; // Cinza como último recurso
-  };
-
-  const finalColor = getFieldColorWithDefault(fieldName || '', value || '');
+  // Usar sempre o colorHex fornecido (que vem das configurações da API)
+  const finalColor = colorHex || '#6b7280'; // Usar cor configurada ou cinza como fallback
 
   // Converter cor hex para classes Tailwind ou usar inline styles
   const getBadgeStyles = (color: string) => {

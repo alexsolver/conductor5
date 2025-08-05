@@ -33,7 +33,7 @@ export const useFieldColors = () => {
     retryDelay: 1000, // Delay menor entre tentativas
   });
 
-  // Função para buscar cor de um campo específico com fallback para empresa Default
+  // Função para buscar cor de um campo específico priorizando configurações
   const getFieldColor = (fieldName: string, value: string): string | undefined => {
     if (!fieldOptions?.data) {
       return undefined;
@@ -43,12 +43,13 @@ export const useFieldColors = () => {
       return undefined;
     }
 
-    // Primeiro, tentar encontrar configuração específica (busca exata)
+    // Primeiro, tentar encontrar configuração específica (busca exata por value)
     const option = fieldOptions.data.find(
       (opt: FieldOption) => opt.field_name === fieldName && opt.value === value
     );
 
     if (option?.color) {
+      console.log(`✅ Color found by value: ${fieldName}:${value} = ${option.color}`);
       return option.color;
     }
 
@@ -62,72 +63,10 @@ export const useFieldColors = () => {
       return optionByLabel.color;
     }
 
-    // Se não encontrou, fazer fallback para mapeamento de cores padrão da empresa Default
-    const defaultColorMap: Record<string, Record<string, string>> = {
-      category: {
-        'suporte_tecnico': '#3b82f6',
-        'Suporte Técnico': '#3b82f6',
-        'atendimento_cliente': '#10b981', 
-        'Atendimento ao Cliente': '#10b981',
-        'financeiro': '#f59e0b',
-        'Financeiro': '#f59e0b',
-        'Administrativo': '#8b5cf6',
-        'vendas': '#8b5cf6',
-        'support': '#3b82f6',
-        'hardware': '#ef4444',
-        'software': '#22c55e',
-        'network': '#f97316',
-        'access': '#84cc16',
-        'other': '#64748b',
-        'technical_support': '#3b82f6',
-        'customer_service': '#10b981',
-        'infrastructure': '#8b5cf6'
-      },
-      priority: {
-        'low': '#10b981',
-        'medium': '#22c55e', 
-        'high': '#9333ea',
-        'critical': '#dc2626'
-      },
-      status: {
-        'new': '#9333ea',
-        'open': '#3b82f6',
-        'in_progress': '#f59e0b',
-        'resolved': '#10b981',
-        'closed': '#6b7280'
-      },
-      urgency: {
-        'low': '#10b981',
-        'medium': '#f59e0b',
-        'high': '#f97316',
-        'critical': '#dc2626'
-      },
-      impact: {
-        'low': '#10b981',
-        'medium': '#f59e0b', 
-        'high': '#f97316',
-        'critical': '#dc2626'
-      }
-    };
-
-    const fallbackColor = defaultColorMap[fieldName]?.[value];
-    
-    if (fallbackColor) {
-      return fallbackColor;
-    }
-
-    // Fallback final: se for categoria e não encontrou nada, usar cor padrão
-    if (fieldName === 'category') {
-      const defaultCategoryColor = '#3b82f6'; // Azul do suporte_tecnico
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`🎨 Using final fallback for category:${value} = ${defaultCategoryColor}`);
-      }
-      return defaultCategoryColor;
-    }
-
-    if (process.env.NODE_ENV === 'development' && ['priority', 'status', 'category'].includes(fieldName)) {
-      console.log(`🎨 No color found for ${fieldName}:${value}. Available:`, 
-        fieldOptions.data.filter(opt => opt.field_name === fieldName).map(opt => `${opt.value}:${opt.color}`).slice(0, 3)
+    // Log para debug quando não encontrar cor configurada
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`⚠️ No configured color found for ${fieldName}:${value}. Available options:`, 
+        fieldOptions.data.filter(opt => opt.field_name === fieldName).map(opt => `${opt.value}(${opt.label}):${opt.color}`).slice(0, 5)
       );
     }
     
