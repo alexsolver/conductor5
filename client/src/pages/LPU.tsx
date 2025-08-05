@@ -118,12 +118,14 @@ export default function LPU() {
   // Create price list mutation with better error handling
   const createPriceListMutation = useMutation({
     mutationFn: (data: Partial<PriceList>) => {
+      console.log('Creating price list with data:', data);
       // Ensure dates are properly formatted
       const processedData = {
         ...data,
         validFrom: data.validFrom ? new Date(data.validFrom).toISOString() : new Date().toISOString(),
         validTo: data.validTo ? new Date(data.validTo).toISOString() : undefined
       };
+      console.log('Processed data for API:', processedData);
       return apiRequest('POST', '/api/materials-services/price-lists', processedData);
     },
     onSuccess: () => {
