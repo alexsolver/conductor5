@@ -63,10 +63,12 @@ export const ticketFormSchema = z.object({
   priority: TicketPriorityEnum.default('medium'),
   impact: TicketImpactEnum.optional(),
   urgency: TicketUrgencyEnum.optional(),
-  category: z.string().refine(val => !val || TicketCategoryEnum.safeParse(val).success, "Categoria inválida").optional(),
+  // Categoria permite qualquer string - validação dinâmica pelo DynamicSelect
+  category: z.string().optional(),
 
-  // Subcategoria dependente da categoria
-  subcategory: z.string().max(100).optional(),
+  // Subcategoria e ação permitem qualquer string - validação dinâmica pelo DynamicSelect
+  subcategory: z.string().optional(),
+  action: z.string().optional(),
 
   // Campos de pessoa com validação UUID (aceita string vazia)
   callerId: z.string().refine(val => !val || z.string().uuid().safeParse(val).success, "ID do solicitante deve ser um UUID válido").optional(),
