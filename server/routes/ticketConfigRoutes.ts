@@ -1252,28 +1252,6 @@ router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res) =
     // 4. Copy Field Options - Fixed logic for Default company fallback
     console.log(`🔍 Copying field options from ${sourceCompanyId} to ${targetCompanyId}`);
     
-    // Delete existing field options for the target company to avoid conflicts
-    const deleteExistingResult = await db.execute(sql`
-      DELETE FROM "${sql.raw(schemaName)}"."ticket_field_options"
-      WHERE tenant_id = ${tenantId} 
-      AND customer_id = ${targetCompanyId}::uuid
-    `);
-    console.log(`🗑️ Deleted ${deleteExistingResult.rowCount} existing field options for target company`);
-
-    // Also delete any conflicting global entries that might exist
-    const deleteConflictsResult = await db.execute(sql`
-      DELETE FROM "${sql.raw(schemaName)}"."ticket_field_options"
-      WHERE tenant_id = ${tenantId} 
-      AND customer_id != ${sourceCompanyIdToUse}::uuid
-      AND (field_name, value) IN (
-        SELECT field_name, value 
-        FROM "${sql.raw(schemaName)}"."ticket_field_options" 
-        WHERE tenant_id = ${tenantId} 
-        AND customer_id = ${sourceCompanyIdToUse}::uuid
-      )
-    `);
-    console.log(`🗑️ Deleted ${deleteConflictsResult.rowCount} conflicting field options`);
-
     // Try to copy from source company first, then fallback to Default company if none found
     let sourceCompanyIdToUse = sourceCompanyId;
     
@@ -1292,6 +1270,14 @@ router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res) =
       sourceCompanyIdToUse = '00000000-0000-0000-0000-000000000001';
       console.log(`🔄 Source company has no field options, using Default company as source`);
     }
+
+    // Delete existing field options for the target company to avoid conflicts
+    const deleteExistingResult = await db.execute(sql`
+      DELETE FROM "${sql.raw(schemaName)}"."ticket_field_options"
+      WHERE tenant_id = ${tenantId} 
+      AND customer_id = ${targetCompanyId}::uuid
+    `);
+    console.log(`🗑️ Deleted ${deleteExistingResult.rowCount} existing field options for target company`);
 
     // Now insert the field options with proper company mapping and conflict handling
     const fieldOptionsResult = await db.execute(sql`
