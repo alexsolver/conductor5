@@ -17,12 +17,12 @@ customersRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
       SELECT 1 FROM information_schema.columns 
       WHERE table_schema = $1 AND table_name = 'customers' AND column_name = 'is_active'
     `, [schemaName]);
-    
+
     let whereClause = '';
     if (columnCheck.rows.length > 0) {
       whereClause = 'WHERE COALESCE(is_active, true) = true';
     }
-    
+
     const result = await pool.query(`
       SELECT 
         id, 
@@ -96,12 +96,12 @@ customersRouter.get('/companies/:companyId/associated', jwtAuth, async (req: Aut
       SELECT 1 FROM information_schema.columns 
       WHERE table_schema = $1 AND table_name = 'customers' AND column_name = 'is_active'
     `, [schemaName]);
-    
+
     let customerActiveFilter = '';
     if (columnCheck.rows.length > 0) {
       customerActiveFilter = 'AND COALESCE(c.is_active, true) = true';
     }
-    
+
     const query = `
       SELECT c.*, ccm.role, ccm.is_primary, ccm.is_active as membership_active
       FROM "${schemaName}".customers c

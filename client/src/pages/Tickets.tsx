@@ -84,35 +84,8 @@ export default function Tickets() {
     return mapped;
   };
 
-  // Force token setup - DEBUG ONLY
-  useEffect(() => {
-    const checkAndSetToken = async () => {
-      let token = localStorage.getItem('accessToken');
-      console.log('🔐 Current token in localStorage:', token ? 'EXISTS' : 'NOT_FOUND');
-
-      if (!token) {
-        console.log('🔄 No token found, attempting login...');
-        try {
-          const response = await fetch('/api/auth/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: 'admin@conductor.com', password: 'admin123' })
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            localStorage.setItem('accessToken', data.accessToken);
-            console.log('✅ Token set in localStorage');
-            queryClient.invalidateQueries({ queryKey: ["/api/tickets"] });
-          }
-        } catch (error) {
-          console.error('❌ Login failed:', error);
-        }
-      }
-    };
-
-    checkAndSetToken();
-  }, [queryClient]);
+  // Token management handled by auth hook
+  // Remove debug code for production
 
   const { data: tickets, isLoading, error } = useQuery({
     queryKey: ["/api/tickets"],
@@ -331,25 +304,32 @@ export default function Tickets() {
   const onSubmit = (data: NewTicketModalData) => {
     console.log('🎫 New ticket form submitted:', data);
 
-    // Transform data to match backend API format
+    // Standardized field mapping to backend
     const ticketData = {
-      customerId: data.customerId,
-      companyId: data.companyId,
+      // Core fields
       subject: data.subject,
       description: data.description,
       priority: data.priority,
       urgency: data.urgency,
+      
+      // Hierarchical classification
       category: data.category,
       subcategory: data.subcategory,
       action: data.action,
-      beneficiaryId: data.beneficiaryId || null,
+      
+      // Person relationships (standardized)
+      caller_id: data.customerId,
+      beneficiary_id: data.beneficiaryId || null,
+      customer_company_id: data.companyId,
+      
+      // Assignment
+      assignment_group_id: data.assignmentGroup,
+      
+      // Location and context
       location: data.location,
       symptoms: data.symptoms || null,
-      businessImpact: data.businessImpact || null,
+      business_impact: data.businessImpact || null,
       workaround: data.workaround || null,
-      callerId: data.customerId, // Map to backend field
-      customerCompanyId: data.companyId, // Map to backend field
-      assignment_group_id: data.assignmentGroup, // FK para user_group_memberships.id
     };
 
     createTicketMutation.mutate(ticketData);
