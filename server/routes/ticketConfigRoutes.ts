@@ -174,7 +174,7 @@ router.delete('/categories/:id', jwtAuth, async (req: AuthenticatedRequest, res)
     if (Number(subcategoriesCheck.rows[0]?.count) > 0) {
       return res.status(400).json({
         success: false,
-        message: 'Não é possível excluir categoria que possui subcategorias'
+        message: `Não é possível excluir categoria que possui ${subcategoriesCheck.rows[0]?.count} subcategoria(s). Exclua primeiro as subcategorias.`
       });
     }
 
@@ -338,7 +338,7 @@ router.delete('/subcategories/:id', jwtAuth, async (req: AuthenticatedRequest, r
     if (Number(actionsCheck.rows[0]?.count) > 0) {
       return res.status(400).json({
         success: false,
-        message: 'Não é possível excluir subcategoria que possui ações'
+        message: `Não é possível excluir subcategoria que possui ${actionsCheck.rows[0]?.count} ação(ões). Exclua primeiro as ações.`
       });
     }
 
