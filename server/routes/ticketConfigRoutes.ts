@@ -383,7 +383,6 @@ router.get('/actions', jwtAuth, async (req: AuthenticatedRequest, res) => {
     const result = await db.execute(sql`
       SELECT a.*, 
              a.subcategory_id as "subcategoryId",
-             a.estimated_time_minutes as "estimatedTimeMinutes",
              a.sort_order as "sortOrder",
              s.name as subcategory_name, 
              c.name as category_name 
@@ -422,7 +421,6 @@ router.post('/actions', jwtAuth, async (req: AuthenticatedRequest, res) => {
       name,
       description,
       subcategoryId,
-      estimatedTimeMinutes,
       color,
       icon,
       active,
@@ -446,11 +444,11 @@ router.post('/actions', jwtAuth, async (req: AuthenticatedRequest, res) => {
 
     await db.execute(sql`
       INSERT INTO "${sql.raw(schemaName)}"."ticket_actions" (
-        id, tenant_id, company_id, subcategory_id, name, description, estimated_time_minutes, 
+        id, tenant_id, company_id, subcategory_id, name, description,
         color, icon, active, sort_order, created_at, updated_at
       ) VALUES (
         ${actionId}, ${tenantId}, ${finalCompanyId}, ${subcategoryId}, ${name}, ${description || null}, 
-        ${estimatedTimeMinutes || null}, ${color || '#3b82f6'}, ${icon || null}, 
+        ${color || '#3b82f6'}, ${icon || null}, 
         ${active !== false}, ${sortOrder || 1}, NOW(), NOW()
       )
     `);
@@ -462,7 +460,6 @@ router.post('/actions', jwtAuth, async (req: AuthenticatedRequest, res) => {
         name,
         description,
         subcategoryId,
-        estimatedTimeMinutes,
         color: color || '#3b82f6',
         icon,
         active: active !== false,

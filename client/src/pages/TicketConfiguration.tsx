@@ -64,7 +64,6 @@ const actionSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
   description: z.string().optional(),
   subcategoryId: z.string().min(1, "Subcategoria é obrigatória"),
-  estimatedTimeMinutes: z.number().optional(),
   color: z.string().default("#3b82f6"),
   icon: z.string().optional(),
   active: z.boolean().default(true),
@@ -206,7 +205,6 @@ const TicketConfiguration: React.FC = () => {
       name: '',
       description: '',
       subcategoryId: '',
-      estimatedTimeMinutes: undefined,
       color: '#3b82f6',
       icon: '',
       active: true,
@@ -1802,7 +1800,7 @@ const TicketConfiguration: React.FC = () => {
                     </FormItem>
                   )}
                 />
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={actionForm.control}
                     name="color"
@@ -1811,19 +1809,6 @@ const TicketConfiguration: React.FC = () => {
                         <FormLabel>Cor</FormLabel>
                         <FormControl>
                           <Input {...field} type="color" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={actionForm.control}
-                    name="estimatedTimeMinutes"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Tempo Estimado (min)</FormLabel>
-                        <FormControl>
-                          <Input {...field} type="number" min="1" onChange={e => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

@@ -697,7 +697,7 @@ export const ticketActions = pgTable("ticket_actions", {
   description: text("description"),
   code: varchar("code", { length: 50 }).notNull(), // Código único dentro da subcategoria
   actionType: varchar("action_type", { length: 50 }).default("standard"), // standard, escalation, resolution, investigation
-  estimatedHours: integer("estimated_hours"), // Tempo estimado para a ação
+  // estimatedHours removed - not needed per user request
   requiredSkills: text("required_skills").array(), // Habilidades necessárias
   templates: jsonb("templates"), // Templates de resposta ou documentação
   automationRules: jsonb("automation_rules"), // Regras de automação específicas

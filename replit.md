@@ -58,6 +58,12 @@ Interface preference: Text-based hierarchical menus with dropdowns over visual c
   - **Indexing**: Added critical index tickets_tenant_company_idx for performance
   - **Materials Filtering**: Fixed MaterialsServicesMiniSystem to use correct customerCompanyId field
   - **Status**: ✅ CRITICAL FIXES APPLIED - Schema consistency restored, company filtering working correctly
+- **Estimated Time Fields Removal (August 2025)**: Complete removal of "Tempo Estimado (min)" fields from ticket configurations
+  - **Database Schema**: Removed `estimated_time_minutes` field from all ticket_actions tables across all tenants
+  - **Backend API**: Updated ticketConfigRoutes.ts to remove field from queries and create/update operations
+  - **Frontend Forms**: Removed "Tempo Estimado (min)" input field from TicketConfiguration action forms
+  - **Schema Validation**: Updated Zod schemas to exclude estimatedTimeMinutes field entirely
+  - **Status**: ✅ FULLY REMOVED - No more estimated time fields in categories, subcategories, or actions
 - **Complete DBA Schema Consolidation (August 2025)**: Full resolution of DBA Master Report findings
   - **Schema Unification**: Total elimination of duplicate schemas - schema-master.ts as single source of truth
   - **Repository Integration**: Fixed all materials-services imports, resolved TypeScript errors across 8+ repository files
