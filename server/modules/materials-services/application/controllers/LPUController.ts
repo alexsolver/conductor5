@@ -560,4 +560,31 @@ export class LPUController {
       res.status(500).json({ error: 'Erro interno do servidor' });
     }
   }
+
+  // Utility method needed by frontend routing
+  async getPriceList(req: AuthenticatedRequest, res: Response) {
+    return this.getPriceListById(req, res);
+  }
+
+  // Additional methods needed by frontend
+  async getPricingRule(req: AuthenticatedRequest, res: Response) {
+    try {
+      const { id } = req.params;
+      const tenantId = req.user?.tenantId;
+
+      if (!tenantId) {
+        return res.status(400).json({ error: 'Tenant ID é obrigatório' });
+      }
+
+      const rule = await this.repository.getPricingRuleById(id, tenantId);
+      if (!rule) {
+        return res.status(404).json({ error: 'Regra não encontrada' });
+      }
+
+      res.json(rule);
+    } catch (error) {
+      console.error('Erro ao buscar regra:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  }
 }

@@ -426,7 +426,7 @@ export class LPURepository {
       ));
   }
 
-  async applyRulesToPriceList(priceListId: string, ruleIds: string[], tenantId: string) {
+  async applyRulesToPriceList(priceListId: string, ruleIds: string[] = [], tenantId: string) {
     const results = [];
     
     // Get all items in the price list
@@ -438,16 +438,28 @@ export class LPURepository {
         eq(priceListItems.tenantId, tenantId)
       ));
 
-    // Get the rules to apply
-    const rules = await db
-      .select()
-      .from(pricingRules)
-      .where(and(
-        inArray(pricingRules.id, ruleIds),
-        eq(pricingRules.tenantId, tenantId),
-        eq(pricingRules.isActive, true)
-      ))
-      .orderBy(desc(pricingRules.priority));
+    // Get the rules to apply - if no specific rules provided, get all active rules
+    let rules;
+    if (ruleIds.length > 0) {
+      rules = await db
+        .select()
+        .from(pricingRules)
+        .where(and(
+          inArray(pricingRules.id, ruleIds),
+          eq(pricingRules.tenantId, tenantId),
+          eq(pricingRules.isActive, true)
+        ))
+        .orderBy(desc(pricingRules.priority));
+    } else {
+      rules = await db
+        .select()
+        .from(pricingRules)
+        .where(and(
+          eq(pricingRules.tenantId, tenantId),
+          eq(pricingRules.isActive, true)
+        ))
+        .orderBy(desc(pricingRules.priority));
+    }
 
     // Apply rules to each item
     for (const item of items) {
@@ -483,7 +495,7 @@ export class LPURepository {
         await db
           .update(priceListItems)
           .set({
-            finalPrice: newPrice.toFixed(2),
+            unitPrice: newPrice.toFixed(2),
             updatedAt: new Date()
           })
           .where(and(
