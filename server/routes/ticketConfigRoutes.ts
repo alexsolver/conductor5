@@ -1249,7 +1249,15 @@ router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res) =
       }
     }
 
-    // 4. Copy Field Options - with proper duplicate checking
+    // 4. Copy Field Options - with enhanced duplicate checking
+    // First, delete any existing field options for the target company to avoid conflicts
+    await db.execute(sql`
+      DELETE FROM "${sql.raw(schemaName)}"."ticket_field_options"
+      WHERE tenant_id = ${tenantId} 
+      AND customer_id = ${targetCompanyId}
+    `);
+
+    // Now insert the field options from source
     const fieldOptionsResult = await db.execute(sql`
       INSERT INTO "${sql.raw(schemaName)}"."ticket_field_options" 
       (id, tenant_id, customer_id, field_name, value, label, color, sort_order, is_default, is_active, status_type, created_at, updated_at)
@@ -1270,13 +1278,6 @@ router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res) =
       FROM "${sql.raw(schemaName)}"."ticket_field_options" source
       WHERE source.tenant_id = ${tenantId} 
       AND source.customer_id = ${sourceCompanyId}
-      AND NOT EXISTS (
-        SELECT 1 FROM "${sql.raw(schemaName)}"."ticket_field_options" target
-        WHERE target.tenant_id = ${tenantId} 
-        AND target.customer_id = ${targetCompanyId}
-        AND target.field_name = source.field_name
-        AND target.value = source.value
-      )
       RETURNING id
     `);
     copiedItems.fieldOptions = fieldOptionsResult.rows.length;
