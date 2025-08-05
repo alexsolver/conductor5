@@ -1,11 +1,10 @@
-// CustomerItemMappingController.ts - Controlador para gerenciar mapeamentos personalizados de itens por cliente
+// CustomerItemMappingController-v2.ts - Simplified controller with correct company mappings
 import { Response } from 'express';
 import type { AuthenticatedRequest } from '../../../../middleware/jwtAuth';
 import { pool } from '../../../../db';
 
 /**
- * Buscar mapeamentos personalizados de itens por cliente
- * GET /api/materials-services/customer-item-mappings
+ * Buscar mapeamentos personalizados de itens por empresa cliente
  */
 export const getCustomerItemMappings = async (req: AuthenticatedRequest, res: Response) => {
   try {
@@ -18,47 +17,6 @@ export const getCustomerItemMappings = async (req: AuthenticatedRequest, res: Re
       });
     }
 
-    const { customerId, itemId, isActive, search, page = '1', limit = '50' } = req.query;
-    
-    const pageNum = parseInt(page as string);
-    const limitNum = parseInt(limit as string);
-    const offset = (pageNum - 1) * limitNum;
-
-    // Build the WHERE conditions
-    let whereConditions = [`m.tenant_id = $1`];
-    let paramIndex = 2;
-    const params: any[] = [tenantId];
-
-    if (customerId) {
-      whereConditions.push(`m.customer_id = $${paramIndex}`);
-      params.push(customerId);
-      paramIndex++;
-    }
-
-    if (itemId) {
-      whereConditions.push(`m.item_id = $${paramIndex}`);
-      params.push(itemId);
-      paramIndex++;
-    }
-
-    if (isActive !== undefined) {
-      whereConditions.push(`m.is_active = $${paramIndex}`);
-      params.push(isActive === 'true');
-      paramIndex++;
-    }
-
-    if (search) {
-      whereConditions.push(`(
-        m.custom_sku ILIKE $${paramIndex} OR 
-        m.custom_name ILIKE $${paramIndex} OR 
-        m.customer_reference ILIKE $${paramIndex} OR
-        i.name ILIKE $${paramIndex} OR
-        i.integration_code ILIKE $${paramIndex}
-      )`);
-      params.push(`%${search}%`);
-      paramIndex++;
-    }
-
     const query = `
       SELECT 
         m.*,
@@ -66,31 +24,19 @@ export const getCustomerItemMappings = async (req: AuthenticatedRequest, res: Re
         i.integration_code as item_integration_code,
         i.type as item_type,
         i.description as item_description,
-        cc.name as customer_company_name,
-        cc.trade_name as customer_company_trade_name,
-        cc.email as customer_company_email
+        cc.name as customer_company_name
       FROM customer_item_mappings m
-      LEFT JOIN items i ON m.item_id = i.id AND i.tenant_id = m.tenant_id
-      LEFT JOIN customer_companies cc ON m.customer_id = cc.id AND cc.tenant_id = m.tenant_id
-      WHERE ${whereConditions.join(' AND ')}
+      LEFT JOIN items i ON m.item_id = i.id
+      LEFT JOIN customer_companies cc ON m.customer_id = cc.id
+      WHERE m.tenant_id = $1
       ORDER BY m.created_at DESC
-      LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
     `;
 
-    params.push(limitNum, offset);
-
-    const result = await pool.query(query, params);
-
-    console.log(`🔍 [CustomerItemMappings] Found ${result.rowCount} mappings for tenant ${tenantId}`);
+    const result = await pool.query(query, [tenantId]);
 
     return res.json({
       success: true,
       data: result.rows,
-      pagination: {
-        page: pageNum,
-        limit: limitNum,
-        total: result.rowCount || 0
-      },
       message: `Found ${result.rowCount || 0} customer item mappings`
     });
 
@@ -106,7 +52,6 @@ export const getCustomerItemMappings = async (req: AuthenticatedRequest, res: Re
 
 /**
  * Criar novo mapeamento personalizado
- * POST /api/materials-services/customer-item-mappings
  */  
 export const createCustomerItemMapping = async (req: AuthenticatedRequest, res: Response) => {
   try {
@@ -147,8 +92,6 @@ export const createCustomerItemMapping = async (req: AuthenticatedRequest, res: 
 
     const result = await pool.query(query, params);
 
-    console.log(`✅ [CustomerItemMappings] Created mapping for customer ${customer_id} and item ${item_id}`);
-
     return res.status(201).json({
       success: true,
       data: result.rows[0],
@@ -167,7 +110,6 @@ export const createCustomerItemMapping = async (req: AuthenticatedRequest, res: 
 
 /**
  * Buscar um mapeamento específico por ID
- * GET /api/materials-services/customer-item-mappings/:id
  */
 export const getCustomerItemMappingById = async (req: AuthenticatedRequest, res: Response) => {
   try {
@@ -188,16 +130,13 @@ export const getCustomerItemMappingById = async (req: AuthenticatedRequest, res:
         i.integration_code as item_integration_code,
         i.type as item_type,
         i.description as item_description,
-        cc.name as customer_company_name,
-        cc.trade_name as customer_company_trade_name,
-        cc.email as customer_company_email
+        cc.name as customer_company_name
       FROM customer_item_mappings m
-      LEFT JOIN items i ON m.item_id = i.id AND i.tenant_id = m.tenant_id
-      LEFT JOIN customer_companies cc ON m.customer_id = cc.id AND cc.tenant_id = m.tenant_id
+      LEFT JOIN items i ON m.item_id = i.id
+      LEFT JOIN customer_companies cc ON m.customer_id = cc.id
       WHERE m.id = $1 AND m.tenant_id = $2
     `;
 
-    
     const result = await pool.query(query, [id, tenantId]);
 
     if (!result.rows.length) {
@@ -225,7 +164,6 @@ export const getCustomerItemMappingById = async (req: AuthenticatedRequest, res:
 
 /**
  * Atualizar mapeamento personalizado
- * PUT /api/materials-services/customer-item-mappings/:id
  */
 export const updateCustomerItemMapping = async (req: AuthenticatedRequest, res: Response) => {
   try {
@@ -263,7 +201,6 @@ export const updateCustomerItemMapping = async (req: AuthenticatedRequest, res: 
       special_instructions, notes, is_active, id, tenantId
     ];
 
-    
     const result = await pool.query(query, params);
 
     if (!result.rows.length) {
@@ -291,7 +228,6 @@ export const updateCustomerItemMapping = async (req: AuthenticatedRequest, res: 
 
 /**
  * Deletar mapeamento personalizado
- * DELETE /api/materials-services/customer-item-mappings/:id
  */
 export const deleteCustomerItemMapping = async (req: AuthenticatedRequest, res: Response) => {
   try {
@@ -311,7 +247,6 @@ export const deleteCustomerItemMapping = async (req: AuthenticatedRequest, res: 
       RETURNING id
     `;
 
-    
     const result = await pool.query(query, [id, tenantId]);
 
     if (!result.rows.length) {
@@ -338,7 +273,6 @@ export const deleteCustomerItemMapping = async (req: AuthenticatedRequest, res: 
 
 /**
  * Alternar status ativo/inativo
- * PATCH /api/materials-services/customer-item-mappings/:id/toggle
  */
 export const toggleCustomerItemMapping = async (req: AuthenticatedRequest, res: Response) => {
   try {
@@ -359,7 +293,6 @@ export const toggleCustomerItemMapping = async (req: AuthenticatedRequest, res: 
       RETURNING *
     `;
 
-    
     const result = await pool.query(query, [id, tenantId]);
 
     if (!result.rows.length) {
@@ -386,8 +319,7 @@ export const toggleCustomerItemMapping = async (req: AuthenticatedRequest, res: 
 };
 
 /**
- * Buscar itens personalizados para um cliente específico
- * GET /api/materials-services/customer-item-mappings/customer/:customerId/items
+ * Buscar itens personalizados para uma empresa específica
  */
 export const getCustomerItems = async (req: AuthenticatedRequest, res: Response) => {
   try {
@@ -410,12 +342,11 @@ export const getCustomerItems = async (req: AuthenticatedRequest, res: Response)
         i.description as item_description,
         i.measurement_unit as item_measurement_unit
       FROM customer_item_mappings m
-      LEFT JOIN items i ON m.item_id = i.id AND i.tenant_id = m.tenant_id
+      LEFT JOIN items i ON m.item_id = i.id
       WHERE m.customer_id = $1 AND m.tenant_id = $2 AND m.is_active = true
       ORDER BY m.custom_name
     `;
 
-    
     const result = await pool.query(query, [customerId, tenantId]);
 
     return res.json({

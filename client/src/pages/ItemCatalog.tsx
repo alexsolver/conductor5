@@ -69,9 +69,7 @@ interface CustomerItemMapping {
   item_integration_code: string;
   item_type: string;
   item_description: string;
-  customer_first_name: string;
-  customer_last_name: string;
-  customer_email: string;
+  customer_company_name: string;
 }
 
 const itemSchema = z.object({
@@ -939,7 +937,7 @@ export default function ItemCatalog() {
                                         <span className="font-medium">{mapping.custom_name}</span>
                                       </div>
                                       <div className="text-sm text-muted-foreground">
-                                        Cliente: {mapping.customer_first_name} {mapping.customer_last_name}
+                                        Empresa: {mapping.customer_company_name || 'Não identificada'}
                                       </div>
                                       {mapping.custom_description && (
                                         <div className="text-sm text-muted-foreground">

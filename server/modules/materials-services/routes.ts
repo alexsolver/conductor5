@@ -7,7 +7,7 @@ import { AssetManagementController } from './application/controllers/AssetManage
 import { LPUController } from './application/controllers/LPUController';
 import { ComplianceController } from './application/controllers/ComplianceController';
 import { TicketMaterialsController } from './application/controllers/TicketMaterialsController';
-import * as CustomerItemMappingController from './application/controllers/CustomerItemMappingController-fixed';
+import * as CustomerItemMappingController from './application/controllers/CustomerItemMappingController-v2';
 import { ItemRepository } from './infrastructure/repositories/ItemRepository';
 import { SupplierRepository } from './infrastructure/repositories/SupplierRepository';
 import { StockRepository } from './infrastructure/repositories/StockRepository';
