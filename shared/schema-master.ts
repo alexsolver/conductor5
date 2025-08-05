@@ -2559,6 +2559,7 @@ export const assets = pgTable("assets", {
   assetTag: varchar("asset_tag", { length: 50 }),
   categoryId: uuid("category_id").references(() => assetCategories.id),
   locationId: uuid("location_id").references(() => assetLocations.id),
+  parentAssetId: uuid("parent_asset_id").references(() => assets.id), // Asset hierarchy
   status: varchar("status", { length: 20 }).default("active"),
   description: text("description"),
   serialNumber: varchar("serial_number", { length: 100 }),
@@ -2567,12 +2568,14 @@ export const assets = pgTable("assets", {
   purchaseDate: date("purchase_date"),
   purchasePrice: decimal("purchase_price", { precision: 10, scale: 2 }),
   warrantyExpiry: date("warranty_expiry"),
+  qrCode: varchar("qr_code", { length: 255 }), // QR Code for tracking
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => [
   index("assets_tenant_name_idx").on(table.tenantId, table.name),
   index("assets_tenant_tag_idx").on(table.tenantId, table.assetTag),
+  index("assets_tenant_parent_idx").on(table.tenantId, table.parentAssetId),
   unique("assets_tenant_tag_unique").on(table.tenantId, table.assetTag),
 ]);
 
@@ -2604,6 +2607,7 @@ export const complianceAudits = pgTable("compliance_audits", {
   completedDate: timestamp("completed_date"),
   auditorName: varchar("auditor_name", { length: 255 }),
   status: varchar("status", { length: 20 }).default("scheduled"),
+  score: decimal("score", { precision: 5, scale: 2 }), // Overall audit score
   findings: text("findings"),
   recommendations: text("recommendations"),
   isActive: boolean("is_active").default(true),
@@ -2612,6 +2616,7 @@ export const complianceAudits = pgTable("compliance_audits", {
 }, (table) => [
   index("compliance_audits_tenant_type_idx").on(table.tenantId, table.auditType),
   index("compliance_audits_tenant_status_idx").on(table.tenantId, table.status),
+  index("compliance_audits_tenant_score_idx").on(table.tenantId, table.score),
 ]);
 
 // Compliance Certifications table
@@ -2619,9 +2624,12 @@ export const complianceCertifications = pgTable("compliance_certifications", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
   certificationName: varchar("certification_name", { length: 255 }).notNull(),
+  name: varchar("name", { length: 255 }).notNull(), // Alias for display
+  standard: varchar("standard", { length: 100 }), // Compliance standard (ISO, etc.)
   issuingBody: varchar("issuing_body", { length: 255 }),
   issueDate: date("issue_date"),
   expiryDate: date("expiry_date"),
+  expirationDate: date("expiration_date"), // Alias for compatibility
   status: varchar("status", { length: 20 }).default("active"),
   certificateNumber: varchar("certificate_number", { length: 100 }),
   isActive: boolean("is_active").default(true),
@@ -2630,15 +2638,19 @@ export const complianceCertifications = pgTable("compliance_certifications", {
 }, (table) => [
   index("compliance_certifications_tenant_name_idx").on(table.tenantId, table.certificationName),
   index("compliance_certifications_tenant_status_idx").on(table.tenantId, table.status),
+  index("compliance_certifications_tenant_expiry_idx").on(table.tenantId, table.expiryDate),
 ]);
 
 // Compliance Evidence table
 export const complianceEvidence = pgTable("compliance_evidence", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
+  auditId: uuid("audit_id").references(() => complianceAudits.id), // Link to audit
+  certificationId: uuid("certification_id").references(() => complianceCertifications.id), // Link to certification
   evidenceType: varchar("evidence_type", { length: 50 }).notNull(),
   description: text("description"),
   filePath: varchar("file_path", { length: 500 }),
+  collectedDate: timestamp("collected_date").defaultNow(), // When evidence was collected
   uploadedBy: uuid("uploaded_by").references(() => users.id),
   verifiedBy: uuid("verified_by").references(() => users.id),
   verificationDate: timestamp("verification_date"),
@@ -2647,6 +2659,8 @@ export const complianceEvidence = pgTable("compliance_evidence", {
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => [
   index("compliance_evidence_tenant_type_idx").on(table.tenantId, table.evidenceType),
+  index("compliance_evidence_tenant_audit_idx").on(table.tenantId, table.auditId),
+  index("compliance_evidence_tenant_cert_idx").on(table.tenantId, table.certificationId),
 ]);
 
 // Compliance Alerts table
@@ -2655,6 +2669,8 @@ export const complianceAlerts = pgTable("compliance_alerts", {
   tenantId: uuid("tenant_id").notNull(),
   alertType: varchar("alert_type", { length: 50 }).notNull(),
   severity: varchar("severity", { length: 20 }).default("medium"),
+  status: varchar("status", { length: 20 }).default("open"), // Alert status
+  relatedEntityId: uuid("related_entity_id"), // Generic FK to related entity
   message: text("message"),
   isResolved: boolean("is_resolved").default(false),
   resolvedBy: uuid("resolved_by").references(() => users.id),
@@ -2665,22 +2681,47 @@ export const complianceAlerts = pgTable("compliance_alerts", {
 }, (table) => [
   index("compliance_alerts_tenant_type_idx").on(table.tenantId, table.alertType),
   index("compliance_alerts_tenant_severity_idx").on(table.tenantId, table.severity),
+  index("compliance_alerts_tenant_status_idx").on(table.tenantId, table.status),
 ]);
 
 // Compliance Scores table
 export const complianceScores = pgTable("compliance_scores", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
+  entityId: uuid("entity_id"), // ID of the entity being scored
+  entityType: varchar("entity_type", { length: 50 }), // Type: 'audit', 'certification', etc.
   scoreType: varchar("score_type", { length: 50 }).notNull(),
   score: decimal("score", { precision: 5, scale: 2 }),
   maxScore: decimal("max_score", { precision: 5, scale: 2 }),
   period: varchar("period", { length: 50 }),
+  assessedAt: timestamp("assessed_at"), // When assessment was performed
   calculatedAt: timestamp("calculated_at").defaultNow(),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
 }, (table) => [
   index("compliance_scores_tenant_type_idx").on(table.tenantId, table.scoreType),
   index("compliance_scores_tenant_period_idx").on(table.tenantId, table.period),
+  index("compliance_scores_tenant_entity_idx").on(table.tenantId, table.entityId, table.entityType),
+]);
+
+// Asset Locations table  
+export const assetLocations = pgTable("asset_locations", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  assetId: uuid("asset_id").references(() => assets.id, { onDelete: 'cascade' }).notNull(),
+  locationName: varchar("location_name", { length: 255 }).notNull(),
+  building: varchar("building", { length: 100 }),
+  floor: varchar("floor", { length: 50 }),
+  room: varchar("room", { length: 50 }),
+  coordinates: jsonb("coordinates"), // Geographic coordinates
+  notes: text("notes"),
+  recordedAt: timestamp("recorded_at").defaultNow(), // When location was recorded
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("asset_locations_tenant_asset_idx").on(table.tenantId, table.assetId),
+  index("asset_locations_tenant_building_idx").on(table.tenantId, table.building),
 ]);
 
 // Customer Item Mappings - Personalized item configurations per customer
