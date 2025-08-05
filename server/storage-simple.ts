@@ -1,6 +1,6 @@
 import { eq, and, desc, asc, ilike, count, sql, or } from "drizzle-orm";
 import { db, schemaManager } from "./db";
-import { users, tenants, type User, type InsertUser, beneficiaries } from "@shared/schema";
+import { users, tenants, type User, type InsertUser } from "@shared/schema";
 import { logInfo, logError } from "./utils/logger";
 import { poolManager } from "./database/ConnectionPoolManager";
 import { TenantValidator } from "./database/TenantValidator";
