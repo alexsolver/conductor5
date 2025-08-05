@@ -1309,7 +1309,7 @@ const TicketDetails = React.memo(() => {
                               }}
                               placeholder="Selecione a subcategoria"
                               disabled={!isEditMode || !form.watch('category')}
-                              dependsOn={form.watch('category')}
+                              dependsOn={form.watch('category') || ticket?.category}
                               customerId={ticket?.customerCompanyId || ticket?.customer_company_id}
                             />
                           ) : (
@@ -1347,7 +1347,7 @@ const TicketDetails = React.memo(() => {
                               onValueChange={field.onChange}
                               placeholder="Selecione a ação"
                               disabled={!isEditMode || !form.watch('subcategory')}
-                              dependsOn={form.watch('subcategory')}
+                              dependsOn={form.watch('subcategory') || ticket?.subcategory}
                               customerId={ticket?.customerCompanyId || ticket?.customer_company_id}
                             />
                           ) : (
