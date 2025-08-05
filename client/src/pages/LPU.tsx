@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Plus, Search, Edit, Eye, Copy, Trash2, TrendingUp, DollarSign, Settings, BarChart3, FileText, Clock, CheckCircle } from "lucide-react";
+import { Plus, Search, Edit, Eye, Copy, Trash2, TrendingUp, DollarSign, Settings, BarChart3, FileText, Clock, CheckCircle, Calculator } from "lucide-react";
 
 interface PriceList {
   id: string;
@@ -152,6 +152,24 @@ export default function LPU() {
       const errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
       toast({
         title: "Erro ao criar regra de precificação",
+        description: errorMessage,
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Mutation to apply pricing rules to a price list
+  const applyRulesMutation = useMutation({
+    mutationFn: (priceListId: string) => apiRequest('POST', `/api/materials-services/price-lists/${priceListId}/apply-rules`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/materials-services/price-lists'] });
+      toast({ title: "Regras aplicadas com sucesso!" });
+    },
+    onError: (error: any) => {
+      console.error('Error applying rules:', error);
+      const errorMessage = error?.response?.data?.message || error?.message || 'Erro desconhecido';
+      toast({
+        title: "Erro ao aplicar regras",
         description: errorMessage,
         variant: "destructive"
       });
@@ -348,30 +366,50 @@ export default function LPU() {
                 {priceLists.length === 0 ? "Nenhuma lista encontrada" : "Nenhum resultado para a busca"}
               </div>
             ) : (
-              filteredPriceLists.map((priceList: PriceList) => (
-                <Card key={priceList.id}>
+              filteredPriceLists.map((list: PriceList) => (
+                <Card key={list.id}>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <div>
-                      <CardTitle className="text-base">{priceList.name}</CardTitle>
+                      <CardTitle className="text-base">{list.name}</CardTitle>
                       <p className="text-sm text-muted-foreground">
-                        Código: {priceList.code} • Versão: {priceList.version}
+                        Código: {list.code} • Versão: {list.version}
                       </p>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <Badge variant={priceList.isActive ? "default" : "secondary"}>
-                        {priceList.isActive ? "Ativa" : "Inativa"}
+                      <Badge variant={list.isActive ? "default" : "secondary"}>
+                        {list.isActive ? "Ativa" : "Inativa"}
                       </Badge>
-                      <Button variant="outline" size="sm" onClick={() => {
-                        setSelectedPriceList(priceList);
-                      }}>
-                        <Eye className="h-4 w-4" />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedPriceList(list);
+                        }}
+                      >
+                        <Eye className="mr-1 h-3 w-3" />
+                        Ver Detalhes
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => applyRulesMutation.mutate(list.id)}
+                        disabled={applyRulesMutation.isPending}
+                      >
+                        {applyRulesMutation.isPending ? (
+                          "Aplicando..."
+                        ) : (
+                          <>
+                            <Calculator className="mr-1 h-3 w-3" />
+                            Aplicar Regras
+                          </>
+                        )}
                       </Button>
                     </div>
                   </CardHeader>
                   <CardContent>
                     <div className="text-sm text-muted-foreground">
-                      Válida de {new Date(priceList.validFrom).toLocaleDateString()}
-                      {priceList.validTo && ` até ${new Date(priceList.validTo).toLocaleDateString()}`}
+                      Válida de {new Date(list.validFrom).toLocaleDateString()}
+                      {list.validTo && ` até ${new Date(list.validTo).toLocaleDateString()}`}
                     </div>
                   </CardContent>
                 </Card>

@@ -1,12 +1,16 @@
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../../../middleware/jwtAuth';
-import { LPURepository } from '../../infrastructure/repositories/LPURepository';
+import { LPURepository } from '../infrastructure/repositories/LPURepository';
+import { PricingRulesEngine } from '../application/services/PricingRulesEngine';
+import { Database } from 'better-sqlite3';
 
 export class LPUController {
   private repository: LPURepository;
+  private pricingEngine: PricingRulesEngine;
 
-  constructor(database?: any) {
-    this.repository = new LPURepository(database);
+  constructor(db: any) {
+    this.repository = new LPURepository(db);
+    this.pricingEngine = new PricingRulesEngine(this.repository);
   }
 
   // GESTÃO DE LISTAS DE PREÇOS
@@ -29,7 +33,7 @@ export class LPUController {
     try {
       const { id } = req.params;
       const tenantId = req.user?.tenantId;
-      
+
       if (!tenantId) {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
@@ -81,7 +85,7 @@ export class LPUController {
     try {
       const { id } = req.params;
       const tenantId = req.user?.tenantId;
-      
+
       if (!tenantId) {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
@@ -107,7 +111,7 @@ export class LPUController {
     try {
       const { id } = req.params;
       const tenantId = req.user?.tenantId;
-      
+
       if (!tenantId) {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
@@ -148,7 +152,7 @@ export class LPUController {
     try {
       const { id } = req.params;
       const tenantId = req.user?.tenantId;
-      
+
       if (!tenantId) {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
@@ -166,7 +170,7 @@ export class LPUController {
     try {
       const { priceListId } = req.params;
       const tenantId = req.user?.tenantId;
-      
+
       if (!tenantId) {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
@@ -203,7 +207,7 @@ export class LPUController {
     try {
       const { versionId } = req.params;
       const tenantId = req.user?.tenantId;
-      
+
       if (!tenantId) {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
@@ -220,7 +224,7 @@ export class LPUController {
     try {
       const { versionId } = req.params;
       const tenantId = req.user?.tenantId;
-      
+
       if (!tenantId) {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
@@ -238,7 +242,7 @@ export class LPUController {
       const { versionId } = req.params;
       const { reason } = req.body;
       const tenantId = req.user?.tenantId;
-      
+
       if (!tenantId) {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
@@ -260,7 +264,7 @@ export class LPUController {
     try {
       const { priceListId } = req.params;
       const tenantId = req.user?.tenantId;
-      
+
       if (!tenantId) {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
@@ -297,7 +301,7 @@ export class LPUController {
     try {
       const { id } = req.params;
       const tenantId = req.user?.tenantId;
-      
+
       if (!tenantId) {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
@@ -318,7 +322,7 @@ export class LPUController {
     try {
       const { id } = req.params;
       const tenantId = req.user?.tenantId;
-      
+
       if (!tenantId) {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
@@ -371,7 +375,7 @@ export class LPUController {
     try {
       const { id } = req.params;
       const tenantId = req.user?.tenantId;
-      
+
       if (!tenantId) {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
@@ -392,7 +396,7 @@ export class LPUController {
     try {
       const { id } = req.params;
       const tenantId = req.user?.tenantId;
-      
+
       if (!tenantId) {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
@@ -410,7 +414,7 @@ export class LPUController {
     try {
       const { priceListId } = req.params;
       const tenantId = req.user?.tenantId;
-      
+
       if (!tenantId) {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
@@ -448,7 +452,7 @@ export class LPUController {
     try {
       const { priceListId } = req.params;
       const tenantId = req.user?.tenantId;
-      
+
       if (!tenantId) {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }

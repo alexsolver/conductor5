@@ -357,6 +357,27 @@ router.put('/dynamic-pricing', async (req: AuthenticatedRequest, res) => {
   return lpuController.updateDynamicPricing(req, res);
 });
 
+// APLICAÇÃO DE REGRAS DE PRECIFICAÇÃO
+router.post('/pricing-rules/apply-to-item', async (req: AuthenticatedRequest, res) => {
+  const { lpuController } = await getControllers(req.user.tenantId);
+  return lpuController.applyPricingRulesToItem(req, res);
+});
+
+router.post('/price-lists/:priceListId/apply-rules', async (req: AuthenticatedRequest, res) => {
+  const { lpuController } = await getControllers(req.user.tenantId);
+  return lpuController.applyRulesToPriceList(req, res);
+});
+
+router.post('/pricing-rules/:ruleId/recalculate', async (req: AuthenticatedRequest, res) => {
+  const { lpuController } = await getControllers(req.user.tenantId);
+  return lpuController.recalculatePricesAfterRuleChange(req, res);
+});
+
+router.post('/dynamic-pricing/calculate', async (req: AuthenticatedRequest, res) => {
+  const { lpuController } = await getControllers(req.user.tenantId);
+  return lpuController.calculateDynamicPrice(req, res);
+});
+
 // Margin Control
 router.put('/price-lists/:priceListId/margins', async (req: AuthenticatedRequest, res) => {
   const { lpuController } = await getControllers(req.user.tenantId);
