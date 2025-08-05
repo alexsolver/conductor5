@@ -77,7 +77,6 @@ export default function LPU() {
   // Fetch LPU stats with error handling
   const { data: stats, isLoading: statsLoading, error: statsError } = useQuery<LPUStats>({
     queryKey: ['/api/materials-services/price-lists/stats'],
-    queryFn: () => apiRequest('GET', '/api/materials-services/price-lists/stats'),
     retry: 3,
     staleTime: 30000,
   });
@@ -85,7 +84,6 @@ export default function LPU() {
   // Fetch price lists with robust error handling
   const { data: priceListsResponse, isLoading: priceListsLoading, error: priceListsError } = useQuery({
     queryKey: ['/api/materials-services/price-lists'],
-    queryFn: () => apiRequest('GET', '/api/materials-services/price-lists'),
     retry: 3,
     staleTime: 30000,
   });
@@ -93,26 +91,17 @@ export default function LPU() {
   // Safe data extraction with fallbacks
   const priceLists = Array.isArray(priceListsResponse)
     ? priceListsResponse
-    : priceListsResponse?.data
-    ? Array.isArray(priceListsResponse.data)
-      ? priceListsResponse.data
-      : []
     : [];
 
   // Fetch pricing rules with error handling
   const { data: pricingRulesResponse, isLoading: rulesLoading, error: rulesError } = useQuery({
     queryKey: ['/api/materials-services/pricing-rules'],
-    queryFn: () => apiRequest('GET', '/api/materials-services/pricing-rules'),
     retry: 3,
     staleTime: 30000,
   });
 
   const pricingRules = Array.isArray(pricingRulesResponse)
     ? pricingRulesResponse
-    : pricingRulesResponse?.data
-    ? Array.isArray(pricingRulesResponse.data)
-      ? pricingRulesResponse.data
-      : []
     : [];
 
   // Create price list mutation with better error handling
@@ -522,10 +511,10 @@ function PriceListForm({
     ? customerCompaniesResponse
     : [];
 
-  console.log('Companies loading:', companiesLoading);
-  console.log('Companies error:', companiesError);
-  console.log('Companies response:', customerCompaniesResponse);
-  console.log('Companies array:', customerCompanies);
+  console.log('Price lists loading:', priceListsLoading);
+  console.log('Price lists response:', priceListsResponse);
+  console.log('Price lists array:', priceLists);
+  console.log('Filtered price lists:', filteredPriceLists);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
