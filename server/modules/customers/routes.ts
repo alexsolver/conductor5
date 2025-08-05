@@ -24,10 +24,26 @@ customersRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
     }
     
     const result = await pool.query(`
-      SELECT id, first_name, last_name, email, phone, created_at, updated_at
+      SELECT 
+        id, 
+        first_name, 
+        last_name, 
+        email, 
+        phone, 
+        customer_type,
+        status,
+        cpf,
+        cnpj,
+        company_name,
+        contact_person,
+        mobile_phone,
+        created_at, 
+        updated_at,
+        COALESCE(is_active, true) as is_active
       FROM "${schemaName}".customers 
       ${whereClause}
       ORDER BY first_name, last_name
+      LIMIT 100
     `);
 
     console.log('[GET-CUSTOMERS] Found', result.rows.length, 'customers');

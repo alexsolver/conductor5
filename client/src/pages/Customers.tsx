@@ -265,11 +265,11 @@ export default function Customers() {
                   </TableCell>
                   <TableCell>
                     <div className="font-medium text-gray-900 dark:text-gray-100">
-                      {customer.firstName || customer.first_name} {customer.lastName || customer.last_name}
+                      {customer.first_name} {customer.last_name}
                     </div>
-                    {customer.role && (
+                    {customer.customer_type && (
                       <div className="text-sm text-gray-500 dark:text-gray-400">
-                        {customer.role}
+                        {customer.customer_type === 'PJ' ? customer.company_name : `${customer.customer_type}`}
                       </div>
                     )}
                   </TableCell>
@@ -294,15 +294,18 @@ export default function Customers() {
                   </TableCell>
                   <TableCell>
                     <Badge 
-                      variant={customer.status === 'Ativo' ? "outline" : "secondary"}
-                      className={customer.status === 'Ativo' ? "bg-blue-600 text-white hover:bg-blue-700 border-blue-600" : ""}
+                      className={
+                        (customer.status || "Ativo") === 'Ativo' 
+                          ? "bg-blue-600 text-white hover:bg-blue-700 border-blue-600" 
+                          : "bg-gray-500 text-white"
+                      }
                     >
                       {customer.status || "Ativo"}
                     </Badge>
                   </TableCell>
                   <TableCell>
                     <span className="text-sm text-gray-500">
-                      {new Date(customer.createdAt).toLocaleDateString('pt-BR')}
+                      {new Date(customer.created_at).toLocaleDateString('pt-BR')}
                     </span>
                   </TableCell>
                   <TableCell>
