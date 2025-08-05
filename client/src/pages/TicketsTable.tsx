@@ -894,7 +894,7 @@ const TicketsTable = React.memo(() => {
           );
         case 'category':
           const rawCategoryValue = (ticket as any).category;
-          
+
           // 🚨 CORREÇÃO: Aguardar cores carregarem para evitar race condition
           if (isFieldColorsLoading) {
             return (
@@ -905,12 +905,17 @@ const TicketsTable = React.memo(() => {
           }
 
           const categoryValue = mapCategoryValue(rawCategoryValue);
-          
+
           // Tentar buscar cor pelo valor original primeiro, depois pelo normalizado
           const categoryColor = getFieldColor('category', rawCategoryValue) || 
                                getFieldColor('category', categoryValue) || 
                                '#3b82f6';
-          
+
+          // Debug log para verificar se a cor está sendo encontrada
+          if (process.env.NODE_ENV === 'development') {
+            console.log(`🔍 Category color lookup: ${rawCategoryValue} = ${categoryColor}`);
+          }
+
           const categoryLabel = getFieldLabel('category', rawCategoryValue) || 
                                getFieldLabel('category', categoryValue) || 
                                rawCategoryValue;
@@ -1030,7 +1035,7 @@ const TicketsTable = React.memo(() => {
           );
         case 'subcategory':
           const rawSubcategoryValue = (ticket as any).subcategory;
-          
+
           if (!rawSubcategoryValue) {
             return (
               <TableCell className="overflow-hidden" style={cellStyle}>
@@ -1247,7 +1252,7 @@ const TicketsTable = React.memo(() => {
       toast({
         title: "Erro",
         description: "Nome da visualização é obrigatório",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }

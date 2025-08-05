@@ -103,47 +103,27 @@ export function DynamicBadge(props: DynamicBadgeProps) {
   let dynamicClasses = '';
   let inlineStyles: React.CSSProperties = {};
 
-  // Usar sempre o colorHex fornecido (que vem das configurações da API)
-  const finalColor = colorHex || '#6b7280'; // Usar cor configurada ou cinza como fallback
+  // Debug log para verificar a cor recebida
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`🎨 DynamicBadge: fieldName=${fieldName}, value=${value}, colorHex=${colorHex}`);
+  }
 
-  // Converter cor hex para classes Tailwind ou usar inline styles
-  const getBadgeStyles = (color: string) => {
-    // Se for uma cor hex, usar inline styles
-    if (color.startsWith('#')) {
-      return {
-        backgroundColor: color,
-        // @ts-ignore
-        color: getContrastColor(color)
-      };
-    }
-
-    // Fallback para classes padrão se não conseguir processar
-    return {
-      backgroundColor: '#6b7280',
-      color: '#ffffff'
-    };
-  };
-
-  // Prioridade: colorHex > bgColor > variant padrão
+  // 🚨 CORREÇÃO: Simplificar lógica e sempre usar cores inline
   if (colorHex && colorHex.trim() !== '') {
-    const mappedClass = getContrastClassFromHex(colorHex);
-    if (mappedClass === 'custom-hex-color') {
-      // Usar estilos inline para cores hex personalizadas
-      inlineStyles = {
-        backgroundColor: colorHex,
-        color: getContrastTextColor(colorHex),
-        borderColor: colorHex,
-      };
-      dynamicClasses = 'border';
-    } else {
-      dynamicClasses = mappedClass;
-    }
+    // Sempre usar estilos inline para cores hex configuradas
+    inlineStyles = {
+      backgroundColor: colorHex,
+      color: getContrastTextColor(colorHex),
+      borderColor: colorHex,
+    };
+    // Usar variant outline para permitir customização completa
+    dynamicClasses = 'border';
   } else if (bgColor) {
     dynamicClasses = getLegacyColorMapping(bgColor);
   }
 
-  // Se temos classes dinâmicas ou estilos inline, usar variant outline para não conflitar
-  const finalVariant = (dynamicClasses || Object.keys(inlineStyles).length > 0) ? 'outline' : variant;
+  // Se temos estilos inline ou classes dinâmicas, usar variant outline
+  const finalVariant = (Object.keys(inlineStyles).length > 0 || dynamicClasses) ? 'outline' : variant;
 
   return (
     <Badge 
