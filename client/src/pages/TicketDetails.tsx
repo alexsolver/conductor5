@@ -39,6 +39,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { RichTextEditor } from "@/components/knowledge-base/RichTextEditor";
 import { DynamicSelect } from "@/components/DynamicSelect";
 import { DynamicBadge } from "@/components/DynamicBadge";
+import { SmartDynamicBadge } from "@/components/SmartDynamicBadge";
 import { useTicketMetadata } from "@/hooks/useTicketMetadata";
 import { useFieldColors } from "@/hooks/useFieldColors";
 import { UserSelect } from "@/components/ui/UserSelect";
@@ -1197,14 +1198,11 @@ const TicketDetails = React.memo(() => {
                           />
                         ) : (
                           <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
-                            <DynamicBadge
+                            <SmartDynamicBadge
                               fieldName="urgency"
                               value={field.value}
-                              colorHex={getFieldColor('urgency', field.value)}
-                              isLoading={isFieldColorsLoading}
-                            >
-                              {getFieldLabel('urgency', field.value)}
-                            </DynamicBadge>
+                              showIcon={true}
+                            />
                           </div>
                         )}
                       </FormControl>
@@ -1231,14 +1229,11 @@ const TicketDetails = React.memo(() => {
                           />
                         ) : (
                           <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
-                            <DynamicBadge
+                            <SmartDynamicBadge
                               fieldName="impact"
                               value={field.value}
-                              colorHex={getFieldColor('impact', field.value)}
-                              isLoading={isFieldColorsLoading}
-                            >
-                              {getFieldLabel('impact', field.value)}
-                            </DynamicBadge>
+                              showIcon={true}
+                            />
                           </div>
                         )}
                       </FormControl>
@@ -1274,14 +1269,11 @@ const TicketDetails = React.memo(() => {
                         ) : (
                           <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
                             {(field.value || ticket?.category) ? (
-                              <DynamicBadge
+                              <SmartDynamicBadge
                                 fieldName="category"
                                 value={field.value || ticket?.category}
-                                colorHex={getFieldColor('category', field.value || ticket?.category)}
-                                isLoading={isFieldColorsLoading}
-                              >
-                                {getFieldLabel('category', field.value || ticket?.category)}
-                              </DynamicBadge>
+                                showIcon={true}
+                              />
                             ) : (
                               <span className="text-gray-400 text-sm">Não especificado</span>
                             )}

@@ -98,6 +98,20 @@ export function DynamicBadge(props: DynamicBadgeProps) {
     ...restProps 
   } = props;
 
+  // 🚨 CORREÇÃO CRÍTICA: Mostrar loading state enquanto dados não estão prontos
+  if (isLoading) {
+    return (
+      <Badge 
+        variant="outline" 
+        className={cn("inline-flex items-center gap-1 bg-gray-50 text-gray-500 border-gray-200 animate-pulse", className)}
+        {...filterDOMProps(restProps, ['fieldName', 'value', 'isLoading'])}
+      >
+        <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse" />
+        Carregando...
+      </Badge>
+    );
+  }
+
   // 🚨 CORREÇÃO: Filtragem consistente de props usando utilitário
   const cleanProps = filterDOMProps(restProps, ['fieldName', 'value', 'isLoading']);
   let dynamicClasses = '';
