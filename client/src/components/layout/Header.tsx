@@ -3,12 +3,27 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Bell, Menu, BarChart3, Ticket, Calendar, LogOut, User, Settings, Clock, Folder, UserCircle } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
-import { useSimpleTimer } from "@/contexts/SimpleTimerContext";
+import { useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
 export function Header() {
   const { user, logoutMutation } = useAuth();
-  const { runningAction, finishAction } = useSimpleTimer();
   const [, setLocation] = useLocation();
+
+  // Query para verificar status do timecard
+  const { data: timecardStatus } = useQuery({
+    queryKey: ['/api/timecard/current-status'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/timecard/current-status');
+      const data = await response.json();
+      return data;
+    },
+    enabled: !!user,
+    refetchInterval: 30000, // Atualizar a cada 30 segundos
+  });
+
+  // Determinar se usuário está trabalhando
+  const isWorking = timecardStatus?.status === 'working';
 
   return (
     <div className="relative z-10 flex-shrink-0 flex h-16 bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
@@ -60,28 +75,17 @@ export function Header() {
         </div>
 
         <div className="flex items-center space-x-4">
-          {/* Timer Icon - Only visible when there's a running action */}
-          {runningAction && (
+          {/* Timecard Working Status - Only visible when user is working */}
+          {isWorking && (
             <Button
               variant="ghost"
               size="sm"
-              className="relative text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 animate-pulse"
-              onClick={async () => {
-                console.log('🔴 [HEADER] Timer icon clicked, finishing action:', runningAction.actionId);
-                try {
-                  // Finalizar a ação preenchendo hora fim
-                  await finishAction(runningAction.actionId);
-                  
-                  // Navegar para o ticket e abrir a ação editada
-                  setLocation(`/tickets/${runningAction.ticketId}?openAction=${runningAction.actionId}`);
-                } catch (error) {
-                  console.error('❌ [HEADER] Error finishing action:', error);
-                }
-              }}
-              title="Cronômetro ativo - Clique para finalizar"
+              className="relative text-green-500 hover:text-green-600 dark:text-green-400 dark:hover:text-green-300"
+              onClick={() => setLocation('/timecard')}
+              title="Ponto registrado - Você está trabalhando"
             >
               <Clock className="h-5 w-5" />
-              <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-gray-800 animate-ping"></span>
+              <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-green-500 ring-2 ring-white dark:ring-gray-800 animate-pulse"></span>
             </Button>
           )}
           
@@ -102,7 +106,7 @@ export function Header() {
                 <Button
                   variant="ghost"
                   className={`relative h-8 w-8 rounded-full bg-purple-600 hover:bg-purple-700 ${
-                    runningAction 
+                    isWorking 
                       ? 'ring-2 ring-yellow-400 ring-offset-2 ring-offset-white dark:ring-offset-gray-800 shadow-lg shadow-yellow-400/50' 
                       : ''
                   }`}
@@ -111,7 +115,7 @@ export function Header() {
                     {user?.firstName ? user.firstName.charAt(0).toUpperCase() : user?.email?.charAt(0).toUpperCase()}
                   </span>
                   {/* Aura amarela pulsante quando trabalhando */}
-                  {runningAction && (
+                  {isWorking && (
                     <span className="absolute inset-0 rounded-full ring-2 ring-yellow-400 animate-pulse"></span>
                   )}
                 </Button>
