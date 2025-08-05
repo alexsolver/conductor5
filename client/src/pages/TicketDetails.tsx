@@ -1379,15 +1379,33 @@ const TicketDetails = React.memo(() => {
                     <span>Hierarquia:</span>
                     {form.watch('category') && (
                       <>
-                        <Badge variant="outline" className="text-xs">{getFieldLabel('category', form.watch('category'))}</Badge>
+                        <DynamicBadge
+                          fieldName="category"
+                          value={form.watch('category')}
+                          colorHex={getFieldColor('category', form.watch('category'))}
+                        >
+                          {getFieldLabel('category', form.watch('category'))}
+                        </DynamicBadge>
                         {form.watch('subcategory') && (
                           <>
                             <ChevronRight className="h-3 w-3" />
-                            <Badge variant="outline" className="text-xs">{getFieldLabel('subcategory', form.watch('subcategory'))}</Badge>
+                            <DynamicBadge
+                              fieldName="subcategory"
+                              value={form.watch('subcategory')}
+                              colorHex={getFieldColor('subcategory', form.watch('subcategory'))}
+                            >
+                              {getFieldLabel('subcategory', form.watch('subcategory'))}
+                            </DynamicBadge>
                             {form.watch('action') && (
                               <>
                                 <ChevronRight className="h-3 w-3" />
-                                <Badge variant="outline" className="text-xs">{getFieldLabel('action', form.watch('action'))}</Badge>
+                                <DynamicBadge
+                                  fieldName="action"
+                                  value={form.watch('action')}
+                                  colorHex={getFieldColor('action', form.watch('action'))}
+                                >
+                                  {getFieldLabel('action', form.watch('action'))}
+                                </DynamicBadge>
                               </>
                             )}
                           </>

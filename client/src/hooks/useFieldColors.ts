@@ -43,7 +43,7 @@ export const useFieldColors = () => {
       return undefined;
     }
 
-    // Primeiro, tentar encontrar configuração específica
+    // Primeiro, tentar encontrar configuração específica (busca exata)
     const option = fieldOptions.data.find(
       (opt: FieldOption) => opt.field_name === fieldName && opt.value === value
     );
@@ -53,6 +53,18 @@ export const useFieldColors = () => {
         console.log(`🎨 Color found: ${fieldName}:${value} = ${option.color}`);
       }
       return option.color;
+    }
+
+    // Se não encontrou, tentar busca por label (para valores hierárquicos)
+    const optionByLabel = fieldOptions.data.find(
+      (opt: FieldOption) => opt.field_name === fieldName && opt.label === value
+    );
+
+    if (optionByLabel?.color) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`🎨 Color found by label: ${fieldName}:${value} = ${optionByLabel.color}`);
+      }
+      return optionByLabel.color;
     }
 
     // Se não encontrou, fazer fallback para mapeamento de cores padrão da empresa Default
