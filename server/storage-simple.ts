@@ -558,6 +558,7 @@ export class DatabaseStorage implements IStorage {
           status = ${ticketData.status || 'open'},
           category = ${ticketData.category || null},
           subcategory = ${ticketData.subcategory || null},
+          action = ${ticketData.action || null},
           impact = ${ticketData.impact || null},
           urgency = ${ticketData.urgency || null},
           caller_id = ${ticketData.caller_id || null},
