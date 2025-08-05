@@ -123,13 +123,16 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
 
       const requestData = {
         itemId: data.itemId,
+        plannedItemId: selectedItemData.plannedItemId || selectedItemData.id, // Include planned item ID
         actualQuantity: data.quantityUsed,
-        lpuId: '00000000-0000-0000-0000-000000000001', // Default LPU ID
+        lpuId: selectedItemData.lpuId || '00000000-0000-0000-0000-000000000001', // Use LPU from planned item
         unitPriceAtConsumption: selectedItemData.unitPriceAtPlanning || selectedItemData.unitCost || 0,
-        consumptionType: 'actual',
+        consumptionType: 'used',
         notes: ''
       };
 
+      console.log('🔍 [CONSUMED] Sending request data:', requestData);
+      
       const response = await apiRequest('POST', `/api/materials-services/tickets/${ticketId}/consumed-items`, requestData);
       return response.json();
     },
