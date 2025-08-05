@@ -46,7 +46,7 @@ export const tenants = pgTable("tenants", {
 // User storage table - JWT Authentication (public schema) - Extended with complete HR fields
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
-  email: varchar("email").unique().notNull(),
+  email: varchar("email").notNull(),
   passwordHash: varchar("password_hash").notNull(),
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
@@ -102,7 +102,13 @@ export const users = pgTable("users", {
   lastLoginAt: timestamp("last_login_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-});
+}, (table) => [
+  // TENANT ISOLATION: Email must be unique per tenant
+  unique("users_tenant_email_unique").on(table.tenantId, table.email),
+  index("users_tenant_idx").on(table.tenantId),
+  index("users_role_idx").on(table.role),
+  index("users_active_idx").on(table.isActive),
+]);
 
 // NOTE: userGroups, userGroupMemberships and departments tables are defined later in the file
 
@@ -159,7 +165,7 @@ export const userSessions = pgTable("user_sessions", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
   userId: uuid("user_id").references(() => users.id).notNull(),
-  sessionToken: varchar("session_token", { length: 255 }).unique().notNull(),
+  sessionToken: varchar("session_token", { length: 255 }).notNull(),
   deviceType: varchar("device_type", { length: 50 }),
   browser: varchar("browser", { length: 100 }),
   operatingSystem: varchar("operating_system", { length: 100 }),
@@ -171,9 +177,10 @@ export const userSessions = pgTable("user_sessions", {
   expiresAt: timestamp("expires_at").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 }, (table) => [
+  // TENANT ISOLATION: Session tokens must be unique per tenant
+  unique("user_sessions_tenant_token_unique").on(table.tenantId, table.sessionToken),
   index("user_sessions_tenant_user_idx").on(table.tenantId, table.userId),
   index("user_sessions_active_idx").on(table.isActive, table.lastActivity),
-  index("user_sessions_token_idx").on(table.sessionToken),
 ]);
 
 // User Activity Logs table (public schema)
@@ -192,10 +199,11 @@ export const userActivityLogs = pgTable("user_activity_logs", {
   metadata: jsonb("metadata").default({}),
   createdAt: timestamp("created_at").defaultNow(),
 }, (table) => [
+  // TENANT-FIRST OPTIMIZED INDEXES: Critical for multi-tenant performance
   index("user_activity_logs_tenant_user_idx").on(table.tenantId, table.userId),
-  index("user_activity_logs_action_idx").on(table.action),
-  index("user_activity_logs_resource_idx").on(table.resourceType, table.resourceId),
-  index("user_activity_logs_created_idx").on(table.createdAt),
+  index("user_activity_logs_tenant_action_idx").on(table.tenantId, table.action),
+  index("user_activity_logs_tenant_resource_idx").on(table.tenantId, table.resourceType),
+  index("user_activity_logs_tenant_created_idx").on(table.tenantId, table.createdAt),
 ]);
 
 // ========================================
@@ -1679,7 +1687,7 @@ export const ticketInternalActions = pgTable("ticket_internal_actions", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
   ticketId: uuid("ticket_id").references(() => tickets.id).notNull(),
-  actionNumber: varchar("action_number", { length: 50 }).notNull().unique(), // Auto-generated unique identifier like AI-2025-000001
+  actionNumber: varchar("action_number", { length: 50 }).notNull(), // Auto-generated unique identifier like AI-2025-000001
   actionType: varchar("action_type", { length: 100 }).notNull(), // analysis, investigation, escalation, resolution, follow_up
   title: varchar("title", { length: 255 }).notNull(),
   description: text("description"),
@@ -1725,6 +1733,8 @@ export const ticketInternalActions = pgTable("ticket_internal_actions", {
   index("ticket_internal_actions_planned_dates_idx").on(table.tenantId, table.plannedStartDate, table.plannedEndDate),
   index("ticket_internal_actions_actual_dates_idx").on(table.tenantId, table.actualStartDate, table.actualEndDate),
   index("ticket_internal_actions_group_agent_idx").on(table.tenantId, table.assignmentGroupId, table.agentId),
+  // TENANT ISOLATION: Action numbers must be unique per tenant
+  unique("ticket_internal_actions_tenant_number_unique").on(table.tenantId, table.actionNumber),
 ]);
 
 // ========================================
