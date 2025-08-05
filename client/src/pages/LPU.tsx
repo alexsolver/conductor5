@@ -127,8 +127,12 @@ export default function LPU() {
       return apiRequest('POST', '/api/materials-services/price-lists', processedData);
     },
     onSuccess: () => {
+      // Force invalidate all related queries
       queryClient.invalidateQueries({ queryKey: ['/api/materials-services/price-lists'] });
       queryClient.invalidateQueries({ queryKey: ['/api/materials-services/price-lists/stats'] });
+      // Also refetch immediately to ensure UI updates
+      queryClient.refetchQueries({ queryKey: ['/api/materials-services/price-lists'] });
+      queryClient.refetchQueries({ queryKey: ['/api/materials-services/price-lists/stats'] });
       setIsCreateDialogOpen(false);
       toast({ title: "Lista de preços criada com sucesso!" });
     },
@@ -496,13 +500,12 @@ function PriceListForm({
 }) {
   const [formData, setFormData] = useState({
     name: '',
-    code: '',
     version: '1.0',
     currency: 'BRL',
     validFrom: new Date().toISOString().split('T')[0],
     isActive: true,
     notes: '',
-    customerCompanyId: undefined // Changed from customerId
+    customerCompanyId: undefined
   });
 
   // Fetch customer companies
@@ -534,25 +537,18 @@ function PriceListForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="name">Nome da Lista</Label>
-          <Input
-            id="name"
-            value={formData.name}
-            onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-            required
-          />
-        </div>
-        <div>
-          <Label htmlFor="code">Código</Label>
-          <Input
-            id="code"
-            value={formData.code}
-            onChange={(e) => setFormData(prev => ({ ...prev, code: e.target.value }))}
-            required
-          />
-        </div>
+      <div>
+        <Label htmlFor="name">Nome da Lista</Label>
+        <Input
+          id="name"
+          value={formData.name}
+          onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+          required
+          placeholder="Digite o nome da lista de preços"
+        />
+        <p className="text-xs text-muted-foreground mt-1">
+          O código será gerado automaticamente baseado no nome
+        </p>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
