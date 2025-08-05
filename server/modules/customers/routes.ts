@@ -23,23 +23,27 @@ customersRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
       whereClause = 'WHERE COALESCE(is_active, true) = true';
     }
 
+    // Check which columns exist to avoid SQL errors
+    const columnsCheck = await pool.query(`
+      SELECT column_name FROM information_schema.columns 
+      WHERE table_schema = $1 AND table_name = 'customers'
+    `, [schemaName]);
+    
+    const availableColumns = columnsCheck.rows.map(row => row.column_name);
+    console.log('[GET-CUSTOMERS] Available columns:', availableColumns);
+    
+    // Build SELECT clause with only existing columns
+    const baseColumns = ['id', 'first_name', 'last_name', 'email', 'phone', 'customer_type', 'created_at', 'updated_at'];
+    const optionalColumns = ['state', 'cpf', 'cnpj', 'company_name', 'contact_person', 'mobile_phone'];
+    
+    const selectColumns = [
+      ...baseColumns.filter(col => availableColumns.includes(col)),
+      ...optionalColumns.filter(col => availableColumns.includes(col)),
+      availableColumns.includes('is_active') ? 'COALESCE(is_active, true) as is_active' : 'true as is_active'
+    ];
+
     const result = await pool.query(`
-      SELECT 
-        id, 
-        first_name, 
-        last_name, 
-        email, 
-        phone, 
-        customer_type,
-        state,
-        cpf,
-        cnpj,
-        company_name,
-        contact_person,
-        mobile_phone,
-        created_at, 
-        updated_at,
-        COALESCE(is_active, true) as is_active
+      SELECT ${selectColumns.join(', ')}
       FROM "${schemaName}".customers 
       ${whereClause}
       ORDER BY first_name, last_name
