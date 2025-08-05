@@ -77,28 +77,30 @@ export default function AssetManagement() {
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
 
   // Fetch assets
-  const { data: assets = [], isLoading: assetsLoading } = useQuery({
-    queryKey: ['/api/materials-services/assets'],
-    queryFn: () => apiRequest('GET', '/api/materials-services/assets')
+  const { data: assetsResponse, isLoading: assetsLoading } = useQuery({
+    queryKey: ['/api/materials-services/assets']
   });
+
+  const assets = Array.isArray(assetsResponse) ? assetsResponse : [];
 
   // Fetch asset stats
   const { data: stats } = useQuery<AssetStats>({
-    queryKey: ['/api/materials-services/assets/stats'],
-    queryFn: () => apiRequest('GET', '/api/materials-services/assets/stats')
+    queryKey: ['/api/materials-services/assets/stats']
   });
 
   // Fetch asset hierarchy
-  const { data: hierarchy = [] } = useQuery({
-    queryKey: ['/api/materials-services/assets/hierarchy'],
-    queryFn: () => apiRequest('GET', '/api/materials-services/assets/hierarchy')
+  const { data: hierarchyResponse } = useQuery({
+    queryKey: ['/api/materials-services/assets/hierarchy']
   });
 
+  const hierarchy = Array.isArray(hierarchyResponse) ? hierarchyResponse : [];
+
   // Fetch maintenance records
-  const { data: maintenance = [] } = useQuery<AssetMaintenance[]>({
-    queryKey: ['/api/materials-services/assets/maintenance'],
-    queryFn: () => apiRequest('GET', '/api/materials-services/assets/maintenance')
+  const { data: maintenanceResponse } = useQuery<AssetMaintenance[]>({
+    queryKey: ['/api/materials-services/assets/maintenance']
   });
+
+  const maintenance = Array.isArray(maintenanceResponse) ? maintenanceResponse : [];
 
   // Create asset mutation
   const createAssetMutation = useMutation({
