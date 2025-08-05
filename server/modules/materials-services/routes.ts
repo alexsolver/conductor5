@@ -363,6 +363,22 @@ router.post('/pricing-rules/apply-to-item', async (req: AuthenticatedRequest, re
   return lpuController.applyPricingRulesToItem(req, res);
 });
 
+// ASSOCIAÇÃO DE REGRAS COM LISTAS
+router.get('/price-lists/:priceListId/rules', async (req: AuthenticatedRequest, res) => {
+  const { lpuController } = await getControllers(req.user.tenantId);
+  return lpuController.getPriceListRules(req, res);
+});
+
+router.post('/price-lists/:priceListId/rules/:ruleId', async (req: AuthenticatedRequest, res) => {
+  const { lpuController } = await getControllers(req.user.tenantId);
+  return lpuController.associateRuleWithPriceList(req, res);
+});
+
+router.delete('/price-lists/:priceListId/rules/:ruleId', async (req: AuthenticatedRequest, res) => {
+  const { lpuController } = await getControllers(req.user.tenantId);
+  return lpuController.removeRuleFromPriceList(req, res);
+});
+
 router.post('/price-lists/:priceListId/apply-rules', async (req: AuthenticatedRequest, res) => {
   const { lpuController } = await getControllers(req.user.tenantId);
   return lpuController.applyRulesToPriceList(req, res);

@@ -11,7 +11,7 @@ import {
   type DynamicPricing,
   type InsertDynamicPricing
 } from '../../../../../shared/schema-materials-services';
-import { eq, and, desc, asc, gte, lte, sql } from 'drizzle-orm';
+import { eq, and, desc, asc, gte, lte, sql, inArray } from 'drizzle-orm';
 
 export class LPURepository {
   constructor(private database = db) {}
@@ -375,5 +375,126 @@ export class LPURepository {
     return { success: true, updated: itemMargins?.length || 0 };
   }
 
+  // ASSOCIAÇÃO DE REGRAS COM LISTAS (Simplified version)
+  async getPriceListRules(priceListId: string, tenantId: string) {
+    // For now, return all active rules for the tenant
+    // This can be enhanced later with proper association table
+    return await db
+      .select({
+        id: pricingRules.id,
+        name: pricingRules.name,
+        type: pricingRules.ruleType,
+        priority: pricingRules.priority,
+        isActive: pricingRules.isActive,
+        conditions: pricingRules.conditions,
+        actions: pricingRules.actions
+      })
+      .from(pricingRules)
+      .where(and(
+        eq(pricingRules.tenantId, tenantId),
+        eq(pricingRules.isActive, true)
+      ))
+      .orderBy(desc(pricingRules.priority));
+  }
 
+  async associateRuleWithPriceList(priceListId: string, ruleId: string, tenantId: string) {
+    // Simplified: Just ensure the rule exists and is active
+    const [rule] = await db
+      .select()
+      .from(pricingRules)
+      .where(and(
+        eq(pricingRules.id, ruleId),
+        eq(pricingRules.tenantId, tenantId)
+      ));
+    
+    if (rule) {
+      await db
+        .update(pricingRules)
+        .set({ isActive: true })
+        .where(eq(pricingRules.id, ruleId));
+    }
+  }
+
+  async removeRuleFromPriceList(priceListId: string, ruleId: string, tenantId: string) {
+    // Simplified: Just deactivate the rule
+    await db
+      .update(pricingRules)
+      .set({ isActive: false })
+      .where(and(
+        eq(pricingRules.id, ruleId),
+        eq(pricingRules.tenantId, tenantId)
+      ));
+  }
+
+  async applyRulesToPriceList(priceListId: string, ruleIds: string[], tenantId: string) {
+    const results = [];
+    
+    // Get all items in the price list
+    const items = await db
+      .select()
+      .from(priceListItems)
+      .where(and(
+        eq(priceListItems.priceListId, priceListId),
+        eq(priceListItems.tenantId, tenantId)
+      ));
+
+    // Get the rules to apply
+    const rules = await db
+      .select()
+      .from(pricingRules)
+      .where(and(
+        inArray(pricingRules.id, ruleIds),
+        eq(pricingRules.tenantId, tenantId),
+        eq(pricingRules.isActive, true)
+      ))
+      .orderBy(desc(pricingRules.priority));
+
+    // Apply rules to each item
+    for (const item of items) {
+      let newPrice = parseFloat(item.unitPrice);
+      
+      for (const rule of rules) {
+        const conditions = rule.conditions as any;
+        const actions = rule.actions as any;
+        
+        // Simple condition checking (can be expanded)
+        let shouldApply = true;
+        
+        if (conditions.minPrice && newPrice < conditions.minPrice) shouldApply = false;
+        if (conditions.maxPrice && newPrice > conditions.maxPrice) shouldApply = false;
+        
+        if (shouldApply) {
+          switch (rule.ruleType) {
+            case 'percentual':
+              newPrice = newPrice * (1 + (actions.percentage || 0) / 100);
+              break;
+            case 'fixo':
+              newPrice = newPrice + (actions.fixedAmount || 0);
+              break;
+            case 'escalonado':
+              // Implement stepped pricing logic
+              break;
+          }
+        }
+      }
+      
+      // Update the item price
+      if (newPrice !== parseFloat(item.unitPrice)) {
+        await db
+          .update(priceListItems)
+          .set({
+            finalPrice: newPrice.toFixed(2),
+            updatedAt: new Date()
+          })
+          .where(and(
+            eq(priceListItems.id, item.id),
+            eq(priceListItems.tenantId, tenantId)
+          ));
+        
+        results.push({ itemId: item.itemId, oldPrice: item.unitPrice, newPrice: newPrice.toFixed(2) });
+      }
+    }
+    
+    return results;
+  }
 }

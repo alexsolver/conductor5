@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -73,6 +73,7 @@ export default function LPU() {
   const [selectedPriceList, setSelectedPriceList] = useState<PriceList | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isCreateRuleDialogOpen, setIsCreateRuleDialogOpen] = useState(false);
+  const [selectedPriceListForRules, setSelectedPriceListForRules] = useState<string | null>(null);
 
   // Fetch LPU stats with error handling
   const { data: stats, isLoading: statsLoading, error: statsError } = useQuery<LPUStats>({
@@ -188,6 +189,35 @@ export default function LPU() {
     createPricingRuleMutation.mutate(data);
   };
 
+  // Mutation for associating rules with price lists
+  const associateRuleMutation = useMutation({
+    mutationFn: async ({ priceListId, ruleId }: { priceListId: string, ruleId: string }) => {
+      const response = await apiRequest('POST', `/api/materials-services/price-lists/${priceListId}/rules/${ruleId}`, {});
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Regra associada com sucesso!" });
+    },
+    onError: (error: any) => {
+      console.error('Error associating rule:', error);
+      toast({
+        title: "Erro ao associar regra",
+        description: error?.message || 'Erro desconhecido',
+        variant: "destructive"
+      });
+    }
+  });
+
+  const associateRule = (priceListId: string, ruleId: string) => {
+    associateRuleMutation.mutate({ priceListId, ruleId });
+  };
+
+  const applyRulesToList = (priceListId: string) => {
+    // Get all active rule IDs
+    const activeRuleIds = pricingRules.filter(rule => rule.isActive).map(rule => rule.id);
+    applyRulesMutation.mutate(priceListId);
+  };
+
   // Safe filtering with error handling
   const filteredPriceLists = priceLists.filter((list: PriceList) => {
     try {
@@ -226,10 +256,11 @@ export default function LPU() {
       {rulesError && <ErrorDisplay error={rulesError} title="Erro ao carregar regras de precificação" />}
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
           <TabsTrigger value="price-lists">Listas de Preços</TabsTrigger>
           <TabsTrigger value="pricing-rules">Regras de Precificação</TabsTrigger>
+          <TabsTrigger value="associations">Associações</TabsTrigger>
           <TabsTrigger value="analytics">Análises</TabsTrigger>
         </TabsList>
 
@@ -461,6 +492,117 @@ export default function LPU() {
               ))
             )}
           </div>
+        </TabsContent>
+
+        <TabsContent value="associations" className="space-y-6">
+          <div className="flex justify-between items-center">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">Associação de Regras</h2>
+              <p className="text-gray-600">Associe regras de precificação às listas de preços</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Lista de Preços */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Listas de Preços</CardTitle>
+                <CardDescription>Selecione uma lista para gerenciar suas regras</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {priceLists.map((list) => (
+                    <div
+                      key={list.id}
+                      className={`p-3 border rounded-lg cursor-pointer transition-colors ${
+                        selectedPriceListForRules === list.id 
+                          ? 'bg-blue-50 border-blue-300' 
+                          : 'hover:bg-gray-50'
+                      }`}
+                      onClick={() => setSelectedPriceListForRules(list.id)}
+                    >
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <h4 className="font-medium">{list.name}</h4>
+                          <p className="text-sm text-gray-600">v{list.version}</p>
+                        </div>
+                        <Badge variant={list.isActive ? "default" : "secondary"}>
+                          {list.isActive ? "Ativa" : "Inativa"}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Regras Disponíveis */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Regras de Precificação</CardTitle>
+                <CardDescription>Regras disponíveis para associação</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {pricingRules.map((rule) => (
+                    <div
+                      key={rule.id}
+                      className="p-3 border rounded-lg"
+                    >
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <h4 className="font-medium">{rule.name}</h4>
+                          <p className="text-sm text-gray-600">
+                            {rule.ruleType} - Prioridade: {rule.priority}
+                          </p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Badge variant={rule.isActive ? "default" : "secondary"}>
+                            {rule.isActive ? "Ativa" : "Inativa"}
+                          </Badge>
+                          {selectedPriceListForRules && (
+                            <Button
+                              size="sm"
+                              onClick={() => associateRule(selectedPriceListForRules, rule.id)}
+                              disabled={associateRuleMutation.isPending}
+                            >
+                              Associar
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Seção de Aplicação de Regras */}
+          {selectedPriceListForRules && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Aplicar Regras à Lista Selecionada</CardTitle>
+                <CardDescription>
+                  Aplique as regras selecionadas aos itens da lista de preços
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="text-sm text-gray-600">
+                    Lista selecionada: <strong>{priceLists.find(l => l.id === selectedPriceListForRules)?.name}</strong>
+                  </div>
+                  <Button
+                    onClick={() => applyRulesToList(selectedPriceListForRules)}
+                    disabled={applyRulesMutation.isPending}
+                    className="w-full"
+                  >
+                    {applyRulesMutation.isPending ? "Aplicando..." : "Aplicar Todas as Regras Ativas"}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-4">

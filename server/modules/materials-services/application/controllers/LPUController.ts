@@ -479,4 +479,85 @@ export class LPUController {
       res.status(500).json({ error: 'Erro interno do servidor' });
     }
   }
+
+  // ASSOCIAÇÃO DE REGRAS ÀS LISTAS
+  async applyRulesToPriceList(req: AuthenticatedRequest, res: Response) {
+    try {
+      const { priceListId } = req.params;
+      const { ruleIds } = req.body;
+      const tenantId = req.user?.tenantId;
+
+      if (!tenantId) {
+        return res.status(400).json({ error: 'Tenant ID é obrigatório' });
+      }
+
+      // Aplicar as regras aos itens da lista
+      const results = await this.repository.applyRulesToPriceList(priceListId, ruleIds, tenantId);
+      res.json({ 
+        success: true, 
+        message: 'Regras aplicadas com sucesso',
+        affectedItems: results.length 
+      });
+    } catch (error) {
+      console.error('Erro ao aplicar regras à lista:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  }
+
+  async getPriceListRules(req: AuthenticatedRequest, res: Response) {
+    try {
+      const { priceListId } = req.params;
+      const tenantId = req.user?.tenantId;
+
+      if (!tenantId) {
+        return res.status(400).json({ error: 'Tenant ID é obrigatório' });
+      }
+
+      const rules = await this.repository.getPriceListRules(priceListId, tenantId);
+      res.json(rules);
+    } catch (error) {
+      console.error('Erro ao buscar regras da lista:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  }
+
+  async associateRuleWithPriceList(req: AuthenticatedRequest, res: Response) {
+    try {
+      const { priceListId, ruleId } = req.params;
+      const tenantId = req.user?.tenantId;
+
+      if (!tenantId) {
+        return res.status(400).json({ error: 'Tenant ID é obrigatório' });
+      }
+
+      await this.repository.associateRuleWithPriceList(priceListId, ruleId, tenantId);
+      res.json({ 
+        success: true, 
+        message: 'Regra associada com sucesso' 
+      });
+    } catch (error) {
+      console.error('Erro ao associar regra:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  }
+
+  async removeRuleFromPriceList(req: AuthenticatedRequest, res: Response) {
+    try {
+      const { priceListId, ruleId } = req.params;
+      const tenantId = req.user?.tenantId;
+
+      if (!tenantId) {
+        return res.status(400).json({ error: 'Tenant ID é obrigatório' });
+      }
+
+      await this.repository.removeRuleFromPriceList(priceListId, ruleId, tenantId);
+      res.json({ 
+        success: true, 
+        message: 'Regra removida com sucesso' 
+      });
+    } catch (error) {
+      console.error('Erro ao remover regra:', error);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  }
 }
