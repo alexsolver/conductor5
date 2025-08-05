@@ -16,7 +16,9 @@ import {
   Link,
   Building,
   Users,
-  Truck
+  Truck,
+  DollarSign,
+  Tag
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,6 +31,8 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -47,6 +51,30 @@ interface Item {
   active: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+interface CustomerItemMapping {
+  id: string;
+  tenant_id: string;
+  customer_id: string;
+  item_id: string;
+  custom_sku: string;
+  custom_name: string;
+  custom_description?: string;
+  customer_reference: string;
+  negotiated_price: string;
+  minimum_quantity: string;
+  discount_percent: string;
+  special_instructions?: string;
+  notes?: string;
+  is_active: boolean;
+  item_name: string;
+  item_integration_code: string;
+  item_type: string;
+  item_description: string;
+  customer_first_name: string;
+  customer_last_name: string;
+  customer_email: string;
 }
 
 const itemSchema = z.object({
@@ -91,6 +119,27 @@ export default function ItemCatalog() {
   const [linkedCustomers, setLinkedCustomers] = useState<string[]>([]);
   const [linkedSuppliers, setLinkedSuppliers] = useState<string[]>([]);
 
+  // Estados para mapeamentos personalizados
+  const [mappingSearchTerm, setMappingSearchTerm] = useState("");
+  const [selectedCustomerMapping, setSelectedCustomerMapping] = useState("");
+  const [mappingDialogOpen, setMappingDialogOpen] = useState(false);
+  const [editingMapping, setEditingMapping] = useState<CustomerItemMapping | null>(null);
+  
+  // Form state para mapeamentos
+  const [mappingFormData, setMappingFormData] = useState({
+    customer_id: "",
+    item_id: "",
+    custom_sku: "",
+    custom_name: "",
+    custom_description: "",
+    customer_reference: "",
+    negotiated_price: "",
+    minimum_quantity: "1",
+    discount_percent: "0",
+    special_instructions: "",
+    notes: ""
+  });
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -134,6 +183,36 @@ export default function ItemCatalog() {
   const { data: availableSuppliers } = useQuery({
     queryKey: ["/api/materials-services/suppliers"],
     enabled: true
+  });
+
+  // Queries para mapeamentos personalizados
+  const { data: userData } = useQuery({
+    queryKey: ['/api/auth/me'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/auth/me');
+      return response.json();
+    }
+  });
+
+  const tenantId = userData?.tenantId;
+
+  const { data: mappingsResponse, isLoading: isLoadingMappings } = useQuery({
+    queryKey: ['/api/materials-services/customer-item-mappings'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/materials-services/customer-item-mappings');
+      return response.json();
+    },
+    enabled: !!tenantId,
+  });
+
+  const { data: customerCompaniesData } = useQuery({
+    queryKey: ['/api/customer-companies'],
+    queryFn: async () => {
+      if (!tenantId) return [];
+      const response = await apiRequest('GET', `/api/customer-companies?tenantId=${tenantId}`);
+      return response.json();
+    },
+    enabled: !!tenantId,
   });
 
   // Mutations
@@ -229,9 +308,96 @@ export default function ItemCatalog() {
     }
   });
 
+  // Mutations para mapeamentos personalizados
+  const createMappingMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await apiRequest('POST', '/api/materials-services/customer-item-mappings', data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/materials-services/customer-item-mappings'] });
+      toast({
+        title: "Mapeamento criado com sucesso",
+        description: "A personalização foi salva.",
+      });
+      setMappingDialogOpen(false);
+      resetMappingForm();
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro ao criar mapeamento",
+        description: "Ocorreu um erro ao salvar a personalização.",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const updateMappingMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string, data: any }) => {
+      const response = await apiRequest('PUT', `/api/materials-services/customer-item-mappings/${id}`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/materials-services/customer-item-mappings'] });
+      toast({
+        title: "Mapeamento atualizado com sucesso",
+        description: "As alterações foram salvas.",
+      });
+      setMappingDialogOpen(false);
+      resetMappingForm();
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro ao atualizar mapeamento",
+        description: "Ocorreu um erro ao atualizar a personalização.",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const deleteMappingMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await apiRequest('DELETE', `/api/materials-services/customer-item-mappings/${id}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/materials-services/customer-item-mappings'] });
+      toast({
+        title: "Mapeamento excluído com sucesso",
+        description: "A personalização foi removida.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro ao excluir mapeamento",
+        description: "Ocorreu um erro ao excluir a personalização.",
+        variant: "destructive",
+      });
+    }
+  });
+
   // Extract data from API responses
   const items: Item[] = (itemsResponse as any)?.data || [];
   const itemStats = (itemStatsResponse as any)?.data || { total: 0, materials: 0, services: 0, active: 0 };
+  const mappings: CustomerItemMapping[] = (mappingsResponse as any)?.data || [];
+
+  // Função auxiliar para resetar o formulário de mapeamentos
+  const resetMappingForm = () => {
+    setMappingFormData({
+      customer_id: "",
+      item_id: "",
+      custom_sku: "",
+      custom_name: "",
+      custom_description: "",
+      customer_reference: "",
+      negotiated_price: "",
+      minimum_quantity: "1",
+      discount_percent: "0",
+      special_instructions: "",
+      notes: ""
+    });
+    setEditingMapping(null);
+  };
 
   // Filtros por tipo (separados para cada aba)
   const materialItems = items.filter((item: Item) => {
@@ -250,6 +416,22 @@ export default function ItemCatalog() {
     const matchesStatus = statusFilter === "all" || item.status === statusFilter;
 
     return item.type === 'service' && matchesSearch && matchesStatus;
+  });
+
+  // Filtros para mapeamentos personalizados
+  const filteredMappings = mappings.filter((mapping: CustomerItemMapping) => {
+    const matchesSearch = mappingSearchTerm === "" || 
+                         mapping.custom_name.toLowerCase().includes(mappingSearchTerm.toLowerCase()) ||
+                         mapping.custom_sku.toLowerCase().includes(mappingSearchTerm.toLowerCase()) ||
+                         mapping.item_name.toLowerCase().includes(mappingSearchTerm.toLowerCase()) ||
+                         mapping.customer_first_name.toLowerCase().includes(mappingSearchTerm.toLowerCase()) ||
+                         mapping.customer_last_name.toLowerCase().includes(mappingSearchTerm.toLowerCase());
+    
+    const matchesCustomer = selectedCustomerMapping === "" || 
+                           selectedCustomerMapping === "all-customers" || 
+                           mapping.customer_id === selectedCustomerMapping;
+
+    return matchesSearch && matchesCustomer;
   });
 
   const onSubmit = async (data: z.infer<typeof itemSchema>) => {
@@ -738,50 +920,7 @@ export default function ItemCatalog() {
         </Dialog>
       </div>
 
-      {/* Estatísticas */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Itens</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{itemStats.total}</div>
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Materiais</CardTitle>
-            <Package className="h-4 w-4 text-blue-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{itemStats.materials}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Serviços</CardTitle>
-            <Wrench className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{itemStats.services}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Ativos</CardTitle>
-            <Badge variant="outline" className="text-xs">
-              {itemStats.active}
-            </Badge>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">{itemStats.active}</div>
-          </CardContent>
-        </Card>
-      </div>
 
       {/* Filtros e Busca */}
       <Card>
@@ -814,9 +953,9 @@ export default function ItemCatalog() {
         </CardContent>
       </Card>
 
-      {/* Abas para Materiais e Serviços */}
+      {/* Abas para Materiais, Serviços e Personalizações */}
       <Tabs value={itemTypeTab} onValueChange={setItemTypeTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="materials" className="flex items-center gap-2">
             <Package className="h-4 w-4" />
             Materiais ({materialItems.length})
@@ -824,6 +963,10 @@ export default function ItemCatalog() {
           <TabsTrigger value="services" className="flex items-center gap-2">
             <Wrench className="h-4 w-4" />
             Serviços ({serviceItems.length})
+          </TabsTrigger>
+          <TabsTrigger value="mappings" className="flex items-center gap-2">
+            <Building className="h-4 w-4" />
+            Personalizações
           </TabsTrigger>
         </TabsList>
 
@@ -894,6 +1037,335 @@ export default function ItemCatalog() {
                 <div className="space-y-4">
                   {serviceItems.map(renderItemCard)}
                 </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="mappings" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <div>
+                  <CardTitle>Personalizações por Empresa Cliente ({filteredMappings.length})</CardTitle>
+                  <CardDescription>
+                    Configurações específicas de itens para cada empresa cliente
+                  </CardDescription>
+                </div>
+                <Dialog open={mappingDialogOpen} onOpenChange={setMappingDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button onClick={resetMappingForm}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Nova Personalização
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle>
+                        {editingMapping ? 'Editar Personalização' : 'Nova Personalização'}
+                      </DialogTitle>
+                      <DialogDescription>
+                        Configure como um item aparece para uma empresa cliente específica
+                      </DialogDescription>
+                    </DialogHeader>
+                    
+                    <form onSubmit={(e) => {
+                      e.preventDefault();
+                      if (editingMapping) {
+                        updateMappingMutation.mutate({ id: editingMapping.id, data: mappingFormData });
+                      } else {
+                        createMappingMutation.mutate(mappingFormData);
+                      }
+                    }} className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="customer_id">Empresa Cliente</Label>
+                          <Select 
+                            value={mappingFormData.customer_id} 
+                            onValueChange={(value) => setMappingFormData(prev => ({ ...prev, customer_id: value }))}
+                            disabled={!!editingMapping}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione uma empresa" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {customerCompaniesData?.map((company: any) => (
+                                <SelectItem key={company.id} value={company.id}>
+                                  {company.name} {company.tradeName && `(${company.tradeName})`}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div>
+                          <Label htmlFor="item_id">Item Base</Label>
+                          <Select 
+                            value={mappingFormData.item_id} 
+                            onValueChange={(value) => setMappingFormData(prev => ({ ...prev, item_id: value }))}
+                            disabled={!!editingMapping}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione um item" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {items.map((item: Item) => (
+                                <SelectItem key={item.id} value={item.id}>
+                                  {item.name} ({item.type === 'material' ? 'Material' : 'Serviço'})
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="custom_sku">SKU Personalizado</Label>
+                          <Input
+                            id="custom_sku"
+                            value={mappingFormData.custom_sku}
+                            onChange={(e) => setMappingFormData(prev => ({ ...prev, custom_sku: e.target.value }))}
+                            placeholder="Ex: JOAO-BC150-A"
+                          />
+                        </div>
+
+                        <div>
+                          <Label htmlFor="custom_name">Nome Personalizado</Label>
+                          <Input
+                            id="custom_name"
+                            value={mappingFormData.custom_name}
+                            onChange={(e) => setMappingFormData(prev => ({ ...prev, custom_name: e.target.value }))}
+                            placeholder="Nome específico para a empresa"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label htmlFor="custom_description">Descrição Personalizada</Label>
+                        <Textarea
+                          id="custom_description"
+                          value={mappingFormData.custom_description}
+                          onChange={(e) => setMappingFormData(prev => ({ ...prev, custom_description: e.target.value }))}
+                          placeholder="Descrição específica para a empresa"
+                          rows={3}
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-4">
+                        <div>
+                          <Label htmlFor="negotiated_price">Preço Negociado (R$)</Label>
+                          <Input
+                            id="negotiated_price"
+                            type="number"
+                            step="0.01"
+                            value={mappingFormData.negotiated_price}
+                            onChange={(e) => setMappingFormData(prev => ({ ...prev, negotiated_price: e.target.value }))}
+                            placeholder="0.00"
+                          />
+                        </div>
+
+                        <div>
+                          <Label htmlFor="minimum_quantity">Quantidade Mínima</Label>
+                          <Input
+                            id="minimum_quantity"
+                            type="number"
+                            value={mappingFormData.minimum_quantity}
+                            onChange={(e) => setMappingFormData(prev => ({ ...prev, minimum_quantity: e.target.value }))}
+                            placeholder="1"
+                          />
+                        </div>
+
+                        <div>
+                          <Label htmlFor="discount_percent">Desconto (%)</Label>
+                          <Input
+                            id="discount_percent"
+                            type="number"
+                            step="0.01"
+                            value={mappingFormData.discount_percent}
+                            onChange={(e) => setMappingFormData(prev => ({ ...prev, discount_percent: e.target.value }))}
+                            placeholder="0.00"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label htmlFor="special_instructions">Instruções Especiais</Label>
+                        <Textarea
+                          id="special_instructions"
+                          value={mappingFormData.special_instructions}
+                          onChange={(e) => setMappingFormData(prev => ({ ...prev, special_instructions: e.target.value }))}
+                          placeholder="Instruções específicas para esta empresa"
+                          rows={2}
+                        />
+                      </div>
+
+                      <div className="flex justify-end space-x-2 pt-4">
+                        <Button type="button" variant="outline" onClick={() => setMappingDialogOpen(false)}>
+                          Cancelar
+                        </Button>
+                        <Button type="submit" disabled={createMappingMutation.isPending || updateMappingMutation.isPending}>
+                          {(createMappingMutation.isPending || updateMappingMutation.isPending) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                          {editingMapping ? 'Atualizar' : 'Salvar'}
+                        </Button>
+                      </div>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              </div>
+              
+              {/* Filtros para mapeamentos */}
+              <div className="flex flex-col sm:flex-row gap-4 mt-4">
+                <div className="flex-1">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Buscar por SKU, nome personalizado, item ou cliente..."
+                      value={mappingSearchTerm}
+                      onChange={(e) => setMappingSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="customer-filter">Empresa Cliente</Label>
+                  <Select value={selectedCustomerMapping} onValueChange={setSelectedCustomerMapping}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Todas as empresas" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all-customers">Todas as empresas</SelectItem>
+                      {customerCompaniesData?.map((company: any) => (
+                        <SelectItem key={company.id} value={company.id}>
+                          {company.name} {company.tradeName && `(${company.tradeName})`}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {isLoadingMappings ? (
+                <div className="space-y-4">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="flex items-center space-x-4 p-4 border rounded-lg animate-pulse">
+                      <div className="w-12 h-12 bg-gray-200 rounded"></div>
+                      <div className="space-y-2 flex-1">
+                        <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+                        <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                      </div>
+                      <div className="flex space-x-2">
+                        <div className="w-16 h-8 bg-gray-200 rounded"></div>
+                        <div className="w-16 h-8 bg-gray-200 rounded"></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : filteredMappings.length === 0 ? (
+                <div className="text-center py-8">
+                  <Building className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground">Nenhuma personalização encontrada</p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Crie personalizações para configurar como os itens aparecem para cada empresa cliente
+                  </p>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Empresa Cliente</TableHead>
+                      <TableHead>Item Base</TableHead>
+                      <TableHead>SKU Personalizado</TableHead>
+                      <TableHead>Nome Personalizado</TableHead>
+                      <TableHead>Preço Negociado</TableHead>
+                      <TableHead>Desconto</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredMappings.map((mapping) => (
+                      <TableRow key={mapping.id}>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            <Building className="h-4 w-4 text-blue-600" />
+                            <span className="font-medium">
+                              {mapping.customer_first_name} {mapping.customer_last_name}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            {mapping.item_type === 'material' ? 
+                              <Package className="h-4 w-4 text-blue-600" /> : 
+                              <Wrench className="h-4 w-4 text-green-600" />
+                            }
+                            <span>{mapping.item_name}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="font-mono">
+                            {mapping.custom_sku}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{mapping.custom_name}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-1">
+                            <DollarSign className="h-4 w-4 text-green-600" />
+                            <span>R$ {parseFloat(mapping.negotiated_price).toFixed(2)}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="secondary">
+                            {parseFloat(mapping.discount_percent).toFixed(1)}%
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={mapping.is_active ? "default" : "secondary"}>
+                            {mapping.is_active ? "Ativo" : "Inativo"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setEditingMapping(mapping);
+                                setMappingFormData({
+                                  customer_id: mapping.customer_id,
+                                  item_id: mapping.item_id,
+                                  custom_sku: mapping.custom_sku,
+                                  custom_name: mapping.custom_name,
+                                  custom_description: mapping.custom_description || "",
+                                  customer_reference: mapping.customer_reference,
+                                  negotiated_price: mapping.negotiated_price,
+                                  minimum_quantity: mapping.minimum_quantity,
+                                  discount_percent: mapping.discount_percent,
+                                  special_instructions: mapping.special_instructions || "",
+                                  notes: mapping.notes || ""
+                                });
+                                setMappingDialogOpen(true);
+                              }}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => deleteMappingMutation.mutate(mapping.id)}
+                              className="text-red-600 hover:text-red-700"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               )}
             </CardContent>
           </Card>
