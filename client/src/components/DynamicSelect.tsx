@@ -67,9 +67,7 @@ export function DynamicSelect(props: DynamicSelectProps) {
         params
       });
 
-      const response = await apiRequest("GET", "/api/ticket-config/field-options", {
-        params
-      });
+      const response = await apiRequest("GET", `/api/ticket-config/field-options?${new URLSearchParams(params).toString()}`);
       return response.json();
     },
     enabled: !!fieldName, // Só executa se fieldName existe
@@ -95,7 +93,7 @@ export function DynamicSelect(props: DynamicSelectProps) {
         totalReceived: fieldOptionsData.data.length,
         filtered: filteredOptions.length,
         isHierarchical: ['category', 'subcategory', 'action'].includes(fieldName),
-        sampleData: filteredOptions.slice(0, 3).map(opt => ({
+        sampleData: filteredOptions.slice(0, 3).map((opt: any) => ({
           id: opt.id,
           value: opt.value,
           label: opt.label,
