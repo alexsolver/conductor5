@@ -7,9 +7,10 @@ import { pool } from '../../../../db';
  * Buscar mapeamentos personalizados de itens por cliente
  * GET /api/materials-services/customer-item-mappings
  */
-export const getCustomerItemMappings = async (req: Request, res: Response) => {
+export const getCustomerItemMappings = async (req: any, res: Response) => {
   try {
-    const { tenantId, customerId, itemId, isActive, search, page = '1', limit = '50' } = req.query;
+    const tenantId = req.user?.tenantId;
+    const { customerId, itemId, isActive, search, page = '1', limit = '50' } = req.query;
 
     if (!tenantId) {
       return res.status(400).json({
