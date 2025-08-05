@@ -152,10 +152,8 @@ export function DynamicSelect(props: DynamicSelectProps) {
           <SelectItem value="all">Todos</SelectItem>
         )}
         {fieldOptions.map((option, index) => {
-          // Garantir chave única combinando field_name com value e id
-          const uniqueKey = option.id 
-            ? `${fieldName}-${option.id}` 
-            : `${fieldName}-${option.value}-${option.field_name || ''}-${index}`;
+          // Usar sempre o ID como chave única, com prefixo do campo para evitar conflitos
+          const uniqueKey = `${fieldName}-${option.id || `${index}-${option.value || 'unknown'}`}`;
           
           return (
             <SelectItem key={uniqueKey} value={option.value}>

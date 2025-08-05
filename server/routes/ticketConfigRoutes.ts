@@ -630,7 +630,7 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => 
       `);
     }
 
-    console.log(`🏢 Field options found: ${result.rows.length} records for ${fieldName || 'all fields'}`);
+    console.log(`🏢 Field options found: ${result.rows.length} records for ${fieldName || 'all fields'} (hierarchical: ${['category', 'subcategory', 'action'].includes(fieldName)})`);
 
     if (result.rows.length === 0) {
       console.log(`⚠️ No field options found for ${fieldName || 'any field'} in company ${companyId}`);
