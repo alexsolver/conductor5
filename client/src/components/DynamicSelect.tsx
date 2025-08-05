@@ -8,7 +8,7 @@ import { filterDOMProps } from "@/utils/propFiltering";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/axios";
+import { apiRequest } from "@/lib/queryClient";
 
 interface DynamicSelectProps {
   fieldName: string;
