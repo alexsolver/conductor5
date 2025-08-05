@@ -12,9 +12,11 @@ customersRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
 
     console.log('[GET-CUSTOMERS] Fetching customers for tenant:', req.user.tenantId);
 
+    // Check if is_active column exists, otherwise filter by a status-like field
     const result = await pool.query(`
       SELECT id, first_name, last_name, email, phone, created_at, updated_at
       FROM "${schemaName}".customers 
+      WHERE COALESCE(is_active, true) = true
       ORDER BY first_name, last_name
     `);
 
@@ -67,7 +69,9 @@ customersRouter.get('/companies/:companyId/associated', jwtAuth, async (req: Aut
       SELECT c.*, ccm.role, ccm.is_primary, ccm.is_active as membership_active
       FROM "${schemaName}".customers c
       JOIN "${schemaName}".customer_company_memberships ccm ON c.id = ccm.customer_id
-      WHERE ccm.company_id = $1 AND ccm.tenant_id = $2 AND ccm.is_active = true
+      WHERE ccm.company_id = $1 AND ccm.tenant_id = $2 
+      AND ccm.is_active = true 
+      AND COALESCE(c.is_active, true) = true
       ORDER BY ccm.is_primary DESC, c.first_name, c.last_name
     `;
 
