@@ -21,6 +21,13 @@ export const items = pgTable('items', {
   description: text('description'),
   measurementUnit: varchar('measurement_unit', { length: 10 }).default('UN'),
   status: varchar('status', { length: 20 }).default('active'),
+  
+  // Campos de integração e códigos
+  integrationCode: varchar('integration_code', { length: 100 }),
+  
+  // Campos de manutenção e listas de verificação
+  maintenancePlan: jsonb('maintenance_plan'),
+  defaultChecklist: jsonb('default_checklist'),
 
   // Metadados de auditoria
   createdAt: timestamp('created_at').defaultNow().notNull(),
