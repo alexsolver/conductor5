@@ -42,7 +42,7 @@ export function DynamicSelect(props: DynamicSelectProps) {
     ...restProps
   } = props;
 
-  const cleanProps = filterDOMProps(restProps, ['fieldName', 'onChange', 'showAllOption', 'onOptionSelect', 'customerId', 'dependsOn']);
+  const cleanProps = filterDOMProps(restProps, ['fieldName', 'onChange', 'showAllOption', 'onOptionSelect', 'customerId', 'dependsOn', 'allowCustomInput']);
   const [fieldOptions, setFieldOptions] = useState<any[]>([]);
   const { user } = useAuth();
 
