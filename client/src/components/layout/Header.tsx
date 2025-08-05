@@ -101,11 +101,19 @@ export function Header() {
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
-                  className="relative h-8 w-8 rounded-full bg-purple-600 hover:bg-purple-700"
+                  className={`relative h-8 w-8 rounded-full bg-purple-600 hover:bg-purple-700 ${
+                    runningAction 
+                      ? 'ring-2 ring-yellow-400 ring-offset-2 ring-offset-white dark:ring-offset-gray-800 shadow-lg shadow-yellow-400/50' 
+                      : ''
+                  }`}
                 >
                   <span className="text-white text-sm font-semibold">
                     {user?.firstName ? user.firstName.charAt(0).toUpperCase() : user?.email?.charAt(0).toUpperCase()}
                   </span>
+                  {/* Aura amarela pulsante quando trabalhando */}
+                  {runningAction && (
+                    <span className="absolute inset-0 rounded-full ring-2 ring-yellow-400 animate-pulse"></span>
+                  )}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end" forceMount>
