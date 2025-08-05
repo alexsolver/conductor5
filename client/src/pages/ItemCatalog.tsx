@@ -39,7 +39,7 @@ interface Item {
   integrationCode?: string;
   description?: string;
   measurementUnit: string;
-  groupName?: string; // Alterado de 'group' para 'groupName'
+  // groupName?: string; // Disabled - column doesn't exist in current schema
   maintenancePlan?: string;
   defaultChecklist?: string;
   status: 'active' | 'under_review' | 'discontinued';
@@ -56,7 +56,7 @@ const itemSchema = z.object({
   integrationCode: z.string().optional(),
   description: z.string().optional(),
   measurementUnit: z.string().min(1, "Unidade de medida é obrigatória"),
-  groupName: z.string().optional(), // Alterado de 'group' para 'groupName'
+  // groupName: z.string().optional(), // Disabled - column doesn't exist in current schema
   maintenancePlan: z.string().optional(),
   defaultChecklist: z.string().optional(),
   active: z.boolean().default(true),
@@ -101,7 +101,7 @@ export default function ItemCatalog() {
       integrationCode: '',
       description: '',
       measurementUnit: 'UN',
-      groupName: '', // Alterado de 'group' para 'groupName'
+      // groupName: '', // Disabled - column doesn't exist in current schema
       maintenancePlan: '',
       defaultChecklist: '',
       active: true,
@@ -160,7 +160,18 @@ export default function ItemCatalog() {
         description: "O item foi adicionado ao catálogo.",
       });
       setIsCreateModalOpen(false);
-      form.reset();
+      form.reset({
+        name: '',
+        type: 'material',
+        integrationCode: '',
+        description: '',
+        measurementUnit: 'UN',
+        // groupName: '',
+        maintenancePlan: '',
+        defaultChecklist: '',
+        active: true,
+      });
+      setSelectedItem(null);
     },
     onError: (error) => {
       toast({
@@ -194,8 +205,18 @@ export default function ItemCatalog() {
         title: "Item atualizado com sucesso",
         description: "As alterações foram salvas.",
       });
-      setIsEditModalOpen(false);
-      form.reset();
+      setIsCreateModalOpen(false);
+      form.reset({
+        name: '',
+        type: 'material',
+        integrationCode: '',
+        description: '',
+        measurementUnit: 'UN',
+        // groupName: '',
+        maintenancePlan: '',
+        defaultChecklist: '',
+        active: true,
+      });
       setSelectedItem(null);
     },
     onError: (error) => {
@@ -311,7 +332,17 @@ export default function ItemCatalog() {
           size="sm"
           onClick={() => {
             setSelectedItem(item);
-            form.reset(item);
+            form.reset({
+              name: item.name || '',
+              type: item.type || 'material',
+              integrationCode: item.integrationCode || '',
+              description: item.description || '',
+              measurementUnit: item.measurementUnit || 'UN',
+              // groupName: item.groupName || '',
+              maintenancePlan: item.maintenancePlan || '',
+              defaultChecklist: item.defaultChecklist || '',
+              active: item.active !== undefined ? item.active : true,
+            });
             setIsCreateModalOpen(true);
           }}
         >
@@ -355,14 +386,40 @@ export default function ItemCatalog() {
           setIsCreateModalOpen(open);
           if (!open) {
             setSelectedItem(null);
-            form.reset();
+            form.reset({
+              name: '',
+              type: 'material',
+              integrationCode: '',
+              description: '',
+              measurementUnit: 'UN',
+              // groupName: '',
+              maintenancePlan: '',
+              defaultChecklist: '',
+              active: true,
+            });
             setLinkedItems([]);
             setLinkedCustomers([]);
             setLinkedSuppliers([]);
           }
         }}>
           <DialogTrigger asChild>
-            <Button>
+            <Button onClick={() => {
+              setSelectedItem(null);
+              form.reset({
+                name: '',
+                type: 'material',
+                integrationCode: '',
+                description: '',
+                measurementUnit: 'UN',
+                groupName: '',
+                maintenancePlan: '',
+                defaultChecklist: '',
+                active: true,
+              });
+              setLinkedItems([]);
+              setLinkedCustomers([]);
+              setLinkedSuppliers([]);
+            }}>
               <Plus className="h-4 w-4 mr-2" />
               Criar Item
             </Button>
