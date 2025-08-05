@@ -53,11 +53,18 @@ export class LPUController {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
 
+      // Auto-generate code if not provided
+      const timestamp = Date.now();
+      const nameSlug = req.body.name?.replace(/\s+/g, '_').substring(0, 10) || 'LIST';
+      const autoCode = `${nameSlug}_${timestamp}`;
+
       // Handle date conversion properly
       const priceListData = {
         ...req.body,
         tenantId,
         createdBy: req.user?.id,
+        code: req.body.code || autoCode,
+        version: req.body.version || '1.0',
         validFrom: req.body.validFrom ? new Date(req.body.validFrom) : new Date(),
         validTo: req.body.validTo ? new Date(req.body.validTo) : null
       };

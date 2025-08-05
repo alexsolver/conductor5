@@ -330,8 +330,9 @@ export const priceLists = pgTable('price_lists', {
 
   name: varchar('name', { length: 255 }).notNull(),
   code: varchar('code', { length: 50 }).notNull(),
-  version: varchar('version', { length: 20 }).notNull(),
-
+  description: text('description'),
+  version: varchar('version', { length: 20 }),
+  
   // Aplicação
   customerId: uuid('customer_id'),
   customerCompanyId: uuid('customer_company_id'),
@@ -339,7 +340,7 @@ export const priceLists = pgTable('price_lists', {
   costCenterId: uuid('cost_center_id'),
 
   // Vigência
-  validFrom: timestamp('valid_from').notNull(),
+  validFrom: timestamp('valid_from'),
   validTo: timestamp('valid_to'),
   isActive: boolean('is_active').default(true),
 

@@ -37,7 +37,7 @@ export class LPURepository {
       SELECT * FROM stats
     `);
 
-    const stats = result[0] || {
+    const stats = result.rows?.[0] || {
       total_lists: 0,
       active_lists: 0,
       draft_lists: 0,
@@ -66,17 +66,17 @@ export class LPURepository {
         tenantId: priceLists.tenantId,
         name: priceLists.name,
         code: priceLists.code,
+        description: priceLists.description,
         version: priceLists.version,
-        currency: priceLists.currency,
+        isActive: priceLists.isActive,
+        customerCompanyId: priceLists.customerCompanyId,
         validFrom: priceLists.validFrom,
         validTo: priceLists.validTo,
-        automaticMargin: priceLists.automaticMargin,
+        currency: priceLists.currency,
         notes: priceLists.notes,
-        isActive: priceLists.isActive,
         createdAt: priceLists.createdAt,
         updatedAt: priceLists.updatedAt,
         createdBy: priceLists.createdBy,
-        updatedBy: priceLists.updatedBy,
       })
       .from(priceLists)
       .where(eq(priceLists.tenantId, tenantId))
