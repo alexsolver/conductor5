@@ -68,7 +68,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/auth/login', createMemoryRateLimitMiddleware(RATE_LIMIT_CONFIGS.LOGIN));
   app.use('/api/auth/register', createMemoryRateLimitMiddleware(RATE_LIMIT_CONFIGS.REGISTRATION));
   app.use('/api/auth/password-reset', createMemoryRateLimitMiddleware(RATE_LIMIT_CONFIGS.PASSWORD_RESET));
-  app.use('/api', createMemoryRateLimitMiddleware(RATE_LIMIT_CONFIGS.API_GENERAL));
+  
+  // Exempt ticket-config/field-options from rate limiting to avoid UI errors
+  app.use('/api', (req, res, next) => {
+    if (req.path.includes('/ticket-config/field-options')) {
+      return next(); // Skip rate limiting for field-options
+    }
+    return createMemoryRateLimitMiddleware(RATE_LIMIT_CONFIGS.API_GENERAL)(req, res, next);
+  });
 
   // Apply feature flag middleware
   app.use(createFeatureFlagMiddleware());
