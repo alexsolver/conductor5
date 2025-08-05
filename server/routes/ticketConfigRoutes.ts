@@ -1249,32 +1249,33 @@ router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res) =
       }
     }
 
-    // 4. Copy Field Options
+    // 4. Copy Field Options - with proper duplicate checking
     const fieldOptionsResult = await db.execute(sql`
       INSERT INTO "${sql.raw(schemaName)}"."ticket_field_options" 
       (id, tenant_id, customer_id, field_name, value, label, color, sort_order, is_default, is_active, status_type, created_at, updated_at)
       SELECT 
         gen_random_uuid(),
-        tenant_id,
+        source.tenant_id,
         ${targetCompanyId},
-        field_name,
-        value,
-        label,
-        color,
-        sort_order,
-        is_default,
-        is_active,
-        status_type,
+        source.field_name,
+        source.value,
+        source.label,
+        source.color,
+        source.sort_order,
+        source.is_default,
+        source.is_active,
+        source.status_type,
         NOW(),
         NOW()
-      FROM "${sql.raw(schemaName)}"."ticket_field_options"
-      WHERE tenant_id = ${tenantId} AND customer_id = ${sourceCompanyId}
+      FROM "${sql.raw(schemaName)}"."ticket_field_options" source
+      WHERE source.tenant_id = ${tenantId} 
+      AND source.customer_id = ${sourceCompanyId}
       AND NOT EXISTS (
         SELECT 1 FROM "${sql.raw(schemaName)}"."ticket_field_options" target
         WHERE target.tenant_id = ${tenantId} 
         AND target.customer_id = ${targetCompanyId}
-        AND target.field_name = "${sql.raw(schemaName)}"."ticket_field_options".field_name
-        AND target.value = "${sql.raw(schemaName)}"."ticket_field_options".value
+        AND target.field_name = source.field_name
+        AND target.value = source.value
       )
       RETURNING id
     `);
