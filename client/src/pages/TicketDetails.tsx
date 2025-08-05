@@ -1244,7 +1244,130 @@ const TicketDetails = React.memo(() => {
                 />
               </div>
 
+              {/* Campos individuais de categoria → subcategoria → ação (sem seção hierárquica) */}
+              <div className="grid grid-cols-3 gap-4">
+                <FormField
+                  control={form.control as any}
+                  name="category"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Categoria</FormLabel>
+                      <FormControl>
+                        {isEditMode ? (
+                          <DynamicSelect
+                            fieldName="category"
+                            value={field.value}
+                            onValueChange={(value) => {
+                              field.onChange(value);
+                              // Reset subcategoria e ação quando categoria muda
+                              form.setValue('subcategory', '');
+                              form.setValue('action', '');
+                            }}
+                            placeholder="Selecione a categoria"
+                            disabled={!isEditMode}
+                            customerId={ticket?.customerCompanyId || ticket?.customer_company_id}
+                          />
+                        ) : (
+                          <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
+                            {field.value ? (
+                              <DynamicBadge
+                                fieldName="category"
+                                value={field.value}
+                                colorHex={getFieldColor('category', field.value)}
+                              >
+                                {getFieldLabel('category', field.value)}
+                              </DynamicBadge>
+                            ) : (
+                              <span className="text-gray-400 text-sm">Não especificado</span>
+                            )}
+                          </div>
+                        )}
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
+                <FormField
+                  control={form.control as any}
+                  name="subcategory"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Subcategoria</FormLabel>
+                      <FormControl>
+                        {isEditMode ? (
+                          <DynamicSelect
+                            fieldName="subcategory"
+                            value={field.value}
+                            onValueChange={(value) => {
+                              field.onChange(value);
+                              // Reset ação quando subcategoria muda
+                              form.setValue('action', '');
+                            }}
+                            placeholder="Selecione a subcategoria"
+                            disabled={!isEditMode || !form.watch('category')}
+                            dependsOn={form.watch('category') || ticket?.category}
+                            customerId={ticket?.customerCompanyId || ticket?.customer_company_id}
+                          />
+                        ) : (
+                          <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
+                            {field.value ? (
+                              <DynamicBadge
+                                fieldName="subcategory"
+                                value={field.value}
+                                colorHex={getFieldColor('subcategory', field.value)}
+                              >
+                                {getFieldLabel('subcategory', field.value)}
+                              </DynamicBadge>
+                            ) : (
+                              <span className="text-gray-400 text-sm">Não especificado</span>
+                            )}
+                          </div>
+                        )}
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control as any}
+                  name="action"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Ação</FormLabel>
+                      <FormControl>
+                        {isEditMode ? (
+                          <DynamicSelect
+                            fieldName="action"
+                            value={field.value}
+                            onValueChange={field.onChange}
+                            placeholder="Selecione a ação"
+                            disabled={!isEditMode || !form.watch('subcategory')}
+                            dependsOn={form.watch('subcategory') || ticket?.subcategory}
+                            customerId={ticket?.customerCompanyId || ticket?.customer_company_id}
+                          />
+                        ) : (
+                          <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
+                            {field.value ? (
+                              <DynamicBadge
+                                fieldName="action"
+                                value={field.value}
+                                colorHex={getFieldColor('action', field.value)}
+                              >
+                                {getFieldLabel('action', field.value)}
+                              </DynamicBadge>
+                            ) : (
+                              <span className="text-gray-400 text-sm">Não especificado</span>
+                            )}
+                          </div>
+                        )}
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
 
             <FormField
