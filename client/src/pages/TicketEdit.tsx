@@ -392,15 +392,6 @@ export default function TicketEdit() {
   console.log("🎫 TicketEdit renderizando com ticket:", ticket?.id, "isLinkingModalOpen:", isLinkingModalOpen);
 
   return (
-    <CustomFieldsWrapper
-      moduleType="tickets"
-      pageType="edit"
-      form={form}
-      hasDesignPermission={true}
-      onFieldChange={(fieldKey, value) => {
-        console.log(`Campo ${fieldKey} alterado:`, value);
-      }}
-    >
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -462,6 +453,16 @@ export default function TicketEdit() {
             <CardContent>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                  {/* Wrap form content in CustomFieldsWrapper to provide form context */}
+                  <CustomFieldsWrapper
+                    moduleType="tickets"
+                    pageType="edit"
+                    form={form}
+                    hasDesignPermission={true}
+                    onFieldChange={(fieldKey, value) => {
+                      console.log(`Campo ${fieldKey} alterado:`, value);
+                    }}
+                  >
                   <Tabs defaultValue="basic" className="w-full">
                     <TabsList className="grid w-full grid-cols-6">
                       <TabsTrigger value="basic">Básico</TabsTrigger>
@@ -1119,6 +1120,7 @@ export default function TicketEdit() {
                     <Save className="w-4 h-4 mr-2" />
                     Salvar
                   </Button>
+                  </CustomFieldsWrapper>
                   </form>
                 </Form>
               </CardContent>
@@ -1225,6 +1227,5 @@ export default function TicketEdit() {
           ticketId={id}
         />
       </div>
-    </CustomFieldsWrapper>
   );
 }
