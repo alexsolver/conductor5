@@ -801,6 +801,7 @@ const TicketDetails = React.memo(() => {
       status: ticket.status || "new", // Use backend values (new, open, in_progress, etc)
       category: ticket.category || "",
       subcategory: ticket.subcategory || "",
+      action: ticket.action || "",
       impact: ticket.impact || "medium",
       urgency: ticket.urgency || "medium",
       businessImpact: ticket.business_impact || "",
@@ -1021,6 +1022,7 @@ const TicketDetails = React.memo(() => {
       status: (statusMapping[data.status as keyof typeof statusMapping] || data.status) as "open" | "new" | "in_progress" | "resolved" | "closed" | "novo" | "aberto" | "em_andamento" | "resolvido" | "fechado",
       category: data.category,
       subcategory: data.subcategory,
+      action: data.action,
       impact: data.impact,
       urgency: data.urgency,
 
@@ -1116,7 +1118,7 @@ const TicketDetails = React.memo(() => {
             <div className="border-t pt-4 mt-6">
               <h3 className="text-sm font-semibold text-gray-600 mb-4">CLASSIFICAÇÃO</h3>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4 mb-4">
                 <FormField
                   control={form.control as any}
                   name="priority"
@@ -1180,6 +1182,157 @@ const TicketDetails = React.memo(() => {
                     </FormItem>
                   )}
                 />
+              </div>
+
+              {/* Hierarquia Categoria → Subcategoria → Ação */}
+              <div className="grid grid-cols-1 gap-4">
+                <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wide">Hierarquia de Classificação</h4>
+                
+                <div className="grid grid-cols-3 gap-4">
+                  <FormField
+                    control={form.control as any}
+                    name="category"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Categoria</FormLabel>
+                        <FormControl>
+                          {isEditMode ? (
+                            <DynamicSelect
+                              fieldName="category"
+                              value={field.value}
+                              onValueChange={(value) => {
+                                field.onChange(value);
+                                // Reset subcategoria e ação quando categoria muda
+                                form.setValue('subcategory', '');
+                                form.setValue('action', '');
+                              }}
+                              placeholder="Selecione a categoria"
+                              disabled={!isEditMode}
+                            />
+                          ) : (
+                            <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
+                              {field.value ? (
+                                <DynamicBadge 
+                                  fieldName="category"
+                                  value={field.value}
+                                  colorHex={getFieldColor('category', field.value)}
+                                >
+                                  {getFieldLabel('category', field.value)}
+                                </DynamicBadge>
+                              ) : (
+                                <span className="text-gray-400 text-sm">Não especificado</span>
+                              )}
+                            </div>
+                          )}
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control as any}
+                    name="subcategory"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Subcategoria</FormLabel>
+                        <FormControl>
+                          {isEditMode ? (
+                            <DynamicSelect
+                              fieldName="subcategory"
+                              value={field.value}
+                              onValueChange={(value) => {
+                                field.onChange(value);
+                                // Reset ação quando subcategoria muda
+                                form.setValue('action', '');
+                              }}
+                              placeholder="Selecione a subcategoria"
+                              disabled={!isEditMode || !form.watch('category')}
+                              dependsOn={form.watch('category')}
+                            />
+                          ) : (
+                            <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
+                              {field.value ? (
+                                <DynamicBadge 
+                                  fieldName="subcategory"
+                                  value={field.value}
+                                  colorHex={getFieldColor('subcategory', field.value)}
+                                >
+                                  {getFieldLabel('subcategory', field.value)}
+                                </DynamicBadge>
+                              ) : (
+                                <span className="text-gray-400 text-sm">Não especificado</span>
+                              )}
+                            </div>
+                          )}
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control as any}
+                    name="action"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Ação</FormLabel>
+                        <FormControl>
+                          {isEditMode ? (
+                            <DynamicSelect
+                              fieldName="action"
+                              value={field.value}
+                              onValueChange={field.onChange}
+                              placeholder="Selecione a ação"
+                              disabled={!isEditMode || !form.watch('subcategory')}
+                              dependsOn={form.watch('subcategory')}
+                            />
+                          ) : (
+                            <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
+                              {field.value ? (
+                                <DynamicBadge 
+                                  fieldName="action"
+                                  value={field.value}
+                                  colorHex={getFieldColor('action', field.value)}
+                                >
+                                  {getFieldLabel('action', field.value)}
+                                </DynamicBadge>
+                              ) : (
+                                <span className="text-gray-400 text-sm">Não especificado</span>
+                              )}
+                            </div>
+                          )}
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                {/* Indicador visual da hierarquia */}
+                {(form.watch('category') || form.watch('subcategory') || form.watch('action')) && (
+                  <div className="flex items-center gap-2 text-xs text-gray-500 bg-blue-50 p-2 rounded border-l-4 border-blue-400">
+                    <Tag className="h-3 w-3" />
+                    <span>Hierarquia:</span>
+                    {form.watch('category') && (
+                      <>
+                        <Badge variant="outline" className="text-xs">{getFieldLabel('category', form.watch('category'))}</Badge>
+                        {form.watch('subcategory') && (
+                          <>
+                            <ChevronRight className="h-3 w-3" />
+                            <Badge variant="outline" className="text-xs">{getFieldLabel('subcategory', form.watch('subcategory'))}</Badge>
+                            {form.watch('action') && (
+                              <>
+                                <ChevronRight className="h-3 w-3" />
+                                <Badge variant="outline" className="text-xs">{getFieldLabel('action', form.watch('action'))}</Badge>
+                              </>
+                            )}
+                          </>
+                        )}
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 

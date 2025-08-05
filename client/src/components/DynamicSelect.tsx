@@ -7,6 +7,8 @@ import { AlertCircle, Loader2 } from "lucide-react";
 import { filterDOMProps } from "@/utils/propFiltering";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/axios";
 
 interface DynamicSelectProps {
   fieldName: string;
@@ -18,6 +20,9 @@ interface DynamicSelectProps {
   disabled?: boolean;
   showAllOption?: boolean;
   onOptionSelect?: (option: any) => void;
+  customerId?: string;
+  allowCustomInput?: boolean;
+  dependsOn?: string; // Para dependências hierárquicas (categoria → subcategoria → ação)
   [key: string]: any;
 }
 
@@ -32,62 +37,48 @@ export function DynamicSelect(props: DynamicSelectProps) {
     disabled = false,
     showAllOption = false,
     onOptionSelect,
+    customerId,
+    dependsOn,
     ...restProps
   } = props;
 
-  const cleanProps = filterDOMProps(restProps, ['fieldName', 'onChange', 'showAllOption', 'onOptionSelect']);
+  const cleanProps = filterDOMProps(restProps, ['fieldName', 'onChange', 'showAllOption', 'onOptionSelect', 'customerId', 'dependsOn']);
   const [fieldOptions, setFieldOptions] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
 
+  // Query principal para buscar opções do campo
+  const { data: fieldOptionsData, isLoading, error } = useQuery({
+    queryKey: ["/api/ticket-config/field-options", fieldName, customerId, dependsOn],
+    queryFn: async () => {
+      const params: any = { fieldName };
+      if (customerId) params.customerId = customerId;
+      if (dependsOn) params.dependsOn = dependsOn;
+
+      const response = await apiRequest("GET", "/api/ticket-config/field-options", {
+        params
+      });
+      return response.json();
+    },
+    enabled: !dependsOn || !!dependsOn, // Se tem dependência, só executa se dependsOn tem valor
+    staleTime: 5 * 60 * 1000, // 5 minutos
+    refetchOnWindowFocus: false,
+  });
+
   useEffect(() => {
-    const fetchFieldOptions = async () => {
-      try {
-        const token = localStorage.getItem('accessToken') || localStorage.getItem('token');
-        if (!token) {
-          console.warn('No token found for DynamicSelect');
-          return;
-        }
+    if (fieldOptionsData && Array.isArray(fieldOptionsData.data)) {
+      setFieldOptions(fieldOptionsData.data);
+    } else if (fieldOptionsData && !fieldOptionsData.success) {
+      console.error('API returned an error:', fieldOptionsData.message);
+      setFieldOptions([]);
+    } else if (error) {
+      console.error('Error fetching field options:', error);
+      setFieldOptions([]);
+    } else {
+      // If data is not yet loaded or is empty, ensure fieldOptions is an empty array
+      setFieldOptions([]);
+    }
+  }, [fieldOptionsData, error]);
 
-        setIsLoading(true);
-
-        // Use the new ticket-config API with automatic fallback to Default company
-        const response = await fetch(`/api/ticket-config/field-options`, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-
-        const result = await response.json();
-
-        if (result.success && Array.isArray(result.data)) {
-          // Filter options for this specific field
-          const filteredOptions = result.data.filter((option: any) => 
-            option.field_name === fieldName
-          );
-
-          console.log(`DynamicSelect ${fieldName}: Found ${filteredOptions.length} options from API`);
-          setFieldOptions(filteredOptions);
-        } else {
-          console.error('Invalid API response structure:', result);
-          setFieldOptions([]);
-        }
-      } catch (error) {
-        console.error('Error fetching field options:', error);
-        setFieldOptions([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchFieldOptions();
-  }, [fieldName]);
 
   const handleSelectChange = (value: string) => {
     const callback = onChange || onValueChange;
@@ -113,19 +104,19 @@ export function DynamicSelect(props: DynamicSelectProps) {
     );
   }
 
-  if (fieldOptions.length === 0) {
+  if (error || (fieldOptionsData && !fieldOptionsData.success) || fieldOptions.length === 0) {
     return (
       <div className="flex items-center justify-center p-2 border rounded border-destructive/20" {...cleanProps}>
         <AlertCircle className="w-4 h-4 text-destructive mr-2" />
-        <span className="text-sm text-destructive">Nenhuma opção disponível</span>
+        <span className="text-sm text-destructive">{error ? "Erro ao carregar opções" : (fieldOptionsData?.message || "Nenhuma opção disponível")}</span>
       </div>
     );
   }
 
   return (
-    <Select 
-      value={value} 
-      onValueChange={handleSelectChange} 
+    <Select
+      value={value}
+      onValueChange={handleSelectChange}
       disabled={disabled}
       {...cleanProps}
     >
@@ -140,8 +131,8 @@ export function DynamicSelect(props: DynamicSelectProps) {
           <SelectItem key={option.id || option.value} value={option.value}>
             <div className="flex items-center gap-2">
               {option.color && (
-                <div 
-                  className="w-3 h-3 rounded-full" 
+                <div
+                  className="w-3 h-3 rounded-full"
                   style={{ backgroundColor: option.color }}
                 />
               )}

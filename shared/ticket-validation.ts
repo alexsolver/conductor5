@@ -20,6 +20,7 @@ export const ticketFormValidationSchema = z.object({
   urgency: TicketUrgencyEnum.optional(),
   category: z.string().optional(),
   subcategory: z.string().optional(),
+  action: z.string().optional(),
   callerId: z.string().optional(),
   callerType: z.enum(['user', 'customer']).default('customer'),
   beneficiaryId: z.string().optional(),
