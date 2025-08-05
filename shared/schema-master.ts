@@ -2276,6 +2276,53 @@ export const suppliers = pgTable("suppliers", {
   updatedBy: uuid("updated_by")
 });
 
+// Customer Item Mappings - Personalized item configurations per customer
+export const customerItemMappings = pgTable("customer_item_mappings", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  customerId: uuid("customer_id").references(() => customers.id, { onDelete: 'cascade' }).notNull(),
+  itemId: uuid("item_id").references(() => items.id, { onDelete: 'cascade' }).notNull(),
+  
+  // Customer-specific identifiers
+  customSku: varchar("custom_sku", { length: 100 }), // SKU que o cliente usa
+  customName: varchar("custom_name", { length: 255 }), // Nome que o cliente usa
+  customDescription: text("custom_description"), // Descrição personalizada
+  customerReference: varchar("customer_reference", { length: 100 }), // Referência interna do cliente
+  
+  // Pricing and terms
+  negotiatedPrice: decimal("negotiated_price", { precision: 15, scale: 2 }), // Preço negociado
+  minimumQuantity: decimal("minimum_quantity", { precision: 15, scale: 4 }).default("1"), // Quantidade mínima
+  leadTimeDays: integer("lead_time_days"), // Tempo de entrega específico
+  discountPercent: decimal("discount_percent", { precision: 5, scale: 2 }), // Desconto percentual
+  
+  // Configuration options
+  preferredSupplier: varchar("preferred_supplier", { length: 255 }), // Fornecedor preferido
+  specialInstructions: text("special_instructions"), // Instruções especiais
+  customFields: jsonb("custom_fields").default({}), // Campos extras configuráveis
+  
+  // Contract and approval
+  contractReference: varchar("contract_reference", { length: 100 }), // Referência de contrato
+  requiresApproval: boolean("requires_approval").default(false), // Requer aprovação especial
+  approvalLimit: decimal("approval_limit", { precision: 15, scale: 2 }), // Limite de aprovação
+  
+  // Status and metadata
+  isActive: boolean("is_active").default(true),
+  effectiveDate: timestamp("effective_date").defaultNow(), // Data de vigência
+  expirationDate: timestamp("expiration_date"), // Data de expiração
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  createdBy: uuid("created_by").references(() => users.id),
+  updatedBy: uuid("updated_by").references(() => users.id),
+}, (table) => [
+  index("customer_item_mappings_tenant_customer_idx").on(table.tenantId, table.customerId),
+  index("customer_item_mappings_tenant_item_idx").on(table.tenantId, table.itemId),
+  index("customer_item_mappings_tenant_active_idx").on(table.tenantId, table.isActive),
+  index("customer_item_mappings_custom_sku_idx").on(table.tenantId, table.customSku),
+  unique("customer_item_mappings_customer_item_unique").on(table.tenantId, table.customerId, table.itemId),
+  unique("customer_item_mappings_customer_sku_unique").on(table.tenantId, table.customerId, table.customSku),
+]);
+
 // ========================================
 // TICKET MATERIALS AND SERVICES CONSUMPTION SYSTEM
 // ========================================
@@ -2917,6 +2964,10 @@ export const userViewPreferences = pgTable("user_view_preferences", {
   unique("user_prefs_unique").on(table.tenantId, table.userId),
 ]);
 
+// Customer Item Mappings Types
+export type CustomerItemMapping = typeof customerItemMappings.$inferSelect;
+export type InsertCustomerItemMapping = typeof customerItemMappings.$inferInsert;
+
 // Types para as novas tabelas
 export type TicketListView = typeof ticketListViews.$inferSelect;
 export type InsertTicketListView = typeof ticketListViews.$inferInsert;
@@ -2955,4 +3006,20 @@ export const insertUserViewPreferenceSchema = createInsertSchema(userViewPrefere
   id: true, 
   createdAt: true, 
   updatedAt: true 
+});
+
+// Customer Item Mappings validation schema
+export const insertCustomerItemMappingSchema = createInsertSchema(customerItemMappings).extend({
+  customSku: z.string().min(1, "SKU personalizado é obrigatório").optional(),
+  customName: z.string().min(1, "Nome personalizado deve ter pelo menos 1 caractere").optional(),
+  negotiatedPrice: z.string().refine(val => !val || parseFloat(val) >= 0, "Preço deve ser positivo").optional(),
+  minimumQuantity: z.string().refine(val => !val || parseFloat(val) > 0, "Quantidade mínima deve ser maior que zero").optional(),
+  leadTimeDays: z.number().int().min(0, "Dias de entrega deve ser positivo").optional(),
+  discountPercent: z.string().refine(val => !val || (parseFloat(val) >= 0 && parseFloat(val) <= 100), "Desconto deve estar entre 0 e 100%").optional(),
+}).omit({ 
+  id: true, 
+  createdAt: true, 
+  updatedAt: true,
+  createdBy: true,
+  updatedBy: true
 });

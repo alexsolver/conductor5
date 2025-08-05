@@ -24,25 +24,34 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
   const [quantity, setQuantity] = useState("");
   const [consumedQuantity, setConsumedQuantity] = useState("");
 
-  // Fetch items filtered by company (only items linked to ticket's customer company)  
+  // Fetch items with customer-specific customizations
   const { data: itemsData, isLoading: itemsLoading } = useQuery({
-    queryKey: ['/api/materials-services/items', ticket?.customerCompanyId || 'all'],
+    queryKey: ['/api/materials-services/customers', ticket?.customerId || ticket?.customer_id, 'items'],
     queryFn: async () => {
-      // Add company filter to only show items linked to the ticket's customer company
-      const companyId = ticket?.customerCompanyId || ticket?.customer_company_id;
-      console.log('🔍 [MaterialsSystem] Fetching items with companyId:', companyId);
+      // Get customer ID from ticket
+      const customerId = ticket?.customerId || ticket?.customer_id;
+      console.log('🔍 [MaterialsSystem] Fetching items for customerId:', customerId);
       console.log('🔍 [MaterialsSystem] Available ticket fields:', {
-        customerCompanyId: ticket?.customerCompanyId,
-        customer_company_id: ticket?.customer_company_id,
+        customerId: ticket?.customerId,
+        customer_id: ticket?.customer_id,
         ticketKeys: ticket ? Object.keys(ticket) : 'no ticket'
       });
-      const params = companyId ? `?companyId=${companyId}` : '';
-      const response = await apiRequest('GET', `/api/materials-services/items${params}`);
+      
+      if (!customerId) {
+        // Fallback to regular items if no customer ID
+        const response = await apiRequest('GET', `/api/materials-services/items`);
+        const result = await response.json();
+        console.log('📦 [MaterialsSystem] Items fetched (fallback):', result.data?.length || 0, 'items');
+        return result;
+      }
+      
+      // Fetch items with customer-specific personalization
+      const response = await apiRequest('GET', `/api/materials-services/customers/${customerId}/items`);
       const result = await response.json();
-      console.log('📦 [MaterialsSystem] Items fetched:', result.data?.length || 0, 'items');
+      console.log('📦 [MaterialsSystem] Customer items fetched:', result.data?.length || 0, 'items,', result.stats?.itemsWithCustomMappings || 0, 'with custom mappings');
       return result;
     },
-    enabled: !!ticket, // Always run when ticket is available - fallback to all items if no company
+    enabled: !!ticket,
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
 
@@ -270,7 +279,25 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                       <SelectContent>
                         {items.map((item: any) => (
                           <SelectItem key={item.id} value={item.id}>
-                            {item.name} - {item.type} (R$ {parseFloat(item.unitCost || 0).toFixed(2)})
+                            <div className="flex flex-col text-left">
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium">{item.title}</span>
+                                {item.hasCustomMapping && (
+                                  <Badge variant="secondary" className="text-xs">Personalizado</Badge>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-3 text-xs text-gray-500">
+                                <span>SKU: {item.sku}</span>
+                                <span>Tipo: {item.type}</span>
+                                <span className="font-medium">R$ {parseFloat(item.price || 0).toFixed(2)}</span>
+                                {item.discountPercent && (
+                                  <span className="text-green-600">-{item.discountPercent}%</span>
+                                )}
+                              </div>
+                              {item.customerReference && (
+                                <span className="text-xs text-blue-600">Ref. Cliente: {item.customerReference}</span>
+                              )}
+                            </div>
                           </SelectItem>
                         ))}
                       </SelectContent>

@@ -7,6 +7,7 @@ import { AssetManagementController } from './application/controllers/AssetManage
 import { LPUController } from './application/controllers/LPUController';
 import { ComplianceController } from './application/controllers/ComplianceController';
 import { TicketMaterialsController } from './application/controllers/TicketMaterialsController';
+import * as CustomerItemMappingController from './application/controllers/CustomerItemMappingController';
 import { ItemRepository } from './infrastructure/repositories/ItemRepository';
 import { SupplierRepository } from './infrastructure/repositories/SupplierRepository';
 import { StockRepository } from './infrastructure/repositories/StockRepository';
@@ -218,6 +219,28 @@ router.delete('/tickets/:ticketId/consumed-items/:itemId', TicketMaterialsContro
 
 router.get('/tickets/:ticketId/available-for-consumption', TicketMaterialsController.getAvailableForConsumption);
 router.get('/tickets/:ticketId/costs-summary', TicketMaterialsController.getCostsSummary);
+
+// ===== CUSTOMER ITEM MAPPINGS ROUTES =====
+// Get all customer item mappings
+router.get('/customer-item-mappings', CustomerItemMappingController.getCustomerItemMappings);
+
+// Get customer item mapping by ID
+router.get('/customer-item-mappings/:id', CustomerItemMappingController.getCustomerItemMappingById);
+
+// Create new customer item mapping
+router.post('/customer-item-mappings', CustomerItemMappingController.createCustomerItemMapping);
+
+// Update customer item mapping
+router.put('/customer-item-mappings/:id', CustomerItemMappingController.updateCustomerItemMapping);
+
+// Delete customer item mapping
+router.delete('/customer-item-mappings/:id', CustomerItemMappingController.deleteCustomerItemMapping);
+
+// Get items with customer-specific customizations
+router.get('/customer-item-mappings/customer/:customerId/items', CustomerItemMappingController.getCustomerItems);
+
+// Toggle customer item mapping active status
+router.patch('/customer-item-mappings/:id/toggle', CustomerItemMappingController.toggleCustomerItemMapping);
 
 // Dashboard overview
 router.get('/dashboard', async (req: AuthenticatedRequest, res) => {
