@@ -1277,7 +1277,7 @@ router.post('/copy-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res) =
       SELECT DISTINCT
         gen_random_uuid(),
         source.tenant_id,
-        ${targetCompanyId},
+        ${targetCompanyId}::uuid,
         source.field_name,
         source.value,
         source.label,
