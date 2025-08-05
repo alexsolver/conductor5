@@ -1,0 +1,6 @@
+// Script para configurar token no localStorage
+const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1NTBlODQwMC1lMjliLTQxZDQtYTcxNi00NDY2NTU0NDAwMDIiLCJlbWFpbCI6ImFkbWluQGNvbmR1Y3Rvci5jb20iLCJyb2xlIjoidGVuYW50X2FkbWluIiwidGVuYW50SWQiOiIzZjk5NDYyZi0zNjIxLTRiMWItYmVhOC03ODJhY2M1MGQ2MmUiLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzUzNjU5ODYxLCJleHAiOjE3NTM3NDYyNjEsImF1ZCI6ImNvbmR1Y3Rvci11c2VycyIsImlzcyI6ImNvbmR1Y3Rvci1wbGF0Zm9ybSJ9.A2XiB7kP39MS7P5qkdMbx3Wy6-Tu_jQGhDtVujWQMTk";
+
+localStorage.setItem('accessToken', token);
+console.log('Token configurado no localStorage');
+console.log('Recarregue a página para testar');
