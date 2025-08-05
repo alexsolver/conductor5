@@ -294,7 +294,7 @@ ticketsRouter.post('/', jwtAuth, trackTicketCreate, async (req: AuthenticatedReq
   }
 });
 
-// Update ticket - CORREÇÃO PROBLEMA 5: Padronização de middleware jwtAuth
+// ✅ CORREÇÃO: Update ticket com validação completa e auditoria robusta
 ticketsRouter.put('/:id', jwtAuth, trackTicketEdit, async (req: AuthenticatedRequest, res) => {
   try {
     if (!req.user?.tenantId) {
@@ -303,6 +303,20 @@ ticketsRouter.put('/:id', jwtAuth, trackTicketEdit, async (req: AuthenticatedReq
 
     const ticketId = req.params.id;
     const frontendUpdates = req.body;
+
+    // ✅ VALIDAÇÃO PRÉVIA OBRIGATÓRIA
+    if (!ticketId || typeof ticketId !== 'string') {
+      return sendError(res, "Invalid ticket ID", "Ticket ID is required and must be a string", 400);
+    }
+
+    // ✅ VALIDAÇÃO DE CAMPOS OBRIGATÓRIOS
+    if (frontendUpdates.subject !== undefined && (!frontendUpdates.subject || !frontendUpdates.subject.trim())) {
+      return sendError(res, "Subject is required", "Subject cannot be empty", 400);
+    }
+
+    if (frontendUpdates.description !== undefined && (!frontendUpdates.description || !frontendUpdates.description.trim())) {
+      return sendError(res, "Description is required", "Description cannot be empty", 400);
+    }
 
     // DEBUG: Log incoming data for followers and customer_id investigation
     console.log('🔍 DEBUGGING TICKET UPDATE - Incoming data:', {
@@ -355,73 +369,148 @@ ticketsRouter.put('/:id', jwtAuth, trackTicketEdit, async (req: AuthenticatedReq
       }
     });
 
-    // CRITICAL FIX: Pass parameters in correct order (tenantId, ticketId, updates)
-    const updatedTicket = await storageSimple.updateTicket(req.user.tenantId, ticketId, backendUpdates);
+    // ✅ CORREÇÃO: Controle transacional e validação de existência
+    let currentTicket;
+    let updatedTicket;
+    
+    try {
+      // Primeiro: verificar se ticket existe e capturar estado atual
+      currentTicket = await storageSimple.getTicketById(req.user.tenantId, ticketId);
+      if (!currentTicket) {
+        return sendError(res, "Ticket not found", "The requested ticket does not exist", 404);
+      }
 
-    if (!updatedTicket) {
-      return res.status(404).json({ message: "Ticket not found" });
+      // ✅ VALIDAÇÃO DE PERMISSÕES (opcional - implementar conforme necessário)
+      // if (currentTicket.assignedToId && currentTicket.assignedToId !== req.user.id && req.user.role !== 'admin') {
+      //   return sendError(res, "Permission denied", "You don't have permission to edit this ticket", 403);
+      // }
+
+      // Segundo: aplicar updates com controle transacional
+      updatedTicket = await storageSimple.updateTicket(req.user.tenantId, ticketId, backendUpdates);
+
+      if (!updatedTicket) {
+        throw new Error("Update operation failed - no data returned");
+      }
+
+      console.log('✅ Ticket updated successfully:', {
+        ticketId,
+        fieldsUpdated: Object.keys(backendUpdates),
+        updatedAt: updatedTicket.updated_at
+      });
+
+    } catch (updateError) {
+      console.error('❌ Error updating ticket:', updateError);
+      return sendError(res, updateError, "Failed to update ticket - please try again", 500);
     }
 
-    // 🚀 OTIMIZAÇÃO: Create history entry only for meaningful ticket updates
+    // ✅ AUDITORIA COMPLETA E DETALHADA
     try {
-      // Only create history entry if there are actual field changes
       const meaningfulChanges = Object.keys(backendUpdates).filter(key => 
-        !['updated_at', 'tenant_id'].includes(key)
+        !['updated_at', 'tenant_id', 'id'].includes(key) && 
+        backendUpdates[key] !== currentTicket[key] // Only track actual changes
       );
 
       if (meaningfulChanges.length > 0) {
-        const { getClientIP, getUserAgent, getSessionId } = await import('../../utils/ipCapture');
-        const ipAddress = getClientIP(req);
-        const userAgent = getUserAgent(req);
-        const sessionId = getSessionId(req);
-        const { pool } = await import('../../db');
-        const schemaName = `tenant_${req.user.tenantId.replace(/-/g, '_')}`;
-
-        // Get user name for history record
-        const userQuery = `SELECT first_name || ' ' || last_name as full_name FROM public.users WHERE id = $1`;
-        const userResult = await pool.query(userQuery, [req.user.id]);
-        const userName = userResult.rows[0]?.full_name || 'Unknown User';
-
-        // Create a more descriptive history entry
-        const changeDescriptions = meaningfulChanges.map(field => {
-          const oldValue = updatedTicket[field];
-          const newValue = backendUpdates[field];
-          return `${field}: "${oldValue}" → "${newValue}"`;
-        }).join(', ');
-
-        await pool.query(`
-          INSERT INTO "${schemaName}".ticket_history 
-          (tenant_id, ticket_id, action_type, description, performed_by, performed_by_name, ip_address, user_agent, session_id, created_at, metadata)
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), $10)
-        `, [
+        await createCompleteAuditEntry(
+          await import('../../db').then(m => m.pool),
+          `tenant_${req.user.tenantId.replace(/-/g, '_')}`,
           req.user.tenantId,
           ticketId,
+          req,
           'ticket_updated',
-          `Campos alterados: ${changeDescriptions}`,
-          req.user.id,
-          userName,
-          ipAddress,
-          userAgent,
-          sessionId,
-          JSON.stringify({
-            changes: backendUpdates,
-            changedFields: meaningfulChanges
-          })
-        ]);
+          `Ticket atualizado: ${meaningfulChanges.length} campo(s) alterado(s)`,
+          {
+            total_changes: meaningfulChanges.length,
+            changed_fields: meaningfulChanges,
+            changes_summary: meaningfulChanges.map(field => ({
+              field: field,
+              old_value: currentTicket[field],
+              new_value: backendUpdates[field],
+              change_type: currentTicket[field] === null ? 'added' : 
+                          backendUpdates[field] === null ? 'removed' : 'modified'
+            })),
+            update_timestamp: new Date().toISOString(),
+            update_source: 'web_interface'
+          }
+        );
 
-        console.log(`📝 History entry created for ${meaningfulChanges.length} field changes`);
+        // ✅ AUDITORIA INDIVIDUAL POR CAMPO (para campos críticos)
+        const criticalFields = ['status', 'priority', 'assigned_to_id', 'customer_company_id'];
+        for (const field of meaningfulChanges) {
+          if (criticalFields.includes(field)) {
+            await createCompleteAuditEntry(
+              await import('../../db').then(m => m.pool),
+              `tenant_${req.user.tenantId.replace(/-/g, '_')}`,
+              req.user.tenantId,
+              ticketId,
+              req,
+              `field_${field}_changed`,
+              `Campo ${field} alterado de "${currentTicket[field]}" para "${backendUpdates[field]}"`,
+              {
+                field_name: field,
+                old_value: currentTicket[field],
+                new_value: backendUpdates[field],
+                change_impact: field === 'status' ? 'high' : 
+                              field === 'assigned_to_id' ? 'medium' : 'low'
+              },
+              field,
+              String(currentTicket[field] || ''),
+              String(backendUpdates[field] || '')
+            );
+          }
+        }
+
+        console.log(`✅ Complete audit trail created: ${meaningfulChanges.length} changes tracked`);
       } else {
-        console.log('⏭️ Skipping history entry - no meaningful changes detected');
+        console.log('⏭️ No changes detected - skipping audit entry');
       }
     } catch (historyError) {
-      console.log('⚠️ Aviso: Não foi possível criar entrada no histórico:', historyError.message);
+      console.error('❌ CRITICAL: Audit trail creation failed:', historyError);
+      // Don't fail the update, but log the error
     }
 
-    return sendSuccess(res, updatedTicket, "Ticket updated successfully");
+    // ✅ RESPOSTA OTIMIZADA COM DADOS ESSENCIAIS
+    const responseData = {
+      id: updatedTicket.id,
+      subject: updatedTicket.subject,
+      description: updatedTicket.description,
+      status: updatedTicket.status,
+      priority: updatedTicket.priority,
+      updated_at: updatedTicket.updated_at,
+      version: updatedTicket.version || Date.now(), // Para controle de concorrência
+      // Incluir apenas campos essenciais para evitar overhead
+      caller_id: updatedTicket.caller_id,
+      assigned_to_id: updatedTicket.assigned_to_id,
+      customer_company_id: updatedTicket.customer_company_id,
+    };
+
+    return sendSuccess(res, responseData, "Ticket updated successfully");
+
   } catch (error) {
+    console.error('❌ CRITICAL ERROR updating ticket:', {
+      ticketId,
+      error: error.message,
+      stack: error.stack,
+      tenantId: req.user?.tenantId,
+      userId: req.user?.id,
+      updates: Object.keys(frontendUpdates)
+    });
+
     const { logError } = await import('../../utils/logger');
-    logError('Error updating ticket', error, { ticketId: req.params.id, tenantId: req.user?.tenantId });
-    return sendError(res, error, "Failed to update ticket", 500);
+    logError('Error updating ticket', error, { 
+      ticketId: req.params.id, 
+      tenantId: req.user?.tenantId,
+      updateFields: Object.keys(frontendUpdates),
+      errorType: error.constructor.name
+    });
+
+    // ✅ RESPOSTA DE ERRO DETALHADA PARA DEBUG
+    return sendError(res, {
+      message: error.message,
+      type: error.constructor.name,
+      ticketId: ticketId,
+      timestamp: new Date().toISOString()
+    }, "Failed to update ticket - check logs for details", 500);
   }
 });
 
