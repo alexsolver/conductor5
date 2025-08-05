@@ -59,14 +59,25 @@ export function DynamicSelect(props: DynamicSelectProps) {
       });
       return response.json();
     },
-    enabled: !dependsOn || !!dependsOn, // Se tem dependência, só executa se dependsOn tem valor
+    enabled: !!fieldName && (!dependsOn || !!dependsOn), // Só executa se fieldName existe e se dependsOn não é necessário ou tem valor
     staleTime: 5 * 60 * 1000, // 5 minutos
     refetchOnWindowFocus: false,
   });
 
   useEffect(() => {
     if (fieldOptionsData && Array.isArray(fieldOptionsData.data)) {
-      setFieldOptions(fieldOptionsData.data);
+      // Filtrar pelos dados específicos do campo se não for hierárquico
+      let filteredOptions = fieldOptionsData.data;
+      
+      // Para campos não-hierárquicos (status, priority, impact, urgency), filtrar pelo field_name
+      if (!['category', 'subcategory', 'action'].includes(fieldName) && fieldName) {
+        filteredOptions = fieldOptionsData.data.filter((option: any) => 
+          option.field_name === fieldName
+        );
+      }
+      
+      console.log(`🔍 DynamicSelect ${fieldName}: Filtered ${filteredOptions.length} options from ${fieldOptionsData.data.length} total`);
+      setFieldOptions(filteredOptions);
     } else if (fieldOptionsData && !fieldOptionsData.success) {
       console.error('API returned an error:', fieldOptionsData.message);
       setFieldOptions([]);
@@ -77,7 +88,7 @@ export function DynamicSelect(props: DynamicSelectProps) {
       // If data is not yet loaded or is empty, ensure fieldOptions is an empty array
       setFieldOptions([]);
     }
-  }, [fieldOptionsData, error]);
+  }, [fieldOptionsData, error, fieldName]);
 
 
   const handleSelectChange = (value: string) => {
@@ -127,19 +138,26 @@ export function DynamicSelect(props: DynamicSelectProps) {
         {showAllOption && (
           <SelectItem value="all">Todos</SelectItem>
         )}
-        {fieldOptions.map((option, index) => (
-          <SelectItem key={option.id || `${fieldName}-${option.value}-${index}`} value={option.value}>
-            <div className="flex items-center gap-2">
-              {option.color && (
-                <div
-                  className="w-3 h-3 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: option.color }}
-                />
-              )}
-              <span className="truncate">{option.label}</span>
-            </div>
-          </SelectItem>
-        ))}
+        {fieldOptions.map((option, index) => {
+          // Garantir chave única combinando field_name com value e id
+          const uniqueKey = option.id 
+            ? `${fieldName}-${option.id}` 
+            : `${fieldName}-${option.value}-${option.field_name || ''}-${index}`;
+          
+          return (
+            <SelectItem key={uniqueKey} value={option.value}>
+              <div className="flex items-center gap-2">
+                {option.color && (
+                  <div
+                    className="w-3 h-3 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: option.color }}
+                  />
+                )}
+                <span className="truncate">{option.label}</span>
+              </div>
+            </SelectItem>
+          );
+        })}
       </SelectContent>
     </Select>
   );
