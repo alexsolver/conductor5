@@ -309,14 +309,13 @@ ticketsRouter.put('/:id', jwtAuth, trackTicketEdit, async (req: AuthenticatedReq
       return sendError(res, "Invalid ticket ID", "Ticket ID is required and must be a string", 400);
     }
 
-    // ✅ VALIDAÇÃO DE CAMPOS OBRIGATÓRIOS
+    // ✅ VALIDAÇÃO DE CAMPOS OBRIGATÓRIOS - Apenas subject é obrigatório em updates
     if (frontendUpdates.subject !== undefined && (!frontendUpdates.subject || !frontendUpdates.subject.trim())) {
       return sendError(res, "Subject is required", "Subject cannot be empty", 400);
     }
 
-    if (frontendUpdates.description !== undefined && (!frontendUpdates.description || !frontendUpdates.description.trim())) {
-      return sendError(res, "Description is required", "Description cannot be empty", 400);
-    }
+    // Description pode ser vazia em updates, então só validamos se for null ou undefined
+    // mas permitimos string vazia para permitir limpar o campo
 
     // DEBUG: Log incoming data for followers and customer_id investigation
     console.log('🔍 DEBUGGING TICKET UPDATE - Incoming data:', {
