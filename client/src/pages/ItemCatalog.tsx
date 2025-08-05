@@ -81,6 +81,7 @@ export default function ItemCatalog() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [itemTypeTab, setItemTypeTab] = useState("materials");
 
@@ -206,6 +207,35 @@ export default function ItemCatalog() {
     }
   });
 
+  const deleteItemMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await fetch(`/api/materials-services/items/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete item');
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items/stats"] });
+      toast({
+        title: "Item excluído com sucesso",
+        description: "O item foi removido do catálogo.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro ao excluir item",
+        description: "Ocorreu um erro ao excluir o item. Tente novamente.",
+        variant: "destructive",
+      });
+    }
+  });
+
   // Extract data from API responses
   const items: Item[] = (itemsResponse as any)?.data || [];
   const itemStats = (itemStatsResponse as any)?.data || { total: 0, materials: 0, services: 0, active: 0 };
@@ -261,9 +291,9 @@ export default function ItemCatalog() {
             {item.integrationCode && (
               <span>Código: {item.integrationCode}</span>
             )}
-            {item.groupName && ( // Alterado de 'item.group' para 'item.groupName'
+            {/* {item.groupName && ( // Disabled temporarily - column doesn't exist
               <span>Grupo: {item.groupName}</span>
-            )}
+            )} */}
             <span>Unidade: {item.measurementUnit}</span>
           </div>
 
@@ -288,8 +318,24 @@ export default function ItemCatalog() {
           <Edit className="h-4 w-4" />
         </Button>
 
-        <Button variant="outline" size="sm">
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={() => {
+            setSelectedItem(item);
+            setIsViewModalOpen(true);
+          }}
+        >
           <Eye className="h-4 w-4" />
+        </Button>
+
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={() => deleteItemMutation.mutate(item.id)}
+          className="text-red-600 hover:text-red-700"
+        >
+          <Trash2 className="h-4 w-4" />
         </Button>
       </div>
     </div>
@@ -419,9 +465,10 @@ export default function ItemCatalog() {
                     </FormItem>
                   )}
                 />
+                {/* Temporarily disabled - groupName column doesn't exist in current schema
                 <FormField
                   control={form.control}
-                  name="groupName" // Alterado de 'group' para 'groupName'
+                  name="groupName"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Grupo</FormLabel> 
@@ -432,6 +479,7 @@ export default function ItemCatalog() {
                     </FormItem>
                   )}
                 />
+                */}
                 <FormField
                   control={form.control}
                   name="maintenancePlan"
@@ -764,7 +812,108 @@ export default function ItemCatalog() {
         </TabsContent>
       </Tabs>
 
-      {/* Modal de Edição - usa o mesmo modal do criar */}
+      {/* Modal de Visualização */}
+      <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Detalhes do Item</DialogTitle>
+            <DialogDescription>
+              Visualização completa das informações do item
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedItem && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <h3 className="font-semibold mb-3">Informações Básicas</h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Nome:</span>
+                      <span className="font-medium">{selectedItem.name}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Tipo:</span>
+                      <Badge variant={selectedItem.type === 'material' ? 'default' : 'secondary'}>
+                        {selectedItem.type === 'material' ? 'Material' : 'Serviço'}
+                      </Badge>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Status:</span>
+                      <Badge variant={selectedItem.active ? 'default' : 'secondary'}>
+                        {selectedItem.active ? 'Ativo' : 'Inativo'}
+                      </Badge>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Unidade:</span>
+                      <span>{selectedItem.measurementUnit}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="font-semibold mb-3">Informações Complementares</h3>
+                  <div className="space-y-2">
+                    {selectedItem.integrationCode && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Código:</span>
+                        <span>{selectedItem.integrationCode}</span>
+                      </div>
+                    )}
+                    {selectedItem.maintenancePlan && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Plano de Manutenção:</span>
+                        <span>{selectedItem.maintenancePlan}</span>
+                      </div>
+                    )}
+                    {selectedItem.defaultChecklist && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Checklist Padrão:</span>
+                        <span>{selectedItem.defaultChecklist}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {selectedItem.description && (
+                <div>
+                  <h3 className="font-semibold mb-3">Descrição</h3>
+                  <p className="text-muted-foreground bg-muted p-3 rounded-lg">
+                    {selectedItem.description}
+                  </p>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-6 pt-4 border-t">
+                <div>
+                  <span className="text-sm text-muted-foreground">Criado em: </span>
+                  <span className="text-sm">{new Date(selectedItem.createdAt).toLocaleString('pt-BR')}</span>
+                </div>
+                <div>
+                  <span className="text-sm text-muted-foreground">Atualizado em: </span>
+                  <span className="text-sm">{new Date(selectedItem.updatedAt).toLocaleString('pt-BR')}</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="flex justify-end pt-6">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setIsViewModalOpen(false);
+                setSelectedItem(null);
+                form.reset(selectedItem);
+                setIsCreateModalOpen(true);
+              }}
+            >
+              <Edit className="h-4 w-4 mr-2" />
+              Editar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

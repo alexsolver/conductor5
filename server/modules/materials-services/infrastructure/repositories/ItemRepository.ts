@@ -79,7 +79,7 @@ export class ItemRepository {
         measurementUnit: items.measurementUnit,
         maintenancePlan: items.maintenancePlan,
         defaultChecklist: items.defaultChecklist,
-        groupName: items.groupName,
+        // groupName: items.groupName, // Column doesn't exist in current schema
         status: items.status,
         createdAt: items.createdAt,
         updatedAt: items.updatedAt,
