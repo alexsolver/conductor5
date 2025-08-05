@@ -961,6 +961,15 @@ const TicketsTable = React.memo(() => {
             </TableCell>
           );
         case 'priority':
+          // 🚨 CORREÇÃO: Aguardar cores carregarem para evitar race condition com priority
+          if (isFieldColorsLoading) {
+            return (
+              <TableCell className="overflow-hidden" style={cellStyle}>
+                <div className="h-5 w-16 bg-gray-200 animate-pulse rounded"></div>
+              </TableCell>
+            );
+          }
+
           const priorityValue = mapPriorityValue(ticket.priority);
           const priorityColor = getFieldColorWithFallback('priority', priorityValue);
           const priorityLabel = getFieldLabel('priority', priorityValue);
@@ -971,20 +980,29 @@ const TicketsTable = React.memo(() => {
                 fieldName="priority"
                 value={priorityValue}
                 colorHex={priorityColor}
-                isLoading={isFieldColorsLoading}
+                isLoading={false}
               >
                 {priorityLabel}
               </DynamicBadge>
             </TableCell>
           );
         case 'impact':
+          // 🚨 CORREÇÃO: Aguardar cores carregarem para evitar race condition com impact
+          if (isFieldColorsLoading) {
+            return (
+              <TableCell className="overflow-hidden" style={cellStyle}>
+                <div className="h-5 w-16 bg-gray-200 animate-pulse rounded"></div>
+              </TableCell>
+            );
+          }
+
           return (
             <TableCell className="overflow-hidden" style={cellStyle}>
               <DynamicBadge 
                 fieldName="impact"
                 value={mapImpactValue((ticket as any).impact)}
                 colorHex={getFieldColorWithFallback('impact', mapImpactValue((ticket as any).impact))}
-                isLoading={isFieldColorsLoading}
+                isLoading={false}
               >
                 {getFieldLabel('impact', mapImpactValue((ticket as any).impact))}
               </DynamicBadge>
@@ -1048,6 +1066,15 @@ const TicketsTable = React.memo(() => {
             );
           }
 
+          // 🚨 CORREÇÃO: Aguardar cores carregarem para evitar race condition com subcategory
+          if (isFieldColorsLoading) {
+            return (
+              <TableCell className="overflow-hidden" style={cellStyle}>
+                <div className="h-5 w-20 bg-gray-200 animate-pulse rounded"></div>
+              </TableCell>
+            );
+          }
+
           const subcategoryColor = getFieldColor('subcategory', rawSubcategoryValue) || '#64748b';
           const subcategoryLabel = getFieldLabel('subcategory', rawSubcategoryValue) || rawSubcategoryValue;
 
@@ -1057,18 +1084,29 @@ const TicketsTable = React.memo(() => {
                 fieldName="subcategory"
                 value={rawSubcategoryValue}
                 colorHex={subcategoryColor}
+                isLoading={false}
               >
                 {subcategoryLabel}
               </DynamicBadge>
             </TableCell>
           );
         case 'urgency':
+          // 🚨 CORREÇÃO: Aguardar cores carregarem para evitar race condition com urgency
+          if (isFieldColorsLoading) {
+            return (
+              <TableCell className="overflow-hidden" style={cellStyle}>
+                <div className="h-5 w-16 bg-gray-200 animate-pulse rounded"></div>
+              </TableCell>
+            );
+          }
+
           return (
             <TableCell>
               <DynamicBadge 
                 fieldName="urgency" 
                 value={mapUrgencyValue((ticket as any).urgency)}
                 colorHex={getFieldColorWithFallback('urgency', mapUrgencyValue((ticket as any).urgency))}
+                isLoading={false}
               >
                 {getFieldLabel('urgency', mapUrgencyValue((ticket as any).urgency))}
               </DynamicBadge>
