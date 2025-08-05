@@ -76,7 +76,20 @@ export function DynamicSelect(props: DynamicSelectProps) {
         );
       }
       
-      console.log(`🔍 DynamicSelect ${fieldName}: Filtered ${filteredOptions.length} options from ${fieldOptionsData.data.length} total`);
+      console.log(`🔍 DynamicSelect ${fieldName}:`, {
+        fieldName,
+        dependsOn,
+        totalReceived: fieldOptionsData.data.length,
+        filtered: filteredOptions.length,
+        isHierarchical: ['category', 'subcategory', 'action'].includes(fieldName),
+        sampleData: filteredOptions.slice(0, 3).map(opt => ({
+          id: opt.id,
+          value: opt.value,
+          label: opt.label,
+          field_name: opt.field_name
+        }))
+      });
+      
       setFieldOptions(filteredOptions);
     } else if (fieldOptionsData && !fieldOptionsData.success) {
       console.error('API returned an error:', fieldOptionsData.message);
@@ -88,7 +101,7 @@ export function DynamicSelect(props: DynamicSelectProps) {
       // If data is not yet loaded or is empty, ensure fieldOptions is an empty array
       setFieldOptions([]);
     }
-  }, [fieldOptionsData, error, fieldName]);
+  }, [fieldOptionsData, error, fieldName, dependsOn]);
 
 
   const handleSelectChange = (value: string) => {

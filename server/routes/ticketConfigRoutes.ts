@@ -552,48 +552,58 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => 
         AND active = true
         ORDER BY sort_order, name
       `);
-    } else if (fieldName === 'subcategory' && dependsOn) {
-      // Buscar subcategorias para uma categoria específica
-      result = await db.execute(sql`
-        SELECT 
-          s.id,
-          s.name as label,
-          s.name as value,
-          s.color,
-          s.sort_order,
-          s.active as is_active,
-          s.category_id,
-          s.created_at,
-          s.updated_at
-        FROM "${sql.raw(schemaName)}".ticket_subcategories s
-        JOIN "${sql.raw(schemaName)}".ticket_categories c ON s.category_id = c.id
-        WHERE s.tenant_id = ${tenantId}
-        AND s.company_id = ${companyId}
-        AND c.name = ${dependsOn}
-        AND s.active = true
-        ORDER BY s.sort_order, s.name
-      `);
-    } else if (fieldName === 'action' && dependsOn) {
-      // Buscar ações para uma subcategoria específica
-      result = await db.execute(sql`
-        SELECT 
-          a.id,
-          a.name as label,
-          a.name as value,
-          a.color,
-          a.sort_order,
-          a.active as is_active,
-          a.subcategory_id,
-          a.created_at,
-          a.updated_at
-        FROM "${sql.raw(schemaName)}".ticket_actions a
-        JOIN "${sql.raw(schemaName)}".ticket_subcategories s ON a.subcategory_id = s.id
-        WHERE a.tenant_id = ${tenantId}
-        AND a.company_id = ${companyId}
-        AND s.name = ${dependsOn}
-        AND a.active = true
-        ORDER BY a.sort_order, a.name
-      `);
+    } else if (fieldName === 'subcategory') {
+      if (dependsOn) {
+        // Buscar subcategorias para uma categoria específica
+        result = await db.execute(sql`
+          SELECT 
+            s.id,
+            s.name as label,
+            s.name as value,
+            s.color,
+            s.sort_order,
+            s.active as is_active,
+            s.category_id,
+            s.created_at,
+            s.updated_at
+          FROM "${sql.raw(schemaName)}".ticket_subcategories s
+          JOIN "${sql.raw(schemaName)}".ticket_categories c ON s.category_id = c.id
+          WHERE s.tenant_id = ${tenantId}
+          AND s.company_id = ${companyId}
+          AND c.name = ${dependsOn}
+          AND s.active = true
+          ORDER BY s.sort_order, s.name
+        `);
+      } else {
+        // Retornar array vazio se não há dependência selecionada
+        result = { rows: [] };
+      }
+    } else if (fieldName === 'action') {
+      if (dependsOn) {
+        // Buscar ações para uma subcategoria específica
+        result = await db.execute(sql`
+          SELECT 
+            a.id,
+            a.name as label,
+            a.name as value,
+            a.color,
+            a.sort_order,
+            a.active as is_active,
+            a.subcategory_id,
+            a.created_at,
+            a.updated_at
+          FROM "${sql.raw(schemaName)}".ticket_actions a
+          JOIN "${sql.raw(schemaName)}".ticket_subcategories s ON a.subcategory_id = s.id
+          WHERE a.tenant_id = ${tenantId}
+          AND a.company_id = ${companyId}
+          AND s.name = ${dependsOn}
+          AND a.active = true
+          ORDER BY a.sort_order, a.name
+        `);
+      } else {
+        // Retornar array vazio se não há dependência selecionada
+        result = { rows: [] };
+      }
     } else {
       // Buscar opções de campos normais (status, priority, impact, urgency)
       result = await db.execute(sql`
