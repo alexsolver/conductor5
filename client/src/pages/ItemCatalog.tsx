@@ -191,13 +191,11 @@ export default function ItemCatalog() {
   const tenantId = userData?.tenantId;
 
   const { data: mappingsResponse, isLoading: isLoadingMappings } = useQuery({
-    queryKey: ['/api/materials-services/customer-item-mappings', tenantId],
+    queryKey: ['/api/materials-services/customer-item-mappings'],
     queryFn: async () => {
-      if (!tenantId) return { success: false, data: [] };
-      const response = await apiRequest('GET', `/api/materials-services/customer-item-mappings?tenantId=${tenantId}`);
+      const response = await apiRequest('GET', '/api/materials-services/customer-item-mappings');
       return response.json();
     },
-    enabled: !!tenantId,
   });
 
   const { data: customerCompaniesData } = useQuery({
