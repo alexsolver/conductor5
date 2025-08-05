@@ -10,7 +10,7 @@ export interface Item {
   description?: string;
   measurementUnit?: string;
   maintenancePlan?: string;
-  groupName?: string;
+
   defaultChecklist?: any;
   status?: string;
   createdAt: Date;

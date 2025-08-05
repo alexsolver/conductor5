@@ -22,7 +22,6 @@ export const items = pgTable('items', {
   description: text('description'),
   measurementUnit: varchar('measurement_unit', { length: 10 }).default('UN'),
   maintenancePlan: text('maintenance_plan'),
-  groupName: varchar('group_name', { length: 100 }), // Alinhado com coluna real
   defaultChecklist: jsonb('default_checklist'),
   status: varchar('status', { length: 20 }).default('active'),
 
