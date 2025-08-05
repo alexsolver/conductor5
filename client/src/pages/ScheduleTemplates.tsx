@@ -61,14 +61,10 @@ const categoryLabels = {
   shift: 'Turnos'
 };
 
-const scheduleTypeOptions = [
-  { value: '5x2', label: '5x2 (5 dias trabalhados, 2 dias de folga)' },
-  { value: '6x1', label: '6x1 (6 dias trabalhados, 1 dia de folga)' },
-  { value: '12x36', label: '12x36 (12 horas trabalhadas, 36 horas de folga)' },
-  { value: 'plantao', label: 'Plantão' },
-  { value: 'intermitente', label: 'Intermitente' },
-  { value: 'custom', label: 'Personalizada' }
-];
+import { SCHEDULE_TYPE_OPTIONS } from '@shared/schedule-types';
+
+// Use shared definitions for consistency
+const scheduleTypeOptions = SCHEDULE_TYPE_OPTIONS;
 
 const dayNames = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
