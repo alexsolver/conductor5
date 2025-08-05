@@ -15,7 +15,7 @@ import {
   type InsertComplianceAlert,
   type ComplianceScore,
   type InsertComplianceScore
-} from '../../../../../shared/schema-materials-services';
+} from '../../../../../shared/schema-master';
 import { eq, and, desc, asc, lte, gte, or } from 'drizzle-orm';
 
 export class ComplianceRepository {

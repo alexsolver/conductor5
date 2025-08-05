@@ -1994,7 +1994,7 @@ export const contractDocuments = pgTable("contract_documents", {
   createdAt: timestamp("createdAt").defaultNow(),
 }, (table) => [
   index("contract_documents_tenant_contract_idx").on(table.tenantId, table.contractId),
-index("contract_documents_tenant_type_idx").on(table.tenantId, table.documentType),
+  index("contract_documents_tenant_type_idx").on(table.tenantId, table.documentType),
   index("contract_documents_signature_status_idx").on(table.signatureStatus),
   index("contract_documents_current_version_idx").on(table.isCurrentVersion),
 ]);
@@ -2008,7 +2008,8 @@ export const contractRenewals = pgTable("contract_renewals", {
 
   // Renewal Details
   previousEndDate: timestamp("previous_end_date").notNull(),
-  newEndDate: timestamp("new_end_date").notNull(),renewalDate: timestamp("renewal_date").defaultNow(),
+  newEndDate: timestamp("new_end_date").notNull(),
+  renewalDate: timestamp("renewal_date").defaultNow(),
   termMonths: integer("term_months").notNull(),
 
   // Financial Changes
@@ -2207,7 +2208,272 @@ export const items = pgTable("items", {
   tags: text("tags").array(),
   customFields: jsonb("custom_fields"),
   notes: text("notes")
-});
+}, (table) => [
+  index("items_tenant_name_idx").on(table.tenantId, table.name),
+  index("items_tenant_type_idx").on(table.tenantId, table.type),
+  index("items_tenant_code_idx").on(table.tenantId, table.internalCode),
+  index("items_tenant_active_idx").on(table.tenantId, table.active),
+  unique("items_tenant_code_unique").on(table.tenantId, table.internalCode),
+]);
+
+// Item Attachments table
+export const itemAttachments = pgTable("item_attachments", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  itemId: uuid("item_id").references(() => items.id, { onDelete: 'cascade' }).notNull(),
+  fileName: varchar("file_name", { length: 255 }).notNull(),
+  filePath: varchar("file_path", { length: 500 }).notNull(),
+  fileSize: integer("file_size"),
+  mimeType: varchar("mime_type", { length: 100 }),
+  uploadedBy: uuid("uploaded_by"),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("item_attachments_tenant_item_idx").on(table.tenantId, table.itemId),
+]);
+
+// Item Links table
+export const itemLinks = pgTable("item_links", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  itemId: uuid("item_id").references(() => items.id, { onDelete: 'cascade' }).notNull(),
+  linkType: varchar("link_type", { length: 50 }).notNull(),
+  linkedItemId: uuid("linked_item_id").references(() => items.id, { onDelete: 'cascade' }).notNull(),
+  relationshipType: varchar("relationship_type", { length: 50 }),
+  quantity: decimal("quantity", { precision: 10, scale: 3 }),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("item_links_tenant_item_idx").on(table.tenantId, table.itemId),
+  index("item_links_tenant_linked_idx").on(table.tenantId, table.linkedItemId),
+]);
+
+// Item Customer Links table
+export const itemCustomerLinks = pgTable("item_customer_links", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  itemId: uuid("item_id").references(() => items.id, { onDelete: 'cascade' }).notNull(),
+  customerCompanyId: uuid("customer_company_id").references(() => customerCompanies.id).notNull(),
+  customerItemCode: varchar("customer_item_code", { length: 100 }),
+  customerItemName: varchar("customer_item_name", { length: 255 }),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("item_customer_links_tenant_item_idx").on(table.tenantId, table.itemId),
+  index("item_customer_links_tenant_customer_idx").on(table.tenantId, table.customerCompanyId),
+  unique("item_customer_links_unique").on(table.tenantId, table.itemId, table.customerCompanyId),
+]);
+
+// Item Supplier Links table
+export const itemSupplierLinks = pgTable("item_supplier_links", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  itemId: uuid("item_id").references(() => items.id, { onDelete: 'cascade' }).notNull(),
+  supplierId: uuid("supplier_id").references(() => suppliers.id).notNull(),
+  supplierItemCode: varchar("supplier_item_code", { length: 100 }),
+  supplierItemName: varchar("supplier_item_name", { length: 255 }),
+  leadTime: integer("lead_time"),
+  minimumOrder: integer("minimum_order"),
+  isPreferred: boolean("is_preferred").default(false),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("item_supplier_links_tenant_item_idx").on(table.tenantId, table.itemId),
+  index("item_supplier_links_tenant_supplier_idx").on(table.tenantId, table.supplierId),
+  unique("item_supplier_links_unique").on(table.tenantId, table.itemId, table.supplierId),
+]);
+
+// Suppliers table
+export const suppliers = pgTable("suppliers", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  tradeName: varchar("trade_name", { length: 255 }),
+  document: varchar("document", { length: 20 }).notNull(), // CNPJ/CPF
+  email: varchar("email", { length: 255 }),
+  phone: varchar("phone", { length: 20 }),
+  address: text("address"),
+  city: varchar("city", { length: 100 }),
+  state: varchar("state", { length: 2 }),
+  zipCode: varchar("zip_code", { length: 10 }),
+  status: varchar("status", { length: 20 }).default("active"),
+  rating: varchar("rating", { length: 10 }),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("suppliers_tenant_name_idx").on(table.tenantId, table.name),
+  index("suppliers_tenant_status_idx").on(table.tenantId, table.status),
+  unique("suppliers_tenant_document_unique").on(table.tenantId, table.document),
+]);
+
+// Supplier Catalog table
+export const supplierCatalog = pgTable("supplier_catalog", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  supplierId: uuid("supplier_id").references(() => suppliers.id, { onDelete: 'cascade' }).notNull(),
+  itemId: uuid("item_id").references(() => items.id, { onDelete: 'cascade' }).notNull(),
+  supplierItemCode: varchar("supplier_item_code", { length: 100 }),
+  supplierItemName: varchar("supplier_item_name", { length: 255 }),
+  unitPrice: decimal("unit_price", { precision: 10, scale: 2 }),
+  currency: varchar("currency", { length: 3 }).default("BRL"),
+  minimumOrder: integer("minimum_order"),
+  leadTimeDays: integer("lead_time_days"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("supplier_catalog_tenant_supplier_idx").on(table.tenantId, table.supplierId),
+  index("supplier_catalog_tenant_item_idx").on(table.tenantId, table.itemId),
+  unique("supplier_catalog_supplier_item_unique").on(table.tenantId, table.supplierId, table.itemId),
+]);
+
+// Price Lists table
+export const priceLists = pgTable("price_lists", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  listCode: varchar("list_code", { length: 50 }).notNull(),
+  customerCompanyId: uuid("customer_company_id").references(() => customerCompanies.id),
+  effectiveDate: timestamp("effective_date").defaultNow(),
+  expirationDate: timestamp("expiration_date"),
+  currency: varchar("currency", { length: 3 }).default("BRL"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("price_lists_tenant_name_idx").on(table.tenantId, table.name),
+  index("price_lists_tenant_code_idx").on(table.tenantId, table.listCode),
+  index("price_lists_tenant_customer_idx").on(table.tenantId, table.customerCompanyId),
+  unique("price_lists_tenant_code_unique").on(table.tenantId, table.listCode),
+]);
+
+// Price List Items table
+export const priceListItems = pgTable("price_list_items", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  priceListId: uuid("price_list_id").references(() => priceLists.id, { onDelete: 'cascade' }).notNull(),
+  itemId: uuid("item_id").references(() => items.id, { onDelete: 'cascade' }).notNull(),
+  unitPrice: decimal("unit_price", { precision: 10, scale: 2 }).notNull(),
+  minimumQuantity: decimal("minimum_quantity", { precision: 10, scale: 3 }).default("1"),
+  discountPercent: decimal("discount_percent", { precision: 5, scale: 2 }).default("0"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("price_list_items_tenant_list_idx").on(table.tenantId, table.priceListId),
+  index("price_list_items_tenant_item_idx").on(table.tenantId, table.itemId),
+  unique("price_list_items_list_item_unique").on(table.tenantId, table.priceListId, table.itemId),
+]);
+
+// Price List Versions table
+export const priceListVersions = pgTable("price_list_versions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  priceListId: uuid("price_list_id").references(() => priceLists.id, { onDelete: 'cascade' }).notNull(),
+  version: varchar("version", { length: 20 }).notNull(),
+  description: text("description"),
+  isActive: boolean("is_active").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("price_list_versions_tenant_list_idx").on(table.tenantId, table.priceListId),
+  unique("price_list_versions_list_version_unique").on(table.tenantId, table.priceListId, table.version),
+]);
+
+// Pricing Rules table
+export const pricingRules = pgTable("pricing_rules", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  ruleType: varchar("rule_type", { length: 50 }).notNull(), // percentage, fixed, tiered, dynamic
+  priority: integer("priority").default(1),
+  conditions: jsonb("conditions").notNull(),
+  actions: jsonb("actions").notNull(),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("pricing_rules_tenant_type_idx").on(table.tenantId, table.ruleType),
+  index("pricing_rules_tenant_priority_idx").on(table.tenantId, table.priority),
+]);
+
+// Dynamic Pricing table
+export const dynamicPricing = pgTable("dynamic_pricing", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  itemId: uuid("item_id").references(() => items.id, { onDelete: 'cascade' }).notNull(),
+  basePrice: decimal("base_price", { precision: 10, scale: 2 }).notNull(),
+  currentPrice: decimal("current_price", { precision: 10, scale: 2 }).notNull(),
+  lastUpdated: timestamp("last_updated").defaultNow(),
+  factors: jsonb("factors").default({}),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("dynamic_pricing_tenant_item_idx").on(table.tenantId, table.itemId),
+  unique("dynamic_pricing_tenant_item_unique").on(table.tenantId, table.itemId),
+]);
+
+// Asset Locations table
+export const assetLocations = pgTable("asset_locations", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  code: varchar("code", { length: 50 }),
+  description: text("description"),
+  locationType: varchar("location_type", { length: 50 }).notNull(),
+  parentLocationId: uuid("parent_location_id"),
+  address: text("address"),
+  coordinates: jsonb("coordinates"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("asset_locations_tenant_name_idx").on(table.tenantId, table.name),
+  index("asset_locations_tenant_type_idx").on(table.tenantId, table.locationType),
+]);
+
+// Stock Entries table
+export const stockEntries = pgTable("stock_entries", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  itemId: uuid("item_id").references(() => items.id).notNull(),
+  locationId: uuid("location_id").references(() => stockLocations.id).notNull(),
+  currentStock: decimal("current_stock", { precision: 15, scale: 4 }).default("0"),
+  reservedStock: decimal("reserved_stock", { precision: 15, scale: 4 }).default("0"),
+  minimumStock: decimal("minimum_stock", { precision: 15, scale: 4 }).default("0"),
+  maximumStock: decimal("maximum_stock", { precision: 15, scale: 4 }),
+  unitCost: decimal("unit_cost", { precision: 10, scale: 2 }),
+  lastMovementAt: timestamp("last_movement_at"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("stock_entries_tenant_item_idx").on(table.tenantId, table.itemId),
+  index("stock_entries_tenant_location_idx").on(table.tenantId, table.locationId),
+  unique("stock_entries_item_location_unique").on(table.tenantId, table.itemId, table.locationId),
+]);
+
+// Stock Movements table
+export const stockMovements = pgTable("stock_movements", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  itemId: uuid("item_id").references(() => items.id).notNull(),
+  locationId: uuid("location_id").references(() => stockLocations.id).notNull(),
+  movementType: varchar("movement_type", { length: 50 }).notNull(), // 'in', 'out', 'transfer', 'adjustment'
+  quantity: decimal("quantity", { precision: 15, scale: 4 }).notNull(),
+  unitCost: decimal("unit_cost", { precision: 10, scale: 2 }),
+  totalCost: decimal("total_cost", { precision: 15, scale: 2 }),
+  reason: varchar("reason", { length: 255 }),
+  referenceId: uuid("reference_id"), // ticket, purchase order, etc.
+  referenceType: varchar("reference_type", { length: 50 }),
+  performedBy: uuid("performed_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("stock_movements_tenant_item_idx").on(table.tenantId, table.itemId),
+  index("stock_movements_tenant_location_idx").on(table.tenantId, table.locationId),
+  index("stock_movements_tenant_type_idx").on(table.tenantId, table.movementType),
+  index("stock_movements_tenant_created_idx").on(table.tenantId, table.createdAt),
+]);
 
 // Stock locations table
 export const stockLocations = pgTable("stock_locations", {
@@ -2250,35 +2516,172 @@ export const stockLevels = pgTable("stock_levels", {
   updatedAt: timestamp("updated_at").defaultNow().notNull()
 });
 
-// Suppliers table
-export const suppliers = pgTable("suppliers", {
+// Asset Maintenance table
+export const assetMaintenance = pgTable("asset_maintenance", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  assetId: uuid("asset_id").notNull(),
+  maintenanceType: varchar("maintenance_type", { length: 50 }).notNull(),
+  scheduledDate: timestamp("scheduled_date"),
+  completedDate: timestamp("completed_date"),
+  status: varchar("status", { length: 20 }).default("scheduled"),
+  notes: text("notes"),
+  cost: decimal("cost", { precision: 10, scale: 2 }),
+  technician: varchar("technician", { length: 255 }),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("asset_maintenance_tenant_asset_idx").on(table.tenantId, table.assetId),
+  index("asset_maintenance_tenant_status_idx").on(table.tenantId, table.status),
+]);
+
+// Asset Categories table
+export const assetCategories = pgTable("asset_categories", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
   name: varchar("name", { length: 255 }).notNull(),
-  code: varchar("code", { length: 50 }).notNull(),
-  type: varchar("type", { length: 50 }).notNull().default("supplier"),
-  documentNumber: varchar("document_number", { length: 50 }),
-  email: varchar("email", { length: 255 }),
-  phone: varchar("phone", { length: 50 }),
-  website: text("website"),
-  address: text("address"),
-  city: varchar("city", { length: 100 }),
-  state: varchar("state", { length: 100 }),
-  country: varchar("country", { length: 100 }),
-  postalCode: varchar("postal_code", { length: 20 }),
-  contactPerson: varchar("contact_person", { length: 255 }),
-  contactPhone: varchar("contact_phone", { length: 50 }),
-  contactEmail: varchar("contact_email", { length: 255 }),
-  paymentTerms: varchar("payment_terms", { length: 100 }),
-  creditLimit: decimal("credit_limit", { precision: 15, scale: 2 }),
-  rating: varchar("rating", { length: 10 }),
+  description: text("description"),
+  parentCategoryId: uuid("parent_category_id"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("asset_categories_tenant_name_idx").on(table.tenantId, table.name),
+  index("asset_categories_tenant_parent_idx").on(table.tenantId, table.parentCategoryId),
+]);
+
+// Assets table
+export const assets = pgTable("assets", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  assetTag: varchar("asset_tag", { length: 50 }),
+  categoryId: uuid("category_id").references(() => assetCategories.id),
+  locationId: uuid("location_id").references(() => assetLocations.id),
+  status: varchar("status", { length: 20 }).default("active"),
+  description: text("description"),
+  serialNumber: varchar("serial_number", { length: 100 }),
+  model: varchar("model", { length: 100 }),
+  manufacturer: varchar("manufacturer", { length: 100 }),
+  purchaseDate: date("purchase_date"),
+  purchasePrice: decimal("purchase_price", { precision: 10, scale: 2 }),
+  warrantyExpiry: date("warranty_expiry"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("assets_tenant_name_idx").on(table.tenantId, table.name),
+  index("assets_tenant_tag_idx").on(table.tenantId, table.assetTag),
+  unique("assets_tenant_tag_unique").on(table.tenantId, table.assetTag),
+]);
+
+// Asset Meters table
+export const assetMeters = pgTable("asset_meters", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  assetId: uuid("asset_id").references(() => assets.id, { onDelete: 'cascade' }).notNull(),
+  meterType: varchar("meter_type", { length: 50 }).notNull(),
+  currentReading: decimal("current_reading", { precision: 15, scale: 4 }),
+  previousReading: decimal("previous_reading", { precision: 15, scale: 4 }),
+  unit: varchar("unit", { length: 20 }),
+  readingDate: timestamp("reading_date").defaultNow(),
   notes: text("notes"),
-  status: varchar("status", { length: 20 }).notNull().default("active"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-  createdBy: uuid("created_by"),
-  updatedBy: uuid("updated_by")
-});
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("asset_meters_tenant_asset_idx").on(table.tenantId, table.assetId),
+  index("asset_meters_tenant_type_idx").on(table.tenantId, table.meterType),
+]);
+
+// Compliance Audits table
+export const complianceAudits = pgTable("compliance_audits", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  auditType: varchar("audit_type", { length: 50 }).notNull(),
+  scheduledDate: timestamp("scheduled_date"),
+  completedDate: timestamp("completed_date"),
+  auditorName: varchar("auditor_name", { length: 255 }),
+  status: varchar("status", { length: 20 }).default("scheduled"),
+  findings: text("findings"),
+  recommendations: text("recommendations"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("compliance_audits_tenant_type_idx").on(table.tenantId, table.auditType),
+  index("compliance_audits_tenant_status_idx").on(table.tenantId, table.status),
+]);
+
+// Compliance Certifications table
+export const complianceCertifications = pgTable("compliance_certifications", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  certificationName: varchar("certification_name", { length: 255 }).notNull(),
+  issuingBody: varchar("issuing_body", { length: 255 }),
+  issueDate: date("issue_date"),
+  expiryDate: date("expiry_date"),
+  status: varchar("status", { length: 20 }).default("active"),
+  certificateNumber: varchar("certificate_number", { length: 100 }),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("compliance_certifications_tenant_name_idx").on(table.tenantId, table.certificationName),
+  index("compliance_certifications_tenant_status_idx").on(table.tenantId, table.status),
+]);
+
+// Compliance Evidence table
+export const complianceEvidence = pgTable("compliance_evidence", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  evidenceType: varchar("evidence_type", { length: 50 }).notNull(),
+  description: text("description"),
+  filePath: varchar("file_path", { length: 500 }),
+  uploadedBy: uuid("uploaded_by").references(() => users.id),
+  verifiedBy: uuid("verified_by").references(() => users.id),
+  verificationDate: timestamp("verification_date"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("compliance_evidence_tenant_type_idx").on(table.tenantId, table.evidenceType),
+]);
+
+// Compliance Alerts table
+export const complianceAlerts = pgTable("compliance_alerts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  alertType: varchar("alert_type", { length: 50 }).notNull(),
+  severity: varchar("severity", { length: 20 }).default("medium"),
+  message: text("message"),
+  isResolved: boolean("is_resolved").default(false),
+  resolvedBy: uuid("resolved_by").references(() => users.id),
+  resolvedAt: timestamp("resolved_at"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("compliance_alerts_tenant_type_idx").on(table.tenantId, table.alertType),
+  index("compliance_alerts_tenant_severity_idx").on(table.tenantId, table.severity),
+]);
+
+// Compliance Scores table
+export const complianceScores = pgTable("compliance_scores", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  scoreType: varchar("score_type", { length: 50 }).notNull(),
+  score: decimal("score", { precision: 5, scale: 2 }),
+  maxScore: decimal("max_score", { precision: 5, scale: 2 }),
+  period: varchar("period", { length: 50 }),
+  calculatedAt: timestamp("calculated_at").defaultNow(),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("compliance_scores_tenant_type_idx").on(table.tenantId, table.scoreType),
+  index("compliance_scores_tenant_period_idx").on(table.tenantId, table.period),
+]);
 
 // Customer Item Mappings - Personalized item configurations per customer
 export const customerItemMappings = pgTable("customer_item_mappings", {
@@ -2979,6 +3382,58 @@ export type TicketViewShare = typeof ticketViewShares.$inferSelect;
 export type InsertTicketViewShare = typeof ticketViewShares.$inferInsert;
 export type UserViewPreference = typeof userViewPreferences.$inferSelect;
 export type InsertUserViewPreference = typeof userViewPreferences.$inferInsert;
+
+// ========================================
+// ADDITIONAL MATERIALS & SERVICES TYPES
+// ========================================
+
+// Price Lists (LPU)
+export type PriceList = typeof priceLists.$inferSelect;
+export type InsertPriceList = typeof priceLists.$inferInsert;
+
+export type PriceListItem = typeof priceListItems.$inferSelect;
+export type InsertPriceListItem = typeof priceListItems.$inferInsert;
+
+export type PricingRule = typeof pricingRules.$inferSelect;
+export type InsertPricingRule = typeof pricingRules.$inferInsert;
+
+export type DynamicPricing = typeof dynamicPricing.$inferSelect;
+export type InsertDynamicPricing = typeof dynamicPricing.$inferInsert;
+
+// ========================================
+// ASSET MANAGEMENT TYPES
+// ========================================
+
+export type Asset = typeof assets.$inferSelect;
+export type InsertAsset = typeof assets.$inferInsert;
+
+export type AssetMaintenance = typeof assetMaintenance.$inferSelect;
+export type InsertAssetMaintenance = typeof assetMaintenance.$inferInsert;
+
+export type AssetMeter = typeof assetMeters.$inferSelect;
+export type InsertAssetMeter = typeof assetMeters.$inferInsert;
+
+export type AssetLocation = typeof assetLocations.$inferSelect;
+export type InsertAssetLocation = typeof assetLocations.$inferInsert;
+
+// ========================================
+// COMPLIANCE TYPES
+// ========================================
+
+export type ComplianceAudit = typeof complianceAudits.$inferSelect;
+export type InsertComplianceAudit = typeof complianceAudits.$inferInsert;
+
+export type ComplianceCertification = typeof complianceCertifications.$inferSelect;
+export type InsertComplianceCertification = typeof complianceCertifications.$inferInsert;
+
+export type ComplianceEvidence = typeof complianceEvidence.$inferSelect;
+export type InsertComplianceEvidence = typeof complianceEvidence.$inferInsert;
+
+export type ComplianceAlert = typeof complianceAlerts.$inferSelect;
+export type InsertComplianceAlert = typeof complianceAlerts.$inferInsert;
+
+export type ComplianceScore = typeof complianceScores.$inferSelect;
+export type InsertComplianceScore = typeof complianceScores.$inferInsert;
 
 // Zod schemas para validação
 export const insertTicketListViewSchema = createInsertSchema(ticketListViews).extend({

@@ -1,6 +1,6 @@
 import { db } from '../../../../db';
 import { eq, and, like, desc } from 'drizzle-orm';
-import { suppliers, supplierCatalog } from '../../../../../shared/schema-materials-services';
+import { suppliers, supplierCatalog } from '../../../../../shared/schema-master';
 import type { Supplier } from '../../domain/entities';
 
 export class SupplierRepository {

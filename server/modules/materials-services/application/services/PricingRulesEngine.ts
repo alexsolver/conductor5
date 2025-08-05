@@ -1,5 +1,5 @@
 
-import { PricingRule, PriceListItem } from '../../../../../shared/schema-materials-services';
+import { PricingRule, PriceListItem } from '../../../../../shared/schema-master';
 import { LPURepository } from '../../infrastructure/repositories/LPURepository';
 
 export interface PriceCalculationContext {

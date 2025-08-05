@@ -10,7 +10,7 @@ import {
   type InsertAssetMaintenance,
   type AssetMeter,
   type InsertAssetMeter
-} from '../../../../../shared/schema-materials-services';
+} from '../../../../../shared/schema-master';
 import { eq, and, desc, asc } from 'drizzle-orm';
 
 export class AssetManagementRepository {

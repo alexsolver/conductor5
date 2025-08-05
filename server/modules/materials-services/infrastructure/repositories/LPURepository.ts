@@ -10,7 +10,7 @@ import {
   type InsertPricingRule,
   type DynamicPricing,
   type InsertDynamicPricing
-} from '../../../../../shared/schema-materials-services';
+} from '../../../../../shared/schema-master';
 import { eq, and, desc, asc, gte, lte, sql, inArray } from 'drizzle-orm';
 
 export class LPURepository {

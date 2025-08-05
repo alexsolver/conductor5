@@ -1,5 +1,5 @@
 import { eq, and, like, desc, or, sql, inArray } from 'drizzle-orm';
-import { items, itemAttachments, itemLinks, itemCustomerLinks, itemSupplierLinks } from '../../../../../shared/schema-materials-services';
+import { items, itemAttachments, itemLinks, itemCustomerLinks, itemSupplierLinks } from '../../../../../shared/schema-master';
 import type { Item } from '../../domain/entities';
 import type { ExtractTablesWithRelations } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
