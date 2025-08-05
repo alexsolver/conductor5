@@ -2719,10 +2719,7 @@ export const customerItemMappings = pgTable("customer_item_mappings", {
   customerReference: varchar("customer_reference", { length: 100 }), // Referência interna do cliente
   
   // Pricing and terms
-  negotiatedPrice: decimal("negotiated_price", { precision: 15, scale: 2 }), // Preço negociado
-  minimumQuantity: decimal("minimum_quantity", { precision: 15, scale: 4 }).default("1"), // Quantidade mínima
   leadTimeDays: integer("lead_time_days"), // Tempo de entrega específico
-  discountPercent: decimal("discount_percent", { precision: 5, scale: 2 }), // Desconto percentual
   
   // Configuration options
   preferredSupplier: varchar("preferred_supplier", { length: 255 }), // Fornecedor preferido
@@ -3485,8 +3482,5 @@ export const insertUserViewPreferenceSchema = createInsertSchema(userViewPrefere
 export const insertCustomerItemMappingSchema = createInsertSchema(customerItemMappings).extend({
   customSku: z.string().min(1, "SKU personalizado é obrigatório").optional(),
   customName: z.string().min(1, "Nome personalizado deve ter pelo menos 1 caractere").optional(),
-  negotiatedPrice: z.string().refine(val => !val || parseFloat(val) >= 0, "Preço deve ser positivo").optional(),
-  minimumQuantity: z.string().refine(val => !val || parseFloat(val) > 0, "Quantidade mínima deve ser maior que zero").optional(),
   leadTimeDays: z.number().int().min(0, "Dias de entrega deve ser positivo").optional(),
-  discountPercent: z.string().refine(val => !val || (parseFloat(val) >= 0 && parseFloat(val) <= 100), "Desconto deve estar entre 0 e 100%").optional(),
 });

@@ -22,9 +22,6 @@ interface CustomerItemMapping {
   custom_name: string;
   custom_description?: string;
   customer_reference: string;
-  negotiated_price: string;
-  minimum_quantity: string;
-  discount_percent: string;
   special_instructions?: string;
   notes?: string;
   is_active: boolean;
@@ -54,9 +51,6 @@ export function CustomerItemMappings() {
     custom_name: "",
     custom_description: "",
     customer_reference: "",
-    negotiated_price: "",
-    minimum_quantity: "1",
-    discount_percent: "0",
     special_instructions: "",
     notes: ""
   });
@@ -125,9 +119,6 @@ export function CustomerItemMappings() {
       const response = await apiRequest(method, url, {
         ...data,
         tenant_id: tenantId,
-        negotiated_price: parseFloat(data.negotiated_price) || 0,
-        minimum_quantity: parseFloat(data.minimum_quantity) || 1,
-        discount_percent: parseFloat(data.discount_percent) || 0,
       });
       
       if (!response.ok) {
@@ -190,9 +181,6 @@ export function CustomerItemMappings() {
       custom_name: "",
       custom_description: "",
       customer_reference: "",
-      negotiated_price: "",
-      minimum_quantity: "1",
-      discount_percent: "0",
       special_instructions: "",
       notes: ""
     });
@@ -207,9 +195,6 @@ export function CustomerItemMappings() {
       custom_name: mapping.custom_name || "",
       custom_description: mapping.custom_description || "",
       customer_reference: mapping.customer_reference || "",
-      negotiated_price: mapping.negotiated_price || "",
-      minimum_quantity: mapping.minimum_quantity || "1",
-      discount_percent: mapping.discount_percent || "0",
       special_instructions: mapping.special_instructions || "",
       notes: mapping.notes || ""
     });
@@ -230,7 +215,7 @@ export function CustomerItemMappings() {
           <div>
             <h1 className="text-3xl font-bold">Personalização de Itens por Cliente</h1>
             <p className="text-muted-foreground">
-              Gerencie SKUs, preços e configurações personalizadas para cada cliente
+              Gerencie SKUs e configurações personalizadas para cada cliente
             </p>
           </div>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -329,41 +314,7 @@ export function CustomerItemMappings() {
                   />
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <Label htmlFor="negotiated_price">Preço Negociado</Label>
-                    <Input
-                      id="negotiated_price"
-                      type="number"
-                      step="0.01"
-                      value={formData.negotiated_price}
-                      onChange={(e) => setFormData(prev => ({ ...prev, negotiated_price: e.target.value }))}
-                      placeholder="0.00"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="minimum_quantity">Quantidade Mínima</Label>
-                    <Input
-                      id="minimum_quantity"
-                      type="number"
-                      step="0.01"
-                      value={formData.minimum_quantity}
-                      onChange={(e) => setFormData(prev => ({ ...prev, minimum_quantity: e.target.value }))}
-                      placeholder="1"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="discount_percent">Desconto (%)</Label>
-                    <Input
-                      id="discount_percent"
-                      type="number"
-                      step="0.01"
-                      value={formData.discount_percent}
-                      onChange={(e) => setFormData(prev => ({ ...prev, discount_percent: e.target.value }))}
-                      placeholder="0"
-                    />
-                  </div>
-                </div>
+
 
                 <div>
                   <Label htmlFor="special_instructions">Instruções Especiais</Label>
@@ -475,32 +426,7 @@ export function CustomerItemMappings() {
               </div>
             </CardContent>
           </Card>
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-2">
-                <DollarSign className="h-4 w-4 text-yellow-500" />
-                <div>
-                  <p className="text-sm font-medium">Com Preço Negociado</p>
-                  <p className="text-2xl font-bold">
-                    {mappings.filter(m => parseFloat(m.negotiated_price) > 0).length}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-2">
-                <Tag className="h-4 w-4 text-purple-500" />
-                <div>
-                  <p className="text-sm font-medium">Com Desconto</p>
-                  <p className="text-2xl font-bold">
-                    {mappings.filter(m => parseFloat(m.discount_percent) > 0).length}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+
         </div>
       </div>
 
@@ -524,8 +450,6 @@ export function CustomerItemMappings() {
                   <TableHead>Item Original</TableHead>
                   <TableHead>SKU Personalizado</TableHead>
                   <TableHead>Nome Personalizado</TableHead>
-                  <TableHead>Preço Negociado</TableHead>
-                  <TableHead>Desconto</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Ações</TableHead>
                 </TableRow>
@@ -564,24 +488,7 @@ export function CustomerItemMappings() {
                         )}
                       </div>
                     </TableCell>
-                    <TableCell>
-                      {mapping.negotiated_price ? (
-                        <div className="font-medium text-green-600">
-                          R$ {parseFloat(mapping.negotiated_price).toFixed(2)}
-                        </div>
-                      ) : (
-                        <span className="text-muted-foreground">-</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {mapping.discount_percent && parseFloat(mapping.discount_percent) > 0 ? (
-                        <Badge variant="secondary">
-                          {mapping.discount_percent}%
-                        </Badge>
-                      ) : (
-                        <span className="text-muted-foreground">-</span>
-                      )}
-                    </TableCell>
+
                     <TableCell>
                       <Badge variant={mapping.is_active ? "default" : "secondary"}>
                         {mapping.is_active ? "Ativo" : "Inativo"}
