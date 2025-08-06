@@ -751,11 +751,16 @@ export default function ItemCatalog() {
                           variant="outline"
                           size="sm"
                           onClick={() => {
-                            // Implementar formulário de novo vínculo
-                            toast({
-                              title: "Em desenvolvimento",
-                              description: "Funcionalidade de vínculos será implementada em breve"
-                            });
+                            // Fechar o modal e abrir a tab de supplier links
+                            setIsModalOpen(false);
+                            setActiveTab('supplier-links');
+                            setTimeout(() => {
+                              setSelectedItem(selectedItem);
+                              toast({
+                                title: "Vínculos de Fornecedores",
+                                description: "Use a aba Supplier Links para gerenciar vínculos completos"
+                              });
+                            }, 100);
                           }}
                         >
                           <Plus className="h-4 w-4 mr-2" />
@@ -1397,7 +1402,7 @@ function CustomerPersonalizationTab({ itemId, itemName }: { itemId?: string; ite
           data: {
             id: `new-link-${Date.now()}`,
             ...data,
-            supplier_name: suppliers.find(s => s.id === data.supplierId)?.name || 'Fornecedor',
+            supplier_name: suppliers.find((s: any) => s.id === data.supplierId)?.name || 'Fornecedor',
             is_active: true,
             created_at: new Date().toISOString()
           }
@@ -1508,7 +1513,7 @@ function CustomerPersonalizationTab({ itemId, itemName }: { itemId?: string; ite
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <Button variant="ghost" size="sm">
-                              <Edit2 className="h-4 w-4" />
+                              <Edit className="h-4 w-4" />
                             </Button>
                             <Button variant="ghost" size="sm">
                               <Trash2 className="h-4 w-4" />
@@ -1817,7 +1822,7 @@ function CustomerPersonalizationTab({ itemId, itemName }: { itemId?: string; ite
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {customers?.map((customer: any) => (
+                          {(customers as any)?.map((customer: any) => (
                             <SelectItem key={customer.id} value={customer.id}>
                               {customer.company || `${customer.first_name} ${customer.last_name}`}
                             </SelectItem>
