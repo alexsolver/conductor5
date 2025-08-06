@@ -399,7 +399,11 @@ export const ResponsiveTicketsTable: React.FC<ResponsiveTicketsTableProps> = ({
                                 #{rel.targetTicket?.number || rel.number}
                               </Link>
                               <span className="truncate">{rel.targetTicket?.subject || rel.subject}</span>
-                              <SmartDynamicBadge fieldName="status" value={rel.targetTicket?.status || rel.status} className="text-xs" />
+                              <SmartDynamicBadge 
+                                fieldName="status" 
+                                value={rel.targetTicket?.status || rel.status} 
+                                className="text-xs"
+                              />
                             </div>
                           ))}
                         </div>

@@ -19,16 +19,13 @@ export const getCustomerPersonalizations = async (req: AuthenticatedRequest, res
       });
     }
 
+    const tenantSchema = `tenant_${tenantId.replace(/-/g, '_')}`;
     const query = `
       SELECT 
         m.id,
         m.customer_id,
         m.item_id,
-        m.custom_sku,
-        m.custom_name,
-        m.custom_description,
-        m.customer_reference,
-        m.special_instructions,
+        m.alias as custom_name,
         m.is_active,
         m.created_at,
         m.updated_at,
@@ -36,8 +33,8 @@ export const getCustomerPersonalizations = async (req: AuthenticatedRequest, res
         i.type as item_type,
         i.integration_code as item_sku,
         i.description as item_description
-      FROM ${tenantId}.customer_item_mappings m
-      LEFT JOIN ${tenantId}.items i ON m.item_id = i.id
+      FROM ${tenantSchema}.customer_item_mappings m
+      LEFT JOIN ${tenantSchema}.items i ON m.item_id = i.id
       WHERE m.tenant_id = $1 AND m.customer_id = $2 AND m.is_active = true
       ORDER BY m.created_at DESC
     `;
@@ -74,24 +71,21 @@ export const getItemPersonalizations = async (req: AuthenticatedRequest, res: Re
       });
     }
 
+    const tenantSchema = `tenant_${tenantId.replace(/-/g, '_')}`;
     const query = `
       SELECT 
         m.id,
         m.customer_id,
         m.item_id,
-        m.custom_sku,
-        m.custom_name,
-        m.custom_description,
-        m.customer_reference,
-        m.special_instructions,
+        m.alias as custom_name,
         m.is_active,
         m.created_at,
         m.updated_at,
         c.company as customer_name,
         c.first_name,
         c.last_name
-      FROM ${tenantId}.customer_item_mappings m
-      LEFT JOIN ${tenantId}.customers c ON m.customer_id = c.id
+      FROM ${tenantSchema}.customer_item_mappings m
+      LEFT JOIN ${tenantSchema}.customers c ON m.customer_id = c.id
       WHERE m.tenant_id = $1 AND m.item_id = $2
       ORDER BY m.created_at DESC
     `;
