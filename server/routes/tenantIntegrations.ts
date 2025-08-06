@@ -143,12 +143,15 @@ router.get('/:integrationId/config', requirePermission(Permission.TENANT_MANAGE_
     console.log(`[GET config route] Buscando config para tenant: ${tenantId}, integration: ${integrationId}`);
     const { storage } = await import('../storage-simple');
     const configResult = await storage.getTenantIntegrationConfig(tenantId, integrationId);
-    console.log(`[GET config route] Resultado recebido do storage:`, configResult);
+    console.log(`[GET config route] Resultado recebido do storage:`, JSON.stringify(configResult, null, 2));
 
     if (!configResult) {
       console.log(`[GET config route] Nenhuma config encontrada, retornando null`);
       return res.json({ config: null, configured: false });
     }
+
+    console.log(`[GET config route] ConfigResult type:`, typeof configResult.config);
+    console.log(`[GET config route] ConfigResult keys:`, Object.keys(configResult));
 
     // Extrair apenas os dados de configuração do campo config
     const configData = configResult.config || {};
