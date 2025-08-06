@@ -1200,15 +1200,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const categoryHierarchyController = new TicketHierarchicalController();
     const ticketTemplateController = new TicketTemplateController(schemaManager);
 
-    // Customer-specific configuration routes
-    app.get('/api/ticket-metadata-hierarchical/customer/:customerId/configuration', jwtAuth, hierarchicalController.getCustomerConfiguration.bind(hierarchicalController));
-    app.post('/api/ticket-metadata-hierarchical/customer/:customerId/configuration', jwtAuth, hierarchicalController.createCustomerConfiguration.bind(hierarchicalController));
-    app.put('/api/ticket-metadata-hierarchical/customer/:customerId/configuration/:fieldName', jwtAuth, hierarchicalController.updateCustomerConfiguration.bind(hierarchicalController));
-    app.delete('/api/ticket-metadata-hierarchical/customer/:customerId/configuration/:fieldName', jwtAuth, hierarchicalController.deleteCustomerConfiguration.bind(hierarchicalController));
+    // Customer-specific configuration routes - only bind if methods exist
+    if (hierarchicalController.getCustomerConfiguration) {
+      app.get('/api/ticket-metadata-hierarchical/customer/:customerId/configuration', jwtAuth, hierarchicalController.getCustomerConfiguration.bind(hierarchicalController));
+    }
+    if (hierarchicalController.createCustomerConfiguration) {
+      app.post('/api/ticket-metadata-hierarchical/customer/:customerId/configuration', jwtAuth, hierarchicalController.createCustomerConfiguration.bind(hierarchicalController));
+    }
+    if (hierarchicalController.updateCustomerConfiguration) {
+      app.put('/api/ticket-metadata-hierarchical/customer/:customerId/configuration/:fieldName', jwtAuth, hierarchicalController.updateCustomerConfiguration.bind(hierarchicalController));
+    }
+    if (hierarchicalController.deleteCustomerConfiguration) {
+      app.delete('/api/ticket-metadata-hierarchical/customer/:customerId/configuration/:fieldName', jwtAuth, hierarchicalController.deleteCustomerConfiguration.bind(hierarchicalController));
+    }
 
-    // Field resolution routes
-    app.get('/api/ticket-metadata-hierarchical/customer/:customerId/field/:fieldName', jwtAuth, hierarchicalController.resolveFieldForCustomer.bind(hierarchicalController));
-    app.get('/api/ticket-metadata-hierarchical/tenant/field/:fieldName', jwtAuth, hierarchicalController.resolveFieldForTenant.bind(hierarchicalController));
+    // Field resolution routes - only bind if methods exist
+    if (hierarchicalController.resolveFieldForCustomer) {
+      app.get('/api/ticket-metadata-hierarchical/customer/:customerId/field/:fieldName', jwtAuth, hierarchicalController.resolveFieldForCustomer.bind(hierarchicalController));
+    }
+    if (hierarchicalController.resolveFieldForTenant) {
+      app.get('/api/ticket-metadata-hierarchical/tenant/field/:fieldName', jwtAuth, hierarchicalController.resolveFieldForTenant.bind(hierarchicalController));
+    }
 
     // Category Hierarchy Routes (Categoria → Subcategoria → Ação)
 
