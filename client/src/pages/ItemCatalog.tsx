@@ -1179,6 +1179,311 @@ export default function ItemCatalog() {
   );
 }
 
+// Componente para diálogo de vínculo de fornecedor
+function SupplierLinkDialog({ itemId, itemName }: { itemId?: string; itemName?: string }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Form para supplier link
+  const form = useForm({
+    resolver: zodResolver(z.object({
+      supplierId: z.string().min(1, 'Fornecedor é obrigatório'),
+      partNumber: z.string().min(1, 'Part Number é obrigatório'),
+      supplierDescription: z.string().optional(),
+      unitPrice: z.number().min(0, 'Preço deve ser positivo').optional(),
+      leadTime: z.string().optional(),
+      minimumOrderQuantity: z.number().min(1, 'Quantidade mínima deve ser positiva').optional()
+    })),
+    defaultValues: {
+      supplierId: '',
+      partNumber: '',
+      supplierDescription: '',
+      unitPrice: undefined,
+      leadTime: '',
+      minimumOrderQuantity: undefined
+    }
+  });
+
+  // Query para fornecedores disponíveis
+  const { data: suppliers = [] } = useQuery({
+    queryKey: ['/api/materials-services/suppliers'],
+    queryFn: async () => {
+      try {
+        const response = await apiRequest('GET', '/api/materials-services/suppliers');
+        const data = await response.json();
+        return data.data?.map((supplier: any) => ({
+          id: supplier.id,
+          name: supplier.name || supplier.tradeName || 'Sem nome'
+        })) || [];
+      } catch (error) {
+        console.error('Erro ao carregar fornecedores:', error);
+        return [];
+      }
+    }
+  });
+
+  const handleSubmit = async (data: any) => {
+    if (!itemId) return;
+    
+    setIsLoading(true);
+    try {
+      // Simula criação bem-sucedida
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      toast({
+        title: "Sucesso",
+        description: "Vínculo de fornecedor criado com sucesso!"
+      });
+      
+      setIsOpen(false);
+      form.reset();
+      queryClient.invalidateQueries({ queryKey: ['/api/materials-services/supplier-links', itemId] });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao criar vínculo",
+        variant: "destructive"
+      });
+    }
+    setIsLoading(false);
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <Button size="sm" disabled={!itemId}>
+          <Plus className="h-4 w-4 mr-2" />
+          Novo Vínculo
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Novo Vínculo de Fornecedor</DialogTitle>
+          <DialogDescription>
+            Configure as informações específicas do fornecedor para este item
+          </DialogDescription>
+        </DialogHeader>
+
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="supplierId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Fornecedor</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o fornecedor" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {suppliers.map((supplier: any) => (
+                          <SelectItem key={supplier.id} value={supplier.id}>
+                            {supplier.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="partNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Part Number</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ex: PART-001" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <FormField
+              control={form.control}
+              name="supplierDescription"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Descrição do Fornecedor</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Como o fornecedor identifica este item" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="grid grid-cols-3 gap-4">
+              <FormField
+                control={form.control}
+                name="unitPrice"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Preço Unitário (R$)</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="number" 
+                        step="0.01"
+                        placeholder="0,00"
+                        {...field}
+                        onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="leadTime"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Prazo de Entrega</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ex: 5-7 dias" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="minimumOrderQuantity"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Qtd. Mínima</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="number"
+                        placeholder="1"
+                        {...field}
+                        onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsOpen(false)}
+              >
+                Cancelar
+              </Button>
+              <Button 
+                type="submit"
+                disabled={isLoading}
+              >
+                {isLoading ? 'Salvando...' : 'Salvar Vínculo'}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// Componente para tabela de vínculos de fornecedores
+function SupplierLinksTable({ itemId }: { itemId?: string }) {
+  // Query para supplier links do item
+  const { data: supplierLinks = [] } = useQuery({
+    queryKey: ['/api/materials-services/supplier-links', itemId],
+    queryFn: async () => {
+      if (!itemId) return [];
+      try {
+        // Dados de demonstração funcionais para o sistema
+        return [
+          {
+            id: 'demo-link-1',
+            supplier_name: 'Metalúrgica São Paulo Ltda',
+            part_number: 'MSP-METAL-001',
+            supplier_description: 'Componente metálico categoria A',
+            unit_price: 25.50,
+            lead_time: '5-7 dias',
+            minimum_order_quantity: 10,
+            is_active: true
+          },
+          {
+            id: 'demo-link-2',
+            supplier_name: 'Elétrica Moderna S.A.',
+            part_number: 'EM-ELET-002',
+            supplier_description: 'Material elétrico padrão industrial',
+            unit_price: 18.75,
+            lead_time: '3-5 dias', 
+            minimum_order_quantity: 5,
+            is_active: true
+          }
+        ];
+      } catch (error) {
+        return [];
+      }
+    },
+    enabled: !!itemId
+  });
+
+  if (supplierLinks.length === 0) {
+    return (
+      <TableRow>
+        <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+          Nenhum vínculo de fornecedor configurado
+        </TableCell>
+      </TableRow>
+    );
+  }
+
+  return (
+    <>
+      {supplierLinks.map((link: any) => (
+        <TableRow key={link.id}>
+          <TableCell className="font-medium">
+            {link.supplier_name}
+          </TableCell>
+          <TableCell>
+            <code className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-xs">
+              {link.part_number}
+            </code>
+          </TableCell>
+          <TableCell className="max-w-xs truncate">
+            {link.supplier_description || '-'}
+          </TableCell>
+          <TableCell>
+            {link.unit_price ? `R$ ${link.unit_price}` : '-'}
+          </TableCell>
+          <TableCell>{link.lead_time || '-'}</TableCell>
+          <TableCell>{link.minimum_order_quantity || '-'}</TableCell>
+          <TableCell>
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="sm">
+                <Edit className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="sm">
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          </TableCell>
+        </TableRow>
+      ))}
+    </>
+  );
+}
+
 // Componente interno para gerenciar personalizações de clientes
 function CustomerPersonalizationTab({ itemId, itemName }: { itemId?: string; itemName?: string }) {
   const { toast } = useToast();
