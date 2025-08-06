@@ -129,20 +129,20 @@ export default function ItemCatalog() {
     enabled: true
   });
 
-  // Queries para vínculos
+  // Queries para vínculos (temporariamente desabilitadas)
   const { data: availableItems } = useQuery({
     queryKey: ["/api/materials-services/items"],
-    enabled: true
+    enabled: false // Disabled until new personalization system is implemented
   });
 
   const { data: availableCustomers } = useQuery({
     queryKey: ["/api/customer-companies"],
-    enabled: true
+    enabled: false // Disabled until new personalization system is implemented
   });
 
   const { data: availableSuppliers } = useQuery({
     queryKey: ["/api/materials-services/suppliers"],
-    enabled: true
+    enabled: false // Disabled until new personalization system is implemented
   });
 
 
