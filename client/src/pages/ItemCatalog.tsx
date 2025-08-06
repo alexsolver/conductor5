@@ -396,7 +396,6 @@ export default function ItemCatalog() {
             variant="outline" 
             size="sm"
             onClick={() => {
-              console.log('Edit Item clicked for:', item.name);
               setSelectedItem(item);
               form.reset({
                 name: item.name || '',
@@ -418,7 +417,6 @@ export default function ItemCatalog() {
             variant="outline" 
             size="sm"
             onClick={() => {
-              console.log('View Item clicked for:', item.name);
               setSelectedItem(item);
               setIsViewModalOpen(true);
             }}
@@ -439,16 +437,8 @@ export default function ItemCatalog() {
     );
   };
 
-  // Debug states
-  console.log('Modal states:', { isCreateModalOpen, isViewModalOpen, selectedItem });
-
   return (
     <div className="space-y-6">
-      {/* Debug info */}
-      <div className="text-xs text-gray-500 p-2 bg-gray-100 rounded">
-        Debug: CreateModal={isCreateModalOpen.toString()}, ViewModal={isViewModalOpen.toString()}, SelectedItem={selectedItem?.name || 'none'}
-      </div>
-      
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
@@ -457,10 +447,7 @@ export default function ItemCatalog() {
             Ponto de entrada para cadastro de materiais e serviços
           </p>
         </div>
-        <Button onClick={() => {
-          console.log('Criar Item clicked');
-          setIsCreateModalOpen(true);
-        }}>
+        <Button onClick={() => setIsCreateModalOpen(true)}>
           <Plus className="h-4 w-4 mr-2" />
           Criar Item
         </Button>
@@ -468,7 +455,7 @@ export default function ItemCatalog() {
 
       {/* Tabs */}
       <Tabs value={itemTypeTab} onValueChange={setItemTypeTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="materials" className="flex items-center gap-2">
             <Package className="h-4 w-4" />
             Materiais ({materialItems.length})
@@ -477,13 +464,17 @@ export default function ItemCatalog() {
             <Wrench className="h-4 w-4" />
             Serviços ({serviceItems.length})
           </TabsTrigger>
+          <TabsTrigger value="item-links" className="flex items-center gap-2">
+            <Link className="h-4 w-4" />
+            Vínculos de Itens
+          </TabsTrigger>
           <TabsTrigger value="customer-mappings" className="flex items-center gap-2">
             <Building className="h-4 w-4" />
             Personalizações
           </TabsTrigger>
           <TabsTrigger value="supplier-links" className="flex items-center gap-2">
             <Truck className="h-4 w-4" />
-            Vínculos
+            Fornecedores
           </TabsTrigger>
         </TabsList>
 
@@ -551,6 +542,101 @@ export default function ItemCatalog() {
           </Card>
         </TabsContent>
 
+        <TabsContent value="item-links" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Vínculos entre Itens</CardTitle>
+              <CardDescription>
+                Vincule itens relacionados, kits, substitutos e compatibilidades
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                {/* Formulário de Vínculo de Item */}
+                <div className="border rounded-lg p-4">
+                  <h4 className="font-medium mb-4">Criar Novo Vínculo de Item</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                      <label className="text-sm font-medium">Item Principal</label>
+                      <Select>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione um item" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {items.map((item) => (
+                            <SelectItem key={item.id} value={item.id}>
+                              {item.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium">Item Vinculado</label>
+                      <Select>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione outro item" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {items.map((item) => (
+                            <SelectItem key={item.id} value={item.id}>
+                              {item.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium">Tipo de Vínculo</label>
+                      <Select>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Tipo" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="kit">Kit/Conjunto</SelectItem>
+                          <SelectItem value="substitute">Substituto</SelectItem>
+                          <SelectItem value="compatible">Compatível</SelectItem>
+                          <SelectItem value="accessory">Acessório</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Button className="mt-6">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Criar Vínculo
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Lista de Vínculos de Itens */}
+                <div>
+                  <h4 className="font-medium mb-4">Vínculos Ativos</h4>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center space-x-4">
+                        <Link className="h-8 w-8 text-purple-600" />
+                        <div>
+                          <h5 className="font-medium">Correia V-Belt A47 → Kit de Polias</h5>
+                          <p className="text-sm text-muted-foreground">Tipo: Kit/Conjunto • Quantidade: 1</p>
+                        </div>
+                      </div>
+                      <div className="flex space-x-2">
+                        <Button variant="outline" size="sm">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button variant="outline" size="sm" className="text-red-600">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="customer-mappings" className="space-y-4">
           <Card>
             <CardHeader>
@@ -560,12 +646,73 @@ export default function ItemCatalog() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-16">
-                <Building className="h-16 w-16 text-muted-foreground mx-auto mb-6" />
-                <h3 className="text-xl font-semibold mb-4">Sistema de Personalização</h3>
-                <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                  Configure SKUs personalizados, nomes específicos e referências únicas para cada cliente
-                </p>
+              <div className="space-y-6">
+                {/* Formulário de Personalização */}
+                <div className="border rounded-lg p-4">
+                  <h4 className="font-medium mb-4">Criar Nova Personalização</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="text-sm font-medium">Item</label>
+                      <Select>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione um item" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {items.map((item) => (
+                            <SelectItem key={item.id} value={item.id}>
+                              {item.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium">Cliente</label>
+                      <Select>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione um cliente" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {(availableCustomers || []).map((customer: any) => (
+                            <SelectItem key={customer.id} value={customer.id}>
+                              {customer.name || customer.tradeName}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Button className="mt-6">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Criar Vínculo
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Lista de Personalizações Existentes */}
+                <div>
+                  <h4 className="font-medium mb-4">Personalizações Ativas</h4>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center space-x-4">
+                        <Building className="h-8 w-8 text-blue-600" />
+                        <div>
+                          <h5 className="font-medium">Correia V-Belt A47 → Empresa ABC</h5>
+                          <p className="text-sm text-muted-foreground">SKU Personalizado: ABC-BELT-001</p>
+                        </div>
+                      </div>
+                      <div className="flex space-x-2">
+                        <Button variant="outline" size="sm">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button variant="outline" size="sm" className="text-red-600">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -580,12 +727,77 @@ export default function ItemCatalog() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-16">
-                <Truck className="h-16 w-16 text-muted-foreground mx-auto mb-6" />
-                <h3 className="text-xl font-semibold mb-4">Sistema de Catalogação por Fornecedor</h3>
-                <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                  Em desenvolvimento: Sistema avançado para vinculação de itens com fornecedores
-                </p>
+              <div className="space-y-6">
+                {/* Formulário de Vínculo de Fornecedor */}
+                <div className="border rounded-lg p-4">
+                  <h4 className="font-medium mb-4">Criar Novo Vínculo de Fornecedor</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                      <label className="text-sm font-medium">Item</label>
+                      <Select>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione um item" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {items.map((item) => (
+                            <SelectItem key={item.id} value={item.id}>
+                              {item.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium">Fornecedor</label>
+                      <Select>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione um fornecedor" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {(availableSuppliers || []).map((supplier: any) => (
+                            <SelectItem key={supplier.id} value={supplier.id}>
+                              {supplier.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium">Preço</label>
+                      <Input placeholder="0,00" type="number" step="0.01" />
+                    </div>
+                    <div>
+                      <Button className="mt-6">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Criar Vínculo
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Lista de Vínculos de Fornecedores */}
+                <div>
+                  <h4 className="font-medium mb-4">Vínculos Ativos</h4>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center space-x-4">
+                        <Truck className="h-8 w-8 text-amber-600" />
+                        <div>
+                          <h5 className="font-medium">Correia V-Belt A47 → Fornecedor XYZ</h5>
+                          <p className="text-sm text-muted-foreground">Preço: R$ 45,90 • Lead Time: 5 dias</p>
+                        </div>
+                      </div>
+                      <div className="flex space-x-2">
+                        <Button variant="outline" size="sm">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button variant="outline" size="sm" className="text-red-600">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -593,10 +805,7 @@ export default function ItemCatalog() {
       </Tabs>
 
       {/* Modal de Criação/Edição de Item */}
-      <Dialog open={isCreateModalOpen} onOpenChange={(open) => {
-        console.log('Create modal state changing to:', open);
-        setIsCreateModalOpen(open);
-      }}>
+      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
@@ -792,10 +1001,7 @@ export default function ItemCatalog() {
       </Dialog>
 
       {/* Modal de Visualização de Item */}
-      <Dialog open={isViewModalOpen} onOpenChange={(open) => {
-        console.log('View modal state changing to:', open);
-        setIsViewModalOpen(open);
-      }}>
+      <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Detalhes do Item</DialogTitle>

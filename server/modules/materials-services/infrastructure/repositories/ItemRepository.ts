@@ -18,8 +18,9 @@ export class ItemRepository {
       .insert(items)
       .values({
         ...data,
-        // Remove title reference - column doesn't exist in actual schema
+        // Handle text fields properly
         maintenancePlan: data.maintenancePlan || null,
+        defaultChecklist: data.defaultChecklist || null,
         createdAt: new Date(),
         updatedAt: new Date()
       })
@@ -143,18 +144,18 @@ export class ItemRepository {
     // Filter out any properties that don't exist in the schema and handle JSON fields
     const { groupName, maintenancePlan, defaultChecklist, ...validData } = data as any;
 
-    // Handle JSON fields properly - filter out empty strings that cause JSON parsing errors
+    // Handle text fields properly - fields are TEXT, not JSON
     const updateData = {
       ...validData,
       updatedAt: new Date()
     };
 
-    // Only add JSON fields if they have valid content
-    if (maintenancePlan !== undefined && maintenancePlan !== '') {
-      updateData.maintenancePlan = typeof maintenancePlan === 'string' ? maintenancePlan : JSON.stringify(maintenancePlan);
+    // Add text fields if they have content
+    if (maintenancePlan !== undefined) {
+      updateData.maintenancePlan = maintenancePlan || null;
     }
-    if (defaultChecklist !== undefined && defaultChecklist !== '') {
-      updateData.defaultChecklist = typeof defaultcheckList === 'string' ? defaultChecklist : JSON.stringify(defaultChecklist);
+    if (defaultChecklist !== undefined) {
+      updateData.defaultChecklist = defaultChecklist || null;
     }
 
     const [item] = await this.db

@@ -191,7 +191,6 @@ export class ItemController {
       if (linkedCustomers || linkedItems || linkedSuppliers) {
         await this.itemRepository.updateItemLinks(id, tenantId, {
           customers: linkedCustomers || [],
-          items: linkedItems || [],
           suppliers: linkedSuppliers || []
         }, req.user?.id);
       }
