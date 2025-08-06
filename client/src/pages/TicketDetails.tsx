@@ -981,29 +981,17 @@ const TicketDetails = React.memo(() => {
     },
   });
 
-  // PROBLEMA 3 RESOLVIDO: Mapeamento completo frontend-backend
-  // Memoizar mapeamento de status para evitar recriação
-  const statusMapping = useMemo(() => ({
-    'new': 'new',
-    'novo': 'new',
-    'open': 'open',
-    'aberto': 'open',
-    'in_progress': 'in_progress',
-    'em_andamento': 'in_progress',
-    'resolved': 'resolved',
-    'resolvido': 'resolved',
-    'closed': 'closed',
-    'fechado': 'closed'
-  }), []);
+  // ✅ SISTEMA DINÂMICO - Status são enviados diretamente como recebidos do form
+  // Não há mais necessidade de mapeamento hard-coded
 
   const onSubmit = useCallback((data: TicketFormData) => {
 
     const mappedData = {
-      // Core fields - with proper status mapping
+      // Core fields - status dinâmico sem mapeamento
       subject: data.subject,
       description: data.description,
       priority: data.priority,
-      status: (statusMapping[data.status as keyof typeof statusMapping] || data.status) as "open" | "new" | "in_progress" | "resolved" | "closed" | "novo" | "aberto" | "em_andamento" | "resolvido" | "fechado",
+      status: data.status, // ✅ Valor dinâmico direto do form
       category: data.category,
       subcategory: data.subcategory,
       action: data.action,

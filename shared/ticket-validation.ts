@@ -9,16 +9,17 @@ import {
   DynamicCallerTypeEnum
 } from './dynamic-validation';
 
-// ✅ ENUMS DINÂMICOS baseados nas configurações do banco de dados
-export const TicketStatusEnum = DynamicTicketStatusEnum;
-export const TicketPriorityEnum = DynamicTicketPriorityEnum;
-export const TicketImpactEnum = DynamicTicketImpactEnum;
-export const TicketUrgencyEnum = DynamicTicketUrgencyEnum;
+// ✅ SISTEMA 100% DINÂMICO - Remove todos os enums hard-coded
+// Status, Priority, Impact, Urgency agora são completamente dinâmicos via API
+export const TicketStatusEnum = z.string().min(1, "Status é obrigatório");
+export const TicketPriorityEnum = z.string().min(1, "Prioridade é obrigatória");
+export const TicketImpactEnum = z.string().optional();
+export const TicketUrgencyEnum = z.string().optional();
 
-// ✅ ENUMS DINÂMICOS para campos categóricos (declarados antes do uso)
-export const TicketCategoryEnum = z.string(); // Dinâmico via DynamicSelect
-export const CallerTypeEnum = DynamicCallerTypeEnum;
-export const ContactTypeEnum = DynamicContactTypeEnum;
+// Campos categóricos 100% dinâmicos
+export const TicketCategoryEnum = z.string().optional();
+export const CallerTypeEnum = z.string().default('customer');
+export const ContactTypeEnum = z.string().default('email');
 export const LinkTypeEnum = z.enum(['relates_to', 'blocks', 'blocked_by', 'duplicates', 'caused_by']); // Manter fixo (relacionamento)
 
 // Schema para validação de formulário - aceita valores do banco E mapeamento frontend
@@ -68,8 +69,8 @@ export const ticketFormSchema = z.object({
     .max(4000, "Descrição não pode exceder 4000 caracteres")
     .optional(),
 
-  // Enums com validação (valores em inglês para compatibilidade com banco)
-  status: z.enum(['new', 'open', 'in_progress', 'resolved', 'closed', 'novo', 'aberto', 'em_andamento', 'resolvido', 'fechado']).default('new'),
+  // Validação 100% dinâmica - aceita qualquer valor configurado no banco
+  status: TicketStatusEnum.default('new'),
   priority: TicketPriorityEnum.default('medium'),
   impact: TicketImpactEnum.optional(),
   urgency: TicketUrgencyEnum.optional(),

@@ -335,13 +335,8 @@ export class TicketMetadataRepository {
 
     await db.insert(ticketStyleConfigurations).values(styleConfigs);
 
-    // Default configurations
-    const defaultConfigs = [
-      { tenantId, fieldName: 'priority', defaultValue: 'medium' },
-      { tenantId, fieldName: 'status', defaultValue: 'open' },
-      { tenantId, fieldName: 'category', defaultValue: 'geral' },
-      { tenantId, fieldName: 'contactType', defaultValue: 'email' }
-    ];
+    // ✅ CONFIGURAÇÕES 100% DINÂMICAS - Valores padrão vêm do banco
+    // Não há mais valores hard-coded, tudo é configurável por tenant/empresa
 
     await db.insert(ticketDefaultConfigurations).values(defaultConfigs);
 

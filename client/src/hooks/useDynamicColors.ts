@@ -77,9 +77,9 @@ export const useDynamicColors = () => {
       return generateSmartColor(value || '', fieldName);
     }
 
-    // 🔥 CORREÇÃO CRÍTICA: Banco usa field_name, não fieldName
+    // ✅ CORREÇÃO APLICADA: Compatibilidade com ambos os formatos de campo
     const option = fieldOptions.find(opt => 
-      opt.field_name === fieldName && opt.value === value
+      (opt.field_name === fieldName || opt.fieldName === fieldName) && opt.value === value
     );
 
     console.log(`🔍 [getFieldColor] Option found:`, !!option, option?.color || 'no color');
