@@ -254,7 +254,7 @@ export default function SaasAdminIntegrations() {
           clientId: '',
           clientSecret: '',
           redirectUri: 'https://your-domain.replit.dev/auth/google/callback',
-          scopes: ['email', 'profile', 'https://www.googleapis.com/auth/gmail.readonly', 'https://www.googleapis.com/auth/calendar']
+          scopes: ['https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile', 'https://www.googleapis.com/auth/gmail.readonly', 'https://www.googleapis.com/auth/calendar']
         }
       },
       {
@@ -709,7 +709,11 @@ export default function SaasAdminIntegrations() {
                       <FormItem>
                         <FormLabel>Scopes</FormLabel>
                         <FormControl>
-                          <Input placeholder="email,profile,calendar" {...field} />
+                          <Input 
+                            placeholder="https://www.googleapis.com/auth/userinfo.email,https://www.googleapis.com/auth/userinfo.profile,https://www.googleapis.com/auth/gmail.modify" 
+                            value={Array.isArray(field.value) ? field.value.join(',') : field.value || ''}
+                            onChange={(e) => field.onChange(e.target.value.split(',').map(s => s.trim()).filter(s => s))}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
