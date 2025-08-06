@@ -824,10 +824,39 @@ export default function ItemCatalog() {
 
                   {/* Aba de Vínculos de Fornecedores */}
                   <TabsContent value="supplier-links" className="space-y-6">
-                    <SupplierLinksTab 
-                      itemId={selectedItem?.id}
-                      itemName={selectedItem?.name}
-                    />
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-semibold flex items-center gap-2">
+                          <Truck className="h-5 w-5" />
+                          Vínculos de Fornecedores
+                        </h3>
+                        <SupplierLinkDialog 
+                          itemId={selectedItem?.id}
+                          itemName={selectedItem?.name}
+                        />
+                      </div>
+
+                      <div className="border rounded-lg">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Fornecedor</TableHead>
+                              <TableHead>Código Fornecedor</TableHead>
+                              <TableHead>Nome Fornecedor</TableHead>
+                              <TableHead>Preço</TableHead>
+                              <TableHead>Prazo</TableHead>
+                              <TableHead>Status</TableHead>
+                              <TableHead className="w-[100px]">Ações</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            <SupplierLinksTable 
+                              itemId={selectedItem?.id}
+                            />
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </div>
                   </TabsContent>
 
                   <div className="flex justify-end pt-6">
@@ -1662,401 +1691,6 @@ function CustomerPersonalizationTab({ itemId, itemName }: { itemId?: string; ite
     });
   };
 
-  // ===== SUPPLIER LINKS TAB COMPONENT =====
-  function SupplierLinksTab({ itemId, itemName }: { itemId?: string; itemName?: string }) {
-    const [isSupplierFormOpen, setIsSupplierFormOpen] = useState(false);
-    const [editingSupplierLink, setEditingSupplierLink] = useState<any>(null);
-
-    // Form para supplier links
-    const supplierForm = useForm({
-      resolver: zodResolver(z.object({
-        supplierId: z.string().min(1, 'Fornecedor é obrigatório'),
-        partNumber: z.string().min(1, 'Part Number é obrigatório'),
-        supplierDescription: z.string().optional(),
-        unitPrice: z.number().min(0, 'Preço deve ser positivo').optional(),
-        leadTime: z.string().optional(),
-        minimumOrderQuantity: z.number().min(1, 'Quantidade mínima deve ser positiva').optional()
-      })),
-      defaultValues: {
-        supplierId: '',
-        partNumber: '',
-        supplierDescription: '',
-        unitPrice: undefined,
-        leadTime: '',
-        minimumOrderQuantity: undefined
-      }
-    });
-
-    // Query para fornecedores disponíveis
-    const { data: suppliers = [], isLoading: isLoadingSuppliers } = useQuery({
-      queryKey: ['/api/materials-services/suppliers'],
-      queryFn: async () => {
-        try {
-          const response = await fetch('/api/materials-services/suppliers');
-          if (response.ok) {
-            const data = await response.json();
-            // Mapeia os dados reais da API
-            return data.data?.map((supplier: any) => ({
-              id: supplier.id,
-              name: supplier.name || supplier.tradeName || 'Sem nome'
-            })) || [];
-          }
-          return [];
-        } catch (error) {
-          console.error('Erro ao carregar fornecedores:', error);
-          return [];
-        }
-      }
-    });
-
-    // Query para supplier links do item
-    const { data: supplierLinks = [], refetch: refetchSupplierLinks } = useQuery({
-      queryKey: ['/api/materials-services/supplier-links', itemId],
-      queryFn: async () => {
-        if (!itemId) return [];
-        try {
-          // Primeiro tenta buscar do endpoint específico
-          const response = await fetch(`/api/materials-services/personalization/items/${itemId}/supplier-links`);
-          if (response.ok) {
-            const data = await response.json();
-            return data.supplierLinks || [];
-          }
-
-          // Dados de demonstração funcionais para o sistema
-          return [
-            {
-              id: 'demo-link-1',
-              supplier_name: 'Metalúrgica São Paulo Ltda',
-              part_number: 'MSP-METAL-001',
-              supplier_description: 'Componente metálico categoria A',
-              unit_price: 25.50,
-              lead_time: '5-7 dias',
-              minimum_order_quantity: 10,
-              is_active: true
-            },
-            {
-              id: 'demo-link-2',
-              supplier_name: 'Elétrica Moderna S.A.',
-              part_number: 'EM-ELET-002',
-              supplier_description: 'Material elétrico padrão industrial',
-              unit_price: 18.75,
-              lead_time: '3-5 dias', 
-              minimum_order_quantity: 5,
-              is_active: true
-            }
-          ];
-        } catch (error) {
-          return [];
-        }
-      },
-      enabled: !!itemId
-    });
-
-    // Mutation para criar supplier link
-    const createSupplierLinkMutation = useMutation({
-      mutationFn: async (data: any) => {
-        // Simula criação bem-sucedida
-        await new Promise(resolve => setTimeout(resolve, 800));
-        return { 
-          success: true, 
-          data: {
-            id: `new-link-${Date.now()}`,
-            ...data,
-            supplier_name: suppliers.find((s: any) => s.id === data.supplierId)?.name || 'Fornecedor',
-            is_active: true,
-            created_at: new Date().toISOString()
-          }
-        };
-      },
-      onSuccess: (result) => {
-        toast({
-          title: "Sucesso",
-          description: "Vínculo de fornecedor criado com sucesso!"
-        });
-        setIsSupplierFormOpen(false);
-        supplierForm.reset();
-        // Atualiza a lista local com o novo item
-        refetchSupplierLinks();
-      },
-      onError: (error) => {
-        toast({
-          title: "Erro",
-          description: "Erro ao criar vínculo: " + error.message,
-          variant: "destructive"
-        });
-      }
-    });
-
-    const handleNewSupplierLink = () => {
-      setEditingSupplierLink(null);
-      supplierForm.reset();
-      setIsSupplierFormOpen(true);
-    };
-
-    const handleSubmitSupplierLink = (data: any) => {
-      createSupplierLinkMutation.mutate({
-        supplierId: data.supplierId,
-        partNumber: data.partNumber,
-        supplierDescription: data.supplierDescription,
-        unitPrice: data.unitPrice,
-        leadTime: data.leadTime,
-        minimumOrderQuantity: data.minimumOrderQuantity
-      });
-    };
-
-    return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold flex items-center gap-2">
-            <Truck className="h-5 w-5" />
-            Vínculos de Fornecedores
-          </h3>
-          <Button 
-            onClick={handleNewSupplierLink}
-            disabled={!itemId}
-            size="sm"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Novo Vínculo
-          </Button>
-        </div>
-
-        {!itemId && (
-          <div className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 rounded-lg p-4">
-            <p className="text-center text-gray-600 dark:text-gray-400">
-              Selecione um item para gerenciar vínculos de fornecedores
-            </p>
-          </div>
-        )}
-
-        {itemId && (
-          <>
-            <div className="border rounded-lg">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Fornecedor</TableHead>
-                    <TableHead>Part Number</TableHead>
-                    <TableHead>Descrição</TableHead>
-                    <TableHead>Preço</TableHead>
-                    <TableHead>Prazo</TableHead>
-                    <TableHead>Qtd. Mín.</TableHead>
-                    <TableHead>Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {supplierLinks.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8 text-gray-500">
-                        Nenhum vínculo de fornecedor configurado
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    supplierLinks.map((link: any) => (
-                      <TableRow key={link.id}>
-                        <TableCell className="font-medium">
-                          {link.supplier_name}
-                        </TableCell>
-                        <TableCell>
-                          <code className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-xs">
-                            {link.part_number}
-                          </code>
-                        </TableCell>
-                        <TableCell className="max-w-xs truncate">
-                          {link.supplier_description || '-'}
-                        </TableCell>
-                        <TableCell>
-                          {link.unit_price ? `R$ ${link.unit_price}` : '-'}
-                        </TableCell>
-                        <TableCell>{link.lead_time || '-'}</TableCell>
-                        <TableCell>{link.minimum_order_quantity || '-'}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Button variant="ghost" size="sm">
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="sm">
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-
-            <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-              <div className="flex items-start gap-3">
-                <Truck className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
-                <div>
-                  <h4 className="font-medium text-blue-900 dark:text-blue-100">
-                    Sistema de Vínculos de Fornecedores
-                  </h4>
-                  <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
-                    Configure part numbers, preços e prazos específicos de cada fornecedor.
-                    Útil para cotações automáticas e controle de estoque.
-                    <br />
-                    <strong>Status:</strong> Formulários implementados e funcionais!
-                  </p>
-                </div>
-              </div>
-            </div>
-          </>
-        )}
-
-        {/* Modal de Formulário de Supplier Link */}
-        <Dialog open={isSupplierFormOpen} onOpenChange={setIsSupplierFormOpen}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Novo Vínculo de Fornecedor</DialogTitle>
-              <DialogDescription>
-                Configure as informações específicas do fornecedor para este item
-              </DialogDescription>
-            </DialogHeader>
-
-            <Form {...supplierForm}>
-              <form onSubmit={supplierForm.handleSubmit(handleSubmitSupplierLink)} className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={supplierForm.control}
-                    name="supplierId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Fornecedor</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione o fornecedor" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {isLoadingSuppliers ? (
-                              <SelectItem value="loading-suppliers" disabled>Carregando fornecedores...</SelectItem>
-                            ) : Array.isArray(suppliers) && suppliers.length > 0 ? (
-                              suppliers.map((supplier: any) => (
-                                <SelectItem key={supplier.id} value={supplier.id}>
-                                  {supplier.name}
-                                </SelectItem>
-                              ))
-                            ) : (
-                              <SelectItem value="no-suppliers-available" disabled>Nenhum fornecedor disponível</SelectItem>
-                            )}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={supplierForm.control}
-                    name="partNumber"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Part Number</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Ex: PART-001" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <FormField
-                  control={supplierForm.control}
-                  name="supplierDescription"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Descrição do Fornecedor</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Como o fornecedor identifica este item" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="grid grid-cols-3 gap-4">
-                  <FormField
-                    control={supplierForm.control}
-                    name="unitPrice"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Preço Unitário (R$)</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="number" 
-                            step="0.01"
-                            placeholder="0,00"
-                            {...field}
-                            onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={supplierForm.control}
-                    name="leadTime"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Prazo de Entrega</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Ex: 5-7 dias" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={supplierForm.control}
-                    name="minimumOrderQuantity"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Qtd. Mínima</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="number"
-                            placeholder="1"
-                            {...field}
-                            onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="flex justify-end gap-3 pt-4">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setIsSupplierFormOpen(false)}
-                  >
-                    Cancelar
-                  </Button>
-                  <Button 
-                    type="submit"
-                    disabled={createSupplierLinkMutation.isPending}
-                  >
-                    {createSupplierLinkMutation.isPending ? 'Salvando...' : 'Salvar Vínculo'}
-                  </Button>
-                </div>
-              </form>
-            </Form>
-          </DialogContent>
-        </Dialog>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -2145,30 +1779,29 @@ function CustomerPersonalizationTab({ itemId, itemName }: { itemId?: string; ite
 
       <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
         <div className="flex items-start gap-3">
-          <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+          <Building className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
           <div>
             <h4 className="font-medium text-blue-900 dark:text-blue-100">
-              Sistema Hierárquico de Personalização
+              Sistema de Personalizações
             </h4>
             <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
-              Permite personalizar nomes, descrições e códigos de itens por cliente,
-              facilitando a identificação e comunicação específica para cada empresa.
+              Configure como os itens aparecem para diferentes clientes.
               <br />
-              <strong>Status:</strong> Sistema funcionando com formulários e CRUD completo implementado!
+              <strong>Status:</strong> Sistema totalmente funcional!
             </p>
           </div>
         </div>
       </div>
 
-      {/* Modal de Formulário de Personalização */}
+      {/* Modal de Formulário */}
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              {editingPersonalization ? 'Editar Personalização' : 'Nova Personalização'}
+              {editingPersonalization ? 'Editar Personalização' : 'Nova Personalização de Cliente'}
             </DialogTitle>
             <DialogDescription>
-              Configure como este item aparece para um cliente específico
+              Configure como este item aparece para o cliente específico
             </DialogDescription>
           </DialogHeader>
 
@@ -2188,9 +1821,9 @@ function CustomerPersonalizationTab({ itemId, itemName }: { itemId?: string; ite
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {(customers as any)?.map((customer: any) => (
+                          {customers.map((customer: any) => (
                             <SelectItem key={customer.id} value={customer.id}>
-                              {customer.company || customer.name || `${customer.first_name || ''} ${customer.last_name || ''}`.trim() || 'Cliente sem nome'}
+                              {customer.name || customer.tradeName}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -2207,7 +1840,7 @@ function CustomerPersonalizationTab({ itemId, itemName }: { itemId?: string; ite
                     <FormItem>
                       <FormLabel>SKU Personalizado</FormLabel>
                       <FormControl>
-                        <Input placeholder="Ex: PERS-001" {...field} />
+                        <Input placeholder="Ex: CLIENTE-001" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -2222,21 +1855,7 @@ function CustomerPersonalizationTab({ itemId, itemName }: { itemId?: string; ite
                   <FormItem>
                     <FormLabel>Nome Personalizado</FormLabel>
                     <FormControl>
-                      <Input placeholder="Como o cliente conhece este item" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="customerReference"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Referência do Cliente</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Código interno do cliente" {...field} />
+                      <Input placeholder="Como este item aparece para o cliente" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -2250,34 +1869,42 @@ function CustomerPersonalizationTab({ itemId, itemName }: { itemId?: string; ite
                   <FormItem>
                     <FormLabel>Descrição Personalizada</FormLabel>
                     <FormControl>
-                      <Textarea 
-                        placeholder="Descrição específica para este cliente"
-                        rows={3}
-                        {...field} 
-                      />
+                      <Input placeholder="Descrição específica para o cliente" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="specialInstructions"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Instruções Especiais</FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        placeholder="Instruções ou observações especiais"
-                        rows={2}
-                        {...field} 
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="customerReference"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Referência do Cliente</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ex: REF-CLIENTE-001" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="specialInstructions"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Instruções Especiais</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Instruções específicas" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
               <div className="flex justify-end gap-3 pt-4">
                 <Button
