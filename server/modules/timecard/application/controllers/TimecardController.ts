@@ -752,7 +752,7 @@ export class TimecardController {
       console.log('[ATTENDANCE-REPORT] User:', userId, 'Tenant:', tenantId);
 
       // Buscar APENAS registros aprovados do período usando query direta
-      const db = this.timecardRepository.db;
+      const { db } = await import('../../../../db');
       const { timecardEntries } = await import('@shared/schema');
       const { and, eq, gte, lte, sql } = await import('drizzle-orm');
       
@@ -1061,7 +1061,7 @@ export class TimecardController {
       console.log('[OVERTIME-REPORT] Date range:', startDate.toISOString(), 'to', endDate.toISOString());
 
       // Buscar registros aprovados com horas extras
-      const db = this.timecardRepository.db;
+      const { db } = await import('../../../../db');
       const { timecardEntries } = await import('@shared/schema');
       const { and, eq, sql } = await import('drizzle-orm');
       
