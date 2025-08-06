@@ -159,12 +159,18 @@ const MobileTicketCard: React.FC<{
             )}
           </div>
 
-          {/* Customer and dates */}
+          {/* Company, Customer and dates */}
           <div className="text-xs text-gray-500 space-y-1">
-            {ticket.caller?.fullName && (
-              <div>Cliente: {ticket.caller.fullName}</div>
+            {ticket.company_name && (
+              <div><span className="font-medium">Empresa:</span> {ticket.company_name}</div>
             )}
-            <div>Criado: {new Date(ticket.created_at).toLocaleDateString('pt-BR')}</div>
+            {ticket.beneficiary_name && (
+              <div><span className="font-medium">Beneficiário:</span> {ticket.beneficiary_name}</div>
+            )}
+            {ticket.caller_name && ticket.caller_name !== ticket.beneficiary_name && (
+              <div><span className="font-medium">Solicitante:</span> {ticket.caller_name}</div>
+            )}
+            <div><span className="font-medium">Criado:</span> {new Date(ticket.created_at).toLocaleDateString('pt-BR')}</div>
           </div>
         </div>
       </CardContent>
@@ -323,14 +329,22 @@ export const ResponsiveTicketsTable: React.FC<ResponsiveTicketsTableProps> = ({
                   </TableCell>
                   
                   <TableCell className="hidden lg:table-cell">
-                    {ticket.company?.name || ticket.customer_company?.name || "Não informado"}
+                    <span className="text-sm">
+                      {ticket.company_name || "Empresa não informada"}
+                    </span>
                   </TableCell>
                   
                   <TableCell className="hidden md:table-cell">
-                    {ticket.caller?.fullName || 
-                     (ticket.customer_first_name && ticket.customer_last_name ? 
-                      `${ticket.customer_first_name} ${ticket.customer_last_name}` : 
-                      ticket.customer_email || "Não informado")}
+                    <div className="text-sm">
+                      <div className="font-medium">
+                        {ticket.beneficiary_name || "Beneficiário não identificado"}
+                      </div>
+                      {ticket.caller_name && ticket.caller_name !== ticket.beneficiary_name && (
+                        <div className="text-xs text-gray-500 mt-1">
+                          Solicitante: {ticket.caller_name}
+                        </div>
+                      )}
+                    </div>
                   </TableCell>
                   
                   <TableCell className="hidden lg:table-cell">

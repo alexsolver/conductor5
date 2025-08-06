@@ -118,29 +118,37 @@ ticketsRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
 
     const offset = (page - 1) * limit;
     
-    // CORREÇÃO: Query aprimorada para incluir dados do cliente e empresa
+    // CORREÇÃO: Query otimizada com nomenclatura padronizada companies
     let query = `
       SELECT 
         t.*,
-        -- Customer/Caller data
-        COALESCE(c.first_name || ' ' || c.last_name, c.email, caller_c.first_name || ' ' || caller_c.last_name, caller_c.email) as caller_name,
-        COALESCE(c.email, caller_c.email) as caller_email,
-        c.first_name as customer_first_name,
-        c.last_name as customer_last_name,
-        c.email as customer_email,
-        caller_c.first_name as caller_first_name,
-        caller_c.last_name as caller_last_name,
-        caller_c.email as caller_email,
-        -- Company data
-        COALESCE(comp.name, comp.display_name) as company_name,
-        comp.name as customer_company_name,
-        -- Assigned user data
-        u.first_name as assigned_first_name,
-        u.last_name as assigned_last_name,
+        -- Beneficiário (quem será atendido) 
+        COALESCE(
+          beneficiary.first_name || ' ' || beneficiary.last_name,
+          beneficiary.first_name,
+          beneficiary.email,
+          'Beneficiário não identificado'
+        ) as beneficiary_name,
+        -- Solicitante (quem abriu o ticket)
+        COALESCE(
+          caller.first_name || ' ' || caller.last_name,
+          caller.first_name, 
+          caller.email,
+          'Solicitante não identificado'
+        ) as caller_name,
+        -- Empresa (nomenclatura padronizada)
+        COALESCE(
+          comp.name,
+          comp.display_name,
+          'Empresa não informada'
+        ) as company_name,
+        comp.id as company_id,
+        -- Responsável
+        COALESCE(u.first_name || ' ' || u.last_name, 'Não atribuído') as assigned_name,
         u.email as assigned_email
       FROM ${schemaName}.tickets t
-      LEFT JOIN ${schemaName}.customers c ON t.beneficiary_id = c.id
-      LEFT JOIN ${schemaName}.customers caller_c ON t.caller_id = caller_c.id  
+      LEFT JOIN ${schemaName}.customers beneficiary ON t.beneficiary_id = beneficiary.id
+      LEFT JOIN ${schemaName}.customers caller ON t.caller_id = caller.id  
       LEFT JOIN ${schemaName}.companies comp ON t.customer_company_id = comp.id
       LEFT JOIN public.users u ON t.assigned_to_id = u.id
       WHERE t.tenant_id = $1
