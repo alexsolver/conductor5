@@ -1,0 +1,100 @@
+
+PROBLEMA 1: INCONSISTÊNCIAS DE SCHEMA (CRÍTICO)
+Situação Atual:
+Dois arquivos conflitantes: shared/ticket-validation.ts (540 linhas) e shared/unified-ticket-schema.ts (191 linhas)
+Schemas com campos diferentes, validações divergentes
+Enums inconsistentes entre arquivos
+Tarefa Específica:
+// UNIFICAR EM UM ÚNICO ARQUIVO: shared/ticket-schema-master.ts
+// Consolidar TODOS os campos de ambos schemas
+// Manter compatibilidade total com componentes existentes
+// Implementar validação condicional para campos opcionais
+EXEMPLO DE DIVERGÊNCIA A RESOLVER:
+
+// ticket-validation.ts tem:
+templateAlternative: z.string().optional()
+linkTicketNumber: z.string().max(50).optional()
+// unified-ticket-schema.ts tem:
+templateName: z.string().optional()
+callType: z.string().optional()
+PROBLEMA 2: VALORES HARD-CODED (ALTO)
+Situação Atual:
+// PROBLEMA: Enums fixos no código
+export const TicketStatusEnum = z.enum(['new', 'open', 'in_progress', 'resolved', 'closed']);
+export const TicketPriorityEnum = z.enum(['low', 'medium', 'high', 'critical']);
+Tarefa Específica:
+Criar sistema de configuração dinâmica:
+
+Tabelas: ticket_field_options, ticket_field_colors, ticket_field_labels
+APIs: /api/field-options/:fieldType, /api/field-colors/:fieldType
+Hooks React: useFieldOptions(), useFieldColors(), useFieldLabels()
+Implementar componente adaptativo:
+
+// CRIAR: components/DynamicBadge.tsx
+// Carregar cores e labels dinamicamente por tenant
+// Cache com React Query para performance
+PROBLEMA 3: MAPEAMENTO DE CAMPOS (ALTO)
+Situação Atual:
+// INCONSISTÊNCIA CRÍTICA:
+// Backend: customer_id, responsible_id (snake_case)
+// Frontend: customerCompanyId, responsibleId (camelCase)
+Arquivo DE REFERÊNCIA:
+server/utils/fieldMapping.ts - já existe mas precisa ser aplicado consistentemente
+
+Tarefa Específica:
+Padronizar transformação automática:
+// IMPLEMENTAR em todas as APIs:
+// Entrada: camelCase → Conversão → snake_case (banco)
+// Saída: snake_case → Conversão → camelCase (frontend)
+Corrigir mapeamentos específicos:
+// CRÍTICO: customerCompanyId deve mapear para customer_id
+// NÃO para customer_company_id
+ESPECIFICAÇÕES TÉCNICAS OBRIGATÓRIAS
+Stack Tecnológica:
+Backend: Node.js + Express + Drizzle ORM + PostgreSQL
+Frontend: React + TypeScript + React Query + Zod
+Validação: Zod schemas unificados
+Cache: React Query + Redis (opcional)
+Arquitetura Requerida:
+shared/
+├── ticket-schema-master.ts (NOVO - substitui os 2 existentes)
+├── field-mapping.ts (ATUALIZAR)
+└── dynamic-field-types.ts (NOVO)
+server/
+├── routes/dynamic-fields.ts (NOVO)
+└── utils/fieldMapping.ts (ATUALIZAR)
+client/
+├── hooks/useFieldOptions.ts (NOVO)
+├── hooks/useFieldColors.ts (NOVO)
+└── components/DynamicBadge.tsx (NOVO)
+Critérios de Sucesso:
+✅ Schema único funcionando sem erros TypeScript
+✅ Campos carregados dinamicamente por tenant
+✅ Mapeamento automático frontend ↔ backend
+✅ Cores e labels configuráveis
+✅ Performance mantida com cache
+INSTRUÇÕES ESPECÍFICAS PARA IA
+PRIORIDADE DE EXECUÇÃO:
+FASE 1: Unificar schemas (2-3h)
+FASE 2: Sistema de configuração dinâmica (4-6h)
+FASE 3: Normalização de nomenclatura (3-4h)
+VALIDAÇÕES OBRIGATÓRIAS:
+Todos os tipos TypeScript devem estar corretos
+Compatibilidade com componentes existentes
+Performance não pode degradar
+Cache adequado implementado
+TÉCNICAS REQUERIDAS:
+Transformação de dados: Automática e transparente
+Validação: Zod com esquemas condicionais
+Cache: React Query com invalidação inteligente
+Tipagem: TypeScript rigoroso sem any
+RESULTADO ESPERADO
+Ao final, o sistema deve ter:
+
+✅ Schema unificado sem duplicação
+✅ Configuração dinâmica por tenant
+✅ Mapeamento transparente frontend/backend
+✅ Performance otimizada com cache
+✅ Código limpo e manutenível
+Implemente de forma sistemática, testando cada fase antes de prosseguir para a próxima.
+
