@@ -820,15 +820,16 @@ export class TimecardController {
         })));
       }
 
-      // Agrupar registros por data
+      // Filtrar apenas registros que têm tanto check_in quanto check_out
+      const validRecords = records.filter(record => record.checkIn && record.checkOut);
+      
+      console.log('[ATTENDANCE-REPORT] Valid records (with both check_in and check_out):', validRecords.length);
+      
+      // Agrupar registros válidos por data
       const recordsByDate = new Map();
       
-      records.forEach(record => {
-        // Usar check_in se disponível, senão usar created_at
-        const referenceDate = record.checkIn || record.createdAt;
-        const date = referenceDate ? 
-          new Date(referenceDate).toISOString().split('T')[0] :
-          new Date().toISOString().split('T')[0]; // fallback para hoje
+      validRecords.forEach(record => {
+        const date = new Date(record.checkIn).toISOString().split('T')[0];
         
         if (!recordsByDate.has(date)) {
           recordsByDate.set(date, []);
@@ -844,42 +845,38 @@ export class TimecardController {
         const dayRecords = recordsByDate.get(dateStr) || [];
         
         if (dayRecords.length > 0) {
-          // Encontrar check-in e check-out do dia
-          const checkIn = dayRecords.find(r => r.checkIn)?.checkIn;
-          const checkOut = dayRecords.find(r => r.checkOut)?.checkOut;
-          const breakStart = dayRecords.find(r => r.breakStart)?.breakStart;
-          const breakEnd = dayRecords.find(r => r.breakEnd)?.breakEnd;
+          // Pegar primeiro registro do dia (normalmente deve ser único)
+          const record = dayRecords[0];
           
           // Calcular horas trabalhadas
-          let totalHours = 8; // Padrão 8h para registros aprovados
-          let status = 'approved';
+          const workStart = new Date(record.checkIn);
+          const workEnd = new Date(record.checkOut);
+          let workMinutes = (workEnd.getTime() - workStart.getTime()) / (1000 * 60);
           
-          if (checkIn && checkOut) {
-            // Calcular horas exatas se temos entrada e saída
-            const workStart = new Date(checkIn);
-            const workEnd = new Date(checkOut);
-            const workMinutes = (workEnd.getTime() - workStart.getTime()) / (1000 * 60);
-            
-            // Subtrair tempo de pausa se houver
-            let breakMinutes = 0;
-            if (breakStart && breakEnd) {
-              const pauseStart = new Date(breakStart);
-              const pauseEnd = new Date(breakEnd);
-              breakMinutes = (pauseEnd.getTime() - pauseStart.getTime()) / (1000 * 60);
-            }
-            
-            totalHours = Math.max(0, (workMinutes - breakMinutes) / 60);
+          // Se as horas ficaram negativas, pode ser um turno que cruza a meia-noite
+          if (workMinutes < 0) {
+            // Adicionar 24 horas para turnos noturnos
+            workMinutes += 24 * 60;
           }
-          // Para registros sem check_in/check_out mas aprovados: usar 8h padrão
+          
+          // Subtrair tempo de pausa se houver
+          let breakMinutes = 0;
+          if (record.breakStart && record.breakEnd) {
+            const pauseStart = new Date(record.breakStart);
+            const pauseEnd = new Date(record.breakEnd);
+            breakMinutes = (pauseEnd.getTime() - pauseStart.getTime()) / (1000 * 60);
+          }
+          
+          const totalHours = Math.max(0, (workMinutes - breakMinutes) / 60);
 
           processedRecords.push({
             date: dateStr,
-            checkIn: checkIn || null,
-            checkOut: checkOut || null,
-            breakStart,
-            breakEnd,
+            checkIn: record.checkIn,
+            checkOut: record.checkOut,
+            breakStart: record.breakStart,
+            breakEnd: record.breakEnd,
             totalHours: totalHours.toFixed(2),
-            status
+            status: record.status
           });
         }
       }
