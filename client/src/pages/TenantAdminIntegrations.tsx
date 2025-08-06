@@ -59,7 +59,8 @@ import {
   Bot,
   Inbox,
   Cloud,
-  HardDrive
+  HardDrive,
+  Send
 } from "lucide-react";
 
 interface TenantIntegration {
@@ -102,6 +103,9 @@ const integrationConfigSchema = z.object({
   dropboxAccessToken: z.string().optional(),
   dropboxRefreshToken: z.string().optional(),
   backupFolder: z.string().optional(),
+  // Telegram specific fields
+  telegramBotToken: z.string().optional(),
+  telegramChatId: z.string().optional(),
 });
 
 export default function TenantAdminIntegrations() {
@@ -134,6 +138,9 @@ export default function TenantAdminIntegrations() {
       dropboxAppSecret: '',
       dropboxAccessToken: '',
       backupFolder: '/Backups/Conductor',
+      // Telegram default values
+      telegramBotToken: '',
+      telegramChatId: '',
     },
   });
 
@@ -295,6 +302,16 @@ export default function TenantAdminIntegrations() {
       configured: false,
       features: ['SMS automático', 'Notificações críticas', 'Verificação 2FA']
     },
+    {
+      id: 'telegram',
+      name: 'Telegram',
+      category: 'Comunicação',
+      description: 'Envio de notificações e alertas via Telegram para grupos ou usuários',
+      icon: Send, // Using Send icon for Telegram
+      status: 'disconnected',
+      configured: false,
+      features: ['Notificações em tempo real', 'Mensagens personalizadas', 'Integração com Bot API']
+    },
     // Automação
     {
       id: 'zapier',
@@ -395,6 +412,8 @@ export default function TenantAdminIntegrations() {
         return MessageCircle;
       case 'twilio-sms':
         return Phone;
+      case 'telegram':
+        return Send; // Telegram icon
       case 'zapier':
         return Zap;
       case 'webhooks':
@@ -488,7 +507,10 @@ export default function TenantAdminIntegrations() {
           dropboxAppKey: config.dropboxAppKey || '',
           dropboxAppSecret: config.dropboxAppSecret ? '••••••••' : '', // Mascarar Dropbox secret
           dropboxAccessToken: config.dropboxAccessToken ? '••••••••' : '', // Mascarar access token
-          backupFolder: config.backupFolder || '/Backups/Conductor'
+          backupFolder: config.backupFolder || '/Backups/Conductor',
+          // Telegram fields
+          telegramBotToken: config.telegramBotToken ? '••••••••' : '',
+          telegramChatId: config.telegramChatId || '',
         };
 
         configForm.reset(formValues);
@@ -521,7 +543,10 @@ export default function TenantAdminIntegrations() {
           dropboxAppKey: '',
           dropboxAppSecret: '',
           dropboxAccessToken: '',
-          backupFolder: '/Backups/Conductor'
+          backupFolder: '/Backups/Conductor',
+          // Telegram default values
+          telegramBotToken: '',
+          telegramChatId: '',
         });
       }
     } catch (error) {
@@ -548,7 +573,10 @@ export default function TenantAdminIntegrations() {
         dropboxAppKey: '',
         dropboxAppSecret: '',
         dropboxAccessToken: '',
-        backupFolder: '/Backups/Conductor'
+        backupFolder: '/Backups/Conductor',
+        // Telegram default values
+        telegramBotToken: '',
+        telegramChatId: '',
       });
     }
 
@@ -1197,8 +1225,40 @@ export default function TenantAdminIntegrations() {
                   </>
                 )}
 
+                {/* Campos para Telegram */}
+                {selectedIntegration.id === 'telegram' && (
+                  <>
+                    <FormField
+                      control={configForm.control}
+                      name="telegramBotToken"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Bot Token</FormLabel>
+                          <FormControl>
+                            <Input type="password" placeholder="Token do Bot Telegram" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={configForm.control}
+                      name="telegramChatId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Chat ID</FormLabel>
+                          <FormControl>
+                            <Input placeholder="ID do chat para enviar mensagens" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </>
+                )}
+
                 {/* Campos genéricos para outras integrações */}
-                {!['gmail-oauth2', 'outlook-oauth2', 'email-smtp', 'imap-email', 'dropbox-personal'].includes(selectedIntegration.id) && (
+                {!['gmail-oauth2', 'outlook-oauth2', 'email-smtp', 'imap-email', 'dropbox-personal', 'telegram'].includes(selectedIntegration.id) && (
                   <>
                     <FormField
                       control={configForm.control}

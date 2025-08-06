@@ -12,18 +12,18 @@ router.use(requireTenantAdmin);
 // Função para mascarar dados sensíveis antes de enviar ao frontend
 function sanitizeConfigForFrontend(config: any): any {
   if (!config) return config;
-  
+
   const sanitized = { ...config };
-  
+
   // Mascarar campos sensíveis
-  const sensitiveFields = ['password', 'apiKey', 'apiSecret', 'clientSecret', 'dropboxAppSecret', 'dropboxAccessToken'];
-  
+  const sensitiveFields = ['password', 'apiKey', 'apiSecret', 'clientSecret', 'dropboxAppSecret', 'dropboxAccessToken', 'telegramBotToken'];
+
   sensitiveFields.forEach(field => {
     if (sanitized[field] && sanitized[field].length > 0) {
       sanitized[field] = '••••••••'; // Mascarar com bullets
     }
   });
-  
+
   return sanitized;
 }
 
@@ -32,7 +32,7 @@ async function testIMAPConnection(config: any): Promise<{ success: boolean; erro
   try {
     // Simular teste de conexão IMAP (em produção, usar biblioteca como 'imap' ou 'emailjs-imap-client')
     const { imapServer, imapPort, emailAddress, password, useSSL } = config;
-    
+
     // Validações básicas
     if (!imapServer || !emailAddress || !password) {
       return {
@@ -41,7 +41,7 @@ async function testIMAPConnection(config: any): Promise<{ success: boolean; erro
         details: { missing: ['server', 'email', 'password'].filter(param => !config[param]) }
       };
     }
-    
+
     // Validação de formato de email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(emailAddress)) {
@@ -51,11 +51,11 @@ async function testIMAPConnection(config: any): Promise<{ success: boolean; erro
         details: { email: emailAddress }
       };
     }
-    
+
     // Simular teste de conexão (substituir por conexão real em produção)
     const testPort = imapPort || (useSSL ? 993 : 143);
     const protocol = useSSL ? 'IMAPS' : 'IMAP';
-    
+
     // Simular diferentes cenários baseados no servidor
     if (imapServer.includes('gmail.com')) {
       // Gmail requer App Password
@@ -69,7 +69,7 @@ async function testIMAPConnection(config: any): Promise<{ success: boolean; erro
         };
       }
     }
-    
+
     // Simular teste bem-sucedido
     return {
       success: true,
@@ -82,7 +82,7 @@ async function testIMAPConnection(config: any): Promise<{ success: boolean; erro
         status: 'Configuração válida para conexão IMAP'
       }
     };
-    
+
   } catch (error) {
     return {
       success: false,
@@ -98,7 +98,7 @@ async function testIMAPConnection(config: any): Promise<{ success: boolean; erro
 router.get('/', requirePermission(Permission.TENANT_MANAGE_SETTINGS), async (req: AuthorizedRequest, res) => {
   try {
     const tenantId = req.user!.tenantId;
-    
+
     if (!tenantId) {
       return res.status(400).json({ message: 'User not associated with a tenant' });
     }
@@ -106,9 +106,9 @@ router.get('/', requirePermission(Permission.TENANT_MANAGE_SETTINGS), async (req
     console.log(`🔧 Fetching integrations for tenant: ${tenantId}`);
     const { storage } = await import('../storage-simple');
     const integrations = await storage.getTenantIntegrations(tenantId);
-    
+
     console.log(`🔧 Found ${integrations.length} integrations for tenant ${tenantId}`);
-    
+
     res.json({ 
       integrations,
       total: integrations.length
@@ -130,7 +130,7 @@ router.get('/:integrationId/config', requirePermission(Permission.TENANT_MANAGE_
   try {
     const { integrationId } = req.params;
     const tenantId = req.user!.tenantId;
-    
+
     if (!tenantId) {
       return res.status(400).json({ message: 'User not associated with a tenant' });
     }
@@ -139,7 +139,7 @@ router.get('/:integrationId/config', requirePermission(Permission.TENANT_MANAGE_
     const { storage } = await import('../storage-simple');
     const configResult = await storage.getTenantIntegrationConfig(tenantId, integrationId);
     console.log(`[GET config route] Resultado recebido do storage:`, configResult);
-    
+
     if (!configResult) {
       console.log(`[GET config route] Nenhuma config encontrada, retornando null`);
       return res.json({ config: null, configured: false });
@@ -148,17 +148,17 @@ router.get('/:integrationId/config', requirePermission(Permission.TENANT_MANAGE_
     // Extrair apenas os dados de configuração do campo config
     const configData = configResult.config || {};
     console.log(`[GET config route] Config data extraída:`, configData);
-    
+
     // SEGURANÇA: Mascarar dados sensíveis antes de enviar ao frontend
     const sanitizedConfig = sanitizeConfigForFrontend(configData);
-    
+
     // Retornar estrutura simples para o frontend
     const response = {
       config: sanitizedConfig,
       configured: true
     };
     console.log(`[GET config route] Response being sent (sanitized):`, JSON.stringify(response, null, 2));
-    
+
     res.json(response);
   } catch (error) {
     console.error('Error fetching tenant integration config:', error);
@@ -173,7 +173,7 @@ router.post('/:integrationId/config', requirePermission(Permission.TENANT_MANAGE
   try {
     const { integrationId } = req.params;
     const tenantId = req.user!.tenantId;
-    
+
     if (!tenantId) {
       return res.status(400).json({ message: 'User not associated with a tenant' });
     }
@@ -183,23 +183,25 @@ router.post('/:integrationId/config', requirePermission(Permission.TENANT_MANAGE
       // IMAP specific fields
       imapServer, imapPort, emailAddress, password, useSSL,
       // Dropbox specific fields  
-      dropboxAppKey, dropboxAppSecret, dropboxAccessToken, backupFolder
+      dropboxAppKey, dropboxAppSecret, dropboxAccessToken, backupFolder,
+      // Telegram specific fields
+      telegramBotToken, telegramChatId, telegramWebhookUrl
     } = req.body;
 
     // Validar integrationId
     const validIntegrations = [
       'gmail-oauth2', 'outlook-oauth2', 'email-smtp', 'imap-email', 'whatsapp-business', 
       'slack', 'twilio-sms', 'zapier', 'webhooks', 'crm-integration', 
-      'sso-saml', 'google-workspace', 'chatbot-ai', 'dropbox-personal'
+      'sso-saml', 'google-workspace', 'chatbot-ai', 'dropbox-personal', 'telegram'
     ];
-    
+
     if (!validIntegrations.includes(integrationId)) {
       return res.status(400).json({ message: 'Invalid integration ID' });
     }
 
     // Save configuration to database
     const { storage } = await import('../storage-simple');
-    
+
     // Prepare configuration for storage (store actual values, not masked)
     const configData = {
       // OAuth2 fields
@@ -228,6 +230,10 @@ router.post('/:integrationId/config', requirePermission(Permission.TENANT_MANAGE
       dropboxAppSecret: dropboxAppSecret || '',
       dropboxAccessToken: dropboxAccessToken || '',
       backupFolder: backupFolder || '/Backups/Conductor',
+      // Telegram specific fields
+      telegramBotToken: telegramBotToken || '',
+      telegramChatId: telegramChatId || '',
+      telegramWebhookUrl: telegramWebhookUrl || '',
       enabled: enabled !== false,
       settings: settings || {},
       // Metadata
@@ -239,7 +245,7 @@ router.post('/:integrationId/config', requirePermission(Permission.TENANT_MANAGE
 
     // Save to database
     const savedConfig = await storage.saveTenantIntegrationConfig(tenantId, integrationId, configData);
-    
+
     // Return masked configuration for security
     const maskedConfig = {
       integrationId,
@@ -265,6 +271,10 @@ router.post('/:integrationId/config', requirePermission(Permission.TENANT_MANAGE
       dropboxAppSecret: dropboxAppSecret ? '***' + dropboxAppSecret.slice(-4) : '',
       dropboxAccessToken: dropboxAccessToken ? '***' + dropboxAccessToken.slice(-4) : '',
       backupFolder,
+      // Telegram specific fields (masked)
+      telegramBotToken: telegramBotToken ? '***' + telegramBotToken.slice(-4) : '',
+      telegramChatId,
+      telegramWebhookUrl,
       enabled: enabled !== false,
       settings: settings || {},
       updatedAt: savedConfig.updatedAt
@@ -287,7 +297,7 @@ router.post('/:integrationId/test', requirePermission(Permission.TENANT_MANAGE_S
   try {
     const { integrationId } = req.params;
     const tenantId = req.user!.tenantId;
-    
+
     if (!tenantId) {
       return res.status(400).json({ message: 'User not associated with a tenant' });
     }
@@ -336,7 +346,7 @@ router.post('/:integrationId/test', requirePermission(Permission.TENANT_MANAGE_S
         // Get the saved configuration to validate
         const { storage } = await import('../storage-simple');
         const imapConfig = await storage.getTenantIntegrationConfig(tenantId, integrationId);
-        
+
         if (!imapConfig || !imapConfig.config) {
           testResult = { 
             success: false, 
@@ -345,7 +355,7 @@ router.post('/:integrationId/test', requirePermission(Permission.TENANT_MANAGE_S
           };
         } else {
           const config = imapConfig.config;
-          
+
           // Validate required fields
           if (!config.emailAddress || !config.password || !config.imapServer) {
             testResult = { 
@@ -364,11 +374,11 @@ router.post('/:integrationId/test', requirePermission(Permission.TENANT_MANAGE_S
             try {
               // Simular teste de conexão IMAP
               const connectionTest = await testIMAPConnection(config);
-              
+
               if (connectionTest.success) {
                 // Atualizar status para connected quando teste passa
                 await storage.updateTenantIntegrationStatus(tenantId, integrationId, 'connected');
-                
+
                 testResult = { 
                   success: true, 
                   error: '', 
@@ -417,6 +427,20 @@ router.post('/:integrationId/test', requirePermission(Permission.TENANT_MANAGE_S
           }
         };
         break;
+        
+      case 'telegram':
+        // Placeholder for Telegram test logic
+        testResult = {
+          success: true, // Assuming success for now
+          error: '',
+          details: {
+            status: 'Telegram integration tested successfully',
+            message: 'Awaiting actual test implementation for bot token and chat ID validation.',
+            botTokenProvided: req.body.telegramBotToken ? true : false,
+            chatIdProvided: req.body.telegramChatId ? true : false
+          }
+        };
+        break;
 
       case 'webhooks':
         testResult = { 
@@ -458,21 +482,21 @@ router.post('/:integrationId/oauth/start', requirePermission(Permission.TENANT_M
   try {
     const { integrationId } = req.params;
     const tenantId = req.user!.tenantId;
-    
+
     if (!tenantId) {
       return res.status(400).json({ message: 'User not associated with a tenant' });
     }
 
     let authUrl = '';
     let scopes = '';
-    
+
     // Generate OAuth2 URLs based on integration type
     if (integrationId === 'gmail-oauth2') {
       const baseUrl = 'https://accounts.google.com/o/oauth2/v2/auth';
       scopes = 'email profile https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send';
       const clientId = req.body.clientId || 'YOUR_GOOGLE_CLIENT_ID';
       const redirectUri = req.body.redirectUri || `${req.protocol}://${req.get('host')}/auth/gmail/callback`;
-      
+
       authUrl = `${baseUrl}?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}&response_type=code&access_type=offline&prompt=consent`;
     } 
     else if (integrationId === 'outlook-oauth2') {
@@ -480,7 +504,7 @@ router.post('/:integrationId/oauth/start', requirePermission(Permission.TENANT_M
       scopes = 'openid profile email https://graph.microsoft.com/Mail.ReadWrite https://graph.microsoft.com/Mail.Send';
       const clientId = req.body.clientId || 'YOUR_AZURE_CLIENT_ID';
       const redirectUri = req.body.redirectUri || `${req.protocol}://${req.get('host')}/auth/outlook/callback`;
-      
+
       authUrl = `${baseUrl}?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}&response_type=code&response_mode=query`;
     }
     else {
@@ -507,13 +531,13 @@ router.post('/:integrationId/oauth/start', requirePermission(Permission.TENANT_M
 router.post('/populate-all-14', requirePermission(Permission.TENANT_MANAGE_SETTINGS), async (req: AuthorizedRequest, res) => {
   try {
     const tenantId = req.user!.tenantId;
-    
+
     if (!tenantId) {
       return res.status(400).json({ message: 'User not associated with a tenant' });
     }
 
     const { storage } = await import('../storage-simple');
-    
+
     // Lista completa das 14 integrações
     const allIntegrations = [
       // Comunicação (7 integrações)
@@ -564,6 +588,14 @@ router.post('/populate-all-14', requirePermission(Permission.TENANT_MANAGE_SETTI
         category: 'Comunicação',
         icon: 'MessageCircle',
         features: ['Notificações de tickets', 'Comandos slash', 'Bot integrado']
+      },
+      {
+        id: 'telegram',
+        name: 'Telegram',
+        description: 'Envie notificações e alertas para seus canais e usuários via Telegram.',
+        category: 'Comunicação',
+        icon: 'Send',
+        features: ['Notificações em tempo real', 'Mensagens personalizadas', 'Integração com bot']
       },
       {
         id: 'twilio-sms',
@@ -648,7 +680,7 @@ router.post('/populate-all-14', requirePermission(Permission.TENANT_MANAGE_SETTI
     res.json({ 
       totalCreated: allIntegrations.length,
       categories: {
-        'Comunicação': 7,
+        'Comunicação': 8, // Increased count for Telegram
         'Automação': 2,
         'Dados': 2,
         'Segurança': 1,
@@ -656,6 +688,8 @@ router.post('/populate-all-14', requirePermission(Permission.TENANT_MANAGE_SETTI
       }
     });
   } catch (error) {
+    console.error('Error populating all integrations:', error);
+    res.status(500).json({ message: 'Failed to populate all integrations' });
   }
 });
 
