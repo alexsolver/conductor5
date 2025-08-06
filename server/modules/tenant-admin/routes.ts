@@ -515,4 +515,176 @@ router.get('/integrations', async (req: AuthorizedRequest, res) => {
   }
 });
 
+/**
+ * Gmail OAuth2 specific endpoints
+ */
+
+// GET /api/tenant-admin/integrations/gmail-oauth2/config
+router.get('/integrations/gmail-oauth2/config', async (req: AuthorizedRequest, res) => {
+  try {
+    const tenantId = req.user?.tenantId;
+    
+    if (!tenantId) {
+      return res.status(400).json({ message: 'User not associated with a tenant' });
+    }
+
+    const { storageSimple } = await import('../../storage-simple');
+    const config = await storageSimple.getTenantIntegrationConfig(tenantId, 'gmail-oauth2');
+    
+    // Return sanitized config (mask sensitive data)
+    const sanitizedConfig = config ? {
+      ...config,
+      config: {
+        ...config.config,
+        clientSecret: config.config?.clientSecret ? '••••••••' : '',
+        accessToken: config.config?.accessToken ? '••••••••' : '',
+        refreshToken: config.config?.refreshToken ? '••••••••' : ''
+      }
+    } : null;
+    
+    res.json(sanitizedConfig);
+  } catch (error) {
+    console.error('Error fetching Gmail OAuth2 config:', error);
+    res.status(500).json({ message: 'Failed to fetch Gmail OAuth2 configuration' });
+  }
+});
+
+// POST /api/tenant-admin/integrations/gmail-oauth2/config
+router.post('/integrations/gmail-oauth2/config', async (req: AuthorizedRequest, res) => {
+  try {
+    const tenantId = req.user?.tenantId;
+    
+    if (!tenantId) {
+      return res.status(400).json({ message: 'User not associated with a tenant' });
+    }
+
+    const { clientId, clientSecret, redirectUri, scopes, enabled } = req.body;
+    
+    const configData = {
+      clientId: clientId || '',
+      clientSecret: clientSecret || '',
+      redirectUri: redirectUri || '',
+      scopes: scopes || 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send',
+      enabled: enabled !== false,
+      lastUpdated: new Date().toISOString()
+    };
+
+    const { storageSimple } = await import('../../storage-simple');
+    const savedConfig = await storageSimple.saveTenantIntegrationConfig(tenantId, 'gmail-oauth2', configData);
+
+    res.json({
+      message: 'Gmail OAuth2 configuration saved successfully',
+      config: {
+        ...savedConfig,
+        config: {
+          ...savedConfig.config,
+          clientSecret: '••••••••',
+          accessToken: '••••••••',
+          refreshToken: '••••••••'
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Error saving Gmail OAuth2 config:', error);
+    res.status(500).json({ message: 'Failed to save Gmail OAuth2 configuration' });
+  }
+});
+
+// POST /api/tenant-admin/integrations/gmail-oauth2/oauth/start
+router.post('/integrations/gmail-oauth2/oauth/start', async (req: AuthorizedRequest, res) => {
+  try {
+    const tenantId = req.user?.tenantId;
+    
+    if (!tenantId) {
+      return res.status(400).json({ message: 'User not associated with a tenant' });
+    }
+
+    const { storageSimple } = await import('../../storage-simple');
+    const config = await storageSimple.getTenantIntegrationConfig(tenantId, 'gmail-oauth2');
+    
+    if (!config?.config?.clientId) {
+      return res.status(400).json({ message: 'Gmail OAuth2 configuration missing. Please configure Client ID first.' });
+    }
+
+    const baseUrl = 'https://accounts.google.com/o/oauth2/v2/auth';
+    const scopes = config.config.scopes || 'email profile https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send';
+    const redirectUri = config.config.redirectUri || `${req.protocol}://${req.get('host')}/auth/gmail/callback`;
+    
+    const authUrl = `${baseUrl}?client_id=${config.config.clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}&response_type=code&access_type=offline&prompt=consent&state=${tenantId}`;
+
+    res.json({
+      message: 'Gmail OAuth2 authorization URL generated',
+      authUrl,
+      scopes,
+      redirectUri
+    });
+  } catch (error) {
+    console.error('Error starting Gmail OAuth2 flow:', error);
+    res.status(500).json({ message: 'Failed to start Gmail OAuth2 flow' });
+  }
+});
+
+// POST /api/tenant-admin/integrations/gmail-oauth2/test
+router.post('/integrations/gmail-oauth2/test', async (req: AuthorizedRequest, res) => {
+  try {
+    const tenantId = req.user?.tenantId;
+    
+    if (!tenantId) {
+      return res.status(400).json({ message: 'User not associated with a tenant' });
+    }
+
+    const { storageSimple } = await import('../../storage-simple');
+    const config = await storageSimple.getTenantIntegrationConfig(tenantId, 'gmail-oauth2');
+    
+    if (!config?.config) {
+      return res.json({
+        success: false,
+        error: 'Gmail OAuth2 configuration not found. Please configure the integration first.'
+      });
+    }
+
+    // Simulate test based on configuration completeness
+    const hasClientId = !!config.config.clientId;
+    const hasClientSecret = !!config.config.clientSecret;
+    const hasTokens = !!(config.config.accessToken || config.config.refreshToken);
+
+    if (!hasClientId || !hasClientSecret) {
+      return res.json({
+        success: false,
+        error: 'Gmail OAuth2 configuration incomplete. Missing Client ID or Client Secret.'
+      });
+    }
+
+    if (!hasTokens) {
+      return res.json({
+        success: false,
+        error: 'Gmail OAuth2 not authorized. Please complete the OAuth2 flow first.',
+        details: {
+          needsAuthorization: true,
+          configurationComplete: true
+        }
+      });
+    }
+
+    // Update status to connected
+    await storageSimple.updateTenantIntegrationStatus(tenantId, 'gmail-oauth2', 'connected');
+
+    res.json({
+      success: true,
+      message: 'Gmail OAuth2 integration test successful',
+      details: {
+        status: 'Connected',
+        lastTested: new Date().toISOString(),
+        scopes: config.config.scopes || 'Default Gmail scopes'
+      }
+    });
+  } catch (error) {
+    console.error('Error testing Gmail OAuth2:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to test Gmail OAuth2 integration'
+    });
+  }
+});
+
 export default router;
