@@ -62,7 +62,12 @@ const integrationConfigSchema = z.object({
   delegatedEmail: z.string().optional(),
   domain: z.string().optional(),
   adminEmail: z.string().optional(),
-  scopes: z.array(z.string()).optional(),
+  scopes: z.union([z.array(z.string()), z.string()]).optional().transform(val => {
+    if (typeof val === 'string') {
+      return val.split(',').map(s => s.trim()).filter(s => s.length > 0);
+    }
+    return val || [];
+  }),
 
   // AWS specific
   accessKeyId: z.string().optional(),
@@ -711,8 +716,16 @@ export default function SaasAdminIntegrations() {
                         <FormControl>
                           <Input 
                             placeholder="https://www.googleapis.com/auth/userinfo.email,https://www.googleapis.com/auth/userinfo.profile,https://www.googleapis.com/auth/gmail.modify" 
-                            value={Array.isArray(field.value) ? field.value.join(',') : field.value || ''}
-                            onChange={(e) => field.onChange(e.target.value.split(',').map(s => s.trim()).filter(s => s))}
+                            value={Array.isArray(field.value) ? field.value.join(',') : (field.value || '')}
+                            onChange={(e) => {
+                              const inputValue = e.target.value;
+                              if (inputValue.trim() === '') {
+                                field.onChange([]);
+                              } else {
+                                const scopesArray = inputValue.split(',').map(s => s.trim()).filter(s => s.length > 0);
+                                field.onChange(scopesArray);
+                              }
+                            }}
                           />
                         </FormControl>
                         <FormMessage />
