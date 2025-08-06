@@ -49,19 +49,13 @@ const transformTimecardData = (frontendData: any) => {
     notes: frontendData.notes || null
   };
 
-  // Adicionar apenas o campo relevante baseado no tipo de registro
+  // Apenas entrada ou saída - pausas são calculadas automaticamente
   switch (frontendData.recordType) {
     case 'clock_in':
       payload.checkIn = now;
       break;
     case 'clock_out':
       payload.checkOut = now;
-      break;
-    case 'break_start':
-      payload.breakStart = now;
-      break;
-    case 'break_end':
-      payload.breakEnd = now;
       break;
     default:
       // Default to clock in if no specific type
@@ -111,7 +105,17 @@ export default function Timecard() {
   useEffect(() => {
     if (statusData) {
       console.log('[TIMECARD-DEBUG] Status data received:', statusData);
-      setCurrentStatus(statusData);
+      
+      // Calcular status baseado em lógica binária simples
+      const validRecords = statusData.todayRecords?.filter(record => record.checkIn || record.checkOut) || [];
+      const hasActiveEntry = validRecords.some(record => record.checkIn && !record.checkOut);
+      
+      const simplifiedStatus = hasActiveEntry ? 'working' : 'not_started';
+      
+      setCurrentStatus({
+        ...statusData,
+        status: simplifiedStatus
+      });
     }
   }, [statusData]);
 
@@ -217,8 +221,6 @@ export default function Timecard() {
     switch (status) {
       case 'working':
         return <Badge className="bg-green-500">Trabalhando</Badge>;
-      case 'on_break':
-        return <Badge className="bg-yellow-500">Em pausa</Badge>;
       case 'finished':
         return <Badge className="bg-gray-500">Finalizado</Badge>;
       default:
@@ -231,26 +233,16 @@ export default function Timecard() {
     
     const actions = [];
     
-    switch (status) {
-      case 'not_started':
-        actions.push({ type: 'clock_in', label: 'Registrar Entrada', color: 'bg-green-600', primary: true });
-        break;
-        
-      case 'working':
-        actions.push({ type: 'break_start', label: 'Iniciar Pausa', color: 'bg-yellow-600', primary: false });
-        actions.push({ type: 'clock_out', label: 'Registrar Saída', color: 'bg-red-600', primary: true });
-        break;
-        
-      case 'on_break':
-        actions.push({ type: 'break_end', label: 'Finalizar Pausa', color: 'bg-blue-600', primary: true });
-        break;
-        
-      case 'finished':
-        actions.push({ type: 'clock_in', label: 'Nova Entrada', color: 'bg-green-600', primary: true });
-        break;
-        
-      default:
-        actions.push({ type: 'clock_in', label: 'Registrar Entrada', color: 'bg-green-600', primary: true });
+    // Analisar registros para determinar estado atual
+    const validRecords = todayRecords.filter(record => record.checkIn || record.checkOut);
+    const hasActiveEntry = validRecords.some(record => record.checkIn && !record.checkOut);
+    
+    if (hasActiveEntry) {
+      // Há uma entrada ativa sem saída - mostrar botão de saída
+      actions.push({ type: 'clock_out', label: 'Registrar Saída', color: 'bg-red-600', primary: true });
+    } else {
+      // Não há entrada ativa - mostrar botão de entrada
+      actions.push({ type: 'clock_in', label: 'Registrar Entrada', color: 'bg-green-600', primary: true });
     }
     
     return actions;
@@ -640,11 +632,9 @@ export default function Timecard() {
                 <div key={record.id} className="flex justify-between items-center py-3 border-b">
                   <div>
                     <div className="font-medium">
-                      {record.checkIn && record.checkOut ? 'Entrada/Saída' : 
-                       record.checkIn ? 'Entrada' :
-                       record.checkOut ? 'Saída' :
-                       record.breakStart ? 'Início da Pausa' :
-                       record.breakEnd ? 'Fim da Pausa' : 'Registro'}
+                      {record.checkIn && record.checkOut ? 'Entrada/Saída Completa' : 
+                       record.checkIn ? 'Entrada Registrada' :
+                       record.checkOut ? 'Saída Registrada' : 'Registro'}
                     </div>
                     <div className="text-sm text-gray-500 flex gap-2">
                       <span>Status: {record.status === 'pending' ? 'Aguardando aprovação' : record.status || 'pending'}</span>

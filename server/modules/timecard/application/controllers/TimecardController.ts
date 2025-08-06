@@ -61,42 +61,28 @@ export class TimecardController {
       today.setHours(0, 0, 0, 0);
       const todayRecords = await this.timecardRepository.getTimecardEntriesByUserAndDate(userId, today.toISOString(), tenantId);
 
-      // Determine current status by analyzing all records
+      // LÓGICA BINÁRIA SIMPLIFICADA - apenas entrada/saída
       let status = 'not_started';
       let lastRecord = null;
 
       if (todayRecords.length > 0) {
-        // Sort records by creation time to get the most recent
-        const sortedRecords = todayRecords.sort((a, b) => 
-          new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime()
-        );
-        lastRecord = sortedRecords[0];
-
-        // Check for break status first (most specific)
-        const onBreak = todayRecords.some(record => record.breakStart && !record.breakEnd);
+        // Filtrar apenas registros válidos com checkIn ou checkOut
+        const validRecords = todayRecords.filter(record => record.checkIn || record.checkOut);
         
-        if (onBreak) {
-          status = 'on_break';
-        } else {
-          // Filter out invalid records (must have at least checkIn)
-          const validRecords = todayRecords.filter(record => record.checkIn);
-          
-          // Sort by creation time to get the most recent record for the current user
-          const sortedValidRecords = validRecords.sort((a, b) => 
+        if (validRecords.length > 0) {
+          // Ordenar por data de criação
+          const sortedRecords = validRecords.sort((a, b) => 
             new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime()
           );
+          lastRecord = sortedRecords[0];
+
+          // Verificar se há entrada ativa (sem saída correspondente)
+          const hasActiveEntry = validRecords.some(record => record.checkIn && !record.checkOut);
           
-          // Use only the most recent record to determine status
-          const latestRecord = sortedValidRecords[0];
-          
-          if (latestRecord) {
-            if (latestRecord.checkIn && !latestRecord.checkOut) {
-              // Latest record has check-in but no check-out = currently working
-              status = 'working';
-            } else if (latestRecord.checkIn && latestRecord.checkOut) {
-              // Latest record is complete = finished for the day
-              status = 'finished';
-            }
+          if (hasActiveEntry) {
+            status = 'working';
+          } else {
+            status = 'finished';
           }
         }
       }
@@ -106,9 +92,7 @@ export class TimecardController {
         todayRecords,
         lastRecord,
         timesheet: {
-          totalHours: todayRecords.reduce((sum, record) => {
-            return sum + (record.totalHours ? parseFloat(record.totalHours) : 0);
-          }, 0)
+          totalHours: this.calculateTotalHoursFromRecords(todayRecords)
         }
       };
 
@@ -118,6 +102,23 @@ export class TimecardController {
       res.status(500).json({ error: 'Internal server error' });
     }
   };
+
+  // Método auxiliar para calcular horas totais e pausas automaticamente
+  private calculateTotalHoursFromRecords(records: any[]) {
+    // Filtrar apenas registros completos (com entrada E saída)
+    const completeRecords = records.filter(record => record.checkIn && record.checkOut);
+    
+    let totalMinutes = 0;
+    
+    completeRecords.forEach(record => {
+      const start = new Date(record.checkIn);
+      const end = new Date(record.checkOut);
+      const minutes = (end.getTime() - start.getTime()) / (1000 * 60);
+      totalMinutes += Math.max(0, minutes);
+    });
+
+    return totalMinutes / 60; // Retornar em horas
+  }
 
   // Timecard Entries
   createTimecardEntry = async (req: Request, res: Response) => {
@@ -1193,7 +1194,7 @@ export class TimecardController {
   }
 
   /**
-   * Formatar registro para padrão CLT brasileiro
+   * Formatar registro para padrão CLT brasileiro com cálculo automático de pausas
    */
   private async formatToCLTStandard(record: any, workDate: Date) {
     // Dias da semana em português
@@ -1203,11 +1204,31 @@ export class TimecardController {
     const dateStr = workDate.toLocaleDateString('pt-BR');
     const dayOfWeek = daysOfWeek[workDate.getDay()];
     
-    // Horários no formato HH:MM
+    // CÁLCULO AUTOMÁTICO DE PAUSAS
+    // Se jornada > 6h, calcular automaticamente pausa de almoço (1h no meio)
     const checkIn = record.checkIn ? new Date(record.checkIn).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : null;
     const checkOut = record.checkOut ? new Date(record.checkOut).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : null;
-    const breakStart = record.breakStart ? new Date(record.breakStart).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : null;
-    const breakEnd = record.breakEnd ? new Date(record.breakEnd).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : null;
+    
+    let breakStart = null;
+    let breakEnd = null;
+    
+    // Se há entrada e saída, calcular pausa automaticamente
+    if (record.checkIn && record.checkOut) {
+      const workStart = new Date(record.checkIn);
+      const workEnd = new Date(record.checkOut);
+      const workMinutes = (workEnd.getTime() - workStart.getTime()) / (1000 * 60);
+      
+      // Se jornada > 6h, presumir pausa de almoço
+      if (workMinutes > 360) { // 6 horas
+        // Calcular meio do expediente para a pausa
+        const midTime = new Date(workStart.getTime() + (workEnd.getTime() - workStart.getTime()) / 2);
+        const pauseStart = new Date(midTime.getTime() - 30 * 60 * 1000); // 30min antes do meio
+        const pauseEnd = new Date(midTime.getTime() + 30 * 60 * 1000);   // 30min depois do meio
+        
+        breakStart = pauseStart.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        breakEnd = pauseEnd.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      }
+    }
     
     // Calcular horas trabalhadas e validar consistência
     let totalHours = '0:00';
