@@ -413,11 +413,11 @@ export class DatabaseStorage implements IStorage {
           caller.last_name as caller_last_name,
           caller.email as caller_email,
           caller.company as caller_company_name,
-          customer_companies.name as customer_company_name
+          companies.name as customer_company_name
         FROM ${sql.identifier(schemaName)}.tickets
         LEFT JOIN ${sql.identifier(schemaName)}.customers ON tickets.customer_id = customers.id
         LEFT JOIN ${sql.identifier(schemaName)}.customers caller ON tickets.caller_id = caller.id
-        LEFT JOIN ${sql.identifier(schemaName)}.customer_companies customer_companies ON tickets.customer_company_id = customer_companies.id
+        LEFT JOIN ${sql.identifier(schemaName)}.companies companies ON tickets.customer_company_id = companies.id
         WHERE tickets.tenant_id = ${validatedTenantId}
       `;
 
@@ -456,11 +456,11 @@ export class DatabaseStorage implements IStorage {
           caller.last_name as caller_last_name,
           caller.email as caller_email,
           caller.company as caller_company_name,
-          customer_companies.name as customer_company_name
+          companies.name as customer_company_name
         FROM ${sql.identifier(schemaName)}.tickets
         LEFT JOIN ${sql.identifier(schemaName)}.customers ON tickets.customer_id = customers.id
         LEFT JOIN ${sql.identifier(schemaName)}.customers caller ON tickets.caller_id = caller.id
-        LEFT JOIN ${sql.identifier(schemaName)}.customer_companies customer_companies ON tickets.customer_company_id = customer_companies.id
+        LEFT JOIN ${sql.identifier(schemaName)}.companies companies ON tickets.customer_company_id = companies.id
         WHERE tickets.id = ${ticketId} AND tickets.tenant_id = ${validatedTenantId}
         LIMIT 1
       `);

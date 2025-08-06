@@ -73,7 +73,7 @@ customersRouter.get('/companies', jwtAuth, async (req: AuthenticatedRequest, res
     const schemaName = schemaManager.getSchemaName(req.user.tenantId);
 
     const result = await pool.query(`
-      SELECT * FROM "${schemaName}".customer_companies 
+      SELECT * FROM "${schemaName}".companies 
       WHERE tenant_id = $1
       ORDER BY name
     `, [req.user.tenantId]);
@@ -211,7 +211,7 @@ customersRouter.post('/companies/:companyId/associate-multiple', jwtAuth, async 
 
     // Verify company exists
     const companyCheck = await pool.query(
-      `SELECT id FROM "${schemaName}"."customer_companies" WHERE id = $1 AND tenant_id = $2`,
+      `SELECT id FROM "${schemaName}"."companies" WHERE id = $1 AND tenant_id = $2`,
       [companyId, req.user.tenantId]
     );
 
@@ -358,7 +358,7 @@ customersRouter.post('/companies', jwtAuth, async (req: AuthenticatedRequest, re
     const schemaName = schemaManager.getSchemaName(req.user.tenantId);
 
     const result = await pool.query(`
-      INSERT INTO "${schemaName}".customer_companies 
+      INSERT INTO "${schemaName}".companies 
       (name, document, phone, email, address, tenant_id, created_at, updated_at)
       VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
       RETURNING *
@@ -393,7 +393,7 @@ customersRouter.put('/companies/:id', jwtAuth, async (req: AuthenticatedRequest,
 
     // Verify company exists first
     const existingCompany = await pool.query(`
-      SELECT * FROM "${schemaName}".customer_companies 
+      SELECT * FROM "${schemaName}".companies 
       WHERE id = $1 AND tenant_id = $2
     `, [id, req.user.tenantId]);
 
@@ -432,7 +432,7 @@ customersRouter.put('/companies/:id', jwtAuth, async (req: AuthenticatedRequest,
     });
 
     const result = await pool.query(`
-      UPDATE "${schemaName}".customer_companies 
+      UPDATE "${schemaName}".companies 
       SET name = $1, display_name = $2, description = $3, industry = $4, size = $5, 
           email = $6, phone = $7, website = $8, subscription_tier = $9, status = $10,
           cnpj = $11, address = $12, updated_at = NOW()
