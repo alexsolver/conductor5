@@ -34,9 +34,20 @@ export default function TimecardReports() {
         console.error('[TIMECARD-REPORTS] Request failed:', response.status, response.statusText);
         throw new Error(`Erro ${response.status}: ${response.statusText}`);
       }
-      const data = await response.json();
-      console.log('[TIMECARD-REPORTS] Response data:', data);
-      console.log('[TIMECARD-REPORTS] Records found:', data.records?.length || 0);
+      const textResponse = await response.text();
+      console.log('[TIMECARD-REPORTS] Raw response text:', textResponse.substring(0, 200));
+      
+      let data;
+      try {
+        data = JSON.parse(textResponse);
+        console.log('[TIMECARD-REPORTS] Parsed JSON data:', data);
+        console.log('[TIMECARD-REPORTS] Records found:', data.records?.length || 0);
+      } catch (parseError) {
+        console.error('[TIMECARD-REPORTS] JSON parse error:', parseError);
+        console.error('[TIMECARD-REPORTS] Full response:', textResponse);
+        throw new Error(`Resposta inválida da API: ${textResponse.substring(0, 100)}...`);
+      }
+      
       return data;
     },
     enabled: reportType === 'frequency'

@@ -716,12 +716,25 @@ export class TimecardController {
   };
 
   async getAttendanceReport(req: AuthenticatedRequest, res: Response) {
+    console.log('[ATTENDANCE-REPORT] Route hit - starting...');
+    
+    // Force JSON response immediately
+    res.setHeader('Content-Type', 'application/json');
+    
     try {
       const { period } = req.params;
       const tenantId = req.user?.tenantId;
       const userId = req.user?.id;
 
+      console.log('[ATTENDANCE-REPORT] Auth check:', {
+        hasUser: !!req.user,
+        userId: userId?.slice(-8),
+        tenantId: tenantId?.slice(-8),
+        period
+      });
+
       if (!tenantId || !userId) {
+        console.log('[ATTENDANCE-REPORT] Missing auth data');
         return res.status(400).json({ 
           success: false, 
           error: 'Tenant ID e User ID são obrigatórios' 
