@@ -6,86 +6,46 @@ const timecardRouter = Router();
 const timecardController = new TimecardController();
 
 // Work Schedules routes - usando TimecardController unificado
-timecardRouter.get('/work-schedules', jwtAuth, (req, res) => 
-  timecardController.getAllWorkSchedules(req, res)
-);
+timecardRouter.get('/work-schedules', jwtAuth, timecardController.getAllWorkSchedules.bind(timecardController));
 
-timecardRouter.post('/work-schedules', jwtAuth, (req, res) => 
-  timecardController.createWorkSchedule(req, res)
-);
+timecardRouter.post('/work-schedules', jwtAuth, timecardController.createWorkSchedule.bind(timecardController));
 
-timecardRouter.put('/work-schedules/:id', jwtAuth, (req, res) => 
-  timecardController.updateWorkSchedule(req, res)
-);
+timecardRouter.put('/work-schedules/:id', jwtAuth, timecardController.updateWorkSchedule.bind(timecardController));
 
-timecardRouter.delete('/work-schedules/:id', jwtAuth, (req, res) => 
-  timecardController.deleteWorkSchedule(req, res)
-);
+timecardRouter.delete('/work-schedules/:id', jwtAuth, timecardController.deleteWorkSchedule.bind(timecardController));
 
-timecardRouter.post('/work-schedules/bulk-assign', jwtAuth, (req, res) => 
-  timecardController.createBulkWorkSchedules(req, res)
-);
+timecardRouter.post('/work-schedules/bulk-assign', jwtAuth, timecardController.createBulkWorkSchedules.bind(timecardController));
 
 // Schedule Templates routes
-timecardRouter.get('/schedule-templates', jwtAuth, (req, res) => 
-  timecardController.getScheduleTemplates(req, res)
-);
+timecardRouter.get('/schedule-templates', jwtAuth, timecardController.getScheduleTemplates.bind(timecardController));
 
-timecardRouter.post('/schedule-templates', jwtAuth, (req, res) => 
-  timecardController.createScheduleTemplate(req, res)
-);
+timecardRouter.post('/schedule-templates', jwtAuth, timecardController.createScheduleTemplate.bind(timecardController));
 
 // Users route for dropdowns
-timecardRouter.get('/users', jwtAuth, async (req, res) => {
-  try {
-    const { tenantId } = (req as any).user;
-    const users = await timecardController.getUsers(req, res);
-  } catch (error) {
-    console.error('[TIMECARD-ROUTES] Error fetching users:', error);
-    res.status(500).json({ error: 'Failed to fetch users' });
-  }
-});
+timecardRouter.get('/users', jwtAuth, timecardController.getUsers.bind(timecardController));
 
 // Timecard Entries routes
-timecardRouter.get('/entries', (req, res) => 
-  timecardController.getTimecardEntriesByUser(req, res)
-);
+timecardRouter.get('/entries', jwtAuth, timecardController.getTimecardEntriesByUser.bind(timecardController));
 
-timecardRouter.post('/timecard-entries', (req, res) => 
-  timecardController.createTimecardEntry(req, res)
-);
+timecardRouter.post('/timecard-entries', jwtAuth, timecardController.createTimecardEntry.bind(timecardController));
 
 // Legacy route for compatibility
-timecardRouter.post('/entries', (req, res) => 
-  timecardController.createTimecardEntry(req, res)
-);
+timecardRouter.post('/entries', jwtAuth, timecardController.createTimecardEntry.bind(timecardController));
 
 // Hour Bank routes
-timecardRouter.get('/hour-bank/summary', jwtAuth, (req, res) => 
-  timecardController.getHourBankSummary(req, res)
-);
+timecardRouter.get('/hour-bank/summary', jwtAuth, timecardController.getHourBankSummary.bind(timecardController));
 
-timecardRouter.get('/hour-bank/:userId', jwtAuth, (req, res) => 
-  timecardController.getHourBankByUser(req, res)
-);
+timecardRouter.get('/hour-bank/:userId', jwtAuth, timecardController.getHourBankByUser.bind(timecardController));
 
-timecardRouter.get('/hour-bank/movements/:userId/:month', jwtAuth, (req, res) => 
-  timecardController.getHourBankMovements(req, res)
-);
+timecardRouter.get('/hour-bank/movements/:userId/:month', jwtAuth, timecardController.getHourBankMovements.bind(timecardController));
 
 // Absence Requests routes
-timecardRouter.get('/absence-requests/pending', jwtAuth, (req, res) => 
-  timecardController.getPendingAbsenceRequests(req, res)
-);
+timecardRouter.get('/absence-requests/pending', jwtAuth, timecardController.getPendingAbsenceRequests.bind(timecardController));
 
 // Reports routes
-timecardRouter.get('/reports/attendance/:period', jwtAuth, (req, res) => 
-  timecardController.getAttendanceReport(req, res)
-);
+timecardRouter.get('/reports/attendance/:period', jwtAuth, timecardController.getAttendanceReport.bind(timecardController));
 
-timecardRouter.get('/reports/overtime/:period', jwtAuth, (req, res) => 
-  timecardController.getOvertimeReport(req, res)
-);
+timecardRouter.get('/reports/overtime/:period', jwtAuth, timecardController.getOvertimeReport.bind(timecardController));
 
 // Current status route  
 timecardRouter.get('/current-status', jwtAuth, timecardController.getCurrentStatus.bind(timecardController));
