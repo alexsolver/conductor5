@@ -752,7 +752,8 @@ export class TimecardController {
       });
 
       // Buscar todos os registros aprovados do período (incluindo os sem check_in)
-      // Usar created_at como fallback para registros sem check_in
+      console.log('[ATTENDANCE-REPORT] Executing query for user:', userId, 'tenant:', tenantId);
+      
       const records = await db
         .select()
         .from(timecardEntries)
