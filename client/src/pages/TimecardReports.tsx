@@ -28,11 +28,16 @@ export default function TimecardReports() {
   const { data: attendanceReport, isLoading: attendanceLoading, error: attendanceError } = useQuery({
     queryKey: ['/api/timecard/reports/attendance', selectedPeriod],
     queryFn: async () => {
+      console.log('[TIMECARD-REPORTS] Fetching attendance report for:', selectedPeriod);
       const response = await apiRequest('GET', `/api/timecard/reports/attendance/${selectedPeriod}`);
       if (!response.ok) {
+        console.error('[TIMECARD-REPORTS] Request failed:', response.status, response.statusText);
         throw new Error(`Erro ${response.status}: ${response.statusText}`);
       }
-      return response.json();
+      const data = await response.json();
+      console.log('[TIMECARD-REPORTS] Response data:', data);
+      console.log('[TIMECARD-REPORTS] Records found:', data.records?.length || 0);
+      return data;
     },
     enabled: reportType === 'frequency'
   });
@@ -236,7 +241,7 @@ export default function TimecardReports() {
               <div>Erro ao carregar dados: {currentError.message}</div>
               <div className="text-sm mt-2">Verifique sua conexão e tente novamente</div>
             </div>
-          ) : currentReport?.records && currentReport.records.length > 0 ? (
+          ) : currentReport?.records && Array.isArray(currentReport.records) && currentReport.records.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full border-collapse border border-gray-300 text-sm">
                 <thead>

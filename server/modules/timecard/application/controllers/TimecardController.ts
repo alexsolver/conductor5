@@ -777,6 +777,25 @@ export class TimecardController {
         endDateStr: endDate.toISOString().split('T')[0]
       });
       
+      // Log detalhado dos primeiros registros encontrados
+      if (records.length > 0) {
+        console.log('[ATTENDANCE-REPORT] First 5 records found:', records.slice(0, 5).map(r => ({
+          id: r.id.slice(-8),
+          checkIn: r.checkIn,
+          createdAt: r.createdAt,
+          status: r.status,
+          referenceDate: r.checkIn || r.createdAt
+        })));
+      } else {
+        console.log('[ATTENDANCE-REPORT] No records found - checking criteria...');
+        console.log('[ATTENDANCE-REPORT] Search criteria:', {
+          userId,
+          tenantId,
+          dateRange: `${startDate.toISOString().split('T')[0]} to ${endDate.toISOString().split('T')[0]}`,
+          status: 'approved'
+        });
+      }
+      
       // Log first few records for debugging
       if (records.length > 0) {
         console.log('[ATTENDANCE-REPORT] Sample records:', records.slice(0, 3).map(r => ({
