@@ -471,8 +471,12 @@ export default function TenantAdminIntegrations() {
       const existingConfig = await apiRequest('GET', `/api/tenant-admin/integrations/${integration.id}/config`);
 
 
-      if (existingConfig && existingConfig.config && (existingConfig.configured === true || Object.keys(existingConfig.config).length > 0)) {
-        const config = existingConfig.config;
+      const configData = existingConfig as any;
+      console.log('API response completa:', configData);
+      
+      if (configData && configData.config && (configData.configured === true || Object.keys(configData.config).length > 0)) {
+        const config = configData.config;
+        console.log('Config encontrada:', config);
         // Load existing configuration - dados reais do banco (mascarar dados sensíveis)
         const formValues = {
           enabled: config.enabled === true,
@@ -496,7 +500,7 @@ export default function TenantAdminIntegrations() {
           dropboxAppSecret: config.dropboxAppSecret ? '••••••••' : '', // Mascarar Dropbox secret
           dropboxAccessToken: config.dropboxAccessToken ? '••••••••' : '', // Mascarar access token
           backupFolder: config.backupFolder || '/Backups/Conductor',
-          // Telegram fields
+          // Telegram fields (não mascarar para poder editar)
           telegramBotToken: config.telegramBotToken || '',
           telegramChatId: config.telegramChatId || '',
           telegramWebhookUrl: config.telegramWebhookUrl || `${window.location.origin}/api/webhooks/telegram/${localStorage.getItem('tenantId')}`,
