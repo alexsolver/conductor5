@@ -801,54 +801,10 @@ export default function ItemCatalog() {
 
                   {/* Aba de Vínculos de Fornecedores */}
                   <TabsContent value="supplier-links" className="space-y-6">
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-semibold flex items-center gap-2">
-                          <Truck className="h-5 w-5" />
-                          Vínculos de Fornecedores
-                        </h3>
-                        <SupplierLinkDialog 
-                          itemId={selectedItem?.id}
-                          itemName={selectedItem?.name}
-                        />
-                      </div>
-
-                      <div className="border rounded-lg">
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>Fornecedor</TableHead>
-                              <TableHead>Código Fornecedor</TableHead>
-                              <TableHead>Nome Fornecedor</TableHead>
-                              <TableHead>Preço</TableHead>
-                              <TableHead>Prazo</TableHead>
-                              <TableHead>Status</TableHead>
-                              <TableHead className="w-[100px]">Ações</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            <SupplierLinksTable 
-                              itemId={selectedItem?.id}
-                            />
-                          </TableBody>
-                        </Table>
-                      </div>
-
-                      <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
-                        <div className="flex items-start gap-3">
-                          <DollarSign className="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5" />
-                          <div>
-                            <h4 className="font-medium text-green-900 dark:text-green-100">
-                              Sistema de Catalogação por Fornecedor
-                            </h4>
-                            <p className="text-sm text-green-700 dark:text-green-300 mt-1">
-                              Vincule itens com múltiplos fornecedores, compare preços, prazos de entrega
-                              e mantenha informações atualizadas sobre disponibilidade e condições de compra.
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                    <SupplierLinksTab 
+                      itemId={selectedItem?.id}
+                      itemName={selectedItem?.name}
+                    />
                   </TabsContent>
 
                   <div className="flex justify-end pt-6">
@@ -869,7 +825,7 @@ export default function ItemCatalog() {
       {/* Filtros e Busca */}
       <Card>
         <CardContent className="pt-6">
-          <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex flex-col sm:flex-col gap-4">
             <div className="flex-1">
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -1207,7 +1163,7 @@ function SupplierLinkDialog({ itemId, itemName }: { itemId?: string; itemName?: 
   });
 
   // Query para fornecedores disponíveis
-  const { data: suppliers = [] } = useQuery({
+  const { data: suppliers = [], isLoading: isLoadingSuppliers } = useQuery({
     queryKey: ['/api/materials-services/suppliers'],
     queryFn: async () => {
       try {
@@ -1226,17 +1182,17 @@ function SupplierLinkDialog({ itemId, itemName }: { itemId?: string; itemName?: 
 
   const handleSubmit = async (data: any) => {
     if (!itemId) return;
-    
+
     setIsLoading(true);
     try {
       // Simula criação bem-sucedida
       await new Promise(resolve => setTimeout(resolve, 800));
-      
+
       toast({
         title: "Sucesso",
         description: "Vínculo de fornecedor criado com sucesso!"
       });
-      
+
       setIsOpen(false);
       form.reset();
       queryClient.invalidateQueries({ queryKey: ['/api/materials-services/supplier-links', itemId] });
@@ -1282,11 +1238,17 @@ function SupplierLinkDialog({ itemId, itemName }: { itemId?: string; itemName?: 
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {suppliers.map((supplier: any) => (
-                          <SelectItem key={supplier.id} value={supplier.id}>
-                            {supplier.name}
-                          </SelectItem>
-                        ))}
+                        {isLoadingSuppliers ? (
+                          <SelectItem value="" disabled>Carregando fornecedores...</SelectItem>
+                        ) : Array.isArray(suppliers) && suppliers.length > 0 ? (
+                          suppliers.map((supplier: any) => (
+                            <SelectItem key={supplier.id} value={supplier.id}>
+                              {supplier.name}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="" disabled>Nenhum fornecedor disponível</SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -1490,7 +1452,7 @@ function CustomerPersonalizationTab({ itemId, itemName }: { itemId?: string; ite
   const queryClient = useQueryClient();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingPersonalization, setEditingPersonalization] = useState<any>(null);
-  
+
   // Buscar clientes - iremos filtrar localmente
   const { data: allCustomers } = useQuery({
     queryKey: ['/api/customers/companies'],
@@ -1528,14 +1490,14 @@ function CustomerPersonalizationTab({ itemId, itemName }: { itemId?: string; ite
           const data = await response.json();
           return data.personalizations || [];
         }
-        
+
         // Se não funcionar, tenta buscar do próprio item  
         const itemResponse = await fetch(`/api/materials-services/items/${itemId}`);
         if (itemResponse.ok) {
           const itemData = await itemResponse.json();
           return itemData.data?.links?.customers || [];
         }
-        
+
         // Fallback: dados de demonstração
         console.log('Usando dados de demonstração para personalização');
         return [
@@ -1596,7 +1558,7 @@ function CustomerPersonalizationTab({ itemId, itemName }: { itemId?: string; ite
           'Content-Type': 'application/json'
         }
       });
-      
+
       if (!response.ok) {
         let errorMessage = 'Erro ao deletar personalização';
         try {
@@ -1608,7 +1570,7 @@ function CustomerPersonalizationTab({ itemId, itemName }: { itemId?: string; ite
         }
         throw new Error(errorMessage);
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
@@ -1696,7 +1658,7 @@ function CustomerPersonalizationTab({ itemId, itemName }: { itemId?: string; ite
     });
 
     // Query para fornecedores disponíveis
-    const { data: suppliers = [] } = useQuery({
+    const { data: suppliers = [], isLoading: isLoadingSuppliers } = useQuery({
       queryKey: ['/api/materials-services/suppliers'],
       queryFn: async () => {
         try {
@@ -1729,7 +1691,7 @@ function CustomerPersonalizationTab({ itemId, itemName }: { itemId?: string; ite
             const data = await response.json();
             return data.supplierLinks || [];
           }
-          
+
           // Dados de demonstração funcionais para o sistema
           return [
             {
@@ -1940,11 +1902,17 @@ function CustomerPersonalizationTab({ itemId, itemName }: { itemId?: string; ite
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {suppliers.map((supplier: any) => (
-                              <SelectItem key={supplier.id} value={supplier.id}>
-                                {supplier.name}
-                              </SelectItem>
-                            ))}
+                            {isLoadingSuppliers ? (
+                              <SelectItem value="" disabled>Carregando fornecedores...</SelectItem>
+                            ) : Array.isArray(suppliers) && suppliers.length > 0 ? (
+                              suppliers.map((supplier: any) => (
+                                <SelectItem key={supplier.id} value={supplier.id}>
+                                  {supplier.name}
+                                </SelectItem>
+                              ))
+                            ) : (
+                              <SelectItem value="" disabled>Nenhum fornecedor disponível</SelectItem>
+                            )}
                           </SelectContent>
                         </Select>
                         <FormMessage />
