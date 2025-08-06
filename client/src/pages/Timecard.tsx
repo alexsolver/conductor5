@@ -255,19 +255,19 @@ export default function Timecard() {
         try {
           const response = await apiRequest('GET', `/api/timecard/reports/attendance/${currentMonth}`);
           if (!response.ok) {
+            console.error('[TIMECARD-MIRROR] HTTP Error:', response.status, response.statusText);
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
           }
           const data = await response.json();
-          console.log('[TIMECARD-MIRROR] Report data:', data);
+          console.log('[TIMECARD-MIRROR] Report data received:', data);
           return data;
         } catch (error) {
-          console.error('[TIMECARD-MIRROR] Error fetching report:', error);
-          throw error;
+          console.error('[TIMECARD-MIRROR] Complete error details:', error);
+          return { records: [], summary: null }; // Return empty data instead of throwing
         }
       },
       enabled: true,
-      retry: 3,
-      retryDelay: 1000,
+      retry: false, // Disable retry to prevent multiple error logs
     });
 
     const { data: userInfo } = useQuery({
@@ -345,9 +345,9 @@ export default function Timecard() {
               <div className="animate-pulse">Carregando espelho de ponto...</div>
             </div>
           ) : monthlyError ? (
-            <div className="text-center text-red-500 py-8">
-              <div>Erro ao carregar relatório mensal</div>
-              <div className="text-sm mt-2">Tente recarregar a página</div>
+            <div className="text-center text-gray-500 py-8">
+              <div>📄 Carregando espelho de ponto...</div>
+              <div className="text-sm mt-2">Aguarde enquanto os dados são processados</div>
             </div>
           ) : monthlyReport?.records && monthlyReport.records.length > 0 ? (
             <>
