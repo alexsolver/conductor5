@@ -131,26 +131,20 @@ export const updateCustomerPersonalization = async (req: AuthenticatedRequest, r
       });
     }
 
+    // Usar schema correto com underscore
+    const tenantSchema = `tenant_${tenantId.replace(/-/g, '_')}`;
     const updateQuery = `
-      UPDATE ${tenantId}.customer_item_mappings 
+      UPDATE ${tenantSchema}.customer_item_mappings 
       SET 
-        custom_sku = $1,
-        custom_name = $2,
-        custom_description = $3,
-        customer_reference = $4,
-        special_instructions = $5,
-        is_active = $6,
+        alias = $1,
+        is_active = $2,
         updated_at = NOW()
-      WHERE id = $7 AND tenant_id = $8
+      WHERE id = $3 AND tenant_id = $4
       RETURNING *
     `;
 
     const result = await pool.query(updateQuery, [
-      customSku,
-      customName, 
-      customDescription,
-      customerReference,
-      specialInstructions,
+      customName || '',
       isActive,
       mappingId,
       tenantId
@@ -163,7 +157,7 @@ export const updateCustomerPersonalization = async (req: AuthenticatedRequest, r
       });
     }
 
-    res.json({
+    res.status(200).json({
       success: true,
       personalization: result.rows[0],
       message: 'Personalização atualizada com sucesso'
@@ -173,7 +167,7 @@ export const updateCustomerPersonalization = async (req: AuthenticatedRequest, r
     console.error('Error updating customer personalization:', error);
     res.status(500).json({
       success: false,
-      error: 'Erro interno do servidor'
+      message: 'Erro interno do servidor'
     });
   }
 };
@@ -251,9 +245,12 @@ export const createCustomerPersonalization = async (req: AuthenticatedRequest, r
       });
     }
 
+    // Usar schema correto com underscore
+    const tenantSchema = `tenant_${tenantId.replace(/-/g, '_')}`;
+    
     // Check if personalization already exists
     const existingQuery = `
-      SELECT id FROM ${tenantId}.customer_item_mappings 
+      SELECT id FROM ${tenantSchema}.customer_item_mappings 
       WHERE tenant_id = $1 AND customer_id = $2 AND item_id = $3
     `;
     
@@ -262,24 +259,21 @@ export const createCustomerPersonalization = async (req: AuthenticatedRequest, r
     if (existing.rows.length > 0) {
       return res.status(409).json({
         success: false,
-        error: 'Personalização já existe para este cliente e item'
+        message: 'Personalização já existe para este cliente e item'
       });
     }
 
     // Create personalization
     const insertQuery = `
-      INSERT INTO ${tenantId}.customer_item_mappings (
-        tenant_id, customer_id, item_id, custom_sku, custom_name, 
-        custom_description, customer_reference, special_instructions,
+      INSERT INTO ${tenantSchema}.customer_item_mappings (
+        tenant_id, customer_id, item_id, alias, is_active,
         created_by, updated_by, created_at, updated_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
       RETURNING *
     `;
 
     const result = await pool.query(insertQuery, [
-      tenantId, customerId, itemId, customSku, customName,
-      customDescription, customerReference, specialInstructions,
-      userId, userId
+      tenantId, customerId, itemId, customName || '', true, userId, userId
     ]);
 
     res.status(201).json({
@@ -292,7 +286,7 @@ export const createCustomerPersonalization = async (req: AuthenticatedRequest, r
     console.error('Error creating customer personalization:', error);
     res.status(500).json({
       success: false,
-      error: 'Erro interno do servidor'
+      message: 'Erro interno do servidor'
     });
   }
 };
