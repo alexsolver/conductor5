@@ -1,0 +1,320 @@
+# 🎯 **PROMPT COMPLETO PARA PERSONALIZAÇÃO DE ITENS POR EMPRESA CLIENTE E FORNECEDOR**
+
+## **CONTEXTO ARQUITETURAL**
+Você está trabalhando em um sistema SaaS multi-tenant de gestão de tickets e materiais, onde cada tenant (provedor de serviços) atende múltiplas empresas clientes e trabalha com diversos fornecedores. O desafio é permitir que tanto empresas clientes quanto fornecedores tenham suas próprias "versões" personalizadas dos itens do catálogo, com nomes, SKUs, códigos e configurações específicas, sem duplicar dados.
+
+## **PROBLEMA A RESOLVER**
+
+### **SITUAÇÃO ATUAL**
+Um item chamado "Cabo HDMI 2m" aparece igual para:
+- Todas as empresas clientes
+- Todos os fornecedores  
+- Todos os contextos de uso
+
+### **SITUAÇÃO DESEJADA**
+
+#### **Para Empresas Clientes:**
+- **Empresa A** vê: "CABO-HDMI-2M-PREMIUM" (SKU: ABC-001)
+- **Empresa B** vê: "Cabo de Vídeo Digital 2 metros" (SKU: VID-HDMI-02)  
+- **Empresa C** vê: "Cabo HDMI 2m" (nome padrão)
+
+#### **Para Fornecedores:**
+- **Fornecedor X** chama: "HDMI Cable 2MT REF:HDM2000" (Part Number: HDM2000)
+- **Fornecedor Y** chama: "Cabo Video Digital 2m" (Part Number: CVD-002)
+- **Fornecedor Z** chama: "Cabo HDMI 2m" (sem personalização)
+
+## **ARQUITETURA HIERÁRQUICA DESEJADA**
+
+```
+1. ITEM BASE (único, compartilhado)
+   ├── PERSONALIZAÇÕES POR CLIENTE
+   │   ├── Cliente A: nome_custom, sku_custom, descrição_custom
+   │   ├── Cliente B: nome_custom, sku_custom, descrição_custom
+   │   └── Fallback: dados originais do item
+   └── PERSONALIZAÇÕES POR FORNECEDOR
+       ├── Fornecedor X: part_number, supplier_name, supplier_description
+       ├── Fornecedor Y: part_number, supplier_name, supplier_description
+       └── Fallback: dados originais do item
+```
+
+## **ESPECIFICAÇÕES TÉCNICAS**
+
+### **BACKEND REQUIREMENTS**
+
+#### **Tabelas Existentes (Verificadas no Schema)**
+1. **`customer_item_mappings`** - Para personalização por cliente
+   - `custom_sku`, `custom_name`, `custom_description`
+   - `customer_reference`, `special_instructions`
+
+2. **`item_supplier_links`** - Para vínculos com fornecedores
+   - `part_number`, `description`, `qr_code`, `barcode`
+   - `unit_price`, `lead_time`, `minimum_order_quantity`
+
+#### **API Endpoints Necessários**
+```typescript
+// Para Clientes
+GET /api/materials-services/customers/{customerId}/items
+POST /api/materials-services/items/{itemId}/customer-mappings
+PUT /api/materials-services/customer-mappings/{mappingId}
+DELETE /api/materials-services/customer-mappings/{mappingId}
+
+// Para Fornecedores  
+GET /api/materials-services/suppliers/{supplierId}/items
+POST /api/materials-services/items/{itemId}/supplier-links
+PUT /api/materials-services/supplier-links/{linkId}
+DELETE /api/materials-services/supplier-links/{linkId}
+
+// Busca Unificada
+GET /api/materials-services/items/search?context={customer|supplier}&contextId={id}
+```
+
+#### **Lógica de Resolução Hierárquica**
+```typescript
+function resolveItemName(item: Item, context: 'customer' | 'supplier', contextId: string) {
+  if (context === 'customer') {
+    const mapping = getCustomerMapping(item.id, contextId);
+    return mapping?.customName || item.name;
+  }
+  
+  if (context === 'supplier') {
+    const link = getSupplierLink(item.id, contextId);
+    return link?.supplierDescription || item.name;
+  }
+  
+  return item.name;
+}
+```
+
+### **FRONTEND REQUIREMENTS**
+
+#### **1. Modal de Item - Estrutura de Abas**
+```typescript
+const ItemModal = {
+  tabs: [
+    'Informações Básicas',
+    'Personalizações de Clientes',  // NOVA ABA
+    'Vínculos de Fornecedores',     // NOVA ABA
+    'Vínculos Gerais',
+    'Histórico'
+  ]
+}
+```
+
+#### **2. Aba "Personalizações de Clientes"**
+- **Seletor de Empresa Cliente** (dropdown searchable)
+- **Campos de Personalização:**
+  - SKU personalizado
+  - Nome personalizado  
+  - Descrição personalizada
+  - Referência do cliente
+  - Instruções especiais
+- **Lista das Personalizações Existentes:**
+  - Cards com empresa, nome customizado, ações (editar/remover)
+  - Badge "Ativo/Inativo"
+  - Preview em tempo real
+
+#### **3. Aba "Vínculos de Fornecedores"**
+- **Seletor de Fornecedor** (dropdown searchable)
+- **Campos de Vínculo:**
+  - Part Number do fornecedor
+  - Nome/Descrição do fornecedor
+  - Código QR / Código de Barras
+  - Preço unitário
+  - Prazo de entrega
+  - Quantidade mínima
+- **Lista dos Vínculos Existentes:**
+  - Cards com fornecedor, part number, preços, ações
+  - Badge "Preferencial/Padrão"
+  - Indicador de melhor preço
+
+#### **4. Sistema de Materiais em Tickets**
+```typescript
+// Contexto automático baseado na empresa do ticket
+const ticketMaterials = {
+  customerCompanyId: ticket.customerCompanyId,
+  
+  // Materiais aparecem com nomes personalizados
+  displayItems: items.map(item => ({
+    ...item,
+    displayName: resolveItemName(item, 'customer', ticket.customerCompanyId),
+    displaySku: resolveItemSku(item, 'customer', ticket.customerCompanyId)
+  }))
+}
+```
+
+#### **5. Sistema de Compras/Orçamentos**
+```typescript
+// Contexto para fornecedores
+const purchaseOrder = {
+  supplierId: selectedSupplier.id,
+  
+  // Itens aparecem com dados do fornecedor
+  displayItems: items.map(item => ({
+    ...item,
+    supplierPartNumber: resolvePartNumber(item, supplierId),
+    supplierName: resolveSupplierName(item, supplierId),
+    supplierPrice: resolveSupplierPrice(item, supplierId)
+  }))
+}
+```
+
+### **UX/UI GUIDELINES**
+
+#### **Sistema de Badges Inteligentes**
+- **Badge "Personalizado"** → Item tem configuração específica para cliente
+- **Badge "Catalogado"** → Item está vinculado a fornecedor
+- **Badge "Ambos"** → Item tem personalização de cliente E vínculo de fornecedor
+- **Cores diferenciadas** para cada tipo de personalização
+
+#### **Preview em Tempo Real**
+```typescript
+const PersonalizationPreview = {
+  // Como o cliente vê
+  customerView: {
+    name: customName || originalName,
+    sku: customSku || originalSku,
+    description: customDescription || originalDescription
+  },
+  
+  // Como aparece no fornecedor
+  supplierView: {
+    partNumber: supplierPartNumber,
+    description: supplierDescription || originalName,
+    price: supplierPrice,
+    leadTime: supplierLeadTime
+  }
+}
+```
+
+#### **Validações Inteligentes**
+- **SKUs únicos** por empresa cliente
+- **Part Numbers únicos** por fornecedor
+- **Preços válidos** e atualizados
+- **Prazos realistas** de entrega
+
+### **FLUXOS DE TRABALHO DETALHADOS**
+
+#### **Fluxo 1: Personalização para Cliente**
+1. **Cadastro do Item Base** → Criar item genérico no catálogo
+2. **Seleção do Cliente** → Escolher empresa cliente específica
+3. **Personalização** → Definir nome, SKU e descrição customizados
+4. **Validação** → Verificar unicidade do SKU para o cliente
+5. **Ativação** → Item personalizado fica disponível para a empresa
+6. **Uso em Tickets** → Automaticamente usa dados personalizados
+
+#### **Fluxo 2: Vínculo com Fornecedor**
+1. **Seleção do Fornecedor** → Escolher fornecedor específico
+2. **Mapeamento** → Vincular item com Part Number do fornecedor
+3. **Dados Comerciais** → Preço, prazo, quantidade mínima
+4. **Catalogação** → Item entra no catálogo do fornecedor
+5. **Uso em Compras** → Dados do fornecedor aparecem automaticamente
+
+#### **Fluxo 3: Uso Contextual**
+```typescript
+// Em um ticket da Empresa A
+const ticketItems = getItemsForContext('customer', 'empresa-a-id');
+// Retorna: "CABO-HDMI-2M-PREMIUM" (SKU: ABC-001)
+
+// Em uma compra do Fornecedor X  
+const purchaseItems = getItemsForContext('supplier', 'fornecedor-x-id');
+// Retorna: "HDMI Cable 2MT REF:HDM2000" (Part: HDM2000, Preço: R$ 25,00)
+```
+
+### **PREÇOS INTELIGENTES E HIERÁRQUICOS**
+
+#### **Resolução de Preços por Prioridade:**
+1. **LPU Específica do Cliente** → Preço negociado especial
+2. **Preço do Fornecedor Preferencial** → Melhor preço catalogado
+3. **Preço Médio de Mercado** → Calculado entre fornecedores
+4. **Custo Zero** → Permite vinculação sem custo definido
+
+#### **Sistema de Alertas de Preço:**
+- **Preço desatualizado** → Último update > 30 dias
+- **Variação significativa** → Diferença > 20% entre fornecedores
+- **Melhor oferta disponível** → Highlighting automático
+
+### **CENÁRIOS DE TESTE OBRIGATÓRIOS**
+
+#### **Cenário 1: Item Sem Personalização**
+- **Input:** Item "Cabo HDMI 2m", Cliente XYZ
+- **Expected:** Mostrar dados originais do item
+- **Validation:** Nome = "Cabo HDMI 2m", SKU = original
+
+#### **Cenário 2: Item Com Personalização de Cliente**
+- **Input:** Item "Cabo HDMI 2m", Cliente com personalização
+- **Expected:** Mostrar dados customizados
+- **Validation:** Nome = "CABO-HDMI-PREMIUM", SKU = "ABC-001"
+
+#### **Cenário 3: Item Com Vínculo de Fornecedor**  
+- **Input:** Item "Cabo HDMI 2m", contexto de compra, Fornecedor X
+- **Expected:** Mostrar dados do fornecedor
+- **Validation:** Part Number = "HDM2000", Preço = R$ 25,00
+
+#### **Cenário 4: Múltiplos Contextos**
+- **Input:** Mesmo item, múltiplos clientes e fornecedores
+- **Expected:** Cada contexto vê sua versão
+- **Validation:** Dados isolados por contexto
+
+#### **Cenário 5: Busca por SKU/Part Number**
+- **Input:** Busca por "ABC-001" ou "HDM2000"  
+- **Expected:** Encontrar item correto
+- **Validation:** Localização precisa por códigos personalizados
+
+### **CRITÉRIOS DE SUCESSO**
+
+✅ **Flexibilidade Total** → Cada cliente/fornecedor vê terminologia familiar  
+✅ **Arquitetura Eficiente** → Zero duplicação de dados no banco  
+✅ **Performance Otimizada** → Queries rápidas com índices apropriados  
+✅ **Escalabilidade Garantida** → Suporta milhares de personalizações  
+✅ **Usabilidade Intuitiva** → Interface clara para configurar  
+✅ **Integridade de Dados** → Validações e constraints adequados  
+✅ **Rastreabilidade Completa** → Auditoria de todas as mudanças  
+
+### **IMPLEMENTAÇÃO INCREMENTAL**
+
+#### **Fase 1: Infraestrutura Backend** (Semana 1)
+- APIs para customer mappings e supplier links
+- Lógica de resolução hierárquica
+- Validações de unicidade
+- Índices otimizados
+
+#### **Fase 2: Interface Frontend** (Semana 2)  
+- Abas no modal de item
+- Formulários de personalização
+- Preview em tempo real
+- Sistema de badges
+
+#### **Fase 3: Integração Contextual** (Semana 3)
+- Materiais em tickets com contexto de cliente
+- Sistema de compras com contexto de fornecedor
+- Busca inteligente por contexto
+
+#### **Fase 4: Preços e Analytics** (Semana 4)
+- Sistema de preços hierárquico
+- Alertas de preços desatualizados
+- Dashboard de personalizações
+- Relatórios de uso
+
+### **STACK TECNOLÓGICO**
+- **Frontend:** React + TypeScript + Tanstack Query
+- **Backend:** Node.js + Express + PostgreSQL  
+- **UI:** Shadcn/ui components
+- **Estado:** React Hook Form + Zod validation
+- **Banco:** Drizzle ORM + índices otimizados
+
+### **VIBE CODING APPROACH**
+Desenvolva com **mentalidade de produto enterprise**, pensando na experiência de cada stakeholder:
+
+- **Empresas Clientes** → Veem seus próprios códigos e terminologias
+- **Fornecedores** → Trabalham com seus part numbers e catálogos  
+- **Gestores** → Têm visibilidade total e controle granular
+- **Técnicos** → Interface intuitiva para configurar tudo
+- **Sistema** → Performance otimizada e arquitetura escalável
+
+### **RESULTADO ESPERADO**
+Um sistema que oferece **personalização máxima** mantendo **arquitetura eficiente**, onde:
+- Cada empresa cliente tem sua "versão" dos itens
+- Cada fornecedor trabalha com seus próprios códigos
+- O sistema resolve automaticamente o contexto correto
+- Não há duplicação de dados ou perda de performance
+- A experiência é fluida e intuitiva para todos os usuários
