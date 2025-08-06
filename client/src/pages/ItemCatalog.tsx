@@ -752,7 +752,7 @@ export default function ItemCatalog() {
                           size="sm"
                           onClick={() => {
                             // Fechar o modal e abrir a tab de supplier links
-                            setIsModalOpen(false);
+                            setIsCreateModalOpen(false);
                             setActiveTab('supplier-links');
                             setTimeout(() => {
                               setSelectedItem(selectedItem);

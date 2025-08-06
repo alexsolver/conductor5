@@ -14,7 +14,7 @@
 ```typescript
 onClick={() => {
   // Fechar o modal e abrir a tab de supplier links
-  setIsModalOpen(false);
+  setIsCreateModalOpen(false);
   setActiveTab('supplier-links');
   setTimeout(() => {
     setSelectedItem(selectedItem);
@@ -25,6 +25,10 @@ onClick={() => {
   }, 100);
 }}
 ```
+
+### Erro Corrigido
+**PROBLEMA:** `setIsModalOpen is not defined`  
+**CORREÇÃO:** Usado `setIsCreateModalOpen` (função correta do componente)
 
 ### Fluxo de Usuário Corrigido
 1. **Usuário clica** em "Editar Item" ou "Novo Item"
