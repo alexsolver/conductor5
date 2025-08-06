@@ -139,13 +139,12 @@ export class ItemRepository {
 
   async update(id: string, tenantId: string, data: Partial<Item>): Promise<Item | null> {
     // Filter out any properties that don't exist in the schema
-    const { groupName, ...validData } = data as any;
+    const { groupName, title, ...validData } = data as any;
     
     const [item] = await this.db
       .update(items)
       .set({
         ...validData,
-        // Remove title reference - column doesn't exist in actual schema
         updatedAt: new Date()
       })
       .where(and(eq(items.id, id), eq(items.tenantId, tenantId)))
@@ -305,8 +304,8 @@ export class ItemRepository {
           supplierId: itemSupplierLinks.supplierId,
           supplierItemCode: itemSupplierLinks.supplierItemCode,
           supplierItemName: itemSupplierLinks.supplierItemName,
-          leadTime: itemSupplierLinks.leadTime,
-          minimumOrder: itemSupplierLinks.minimumOrder,
+          // leadTime: itemSupplierLinks.leadTime, // Column doesn't exist in current schema
+          // minimumOrder: itemSupplierLinks.minimumOrder, // Column doesn't exist in current schema
           isPreferred: itemSupplierLinks.isPreferred,
           isActive: itemSupplierLinks.isActive,
           createdAt: itemSupplierLinks.createdAt
