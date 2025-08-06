@@ -310,25 +310,36 @@ export default function Tickets() {
     },
   });
 
-  // Debug raw tickets response first
-  console.log('🔍 [TICKETS DEBUG] Raw tickets response:', {
-    tickets,
-    isLoading,
-    error,
-    ticketsType: typeof tickets,
-    ticketsKeys: tickets ? Object.keys(tickets) : 'null'
-  });
+  // CRITICAL DEBUG - Log everything about tickets
+  console.log('🚨 [CRITICAL-DEBUG] Tickets Full Analysis:');
+  console.log('   - tickets variable:', tickets);
+  console.log('   - typeof tickets:', typeof tickets);
+  console.log('   - tickets keys:', tickets ? Object.keys(tickets) : 'NO KEYS');
+  console.log('   - tickets.data:', tickets?.data);
+  console.log('   - tickets.data?.tickets:', tickets?.data?.tickets);
+  console.log('   - Array.isArray(tickets?.data?.tickets):', Array.isArray(tickets?.data?.tickets));
+  console.log('   - isLoading:', isLoading);
+  console.log('   - error:', error);
 
-  // Process tickets data for display with better error handling
-  const ticketsList = tickets?.data?.tickets || [];
+  // Process tickets data for display with comprehensive error handling
+  let ticketsList: any[] = [];
   
-  console.log('TicketsTable - Data:', {
+  if (tickets?.data?.tickets && Array.isArray(tickets.data.tickets)) {
+    ticketsList = tickets.data.tickets;
+  } else if (tickets?.tickets && Array.isArray(tickets.tickets)) {
+    ticketsList = tickets.tickets;
+  } else if (Array.isArray(tickets)) {
+    ticketsList = tickets;
+  }
+  
+  console.log('TicketsTable - Final Processing:', {
     ticketsError: error || {},
     isLoading,
     ticketsCount: ticketsList.length,
     ticketsStructure: tickets ? typeof tickets : 'null',
     actualTickets: ticketsList.slice(0, 2), // Show first 2 for debugging
     rawTicketsData: tickets?.data,
+    directTickets: tickets?.tickets,
     customersCount: customers.length,
     usersCount: users.length,
     hasToken: !!localStorage.getItem('accessToken')
