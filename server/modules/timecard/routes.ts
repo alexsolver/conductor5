@@ -61,6 +61,10 @@ timecardRouter.get('/hour-bank/summary', jwtAuth, (req, res) =>
   timecardController.getHourBankSummary(req, res)
 );
 
+timecardRouter.get('/hour-bank/:userId', jwtAuth, (req, res) => 
+  timecardController.getHourBankByUser(req, res)
+);
+
 // Absence Requests routes
 timecardRouter.get('/absence-requests/pending', jwtAuth, (req, res) => 
   timecardController.getPendingAbsenceRequests(req, res)

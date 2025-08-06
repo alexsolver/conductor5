@@ -523,6 +523,80 @@ export class TimecardController {
     }
   };
 
+  getHourBankSummary = async (req: Request, res: Response) => {
+    try {
+      const { tenantId } = (req as any).user;
+      const userId = req.user?.id;
+
+      if (!tenantId || !userId) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'User ID é obrigatório' 
+        });
+      }
+
+      console.log('[HOUR-BANK] Getting summary for user:', userId);
+
+      // Buscar registros dos últimos 30 dias para calcular saldo
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+      const entries = await this.timecardRepository.getTimecardEntriesByUser(
+        userId,
+        tenantId,
+        thirtyDaysAgo,
+        new Date()
+      );
+
+      // Calcular saldo do banco de horas
+      let totalHoursWorked = 0;
+      let totalExpectedHours = 0;
+
+      const workingDays = new Set();
+
+      entries.forEach(entry => {
+        if (entry.checkIn && entry.checkOut) {
+          const date = new Date(entry.checkIn).toISOString().split('T')[0];
+          workingDays.add(date);
+          
+          const start = new Date(entry.checkIn);
+          const end = new Date(entry.checkOut);
+          const hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+          
+          totalHoursWorked += hours;
+        }
+      });
+
+      // 8 horas por dia útil trabalhado
+      totalExpectedHours = workingDays.size * 8;
+      
+      const balance = totalHoursWorked - totalExpectedHours;
+      
+      const summary = {
+        currentBalance: balance.toFixed(2),
+        totalHoursWorked: totalHoursWorked.toFixed(2),
+        expectedHours: totalExpectedHours.toFixed(2),
+        workingDays: workingDays.size,
+        status: balance >= 0 ? 'positive' : 'negative',
+        lastUpdated: new Date().toISOString()
+      };
+
+      console.log('[HOUR-BANK] Summary calculated:', summary);
+
+      res.json({
+        success: true,
+        summary
+      });
+    } catch (error: any) {
+      console.error('[HOUR-BANK] Error getting summary:', error);
+      res.status(500).json({ 
+        success: false,
+        error: 'Erro ao calcular banco de horas',
+        details: error.message 
+      });
+    }
+  };
+
   // Flexible Work Arrangements
   createFlexibleWorkArrangement = async (req: Request, res: Response) => {
     try {
@@ -645,28 +719,123 @@ export class TimecardController {
     try {
       const { period } = req.params;
       const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
 
-      if (!tenantId) {
+      if (!tenantId || !userId) {
         return res.status(400).json({ 
           success: false, 
-          error: 'Tenant ID é obrigatório' 
+          error: 'Tenant ID e User ID são obrigatórios' 
         });
       }
 
-      // TODO: Implementar relatório de ponto
+      console.log('[ATTENDANCE-REPORT] Generating report for period:', period, 'user:', userId);
+
+      // Parse period (formato: YYYY-MM)
+      const [year, month] = period.split('-').map(Number);
+      const startDate = new Date(year, month - 1, 1);
+      const endDate = new Date(year, month, 0); // Last day of month
+
+      console.log('[ATTENDANCE-REPORT] Date range:', startDate, 'to', endDate);
+
+      // Buscar registros do período
+      const records = await this.timecardRepository.getTimecardEntriesByUser(
+        userId,
+        tenantId,
+        startDate,
+        endDate
+      );
+
+      console.log('[ATTENDANCE-REPORT] Found records:', records.length);
+
+      // Agrupar registros por data
+      const recordsByDate = new Map();
+      
+      records.forEach(record => {
+        const date = record.checkIn ? 
+          new Date(record.checkIn).toISOString().split('T')[0] :
+          new Date(record.createdAt || '').toISOString().split('T')[0];
+        
+        if (!recordsByDate.has(date)) {
+          recordsByDate.set(date, []);
+        }
+        recordsByDate.get(date).push(record);
+      });
+
+      // Processar cada dia para criar registros consolidados
+      const processedRecords = [];
+      
+      for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+        const dateStr = d.toISOString().split('T')[0];
+        const dayRecords = recordsByDate.get(dateStr) || [];
+        
+        if (dayRecords.length > 0) {
+          // Encontrar check-in e check-out do dia
+          const checkIn = dayRecords.find(r => r.checkIn)?.checkIn;
+          const checkOut = dayRecords.find(r => r.checkOut)?.checkOut;
+          const breakStart = dayRecords.find(r => r.breakStart)?.breakStart;
+          const breakEnd = dayRecords.find(r => r.breakEnd)?.breakEnd;
+          
+          // Calcular horas trabalhadas
+          let totalHours = 0;
+          if (checkIn && checkOut) {
+            const workStart = new Date(checkIn);
+            const workEnd = new Date(checkOut);
+            const workMinutes = (workEnd.getTime() - workStart.getTime()) / (1000 * 60);
+            
+            // Subtrair tempo de pausa se houver
+            let breakMinutes = 0;
+            if (breakStart && breakEnd) {
+              const pauseStart = new Date(breakStart);
+              const pauseEnd = new Date(breakEnd);
+              breakMinutes = (pauseEnd.getTime() - pauseStart.getTime()) / (1000 * 60);
+            }
+            
+            totalHours = Math.max(0, (workMinutes - breakMinutes) / 60);
+          }
+
+          processedRecords.push({
+            date: dateStr,
+            checkIn,
+            checkOut,
+            breakStart,
+            breakEnd,
+            totalHours: totalHours.toFixed(2),
+            status: checkIn && checkOut ? 'approved' : 'pending'
+          });
+        }
+      }
+
+      console.log('[ATTENDANCE-REPORT] Processed records:', processedRecords.length);
+
+      // Calcular totais
+      const totalHours = processedRecords.reduce((sum, record) => 
+        sum + parseFloat(record.totalHours || '0'), 0
+      );
+      
+      const workingDays = processedRecords.filter(r => 
+        parseFloat(r.totalHours || '0') > 0
+      ).length;
+
+      // 8 horas por dia é considerado normal
+      const expectedHours = workingDays * 8;
+      const overtimeHours = Math.max(0, totalHours - expectedHours);
+
       const report = {
         period,
-        data: [],
+        records: processedRecords,
         summary: {
-          totalHours: 0,
-          overtimeHours: 0,
-          absentDays: 0
+          totalHours: totalHours.toFixed(1),
+          workingDays,
+          overtimeHours: overtimeHours.toFixed(1),
+          averageHoursPerDay: workingDays > 0 ? (totalHours / workingDays).toFixed(1) : '0.0'
         }
       };
 
+      console.log('[ATTENDANCE-REPORT] Final report summary:', report.summary);
+
       res.json({
         success: true,
-        report
+        ...report
       });
     } catch (error: any) {
       console.error('[TIMECARD-CONTROLLER] Error generating attendance report:', error);

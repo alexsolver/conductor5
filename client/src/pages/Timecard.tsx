@@ -246,11 +246,14 @@ export default function Timecard() {
   // Componente do Espelho de Ponto Completo - Conforme CLT
   const TimecardMirror = () => {
     const currentMonth = format(new Date(), 'yyyy-MM');
-    const { data: monthlyReport, isLoading: monthlyLoading } = useQuery({
+    const { data: monthlyReport, isLoading: monthlyLoading, error: monthlyError } = useQuery({
       queryKey: ['/api/timecard/reports/attendance', currentMonth],
       queryFn: async () => {
+        console.log('[TIMECARD-MIRROR] Fetching report for:', currentMonth);
         const response = await apiRequest('GET', `/api/timecard/reports/attendance/${currentMonth}`);
-        return response.json();
+        const data = await response.json();
+        console.log('[TIMECARD-MIRROR] Report data:', data);
+        return data;
       }
     });
 
@@ -263,27 +266,30 @@ export default function Timecard() {
     });
 
     const calculateMonthlyTotals = (records: any[]) => {
-      if (!records) return { totalHours: 0, totalDays: 0, overtimeHours: 0 };
+      if (!records || !Array.isArray(records)) {
+        console.log('[TIMECARD-MIRROR] No records or invalid records:', records);
+        return { totalHours: 0, totalDays: 0, overtimeHours: 0 };
+      }
       
-      const totalMinutes = records.reduce((sum, record) => {
-        if (record.totalHours) {
-          return sum + (parseFloat(record.totalHours) * 60);
-        }
-        return sum;
+      const totalHours = records.reduce((sum, record) => {
+        const hours = parseFloat(record.totalHours || '0');
+        return sum + hours;
       }, 0);
       
-      const totalHours = totalMinutes / 60;
-      const normalHours = Math.min(totalHours, records.length * 8); // Max 8h por dia
+      const workingDays = records.filter(r => parseFloat(r.totalHours || '0') > 0).length;
+      const normalHours = workingDays * 8; // 8h por dia
       const overtimeHours = Math.max(0, totalHours - normalHours);
       
       return {
         totalHours: totalHours.toFixed(1),
-        totalDays: records.length,
+        totalDays: workingDays,
         overtimeHours: overtimeHours.toFixed(1)
       };
     };
 
-    const monthlyTotals = monthlyReport?.records ? calculateMonthlyTotals(monthlyReport.records) : null;
+    // Use data from monthlyReport.summary if available, otherwise calculate
+    const monthlyTotals = monthlyReport?.summary || 
+      (monthlyReport?.records ? calculateMonthlyTotals(monthlyReport.records) : null);
 
     return (
       <Card className="border-2">
@@ -325,7 +331,12 @@ export default function Timecard() {
             <div className="text-center py-8">
               <div className="animate-pulse">Carregando espelho de ponto...</div>
             </div>
-          ) : monthlyReport?.records?.length > 0 ? (
+          ) : monthlyError ? (
+            <div className="text-center text-red-500 py-8">
+              <div>Erro ao carregar relatório mensal</div>
+              <div className="text-sm mt-2">Tente recarregar a página</div>
+            </div>
+          ) : monthlyReport?.records && monthlyReport.records.length > 0 ? (</old_str>
             <>
               {/* Tabela de registros */}
               <div className="overflow-x-auto mb-6">
@@ -392,18 +403,28 @@ export default function Timecard() {
 
               {/* Resumo mensal */}
               {monthlyTotals && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-blue-50 rounded-lg">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-blue-50 rounded-lg">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-600">{monthlyTotals.totalHours}h</div>
+                    <div className="text-2xl font-bold text-blue-600">
+                      {typeof monthlyTotals.totalHours === 'string' ? monthlyTotals.totalHours : monthlyTotals.totalHours.toFixed(1)}h
+                    </div>
                     <div className="text-sm text-gray-600">Total de Horas</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">{monthlyTotals.totalDays}</div>
+                    <div className="text-2xl font-bold text-green-600">{monthlyTotals.totalDays || monthlyTotals.workingDays || 0}</div>
                     <div className="text-sm text-gray-600">Dias Trabalhados</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-orange-600">{monthlyTotals.overtimeHours}h</div>
+                    <div className="text-2xl font-bold text-orange-600">
+                      {typeof monthlyTotals.overtimeHours === 'string' ? monthlyTotals.overtimeHours : monthlyTotals.overtimeHours.toFixed(1)}h
+                    </div>
                     <div className="text-sm text-gray-600">Horas Extras</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-purple-600">
+                      {monthlyTotals.averageHoursPerDay || '0.0'}h
+                    </div>
+                    <div className="text-sm text-gray-600">Média/Dia</div>
                   </div>
                 </div>
               )}
