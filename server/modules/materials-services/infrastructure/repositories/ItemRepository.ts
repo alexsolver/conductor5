@@ -141,13 +141,19 @@ export class ItemRepository {
     // Filter out any properties that don't exist in the schema and handle JSON fields
     const { groupName, maintenancePlan, defaultChecklist, ...validData } = data as any;
     
-    // Convert JSON fields to strings if they exist
+    // Handle JSON fields properly - filter out empty strings that cause JSON parsing errors
     const updateData = {
       ...validData,
-      ...(maintenancePlan !== undefined && { maintenancePlan: typeof maintenancePlan === 'string' ? maintenancePlan : JSON.stringify(maintenancePlan) }),
-      ...(defaultChecklist !== undefined && { defaultChecklist: typeof defaultChecklist === 'string' ? defaultChecklist : JSON.stringify(defaultChecklist) }),
       updatedAt: new Date()
     };
+    
+    // Only add JSON fields if they have valid content
+    if (maintenancePlan !== undefined && maintenancePlan !== '') {
+      updateData.maintenancePlan = typeof maintenancePlan === 'string' ? maintenancePlan : JSON.stringify(maintenancePlan);
+    }
+    if (defaultChecklist !== undefined && defaultChecklist !== '') {
+      updateData.defaultChecklist = typeof defaultChecklist === 'string' ? defaultChecklist : JSON.stringify(defaultChecklist);
+    }
     
     const [item] = await this.db
       .update(items)

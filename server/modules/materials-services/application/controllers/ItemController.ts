@@ -101,7 +101,7 @@ export class ItemController {
           measurement_unit, maintenance_plan, default_checklist,
           status, active, created_at, updated_at, tenant_id
         FROM tenant_${tenantId.replace(/-/g, '_')}.items 
-        WHERE id = $1 AND tenant_id = $2 AND active = true
+        WHERE id = $1 AND tenant_id = $2
       `;
       const itemResult = await pool.query(itemQuery, [id, tenantId]);
       
