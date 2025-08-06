@@ -138,15 +138,20 @@ export class ItemRepository {
   }
 
   async update(id: string, tenantId: string, data: Partial<Item>): Promise<Item | null> {
-    // Filter out any properties that don't exist in the schema
-    const { groupName, ...validData } = data as any;
+    // Filter out any properties that don't exist in the schema and handle JSON fields
+    const { groupName, maintenancePlan, defaultChecklist, ...validData } = data as any;
+    
+    // Convert JSON fields to strings if they exist
+    const updateData = {
+      ...validData,
+      ...(maintenancePlan !== undefined && { maintenancePlan: typeof maintenancePlan === 'string' ? maintenancePlan : JSON.stringify(maintenancePlan) }),
+      ...(defaultChecklist !== undefined && { defaultChecklist: typeof defaultChecklist === 'string' ? defaultChecklist : JSON.stringify(defaultChecklist) }),
+      updatedAt: new Date()
+    };
     
     const [item] = await this.db
       .update(items)
-      .set({
-        ...validData,
-        updatedAt: new Date()
-      })
+      .set(updateData)
       .where(and(eq(items.id, id), eq(items.tenantId, tenantId)))
       .returning();
     
