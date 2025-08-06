@@ -2193,7 +2193,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const expectedDailyHours = 8;
 
-      // Use the same formatToCLTStandard function from attendance
+      // Define formatToCLTStandard function for overtime report
+      const formatToCLTStandard = (entry: any) => {
+        const date = new Date(entry.check_in);
+        const dayOfWeek = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'][date.getDay()];
+        
+        const formatTime = (timestamp: string | null) => {
+          if (!timestamp) return '--:--';
+          const date = new Date(timestamp);
+          const hours = date.getUTCHours().toString().padStart(2, '0');
+          const minutes = date.getUTCMinutes().toString().padStart(2, '0');
+          return `${hours}:${minutes}`;
+        };
+
+        const firstEntry = entry.check_in;
+        const firstExit = entry.break_start;
+        const secondEntry = entry.break_end;
+        const secondExit = entry.check_out;
+
+        // Calculate total hours and overtime
+        let totalMinutes = 0;
+        let overtimeMinutes = 0;
+
+        if (firstEntry && secondExit) {
+          const start = new Date(firstEntry);
+          const end = new Date(secondExit);
+          totalMinutes = (end.getTime() - start.getTime()) / (1000 * 60);
+          
+          // Subtract break time if exists
+          if (firstExit && secondEntry) {
+            const breakStart = new Date(firstExit);
+            const breakEnd = new Date(secondEntry);
+            const breakMinutes = (breakEnd.getTime() - breakStart.getTime()) / (1000 * 60);
+            totalMinutes -= breakMinutes;
+          }
+          
+          // Calculate overtime (over 8 hours = 480 minutes)
+          if (totalMinutes > 480) {
+            overtimeMinutes = totalMinutes - 480;
+          }
+        }
+
+        const totalHours = (totalMinutes / 60).toFixed(2);
+        const overtimeHours = (overtimeMinutes / 60).toFixed(2);
+
+        return {
+          id: entry.id,
+          date: date.toLocaleDateString('pt-BR'),
+          dayOfWeek,
+          firstEntry: formatTime(firstEntry),
+          firstExit: formatTime(firstExit),
+          secondEntry: formatTime(secondEntry),
+          secondExit: formatTime(secondExit),
+          totalHours,
+          overtimeHours,
+          status: entry.status,
+          originalStatus: entry.status,
+          workScheduleType: entry.schedule_type || 'Não definido',
+          isConsistent: true,
+          observations: overtimeMinutes > 0 ? `Horas extras: ${overtimeHours}h` : ''
+        };
+      };
+
       const allData = result.rows.map(formatToCLTStandard);
       const overtimeData = allData.filter((entry: any) => entry.overtimeHours && parseFloat(entry.overtimeHours) > 0);
       
