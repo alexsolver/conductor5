@@ -2,6 +2,8 @@ import { eq, and, gte, lte, desc, asc, sql, inArray } from 'drizzle-orm';
 import { DrizzleTimecardRepository } from '../../infrastructure/repositories/DrizzleTimecardRepository';
 import { Request, Response } from 'express';
 import { z } from 'zod';
+import { db } from '../../../../db';
+import { timecardEntries, workSchedules } from '../../../../shared/schema-master';
 import { 
   createTimecardEntrySchema,
   createAbsenceRequestSchema,
@@ -853,23 +855,7 @@ export class TimecardController {
       console.log('[ATTENDANCE-REPORT] Date range:', startDate.toISOString(), 'to', endDate.toISOString());
       console.log('[ATTENDANCE-REPORT] User:', userId, 'Tenant:', tenantId);
 
-      // Import database and schema with proper error handling
-      let db, timecardEntries, and, eq, sql, inArray;
-      try {
-        const dbModule = await import('../../../../db');
-        db = dbModule.db;
-        const schemaModule = await import('@shared/schema');
-        timecardEntries = schemaModule.timecardEntries;
-        const drizzleModule = await import('drizzle-orm');
-        ({ and, eq, sql, inArray } = drizzleModule);
-      } catch (importError) {
-        console.error('[ATTENDANCE-REPORT] Import error:', importError);
-        return res.status(500).json({ 
-          success: false, 
-          error: 'Erro de configuração do sistema',
-          details: 'Database import failed'
-        });
-      }
+      // Use static imports already available at module level
       
       // Teste direto com SQL raw para debug
       console.log('[ATTENDANCE-REPORT] Query params:', {
@@ -1151,10 +1137,7 @@ export class TimecardController {
 
       console.log('[OVERTIME-REPORT] Date range:', startDate.toISOString(), 'to', endDate.toISOString());
 
-      // Buscar registros aprovados com horas extras
-      const { db } = await import('../../../../db');
-      const { timecardEntries } = await import('@shared/schema');
-      const { and, eq, sql } = await import('drizzle-orm');
+      // Use static imports already available at module level
       
       const records = await db
         .select()
@@ -1392,9 +1375,7 @@ export class TimecardController {
    */
   private async getScheduleTypeForUser(userId: string, tenantId: string): Promise<string | null> {
     try {
-      const { db } = await import('../../../../db');
-      const { workSchedules } = await import('../../../../shared/schema-master');
-      const { eq, and } = await import('drizzle-orm');
+      // Use static imports already available at module level
       
       console.log(`[SCHEDULE-TYPE] Buscando escala para usuário ${userId} no tenant ${tenantId}`);
       
