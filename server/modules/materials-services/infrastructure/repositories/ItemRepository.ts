@@ -397,27 +397,35 @@ export class ItemRepository {
 
       // Vínculos de clientes (usar customer_item_mappings)
       if (links.customers.length > 0) {
-        const customerLinkData = links.customers.map(customerId => ({
-          tenantId,
-          itemId,
-          customerId,
-          isActive: true,
-          createdBy,
-          createdAt: new Date()
-        }));
-        promises.push(this.db.insert(customerItemMappings).values(customerLinkData));
+        const customerLinkData = links.customers
+          .filter(customerId => customerId && customerId.trim() !== '') // Filter out empty values
+          .map(customerId => ({
+            tenantId,
+            itemId,
+            customerId,
+            isActive: true,
+            createdBy,
+            createdAt: new Date()
+          }));
+        if (customerLinkData.length > 0) {
+          promises.push(this.db.insert(customerItemMappings).values(customerLinkData));
+        }
       }
 
       // Vínculos de fornecedores (usar item_supplier_links)
       if (links.suppliers.length > 0) {
-        const supplierLinkData = links.suppliers.map(supplierId => ({
-          tenantId,
-          itemId,
-          supplierId,
-          createdBy,
-          createdAt: new Date()
-        }));
-        promises.push(this.db.insert(itemSupplierLinks).values(supplierLinkData));
+        const supplierLinkData = links.suppliers
+          .filter(supplierId => supplierId && supplierId.trim() !== '') // Filter out empty values
+          .map(supplierId => ({
+            tenantId,
+            itemId,
+            supplierId,
+            createdBy,
+            createdAt: new Date()
+          }));
+        if (supplierLinkData.length > 0) {
+          promises.push(this.db.insert(itemSupplierLinks).values(supplierLinkData));
+        }
       }
 
       if (promises.length > 0) {
