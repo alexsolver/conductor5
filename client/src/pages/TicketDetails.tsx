@@ -808,7 +808,7 @@ const TicketDetails = React.memo(() => {
       contactType: ticket.contact_type || "email",
       followers: ticket.followers || [],
       tags: ticket.tags || [],
-      customerCompanyId: ticket.customer_company_id || "",
+      customerCompanyId: ticket.company_id || "",
     };
   }, [
     ticket?.id,
@@ -818,7 +818,7 @@ const TicketDetails = React.memo(() => {
     ticket?.updated_at, // Adiciona timestamp para detectar mudanças
     ticket?.caller_id,
     ticket?.assigned_to_id,
-    ticket?.customer_company_id,
+    ticket?.company_id,
   ]); // Dependency array expandida para capturar mudanças importantes
 
   useEffect(() => {
@@ -827,7 +827,7 @@ const TicketDetails = React.memo(() => {
       form.reset(formDataMemo);
 
       // Update local states only if changed
-      const newCompany = ticket.customer_company_id || ticket.customerCompanyId;
+      const newCompany = ticket.company_id || ticket.customerCompanyId;
       if (newCompany && newCompany !== selectedCompany) {
         setSelectedCompany(newCompany);
       }
@@ -882,7 +882,7 @@ const TicketDetails = React.memo(() => {
           status: data.data.status || "new",
           callerId: data.data.caller_id || "",
           beneficiaryId: data.data.beneficiary_id || "",
-          customerCompanyId: data.data.customer_company_id || "",
+          customerCompanyId: data.data.company_id || "",
           // ... outros campos conforme necessário
         };
 
@@ -1047,7 +1047,7 @@ const TicketDetails = React.memo(() => {
       dataFollowers: data.followers,
       dataCompanyId: data.customerCompanyId,
       finalFollowers: mappedData.followers,
-      finalCustomerId: mappedData.customer_company_id
+      finalCustomerId: mappedData.company_id
     });
     updateTicketMutation.mutate(mappedData);
   }, [followers, selectedCompany, updateTicketMutation]);
@@ -1113,7 +1113,7 @@ const TicketDetails = React.memo(() => {
                             onValueChange={field.onChange}
                             placeholder="Selecione a prioridade"
                             disabled={!isEditMode}
-                            customerId={ticket?.customerCompanyId || ticket?.customer_company_id}
+                            customerId={ticket?.customerCompanyId || ticket?.company_id}
                           />
                         ) : (
                           <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
@@ -1147,7 +1147,7 @@ const TicketDetails = React.memo(() => {
                             onValueChange={field.onChange}
                             placeholder="Selecione o status"
                             disabled={!isEditMode}
-                            customerId={ticket?.customerCompanyId || ticket?.customer_company_id}
+                            customerId={ticket?.customerCompanyId || ticket?.company_id}
                           />
                         ) : (
                           <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
@@ -1181,7 +1181,7 @@ const TicketDetails = React.memo(() => {
                             onValueChange={field.onChange}
                             placeholder="Selecione a urgência"
                             disabled={!isEditMode}
-                            customerId={ticket?.customerCompanyId || ticket?.customer_company_id}
+                            customerId={ticket?.customerCompanyId || ticket?.company_id}
                           />
                         ) : (
                           <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
@@ -1213,7 +1213,7 @@ const TicketDetails = React.memo(() => {
                             onValueChange={field.onChange}
                             placeholder="Selecione o impacto"
                             disabled={!isEditMode}
-                            customerId={ticket?.customerCompanyId || ticket?.customer_company_id}
+                            customerId={ticket?.customerCompanyId || ticket?.company_id}
                           />
                         ) : (
                           <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
@@ -1253,7 +1253,7 @@ const TicketDetails = React.memo(() => {
                             }}
                             placeholder="Selecione a categoria"
                             disabled={!isEditMode}
-                            customerId={ticket?.customerCompanyId || ticket?.customer_company_id}
+                            customerId={ticket?.customerCompanyId || ticket?.company_id}
                           />
                         ) : (
                           <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
@@ -1294,7 +1294,7 @@ const TicketDetails = React.memo(() => {
                             placeholder="Selecione a subcategoria"
                             disabled={!isEditMode || !form.watch('category')}
                             dependsOn={form.watch('category') || ticket?.category}
-                            customerId={ticket?.customerCompanyId || ticket?.customer_company_id}
+                            customerId={ticket?.customerCompanyId || ticket?.company_id}
                           />
                         ) : (
                           <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
@@ -1331,7 +1331,7 @@ const TicketDetails = React.memo(() => {
                             placeholder="Selecione a ação"
                             disabled={!isEditMode || !form.watch('subcategory')}
                             dependsOn={form.watch('subcategory') || ticket?.subcategory}
-                            customerId={ticket?.customerCompanyId || ticket?.customer_company_id}
+                            customerId={ticket?.customerCompanyId || ticket?.company_id}
                           />
                         ) : (
                           <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
@@ -2810,7 +2810,7 @@ const TicketDetails = React.memo(() => {
                   </SelectContent>
                 </Select>
                 {(() => {
-                  const companyId = ticket.customer_company_id || ticket.customerCompanyId || ticket.company;
+                  const companyId = ticket.company_id || ticket.customerCompanyId || ticket.company;
                   const companyData = (Array.isArray(companiesData) ? companiesData : companiesData?.data || []).find((c: any) => c.id === companyId);
                   const industry = ticket.company?.industry || companyData?.industry;
                   const cnpj = ticket.company?.cnpj || companyData?.cnpj;
@@ -2839,7 +2839,7 @@ const TicketDetails = React.memo(() => {
               >
                 <Building2 className="h-4 w-4 mr-2" />
                 {(() => {
-                  const companyId = ticket.customer_company_id || ticket.customerCompanyId || ticket.company;
+                  const companyId = ticket.company_id || ticket.customerCompanyId || ticket.company;
                   const companyData = (Array.isArray(companiesData) ? companiesData : companiesData?.data || []).find((c: any) => c.id === companyId);
                   return companyData?.name || ticket.company?.name || (companyId && companyId !== 'unspecified' ? 'Empresa não encontrada' : 'Não especificado');
                 })()}

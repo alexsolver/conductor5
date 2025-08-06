@@ -337,7 +337,7 @@ export default function TicketEdit() {
       workaround: data.workaround,
       tags: data.tags,
       // Company relationship
-      customer_company_id: selectedCompanyId || data.customerCompanyId,
+      company_id: selectedCompanyId || data.customerCompanyId,
       // Template/Environment fields
       environment: data.environment,
       template_name: data.templateName,
