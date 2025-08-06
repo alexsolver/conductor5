@@ -743,7 +743,16 @@ export class TimecardController {
       const { timecardEntries } = await import('@shared/schema');
       const { and, eq, gte, lte, sql } = await import('drizzle-orm');
       
-      // Usar DATE() function para comparar apenas datas, não timestamps
+      // Teste direto com SQL raw para debug
+      console.log('[ATTENDANCE-REPORT] Query params:', {
+        userId,
+        tenantId,
+        startDateStr: startDate.toISOString().split('T')[0],
+        endDateStr: endDate.toISOString().split('T')[0]
+      });
+
+      // Buscar todos os registros aprovados do período (incluindo os sem check_in)
+      // Usar created_at como fallback para registros sem check_in
       const records = await db
         .select()
         .from(timecardEntries)
@@ -751,10 +760,13 @@ export class TimecardController {
           eq(timecardEntries.userId, userId),
           eq(timecardEntries.tenantId, tenantId),
           eq(timecardEntries.status, 'approved'),
-          sql`DATE(${timecardEntries.checkIn}) >= ${startDate.toISOString().split('T')[0]}`,
-          sql`DATE(${timecardEntries.checkIn}) <= ${endDate.toISOString().split('T')[0]}`
+          sql`(
+            (${timecardEntries.checkIn} IS NOT NULL AND DATE(${timecardEntries.checkIn}) >= ${startDate.toISOString().split('T')[0]} AND DATE(${timecardEntries.checkIn}) <= ${endDate.toISOString().split('T')[0]})
+            OR 
+            (${timecardEntries.checkIn} IS NULL AND DATE(${timecardEntries.createdAt}) >= ${startDate.toISOString().split('T')[0]} AND DATE(${timecardEntries.createdAt}) <= ${endDate.toISOString().split('T')[0]})
+          )`
         ))
-        .orderBy(timecardEntries.checkIn);
+        .orderBy(sql`COALESCE(${timecardEntries.checkIn}, ${timecardEntries.createdAt})`);
 
       console.log('[ATTENDANCE-REPORT] Found records:', records.length);
       
@@ -773,9 +785,11 @@ export class TimecardController {
       const recordsByDate = new Map();
       
       records.forEach(record => {
-        const date = record.checkIn ? 
-          new Date(record.checkIn).toISOString().split('T')[0] :
-          new Date(record.createdAt || '').toISOString().split('T')[0];
+        // Usar check_in se disponível, senão usar created_at
+        const referenceDate = record.checkIn || record.createdAt;
+        const date = referenceDate ? 
+          new Date(referenceDate).toISOString().split('T')[0] :
+          new Date().toISOString().split('T')[0]; // fallback para hoje
         
         if (!recordsByDate.has(date)) {
           recordsByDate.set(date, []);
@@ -798,10 +812,11 @@ export class TimecardController {
           const breakEnd = dayRecords.find(r => r.breakEnd)?.breakEnd;
           
           // Calcular horas trabalhadas
-          let totalHours = 0;
-          let status = 'pending';
+          let totalHours = 8; // Padrão 8h para registros aprovados
+          let status = 'approved';
           
           if (checkIn && checkOut) {
+            // Calcular horas exatas se temos entrada e saída
             const workStart = new Date(checkIn);
             const workEnd = new Date(checkOut);
             const workMinutes = (workEnd.getTime() - workStart.getTime()) / (1000 * 60);
@@ -815,16 +830,12 @@ export class TimecardController {
             }
             
             totalHours = Math.max(0, (workMinutes - breakMinutes) / 60);
-            status = 'approved';
-          } else if (checkIn) {
-            // Registros apenas com entrada (8h padrão para registros aprovados)
-            totalHours = 8;
-            status = 'approved';
           }
+          // Para registros sem check_in/check_out mas aprovados: usar 8h padrão
 
           processedRecords.push({
             date: dateStr,
-            checkIn,
+            checkIn: checkIn || null,
             checkOut: checkOut || null,
             breakStart,
             breakEnd,
