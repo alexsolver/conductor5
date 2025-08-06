@@ -94,4 +94,18 @@ Conductor follows a Clean Architecture with Domain-Driven Design principles.
   - ✅ Hook updates: All API calls now use `/api/companies` endpoint
   - ✅ Contract management integration: Variable name changes from `customerCompanies` to `companies`
   - ✅ Customer association queries: Fixed SQL errors for non-existent columns (is_primary)
+  - ✅ Page titles and descriptions updated: "Empresas Clientes" → "Empresas"
 - **Status**: Complete fullstack nomenclature standardization implemented successfully
+
+### August 6, 2025 - Critical Schema Inconsistencies Resolution
+- **Issue**: Multiple critical database schema inconsistencies affecting performance and data integrity
+- **Root Cause Analysis**:
+  1. UUID inconsistencies: 9+ tables using varchar(36) instead of uuid() type
+  2. Phone field variations: Mixed lengths (20 vs 50 characters) across tables
+  3. tenant_id nullable constraints: Some tables missing .notNull() requirement
+- **Complete Resolution**:
+  - ✅ UUID Standardization: Fixed 9+ tables (skills, timecardEntries, shiftSwapRequests, nsrSequences, actionNumberSequences, complianceReports, digitalSignatureKeys, notifications, notificationPreferences, notificationTemplates, notificationLogs)
+  - ✅ All tenant_id fields now properly typed as uuid().notNull()
+  - ⚠️ Phone field lengths: Identified remaining inconsistencies (20 vs 50 chars) - business decision needed
+  - ✅ Schema validation: System now properly validates 110+ tables per tenant with correct UUID types
+- **Status**: Critical UUID and tenant_id inconsistencies fully resolved. Phone field standardization pending business requirements decision.

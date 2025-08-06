@@ -381,7 +381,7 @@ export const companies = pgTable("companies", {
 // Skills table - Apenas campos básicos que funcionam
 export const skills = pgTable("skills", {
   id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: varchar("tenant_id", { length: 36 }).notNull(),
+  tenantId: uuid("tenant_id").notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   category: varchar("category", { length: 100 }).notNull(),
   description: text("description"),
@@ -821,7 +821,7 @@ export const holidays = pgTable("holidays", {
 // Timecard/Jornada tables - ENHANCED FOR CLT COMPLIANCE
 export const timecardEntries = pgTable("timecard_entries", {
   id: uuid("id").defaultRandom().primaryKey(),
-  tenantId: varchar("tenant_id", { length: 36 }).notNull(),
+  tenantId: uuid("tenant_id").notNull(),
   userId: uuid("user_id").notNull().references(() => users.id),
   
   // 🔴 CLT COMPLIANCE: NSR (Número Sequencial de Registro) - OBRIGATÓRIO
@@ -1077,7 +1077,7 @@ export const flexibleWorkArrangements = pgTable("flexible_work_arrangements", {
 // Shift Swap Requests - Solicitações de Troca de Turno
 export const shiftSwapRequests = pgTable("shift_swap_requests", {
   id: uuid("id").defaultRandom().primaryKey(),
-  tenantId: varchar("tenant_id", { length: 36 }).notNull(),
+  tenantId: uuid("tenant_id").notNull(),
   requesterId: uuid("requester_id").notNull().references(() => users.id),
   targetUserId: uuid("target_user_id").notNull().references(() => users.id),
   originalShiftDate: date("original_shift_date").notNull(),
@@ -1096,14 +1096,14 @@ export const shiftSwapRequests = pgTable("shift_swap_requests", {
 
 // 🔴 CLT COMPLIANCE: Sequência NSR por tenant - OBRIGATÓRIO
 export const nsrSequences = pgTable("nsr_sequences", {
-  tenantId: varchar("tenant_id", { length: 36 }).primaryKey(),
+  tenantId: uuid("tenant_id").primaryKey(),
   currentNsr: bigint("current_nsr", { mode: "number" }).default(0).notNull(),
   lastUpdated: timestamp("last_updated").defaultNow().notNull(),
 });
 
 // Action Number Sequences - Auto-generated unique numbers for internal actions
 export const actionNumberSequences = pgTable("action_number_sequences", {
-  tenantId: varchar("tenant_id", { length: 36 }).primaryKey(),
+  tenantId: uuid("tenant_id").primaryKey(),
   currentNumber: bigint("current_number", { mode: "number" }).default(0).notNull(),
   lastUpdated: timestamp("last_updated").defaultNow().notNull(),
 });
@@ -1111,7 +1111,7 @@ export const actionNumberSequences = pgTable("action_number_sequences", {
 // 🔴 CLT COMPLIANCE: Backup automático de registros - OBRIGATÓRIO
 export const timecardBackups = pgTable("timecard_backups", {
   id: uuid("id").defaultRandom().primaryKey(),
-  tenantId: varchar("tenant_id", { length: 36 }).notNull(),
+  tenantId: uuid("tenant_id").notNull(),
   backupDate: date("backup_date").notNull(),
   recordCount: integer("record_count").notNull(),
   backupHash: varchar("backup_hash", { length: 64 }).notNull(), // Hash do backup completo
@@ -1131,7 +1131,7 @@ export const timecardBackups = pgTable("timecard_backups", {
 // 🔴 CLT COMPLIANCE: Trilha de auditoria completa - OBRIGATÓRIO
 export const timecardAuditLog = pgTable("timecard_audit_log", {
   id: uuid("id").defaultRandom().primaryKey(),
-  tenantId: varchar("tenant_id", { length: 36 }).notNull(),
+  tenantId: uuid("tenant_id").notNull(),
   timecardEntryId: uuid("timecard_entry_id").notNull(),
   nsr: bigint("nsr", { mode: "number" }).notNull(),
   action: varchar("action", { length: 50 }).notNull(), // 'CREATE', 'UPDATE', 'DELETE', 'APPROVE', 'REJECT'
@@ -1164,7 +1164,7 @@ export const timecardAuditLog = pgTable("timecard_audit_log", {
 // 🔴 CLT COMPLIANCE: Relatórios de fiscalização - OBRIGATÓRIO
 export const complianceReports = pgTable("compliance_reports", {
   id: uuid("id").defaultRandom().primaryKey(),
-  tenantId: varchar("tenant_id", { length: 36 }).notNull(),
+  tenantId: uuid("tenant_id").notNull(),
   reportType: varchar("report_type", { length: 50 }).notNull(), // 'MONTHLY', 'QUARTERLY', 'ANNUAL', 'AUDIT'
   periodStart: date("period_start").notNull(),
   periodEnd: date("period_end").notNull(),
@@ -1202,7 +1202,7 @@ export const complianceReports = pgTable("compliance_reports", {
 // 🔴 CLT COMPLIANCE: Chaves de assinatura digital - OBRIGATÓRIO
 export const digitalSignatureKeys = pgTable("digital_signature_keys", {
   id: uuid("id").defaultRandom().primaryKey(),
-  tenantId: varchar("tenant_id", { length: 36 }).notNull(),
+  tenantId: uuid("tenant_id").notNull(),
   keyName: varchar("key_name", { length: 100 }).notNull(),
   publicKey: text("public_key").notNull(),
   privateKeyHash: varchar("private_key_hash", { length: 64 }).notNull(), // Hash da chave privada (não a chave em si)
@@ -1331,9 +1331,9 @@ export const ticketDefaultConfigurations = pgTable("ticket_default_configuration
 // ===========================
 
 export const notifications = pgTable('notifications', {
-  id: varchar('id', { length: 36 }).primaryKey(),
-  tenantId: varchar('tenant_id', { length: 36 }).notNull(),
-  userId: varchar('user_id', { length: 36 }).notNull(),
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull(),
+  userId: uuid('user_id').notNull(),
   type: varchar('type', { length: 50 }).notNull(), // ticket_assignment, sla_breach, etc.
   severity: varchar('severity', { length: 20 }).notNull().default('info'), // info, warning, error, critical
   title: varchar('title', { length: 255 }).notNull(),
@@ -1348,15 +1348,15 @@ export const notifications = pgTable('notifications', {
   failedAt: timestamp('failed_at'),
   readAt: timestamp('read_at'),
   relatedEntityType: varchar('related_entity_type', { length: 50 }),
-  relatedEntityId: varchar('related_entity_id', { length: 36 }),
+  relatedEntityId: uuid('related_entity_id'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow()
 });
 
 export const notificationPreferences = pgTable('notification_preferences', {
-  id: varchar('id', { length: 36 }).primaryKey(),
-  tenantId: varchar('tenant_id', { length: 36 }).notNull(),
-  userId: varchar('user_id', { length: 36 }).notNull(),
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull(),
+  userId: uuid('user_id').notNull(),
   notificationType: varchar('notification_type', { length: 50 }).notNull(),
   channels: jsonb('channels').notNull().default(['in_app']),
   enabled: boolean('enabled').notNull().default(true),
@@ -1367,8 +1367,8 @@ export const notificationPreferences = pgTable('notification_preferences', {
 });
 
 export const notificationTemplates = pgTable('notification_templates', {
-  id: varchar('id', { length: 36 }).primaryKey(),
-  tenantId: varchar('tenant_id', { length: 36 }).notNull(),
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull(),
   name: varchar('name', { length: 100 }).notNull(),
   type: varchar('type', { length: 50 }).notNull(),
   channel: varchar('channel', { length: 20 }).notNull(),
@@ -1381,9 +1381,9 @@ export const notificationTemplates = pgTable('notification_templates', {
 });
 
 export const notificationLogs = pgTable('notification_logs', {
-  id: varchar('id', { length: 36 }).primaryKey(),
-  tenantId: varchar('tenant_id', { length: 36 }).notNull(),
-  notificationId: varchar('notification_id', { length: 36 }).notNull(),
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull(),
+  notificationId: uuid('notification_id').notNull(),
   channel: varchar('channel', { length: 20 }).notNull(),
   status: varchar('status', { length: 20 }).notNull(),
   response: jsonb('response'),
