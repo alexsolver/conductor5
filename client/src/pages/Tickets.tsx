@@ -153,8 +153,8 @@ export default function Tickets() {
   const customers = Array.isArray(customersData?.customers) ? customersData.customers : [];
   
   // Handle customer loading errors
-  if (customersData?.error || customersError) {
-    console.error('Customer loading error:', customersData?.error || customersError);
+  if (customersData?.error) {
+    console.error('Customer loading error:', customersData?.error);
   }
 
   // Get raw companies and filter out Default if inactive
@@ -305,6 +305,20 @@ export default function Tickets() {
     },
   });
 
+  // Process tickets data for display
+  const ticketsList = Array.isArray(tickets?.data?.tickets) ? tickets.data.tickets : [];
+  
+  console.log('TicketsTable - Data:', {
+    ticketsError: error || {},
+    isLoading,
+    ticketsCount: ticketsList.length,
+    ticketsStructure: tickets ? typeof tickets : 'null',
+    actualTickets: ticketsList,
+    customersCount: customers.length,
+    usersCount: users.length,
+    hasToken: !!localStorage.getItem('accessToken')
+  });
+
   // Handle form submission  
   const onSubmit = (data: NewTicketModalData) => {
     console.log('🎫 New ticket form submitted:', data);
@@ -392,8 +406,7 @@ export default function Tickets() {
     );
   }
 
-  // Parse consistente dos dados de tickets
-  const ticketsList = (tickets as any)?.data?.tickets || [];
+  // Use the tickets list defined above - remove duplicate
   const ticketsCount = Array.isArray(ticketsList) ? ticketsList.length : 0;
 
   return (
@@ -907,7 +920,7 @@ export default function Tickets() {
               </div>
             </CardContent>
           </Card>
-        ))
+        )
         ) : (
           <Card>
             <CardContent className="p-12 text-center">
