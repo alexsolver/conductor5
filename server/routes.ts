@@ -2090,13 +2090,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const attendanceData = result.rows.map(formatToCLTStandard);
 
+      // Calculate proper summary
+      const workingDays = attendanceData.filter(entry => parseFloat(entry.totalHours) > 0).length;
+      const totalHours = attendanceData.reduce((sum, entry) => sum + parseFloat(entry.totalHours || '0'), 0);
+      const totalOvertimeHours = attendanceData.reduce((sum, entry) => sum + parseFloat(entry.overtimeHours || '0'), 0);
+      const averageHoursPerDay = workingDays > 0 ? (totalHours / workingDays).toFixed(2) : '0.00';
+
       res.json({
         success: true,
         period: period,
         data: attendanceData,
         summary: {
           totalDays: attendanceData.length,
-          totalHours: attendanceData.reduce((sum, entry) => sum + (entry.totalHours || 0), 0)
+          workingDays: workingDays,
+          totalHours: totalHours.toFixed(2),
+          overtimeHours: totalOvertimeHours.toFixed(2),
+          averageHoursPerDay: averageHoursPerDay
         }
       });
     } catch (error) {
@@ -2133,35 +2142,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const expectedDailyHours = 8;
 
-      const overtimeData = result.rows.map(entry => {
-        const date = new Date(entry.check_in);
-        const dayOfWeek = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'][date.getDay()];
-        
-        const totalHours = parseFloat(entry.total_hours) || 0;
-        const overtimeHours = Math.max(0, totalHours - expectedDailyHours);
-        const regularHours = Math.min(totalHours, expectedDailyHours);
-
-        return {
-          id: entry.id,
-          date: date.toLocaleDateString('pt-BR'),
-          dayOfWeek: dayOfWeek,
-          regularHours: regularHours,
-          overtimeHours: overtimeHours,
-          totalHours: totalHours,
-          overtimeType: overtimeHours > 0 ? 'Hora Extra' : 'Normal',
-          status: entry.status
-        };
-      });
-
-      const totalOvertimeHours = overtimeData.reduce((sum, entry) => sum + entry.overtimeHours, 0);
+      // Use the same formatToCLTStandard function from attendance
+      const allData = result.rows.map(formatToCLTStandard);
+      const overtimeData = allData.filter((entry: any) => entry.overtimeHours && parseFloat(entry.overtimeHours) > 0);
+      
+      const totalOvertimeHours = overtimeData.reduce((sum, entry) => sum + parseFloat(entry.overtimeHours || '0'), 0);
 
       res.json({
         success: true,
         period: period,
         data: overtimeData,
         summary: {
-          totalOvertimeHours: totalOvertimeHours,
-          overtimeDays: overtimeData.filter(entry => entry.overtimeHours > 0).length
+          totalDays: allData.length,
+          workingDays: allData.filter(entry => parseFloat(entry.totalHours) > 0).length,
+          overtimeDays: overtimeData.length,
+          totalOvertimeHours: totalOvertimeHours.toFixed(2),
+          averageOvertimePerDay: overtimeData.length > 0 ? (totalOvertimeHours / overtimeData.length).toFixed(2) : '0.00'
         }
       });
     } catch (error) {
