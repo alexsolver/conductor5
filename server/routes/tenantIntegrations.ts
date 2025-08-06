@@ -327,6 +327,7 @@ router.post('/:integrationId/config', requirePermission(Permission.TENANT_MANAGE
  * Testar integração do tenant
  */
 router.post('/:integrationId/test', requirePermission(Permission.TENANT_MANAGE_SETTINGS), async (req: AuthorizedRequest, res) => {
+  console.log(`🔍 [ROUTE-TEST] Starting test for integration: ${req.params.integrationId}`);
   try {
     const { integrationId } = req.params;
     const tenantId = req.user!.tenantId;
@@ -726,13 +727,15 @@ router.post('/:integrationId/test', requirePermission(Permission.TENANT_MANAGE_S
     }
 
     console.log(`🔍 [TEST-RESULT] Final result for ${integrationId}:`, JSON.stringify(testResult, null, 2));
-    console.log(`🔍 [TEST-RESULT] Sending response with Content-Type: application/json`);
+    console.log(`🔍 [TEST-RESULT] About to send JSON response`);
     
-    // Ensure the response has proper headers and is JSON
-    res.setHeader('Content-Type', 'application/json');
-    const responseJson = JSON.stringify(testResult);
-    console.log(`🔍 [TEST-RESULT] Response JSON length: ${responseJson.length}`);
-    res.status(200).send(responseJson);
+    // Force early exit with JSON response to prevent middleware interference
+    res.writeHead(200, {
+      'Content-Type': 'application/json',
+      'Cache-Control': 'no-cache'
+    });
+    res.end(JSON.stringify(testResult));
+    return;
   } catch (error) {
     console.error('Error testing tenant integration:', error);
     res.status(500).json({ 
