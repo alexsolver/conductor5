@@ -145,24 +145,11 @@ export default function TenantAdminIntegrations() {
   });
 
   // Query para buscar integrações
-  const { data: integrationsData, isLoading } = useQuery({
+  const { data: integrationsData, isLoading, error } = useQuery({
     queryKey: ['/api/tenant-admin/integrations'],
-    queryFn: async () => {
-      const response = await fetch('/api/tenant-admin/integrations', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include'
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      return response.json();
-    }
+    queryFn: () => apiRequest('GET', '/api/tenant-admin/integrations'),
+    retry: 1,
+    refetchOnWindowFocus: false
   });
 
   // Mutation para salvar configuração
@@ -301,6 +288,16 @@ export default function TenantAdminIntegrations() {
       status: 'disconnected',
       configured: false,
       features: ['SMS automático', 'Notificações críticas', 'Verificação 2FA']
+    },
+    {
+      id: 'telegram',
+      name: 'Telegram',
+      category: 'Comunicação',
+      description: 'Envio de notificações e alertas via Telegram para grupos ou usuários',
+      icon: Send,
+      status: 'disconnected',
+      configured: false,
+      features: ['Notificações em tempo real', 'Mensagens personalizadas', 'Integração com Bot API']
     },
     {
       id: 'telegram',
