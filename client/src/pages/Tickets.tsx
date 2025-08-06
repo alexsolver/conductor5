@@ -89,7 +89,12 @@ export default function Tickets() {
 
   const { data: tickets, isLoading, error } = useQuery({
     queryKey: ["/api/tickets"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/tickets");
+      return response.json();
+    },
     retry: false,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   // Fetch customers for the dropdown
@@ -305,15 +310,25 @@ export default function Tickets() {
     },
   });
 
-  // Process tickets data for display
-  const ticketsList = Array.isArray(tickets?.data?.tickets) ? tickets.data.tickets : [];
+  // Debug raw tickets response first
+  console.log('🔍 [TICKETS DEBUG] Raw tickets response:', {
+    tickets,
+    isLoading,
+    error,
+    ticketsType: typeof tickets,
+    ticketsKeys: tickets ? Object.keys(tickets) : 'null'
+  });
+
+  // Process tickets data for display with better error handling
+  const ticketsList = tickets?.data?.tickets || [];
   
   console.log('TicketsTable - Data:', {
     ticketsError: error || {},
     isLoading,
     ticketsCount: ticketsList.length,
     ticketsStructure: tickets ? typeof tickets : 'null',
-    actualTickets: ticketsList,
+    actualTickets: ticketsList.slice(0, 2), // Show first 2 for debugging
+    rawTicketsData: tickets?.data,
     customersCount: customers.length,
     usersCount: users.length,
     hasToken: !!localStorage.getItem('accessToken')
