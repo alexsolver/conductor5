@@ -497,30 +497,30 @@ export default function TenantAdminIntegrations() {
       if (configData && configData.config && (configData.configured === true || Object.keys(configData.config).length > 0)) {
         const config = configData.config;
         console.log('Config encontrada:', config);
-        // Load existing configuration - dados reais do banco (mascarar dados sensíveis)
+        // Load existing configuration - dados reais do banco
         const formValues = {
           enabled: config.enabled === true,
           useSSL: config.useSSL !== false, // Default to true
-          apiKey: config.apiKey ? '••••••••' : '', // Mascarar API key
-          apiSecret: config.apiSecret ? '••••••••' : '', // Mascarar API secret
+          apiKey: config.apiKey === '••••••••' ? '' : (config.apiKey || ''), // Só mascarar se já mascarado
+          apiSecret: config.apiSecret === '••••••••' ? '' : (config.apiSecret || ''), // Só mascarar se já mascarado
           webhookUrl: config.webhookUrl || '',
           clientId: config.clientId || '',
-          clientSecret: config.clientSecret ? '••••••••' : '', // Mascarar Client secret
+          clientSecret: config.clientSecret === '••••••••' ? '' : (config.clientSecret || ''), // Só mascarar se já mascarado
           redirectUri: config.redirectUri || '',
           tenantId: config.tenantId || '',
           serverHost: config.serverHost || config.imapServer || '',
           serverPort: config.serverPort ? config.serverPort.toString() : (config.imapPort ? config.imapPort.toString() : '993'),
           username: config.username || config.emailAddress || '',
-          password: config.password ? '••••••••' : '', // CRÍTICO: Mascarar senha
+          password: config.password === '••••••••' ? '' : (config.password || ''), // Só mascarar se já mascarado
           imapServer: config.imapServer || 'imap.gmail.com',
           imapPort: config.imapPort ? config.imapPort.toString() : '993',
           imapSecurity: config.imapSecurity || 'SSL/TLS',
           emailAddress: config.emailAddress || '',
           dropboxAppKey: config.dropboxAppKey || '',
-          dropboxAppSecret: config.dropboxAppSecret ? '••••••••' : '', // Mascarar Dropbox secret
-          dropboxAccessToken: config.dropboxAccessToken ? '••••••••' : '', // Mascarar access token
+          dropboxAppSecret: config.dropboxAppSecret === '••••••••' ? '' : (config.dropboxAppSecret || ''), // Só mascarar se já mascarado
+          dropboxAccessToken: config.dropboxAccessToken === '••••••••' ? '' : (config.dropboxAccessToken || ''), // Só mascarar se já mascarado
           backupFolder: config.backupFolder || '/Backups/Conductor',
-          // Telegram fields (não mascarar para poder editar)
+          // Telegram fields - manter valores originais para edição
           telegramBotToken: config.telegramBotToken || '',
           telegramChatId: config.telegramChatId || '',
           telegramWebhookUrl: config.telegramWebhookUrl || `${window.location.origin}/api/webhooks/telegram/${localStorage.getItem('tenantId')}`,

@@ -18,18 +18,20 @@ function sanitizeConfigForFrontend(config: any): any {
   const sanitized = { ...config };
 
   // Mascarar campos sensíveis mas manter indicação de que existem dados
-  const sensitiveFields = ['password', 'apiKey', 'apiSecret', 'clientSecret', 'dropboxAppSecret', 'dropboxAccessToken', 'telegramBotToken'];
+  const sensitiveFields = ['password', 'apiKey', 'apiSecret', 'clientSecret', 'dropboxAppSecret', 'dropboxAccessToken'];
 
   sensitiveFields.forEach(field => {
     if (sanitized[field] && sanitized[field].length > 0) {
-      // Para que o frontend saiba que há dados salvos, incluir indicação
-      if (field === 'telegramBotToken') {
-        sanitized[field] = sanitized[field]; // Manter valor original para Telegram
-      } else {
-        sanitized[field] = '••••••••'; // Mascarar outros campos sensíveis
-      }
+      sanitized[field] = '••••••••'; // Mascarar campos sensíveis
     }
   });
+
+  // Para Telegram, manter os valores originais para permitir edição
+  // Telegram bot tokens são necessários para testes e configuração
+  if (sanitized.telegramBotToken) {
+    // Manter o token original para permitir edição
+    sanitized.telegramBotToken = sanitized.telegramBotToken;
+  }
 
   return sanitized;
 }
