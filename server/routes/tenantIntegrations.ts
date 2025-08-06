@@ -427,7 +427,7 @@ router.post('/:integrationId/test', requirePermission(Permission.TENANT_MANAGE_S
           }
         };
         break;
-        
+
       case 'telegram':
         // Placeholder for Telegram test logic
         testResult = {
@@ -592,10 +592,12 @@ router.post('/populate-all-14', requirePermission(Permission.TENANT_MANAGE_SETTI
       {
         id: 'telegram',
         name: 'Telegram',
-        description: 'Envie notificações e alertas para seus canais e usuários via Telegram.',
+        description: 'Envio de notificações e alertas via Telegram para grupos ou usuários',
         category: 'Comunicação',
         icon: 'Send',
-        features: ['Notificações em tempo real', 'Mensagens personalizadas', 'Integração com bot']
+        status: 'disconnected',
+        configured: false,
+        features: ['Notificações em tempo real', 'Mensagens personalizadas', 'Integração com Bot API']
       },
       {
         id: 'twilio-sms',
