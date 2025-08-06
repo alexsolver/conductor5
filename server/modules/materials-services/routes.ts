@@ -8,7 +8,7 @@ import { LPUController } from './application/controllers/LPUController';
 import { ComplianceController } from './application/controllers/ComplianceController';
 import { TicketMaterialsController } from './application/controllers/TicketMaterialsController';
 import * as CustomerItemMappingController from './application/controllers/CustomerItemMappingController-v2';
-import { personalizationRoutes } from './routes/personalizationRoutes';
+import { personalizationSimpleRoutes } from './routes/personalizationSimple';
 import { ItemRepository } from './infrastructure/repositories/ItemRepository';
 import { SupplierRepository } from './infrastructure/repositories/SupplierRepository';
 import { StockRepository } from './infrastructure/repositories/StockRepository';
@@ -275,6 +275,6 @@ router.get('/dashboard', async (req: AuthenticatedRequest, res) => {
 });
 
 // ===== HIERARCHICAL PERSONALIZATION ROUTES =====
-router.use(personalizationRoutes);
+router.use('/personalization', personalizationSimpleRoutes);
 
 export default router;
