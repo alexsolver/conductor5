@@ -543,15 +543,28 @@ router.post('/:integrationId/test', requirePermission(Permission.TENANT_MANAGE_S
 
                   try {
                     const response = await fetch(telegramApiUrl);
-                    const data = await response.json();
                     
-                    if (data.ok) {
-                      botInfo = data.result;
-                      telegramApiStatus = 'valid';
-                      console.log(`✅ [TELEGRAM-TEST] Bot API test successful:`, botInfo.username);
-                    } else {
+                    // Check if response is OK and content-type is JSON
+                    if (!response.ok) {
                       telegramApiStatus = 'invalid';
-                      console.log(`❌ [TELEGRAM-TEST] Bot API test failed:`, data.description);
+                      console.log(`❌ [TELEGRAM-TEST] Bot API HTTP error: ${response.status} ${response.statusText}`);
+                    } else {
+                      const contentType = response.headers.get('content-type');
+                      if (contentType && contentType.includes('application/json')) {
+                        const data = await response.json();
+                        
+                        if (data.ok) {
+                          botInfo = data.result;
+                          telegramApiStatus = 'valid';
+                          console.log(`✅ [TELEGRAM-TEST] Bot API test successful:`, botInfo.username);
+                        } else {
+                          telegramApiStatus = 'invalid';
+                          console.log(`❌ [TELEGRAM-TEST] Bot API test failed:`, data.description);
+                        }
+                      } else {
+                        telegramApiStatus = 'error';
+                        console.log(`❌ [TELEGRAM-TEST] Bot API returned non-JSON response`);
+                      }
                     }
                   } catch (apiError) {
                     telegramApiStatus = 'error';
@@ -566,7 +579,9 @@ router.post('/:integrationId/test', requirePermission(Permission.TENANT_MANAGE_S
                       chatId: config.telegramChatId || 'Não configurado',
                       webhookUrl: webhookUrl,
                       webhookStatus: 'Configurado automaticamente',
-                      status: 'Bot Telegram configurado com sucesso',
+                      status: telegramApiStatus === 'valid' 
+                        ? 'Bot Telegram verificado e funcionando' 
+                        : 'Bot Telegram configurado (verificação da API falhou)',
                       lastTested: new Date().toISOString(),
                       telegramApiStatus,
                       botInfo: botInfo ? {
@@ -579,7 +594,10 @@ router.post('/:integrationId/test', requirePermission(Permission.TENANT_MANAGE_S
                         webhookConfigured: true,
                         chatIdProvided: !!config.telegramChatId,
                         telegramApiConnected: telegramApiStatus === 'valid'
-                      }
+                      },
+                      warnings: telegramApiStatus !== 'valid' ? [
+                        'Não foi possível verificar o bot token com a API do Telegram. Isso pode ser devido a restrições de rede ou token inválido.'
+                      ] : []
                     }
                   };
 
