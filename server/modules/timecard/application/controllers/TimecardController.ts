@@ -733,28 +733,41 @@ export class TimecardController {
       // Parse period (formato: YYYY-MM)
       const [year, month] = period.split('-').map(Number);
       const startDate = new Date(year, month - 1, 1);
-      const endDate = new Date(year, month, 0); // Last day of month
+      const endDate = new Date(year, month, 0, 23, 59, 59); // Last moment of month
 
-      console.log('[ATTENDANCE-REPORT] Date range:', startDate, 'to', endDate);
+      console.log('[ATTENDANCE-REPORT] Date range:', startDate.toISOString(), 'to', endDate.toISOString());
+      console.log('[ATTENDANCE-REPORT] User:', userId, 'Tenant:', tenantId);
 
       // Buscar APENAS registros aprovados do período usando query direta
       const db = this.timecardRepository.db;
       const { timecardEntries } = await import('@shared/schema');
-      const { and, eq, gte, lte } = await import('drizzle-orm');
+      const { and, eq, gte, lte, sql } = await import('drizzle-orm');
       
+      // Usar DATE() function para comparar apenas datas, não timestamps
       const records = await db
         .select()
         .from(timecardEntries)
         .where(and(
           eq(timecardEntries.userId, userId),
           eq(timecardEntries.tenantId, tenantId),
-          eq(timecardEntries.status, 'approved'), // APENAS registros aprovados
-          gte(timecardEntries.checkIn, startDate.toISOString()),
-          lte(timecardEntries.checkIn, endDate.toISOString())
+          eq(timecardEntries.status, 'approved'),
+          sql`DATE(${timecardEntries.checkIn}) >= ${startDate.toISOString().split('T')[0]}`,
+          sql`DATE(${timecardEntries.checkIn}) <= ${endDate.toISOString().split('T')[0]}`
         ))
         .orderBy(timecardEntries.checkIn);
 
       console.log('[ATTENDANCE-REPORT] Found records:', records.length);
+      
+      // Log first few records for debugging
+      if (records.length > 0) {
+        console.log('[ATTENDANCE-REPORT] Sample records:', records.slice(0, 3).map(r => ({
+          id: r.id,
+          checkIn: r.checkIn,
+          checkOut: r.checkOut,
+          status: r.status,
+          date: r.checkIn ? new Date(r.checkIn).toISOString().split('T')[0] : 'no date'
+        })));
+      }
 
       // Agrupar registros por data
       const recordsByDate = new Map();
@@ -786,6 +799,8 @@ export class TimecardController {
           
           // Calcular horas trabalhadas
           let totalHours = 0;
+          let status = 'pending';
+          
           if (checkIn && checkOut) {
             const workStart = new Date(checkIn);
             const workEnd = new Date(checkOut);
@@ -800,16 +815,21 @@ export class TimecardController {
             }
             
             totalHours = Math.max(0, (workMinutes - breakMinutes) / 60);
+            status = 'approved';
+          } else if (checkIn) {
+            // Registros apenas com entrada (8h padrão para registros aprovados)
+            totalHours = 8;
+            status = 'approved';
           }
 
           processedRecords.push({
             date: dateStr,
             checkIn,
-            checkOut,
+            checkOut: checkOut || null,
             breakStart,
             breakEnd,
             totalHours: totalHours.toFixed(2),
-            status: checkIn && checkOut ? 'approved' : 'pending'
+            status
           });
         }
       }
@@ -982,12 +1002,14 @@ export class TimecardController {
       // Parse period (formato: YYYY-MM)
       const [year, month] = period.split('-').map(Number);
       const startDate = new Date(year, month - 1, 1);
-      const endDate = new Date(year, month, 0);
+      const endDate = new Date(year, month, 0, 23, 59, 59);
+
+      console.log('[OVERTIME-REPORT] Date range:', startDate.toISOString(), 'to', endDate.toISOString());
 
       // Buscar registros aprovados com horas extras
       const db = this.timecardRepository.db;
       const { timecardEntries } = await import('@shared/schema');
-      const { and, eq, gte, lte, gt } = await import('drizzle-orm');
+      const { and, eq, sql } = await import('drizzle-orm');
       
       const records = await db
         .select()
@@ -996,8 +1018,8 @@ export class TimecardController {
           eq(timecardEntries.userId, userId),
           eq(timecardEntries.tenantId, tenantId),
           eq(timecardEntries.status, 'approved'),
-          gte(timecardEntries.checkIn, startDate.toISOString()),
-          lte(timecardEntries.checkIn, endDate.toISOString())
+          sql`DATE(${timecardEntries.checkIn}) >= ${startDate.toISOString().split('T')[0]}`,
+          sql`DATE(${timecardEntries.checkIn}) <= ${endDate.toISOString().split('T')[0]}`
         ));
 
       // Calcular horas extras (acima de 8h por dia)
