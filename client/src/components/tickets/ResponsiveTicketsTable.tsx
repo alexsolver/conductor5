@@ -136,20 +136,26 @@ const MobileTicketCard: React.FC<{
               value={ticket.priority}
               className="text-xs"
               aria-label={`Prioridade: ${ticket.priority}`}
-            />
+            >
+              {ticket.priority}
+            </DynamicBadge>
             <DynamicBadge
               fieldName="status"
               value={ticket.status}
               className="text-xs"
               aria-label={`Status: ${ticket.status}`}
-            />
+            >
+              {ticket.status}
+            </DynamicBadge>
             {ticket.category && (
               <DynamicBadge
                 fieldName="category"
                 value={ticket.category}
                 className="text-xs"
                 aria-label={`Categoria: ${ticket.category}`}
-              />
+              >
+                {ticket.category}
+              </DynamicBadge>
             )}
           </div>
 
@@ -325,7 +331,9 @@ export const ResponsiveTicketsTable: React.FC<ResponsiveTicketsTableProps> = ({
                         fieldName="category"
                         value={ticket.category}
                         aria-label={`Categoria: ${ticket.category}`}
-                      />
+                      >
+                        {ticket.category}
+                      </DynamicBadge>
                     ) : (
                       <span className="text-gray-400">Não categorizado</span>
                     )}
@@ -336,7 +344,9 @@ export const ResponsiveTicketsTable: React.FC<ResponsiveTicketsTableProps> = ({
                       fieldName="status"
                       value={ticket.status}
                       aria-label={`Status: ${ticket.status}`}
-                    />
+                    >
+                      {ticket.status}
+                    </DynamicBadge>
                   </TableCell>
                   
                   <TableCell className="hidden sm:table-cell">
@@ -344,7 +354,9 @@ export const ResponsiveTicketsTable: React.FC<ResponsiveTicketsTableProps> = ({
                       fieldName="priority"
                       value={ticket.priority}
                       aria-label={`Prioridade: ${ticket.priority}`}
-                    />
+                    >
+                      {ticket.priority}
+                    </DynamicBadge>
                   </TableCell>
                   
                   <TableCell>
