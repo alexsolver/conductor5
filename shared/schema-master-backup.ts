@@ -564,7 +564,7 @@ export const insertTicketSchema = createInsertSchema(tickets);
 export const insertTicketMessageSchema = createInsertSchema(ticketMessages);
 export const insertActivityLogSchema = createInsertSchema(activityLogs);
 export const insertLocationSchema = createInsertSchema(locations);
-export const insertCustomerCompanySchema = createInsertSchema(customerCompanies);
+export const insertCompanySchema = createInsertSchema(customerCompanies);
 export const insertSkillSchema = createInsertSchema(skills);
 export const insertCertificationSchema = createInsertSchema(certifications);
 export const insertUserSkillSchema = createInsertSchema(userSkills);
@@ -818,8 +818,8 @@ export type InsertActivityLog = typeof activityLogs.$inferInsert;
 export type Location = typeof locations.$inferSelect;
 export type InsertLocation = typeof locations.$inferInsert;
 
-export type CustomerCompany = typeof customerCompanies.$inferSelect;
-export type InsertCustomerCompany = typeof customerCompanies.$inferInsert;
+export type Company = typeof customerCompanies.$inferSelect;
+export type InsertCompany = typeof customerCompanies.$inferInsert;
 
 export type Skill = typeof skills.$inferSelect;
 export type InsertSkill = typeof skills.$inferInsert;

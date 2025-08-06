@@ -1,10 +1,10 @@
 /**
- * CustomerCompanyMembership Domain Entity
+ * CompanyMembership Domain Entity
  * Clean Architecture - Domain Layer
  * Represents the relationship between a customer and a company
  */
 
-export class CustomerCompanyMembership {
+export class CompanyMembership {
   constructor(
     private readonly id: string,
     private readonly customerId: string,
@@ -117,8 +117,8 @@ export class CustomerCompanyMembership {
   }
 
   // Update Methods
-  updateRole(role: 'member' | 'admin' | 'owner' | 'contact'): CustomerCompanyMembership {
-    return new CustomerCompanyMembership(
+  updateRole(role: 'member' | 'admin' | 'owner' | 'contact'): CompanyMembership {
+    return new CompanyMembership(
       this.id,
       this.customerId,
       this.companyId,
@@ -134,8 +134,8 @@ export class CustomerCompanyMembership {
     );
   }
 
-  updateJobInfo(title: string | null, department: string | null): CustomerCompanyMembership {
-    return new CustomerCompanyMembership(
+  updateJobInfo(title: string | null, department: string | null): CompanyMembership {
+    return new CompanyMembership(
       this.id,
       this.customerId,
       this.companyId,
@@ -157,8 +157,8 @@ export class CustomerCompanyMembership {
     canManageUsers?: boolean;
     canViewBilling?: boolean;
     canManageSettings?: boolean;
-  }): CustomerCompanyMembership {
-    return new CustomerCompanyMembership(
+  }): CompanyMembership {
+    return new CompanyMembership(
       this.id,
       this.customerId,
       this.companyId,
@@ -174,8 +174,8 @@ export class CustomerCompanyMembership {
     );
   }
 
-  deactivate(): CustomerCompanyMembership {
-    return new CustomerCompanyMembership(
+  deactivate(): CompanyMembership {
+    return new CompanyMembership(
       this.id,
       this.customerId,
       this.companyId,
@@ -191,8 +191,8 @@ export class CustomerCompanyMembership {
     );
   }
 
-  activate(): CustomerCompanyMembership {
-    return new CustomerCompanyMembership(
+  activate(): CompanyMembership {
+    return new CompanyMembership(
       this.id,
       this.customerId,
       this.companyId,
@@ -208,8 +208,8 @@ export class CustomerCompanyMembership {
     );
   }
 
-  setPrimary(isPrimary: boolean): CustomerCompanyMembership {
-    return new CustomerCompanyMembership(
+  setPrimary(isPrimary: boolean): CompanyMembership {
+    return new CompanyMembership(
       this.id,
       this.customerId,
       this.companyId,
@@ -235,8 +235,8 @@ export class CustomerCompanyMembership {
     permissions?: any;
     isPrimary?: boolean;
     addedBy: string;
-  }): CustomerCompanyMembership {
-    return new CustomerCompanyMembership(
+  }): CompanyMembership {
+    return new CompanyMembership(
       crypto.randomUUID(),
       props.customerId,
       props.companyId,
@@ -252,8 +252,8 @@ export class CustomerCompanyMembership {
     );
   }
 
-  static fromPersistence(data: any): CustomerCompanyMembership {
-    return new CustomerCompanyMembership(
+  static fromPersistence(data: any): CompanyMembership {
+    return new CompanyMembership(
       data.id,
       data.customerId,
       data.companyId,

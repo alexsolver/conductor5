@@ -48,7 +48,7 @@ const companySchema = z.object({
   status: z.enum(["active", "inactive", "suspended"]).default("active")
 });
 
-interface CustomerCompany {
+interface Company {
   id: string;
   name: string;
   displayName?: string;
@@ -65,12 +65,12 @@ interface CustomerCompany {
   updatedAt: string;
 }
 
-export default function CustomerCompanies() {
+export default function Companies() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [selectedCompany, setSelectedCompany] = useState<CustomerCompany | null>(null);
+  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
    // Associate multiple customers modal
    const [isAssociateModalOpen, setIsAssociateModalOpen] = useState(false);
@@ -230,7 +230,7 @@ export default function CustomerCompanies() {
     createCompanyMutation.mutate(data);
   };
 
-  const handleEditCompany = (company: CustomerCompany) => {
+  const handleEditCompany = (company: Company) => {
     setSelectedCompany(company);
     editForm.reset({
       name: company.name,
@@ -258,7 +258,7 @@ export default function CustomerCompanies() {
     }
   };
 
-  const handleDeleteCompany = (company: CustomerCompany) => {
+  const handleDeleteCompany = (company: Company) => {
     if (window.confirm(`Tem certeza que deseja excluir a empresa "${company.displayName || company.name}"?`)) {
       deleteCompanyMutation.mutate(company.id);
     }
@@ -284,11 +284,11 @@ export default function CustomerCompanies() {
     }
   };
 
-  const filteredCompanies = companies.filter((company: CustomerCompany) =>
+  const filteredCompanies = companies.filter((company: Company) =>
     company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     company.displayName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     company.industry?.toLowerCase().includes(searchTerm.toLowerCase())
-  ).sort((a: CustomerCompany, b: CustomerCompany) => {
+  ).sort((a: Company, b: Company) => {
     // Always put Default company first
     const aIsDefault = a.name?.toLowerCase().includes('default') || a.displayName?.toLowerCase().includes('default');
     const bIsDefault = b.name?.toLowerCase().includes('default') || b.displayName?.toLowerCase().includes('default');
@@ -581,7 +581,7 @@ export default function CustomerCompanies() {
 
       {/* Lista de empresas */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredCompanies.map((company: CustomerCompany) => (
+        {filteredCompanies.map((company: Company) => (
           <Card key={company.id} className="hover:shadow-lg transition-shadow">
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
@@ -709,7 +709,7 @@ export default function CustomerCompanies() {
                   {(() => {
                     const isDefaultCompany = company.name?.toLowerCase().includes('default') || 
                                            company.displayName?.toLowerCase().includes('default');
-                    const hasOtherCompanies = companies.filter((c: CustomerCompany) => 
+                    const hasOtherCompanies = companies.filter((c: Company) => 
                       !c.name?.toLowerCase().includes('default') && 
                       !c.displayName?.toLowerCase().includes('default')
                     ).length > 0;

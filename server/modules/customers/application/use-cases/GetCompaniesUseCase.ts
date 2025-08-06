@@ -4,10 +4,10 @@
  * Retrieves customer companies with filtering and pagination
  */
 
-import { CustomerCompany } from '../../domain/entities/CustomerCompany';
-import { ICustomerCompanyRepository, CustomerCompanyFilter } from '../../domain/ports/ICustomerCompanyRepository';
+import { Company } from '../../domain/entities/Company';
+import { ICompanyRepository, CompanyFilter } from '../../domain/ports/ICompanyRepository';
 
-export interface GetCustomerCompaniesRequest {
+export interface GetCompaniesRequest {
   tenantId: string;
   search?: string;
   industry?: string;
@@ -19,24 +19,24 @@ export interface GetCustomerCompaniesRequest {
   limit?: number;
 }
 
-export interface GetCustomerCompaniesResponse {
-  companies: CustomerCompany[];
+export interface GetCompaniesResponse {
+  companies: Company[];
   total: number;
   page: number;
   totalPages: number;
 }
 
-export class GetCustomerCompaniesUseCase {
+export class GetCompaniesUseCase {
   constructor(
-    private readonly customerCompanyRepository: ICustomerCompanyRepository
+    private readonly customerCompanyRepository: ICompanyRepository
   ) {}
 
-  async execute(request: GetCustomerCompaniesRequest): Promise<GetCustomerCompaniesResponse> {
+  async execute(request: GetCompaniesRequest): Promise<GetCompaniesResponse> {
     const page = request.page || 1;
     const limit = request.limit || 20;
     const offset = (page - 1) * limit;
 
-    const filter: CustomerCompanyFilter = {
+    const filter: CompanyFilter = {
       tenantId: request.tenantId,
       search: request.search,
       industry: request.industry,

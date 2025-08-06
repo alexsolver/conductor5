@@ -4,10 +4,10 @@
  * Updates an existing customer company
  */
 
-import { CustomerCompany } from '../../domain/entities/CustomerCompany';
-import { ICustomerCompanyRepository } from '../../domain/ports/ICustomerCompanyRepository';
+import { Company } from '../../domain/entities/Company';
+import { ICompanyRepository } from '../../domain/ports/ICompanyRepository';
 
-export interface UpdateCustomerCompanyRequest {
+export interface UpdateCompanyRequest {
   id: string;
   tenantId: string;
   name?: string;
@@ -34,16 +34,16 @@ export interface UpdateCustomerCompanyRequest {
   updatedBy: string;
 }
 
-export interface UpdateCustomerCompanyResponse {
-  company: CustomerCompany;
+export interface UpdateCompanyResponse {
+  company: Company;
 }
 
-export class UpdateCustomerCompanyUseCase {
+export class UpdateCompanyUseCase {
   constructor(
-    private readonly customerCompanyRepository: ICustomerCompanyRepository
+    private readonly customerCompanyRepository: ICompanyRepository
   ) {}
 
-  async execute(request: UpdateCustomerCompanyRequest): Promise<UpdateCustomerCompanyResponse> {
+  async execute(request: UpdateCompanyRequest): Promise<UpdateCompanyResponse> {
     // Find existing company
     const existingCompany = await this.customerCompanyRepository.findById(
       request.id,

@@ -202,11 +202,11 @@ export class CustomersController {
   }
 
   // GET /api/customers/companies - Get all customer companies
-  async getCustomerCompanies(req: Request, res: Response) {
+  async getCompanies(req: Request, res: Response) {
     try {
       const tenantId = req.user.tenantId;
 
-      const result = await this.getCustomerCompaniesUseCase.execute({
+      const result = await this.getCompaniesUseCase.execute({
         tenantId
       });
 

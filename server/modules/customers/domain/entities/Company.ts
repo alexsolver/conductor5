@@ -1,10 +1,10 @@
 /**
- * CustomerCompany Domain Entity
+ * Company Domain Entity
  * Clean Architecture - Domain Layer
  * Represents a customer organization with business rules and validation
  */
 
-export class CustomerCompany {
+export class Company {
   constructor(
     private readonly id: string,
     private readonly tenantId: string,
@@ -186,8 +186,8 @@ export class CustomerCompany {
     industry?: string | null;
     size?: 'small' | 'medium' | 'large' | 'enterprise' | null;
     updatedBy: string;
-  }): CustomerCompany {
-    return new CustomerCompany(
+  }): Company {
+    return new Company(
       this.id,
       this.tenantId,
       props.name !== undefined ? props.name : this.name,
@@ -224,8 +224,8 @@ export class CustomerCompany {
     website?: string | null;
     address?: Record<string, string>;
     updatedBy: string;
-  }): CustomerCompany {
-    return new CustomerCompany(
+  }): Company {
+    return new Company(
       this.id,
       this.tenantId,
       this.name,
@@ -262,8 +262,8 @@ export class CustomerCompany {
     maxUsers?: number | null;
     maxTickets?: number | null;
     updatedBy: string;
-  }): CustomerCompany {
-    return new CustomerCompany(
+  }): Company {
+    return new Company(
       this.id,
       this.tenantId,
       this.name,
@@ -298,8 +298,8 @@ export class CustomerCompany {
     status?: 'active' | 'inactive' | 'suspended' | 'trial';
     isActive?: boolean;
     updatedBy: string;
-  }): CustomerCompany {
-    return new CustomerCompany(
+  }): Company {
+    return new Company(
       this.id,
       this.tenantId,
       this.name,
@@ -344,8 +344,8 @@ export class CustomerCompany {
     address?: Record<string, string>;
     subscriptionTier?: 'basic' | 'premium' | 'enterprise';
     createdBy: string;
-  }): CustomerCompany {
-    return new CustomerCompany(
+  }): Company {
+    return new Company(
       crypto.randomUUID(),
       props.tenantId,
       props.name,
@@ -376,35 +376,35 @@ export class CustomerCompany {
     );
   }
 
-  static fromPersistence(data: Record<string, unknown>): CustomerCompany {
-    return new CustomerCompany(
-      data.id,
-      data.tenantId,
-      data.name,
-      data.displayName,
-      data.description,
-      data.industry,
-      data.size,
-      data.email,
-      data.phone,
-      data.website,
-      data.address || {},
-      data.taxId,
-      data.registrationNumber,
-      data.subscriptionTier || 'basic',
-      data.contractType,
-      data.maxUsers,
-      data.maxTickets,
-      data.settings || {},
-      data.tags || [],
-      data.metadata || {},
-      data.status || 'active',
+  static fromPersistence(data: Record<string, unknown>): Company {
+    return new Company(
+      data.id as string,
+      data.tenantId as string,
+      data.name as string,
+      data.displayName as string | null,
+      data.description as string | null,
+      data.industry as string | null,
+      data.size as 'small' | 'medium' | 'large' | 'enterprise' | null,
+      data.email as string | null,
+      data.phone as string | null,
+      data.website as string | null,
+      (data.address as Record<string, string>) || {},
+      data.taxId as string | null,
+      data.registrationNumber as string | null,
+      (data.subscriptionTier as 'basic' | 'premium' | 'enterprise') || 'basic',
+      data.contractType as 'monthly' | 'yearly' | 'custom' | null,
+      data.maxUsers as number | null,
+      data.maxTickets as number | null,
+      (data.settings as Record<string, unknown>) || {},
+      (data.tags as string[]) || [],
+      (data.metadata as Record<string, unknown>) || {},
+      (data.status as 'active' | 'inactive' | 'suspended' | 'trial') || 'active',
       data.isActive !== false,
       data.isPrimary || false,
-      data.createdAt,
-      data.updatedAt,
-      data.createdBy,
-      data.updatedBy
+      data.createdAt as Date,
+      data.updatedAt as Date,
+      data.createdBy as string,
+      data.updatedBy as string | null
     );
   }
 }

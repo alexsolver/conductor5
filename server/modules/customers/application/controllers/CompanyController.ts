@@ -6,13 +6,13 @@
 
 import { Request, Response } from 'express';
 import { z } from 'zod';
-import { CreateCustomerCompanyUseCase } from '../use-cases/CreateCustomerCompanyUseCase';
-import { GetCustomerCompaniesUseCase } from '../use-cases/GetCustomerCompaniesUseCase';
-import { UpdateCustomerCompanyUseCase } from '../use-cases/UpdateCustomerCompanyUseCase';
-import { ManageCustomerCompanyMembershipUseCase } from '../use-cases/ManageCustomerCompanyMembershipUseCase';
+import { CreateCompanyUseCase } from '../use-cases/CreateCompanyUseCase';
+import { GetCompaniesUseCase } from '../use-cases/GetCompaniesUseCase';
+import { UpdateCompanyUseCase } from '../use-cases/UpdateCompanyUseCase';
+import { ManageCompanyMembershipUseCase } from '../use-cases/ManageCompanyMembershipUseCase';
 
 // Request validation schemas
-const createCustomerCompanySchema = z.object({
+const createCompanySchema = z.object({
   name: z.string().min(1).max(255),
   displayName: z.string().max(255).optional(),
   description: z.string().optional(),
@@ -33,7 +33,7 @@ const createCustomerCompanySchema = z.object({
   subscriptionTier: z.enum(['basic', 'premium', 'enterprise']).optional(),
 });
 
-const updateCustomerCompanySchema = createCustomerCompanySchema.partial().extend({
+const updateCompanySchema = createCompanySchema.partial().extend({
   contractType: z.enum(['monthly', 'yearly', 'custom']).optional(),
   maxUsers: z.number().min(1).optional(),
   maxTickets: z.number().min(1).optional(),
@@ -91,12 +91,12 @@ interface AuthenticatedRequest extends Request {
   };
 }
 
-export class CustomerCompanyController {
+export class CompanyController {
   constructor(
-    private readonly createCompanyUseCase: CreateCustomerCompanyUseCase,
-    private readonly getCompaniesUseCase: GetCustomerCompaniesUseCase,
-    private readonly updateCompanyUseCase: UpdateCustomerCompanyUseCase,
-    private readonly manageMembershipUseCase: ManageCustomerCompanyMembershipUseCase
+    private readonly createCompanyUseCase: CreateCompanyUseCase,
+    private readonly getCompaniesUseCase: GetCompaniesUseCase,
+    private readonly updateCompanyUseCase: UpdateCompanyUseCase,
+    private readonly manageMembershipUseCase: ManageCompanyMembershipUseCase
   ) {}
 
   async createCompany(req: AuthenticatedRequest, res: Response): Promise<void> {
@@ -106,7 +106,7 @@ export class CustomerCompanyController {
         return;
       }
 
-      const validatedData = createCustomerCompanySchema.parse(req.body);
+      const validatedData = createCompanySchema.parse(req.body);
 
       const result = await this.createCompanyUseCase.execute({
         tenantId: req.user.tenantId,
@@ -311,7 +311,7 @@ export class CustomerCompanyController {
       }
 
       const { id } = req.params;
-      const validatedData = updateCustomerCompanySchema.parse(req.body);
+      const validatedData = updateCompanySchema.parse(req.body);
 
       const result = await this.updateCompanyUseCase.execute({
         id,

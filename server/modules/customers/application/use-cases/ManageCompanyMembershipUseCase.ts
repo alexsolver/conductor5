@@ -4,8 +4,8 @@
  * Handles adding, updating, and removing customer-company relationships
  */
 
-import { CustomerCompanyMembership } from '../../domain/entities/CustomerCompanyMembership';
-import { ICustomerCompanyRepository } from '../../domain/ports/ICustomerCompanyRepository';
+import { CompanyMembership } from '../../domain/entities/CompanyMembership';
+import { ICompanyRepository } from '../../domain/ports/ICompanyRepository';
 
 export interface AddMembershipRequest {
   customerId: string;
@@ -48,12 +48,12 @@ export interface RemoveMembershipRequest {
 }
 
 export interface MembershipResponse {
-  membership: CustomerCompanyMembership;
+  membership: CompanyMembership;
 }
 
-export class ManageCustomerCompanyMembershipUseCase {
+export class ManageCompanyMembershipUseCase {
   constructor(
-    private readonly customerCompanyRepository: ICustomerCompanyRepository
+    private readonly customerCompanyRepository: ICompanyRepository
   ) {}
 
   async addMembership(request: AddMembershipRequest): Promise<MembershipResponse> {
@@ -77,7 +77,7 @@ export class ManageCustomerCompanyMembershipUseCase {
     }
 
     // Create new membership
-    const membership = CustomerCompanyMembership.create({
+    const membership = CompanyMembership.create({
       customerId: request.customerId,
       companyId: request.companyId,
       role: request.role,
@@ -198,11 +198,11 @@ export class ManageCustomerCompanyMembershipUseCase {
     );
   }
 
-  async getCustomerMemberships(customerId: string, tenantId: string): Promise<CustomerCompanyMembership[]> {
+  async getCustomerMemberships(customerId: string, tenantId: string): Promise<CompanyMembership[]> {
     return await this.customerCompanyRepository.findMembershipsByCustomer(customerId, tenantId);
   }
 
-  async getCompanyMemberships(companyId: string, tenantId: string): Promise<CustomerCompanyMembership[]> {
+  async getCompanyMemberships(companyId: string, tenantId: string): Promise<CompanyMembership[]> {
     return await this.customerCompanyRepository.findMembershipsByCompany(companyId, tenantId);
   }
 

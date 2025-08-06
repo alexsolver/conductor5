@@ -1045,7 +1045,7 @@ const TicketDetails = React.memo(() => {
       followersState: followers,
       selectedCompanyState: selectedCompany,
       dataFollowers: data.followers,
-      dataCustomerCompanyId: data.customerCompanyId,
+      dataCompanyId: data.customerCompanyId,
       finalFollowers: mappedData.followers,
       finalCustomerId: mappedData.customer_company_id
     });

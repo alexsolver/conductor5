@@ -4,7 +4,7 @@ import { requirePermission } from "../../middleware/rbacMiddleware";
 import { storageSimple } from "../../storage-simple";
 import { insertCustomerSchema } from "../../../shared/schema";
 import { z } from "zod";
-import { getCustomerCompanyController } from "./infrastructure/setup/CustomerDependencySetup";
+import { getCompanyController } from "./infrastructure/setup/CustomerDependencySetup";
 
 export const customersRouter = Router();
 
@@ -237,7 +237,7 @@ customersRouter.delete('/:id', jwtAuth, async (req: AuthenticatedRequest, res) =
 });
 
 // Get customer company controller instance
-const customerCompanyController = getCustomerCompanyController();
+const customerCompanyController = getCompanyController();
 
 // Customer Company Routes
 // GET /api/customers/companies - Get all customer companies

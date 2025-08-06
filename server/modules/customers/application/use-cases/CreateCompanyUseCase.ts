@@ -4,10 +4,10 @@
  * Orchestrates the creation of a new customer company
  */
 
-import { CustomerCompany } from '../../domain/entities/CustomerCompany';
-import { ICustomerCompanyRepository } from '../../domain/ports/ICustomerCompanyRepository';
+import { Company } from '../../domain/entities/Company';
+import { ICompanyRepository } from '../../domain/ports/ICompanyRepository';
 
-export interface CreateCustomerCompanyRequest {
+export interface CreateCompanyRequest {
   tenantId: string;
   name: string;
   displayName?: string;
@@ -28,16 +28,16 @@ export interface CreateCustomerCompanyRequest {
   createdBy: string;
 }
 
-export interface CreateCustomerCompanyResponse {
-  company: CustomerCompany;
+export interface CreateCompanyResponse {
+  company: Company;
 }
 
-export class CreateCustomerCompanyUseCase {
+export class CreateCompanyUseCase {
   constructor(
-    private readonly customerCompanyRepository: ICustomerCompanyRepository
+    private readonly customerCompanyRepository: ICompanyRepository
   ) {}
 
-  async execute(request: CreateCustomerCompanyRequest): Promise<CreateCustomerCompanyResponse> {
+  async execute(request: CreateCompanyRequest): Promise<CreateCompanyResponse> {
     // Check if company with same name already exists in tenant
     const existingCompany = await this.customerCompanyRepository.findByName(
       request.name,
@@ -49,7 +49,7 @@ export class CreateCustomerCompanyUseCase {
     }
 
     // Create new company domain entity
-    const company = CustomerCompany.create({
+    const company = Company.create({
       tenantId: request.tenantId,
       name: request.name,
       displayName: request.displayName,

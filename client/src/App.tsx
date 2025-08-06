@@ -49,7 +49,7 @@ import { UserManagement } from "./pages/UserManagement";
 import NotFound from "./pages/not-found";
 import { TemplateSelector } from "./pages/TemplateSelector";
 import InternalForms from './pages/InternalForms';
-import CustomerCompanies from "./pages/CustomerCompanies";
+import Companies from "./pages/Companies";
 import TechnicalSkills from "./pages/TechnicalSkills";
 import TicketTemplates from "./pages/TicketTemplates";
 
@@ -133,7 +133,7 @@ function AppRouter() {
         <Route path="/customers" component={Customers} />
         <Route path="/tenant-admin/solicitantes" component={Customers} />
         <Route path="/tenant-admin/beneficiaries" component={Beneficiaries} />
-        <Route path="/companies" component={CustomerCompanies} />
+        <Route path="/companies" component={Companies} />
         <Route path="/technical-skills" component={TechnicalSkills} />
         {/* Removed: external-contacts route - functionality eliminated */}
         <Route path="/locations" component={LocationsNew} />
@@ -214,7 +214,7 @@ function AppRouter() {
         <Route path="/drag-drop-demo" component={DragDropDemo} />
         <Route path="/productivity-reports" component={ProductivityReports} />
 
-        <Route path="/companies" component={CustomerCompanies} />
+        <Route path="/companies" component={Companies} />
         <Route component={NotFound} />
       </Switch>
     </AppShell>

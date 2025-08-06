@@ -31,7 +31,7 @@ export default function Customers() {
   const total = customersData?.total || customers.length;
 
   // Hook para buscar empresas associadas de cada cliente
-  const useCustomerCompanies = (customerId: string) => {
+  const useCompanies = (customerId: string) => {
     return useQuery({
       queryKey: [`/api/customers/${customerId}/companies`],
       queryFn: async () => {
@@ -108,8 +108,8 @@ export default function Customers() {
   };
 
   // Componente para renderizar empresas associadas
-  const CustomerCompanies = ({ customerId }: { customerId: string }) => {
-    const { data: companies, isLoading } = useCustomerCompanies(customerId);
+  const Companies = ({ customerId }: { customerId: string }) => {
+    const { data: companies, isLoading } = useCompanies(customerId);
     
     if (isLoading) {
       return <div className="h-4 w-16 bg-gray-200 rounded animate-pulse"></div>;
@@ -290,7 +290,7 @@ export default function Customers() {
                     )}
                   </TableCell>
                   <TableCell>
-                    <CustomerCompanies customerId={customer.id} />
+                    <Companies customerId={customer.id} />
                   </TableCell>
                   <TableCell>
                     <Badge 

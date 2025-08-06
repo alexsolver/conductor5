@@ -1,26 +1,26 @@
 /**
  * Drizzle Customer Company Repository Implementation
  * Clean Architecture - Infrastructure Layer
- * Implements ICustomerCompanyRepository using Drizzle ORM
+ * Implements ICompanyRepository using Drizzle ORM
  */
 
 import { eq, and, ilike, count, sql, or } from 'drizzle-orm';
-import { CustomerCompany } from '../../domain/entities/CustomerCompany';
-import { CustomerCompanyMembership } from '../../domain/entities/CustomerCompanyMembership';
+import { Company } from '../../domain/entities/Company';
+import { CompanyMembership } from '../../domain/entities/CompanyMembership';
 import {
-  ICustomerCompanyRepository,
-  CustomerCompanyFilter,
-  CustomerCompanyMembershipFilter
-} from '../../domain/ports/ICustomerCompanyRepository';
+  ICompanyRepository,
+  CompanyFilter,
+  CompanyMembershipFilter
+} from '../../domain/ports/ICompanyRepository';
 import { companies, customerCompanyMemberships, customers } from '../../../../../shared/schema';
 import { schemaManager } from '../../../../db';
 
 // Types will be inferred dynamically from tenant schema
 
-export class DrizzleCustomerCompanyRepository implements ICustomerCompanyRepository {
+export class DrizzleCompanyRepository implements ICompanyRepository {
 
   // Customer Company Operations
-  async findById(id: string, tenantId: string): Promise<CustomerCompany | null> {
+  async findById(id: string, tenantId: string): Promise<Company | null> {
     const tenantConnection = await schemaManager.getTenantDb(tenantId);
     const { db: tenantDb } = tenantConnection;
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
@@ -45,7 +45,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
     }
   }
 
-  async findByName(name: string, tenantId: string): Promise<CustomerCompany | null> {
+  async findByName(name: string, tenantId: string): Promise<Company | null> {
     const tenantConnection = await schemaManager.getTenantDb(tenantId);
     const { db: tenantDb } = tenantConnection;
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
@@ -71,7 +71,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
     }
   }
 
-  async findMany(filter: CustomerCompanyFilter): Promise<CustomerCompany[]> {
+  async findMany(filter: CompanyFilter): Promise<Company[]> {
     const tenantConnection = await schemaManager.getTenantDb(filter.tenantId);
     const { db: tenantDb } = tenantConnection;
     const schemaName = `tenant_${filter.tenantId.replace(/-/g, '_')}`;
@@ -141,7 +141,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
     }
   }
 
-  async save(company: CustomerCompany): Promise<CustomerCompany> {
+  async save(company: Company): Promise<Company> {
     const tenantConnection = await schemaManager.getTenantDb(company.getTenantId());
     const { db: tenantDb } = tenantConnection;
     const schemaName = `tenant_${company.getTenantId().replace(/-/g, '_')}`;
@@ -247,7 +247,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
     return result.rowCount > 0;
   }
 
-  async count(filter: Omit<CustomerCompanyFilter, 'limit' | 'offset'>): Promise<number> {
+  async count(filter: Omit<CompanyFilter, 'limit' | 'offset'>): Promise<number> {
     const tenantConnection = await schemaManager.getTenantDb(filter.tenantId);
     const { db: tenantDb } = tenantConnection;
     const schemaName = `tenant_${filter.tenantId.replace(/-/g, '_')}`;
@@ -311,7 +311,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
 
   // Customer Company Membership Operations
   // Note: Membership operations need tenantId to determine which schema to use
-  async findMembershipById(id: string, tenantId: string): Promise<CustomerCompanyMembership | null> {
+  async findMembershipById(id: string, tenantId: string): Promise<CompanyMembership | null> {
     const tenantConnection = await schemaManager.getTenantDb(tenantId);
     const { db: tenantDb, schema: tenantSchema } = tenantConnection;
 
@@ -328,7 +328,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
     return this.toMembershipDomainEntity(result[0]);
   }
 
-  async findMembershipsByCustomer(customerId: string, tenantId: string): Promise<CustomerCompanyMembership[]> {
+  async findMembershipsByCustomer(customerId: string, tenantId: string): Promise<CompanyMembership[]> {
     const tenantConnection = await schemaManager.getTenantDb(tenantId);
     const { db: tenantDb, schema: tenantSchema } = tenantConnection;
 
@@ -341,7 +341,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
     return results.map(result => this.toMembershipDomainEntity(result.company_memberships));
   }
 
-  async findMembershipsByCompany(companyId: string, tenantId: string): Promise<CustomerCompanyMembership[]> {
+  async findMembershipsByCompany(companyId: string, tenantId: string): Promise<CompanyMembership[]> {
     const tenantConnection = await schemaManager.getTenantDb(tenantId);
     const { db: tenantDb, schema: tenantSchema } = tenantConnection;
 
@@ -353,7 +353,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
     return results.map(result => this.toMembershipDomainEntity(result.company_memberships));
   }
 
-  async findMemberships(filter: CustomerCompanyMembershipFilter): Promise<CustomerCompanyMembership[]> {
+  async findMemberships(filter: CompanyMembershipFilter): Promise<CompanyMembership[]> {
     const tenantConnection = await schemaManager.getTenantDb(filter.tenantId);
     const { db: tenantDb, schema: tenantSchema } = tenantConnection;
 
@@ -405,7 +405,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
     return results.map(result => this.toMembershipDomainEntity(result.membership));
   }
 
-  async saveMembership(membership: CustomerCompanyMembership, tenantId: string): Promise<CustomerCompanyMembership> {
+  async saveMembership(membership: CompanyMembership, tenantId: string): Promise<CompanyMembership> {
     const tenantConnection = await schemaManager.getTenantDb(tenantId);
     const { db: tenantDb, schema: tenantSchema } = tenantConnection;
     const membershipData = this.toMembershipPersistenceData(membership);
@@ -447,7 +447,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
     return result.rowCount > 0;
   }
 
-  async countMemberships(filter: Omit<CustomerCompanyMembershipFilter, 'limit' | 'offset'>): Promise<number> {
+  async countMemberships(filter: Omit<CompanyMembershipFilter, 'limit' | 'offset'>): Promise<number> {
     const tenantConnection = await schemaManager.getTenantDb(filter.tenantId);
     const { db: tenantDb, schema: tenantSchema } = tenantConnection;
 
@@ -491,7 +491,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
   }
 
   // Special queries
-  async findPrimaryCompanyByCustomer(customerId: string, tenantId: string): Promise<CustomerCompany | null> {
+  async findPrimaryCompanyByCustomer(customerId: string, tenantId: string): Promise<Company | null> {
     const tenantConnection = await schemaManager.getTenantDb(tenantId);
     const { db: tenantDb, schema: tenantSchema } = tenantConnection;
 
@@ -515,7 +515,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
     return this.toCompanyDomainEntity(result[0].company, tenantId);
   }
 
-  async findCompaniesByCustomer(customerId: string, tenantId: string): Promise<CustomerCompany[]> {
+  async findCompaniesByCustomer(customerId: string, tenantId: string): Promise<Company[]> {
     const tenantConnection = await schemaManager.getTenantDb(tenantId);
     const { db: tenantDb, schema: tenantSchema } = tenantConnection;
 
@@ -584,8 +584,8 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
   }
 
   // Private mapping methods
-  private toCompanyDomainEntity(data: any, tenantId?: string): CustomerCompany {
-    return CustomerCompany.fromPersistence({
+  private toCompanyDomainEntity(data: any, tenantId?: string): Company {
+    return Company.fromPersistence({
       id: data.id,
       tenantId: tenantId || data.tenant_id, // Pass tenantId from context or data
       name: data.name,
@@ -616,7 +616,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
     });
   }
 
-  private toCompanyPersistenceData(company: CustomerCompany): any {
+  private toCompanyPersistenceData(company: Company): any {
     return {
       id: company.getId(),
       // tenantId not needed - we're already in tenant-specific schema
@@ -648,8 +648,8 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
     };
   }
 
-  private toMembershipDomainEntity(data: any): CustomerCompanyMembership {
-    return CustomerCompanyMembership.fromPersistence({
+  private toMembershipDomainEntity(data: any): CompanyMembership {
+    return CompanyMembership.fromPersistence({
       id: data.id,
       customerId: data.customer_id,
       companyId: data.company_id,
@@ -665,7 +665,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
     });
   }
 
-  private toMembershipPersistenceData(membership: CustomerCompanyMembership): any {
+  private toMembershipPersistenceData(membership: CompanyMembership): any {
     return {
       id: membership.getId(),
       customer_id: membership.getCustomerId(),
@@ -683,7 +683,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
   }
 
   // New method added to fetch all active companies for a tenant
-  async getAllByTenant(tenantId: string): Promise<CustomerCompany[]> {
+  async getAllByTenant(tenantId: string): Promise<Company[]> {
     const rows = await this.db
       .select()
       .from(customerCompanies)
@@ -693,6 +693,6 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
       ))
       .orderBy(customerCompanies.name);
 
-    return rows.map(row => CustomerCompany.fromPersistence(row));
+    return rows.map(row => Company.fromPersistence(row));
   }
 }

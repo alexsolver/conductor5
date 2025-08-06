@@ -53,7 +53,7 @@ class NomenclatureStandardizer {
       {
         context: 'component',
         pattern: 'PascalCase for React components, camelCase for props',
-        examples: ['CustomerCompanies.tsx', 'FavorecidosTable.tsx'],
+        examples: ['Companies.tsx', 'FavorecidosTable.tsx'],
         exceptions: ['Acronyms like CPFField, CNPJValidator'],
         justification: 'React conventions + readability'
       }

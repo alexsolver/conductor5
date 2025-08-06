@@ -108,7 +108,7 @@ export class DependencyContainer implements IDependencyContainer {
 export const TOKENS = {
   // Repositories
   CUSTOMER_REPOSITORY: Symbol('ICustomerRepository'),
-  CUSTOMER_COMPANY_REPOSITORY: Symbol('ICustomerCompanyRepository'),
+  COMPANY_REPOSITORY: Symbol('ICompanyRepository'),
   TICKET_REPOSITORY: Symbol('ITicketRepository'),
   USER_REPOSITORY: Symbol('IUserRepository'),
   PERSON_REPOSITORY: Symbol('IPersonRepository'),
@@ -119,11 +119,11 @@ export const TOKENS = {
   UPDATE_CUSTOMER_USE_CASE: Symbol('UpdateCustomerUseCase'),
   DELETE_CUSTOMER_USE_CASE: Symbol('DeleteCustomerUseCase'),
   
-  // Customer Company Use Cases
-  CREATE_CUSTOMER_COMPANY_USE_CASE: Symbol('CreateCustomerCompanyUseCase'),
-  GET_CUSTOMER_COMPANIES_USE_CASE: Symbol('GetCustomerCompaniesUseCase'),
-  UPDATE_CUSTOMER_COMPANY_USE_CASE: Symbol('UpdateCustomerCompanyUseCase'),
-  MANAGE_CUSTOMER_COMPANY_MEMBERSHIP_USE_CASE: Symbol('ManageCustomerCompanyMembershipUseCase'),
+  // Company Use Cases
+  CREATE_COMPANY_USE_CASE: Symbol('CreateCompanyUseCase'),
+  GET_COMPANIES_USE_CASE: Symbol('GetCompaniesUseCase'),
+  UPDATE_COMPANY_USE_CASE: Symbol('UpdateCompanyUseCase'),
+  MANAGE_COMPANY_MEMBERSHIP_USE_CASE: Symbol('ManageCompanyMembershipUseCase'),
   
   CREATE_TICKET_USE_CASE: Symbol('CreateTicketUseCase'),
   GET_TICKETS_USE_CASE: Symbol('GetTicketsUseCase'),
@@ -132,7 +132,7 @@ export const TOKENS = {
   
   // Application Services
   CUSTOMER_APPLICATION_SERVICE: Symbol('CustomerApplicationService'),
-  CUSTOMER_COMPANY_CONTROLLER: Symbol('CustomerCompanyController'),
+  COMPANY_CONTROLLER: Symbol('CompanyController'),
   TICKET_APPLICATION_SERVICE: Symbol('TicketApplicationService'),
   
   // CQRS

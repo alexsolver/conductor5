@@ -91,7 +91,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const [companies, setCustomerCompanies] = useState<any[]>([]);
+  const [companies, setCompanies] = useState<any[]>([]);
   const [selectedCompanyId, setSelectedCompanyId] = useState('');
 
 
@@ -190,7 +190,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
     }
 
     // Fetch customer companies
-    const { data: companiesData, refetch: refetchCustomerCompanies } = useQuery({
+    const { data: companiesData, refetch: refetchCompanies } = useQuery({
       queryKey: [`/api/customers/${customer?.id}/companies`],
       queryFn: async () => {
         if (!customer?.id) return [];
@@ -215,7 +215,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
       companies = companiesData.data;
     }
 
-    setCustomerCompanies(companies);
+    setCompanies(companies);
   }, [companiesData, customer?.id]);
 
   // Force refresh data when customer changes or modal opens
@@ -227,11 +227,11 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
 
       // Force immediate refresh
       setTimeout(() => {
-        refetchCustomerCompanies();
+        refetchCompanies();
         refetchAvailableCompanies();
       }, 100);
     }
-  }, [customer?.id, isOpen, refetchCustomerCompanies, refetchAvailableCompanies, queryClient]);
+  }, [customer?.id, isOpen, refetchCompanies, refetchAvailableCompanies, queryClient]);
 
   // Reset form when customer data changes
   useEffect(() => {
@@ -377,7 +377,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
       setSelectedCompanyId('');
 
       // Atualizar dados
-      await refetchCustomerCompanies();
+      await refetchCompanies();
 
       toast({
         title: "Sucesso",
@@ -427,7 +427,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
       }
 
       // Atualizar estado local imediatamente
-      setCustomerCompanies(prevCompanies => {
+      setCompanies(prevCompanies => {
         const filtered = prevCompanies.filter(company => 
           (company.company_id || company.id) !== companyId
         );
@@ -447,7 +447,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
       await new Promise(resolve => setTimeout(resolve, 100));
 
       // Refetch simples
-      await refetchCustomerCompanies();
+      await refetchCompanies();
       await refetchAvailableCompanies();
 
       toast({
