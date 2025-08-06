@@ -879,19 +879,20 @@ export class TimecardController {
       // Teste direto com SQL raw para debug
       console.log('[ATTENDANCE-REPORT] Query params:', {
         userId,
+        targetUserId,
         tenantId,
         startDateStr: startDate.toISOString().split('T')[0],
         endDateStr: endDate.toISOString().split('T')[0]
       });
 
       // Buscar todos os registros do período (pending e approved)
-      console.log('[ATTENDANCE-REPORT] Executing query for user:', userId, 'tenant:', tenantId);
+      console.log('[ATTENDANCE-REPORT] Executing query for target user:', targetUserId, 'tenant:', tenantId);
       
       const records = await db
         .select()
         .from(timecardEntries)
         .where(and(
-          eq(timecardEntries.userId, userId),
+          eq(timecardEntries.userId, targetUserId),
           eq(timecardEntries.tenantId, tenantId),
           inArray(timecardEntries.status, ['pending', 'approved']),
           sql`(
@@ -1137,6 +1138,7 @@ export class TimecardController {
   async getOvertimeReport(req: AuthenticatedRequest, res: Response) {
     try {
       const { period } = req.params;
+      const { startDate: filterStartDate, endDate: filterEndDate, employeeId } = req.query;
       const tenantId = req.user?.tenantId;
       const userId = req.user?.id;
 
@@ -1147,12 +1149,33 @@ export class TimecardController {
         });
       }
 
-      console.log('[OVERTIME-REPORT] Generating report for period:', period, 'user:', userId);
+      console.log('[OVERTIME-REPORT] Generating report with filters:', {
+        period,
+        userId: userId.slice(-8),
+        filters: { startDate: filterStartDate, endDate: filterEndDate, employeeId }
+      });
 
-      // Parse period (formato: YYYY-MM)
+      // Parse period (formato: YYYY-MM) - base date range
       const [year, month] = period.split('-').map(Number);
-      const startDate = new Date(year, month - 1, 1);
-      const endDate = new Date(year, month, 0, 23, 59, 59);
+      let startDate = new Date(year, month - 1, 1);
+      let endDate = new Date(year, month, 0, 23, 59, 59);
+
+      // Override with filter dates if provided
+      if (filterStartDate && typeof filterStartDate === 'string') {
+        startDate = new Date(filterStartDate + 'T00:00:00');
+        console.log('[OVERTIME-REPORT] Using filter start date:', startDate.toISOString());
+      }
+      if (filterEndDate && typeof filterEndDate === 'string') {
+        endDate = new Date(filterEndDate + 'T23:59:59');
+        console.log('[OVERTIME-REPORT] Using filter end date:', endDate.toISOString());
+      }
+
+      // Determine target user ID (for admin users to see other employees)
+      let targetUserId = userId;
+      if (employeeId && typeof employeeId === 'string' && employeeId !== 'todos') {
+        targetUserId = employeeId;
+        console.log('[OVERTIME-REPORT] Filtering for specific employee:', targetUserId.slice(-8));
+      }
 
       console.log('[OVERTIME-REPORT] Date range:', startDate.toISOString(), 'to', endDate.toISOString());
 
@@ -1162,7 +1185,7 @@ export class TimecardController {
         .select()
         .from(timecardEntries)
         .where(and(
-          eq(timecardEntries.userId, userId),
+          eq(timecardEntries.userId, targetUserId),
           eq(timecardEntries.tenantId, tenantId),
           eq(timecardEntries.status, 'approved'),
           sql`DATE(${timecardEntries.checkIn}) >= ${startDate.toISOString().split('T')[0]}`,
