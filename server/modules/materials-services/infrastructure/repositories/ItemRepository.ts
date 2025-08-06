@@ -1,7 +1,7 @@
 import { eq, and, like, desc, or, sql, inArray, asc } from 'drizzle-orm';
 import { items, itemAttachments, itemLinks, itemCustomerLinks, itemSupplierLinks, customerItemMappings } from '../../../../../shared/schema-master';
-import { customer as customerTable } from '../../../../../shared/schema-master';
-import { supplier as supplierTable } from '../../../../../shared/schema-master';
+import { customers as customerTable } from '../../../../../shared/schema-master';
+import { suppliers as supplierTable } from '../../../../../shared/schema-master';
 import type { Item } from '../../domain/entities';
 import type { ExtractTablesWithRelations } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
@@ -283,7 +283,7 @@ export class ItemRepository {
       const customerLinks = await this.db
         .select({
           id: customerTable.id,
-          name: customerTable.displayName
+          name: sql<string>`${customerTable.firstName} || ' ' || ${customerTable.lastName}`
         })
         .from(customerItemMappings)
         .innerJoin(customerTable, eq(customerItemMappings.customerId, customerTable.id))
@@ -301,7 +301,7 @@ export class ItemRepository {
       const supplierLinks = await this.db
         .select({
           id: supplierTable.id,
-          name: supplierTable.companyName
+          name: supplierTable.name
         })
         .from(itemSupplierLinks)
         .innerJoin(supplierTable, eq(itemSupplierLinks.supplierId, supplierTable.id))
@@ -309,7 +309,7 @@ export class ItemRepository {
           and(
             eq(itemSupplierLinks.itemId, itemId),
             eq(itemSupplierLinks.tenantId, tenantId),
-            eq(supplierTable.isActive, true)
+            eq(supplierTable.active, true)
           )
         )
         .limit(50);
