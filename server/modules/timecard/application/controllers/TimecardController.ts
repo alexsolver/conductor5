@@ -3,13 +3,13 @@ import { DrizzleTimecardRepository } from '../../infrastructure/repositories/Dri
 import { Request, Response } from 'express';
 import { z } from 'zod';
 import { db } from '../../../../db';
-import { timecardEntries, workSchedules } from '../../../../shared/schema-master';
+import { timecardEntries, workSchedules } from '../../../../../shared/schema-master';
 import { 
   createTimecardEntrySchema,
   createAbsenceRequestSchema,
   createScheduleTemplateSchema,
   createFlexibleWorkArrangementSchema
-} from '../../../../shared/timecard-validation';
+} from '../../../../../shared/timecard-validation';
 import { AuthenticatedRequest } from '../../middleware/isAuthenticated';
 
 // Validation schemas
