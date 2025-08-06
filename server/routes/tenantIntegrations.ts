@@ -588,78 +588,74 @@ router.post('/:integrationId/test', requirePermission(Permission.TENANT_MANAGE_S
                     console.log(`🔍 [TELEGRAM-TEST] Testing bot token with Telegram API...`);
                     
                     const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+                    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
                     
                     const response = await fetch(telegramApiUrl, {
                       method: 'GET',
                       signal: controller.signal,
                       headers: {
-                        'User-Agent': 'Mozilla/5.0 (compatible; TelegramBot/1.0)'
+                        'User-Agent': 'Mozilla/5.0 (compatible; TelegramBot/1.0)',
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
                       }
                     });
                     
                     clearTimeout(timeoutId);
                     
-                    if (response.ok) {
-                      const contentType = response.headers.get('content-type');
-                      console.log(`🔍 [TELEGRAM-TEST] Response content-type: ${contentType}`);
-                      
-                      if (contentType && contentType.includes('application/json')) {
-                        try {
-                          const responseText = await response.text();
-                          console.log(`🔍 [TELEGRAM-TEST] Raw response: ${responseText.substring(0, 200)}...`);
+                    // Always get response text first to debug
+                    const responseText = await response.text();
+                    const contentType = response.headers.get('content-type') || '';
+                    
+                    console.log(`🔍 [TELEGRAM-TEST] Response status: ${response.status}, content-type: ${contentType}`);
+                    console.log(`🔍 [TELEGRAM-TEST] Raw response (first 500 chars): ${responseText.substring(0, 500)}...`);
+                    
+                    if (response.ok && contentType.includes('application/json')) {
+                      try {
+                        const data = JSON.parse(responseText);
+                        
+                        if (data.ok && data.result) {
+                          const botInfo = data.result;
+                          console.log(`✅ [TELEGRAM-TEST] Bot API test successful:`, botInfo.username);
                           
-                          const data = JSON.parse(responseText);
-                          
-                          if (data.ok && data.result) {
-                            const botInfo = data.result;
-                            console.log(`✅ [TELEGRAM-TEST] Bot API test successful:`, botInfo.username);
-                            
-                            // Update test result with API success
-                            testResult.details.telegramApiStatus = 'valid';
-                            testResult.details.status = 'Bot Telegram verificado e funcionando';
-                            testResult.details.botInfo = {
-                              id: botInfo.id,
-                              username: botInfo.username,
-                              first_name: botInfo.first_name
-                            };
-                            testResult.details.validations.telegramApiConnected = true;
-                          } else {
-                            console.log(`❌ [TELEGRAM-TEST] Bot API test failed:`, data.description || 'Unknown error');
-                            testResult.details.telegramApiStatus = 'invalid';
-                            testResult.details.warnings.push('Token inválido: ' + (data.description || 'Erro desconhecido'));
-                          }
-                        } catch (jsonError) {
-                          console.log(`❌ [TELEGRAM-TEST] JSON parse error:`, (jsonError as Error).message);
-                          testResult.details.telegramApiStatus = 'error';
-                          testResult.details.warnings.push('Resposta da API do Telegram não é JSON válido');
+                          // Update test result with API success
+                          testResult.details.telegramApiStatus = 'valid';
+                          testResult.details.status = 'Bot Telegram verificado e funcionando';
+                          testResult.details.botInfo = {
+                            id: botInfo.id,
+                            username: botInfo.username,
+                            first_name: botInfo.first_name
+                          };
+                          testResult.details.validations.telegramApiConnected = true;
+                        } else {
+                          console.log(`❌ [TELEGRAM-TEST] Bot API test failed:`, data.description || 'Unknown error');
+                          testResult.details.telegramApiStatus = 'invalid';
+                          testResult.details.warnings.push('Token inválido: ' + (data.description || 'Erro desconhecido'));
                         }
-                      } else {
-                        console.log(`❌ [TELEGRAM-TEST] Bot API returned non-JSON response`);
-                        const responseText = await response.text();
-                        console.log(`🔍 [TELEGRAM-TEST] Non-JSON response: ${responseText.substring(0, 200)}...`);
+                      } catch (jsonError) {
+                        console.log(`❌ [TELEGRAM-TEST] JSON parse error:`, (jsonError as Error).message);
                         testResult.details.telegramApiStatus = 'error';
-                        testResult.details.warnings.push('API do Telegram retornou resposta HTML/não-JSON (possível token inválido)');
+                        testResult.details.warnings.push('Resposta da API do Telegram não é JSON válido');
                       }
                     } else {
-                      console.log(`❌ [TELEGRAM-TEST] Bot API HTTP error: ${response.status} ${response.statusText}`);
-                      const responseText = await response.text();
-                      console.log(`🔍 [TELEGRAM-TEST] Error response: ${responseText.substring(0, 200)}...`);
-                      
+                      // Handle non-JSON responses (HTML errors, etc.)
+                      console.log(`❌ [TELEGRAM-TEST] Non-JSON or error response`);
                       testResult.details.telegramApiStatus = 'invalid';
+                      
                       if (response.status === 401) {
                         testResult.details.warnings.push('Token do bot inválido - verifique se o token está correto');
                       } else if (response.status === 404) {
                         testResult.details.warnings.push('Bot não encontrado - verifique o token ou se o bot foi criado corretamente');
+                      } else if (responseText.includes('<!DOCTYPE') || responseText.includes('<html')) {
+                        testResult.details.warnings.push('API do Telegram retornou página HTML - possivelmente token mal formatado');
                       } else {
-                        testResult.details.warnings.push(`API do Telegram retornou erro HTTP: ${response.status}`);
+                        testResult.details.warnings.push(`Erro na API do Telegram (HTTP ${response.status}): ${response.statusText}`);
                       }
                     }
                   } catch (apiError) {
                     console.log(`⚠️ [TELEGRAM-TEST] Bot API test error (continuing):`, (apiError as Error).message);
                     testResult.details.telegramApiStatus = 'error';
                     if ((apiError as Error).name === 'AbortError') {
-                      testResult.details.warnings.push('Timeout ao conectar com a API do Telegram (5s)');
+                      testResult.details.warnings.push('Timeout ao conectar com a API do Telegram (10s)');
                     } else {
                       testResult.details.warnings.push('Erro de conectividade com a API do Telegram: ' + (apiError as Error).message);
                     }
