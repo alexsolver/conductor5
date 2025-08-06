@@ -1460,6 +1460,7 @@ export class DatabaseStorage implements IStorage {
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
       console.log(`🔍 [GET-CONFIG] Fetching config for ${integrationId} in tenant ${validatedTenantId}`);
+      console.log(`🔍 [GET-CONFIG] Schema: ${schemaName}`);
 
       const result = await tenantDb.execute(sql`
         SELECT * FROM ${sql.identifier(schemaName)}.tenant_integrations
@@ -1470,7 +1471,14 @@ export class DatabaseStorage implements IStorage {
       console.log(`🔍 [GET-CONFIG] Found ${result.rows?.length || 0} rows for ${integrationId}`);
       
       if (result.rows && result.rows.length > 0) {
-        console.log(`🔍 [GET-CONFIG] Config keys:`, Object.keys(result.rows[0].config || {}));
+        const row = result.rows[0];
+        console.log(`🔍 [GET-CONFIG] Full row data:`, JSON.stringify(row, null, 2));
+        console.log(`🔍 [GET-CONFIG] Config field type:`, typeof row.config);
+        console.log(`🔍 [GET-CONFIG] Config field value:`, row.config);
+        
+        if (row.config && typeof row.config === 'object') {
+          console.log(`🔍 [GET-CONFIG] Config keys:`, Object.keys(row.config));
+        }
       }
 
       return result.rows?.[0] || undefined;
