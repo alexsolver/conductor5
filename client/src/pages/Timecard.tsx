@@ -336,7 +336,7 @@ export default function Timecard() {
               <div>Erro ao carregar relatório mensal</div>
               <div className="text-sm mt-2">Tente recarregar a página</div>
             </div>
-          ) : monthlyReport?.records && monthlyReport.records.length > 0 ? (</old_str>
+          ) : monthlyReport?.records && monthlyReport.records.length > 0 ? (
             <>
               {/* Tabela de registros */}
               <div className="overflow-x-auto mb-6">
