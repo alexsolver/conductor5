@@ -1,4 +1,3 @@
-
 import { Router } from 'express';
 import { jwtAuth } from '../../middleware/jwtAuth';
 import { TimecardController } from './application/controllers/TimecardController';
@@ -87,5 +86,8 @@ timecardRouter.get('/reports/attendance/:period', jwtAuth, (req, res) =>
 timecardRouter.get('/reports/overtime/:period', jwtAuth, (req, res) => 
   timecardController.getOvertimeReport(req, res)
 );
+
+// Current status route  
+timecardRouter.get('/current-status', jwtAuth, timecardController.getCurrentStatus.bind(timecardController));
 
 export { timecardRouter };
