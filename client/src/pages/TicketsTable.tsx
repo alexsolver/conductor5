@@ -33,30 +33,30 @@ import { ResponsiveTicketsTable } from "@/components/tickets/ResponsiveTicketsTa
 import { OptimizedBadge } from "@/components/tickets/OptimizedBadge";
 import { useOptimizedQuery } from "@/hooks/useOptimizedQuery";
 
-// Schema for ticket creation/editing - ServiceNow style
+// ✅ SCHEMA DINÂMICO para ticket creation/editing - ServiceNow style
 const ticketSchema = z.object({
   // Basic Fields
   description: z.string().min(1, "Descrição é obrigatória"),
   category: z.string().optional(),
   subcategory: z.string().optional(),
-  priority: z.enum(["low", "medium", "high", "critical"]),
-  impact: z.enum(["low", "medium", "high", "critical"]).optional(),
-  urgency: z.enum(["low", "medium", "high"]).optional(),
-  state: z.enum(["new", "in_progress", "resolved", "closed", "cancelled"]).optional(),
+  priority: z.string().refine(val => ['low', 'medium', 'high', 'critical'].includes(val), "Prioridade inválida"),
+  impact: z.string().refine(val => ['low', 'medium', 'high', 'critical'].includes(val), "Impacto inválido").optional(),
+  urgency: z.string().refine(val => ['low', 'medium', 'high'].includes(val), "Urgência inválida").optional(),
+  state: z.string().refine(val => ['new', 'in_progress', 'resolved', 'closed', 'cancelled'].includes(val), "Estado inválido").optional(),
 
   // Assignment Fields - Enhanced for flexible person referencing
   companyId: z.string().min(1, "Empresa é obrigatória"),
   callerId: z.string().min(1, "Solicitante é obrigatório"),
-  callerType: z.enum(["user", "customer"]).default("customer"),
+  callerType: z.string().refine(val => ["user", "customer"].includes(val), "Tipo de solicitante inválido").default("customer"),
   beneficiaryId: z.string().optional(), // Optional - defaults to callerId
-  beneficiaryType: z.enum(["user", "customer"]).optional(),
+  beneficiaryType: z.string().refine(val => ["user", "customer"].includes(val), "Tipo de beneficiário inválido").optional(),
 
   assignedToId: z.string().optional(),
   assignmentGroup: z.string().optional(),
   location: z.string().optional(),
 
   // Communication Fields
-  contactType: z.enum(["email", "phone", "self_service", "chat"]).optional(),
+  contactType: z.string().refine(val => ["email", "phone", "self_service", "chat"].includes(val), "Tipo de contato inválido").optional(),
 
   // Business Fields
   businessImpact: z.string().optional(),
@@ -65,7 +65,7 @@ const ticketSchema = z.object({
 
   // Using subject field directly - no legacy conversion needed
   subject: z.string().min(1, "Título do ticket é obrigatório"),
-  status: z.enum(["open", "in_progress", "resolved", "closed"]).optional(),
+  status: z.string().refine(val => ["open", "in_progress", "resolved", "closed"].includes(val), "Status inválido").optional(),
   tags: z.array(z.string()).default([]),
 });
 

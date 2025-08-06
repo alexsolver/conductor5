@@ -1,11 +1,25 @@
-// PROBLEMA 10 RESOLVIDO: Schema Zod completo para validação de tickets
+// PROBLEMA HARD-CODED ENUMS RESOLVIDO: Schema Zod com validações dinâmicas
 import { z } from 'zod';
+import { 
+  DynamicTicketPriorityEnum, 
+  DynamicTicketStatusEnum, 
+  DynamicTicketImpactEnum, 
+  DynamicTicketUrgencyEnum,
+  DynamicContactTypeEnum,
+  DynamicCallerTypeEnum
+} from './dynamic-validation';
 
-// Enums alinhados com dados reais do banco de dados (valores em inglês)
-export const TicketStatusEnum = z.enum(['new', 'open', 'in_progress', 'resolved', 'closed']);
-export const TicketPriorityEnum = z.enum(['low', 'medium', 'high', 'critical']);
-export const TicketImpactEnum = z.enum(['low', 'medium', 'high', 'critical']);
-export const TicketUrgencyEnum = z.enum(['low', 'medium', 'high']);
+// ✅ ENUMS DINÂMICOS baseados nas configurações do banco de dados
+export const TicketStatusEnum = DynamicTicketStatusEnum;
+export const TicketPriorityEnum = DynamicTicketPriorityEnum;
+export const TicketImpactEnum = DynamicTicketImpactEnum;
+export const TicketUrgencyEnum = DynamicTicketUrgencyEnum;
+
+// ✅ ENUMS DINÂMICOS para campos categóricos (declarados antes do uso)
+export const TicketCategoryEnum = z.string(); // Dinâmico via DynamicSelect
+export const CallerTypeEnum = DynamicCallerTypeEnum;
+export const ContactTypeEnum = DynamicContactTypeEnum;
+export const LinkTypeEnum = z.enum(['relates_to', 'blocks', 'blocked_by', 'duplicates', 'caused_by']); // Manter fixo (relacionamento)
 
 // Schema para validação de formulário - aceita valores do banco E mapeamento frontend
 export const ticketFormValidationSchema = z.object({
@@ -22,13 +36,13 @@ export const ticketFormValidationSchema = z.object({
   subcategory: z.string().optional(),
   action: z.string().optional(),
   callerId: z.string().optional(),
-  callerType: z.enum(['user', 'customer']).default('customer'),
+  callerType: CallerTypeEnum.default('customer'),
   beneficiaryId: z.string().optional(),
-  beneficiaryType: z.enum(['user', 'customer']).default('customer'),
+  beneficiaryType: CallerTypeEnum.default('customer'),
   responsibleId: z.string().optional(),
   assignmentGroup: z.string().optional(),
   location: z.string().optional(),
-  contactType: z.enum(['email', 'phone', 'chat', 'portal']).default('email'),
+  contactType: ContactTypeEnum.default('email'),
   businessImpact: z.string().optional(),
   symptoms: z.string().optional(),
   workaround: z.string().optional(),
@@ -41,10 +55,6 @@ export const ticketFormValidationSchema = z.object({
   followers: z.array(z.string()).default([]),
   customerCompanyId: z.string().optional(),
 });
-export const TicketCategoryEnum = z.enum(['support', 'incident', 'request', 'change', 'problem', 'maintenance']);
-export const CallerTypeEnum = z.enum(['user', 'customer', 'system']);
-export const ContactTypeEnum = z.enum(['email', 'phone', 'chat', 'portal', 'api']);
-export const LinkTypeEnum = z.enum(['relates_to', 'blocks', 'blocked_by', 'duplicates', 'caused_by']);
 
 // Schema base para ticket com todos os campos obrigatórios marcados
 export const ticketFormSchema = z.object({
