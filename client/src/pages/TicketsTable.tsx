@@ -25,6 +25,7 @@ import { UserGroupSelect } from "@/components/ui/UserGroupSelect";
 import { DynamicBadge } from "@/components/DynamicBadge";
 import { PersonSelector } from "@/components/PersonSelector";
 import { useFieldColors } from "@/hooks/useFieldColors";
+import { useFieldLabels } from "@/hooks/useFieldLabels";
 import { useCompanyNameResolver } from "@/hooks/useCompanyName";
 import TicketLinkingModal from "@/components/tickets/TicketLinkingModal";
 import TicketHierarchyView from "@/components/tickets/TicketHierarchyView";
@@ -225,15 +226,18 @@ const TicketsTable = React.memo(() => {
   const [ticketRelationships, setTicketRelationships] = useState<Record<string, any[]>>({});
   const [ticketsWithRelationships, setTicketsWithRelationships] = useState<Set<string>>(new Set());
 
-  // Hook para buscar cores dos campos personalizados com estado aprimorado
-  const { getFieldColor, getFieldLabel, isLoading: isFieldColorsLoading, isReady: isFieldColorsReady } = useFieldColors();
+  // Hook para buscar cores dos campos personalizados
+  const { getFieldColor, isLoading: isFieldColorsLoading } = useFieldColors();
+  
+  // Hook para buscar labels dos campos personalizados  
+  const { getFieldLabel, isLoading: isFieldLabelsLoading } = useFieldLabels();
 
   // Hook para resolver nomes de empresas
   const { getCompanyName } = useCompanyNameResolver();
 
   // Debug das cores dos campos
   React.useEffect(() => {
-    if (!isFieldColorsLoading) {
+    if (!isFieldColorsLoading && !isFieldLabelsLoading) {
       console.log('🎨 Field colors hook status:', {
         isLoading: isFieldColorsLoading,
         getFieldColor: typeof getFieldColor,
@@ -266,7 +270,7 @@ const TicketsTable = React.memo(() => {
         console.log(`  ${c}: ${color} (${label})`);
       });
     }
-  }, [isFieldColorsLoading, getFieldColor, getFieldLabel]);
+  }, [isFieldColorsLoading, isFieldLabelsLoading, getFieldColor, getFieldLabel]);
 
   // Status mapping simplificado - usar valores diretos do banco
   const statusMapping: Record<string, string> = {
@@ -917,7 +921,7 @@ const TicketsTable = React.memo(() => {
           const rawCategoryValue = (ticket as any).category;
 
           // 🚨 CORREÇÃO CRÍTICA: Aguardar cores estarem prontas (não apenas loading)
-          if (!isFieldColorsReady) {
+          if (isFieldColorsLoading || isFieldLabelsLoading) {
             return (
               <TableCell className="overflow-hidden" style={cellStyle}>
                 <div className="h-5 w-16 bg-gray-200 animate-pulse rounded"></div>
@@ -957,7 +961,7 @@ const TicketsTable = React.memo(() => {
           );
         case 'status':
           // 🚨 CORREÇÃO CRÍTICA: Aguardar cores estarem prontas
-          if (!isFieldColorsReady) {
+          if (isFieldColorsLoading || isFieldLabelsLoading) {
             return (
               <TableCell className="overflow-hidden" style={cellStyle}>
                 <div className="h-5 w-16 bg-gray-200 animate-pulse rounded"></div>
@@ -983,7 +987,7 @@ const TicketsTable = React.memo(() => {
           );
         case 'priority':
           // 🚨 CORREÇÃO CRÍTICA: Aguardar cores estarem prontas
-          if (!isFieldColorsReady) {
+          if (isFieldColorsLoading || isFieldLabelsLoading) {
             return (
               <TableCell className="overflow-hidden" style={cellStyle}>
                 <div className="h-5 w-16 bg-gray-200 animate-pulse rounded"></div>
@@ -1009,7 +1013,7 @@ const TicketsTable = React.memo(() => {
           );
         case 'impact':
           // 🚨 CORREÇÃO CRÍTICA: Aguardar cores estarem prontas
-          if (!isFieldColorsReady) {
+          if (isFieldColorsLoading || isFieldLabelsLoading) {
             return (
               <TableCell className="overflow-hidden" style={cellStyle}>
                 <div className="h-5 w-16 bg-gray-200 animate-pulse rounded"></div>
@@ -1088,7 +1092,7 @@ const TicketsTable = React.memo(() => {
           }
 
           // 🚨 CORREÇÃO CRÍTICA: Aguardar cores estarem prontas
-          if (!isFieldColorsReady) {
+          if (isFieldColorsLoading || isFieldLabelsLoading) {
             return (
               <TableCell className="overflow-hidden" style={cellStyle}>
                 <div className="h-5 w-20 bg-gray-200 animate-pulse rounded"></div>
@@ -1113,7 +1117,7 @@ const TicketsTable = React.memo(() => {
           );
         case 'urgency':
           // 🚨 CORREÇÃO CRÍTICA: Aguardar cores estarem prontas
-          if (!isFieldColorsReady) {
+          if (isFieldColorsLoading || isFieldLabelsLoading) {
             return (
               <TableCell className="overflow-hidden" style={cellStyle}>
                 <div className="h-5 w-16 bg-gray-200 animate-pulse rounded"></div>
@@ -2163,7 +2167,7 @@ const TicketsTable = React.memo(() => {
         <CardContent>
         <ResponsiveTicketsTable
           tickets={tickets}
-          isLoading={isLoading || !isFieldColorsReady}
+          isLoading={isLoading || isFieldColorsLoading || isFieldLabelsLoading}
           onEdit={handleEdit}
           onDelete={handleDelete}
           onToggleExpand={toggleTicketExpansion}

@@ -11,6 +11,7 @@ import { SmartDynamicBadge } from "@/components/SmartDynamicBadge";
 import { useComponentLoading } from "@/components/LoadingStateManager";
 import { AccessibilityIndicator } from "@/components/AccessibilityIndicator";
 import { useFieldColors } from "@/hooks/useFieldColors";
+import { useFieldLabels } from "@/hooks/useFieldLabels";
 
 interface ResponsiveTicketsTableProps {
   tickets: any[];
@@ -181,7 +182,8 @@ export const ResponsiveTicketsTable: React.FC<ResponsiveTicketsTableProps> = ({
 }) => {
   const [isMobileView, setIsMobileView] = useState(window.innerWidth < 768);
   const { isLoading: isComponentLoading, setComponentLoading } = useComponentLoading('tickets-table');
-  const { isReady: isFieldColorsReady } = useFieldColors();
+  const { isLoading: isFieldColorsLoading } = useFieldColors();
+  const { isLoading: isFieldLabelsLoading } = useFieldLabels();
 
   // Listen for window resize
   React.useEffect(() => {
@@ -192,8 +194,8 @@ export const ResponsiveTicketsTable: React.FC<ResponsiveTicketsTableProps> = ({
 
   // Sync loading states
   React.useEffect(() => {
-    setComponentLoading(isLoading || !isFieldColorsReady);
-  }, [isLoading, isFieldColorsReady, setComponentLoading]);
+    setComponentLoading(isLoading || isFieldColorsLoading || isFieldLabelsLoading);
+  }, [isLoading, isFieldColorsLoading, isFieldLabelsLoading, setComponentLoading]);
 
   // Mobile view rendering
   if (isMobileView) {
