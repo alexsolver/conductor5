@@ -107,13 +107,12 @@ customersRouter.get('/companies/:companyId/associated', jwtAuth, async (req: Aut
     }
 
     const query = `
-      SELECT c.*, ccm.role, ccm.is_primary, ccm.is_active as membership_active
+      SELECT c.*, ccm.role
       FROM "${schemaName}".customers c
       JOIN "${schemaName}".customer_company_memberships ccm ON c.id = ccm.customer_id
       WHERE ccm.company_id = $1 AND ccm.tenant_id = $2 
-      AND ccm.is_active = true 
       ${customerActiveFilter}
-      ORDER BY ccm.is_primary DESC, c.first_name, c.last_name
+      ORDER BY c.first_name, c.last_name
     `;
 
     const result = await pool.query(query, [companyId, req.user.tenantId]);
@@ -130,7 +129,7 @@ customersRouter.get('/companies/:companyId/associated', jwtAuth, async (req: Aut
     res.status(500).json({ 
       success: false, 
       message: 'Failed to fetch associated customers',
-      error: error.message 
+      error: (error as Error).message 
     });
   }
 });
@@ -152,7 +151,7 @@ customersRouter.get('/companies/:companyId/available', jwtAuth, async (req: Auth
       AND c.id NOT IN (
         SELECT ccm.customer_id 
         FROM "${schemaName}".customer_company_memberships ccm 
-        WHERE ccm.company_id = $2 AND ccm.tenant_id = $1 AND ccm.is_active = true
+        WHERE ccm.company_id = $2 AND ccm.tenant_id = $1
       )
       ORDER BY c.first_name, c.last_name
     `;
@@ -171,7 +170,7 @@ customersRouter.get('/companies/:companyId/available', jwtAuth, async (req: Auth
     res.status(500).json({ 
       success: false, 
       message: 'Failed to fetch available customers',
-      error: error.message 
+      error: (error as Error).message 
     });
   }
 });
