@@ -138,6 +138,20 @@ export default function TimecardReports() {
   const isLoading = attendanceLoading || overtimeLoading || complianceLoading;
   const currentError = attendanceError || overtimeError;
 
+  // Debug logging for data rendering
+  console.log('[TIMECARD-REPORTS-DEBUG] Current state:', {
+    reportType,
+    currentReport: currentReport ? {
+      success: currentReport.success,
+      hasData: !!currentReport.data,
+      isArray: Array.isArray(currentReport.data),
+      dataLength: currentReport.data?.length,
+      firstItem: currentReport.data?.[0]
+    } : null,
+    isLoading,
+    currentError: currentError?.message
+  });
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-start">
@@ -289,7 +303,7 @@ export default function TimecardReports() {
               <div>Erro ao carregar dados: {currentError.message}</div>
               <div className="text-sm mt-2">Verifique sua conexão e tente novamente</div>
             </div>
-          ) : currentReport?.data && Array.isArray(currentReport.data) && currentReport.data.length > 0 ? (
+          ) : currentReport?.success && currentReport?.data && Array.isArray(currentReport.data) && currentReport.data.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full border-collapse border border-gray-300 text-sm">
                 <thead>
