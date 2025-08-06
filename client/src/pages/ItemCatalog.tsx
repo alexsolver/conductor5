@@ -137,13 +137,45 @@ export default function ItemCatalog() {
   });
 
   const { data: availableCustomers } = useQuery({
-    queryKey: ["/api/customer-companies"],
-    enabled: false // Disabled until new personalization system is implemented
+    queryKey: ["/api/customers/companies"],
+    queryFn: async () => {
+      try {
+        const response = await fetch('/api/customers/companies');
+        if (response.ok) {
+          const data = await response.json();
+          return data.map((company: any) => ({
+            id: company.id,
+            name: company.company || company.name || 'Empresa sem nome'
+          }));
+        }
+        return [];
+      } catch (error) {
+        console.error('Erro ao carregar empresas clientes:', error);
+        return [];
+      }
+    }
   });
 
   const { data: availableSuppliers } = useQuery({
     queryKey: ["/api/materials-services/suppliers"],
-    enabled: false // Disabled until new personalization system is implemented
+    queryFn: async () => {
+      try {
+        const response = await fetch('/api/materials-services/suppliers');
+        if (response.ok) {
+          const data = await response.json();
+          return {
+            data: data.data?.map((supplier: any) => ({
+              id: supplier.id,
+              name: supplier.name || supplier.tradeName || 'Fornecedor sem nome'
+            })) || []
+          };
+        }
+        return { data: [] };
+      } catch (error) {
+        console.error('Erro ao carregar fornecedores:', error);
+        return { data: [] };
+      }
+    }
   });
 
 
@@ -648,18 +680,18 @@ export default function ItemCatalog() {
                         <CardContent>
                           <div className="space-y-3">
                             {/* Selecionar/Desselecionar Todas */}
-                            {(availableCustomers as any)?.length > 0 && (
+                            {availableCustomers && availableCustomers.length > 0 && (
                               <div className="flex items-center space-x-2 pb-2 border-b">
                                 <Checkbox
                                   id="select-all-customers"
                                   checked={
-                                    (availableCustomers as any)?.length > 0 && 
-                                    linkedCustomers.length === (availableCustomers as any)?.length
+                                    availableCustomers && availableCustomers.length > 0 && 
+                                    linkedCustomers.length === availableCustomers.length
                                   }
                                   onCheckedChange={(checked) => {
                                     if (checked) {
                                       // Selecionar todas as empresas
-                                      setLinkedCustomers((availableCustomers as any)?.map((customer: any) => customer.id) || []);
+                                      setLinkedCustomers(availableCustomers?.map((customer: any) => customer.id) || []);
                                     } else {
                                       // Desselecionar todas
                                       setLinkedCustomers([]);
@@ -667,11 +699,11 @@ export default function ItemCatalog() {
                                   }}
                                 />
                                 <label htmlFor="select-all-customers" className="text-sm font-medium">
-                                  Selecionar Todas ({(availableCustomers as any)?.length || 0})
+                                  Selecionar Todas ({availableCustomers?.length || 0})
                                 </label>
                               </div>
                             )}
-                            {(availableCustomers as any)?.map((customer: any) => (
+                            {availableCustomers?.map((customer: any) => (
                               <div key={customer.id} className="flex items-center space-x-2">
                                 <Checkbox
                                   id={`customer-${customer.id}`}
@@ -706,7 +738,7 @@ export default function ItemCatalog() {
                         </CardHeader>
                         <CardContent>
                           <div className="space-y-3">
-                            {(availableSuppliers as any)?.data?.map((supplier: any) => (
+                            {availableSuppliers?.data?.map((supplier: any) => (
                               <div key={supplier.id} className="flex items-center space-x-2">
                                 <Checkbox
                                   id={`supplier-${supplier.id}`}
@@ -751,16 +783,14 @@ export default function ItemCatalog() {
                           variant="outline"
                           size="sm"
                           onClick={() => {
-                            // Fechar o modal e abrir a tab de supplier links
+                            // Fechar o modal e direcionar para a funcionalidade completa
                             setIsCreateModalOpen(false);
-                            setActiveTab('supplier-links');
                             setTimeout(() => {
-                              setSelectedItem(selectedItem);
                               toast({
                                 title: "Vínculos de Fornecedores",
-                                description: "Use a aba Supplier Links para gerenciar vínculos completos"
+                                description: "Use a aba Supplier Links na visualização completa do item para gerenciar vínculos"
                               });
-                            }, 100);
+                            }, 200);
                           }}
                         >
                           <Plus className="h-4 w-4 mr-2" />
