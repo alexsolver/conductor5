@@ -1965,6 +1965,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Direct CLT Reports - Bypass routing conflicts
   app.get('/api/timecard/reports/attendance/:period', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    console.log('[ATTENDANCE-REPORT] Starting real data endpoint...');
     try {
       const { period } = req.params;
       const tenantId = req.user?.tenantId;
@@ -2121,6 +2122,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
       };
 
+      console.log(`[ATTENDANCE-REPORT] Processing ${result.rows.length} real database records`);
+      console.log('[ATTENDANCE-REPORT] Raw DB records:', result.rows.map(r => ({
+        id: r.id.slice(-8),
+        date: r.check_in ? new Date(r.check_in).toLocaleDateString('pt-BR') : 'N/A',
+        checkIn: r.check_in ? new Date(r.check_in).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : 'N/A',
+        checkOut: r.check_out ? new Date(r.check_out).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : 'N/A',
+        status: r.status
+      })));
+      
       const attendanceData = result.rows.map(formatToCLTStandard);
 
       // Calculate proper summary
