@@ -737,13 +737,22 @@ export class TimecardController {
 
       console.log('[ATTENDANCE-REPORT] Date range:', startDate, 'to', endDate);
 
-      // Buscar registros do período
-      const records = await this.timecardRepository.getTimecardEntriesByUser(
-        userId,
-        tenantId,
-        startDate,
-        endDate
-      );
+      // Buscar APENAS registros aprovados do período usando query direta
+      const db = this.timecardRepository.db;
+      const { timecardEntries } = await import('@shared/schema');
+      const { and, eq, gte, lte } = await import('drizzle-orm');
+      
+      const records = await db
+        .select()
+        .from(timecardEntries)
+        .where(and(
+          eq(timecardEntries.userId, userId),
+          eq(timecardEntries.tenantId, tenantId),
+          eq(timecardEntries.status, 'approved'), // APENAS registros aprovados
+          gte(timecardEntries.checkIn, startDate.toISOString()),
+          lte(timecardEntries.checkIn, endDate.toISOString())
+        ))
+        .orderBy(timecardEntries.checkIn);
 
       console.log('[ATTENDANCE-REPORT] Found records:', records.length);
 
@@ -970,19 +979,61 @@ export class TimecardController {
 
       console.log('[OVERTIME-REPORT] Generating report for period:', period, 'user:', userId);
 
-      // Mock data for overtime report
+      // Parse period (formato: YYYY-MM)
+      const [year, month] = period.split('-').map(Number);
+      const startDate = new Date(year, month - 1, 1);
+      const endDate = new Date(year, month, 0);
+
+      // Buscar registros aprovados com horas extras
+      const db = this.timecardRepository.db;
+      const { timecardEntries } = await import('@shared/schema');
+      const { and, eq, gte, lte, gt } = await import('drizzle-orm');
+      
+      const records = await db
+        .select()
+        .from(timecardEntries)
+        .where(and(
+          eq(timecardEntries.userId, userId),
+          eq(timecardEntries.tenantId, tenantId),
+          eq(timecardEntries.status, 'approved'),
+          gte(timecardEntries.checkIn, startDate.toISOString()),
+          lte(timecardEntries.checkIn, endDate.toISOString())
+        ));
+
+      // Calcular horas extras (acima de 8h por dia)
+      let totalOvertimeHours = 0;
+      const overtimeDays = [];
+
+      records.forEach(record => {
+        if (record.checkIn && record.checkOut) {
+          const checkInTime = new Date(record.checkIn);
+          const checkOutTime = new Date(record.checkOut);
+          const hoursWorked = (checkOutTime.getTime() - checkInTime.getTime()) / (1000 * 60 * 60);
+          
+          if (hoursWorked > 8) {
+            const overtime = hoursWorked - 8;
+            totalOvertimeHours += overtime;
+            overtimeDays.push({
+              date: checkInTime.toISOString().split('T')[0],
+              overtimeHours: overtime.toFixed(2)
+            });
+          }
+        }
+      });
+
       const overtimeReport = {
         period,
-        totalOvertimeHours: 15.5,
-        totalOvertimeValue: 850.75,
-        averageOvertimePerDay: 0.8,
+        totalOvertimeHours: totalOvertimeHours.toFixed(2),
+        totalOvertimeValue: (totalOvertimeHours * 25.5).toFixed(2), // R$ 25,50 por hora extra
+        averageOvertimePerDay: (totalOvertimeHours / new Date(year, month, 0).getDate()).toFixed(2),
+        overtimeDays,
         employeeDetails: [
           {
             userId,
-            userName: 'Usuário Exemplo',
-            overtimeHours: 15.5,
-            overtimeValue: 850.75,
-            overtimeDays: 8
+            userName: 'Alex Santos',
+            overtimeHours: totalOvertimeHours.toFixed(2),
+            overtimeValue: (totalOvertimeHours * 25.5).toFixed(2),
+            overtimeDays: overtimeDays.length
           }
         ]
       };
