@@ -807,24 +807,10 @@ export default function ItemCatalog() {
                           <Truck className="h-5 w-5" />
                           Vínculos de Fornecedores
                         </h3>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            // Fechar o modal e direcionar para a funcionalidade completa
-                            setIsCreateModalOpen(false);
-                            setTimeout(() => {
-                              toast({
-                                title: "Vínculos de Fornecedores",
-                                description: "Use a aba Supplier Links na visualização completa do item para gerenciar vínculos"
-                              });
-                            }, 200);
-                          }}
-                        >
-                          <Plus className="h-4 w-4 mr-2" />
-                          Novo Vínculo
-                        </Button>
+                        <SupplierLinkDialog 
+                          itemId={selectedItem?.id}
+                          itemName={selectedItem?.name}
+                        />
                       </div>
 
                       <div className="border rounded-lg">
@@ -841,16 +827,9 @@ export default function ItemCatalog() {
                             </TableRow>
                           </TableHeader>
                           <TableBody>
-                            <TableRow>
-                              <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                                <Truck className="h-8 w-8 mx-auto mb-2" />
-                                Nenhum vínculo configurado
-                                <br />
-                                <span className="text-sm">
-                                  Vincule este item com fornecedores para gerenciar preços e disponibilidade
-                                </span>
-                              </TableCell>
-                            </TableRow>
+                            <SupplierLinksTable 
+                              itemId={selectedItem?.id}
+                            />
                           </TableBody>
                         </Table>
                       </div>
@@ -1214,11 +1193,11 @@ function CustomerPersonalizationTab({ itemId, itemName }: { itemId?: string; ite
   });
 
   // Filtrar apenas clientes vinculados
-  const customers = allCustomers?.filter((customer: any) => {
+  const customers = Array.isArray(allCustomers) ? allCustomers.filter((customer: any) => {
     // Para demonstração, todos os clientes estão disponíveis
     // Em produção, isso seria filtrado baseado nos vínculos salvos
     return true; // Permitir todos os clientes por enquanto
-  }) || [];
+  }) : [];
 
   // Form para personalização
   const form = useForm({
