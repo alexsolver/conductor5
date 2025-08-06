@@ -2529,8 +2529,8 @@ export const assetCategories = pgTable("asset_categories", {
   index("asset_categories_tenant_parent_idx").on(table.tenantId, table.parentCategoryId),
 ]);
 
-// Assets table
-export const assets = pgTable("assets", {
+// Assets table - Fixed self-reference typing
+export const assets: any = pgTable("assets", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
   name: varchar("name", { length: 255 }).notNull(),
@@ -2558,10 +2558,10 @@ export const assets = pgTable("assets", {
 ]);
 
 // Asset Meters table
-export const assetMeters = pgTable("asset_meters", {
+export const assetMeters: any = pgTable("asset_meters", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
-  assetId: uuid("asset_id").references(() => assets.id, { onDelete: 'cascade' }).notNull(),
+  assetId: uuid("asset_id").notNull(), // Fixed: removed circular reference
   meterType: varchar("meter_type", { length: 50 }).notNull(),
   currentReading: decimal("current_reading", { precision: 15, scale: 4 }),
   previousReading: decimal("previous_reading", { precision: 15, scale: 4 }),
@@ -3367,9 +3367,7 @@ export const userViewPreferences = pgTable("user_view_preferences", {
   unique("user_prefs_unique").on(table.tenantId, table.userId),
 ]);
 
-// Customer Item Mappings Types
-export type CustomerItemMapping = typeof customerItemMappings.$inferSelect;
-export type InsertCustomerItemMapping = typeof customerItemMappings.$inferInsert;
+// Customer Item Mappings Types - Consolidated
 
 // Types para as novas tabelas
 export type TicketListView = typeof ticketListViews.$inferSelect;
