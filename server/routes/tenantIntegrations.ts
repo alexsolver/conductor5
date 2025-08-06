@@ -246,10 +246,12 @@ router.post('/:integrationId/config', requirePermission(Permission.TENANT_MANAGE
       integrationVersion: '1.0'
     };
 
-    console.log(`[POST config] Dados preparados para ${integrationId}:`, configData);
+    console.log(`[POST config] Dados preparados para ${integrationId}:`, JSON.stringify(configData, null, 2));
+    console.log(`[POST config] Request body recebido:`, JSON.stringify(req.body, null, 2));
 
     // Save to database
     const savedConfig = await storage.saveTenantIntegrationConfig(tenantId, integrationId, configData);
+    console.log(`[POST config] Configuração salva:`, savedConfig ? 'SUCCESS' : 'FAILED');
 
     // Return masked configuration for security
     const maskedConfig = {
