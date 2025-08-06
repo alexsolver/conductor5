@@ -468,8 +468,7 @@ export default function TenantAdminIntegrations() {
 
     try {
       // Load existing configuration from API
-      const response = await apiRequest('GET', `/api/tenant-admin/integrations/${integration.id}/config`);
-      const existingConfig = await response.json();
+      const existingConfig = await apiRequest('GET', `/api/tenant-admin/integrations/${integration.id}/config`);
 
 
       if (existingConfig && existingConfig.config && (existingConfig.configured === true || Object.keys(existingConfig.config).length > 0)) {
@@ -498,8 +497,9 @@ export default function TenantAdminIntegrations() {
           dropboxAccessToken: config.dropboxAccessToken ? '••••••••' : '', // Mascarar access token
           backupFolder: config.backupFolder || '/Backups/Conductor',
           // Telegram fields
-          telegramBotToken: config.telegramBotToken ? '••••••••' : '',
+          telegramBotToken: config.telegramBotToken || '',
           telegramChatId: config.telegramChatId || '',
+          telegramWebhookUrl: config.telegramWebhookUrl || `${window.location.origin}/api/webhooks/telegram/${localStorage.getItem('tenantId')}`,
         };
 
         configForm.reset(formValues);
@@ -536,6 +536,7 @@ export default function TenantAdminIntegrations() {
           // Telegram default values
           telegramBotToken: '',
           telegramChatId: '',
+          telegramWebhookUrl: `${window.location.origin}/api/webhooks/telegram/${localStorage.getItem('tenantId')}`,
         });
       }
     } catch (error) {
