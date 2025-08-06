@@ -732,7 +732,7 @@ export default function InternalActionModal({ isOpen, onClose, ticketId, editAct
                       {isPublic ? (
                         <>
                           <Eye className="w-4 h-4 text-green-600" />
-                          Ação Pública (Visível ao solicitante)
+                          Ação Pública (Visível ao cliente)
                         </>
                       ) : (
                         <>

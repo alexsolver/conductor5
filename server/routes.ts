@@ -398,7 +398,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const schemaName = `tenant_${req.user.tenantId.replace(/-/g, '_')}`;
 
       const result = await pool.query(
-        `INSERT INTO "${schemaName}"."customer_companies" 
+        `INSERT INTO "${schemaName}"."companies" 
          (tenant_id, name, display_name, description, size, subscription_tier, created_by)
          VALUES ($1, $2, $3, $4, $5, $6, $7)
          RETURNING *`,
@@ -449,7 +449,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Verify company exists first
       const existingCompany = await pool.query(`
-        SELECT * FROM "${schemaName}".customer_companies 
+        SELECT * FROM "${schemaName}".companies 
         WHERE id = $1 AND tenant_id = $2
       `, [id, req.user.tenantId]);
 
@@ -481,7 +481,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       const result = await pool.query(`
-        UPDATE "${schemaName}".customer_companies 
+        UPDATE "${schemaName}".companies 
         SET name = $1, display_name = $2, description = $3, industry = $4, size = $5, 
             email = $6, phone = $7, website = $8, subscription_tier = $9, status = $10,
             cnpj = $11, address = $12, updated_at = NOW()
@@ -532,7 +532,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         // Check if company exists
         const companyCheck = await pool.query(
-          `SELECT id, name FROM "${schemaName}"."customer_companies" WHERE id = $1 AND tenant_id = $2`,
+          `SELECT id, name FROM "${schemaName}"."companies" WHERE id = $1 AND tenant_id = $2`,
           [companyId, req.user.tenantId]
         );
 
@@ -562,7 +562,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Soft delete the company (set is_active = false instead of hard delete)
         const result = await pool.query(
-          `UPDATE "${schemaName}"."customer_companies" 
+          `UPDATE "${schemaName}"."companies" 
            SET is_active = false, updated_at = CURRENT_TIMESTAMP
            WHERE id = $1 AND tenant_id = $2`,
           [companyId, req.user.tenantId]
@@ -3253,7 +3253,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           is_active,
           created_at,
           updated_at
-        FROM ${sql.identifier(schemaName)}.customer_companies
+        FROM ${sql.identifier(schemaName)}.companies
         WHERE is_active = true
         ORDER BY name
       `);

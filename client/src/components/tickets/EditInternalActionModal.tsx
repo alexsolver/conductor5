@@ -333,7 +333,7 @@ export default function EditInternalActionModal({ ticketId, action, isOpen, onCl
                   onCheckedChange={setIsPublic}
                 />
                 <Label htmlFor="public-action" className="text-sm">
-                  {isPublic ? "Ação Pública (Visível ao solicitante)" : "Ação Privada (Apenas agentes)"}
+                  {isPublic ? "Ação Pública (Visível ao cliente)" : "Ação Privada (Apenas agentes)"}
                 </Label>
               </div>
 

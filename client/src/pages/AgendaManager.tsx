@@ -171,7 +171,7 @@ const AgendaManager: React.FC = () => {
   const { data: companiesData } = useQuery({
     queryKey: ['/api/companies'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/customers/companies');
+      const response = await apiRequest('GET', '/api/companies');
       return await response.json();
     },
   });

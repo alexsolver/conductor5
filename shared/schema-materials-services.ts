@@ -51,7 +51,7 @@ export const itemCustomerLinks = pgTable('item_customer_links', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id').notNull(),
   itemId: uuid('item_id').notNull(),
-  customerCompanyId: uuid('customer_company_id').notNull(), // Referencia customer_companies
+  companyId: uuid('company_id').notNull(), // Referencia companies
 
   // Campos específicos do cliente conforme especificação
   alias: varchar('alias', { length: 255 }), // Apelido

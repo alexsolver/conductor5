@@ -82,7 +82,7 @@ export const ticketFormSchema = z.object({
   action: z.string().optional(),
 
   // Campos de pessoa com validação UUID (aceita string vazia)
-  callerId: z.string().refine(val => !val || z.string().uuid().safeParse(val).success, "ID do solicitante deve ser um UUID válido").optional(),
+  callerId: z.string().refine(val => !val || z.string().uuid().safeParse(val).success, "ID do cliente deve ser um UUID válido").optional(),
   callerType: CallerTypeEnum.default('customer'),
   beneficiaryId: z.string().refine(val => !val || z.string().uuid().safeParse(val).success, "ID do beneficiário deve ser um UUID válido").optional(),
   beneficiaryType: CallerTypeEnum.default('customer'),
