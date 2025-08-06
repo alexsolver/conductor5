@@ -10,7 +10,7 @@ import { apiRequest } from '@/lib/queryClient';
 
 export default function TimecardReports() {
   const [selectedPeriod, setSelectedPeriod] = useState(format(new Date(), 'yyyy-MM'));
-  const [reportType, setReportType] = useState('frequency');
+  const [reportType, setReportType] = useState('attendance');
 
   // Generate last 12 months for period selection
   const generatePeriods = () => {
@@ -131,7 +131,7 @@ export default function TimecardReports() {
     console.log('Exportando para PDF...');
   };
 
-  const currentReport = reportType === 'frequency' ? attendanceReport : 
+  const currentReport = reportType === 'attendance' ? attendanceReport : 
                        reportType === 'overtime' ? overtimeReport : 
                        complianceReport;
 
@@ -203,7 +203,7 @@ export default function TimecardReports() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="frequency">Frequência</SelectItem>
+                  <SelectItem value="attendance">Frequência</SelectItem>
                   <SelectItem value="overtime">Horas Extras</SelectItem>
                   <SelectItem value="compliance">Compliance</SelectItem>
                 </SelectContent>
@@ -289,7 +289,7 @@ export default function TimecardReports() {
               <div>Erro ao carregar dados: {currentError.message}</div>
               <div className="text-sm mt-2">Verifique sua conexão e tente novamente</div>
             </div>
-          ) : currentReport?.records && Array.isArray(currentReport.records) && currentReport.records.length > 0 ? (
+          ) : currentReport?.data && Array.isArray(currentReport.data) && currentReport.data.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full border-collapse border border-gray-300 text-sm">
                 <thead>
@@ -307,7 +307,7 @@ export default function TimecardReports() {
                   </tr>
                 </thead>
                 <tbody>
-                  {currentReport.records
+                  {currentReport.data
                     .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime())
                     .map((record: any, index: number) => (
                       <tr key={index} className={`hover:bg-gray-50 ${!record.isConsistent ? 'bg-red-50' : ''}`}>
