@@ -25,19 +25,42 @@ export default function TimecardReports() {
     reportType: 'attendance'
   });
 
+  // Convert date range to period format (YYYY-MM) for the API
+  const getPeriodFromDates = (startDate: string, endDate: string) => {
+    const start = new Date(startDate);
+    return format(start, 'yyyy-MM');
+  };
+
   // Buscar relatórios
   const { data: attendanceReport, isLoading: attendanceLoading } = useQuery({
     queryKey: ['/api/timecard/reports/attendance', filters],
+    queryFn: async () => {
+      const period = getPeriodFromDates(filters.startDate, filters.endDate);
+      const response = await fetch(`/api/timecard/reports/attendance/${period}`);
+      if (!response.ok) throw new Error('Failed to fetch attendance report');
+      return response.json();
+    },
     enabled: filters.reportType === 'attendance',
   });
 
   const { data: overtimeReport, isLoading: overtimeLoading } = useQuery({
     queryKey: ['/api/timecard/reports/overtime', filters],
+    queryFn: async () => {
+      const period = getPeriodFromDates(filters.startDate, filters.endDate);
+      const response = await fetch(`/api/timecard/reports/overtime/${period}`);
+      if (!response.ok) throw new Error('Failed to fetch overtime report');
+      return response.json();
+    },
     enabled: filters.reportType === 'overtime',
   });
 
   const { data: complianceReport, isLoading: complianceLoading } = useQuery({
     queryKey: ['/api/timecard/reports/compliance', filters],
+    queryFn: async () => {
+      const response = await fetch(`/api/timecard/compliance/reports`);
+      if (!response.ok) throw new Error('Failed to fetch compliance report');
+      return response.json();
+    },
     enabled: filters.reportType === 'compliance',
   });
 

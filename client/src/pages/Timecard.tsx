@@ -551,8 +551,8 @@ export default function Timecard() {
               {currentStatus.todayRecords
                 .sort((a, b) => {
                   // Ordenar por data de criação, mais recente primeiro
-                  const dateA = new Date(a.createdAt || a.checkIn || a.checkOut || a.breakStart || a.breakEnd);
-                  const dateB = new Date(b.createdAt || b.checkIn || b.checkOut || b.breakStart || b.breakEnd);
+                  const dateA = new Date(a.createdAt || a.checkIn || a.checkOut || a.breakStart || a.breakEnd || '');
+                  const dateB = new Date(b.createdAt || b.checkIn || b.checkOut || b.breakStart || b.breakEnd || '');
                   return dateB.getTime() - dateA.getTime();
                 })
                 .map((record: TimeRecord) => (
@@ -570,7 +570,7 @@ export default function Timecard() {
                   </div>
                   <div className="text-right">
                     <div className="font-mono">
-                      {formatTime(record.checkIn || record.checkOut || record.breakStart || record.breakEnd || record.createdAt)}
+                      {formatTime(record.checkIn || record.checkOut || record.breakStart || record.breakEnd || record.createdAt || '')}
                     </div>
                     {record.location && (
                       <div className="text-xs text-gray-400">

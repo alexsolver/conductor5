@@ -65,6 +65,10 @@ timecardRouter.get('/hour-bank/:userId', jwtAuth, (req, res) =>
   timecardController.getHourBankByUser(req, res)
 );
 
+timecardRouter.get('/hour-bank/movements/:userId/:month', jwtAuth, (req, res) => 
+  timecardController.getHourBankMovements(req, res)
+);
+
 // Absence Requests routes
 timecardRouter.get('/absence-requests/pending', jwtAuth, (req, res) => 
   timecardController.getPendingAbsenceRequests(req, res)
@@ -73,6 +77,10 @@ timecardRouter.get('/absence-requests/pending', jwtAuth, (req, res) =>
 // Reports routes
 timecardRouter.get('/reports/attendance/:period', jwtAuth, (req, res) => 
   timecardController.getAttendanceReport(req, res)
+);
+
+timecardRouter.get('/reports/overtime/:period', jwtAuth, (req, res) => 
+  timecardController.getOvertimeReport(req, res)
 );
 
 export { timecardRouter };

@@ -55,12 +55,22 @@ export default function HourBank() {
   // Buscar banco de horas
   const { data: hourBank, isLoading: hourBankLoading } = useQuery({
     queryKey: ['/api/timecard/hour-bank', selectedUserId, selectedMonth],
+    queryFn: async () => {
+      const response = await fetch(`/api/timecard/hour-bank/${selectedUserId}?month=${selectedMonth}`);
+      if (!response.ok) throw new Error('Failed to fetch hour bank data');
+      return response.json();
+    },
     enabled: selectedUserId !== 'default',
   });
 
   // Buscar movimentações
   const { data: movements, isLoading: movementsLoading } = useQuery({
     queryKey: ['/api/timecard/hour-bank/movements', selectedUserId, selectedMonth],
+    queryFn: async () => {
+      const response = await fetch(`/api/timecard/hour-bank/movements/${selectedUserId}/${selectedMonth}`);
+      if (!response.ok) throw new Error('Failed to fetch movements');
+      return response.json();
+    },
     enabled: selectedUserId !== 'default',
   });
 

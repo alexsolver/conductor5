@@ -56,3 +56,16 @@ Conductor follows a Clean Architecture with Domain-Driven Design principles.
 - **Mapping**: Leaflet for interactive map integration.
 - **Rich Text Editor**: TipTap.
 - **Logging**: Winston for structured logging.
+
+## Recent Changes
+
+### August 6, 2025 - Timecard Reports and Hour Bank Data Fix
+- Fixed issue where timecard reports (Relatórios de Ponto), hour bank (banco de horas), and time sheet mirror (espelho de ponto) were not displaying data
+- **Root Cause**: Frontend was passing filter objects incorrectly to API endpoints, causing `[object Object]` in URLs instead of proper parameters
+- **Resolution**:
+  - Updated TimecardReports page to use correct API endpoint format `/api/timecard/reports/attendance/{period}` with proper period formatting (YYYY-MM)
+  - Fixed HourBank page to use proper endpoint structure `/api/timecard/hour-bank/{userId}` with query parameters
+  - Added missing API endpoints: `/hour-bank/movements/:userId/:month` and `/reports/overtime/:period`
+  - Implemented missing controller methods: `getHourBankMovements`, `getOvertimeReport`, and `getHourBankSummary`
+  - Fixed CLT compliance reports controller date serialization issues (.toISOString() on potentially null dates)
+- **Technical Details**: API routes now properly handle period-based reports and user-specific hour bank data with appropriate authentication and parameter validation

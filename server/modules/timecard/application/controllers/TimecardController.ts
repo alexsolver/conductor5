@@ -873,4 +873,131 @@ export class TimecardController {
       });
     }
   }
+
+  async getHourBankSummary(req: AuthenticatedRequest, res: Response) {
+    try {
+      const tenantId = req.user?.tenantId;
+
+      if (!tenantId) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'Tenant ID é obrigatório' 
+        });
+      }
+
+      console.log('[HOUR-BANK-SUMMARY] Getting summary for tenant:', tenantId);
+
+      // Mock data for hour bank summary
+      const summary = {
+        totalEmployees: 4,
+        totalCreditHours: 120.5,
+        totalDebitHours: 80.0,
+        averageBalance: 10.125,
+        expiringHours: 15.5
+      };
+
+      res.json(summary);
+    } catch (error: any) {
+      console.error('[TIMECARD-CONTROLLER] Error fetching hour bank summary:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: 'Erro ao buscar resumo do banco de horas',
+        details: error.message 
+      });
+    }
+  }
+
+  async getHourBankMovements(req: AuthenticatedRequest, res: Response) {
+    try {
+      const { userId, month } = req.params;
+      const tenantId = req.user?.tenantId;
+
+      if (!tenantId || !userId || !month) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'Parâmetros obrigatórios: tenantId, userId, month' 
+        });
+      }
+
+      console.log('[HOUR-BANK-MOVEMENTS] Getting movements for user:', userId, 'month:', month);
+
+      // Mock data for hour bank movements
+      const movements = [
+        {
+          id: '1',
+          userId,
+          movementDate: `${month}-15`,
+          movementType: 'credit',
+          hours: 2.5,
+          description: 'Horas extras trabalhadas'
+        },
+        {
+          id: '2',
+          userId,
+          movementDate: `${month}-20`,
+          movementType: 'debit',
+          hours: 1.0,
+          description: 'Saída antecipada'
+        }
+      ];
+
+      res.json({
+        success: true,
+        movements
+      });
+    } catch (error: any) {
+      console.error('[TIMECARD-CONTROLLER] Error fetching hour bank movements:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: 'Erro ao buscar movimentações do banco de horas',
+        details: error.message 
+      });
+    }
+  }
+
+  async getOvertimeReport(req: AuthenticatedRequest, res: Response) {
+    try {
+      const { period } = req.params;
+      const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
+
+      if (!tenantId || !userId) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'Tenant ID e User ID são obrigatórios' 
+        });
+      }
+
+      console.log('[OVERTIME-REPORT] Generating report for period:', period, 'user:', userId);
+
+      // Mock data for overtime report
+      const overtimeReport = {
+        period,
+        totalOvertimeHours: 15.5,
+        totalOvertimeValue: 850.75,
+        averageOvertimePerDay: 0.8,
+        employeeDetails: [
+          {
+            userId,
+            userName: 'Usuário Exemplo',
+            overtimeHours: 15.5,
+            overtimeValue: 850.75,
+            overtimeDays: 8
+          }
+        ]
+      };
+
+      res.json({
+        success: true,
+        ...overtimeReport
+      });
+    } catch (error: any) {
+      console.error('[TIMECARD-CONTROLLER] Error generating overtime report:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: 'Erro ao gerar relatório de horas extras',
+        details: error.message 
+      });
+    }
+  }
 }
