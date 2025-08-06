@@ -578,6 +578,311 @@ export default function ItemCatalog() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Modal de Criação/Edição de Item */}
+      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              {selectedItem ? 'Editar Item' : 'Criar Novo Item'}
+            </DialogTitle>
+            <DialogDescription>
+              {selectedItem 
+                ? 'Modifique as informações do item selecionado'
+                : 'Preencha as informações para criar um novo item no catálogo'
+              }
+            </DialogDescription>
+          </DialogHeader>
+
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nome do Item *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Nome do item" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Tipo *</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione o tipo" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="material">Material</SelectItem>
+                          <SelectItem value="service">Serviço</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="integrationCode"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Código de Integração</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Código" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="measurementUnit"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Unidade de Medida *</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione a unidade" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {measurementUnits.map((unit) => (
+                            <SelectItem key={unit.value} value={unit.value}>{unit.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Descrição</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="Descrição detalhada do item" 
+                        className="min-h-[100px]"
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="maintenancePlan"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Plano de Manutenção</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Plano de Manutenção" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="defaultChecklist"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Checklist Padrão</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Checklist Padrão" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="active"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">Status Ativo</FormLabel>
+                      <FormDescription>
+                        Determina se o item está disponível para uso
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => {
+                    setIsCreateModalOpen(false);
+                    setSelectedItem(null);
+                    form.reset();
+                  }}
+                  disabled={createItemMutation.isPending || updateItemMutation.isPending}
+                >
+                  Cancelar
+                </Button>
+                <Button 
+                  type="submit"
+                  disabled={createItemMutation.isPending || updateItemMutation.isPending}
+                >
+                  {createItemMutation.isPending || updateItemMutation.isPending ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                      {selectedItem ? 'Atualizando...' : 'Criando...'}
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      {selectedItem ? 'Atualizar Item' : 'Criar Item'}
+                    </>
+                  )}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Visualização de Item */}
+      <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Detalhes do Item</DialogTitle>
+            <DialogDescription>
+              Informações detalhadas do item selecionado
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedItem && (
+            <div className="space-y-6">
+              <div className="flex items-center space-x-4">
+                <div className={`w-16 h-16 rounded-lg flex items-center justify-center ${
+                  selectedItem.type === 'material' ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'
+                }`}>
+                  {selectedItem.type === 'material' ? <Package className="h-8 w-8" /> : <Wrench className="h-8 w-8" />}
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold">{selectedItem.name}</h3>
+                  <div className="flex items-center space-x-2 mt-1">
+                    <Badge variant={selectedItem.active ? "default" : "secondary"}>
+                      {selectedItem.active ? "Ativo" : "Inativo"}
+                    </Badge>
+                    <Badge variant="outline">
+                      {selectedItem.type === 'material' ? 'Material' : 'Serviço'}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {selectedItem.integrationCode && (
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Código de Integração</label>
+                    <p className="text-sm">{selectedItem.integrationCode}</p>
+                  </div>
+                )}
+                
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Unidade de Medida</label>
+                  <p className="text-sm">{selectedItem.measurementUnit}</p>
+                </div>
+
+                {selectedItem.maintenancePlan && (
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Plano de Manutenção</label>
+                    <p className="text-sm">{selectedItem.maintenancePlan}</p>
+                  </div>
+                )}
+
+                {selectedItem.defaultChecklist && (
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Checklist Padrão</label>
+                    <p className="text-sm">{selectedItem.defaultChecklist}</p>
+                  </div>
+                )}
+              </div>
+
+              {selectedItem.description && (
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Descrição</label>
+                  <p className="text-sm mt-1">{selectedItem.description}</p>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground">
+                <div>
+                  <label className="font-medium">Criado em</label>
+                  <p>{new Date(selectedItem.createdAt).toLocaleString('pt-BR')}</p>
+                </div>
+                <div>
+                  <label className="font-medium">Atualizado em</label>
+                  <p>{new Date(selectedItem.updatedAt).toLocaleString('pt-BR')}</p>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setIsViewModalOpen(false)}
+                >
+                  Fechar
+                </Button>
+                <Button 
+                  onClick={() => {
+                    setIsViewModalOpen(false);
+                    form.reset({
+                      name: selectedItem.name || '',
+                      type: selectedItem.type || 'material',
+                      integrationCode: selectedItem.integrationCode || '',
+                      description: selectedItem.description || '',
+                      measurementUnit: selectedItem.measurementUnit || 'UN',
+                      maintenancePlan: selectedItem.maintenancePlan || '',
+                      defaultChecklist: selectedItem.defaultChecklist || '',
+                      active: selectedItem.active !== undefined ? selectedItem.active : true,
+                    });
+                    setIsCreateModalOpen(true);
+                  }}
+                >
+                  <Edit className="h-4 w-4 mr-2" />
+                  Editar Item
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
