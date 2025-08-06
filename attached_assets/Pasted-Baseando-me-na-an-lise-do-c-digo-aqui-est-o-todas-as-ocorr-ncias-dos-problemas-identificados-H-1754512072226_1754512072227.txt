@@ -1,0 +1,135 @@
+Baseando-me na análise do código, aqui estão todas as ocorrências dos problemas identificados:
+
+🔴 HARD-CODED VALUES - ENUMS FIXOS
+1. Validações Zod em Formulários de Tickets
+Arquivo: shared/ticket-validation.ts
+
+priority: z.enum(["low", "medium", "high", "critical"])
+impact: z.enum(["low", "medium", "high", "critical"])
+urgency: z.enum(["low", "medium", "high"])
+status: z.enum(["open", "in_progress", "pending", "resolved", "closed"])
+contactType: z.enum(["email", "phone", "chat", "portal"])
+Arquivo: client/src/pages/TicketsTable.tsx
+
+priority: z.enum(["low", "medium", "high", "critical"])
+impact: z.enum(["low", "medium", "high"]) 
+urgency: z.enum(["low", "medium", "high"])
+state: z.enum(["new", "in_progress", "resolved", "closed", "cancelled"])
+callerType: z.enum(["user", "customer"])
+contactType: z.enum(["email", "phone", "self_service", "chat"])
+status: z.enum(["open", "in_progress", "resolved", "closed"])
+Arquivo: client/src/pages/TicketDetails.tsx
+
+priority: z.enum(["low", "medium", "high", "critical"])
+impact: z.enum(["low", "medium", "high", "critical"])
+status: z.enum(["open", "in_progress", "pending", "resolved", "closed"])
+contactType: z.enum(["email", "phone", "chat", "portal"])
+2. Arrays de Opções Hard-coded
+Arquivo: client/src/pages/TicketsTable.tsx
+
+const priorityOptions = [
+  { value: 'low', label: 'Baixa' },
+  { value: 'medium', label: 'Média' }, 
+  { value: 'high', label: 'Alta' },
+  { value: 'critical', label: 'Crítica' }
+];
+const statusOptions = [
+  { value: 'open', label: 'Aberto' },
+  { value: 'in_progress', label: 'Em Andamento' },
+  { value: 'resolved', label: 'Resolvido' },
+  { value: 'closed', label: 'Fechado' }
+];
+3. Enums de Sistema Hard-coded
+Arquivo: shared/schema-master.ts
+
+// Status padrões definidos no schema
+status: varchar("status", { length: 50 }).default("open")
+priority: varchar("priority", { length: 20 }).default("medium")
+🟠 CONFIGURABILIDADE - CORES E LABELS NÃO 100% DINÂMICOS
+1. Mapeamentos de Cores Fixos
+Arquivo: server/modules/tickets/TicketMetadataRepository.ts
+
+const styleConfigs = [
+  {
+    tenantId,
+    styleName: 'priority_colors',
+    fieldName: 'priority',
+    styleMapping: {
+      low: { bg: 'bg-green-100', text: 'text-green-800', darkBg: 'dark:bg-green-900', darkText: 'dark:text-green-200' },
+      medium: { bg: 'bg-yellow-100', text: 'text-yellow-800', darkBg: 'dark:bg-yellow-900', darkText: 'dark:text-yellow-200' },
+      high: { bg: 'bg-orange-100', text: 'text-orange-800', darkBg: 'dark:bg-orange-900', darkText: 'dark:text-orange-200' },
+      critical: { bg: 'bg-red-100', text: 'text-red-800', darkBg: 'dark:bg-red-900', darkText: 'dark:text-red-200' }
+    }
+  }
+];
+2. Sistema de Cores Legacy Hard-coded
+Arquivo: client/src/components/DynamicBadge.tsx
+
+const getLegacyColorMapping = (bgColor: string): string => {
+  const legacyMap: Record<string, string> = {
+    'bg-green-100': 'bg-emerald-600 text-white border-emerald-600',
+    'bg-yellow-100': 'bg-amber-600 text-white border-amber-600',
+    'bg-orange-100': 'bg-orange-600 text-white border-orange-600',
+    'bg-red-100': 'bg-red-600 text-white border-red-600',
+    'bg-blue-100': 'bg-blue-600 text-white border-blue-600',
+    'bg-gray-100': 'bg-slate-600 text-white border-slate-600'
+  };
+  return legacyMap[bgColor] || bgColor;
+};
+3. Labels Fixos em Português
+Arquivo: client/src/hooks/useFieldColors.ts
+
+// Labels hard-coded retornados quando não há configuração dinâmica
+const defaultLabels = {
+  'low': 'Baixa',
+  'medium': 'Média',
+  'high': 'Alta',
+  'critical': 'Crítica',
+  'open': 'Aberto',
+  'closed': 'Fechado'
+};
+4. Configurações Default Hard-coded
+Arquivo: server/modules/tickets/TicketMetadataRepository.ts
+
+const defaultConfigs = [
+  { tenantId, fieldName: 'priority', defaultValue: 'medium' },
+  { tenantId, fieldName: 'status', defaultValue: 'open' },
+  { tenantId, fieldName: 'category', defaultValue: 'geral' },
+  { tenantId, fieldName: 'contactType', defaultValue: 'email' }
+];
+5. Fallbacks de Sistema Hard-coded
+Arquivo: client/src/components/OptimizedBadge.tsx
+
+// Sistema de fallback com cores fixas
+if (!color) {
+  const fallbackColors = {
+    'priority': 'bg-gray-100 text-gray-800',
+    'status': 'bg-blue-100 text-blue-800', 
+    'urgency': 'bg-yellow-100 text-yellow-800'
+  };
+  return fallbackColors[fieldName] || 'bg-gray-100 text-gray-800';
+}
+📊 RESUMO DAS OCORRÊNCIAS
+Tipo	Arquivo	Linhas Aprox.	Severidade
+Enums Zod	ticket-validation.ts	15-25	🔴 CRÍTICO
+Enums Zod	TicketsTable.tsx	31-57	🔴 CRÍTICO
+Enums Zod	TicketDetails.tsx	33-51	🔴 CRÍTICO
+Arrays Options	TicketsTable.tsx	60-85	🟠 ALTO
+Cores Hard-coded	TicketMetadataRepository.ts	25-45	🟠 ALTO
+Cores Legacy	DynamicBadge.tsx	12-22	🟠 ALTO
+Labels Fixos	useFieldColors.ts	45-55	🟠 ALTO
+Defaults Hard-coded	TicketMetadataRepository.ts	50-58	🟡 MÉDIO
+Fallbacks Sistema	OptimizedBadge.tsx	35-45	🟡 MÉDIO
+🎯 STATUS ATUAL vs OBJETIVO
+✅ JÁ IMPLEMENTADO:
+
+Sistema hierárquico de configurações (tenant + cliente)
+API dinâmica para field options
+Banco de dados configurável para cores e labels
+Cache otimizado para performance
+⚠️ AINDA FALTANDO:
+
+Validações Zod dinâmicas baseadas nas configurações do banco
+Eliminação completa dos arrays de opções hard-coded
+Sistema de temas 100% configurável por tenant
+Labels multilíngues dinâmicos
