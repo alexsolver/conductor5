@@ -155,7 +155,8 @@ router.get('/:integrationId/config', requirePermission(Permission.TENANT_MANAGE_
 
     // Extrair apenas os dados de configuração do campo config
     const configData = configResult.config || {};
-    console.log(`[GET config route] Config data extraída:`, configData);
+    console.log(`[GET config route] Config data extraída:`, JSON.stringify(configData, null, 2));
+    console.log(`[GET config route] Config data type:`, typeof configData);
 
     // SEGURANÇA: Mascarar dados sensíveis antes de enviar ao frontend
     const sanitizedConfig = sanitizeConfigForFrontend(configData);

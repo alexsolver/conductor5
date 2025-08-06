@@ -1533,7 +1533,10 @@ export class DatabaseStorage implements IStorage {
       // Try to update existing integration config first
       const updateResult = await tenantDb.execute(sql`
         UPDATE ${sql.identifier(schemaName)}.tenant_integrations
-        SET config = ${JSON.stringify(config)}, updated_at = NOW()
+        SET config = ${JSON.stringify(config)}, 
+            configured = true, 
+            status = 'connected',
+            updated_at = NOW()
         WHERE id = ${integrationId} AND tenant_id = ${validatedTenantId}
         RETURNING *
       `);
