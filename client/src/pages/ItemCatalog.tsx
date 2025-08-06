@@ -288,42 +288,164 @@ export default function ItemCatalog() {
   };
 
   const renderItemCard = (item: Item) => (
-    <div key={item.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
-      <div className="flex items-center space-x-4">
-        <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-          item.type === 'material' ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'
-        }`}>
-          {item.type === 'material' ? <Package className="h-6 w-6" /> : <Wrench className="h-6 w-6" />}
-        </div>
+    <ItemCardWithLinks key={item.id} item={item} />
+  );
 
-        <div className="space-y-1">
-          <div className="flex items-center space-x-2">
-            <h3 className="font-medium">{item.name}</h3>
-            <Badge variant={item.active ? "default" : "secondary"}>
-              {item.active ? "Ativo" : "Inativo"}
-            </Badge>
-            <Badge variant="outline">
-              {item.type === 'material' ? 'Material' : 'Serviço'}
-            </Badge>
+  // Componente separado para card do item com vínculos
+  const ItemCardWithLinks = ({ item }: { item: Item }) => {
+    const [itemLinks, setItemLinks] = useState<any>(null);
+    const [isLoadingLinks, setIsLoadingLinks] = useState(false);
+    const [linkedCustomerNames, setLinkedCustomerNames] = useState<any[]>([]);
+    const [linkedSupplierNames, setLinkedSupplierNames] = useState<any[]>([]);
+
+    // Carregar vínculos do item
+    useEffect(() => {
+      const loadLinks = async () => {
+        setIsLoadingLinks(true);
+        try {
+          const response = await fetch(`/api/materials-services/items/${item.id}/links`, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`,
+              'Content-Type': 'application/json'
+            }
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            const links = data.data || { customers: [], suppliers: [] };
+            setItemLinks(links);
+
+            // Carregar nomes dos clientes
+            if (links.customers && links.customers.length > 0) {
+              const customerNames = availableCustomers
+                ?.filter((customer: any) => links.customers.includes(customer.id))
+                ?.map((customer: any) => ({
+                  id: customer.id,
+                  name: customer.name || customer.company || 'Cliente sem nome'
+                })) || [];
+              setLinkedCustomerNames(customerNames);
+            }
+
+            // Carregar nomes dos fornecedores
+            if (links.suppliers && links.suppliers.length > 0) {
+              const supplierNames = availableSuppliers
+                ?.filter((supplier: any) => links.suppliers.includes(supplier.id))
+                ?.map((supplier: any) => ({
+                  id: supplier.id,
+                  name: supplier.name || 'Fornecedor sem nome'
+                })) || [];
+              setLinkedSupplierNames(supplierNames);
+            }
+          }
+        } catch (error) {
+          console.error('Erro ao carregar vínculos:', error);
+        }
+        setIsLoadingLinks(false);
+      };
+
+      loadLinks();
+    }, [item.id, availableCustomers, availableSuppliers]);
+
+    return (
+      <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+        <div className="flex items-center space-x-4 flex-1">
+          <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
+            item.type === 'material' ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'
+          }`}>
+            {item.type === 'material' ? <Package className="h-6 w-6" /> : <Wrench className="h-6 w-6" />}
           </div>
 
-          <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-            {item.integrationCode && (
-              <span>Código: {item.integrationCode}</span>
+          <div className="space-y-1 flex-1">
+            <div className="flex items-center space-x-2">
+              <h3 className="font-medium">{item.name}</h3>
+              <Badge variant={item.active ? "default" : "secondary"}>
+                {item.active ? "Ativo" : "Inativo"}
+              </Badge>
+              <Badge variant="outline">
+                {item.type === 'material' ? 'Material' : 'Serviço'}
+              </Badge>
+            </div>
+
+            <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+              {item.integrationCode && (
+                <span>Código: {item.integrationCode}</span>
+              )}
+              <span>Unidade: {item.measurementUnit}</span>
+            </div>
+
+            {item.description && (
+              <p className="text-sm text-muted-foreground max-w-md truncate">
+                {item.description}
+              </p>
             )}
-            {/* {item.groupName && ( // Disabled temporarily - column doesn't exist
-              <span>Grupo: {item.groupName}</span>
-            )} */}
-            <span>Unidade: {item.measurementUnit}</span>
-          </div>
 
-          {item.description && (
-            <p className="text-sm text-muted-foreground max-w-md truncate">
-              {item.description}
-            </p>
-          )}
+            {/* Seção de Vínculos */}
+            <div className="mt-2 space-y-1">
+              {isLoadingLinks ? (
+                <div className="flex items-center space-x-2 text-xs text-muted-foreground">
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  <span>Carregando vínculos...</span>
+                </div>
+              ) : itemLinks && (
+                <div className="space-y-1">
+                  {/* Vínculos de Clientes */}
+                  {linkedCustomerNames.length > 0 && (
+                    <div className="flex items-center space-x-2">
+                      <Building className="h-3 w-3 text-blue-500" />
+                      <span className="text-xs text-muted-foreground">
+                        Clientes vinculados: 
+                      </span>
+                      <div className="flex flex-wrap gap-1">
+                        {linkedCustomerNames.slice(0, 2).map((customer: any) => (
+                          <Badge key={customer.id} variant="outline" className="text-xs px-1 py-0" title={customer.name}>
+                            {customer.name.length > 12 ? customer.name.substring(0, 12) + '...' : customer.name}
+                          </Badge>
+                        ))}
+                        {linkedCustomerNames.length > 2 && (
+                          <Badge variant="outline" className="text-xs px-1 py-0" title={`Mais ${linkedCustomerNames.length - 2} clientes`}>
+                            +{linkedCustomerNames.length - 2}
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Vínculos de Fornecedores */}
+                  {linkedSupplierNames.length > 0 && (
+                    <div className="flex items-center space-x-2">
+                      <Truck className="h-3 w-3 text-green-500" />
+                      <span className="text-xs text-muted-foreground">
+                        Fornecedores vinculados:
+                      </span>
+                      <div className="flex flex-wrap gap-1">
+                        {linkedSupplierNames.slice(0, 2).map((supplier: any) => (
+                          <Badge key={supplier.id} variant="outline" className="text-xs px-1 py-0" title={supplier.name}>
+                            {supplier.name.length > 12 ? supplier.name.substring(0, 12) + '...' : supplier.name}
+                          </Badge>
+                        ))}
+                        {linkedSupplierNames.length > 2 && (
+                          <Badge variant="outline" className="text-xs px-1 py-0" title={`Mais ${linkedSupplierNames.length - 2} fornecedores`}>
+                            +{linkedSupplierNames.length - 2}
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Sem vínculos */}
+                  {linkedCustomerNames.length === 0 && linkedSupplierNames.length === 0 && itemLinks && (
+                    <div className="flex items-center space-x-2">
+                      <Link className="h-3 w-3 text-gray-400" />
+                      <span className="text-xs text-muted-foreground">
+                        Nenhum vínculo cadastrado
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-      </div>
 
       <div className="flex items-center space-x-2">
         <Button 
