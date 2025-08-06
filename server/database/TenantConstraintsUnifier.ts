@@ -58,7 +58,7 @@ export class TenantConstraintsUnifier {
     user_skills: [
       'UNIQUE (tenant_id, user_id, skill_id)'
     ],
-    customer_company_memberships: [
+    company_memberships: [
       'UNIQUE (tenant_id, customer_id, company_id)'
     ],
       'UNIQUE (tenant_id, integration_type, name)'

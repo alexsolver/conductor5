@@ -109,7 +109,7 @@ customersRouter.get('/companies/:companyId/associated', jwtAuth, async (req: Aut
     const query = `
       SELECT c.*, ccm.role
       FROM "${schemaName}".customers c
-      JOIN "${schemaName}".customer_company_memberships ccm ON c.id = ccm.customer_id
+      JOIN "${schemaName}".company_memberships ccm ON c.id = ccm.customer_id
       WHERE ccm.company_id = $1 AND ccm.tenant_id = $2 
       ${customerActiveFilter}
       ORDER BY c.first_name, c.last_name
@@ -150,7 +150,7 @@ customersRouter.get('/companies/:companyId/available', jwtAuth, async (req: Auth
       WHERE c.tenant_id = $1 
       AND c.id NOT IN (
         SELECT ccm.customer_id 
-        FROM "${schemaName}".customer_company_memberships ccm 
+        FROM "${schemaName}".company_memberships ccm 
         WHERE ccm.company_id = $2 AND ccm.tenant_id = $1
       )
       ORDER BY c.first_name, c.last_name
@@ -224,7 +224,7 @@ customersRouter.post('/companies/:companyId/associate-multiple', jwtAuth, async 
 
     // Check for existing memberships
     const existingQuery = `
-      SELECT customer_id FROM "${schemaName}"."customer_company_memberships" 
+      SELECT customer_id FROM "${schemaName}"."company_memberships" 
       WHERE company_id = $1 AND customer_id = ANY($2::uuid[]) AND tenant_id = $3
     `;
 
@@ -249,7 +249,7 @@ customersRouter.post('/companies/:companyId/associate-multiple', jwtAuth, async 
     const results = [];
     for (const customerId of newCustomerIds) {
       const insertQuery = `
-        INSERT INTO "${schemaName}"."customer_company_memberships" 
+        INSERT INTO "${schemaName}"."company_memberships" 
         (customer_id, company_id, role, is_primary, tenant_id, created_at)
         VALUES ($1, $2, $3, $4, $5, NOW())
         RETURNING *

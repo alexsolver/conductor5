@@ -62,7 +62,7 @@ export class SchemaValidationEnforcer {
       // Verificar tabelas obrigatórias (15 tabelas)
       const requiredTables = [
         'customers', 'tickets', 'ticket_messages', 'activity_logs', 'locations',
-        'customer_companies', 'customer_company_memberships', 'skills', 
+        'customer_companies', 'company_memberships', 'skills', 
         'certifications', 'user_skills', 'favorecidos', 'projects', 
         'project_actions', 'project_timeline', 'integrations'
       ];

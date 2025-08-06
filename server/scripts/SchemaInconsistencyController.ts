@@ -475,7 +475,7 @@ favorecidos: {
     // Core business tables
     'customers', 'tickets', 'ticket_messages', 'activity_logs',
     // Location and company data
-    'locations', 'customer_companies', 'customer_company_memberships',
+    'locations', 'customer_companies', 'company_memberships',
     // Skills and certifications
     'skills', 'certifications', 'user_skills',
     // Brazilian entities and external contacts

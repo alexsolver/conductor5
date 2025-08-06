@@ -7,7 +7,7 @@ export class ValidationStandardizer {
   private static readonly STANDARD_REQUIRED_TABLES = [
     'customers', 'tickets', 'ticket_messages', 'activity_logs',
     'locations', 'customer_companies', 'skills', 'certifications', 
-    'user_skills', 'favorecidos', 'external_contacts', 'customer_company_memberships',
+    'user_skills', 'favorecidos', 'external_contacts', 'company_memberships',
     'email_response_templates', 'email_processing_logs', 'projects', 
     'project_actions', 'project_timeline'
   ];

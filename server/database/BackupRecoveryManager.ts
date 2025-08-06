@@ -25,7 +25,7 @@ export class BackupRecoveryManager {
 
       // Backup all tenant tables
       const tables = ['customers', 'tickets', 'ticket_messages', 'activity_logs', 
-                     'locations', 'customer_companies', 'customer_company_memberships'];
+                     'locations', 'customer_companies', 'company_memberships'];
 
       for (const table of tables) {
         await db.execute(sql`

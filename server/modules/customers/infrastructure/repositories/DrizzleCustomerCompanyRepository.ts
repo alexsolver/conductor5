@@ -338,7 +338,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
       .innerJoin(tenantSchema.companies, eq(tenantSchema.customerCompanyMemberships.companyId, tenantSchema.companies.id))
       .where(eq(tenantSchema.customerCompanyMemberships.customerId, customerId));
 
-    return results.map(result => this.toMembershipDomainEntity(result.customer_company_memberships));
+    return results.map(result => this.toMembershipDomainEntity(result.company_memberships));
   }
 
   async findMembershipsByCompany(companyId: string, tenantId: string): Promise<CustomerCompanyMembership[]> {
@@ -350,7 +350,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
       .from(tenantSchema.customerCompanyMemberships)
       .where(eq(tenantSchema.customerCompanyMemberships.companyId, companyId));
 
-    return results.map(result => this.toMembershipDomainEntity(result.customer_company_memberships));
+    return results.map(result => this.toMembershipDomainEntity(result.company_memberships));
   }
 
   async findMemberships(filter: CustomerCompanyMembershipFilter): Promise<CustomerCompanyMembership[]> {

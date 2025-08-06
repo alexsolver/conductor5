@@ -74,8 +74,8 @@ export class TenantIndexOptimizer {
             WHERE active = true`,
             
         // Customer company memberships performance indexes - CRITICAL MISSING  
-        sql`CREATE INDEX CONCURRENTLY IF NOT EXISTS customer_company_memberships_tenant_customer_idx 
-            ON ${schemaId}.customer_company_memberships (tenant_id, customer_id, company_id)`,
+        sql`CREATE INDEX CONCURRENTLY IF NOT EXISTS company_memberships_tenant_customer_idx 
+            ON ${schemaId}.company_memberships (tenant_id, customer_id, company_id)`,
             
         // Certifications performance indexes - CRITICAL MISSING
         sql`CREATE INDEX CONCURRENTLY IF NOT EXISTS certifications_tenant_category_issuer_idx 
@@ -146,7 +146,7 @@ export class TenantIndexOptimizer {
       const criticalTables = [
         'tickets', 'customers', 'activity_logs', 'skills', 'user_skills', 
         'certifications', 'favorecidos', 'customer_companies', 
-        'customer_company_memberships', 'locations', 'ticket_messages'
+        'company_memberships', 'locations', 'ticket_messages'
       ];
       
       for (const table of criticalTables) {

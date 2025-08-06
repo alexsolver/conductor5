@@ -345,7 +345,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           c.updated_at,
           ccm.role
         FROM "${schemaName}"."customers" c
-        INNER JOIN "${schemaName}"."customer_company_memberships" ccm
+        INNER JOIN "${schemaName}"."company_memberships" ccm
           ON c.id = ccm.customer_id
         WHERE ccm.company_id = $1 
           AND ccm.is_active = true
@@ -546,7 +546,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Check if company has associated customers
         const membershipsCheck = await pool.query(
-          `SELECT COUNT(*) as count FROM "${schemaName}"."customer_company_memberships" 
+          `SELECT COUNT(*) as count FROM "${schemaName}"."company_memberships" 
            WHERE company_id = $1 AND tenant_id = $2`,
           [companyId, req.user.tenantId]
         );
@@ -627,7 +627,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ccm.is_active as "isActive",
           ccm.created_at as "associatedAt"
         FROM "${schemaName}"."customers" c
-        INNER JOIN "${schemaName}"."customer_company_memberships" ccm ON c.id = ccm.customer_id
+        INNER JOIN "${schemaName}"."company_memberships" ccm ON c.id = ccm.customer_id
         WHERE c.tenant_id = $1 AND ccm.company_id = $2 AND ccm.tenant_id = $1 AND ccm.is_active = true
         ORDER BY c.first_name ASC, c.last_name ASC
       `;
@@ -699,7 +699,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         WHERE c.tenant_id = $1
         AND c.id NOT IN (
           SELECT ccm.customer_id 
-          FROM "${schemaName}"."customer_company_memberships" ccm
+          FROM "${schemaName}"."company_memberships" ccm
           WHERE ccm.company_id = $2 AND ccm.tenant_id = $1
         )
         ORDER BY c.first_name, c.last_name
@@ -774,7 +774,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Check for existing memberships
       const existingQuery = `
-        SELECT customer_id FROM "${schemaName}"."customer_company_memberships" 
+        SELECT customer_id FROM "${schemaName}"."company_memberships" 
         WHERE company_id = $1 AND customer_id = ANY($2::uuid[]) AND tenant_id = $3
       `;
 
@@ -799,7 +799,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const results = [];
       for (const customerId of newCustomerIds) {
         const insertQuery = `
-          INSERT INTO "${schemaName}"."customer_company_memberships" 
+          INSERT INTO "${schemaName}"."company_memberships" 
           (customer_id, company_id, role, is_primary, tenant_id, created_at)
           VALUES ($1, $2, $3, $4, $5, NOW())
           RETURNING *
@@ -3302,7 +3302,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ccm.role,
           ccm.department,
           ccm.start_date
-        FROM ${sql.identifier(schemaName)}.customer_company_memberships ccm
+        FROM ${sql.identifier(schemaName)}.company_memberships ccm
         INNER JOIN ${sql.identifier(schemaName)}.customer_companies cc ON ccm.company_id = cc.id
         WHERE ccm.customer_id = ${customerId} 
           AND ccm.is_active = true
@@ -3338,7 +3338,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Check if membership already exists
       const existing = await tenantDb.execute(sql`
-        SELECT id FROM ${sql.identifier(schemaName)}.customer_company_memberships
+        SELECT id FROM ${sql.identifier(schemaName)}.company_memberships
         WHERE customer_id = ${customerId} AND company_id = ${companyId}
       `);
 
@@ -3351,7 +3351,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Create new membership - using only existing columns
       const membership = await tenantDb.execute(sql`
-        INSERT INTO ${sql.identifier(schemaName)}.customer_company_memberships 
+        INSERT INTO ${sql.identifier(schemaName)}.company_memberships 
         (tenant_id, customer_id, company_id, role, is_active, start_date, created_at, updated_at)
         VALUES (${tenantId}, ${customerId}, ${companyId}, ${role}, true, NOW(), NOW(), NOW())
         RETURNING *
@@ -3384,7 +3384,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const schemaName = schemaManager.getSchemaName(tenantId);
 
       await tenantDb.execute(sql`
-        UPDATE ${sql.identifier(schemaName)}.customer_company_memberships
+        UPDATE ${sql.identifier(schemaName)}.company_memberships
         SET is_active = false
         WHERE customer_id = ${customerId} AND company_id = ${companyId}
       `);

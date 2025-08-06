@@ -430,7 +430,7 @@ customersRouter.delete('/companies/:id', jwtAuth, requirePermission('customer', 
       // Check if company has associated customers
       console.log(`[DELETE-${requestId}] Checking for associated customers...`);
       const membershipsCheck = await pool.query(
-        `SELECT COUNT(*) as count FROM "${schemaName}"."customer_company_memberships" 
+        `SELECT COUNT(*) as count FROM "${schemaName}"."company_memberships" 
          WHERE company_id = $1 AND tenant_id = $2`,
         [companyId, req.user.tenantId]
       );
@@ -454,7 +454,7 @@ customersRouter.delete('/companies/:id', jwtAuth, requirePermission('customer', 
       // Delete any orphaned memberships first (just in case)
       console.log(`[DELETE-${requestId}] Executing DELETE operation for memberships...`);
       const membershipDeleteResult = await pool.query(
-        `DELETE FROM "${schemaName}"."customer_company_memberships" 
+        `DELETE FROM "${schemaName}"."company_memberships" 
          WHERE company_id = $1 AND tenant_id = $2`,
         [companyId, req.user.tenantId]
       );
@@ -607,7 +607,7 @@ customersRouter.get('/:customerId/companies', jwtAuth, async (req: Authenticated
         cc.size,
         cc.subscription_tier,
         cc.status
-       FROM "${schemaName}"."customer_company_memberships" ccm
+       FROM "${schemaName}"."company_memberships" ccm
        JOIN "${schemaName}"."customer_companies" cc ON ccm.company_id = cc.id
        WHERE ccm.customer_id = $1 AND ccm.tenant_id = $2
        ORDER BY ccm.is_primary DESC, cc.name`,
@@ -677,7 +677,7 @@ customersRouter.get('/companies/:companyId/customers', jwtAuth, async (req: Auth
         c.created_at,
         c.updated_at
       FROM "${schemaName}".customers c
-      JOIN "${schemaName}".customer_company_memberships ccm ON c.id = ccm.customer_id
+      JOIN "${schemaName}".company_memberships ccm ON c.id = ccm.customer_id
       WHERE ccm.company_id = $1 AND ccm.tenant_id = $2
     `;
 
@@ -782,7 +782,7 @@ customersRouter.get('/companies/:companyId/available', jwtAuth, async (req: Auth
       WHERE c.tenant_id = $1
       AND c.id NOT IN (
         SELECT ccm.customer_id 
-        FROM "${schemaName}"."customer_company_memberships" ccm
+        FROM "${schemaName}"."company_memberships" ccm
         WHERE ccm.company_id = $2 AND ccm.tenant_id = $1
       )
       ORDER BY c.first_name, c.last_name
@@ -834,7 +834,7 @@ customersRouter.get('/companies/:companyId/associated', jwtAuth, async (req: Aut
              c.status, ccm.role, ccm.is_primary as "isPrimary", ccm.is_active as "isActive",
              ccm.created_at as "memberSince"
       FROM "${schemaName}"."customers" c
-      INNER JOIN "${schemaName}"."customer_company_memberships" ccm 
+      INNER JOIN "${schemaName}"."company_memberships" ccm 
         ON c.id = ccm.customer_id 
       WHERE ccm.company_id = $1 AND ccm.tenant_id = $2
       ORDER BY ccm.is_primary DESC, c.first_name, c.last_name
@@ -881,7 +881,7 @@ customersRouter.post('/:customerId/companies', jwtAuth, async (req: Authenticate
 
     // Check if membership already exists
     const existingResult = await pool.query(
-      `SELECT id FROM "${schemaName}"."customer_company_memberships" 
+      `SELECT id FROM "${schemaName}"."company_memberships" 
        WHERE customer_id = $1 AND company_id = $2 AND tenant_id = $3`,
       [customerId, companyId, req.user.tenantId]
     );
@@ -892,7 +892,7 @@ customersRouter.post('/:customerId/companies', jwtAuth, async (req: Authenticate
 
     // Insert new membership
     const result = await pool.query(
-      `INSERT INTO "${schemaName}"."customer_company_memberships" 
+      `INSERT INTO "${schemaName}"."company_memberships" 
        (customer_id, company_id, role, is_primary, tenant_id, created_by, created_at, updated_at)
        VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
        RETURNING *`,
@@ -958,7 +958,7 @@ customersRouter.post('/companies/:companyId/associate-multiple', jwtAuth, async 
 
     // Check for existing memberships
     const existingQuery = `
-      SELECT customer_id FROM "${schemaName}"."customer_company_memberships" 
+      SELECT customer_id FROM "${schemaName}"."company_memberships" 
       WHERE company_id = $1 AND customer_id = ANY($2::uuid[]) AND tenant_id = $3
     `;
 
@@ -983,7 +983,7 @@ customersRouter.post('/companies/:companyId/associate-multiple', jwtAuth, async 
     const results = [];
     for (const customerId of newCustomerIds) {
       const insertQuery = `
-        INSERT INTO "${schemaName}"."customer_company_memberships" 
+        INSERT INTO "${schemaName}"."company_memberships" 
         (customer_id, company_id, role, is_primary, tenant_id, created_at)
         VALUES ($1, $2, $3, $4, $5, NOW())
         RETURNING *
@@ -1058,7 +1058,7 @@ customersRouter.delete('/:customerId/companies/:companyId', jwtAuth, async (req:
 
     // First, check if the membership exists
     const checkQuery = `
-      SELECT * FROM "${schemaName}"."customer_company_memberships" 
+      SELECT * FROM "${schemaName}"."company_memberships" 
       WHERE customer_id = $1 AND company_id = $2 AND tenant_id = $3
     `;
 
@@ -1080,7 +1080,7 @@ customersRouter.delete('/:customerId/companies/:companyId', jwtAuth, async (req:
 
     // Delete the membership
     const deleteQuery = `
-      DELETE FROM "${schemaName}"."customer_company_memberships" 
+      DELETE FROM "${schemaName}"."company_memberships" 
       WHERE customer_id = $1 AND company_id = $2 AND tenant_id = $3
     `;
 
@@ -1179,7 +1179,7 @@ customersRouter.get('/companies/:companyId/customers', jwtAuth, async (req: Auth
         c.created_at,
         c.updated_at
       FROM "${schemaName}".customers c
-      INNER JOIN "${schemaName}".customer_company_memberships ccm ON c.id = ccm.customer_id
+      INNER JOIN "${schemaName}".company_memberships ccm ON c.id = ccm.customer_id
       WHERE ccm.company_id = $1 AND ccm.tenant_id = $2
     `;
 
@@ -1284,7 +1284,7 @@ customersRouter.get('/companies/:companyId/available', jwtAuth, async (req: Auth
       WHERE c.tenant_id = $1
       AND c.id NOT IN (
         SELECT ccm.customer_id 
-        FROM "${schemaName}"."customer_company_memberships" ccm
+        FROM "${schemaName}"."company_memberships" ccm
         WHERE ccm.company_id = $2 AND ccm.tenant_id = $1
       )
       ORDER BY c.first_name, c.last_name
@@ -1331,7 +1331,7 @@ customersRouter.post('/:customerId/companies', jwtAuth, async (req: Authenticate
 
     // Check if membership already exists
     const existingResult = await pool.query(
-      `SELECT id FROM "${schemaName}"."customer_company_memberships" 
+      `SELECT id FROM "${schemaName}"."company_memberships" 
        WHERE customer_id = $1 AND company_id = $2 AND tenant_id = $3`,
       [customerId, companyId, req.user.tenantId]
     );
@@ -1342,7 +1342,7 @@ customersRouter.post('/:customerId/companies', jwtAuth, async (req: Authenticate
 
     // Insert new membership
     const result = await pool.query(
-      `INSERT INTO "${schemaName}"."customer_company_memberships" 
+      `INSERT INTO "${schemaName}"."company_memberships" 
        (customer_id, company_id, role, is_primary, tenant_id, created_by, created_at, updated_at)
        VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
        RETURNING *`,
@@ -1408,7 +1408,7 @@ customersRouter.post('/companies/:companyId/associate-multiple', jwtAuth, async 
 
     // Check for existing memberships
     const existingQuery = `
-      SELECT customer_id FROM "${schemaName}"."customer_company_memberships" 
+      SELECT customer_id FROM "${schemaName}"."company_memberships" 
       WHERE company_id = $1 AND customer_id = ANY($2::uuid[]) AND tenant_id = $3
     `;
 
@@ -1433,7 +1433,7 @@ customersRouter.post('/companies/:companyId/associate-multiple', jwtAuth, async 
     const results = [];
     for (const customerId of newCustomerIds) {
       const insertQuery = `
-        INSERT INTO "${schemaName}"."customer_company_memberships" 
+        INSERT INTO "${schemaName}"."company_memberships" 
         (customer_id, company_id, role, is_primary, tenant_id, created_at)
         VALUES ($1, $2, $3, $4, $5, NOW())
         RETURNING *
@@ -1508,7 +1508,7 @@ customersRouter.delete('/:customerId/companies/:companyId', jwtAuth, async (req:
 
     // First, check if the membership exists
     const checkQuery = `
-      SELECT * FROM "${schemaName}"."customer_company_memberships" 
+      SELECT * FROM "${schemaName}"."company_memberships" 
       WHERE customer_id = $1 AND company_id = $2 AND tenant_id = $3
     `;
 
@@ -1530,7 +1530,7 @@ customersRouter.delete('/:customerId/companies/:companyId', jwtAuth, async (req:
 
     // Delete the membership
     const deleteQuery = `
-      DELETE FROM "${schemaName}"."customer_company_memberships" 
+      DELETE FROM "${schemaName}"."company_memberships" 
       WHERE customer_id = $1 AND company_id = $2 AND tenant_id = $3
     `;
 
@@ -1629,7 +1629,7 @@ customersRouter.get('/companies/:companyId/customers', jwtAuth, async (req: Auth
         c.created_at,
         c.updated_at
       FROM "${schemaName}".customers c
-      INNER JOIN "${schemaName}".customer_company_memberships ccm ON c.id = ccm.customer_id
+      INNER JOIN "${schemaName}".company_memberships ccm ON c.id = ccm.customer_id
       WHERE ccm.company_id = $1 AND ccm.tenant_id = $2
     `;
 
@@ -1734,7 +1734,7 @@ customersRouter.get('/companies/:companyId/available', jwtAuth, async (req: Auth
       WHERE c.tenant_id = $1
       AND c.id NOT IN (
         SELECT ccm.customer_id 
-        FROM "${schemaName}"."customer_company_memberships" ccm
+        FROM "${schemaName}"."company_memberships" ccm
         WHERE ccm.company_id = $2 AND ccm.tenant_id = $1
       )
       ORDER BY c.first_name, c.last_name
@@ -1782,7 +1782,7 @@ await import('../../db');
 
     // Check if membership already exists
     const existingResult = await pool.query(
-      `SELECT id FROM "${schemaName}"."customer_company_memberships" 
+      `SELECT id FROM "${schemaName}"."company_memberships" 
        WHERE customer_id = $1 AND company_id = $2 AND tenant_id = $3`,
       [customerId, companyId, req.user.tenantId]
     );
@@ -1793,7 +1793,7 @@ await import('../../db');
 
     // Insert new membership
     const result = await pool.query(
-      `INSERT INTO "${schemaName}"."customer_company_memberships" 
+      `INSERT INTO "${schemaName}"."company_memberships" 
        (customer_id, company_id, role, is_primary, tenant_id, created_by, created_at, updated_at)
        VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
        RETURNING *`,
@@ -1859,7 +1859,7 @@ customersRouter.post('/companies/:companyId/associate-multiple', jwtAuth, async 
 
     // Check for existing memberships
     const existingQuery = `
-      SELECT customer_id FROM "${schemaName}"."customer_company_memberships" 
+      SELECT customer_id FROM "${schemaName}"."company_memberships" 
       WHERE company_id = $1 AND customer_id = ANY($2::uuid[]) AND tenant_id = $3
     `;
 
@@ -1884,7 +1884,7 @@ customersRouter.post('/companies/:companyId/associate-multiple', jwtAuth, async 
     const results = [];
     for (const customerId of newCustomerIds) {
       const insertQuery = `
-        INSERT INTO "${schemaName}"."customer_company_memberships" 
+        INSERT INTO "${schemaName}"."company_memberships" 
         (customer_id, company_id, role, is_primary, tenant_id, created_at)
         VALUES ($1, $2, $3, $4, $5, NOW())
         RETURNING *
@@ -1959,7 +1959,7 @@ customersRouter.delete('/:customerId/companies/:companyId', jwtAuth, async (req:
 
     // First, check if the membership exists
     const checkQuery = `
-      SELECT * FROM "${schemaName}"."customer_company_memberships" 
+      SELECT * FROM "${schemaName}"."company_memberships" 
       WHERE customer_id = $1 AND company_id = $2 AND tenant_id = $3
     `;
 
@@ -1981,7 +1981,7 @@ customersRouter.delete('/:customerId/companies/:companyId', jwtAuth, async (req:
 
     // Delete the membership
     const deleteQuery = `
-      DELETE FROM "${schemaName}"."customer_company_memberships" 
+      DELETE FROM "${schemaName}"."company_memberships" 
       WHERE customer_id = $1 AND company_id = $2 AND tenant_id = $3
     `;
 
@@ -2080,7 +2080,7 @@ customersRouter.get('/companies/:companyId/customers', jwtAuth, async (req: Auth
         c.created_at,
         c.updated_at
       FROM "${schemaName}".customers c
-      INNER JOIN "${schemaName}".customer_company_memberships ccm ON c.id = ccm.customer_id
+      INNER JOIN "${schemaName}".company_memberships ccm ON c.id = ccm.customer_id
       WHERE ccm.company_id = $1 AND ccm.tenant_id = $2
     `;
 
@@ -2185,7 +2185,7 @@ customersRouter.get('/companies/:companyId/available', jwtAuth, async (req: Auth
       WHERE c.tenant_id = $1
       AND c.id NOT IN (
         SELECT ccm.customer_id 
-        FROM "${schemaName}"."customer_company_memberships" ccm
+        FROM "${schemaName}"."company_memberships" ccm
         WHERE ccm.company_id = $2 AND ccm.tenant_id = $1
       )
       ORDER BY c.first_name, c.last_name
@@ -2232,7 +2232,7 @@ customersRouter.post('/:customerId/companies', jwtAuth, async (req: Authenticate
 
     // Check if membership already exists
     const existingResult = await pool.query(
-      `SELECT id FROM "${schemaName}"."customer_company_memberships" 
+      `SELECT id FROM "${schemaName}"."company_memberships" 
        WHERE customer_id = $1 AND company_id = $2 AND tenant_id = $3`,
       [customerId, companyId, req.user.tenantId]
     );
@@ -2243,7 +2243,7 @@ customersRouter.post('/:customerId/companies', jwtAuth, async (req: Authenticate
 
     // Insert new membership
     const result = await pool.query(
-      `INSERT INTO "${schemaName}"."customer_company_memberships" 
+      `INSERT INTO "${schemaName}"."company_memberships" 
        (customer_id, company_id, role, is_primary, tenant_id, created_by, created_at, updated_at)
        VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
        RETURNING *`,
@@ -2309,7 +2309,7 @@ customersRouter.post('/companies/:companyId/associate-multiple', jwtAuth, async 
 
     // Check for existing memberships
     const existingQuery = `
-      SELECT customer_id FROM "${schemaName}"."customer_company_memberships" 
+      SELECT customer_id FROM "${schemaName}"."company_memberships" 
       WHERE company_id = $1 AND customer_id = ANY($2::uuid[]) AND tenant_id = $3
     `;
 
@@ -2334,7 +2334,7 @@ customersRouter.post('/companies/:companyId/associate-multiple', jwtAuth, async 
     const results = [];
     for (const customerId of newCustomerIds) {
       const insertQuery = `
-        INSERT INTO "${schemaName}"."customer_company_memberships" 
+        INSERT INTO "${schemaName}"."company_memberships" 
         (customer_id, company_id, role, is_primary, tenant_id, created_at)
         VALUES ($1, $2, $3, $4, $5, NOW())
         RETURNING *
@@ -2409,7 +2409,7 @@ customersRouter.delete('/:customerId/companies/:companyId', jwtAuth, async (req:
 
     // First, check if the membership exists
     const checkQuery = `
-      SELECT * FROM "${schemaName}"."customer_company_memberships" 
+      SELECT * FROM "${schemaName}"."company_memberships" 
       WHERE customer_id = $1 AND company_id = $2 AND tenant_id = $3
     `;
 
@@ -2431,7 +2431,7 @@ customersRouter.delete('/:customerId/companies/:companyId', jwtAuth, async (req:
 
     // Delete the membership
     const deleteQuery = `
-      DELETE FROM "${schemaName}"."customer_company_memberships" 
+      DELETE FROM "${schemaName}"."company_memberships" 
       WHERE customer_id = $1 AND company_id = $2 AND tenant_id = $3
     `;
 
@@ -2530,7 +2530,7 @@ customersRouter.get('/companies/:companyId/customers', jwtAuth, async (req: Auth
         c.created_at,
         c.updated_at
       FROM "${schemaName}".customers c
-      INNER JOIN "${schemaName}".customer_company_memberships ccm ON c.id = ccm.customer_id
+      INNER JOIN "${schemaName}".company_memberships ccm ON c.id = ccm.customer_id
       WHERE ccm.company_id = $1 AND ccm.tenant_id = $2
     `;
 
@@ -2635,7 +2635,7 @@ customersRouter.get('/companies/:companyId/available', jwtAuth, async (req: Auth
       WHERE c.tenant_id = $1
       AND c.id NOT IN (
         SELECT ccm.customer_id 
-        FROM "${schemaName}"."customer_company_memberships" ccm
+        FROM "${schemaName}"."company_memberships" ccm
         WHERE ccm.company_id = $2 AND ccm.tenant_id = $1
       )
       ORDER BY c.first_name, c.last_name
@@ -2682,7 +2682,7 @@ customersRouter.post('/:customerId/companies', jwtAuth, async (req: Authenticate
 
     // Check if membership already exists
     const existingResult = await pool.query(
-      `SELECT id FROM "${schemaName}"."customer_company_memberships" 
+      `SELECT id FROM "${schemaName}"."company_memberships" 
        WHERE customer_id = $1 AND company_id = $2 AND tenant_id = $3`,
       [customerId, companyId, req.user.tenantId]
     );
@@ -2693,7 +2693,7 @@ customersRouter.post('/:customerId/companies', jwtAuth, async (req: Authenticate
 
     // Insert new membership
     const result = await pool.query(
-      `INSERT INTO "${schemaName}"."customer_company_memberships" 
+      `INSERT INTO "${schemaName}"."company_memberships" 
        (customer_id, company_id, role, is_primary, tenant_id, created_by, created_at, updated_at)
        VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
        RETURNING *`,
@@ -2759,7 +2759,7 @@ customersRouter.post('/companies/:companyId/associate-multiple', jwtAuth, async 
 
     // Check for existing memberships
     const existingQuery = `
-      SELECT customer_id FROM "${schemaName}"."customer_company_memberships" 
+      SELECT customer_id FROM "${schemaName}"."company_memberships" 
       WHERE company_id = $1 AND customer_id = ANY($2::uuid[]) AND tenant_id = $3
     `;
 
@@ -2784,7 +2784,7 @@ customersRouter.post('/companies/:companyId/associate-multiple', jwtAuth, async 
     const results = [];
     for (const customerId of newCustomerIds) {
       const insertQuery = `
-        INSERT INTO "${schemaName}"."customer_company_memberships" 
+        INSERT INTO "${schemaName}"."company_memberships" 
         (customer_id, company_id, role, is_primary, tenant_id, created_at)
         VALUES ($1, $2, $3, $4, $5, NOW())
         RETURNING *
@@ -2859,7 +2859,7 @@ customersRouter.delete('/:customerId/companies/:companyId', jwtAuth, async (req:
 
     // First, check if the membership exists
     const checkQuery = `
-      SELECT * FROM "${schemaName}"."customer_company_memberships" 
+      SELECT * FROM "${schemaName}"."company_memberships" 
       WHERE customer_id = $1 AND company_id = $2 AND tenant_id = $3
     `;
 
@@ -2881,7 +2881,7 @@ customersRouter.delete('/:customerId/companies/:companyId', jwtAuth, async (req:
 
     // Delete the membership
     const deleteQuery = `
-      DELETE FROM "${schemaName}"."customer_company_memberships" 
+      DELETE FROM "${schemaName}"."company_memberships" 
       WHERE customer_id = $1 AND company_id = $2 AND tenant_id = $3
     `;
 
