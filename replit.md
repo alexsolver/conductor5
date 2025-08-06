@@ -83,3 +83,11 @@ Conductor follows a Clean Architecture with Domain-Driven Design principles.
   - ✅ Server starting without errors, all module imports resolved
   - ✅ API endpoints responding with valid JSON data
   - ✅ Authentication system working properly with token management
+
+### August 6, 2025 - Nomenclature Standardization: "empresa cliente" → "Empresa"
+- **Issue**: Inconsistent terminology throughout system using "empresa cliente" instead of simplified "Empresa"
+- **Files Updated**:
+  - `server/routes.ts`: Updated template comments (line 1329)
+  - `shared/schema-materials-services.ts`: Updated schema comments (line 49) 
+  - `shared/ticket-validation.ts`: Updated validation comments and error messages (lines 114-118)
+- **Status**: Backend schema and comments updated, comprehensive system-wide renaming in progress

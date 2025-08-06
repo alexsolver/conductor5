@@ -1326,7 +1326,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return await ticketTemplateController.getTemplateCategories(req, res);
     });
 
-    // Templates por empresa cliente
+    // Templates por Empresa
     app.get('/api/ticket-templates/company/:customerCompanyId', jwtAuth, ticketTemplateController.getTemplatesByCompany.bind(ticketTemplateController));
     app.post('/api/ticket-templates/company/:customerCompanyId', jwtAuth, ticketTemplateController.createTemplate.bind(ticketTemplateController)); 
 

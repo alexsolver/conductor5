@@ -46,7 +46,7 @@ export const itemLinks = pgTable('item_links', {
   createdBy: uuid('created_by')
 });
 
-// VÍNCULOS ITEM ↔ EMPRESA CLIENTE (dados específicos por empresa cliente)
+// VÍNCULOS ITEM ↔ EMPRESA (dados específicos por Empresa)
 export const itemCustomerLinks = pgTable('item_customer_links', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id').notNull(),
