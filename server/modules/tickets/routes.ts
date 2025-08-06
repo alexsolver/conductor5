@@ -224,7 +224,7 @@ ticketsRouter.get('/:id', jwtAuth, trackTicketView, async (req: AuthenticatedReq
       FROM ${schemaName}.tickets t
       LEFT JOIN ${schemaName}.customers c ON t.beneficiary_id = c.id
       LEFT JOIN ${schemaName}.customers caller_c ON t.caller_id = caller_c.id  
-      LEFT JOIN ${schemaName}.companies comp ON t.company_id = comp.id
+      LEFT JOIN ${schemaName}.customer_companies comp ON t.customer_company_id = comp.id
       LEFT JOIN ${schemaName}.users u ON t.assigned_to_id = u.id
       WHERE t.tenant_id = $1 AND t.id = $2
     `;
