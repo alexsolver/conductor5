@@ -396,6 +396,7 @@ export default function ItemCatalog() {
             variant="outline" 
             size="sm"
             onClick={() => {
+              console.log('Edit Item clicked for:', item.name);
               setSelectedItem(item);
               form.reset({
                 name: item.name || '',
@@ -417,6 +418,7 @@ export default function ItemCatalog() {
             variant="outline" 
             size="sm"
             onClick={() => {
+              console.log('View Item clicked for:', item.name);
               setSelectedItem(item);
               setIsViewModalOpen(true);
             }}
@@ -437,8 +439,16 @@ export default function ItemCatalog() {
     );
   };
 
+  // Debug states
+  console.log('Modal states:', { isCreateModalOpen, isViewModalOpen, selectedItem });
+
   return (
     <div className="space-y-6">
+      {/* Debug info */}
+      <div className="text-xs text-gray-500 p-2 bg-gray-100 rounded">
+        Debug: CreateModal={isCreateModalOpen.toString()}, ViewModal={isViewModalOpen.toString()}, SelectedItem={selectedItem?.name || 'none'}
+      </div>
+      
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
@@ -447,7 +457,10 @@ export default function ItemCatalog() {
             Ponto de entrada para cadastro de materiais e serviços
           </p>
         </div>
-        <Button onClick={() => setIsCreateModalOpen(true)}>
+        <Button onClick={() => {
+          console.log('Criar Item clicked');
+          setIsCreateModalOpen(true);
+        }}>
           <Plus className="h-4 w-4 mr-2" />
           Criar Item
         </Button>
@@ -580,7 +593,10 @@ export default function ItemCatalog() {
       </Tabs>
 
       {/* Modal de Criação/Edição de Item */}
-      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+      <Dialog open={isCreateModalOpen} onOpenChange={(open) => {
+        console.log('Create modal state changing to:', open);
+        setIsCreateModalOpen(open);
+      }}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
@@ -776,7 +792,10 @@ export default function ItemCatalog() {
       </Dialog>
 
       {/* Modal de Visualização de Item */}
-      <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
+      <Dialog open={isViewModalOpen} onOpenChange={(open) => {
+        console.log('View modal state changing to:', open);
+        setIsViewModalOpen(open);
+      }}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Detalhes do Item</DialogTitle>
