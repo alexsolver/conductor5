@@ -1,4 +1,4 @@
-import { pgTable, uuid, varchar, text, boolean, timestamp, decimal, integer, jsonb, pgEnum } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, varchar, text, boolean, timestamp, decimal, integer, jsonb, pgEnum, index, unique } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 // Import items from master schema instead of redefining
 import { items } from './schema-master';
@@ -313,7 +313,7 @@ export const priceLists = pgTable('price_lists', {
   code: varchar('code', { length: 50 }).notNull(),
   description: text('description'),
   version: varchar('version', { length: 20 }),
-  
+
   // Aplicação
   customerId: uuid('customer_id'),
   customerCompanyId: uuid('customer_company_id'),

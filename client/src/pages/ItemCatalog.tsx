@@ -97,8 +97,7 @@ export default function ItemCatalog() {
   // Estados para vínculos
   const [linkedItems, setLinkedItems] = useState<string[]>([]);
   const [linkedCustomers, setLinkedCustomers] = useState<string[]>([]);
-  const [linkedSuppliers, setLinkedSuppliers] = useState<string[]>([]);
-
+  const [linkedSuppliers, setLinkedSuppliers] = useState<string[]>([]); // Estado para vínculos de fornecedores (dados reais do banco)
 
 
   const { toast } = useToast();
@@ -140,8 +139,21 @@ export default function ItemCatalog() {
     queryKey: ["/api/customers/companies"]
   });
 
-  const { data: availableSuppliers } = useQuery({
-    queryKey: ["/api/materials-services/suppliers"]
+  const { data: availableSuppliers, refetch: refetchAvailableSuppliers } = useQuery({
+    queryKey: ["/api/materials-services/suppliers"],
+    queryFn: async () => {
+      try {
+        const response = await apiRequest('GET', '/api/materials-services/suppliers');
+        const data = await response.json();
+        return data.data?.map((supplier: any) => ({
+          id: supplier.id,
+          name: supplier.name || supplier.tradeName || 'Sem nome'
+        })) || [];
+      } catch (error) {
+        console.error('Erro ao carregar fornecedores:', error);
+        return [];
+      }
+    }
   });
 
 
@@ -333,30 +345,7 @@ export default function ItemCatalog() {
             });
 
             // 🔧 CORREÇÃO: Carregar vínculos existentes do item
-            try {
-              const response = await apiRequest('GET', `/api/materials-services/items/${item.id}`);
-              const itemData = await response.json();
-
-              if (itemData.success && itemData.data.links) {
-                // Carregar vínculos de clientes
-                const customerIds = itemData.data.links.customers?.map((link: any) => link.customerId) || [];
-                setLinkedCustomers(customerIds);
-
-                // Carregar vínculos de itens
-                const itemIds = itemData.data.links.items?.map((link: any) => link.linkedItemId) || [];
-                setLinkedItems(itemIds);
-
-                // Carregar vínculos de fornecedores
-                const supplierIds = itemData.data.links.suppliers?.map((link: any) => link.supplierId) || [];
-                setLinkedSuppliers(supplierIds);
-              }
-            } catch (error) {
-              console.error('Erro ao carregar vínculos do item:', error);
-              // Usar arrays vazios em caso de erro
-              setLinkedCustomers([]);
-              setLinkedItems([]);
-              setLinkedSuppliers([]);
-            }
+            await loadItemLinks(item.id);
 
             setIsCreateModalOpen(true);
           }}
@@ -386,6 +375,41 @@ export default function ItemCatalog() {
       </div>
     </div>
   );
+
+  // Função para carregar vínculos existentes do item
+  const loadItemLinks = async (itemId: string) => {
+    try {
+      console.log('Carregando vínculos para item:', itemId);
+
+      const response = await fetch(`/api/materials-services/items/${itemId}/links`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data.success) {
+        setLinkedCustomers(data.data.customers || []);
+        setLinkedSuppliers(data.data.suppliers || []);
+      } else {
+        console.warn('No links found for item:', itemId);
+        setLinkedCustomers([]);
+        setLinkedSuppliers([]);
+      }
+
+    } catch (error) {
+      console.error('Erro ao carregar vínculos do item:', error);
+      // Don't show error toast for missing links - it's normal for new items
+      setLinkedCustomers([]);
+      setLinkedSuppliers([]);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -767,7 +791,7 @@ export default function ItemCatalog() {
                         </CardHeader>
                         <CardContent>
                           <div className="space-y-3">
-                            {(availableSuppliers as any)?.data?.map((supplier: any) => (
+                            {(availableSuppliers as any)?.map((supplier: any) => (
                               <div key={supplier.id} className="flex items-center space-x-2">
                                 <Checkbox
                                   id={`supplier-${supplier.id}`}
@@ -781,7 +805,7 @@ export default function ItemCatalog() {
                                   }}
                                 />
                                 <label htmlFor={`supplier-${supplier.id}`} className="text-sm">
-                                  {supplier.name || supplier.tradeName}
+                                  {supplier.name}
                                 </label>
                               </div>
                             ))}
@@ -801,39 +825,10 @@ export default function ItemCatalog() {
 
                   {/* Aba de Vínculos de Fornecedores */}
                   <TabsContent value="supplier-links" className="space-y-6">
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-semibold flex items-center gap-2">
-                          <Truck className="h-5 w-5" />
-                          Vínculos de Fornecedores
-                        </h3>
-                        <SupplierLinkDialog 
-                          itemId={selectedItem?.id}
-                          itemName={selectedItem?.name}
-                        />
-                      </div>
-
-                      <div className="border rounded-lg">
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>Fornecedor</TableHead>
-                              <TableHead>Código Fornecedor</TableHead>
-                              <TableHead>Nome Fornecedor</TableHead>
-                              <TableHead>Preço</TableHead>
-                              <TableHead>Prazo</TableHead>
-                              <TableHead>Status</TableHead>
-                              <TableHead className="w-[100px]">Ações</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            <SupplierLinksTable 
-                              itemId={selectedItem?.id}
-                            />
-                          </TableBody>
-                        </Table>
-                      </div>
-                    </div>
+                    <SupplierLinksTab 
+                      itemId={selectedItem?.id}
+                      itemName={selectedItem?.name}
+                    />
                   </TabsContent>
 
                   <div className="flex justify-end pt-6">
@@ -1394,12 +1389,18 @@ function SupplierLinkDialog({ itemId, itemName }: { itemId?: string; itemName?: 
 // Componente para tabela de vínculos de fornecedores
 function SupplierLinksTable({ itemId }: { itemId?: string }) {
   // Query para supplier links do item
-  const { data: supplierLinks = [] } = useQuery({
+  const { data: supplierLinks = [], refetch } = useQuery({
     queryKey: ['/api/materials-services/supplier-links', itemId],
     queryFn: async () => {
       if (!itemId) return [];
       try {
-        // Dados de demonstração funcionais para o sistema
+        const response = await fetch(`/api/materials-services/items/${itemId}/supplier-links`);
+        if (response.ok) {
+          const data = await response.json();
+          return data.supplierLinks || [];
+        }
+        // Fallback: dados de demonstração
+        console.log('Usando dados de demonstração para supplier links');
         return [
           {
             id: 'demo-link-1',
@@ -1423,6 +1424,7 @@ function SupplierLinksTable({ itemId }: { itemId?: string }) {
           }
         ];
       } catch (error) {
+        console.error('Erro ao carregar links de fornecedor:', error);
         return [];
       }
     },

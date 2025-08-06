@@ -6,7 +6,7 @@ import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
 export class ItemRepository {
   private db: NodePgDatabase<any>;
-  
+
   constructor(db: NodePgDatabase<any>) {
     this.db = db;
   }
@@ -22,7 +22,7 @@ export class ItemRepository {
         updatedAt: new Date()
       })
       .returning();
-    
+
     return item as Item;
   }
 
@@ -48,7 +48,7 @@ export class ItemRepository {
       .from(items)
       .where(and(eq(items.id, id), eq(items.tenantId, tenantId)))
       .limit(1);
-    
+
     return item as Item || null;
   }
 
@@ -95,7 +95,7 @@ export class ItemRepository {
           eq(itemCustomerLinks.customerCompanyId, options.companyId),
           eq(itemCustomerLinks.isActive, true)
         ));
-      
+
       const itemIds = linkedItemIds.map(link => link.itemId);
       if (itemIds.length > 0) {
         conditions.push(inArray(items.id, itemIds));
@@ -140,13 +140,13 @@ export class ItemRepository {
   async update(id: string, tenantId: string, data: Partial<Item>): Promise<Item | null> {
     // Filter out any properties that don't exist in the schema and handle JSON fields
     const { groupName, maintenancePlan, defaultChecklist, ...validData } = data as any;
-    
+
     // Handle JSON fields properly - filter out empty strings that cause JSON parsing errors
     const updateData = {
       ...validData,
       updatedAt: new Date()
     };
-    
+
     // Only add JSON fields if they have valid content
     if (maintenancePlan !== undefined && maintenancePlan !== '') {
       updateData.maintenancePlan = typeof maintenancePlan === 'string' ? maintenancePlan : JSON.stringify(maintenancePlan);
@@ -154,13 +154,13 @@ export class ItemRepository {
     if (defaultChecklist !== undefined && defaultChecklist !== '') {
       updateData.defaultChecklist = typeof defaultChecklist === 'string' ? defaultChecklist : JSON.stringify(defaultChecklist);
     }
-    
+
     const [item] = await this.db
       .update(items)
       .set(updateData)
       .where(and(eq(items.id, id), eq(items.tenantId, tenantId)))
       .returning();
-    
+
     return item as Item || null;
   }
 
@@ -168,7 +168,7 @@ export class ItemRepository {
     const result = await this.db
       .delete(items)
       .where(and(eq(items.id, id), eq(items.tenantId, tenantId)));
-    
+
     return (result.rowCount || 0) > 0;
   }
 
@@ -189,7 +189,7 @@ export class ItemRepository {
         createdAt: new Date()
       })
       .returning();
-    
+
     return result;
   }
 
@@ -224,7 +224,7 @@ export class ItemRepository {
         createdAt: new Date()
       })
       .returning();
-    
+
     return result;
   }
 
@@ -246,7 +246,7 @@ export class ItemRepository {
         createdAt: new Date()
       })
       .returning();
-    
+
     return result;
   }
 
@@ -268,25 +268,43 @@ export class ItemRepository {
         createdAt: new Date()
       })
       .returning();
-    
+
     return result;
   }
 
   async getItemLinks(itemId: string, tenantId: string) {
     try {
-      return await this.db
-        .select()
-        .from(itemLinks)
-        .where(and(
-          eq(itemLinks.itemId, itemId), 
-          eq(itemLinks.tenantId, tenantId)
-        ))
-        .orderBy(desc(itemLinks.createdAt));
-    } catch (error: any) {
-      if (error.code === '42P01') { // relation does not exist
-        return [];
-      }
-      throw error;
+      // Buscar vínculos de clientes
+      const customerLinksResult = await this.db
+        .select({ customerId: customerItemMappings.customerId })
+        .from(customerItemMappings)
+        .where(
+          and(
+            eq(customerItemMappings.tenantId, tenantId),
+            eq(customerItemMappings.itemId, itemId),
+            eq(customerItemMappings.isActive, true)
+          )
+        );
+
+      // Buscar vínculos de fornecedores
+      const supplierLinksResult = await this.db
+        .select({ supplierId: itemSupplierLinks.supplierId })
+        .from(itemSupplierLinks)
+        .where(
+          and(
+            eq(itemSupplierLinks.tenantId, tenantId),
+            eq(itemSupplierLinks.itemId, itemId)
+          )
+        );
+
+      return {
+        customers: customerLinksResult.map(link => link.customerId),
+        suppliers: supplierLinksResult.map(link => link.supplierId)
+      };
+
+    } catch (error) {
+      console.error('Error getting item links:', error);
+      return { customers: [], suppliers: [] };
     }
   }
 
@@ -363,15 +381,16 @@ export class ItemRepository {
   }
 
   // 🔧 MÉTODO CORRIGIDO: Atualizar vínculos de item usando tabelas corretas
-  async updateItemLinks(itemId: string, tenantId: string, links: {
-    customers: string[];
-    items: string[];
-    suppliers: string[];
-  }, createdBy?: string) {
+  async updateItemLinks(
+    tenantId: string,
+    itemId: string,
+    links: { customers: string[]; suppliers: string[] },
+    createdBy?: string
+  ): Promise<void> {
     try {
       // 1. Remover vínculos existentes (usar tabelas corretas)
       const deletePromises = [];
-      
+
       // customer_item_mappings ao invés de itemCustomerLinks
       try {
         await this.db.delete(customerItemMappings).where(and(
@@ -432,11 +451,11 @@ export class ItemRepository {
         await Promise.all(promises);
       }
 
-      return true;
+      return; // Retorna void como esperado
     } catch (error) {
       console.error('Error updating item links:', error);
-      // Don't throw to prevent breaking main update flow
-      return false;
+      // Não lançar erro para não quebrar o fluxo principal de atualização
+      // Retornar false ou lançar um erro específico se necessário para o fluxo chamador
     }
   }
 }

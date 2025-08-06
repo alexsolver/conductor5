@@ -197,6 +197,40 @@ router.post('/suppliers', async (req: AuthenticatedRequest, res) => {
 });
 
 router.get('/suppliers', async (req: AuthenticatedRequest, res) => {
+
+// Endpoint para obter vínculos de um item específico
+app.get('/items/:itemId/links', async (req: Request, res: Response) => {
+  try {
+    const { itemId } = req.params;
+    const tenantId = req.user?.tenantId;
+
+    if (!tenantId) {
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Tenant ID não encontrado' 
+      });
+    }
+
+    const itemRepository = new ItemRepository();
+    const links = await itemRepository.getItemLinks(tenantId, itemId);
+
+    res.json({
+      success: true,
+      data: links,
+      message: 'Vínculos do item obtidos com sucesso'
+    });
+
+  } catch (error) {
+    console.error('Erro ao obter vínculos do item:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erro interno do servidor',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+
   if (!req.user?.tenantId) return res.status(401).json({ message: 'Tenant ID required' });
   const { supplierController } = await getControllers(req.user.tenantId);
   return supplierController.getSuppliers(req, res);
