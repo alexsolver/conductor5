@@ -68,7 +68,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/auth/login', createMemoryRateLimitMiddleware(RATE_LIMIT_CONFIGS.LOGIN));
   app.use('/api/auth/register', createMemoryRateLimitMiddleware(RATE_LIMIT_CONFIGS.REGISTRATION));
   app.use('/api/auth/password-reset', createMemoryRateLimitMiddleware(RATE_LIMIT_CONFIGS.PASSWORD_RESET));
-  
+
   // Exempt ticket-config/field-options from rate limiting to avoid UI errors
   app.use('/api', (req, res, next) => {
     if (req.path.includes('/ticket-config/field-options')) {
@@ -213,7 +213,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/integrity', integrityRoutes);
   app.use('/api/system', systemScanRoutes);
 
-  // === CUSTOMERS ROUTES - Standardized to use /api/customers ===
+  // === CUSTOMERSROUTES - Standardized to use /api/customers ===
 
   // Main customers route - temporary implementation until router is fixed
   app.get('/api/customers', jwtAuth, async (req: AuthenticatedRequest, res) => {
@@ -261,7 +261,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }));
 
       console.log(`[GET-CUSTOMERS] Found ${customers.length} customers`);
-      
+
       res.json({
         customers: customers,
         total: customers.length
@@ -515,7 +515,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/customers/companies/:companyId', jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const { companyId } = req.params;
-      
+
       if (!req.user?.tenantId) {
         return res.status(401).json({ message: 'Tenant required' });
       }
@@ -528,7 +528,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Start transaction
       await pool.query('BEGIN');
-      
+
       try {
         // Check if company exists
         const companyCheck = await pool.query(
@@ -594,7 +594,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/customers/companies/:companyId/associated', jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const { companyId } = req.params;
-      
+
       if (!req.user?.tenantId) {
         return res.status(401).json({ message: 'Tenant required' });
       }
@@ -655,7 +655,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/customers/companies/:companyId/available', jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const { companyId } = req.params;
-      
+
       if (!req.user?.tenantId) {
         return res.status(401).json({ message: 'Tenant required' });
       }
@@ -1193,10 +1193,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Hierarchical ticket metadata routes
   try {
-    const { TicketMetadataHierarchicalController } = await import('./modules/tickets/TicketMetadataHierarchicalController');
+    const { TicketMetadataController } = await import('./modules/tickets/TicketMetadataController'); // Re-import for clarity within this block
     const { TicketHierarchicalController } = await import('./modules/tickets/TicketHierarchicalController');    
     const { TicketTemplateController } = await import('./modules/ticket-templates/TicketTemplateController');
-    const hierarchicalController = new TicketMetadataHierarchicalController();
+    const hierarchicalController = new TicketMetadataController(); // Reusing the controller for consistency
     const categoryHierarchyController = new TicketHierarchicalController();
     const ticketTemplateController = new TicketTemplateController(schemaManager);
 
@@ -1285,14 +1285,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   }
 
   // ========================================
-  // TENANT DEPLOYMENT TEMPLATE ROUTES
+  // TENANT DEPLOYMENT TEMPLATEROUTES
   // ========================================
-  
+
   // Demonstration route for Default company template usage
   app.get('/api/deployment/default-template-info', jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const { DEFAULT_COMPANY_TEMPLATE } = await import('./templates/default-company-template');
-      
+
       res.json({
         success: true,
         message: 'Default company template information',
@@ -1333,9 +1333,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { tenantId } = req.params;
       const { TenantTemplateService } = await import('./services/TenantTemplateService');
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-      
+
       const status = await TenantTemplateService.isTemplateApplied(schemaManager.pool, schemaName, tenantId);
-      
+
       res.json({
         success: true,
         tenantId,
@@ -1356,7 +1356,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/deployment/apply-default-template', jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const { newTenantId } = req.body;
-      
+
       if (!newTenantId) {
         return res.status(400).json({
           success: false,
@@ -1367,7 +1367,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { TenantTemplateService } = await import('./services/TenantTemplateService');
       const tenantId = req.user?.tenantId;
       const userId = req.user?.id;
-      
+
       if (!tenantId || !userId) {
         return res.status(400).json({
           success: false,
@@ -1377,7 +1377,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const schemaName = `tenant_${newTenantId.replace(/-/g, '_')}`;
       await TenantTemplateService.applyDefaultCompanyTemplate(newTenantId, userId, schemaManager.pool, schemaName);
-      
+
       const result = {
         tenantId: newTenantId,
         templateApplied: true,
@@ -1389,7 +1389,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           actions: 36
         }
       };
-      
+
       res.json({
         success: true,
         message: 'Default template applied successfully',
@@ -1909,55 +1909,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Timecard routes - Registro de Ponto  
-  const { timecardRouter } = await import('./modules/timecard/routes');
-  app.use('/api/timecard', timecardRouter);
+  app.use('/api/timecard', jwtAuth, timecardRoutes);
 
   // Timecard Approval Routes
   const timecardApprovalController = new TimecardApprovalController();
-  
+
   // Approval Groups
   app.get('/api/timecard/approval/groups', jwtAuth, timecardApprovalController.getApprovalGroups);
   app.post('/api/timecard/approval/groups', jwtAuth, timecardApprovalController.createApprovalGroup);
   app.put('/api/timecard/approval/groups/:id', jwtAuth, timecardApprovalController.updateApprovalGroup);
   app.delete('/api/timecard/approval/groups/:id', jwtAuth, timecardApprovalController.deleteApprovalGroup);
-  
+
   // Group Members
   app.get('/api/timecard/approval/groups/:groupId/members', jwtAuth, timecardApprovalController.getGroupMembers);
   app.put('/api/timecard/approval/groups/:groupId/members', jwtAuth, timecardApprovalController.addGroupMember);
   app.delete('/api/timecard/approval/groups/:groupId/members/:memberId', jwtAuth, timecardApprovalController.removeGroupMember);
-  
+
   // Approval Settings
   app.get('/api/timecard/approval/settings', jwtAuth, timecardApprovalController.getApprovalSettings);
   app.put('/api/timecard/approval/settings', jwtAuth, timecardApprovalController.updateApprovalSettings);
-  
+
   // Approval Actions
   app.get('/api/timecard/approval/pending', jwtAuth, timecardApprovalController.getPendingApprovals);
   app.post('/api/timecard/approval/approve/:entryId', jwtAuth, timecardApprovalController.approveTimecard);
   app.post('/api/timecard/approval/reject/:entryId', jwtAuth, timecardApprovalController.rejectTimecard);
   app.post('/api/timecard/approval/bulk-approve', jwtAuth, timecardApprovalController.bulkApproveTimecards);
-  
+
   // Utility Routes
   app.get('/api/timecard/approval/users', jwtAuth, timecardApprovalController.getAvailableUsers);
 
   // 🔴 CLT COMPLIANCE ROUTES - OBRIGATÓRIAS POR LEI
   // Verificação de integridade da cadeia CLT
   app.get('/api/timecard/compliance/integrity-check', jwtAuth, cltComplianceController.checkIntegrity.bind(cltComplianceController));
-  
+
   // Trilha de auditoria completa
   app.get('/api/timecard/compliance/audit-log', jwtAuth, cltComplianceController.getAuditLog.bind(cltComplianceController));
-  
+
   // Relatórios de compliance para fiscalização
   app.post('/api/timecard/compliance/generate-report', jwtAuth, cltComplianceController.generateComplianceReport.bind(cltComplianceController));
   app.get('/api/timecard/compliance/reports', jwtAuth, cltComplianceController.listComplianceReports.bind(cltComplianceController));
   app.get('/api/timecard/compliance/reports/:reportId', jwtAuth, cltComplianceController.downloadComplianceReport.bind(cltComplianceController));
-  
+
   // Status dos backups
   app.get('/api/timecard/compliance/backups', jwtAuth, cltComplianceController.getBackupStatus.bind(cltComplianceController));
   app.post('/api/timecard/compliance/verify-backup', jwtAuth, cltComplianceController.verifyBackup.bind(cltComplianceController));
-  
+
   // Status das chaves de assinatura digital
   app.get('/api/timecard/compliance/keys', jwtAuth, cltComplianceController.getDigitalKeys.bind(cltComplianceController));
-  
+
   // Reconstituição da cadeia de integridade
   app.post('/api/timecard/compliance/rebuild-integrity', jwtAuth, cltComplianceController.rebuildIntegrityChain.bind(cltComplianceController));
 
@@ -2299,7 +2298,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         {
           id: '3',
           title: 'Como Redefinir Senha?',
-          slug: 'redefinir-senha',
+          slug: 'redefinirsenha',
           summary: 'Passo a passo para redefinir sua senha',
           content: 'Se você esqueceu sua senha...',
           status: 'published',
@@ -2352,7 +2351,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({ success: true, data: articles });
     } catch (error) {
-      console.error('Error fetching articles:', error);
+      console.error('Error fetching KB articles:', error);
       res.status(500).json({ success: false, message: 'Failed to fetch articles' });
     }
   });
@@ -3608,7 +3607,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/ticket-field-options', ticketFieldOptionsRoutes);
 
   // ========================================
-  // TICKET VIEWS ROUTES - Sistema de Visualizações Customizáveis
+  // TICKET VIEWSROUTES - Sistema de Visualizações Customizáveis
   // ========================================
   const ticketViewsController = new TicketViewsController();
 
@@ -3683,7 +3682,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ==============================
   // USER GROUPS ROUTES
   // ==============================
-  
+
   // Get all user groups
   app.get('/api/user-groups', jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {
@@ -3757,7 +3756,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { name, description } = req.body;
       const tenantId = req.user?.tenantId;
       const userId = req.user?.id;
-      
+
       if (!tenantId || !userId) {
         return res.status(401).json({ message: 'Authentication required' });
       }

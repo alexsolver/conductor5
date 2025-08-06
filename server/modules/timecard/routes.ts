@@ -48,11 +48,16 @@ timecardRouter.get('/users', jwtAuth, async (req, res) => {
 });
 
 // Timecard Entries routes
-timecardRouter.get('/entries', jwtAuth, (req, res) => 
+timecardRouter.get('/entries', (req, res) => 
   timecardController.getTimecardEntriesByUser(req, res)
 );
 
-timecardRouter.post('/entries', jwtAuth, (req, res) => 
+timecardRouter.post('/timecard-entries', (req, res) => 
+  timecardController.createTimecardEntry(req, res)
+);
+
+// Legacy route for compatibility
+timecardRouter.post('/entries', (req, res) => 
   timecardController.createTimecardEntry(req, res)
 );
 

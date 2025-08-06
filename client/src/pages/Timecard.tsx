@@ -133,15 +133,32 @@ export default function Timecard() {
   // Mutation para registrar ponto
   const recordMutation = useMutation({
     mutationFn: async (data: { recordType: string; deviceType: string; location?: any; notes?: string }) => {
-      // Transformar dados do frontend para formato backend
-      const transformedData = transformTimecardData(data);
-      console.log('[TIMECARD-DEBUG] Sending data:', transformedData);
-      const response = await apiRequest('POST', '/api/timecard/timecard-entries', transformedData);
-      const result = await response.json();
-      console.log('[TIMECARD-DEBUG] Response:', result);
-      return result;
+      try {
+        // Transformar dados do frontend para formato backend
+        const transformedData = transformTimecardData(data);
+        console.log('[TIMECARD-DEBUG] Sending data:', transformedData);
+        
+        const response = await apiRequest('POST', '/api/timecard/timecard-entries', transformedData);
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const result = await response.json();
+        console.log('[TIMECARD-DEBUG] Response:', result);
+        
+        if (!result.success && result.success !== undefined) {
+          throw new Error(result.message || 'Falha ao processar registro');
+        }
+        
+        return result.data || result;
+      } catch (error) {
+        console.error('[TIMECARD-DEBUG] API Error:', error);
+        throw error;
+      }
     },
-    onSuccess: (result: TimeRecord) => {
+    onSuccess: (result: any) => {
       console.log('Registro de ponto bem-sucedido:', result);
       toast({
         title: 'Ponto registrado com sucesso!',
@@ -153,19 +170,28 @@ export default function Timecard() {
     },
     onError: (error: any) => {
       console.error('Erro ao registrar ponto:', error);
+      
+      let errorTitle = 'Erro ao registrar ponto';
       let errorMessage = 'Tente novamente em alguns instantes.';
       
-      // Extract error message more robustly
-      if (error?.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      } else if (error?.message) {
-        errorMessage = error.message;
-      } else if (typeof error === 'string') {
-        errorMessage = error;
+      // Extract specific error messages
+      if (error?.message) {
+        if (error.message.includes('UNAUTHORIZED')) {
+          errorTitle = 'Erro de Autenticação';
+          errorMessage = 'Faça login novamente para continuar.';
+        } else if (error.message.includes('VALIDATION_ERROR')) {
+          errorTitle = 'Dados Inválidos';
+          errorMessage = 'Verifique os dados e tente novamente.';
+        } else if (error.message.includes('DUPLICATE_ENTRY')) {
+          errorTitle = 'Registro Duplicado';
+          errorMessage = 'Este ponto já foi registrado.';
+        } else {
+          errorMessage = error.message;
+        }
       }
       
       toast({
-        title: 'Erro ao registrar ponto',
+        title: errorTitle,
         description: errorMessage,
         variant: 'destructive',
       });

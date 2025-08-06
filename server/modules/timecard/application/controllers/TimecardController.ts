@@ -122,15 +122,62 @@ export class TimecardController {
   // Timecard Entries
   createTimecardEntry = async (req: Request, res: Response) => {
     try {
-      const { tenantId } = (req as any).user;
+      console.log('[TIMECARD-CREATE] Starting timecard entry creation...');
+      
+      // Validate authentication
+      if (!req.user) {
+        console.log('[TIMECARD-CREATE] No user found in request');
+        return res.status(401).json({ 
+          message: 'Usuário não autenticado',
+          error: 'UNAUTHORIZED' 
+        });
+      }
+
+      const tenantId = (req as any).user?.tenantId;
       const userId = (req as any).user?.id;
       
-      // Clean the request body to prevent JSON parsing issues
+      console.log('[TIMECARD-CREATE] User info:', {
+        userId: userId?.slice(-8),
+        tenantId: tenantId?.slice(-8),
+        hasUser: !!req.user
+      });
+
+      if (!tenantId || !userId) {
+        console.log('[TIMECARD-CREATE] Missing tenant or user ID');
+        return res.status(400).json({ 
+          message: 'Dados de autenticação incompletos',
+          error: 'MISSING_AUTH_DATA' 
+        });
+      }
+
+      // Clean and validate request body
+      console.log('[TIMECARD-CREATE] Raw request body:', req.body);
+      
       const cleanBody = Object.fromEntries(
-        Object.entries(req.body).filter(([_, value]) => value !== undefined && value !== null)
+        Object.entries(req.body || {}).filter(([_, value]) => value !== undefined && value !== null)
       );
       
-      const validatedData = createTimecardEntrySchema.parse(cleanBody);
+      console.log('[TIMECARD-CREATE] Cleaned body:', cleanBody);
+      
+      if (Object.keys(cleanBody).length === 0) {
+        return res.status(400).json({ 
+          message: 'Dados do registro de ponto são obrigatórios',
+          error: 'EMPTY_BODY' 
+        });
+      }
+
+      let validatedData;
+      try {
+        validatedData = createTimecardEntrySchema.parse(cleanBody);
+        console.log('[TIMECARD-CREATE] Validation successful:', validatedData);
+      } catch (validationError) {
+        console.log('[TIMECARD-CREATE] Validation error:', validationError);
+        return res.status(400).json({ 
+          message: 'Dados inválidos para registro de ponto',
+          error: 'VALIDATION_ERROR',
+          details: validationError instanceof Error ? validationError.message : 'Unknown validation error'
+        });
+      }
 
       // Get today's records to validate business rules
       const today = new Date();
@@ -167,16 +214,52 @@ export class TimecardController {
         breakEnd: validatedData.breakEnd ? new Date(validatedData.breakEnd) : null,
       };
 
+      console.log('[TIMECARD-CREATE] Creating entry with data:', entryData);
+      
       const entry = await this.timecardRepository.createTimecardEntry(entryData);
+      
+      console.log('[TIMECARD-CREATE] Entry created successfully:', entry?.id);
 
-      res.status(201).json(entry);
-    } catch (error) {
+      res.status(201).json({
+        success: true,
+        message: 'Ponto registrado com sucesso',
+        data: entry
+      });
+    } catch (error: any) {
+      console.error('[TIMECARD-CREATE] Error creating timecard entry:', error);
+      
       if (error instanceof z.ZodError) {
-        console.error('Validation error:', error.errors);
-        return res.status(400).json({ message: 'Dados inválidos', errors: error.errors });
+        return res.status(400).json({ 
+          success: false,
+          message: 'Dados inválidos para registro de ponto', 
+          error: 'VALIDATION_ERROR',
+          details: error.errors 
+        });
       }
-      console.error('Error creating timecard entry:', error);
-      return res.status(500).json({ message: 'Erro interno do servidor' });
+      
+      // Handle database errors
+      if (error?.code === '23505') {
+        return res.status(409).json({ 
+          success: false,
+          message: 'Registro duplicado detectado',
+          error: 'DUPLICATE_ENTRY'
+        });
+      }
+      
+      if (error?.code === '23503') {
+        return res.status(400).json({ 
+          success: false,
+          message: 'Referência inválida nos dados',
+          error: 'FOREIGN_KEY_ERROR'
+        });
+      }
+      
+      return res.status(500).json({ 
+        success: false,
+        message: 'Erro interno do servidor ao registrar ponto',
+        error: 'INTERNAL_ERROR',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
     }
   };
 
