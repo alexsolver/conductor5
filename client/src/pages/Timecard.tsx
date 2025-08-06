@@ -252,11 +252,22 @@ export default function Timecard() {
       queryKey: ['/api/timecard/reports/attendance', currentMonth],
       queryFn: async () => {
         console.log('[TIMECARD-MIRROR] Fetching report for:', currentMonth);
-        const response = await apiRequest('GET', `/api/timecard/reports/attendance/${currentMonth}`);
-        const data = await response.json();
-        console.log('[TIMECARD-MIRROR] Report data:', data);
-        return data;
-      }
+        try {
+          const response = await apiRequest('GET', `/api/timecard/reports/attendance/${currentMonth}`);
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+          const data = await response.json();
+          console.log('[TIMECARD-MIRROR] Report data:', data);
+          return data;
+        } catch (error) {
+          console.error('[TIMECARD-MIRROR] Error fetching report:', error);
+          throw error;
+        }
+      },
+      enabled: true,
+      retry: 3,
+      retryDelay: 1000,
     });
 
     const { data: userInfo } = useQuery({
