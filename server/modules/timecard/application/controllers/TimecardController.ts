@@ -817,6 +817,7 @@ export class TimecardController {
       res.setHeader('Cache-Control', 'no-cache');
       
       const { period } = req.params;
+      const { startDate: filterStartDate, endDate: filterEndDate, employeeId } = req.query;
       const tenantId = req.user?.tenantId;
       const userId = req.user?.id;
 
@@ -824,7 +825,8 @@ export class TimecardController {
         hasUser: !!req.user,
         userId: userId?.slice(-8),
         tenantId: tenantId?.slice(-8),
-        period
+        period,
+        filters: { startDate: filterStartDate, endDate: filterEndDate, employeeId }
       });
 
       if (!tenantId || !userId) {
@@ -847,10 +849,27 @@ export class TimecardController {
 
       console.log('[ATTENDANCE-REPORT] Generating report for period:', period, 'user:', userId);
 
-      // Parse period (formato: YYYY-MM)
+      // Parse period (formato: YYYY-MM) - base date range
       const [year, month] = period.split('-').map(Number);
-      const startDate = new Date(year, month - 1, 1);
-      const endDate = new Date(year, month, 0, 23, 59, 59); // Last moment of month
+      let startDate = new Date(year, month - 1, 1);
+      let endDate = new Date(year, month, 0, 23, 59, 59); // Last moment of month
+
+      // Override with filter dates if provided
+      if (filterStartDate && typeof filterStartDate === 'string') {
+        startDate = new Date(filterStartDate + 'T00:00:00');
+        console.log('[ATTENDANCE-REPORT] Using filter start date:', startDate.toISOString());
+      }
+      if (filterEndDate && typeof filterEndDate === 'string') {
+        endDate = new Date(filterEndDate + 'T23:59:59');
+        console.log('[ATTENDANCE-REPORT] Using filter end date:', endDate.toISOString());
+      }
+
+      // Determine target user ID (for admin users to see other employees)
+      let targetUserId = userId;
+      if (employeeId && typeof employeeId === 'string' && employeeId !== 'todos') {
+        targetUserId = employeeId;
+        console.log('[ATTENDANCE-REPORT] Filtering for specific employee:', targetUserId.slice(-8));
+      }
 
       console.log('[ATTENDANCE-REPORT] Date range:', startDate.toISOString(), 'to', endDate.toISOString());
       console.log('[ATTENDANCE-REPORT] User:', userId, 'Tenant:', tenantId);

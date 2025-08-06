@@ -11,6 +11,9 @@ import { apiRequest } from '@/lib/queryClient';
 export default function TimecardReports() {
   const [selectedPeriod, setSelectedPeriod] = useState(format(new Date(), 'yyyy-MM'));
   const [reportType, setReportType] = useState('attendance');
+  const [startDate, setStartDate] = useState('2025-08-01');
+  const [endDate, setEndDate] = useState('2025-08-31');
+  const [selectedEmployee, setSelectedEmployee] = useState('todos');
 
   // Generate last 12 months for period selection
   const generatePeriods = () => {
@@ -25,13 +28,25 @@ export default function TimecardReports() {
     return periods;
   };
 
-  // Fetch attendance report for selected period
+  // Fetch attendance report with filters
   const { data: attendanceReport, isLoading: attendanceLoading, error: attendanceError } = useQuery({
-    queryKey: ['attendance-report', selectedPeriod],
+    queryKey: ['attendance-report', selectedPeriod, startDate, endDate, selectedEmployee],
     queryFn: async () => {
-      console.log('[TIMECARD-REPORTS] Fetching attendance report for period:', selectedPeriod);
+      console.log('[TIMECARD-REPORTS] Fetching attendance report with filters:', {
+        period: selectedPeriod,
+        startDate,
+        endDate,
+        employee: selectedEmployee
+      });
       try {
-        const response = await apiRequest('GET', `/api/timecard/reports/attendance/${selectedPeriod}`);
+        // Build query params with filters
+        const params = new URLSearchParams();
+        if (startDate) params.append('startDate', startDate);
+        if (endDate) params.append('endDate', endDate);
+        if (selectedEmployee !== 'todos') params.append('employeeId', selectedEmployee);
+        
+        const url = `/api/timecard/reports/attendance/${selectedPeriod}${params.toString() ? '?' + params.toString() : ''}`;
+        const response = await apiRequest('GET', url);
 
         if (!response.ok) {
           console.error('[TIMECARD-REPORTS] HTTP Error:', response.status, response.statusText);
@@ -62,13 +77,25 @@ export default function TimecardReports() {
     retry: false
   });
 
-  // Fetch overtime report for selected period
+  // Fetch overtime report with filters
   const { data: overtimeReport, isLoading: overtimeLoading, error: overtimeError } = useQuery({
-    queryKey: ['overtime-report', selectedPeriod],
+    queryKey: ['overtime-report', selectedPeriod, startDate, endDate, selectedEmployee],
     queryFn: async () => {
-      console.log('[TIMECARD-REPORTS] Fetching overtime report for period:', selectedPeriod);
+      console.log('[TIMECARD-REPORTS] Fetching overtime report with filters:', {
+        period: selectedPeriod,
+        startDate,
+        endDate,
+        employee: selectedEmployee
+      });
       try {
-        const response = await apiRequest('GET', `/api/timecard/reports/overtime/${selectedPeriod}`);
+        // Build query params with filters
+        const params = new URLSearchParams();
+        if (startDate) params.append('startDate', startDate);
+        if (endDate) params.append('endDate', endDate);
+        if (selectedEmployee !== 'todos') params.append('employeeId', selectedEmployee);
+        
+        const url = `/api/timecard/reports/overtime/${selectedPeriod}${params.toString() ? '?' + params.toString() : ''}`;
+        const response = await apiRequest('GET', url);
 
         if (!response.ok) {
           console.error('[TIMECARD-REPORTS] HTTP Error:', response.status, response.statusText);
@@ -186,7 +213,8 @@ export default function TimecardReports() {
               <label className="text-sm font-medium">Data Inicial</label>
               <input 
                 type="date" 
-                defaultValue="01/08/2025"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
                 className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -194,19 +222,20 @@ export default function TimecardReports() {
               <label className="text-sm font-medium">Data Final</label>
               <input 
                 type="date" 
-                defaultValue="06/08/2025"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
                 className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div>
               <label className="text-sm font-medium">Funcionário</label>
-              <Select defaultValue="todos">
+              <Select value={selectedEmployee} onValueChange={setSelectedEmployee}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecionar funcionário" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="todos">Todos</SelectItem>
-                  <SelectItem value="alex">Alex Santos</SelectItem>
+                  <SelectItem value="todos">Todos os Funcionários</SelectItem>
+                  <SelectItem value="550e8400-e29b-41d4-a716-446655440001">Alex Silva</SelectItem>
                 </SelectContent>
               </Select>
             </div>
