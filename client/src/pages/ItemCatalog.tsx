@@ -683,7 +683,7 @@ export default function ItemCatalog() {
                                   }}
                                 />
                                 <label htmlFor={`customer-${customer.id}`} className="text-sm">
-                                  {customer.company || customer.name}
+                                  {customer.company || customer.name || `${customer.first_name || ''} ${customer.last_name || ''}`.trim() || 'Cliente sem nome'}
                                 </label>
                               </div>
                             ))}
@@ -1820,7 +1820,7 @@ function CustomerPersonalizationTab({ itemId, itemName }: { itemId?: string; ite
                         <SelectContent>
                           {(customers as any)?.map((customer: any) => (
                             <SelectItem key={customer.id} value={customer.id}>
-                              {customer.company || `${customer.first_name} ${customer.last_name}`}
+                              {customer.company || customer.name || `${customer.first_name || ''} ${customer.last_name || ''}`.trim() || 'Cliente sem nome'}
                             </SelectItem>
                           ))}
                         </SelectContent>
