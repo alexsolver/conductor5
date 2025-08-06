@@ -792,37 +792,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getBeneficiaries(tenantId: string, options: { limit?: number; offset?: number; search?: string } = {}) {
-    const { limit = 20, offset = 0, search } = options;
-    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-    try {
-      // First check if table exists
-      const tenantDb = await poolManager.getTenantConnection(tenantId);
-      const tableCheck = await tenantDb.execute(sql`
-        SELECT EXISTS (
-          SELECT FROM information_schema.tables 
-          WHERE table_schema = ${schemaName} AND table_name = 'beneficiaries'
-        )
-      `);
-
-      if (!tableCheck.rows[0].exists) {
-        console.log(`Favorecidos table does not exist in schema ${schemaName}`);
-        return [];
-      }
-
-      let query = sql`
-        SELECT 
-          id,
-          tenant_id,
-          first_name,
-          last_name,
-          CONCAT(first_name, ' ', last_name) as full_name,
-          email,
-          birth_date,
-          rg,
-          cpf_cnpj,
-          is_active,
           customer_code,
           customer_id,
           phone,
@@ -2967,37 +2937,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-    // Get beneficiaries with pagination and search
-  async getBeneficiaries(tenantId: string, options: {
-    limit?: number;
-    offset?: number;
-    search?: string;
-  } = {}) {
-    const { limit = 20, offset = 0, search } = options;
-    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-
-    try {
-      // First check if table exists
-      const tenantDb = await poolManager.getTenantConnection(tenantId);
-      const tableCheck = await tenantDb.execute(sql`
-        SELECT EXISTS (
-          SELECT FROM information_schema.tables 
-          WHERE table_schema = ${schemaName} AND table_name = 'beneficiaries'
-        )
-      `);
-
-      if (!tableCheck.rows[0].exists) {
-        console.log(`Favorecidos table does not exist in schema ${schemaName}`);
-        return [];
-      }
-
-      let query = sql`
-        SELECT 
-          id,
-          tenant_id,
-          first_name,
-          last_name,
-          CONCAT(first_name, ' ', last_name) as full_name,
+  // REMOVED DUPLICATE FUNCTION - keeping only one getBeneficiaries implementation above
           email,
           birth_date,
           rg,
