@@ -1,4 +1,4 @@
-// PersonalizationController.ts - Simplified controller for item personalization
+// PersonalizationController.ts - Complete controller for item personalization
 import { Response } from 'express';
 import type { AuthenticatedRequest } from '../../../../middleware/jwtAuth.js';
 import { pool } from '../../../../db.js';
@@ -51,6 +51,177 @@ export const getCustomerPersonalizations = async (req: AuthenticatedRequest, res
 
   } catch (error) {
     console.error('Error fetching customer personalizations:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Erro interno do servidor'
+    });
+  }
+};
+
+/**
+ * Get all personalizations for a specific item
+ * GET /api/materials-services/items/:itemId/customer-personalizations
+ */
+export const getItemPersonalizations = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { itemId } = req.params;
+    const tenantId = req.user?.tenantId;
+    
+    if (!tenantId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Tenant ID required'
+      });
+    }
+
+    const query = `
+      SELECT 
+        m.id,
+        m.customer_id,
+        m.item_id,
+        m.custom_sku,
+        m.custom_name,
+        m.custom_description,
+        m.customer_reference,
+        m.special_instructions,
+        m.is_active,
+        m.created_at,
+        m.updated_at,
+        c.company as customer_name,
+        c.first_name,
+        c.last_name
+      FROM ${tenantId}.customer_item_mappings m
+      LEFT JOIN ${tenantId}.customers c ON m.customer_id = c.id
+      WHERE m.tenant_id = $1 AND m.item_id = $2
+      ORDER BY m.created_at DESC
+    `;
+
+    const result = await pool.query(query, [tenantId, itemId]);
+
+    res.json({
+      success: true,
+      personalizations: result.rows
+    });
+
+  } catch (error) {
+    console.error('Error fetching item personalizations:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Erro interno do servidor'
+    });
+  }
+};
+
+/**
+ * Update customer item personalization  
+ * PUT /api/materials-services/customer-mappings/:mappingId
+ */
+export const updateCustomerPersonalization = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { mappingId } = req.params;
+    const {
+      customSku,
+      customName,
+      customDescription,
+      customerReference,
+      specialInstructions,
+      isActive = true
+    } = req.body;
+    
+    const tenantId = req.user?.tenantId;
+    
+    if (!tenantId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Tenant ID required'
+      });
+    }
+
+    const updateQuery = `
+      UPDATE ${tenantId}.customer_item_mappings 
+      SET 
+        custom_sku = $1,
+        custom_name = $2,
+        custom_description = $3,
+        customer_reference = $4,
+        special_instructions = $5,
+        is_active = $6,
+        updated_at = NOW()
+      WHERE id = $7 AND tenant_id = $8
+      RETURNING *
+    `;
+
+    const result = await pool.query(updateQuery, [
+      customSku,
+      customName, 
+      customDescription,
+      customerReference,
+      specialInstructions,
+      isActive,
+      mappingId,
+      tenantId
+    ]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Personalização não encontrada'
+      });
+    }
+
+    res.json({
+      success: true,
+      personalization: result.rows[0],
+      message: 'Personalização atualizada com sucesso'
+    });
+
+  } catch (error) {
+    console.error('Error updating customer personalization:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Erro interno do servidor'
+    });
+  }
+};
+
+/**
+ * Delete customer item personalization
+ * DELETE /api/materials-services/customer-mappings/:mappingId
+ */
+export const deleteCustomerPersonalization = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { mappingId } = req.params;
+    const tenantId = req.user?.tenantId;
+    
+    if (!tenantId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Tenant ID required'
+      });
+    }
+
+    const deleteQuery = `
+      DELETE FROM ${tenantId}.customer_item_mappings 
+      WHERE id = $1 AND tenant_id = $2
+      RETURNING id
+    `;
+
+    const result = await pool.query(deleteQuery, [mappingId, tenantId]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Personalização não encontrada'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Personalização removida com sucesso'
+    });
+
+  } catch (error) {
+    console.error('Error deleting customer personalization:', error);
     res.status(500).json({
       success: false,
       error: 'Erro interno do servidor'
@@ -284,13 +455,13 @@ export const getCustomerContextItems = async (req: AuthenticatedRequest, res: Re
     const params = [tenantId];
     let paramIndex = 2;
 
-    if (type) {
+    if (type && typeof type === 'string') {
       whereClause += ` AND i.type = $${paramIndex}`;
       params.push(type);
       paramIndex++;
     }
 
-    if (search) {
+    if (search && typeof search === 'string') {
       whereClause += ` AND (
         i.name ILIKE $${paramIndex} OR 
         i.integration_code ILIKE $${paramIndex} OR
@@ -367,13 +538,13 @@ export const getSupplierContextItems = async (req: AuthenticatedRequest, res: Re
     const params = [tenantId];
     let paramIndex = 2;
 
-    if (type) {
+    if (type && typeof type === 'string') {
       whereClause += ` AND i.type = $${paramIndex}`;
       params.push(type);
       paramIndex++;
     }
 
-    if (search) {
+    if (search && typeof search === 'string') {
       whereClause += ` AND (
         i.name ILIKE $${paramIndex} OR 
         i.integration_code ILIKE $${paramIndex} OR

@@ -4,6 +4,57 @@ import { pool } from '../../../db.js';
 
 const router = Router();
 
+// Get personalizations for specific item
+router.get('/items/:itemId/customer-personalizations', async (req: any, res) => {
+  try {
+    const { itemId } = req.params;
+    const tenantId = req.user?.tenantId;
+    
+    if (!tenantId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Tenant ID required'
+      });
+    }
+
+    const query = `
+      SELECT 
+        m.id,
+        m.customer_id,
+        m.item_id,
+        m.custom_sku,
+        m.custom_name,
+        m.custom_description,
+        m.customer_reference,
+        m.special_instructions,
+        m.is_active,
+        m.created_at,
+        m.updated_at,
+        c.company as customer_name,
+        c.first_name,
+        c.last_name
+      FROM tenant_${tenantId.replace(/-/g, '_')}.customer_item_mappings m
+      LEFT JOIN tenant_${tenantId.replace(/-/g, '_')}.customers c ON m.customer_id = c.id
+      WHERE m.tenant_id = $1 AND m.item_id = $2
+      ORDER BY m.created_at DESC
+    `;
+
+    const result = await pool.query(query, [tenantId, itemId]);
+
+    res.json({
+      success: true,
+      personalizations: result.rows
+    });
+
+  } catch (error) {
+    console.error('Error fetching item personalizations:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Erro interno do servidor'
+    });
+  }
+});
+
 // Get customer personalizations
 router.get('/customers/:customerId/personalizations', async (req: any, res) => {
   try {
