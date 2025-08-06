@@ -2381,7 +2381,7 @@ const TicketsTable = React.memo(() => {
                     <SelectValue placeholder="Selecione uma empresa" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todas as empresas</SelectItem>
+                    <SelectItem value="all">Todas as empresas</SelectItem>
                     <SelectItem value="lansolver">LanSolver</SelectItem>
                     <SelectItem value="techcorp">TechCorp</SelectItem>
                     <SelectItem value="innovate">Innovate Solutions</SelectItem>
@@ -2397,7 +2397,7 @@ const TicketsTable = React.memo(() => {
                     <SelectValue placeholder="Selecione uma categoria" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todas as categorias</SelectItem>
+                    <SelectItem value="all">Todas as categorias</SelectItem>
                     <SelectItem value="Suporte Técnico">Suporte Técnico</SelectItem>
                     <SelectItem value="Atendimento ao Cliente">Atendimento ao Cliente</SelectItem>
                     <SelectItem value="Financeiro">Financeiro</SelectItem>
@@ -2414,7 +2414,7 @@ const TicketsTable = React.memo(() => {
                     <SelectValue placeholder="Selecione um responsável" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todos os responsáveis</SelectItem>
+                    <SelectItem value="all">Todos os responsáveis</SelectItem>
                     <SelectItem value="alex">Alex Silva</SelectItem>
                     <SelectItem value="ana">Ana Santos</SelectItem>
                     <SelectItem value="joao">João Oliveira</SelectItem>
