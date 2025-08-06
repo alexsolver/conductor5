@@ -53,7 +53,7 @@ const DynamicBadge: React.FC<DynamicBadgeProps> = ({
   isLoading,
   ...props 
 }) => {
-  const { getFieldColor, isLoading: colorsLoading } = useDynamicColors();
+  const { getFieldColor, getFieldLabel, isLoading: colorsLoading } = useDynamicColors();
   
   // Se está carregando, mostrar estado de loading
   if (isLoading || colorsLoading) {
@@ -67,12 +67,15 @@ const DynamicBadge: React.FC<DynamicBadgeProps> = ({
     );
   }
 
-  // 🎨 SISTEMA 100% DINÂMICO - usar cores direto do banco via CSS inline
+  // 🎨 SISTEMA 100% DINÂMICO - usar cores e labels direto do banco
   let colorResult = { color: '#64748b', textColor: '#ffffff', className: 'bg-slate-600 text-white border-slate-600' };
+  let displayText = children;
   
   if (fieldName && value) {
     colorResult = getFieldColor(fieldName, value);
-    console.log(`🎨 DynamicBadge: fieldName=${fieldName}, value=${value}, color=${colorResult.color}`);
+    // 🏷️ CORREÇÃO: Usar label do banco em vez do valor interno
+    displayText = getFieldLabel(fieldName, value) || value;
+    console.log(`🎨 DynamicBadge: fieldName=${fieldName}, value=${value}, label=${displayText}, color=${colorResult.color}`);
   } else if (colorHex) {
     colorResult = { color: colorHex, textColor: '#ffffff', className: convertHexToTailwindClass(colorHex) };
     console.log(`🎨 DynamicBadge: colorHex=${colorHex}, color=${colorResult.color}`);
@@ -91,7 +94,7 @@ const DynamicBadge: React.FC<DynamicBadgeProps> = ({
       }}
       {...filteredProps}
     >
-      {children}
+      {displayText || children}
     </Badge>
   );
 };
