@@ -1467,20 +1467,20 @@ export class DatabaseStorage implements IStorage {
 
       console.log(`🔍 [STORAGE] Getting config for ${integrationId} in tenant ${tenantId}`);
 
-      const query = `
-        SELECT * FROM tenant_integrations_config 
-        WHERE tenant_id = $1 AND integration_id = $2
-      `;
+      // Use drizzle syntax with schema
+      const result = await tenantDb.execute(sql`
+        SELECT * FROM ${sql.identifier(schemaName)}.tenant_integrations_config 
+        WHERE tenant_id = ${validatedTenantId} AND integration_id = ${integrationId}
+      `);
 
-      const result = await tenantDb.query(query, [validatedTenantId, integrationId]);
-
-      if (result.rows[0]) {
+      if (result.rows && result.rows.length > 0) {
+        const configRow = result.rows[0] as any;
         console.log(`✅ [STORAGE] Config found for ${integrationId}`);
         return {
-          ...result.rows[0],
-          config: typeof result.rows[0].config === 'string' 
-            ? JSON.parse(result.rows[0].config) 
-            : result.rows[0].config
+          ...configRow,
+          config: typeof configRow.config === 'string' 
+            ? JSON.parse(configRow.config) 
+            : configRow.config
         };
       } else {
         console.log(`⚠️ [STORAGE] No config found for ${integrationId}`);
