@@ -1,5 +1,5 @@
 /**
- * SmartDynamicBadge - Badge inteligente que integra com useFieldColors para resolver race conditions
+ * DynamicBadge - Badge inteligente que integra com useFieldColors para resolver race conditions
  */
 
 import React from 'react';
@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 import { useFieldColors } from '@/hooks/useFieldColors';
 import { Loader2, AlertCircle } from 'lucide-react';
 
-interface SmartDynamicBadgeProps {
+interface DynamicBadgeProps {
   fieldName: string;
   value: string;
   className?: string;
@@ -19,7 +19,7 @@ interface SmartDynamicBadgeProps {
   [key: string]: any;
 }
 
-export function SmartDynamicBadge({ 
+export function DynamicBadge({ 
   fieldName, 
   value, 
   className = "", 
@@ -28,7 +28,7 @@ export function SmartDynamicBadge({
   size = "default",
   loading = false,
   ...props 
-}: SmartDynamicBadgeProps) {
+}: DynamicBadgeProps) {
   const { getFieldColor, getFieldLabel, isLoading, isReady } = useFieldColors();
 
   if (!value || value === '') {
@@ -69,7 +69,7 @@ export function SmartDynamicBadge({
   const colorHex = getFieldColor(fieldName, value);
   const label = getFieldLabel(fieldName, value);
 
-  console.log(`🎨 SmartDynamicBadge: fieldName=${fieldName}, value=${value}, colorHex=${colorHex}, ready=${isReady}`);
+  console.log(`🎨 DynamicBadge: fieldName=${fieldName}, value=${value}, colorHex=${colorHex}, ready=${isReady}`);
 
   // Se não encontrar cor específica, usar badge padrão do sistema
   if (!colorHex) {

@@ -39,7 +39,6 @@ import { apiRequest } from "@/lib/queryClient";
 import { RichTextEditor } from "@/components/knowledge-base/RichTextEditor";
 import { DynamicSelect } from "@/components/DynamicSelect";
 import { DynamicBadge } from "@/components/DynamicBadge";
-import { SmartDynamicBadge } from "@/components/SmartDynamicBadge";
 import { useTicketMetadata } from "@/hooks/useTicketMetadata";
 import { useFieldColors } from "@/hooks/useFieldColors";
 import { UserSelect } from "@/components/ui/UserSelect";
@@ -1198,7 +1197,7 @@ const TicketDetails = React.memo(() => {
                           />
                         ) : (
                           <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
-                            <SmartDynamicBadge
+                            <DynamicBadge
                               fieldName="urgency"
                               value={field.value}
                               showIcon={true}
@@ -1229,7 +1228,7 @@ const TicketDetails = React.memo(() => {
                           />
                         ) : (
                           <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
-                            <SmartDynamicBadge
+                            <DynamicBadge
                               fieldName="impact"
                               value={field.value}
                               showIcon={true}
@@ -1269,7 +1268,7 @@ const TicketDetails = React.memo(() => {
                         ) : (
                           <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
                             {(field.value || ticket?.category) ? (
-                              <SmartDynamicBadge
+                              <DynamicBadge
                                 fieldName="category"
                                 value={field.value || ticket?.category}
                                 showIcon={true}
@@ -1309,7 +1308,7 @@ const TicketDetails = React.memo(() => {
                         ) : (
                           <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
                             {(field.value || ticket?.subcategory) ? (
-                              <SmartDynamicBadge
+                              <DynamicBadge
                                 fieldName="subcategory"
                                 value={field.value || ticket?.subcategory}
                                 showIcon={true}
@@ -1345,7 +1344,7 @@ const TicketDetails = React.memo(() => {
                         ) : (
                           <div className="p-2 bg-gray-50 rounded flex items-center gap-2">
                             {(field.value || ticket?.action) ? (
-                              <SmartDynamicBadge
+                              <DynamicBadge
                                 fieldName="action"
                                 value={field.value || ticket?.action}
                                 showIcon={true}

@@ -7,7 +7,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Link } from "wouter";
 import { MoreHorizontal, Eye, Edit, Trash2, ChevronDown, ChevronRight, GitBranch } from "lucide-react";
 import { DynamicBadge } from "@/components/DynamicBadge";
-import { SmartDynamicBadge } from "@/components/SmartDynamicBadge";
 import { useComponentLoading } from "@/components/LoadingStateManager";
 import { AccessibilityIndicator } from "@/components/AccessibilityIndicator";
 import { useFieldColors } from "@/hooks/useFieldColors";
@@ -132,20 +131,20 @@ const MobileTicketCard: React.FC<{
 
           {/* Badges row */}
           <div className="flex flex-wrap gap-2">
-            <SmartDynamicBadge
+            <DynamicBadge
               fieldName="priority"
               value={ticket.priority}
               className="text-xs"
               aria-label={`Prioridade: ${ticket.priority}`}
             />
-            <SmartDynamicBadge
+            <DynamicBadge
               fieldName="status"
               value={ticket.status}
               className="text-xs"
               aria-label={`Status: ${ticket.status}`}
             />
             {ticket.category && (
-              <SmartDynamicBadge
+              <DynamicBadge
                 fieldName="category"
                 value={ticket.category}
                 className="text-xs"
@@ -322,7 +321,7 @@ export const ResponsiveTicketsTable: React.FC<ResponsiveTicketsTableProps> = ({
                   
                   <TableCell className="hidden lg:table-cell">
                     {ticket.category ? (
-                      <SmartDynamicBadge
+                      <DynamicBadge
                         fieldName="category"
                         value={ticket.category}
                         aria-label={`Categoria: ${ticket.category}`}
@@ -333,7 +332,7 @@ export const ResponsiveTicketsTable: React.FC<ResponsiveTicketsTableProps> = ({
                   </TableCell>
                   
                   <TableCell className="hidden lg:table-cell">
-                    <SmartDynamicBadge
+                    <DynamicBadge
                       fieldName="status"
                       value={ticket.status}
                       aria-label={`Status: ${ticket.status}`}
@@ -341,7 +340,7 @@ export const ResponsiveTicketsTable: React.FC<ResponsiveTicketsTableProps> = ({
                   </TableCell>
                   
                   <TableCell className="hidden sm:table-cell">
-                    <SmartDynamicBadge
+                    <DynamicBadge
                       fieldName="priority"
                       value={ticket.priority}
                       aria-label={`Prioridade: ${ticket.priority}`}
@@ -399,7 +398,7 @@ export const ResponsiveTicketsTable: React.FC<ResponsiveTicketsTableProps> = ({
                                 #{rel.targetTicket?.number || rel.number}
                               </Link>
                               <span className="truncate">{rel.targetTicket?.subject || rel.subject}</span>
-                              <SmartDynamicBadge 
+                              <DynamicBadge 
                                 fieldName="status" 
                                 value={rel.targetTicket?.status || rel.status} 
                                 className="text-xs"

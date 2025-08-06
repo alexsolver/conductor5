@@ -17,7 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Plus, Filter } from "lucide-react";
 import { DynamicSelect } from "@/components/DynamicSelect";
-import { SmartDynamicBadge } from "@/components/SmartDynamicBadge";
+import { DynamicBadge } from "@/components/DynamicBadge";
 import { useFieldColors } from "@/hooks/useFieldColors";
 import { TicketViewSelector } from "@/components/TicketViewSelector";
 import { useLocation } from "wouter";
@@ -847,14 +847,14 @@ export default function Tickets() {
                       #{ticket.number || ticket.id} - {ticket.subject || 'Sem título'}
                     </h3>
                     <div className="flex items-center space-x-2 flex-shrink-0"></div>
-                    <SmartDynamicBadge 
+                    <DynamicBadge 
                         fieldName="priority" 
                         value={mapPriorityValue(ticket.priority)}
                         showIcon={true}
                         className="font-medium"
                         size="sm"
                       />
-                      <SmartDynamicBadge 
+                      <DynamicBadge 
                         fieldName="status" 
                         value={mapStatusValue(ticket.status)}
                         showIcon={true}
@@ -865,7 +865,7 @@ export default function Tickets() {
                   </div>
                   
                   <div className="flex items-center space-x-2 mb-3">
-                    <SmartDynamicBadge 
+                    <DynamicBadge 
                       fieldName="category" 
                       value={mapCategoryValue(ticket.category)}
                       showIcon={false}

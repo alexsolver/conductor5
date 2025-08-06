@@ -67,9 +67,13 @@ export const useDynamicColors = () => {
     retry: 3,
   });
 
-  // Função para obter cor de um campo específico
+  // 🔥 FUNÇÃO CORRIGIDA - Debug completo para encontrar o problema
   const getFieldColor = (fieldName: string, value: string): ColorResult => {
+    console.log(`🔍 [getFieldColor] Called with: fieldName="${fieldName}", value="${value}"`);
+    console.log(`🔍 [getFieldColor] fieldOptions available:`, !!fieldOptions, fieldOptions?.length || 0);
+    
     if (!fieldOptions || !value) {
+      console.log(`🔍 [getFieldColor] Missing data, using smart color`);
       return generateSmartColor(value || '', fieldName);
     }
 
@@ -78,22 +82,31 @@ export const useDynamicColors = () => {
       opt.fieldName === fieldName && opt.value === value
     );
 
+    console.log(`🔍 [getFieldColor] Option found:`, !!option, option?.color || 'no color');
+
     if (option && option.color) {
       console.log(`✅ [useDynamicColors] Database color found: ${fieldName}:${value} = ${option.color}`);
       
-      // Converter hex para className Tailwind se possível
+      // 🔥 USAR COR DO BANCO - não gerar smart color
       const className = hexToTailwindClass(option.color);
-      return {
+      console.log(`🎨 [useDynamicColors] Using DATABASE color: ${option.color} -> ${className}`);
+      
+      const result = {
         color: option.color,
         bgColor: option.bgColor || option.color,
         textColor: option.textColor || (isLightColor(option.color) ? '#000000' : '#ffffff'),
         className
       };
+      
+      console.log(`✅ [getFieldColor] Returning DB result:`, result);
+      return result;
     }
 
     // Se não encontrou no banco, usar sistema inteligente
-    console.log(`🎨 [useDynamicColors] Generating smart color for: ${fieldName}:${value}`);
-    return generateSmartColor(value, fieldName);
+    console.log(`🎨 [useDynamicColors] No DB color found, generating smart color for: ${fieldName}:${value}`);
+    const smartResult = generateSmartColor(value, fieldName);
+    console.log(`🎨 [getFieldColor] Smart color result:`, smartResult);
+    return smartResult;
   };
 
   // Função para obter label de um campo
@@ -116,22 +129,34 @@ export const useDynamicColors = () => {
   };
 };
 
-// Utilitário para converter hex para classe Tailwind
+// 🔥 MAPEAMENTO CORRETO - usar cores exatas do banco de dados
 const hexToTailwindClass = (hex: string): string => {
+  if (!hex) return 'bg-slate-600 text-white border-slate-600';
+  
   const colorMap: Record<string, string> = {
-    '#3b82f6': 'bg-blue-600 text-white border-blue-600',
-    '#10b981': 'bg-green-600 text-white border-green-600',
-    '#f59e0b': 'bg-yellow-600 text-black border-yellow-600',
-    '#ef4444': 'bg-red-600 text-white border-red-600',
-    '#dc2626': 'bg-red-700 text-white border-red-700',
-    '#8b5cf6': 'bg-purple-600 text-white border-purple-600',
-    '#06b6d4': 'bg-cyan-600 text-white border-cyan-600',
-    '#84cc16': 'bg-lime-600 text-white border-lime-600',
-    '#f97316': 'bg-orange-600 text-white border-orange-600',
-    '#6b7280': 'bg-slate-600 text-white border-slate-600',
+    // Cores EXATAS do banco de dados
+    '#f59e0b': 'bg-amber-500 text-black border-amber-500',      // Amarelo médio/baixo
+    '#3b82f6': 'bg-blue-600 text-white border-blue-600',       // Azul status/ação
+    '#10b981': 'bg-emerald-600 text-white border-emerald-600', // Verde categoria
+    '#ef4444': 'bg-red-600 text-white border-red-600',         // Vermelho crítico
+    '#dc2626': 'bg-red-700 text-white border-red-700',         // Vermelho alto
+    '#8b5cf6': 'bg-violet-600 text-white border-violet-600',   // Roxo
+    '#06b6d4': 'bg-cyan-600 text-white border-cyan-600',       // Ciano
+    '#84cc16': 'bg-lime-600 text-white border-lime-600',       // Lima
+    '#f97316': 'bg-orange-600 text-white border-orange-600',   // Laranja
+    '#6b7280': 'bg-slate-600 text-white border-slate-600',     // Cinza
   };
 
-  return colorMap[hex.toLowerCase()] || 'bg-slate-600 text-white border-slate-600';
+  const normalizedHex = hex.toLowerCase();
+  const tailwindClass = colorMap[normalizedHex];
+  
+  if (tailwindClass) {
+    console.log(`🎨 [hexToTailwindClass] ${hex} -> ${tailwindClass}`);
+    return tailwindClass;
+  }
+  
+  // Fallback para cores não mapeadas
+  return 'bg-slate-600 text-white border-slate-600';
 };
 
 // Utilitário para detectar se uma cor é clara
