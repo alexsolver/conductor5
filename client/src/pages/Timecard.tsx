@@ -41,6 +41,22 @@ interface TimeAlert {
   createdAt: string;
 }
 
+interface MirrorRecord {
+  id: string;
+  date: string;
+  dayOfWeek: string;
+  firstEntry: string;
+  firstExit: string;
+  secondEntry: string;
+  secondExit: string;
+  totalHours: string;
+  overtimeHours: string;
+  status: string;
+  workScheduleType: string;
+  isConsistent: boolean;
+  observations: string;
+}
+
 // Função para transformar dados do frontend para backend
 const transformTimecardData = (frontendData: any) => {
   const now = new Date().toISOString();
@@ -88,6 +104,18 @@ export default function Timecard() {
   });
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Query para buscar dados do espelho de ponto eletrônico
+  const currentPeriod = format(new Date(), 'yyyy-MM');
+  
+  const { data: mirrorData, isLoading: mirrorLoading, error: mirrorError } = useQuery({
+    queryKey: ['/api/timecard/reports/attendance', currentPeriod],
+    enabled: !!currentStatus,
+  });
+
+  console.log('[TIMECARD-MIRROR] Fetching report for:', currentPeriod);
+  console.log('[TIMECARD-MIRROR] Report data received:', mirrorData);
+  console.log('[TIMECARD-MIRROR] Records count:', mirrorData?.data?.length || 0);
 
   // Query para obter status atual
   const { data: statusData, isLoading: statusLoading, error: statusError } = useQuery({
@@ -717,8 +745,129 @@ export default function Timecard() {
         </Card>
       </div>
 
-      {/* Espelho de Ponto Completo */}
-      <TimecardMirror />
+      {/* Espelho de Ponto Eletrônico */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            Espelho de Ponto Eletrônico
+          </CardTitle>
+          <div className="text-sm text-gray-600">
+            AGOSTO 2025 - Portaria MTE 671/2021 Sistema CLT Compliant
+          </div>
+        </CardHeader>
+        <CardContent>
+          {mirrorLoading ? (
+            <div className="text-center text-gray-500 py-8">
+              <div className="animate-pulse">Carregando espelho de ponto...</div>
+            </div>
+          ) : mirrorError ? (
+            <div className="text-center text-red-500 py-8">
+              <div className="flex items-center justify-center gap-2">
+                <AlertTriangle className="h-4 w-4" />
+                Erro ao carregar espelho de ponto
+              </div>
+            </div>
+          ) : mirrorData?.data && mirrorData.data.length > 0 ? (
+            <div className="space-y-4">
+              {/* Cabeçalho do Relatório */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <strong>Funcionário:</strong> {userInfo?.firstName} {userInfo?.lastName}<br/>
+                    <strong>Matrícula:</strong> {userInfo?.id?.slice(-8)}<br/>
+                    <strong>Setor:</strong> Tecnologia da Informação
+                  </div>
+                  <div>
+                    <strong>Empresa:</strong> Conductor Support Platform<br/>
+                    <strong>Período:</strong> {format(new Date(), 'MM/yyyy', { locale: ptBR })}<br/>
+                    <strong>Regime:</strong> CLT - 44h semanais
+                  </div>
+                </div>
+              </div>
+
+              {/* Tabela de Registros */}
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse border border-gray-300 text-sm">
+                  <thead>
+                    <tr className="bg-gray-100">
+                      <th className="border border-gray-300 px-2 py-2 text-left">Data</th>
+                      <th className="border border-gray-300 px-2 py-2 text-left">Dia</th>
+                      <th className="border border-gray-300 px-2 py-2 text-center">1ª Entrada</th>
+                      <th className="border border-gray-300 px-2 py-2 text-center">1ª Saída</th>
+                      <th className="border border-gray-300 px-2 py-2 text-center">2ª Entrada</th>
+                      <th className="border border-gray-300 px-2 py-2 text-center">2ª Saída</th>
+                      <th className="border border-gray-300 px-2 py-2 text-center">Total</th>
+                      <th className="border border-gray-300 px-2 py-2 text-center">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {mirrorData.data
+                      .sort((a: MirrorRecord, b: MirrorRecord) => {
+                        const dateA = new Date(a.date.split('/').reverse().join('-'));
+                        const dateB = new Date(b.date.split('/').reverse().join('-'));
+                        return dateA.getTime() - dateB.getTime();
+                      })
+                      .map((record: MirrorRecord, index: number) => (
+                        <tr key={index} className={`hover:bg-gray-50 ${!record.isConsistent ? 'bg-red-50' : ''}`}>
+                          <td className="border border-gray-300 px-2 py-2 font-medium">{record.date}</td>
+                          <td className="border border-gray-300 px-2 py-2 text-center">{record.dayOfWeek}</td>
+                          <td className="border border-gray-300 px-2 py-2 text-center font-mono">{record.firstEntry}</td>
+                          <td className="border border-gray-300 px-2 py-2 text-center font-mono">{record.firstExit}</td>
+                          <td className="border border-gray-300 px-2 py-2 text-center font-mono">{record.secondEntry}</td>
+                          <td className="border border-gray-300 px-2 py-2 text-center font-mono">{record.secondExit}</td>
+                          <td className="border border-gray-300 px-2 py-2 text-center font-mono font-semibold">{record.totalHours}h</td>
+                          <td className="border border-gray-300 px-2 py-2 text-center">
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                              record.status === 'approved' ? 'bg-green-100 text-green-800' :
+                              record.status === 'inconsistent' ? 'bg-red-100 text-red-800' :
+                              record.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              {record.status === 'approved' ? 'OK' :
+                               record.status === 'inconsistent' ? 'INC' :
+                               record.status === 'pending' ? 'PEN' : 'N/A'}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Resumo do Período */}
+              {mirrorData.summary && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-blue-50 rounded-lg text-sm">
+                  <div className="text-center">
+                    <div className="text-xl font-bold text-blue-600">{mirrorData.summary.totalHours}h</div>
+                    <div className="text-gray-600">Total de Horas</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-xl font-bold text-green-600">{mirrorData.summary.workingDays}</div>
+                    <div className="text-gray-600">Dias Trabalhados</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-xl font-bold text-orange-600">{mirrorData.summary.overtimeHours}h</div>
+                    <div className="text-gray-600">Horas Extras</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-xl font-bold text-purple-600">{mirrorData.summary.averageHoursPerDay}h</div>
+                    <div className="text-gray-600">Média Diária</div>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="text-center text-gray-500 py-12">
+              <FileText className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+              <div className="font-medium">Nenhum registro para este período</div>
+              <div className="text-sm mt-1">
+                Os registros de ponto aparecerão aqui após serem processados
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Ações Rápidas */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
