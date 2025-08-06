@@ -31,7 +31,7 @@ export function useCompanyCustomers(companyId: string) {
 
   // Query for associated customers (already members of this company)
   const associatedQuery = useQuery({
-    queryKey: [`/api/customers/companies/${companyId}/associated`],
+    queryKey: [`/api/companies/${companyId}/associated`],
     enabled: !!companyId,
     staleTime: 2 * 60 * 1000, // 2 minutes
     refetchOnWindowFocus: false,

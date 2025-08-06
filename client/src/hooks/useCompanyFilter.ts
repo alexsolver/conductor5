@@ -13,12 +13,12 @@ export interface CompanyFilterResult {
 export function useCompanyFilter(companies: any[] = []): CompanyFilterResult {
   // Buscar status da empresa Default
   const { data: defaultCompanyStatus, isLoading } = useQuery({
-    queryKey: ['/api/customers/companies', 'default-status'],
+    queryKey: ['/api/companies', 'default-status'],
     queryFn: async () => {
       const token = localStorage.getItem('accessToken');
       if (!token) return null;
 
-      const response = await fetch('/api/customers/companies', {
+      const response = await fetch('/api/companies', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

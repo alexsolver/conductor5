@@ -346,9 +346,9 @@ const TicketDetails = React.memo(() => {
 
   // Fetch companies for client company selection
   const { data: companiesData } = useQuery({
-    queryKey: ["/api/customers/companies"],
+    queryKey: ["/api/companies"],
     queryFn: async () => {
-      const response = await apiRequest("GET", "/api/customers/companies");
+      const response = await apiRequest("GET", "/api/companies");
       return response.json();
     },
   });
@@ -1028,8 +1028,8 @@ const TicketDetails = React.memo(() => {
       followers: followers.length > 0 ? followers : (data.followers || []),
       tags: tags.length > 0 ? tags : (data.tags || []),
 
-      // CORRIGIDO: Company relationship - usar selectedCompany se customerCompanyId vazio
-      customer_company_id: data.customerCompanyId || selectedCompany || null,
+      // CORRIGIDO: Company relationship - usar selectedCompany se companyId vazio
+      company_id: data.companyId || selectedCompany || null,
 
       // Environment
       environment: data.environment,
