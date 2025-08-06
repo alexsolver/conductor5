@@ -615,44 +615,44 @@ router.post('/:integrationId/test', requirePermission(Permission.TENANT_MANAGE_S
                         console.log(`✅ [TELEGRAM-TEST] Bot API test successful:`, botInfo.username);
                         
                         // Update test result with API success
-                        testResult.details.telegramApiStatus = 'valid';
-                        testResult.details.status = 'Bot Telegram verificado e funcionando';
-                        testResult.details.botInfo = {
+                        (testResult.details as any).telegramApiStatus = 'valid';
+                        (testResult.details as any).status = 'Bot Telegram verificado e funcionando';
+                        (testResult.details as any).botInfo = {
                           id: botInfo.id,
                           username: botInfo.username,
                           first_name: botInfo.first_name
                         };
-                        testResult.details.validations.telegramApiConnected = true;
+                        (testResult.details as any).validations.telegramApiConnected = true;
                       } else {
                         console.log(`❌ [TELEGRAM-TEST] Bot API test failed:`, data.description || 'Unknown error');
-                        testResult.details.telegramApiStatus = 'invalid';
-                        testResult.details.warnings.push('Token inválido: ' + (data.description || 'Erro desconhecido da API'));
+                        (testResult.details as any).telegramApiStatus = 'invalid';
+                        (testResult.details as any).warnings.push('Token inválido: ' + (data.description || 'Erro desconhecido da API'));
                       }
                     } catch (jsonError) {
                       console.log(`❌ [TELEGRAM-TEST] JSON parse error:`, (jsonError as Error).message);
-                      testResult.details.telegramApiStatus = 'error';
-                      testResult.details.warnings.push('Resposta da API do Telegram não é JSON válido');
+                      (testResult.details as any).telegramApiStatus = 'error';
+                      (testResult.details as any).warnings.push('Resposta da API do Telegram não é JSON válido');
                     }
                   } else {
                     console.log(`❌ [TELEGRAM-TEST] API error response: ${response.status}`);
-                    testResult.details.telegramApiStatus = 'invalid';
+                    (testResult.details as any).telegramApiStatus = 'invalid';
                     
                     if (response.status === 401) {
-                      testResult.details.warnings.push('Token do bot inválido - verifique se o token está correto');
+                      (testResult.details as any).warnings.push('Token do bot inválido - verifique se o token está correto');
                     } else if (response.status === 404) {
-                      testResult.details.warnings.push('Bot não encontrado - verifique o token ou se o bot foi criado corretamente');
+                      (testResult.details as any).warnings.push('Bot não encontrado - verifique o token ou se o bot foi criado corretamente');
                     } else {
-                      testResult.details.warnings.push(`Erro na API do Telegram (HTTP ${response.status})`);
+                      (testResult.details as any).warnings.push(`Erro na API do Telegram (HTTP ${response.status})`);
                     }
                   }
                 } catch (apiError) {
                   console.log(`⚠️ [TELEGRAM-TEST] Bot API test error:`, (apiError as Error).message);
-                  testResult.details.telegramApiStatus = 'error';
+                  (testResult.details as any).telegramApiStatus = 'error';
                   
                   if ((apiError as Error).name === 'AbortError') {
-                    testResult.details.warnings.push('Timeout ao conectar com a API do Telegram (8s)');
+                    (testResult.details as any).warnings.push('Timeout ao conectar com a API do Telegram (8s)');
                   } else {
-                    testResult.details.warnings.push('Erro de conectividade: ' + (apiError as Error).message);
+                    (testResult.details as any).warnings.push('Erro de conectividade: ' + (apiError as Error).message);
                   }
                 }
 
@@ -662,7 +662,7 @@ router.post('/:integrationId/test', requirePermission(Permission.TENANT_MANAGE_S
                   await telegramStorage.updateTenantIntegrationStatus(tenantId, integrationId, 'connected');
                 } catch (statusError) {
                   console.error(`❌ [TELEGRAM-TEST] Error updating status:`, statusError);
-                  testResult.details.warnings.push('Erro ao atualizar status: ' + (statusError as Error).message);
+                  (testResult.details as any).warnings.push('Erro ao atualizar status: ' + (statusError as Error).message);
                 }
               }
             }
@@ -703,6 +703,7 @@ router.post('/:integrationId/test', requirePermission(Permission.TENANT_MANAGE_S
     }
 
     // Ensure we always return valid JSON
+    console.log(`📋 [TEST-RESULT] Final test result for ${integrationId}:`, JSON.stringify(testResult, null, 2));
     if (!testResult || typeof testResult !== 'object') {
       testResult = {
         success: false,
@@ -733,8 +734,8 @@ router.post('/:integrationId/test', requirePermission(Permission.TENANT_MANAGE_S
       success: false, 
       error: 'Falha ao testar integração: ' + (error as Error).message,
       details: {
-        integrationId,
-        tenantId,
+        integrationId: integrationId,
+        tenantId: tenantId,
         errorMessage: (error as Error).message,
         timestamp: new Date().toISOString()
       }
