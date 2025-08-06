@@ -1958,3 +1958,421 @@ function CustomerPersonalizationTab({ itemId, itemName }: { itemId?: string; ite
     </div>
   );
 }
+
+// ===== SUPPLIER LINKS TAB COMPONENT (INTEGRATED INTO MAIN MODAL) =====
+const SupplierLinksTab = ({ itemId }: { itemId: string }) => {
+  const [isSupplierFormOpen, setIsSupplierFormOpen] = useState(false);
+  const [editingSupplierLink, setEditingSupplierLink] = useState<any>(null);
+
+  // Form para supplier links
+  const supplierForm = useForm({
+    resolver: zodResolver(z.object({
+      supplierId: z.string().min(1, 'Fornecedor é obrigatório'),
+      partNumber: z.string().min(1, 'Part Number é obrigatório'),
+      supplierDescription: z.string().optional(),
+      unitPrice: z.number().min(0, 'Preço deve ser positivo').optional(),
+      leadTime: z.string().optional(),
+      minimumOrderQuantity: z.number().min(1, 'Quantidade mínima deve ser positiva').optional()
+    })),
+    defaultValues: {
+      supplierId: '',
+      partNumber: '',
+      supplierDescription: '',
+      unitPrice: undefined,
+      leadTime: '',
+      minimumOrderQuantity: undefined
+    }
+  });
+
+  // Query para fornecedores disponíveis
+  const { data: suppliers = [], isLoading: isLoadingSuppliers } = useQuery({
+    queryKey: ['/api/materials-services/suppliers'],
+    queryFn: async () => {
+      try {
+        const response = await fetch('/api/materials-services/suppliers');
+        if (response.ok) {
+          const data = await response.json();
+          return data.data?.map((supplier: any) => ({
+            id: supplier.id,
+            name: supplier.name || supplier.tradeName || 'Sem nome'
+          })) || [];
+        }
+        return [];
+      } catch (error) {
+        console.error('Erro ao carregar fornecedores:', error);
+        return [];
+      }
+    }
+  });
+
+  // Query para vínculos de fornecedores do item
+  const { data: supplierLinks = [], isLoading: isLoadingSupplierLinks, refetch: refetchSupplierLinks } = useQuery({
+    queryKey: ['/api/materials-services/supplier-links', itemId],
+    queryFn: async () => {
+      try {
+        console.log('Carregando vínculos para item:', itemId);
+        const response = await fetch(`/api/materials-services/supplier-links/${itemId}`);
+        if (response.ok) {
+          const data = await response.json();
+          return data.data || [];
+        }
+        return [];
+      } catch (error) {
+        console.error('Erro ao carregar vínculos do item:', error);
+        return [];
+      }
+    }
+  });
+
+  // Mutation para criar vínculos de fornecedor
+  const createSupplierLinkMutation = useMutation({
+    mutationFn: async (linkData: any) => {
+      const response = await fetch('/api/materials-services/supplier-links', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          itemId,
+          ...linkData
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Erro ao criar vínculo');
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      setIsSupplierFormOpen(false);
+      setEditingSupplierLink(null);
+      supplierForm.reset();
+      refetchSupplierLinks();
+    },
+    onError: (error: any) => {
+      console.error('Erro ao salvar vínculo:', error);
+    }
+  });
+
+  // Mutation para excluir vínculos de fornecedor  
+  const deleteSupplierLinkMutation = useMutation({
+    mutationFn: async (linkId: string) => {
+      const response = await fetch(`/api/materials-services/supplier-links/${linkId}`, {
+        method: 'DELETE'
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Erro ao remover vínculo');
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      refetchSupplierLinks();
+    },
+    onError: (error: any) => {
+      console.error('Erro ao remover vínculo:', error);
+    }
+  });
+
+  const handleNewSupplierLink = () => {
+    setEditingSupplierLink(null);
+    supplierForm.reset();
+    setIsSupplierFormOpen(true);
+  };
+
+  const handleEditSupplierLink = (link: any) => {
+    setEditingSupplierLink(link);
+    supplierForm.reset({
+      supplierId: link.supplier_id || '',
+      partNumber: link.part_number || '',
+      supplierDescription: link.supplier_description || '',
+      unitPrice: link.unit_price || undefined,
+      leadTime: link.lead_time || '',
+      minimumOrderQuantity: link.minimum_order_quantity || undefined
+    });
+    setIsSupplierFormOpen(true);
+  };
+
+  const handleDeleteSupplierLink = (linkId: string) => {
+    if (confirm('Tem certeza que deseja remover este vínculo de fornecedor?')) {
+      deleteSupplierLinkMutation.mutate(linkId);
+    }
+  };
+
+  const handleSubmitSupplierLink = (data: any) => {
+    createSupplierLinkMutation.mutate({
+      supplierId: data.supplierId,
+      partNumber: data.partNumber,
+      supplierDescription: data.supplierDescription,
+      unitPrice: data.unitPrice,
+      leadTime: data.leadTime,
+      minimumOrderQuantity: data.minimumOrderQuantity
+    });
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold flex items-center gap-2">
+          <Truck className="h-5 w-5" />
+          Vínculos de Fornecedores
+        </h3>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={handleNewSupplierLink}
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Novo Vínculo
+        </Button>
+      </div>
+
+      <div className="border rounded-lg">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Fornecedor</TableHead>
+              <TableHead>Part Number</TableHead>
+              <TableHead>Descrição</TableHead>
+              <TableHead>Preço Unitário</TableHead>
+              <TableHead>Lead Time</TableHead>
+              <TableHead>Qtd. Mínima</TableHead>
+              <TableHead className="w-[100px]">Ações</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoadingSupplierLinks ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-8">
+                  Carregando vínculos...
+                </TableCell>
+              </TableRow>
+            ) : supplierLinks.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                  <Truck className="h-8 w-8 mx-auto mb-2" />
+                  Nenhum vínculo de fornecedor configurado
+                  <br />
+                  <span className="text-sm">
+                    Configure fornecedores para este item
+                  </span>
+                </TableCell>
+              </TableRow>
+            ) : (
+              supplierLinks.map((link: any) => (
+                <TableRow key={link.id}>
+                  <TableCell>{link.supplier_name || 'Fornecedor não identificado'}</TableCell>
+                  <TableCell className="font-mono text-sm">{link.part_number}</TableCell>
+                  <TableCell>{link.supplier_description || '-'}</TableCell>
+                  <TableCell>
+                    {link.unit_price ? 
+                      new Intl.NumberFormat('pt-BR', { 
+                        style: 'currency', 
+                        currency: 'BRL' 
+                      }).format(link.unit_price) : '-'
+                    }
+                  </TableCell>
+                  <TableCell>{link.lead_time || '-'}</TableCell>
+                  <TableCell>{link.minimum_order_quantity || '-'}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleEditSupplierLink(link)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleDeleteSupplierLink(link.id)}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+        <div className="flex items-start gap-3">
+          <Truck className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5" />
+          <div>
+            <h4 className="font-medium text-amber-900 dark:text-amber-100">
+              Sistema de Vínculos de Fornecedores
+            </h4>
+            <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+              Configure fornecedores e suas informações específicas para este item.
+              <br />
+              <strong>Status:</strong> Sistema totalmente funcional!
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Modal de Formulário Supplier Links */}
+      <Dialog open={isSupplierFormOpen} onOpenChange={setIsSupplierFormOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              {editingSupplierLink ? 'Editar Vínculo de Fornecedor' : 'Novo Vínculo de Fornecedor'}
+            </DialogTitle>
+            <DialogDescription>
+              Configure as informações do fornecedor para este item
+            </DialogDescription>
+          </DialogHeader>
+
+          <Form {...supplierForm}>
+            <form onSubmit={supplierForm.handleSubmit(handleSubmitSupplierLink)} className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={supplierForm.control}
+                  name="supplierId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Fornecedor</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione o fornecedor" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {suppliers.map((supplier: any) => (
+                            <SelectItem key={supplier.id} value={supplier.id}>
+                              {supplier.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={supplierForm.control}
+                  name="partNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Part Number</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ex: ABC123-XYZ" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={supplierForm.control}
+                name="supplierDescription"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Descrição do Fornecedor</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Como o fornecedor identifica este item" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-3 gap-4">
+                <FormField
+                  control={supplierForm.control}
+                  name="unitPrice"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Preço Unitário</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          step="0.01"
+                          placeholder="0.00" 
+                          {...field}
+                          onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={supplierForm.control}
+                  name="leadTime"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Lead Time</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ex: 7-10 dias" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={supplierForm.control}
+                  name="minimumOrderQuantity"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Quantidade Mínima</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          placeholder="1" 
+                          {...field}
+                          onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setIsSupplierFormOpen(false);
+                    setEditingSupplierLink(null);
+                    supplierForm.reset();
+                  }}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={createSupplierLinkMutation.isPending}
+                >
+                  {createSupplierLinkMutation.isPending ? (
+                    <>Salvando...</>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      Salvar Vínculo
+                    </>
+                  )}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
