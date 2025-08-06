@@ -389,14 +389,11 @@ export class TimecardApprovalController {
 
   getPendingApprovals = async (req: Request, res: Response) => {
     try {
-      const { tenantId, userId, id } = (req as any).user;
-      const actualUserId = userId || id; // Fallback para id se userId não existir
+      const { tenantId, id: userId } = (req as any).user;
       
       console.log('[PENDING-APPROVALS] User data from request:', { 
         tenantId, 
-        userId, 
-        id, 
-        actualUserId,
+        userId,
         fullUser: (req as any).user 
       });
 
@@ -405,7 +402,7 @@ export class TimecardApprovalController {
         .select({ groupId: approvalGroupMembers.groupId })
         .from(approvalGroupMembers)
         .where(and(
-          eq(approvalGroupMembers.userId, actualUserId),
+          eq(approvalGroupMembers.userId, userId),
           eq(approvalGroupMembers.tenantId, tenantId),
           eq(approvalGroupMembers.isActive, true)
         ));
@@ -441,30 +438,29 @@ export class TimecardApprovalController {
       // Filter based on approval settings and user permissions
       let filteredEntries = pendingEntries;
 
-      if (settings) {
+      if (settings && userId) {
         // Check if user is a default approver
-        const isDefaultApprover = settings.defaultApprovers?.includes(actualUserId);
+        const isDefaultApprover = settings.defaultApprovers?.includes(userId);
         
         // Check if user belongs to approval group
         const isInApprovalGroup = settings.approvalGroupId && groupIds.includes(settings.approvalGroupId);
 
-        // User must be either default approver OR in approval group (not both)
+        // User must be either default approver OR in approval group
         if (!isDefaultApprover && !isInApprovalGroup) {
           // User is not authorized to approve
           filteredEntries = [];
         }
-      }
 
-      console.log('[PENDING-APPROVALS] User permissions check:', {
-        userId,
-        actualUserId,
-        isDefaultApprover: settings?.defaultApprovers?.includes(actualUserId),
-        userGroups: groupIds,
-        approvalGroupId: settings?.approvalGroupId,
-        isInApprovalGroup: settings?.approvalGroupId && groupIds.includes(settings.approvalGroupId),
-        pendingCount: pendingEntries.length,
-        filteredCount: filteredEntries.length
-      });
+        console.log('[PENDING-APPROVALS] User permissions check:', {
+          userId,
+          isDefaultApprover,
+          userGroups: groupIds,
+          approvalGroupId: settings?.approvalGroupId,
+          isInApprovalGroup,
+          pendingCount: pendingEntries.length,
+          filteredCount: filteredEntries.length
+        });
+      }
 
       res.json({ pendingApprovals: filteredEntries });
     } catch (error) {
