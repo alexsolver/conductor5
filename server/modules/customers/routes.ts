@@ -65,7 +65,7 @@ customersRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
   }
 });
 
-// GET /api/customers/companies - Get all companies
+// GET /api/companies - Get all companies
 customersRouter.get('/companies', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const { schemaManager } = await import('../../db');
@@ -73,7 +73,7 @@ customersRouter.get('/companies', jwtAuth, async (req: AuthenticatedRequest, res
     const schemaName = schemaManager.getSchemaName(req.user.tenantId);
 
     const result = await pool.query(`
-      SELECT * FROM "${schemaName}".customer_companies 
+      SELECT * FROM "${schemaName}".companies 
       WHERE tenant_id = $1
       ORDER BY name
     `, [req.user.tenantId]);

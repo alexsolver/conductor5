@@ -346,7 +346,7 @@ export default function CustomerCompanies() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-            Empresas Clientes
+            Empresas
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
             Gerencie empresas clientes e suas informações
@@ -585,7 +585,7 @@ export default function CustomerCompanies() {
           <Card key={company.id} className="hover:shadow-lg transition-shadow">
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
-                
+
                 <div className="flex items-center space-x-3">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
                       company.status === 'inactive' ? 'bg-gray-100' : 'bg-blue-100'
@@ -622,7 +622,7 @@ export default function CustomerCompanies() {
                     )}
                   </div>
                 </div>
-                
+
                 <div className="flex flex-col gap-1">
                   <Badge className={getStatusColor(company.status)}>
                     {company.status === 'active' ? 'Ativo' : 
@@ -721,7 +721,7 @@ export default function CustomerCompanies() {
                       const actionText = isActiveCompany ? 'Desativar' : 'Ativar';
                       const loadingText = isActiveCompany ? 'Desativando...' : 'Ativando...';
                       const iconColor = isActiveCompany ? 'text-orange-600 hover:text-orange-700' : 'text-green-600 hover:text-green-700';
-                      
+
                       return (
                         <Button
                           variant="outline"
@@ -738,9 +738,9 @@ export default function CustomerCompanies() {
                                 // Flag to prevent automatic cache invalidation
                                 isOptimisticUpdate: true
                               };
-                              
+
                               console.log(`[UPDATE-COMPANY] Updating Default company from ${company.status} to ${newStatus}`);
-                              
+
                               // Optimistically update the company status in cache
                               queryClient.setQueryData(['/api/customer-companies'], (oldData: any) => {
                                 if (Array.isArray(oldData)) {
@@ -755,19 +755,19 @@ export default function CustomerCompanies() {
 
                               // Use the correct mutation endpoint
                               await updateCompanyMutation.mutateAsync({ id: company.id, data: updateData });
-                              
+
                               // Only invalidate secondary queries, not the main companies query since we already updated optimistically
                               await Promise.all([
                                 queryClient.invalidateQueries({ queryKey: ['/api/customers/companies'] }),
                                 queryClient.invalidateQueries({ queryKey: ['fieldOptions'] }),
                                 queryClient.invalidateQueries({ queryKey: ['/api/ticket-config/field-options'] })
                               ]);
-                              
+
                               toast({
                                 title: "Empresa atualizada",
                                 description: `Empresa Default ${isActiveCompany ? 'desativada' : 'ativada'} com sucesso.`,
                               });
-                              
+
                             } catch (error) {
                               console.error('Error updating Default company:', error);
                               // Revert optimistic update on error

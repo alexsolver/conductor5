@@ -281,14 +281,14 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="customerCompanyId"
+                name="companyId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Empresa Contratante *</FormLabel>
+                    <FormLabel>Empresa *</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Selecione a empresa contratante" />
+                          <SelectValue placeholder="Selecione a empresa" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
