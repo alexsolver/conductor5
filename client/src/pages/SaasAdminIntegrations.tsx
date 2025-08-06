@@ -62,12 +62,15 @@ const integrationConfigSchema = z.object({
   delegatedEmail: z.string().optional(),
   domain: z.string().optional(),
   adminEmail: z.string().optional(),
-  scopes: z.union([z.array(z.string()), z.string()]).optional().transform(val => {
+  scopes: z.preprocess((val) => {
     if (typeof val === 'string') {
       return val.split(',').map(s => s.trim()).filter(s => s.length > 0);
     }
-    return val || [];
-  }),
+    if (Array.isArray(val)) {
+      return val;
+    }
+    return [];
+  }, z.array(z.string()).default([])),
 
   // AWS specific
   accessKeyId: z.string().optional(),
@@ -161,7 +164,8 @@ export default function SaasAdminIntegrations() {
       accountSid: '',
       authToken: '',
       phoneNumber: '',
-    }
+    },
+    mode: 'onChange'
   });
 
   // Mutation for saving integration configuration
@@ -456,10 +460,46 @@ export default function SaasAdminIntegrations() {
     setSelectedIntegration(integration);
     // Pre-fill form if existing config is available
     if (integration.config) {
-      configForm.reset(integration.config);
+      // Ensure scopes is always an array
+      const configWithArrayScopes = {
+        ...integration.config,
+        scopes: Array.isArray(integration.config.scopes) 
+          ? integration.config.scopes 
+          : (typeof integration.config.scopes === 'string' 
+              ? integration.config.scopes.split(',').map(s => s.trim()).filter(s => s.length > 0)
+              : [])
+      };
+      configForm.reset(configWithArrayScopes);
     } else {
       // Reset form to defaults if no config exists
-      configForm.reset();
+      configForm.reset({
+        apiKey: "",
+        baseUrl: "",
+        maxTokens: 4000,
+        temperature: 0.7,
+        enabled: true,
+        clientId: '',
+        clientSecret: '',
+        redirectUri: '',
+        tenantId: '',
+        serviceAccountKey: '',
+        delegatedEmail: '',
+        domain: '',
+        adminEmail: '',
+        scopes: [],
+        accessKeyId: '',
+        secretAccessKey: '',
+        region: 'us-east-1',
+        fromEmail: '',
+        replyToEmail: '',
+        botToken: '',
+        webhookUrl: '',
+        channelId: '',
+        guildId: '',
+        accountSid: '',
+        authToken: '',
+        phoneNumber: '',
+      });
     }
     setIsConfigDialogOpen(true);
   };
@@ -716,14 +756,34 @@ export default function SaasAdminIntegrations() {
                         <FormControl>
                           <Input 
                             placeholder="https://www.googleapis.com/auth/userinfo.email,https://www.googleapis.com/auth/userinfo.profile,https://www.googleapis.com/auth/gmail.modify" 
-                            value={Array.isArray(field.value) ? field.value.join(',') : (field.value || '')}
+                            value={(() => {
+                              try {
+                                if (Array.isArray(field.value)) {
+                                  return field.value.join(',');
+                                } else if (typeof field.value === 'string') {
+                                  return field.value;
+                                }
+                                return '';
+                              } catch (error) {
+                                console.error('Error processing scopes value:', error);
+                                return '';
+                              }
+                            })()}
                             onChange={(e) => {
-                              const inputValue = e.target.value;
-                              if (inputValue.trim() === '') {
+                              try {
+                                const inputValue = e.target.value || '';
+                                if (inputValue.trim() === '') {
+                                  field.onChange([]);
+                                } else {
+                                  const scopesArray = inputValue
+                                    .split(',')
+                                    .map(s => s.trim())
+                                    .filter(s => s.length > 0);
+                                  field.onChange(scopesArray);
+                                }
+                              } catch (error) {
+                                console.error('Error updating scopes:', error);
                                 field.onChange([]);
-                              } else {
-                                const scopesArray = inputValue.split(',').map(s => s.trim()).filter(s => s.length > 0);
-                                field.onChange(scopesArray);
                               }
                             }}
                           />
