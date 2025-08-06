@@ -67,17 +67,15 @@ const DynamicBadge: React.FC<DynamicBadgeProps> = ({
     );
   }
 
-  // Obter cor dinamicamente do banco de dados ou sistema inteligente
-  let finalColorClass = 'bg-slate-600 text-white border-slate-600'; // Fallback padrão
+  // 🎨 SISTEMA 100% DINÂMICO - usar cores direto do banco via CSS inline
+  let colorResult = { color: '#64748b', textColor: '#ffffff', className: 'bg-slate-600 text-white border-slate-600' };
   
   if (fieldName && value) {
-    const colorResult = getFieldColor(fieldName, value);
-    finalColorClass = colorResult.className || finalColorClass;
-    console.log(`🎨 DynamicBadge: fieldName=${fieldName}, value=${value}, className=${finalColorClass}`);
+    colorResult = getFieldColor(fieldName, value);
+    console.log(`🎨 DynamicBadge: fieldName=${fieldName}, value=${value}, color=${colorResult.color}`);
   } else if (colorHex) {
-    // Se hex fornecido diretamente, usar sistema inteligente
-    finalColorClass = convertHexToTailwindClass(colorHex);
-    console.log(`🎨 DynamicBadge: colorHex=${colorHex}, className=${finalColorClass}`);
+    colorResult = { color: colorHex, textColor: '#ffffff', className: convertHexToTailwindClass(colorHex) };
+    console.log(`🎨 DynamicBadge: colorHex=${colorHex}, color=${colorResult.color}`);
   }
 
   // Filtrar props antes de passar para o componente
@@ -85,7 +83,12 @@ const DynamicBadge: React.FC<DynamicBadgeProps> = ({
 
   return (
     <Badge 
-      className={cn(finalColorClass, className)}
+      className={cn('border', className)}
+      style={{
+        backgroundColor: colorResult.color,
+        color: colorResult.textColor,
+        borderColor: colorResult.color
+      }}
       {...filteredProps}
     >
       {children}

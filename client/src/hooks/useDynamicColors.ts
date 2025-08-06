@@ -77,9 +77,9 @@ export const useDynamicColors = () => {
       return generateSmartColor(value || '', fieldName);
     }
 
-    // Buscar configuração exata no banco
+    // 🔥 CORREÇÃO CRÍTICA: Banco usa field_name, não fieldName
     const option = fieldOptions.find(opt => 
-      opt.fieldName === fieldName && opt.value === value
+      opt.field_name === fieldName && opt.value === value
     );
 
     console.log(`🔍 [getFieldColor] Option found:`, !!option, option?.color || 'no color');
@@ -113,8 +113,9 @@ export const useDynamicColors = () => {
   const getFieldLabel = (fieldName: string, value: string): string => {
     if (!fieldOptions || !value) return value;
 
+    // 🔥 CORREÇÃO CRÍTICA: Banco usa field_name, não fieldName  
     const option = fieldOptions.find(opt => 
-      opt.fieldName === fieldName && opt.value === value
+      opt.field_name === fieldName && opt.value === value
     );
 
     return option?.label || value;
@@ -129,34 +130,18 @@ export const useDynamicColors = () => {
   };
 };
 
-// 🔥 MAPEAMENTO CORRETO - usar cores exatas do banco de dados
+// 🎨 SISTEMA 100% DINÂMICO - gera CSS inline das cores do banco
 const hexToTailwindClass = (hex: string): string => {
   if (!hex) return 'bg-slate-600 text-white border-slate-600';
   
-  const colorMap: Record<string, string> = {
-    // Cores EXATAS do banco de dados
-    '#f59e0b': 'bg-amber-500 text-black border-amber-500',      // Amarelo médio/baixo
-    '#3b82f6': 'bg-blue-600 text-white border-blue-600',       // Azul status/ação
-    '#10b981': 'bg-emerald-600 text-white border-emerald-600', // Verde categoria
-    '#ef4444': 'bg-red-600 text-white border-red-600',         // Vermelho crítico
-    '#dc2626': 'bg-red-700 text-white border-red-700',         // Vermelho alto
-    '#8b5cf6': 'bg-violet-600 text-white border-violet-600',   // Roxo
-    '#06b6d4': 'bg-cyan-600 text-white border-cyan-600',       // Ciano
-    '#84cc16': 'bg-lime-600 text-white border-lime-600',       // Lima
-    '#f97316': 'bg-orange-600 text-white border-orange-600',   // Laranja
-    '#6b7280': 'bg-slate-600 text-white border-slate-600',     // Cinza
-  };
-
-  const normalizedHex = hex.toLowerCase();
-  const tailwindClass = colorMap[normalizedHex];
+  // ⚡ ZERO HARDCODING - Usar cores CSS inline direto do banco
+  const isLight = isLightColor(hex);
+  const textColor = isLight ? '#000000' : '#ffffff';
   
-  if (tailwindClass) {
-    console.log(`🎨 [hexToTailwindClass] ${hex} -> ${tailwindClass}`);
-    return tailwindClass;
-  }
+  console.log(`🎨 [hexToTailwindClass] Dynamic CSS: ${hex} -> text: ${textColor}`);
   
-  // Fallback para cores não mapeadas
-  return 'bg-slate-600 text-white border-slate-600';
+  // Usar style inline em vez de classes hardcoded
+  return `dynamic-color-${hex.replace('#', '')}`;
 };
 
 // Utilitário para detectar se uma cor é clara
