@@ -2,6 +2,8 @@ import { Router } from 'express';
 import { jwtAuth } from '../middleware/jwtAuth';
 import { requireTenantAdmin, requirePermission, AuthorizedRequest } from '../middleware/authorizationMiddleware';
 import { Permission } from '../domain/authorization/RolePermissions';
+import { poolManager } from '../db/poolManager';
+import { validateTenantAccess } from '../middleware/tenantValidation';
 
 const router = Router();
 
@@ -253,9 +255,27 @@ router.post('/:integrationId/config', requirePermission(Permission.TENANT_MANAGE
     console.log(`[POST config] Dados preparados para ${integrationId}:`, JSON.stringify(configData, null, 2));
     console.log(`[POST config] Request body recebido:`, JSON.stringify(req.body, null, 2));
 
+    // Validate required fields for Telegram
+    if (integrationId === 'telegram') {
+      if (!configData.telegramBotToken || configData.telegramBotToken.trim() === '') {
+        return res.status(400).json({ 
+          message: 'Token do bot Telegram é obrigatório',
+          error: 'MISSING_BOT_TOKEN' 
+        });
+      }
+      console.log(`🤖 [POST config] Telegram validation passed for token: ${configData.telegramBotToken.substring(0, 10)}...`);
+    }
+
     // Save to database
     const savedConfig = await storage.saveTenantIntegrationConfig(tenantId, integrationId, configData);
     console.log(`[POST config] Configuração salva:`, savedConfig ? 'SUCCESS' : 'FAILED');
+
+    if (!savedConfig) {
+      return res.status(500).json({ 
+        message: 'Falha ao salvar configuração',
+        error: 'SAVE_FAILED' 
+      });
+    }
 
     // Return masked configuration for security
     const maskedConfig = {

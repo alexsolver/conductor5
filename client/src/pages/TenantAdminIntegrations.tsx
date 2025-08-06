@@ -104,8 +104,11 @@ const integrationConfigSchema = z.object({
   dropboxRefreshToken: z.string().optional(),
   backupFolder: z.string().optional(),
   // Telegram specific fields - com validação mais rigorosa
-  telegramBotToken: z.string().optional().refine((val) => !val || val.length > 10, {
-    message: "Token do bot deve ter mais de 10 caracteres"
+  telegramBotToken: z.string().optional().refine((val) => {
+    if (!val) return true; // Optional field
+    return val.length > 10 && val.includes(':');
+  }, {
+    message: "Token do bot deve ter formato válido (ex: 123456789:ABCdefGHIjklMNOpqr)"
   }),
   telegramChatId: z.string().optional(),
   telegramWebhookUrl: z.string().optional().refine((val) => !val || z.string().url().safeParse(val).success, {
@@ -625,8 +628,9 @@ export default function TenantAdminIntegrations() {
 
   const onSubmitConfig = (data: z.infer<typeof integrationConfigSchema>) => {
     if (selectedIntegration) {
+      console.log(`💾 [FRONTEND] Submitting config for ${selectedIntegration.id}:`, data);
 
-      // Preparar dados específicos para IMAP
+      // Preparar dados específicos para cada integração
       let configData = { ...data };
 
       if (selectedIntegration.id === 'imap-email') {
@@ -644,7 +648,34 @@ export default function TenantAdminIntegrations() {
           serverPort: data.imapPort || '993',
           username: data.emailAddress || ''
         };
+      } else if (selectedIntegration.id === 'telegram') {
+        // Validação específica para Telegram
+        if (!data.telegramBotToken || data.telegramBotToken.trim() === '') {
+          toast({
+            title: "Erro de validação",
+            description: "Token do bot Telegram é obrigatório",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        configData = {
+          ...data,
+          // Garantir que campos Telegram estejam presentes
+          telegramBotToken: data.telegramBotToken.trim(),
+          telegramChatId: data.telegramChatId || '',
+          telegramWebhookUrl: data.telegramWebhookUrl || `${window.location.origin}/api/webhooks/telegram/${localStorage.getItem('tenantId')}`,
+          enabled: data.enabled === true
+        };
+
+        console.log(`🤖 [FRONTEND] Telegram config prepared:`, {
+          hasToken: !!configData.telegramBotToken,
+          tokenLength: configData.telegramBotToken?.length || 0,
+          chatId: configData.telegramChatId,
+          webhookUrl: configData.telegramWebhookUrl
+        });
       }
+
       saveConfigMutation.mutate({
         integrationId: selectedIntegration.id,
         config: configData
