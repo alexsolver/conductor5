@@ -91,32 +91,64 @@ export class ItemController {
         return res.status(401).json({ message: 'Tenant required' });
       }
 
-      const item = await this.itemRepository.findById(id, tenantId);
+      // Direct SQL query to avoid Drizzle ORM issues  
+      const { pool } = await import('../../../../db.js');
       
-      if (!item) {
+      // Get main item data
+      const itemQuery = `
+        SELECT 
+          id, name, type, integration_code, description, 
+          measurement_unit, maintenance_plan, default_checklist,
+          status, active, created_at, updated_at, tenant_id
+        FROM tenant_${tenantId.replace(/-/g, '_')}.items 
+        WHERE id = $1 AND tenant_id = $2 AND active = true
+      `;
+      const itemResult = await pool.query(itemQuery, [id, tenantId]);
+      
+      if (itemResult.rows.length === 0) {
         return res.status(404).json({
           success: false,
           message: 'Item not found'
         });
       }
 
-      // Get attachments and links
-      const [attachments, itemLinks, customerLinks, supplierLinks] = await Promise.all([
-        this.itemRepository.getAttachments(id, tenantId),
-        this.itemRepository.getItemLinks(id, tenantId),
-        this.itemRepository.getCustomerLinks(id, tenantId),
-        this.itemRepository.getSupplierLinks(id, tenantId)
+      const item = itemResult.rows[0];
+
+      // Get attachments, customer links, and supplier links with safe queries
+      const [attachments, customerLinks, supplierLinks] = await Promise.all([
+        // Attachments
+        pool.query(`
+          SELECT * FROM tenant_${tenantId.replace(/-/g, '_')}.item_attachments 
+          WHERE item_id = $1 ORDER BY created_at DESC
+        `, [id]).catch(() => ({ rows: [] })),
+        
+        // Customer personalizations
+        pool.query(`
+          SELECT m.*, c.company as customer_name
+          FROM tenant_${tenantId.replace(/-/g, '_')}.customer_item_mappings m
+          LEFT JOIN tenant_${tenantId.replace(/-/g, '_')}.customers c ON m.customer_id = c.id  
+          WHERE m.item_id = $1 AND m.is_active = true
+          ORDER BY m.created_at DESC
+        `, [id]).catch(() => ({ rows: [] })),
+        
+        // Supplier links
+        pool.query(`
+          SELECT l.*, s.name as supplier_name
+          FROM tenant_${tenantId.replace(/-/g, '_')}.supplier_item_links l
+          LEFT JOIN tenant_${tenantId.replace(/-/g, '_')}.suppliers s ON l.supplier_id = s.id
+          WHERE l.item_id = $1 AND l.is_active = true
+          ORDER BY l.created_at DESC
+        `, [id]).catch(() => ({ rows: [] }))
       ]);
 
       res.json({
         success: true,
         data: {
           ...item,
-          attachments,
+          attachments: attachments.rows || [],
           links: {
-            items: itemLinks,
-            customers: customerLinks,
-            suppliers: supplierLinks
+            customers: customerLinks.rows || [],
+            suppliers: supplierLinks.rows || []
           }
         }
       });

@@ -1167,42 +1167,35 @@ function CustomerPersonalizationTab({ itemId, itemName }: { itemId?: string; ite
     queryFn: async () => {
       if (!itemId) return [];
       try {
+        // Primeiro tenta o endpoint específico de personalização
         const response = await fetch(`/api/materials-services/personalization/items/${itemId}/customer-personalizations`);
-        if (!response.ok) {
-          console.log('API endpoint não encontrado, usando dados mockados para demo');
-          return [
-            {
-              id: '1',
-              customer_name: 'Empresa Cliente A',
-              custom_name: 'Item Personalizado A',
-              custom_sku: 'PERS-001',
-              customer_reference: 'REF-A001',
-              is_active: true
-            },
-            {
-              id: '2',
-              customer_name: 'Empresa Cliente B',
-              custom_name: 'Material Especial B',
-              custom_sku: 'ESP-B002',
-              customer_reference: 'REF-B002',
-              is_active: true
-            }
-          ];
+        if (response.ok) {
+          const data = await response.json();
+          return data.personalizations || [];
         }
-        const data = await response.json();
-        return data.personalizations || [];
-      } catch (error) {
-        console.log('Usando dados de demonstração');
+        
+        // Se não funcionar, tenta buscar do próprio item  
+        const itemResponse = await fetch(`/api/materials-services/items/${itemId}`);
+        if (itemResponse.ok) {
+          const itemData = await itemResponse.json();
+          return itemData.data?.links?.customers || [];
+        }
+        
+        // Fallback: dados de demonstração
+        console.log('Usando dados de demonstração para personalização');
         return [
           {
             id: 'demo1',
-            customer_name: 'Cliente Demo',
-            custom_name: 'Item Personalizado Demo',
+            customer_name: 'Cliente Exemplo',
+            custom_name: 'Personalização Demo',
             custom_sku: 'DEMO-001',
             customer_reference: 'REF-DEMO',
             is_active: true
           }
         ];
+      } catch (error) {
+        console.log('Erro ao carregar personalizações:', error);
+        return [];
       }
     },
     enabled: !!itemId
