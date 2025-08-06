@@ -900,16 +900,19 @@ export class TimecardController {
 
       console.log('[ATTENDANCE-REPORT] Final report summary:', report.summary);
 
-      res.json({
+      // Force JSON response with explicit headers
+      res.setHeader('Content-Type', 'application/json');
+      res.status(200).json({
         success: true,
         ...report
       });
     } catch (error: any) {
       console.error('[TIMECARD-CONTROLLER] Error generating attendance report:', error);
+      res.setHeader('Content-Type', 'application/json');
       res.status(500).json({ 
         success: false, 
         error: 'Erro ao gerar relatório',
-        details: error.message 
+        details: error?.message || 'Unknown error'
       });
     }
   }
