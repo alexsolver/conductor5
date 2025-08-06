@@ -106,6 +106,7 @@ const integrationConfigSchema = z.object({
   // Telegram specific fields
   telegramBotToken: z.string().optional(),
   telegramChatId: z.string().optional(),
+  telegramWebhookUrl: z.string().optional(),
 });
 
 export default function TenantAdminIntegrations() {
@@ -141,6 +142,7 @@ export default function TenantAdminIntegrations() {
       // Telegram default values
       telegramBotToken: '',
       telegramChatId: '',
+      telegramWebhookUrl: '',
     },
   });
 
@@ -564,6 +566,7 @@ export default function TenantAdminIntegrations() {
         // Telegram default values
         telegramBotToken: '',
         telegramChatId: '',
+        telegramWebhookUrl: `${window.location.origin}/api/webhooks/telegram/${localStorage.getItem('tenantId')}`,
       });
     }
 
