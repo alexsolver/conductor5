@@ -346,10 +346,10 @@ export default function CustomerCompanies() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-            Empresas Clientes
+            Empresas
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
-            Gerencie empresas clientes e suas informações
+            Gerencie empresas e suas informações
           </p>
         </div>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
