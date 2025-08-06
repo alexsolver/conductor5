@@ -37,7 +37,8 @@ import {
   Bell,
   Database,
   Phone,
-  Hash
+  Hash,
+  Plug
 } from 'lucide-react';
 import { apiRequest, queryClient } from "@/lib/queryClient";
 
