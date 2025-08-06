@@ -1200,8 +1200,9 @@ const TicketDetails = React.memo(() => {
                             <DynamicBadge
                               fieldName="urgency"
                               value={field.value}
-                              showIcon={true}
-                            />
+                            >
+                              {getFieldLabel('urgency', field.value) || field.value || 'Não especificado'}
+                            </DynamicBadge>
                           </div>
                         )}
                       </FormControl>
@@ -1231,8 +1232,9 @@ const TicketDetails = React.memo(() => {
                             <DynamicBadge
                               fieldName="impact"
                               value={field.value}
-                              showIcon={true}
-                            />
+                            >
+                              {getFieldLabel('impact', field.value) || field.value || 'Não especificado'}
+                            </DynamicBadge>
                           </div>
                         )}
                       </FormControl>
