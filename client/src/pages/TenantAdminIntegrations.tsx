@@ -209,8 +209,8 @@ export default function TenantAdminIntegrations() {
   };
 
   // Map integrations with proper icons and saved configuration status
-  const tenantIntegrations: TenantIntegration[] = integrationsData?.integrations?.length > 0 
-    ? integrationsData.integrations.map((integration: any) => ({
+  const tenantIntegrations: TenantIntegration[] = (integrationsData as any)?.integrations?.length > 0 
+    ? (integrationsData as any).integrations.map((integration: any) => ({
         ...integration,
         icon: getIntegrationIcon(integration.id),
         // Use the actual status from backend instead of overriding it
@@ -288,16 +288,6 @@ export default function TenantAdminIntegrations() {
       status: 'disconnected',
       configured: false,
       features: ['SMS automático', 'Notificações críticas', 'Verificação 2FA']
-    },
-    {
-      id: 'telegram',
-      name: 'Telegram',
-      category: 'Comunicação',
-      description: 'Envio de notificações e alertas via Telegram para grupos ou usuários',
-      icon: Send,
-      status: 'disconnected',
-      configured: false,
-      features: ['Notificações em tempo real', 'Mensagens personalizadas', 'Integração com Bot API']
     },
     {
       id: 'telegram',
@@ -588,13 +578,16 @@ export default function TenantAdminIntegrations() {
         redirectUri: window.location.origin + `/auth/${integration.id}/callback`
       });
 
-      if (response.authUrl) {
+      const responseData = response as any;
+      if (responseData?.authUrl && typeof responseData.authUrl === 'string') {
         // Open OAuth2 URL in new window
-        window.open(response.authUrl, 'oauth2', 'width=600,height=600,scrollbars=yes,resizable=yes');
+        window.open(responseData.authUrl, 'oauth2', 'width=600,height=600,scrollbars=yes,resizable=yes');
         toast({
           title: "OAuth2 Iniciado",
           description: "Janela de autorização aberta. Complete o processo de login.",
         });
+      } else {
+        throw new Error('URL de autorização não encontrada na resposta');
       }
     } catch (error: any) {
       toast({
@@ -616,14 +609,14 @@ export default function TenantAdminIntegrations() {
           ...data,
           // Garantir que campos IMAP estejam presentes
           imapServer: data.imapServer || 'imap.gmail.com',
-          imapPort: parseInt(data.imapPort || '993') || 993,
+          imapPort: data.imapPort || '993',
           emailAddress: data.emailAddress || '',
           password: data.password || '',
           useSSL: data.useSSL !== false,
           enabled: data.enabled === true,
           // Manter compatibilidade com outros campos
           serverHost: data.imapServer || 'imap.gmail.com',
-          serverPort: parseInt(data.imapPort || '993') || 993,
+          serverPort: data.imapPort || '993',
           username: data.emailAddress || ''
         };
       }
