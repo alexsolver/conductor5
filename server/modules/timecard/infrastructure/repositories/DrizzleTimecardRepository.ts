@@ -4,7 +4,7 @@ import {
   timecardEntries,
   hourBankEntries, 
   users
-} from '../../../../../shared/schema-master';
+} from '../../../../shared/schema-master';
 
 export interface TimecardRepository {
   // Timecard Entries
@@ -378,7 +378,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
   // Schedule Templates Implementation
   async createScheduleTemplate(data: any): Promise<any> {
     try {
-      const { scheduleTemplates } = await import('@shared/schema');
+      const { scheduleTemplates } = await import('../../../../shared/schema-master');
       
       const [template] = await db
         .insert(scheduleTemplates)
@@ -408,7 +408,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
   async getScheduleTemplates(tenantId: string): Promise<any[]> {
     try {
       // Get real templates from database using existing db connection
-      const { scheduleTemplates } = await import('@shared/schema');
+      const { scheduleTemplates } = await import('../../../../shared/schema-master');
       
       const templates = await db
         .select()
@@ -570,7 +570,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
 
   async updateScheduleTemplate(id: string, tenantId: string, data: any): Promise<any> {
     try {
-      const { scheduleTemplates } = await import('@shared/schema');
+      const { scheduleTemplates } = await import('../../../../shared/schema-master');
       
       const [updated] = await db
         .update(scheduleTemplates)
@@ -601,7 +601,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
         throw new Error('Não é possível deletar templates padrão do sistema');
       }
 
-      const { scheduleTemplates } = await import('@shared/schema');
+      const { scheduleTemplates } = await import('../../../../shared/schema-master');
       
       await db
         .delete(scheduleTemplates)
