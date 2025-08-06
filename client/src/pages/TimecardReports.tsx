@@ -25,44 +25,78 @@ export default function TimecardReports() {
     return periods;
   };
 
+  // Fetch attendance report for selected period
   const { data: attendanceReport, isLoading: attendanceLoading, error: attendanceError } = useQuery({
-    queryKey: ['/api/timecard/reports/attendance', selectedPeriod],
+    queryKey: ['attendance-report', selectedPeriod],
     queryFn: async () => {
-      console.log('[TIMECARD-REPORTS] Fetching attendance report for:', selectedPeriod);
-      const response = await apiRequest('GET', `/api/timecard/reports/attendance/${selectedPeriod}`);
-      if (!response.ok) {
-        console.error('[TIMECARD-REPORTS] Request failed:', response.status, response.statusText);
-        throw new Error(`Erro ${response.status}: ${response.statusText}`);
-      }
-      const textResponse = await response.text();
-      console.log('[TIMECARD-REPORTS] Raw response text:', textResponse.substring(0, 200));
-      
-      let data;
+      console.log('[TIMECARD-REPORTS] Fetching attendance report for period:', selectedPeriod);
       try {
-        data = JSON.parse(textResponse);
-        console.log('[TIMECARD-REPORTS] Parsed JSON data:', data);
-        console.log('[TIMECARD-REPORTS] Records found:', data.records?.length || 0);
-      } catch (parseError) {
-        console.error('[TIMECARD-REPORTS] JSON parse error:', parseError);
-        console.error('[TIMECARD-REPORTS] Full response:', textResponse);
-        throw new Error(`Resposta inválida da API: ${textResponse.substring(0, 100)}...`);
+        const response = await apiRequest('GET', `/api/timecard/reports/attendance/${selectedPeriod}`);
+
+        if (!response.ok) {
+          console.error('[TIMECARD-REPORTS] HTTP Error:', response.status, response.statusText);
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          const text = await response.text();
+          console.error('[TIMECARD-REPORTS] Non-JSON response:', text.substring(0, 200));
+          throw new Error('Resposta inválida do servidor - esperado JSON');
+        }
+
+        const data = await response.json();
+        console.log('[TIMECARD-REPORTS] Report data received:', data);
+
+        if (!data.success && data.error) {
+          throw new Error(data.error);
+        }
+
+        return data;
+      } catch (error) {
+        console.error('[TIMECARD-REPORTS] Error fetching report:', error);
+        throw error;
       }
-      
-      return data;
     },
-    enabled: reportType === 'frequency'
+    enabled: reportType === 'attendance',
+    retry: false
   });
 
+  // Fetch overtime report for selected period
   const { data: overtimeReport, isLoading: overtimeLoading, error: overtimeError } = useQuery({
-    queryKey: ['/api/timecard/reports/overtime', selectedPeriod],
+    queryKey: ['overtime-report', selectedPeriod],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/timecard/reports/overtime/${selectedPeriod}`);
-      if (!response.ok) {
-        throw new Error(`Erro ${response.status}: ${response.statusText}`);
+      console.log('[TIMECARD-REPORTS] Fetching overtime report for period:', selectedPeriod);
+      try {
+        const response = await apiRequest('GET', `/api/timecard/reports/overtime/${selectedPeriod}`);
+
+        if (!response.ok) {
+          console.error('[TIMECARD-REPORTS] HTTP Error:', response.status, response.statusText);
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          const text = await response.text();
+          console.error('[TIMECARD-REPORTS] Non-JSON response:', text.substring(0, 200));
+          throw new Error('Resposta inválida do servidor - esperado JSON');
+        }
+
+        const data = await response.json();
+        console.log('[TIMECARD-REPORTS] Overtime report data received:', data);
+
+        if (!data.success && data.error) {
+          throw new Error(data.error);
+        }
+
+        return data;
+      } catch (error) {
+        console.error('[TIMECARD-REPORTS] Error fetching overtime report:', error);
+        throw error;
       }
-      return response.json();
     },
-    enabled: reportType === 'overtime'
+    enabled: reportType === 'overtime',
+    retry: false
   });
 
   const { data: complianceReport, isLoading: complianceLoading } = useQuery({
@@ -193,7 +227,7 @@ export default function TimecardReports() {
             <p className="text-xs text-gray-500">No período selecionado</p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
@@ -206,7 +240,7 @@ export default function TimecardReports() {
             <p className="text-xs text-gray-500">Taxa de presença</p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
@@ -219,7 +253,7 @@ export default function TimecardReports() {
             <p className="text-xs text-gray-500">Faltas registradas</p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
@@ -317,7 +351,7 @@ export default function TimecardReports() {
                     ))}
                 </tbody>
               </table>
-              
+
               {/* Resumo do Relatório */}
               {currentReport.summary && (
                 <div className="mt-4 p-4 bg-gray-50 rounded-lg">

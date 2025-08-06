@@ -809,10 +809,11 @@ export class TimecardController {
   async getAttendanceReport(req: AuthenticatedRequest, res: Response) {
     console.log('[ATTENDANCE-REPORT] Route hit - starting...');
     
-    // Force JSON response immediately
-    res.setHeader('Content-Type', 'application/json');
-    
     try {
+      // Force JSON response headers early
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Cache-Control', 'no-cache');
+      
       const { period } = req.params;
       const tenantId = req.user?.tenantId;
       const userId = req.user?.id;
@@ -828,7 +829,17 @@ export class TimecardController {
         console.log('[ATTENDANCE-REPORT] Missing auth data');
         return res.status(400).json({ 
           success: false, 
-          error: 'Tenant ID e User ID são obrigatórios' 
+          error: 'Dados de autenticação obrigatórios',
+          message: 'Tenant ID e User ID são obrigatórios' 
+        });
+      }
+
+      if (!period || !/^\d{4}-\d{2}$/.test(period)) {
+        console.log('[ATTENDANCE-REPORT] Invalid period format:', period);
+        return res.status(400).json({ 
+          success: false, 
+          error: 'Formato de período inválido',
+          message: 'Use o formato YYYY-MM' 
         });
       }
 
@@ -842,10 +853,23 @@ export class TimecardController {
       console.log('[ATTENDANCE-REPORT] Date range:', startDate.toISOString(), 'to', endDate.toISOString());
       console.log('[ATTENDANCE-REPORT] User:', userId, 'Tenant:', tenantId);
 
-      // Buscar registros do período (pending e approved) usando query direta
-      const { db } = await import('../../../../db');
-      const { timecardEntries } = await import('@shared/schema');
-      const { and, eq, gte, lte, sql, inArray } = await import('drizzle-orm');
+      // Import database and schema with proper error handling
+      let db, timecardEntries, and, eq, sql, inArray;
+      try {
+        const dbModule = await import('../../../../db');
+        db = dbModule.db;
+        const schemaModule = await import('@shared/schema');
+        timecardEntries = schemaModule.timecardEntries;
+        const drizzleModule = await import('drizzle-orm');
+        ({ and, eq, sql, inArray } = drizzleModule);
+      } catch (importError) {
+        console.error('[ATTENDANCE-REPORT] Import error:', importError);
+        return res.status(500).json({ 
+          success: false, 
+          error: 'Erro de configuração do sistema',
+          details: 'Database import failed'
+        });
+      }
       
       // Teste direto com SQL raw para debug
       console.log('[ATTENDANCE-REPORT] Query params:', {

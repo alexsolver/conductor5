@@ -42,10 +42,38 @@ timecardRouter.get('/hour-bank/movements/:userId/:month', jwtAuth, timecardContr
 // Absence Requests routes
 timecardRouter.get('/absence-requests/pending', jwtAuth, timecardController.getPendingAbsenceRequests.bind(timecardController));
 
-// Reports routes
-timecardRouter.get('/reports/attendance/:period', jwtAuth, timecardController.getAttendanceReport.bind(timecardController));
+// Reports routes with error handling wrapper
+timecardRouter.get('/reports/attendance/:period', jwtAuth, async (req, res) => {
+  try {
+    console.log('[TIMECARD-ROUTES] Processing attendance report request for period:', req.params.period);
+    res.setHeader('Content-Type', 'application/json');
+    await timecardController.getAttendanceReport(req, res);
+  } catch (error) {
+    console.error('[TIMECARD-ROUTES] Error in attendance report:', error);
+    res.setHeader('Content-Type', 'application/json');
+    res.status(500).json({ 
+      success: false, 
+      error: 'Erro ao gerar relatório de frequência',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
 
-timecardRouter.get('/reports/overtime/:period', jwtAuth, timecardController.getOvertimeReport.bind(timecardController));
+timecardRouter.get('/reports/overtime/:period', jwtAuth, async (req, res) => {
+  try {
+    console.log('[TIMECARD-ROUTES] Processing overtime report request for period:', req.params.period);
+    res.setHeader('Content-Type', 'application/json');
+    await timecardController.getOvertimeReport(req, res);
+  } catch (error) {
+    console.error('[TIMECARD-ROUTES] Error in overtime report:', error);
+    res.setHeader('Content-Type', 'application/json');
+    res.status(500).json({ 
+      success: false, 
+      error: 'Erro ao gerar relatório de horas extras',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
 
 // Current status route  
 timecardRouter.get('/current-status', jwtAuth, timecardController.getCurrentStatus.bind(timecardController));
