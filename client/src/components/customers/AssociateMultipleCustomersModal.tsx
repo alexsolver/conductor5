@@ -89,7 +89,7 @@ const AssociateMultipleCustomersModal: React.FC<AssociateMultipleCustomersModalP
             'Content-Type': 'application/json',
           },
         }),
-        fetch(`/api/customers/companies/${company.id}/associated`, {
+        fetch(`/api/companies/${company.id}/associated`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',

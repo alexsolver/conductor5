@@ -139,7 +139,7 @@ export default function TicketTemplates() {
       apiRequest('POST', `/api/ticket-templates/company/${selectedCompany}`, {
         ...data,
         // Required fields
-        customerCompanyId: selectedCompany === 'all' ? null : selectedCompany,
+        companyId: selectedCompany === 'all' ? null : selectedCompany,
         defaultCategory: data.category, // Use the selected category as default
         // Optional fields with defaults
         defaultTitle: data.defaultTitle,
@@ -541,7 +541,7 @@ export default function TicketTemplates() {
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-6">
-          <TemplateAnalytics customerCompanyId={selectedCompany} />
+          <TemplateAnalytics companyId={selectedCompany} />
         </TabsContent>
 
         <TabsContent value="company" className="space-y-6">

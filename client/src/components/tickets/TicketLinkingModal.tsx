@@ -93,9 +93,9 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
 
   // Fetch companies for filtering
   const { data: companiesData } = useQuery({
-    queryKey: ["/api/customers/companies"],
+    queryKey: ["/api/companies"],
     queryFn: async () => {
-      const response = await apiRequest("GET", "/api/customers/companies");
+      const response = await apiRequest("GET", "/api/companies");
       return response.json();
     },
   });

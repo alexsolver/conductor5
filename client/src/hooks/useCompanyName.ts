@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 // Hook personalizado para buscar nome da empresa pelo UUID
 export function useCompanyName(companyId: string | null | undefined) {
   const { data: companies } = useQuery({
-    queryKey: ['/api/customers/companies'],
+    queryKey: ['/api/companies'],
     enabled: !!companyId && companyId !== null && companyId !== undefined,
   });
 
@@ -19,7 +19,7 @@ export function useCompanyName(companyId: string | null | undefined) {
 // Hook que retorna uma função para obter nomes de empresas
 export function useCompanyNameResolver() {
   const { data: companies } = useQuery({
-    queryKey: ['/api/customers/companies'],
+    queryKey: ['/api/companies'],
   });
 
   const getCompanyName = (companyId: string | null | undefined): string => {

@@ -159,9 +159,9 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
 
     // Fetch available companies
     const { data: availableCompaniesData, refetch: refetchAvailableCompanies, error: availableCompaniesError } = useQuery({
-      queryKey: ['/api/customers/companies'],
+      queryKey: ['/api/companies'],
       queryFn: async () => {
-        const response = await apiRequest('GET', '/api/customers/companies');
+        const response = await apiRequest('GET', '/api/companies');
         return response.json();
       },
       enabled: isOpen, // Only fetch when the modal is open
@@ -223,7 +223,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
     if (customer?.id && isOpen) {
       // Clear cache and force fresh data
       queryClient.removeQueries({ queryKey: [`/api/customers/${customer.id}/companies`] });
-      queryClient.removeQueries({ queryKey: ['/api/customers/companies'] });
+      queryClient.removeQueries({ queryKey: ['/api/companies'] });
 
       // Force immediate refresh
       setTimeout(() => {
@@ -441,7 +441,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
 
       // Invalidar cache e fazer refetch simples
       queryClient.invalidateQueries({ queryKey: [`/api/customers/${customer.id}/companies`] });
-      queryClient.invalidateQueries({ queryKey: ['/api/customers/companies'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/companies'] });
 
       // Aguardar um pouco para o backend processar
       await new Promise(resolve => setTimeout(resolve, 100));

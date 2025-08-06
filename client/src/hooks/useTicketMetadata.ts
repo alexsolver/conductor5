@@ -110,7 +110,7 @@ export const useTicketMetadata = () => {
   };
 
 const companiesQuery = useQuery({
-    queryKey: ['/api/customers/companies'],
+    queryKey: ['/api/companies'],
     queryFn: async () => {
       // Assuming apiRequest is defined elsewhere and handles the API call
       const apiRequest = async (method: string, url: string) => {
@@ -118,7 +118,7 @@ const companiesQuery = useQuery({
           return await response.json();
       };
 
-      const response = await apiRequest('GET', '/api/customers/companies');
+      const response = await apiRequest('GET', '/api/companies');
       console.log('🏢 Raw companies response:', response);
 
       if (Array.isArray(response)) {

@@ -169,7 +169,7 @@ const AgendaManager: React.FC = () => {
 
   // Buscar empresas clientes (não pessoas físicas)
   const { data: companiesData } = useQuery({
-    queryKey: ['/api/customers/companies'],
+    queryKey: ['/api/companies'],
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/customers/companies');
       return await response.json();

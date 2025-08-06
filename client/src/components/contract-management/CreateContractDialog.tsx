@@ -74,7 +74,7 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
 
   // Fetch customer companies for dropdown using apiRequest
   const { data: companiesData, isLoading: companiesLoading, error: companiesError } = useQuery({
-    queryKey: ['/api/customers/companies'],
+    queryKey: ['/api/companies'],
     retry: 1,
   });
 
