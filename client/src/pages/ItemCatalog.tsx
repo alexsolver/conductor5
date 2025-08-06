@@ -1181,6 +1181,24 @@ function CustomerPersonalizationTab({ itemId, itemName }: { itemId?: string; ite
   // Buscar empresas clientes
   const { data: customers } = useQuery({
     queryKey: ['/api/customers/companies'],
+    queryFn: async () => {
+      try {
+        const response = await fetch('/api/customers/companies');
+        if (response.ok) {
+          const data = await response.json();
+          return data.map((company: any) => ({
+            id: company.id,
+            company: company.company || company.name,
+            first_name: company.first_name,
+            last_name: company.last_name
+          }));
+        }
+        return [];
+      } catch (error) {
+        console.error('Erro ao carregar empresas clientes:', error);
+        return [];
+      }
+    },
     enabled: !!itemId
   });
 
