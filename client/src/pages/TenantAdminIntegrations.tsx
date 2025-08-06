@@ -201,15 +201,31 @@ export default function TenantAdminIntegrations() {
   const testIntegrationMutation = useMutation({
     mutationFn: async (integrationId: string) => {
       console.log(`🧪 [FRONTEND] Testing integration: ${integrationId}`);
-      const response = await apiRequest('POST', `/api/tenant-admin/integrations/${integrationId}/test`);
       
-      // Handle both direct response objects and Response objects
-      if (response && typeof response === 'object' && 'success' in response) {
-        return response;
-      } else if (response && typeof response.json === 'function') {
-        return await response.json();
-      } else {
-        return response;
+      try {
+        const response = await apiRequest('POST', `/api/tenant-admin/integrations/${integrationId}/test`);
+        console.log(`🔍 [FRONTEND] Raw test response:`, response);
+        
+        // Handle different response types
+        if (response && typeof response === 'object') {
+          // Direct object response with data
+          if ('success' in response || 'error' in response || Object.keys(response).length > 0) {
+            console.log(`🔍 [FRONTEND] Direct object response:`, response);
+            return response;
+          }
+          // Check if it's a Response object
+          else if (typeof response.json === 'function') {
+            const data = await response.json();
+            console.log(`🔍 [FRONTEND] Parsed JSON response:`, data);
+            return data;
+          }
+        }
+        
+        console.error(`❌ [FRONTEND] Invalid response format:`, response);
+        throw new Error('Formato de resposta inválido do servidor');
+      } catch (parseError) {
+        console.error(`❌ [FRONTEND] Parse error:`, parseError);
+        throw parseError;
       }
     },
     onSuccess: (data, integrationId) => {

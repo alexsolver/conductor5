@@ -117,8 +117,33 @@ export async function apiRequest(
     }
   }
 
-  await throwIfResNotOk(res);
-  return res;
+  // Check if response is ok
+  if (!res.ok) {
+    let errorMessage = '';
+    try {
+      const errorData = await res.json();
+      errorMessage = errorData.message || `HTTP ${res.status}: ${res.statusText}`;
+    } catch {
+      errorMessage = `HTTP ${res.status}: ${res.statusText}`;
+    }
+    throw new Error(errorMessage);
+  }
+
+  // Handle JSON responses
+  const contentType = res.headers.get('content-type');
+  if (contentType && contentType.includes('application/json')) {
+    try {
+      const data = await res.json();
+      console.log(`🔍 [API-REQUEST] Parsed JSON for ${url}:`, data);
+      return data;
+    } catch (parseError) {
+      console.error(`❌ [API-REQUEST] JSON parse error for ${url}:`, parseError);
+      throw new Error('Falha ao processar resposta do servidor');
+    }
+  } else {
+    // For non-JSON responses, return the response object
+    return res;
+  }
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
