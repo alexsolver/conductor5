@@ -1119,41 +1119,69 @@ export class TimecardController {
     const breakStart = record.breakStart ? new Date(record.breakStart).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : null;
     const breakEnd = record.breakEnd ? new Date(record.breakEnd).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : null;
     
-    // Calcular horas trabalhadas
+    // Calcular horas trabalhadas e validar consistência
     let totalHours = '0:00';
     let overtimeHours = '0:00';
     let isConsistent = true;
+    let inconsistencyReasons = [];
     
     if (record.checkIn && record.checkOut) {
       const workStart = new Date(record.checkIn);
       const workEnd = new Date(record.checkOut);
       let workMinutes = (workEnd.getTime() - workStart.getTime()) / (1000 * 60);
       
-      // Verificar consistência dos horários
+      // Validações de consistência
+      
+      // 1. Verificar se entrada é anterior à saída (mesmo dia)
+      if (workStart.toDateString() === workEnd.toDateString() && workStart >= workEnd) {
+        isConsistent = false;
+        inconsistencyReasons.push('Entrada posterior à saída');
+      }
+      
+      // 2. Verificar jornada muito longa (>16h) ou muito curta (<5min)
       if (workMinutes < 0) {
         // Turno noturno que cruza a meia-noite
         workMinutes += 24 * 60;
       }
       
-      // Subtrair tempo de pausa se houver
+      if (workMinutes > 960) { // >16h
+        isConsistent = false;
+        inconsistencyReasons.push('Jornada excessivamente longa (>16h)');
+      } else if (workMinutes < 5) { // <5min
+        isConsistent = false;
+        inconsistencyReasons.push('Jornada muito curta (<5min)');
+      }
+      
+      // 3. Validar horários de pausa
       let breakMinutes = 0;
       if (record.breakStart && record.breakEnd) {
         const pauseStart = new Date(record.breakStart);
         const pauseEnd = new Date(record.breakEnd);
         breakMinutes = (pauseEnd.getTime() - pauseStart.getTime()) / (1000 * 60);
         
-        // Verificar consistência da pausa
-        if (breakMinutes < 0 || 
-            pauseStart < workStart || 
-            pauseEnd > workEnd ||
-            pauseStart >= pauseEnd) {
+        // Verificar se pausa está dentro do horário de trabalho
+        if (pauseStart < workStart) {
           isConsistent = false;
+          inconsistencyReasons.push('Pausa iniciada antes da entrada');
+        }
+        if (pauseEnd > workEnd) {
+          isConsistent = false;
+          inconsistencyReasons.push('Pausa finalizada após a saída');
+        }
+        if (pauseStart >= pauseEnd) {
+          isConsistent = false;
+          inconsistencyReasons.push('Horário de pausa inválido');
+        }
+        if (breakMinutes > 240) { // >4h de pausa
+          isConsistent = false;
+          inconsistencyReasons.push('Pausa excessivamente longa (>4h)');
         }
       }
       
-      // Verificar se entrada é anterior à saída
-      if (record.checkIn && record.checkOut && new Date(record.checkIn) >= new Date(record.checkOut)) {
+      // 4. Validar se há pausa em jornadas longas (CLT exige pausa >6h)
+      if (workMinutes > 360 && breakMinutes === 0) { // >6h sem pausa
         isConsistent = false;
+        inconsistencyReasons.push('Jornada >6h sem pausa obrigatória');
       }
       
       const totalWorkMinutes = Math.max(0, workMinutes - breakMinutes);
@@ -1168,6 +1196,10 @@ export class TimecardController {
         const overtimeMins = Math.floor(overtimeMinutes % 60);
         overtimeHours = `${overtimeHrs}:${overtimeMins.toString().padStart(2, '0')}`;
       }
+    } else {
+      // Dados incompletos
+      isConsistent = false;
+      inconsistencyReasons.push('Dados de entrada/saída incompletos');
     }
     
     // Status com base na consistência
@@ -1175,6 +1207,9 @@ export class TimecardController {
                   record.status === 'approved' ? 'Aprovado' :
                   record.status === 'pending' ? 'Pendente' : 'Rejeitado';
     
+    // Buscar tipo de escala do usuário (implementar depois)
+    const scheduleType = await this.getScheduleTypeForUser(record.userId, record.tenantId);
+
     return {
       // Dados obrigatórios CLT
       date: dateStr,                    // DD/MM/AAAA
@@ -1187,9 +1222,9 @@ export class TimecardController {
       status,                          // Status de aprovação
       
       // Informações complementares
-      observations: !isConsistent ? 'Horários inconsistentes detectados' : '',
+      observations: !isConsistent ? inconsistencyReasons.join('; ') : '',
       overtimeHours,                   // Horas extras
-      scheduleType: 'Não definido',    // Tipo de escala (será buscado depois)
+      scheduleType: scheduleType || 'Não definido',    // Tipo de escala
       isConsistent,                    // Flag para frontend
       
       // Dados originais para debug
@@ -1200,5 +1235,33 @@ export class TimecardController {
         breakEnd: record.breakEnd
       }
     };
+  }
+
+  /**
+   * Buscar tipo de escala do usuário
+   */
+  private async getScheduleTypeForUser(userId: string, tenantId: string): Promise<string | null> {
+    try {
+      const { db } = await import('../../../../db');
+      const { workSchedules } = await import('@shared/schema');
+      const { eq, and } = await import('drizzle-orm');
+      
+      const schedule = await db
+        .select({ 
+          scheduleType: workSchedules.scheduleType,
+          scheduleName: workSchedules.scheduleName 
+        })
+        .from(workSchedules)
+        .where(and(
+          eq(workSchedules.userId, userId),
+          eq(workSchedules.tenantId, tenantId)
+        ))
+        .limit(1);
+        
+      return schedule[0]?.scheduleName || schedule[0]?.scheduleType || null;
+    } catch (error) {
+      console.error('[SCHEDULE-TYPE] Error fetching schedule:', error);
+      return null;
+    }
   }
 }
