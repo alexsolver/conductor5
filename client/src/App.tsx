@@ -24,13 +24,14 @@ import Settings from "./pages/SettingsSimple";
 import SecuritySettings from "./pages/SecuritySettings";
 import Roadmap from "./pages/Roadmap";
 import WorkSchedules from "./pages/WorkSchedules";
-import TimecardReports from "./pages/TimecardReports";
+import TimecardReports from './pages/TimecardReports';
+import CertificateManager from './pages/CertificateManager';
+import TranslationManager from './pages/TranslationManager';
 import HourBank from "./pages/HourBank";
 import Compliance from "./pages/Compliance";
 import SaasAdmin from "./pages/SaasAdmin";
 import TenantAdmin from "./pages/TenantAdmin";
 import TenantProvisioning from "./pages/TenantProvisioning";
-import TranslationManager from "./pages/TranslationManager";
 import SaasAdminPerformance from "./pages/SaasAdminPerformance";
 import SaasAdminBilling from "./pages/SaasAdminBilling";
 import SaasAdminDisasterRecovery from "./pages/SaasAdminDisasterRecovery";
@@ -185,6 +186,7 @@ function AppRouter() {
         </Route>
         <Route path="/work-schedules" component={WorkSchedules} />
         <Route path="/timecard-reports" component={TimecardReports} />
+        <Route path="/certificate-manager" element={<CertificateManager />} />
         <Route path="/timecard-approval-settings" component={TimecardApprovalSettings} />
         <Route path="/timecard-approvals" component={TimecardApprovals} />
         <Route path="/hour-bank" component={HourBank} />
@@ -204,7 +206,7 @@ function AppRouter() {
         <Route path="/customer-item-mappings" component={CustomerItemMappings} />
         <Route path="/lpu" component={LPU} />
         <Route path="/lpu-management" component={LPU} />
-        
+
         <Route path="/asset-management" component={AssetManagement} />
         <Route path="/compliance-management" component={ComplianceManagement} />
         <Route path="/notifications" component={NotificationManagement} />
