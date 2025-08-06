@@ -1050,7 +1050,7 @@ const TicketDetails = React.memo(() => {
       finalCustomerId: mappedData.customer_company_id
     });
     updateTicketMutation.mutate(mappedData);
-  }, [statusMapping, followers, selectedCompany, updateTicketMutation]);
+  }, [followers, selectedCompany, updateTicketMutation]);
 
   const handleDelete = () => {
     if (confirm("Tem certeza que deseja excluir este ticket?")) {
@@ -1261,8 +1261,9 @@ const TicketDetails = React.memo(() => {
                               <DynamicBadge
                                 fieldName="category"
                                 value={field.value || ticket?.category}
-                                showIcon={true}
-                              />
+                              >
+                                {field.value || ticket?.category}
+                              </DynamicBadge>
                             ) : (
                               <span className="text-gray-400 text-sm">Não especificado</span>
                             )}
@@ -1301,8 +1302,9 @@ const TicketDetails = React.memo(() => {
                               <DynamicBadge
                                 fieldName="subcategory"
                                 value={field.value || ticket?.subcategory}
-                                showIcon={true}
-                              />
+                              >
+                                {field.value || ticket?.subcategory}
+                              </DynamicBadge>
                             ) : (
                               <span className="text-gray-400 text-sm">Não especificado</span>
                             )}
@@ -1337,8 +1339,9 @@ const TicketDetails = React.memo(() => {
                               <DynamicBadge
                                 fieldName="action"
                                 value={field.value || ticket?.action}
-                                showIcon={true}
-                              />
+                              >
+                                {field.value || ticket?.action}
+                              </DynamicBadge>
                             ) : (
                               <span className="text-gray-400 text-sm">Não especificado</span>
                             )}
