@@ -852,7 +852,7 @@ export class TimecardController {
           const workDate = new Date(record.checkIn);
           
           // Mapear para formato CLT brasileiro
-          const cltRecord = this.formatToCLTStandard(record, workDate);
+          const cltRecord = await this.formatToCLTStandard(record, workDate);
           
           processedRecords.push(cltRecord);
         }
@@ -1105,7 +1105,7 @@ export class TimecardController {
   /**
    * Formatar registro para padrão CLT brasileiro
    */
-  private formatToCLTStandard(record: any, workDate: Date) {
+  private async formatToCLTStandard(record: any, workDate: Date) {
     // Dias da semana em português
     const daysOfWeek = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
     
@@ -1243,22 +1243,25 @@ export class TimecardController {
   private async getScheduleTypeForUser(userId: string, tenantId: string): Promise<string | null> {
     try {
       const { db } = await import('../../../../db');
-      const { workSchedules } = await import('@shared/schema');
+      const { workSchedules } = await import('../../../../shared/schema-master');
       const { eq, and } = await import('drizzle-orm');
       
-      const schedule = await db
+      console.log(`[SCHEDULE-TYPE] Buscando escala para usuário ${userId} no tenant ${tenantId}`);
+      
+      const scheduleResult = await db
         .select({ 
-          scheduleType: workSchedules.scheduleType,
           scheduleName: workSchedules.scheduleName 
         })
         .from(workSchedules)
         .where(and(
           eq(workSchedules.userId, userId),
-          eq(workSchedules.tenantId, tenantId)
+          eq(workSchedules.tenantId, tenantId),
+          eq(workSchedules.isActive, true)
         ))
         .limit(1);
         
-      return schedule[0]?.scheduleName || schedule[0]?.scheduleType || null;
+      console.log(`[SCHEDULE-TYPE] Resultado da busca:`, scheduleResult);
+      return scheduleResult[0]?.scheduleName || null;
     } catch (error) {
       console.error('[SCHEDULE-TYPE] Error fetching schedule:', error);
       return null;

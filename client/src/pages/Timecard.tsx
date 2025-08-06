@@ -186,24 +186,34 @@ export default function Timecard() {
     }
   };
 
-  const getNextAction = (status: string, todayRecords: TimeRecord[] = []) => {
-    console.log('[TIMECARD-DEBUG] Determining next action for status:', status, 'Records:', todayRecords.length);
-    console.log('[TIMECARD-DEBUG] Full currentStatus:', currentStatus);
-    console.log('[TIMECARD-DEBUG] StatusData from API:', statusData);
+  const getAvailableActions = (status: string, todayRecords: TimeRecord[] = []) => {
+    console.log('[TIMECARD-DEBUG] Determining available actions for status:', status, 'Records:', todayRecords.length);
     
-    // Baseado no status do backend
+    const actions = [];
+    
     switch (status) {
       case 'not_started':
-        return { type: 'clock_in', label: 'Registrar Entrada', color: 'bg-green-600' };
+        actions.push({ type: 'clock_in', label: 'Registrar Entrada', color: 'bg-green-600', primary: true });
+        break;
+        
       case 'working':
-        return { type: 'clock_out', label: 'Registrar Saída', color: 'bg-red-600' };
+        actions.push({ type: 'break_start', label: 'Iniciar Pausa', color: 'bg-yellow-600', primary: false });
+        actions.push({ type: 'clock_out', label: 'Registrar Saída', color: 'bg-red-600', primary: true });
+        break;
+        
       case 'on_break':
-        return { type: 'break_end', label: 'Finalizar Pausa', color: 'bg-blue-600' };
+        actions.push({ type: 'break_end', label: 'Finalizar Pausa', color: 'bg-blue-600', primary: true });
+        break;
+        
       case 'finished':
-        return { type: 'clock_in', label: 'Registrar Nova Entrada', color: 'bg-green-600' };
+        actions.push({ type: 'clock_in', label: 'Nova Entrada', color: 'bg-green-600', primary: true });
+        break;
+        
       default:
-        return { type: 'clock_in', label: 'Registrar Entrada', color: 'bg-green-600' };
+        actions.push({ type: 'clock_in', label: 'Registrar Entrada', color: 'bg-green-600', primary: true });
     }
+    
+    return actions;
   };
 
   const formatTime = (dateString: string) => {
@@ -498,7 +508,7 @@ export default function Timecard() {
 
 
   const status = currentStatus?.status || 'not_started';
-  const nextAction = getNextAction(status, currentStatus?.todayRecords);
+  const availableActions = getAvailableActions(status, currentStatus?.todayRecords);
 
   return (
     <div className="p-4 space-y-6">
@@ -539,14 +549,20 @@ export default function Timecard() {
             </div>
           )}
 
-          <Button
-            className={`w-full ${nextAction.color} hover:opacity-90 text-white`}
-            size="lg"
-            onClick={() => handleTimeRecord(nextAction.type)}
-            disabled={recordMutation.isPending}
-          >
-            {recordMutation.isPending ? 'Registrando...' : nextAction.label}
-          </Button>
+          {/* Botões de Ação */}
+          <div className="space-y-2">
+            {availableActions.map((action, index) => (
+              <Button
+                key={action.type}
+                className={`w-full ${action.color} hover:opacity-90 text-white ${action.primary ? '' : 'opacity-80'}`}
+                size={action.primary ? "lg" : "default"}
+                onClick={() => handleTimeRecord(action.type)}
+                disabled={recordMutation.isPending}
+              >
+                {recordMutation.isPending ? 'Registrando...' : action.label}
+              </Button>
+            ))}
+          </div>
         </CardContent>
       </Card>
 
