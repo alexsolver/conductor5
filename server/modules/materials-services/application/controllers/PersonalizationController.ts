@@ -194,8 +194,10 @@ export const deleteCustomerPersonalization = async (req: AuthenticatedRequest, r
       });
     }
 
+    // Usar schema correto com underscore
+    const tenantSchema = `tenant_${tenantId.replace(/-/g, '_')}`;
     const deleteQuery = `
-      DELETE FROM ${tenantId}.customer_item_mappings 
+      DELETE FROM ${tenantSchema}.customer_item_mappings 
       WHERE id = $1 AND tenant_id = $2
       RETURNING id
     `;
@@ -209,7 +211,7 @@ export const deleteCustomerPersonalization = async (req: AuthenticatedRequest, r
       });
     }
 
-    res.json({
+    res.status(200).json({
       success: true,
       message: 'Personalização removida com sucesso'
     });
@@ -218,7 +220,7 @@ export const deleteCustomerPersonalization = async (req: AuthenticatedRequest, r
     console.error('Error deleting customer personalization:', error);
     res.status(500).json({
       success: false,
-      error: 'Erro interno do servidor'
+      message: 'Erro interno do servidor'
     });
   }
 };
