@@ -801,10 +801,39 @@ export default function ItemCatalog() {
 
                   {/* Aba de Vínculos de Fornecedores */}
                   <TabsContent value="supplier-links" className="space-y-6">
-                    <SupplierLinksTab 
-                      itemId={selectedItem?.id}
-                      itemName={selectedItem?.name}
-                    />
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-semibold flex items-center gap-2">
+                          <Truck className="h-5 w-5" />
+                          Vínculos de Fornecedores
+                        </h3>
+                        <SupplierLinkDialog 
+                          itemId={selectedItem?.id}
+                          itemName={selectedItem?.name}
+                        />
+                      </div>
+
+                      <div className="border rounded-lg">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Fornecedor</TableHead>
+                              <TableHead>Código Fornecedor</TableHead>
+                              <TableHead>Nome Fornecedor</TableHead>
+                              <TableHead>Preço</TableHead>
+                              <TableHead>Prazo</TableHead>
+                              <TableHead>Status</TableHead>
+                              <TableHead className="w-[100px]">Ações</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            <SupplierLinksTable 
+                              itemId={selectedItem?.id}
+                            />
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </div>
                   </TabsContent>
 
                   <div className="flex justify-end pt-6">
@@ -1239,7 +1268,7 @@ function SupplierLinkDialog({ itemId, itemName }: { itemId?: string; itemName?: 
                       </FormControl>
                       <SelectContent>
                         {isLoadingSuppliers ? (
-                          <SelectItem value="" disabled>Carregando fornecedores...</SelectItem>
+                          <SelectItem value="loading" disabled>Carregando fornecedores...</SelectItem>
                         ) : Array.isArray(suppliers) && suppliers.length > 0 ? (
                           suppliers.map((supplier: any) => (
                             <SelectItem key={supplier.id} value={supplier.id}>
@@ -1247,7 +1276,7 @@ function SupplierLinkDialog({ itemId, itemName }: { itemId?: string; itemName?: 
                             </SelectItem>
                           ))
                         ) : (
-                          <SelectItem value="" disabled>Nenhum fornecedor disponível</SelectItem>
+                          <SelectItem value="empty" disabled>Nenhum fornecedor disponível</SelectItem>
                         )}
                       </SelectContent>
                     </Select>
