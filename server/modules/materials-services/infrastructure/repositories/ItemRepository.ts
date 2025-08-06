@@ -139,7 +139,7 @@ export class ItemRepository {
 
   async update(id: string, tenantId: string, data: Partial<Item>): Promise<Item | null> {
     // Filter out any properties that don't exist in the schema
-    const { groupName, title, ...validData } = data as any;
+    const { groupName, ...validData } = data as any;
     
     const [item] = await this.db
       .update(items)

@@ -2152,69 +2152,24 @@ export const insertContractEquipmentSchema = createInsertSchema(contractEquipmen
 // PARTS & SERVICES MODULE
 // ============================================
 
-// Items table - Unified schema for Materials & Services
+// Items table - Simplified schema matching actual database structure
 export const items = pgTable("items", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
-  
-  // Primary naming fields (both title and name for compatibility)
-  title: varchar("title", { length: 255 }).notNull(),
-  name: varchar("name", { length: 255 }).notNull(), // For compatibility with repository
+  name: varchar("name", { length: 255 }).notNull(),
+  type: varchar("type", { length: 50 }).notNull(),
+  integrationCode: varchar("integration_code", { length: 100 }),
   description: text("description"),
-  
-  // Item classification
-  type: varchar("type", { length: 50 }).notNull(), // 'part' | 'service' | 'kit' | 'material'
-  category: varchar("category", { length: 100 }),
-  subcategory: varchar("subcategory", { length: 100 }),
-  
-  // Identification codes
-  internalCode: varchar("internal_code", { length: 100 }).notNull(),
-  integrationCode: varchar("integration_code", { length: 100 }), // For external system integration
-  manufacturerCode: varchar("manufacturer_code", { length: 100 }),
-  supplierCode: varchar("supplier_code", { length: 100 }),
-  barcode: varchar("barcode", { length: 255 }),
-  sku: varchar("sku", { length: 100 }),
-  
-  // Product details
-  manufacturer: varchar("manufacturer", { length: 255 }),
-  model: varchar("model", { length: 255 }),
-  specifications: jsonb("specifications"),
-  technicalDetails: text("technical_details"),
-  
-  // Pricing and units
-  costPrice: decimal("cost_price", { precision: 10, scale: 2 }),
-  salePrice: decimal("sale_price", { precision: 10, scale: 2 }),
-  currency: varchar("currency", { length: 3 }).default("BRL"),
-  unit: varchar("unit", { length: 50 }).default("UN"),
-  measurementUnit: varchar("measurement_unit", { length: 10 }).default("UN"), // For compatibility
-  
-  // Classification and control
-  abcClassification: varchar("abc_classification", { length: 1 }),
-  criticality: varchar("criticality", { length: 20 }),
-  status: varchar("status", { length: 20 }).notNull().default("active"),
-  active: boolean("active").notNull().default(true),
-  
-  // Maintenance and operational
-  maintenancePlan: jsonb("maintenance_plan"),
-  defaultChecklist: jsonb("default_checklist"),
-  
-  // Audit fields
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  measurementUnit: varchar("measurement_unit", { length: 10 }).default("UN"),
+  maintenancePlan: text("maintenance_plan"),
+  defaultChecklist: text("default_checklist"),
+  status: varchar("status", { length: 20 }).default("active"),
+  active: boolean("active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
   createdBy: uuid("created_by"),
-  updatedBy: uuid("updated_by"),
-  
-  // Additional metadata
-  tags: text("tags").array(),
-  customFields: jsonb("custom_fields"),
-  notes: text("notes")
-}, (table) => [
-  index("items_tenant_name_idx").on(table.tenantId, table.name),
-  index("items_tenant_type_idx").on(table.tenantId, table.type),
-  index("items_tenant_code_idx").on(table.tenantId, table.internalCode),
-  index("items_tenant_active_idx").on(table.tenantId, table.active),
-  unique("items_tenant_code_unique").on(table.tenantId, table.internalCode),
-]);
+  updatedBy: uuid("updated_by")
+});
 
 // Item Attachments table
 export const itemAttachments = pgTable("item_attachments", {
