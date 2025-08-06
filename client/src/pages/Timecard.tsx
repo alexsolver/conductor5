@@ -188,6 +188,8 @@ export default function Timecard() {
 
   const getNextAction = (status: string, todayRecords: TimeRecord[] = []) => {
     console.log('[TIMECARD-DEBUG] Determining next action for status:', status, 'Records:', todayRecords.length);
+    console.log('[TIMECARD-DEBUG] Full currentStatus:', currentStatus);
+    console.log('[TIMECARD-DEBUG] StatusData from API:', statusData);
     
     // Baseado no status do backend
     switch (status) {
@@ -546,9 +548,9 @@ export default function Timecard() {
               </div>
               <div className="text-sm mt-2">Tente recarregar a página</div>
             </div>
-          ) : currentStatus?.todayRecords?.length > 0 ? (
+          ) : (statusData?.todayRecords?.length > 0 || currentStatus?.todayRecords?.length > 0) ? (
             <div className="space-y-3">
-              {currentStatus.todayRecords
+              {(statusData?.todayRecords || currentStatus?.todayRecords || [])
                 .sort((a, b) => {
                   // Ordenar por data de criação, mais recente primeiro
                   const dateA = new Date(a.createdAt || a.checkIn || a.checkOut || a.breakStart || a.breakEnd || '');
