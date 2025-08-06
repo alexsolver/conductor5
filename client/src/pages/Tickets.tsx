@@ -461,7 +461,7 @@ export default function Tickets() {
                     )}
                   />
 
-                  {/* Customer/Solicitante Selection - Filtered by Company */}
+                  {/* Customer/Cliente Selection - Filtered by Company */}
                   <FormField
                     control={form.control}
                     name="customerId"
@@ -479,7 +479,7 @@ export default function Tickets() {
                                 placeholder={
                                   !selectedCompanyId 
                                     ? "Primeiro selecione uma empresa" 
-                                    : "Selecione o cliente/solicitante"
+                                    : "Selecione o cliente"
                                 } 
                               />
                             </SelectTrigger>

@@ -748,7 +748,7 @@ const TicketConfiguration: React.FC = () => {
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Building2 className="w-5 h-5" />
-            <span>Empresa Cliente</span>
+            <span>Empresa</span>
           </CardTitle>
           <CardDescription>
             Selecione a empresa para configurar os metadados dos tickets
@@ -757,7 +757,7 @@ const TicketConfiguration: React.FC = () => {
         <CardContent className="space-y-4">
           <Select value={selectedCompany} onValueChange={setSelectedCompany}>
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Selecione uma empresa cliente" />
+              <SelectValue placeholder="Selecione uma empresa" />
             </SelectTrigger>
             <SelectContent>
               {companies.map((company: Company) => (

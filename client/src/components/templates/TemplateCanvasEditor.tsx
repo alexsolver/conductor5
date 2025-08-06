@@ -61,7 +61,7 @@ const DEFAULT_FIELDS = [
   { id: 'status', type: 'select', label: 'Status', required: true, section: 'classification' },
   { id: 'category', type: 'select', label: 'Categoria', required: false, section: 'classification' },
   { id: 'subcategory', type: 'select', label: 'Subcategoria', required: false, section: 'classification' },
-  { id: 'callerId', type: 'user', label: 'Solicitante', required: true, section: 'people' },
+  { id: 'callerId', type: 'user', label: 'Cliente', required: true, section: 'people' },
   { id: 'beneficiaryId', type: 'user', label: 'Beneficiário', required: false, section: 'people' },
   { id: 'assignedToId', type: 'user', label: 'Atribuído a', required: false, section: 'assignment' },
   { id: 'companyId', type: 'company', label: 'Empresa', required: false, section: 'assignment' },

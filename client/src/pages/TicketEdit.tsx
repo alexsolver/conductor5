@@ -813,11 +813,11 @@ export default function TicketEdit() {
                         name="callerId"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Solicitante</FormLabel>
+                            <FormLabel>Cliente</FormLabel>
                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                               <FormControl>
                                 <SelectTrigger>
-                                  <SelectValue placeholder="Selecione o solicitante" />
+                                  <SelectValue placeholder="Selecione o cliente" />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>

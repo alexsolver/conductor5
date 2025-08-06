@@ -168,7 +168,7 @@ const MobileTicketCard: React.FC<{
               <div><span className="font-medium">Beneficiário:</span> {ticket.beneficiary_name}</div>
             )}
             {ticket.caller_name && ticket.caller_name !== ticket.beneficiary_name && (
-              <div><span className="font-medium">Solicitante:</span> {ticket.caller_name}</div>
+              <div><span className="font-medium">Cliente:</span> {ticket.caller_name}</div>
             )}
             <div><span className="font-medium">Criado:</span> {new Date(ticket.created_at).toLocaleDateString('pt-BR')}</div>
           </div>
@@ -341,7 +341,7 @@ export const ResponsiveTicketsTable: React.FC<ResponsiveTicketsTableProps> = ({
                       </div>
                       {ticket.caller_name && ticket.caller_name !== ticket.beneficiary_name && (
                         <div className="text-xs text-gray-500 mt-1">
-                          Solicitante: {ticket.caller_name}
+                          Cliente: {ticket.caller_name}
                         </div>
                       )}
                     </div>

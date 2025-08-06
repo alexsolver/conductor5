@@ -129,12 +129,12 @@ ticketsRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
           beneficiary.email,
           'Beneficiário não identificado'
         ) as beneficiary_name,
-        -- Solicitante (quem abriu o ticket)
+        -- Cliente (quem abriu o ticket)
         COALESCE(
           caller.first_name || ' ' || caller.last_name,
           caller.first_name, 
           caller.email,
-          'Solicitante não identificado'
+          'Cliente não identificado'
         ) as caller_name,
         -- Empresa (nomenclatura padronizada)
         COALESCE(

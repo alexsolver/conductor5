@@ -1035,7 +1035,7 @@ function PriceListForm({
       </div>
 
       <div>
-        <Label htmlFor="customerCompanyId">Empresa Cliente</Label>
+        <Label htmlFor="customerCompanyId">Empresa</Label>
         <Select
           value={formData.customerCompanyId || 'none'}
           onValueChange={(value) => setFormData(prev => ({ ...prev, customerCompanyId: value === 'none' ? undefined : value }))}

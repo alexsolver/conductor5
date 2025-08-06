@@ -51,9 +51,9 @@ export interface IStorage {
   createKnowledgeBaseArticle(tenantId: string, article: any): Promise<any>;
 
   // External Contacts
-  getSolicitantes(tenantId: string, options?: { limit?: number; offset?: number; search?: string }): Promise<any[]>;
+  getClientes(tenantId: string, options?: { limit?: number; offset?: number; search?: string }): Promise<any[]>;
   getBeneficiaries(tenantId: string, options?: { limit?: number; offset?: number; search?: string }): Promise<any[]>;
-  createSolicitante(tenantId: string, data: any): Promise<any>;
+  createCliente(tenantId: string, data: any): Promise<any>;
   createBeneficiary(tenantId: string, data: any): Promise<any>;
   getBeneficiary(id: string, tenantId: string): Promise<any | null>;
 
@@ -759,11 +759,11 @@ export class DatabaseStorage implements IStorage {
 
   // Interface compatibility methods
   async getSolicitantes(tenantId: string, options: { limit?: number; offset?: number; search?: string } = {}): Promise<any[]> {
-    return this.getClientes(tenantId, options);
+    return this.getCustomers(tenantId, options);
   }
 
   async createSolicitante(tenantId: string, data: any): Promise<any> {
-    return this.createCliente(tenantId, data);
+    return this.createCustomer(tenantId, data);
   }
 
   async getClientes(tenantId: string, options: { limit?: number; offset?: number; search?: string } = {}): Promise<any[]> {
@@ -2887,105 +2887,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-    // Get beneficiaries with pagination and search
-  async getBeneficiaries(tenantId: string, options: {
-    limit?: number;
-    offset?: number;
-    search?: string;
-  } = {}) {
-    const { limit = 20, offset = 0, search } = options;
-    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-    try {
-      // First check if table exists
-      const tenantDb = await poolManager.getTenantConnection(tenantId);
-      const tableCheck = await tenantDb.execute(sql`
-        SELECT EXISTS (
-          SELECT FROM information_schema.tables 
-          WHERE table_schema = ${schemaName} AND table_name = 'beneficiaries'
-        )
-      `);
-
-      if (!tableCheck.rows[0].exists) {
-        console.log(`Favorecidos table does not exist in schema ${schemaName}`);
-        return [];
-      }
-
-      let query = sql`
-        SELECT 
-          id,
-          tenant_id,
-          first_name,
-          last_name,
-          CONCAT(first_name, ' ', last_name) as full_name,
-          email,
-          birth_date,
-          rg,
-          cpf_cnpj,
-          is_active,
-          customer_code,
-          customer_id,
-          phone,
-          cell_phone,
-          contact_person,
-          contact_phone,
-          created_at,
-          updated_at
-        FROM ${sql.identifier(schemaName)}.beneficiaries 
-        WHERE tenant_id = ${tenantId}
-      `;
-
-      if (search) {
-        query = sql`${query} AND (
-          first_name ILIKE ${`%${search}%`} OR 
-          last_name ILIKE ${`%${search}%`} OR 
-          email ILIKE ${`%${search}%`} OR
-          customer_code ILIKE ${`%${search}%`}
-        )`;
-      }
-
-      query = sql`${query} ORDER BY created_at DESC`;
-
-      if (limit > 0) {
-        query = sql`${query} LIMIT ${limit}`;
-
-        if (offset > 0) {
-          query = sql`${query} OFFSET ${offset}`;
-        }
-      }
-
-      const result = await tenantDb.execute(query);
-      console.log(`Found ${result.rows.length} beneficiaries in ${schemaName}`);
-
-      // Padronizar mapeamento de dados para interface consistente
-      const beneficiaries = (result.rows || []).map(favorecido => ({
-        id: favorecido.id,
-        tenantId: favorecido.tenant_id,
-        firstName: favorecido.first_name,
-        lastName: favorecido.last_name,
-        fullName: `${favorecido.first_name || ''} ${favorecido.last_name || ''}`.trim(),
-        email: favorecido.email,
-        birthDate: favorecido.birth_date,
-        rg: favorecido.rg,
-        cpfCnpj: favorecido.cpf_cnpj,
-        isActive: favorecido.is_active,
-        customerCode: favorecido.customer_code,
-        customerId: favorecido.customer_id,
-        phone: favorecido.phone,
-        cellPhone: favorecido.cell_phone,
-        contactPerson: favorecido.contact_person,
-        contactPhone: favorecido.contact_phone,
-        createdAt: favorecido.created_at,
-        updatedAt: favorecido.updated_at
-      }));
-
-      console.log(`Fetched ${beneficiaries.length} beneficiaries for tenant ${tenantId}`);
-      return beneficiaries;
-    } catch (error) {
-      console.error('Error fetching beneficiaries:', error);
-      return []; // Return empty array instead of throwing
-    }
-  }
 
   // Get beneficiaries for a specific customer
   async getCustomerBeneficiaries(tenantId: string, customerId: string) {

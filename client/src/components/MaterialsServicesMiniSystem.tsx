@@ -269,7 +269,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                     <div className="text-center py-4 text-gray-500">
                       <Package className="h-8 w-8 mx-auto mb-2 opacity-50" />
                       <p>Nenhum item disponível para esta empresa</p>
-                      <p className="text-sm">Vincule itens à empresa cliente do ticket no catálogo</p>
+                      <p className="text-sm">Vincule itens à empresa do ticket no catálogo</p>
                     </div>
                   ) : (
                     <Select value={selectedItem} onValueChange={setSelectedItem}>

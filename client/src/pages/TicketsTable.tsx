@@ -46,8 +46,8 @@ const ticketSchema = z.object({
 
   // Assignment Fields - Enhanced for flexible person referencing
   companyId: z.string().min(1, "Empresa é obrigatória"),
-  callerId: z.string().min(1, "Solicitante é obrigatório"),
-  callerType: z.string().refine(val => ["user", "customer"].includes(val), "Tipo de solicitante inválido").default("customer"),
+  callerId: z.string().min(1, "Cliente é obrigatório"),
+  callerType: z.string().refine(val => ["user", "customer"].includes(val), "Tipo de cliente inválido").default("customer"),
   beneficiaryId: z.string().optional(), // Optional - defaults to callerId
   beneficiaryType: z.string().refine(val => ["user", "customer"].includes(val), "Tipo de beneficiário inválido").optional(),
 
@@ -1817,7 +1817,7 @@ const TicketsTable = React.memo(() => {
               name="callerId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Solicitante (Caller) *</FormLabel>
+                  <FormLabel>Cliente (Caller) *</FormLabel>
                   <FormControl>
                     <PersonSelector
                       value={field.value}
@@ -1834,7 +1834,7 @@ const TicketsTable = React.memo(() => {
                           form.setValue('beneficiaryType', personType);
                         }
                       }}
-                      placeholder="Buscar solicitante..."
+                      placeholder="Buscar cliente..."
                       allowedTypes={['user', 'customer']}
                     />
                   </FormControl>
