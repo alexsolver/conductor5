@@ -12,17 +12,17 @@ import { trackTicketView, trackTicketEdit, trackTicketCreate, trackNoteView, tra
 async function generateActionNumber(pool: any, tenantId: string, ticketId: string): Promise<string> {
   try {
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-    
+
     // Get ticket number
     const ticketQuery = `SELECT number FROM "${schemaName}".tickets WHERE id = $1`;
     const ticketResult = await pool.query(ticketQuery, [ticketId]);
-    
+
     if (!ticketResult.rows.length) {
       throw new Error(`Ticket not found: ${ticketId}`);
     }
 
     const ticketNumber = ticketResult.rows[0].number;
-    
+
     // Get next sequence number
     const sequenceQuery = `
       SELECT COALESCE(MAX(CAST(SUBSTRING(action_number FROM '${ticketNumber}AI(\\d+)') AS INTEGER)), 0) + 1 as next_seq
@@ -30,10 +30,10 @@ async function generateActionNumber(pool: any, tenantId: string, ticketId: strin
       WHERE ticket_id = $1 AND tenant_id = $2 
       AND action_number ~ '^${ticketNumber}AI\\d+$'
     `;
-    
+
     const sequenceResult = await pool.query(sequenceQuery, [ticketId, tenantId]);
     const nextSequence = sequenceResult.rows[0]?.next_seq || 1;
-    
+
     const actionNumber = `${ticketNumber}AI${String(nextSequence).padStart(4, '0')}`;
     console.log(`✅ Generated action number: ${actionNumber}`);
     return actionNumber;
@@ -107,6 +107,9 @@ ticketsRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
       return res.status(400).json({ message: "User not associated with a tenant" });
     }
 
+    const tenantId = req.user.tenantId;
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 50;
     const status = req.query.status as string;
@@ -114,21 +117,60 @@ ticketsRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
     const assignedTo = req.query.assignedTo as string;
 
     const offset = (page - 1) * limit;
-    let tickets = await storageSimple.getTickets(req.user.tenantId, limit, offset);
+    
+    // CORREÇÃO: Query aprimorada para incluir dados do cliente e empresa
+    let query = `
+      SELECT 
+        t.*,
+        -- Customer/Caller data
+        COALESCE(c.first_name || ' ' || c.last_name, c.email, caller_c.first_name || ' ' || caller_c.last_name, caller_c.email) as caller_name,
+        COALESCE(c.email, caller_c.email) as caller_email,
+        c.first_name as customer_first_name,
+        c.last_name as customer_last_name,
+        c.email as customer_email,
+        caller_c.first_name as caller_first_name,
+        caller_c.last_name as caller_last_name,
+        caller_c.email as caller_email,
+        -- Company data
+        COALESCE(comp.name, comp.display_name) as company_name,
+        comp.name as customer_company_name,
+        -- Assigned user data
+        u.first_name as assigned_first_name,
+        u.last_name as assigned_last_name,
+        u.email as assigned_email
+      FROM ${schemaName}.tickets t
+      LEFT JOIN ${schemaName}.customers c ON t.beneficiary_id = c.id
+      LEFT JOIN ${schemaName}.customers caller_c ON t.caller_id = caller_c.id  
+      LEFT JOIN ${schemaName}.companies comp ON t.company_id = comp.id
+      LEFT JOIN ${schemaName}.users u ON t.assigned_to_id = u.id
+      WHERE t.tenant_id = $1
+    `;
 
-    // Apply filters
+    const queryParams: any[] = [tenantId];
+    let paramIndex = 2;
+
     if (status) {
-      tickets = tickets.filter(ticket => ticket.status === status);
+      query += ` AND t.status = $${paramIndex++}`;
+      queryParams.push(status);
     }
     if (priority) {
-      tickets = tickets.filter(ticket => ticket.priority === priority);
+      query += ` AND t.priority = $${paramIndex++}`;
+      queryParams.push(priority);
     }
     if (assignedTo) {
-      tickets = tickets.filter(ticket => ticket.assignedToId === assignedTo);
+      query += ` AND t.assigned_to_id = $${paramIndex++}`;
+      queryParams.push(assignedTo);
     }
 
+    query += ` ORDER BY t.created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
+    queryParams.push(limit, offset);
+
+    const { rows: tickets } = await storageSimple.query(query, queryParams);
+
     // Get total count for pagination
-    const totalTickets = await storageSimple.getTicketsCount(req.user.tenantId);
+    const totalTicketsQuery = `SELECT COUNT(*) as total FROM ${schemaName}.tickets WHERE tenant_id = $1`;
+    const totalTicketsResult = await storageSimple.query(totalTicketsQuery, [tenantId]);
+    const totalTickets = parseInt(totalTicketsResult.rows[0].total, 10);
 
     return sendSuccess(res, {
       tickets,
@@ -154,6 +196,37 @@ ticketsRouter.get('/:id', jwtAuth, trackTicketView, async (req: AuthenticatedReq
     if (!req.user?.tenantId) {
       return res.status(400).json({ message: "User not associated with a tenant" });
     }
+
+    const tenantId = req.user.tenantId;
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    // CORREÇÃO: Query aprimorada para incluir dados do cliente e empresa
+    const query = `
+      SELECT 
+        t.*,
+        -- Customer/Caller data
+        COALESCE(c.first_name || ' ' || c.last_name, c.email, caller_c.first_name || ' ' || caller_c.last_name, caller_c.email) as caller_name,
+        COALESCE(c.email, caller_c.email) as caller_email,
+        c.first_name as customer_first_name,
+        c.last_name as customer_last_name,
+        c.email as customer_email,
+        caller_c.first_name as caller_first_name,
+        caller_c.last_name as caller_last_name,
+        caller_c.email as caller_email,
+        -- Company data
+        COALESCE(comp.name, comp.display_name) as company_name,
+        comp.name as customer_company_name,
+        -- Assigned user data
+        u.first_name as assigned_first_name,
+        u.last_name as assigned_last_name,
+        u.email as assigned_email
+      FROM ${schemaName}.tickets t
+      LEFT JOIN ${schemaName}.customers c ON t.beneficiary_id = c.id
+      LEFT JOIN ${schemaName}.customers caller_c ON t.caller_id = caller_c.id  
+      LEFT JOIN ${schemaName}.companies comp ON t.company_id = comp.id
+      LEFT JOIN ${schemaName}.users u ON t.assigned_to_id = u.id
+      WHERE t.tenant_id = $1 AND t.id = $2
+    `;
 
     const ticket = await storageSimple.getTicketById(req.user.tenantId, req.params.id);
     if (!ticket) {
@@ -222,7 +295,7 @@ ticketsRouter.post('/', jwtAuth, trackTicketCreate, async (req: AuthenticatedReq
       customer_company_id: req.body.companyId,
       status: req.body.status || req.body.state || 'new'
     };
-    
+
     // Remove frontend-specific fields to avoid confusion
     delete ticketData.customerId;
     delete ticketData.companyId;
@@ -331,13 +404,13 @@ ticketsRouter.put('/:id', jwtAuth, trackTicketEdit, async (req: AuthenticatedReq
 
     // CORREÇÃO CRÍTICA 1: Aplicar mapeamento centralizado Frontend→Backend
     const backendUpdates = mapFrontendToBackend(frontendUpdates);
-    
+
     // Standardize field naming consistency
     if (frontendUpdates.customerCompanyId !== undefined) {
       backendUpdates.customer_company_id = frontendUpdates.customerCompanyId;
       delete backendUpdates.customerCompanyId;
     }
-    
+
     if (frontendUpdates.assignedToId !== undefined) {
       backendUpdates.assigned_to_id = frontendUpdates.assignedToId;
       delete backendUpdates.assignedToId;
@@ -371,7 +444,7 @@ ticketsRouter.put('/:id', jwtAuth, trackTicketEdit, async (req: AuthenticatedReq
     // ✅ CORREÇÃO: Controle transacional e validação de existência
     let currentTicket;
     let updatedTicket;
-    
+
     try {
       // Primeiro: verificar se ticket existe e capturar estado atual
       currentTicket = await storageSimple.getTicketById(req.user.tenantId, ticketId);
@@ -1677,6 +1750,7 @@ ticketsRouter.delete('/:id/notes/:noteId', jwtAuth, async (req: AuthenticatedReq
           sessionId,
           JSON.stringify({
             deleted_note_id: noteId,
+            deleted_content: deletedNote.content,
             deleted_content_preview: deletedNote.content.substring(0, 100)
           })
         ]);
@@ -2212,7 +2286,7 @@ ticketsRouter.get('/internal-actions/schedule/:startDate/:endDate', jwtAuth, asy
       agentName: row.agentName,
       agentEmail: row.agentEmail,
       type: 'internal_action', // Distinguish from regular schedules
-      actionType: row.action_type,
+      actionType: row.actionType,
       estimatedHours: row.estimated_hours,
       actualHours: 0 // Default value since column doesn't exist
     }));
@@ -2440,7 +2514,7 @@ ticketsRouter.patch('/:ticketId/actions/:actionId', jwtAuth, async (req: Authent
       planned_end_time,
       priority
     } = req.body;
-    
+
     const tenantId = req.user?.tenantId;
     if (!tenantId) {
       return res.status(400).json({ message: "User not associated with a tenant" });
@@ -2518,18 +2592,18 @@ ticketsRouter.patch('/:ticketId/actions/:actionId', jwtAuth, async (req: Authent
     if (currentAction || (start_time !== undefined && end_time !== undefined)) {
       const actionStartTime = start_time || currentAction?.start_time;
       const actionEndTime = end_time || currentAction?.end_time;
-      
+
       if (actionStartTime && actionEndTime) {
         const startDateTime = new Date(actionStartTime);
         const endDateTime = new Date(actionEndTime);
-        
+
         if (!isNaN(startDateTime.getTime()) && !isNaN(endDateTime.getTime()) && endDateTime > startDateTime) {
           const timeDiffMs = endDateTime.getTime() - startDateTime.getTime();
           calculatedMinutes = Math.round(timeDiffMs / (1000 * 60)); // Converter para minutos
-          
+
           updateFields.push(`tempo_realizado = $${paramIndex++}`);
           values.push(calculatedMinutes);
-          
+
           console.log('⏱️ [TEMPO-CALC] Calculated tempo_realizado:', {
             start: actionStartTime,
             end: actionEndTime,

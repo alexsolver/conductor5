@@ -843,37 +843,35 @@ const TicketsTable = React.memo(() => {
             </TableCell>
           );
         case 'customer':
-          // Log para debug
-          console.log(`🔍 Cliente para ticket ${ticket.id}:`, {
-            customer_id: (ticket as any).customer_id,
-            caller_id: (ticket as any).caller_id,
-            customer_first_name: (ticket as any).customer_first_name,
-            customer_last_name: (ticket as any).customer_last_name,
-            customer_email: (ticket as any).customer_email,
-            caller_first_name: (ticket as any).caller_first_name,
-            caller_last_name: (ticket as any).caller_last_name,
-            caller_email: (ticket as any).caller_email,
-            ticketObject: ticket
-          });
-
+          // Novo mapeamento corrigido para clientes
           const customerName = (() => {
-            // Priorizar dados do customer se existir
-            if ((ticket as any).customer_first_name || (ticket as any).customer_last_name) {
-              return `${(ticket as any).customer_first_name || ''} ${(ticket as any).customer_last_name || ''}`.trim();
+            // Tentar diferentes campos possíveis do backend
+            if ((ticket as any).caller_name) {
+              return (ticket as any).caller_name;
             }
-            // Fallback para dados do caller 
-            if ((ticket as any).caller_first_name || (ticket as any).caller_last_name) {
-              return `${(ticket as any).caller_first_name || ''} ${(ticket as any).caller_last_name || ''}`.trim();
+            if ((ticket as any).customer_name) {
+              return (ticket as any).customer_name;
             }
-            // Fallback genérico
-            return ticket.customer?.fullName || ticket.caller?.fullName || (ticket as any).caller_name || 'Cliente não informado';
+            if ((ticket as any).caller_first_name && (ticket as any).caller_last_name) {
+              return `${(ticket as any).caller_first_name} ${(ticket as any).caller_last_name}`.trim();
+            }
+            if ((ticket as any).customer_first_name && (ticket as any).customer_last_name) {
+              return `${(ticket as any).customer_first_name} ${(ticket as any).customer_last_name}`.trim();
+            }
+            // Fallbacks para objetos relacionados
+            if (ticket.caller?.fullName) return ticket.caller.fullName;
+            if (ticket.customer?.fullName) return ticket.customer.fullName;
+            if ((ticket as any).caller_email) return (ticket as any).caller_email;
+            return 'Cliente não informado';
           })();
 
-          const customerEmail = (ticket as any).customer_email || 
-                               (ticket as any).caller_email || 
-                               ticket.customer?.email || 
-                               ticket.caller?.email || 
-                               'Email não informado';
+          const customerEmail = (() => {
+            if ((ticket as any).caller_email) return (ticket as any).caller_email;
+            if ((ticket as any).customer_email) return (ticket as any).customer_email;
+            if (ticket.caller?.email) return ticket.caller.email;
+            if (ticket.customer?.email) return ticket.customer.email;
+            return 'Email não informado';
+          })();
 
           return (
             <TableCell className="overflow-hidden" style={cellStyle}>
@@ -888,23 +886,33 @@ const TicketsTable = React.memo(() => {
             </TableCell>
           );
         case 'company':
-          // Log para debug da empresa
-          console.log(`🏢 Empresa para ticket ${ticket.id}:`, {
-            customer_company_name: (ticket as any).customer_company_name,
-            company_name: (ticket as any).company_name,
-            ticketObject: ticket
-          });
-
-          // Primeiro tenta obter o nome da empresa via backend, depois via resolução frontend
-          const rawCompanyId = (ticket as any).customer_company_name || 
-                               (ticket as any).caller_company_name ||
-                               (ticket as any).company_name;
-
-          // Se o valor parece ser um UUID, resolve o nome usando o hook
-          const isUuid = rawCompanyId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(rawCompanyId);
-          const resolvedCompanyName = isUuid ? getCompanyName(rawCompanyId) : rawCompanyId;
-
-          const companyName = resolvedCompanyName || 'Empresa não informada';
+          // Novo mapeamento corrigido para empresas
+          const companyName = (() => {
+            // Tentar diferentes campos possíveis do backend
+            if ((ticket as any).company_name) {
+              return (ticket as any).company_name;
+            }
+            if ((ticket as any).caller_company_name) {
+              return (ticket as any).caller_company_name;
+            }
+            if ((ticket as any).customer_company_name) {
+              return (ticket as any).customer_company_name;
+            }
+            
+            // Se temos um ID da empresa, resolver o nome
+            const companyId = (ticket as any).company_id || (ticket as any).customer_company_id;
+            if (companyId) {
+              const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(companyId);
+              if (isUuid) {
+                const resolvedName = getCompanyName(companyId);
+                if (resolvedName && resolvedName !== 'Empresa não encontrada') {
+                  return resolvedName;
+                }
+              }
+            }
+            
+            return 'Empresa não informada';
+          })();
 
           return (
             <TableCell className="overflow-hidden" style={cellStyle}>
@@ -2382,9 +2390,11 @@ const TicketsTable = React.memo(() => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todas as empresas</SelectItem>
-                    <SelectItem value="lansolver">LanSolver</SelectItem>
-                    <SelectItem value="techcorp">TechCorp</SelectItem>
-                    <SelectItem value="innovate">Innovate Solutions</SelectItem>
+                    {companies.map((company: any) => (
+                      <SelectItem key={company.id} value={company.id}>
+                        {company.name || company.displayName || 'Empresa sem nome'}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
