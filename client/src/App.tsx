@@ -186,7 +186,7 @@ function AppRouter() {
         </Route>
         <Route path="/work-schedules" component={WorkSchedules} />
         <Route path="/timecard-reports" component={TimecardReports} />
-        <Route path="/certificate-manager" element={<CertificateManager />} />
+        <Route path="/certificate-manager" component={CertificateManager} />
         <Route path="/timecard-approval-settings" component={TimecardApprovalSettings} />
         <Route path="/timecard-approvals" component={TimecardApprovals} />
         <Route path="/hour-bank" component={HourBank} />
