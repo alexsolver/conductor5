@@ -144,6 +144,12 @@ export class DatabaseStorage implements IStorage {
     // Using simplified schema manager from db.ts
   }
 
+  // Helper to get tenant-specific connection pool
+  private async getTenantPool(tenantId: string): Promise<any> {
+    const validatedTenantId = await validateTenantAccess(tenantId);
+    return await poolManager.getTenantConnection(validatedTenantId);
+  }
+
   // ===========================
   // USER MANAGEMENT  
   // ===========================
@@ -629,7 +635,7 @@ export class DatabaseStorage implements IStorage {
         FROM ${sql.identifier(schemaName)}.tickets 
         WHERE tenant_id = ${validatedTenantId}
       `);
-      
+
       return parseInt((result.rows?.[0]?.count as string) || '0');
     } catch (error) {
       logError('Error getting tickets count', error, { tenantId });
@@ -1459,33 +1465,30 @@ export class DatabaseStorage implements IStorage {
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
-      console.log(`🔍 [GET-CONFIG] Fetching config for ${integrationId} in tenant ${validatedTenantId}`);
-      console.log(`🔍 [GET-CONFIG] Schema: ${schemaName}`);
+      console.log(`🔍 [STORAGE] Getting config for ${integrationId} in tenant ${tenantId}`);
 
-      const result = await tenantDb.execute(sql`
-        SELECT * FROM ${sql.identifier(schemaName)}.tenant_integrations
-        WHERE id = ${integrationId} AND tenant_id = ${validatedTenantId}
-        LIMIT 1
-      `);
+      const query = `
+        SELECT * FROM tenant_integrations_config 
+        WHERE tenant_id = $1 AND integration_id = $2
+      `;
 
-      console.log(`🔍 [GET-CONFIG] Found ${result.rows?.length || 0} rows for ${integrationId}`);
-      
-      if (result.rows && result.rows.length > 0) {
-        const row = result.rows[0];
-        console.log(`🔍 [GET-CONFIG] Full row data:`, JSON.stringify(row, null, 2));
-        console.log(`🔍 [GET-CONFIG] Config field type:`, typeof row.config);
-        console.log(`🔍 [GET-CONFIG] Config field value:`, row.config);
-        
-        if (row.config && typeof row.config === 'object') {
-          console.log(`🔍 [GET-CONFIG] Config keys:`, Object.keys(row.config));
-        }
+      const result = await tenantDb.query(query, [validatedTenantId, integrationId]);
+
+      if (result.rows[0]) {
+        console.log(`✅ [STORAGE] Config found for ${integrationId}`);
+        return {
+          ...result.rows[0],
+          config: typeof result.rows[0].config === 'string' 
+            ? JSON.parse(result.rows[0].config) 
+            : result.rows[0].config
+        };
+      } else {
+        console.log(`⚠️ [STORAGE] No config found for ${integrationId}`);
+        return null;
       }
-
-      return result.rows?.[0] || undefined;
     } catch (error) {
-      logError('Error fetching integration config', error, { tenantId, integrationId });
-      console.error(`❌ [GET-CONFIG] Error fetching ${integrationId}:`, error);
-      return undefined;
+      console.error('❌ [STORAGE] Error getting tenant integration config:', error);
+      return null;
     }
   }
 
@@ -1530,60 +1533,41 @@ export class DatabaseStorage implements IStorage {
   }
 
   async saveTenantIntegrationConfig(tenantId: string, integrationId: string, config: any): Promise<any> {
+    const client = await this.getTenantPool(tenantId);
+
     try {
-      const validatedTenantId = await validateTenantAccess(tenantId);
-      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      console.log(`💾 [STORAGE] Saving config for ${integrationId} in tenant ${tenantId}`);
+      console.log(`💾 [STORAGE] Config keys:`, Object.keys(config));
 
-      console.log(`💾 [SAVE-CONFIG] Attempting to save config for ${integrationId} in tenant ${validatedTenantId}`);
-      console.log(`💾 [SAVE-CONFIG] Config data:`, JSON.stringify(config, null, 2));
-
-      // Try to update existing integration config first
-      const updateResult = await tenantDb.execute(sql`
-        UPDATE ${sql.identifier(schemaName)}.tenant_integrations
-        SET config = ${JSON.stringify(config)}, 
-            configured = true, 
-            status = 'connected',
-            updated_at = NOW()
-        WHERE id = ${integrationId} AND tenant_id = ${validatedTenantId}
-        RETURNING *
+      // Ensure the tenant_integrations_config table exists
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS tenant_integrations_config (
+          id SERIAL PRIMARY KEY,
+          tenant_id VARCHAR(255) NOT NULL,
+          integration_id VARCHAR(255) NOT NULL,
+          config JSONB NOT NULL,
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW(),
+          UNIQUE(tenant_id, integration_id)
+        )
       `);
 
-      if (updateResult.rows && updateResult.rows.length > 0) {
-        console.log(`✅ [SAVE-CONFIG] Updated existing integration config for ${integrationId}`);
-        return updateResult.rows[0];
-      }
-
-      // If no rows updated, try to insert new config
-      console.log(`🔄 [SAVE-CONFIG] No existing config found, creating new one for ${integrationId}`);
-      
-      const insertResult = await tenantDb.execute(sql`
-        INSERT INTO ${sql.identifier(schemaName)}.tenant_integrations 
-        (id, tenant_id, name, category, description, status, configured, config, created_at, updated_at)
-        VALUES (
-          ${integrationId}, 
-          ${validatedTenantId}, 
-          ${this.getIntegrationName(integrationId)}, 
-          ${this.getIntegrationCategory(integrationId)}, 
-          ${this.getIntegrationDescription(integrationId)}, 
-          'connected', 
-          true, 
-          ${JSON.stringify(config)}, 
-          NOW(), 
-          NOW()
-        )
-        ON CONFLICT (id, tenant_id) DO UPDATE SET
-          config = EXCLUDED.config,
-          configured = EXCLUDED.configured,
-          status = EXCLUDED.status,
+      const query = `
+        INSERT INTO tenant_integrations_config (tenant_id, integration_id, config, created_at, updated_at)
+        VALUES ($1, $2, $3, NOW(), NOW())
+        ON CONFLICT (tenant_id, integration_id)
+        DO UPDATE SET 
+          config = $3,
           updated_at = NOW()
         RETURNING *
-      `);
+      `;
 
-      console.log(`✅ [SAVE-CONFIG] Created/updated integration config for ${integrationId}`);
-      return insertResult.rows?.[0] || undefined;
+      const result = await client.query(query, [tenantId, integrationId, JSON.stringify(config)]);
+      console.log(`✅ [STORAGE] Config saved successfully:`, result.rows[0]);
+
+      return result.rows[0];
     } catch (error) {
-      logError('Error saving integration config', error, { tenantId, integrationId });
+      console.error('❌ [STORAGE] Error saving tenant integration config:', error);
       throw error;
     }
   }
@@ -1615,7 +1599,7 @@ export class DatabaseStorage implements IStorage {
       await tenantDb.execute(sql`
         CREATE TABLE IF NOT EXISTS ${sql.identifier(schemaName)}.integrations (
           id VARCHAR(255) PRIMARY KEY,
-          tenant_id VARCHAR(36) NOT NULL,
+          tenant_id VARCHAR(255) NOT NULL,
           name VARCHAR(255) NOT NULL,
           description TEXT,
           category VARCHAR(100),

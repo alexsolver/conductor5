@@ -442,7 +442,7 @@ router.post('/:integrationId/test', requirePermission(Permission.TENANT_MANAGE_S
       case 'telegram':
         try {
           console.log(`🔍 [TELEGRAM-TEST] Starting test for tenant ${tenantId}`);
-          
+
           // Get the saved configuration to validate
           const { storage: telegramStorage } = await import('../storage-simple');
           const telegramConfig = await telegramStorage.getTenantIntegrationConfig(tenantId, integrationId);
@@ -477,12 +477,12 @@ router.post('/:integrationId/test', requirePermission(Permission.TENANT_MANAGE_S
               };
             } else {
               console.log(`✅ [TELEGRAM-TEST] Bot token found, length: ${config.telegramBotToken.length}`);
-              
+
               // Set webhook automatically if not configured
               const webhookUrl = config.telegramWebhookUrl || `${req.protocol}://${req.get('host')}/api/webhooks/telegram/${tenantId}`;
-              
+
               console.log(`🔗 [TELEGRAM-TEST] Webhook URL: ${webhookUrl}`);
-              
+
               // Update webhook URL in configuration if not set
               if (!config.telegramWebhookUrl) {
                 console.log(`🔄 [TELEGRAM-TEST] Updating config with webhook URL`);
@@ -496,7 +496,7 @@ router.post('/:integrationId/test', requirePermission(Permission.TENANT_MANAGE_S
               // Try to validate bot token format
               const botTokenPattern = /^\d+:[A-Za-z0-9_-]+$/;
               const isValidBotToken = botTokenPattern.test(config.telegramBotToken);
-              
+
               if (!isValidBotToken) {
                 console.log(`❌ [TELEGRAM-TEST] Invalid bot token format`);
                 testResult = {
@@ -509,7 +509,7 @@ router.post('/:integrationId/test', requirePermission(Permission.TENANT_MANAGE_S
                 };
               } else {
                 console.log(`✅ [TELEGRAM-TEST] Bot token format valid`);
-                
+
                 try {
                   testResult = { 
                     success: true, 
@@ -532,7 +532,7 @@ router.post('/:integrationId/test', requirePermission(Permission.TENANT_MANAGE_S
                   // Update status to connected
                   console.log(`✅ [TELEGRAM-TEST] Updating status to connected`);
                   await telegramStorage.updateTenantIntegrationStatus(tenantId, integrationId, 'connected');
-                  
+
                 } catch (error) {
                   console.error(`❌ [TELEGRAM-TEST] Error during test:`, error);
                   testResult = {
@@ -825,7 +825,7 @@ router.post('/telegram/webhook/:tenantId', async (req, res) => {
     console.log(`📱 Received Telegram webhook for tenant ${tenantId}:`, telegramUpdate);
 
     // Validate webhook signature if needed (implementation depends on Telegram setup)
-    
+
     // Process the update based on message type
     if (telegramUpdate.message) {
       const message = telegramUpdate.message;

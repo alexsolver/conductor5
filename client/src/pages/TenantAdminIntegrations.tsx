@@ -103,10 +103,14 @@ const integrationConfigSchema = z.object({
   dropboxAccessToken: z.string().optional(),
   dropboxRefreshToken: z.string().optional(),
   backupFolder: z.string().optional(),
-  // Telegram specific fields
-  telegramBotToken: z.string().optional(),
+  // Telegram specific fields - com validação mais rigorosa
+  telegramBotToken: z.string().optional().refine((val) => !val || val.length > 10, {
+    message: "Token do bot deve ter mais de 10 caracteres"
+  }),
   telegramChatId: z.string().optional(),
-  telegramWebhookUrl: z.string().optional(),
+  telegramWebhookUrl: z.string().optional().refine((val) => !val || z.string().url().safeParse(val).success, {
+    message: "URL do webhook deve ser uma URL válida"
+  }),
 });
 
 export default function TenantAdminIntegrations() {
@@ -156,9 +160,21 @@ export default function TenantAdminIntegrations() {
 
   // Mutation para salvar configuração
   const saveConfigMutation = useMutation({
-    mutationFn: ({ integrationId, config }: { integrationId: string; config: any }) =>
-      apiRequest('POST', `/api/tenant-admin/integrations/${integrationId}/config`, config),
-    onSuccess: () => {
+    mutationFn: ({ integrationId, config }: { integrationId: string; config: any }) => {
+      console.log(`💾 [FRONTEND] Saving config for ${integrationId}:`, config);
+      
+      // Validação específica para Telegram
+      if (integrationId === 'telegram') {
+        if (!config.telegramBotToken || config.telegramBotToken.trim() === '') {
+          throw new Error('Token do bot Telegram é obrigatório');
+        }
+        console.log(`🤖 [FRONTEND] Telegram config validation passed`);
+      }
+      
+      return apiRequest('POST', `/api/tenant-admin/integrations/${integrationId}/config`, config);
+    },
+    onSuccess: (data, variables) => {
+      console.log(`✅ [FRONTEND] Config saved successfully for ${variables.integrationId}:`, data);
       queryClient.invalidateQueries({ queryKey: ['/api/tenant-admin/integrations'] });
       setIsConfigDialogOpen(false);
       toast({
@@ -166,7 +182,8 @@ export default function TenantAdminIntegrations() {
         description: "A integração foi configurada com sucesso.",
       });
     },
-    onError: (error: any) => {
+    onError: (error: any, variables) => {
+      console.error(`❌ [FRONTEND] Error saving config for ${variables?.integrationId}:`, error);
       toast({
         title: "Erro ao salvar configuração",
         description: error.message || "Ocorreu um erro inesperado.",
