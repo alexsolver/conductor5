@@ -46,7 +46,7 @@ const transformTimecardData = (frontendData: any) => {
   const now = new Date().toISOString();
   const payload: any = {
     isManualEntry: frontendData.deviceType !== 'web',
-    notes: frontendData.notes
+    notes: frontendData.notes || null
   };
 
   // Adicionar apenas o campo relevante baseado no tipo de registro
@@ -63,14 +63,26 @@ const transformTimecardData = (frontendData: any) => {
     case 'break_end':
       payload.breakEnd = now;
       break;
+    default:
+      // Default to clock in if no specific type
+      payload.checkIn = now;
+      break;
   }
 
   // Adicionar localização se disponível
   if (frontendData.location) {
-    payload.location = JSON.stringify(frontendData.location);
+    try {
+      payload.location = JSON.stringify(frontendData.location);
+    } catch (e) {
+      console.warn('Error serializing location data:', e);
+      payload.location = null;
+    }
   }
 
-  return payload;
+  // Remove undefined values to prevent JSON issues
+  return Object.fromEntries(
+    Object.entries(payload).filter(([_, value]) => value !== undefined)
+  );
 };
 
 export default function Timecard() {

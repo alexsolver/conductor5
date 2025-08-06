@@ -123,8 +123,14 @@ export class TimecardController {
   createTimecardEntry = async (req: Request, res: Response) => {
     try {
       const { tenantId } = (req as any).user;
-      const userId = req.user?.id;
-      const validatedData = createTimecardEntrySchema.parse(req.body);
+      const userId = (req as any).user?.id;
+      
+      // Clean the request body to prevent JSON parsing issues
+      const cleanBody = Object.fromEntries(
+        Object.entries(req.body).filter(([_, value]) => value !== undefined && value !== null)
+      );
+      
+      const validatedData = createTimecardEntrySchema.parse(cleanBody);
 
       // Get today's records to validate business rules
       const today = new Date();
@@ -1243,7 +1249,7 @@ export class TimecardController {
   private async getScheduleTypeForUser(userId: string, tenantId: string): Promise<string | null> {
     try {
       const { db } = await import('../../../../db');
-      const { workSchedules } = await import('../../../../shared/schema-master');
+      const { workSchedules } = await import('../../../../shared/schema');
       const { eq, and } = await import('drizzle-orm');
       
       console.log(`[SCHEDULE-TYPE] Buscando escala para usuário ${userId} no tenant ${tenantId}`);
