@@ -769,6 +769,12 @@ export class TimecardController {
         .orderBy(sql`COALESCE(${timecardEntries.checkIn}, ${timecardEntries.createdAt})`);
 
       console.log('[ATTENDANCE-REPORT] Found records:', records.length);
+      console.log('[ATTENDANCE-REPORT] Date range check:', {
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
+        startDateStr: startDate.toISOString().split('T')[0],
+        endDateStr: endDate.toISOString().split('T')[0]
+      });
       
       // Log first few records for debugging
       if (records.length > 0) {
@@ -846,6 +852,7 @@ export class TimecardController {
       }
 
       console.log('[ATTENDANCE-REPORT] Processed records:', processedRecords.length);
+      console.log('[ATTENDANCE-REPORT] Sample processed records:', processedRecords.slice(0, 3));
 
       // Calcular totais
       const totalHours = processedRecords.reduce((sum, record) => 

@@ -256,14 +256,17 @@ export default function Timecard() {
           const response = await apiRequest('GET', `/api/timecard/reports/attendance/${currentMonth}`);
           if (!response.ok) {
             console.error('[TIMECARD-MIRROR] HTTP Error:', response.status, response.statusText);
+            const errorText = await response.text();
+            console.error('[TIMECARD-MIRROR] Error response:', errorText);
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
           }
           const data = await response.json();
           console.log('[TIMECARD-MIRROR] Report data received:', data);
+          console.log('[TIMECARD-MIRROR] Records count:', data.records?.length || 0);
           return data;
         } catch (error) {
           console.error('[TIMECARD-MIRROR] Complete error details:', error);
-          return { records: [], summary: null }; // Return empty data instead of throwing
+          throw error; // Re-throw error to let React Query handle it properly
         }
       },
       enabled: true,
