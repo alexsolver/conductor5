@@ -1,167 +1,135 @@
-import React from 'react';
+/**
+ * DYNAMIC FIELD COLORS HOOK - Resolves PROBLEMA 2: VALORES HARD-CODED
+ * React hook for fetching dynamic field colors with caching and performance optimization
+ */
+
 import { useQuery } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
+import { 
+  DynamicFieldType, 
+  UseFieldColorsReturn,
+  DEFAULT_FIELD_COLORS,
+  FIELD_CACHE_DURATION
+} from '@shared/dynamic-field-types';
+import { useFieldOptions } from './useFieldOptions';
 
-interface FieldOption {
-  field_name: string;
-  value: string;
-  label: string;
-  color: string;
-  is_default: boolean;
+interface UseFieldColorsConfig {
+  fieldName?: DynamicFieldType;
+  companyId?: string;
+  enabled?: boolean;
 }
 
-interface FieldColorsResponse {
-  success: boolean;
-  data: FieldOption[];
-}
+/**
+ * Hook to get field colors for badge components
+ * Integrates with existing field options API to extract colors
+ */
+export function useFieldColors(config: UseFieldColorsConfig = {}): UseFieldColorsReturn {
+  const {
+    fieldName,
+    companyId,
+    enabled = true
+  } = config;
 
-// Cache de cores para evitar múltiplas chamadas
-const colorsCache = new Map<string, Record<string, string>>();
-
-export const useFieldColors = (companyId?: string) => {
-  // 🚨 CORREÇÃO CRÍTICA: Query otimizada com loading garantido
-  const { data: fieldOptions, isLoading, error, isFetched } = useQuery({
-    queryKey: ["/api/ticket-config/field-options", "all"], 
-    queryFn: async () => {
-      console.log('🎨 [useFieldColors] Starting field options fetch...');
-      const response = await apiRequest("GET", "/api/ticket-config/field-options");
-      const result = await response.json();
-      console.log('🎨 [useFieldColors] Field options loaded:', result?.data?.length || 0, 'options');
-      return result;
-    },
-    staleTime: 0, // ⚡ Cache mais agressivo para refletir mudanças imediatamente  
-    gcTime: 30 * 1000, // Garbage collection em 30 segundos
-    refetchOnWindowFocus: true, // ⚡ Refetch quando focar na janela
-    refetchOnMount: true,
-    refetchInterval: false,
-    retry: 3, // Mais tentativas
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
-    // 🚨 CRÍTICO: Garantir que dados estejam sempre disponíveis
-    initialData: () => {
-      // Tentar recuperar do cache do navegador como fallback
-      const cached = sessionStorage.getItem('fieldColors_cache');
-      if (cached) {
-        try {
-          const parsed = JSON.parse(cached);
-          if (Date.now() - parsed.timestamp < 600000) { // 10 minutos
-            console.log('🎨 [useFieldColors] Using cached field options');
-            return parsed.data;
-          }
-        } catch (e) {
-          console.warn('🎨 [useFieldColors] Cache corrupted, ignoring');
-        }
-      }
-      return undefined;
-    },
+  // Get field options which include color information
+  const { options, isLoading, error, refetch } = useFieldOptions({
+    fieldName,
+    companyId,
+    enabled
   });
 
-  // 🚨 CORREÇÃO: Cache proativo e melhoria de performance
-  React.useEffect(() => {
-    if (fieldOptions?.data && isFetched) {
-      // Salvar no cache do navegador para próximas visitas
-      const cacheData = {
-        data: fieldOptions,
-        timestamp: Date.now()
-      };
-      sessionStorage.setItem('fieldColors_cache', JSON.stringify(cacheData));
-      console.log('🎨 [useFieldColors] Field options cached for next visit');
-    }
-  }, [fieldOptions, isFetched]);
-
-  // Função para buscar cor de um campo específico com fallbacks inteligentes
-  const getFieldColor = (fieldName: string, value: string): string | undefined => {
-    // 🚨 CORREÇÃO CRÍTICA: Verificar se dados estão realmente disponíveis
-    if (!fieldOptions?.data || !isFetched) {
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`🔄 [getFieldColor] Waiting for field options to load: ${fieldName}:${value}`);
-      }
-      return undefined;
-    }
-
-    if (!value || value === '') {
-      return undefined;
-    }
-
-    // Primeiro, tentar encontrar configuração específica (busca exata por value)
-    const option = fieldOptions.data.find(
-      (opt: FieldOption) => opt.field_name === fieldName && opt.value === value
-    );
-
+  // Create color map from field options
+  const colors = new Map<string, string>();
+  const getFieldColor = (value: string): string | undefined => {
+    // First check if we have it in the loaded options
+    const option = options.find(opt => opt.value === value);
     if (option?.color) {
-      console.log(`✅ Color found by value: ${fieldName}:${value} = ${option.color}`);
       return option.color;
     }
 
-    // Se não encontrou, tentar busca por label (para valores hierárquicos)
-    const optionByLabel = fieldOptions.data.find(
-      (opt: FieldOption) => opt.field_name === fieldName && opt.label === value
-    );
-
-    if (optionByLabel?.color) {
-      console.log(`✅ Color found by label: ${fieldName}:${value} = ${optionByLabel.color}`);
-      return optionByLabel.color;
-    }
-
-    // Log para debug quando não encontrar cor configurada
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`⚠️ No configured color found for ${fieldName}:${value}. Available options:`, 
-        fieldOptions.data.filter(opt => opt.field_name === fieldName).map(opt => `${opt.value}(${opt.label}):${opt.color}`).slice(0, 5)
-      );
-    }
-    
-    return undefined;
+    // Fall back to default colors
+    return DEFAULT_FIELD_COLORS[value] || DEFAULT_FIELD_COLORS.default;
   };
 
-  // Função para buscar label de um campo específico
-  const getFieldLabel = (fieldName: string, value: string): string => {
-    if (!fieldOptions?.data) return value;
-
-    if (!value || value === '') {
-      return value;
+  // Populate colors map for performance
+  options.forEach(option => {
+    if (option.color) {
+      colors.set(option.value, option.color);
     }
-
-    const option = fieldOptions.data.find(
-      (opt: FieldOption) => opt.field_name === fieldName && opt.value === value
-    );
-
-    const label = option?.label || value;
-    console.log(`🏷️ Label for ${fieldName}:${value} = ${label}`);
-    return label;
-  };
-
-  // Criar mapa de cores por campo para performance
-  const getFieldColorMap = (fieldName: string): Record<string, string> => {
-    if (!fieldOptions?.data) return {};
-
-    const cacheKey = fieldName;
-    if (colorsCache.has(cacheKey)) {
-      return colorsCache.get(cacheKey)!;
-    }
-
-    const colorMap: Record<string, string> = {};
-    fieldOptions.data
-      .filter((opt: FieldOption) => opt.field_name === fieldName)
-      .forEach((opt: FieldOption) => {
-        colorMap[opt.value] = opt.color;
-      });
-
-    colorsCache.set(cacheKey, colorMap);
-    return colorMap;
-  };
+  });
 
   return {
+    colors,
     getFieldColor,
-    getFieldLabel,
-    getFieldColorMap,
-    isLoading: isLoading || !isFetched, // 🚨 CRÍTICO: Loading até dados estarem completamente disponíveis
-    isReady: isFetched && !!fieldOptions?.data, // Novo flag para indicar quando está pronto
-    fieldOptions: fieldOptions?.data || [],
+    isLoading,
     error,
-    // Debug info para desenvolvimento
-    _debug: process.env.NODE_ENV === 'development' ? {
-      isFetched,
-      hasData: !!fieldOptions?.data,
-      dataLength: fieldOptions?.data?.length || 0
-    } : undefined
+    refetch
   };
-};
+}
+
+/**
+ * Specialized hooks for common field types
+ */
+export function useStatusColors(companyId?: string) {
+  return useFieldColors({ fieldName: 'status', companyId });
+}
+
+export function usePriorityColors(companyId?: string) {
+  return useFieldColors({ fieldName: 'priority', companyId });
+}
+
+export function useCategoryColors(companyId?: string) {
+  return useFieldColors({ fieldName: 'category', companyId });
+}
+
+export function useImpactColors(companyId?: string) {
+  return useFieldColors({ fieldName: 'impact', companyId });
+}
+
+export function useUrgencyColors(companyId?: string) {
+  return useFieldColors({ fieldName: 'urgency', companyId });
+}
+
+/**
+ * Utility hook to get all field colors for badge systems
+ */
+export function useAllFieldColors(companyId?: string) {
+  return useFieldColors({ companyId }); // No fieldName = get all field colors
+}
+
+/**
+ * Hook to get color with fallback and validation
+ */
+export function useValidatedFieldColor(fieldName: DynamicFieldType, value: string, companyId?: string) {
+  const { getFieldColor, isLoading } = useFieldColors({ fieldName, companyId });
+  
+  const color = getFieldColor(value);
+  const hasValidColor = !!color && color !== DEFAULT_FIELD_COLORS.default;
+  
+  return {
+    color: color || DEFAULT_FIELD_COLORS.default,
+    hasValidColor,
+    isLoading
+  };
+}
+
+/**
+ * Hook to get all colors for a specific field type as an object
+ */
+export function useFieldColorMap(fieldName: DynamicFieldType, companyId?: string) {
+  const { options, isLoading, error } = useFieldOptions({ fieldName, companyId });
+  
+  const colorMap: Record<string, string> = {};
+  options.forEach(option => {
+    if (option.color) {
+      colorMap[option.value] = option.color;
+    } else {
+      // Fall back to default colors
+      colorMap[option.value] = DEFAULT_FIELD_COLORS[option.value] || DEFAULT_FIELD_COLORS.default;
+    }
+  });
+  
+  return {
+    colorMap,
+    isLoading,
+    error
+  };
+}
