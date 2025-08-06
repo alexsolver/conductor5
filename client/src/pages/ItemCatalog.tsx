@@ -20,9 +20,7 @@ import {
   DollarSign,
   Tag,
   FileText,
-  Save,
-  Star,
-  MoreHorizontal
+  Save
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,7 +35,6 @@ import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Label } from "@/components/ui/label";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -1182,369 +1179,6 @@ export default function ItemCatalog() {
   );
 }
 
-// Componente para Dialog de vínculos com fornecedores
-function SupplierLinkDialog({ itemId, itemName }: { itemId?: string; itemName?: string }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  
-  // Buscar fornecedores disponíveis
-  const { data: suppliers = { data: [] } } = useQuery({
-    queryKey: ['/api/materials-services/suppliers'],
-    enabled: isOpen
-  });
-
-  const form = useForm({
-    defaultValues: {
-      supplierId: '',
-      partNumber: '',
-      supplierItemName: '',
-      description: '',
-      unitPrice: '',
-      currency: 'BRL',
-      leadTimeDays: '',
-      minimumOrderQuantity: '',
-      isPreferred: false
-    }
-  });
-
-  const createLinkMutation = useMutation({
-    mutationFn: async (data: any) => {
-      const response = await fetch(`/api/materials-services/items/${itemId}/supplier-links`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-      if (!response.ok) throw new Error('Erro ao criar vínculo');
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Sucesso",
-        description: "Vínculo com fornecedor criado com sucesso"
-      });
-      setIsOpen(false);
-      form.reset();
-      queryClient.invalidateQueries({ queryKey: ['/api/materials-services/supplier-links', itemId] });
-    },
-    onError: () => {
-      toast({
-        title: "Erro",
-        description: "Falha ao criar vínculo com fornecedor",
-        variant: "destructive"
-      });
-    }
-  });
-
-  const onSubmit = (data: any) => {
-    createLinkMutation.mutate(data);
-  };
-
-  return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button type="button" variant="outline" size="sm">
-          <Plus className="h-4 w-4 mr-2" />
-          Novo Vínculo
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Criar Vínculo com Fornecedor</DialogTitle>
-          <DialogDescription>
-            Vincule o item "{itemName}" com um fornecedor específico
-          </DialogDescription>
-        </DialogHeader>
-        
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="supplierId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Fornecedor *</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione um fornecedor" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {Array.isArray(suppliers?.data) && suppliers.data.map((supplier: any) => (
-                          <SelectItem key={supplier.id} value={supplier.id}>
-                            {supplier.name || supplier.tradeName}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="partNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Código no Fornecedor</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ex: P/N 12345" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="supplierItemName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nome no Fornecedor</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Nome do item conforme fornecedor" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="unitPrice"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Preço Unitário</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number" 
-                        step="0.01" 
-                        placeholder="0.00" 
-                        {...field} 
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="grid grid-cols-3 gap-4">
-              <FormField
-                control={form.control}
-                name="leadTimeDays"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Prazo (dias)</FormLabel>
-                    <FormControl>
-                      <Input type="number" placeholder="Ex: 15" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="minimumOrderQuantity"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Qtd. Mínima</FormLabel>
-                    <FormControl>
-                      <Input type="number" placeholder="Ex: 10" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="isPreferred"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                    <div className="space-y-0.5">
-                      <FormLabel>Preferencial</FormLabel>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Observações</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      placeholder="Informações adicionais sobre este vínculo..."
-                      className="resize-none"
-                      {...field} 
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="flex justify-end gap-2 pt-4">
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={() => setIsOpen(false)}
-              >
-                Cancelar
-              </Button>
-              <Button 
-                type="submit" 
-                disabled={createLinkMutation.isPending}
-              >
-                {createLinkMutation.isPending && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
-                Salvar Vínculo
-              </Button>
-            </div>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-// Componente para tabela de vínculos com fornecedores
-function SupplierLinksTable({ itemId }: { itemId?: string }) {
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  
-  // Buscar vínculos existentes
-  const { data: links = [], isLoading } = useQuery({
-    queryKey: ['/api/materials-services/supplier-links', itemId],
-    queryFn: async () => {
-      if (!itemId) return [];
-      const response = await fetch(`/api/materials-services/items/${itemId}/supplier-links`);
-      if (!response.ok) return [];
-      const data = await response.json();
-      return data.links || [];
-    },
-    enabled: !!itemId
-  });
-
-  const deleteLinkMutation = useMutation({
-    mutationFn: async (linkId: string) => {
-      const response = await fetch(`/api/materials-services/supplier-links/${linkId}`, {
-        method: 'DELETE'
-      });
-      if (!response.ok) throw new Error('Erro ao remover vínculo');
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Sucesso",
-        description: "Vínculo removido com sucesso"
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/materials-services/supplier-links', itemId] });
-    },
-    onError: () => {
-      toast({
-        title: "Erro", 
-        description: "Falha ao remover vínculo",
-        variant: "destructive"
-      });
-    }
-  });
-
-  if (isLoading) {
-    return (
-      <TableRow>
-        <TableCell colSpan={7} className="text-center py-8">
-          <Loader2 className="h-6 w-6 animate-spin mx-auto" />
-          <p className="mt-2 text-sm text-muted-foreground">Carregando vínculos...</p>
-        </TableCell>
-      </TableRow>
-    );
-  }
-
-  if (links.length === 0) {
-    return (
-      <TableRow>
-        <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-          <Truck className="h-8 w-8 mx-auto mb-2" />
-          <p>Nenhum vínculo configurado</p>
-          <p className="text-sm mt-1">
-            Vincule este item com fornecedores para gerenciar preços e disponibilidade
-          </p>
-        </TableCell>
-      </TableRow>
-    );
-  }
-
-  return (
-    <>
-      {links.map((link: any) => (
-        <TableRow key={link.id}>
-          <TableCell>
-            <div className="font-medium">{link.supplierName}</div>
-            <div className="text-sm text-muted-foreground">{link.supplierCode}</div>
-          </TableCell>
-          <TableCell>
-            <Badge variant="outline">{link.partNumber || '-'}</Badge>
-          </TableCell>
-          <TableCell>{link.supplierItemName || '-'}</TableCell>
-          <TableCell>
-            {link.unitPrice ? (
-              <span className="font-mono">
-                R$ {parseFloat(link.unitPrice).toFixed(2)}
-              </span>
-            ) : '-'}
-          </TableCell>
-          <TableCell>
-            {link.leadTimeDays ? `${link.leadTimeDays} dias` : '-'}
-          </TableCell>
-          <TableCell>
-            <div className="flex items-center gap-2">
-              {link.isActive && (
-                <Badge variant="outline" className="text-green-700 border-green-200 bg-green-50">
-                  Ativo
-                </Badge>
-              )}
-              {link.isPreferred && (
-                <Badge variant="secondary">
-                  <Star className="h-3 w-3 mr-1" />
-                  Preferencial
-                </Badge>
-              )}
-            </div>
-          </TableCell>
-          <TableCell>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => deleteLinkMutation.mutate(link.id)}
-              className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </TableCell>
-        </TableRow>
-      ))}
-    </>
-  );
-}
-
 // Componente interno para gerenciar personalizações de clientes
 function CustomerPersonalizationTab({ itemId, itemName }: { itemId?: string; itemName?: string }) {
   const { toast } = useToast();
@@ -1649,10 +1283,27 @@ function CustomerPersonalizationTab({ itemId, itemName }: { itemId?: string; ite
   // Mutation para deletar personalização
   const deletePersonalizationMutation = useMutation({
     mutationFn: async (mappingId: string) => {
+      const token = localStorage.getItem('accessToken');
       const response = await fetch(`/api/materials-services/personalization/customer-mappings/${mappingId}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       });
-      if (!response.ok) throw new Error('Erro ao deletar personalização');
+      
+      if (!response.ok) {
+        let errorMessage = 'Erro ao deletar personalização';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+        } catch (e) {
+          // If response is not JSON, use generic error
+          console.error('Non-JSON error response:', response.statusText);
+        }
+        throw new Error(errorMessage);
+      }
+      
       return response.json();
     },
     onSuccess: () => {
@@ -1662,10 +1313,11 @@ function CustomerPersonalizationTab({ itemId, itemName }: { itemId?: string; ite
       });
       refetchPersonalizations();
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      console.error('Delete personalization error:', error);
       toast({
         title: "Erro", 
-        description: "Erro ao remover personalização: " + error.message,
+        description: "Erro ao remover personalização: " + (error.message || 'Erro desconhecido'),
         variant: "destructive"
       });
     }

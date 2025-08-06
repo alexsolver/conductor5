@@ -1,6 +1,7 @@
 // Simplified personalization routes that work with existing project patterns
 import { Router } from 'express';
 import { pool } from '../../../db.js';
+import { jwtAuth } from '../../../middleware/jwtAuth';
 
 const router = Router();
 
@@ -9,7 +10,7 @@ router.get('/items/:itemId/customer-personalizations', async (req: any, res) => 
   try {
     const { itemId } = req.params;
     const tenantId = req.user?.tenantId;
-    
+
     if (!tenantId) {
       return res.status(401).json({
         success: false,
@@ -60,7 +61,7 @@ router.get('/customers/:customerId/personalizations', async (req: any, res) => {
   try {
     const { customerId } = req.params;
     const tenantId = req.user?.tenantId;
-    
+
     if (!tenantId) {
       return res.status(401).json({
         success: false,
@@ -115,7 +116,7 @@ router.get('/customers/:customerId/items', async (req: any, res) => {
     const { customerId } = req.params;
     const { search, type } = req.query;
     const tenantId = req.user?.tenantId;
-    
+
     if (!tenantId) {
       return res.status(401).json({
         success: false,
@@ -202,10 +203,10 @@ router.post('/items/:itemId/customer-personalizations', async (req: any, res) =>
       customerReference,
       specialInstructions
     } = req.body;
-    
+
     const tenantId = req.user?.tenantId;
     const userId = req.user?.id;
-    
+
     if (!tenantId || !userId) {
       return res.status(401).json({
         success: false,
@@ -218,9 +219,9 @@ router.post('/items/:itemId/customer-personalizations', async (req: any, res) =>
       SELECT id FROM tenant_${tenantId.replace(/-/g, '_')}.customer_item_mappings 
       WHERE tenant_id = $1 AND customer_id = $2 AND item_id = $3
     `;
-    
+
     const existing = await pool.query(existingQuery, [tenantId, customerId, itemId]);
-    
+
     if (existing.rows.length > 0) {
       return res.status(409).json({
         success: false,
@@ -264,7 +265,7 @@ router.get('/suppliers/:supplierId/links', async (req: any, res) => {
   try {
     const { supplierId } = req.params;
     const tenantId = req.user?.tenantId;
-    
+
     if (!tenantId) {
       return res.status(401).json({
         success: false,
@@ -330,10 +331,10 @@ router.post('/items/:itemId/supplier-links', async (req: any, res) => {
       minimumOrderQuantity,
       isPreferred = false
     } = req.body;
-    
+
     const tenantId = req.user?.tenantId;
     const userId = req.user?.id;
-    
+
     if (!tenantId || !userId) {
       return res.status(401).json({
         success: false,
@@ -346,9 +347,9 @@ router.post('/items/:itemId/supplier-links', async (req: any, res) => {
       SELECT id FROM tenant_${tenantId.replace(/-/g, '_')}.item_supplier_links 
       WHERE tenant_id = $1 AND supplier_id = $2 AND item_id = $3
     `;
-    
+
     const existing = await pool.query(existingQuery, [tenantId, supplierId, itemId]);
-    
+
     if (existing.rows.length > 0) {
       return res.status(409).json({
         success: false,
@@ -384,6 +385,83 @@ router.post('/items/:itemId/supplier-links', async (req: any, res) => {
     res.status(500).json({
       success: false,
       error: 'Erro interno do servidor'
+    });
+  }
+});
+
+// Delete customer personalization
+router.delete('/customer-mappings/:mappingId', jwtAuth, async (req: any, res) => {
+  try {
+    const { mappingId } = req.params;
+    const tenantId = req.user?.tenantId;
+
+    console.log('[DELETE-PERSONALIZATION] Request:', { mappingId, tenantId });
+
+    if (!tenantId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Tenant ID required'
+      });
+    }
+
+    if (!mappingId || mappingId === 'undefined') {
+      return res.status(400).json({
+        success: false,
+        message: 'Mapping ID is required'
+      });
+    }
+
+    const tenantSchema = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    // First check if the mapping exists
+    const checkQuery = `
+      SELECT id FROM "${tenantSchema}".customer_item_mappings 
+      WHERE id = $1 AND tenant_id = $2
+    `;
+
+    const checkResult = await pool.query(checkQuery, [mappingId, tenantId]);
+
+    if (checkResult.rows.length === 0) {
+      console.log('[DELETE-PERSONALIZATION] Mapping not found:', { mappingId, tenantId });
+      return res.status(404).json({
+        success: false,
+        message: 'Personalização não encontrada'
+      });
+    }
+
+    // Delete the mapping
+    const deleteQuery = `
+      DELETE FROM "${tenantSchema}".customer_item_mappings 
+      WHERE id = $1 AND tenant_id = $2
+      RETURNING id
+    `;
+
+    const result = await pool.query(deleteQuery, [mappingId, tenantId]);
+
+    console.log('[DELETE-PERSONALIZATION] Success:', { 
+      mappingId, 
+      tenantId, 
+      deletedRows: result.rowCount 
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Personalização removida com sucesso',
+      data: { id: mappingId }
+    });
+
+  } catch (error: any) {
+    console.error('[DELETE-PERSONALIZATION] Error:', {
+      mappingId: req.params.mappingId,
+      tenantId: req.user?.tenantId,
+      error: error.message,
+      stack: error.stack
+    });
+
+    res.status(500).json({
+      success: false,
+      message: 'Erro interno do servidor',
+      error: error.message
     });
   }
 });
