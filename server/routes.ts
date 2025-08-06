@@ -2013,15 +2013,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const secondExit = entry.check_out;
 
         // Verificar se os pares são consistentes
+        const now = new Date();
+        const entryDate = new Date(firstEntry);
+        const isToday = entryDate.toDateString() === now.toDateString();
+        
         if (firstEntry && !secondExit) {
           // Jornada incompleta
           if (!firstExit && !secondEntry) {
-            // Apenas entrada, sem saída
-            inconsistencyReasons.push('Jornada em andamento - apenas entrada registrada');
+            // Apenas entrada, sem saída - verificar se passou do horário esperado
+            if (!isToday || (isToday && now.getTime() - entryDate.getTime() > 10 * 60 * 60 * 1000)) { // Mais de 10 horas
+              isConsistent = false;
+              inconsistencyReasons.push('Entrada sem saída correspondente - jornada em aberto');
+            } else {
+              inconsistencyReasons.push('Jornada em andamento');
+            }
           } else if (firstExit && !secondEntry) {
             // Saiu para almoço mas não retornou
+            const breakTime = new Date(firstExit);
+            if (!isToday || (isToday && now.getTime() - breakTime.getTime() > 2 * 60 * 60 * 1000)) { // Mais de 2 horas de pausa
+              isConsistent = false;
+              inconsistencyReasons.push('Saída para pausa registrada, retorno não informado - pausa em aberto');
+            } else {
+              inconsistencyReasons.push('Em pausa - aguardando retorno');
+            }
+          } else if (secondEntry && !secondExit) {
+            // Retornou da pausa mas não registrou saída final
+            const returnTime = new Date(secondEntry);
+            if (!isToday || (isToday && now.getTime() - returnTime.getTime() > 9 * 60 * 60 * 1000)) { // Mais de 9 horas desde o retorno
+              isConsistent = false;
+              inconsistencyReasons.push('Retorno da pausa registrado, saída final não informada - jornada em aberto');
+            } else {
+              inconsistencyReasons.push('Jornada em andamento após pausa');
+            }
+          }
+        }
+
+        // Verificar pares incompletos (entrada sem saída correspondente)
+        if (firstEntry && firstExit && !secondEntry && !secondExit) {
+          const breakTime = new Date(firstExit);
+          if (!isToday || (isToday && now.getTime() - breakTime.getTime() > 2 * 60 * 60 * 1000)) {
             isConsistent = false;
-            inconsistencyReasons.push('Saída para pausa registrada, mas retorno não informado');
+            inconsistencyReasons.push('Par incompleto: saída para pausa sem retorno nem saída final');
           }
         }
 
@@ -2081,7 +2113,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           secondExit: formatTime(secondExit), // 2ª Saída (HH:MM)
           totalHours: totalHoursWorked.toFixed(2), // Horas Trabalhadas
           overtimeHours: overtimeHours > 0 ? overtimeHours.toFixed(2) : '0.00', // Horas Extras
-          status: entry.status, // Status - Aprovação/Pendência
+          status: isConsistent ? entry.status : 'inconsistent', // Status - Inconsistente se houver problemas
+          originalStatus: entry.status, // Status original do banco
           workScheduleType: entry.schedule_type || 'Não definido', // Tipo de escala
           isConsistent: isConsistent, // Consistência
           observations: inconsistencyReasons.length > 0 ? inconsistencyReasons.join('; ') : entry.notes || '' // Observações

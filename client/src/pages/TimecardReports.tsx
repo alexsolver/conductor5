@@ -344,12 +344,14 @@ export default function TimecardReports() {
                             record.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                             record.status === 'rejected' ? 'bg-red-100 text-red-800' :
                             record.status === 'working' ? 'bg-blue-100 text-blue-800' :
+                            record.status === 'inconsistent' ? 'bg-red-100 text-red-800' :
                             'bg-gray-100 text-gray-800'
                           }`}>
                             {record.status === 'approved' ? 'Aprovado' :
                              record.status === 'pending' ? 'Pendente' :
                              record.status === 'rejected' ? 'Rejeitado' :
                              record.status === 'working' ? 'Em Andamento' :
+                             record.status === 'inconsistent' ? 'INCONSISTENTE' :
                              record.status}
                           </span>
                         </td>
