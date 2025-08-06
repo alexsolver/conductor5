@@ -1511,6 +1511,7 @@ function CustomerPersonalizationTab({ itemId, itemName }: { itemId?: string; ite
   const queryClient = useQueryClient();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingPersonalization, setEditingPersonalization] = useState<any>(null);
+  const [selectedCustomer, setSelectedCustomer] = useState<string | undefined>(undefined); // Estado para o cliente selecionado no formulário
 
   // Buscar clientes - iremos filtrar localmente
   const { data: allCustomers } = useQuery({
@@ -1518,12 +1519,33 @@ function CustomerPersonalizationTab({ itemId, itemName }: { itemId?: string; ite
     enabled: !!itemId
   });
 
+  // Buscar vínculos de clientes do item
+  const { data: itemLinks } = useQuery({
+    queryKey: [`/api/materials-services/items/${itemId}/links`],
+    queryFn: async () => {
+      if (!itemId) return { customers: [] };
+      try {
+        const response = await fetch(`/api/materials-services/items/${itemId}/links`, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const data = await response.json();
+        return data.data || { customers: [] };
+      } catch (error) {
+        console.error('Erro ao carregar vínculos do item:', error);
+        return { customers: [] };
+      }
+    },
+    enabled: !!itemId,
+    staleTime: 1000 * 60 * 5 // 5 minutes
+  });
+
+  const linkedCustomers = itemLinks?.customers || [];
+
   // Filtrar apenas clientes vinculados
-  const customers = Array.isArray(allCustomers) ? allCustomers.filter((customer: any) => {
-    // Para demonstração, todos os clientes estão disponíveis
-    // Em produção, isso seria filtrado baseado nos vínculos salvos
-    return true; // Permitir todos os clientes por enquanto
-  }) : [];
+  const customers = Array.isArray(allCustomers) ? allCustomers.filter((customer: any) => 
+    linkedCustomers.includes(customer.id)
+  ) : [];
 
   // Form para personalização
   const form = useForm({
@@ -1659,6 +1681,7 @@ function CustomerPersonalizationTab({ itemId, itemName }: { itemId?: string; ite
       return;
     }
     setIsFormOpen(true);
+    setSelectedCustomer(undefined); // Reset selected customer
   };
 
   const handleEditPersonalization = (personalization: any) => {
@@ -1671,6 +1694,7 @@ function CustomerPersonalizationTab({ itemId, itemName }: { itemId?: string; ite
       customerReference: personalization.customer_reference || '',
       specialInstructions: personalization.special_instructions || ''
     });
+    setSelectedCustomer(personalization.customer_id); // Set the customer for editing
     setIsFormOpen(true);
   };
 
@@ -1807,46 +1831,41 @@ function CustomerPersonalizationTab({ itemId, itemName }: { itemId?: string; ite
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmitPersonalization)} className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="customerId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Cliente</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione o cliente" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {customers.map((customer: any) => (
-                            <SelectItem key={customer.id} value={customer.id}>
-                              {customer.name || customer.tradeName}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="customSku"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>SKU Personalizado</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Ex: CLIENTE-001" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="customer-select">Cliente</Label>
+                  <Select value={selectedCustomer} onValueChange={(value) => {
+                    setSelectedCustomer(value);
+                    form.setValue('customerId', value);
+                  }}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o cliente" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {customers?.map((customer: any) => (
+                        <SelectItem key={customer.id} value={customer.id}>
+                          {customer.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage>{form.formState.errors.customerId?.message}</FormMessage>
+                </div>
               </div>
+
+              <FormField
+                control={form.control}
+                name="customSku"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>SKU Personalizado</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ex: CLIENTE-001" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <FormField
                 control={form.control}
