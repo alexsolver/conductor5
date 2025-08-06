@@ -18,7 +18,6 @@ export const linkTypeEnum = pgEnum('link_type', ['item_item', 'item_customer', '
 export const itemAttachments = pgTable('item_attachments', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id').notNull(),
-  itemId: uuid('item_id').notNull(),
 
   fileName: varchar('file_name', { length: 255 }).notNull(),
   originalName: varchar('original_name', { length: 255 }).notNull(),
@@ -733,10 +732,10 @@ export type InsertDynamicPricing = typeof dynamicPricing.$inferInsert;
 export type ComplianceAudit = typeof complianceAudits.$inferSelect;
 export type InsertComplianceAudit = typeof complianceAudits.$inferInsert;
 export type ComplianceCertification = typeof complianceCertifications.$inferSelect;
-export type InsertComplianceCertification = typeof complianceCertifications.$inferInsert;
+export type InsertComplianceCertification = typeof complianceCertifications.$insert;
 export type ComplianceEvidence = typeof complianceEvidence.$inferSelect;
-export type InsertComplianceEvidence = typeof complianceEvidence.$inferInsert;
+export type InsertComplianceEvidence = typeof complianceEvidence.$insert;
 export type ComplianceAlert = typeof complianceAlerts.$inferSelect;
-export type InsertComplianceAlert = typeof complianceAlerts.$inferInsert;
+export type InsertComplianceAlert = typeof complianceAlerts.$insert;
 export type ComplianceScore = typeof complianceScores.$inferSelect;
-export type InsertComplianceScore = typeof complianceScores.$inferInsert;
+export type InsertComplianceScore = typeof complianceScores.$insert;

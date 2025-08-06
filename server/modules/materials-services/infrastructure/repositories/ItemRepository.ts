@@ -1,5 +1,7 @@
-import { eq, and, like, desc, or, sql, inArray } from 'drizzle-orm';
+import { eq, and, like, desc, or, sql, inArray, asc } from 'drizzle-orm';
 import { items, itemAttachments, itemLinks, itemCustomerLinks, itemSupplierLinks, customerItemMappings } from '../../../../../shared/schema-master';
+import { customer as customerTable } from '../../../../../shared/schema-master';
+import { supplier as supplierTable } from '../../../../../shared/schema-master';
 import type { Item } from '../../domain/entities';
 import type { ExtractTablesWithRelations } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
@@ -152,7 +154,7 @@ export class ItemRepository {
       updateData.maintenancePlan = typeof maintenancePlan === 'string' ? maintenancePlan : JSON.stringify(maintenancePlan);
     }
     if (defaultChecklist !== undefined && defaultChecklist !== '') {
-      updateData.defaultChecklist = typeof defaultChecklist === 'string' ? defaultChecklist : JSON.stringify(defaultChecklist);
+      updateData.defaultChecklist = typeof defaultcheckList === 'string' ? defaultChecklist : JSON.stringify(defaultChecklist);
     }
 
     const [item] = await this.db
@@ -272,39 +274,58 @@ export class ItemRepository {
     return result;
   }
 
-  async getItemLinks(itemId: string, tenantId: string) {
+  async getItemLinks(itemId: string, tenantId: string): Promise<{
+    customers: Array<{ id: string; name: string }>;
+    suppliers: Array<{ id: string; name: string }>;
+  }> {
     try {
       // Buscar vínculos de clientes
-      const customerLinksResult = await this.db
-        .select({ customerId: customerItemMappings.customerId })
+      const customerLinks = await this.db
+        .select({
+          id: customerTable.id,
+          name: customerTable.displayName
+        })
         .from(customerItemMappings)
+        .innerJoin(customerTable, eq(customerItemMappings.customerId, customerTable.id))
         .where(
           and(
-            eq(customerItemMappings.tenantId, tenantId),
             eq(customerItemMappings.itemId, itemId),
-            eq(customerItemMappings.isActive, true)
+            eq(customerItemMappings.tenantId, tenantId),
+            eq(customerItemMappings.isActive, true),
+            eq(customerTable.isActive, true)
           )
-        );
+        )
+        .limit(50);
 
       // Buscar vínculos de fornecedores
-      const supplierLinksResult = await this.db
-        .select({ supplierId: itemSupplierLinks.supplierId })
+      const supplierLinks = await this.db
+        .select({
+          id: supplierTable.id,
+          name: supplierTable.companyName
+        })
         .from(itemSupplierLinks)
+        .innerJoin(supplierTable, eq(itemSupplierLinks.supplierId, supplierTable.id))
         .where(
           and(
+            eq(itemSupplierLinks.itemId, itemId),
             eq(itemSupplierLinks.tenantId, tenantId),
-            eq(itemSupplierLinks.itemId, itemId)
+            eq(supplierTable.isActive, true)
           )
-        );
+        )
+        .limit(50);
+
+      console.log(`Links encontrados para item ${itemId}: ${customerLinks.length} clientes, ${supplierLinks.length} fornecedores`);
 
       return {
-        customers: customerLinksResult.map(link => link.customerId),
-        suppliers: supplierLinksResult.map(link => link.supplierId)
+        customers: customerLinks || [],
+        suppliers: supplierLinks || []
       };
-
     } catch (error) {
-      console.error('Error getting item links:', error);
-      return { customers: [], suppliers: [] };
+      console.error('Erro ao buscar vínculos do item:', error);
+      return {
+        customers: [],
+        suppliers: []
+      };
     }
   }
 

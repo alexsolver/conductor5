@@ -87,6 +87,36 @@ router.delete('/items/:id', async (req: AuthenticatedRequest, res) => {
   return itemController.deleteItem(req, res);
 });
 
+// Rota para obter vínculos de um item
+router.get('/items/:itemId/links', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    const { itemId } = req.params;
+    const tenantId = req.user?.tenantId;
+
+    if (!tenantId) {
+      return res.status(400).json({ error: 'Tenant ID é obrigatório' });
+    }
+    const { db } = await schemaManager.getTenantDb(tenantId);
+    const itemRepository = new ItemRepository(db);
+    const links = await itemRepository.getItemLinks(itemId, tenantId);
+
+    // Garantir estrutura consistente da resposta
+    const response = {
+      customers: Array.isArray(links.customers) ? links.customers : [],
+      suppliers: Array.isArray(links.suppliers) ? links.suppliers : []
+    };
+
+    res.json(response);
+  } catch (error) {
+    console.error('Erro ao obter vínculos do item:', error);
+    res.status(500).json({ 
+      error: 'Erro interno do servidor',
+      customers: [],
+      suppliers: []
+    });
+  }
+});
+
 // ===== LPU (LISTA DE PREÇOS UNITÁRIOS) ROUTES =====
 
 // Price Lists - Basic CRUD
@@ -197,40 +227,6 @@ router.post('/suppliers', async (req: AuthenticatedRequest, res) => {
 });
 
 router.get('/suppliers', async (req: AuthenticatedRequest, res) => {
-
-// Endpoint para obter vínculos de um item específico
-app.get('/items/:itemId/links', async (req: Request, res: Response) => {
-  try {
-    const { itemId } = req.params;
-    const tenantId = req.user?.tenantId;
-
-    if (!tenantId) {
-      return res.status(401).json({ 
-        success: false, 
-        message: 'Tenant ID não encontrado' 
-      });
-    }
-
-    const itemRepository = new ItemRepository();
-    const links = await itemRepository.getItemLinks(tenantId, itemId);
-
-    res.json({
-      success: true,
-      data: links,
-      message: 'Vínculos do item obtidos com sucesso'
-    });
-
-  } catch (error) {
-    console.error('Erro ao obter vínculos do item:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Erro interno do servidor',
-      error: error instanceof Error ? error.message : 'Unknown error'
-    });
-  }
-});
-
-
   if (!req.user?.tenantId) return res.status(401).json({ message: 'Tenant ID required' });
   const { supplierController } = await getControllers(req.user.tenantId);
   return supplierController.getSuppliers(req, res);
@@ -267,7 +263,7 @@ router.delete('/tickets/:ticketId/consumed-items/:itemId', TicketMaterialsContro
 router.get('/tickets/:ticketId/available-for-consumption', TicketMaterialsController.getAvailableForConsumption);
 router.get('/tickets/:ticketId/costs-summary', TicketMaterialsController.getCostsSummary);
 
-// ===== CUSTOMER ITEM MAPPINGS ROUTES =====
+// ===== CUSTOMER ITEM MAPPINGSROUTES =====
 // Get all customer item mappings
 router.get('/customer-item-mappings', CustomerItemMappingController.getCustomerItemMappings);
 
