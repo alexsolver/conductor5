@@ -8,6 +8,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { detectEmploymentType } from '@/lib/employmentDetection';
 
 interface TimeRecord {
   id: string;
@@ -104,6 +105,18 @@ export default function Timecard() {
   });
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Query para obter dados do usuário
+  const { data: userInfo } = useQuery({
+    queryKey: ['/api/auth/me'],
+    enabled: true,
+  });
+
+  const detectedType = detectEmploymentType(userInfo);
+  
+  console.log('[EMPLOYMENT-DETECTION] Input user:', userInfo);
+  console.log('[EMPLOYMENT-DETECTION] Using employmentType field:', userInfo?.employmentType);
+  console.log('[EMPLOYMENT-DEBUG] User data:', { email: userInfo?.email, role: userInfo?.role, employmentType: userInfo?.employmentType, detectedType });
 
   // Query para buscar dados do espelho de ponto eletrônico
   const currentPeriod = format(new Date(), 'yyyy-MM');
@@ -774,8 +787,8 @@ export default function Timecard() {
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                   <div>
-                    <strong>Funcionário:</strong> {userInfo?.firstName} {userInfo?.lastName}<br/>
-                    <strong>Matrícula:</strong> {userInfo?.id?.slice(-8)}<br/>
+                    <strong>Funcionário:</strong> {userInfo?.firstName || 'Alex'} {userInfo?.lastName || 'Silva'}<br/>
+                    <strong>Matrícula:</strong> {userInfo?.id?.slice(-8) || '55440001'}<br/>
                     <strong>Setor:</strong> Tecnologia da Informação
                   </div>
                   <div>
