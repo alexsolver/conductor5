@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -161,6 +161,57 @@ export default function TenantAdminIntegrations() {
     refetchOnWindowFocus: false
   });
 
+  // Query para buscar configuração específica de uma integração
+  const { data: integrationConfigData, isLoading: isLoadingConfig } = useQuery({
+    queryKey: ['/api/tenant-admin/integrations', selectedIntegration?.id, 'config'],
+    queryFn: () => apiRequest('GET', `/api/tenant-admin/integrations/${selectedIntegration?.id}/config`),
+    enabled: !!selectedIntegration?.id && isConfigDialogOpen,
+    retry: 1,
+  });
+
+  // Effect para popular o formulário quando os dados de configuração chegam
+  React.useEffect(() => {
+    if (integrationConfigData && selectedIntegration && isConfigDialogOpen) {
+      console.log(`📝 [FRONTEND] Loading saved config for ${selectedIntegration.id}:`, integrationConfigData);
+      
+      const config = integrationConfigData.config || {};
+      
+      // Popular formulário com dados salvos
+      configForm.reset({
+        enabled: config.enabled || false,
+        apiKey: config.apiKey || '',
+        apiSecret: config.apiSecret || '',
+        webhookUrl: config.webhookUrl || '',
+        clientId: config.clientId || '',
+        clientSecret: config.clientSecret || '',
+        redirectUri: config.redirectUri || '',
+        tenantId: config.tenantId || '',
+        serverHost: config.serverHost || '',
+        serverPort: config.serverPort || '',
+        username: config.username || '',
+        password: config.password || '',
+        useSSL: config.useSSL || false,
+        // IMAP fields
+        imapServer: config.imapServer || '',
+        imapPort: config.imapPort || '',
+        imapSecurity: config.imapSecurity || 'SSL/TLS',
+        emailAddress: config.emailAddress || '',
+        // Dropbox fields
+        dropboxAppKey: config.dropboxAppKey || '',
+        dropboxAppSecret: config.dropboxAppSecret || '',
+        dropboxAccessToken: config.dropboxAccessToken || '',
+        dropboxRefreshToken: config.dropboxRefreshToken || '',
+        backupFolder: config.backupFolder || '/Backups/Conductor',
+        // Telegram fields - dados importantes salvos
+        telegramBotToken: config.telegramBotToken || '',
+        telegramChatId: config.telegramChatId || '',
+        telegramWebhookUrl: config.telegramWebhookUrl || '',
+      });
+      
+      console.log(`✅ [FRONTEND] Form populated with saved data for ${selectedIntegration.id}`);
+    }
+  }, [integrationConfigData, selectedIntegration, isConfigDialogOpen, configForm]);
+
   // Mutation para salvar configuração
   const saveConfigMutation = useMutation({
     mutationFn: ({ integrationId, config }: { integrationId: string; config: any }) => {
@@ -263,182 +314,24 @@ export default function TenantAdminIntegrations() {
     }
   };
 
+  // Função para abrir modal de configuração e carregar dados salvos
+  const handleConfigureIntegration = (integration: TenantIntegration) => {
+    console.log(`🔧 [FRONTEND] Opening configuration for ${integration.id}`);
+    setSelectedIntegration(integration);
+    setIsConfigDialogOpen(true);
+  };
+
   // Map integrations with proper icons and saved configuration status
   const tenantIntegrations: TenantIntegration[] = (integrationsData as any)?.integrations?.length > 0 
     ? (integrationsData as any).integrations.map((integration: any) => ({
         ...integration,
         icon: getIntegrationIcon(integration.id),
-        // Use the actual status from backend instead of overriding it
-        status: integration.status || 'disconnected',
+        // Use the actual status from backend
+        status: integration.status === 'connected' ? 'connected' : 
+                integration.status === 'error' ? 'error' : 'disconnected',
         configured: integration.configured || false
       }))
-    : [
-    // Comunicação
-    {
-      id: 'gmail-oauth2',
-      name: 'Gmail OAuth2',
-      category: 'Comunicação',
-      description: 'Integração OAuth2 com Gmail para envio e recebimento seguro de emails',
-      icon: Mail,
-      status: 'disconnected',
-      configured: false,
-      features: ['OAuth2 Authentication', 'Send/Receive Emails', 'Auto-sync', 'Secure Token Management']
-    },
-    {
-      id: 'outlook-oauth2',
-      name: 'Outlook OAuth2',
-      category: 'Comunicação',
-      description: 'Integração OAuth2 com Microsoft Outlook para emails corporativos',
-      icon: Mail,
-      status: 'disconnected',
-      configured: false,
-      features: ['OAuth2 Authentication', 'Exchange Integration', 'Calendar Sync', 'Corporate Email']
-    },
-    {
-      id: 'email-smtp',
-      name: 'Email SMTP',
-      category: 'Comunicação',
-      description: 'Configuração de servidor SMTP para envio de emails automáticos e notificações',
-      icon: Mail,
-      status: 'disconnected',
-      configured: false,
-      features: ['Notificações por email', 'Tickets por email', 'Relatórios automáticos']
-    },
-    {
-      id: 'imap-email',
-      name: 'IMAP Email',
-      category: 'Comunicação',
-      description: 'Conexão IMAP para recebimento automático de emails e criação de tickets',
-      icon: Inbox,
-      status: 'disconnected',
-      configured: false,
-      features: ['Auto-criação de tickets', 'Monitoramento de caixa de entrada', 'Sincronização bidirecional', 'Suporte SSL/TLS']
-    },
-    {
-      id: 'whatsapp-business',
-      name: 'WhatsApp Business',
-      category: 'Comunicação',
-      description: 'Integração com WhatsApp Business API para atendimento via WhatsApp',
-      icon: MessageSquare,
-      status: 'disconnected',
-      configured: false,
-      features: ['Mensagens automáticas', 'Templates aprovados', 'Webhooks']
-    },
-    {
-      id: 'slack',
-      name: 'Slack',
-      category: 'Comunicação',
-      description: 'Notificações e gerenciamento de tickets através do Slack',
-      icon: MessageCircle,
-      status: 'disconnected',
-      configured: false,
-      features: ['Notificações de tickets', 'Comandos slash', 'Bot integrado']
-    },
-    {
-      id: 'twilio-sms',
-      name: 'Twilio SMS',
-      category: 'Comunicação',
-      description: 'Envio de SMS para notificações e alertas importantes',
-      icon: Phone,
-      status: 'disconnected',
-      configured: false,
-      features: ['SMS automático', 'Notificações críticas', 'Verificação 2FA']
-    },
-    {
-      id: 'telegram',
-      name: 'Telegram',
-      category: 'Comunicação',
-      description: 'Envio de notificações e alertas via Telegram para grupos ou usuários',
-      icon: Send, // Using Send icon for Telegram
-      status: 'disconnected',
-      configured: false,
-      features: ['Notificações em tempo real', 'Mensagens personalizadas', 'Integração com Bot API']
-    },
-    // Automação
-    {
-      id: 'zapier',
-      name: 'Zapier',
-      category: 'Automação',
-      description: 'Conecte com mais de 3000 aplicativos através de automações Zapier',
-      icon: Zap,
-      status: 'disconnected',
-      configured: false,
-      features: ['Workflows automáticos', '3000+ integrações', 'Triggers personalizados']
-    },
-    {
-      id: 'webhooks',
-      name: 'Webhooks',
-      category: 'Automação',
-      description: 'Configure webhooks personalizados para eventos do sistema',
-      icon: Webhook,
-      status: 'disconnected',
-      configured: false,
-      features: ['Eventos em tempo real', 'Payload customizável', 'Retry automático']
-    },
-    // Dados
-    {
-      id: 'google-analytics',
-      name: 'Google Analytics',
-      category: 'Dados',
-      description: 'Rastreamento e análise de performance do atendimento',
-      icon: BarChart3,
-      status: 'disconnected',
-      configured: false,
-      features: ['Métricas de conversão', 'Funis de atendimento', 'Relatórios customizados']
-    },
-    {
-      id: 'crm-integration',
-      name: 'CRM Integration',
-      category: 'Dados',
-      description: 'Sincronização bidirecional com seu sistema CRM',
-      icon: Database,
-      status: 'disconnected',
-      configured: false,
-      features: ['Sync automático', 'Campos customizados', 'Histórico completo']
-    },
-    // Segurança
-    {
-      id: 'sso-saml',
-      name: 'SSO/SAML',
-      category: 'Segurança',
-      description: 'Single Sign-On com provedores SAML para login corporativo',
-      icon: Shield,
-      status: 'disconnected',
-      configured: false,
-      features: ['Login corporativo', 'Múltiplos provedores', 'Controle de acesso']
-    },
-    // Produtividade
-    {
-      id: 'google-workspace',
-      name: 'Google Workspace',
-      category: 'Produtividade',
-      description: 'Integração com Gmail, Calendar e Drive para produtividade',
-      icon: Calendar,
-      status: 'disconnected',
-      configured: false,
-      features: ['Sincronização de calendário', 'Anexos do Drive', 'Emails corporativos']
-    },
-    {
-      id: 'chatbot-ai',
-      name: 'Chatbot IA',
-      category: 'Produtividade',
-      description: 'Chatbot inteligente para atendimento automatizado 24/7',
-      icon: Bot,
-      status: 'disconnected',
-      configured: false,
-      features: ['Respostas automáticas', 'Machine Learning', 'Escalação inteligente']
-    },
-    {
-      id: 'dropbox-personal',
-      name: 'Dropbox Pessoal',
-      category: 'Dados',
-      description: 'Integração com conta pessoal do Dropbox para backup e armazenamento de documentos',
-      icon: Cloud,
-      status: 'disconnected',
-      configured: false,
-      features: ['Backup automático', 'Sincronização de anexos', 'Armazenamento seguro', 'API v2 Dropbox']
-    }
-  ];
+    : [];
 
   function getIntegrationIcon(id: string) {
     switch (id) {
@@ -516,149 +409,6 @@ export default function TenantAdminIntegrations() {
     }
   };
 
-  const onConfigureIntegration = async (integration: TenantIntegration) => {
-    setSelectedIntegration(integration);
-
-    try {
-      // Load existing configuration from API
-      const existingConfig = await apiRequest('GET', `/api/tenant-admin/integrations/${integration.id}/config`);
-
-
-      const configData = existingConfig as any;
-      console.log('API response completa:', configData);
-      
-      if (configData && configData.config && (configData.configured === true || Object.keys(configData.config).length > 0)) {
-        const config = configData.config;
-        console.log('Config encontrada:', config);
-        // Load existing configuration - dados reais do banco
-        const formValues = {
-          enabled: config.enabled === true,
-          useSSL: config.useSSL !== false, // Default to true
-          apiKey: config.apiKey === '••••••••' ? '' : (config.apiKey || ''), // Só mascarar se já mascarado
-          apiSecret: config.apiSecret === '••••••••' ? '' : (config.apiSecret || ''), // Só mascarar se já mascarado
-          webhookUrl: config.webhookUrl || '',
-          clientId: config.clientId || '',
-          clientSecret: config.clientSecret === '••••••••' ? '' : (config.clientSecret || ''), // Só mascarar se já mascarado
-          redirectUri: config.redirectUri || '',
-          tenantId: config.tenantId || '',
-          serverHost: config.serverHost || config.imapServer || '',
-          serverPort: config.serverPort ? config.serverPort.toString() : (config.imapPort ? config.imapPort.toString() : '993'),
-          username: config.username || config.emailAddress || '',
-          password: config.password === '••••••••' ? '' : (config.password || ''), // Só mascarar se já mascarado
-          imapServer: config.imapServer || 'imap.gmail.com',
-          imapPort: config.imapPort ? config.imapPort.toString() : '993',
-          imapSecurity: config.imapSecurity || 'SSL/TLS',
-          emailAddress: config.emailAddress || '',
-          dropboxAppKey: config.dropboxAppKey || '',
-          dropboxAppSecret: config.dropboxAppSecret === '••••••••' ? '' : (config.dropboxAppSecret || ''), // Só mascarar se já mascarado
-          dropboxAccessToken: config.dropboxAccessToken === '••••••••' ? '' : (config.dropboxAccessToken || ''), // Só mascarar se já mascarado
-          backupFolder: config.backupFolder || '/Backups/Conductor',
-          // Telegram fields - manter valores originais para edição
-          telegramBotToken: config.telegramBotToken || '',
-          telegramChatId: config.telegramChatId || '',
-          telegramWebhookUrl: config.telegramWebhookUrl || `${window.location.origin}/api/webhooks/telegram/${localStorage.getItem('tenantId')}`,
-        };
-
-        configForm.reset(formValues);
-
-        toast({
-          title: "Configuração carregada",
-          description: "Dados existentes carregados com sucesso",
-        });
-      } else {
-
-        // Use default values if no configuration exists
-        configForm.reset({
-          enabled: false,
-          useSSL: true,
-          apiKey: '',
-          apiSecret: '',
-          webhookUrl: '',
-          clientId: '',
-          clientSecret: '',
-          redirectUri: '',
-          tenantId: '',
-          serverHost: '',
-          serverPort: integration.id === 'imap-email' ? '993' : '',
-          username: '',
-          password: '',
-          imapServer: integration.id === 'imap-email' ? 'imap.gmail.com' : '',
-          imapPort: '993',
-          imapSecurity: 'SSL/TLS',
-          emailAddress: '',
-          dropboxAppKey: '',
-          dropboxAppSecret: '',
-          dropboxAccessToken: '',
-          backupFolder: '/Backups/Conductor',
-          // Telegram default values
-          telegramBotToken: '',
-          telegramChatId: '',
-          telegramWebhookUrl: `${window.location.origin}/api/webhooks/telegram/${localStorage.getItem('tenantId')}`,
-        });
-      }
-    } catch (error) {
-      console.error('Error loading integration config:', error);
-      // Fallback to default values
-      configForm.reset({
-        enabled: false,
-        useSSL: true,
-        apiKey: '',
-        apiSecret: '',
-        webhookUrl: '',
-        clientId: '',
-        clientSecret: '',
-        redirectUri: '',
-        tenantId: '',
-        serverHost: '',
-        serverPort: integration.id === 'imap-email' ? '993' : '',
-        username: '',
-        password: '',
-        imapServer: integration.id === 'imap-email' ? 'imap.gmail.com' : '',
-        imapPort: '993',
-        imapSecurity: 'SSL/TLS',
-        emailAddress: '',
-        dropboxAppKey: '',
-        dropboxAppSecret: '',
-        dropboxAccessToken: '',
-        backupFolder: '/Backups/Conductor',
-        // Telegram default values
-        telegramBotToken: '',
-        telegramChatId: '',
-        telegramWebhookUrl: `${window.location.origin}/api/webhooks/telegram/${localStorage.getItem('tenantId')}`,
-      });
-    }
-
-    setIsConfigDialogOpen(true);
-  };
-
-  // Função para iniciar fluxo OAuth2
-  const startOAuthFlow = async (integration: TenantIntegration) => {
-    try {
-      const response = await apiRequest('POST', `/api/tenant-admin/integrations/${integration.id}/oauth/start`, {
-        clientId: 'your-client-id', // This would come from form data
-        redirectUri: window.location.origin + `/auth/${integration.id}/callback`
-      });
-
-      const responseData = response as any;
-      if (responseData?.authUrl && typeof responseData.authUrl === 'string') {
-        // Open OAuth2 URL in new window
-        window.open(responseData.authUrl, 'oauth2', 'width=600,height=600,scrollbars=yes,resizable=yes');
-        toast({
-          title: "OAuth2 Iniciado",
-          description: "Janela de autorização aberta. Complete o processo de login.",
-        });
-      } else {
-        throw new Error('URL de autorização não encontrada na resposta');
-      }
-    } catch (error: any) {
-      toast({
-        title: "Erro OAuth2",
-        description: error.message || "Erro ao iniciar fluxo OAuth2",
-        variant: "destructive",
-      });
-    }
-  };
-
   const onSubmitConfig = (data: z.infer<typeof integrationConfigSchema>) => {
     if (selectedIntegration) {
       console.log(`💾 [FRONTEND] Submitting config for ${selectedIntegration.id}:`, data);
@@ -666,22 +416,7 @@ export default function TenantAdminIntegrations() {
       // Preparar dados específicos para cada integração
       let configData = { ...data };
 
-      if (selectedIntegration.id === 'imap-email') {
-        configData = {
-          ...data,
-          // Garantir que campos IMAP estejam presentes
-          imapServer: data.imapServer || 'imap.gmail.com',
-          imapPort: data.imapPort || '993',
-          emailAddress: data.emailAddress || '',
-          password: data.password || '',
-          useSSL: data.useSSL !== false,
-          enabled: data.enabled === true,
-          // Manter compatibilidade com outros campos
-          serverHost: data.imapServer || 'imap.gmail.com',
-          serverPort: data.imapPort || '993',
-          username: data.emailAddress || ''
-        };
-      } else if (selectedIntegration.id === 'telegram') {
+      if (selectedIntegration.id === 'telegram') {
         // Validação específica para Telegram
         if (!data.telegramBotToken || data.telegramBotToken.trim() === '') {
           toast({
@@ -700,242 +435,235 @@ export default function TenantAdminIntegrations() {
           telegramWebhookUrl: data.telegramWebhookUrl || `${window.location.origin}/api/webhooks/telegram/${localStorage.getItem('tenantId')}`,
           enabled: data.enabled === true
         };
-
-        console.log(`🤖 [FRONTEND] Telegram config prepared:`, {
-          hasToken: !!configData.telegramBotToken,
-          tokenLength: configData.telegramBotToken?.length || 0,
-          chatId: configData.telegramChatId,
-          webhookUrl: configData.telegramWebhookUrl
-        });
       }
 
-      saveConfigMutation.mutate({
-        integrationId: selectedIntegration.id,
-        config: configData
-      });
+      saveConfigMutation.mutate({ integrationId: selectedIntegration.id, config: configData });
     }
   };
 
-  const groupedIntegrations = tenantIntegrations.reduce((acc, integration) => {
-    if (!acc[integration.category]) {
-      acc[integration.category] = [];
+  // Group integrations by category
+  const integrationsByCategory = tenantIntegrations.reduce((acc, integration) => {
+    const category = integration.category;
+    if (!acc[category]) {
+      acc[category] = [];
     }
-    acc[integration.category].push(integration);
+    acc[category].push(integration);
     return acc;
   }, {} as Record<string, TenantIntegration[]>);
 
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'connected': return 'Conectado';
+      case 'error': return 'Erro';
+      case 'disconnected': return 'Desconectado';
+      default: return 'Desconectado';
+    }
+  };
+
   return (
-    <div className="p-4 space-y-8">
-      {/* Header */}
-      <div className="border-b border-gray-200 pb-4">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              Integrações do Tenant
-            </h1>
-            <p className="text-gray-600 mt-2">
-              Configurar integrações específicas para este workspace
-            </p>
-          </div>
+    <div className="space-y-8 p-8">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Integrações</h1>
+          <p className="text-muted-foreground mt-2">
+            Configure e gerencie integrações com serviços externos
+          </p>
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Integrações</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{tenantIntegrations.length}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Ativas</CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {tenantIntegrations.filter(i => i.status === 'connected').length}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Configuradas</CardTitle>
-            <UserCheck className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {tenantIntegrations.filter(i => i.configured).length}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Categorias</CardTitle>
-            <Database className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {Object.keys(groupedIntegrations).length}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Integrações por Categoria */}
-      <Tabs defaultValue="certificados" className="space-y-4">
-        <TabsList className={`grid w-full grid-cols-${Object.keys(groupedIntegrations).length + 1}`}>
-          <TabsTrigger value="certificados">
-            Certificados
-          </TabsTrigger>
-          {Object.keys(groupedIntegrations).map((category) => (
-            <TabsTrigger key={category} value={category}>
-              {category}
-            </TabsTrigger>
-          ))}
+      <Tabs defaultValue="all" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="all">Todas</TabsTrigger>
+          <TabsTrigger value="Comunicação">Comunicação</TabsTrigger>
+          <TabsTrigger value="Automação">Automação</TabsTrigger>
+          <TabsTrigger value="Dados">Dados</TabsTrigger>
+          <TabsTrigger value="Segurança">Segurança</TabsTrigger>
+          <TabsTrigger value="Produtividade">Produtividade</TabsTrigger>
+          <TabsTrigger value="certificates">Certificados</TabsTrigger>
         </TabsList>
 
-        {/* Aba de Certificados */}
-        <TabsContent value="certificados" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Shield className="h-6 w-6 text-purple-600" />
-                <span>Gerenciamento de Certificados Digitais</span>
-              </CardTitle>
-              <p className="text-gray-600">
-                Configure e gerencie certificados digitais ICP-Brasil para assinatura de documentos CLT
-              </p>
-            </CardHeader>
-            <CardContent>
-              <CertificateManager />
-            </CardContent>
-          </Card>
+        <TabsContent value="all" className="space-y-6">
+          {Object.entries(integrationsByCategory).map(([category, integrations]) => (
+            <div key={category} className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold">{category}</h2>
+                <Badge variant="secondary" className={getCategoryColor(category)}>
+                  {integrations.length} integração{integrations.length !== 1 ? 'ões' : ''}
+                </Badge>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {integrations.map((integration) => {
+                  const IconComponent = integration.icon;
+                  const isTestingThis = testingIntegrationId === integration.id;
+                  return (
+                    <Card key={integration.id} className="relative overflow-hidden group hover:shadow-lg transition-all duration-200">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center space-x-3">
+                            <div className="p-2 rounded-lg bg-gradient-to-br from-blue-50 to-indigo-50">
+                              <IconComponent className="h-6 w-6 text-blue-600" />
+                            </div>
+                            <div>
+                              <CardTitle className="text-lg">{integration.name}</CardTitle>
+                              <div className="flex items-center space-x-2 mt-1">
+                                <Badge 
+                                  variant="outline" 
+                                  className={`${getStatusColor(integration.status)} text-xs px-2 py-1`}
+                                >
+                                  {getStatusIcon(integration.status)}
+                                  <span className="ml-1">{getStatusText(integration.status)}</span>
+                                </Badge>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      
+                      <CardContent className="space-y-4">
+                        <p className="text-sm text-muted-foreground leading-relaxed">
+                          {integration.description}
+                        </p>
+                        
+                        {integration.features && integration.features.length > 0 && (
+                          <div className="space-y-2">
+                            <div className="text-sm font-medium text-gray-700">Recursos:</div>
+                            <div className="flex flex-wrap gap-1">
+                              {integration.features.slice(0, 3).map((feature, index) => (
+                                <Badge key={index} variant="secondary" className="text-xs">
+                                  {feature}
+                                </Badge>
+                              ))}
+                              {integration.features.length > 3 && (
+                                <Badge variant="secondary" className="text-xs">
+                                  +{integration.features.length - 3} mais
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                        
+                        <div className="flex items-center space-x-2 pt-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => handleConfigureIntegration(integration)}
+                            className="flex-1"
+                          >
+                            <Settings className="h-4 w-4 mr-1" />
+                            Configurar
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => handleTestIntegration(integration.id)}
+                            disabled={isTestingThis}
+                            className="px-3"
+                          >
+                            {isTestingThis ? (
+                              <div className="flex items-center">
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900 mr-1"></div>
+                                <span className="text-xs">Testando...</span>
+                              </div>
+                            ) : (
+                              <>
+                                <Activity className="h-4 w-4 mr-1" />
+                                <span className="text-xs">Testar</span>
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </TabsContent>
 
-        {Object.entries(groupedIntegrations).map(([category, integrations]) => (
-          <TabsContent key={category} value={category} className="space-y-4">
+        {Object.keys(integrationsByCategory).map(category => (
+          <TabsContent key={category} value={category} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {integrations.map((integration) => {
-                const IconComponent = integration.icon || Mail; // Fallback to Mail icon
+              {integrationsByCategory[category]?.map((integration) => {
+                const IconComponent = integration.icon;
+                const isTestingThis = testingIntegrationId === integration.id;
                 return (
-                  <Card key={integration.id} className="hover:shadow-lg transition-shadow">
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
+                  <Card key={integration.id} className="relative overflow-hidden group hover:shadow-lg transition-all duration-200">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between">
                         <div className="flex items-center space-x-3">
-                          <div className="p-2 bg-gradient-to-r from-purple-100 to-pink-100 rounded-lg">
-                            <IconComponent className="h-6 w-6 text-purple-600" />
+                          <div className="p-2 rounded-lg bg-gradient-to-br from-blue-50 to-indigo-50">
+                            <IconComponent className="h-6 w-6 text-blue-600" />
                           </div>
                           <div>
                             <CardTitle className="text-lg">{integration.name}</CardTitle>
-                            <Badge className={getCategoryColor(integration.category)}>
-                              {integration.category}
-                            </Badge>
+                            <div className="flex items-center space-x-2 mt-1">
+                              <Badge 
+                                variant="outline" 
+                                className={`${getStatusColor(integration.status)} text-xs px-2 py-1`}
+                              >
+                                {getStatusIcon(integration.status)}
+                                <span className="ml-1">{getStatusText(integration.status)}</span>
+                              </Badge>
+                            </div>
                           </div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          {integration.configured && (
-                            <Badge className="bg-green-100 text-green-800 border-green-200">
-                              <CheckCircle className="h-3 w-3 mr-1" />
-                              Configurado
-                            </Badge>
-                          )}
-                          <Badge className={getStatusColor(integration.status)}>
-                            {getStatusIcon(integration.status)}
-                            <span className="ml-1 capitalize">{integration.status}</span>
-                          </Badge>
                         </div>
                       </div>
                     </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-gray-600 mb-4">
+                    
+                    <CardContent className="space-y-4">
+                      <p className="text-sm text-muted-foreground leading-relaxed">
                         {integration.description}
                       </p>
-
+                      
                       {integration.features && integration.features.length > 0 && (
-                        <div className="mb-4">
-                          <h4 className="text-sm font-medium mb-2">Recursos:</h4>
+                        <div className="space-y-2">
+                          <div className="text-sm font-medium text-gray-700">Recursos:</div>
                           <div className="flex flex-wrap gap-1">
                             {integration.features.slice(0, 3).map((feature, index) => (
-                              <Badge key={index} variant="outline" className="text-xs">
+                              <Badge key={index} variant="secondary" className="text-xs">
                                 {feature}
                               </Badge>
                             ))}
                             {integration.features.length > 3 && (
-                              <Badge variant="outline" className="text-xs">
+                              <Badge variant="secondary" className="text-xs">
                                 +{integration.features.length - 3} mais
                               </Badge>
                             )}
                           </div>
                         </div>
                       )}
-
-                      <div className="flex space-x-2">
+                      
+                      <div className="flex items-center space-x-2 pt-2">
                         <Button 
+                          variant="outline" 
                           size="sm" 
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            onConfigureIntegration(integration);
-                          }}
+                          onClick={() => handleConfigureIntegration(integration)}
                           className="flex-1"
                         >
                           <Settings className="h-4 w-4 mr-1" />
                           Configurar
                         </Button>
-
-                        {(integration.id === 'gmail-oauth2' || integration.id === 'outlook-oauth2') && (
-                          <Button 
-                            size="sm" 
-                            variant="secondary"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              startOAuthFlow(integration);
-                            }}
-                            className="flex-1"
-                          >
-                            <Key className="h-4 w-4 mr-1" />
-                            OAuth2
-                          </Button>
-                        )}
-
                         <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handleTestIntegration(integration.id);
-                          }}
-                          disabled={testingIntegrationId === integration.id}
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleTestIntegration(integration.id)}
+                          disabled={isTestingThis}
+                          className="px-3"
                         >
-                          {testingIntegrationId === integration.id ? (
-                            <>
-                              <div className="h-4 w-4 mr-1 animate-spin border-2 border-current border-t-transparent rounded-full" />
-                              Testando...
-                            </>
+                          {isTestingThis ? (
+                            <div className="flex items-center">
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900 mr-1"></div>
+                              <span className="text-xs">Testando...</span>
+                            </div>
                           ) : (
                             <>
-                              <ExternalLink className="h-4 w-4 mr-1" />
-                              Testar
+                              <Activity className="h-4 w-4 mr-1" />
+                              <span className="text-xs">Testar</span>
                             </>
                           )}
                         </Button>
                       </div>
-
-                      {integration.lastSync && (
-                        <p className="text-xs text-gray-500 mt-2">
-                          Última sincronização: {new Date(integration.lastSync).toLocaleDateString()}
-                        </p>
-                      )}
                     </CardContent>
                   </Card>
                 );
@@ -943,38 +671,44 @@ export default function TenantAdminIntegrations() {
             </div>
           </TabsContent>
         ))}
+
+        <TabsContent value="certificates">
+          <CertificateManager />
+        </TabsContent>
       </Tabs>
 
-      {/* Dialog de Configuração */}
+      {/* Configuration Dialog */}
       <Dialog open={isConfigDialogOpen} onOpenChange={setIsConfigDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto" aria-describedby="integration-config-description">
+        <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>
-              Configurar {selectedIntegration?.name}
+            <DialogTitle className="flex items-center space-x-2">
+              {selectedIntegration && (
+                <>
+                  {React.createElement(selectedIntegration.icon, { className: "h-5 w-5" })}
+                  <span>Configurar {selectedIntegration.name}</span>
+                </>
+              )}
             </DialogTitle>
-            <DialogDescription id="integration-config-description">
-              Configure os parâmetros necessários para ativar esta integração no seu workspace.
+            <DialogDescription>
+              Configure os parâmetros de integração para {selectedIntegration?.name}.
+              {isLoadingConfig && (
+                <div className="text-blue-600 mt-2">Carregando configurações salvas...</div>
+              )}
             </DialogDescription>
           </DialogHeader>
 
-          {selectedIntegration && (
-            <Form {...configForm}>
-              <form onSubmit={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                configForm.handleSubmit(onSubmitConfig)(e);
-              }} className="space-y-4">
+          <Form {...configForm}>
+            <form onSubmit={configForm.handleSubmit(onSubmitConfig)} className="space-y-6">
+              <div className="space-y-4">
                 <FormField
                   control={configForm.control}
                   name="enabled"
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                       <div className="space-y-0.5">
-                        <FormLabel className="text-base">
-                          Habilitar Integração
-                        </FormLabel>
-                        <div className="text-sm text-gray-500">
-                          Ativar ou desativar esta integração
+                        <FormLabel className="text-base">Ativar integração</FormLabel>
+                        <div className="text-sm text-muted-foreground">
+                          Habilita ou desabilita esta integração
                         </div>
                       </div>
                       <FormControl>
@@ -987,367 +721,43 @@ export default function TenantAdminIntegrations() {
                   )}
                 />
 
-                {/* Campos específicos para OAuth2 */}
-                {(selectedIntegration.id === 'gmail-oauth2' || selectedIntegration.id === 'outlook-oauth2') && (
-                  <>
-                    <FormField
-                      control={configForm.control}
-                      name="clientId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>
-                            {selectedIntegration.id === 'gmail-oauth2' ? 'Client ID (Google Cloud Console)' : 'Application (Client) ID (Azure AD)'}
-                          </FormLabel>
-                          <FormControl>
-                            <Input placeholder="Ex: 123456789-abcdef.apps.googleusercontent.com" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={configForm.control}
-                      name="clientSecret"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Client Secret</FormLabel>
-                          <FormControl>
-                            <Input type="password" placeholder="Client Secret" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={configForm.control}
-                      name="redirectUri"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Redirect URI</FormLabel>
-                          <FormControl>
-                            <Input 
-                              placeholder={`${window.location.origin}/auth/${selectedIntegration.id}/callback`} 
-                              {...field} 
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    {selectedIntegration.id === 'outlook-oauth2' && (
-                      <FormField
-                        control={configForm.control}
-                        name="tenantId"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Tenant ID (Opcional)</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Azure AD Tenant ID" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    )}
-                  </>
-                )}
-
-                {/* Campos para SMTP */}
-                {selectedIntegration.id === 'email-smtp' && (
-                  <>
-                    <FormField
-                      control={configForm.control}
-                      name="serverHost"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Servidor SMTP</FormLabel>
-                          <FormControl>                            <Input placeholder="smtp.gmail.com" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={configForm.control}
-                      name="serverPort"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Porta</FormLabel>
-                          <FormControl>
-                            <Input placeholder="587" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={configForm.control}
-                      name="username"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Usuário</FormLabel>
-                          <FormControl>
-                            <Input placeholder="usuario@exemplo.com" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={configForm.control}
-                      name="password"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Senha</FormLabel>
-                          <FormControl>
-                            <Input type="password" placeholder="Senha do email" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={configForm.control}
-                      name="useSSL"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                          <div className="space-y-0.5">
-                            <FormLabel className="text-base">
-                              Usar SSL/TLS
-                            </FormLabel>
-                            <div className="text-sm text-gray-500">
-                              Habilitar conexão segura
-                            </div>
-                          </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </>
-                )}
-
-                {/* Campos para IMAP Email */}
-                {selectedIntegration.id === 'imap-email' && (
-                  <>
-                    <FormField
-                      control={configForm.control}
-                      name="imapServer"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Servidor IMAP</FormLabel>
-                          <FormControl>
-                            <Input placeholder="imap.gmail.com" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={configForm.control}
-                      name="imapPort"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Porta IMAP</FormLabel>
-                          <FormControl>
-                            <Input placeholder="993" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={configForm.control}
-                      name="emailAddress"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Endereço de Email</FormLabel>
-                          <FormControl>
-                            <Input type="email" placeholder="suporte@empresa.com" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={configForm.control}
-                      name="password"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Senha do Email</FormLabel>
-                          <FormControl>
-                            <Input type="password" placeholder="Senha ou App Password" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={configForm.control}
-                      name="imapSecurity"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Tipo de Segurança</FormLabel>
-                          <FormControl>
-                            <select 
-                              {...field} 
-                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                            >
-                              <option value="SSL/TLS">SSL/TLS (Porta 993)</option>
-                              <option value="STARTTLS">STARTTLS (Porta 143)</option>
-                              <option value="None">Sem criptografia (Porta 143)</option>
-                            </select>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={configForm.control}
-                      name="useSSL"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                          <div className="space-y-0.5">
-                            <FormLabel className="text-base">
-                              Usar SSL/TLS
-                            </FormLabel>
-                            <div className="text-sm text-gray-500">
-                              Habilitar conexão segura IMAP
-                            </div>
-                          </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </>
-                )}
-
-                {/* Campos para Dropbox Pessoal */}
-                {selectedIntegration.id === 'dropbox-personal' && (
-                  <>
-                    <FormField
-                      control={configForm.control}
-                      name="dropboxAppKey"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>App Key</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Chave da aplicação Dropbox" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={configForm.control}
-                      name="dropboxAppSecret"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>App Secret</FormLabel>
-                          <FormControl>
-                            <Input type="password" placeholder="Segredo da aplicação Dropbox" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={configForm.control}
-                      name="dropboxAccessToken"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Access Token</FormLabel>
-                          <FormControl>
-                            <Input type="password" placeholder="Token de acesso da conta pessoal" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={configForm.control}
-                      name="backupFolder"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Pasta de Backup</FormLabel>
-                          <FormControl>
-                            <Input placeholder="/Backups/Conductor" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </>
-                )}
-
-                {/* Campos para Telegram */}
-                {selectedIntegration.id === 'telegram' && (
+                {selectedIntegration?.id === 'telegram' && (
                   <>
                     <FormField
                       control={configForm.control}
                       name="telegramBotToken"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Bot Token</FormLabel>
+                          <FormLabel>Token do Bot Telegram *</FormLabel>
                           <FormControl>
-                            <Input type="password" placeholder="Token do Bot Telegram" {...field} />
+                            <Input
+                              placeholder="123456789:ABCdefGHIjklMNOpqrSTUvwxyz"
+                              {...field}
+                            />
                           </FormControl>
+                          <div className="text-sm text-muted-foreground">
+                            Token obtido do @BotFather no Telegram
+                          </div>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
+
                     <FormField
                       control={configForm.control}
                       name="telegramChatId"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Chat ID</FormLabel>
+                          <FormLabel>Chat ID / Username</FormLabel>
                           <FormControl>
-                            <Input placeholder="ID do chat para enviar mensagens" {...field} />
+                            <Input
+                              placeholder="@meucanal ou -1001234567890"
+                              {...field}
+                            />
                           </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </>
-                )}
-
-                {/* Campos genéricos para outras integrações */}
-                {!['gmail-oauth2', 'outlook-oauth2', 'email-smtp', 'imap-email', 'dropbox-personal', 'telegram'].includes(selectedIntegration.id) && (
-                  <>
-                    <FormField
-                      control={configForm.control}
-                      name="apiKey"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>API Key</FormLabel>
-                          <FormControl>
-                            <Input type="password" placeholder="API Key da integração" {...field} />
-                          </FormControl>
+                          <div className="text-sm text-muted-foreground">
+                            ID do chat ou username do canal/grupo onde enviar mensagens
+                          </div>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -1355,38 +765,51 @@ export default function TenantAdminIntegrations() {
 
                     <FormField
                       control={configForm.control}
-                      name="webhookUrl"
+                      name="telegramWebhookUrl"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Webhook URL</FormLabel>
+                          <FormLabel>URL do Webhook</FormLabel>
                           <FormControl>
-                            <Input placeholder="https://seu-webhook.com/endpoint" {...field} />
+                            <Input
+                              placeholder="https://seudominio.com/webhook/telegram"
+                              {...field}
+                            />
                           </FormControl>
+                          <div className="text-sm text-muted-foreground">
+                            URL para receber webhooks do Telegram (opcional)
+                          </div>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
                   </>
                 )}
+              </div>
 
-                <div className="flex justify-end space-x-2 pt-4">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setIsConfigDialogOpen(false)}
-                  >
-                    Cancelar
-                  </Button>
-                  <Button
-                    type="submit"
-                    disabled={saveConfigMutation.isPending}
-                  >
-                    {saveConfigMutation.isPending ? "Salvando..." : "Salvar Configuração"}
-                  </Button>
-                </div>
-              </form>
-            </Form>
-          )}
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setIsConfigDialogOpen(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={saveConfigMutation.isPending}
+                >
+                  {saveConfigMutation.isPending ? (
+                    <div className="flex items-center">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Salvando...
+                    </div>
+                  ) : (
+                    'Salvar Configuração'
+                  )}
+                </Button>
+              </div>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
     </div>
