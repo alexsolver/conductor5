@@ -111,8 +111,8 @@ export const ticketFormSchema = z.object({
   followers: z.array(z.string().uuid()).default([]),
   tags: z.array(z.string().max(50)).default([]),
 
-  // Relacionamento com Empresa
-  customerCompanyId: z.string().refine(val => !val || z.string().uuid().safeParse(val).success, "ID da Empresa deve ser um UUID válido").optional(),
+  // Relacionamento com empresa cliente
+  customerCompanyId: z.string().refine(val => !val || z.string().uuid().safeParse(val).success, "ID da empresa deve ser um UUID válido").optional(),
 
   // Ambiente
   environment: z.string().max(100).optional(),

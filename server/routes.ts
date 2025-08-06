@@ -1126,62 +1126,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const tenantIntegrationsRoutes = await import('./routes/tenantIntegrations');
   app.use('/api/saas-admin', saasAdminRoutes.default);
   app.use('/api/tenant-admin', tenantAdminRoutes.default);
-  
-  // Webhook routes para integrações (sem autenticação para permitir callbacks externos)
-  app.post('/api/webhooks/telegram/:tenantId', async (req, res) => {
-    try {
-      const { tenantId } = req.params;
-      const telegramUpdate = req.body;
-
-      console.log(`📱 [TELEGRAM-WEBHOOK] Received update for tenant ${tenantId}:`, JSON.stringify(telegramUpdate, null, 2));
-
-      // Basic validation
-      if (!telegramUpdate || !telegramUpdate.update_id) {
-        return res.status(400).json({ 
-          success: false, 
-          error: 'Invalid Telegram webhook data' 
-        });
-      }
-
-      // Process the update based on message type
-      if (telegramUpdate.message) {
-        const message = telegramUpdate.message;
-        const chatId = message.chat.id;
-        const text = message.text || message.caption || '';
-        const from = message.from;
-
-        console.log(`📱 [TELEGRAM-MESSAGE] From ${from.first_name} (${from.id}) in chat ${chatId}: ${text}`);
-
-        // Here you can implement logic to:
-        // 1. Create tickets from Telegram messages
-        // 2. Send automated responses
-        // 3. Route messages to appropriate agents
-        // 4. Log interactions
-
-        // Example: Auto-create ticket from Telegram message
-        if (text.toLowerCase().includes('/ticket') || text.toLowerCase().includes('/help')) {
-          console.log(`📱 [TELEGRAM-TICKET] Creating ticket from Telegram message for tenant ${tenantId}`);
-          // TODO: Implement ticket creation logic here
-        }
-      }
-
-      // Always respond with 200 to acknowledge receipt
-      res.status(200).json({ 
-        success: true, 
-        message: 'Telegram webhook processed successfully',
-        update_id: telegramUpdate.update_id,
-        timestamp: new Date().toISOString()
-      });
-
-    } catch (error) {
-      console.error('❌ [TELEGRAM-WEBHOOK] Error processing webhook:', error);
-      res.status(500).json({ 
-        success: false, 
-        error: 'Internal server error' 
-      });
-    }
-  });
-  
   // Removed: journey API routes - functionality eliminated from system
   app.use('/api/schedule', scheduleRoutes);
 
@@ -1326,7 +1270,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return await ticketTemplateController.getTemplateCategories(req, res);
     });
 
-    // Templates por Empresa
+    // Templates por empresa cliente
     app.get('/api/ticket-templates/company/:customerCompanyId', jwtAuth, ticketTemplateController.getTemplatesByCompany.bind(ticketTemplateController));
     app.post('/api/ticket-templates/company/:customerCompanyId', jwtAuth, ticketTemplateController.createTemplate.bind(ticketTemplateController)); 
 

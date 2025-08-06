@@ -106,7 +106,6 @@ const integrationConfigSchema = z.object({
   // Telegram specific fields
   telegramBotToken: z.string().optional(),
   telegramChatId: z.string().optional(),
-  telegramWebhookUrl: z.string().optional(),
 });
 
 export default function TenantAdminIntegrations() {
@@ -142,16 +141,28 @@ export default function TenantAdminIntegrations() {
       // Telegram default values
       telegramBotToken: '',
       telegramChatId: '',
-      telegramWebhookUrl: '',
     },
   });
 
   // Query para buscar integrações
-  const { data: integrationsData, isLoading, error } = useQuery({
+  const { data: integrationsData, isLoading } = useQuery({
     queryKey: ['/api/tenant-admin/integrations'],
-    queryFn: () => apiRequest('GET', '/api/tenant-admin/integrations'),
-    retry: 1,
-    refetchOnWindowFocus: false
+    queryFn: async () => {
+      const response = await fetch('/api/tenant-admin/integrations', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      return response.json();
+    }
   });
 
   // Mutation para salvar configuração
@@ -211,8 +222,8 @@ export default function TenantAdminIntegrations() {
   };
 
   // Map integrations with proper icons and saved configuration status
-  const tenantIntegrations: TenantIntegration[] = (integrationsData as any)?.integrations?.length > 0 
-    ? (integrationsData as any).integrations.map((integration: any) => ({
+  const tenantIntegrations: TenantIntegration[] = integrationsData?.integrations?.length > 0 
+    ? integrationsData.integrations.map((integration: any) => ({
         ...integration,
         icon: getIntegrationIcon(integration.id),
         // Use the actual status from backend instead of overriding it
@@ -468,15 +479,12 @@ export default function TenantAdminIntegrations() {
 
     try {
       // Load existing configuration from API
-      const existingConfig = await apiRequest('GET', `/api/tenant-admin/integrations/${integration.id}/config`);
+      const response = await apiRequest('GET', `/api/tenant-admin/integrations/${integration.id}/config`);
+      const existingConfig = await response.json();
 
 
-      const configData = existingConfig as any;
-      console.log('API response completa:', configData);
-      
-      if (configData && configData.config && (configData.configured === true || Object.keys(configData.config).length > 0)) {
-        const config = configData.config;
-        console.log('Config encontrada:', config);
+      if (existingConfig && existingConfig.config && (existingConfig.configured === true || Object.keys(existingConfig.config).length > 0)) {
+        const config = existingConfig.config;
         // Load existing configuration - dados reais do banco (mascarar dados sensíveis)
         const formValues = {
           enabled: config.enabled === true,
@@ -500,10 +508,9 @@ export default function TenantAdminIntegrations() {
           dropboxAppSecret: config.dropboxAppSecret ? '••••••••' : '', // Mascarar Dropbox secret
           dropboxAccessToken: config.dropboxAccessToken ? '••••••••' : '', // Mascarar access token
           backupFolder: config.backupFolder || '/Backups/Conductor',
-          // Telegram fields (não mascarar para poder editar)
-          telegramBotToken: config.telegramBotToken || '',
+          // Telegram fields
+          telegramBotToken: config.telegramBotToken ? '••••••••' : '',
           telegramChatId: config.telegramChatId || '',
-          telegramWebhookUrl: config.telegramWebhookUrl || `${window.location.origin}/api/webhooks/telegram/${localStorage.getItem('tenantId')}`,
         };
 
         configForm.reset(formValues);
@@ -540,7 +547,6 @@ export default function TenantAdminIntegrations() {
           // Telegram default values
           telegramBotToken: '',
           telegramChatId: '',
-          telegramWebhookUrl: `${window.location.origin}/api/webhooks/telegram/${localStorage.getItem('tenantId')}`,
         });
       }
     } catch (error) {
@@ -571,7 +577,6 @@ export default function TenantAdminIntegrations() {
         // Telegram default values
         telegramBotToken: '',
         telegramChatId: '',
-        telegramWebhookUrl: `${window.location.origin}/api/webhooks/telegram/${localStorage.getItem('tenantId')}`,
       });
     }
 
@@ -586,16 +591,13 @@ export default function TenantAdminIntegrations() {
         redirectUri: window.location.origin + `/auth/${integration.id}/callback`
       });
 
-      const responseData = response as any;
-      if (responseData?.authUrl && typeof responseData.authUrl === 'string') {
+      if (response.authUrl) {
         // Open OAuth2 URL in new window
-        window.open(responseData.authUrl, 'oauth2', 'width=600,height=600,scrollbars=yes,resizable=yes');
+        window.open(response.authUrl, 'oauth2', 'width=600,height=600,scrollbars=yes,resizable=yes');
         toast({
           title: "OAuth2 Iniciado",
           description: "Janela de autorização aberta. Complete o processo de login.",
         });
-      } else {
-        throw new Error('URL de autorização não encontrada na resposta');
       }
     } catch (error: any) {
       toast({
@@ -617,14 +619,14 @@ export default function TenantAdminIntegrations() {
           ...data,
           // Garantir que campos IMAP estejam presentes
           imapServer: data.imapServer || 'imap.gmail.com',
-          imapPort: data.imapPort || '993',
+          imapPort: parseInt(data.imapPort || '993') || 993,
           emailAddress: data.emailAddress || '',
           password: data.password || '',
           useSSL: data.useSSL !== false,
           enabled: data.enabled === true,
           // Manter compatibilidade com outros campos
           serverHost: data.imapServer || 'imap.gmail.com',
-          serverPort: data.imapPort || '993',
+          serverPort: parseInt(data.imapPort || '993') || 993,
           username: data.emailAddress || ''
         };
       }
