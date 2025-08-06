@@ -1,5 +1,5 @@
 import { eq, and, like, desc, or, sql, inArray } from 'drizzle-orm';
-import { items, itemAttachments, itemLinks, itemCustomerLinks, itemSupplierLinks } from '../../../../../shared/schema-master';
+import { items, itemAttachments, itemLinks, itemCustomerLinks, itemSupplierLinks, customerItemMappings } from '../../../../../shared/schema-master';
 import type { Item } from '../../domain/entities';
 import type { ExtractTablesWithRelations } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
@@ -308,24 +308,24 @@ export class ItemRepository {
 
   async getSupplierLinks(itemId: string, tenantId: string) {
     try {
-      // Usar supplier_item_links (tabela correta)
+      // Usar item_supplier_links (tabela correta no schema)
       return await this.db
         .select({
-          id: supplierItemLinks.id,
-          tenantId: supplierItemLinks.tenantId,
-          itemId: supplierItemLinks.itemId,
-          supplierId: supplierItemLinks.supplierId,
-          supplierItemCode: supplierItemLinks.supplierItemCode,
-          supplierItemName: supplierItemLinks.supplierItemName,
-          // leadTime: supplierItemLinks.leadTime, // Column doesn't exist in current schema
-          // minimumOrder: supplierItemLinks.minimumOrder, // Column doesn't exist in current schema
-          isPreferred: supplierItemLinks.isPreferred,
-          isActive: supplierItemLinks.isActive,
-          createdAt: supplierItemLinks.createdAt
+          id: itemSupplierLinks.id,
+          tenantId: itemSupplierLinks.tenantId,
+          itemId: itemSupplierLinks.itemId,
+          supplierId: itemSupplierLinks.supplierId,
+          supplierItemCode: itemSupplierLinks.supplierItemCode,
+          supplierItemName: itemSupplierLinks.supplierItemName,
+          // leadTime: itemSupplierLinks.leadTime, // Column doesn't exist in current schema
+          // minimumOrder: itemSupplierLinks.minimumOrder, // Column doesn't exist in current schema
+          isPreferred: itemSupplierLinks.isPreferred,
+          isActive: itemSupplierLinks.isActive,
+          createdAt: itemSupplierLinks.createdAt
         })
-        .from(supplierItemLinks)
-        .where(and(eq(supplierItemLinks.itemId, itemId), eq(supplierItemLinks.tenantId, tenantId)))
-        .orderBy(desc(supplierItemLinks.createdAt));
+        .from(itemSupplierLinks)
+        .where(and(eq(itemSupplierLinks.itemId, itemId), eq(itemSupplierLinks.tenantId, tenantId)))
+        .orderBy(desc(itemSupplierLinks.createdAt));
     } catch (error: any) {
       if (error.code === '42P01') { // relation does not exist
         return [];
@@ -382,11 +382,11 @@ export class ItemRepository {
         if (error.code !== '42P01') throw error; // Ignore table not found
       }
 
-      // supplier_item_links (esta tabela existe)
+      // item_supplier_links (tabela correta no schema)
       try {
-        await this.db.delete(supplierItemLinks).where(and(
-          eq(supplierItemLinks.itemId, itemId),
-          eq(supplierItemLinks.tenantId, tenantId)
+        await this.db.delete(itemSupplierLinks).where(and(
+          eq(itemSupplierLinks.itemId, itemId),
+          eq(itemSupplierLinks.tenantId, tenantId)
         ));
       } catch (error: any) {
         if (error.code !== '42P01') throw error; // Ignore table not found
@@ -408,7 +408,7 @@ export class ItemRepository {
         promises.push(this.db.insert(customerItemMappings).values(customerLinkData));
       }
 
-      // Vínculos de fornecedores (usar supplier_item_links)
+      // Vínculos de fornecedores (usar item_supplier_links)
       if (links.suppliers.length > 0) {
         const supplierLinkData = links.suppliers.map(supplierId => ({
           tenantId,
@@ -417,7 +417,7 @@ export class ItemRepository {
           createdBy,
           createdAt: new Date()
         }));
-        promises.push(this.db.insert(supplierItemLinks).values(supplierLinkData));
+        promises.push(this.db.insert(itemSupplierLinks).values(supplierLinkData));
       }
 
       if (promises.length > 0) {

@@ -609,25 +609,88 @@ export default function ItemCatalog() {
                           </CardDescription>
                         </CardHeader>
                         <CardContent>
-                          <div className="space-y-3">
-                            {(availableItems as any)?.data?.filter((item: any) => item.id !== selectedItem?.id)?.map((item: any) => (
-                              <div key={item.id} className="flex items-center space-x-2">
-                                <Checkbox
-                                  id={`item-${item.id}`}
-                                  checked={linkedItems.includes(item.id)}
-                                  onCheckedChange={(checked) => {
-                                    if (checked) {
-                                      setLinkedItems([...linkedItems, item.id]);
-                                    } else {
-                                      setLinkedItems(linkedItems.filter(id => id !== item.id));
-                                    }
-                                  }}
-                                />
-                                <label htmlFor={`item-${item.id}`} className="text-sm">
-                                  {item.name}
-                                </label>
+                          <div className="space-y-4">
+                            {/* Separação Visual - Materiais */}
+                            {(availableItems as any)?.data?.filter((item: any) => item.id !== selectedItem?.id && item.type === 'material').length > 0 && (
+                              <div className="space-y-2">
+                                <div className="flex items-center gap-2 pb-2 border-b border-blue-200">
+                                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                  <h5 className="text-xs font-semibold text-blue-700 uppercase tracking-wide">Materiais Disponíveis</h5>
+                                  <Badge variant="outline" className="text-xs bg-blue-50 text-blue-600 border-blue-200">
+                                    {(availableItems as any)?.data?.filter((item: any) => item.id !== selectedItem?.id && item.type === 'material').length}
+                                  </Badge>
+                                </div>
+                                <div className="space-y-2 pl-4">
+                                  {(availableItems as any)?.data?.filter((item: any) => item.id !== selectedItem?.id && item.type === 'material')?.map((item: any) => (
+                                    <div key={item.id} className="flex items-center space-x-2 p-2 rounded border-l-4 border-l-blue-400 bg-blue-50/30">
+                                      <Checkbox
+                                        id={`item-${item.id}`}
+                                        checked={linkedItems.includes(item.id)}
+                                        onCheckedChange={(checked) => {
+                                          if (checked) {
+                                            setLinkedItems([...linkedItems, item.id]);
+                                          } else {
+                                            setLinkedItems(linkedItems.filter(id => id !== item.id));
+                                          }
+                                        }}
+                                      />
+                                      <div className="flex items-center gap-2 flex-1">
+                                        <Badge variant="default" className="bg-blue-500 text-xs">
+                                          Material
+                                        </Badge>
+                                        <label htmlFor={`item-${item.id}`} className="text-sm font-medium">
+                                          {item.name}
+                                        </label>
+                                        {item.integrationCode && (
+                                          <span className="text-xs text-gray-500">({item.integrationCode})</span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
                               </div>
-                            ))}
+                            )}
+
+                            {/* Separação Visual - Serviços */}
+                            {(availableItems as any)?.data?.filter((item: any) => item.id !== selectedItem?.id && item.type === 'service').length > 0 && (
+                              <div className="space-y-2">
+                                <div className="flex items-center gap-2 pb-2 border-b border-green-200">
+                                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                  <h5 className="text-xs font-semibold text-green-700 uppercase tracking-wide">Serviços Disponíveis</h5>
+                                  <Badge variant="outline" className="text-xs bg-green-50 text-green-600 border-green-200">
+                                    {(availableItems as any)?.data?.filter((item: any) => item.id !== selectedItem?.id && item.type === 'service').length}
+                                  </Badge>
+                                </div>
+                                <div className="space-y-2 pl-4">
+                                  {(availableItems as any)?.data?.filter((item: any) => item.id !== selectedItem?.id && item.type === 'service')?.map((item: any) => (
+                                    <div key={item.id} className="flex items-center space-x-2 p-2 rounded border-l-4 border-l-green-400 bg-green-50/30">
+                                      <Checkbox
+                                        id={`item-${item.id}`}
+                                        checked={linkedItems.includes(item.id)}
+                                        onCheckedChange={(checked) => {
+                                          if (checked) {
+                                            setLinkedItems([...linkedItems, item.id]);
+                                          } else {
+                                            setLinkedItems(linkedItems.filter(id => id !== item.id));
+                                          }
+                                        }}
+                                      />
+                                      <div className="flex items-center gap-2 flex-1">
+                                        <Badge variant="secondary" className="bg-green-500 text-white text-xs">
+                                          Serviço
+                                        </Badge>
+                                        <label htmlFor={`item-${item.id}`} className="text-sm font-medium">
+                                          {item.name}
+                                        </label>
+                                        {item.integrationCode && (
+                                          <span className="text-xs text-gray-500">({item.integrationCode})</span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </CardContent>
                       </Card>
