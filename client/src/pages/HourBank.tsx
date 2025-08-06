@@ -10,6 +10,7 @@ import { Clock, TrendingUp, TrendingDown, CalendarDays, AlertCircle, CreditCard 
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { apiRequest } from '@/lib/queryClient';
 
 interface HourBankEntry {
   id: string;
@@ -56,8 +57,7 @@ export default function HourBank() {
   const { data: hourBank, isLoading: hourBankLoading } = useQuery({
     queryKey: ['/api/timecard/hour-bank', selectedUserId, selectedMonth],
     queryFn: async () => {
-      const response = await fetch(`/api/timecard/hour-bank/${selectedUserId}?month=${selectedMonth}`);
-      if (!response.ok) throw new Error('Failed to fetch hour bank data');
+      const response = await apiRequest('GET', `/api/timecard/hour-bank/${selectedUserId}?month=${selectedMonth}`);
       return response.json();
     },
     enabled: selectedUserId !== 'default',
@@ -67,8 +67,7 @@ export default function HourBank() {
   const { data: movements, isLoading: movementsLoading } = useQuery({
     queryKey: ['/api/timecard/hour-bank/movements', selectedUserId, selectedMonth],
     queryFn: async () => {
-      const response = await fetch(`/api/timecard/hour-bank/movements/${selectedUserId}/${selectedMonth}`);
-      if (!response.ok) throw new Error('Failed to fetch movements');
+      const response = await apiRequest('GET', `/api/timecard/hour-bank/movements/${selectedUserId}/${selectedMonth}`);
       return response.json();
     },
     enabled: selectedUserId !== 'default',
@@ -82,6 +81,10 @@ export default function HourBank() {
   // Buscar resumo geral
   const { data: summary } = useQuery({
     queryKey: ['/api/timecard/hour-bank/summary'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/timecard/hour-bank/summary');
+      return response.json();
+    }
   });
 
   const formatHours = (hours: number) => {

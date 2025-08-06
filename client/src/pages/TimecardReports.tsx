@@ -10,6 +10,7 @@ import { FileText, Download, Calendar, Clock, Users, AlertTriangle, TrendingUp, 
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { apiRequest } from '@/lib/queryClient';
 
 interface ReportFilters {
   startDate: string;
@@ -36,8 +37,7 @@ export default function TimecardReports() {
     queryKey: ['/api/timecard/reports/attendance', filters],
     queryFn: async () => {
       const period = getPeriodFromDates(filters.startDate, filters.endDate);
-      const response = await fetch(`/api/timecard/reports/attendance/${period}`);
-      if (!response.ok) throw new Error('Failed to fetch attendance report');
+      const response = await apiRequest('GET', `/api/timecard/reports/attendance/${period}`);
       return response.json();
     },
     enabled: filters.reportType === 'attendance',
@@ -47,8 +47,7 @@ export default function TimecardReports() {
     queryKey: ['/api/timecard/reports/overtime', filters],
     queryFn: async () => {
       const period = getPeriodFromDates(filters.startDate, filters.endDate);
-      const response = await fetch(`/api/timecard/reports/overtime/${period}`);
-      if (!response.ok) throw new Error('Failed to fetch overtime report');
+      const response = await apiRequest('GET', `/api/timecard/reports/overtime/${period}`);
       return response.json();
     },
     enabled: filters.reportType === 'overtime',
@@ -57,8 +56,7 @@ export default function TimecardReports() {
   const { data: complianceReport, isLoading: complianceLoading } = useQuery({
     queryKey: ['/api/timecard/reports/compliance', filters],
     queryFn: async () => {
-      const response = await fetch(`/api/timecard/compliance/reports`);
-      if (!response.ok) throw new Error('Failed to fetch compliance report');
+      const response = await apiRequest('GET', '/api/timecard/compliance/reports');
       return response.json();
     },
     enabled: filters.reportType === 'compliance',
