@@ -1,10 +1,10 @@
 /**
- * Company Domain Entity
+ * CustomerCompany Domain Entity
  * Clean Architecture - Domain Layer
  * Represents a customer organization with business rules and validation
  */
 
-export class Company {
+export class CustomerCompany {
   constructor(
     private readonly id: string,
     private readonly tenantId: string,
@@ -186,8 +186,8 @@ export class Company {
     industry?: string | null;
     size?: 'small' | 'medium' | 'large' | 'enterprise' | null;
     updatedBy: string;
-  }): Company {
-    return new Company(
+  }): CustomerCompany {
+    return new CustomerCompany(
       this.id,
       this.tenantId,
       props.name !== undefined ? props.name : this.name,
@@ -224,8 +224,8 @@ export class Company {
     website?: string | null;
     address?: Record<string, string>;
     updatedBy: string;
-  }): Company {
-    return new Company(
+  }): CustomerCompany {
+    return new CustomerCompany(
       this.id,
       this.tenantId,
       this.name,
@@ -262,8 +262,8 @@ export class Company {
     maxUsers?: number | null;
     maxTickets?: number | null;
     updatedBy: string;
-  }): Company {
-    return new Company(
+  }): CustomerCompany {
+    return new CustomerCompany(
       this.id,
       this.tenantId,
       this.name,
@@ -298,8 +298,8 @@ export class Company {
     status?: 'active' | 'inactive' | 'suspended' | 'trial';
     isActive?: boolean;
     updatedBy: string;
-  }): Company {
-    return new Company(
+  }): CustomerCompany {
+    return new CustomerCompany(
       this.id,
       this.tenantId,
       this.name,
@@ -344,8 +344,8 @@ export class Company {
     address?: Record<string, string>;
     subscriptionTier?: 'basic' | 'premium' | 'enterprise';
     createdBy: string;
-  }): Company {
-    return new Company(
+  }): CustomerCompany {
+    return new CustomerCompany(
       crypto.randomUUID(),
       props.tenantId,
       props.name,
@@ -376,8 +376,8 @@ export class Company {
     );
   }
 
-  static fromPersistence(data: Record<string, unknown>): Company {
-    return new Company(
+  static fromPersistence(data: Record<string, unknown>): CustomerCompany {
+    return new CustomerCompany(
       data.id,
       data.tenantId,
       data.name,

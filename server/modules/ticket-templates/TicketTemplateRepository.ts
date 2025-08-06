@@ -291,6 +291,6 @@ export class TicketTemplateRepository {
     `;
     
     const result = await pool.query(query, values);
-    return result.rows.map((row: any) => row.category);
+    return result.rows.map(row => row.category);
   }
 }

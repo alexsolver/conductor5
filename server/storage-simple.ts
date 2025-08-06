@@ -490,7 +490,7 @@ export class DatabaseStorage implements IStorage {
         throw new Error('Ticket subject and customer ID are required');
       }
 
-      // Get company ID for numbering configuration  
+      // Get company ID for numbering configuration
       const companyId = ticketData.customer_company_id || '00000000-0000-0000-0000-000000000001'; // Default company
 
       // Generate ticket number using configuration
@@ -792,13 +792,26 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getBeneficiary(id: string, tenantId: string): Promise<any | null> {
-    try {
-      const validatedTenantId = await validateTenantAccess(tenantId);
-      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+  async getBeneficiaries(tenantId: string, options: { limit?: number; offset?: number; search?: string } = {}) {
+    const { limit = 20, offset = 0, search } = options;
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-      const result = await tenantDb.execute(sql`
+    try {
+      // First check if table exists
+      const tenantDb = await poolManager.getTenantConnection(tenantId);
+      const tableCheck = await tenantDb.execute(sql`
+        SELECT EXISTS (
+          SELECT FROM information_schema.tables 
+          WHERE table_schema = ${schemaName} AND table_name = 'beneficiaries'
+        )
+      `);
+
+      if (!tableCheck.rows[0].exists) {
+        console.log(`Favorecidos table does not exist in schema ${schemaName}`);
+        return [];
+      }
+
+      let query = sql`
         SELECT 
           id,
           tenant_id,
@@ -819,24 +832,62 @@ export class DatabaseStorage implements IStorage {
           created_at,
           updated_at
         FROM ${sql.identifier(schemaName)}.beneficiaries 
-        WHERE id = ${id} AND tenant_id = ${validatedTenantId}
-      `);
+        WHERE tenant_id = ${tenantId}
+      `;
 
-      const favorecido = result.rows?.[0] || null;
-
-      // Adicionar fullName computed field para compatibilidade frontend
-      if (favorecido) {
-        favorecido.fullName = `${favorecido.first_name || ''} ${favorecido.last_name || ''}`.trim();
+      if (search) {
+        query = sql`${query} AND (
+          first_name ILIKE ${`%${search}%`} OR 
+          last_name ILIKE ${`%${search}%`} OR 
+          email ILIKE ${`%${search}%`} OR
+          customer_code ILIKE ${`%${search}%`}
+        )`;
       }
 
-      return favorecido;
+      query = sql`${query} ORDER BY created_at DESC`;
+
+      if (limit > 0) {
+        query = sql`${query} LIMIT ${limit}`;
+
+        if (offset > 0) {
+          query = sql`${query} OFFSET ${offset}`;
+        }
+      }
+
+      const result = await tenantDb.execute(query);
+      console.log(`Found ${result.rows.length} beneficiaries in ${schemaName}`);
+
+      // Padronizar mapeamento de dados para interfaceconsistente
+      const beneficiaries = (result.rows || []).map(favorecido => ({
+        id: favorecido.id,
+        tenantId: favorecido.tenant_id,
+        firstName: favorecido.first_name,
+        lastName: favorecido.last_name,
+        fullName: `${favorecido.first_name || ''} ${favorecido.last_name || ''}`.trim(),
+        email: favorecido.email,
+        birthDate: favorecido.birth_date,
+        rg: favorecido.rg,
+        cpfCnpj: favorecido.cpf_cnpj,
+        isActive: favorecido.is_active,
+        customerCode: favorecido.customer_code,
+        customerId: favorecido.customer_id,
+        phone: favorecido.phone,
+        cellPhone: favorecido.cell_phone,
+        contactPerson: favorecido.contact_person,
+        contactPhone: favorecido.contact_phone,
+        createdAt: favorecido.created_at,
+        updatedAt: favorecido.updated_at
+      }));
+
+      console.log(`Fetched ${beneficiaries.length} beneficiaries for tenant ${tenantId}`);
+      return beneficiaries;
     } catch (error) {
-      logError('Error fetching favorecido', error, { id, tenantId });
-      throw error;
+      console.error('Error fetching beneficiaries:', error);
+      return []; // Return empty array instead of throwing
     }
   }
 
-  async createCliente(tenantId: string, data: any): Promise<any> {
+  async getBeneficiary(id: string, tenantId: string): Promise<any | null> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
@@ -2916,15 +2967,31 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  // Get beneficiaries for a specific customer
-  async getCustomerBeneficiaries(tenantId: string, customerId: string) {
-    try {
-      const validatedTenantId = await validateTenantAccess(tenantId);
-      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
-      console.log(`Fetching beneficiaries for customer ${customerId} in tenant ${tenantId}`);
+    // Get beneficiaries with pagination and search
+  async getBeneficiaries(tenantId: string, options: {
+    limit?: number;
+    offset?: number;
+    search?: string;
+  } = {}) {
+    const { limit = 20, offset = 0, search } = options;
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-      const result = await tenantDb.execute(sql`
+    try {
+      // First check if table exists
+      const tenantDb = await poolManager.getTenantConnection(tenantId);
+      const tableCheck = await tenantDb.execute(sql`
+        SELECT EXISTS (
+          SELECT FROM information_schema.tables 
+          WHERE table_schema = ${schemaName} AND table_name = 'beneficiaries'
+        )
+      `);
+
+      if (!tableCheck.rows[0].exists) {
+        console.log(`Favorecidos table does not exist in schema ${schemaName}`);
+        return [];
+      }
+
+      let query = sql`
         SELECT 
           id,
           tenant_id,
@@ -2945,29 +3012,22 @@ export class DatabaseStorage implements IStorage {
           created_at,
           updated_at
         FROM ${sql.identifier(schemaName)}.beneficiaries 
-        WHERE tenant_id = ${tenantId} AND customer_id = ${customerId} AND is_active = true
-        ORDER BY first_name, last_name
-      `);
+        WHERE tenant_id = ${tenantId}
+      `;
 
-      const beneficiaries = result.rows || [];
+      if (search) {
+        query = sql`${query} AND (
+          first_name ILIKE ${`%${search}%`} OR 
+          last_name ILIKE ${`%${search}%`} OR 
+          email ILIKE ${`%${search}%`} OR
+          customer_code ILIKE ${`%${search}%`}
+        )`;
+      }
 
-      console.log(`Found ${beneficiaries.length} beneficiaries for customer ${customerId}`);
-      return beneficiaries;
-    } catch (error) {
-      console.error('Error fetching customer beneficiaries:', error);
-      throw error;
-    }
-  }
-}
+      query = sql`${query} ORDER BY created_at DESC`;
 
-// Export singleton instance
-export const storage = new DatabaseStorage();
-export const storageSimple = storage;
-export const unifiedStorage = storage;
-
-// Storage getter function for use in routes
-export async function getStorage() {
-  return storage;
+      if (limit > 0) {
+        query = sql`${query} LIMIT ${limit}`;
 
         if (offset > 0) {
           query = sql`${query} OFFSET ${offset}`;

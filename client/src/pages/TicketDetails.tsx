@@ -42,7 +42,6 @@ import { DynamicBadge } from "@/components/DynamicBadge";
 import { SmartDynamicBadge } from "@/components/SmartDynamicBadge";
 import { useTicketMetadata } from "@/hooks/useTicketMetadata";
 import { useFieldColors } from "@/hooks/useFieldColors";
-import { useFieldLabels } from "@/hooks/useFieldLabels";
 import { UserSelect } from "@/components/ui/UserSelect";
 import { UserMultiSelect } from "@/components/ui/UserMultiSelect";
 import TicketLinkingModal from "@/components/tickets/TicketLinkingModal";
@@ -64,8 +63,7 @@ const TicketDetails = React.memo(() => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isEditMode, setIsEditMode] = useState(false);
-  const { getFieldColor, isLoading: isFieldColorsLoading } = useFieldColors();
-  const { getFieldLabel, isLoading: isFieldLabelsLoading } = useFieldLabels();
+  const { getFieldColor, getFieldLabel, isLoading: isFieldColorsLoading } = useFieldColors();
 
   // Extract query parameters from URL
   const urlParams = new URLSearchParams(location.split('?')[1] || '');

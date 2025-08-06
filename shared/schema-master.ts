@@ -245,7 +245,7 @@ export const tickets = pgTable("tickets", {
   businessImpact: text("business_impact"),
   callerId: uuid("caller_id").references(() => customers.id),
   callerType: varchar("caller_type", { length: 50 }).default("customer"),
-  companyId: uuid("company_id").references(() => companies.id), // CRITICAL: Company the ticket belongs to
+  customerCompanyId: uuid("customer_company_id").references(() => customerCompanies.id), // CRITICAL: Company the ticket belongs to
   beneficiaryId: uuid("beneficiary_id").references(() => favorecidos.id),
   beneficiaryType: varchar("beneficiary_type", { length: 50 }).default("customer"),
   responsibleId: uuid("responsible_id").references(() => users.id),
@@ -278,7 +278,7 @@ export const tickets = pgTable("tickets", {
   index("tickets_tenant_status_priority_idx").on(table.tenantId, table.status, table.priority),
   index("tickets_tenant_assigned_idx").on(table.tenantId, table.responsibleId),
   index("tickets_tenant_customer_idx").on(table.tenantId, table.callerId),
-  index("tickets_tenant_company_idx").on(table.tenantId, table.companyId), // CRITICAL: Index for company filtering
+  index("tickets_tenant_company_idx").on(table.tenantId, table.customerCompanyId), // CRITICAL: Index for company filtering
   index("tickets_tenant_environment_idx").on(table.tenantId, table.environment),
   index("tickets_tenant_template_idx").on(table.tenantId, table.templateName),
 ]);
@@ -357,8 +357,8 @@ export const locations = pgTable("locations", {
   index("locations_geo_proximity_idx").on(table.tenantId, table.latitude, table.longitude),
 ]);
 
-// Companies table - Enterprise search and filtering indexes
-export const companies = pgTable("companies", {
+// Customer Companies table - Enterprise search and filtering indexes
+export const customerCompanies = pgTable("customer_companies", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
   name: varchar("name", { length: 255 }).notNull(),
@@ -1443,8 +1443,8 @@ export type InsertActivityLog = typeof activityLogs.$inferInsert;
 export type Location = typeof locations.$inferSelect;
 export type InsertLocation = typeof locations.$inferInsert;
 
-export type Company = typeof companies.$inferSelect;
-export type InsertCompany = typeof companies.$inferInsert;
+export type CustomerCompany = typeof customerCompanies.$inferSelect;
+export type InsertCustomerCompany = typeof customerCompanies.$inferInsert;
 
 export type Skill = typeof skills.$inferSelect;
 export type InsertSkill = typeof skills.$inferInsert;
