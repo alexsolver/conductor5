@@ -842,10 +842,10 @@ export class TimecardController {
       console.log('[ATTENDANCE-REPORT] Date range:', startDate.toISOString(), 'to', endDate.toISOString());
       console.log('[ATTENDANCE-REPORT] User:', userId, 'Tenant:', tenantId);
 
-      // Buscar APENAS registros aprovados do período usando query direta
+      // Buscar registros do período (pending e approved) usando query direta
       const { db } = await import('../../../../db');
       const { timecardEntries } = await import('@shared/schema');
-      const { and, eq, gte, lte, sql } = await import('drizzle-orm');
+      const { and, eq, gte, lte, sql, inArray } = await import('drizzle-orm');
       
       // Teste direto com SQL raw para debug
       console.log('[ATTENDANCE-REPORT] Query params:', {
@@ -855,7 +855,7 @@ export class TimecardController {
         endDateStr: endDate.toISOString().split('T')[0]
       });
 
-      // Buscar todos os registros aprovados do período (incluindo os sem check_in)
+      // Buscar todos os registros do período (pending e approved)
       console.log('[ATTENDANCE-REPORT] Executing query for user:', userId, 'tenant:', tenantId);
       
       const records = await db
@@ -864,7 +864,7 @@ export class TimecardController {
         .where(and(
           eq(timecardEntries.userId, userId),
           eq(timecardEntries.tenantId, tenantId),
-          eq(timecardEntries.status, 'approved'),
+          inArray(timecardEntries.status, ['pending', 'approved']),
           sql`(
             (${timecardEntries.checkIn} IS NOT NULL AND DATE(${timecardEntries.checkIn}) >= ${startDate.toISOString().split('T')[0]} AND DATE(${timecardEntries.checkIn}) <= ${endDate.toISOString().split('T')[0]})
             OR 
@@ -911,10 +911,12 @@ export class TimecardController {
         })));
       }
 
-      // Filtrar apenas registros que têm tanto check_in quanto check_out
-      const validRecords = records.filter(record => record.checkIn && record.checkOut);
+      // Filtrar registros que têm pelo menos check_in (podem não ter check_out se ainda estão trabalhando)
+      const validRecords = records.filter(record => record.checkIn);
       
-      console.log('[ATTENDANCE-REPORT] Valid records (with both check_in and check_out):', validRecords.length);
+      console.log('[ATTENDANCE-REPORT] Valid records (with check_in):', validRecords.length);
+      console.log('[ATTENDANCE-REPORT] Records with checkOut:', records.filter(r => r.checkIn && r.checkOut).length);
+      console.log('[ATTENDANCE-REPORT] Records with only checkIn:', records.filter(r => r.checkIn && !r.checkOut).length);
       
       // Agrupar registros válidos por data
       const recordsByDate = new Map();
@@ -1236,10 +1238,15 @@ export class TimecardController {
     let isConsistent = true;
     let inconsistencyReasons = [];
     
-    if (record.checkIn && record.checkOut) {
+    if (record.checkIn) {
       const workStart = new Date(record.checkIn);
-      const workEnd = new Date(record.checkOut);
+      const workEnd = record.checkOut ? new Date(record.checkOut) : new Date(); // Se não tem checkOut, usar agora
       let workMinutes = (workEnd.getTime() - workStart.getTime()) / (1000 * 60);
+      
+      // Se não tem checkOut, marcar como em andamento
+      if (!record.checkOut) {
+        inconsistencyReasons.push('Registro em andamento - sem horário de saída');
+      }
       
       // Validações de consistência
       
@@ -1308,15 +1315,23 @@ export class TimecardController {
         overtimeHours = `${overtimeHrs}:${overtimeMins.toString().padStart(2, '0')}`;
       }
     } else {
-      // Dados incompletos
+      // Sem entrada
       isConsistent = false;
-      inconsistencyReasons.push('Dados de entrada/saída incompletos');
+      inconsistencyReasons.push('Sem horário de entrada');
     }
     
-    // Status com base na consistência
-    const status = !isConsistent ? 'Inconsistente' : 
-                  record.status === 'approved' ? 'Aprovado' :
-                  record.status === 'pending' ? 'Pendente' : 'Rejeitado';
+    // Status com base na consistência e situação do registro
+    let status;
+    if (!record.checkIn) {
+      status = 'Inconsistente';
+    } else if (!record.checkOut) {
+      status = 'Em andamento';
+    } else if (!isConsistent) {
+      status = 'Inconsistente';
+    } else {
+      status = record.status === 'approved' ? 'Aprovado' :
+               record.status === 'pending' ? 'Pendente' : 'Rejeitado';
+    }
     
     // Buscar tipo de escala do usuário (implementar depois)
     const scheduleType = await this.getScheduleTypeForUser(record.userId, record.tenantId);
