@@ -569,24 +569,37 @@ export default function Timecard() {
                   return dateB.getTime() - dateA.getTime();
                 })
                 .map((record: TimeRecord) => (
-                <div key={record.id} className="flex justify-between items-center py-2 border-b">
+                <div key={record.id} className="flex justify-between items-center py-3 border-b">
                   <div>
                     <div className="font-medium">
-                      {record.checkIn && 'Entrada'}
-                      {record.checkOut && 'Saída'}
-                      {record.breakStart && 'Início da Pausa'}
-                      {record.breakEnd && 'Fim da Pausa'}
+                      {record.checkIn && record.checkOut ? 'Entrada/Saída' : 
+                       record.checkIn ? 'Entrada' :
+                       record.checkOut ? 'Saída' :
+                       record.breakStart ? 'Início da Pausa' :
+                       record.breakEnd ? 'Fim da Pausa' : 'Registro'}
                     </div>
-                    <div className="text-sm text-gray-500">
-                      Status: {record.status || 'pending'}
+                    <div className="text-sm text-gray-500 flex gap-2">
+                      <span>Status: {record.status === 'pending' ? 'Aguardando aprovação' : record.status || 'pending'}</span>
+                      {record.totalHours && <span>• {record.totalHours}h</span>}
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="font-mono">
-                      {formatTime(record.checkIn || record.checkOut || record.breakStart || record.breakEnd || record.createdAt || '')}
-                    </div>
+                    {record.checkIn && record.checkOut ? (
+                      <div>
+                        <div className="font-mono text-sm">
+                          Entrada: {formatTime(record.checkIn)}
+                        </div>
+                        <div className="font-mono text-sm">
+                          Saída: {formatTime(record.checkOut)}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="font-mono">
+                        {formatTime(record.checkIn || record.checkOut || record.breakStart || record.breakEnd || record.createdAt || '')}
+                      </div>
+                    )}
                     {record.location && (
-                      <div className="text-xs text-gray-400">
+                      <div className="text-xs text-gray-400 mt-1">
                         <MapPin className="h-3 w-3 inline mr-1" />
                         Geo localizado
                       </div>
