@@ -1997,11 +1997,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         const formatTime = (timestamp: string | null) => {
           if (!timestamp) return '--:--';
-          return new Date(timestamp).toLocaleTimeString('pt-BR', { 
-            hour: '2-digit', 
-            minute: '2-digit',
-            timeZone: 'America/Sao_Paulo'
-          });
+          // Parse timestamp and format directly without timezone conversion to avoid UTC offset issues
+          const date = new Date(timestamp);
+          const hours = date.getUTCHours().toString().padStart(2, '0');
+          const minutes = date.getUTCMinutes().toString().padStart(2, '0');
+          return `${hours}:${minutes}`;
         };
 
         // Validação de consistência dos pares de entrada/saída
@@ -2126,10 +2126,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('[ATTENDANCE-REPORT] Raw DB records:', result.rows.map(r => ({
         id: r.id.slice(-8),
         date: r.check_in ? new Date(r.check_in).toLocaleDateString('pt-BR') : 'N/A',
-        checkIn: r.check_in ? new Date(r.check_in).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : 'N/A',
-        checkOut: r.check_out ? new Date(r.check_out).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : 'N/A',
+        checkIn: r.check_in ? `${new Date(r.check_in).getUTCHours().toString().padStart(2, '0')}:${new Date(r.check_in).getUTCMinutes().toString().padStart(2, '0')}` : 'N/A',
+        checkOut: r.check_out ? `${new Date(r.check_out).getUTCHours().toString().padStart(2, '0')}:${new Date(r.check_out).getUTCMinutes().toString().padStart(2, '0')}` : 'N/A',
         status: r.status
       })));
+      
+      console.log('[ATTENDANCE-REPORT] First record detailed check:', {
+        raw_check_in: result.rows[0]?.check_in,
+        parsed_date: result.rows[0]?.check_in ? new Date(result.rows[0].check_in) : null,
+        utc_hours: result.rows[0]?.check_in ? new Date(result.rows[0].check_in).getUTCHours() : null,
+        utc_minutes: result.rows[0]?.check_in ? new Date(result.rows[0].check_in).getUTCMinutes() : null,
+        formatted: result.rows[0]?.check_in ? `${new Date(result.rows[0].check_in).getUTCHours().toString().padStart(2, '0')}:${new Date(result.rows[0].check_in).getUTCMinutes().toString().padStart(2, '0')}` : null
+      });
       
       const attendanceData = result.rows.map(formatToCLTStandard);
 
