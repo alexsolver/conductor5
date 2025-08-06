@@ -59,6 +59,19 @@ Conductor follows a Clean Architecture with Domain-Driven Design principles.
 
 ## Recent Changes
 
+### August 6, 2025 - Page Removal: LocationsImplementationControl & MaterialsServicesControl
+- **Action**: Removed `/locations-implementation-control` and `/materials-services-control` pages as requested by user
+- **Files Removed**:
+  - `client/src/pages/LocationsImplementationControl.tsx` 
+  - `client/src/pages/MaterialsServicesControl.tsx`
+- **Code Updates**:
+  - Removed component imports from `client/src/App.tsx`
+  - Removed routes for both pages from routing configuration
+  - Removed sidebar navigation items:
+    - "Controle de Implementação" from main navigation
+    - "Controle de Implantação" from Materials and Services submenu
+- **Status**: Both pages and all associated code completely removed from system
+
 ### August 6, 2025 - Complete CLT-Compliant Timecard System & Full Nomenclature Standardization
 - **Issue**: Timecard system missing mandatory Brazilian CLT fields (1ª Saída/2ª Entrada for lunch breaks) and work schedule types
 - **Root Cause Analysis**: 

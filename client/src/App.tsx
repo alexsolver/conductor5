@@ -63,14 +63,14 @@ import TimecardAutonomous from "./pages/TimecardAutonomous";
 import { EmploymentRouteGuard } from "./components/routing/EmploymentRouteGuard";
 import AbsenceManagement from "./pages/AbsenceManagement";
 import ScheduleTemplates from "./pages/ScheduleTemplates";
-import LocationsImplementationControl from "./pages/LocationsImplementationControl";
+
 import LocationsNew from "./pages/LocationsNew";
 import HolidayCalendar from "./pages/HolidayCalendar";
 import AgendaManager from "./pages/AgendaManager";
 import UserProfile from "./pages/UserProfile";
 import TeamManagement from "./pages/TeamManagement";
 import ContractManagement from "./pages/ContractManagement";
-import MaterialsServicesControl from "./pages/MaterialsServicesControl";
+
 import ItemCatalog from "./pages/ItemCatalog";
 import TicketMaterials from "./pages/TicketMaterials";
 import { StockManagement } from "./pages/StockManagement";
@@ -153,7 +153,7 @@ function AppRouter() {
         <Route path="/tenant-admin/slas" component={TenantAdminSLAs} />
         <Route path="/tenant-admin/integrations" component={TenantAdminIntegrations} />
         <Route path="/tenant-admin/branding" component={TenantAdminBranding} />
-        <Route path="/locations-implementation-control" component={LocationsImplementationControl} />
+
         {/* <Route path="/global-geolocation" component={GlobalGeolocation} /> */}
         <Route path="/ticket-templates" component={TicketTemplates} />
         <Route path="/tenant-provisioning" component={TenantProvisioning} />
@@ -198,7 +198,7 @@ function AppRouter() {
         <Route path="/profile" component={UserProfile} />
         <Route path="/team-management" component={TeamManagement} />
         <Route path="/contract-management" component={ContractManagement} />
-        <Route path="/materials-services-control" component={MaterialsServicesControl} />
+
         <Route path="/item-catalog" component={ItemCatalog} />
         <Route path="/tickets/:id/materials" component={TicketMaterials} />
         <Route path="/stock-management" component={StockManagement} />

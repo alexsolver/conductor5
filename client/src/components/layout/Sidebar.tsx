@@ -92,12 +92,12 @@ const baseNavigation: Array<{
     ]
   },
   { name: "Locais", href: "/locations", icon: MapPin },
-  { name: "Controle de Implementação", href: "/locations-implementation-control", icon: Target },
+
   {
     name: "Materiais e Serviços",
     icon: Package,
     children: [
-      { name: "Controle de Implantação", href: "/materials-services-control", icon: Settings },
+
       { name: "Catálogo de Itens", href: "/item-catalog", icon: Package },
       { name: "Gestão de Estoque", href: "/stock-management", icon: Warehouse },
       { name: "Gestão de Fornecedores", href: "/supplier-management", icon: Building2 },
