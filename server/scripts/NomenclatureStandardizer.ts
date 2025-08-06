@@ -46,7 +46,7 @@ class NomenclatureStandardizer {
       {
         context: 'api',
         pattern: 'kebab-case for URLs, camelCase for JSON responses',
-        examples: ['/api/customer-companies', '{ firstName: "João" }'],
+        examples: ['/api/companies', '{ firstName: "João" }'],
         exceptions: ['Brazilian field names in responses when appropriate'],
         justification: 'REST API conventions + JSON standards'
       },

@@ -88,10 +88,10 @@ export function CustomerItemMappings() {
 
   // Fetch customer companies for filter
   const { data: customerCompaniesData } = useQuery({
-    queryKey: ['/api/customer-companies'],
+    queryKey: ['/api/companies'],
     queryFn: async () => {
       if (!tenantId) return [];
-      const response = await apiRequest('GET', `/api/customer-companies?tenantId=${tenantId}`);
+      const response = await apiRequest('GET', `/api/companies?tenantId=${tenantId}`);
       return response.json();
     },
     enabled: !!tenantId,

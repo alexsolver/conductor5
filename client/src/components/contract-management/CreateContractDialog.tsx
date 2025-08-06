@@ -73,7 +73,7 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
   });
 
   // Fetch customer companies for dropdown using apiRequest
-  const { data: customerCompaniesData, isLoading: companiesLoading, error: companiesError } = useQuery({
+  const { data: companiesData, isLoading: companiesLoading, error: companiesError } = useQuery({
     queryKey: ['/api/customers/companies'],
     retry: 1,
   });
@@ -84,9 +84,9 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
   });
 
   // Ensure data is always arrays and sort companies with Default first
-  const customerCompanies = (() => {
-    const companiesList = Array.isArray(customerCompaniesData) ? customerCompaniesData : 
-                          (customerCompaniesData as any)?.data ? (customerCompaniesData as any).data : [];
+  const companies = (() => {
+    const companiesList = Array.isArray(companiesData) ? companiesData : 
+                          (companiesData as any)?.data ? (companiesData as any).data : [];
     return companiesList.sort((a: any, b: any) => {
       const aIsDefault = a.name?.toLowerCase().includes('default') || a.displayName?.toLowerCase().includes('default');
       const bIsDefault = b.name?.toLowerCase().includes('default') || b.displayName?.toLowerCase().includes('default');
@@ -101,7 +101,7 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
                (usersData as any)?.users ? (usersData as any).users : [];
 
   // Debug log
-  console.log('Customer companies data:', { customerCompaniesData, customerCompanies, companiesLoading, companiesError });
+  console.log('Customer companies data:', { companiesData, companies, companiesLoading, companiesError });
 
   const createContractMutation = useMutation({
     mutationFn: (data: CreateContractFormData) => {
@@ -295,10 +295,10 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
                         <SelectItem value="none">Nenhuma empresa</SelectItem>
                         {companiesLoading && <SelectItem value="loading">Carregando empresas...</SelectItem>}
                         {companiesError && <SelectItem value="error">Erro ao carregar empresas</SelectItem>}
-                        {!companiesLoading && !companiesError && Array.isArray(customerCompanies) && customerCompanies.length === 0 && (
+                        {!companiesLoading && !companiesError && Array.isArray(companies) && companies.length === 0 && (
                           <SelectItem value="empty">Nenhuma empresa encontrada</SelectItem>
                         )}
-                        {Array.isArray(customerCompanies) && customerCompanies.map((company: any) => (
+                        {Array.isArray(companies) && companies.map((company: any) => (
                           <SelectItem key={company.id} value={company.id}>
                             {company.name} {company.cnpj ? `(${company.cnpj})` : ''}
                           </SelectItem>

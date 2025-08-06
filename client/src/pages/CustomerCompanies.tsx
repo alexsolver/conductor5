@@ -78,7 +78,7 @@ export default function CustomerCompanies() {
 
   // Query para buscar companies
   const { data: companiesData, isLoading } = useQuery({
-    queryKey: ['/api/customer-companies'],
+    queryKey: ['/api/companies'],
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
@@ -96,7 +96,7 @@ export default function CustomerCompanies() {
   const createCompanyMutation = useMutation({
     mutationFn: (data: any) => apiRequest('POST', '/api/customers/companies', data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/customer-companies'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/companies'] });
       setIsCreateDialogOpen(false);
       createForm.reset();
       toast({
@@ -121,7 +121,7 @@ export default function CustomerCompanies() {
       // Only invalidate cache for non-optimistic updates (when not called from Default button)
       const isOptimisticUpdate = variables.data.isOptimisticUpdate;
       if (!isOptimisticUpdate) {
-        queryClient.invalidateQueries({ queryKey: ['/api/customer-companies'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/companies'] });
       }
       setIsEditDialogOpen(false);
       setSelectedCompany(null);
@@ -154,14 +154,14 @@ export default function CustomerCompanies() {
       }
 
       // Optimistic update: remove from cache immediately
-      queryClient.setQueryData(['/api/customer-companies'], (oldData: any) => {
+      queryClient.setQueryData(['/api/companies'], (oldData: any) => {
         if (!oldData || !Array.isArray(oldData)) return oldData;
         return oldData.filter(company => company.id !== deletedId);
       });
 
       // Invalidate and refetch only necessary queries
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['/api/customer-companies'] }),
+        queryClient.invalidateQueries({ queryKey: ['/api/companies'] }),
         queryClient.invalidateQueries({ queryKey: ['/api/customers/companies'] }),
         // Invalidate any customer-specific queries that might reference this company
         queryClient.invalidateQueries({ 
@@ -179,7 +179,7 @@ export default function CustomerCompanies() {
       console.error('Error deleting company:', error);
 
       // Revert optimistic update if it was applied
-      queryClient.invalidateQueries({ queryKey: ['/api/customer-companies'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/companies'] });
 
       const errorMessage = error?.response?.data?.message || 
                           error?.message || 
@@ -315,7 +315,7 @@ export default function CustomerCompanies() {
   };
 
     const handleAssociationSuccess = () => {
-    queryClient.invalidateQueries({ queryKey: ['/api/customer-companies'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/companies'] });
   };
 
 
@@ -742,7 +742,7 @@ export default function CustomerCompanies() {
                               console.log(`[UPDATE-COMPANY] Updating Default company from ${company.status} to ${newStatus}`);
                               
                               // Optimistically update the company status in cache
-                              queryClient.setQueryData(['/api/customer-companies'], (oldData: any) => {
+                              queryClient.setQueryData(['/api/companies'], (oldData: any) => {
                                 if (Array.isArray(oldData)) {
                                   return oldData.map(comp => 
                                     comp.id === company.id 
@@ -771,7 +771,7 @@ export default function CustomerCompanies() {
                             } catch (error) {
                               console.error('Error updating Default company:', error);
                               // Revert optimistic update on error
-                              queryClient.invalidateQueries({ queryKey: ['/api/customer-companies'] });
+                              queryClient.invalidateQueries({ queryKey: ['/api/companies'] });
                               toast({
                                 title: "Erro",
                                 description: "Falha ao atualizar empresa. Tente novamente.",

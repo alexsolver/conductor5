@@ -59,7 +59,7 @@ Conductor follows a Clean Architecture with Domain-Driven Design principles.
 
 ## Recent Changes
 
-### August 6, 2025 - Complete CLT-Compliant Timecard System Implementation
+### August 6, 2025 - Complete CLT-Compliant Timecard System & Full Nomenclature Standardization
 - **Issue**: Timecard system missing mandatory Brazilian CLT fields (1ª Saída/2ª Entrada for lunch breaks) and work schedule types
 - **Root Cause Analysis**: 
   1. Database records lacked break_start/break_end data required for CLT compliance
@@ -83,3 +83,15 @@ Conductor follows a Clean Architecture with Domain-Driven Design principles.
   - ✅ Server starting without errors, all module imports resolved
   - ✅ API endpoints responding with valid JSON data
   - ✅ Authentication system working properly with token management
+
+### August 6, 2025 - Complete Nomenclature Standardization "empresa cliente" → "Empresa"
+- **Issue**: Systematic nomenclature change requested for entire fullstack system
+- **Complete Implementation**:
+  - ✅ Backend: `/api/customer-companies` → `/api/companies` route transformation
+  - ✅ Frontend: All `/customer-companies` routes updated to `/companies` 
+  - ✅ Database schema: `customerCompanies` table → `companies` with all references updated
+  - ✅ Component updates: Sidebar navigation "Empresas Clientes" → "Empresas"
+  - ✅ Hook updates: All API calls now use `/api/companies` endpoint
+  - ✅ Contract management integration: Variable name changes from `customerCompanies` to `companies`
+  - ✅ Customer association queries: Fixed SQL errors for non-existent columns (is_primary)
+- **Status**: Complete fullstack nomenclature standardization implemented successfully

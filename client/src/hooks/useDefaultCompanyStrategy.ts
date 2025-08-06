@@ -27,12 +27,12 @@ export interface DefaultCompanyStrategy {
 export function useDefaultCompanyStrategy(): DefaultCompanyStrategy {
   // Buscar status da empresa Default
   const { data: defaultStatus } = useQuery({
-    queryKey: ['/api/customer-companies', 'default-strategy'],
+    queryKey: ['/api/companies', 'default-strategy'],
     queryFn: async () => {
       const token = localStorage.getItem('accessToken');
       if (!token) return null;
 
-      const response = await fetch('/api/customer-companies', {
+      const response = await fetch('/api/companies', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

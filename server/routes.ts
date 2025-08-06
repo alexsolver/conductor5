@@ -3222,7 +3222,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Customer companies compatibility route for contract creation
-  app.get('/api/customer-companies',jwtAuth, async (req: AuthenticatedRequest, res) => {
+  app.get('/api/companies',jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const tenantId = req.user?.tenantId;
       if (!tenantId) {

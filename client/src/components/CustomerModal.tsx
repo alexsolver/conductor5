@@ -91,7 +91,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const [customerCompanies, setCustomerCompanies] = useState<any[]>([]);
+  const [companies, setCustomerCompanies] = useState<any[]>([]);
   const [selectedCompanyId, setSelectedCompanyId] = useState('');
 
 
@@ -190,7 +190,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
     }
 
     // Fetch customer companies
-    const { data: customerCompaniesData, refetch: refetchCustomerCompanies } = useQuery({
+    const { data: companiesData, refetch: refetchCustomerCompanies } = useQuery({
       queryKey: [`/api/customers/${customer?.id}/companies`],
       queryFn: async () => {
         if (!customer?.id) return [];
@@ -207,16 +207,16 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
   useEffect(() => {
     // Handle both direct array and wrapped response formats
     let companies = [];
-    if (Array.isArray(customerCompaniesData)) {
-      companies = customerCompaniesData;
-    } else if (customerCompaniesData?.success && Array.isArray(customerCompaniesData.data)) {
-      companies = customerCompaniesData.data;
-    } else if (customerCompaniesData?.data && Array.isArray(customerCompaniesData.data)) {
-      companies = customerCompaniesData.data;
+    if (Array.isArray(companiesData)) {
+      companies = companiesData;
+    } else if (companiesData?.success && Array.isArray(companiesData.data)) {
+      companies = companiesData.data;
+    } else if (companiesData?.data && Array.isArray(companiesData.data)) {
+      companies = companiesData.data;
     }
 
     setCustomerCompanies(companies);
-  }, [customerCompaniesData, customer?.id]);
+  }, [companiesData, customer?.id]);
 
   // Force refresh data when customer changes or modal opens
   useEffect(() => {
@@ -348,8 +348,8 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
     }
 
     // Verificar se a empresa já está associada
-    const isAlreadyAssociated = Array.isArray(customerCompanies) && 
-      customerCompanies.some((cm: any) => (cm.company_id || cm.id) === selectedCompanyId);
+    const isAlreadyAssociated = Array.isArray(companies) && 
+      companies.some((cm: any) => (cm.company_id || cm.id) === selectedCompanyId);
 
     if (isAlreadyAssociated) {
       toast({
@@ -364,13 +364,13 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
       console.log('Adding company:', { 
         customerId: customer.id, 
         companyId: selectedCompanyId,
-        currentAssociations: customerCompanies?.length || 0
+        currentAssociations: companies?.length || 0
       });
 
       const response = await apiRequest('POST', `/api/customers/${customer.id}/companies`, {
         companyId: selectedCompanyId,
         role: 'member',
-        isPrimary: Array.isArray(customerCompanies) ? customerCompanies.length === 0 : true
+        isPrimary: Array.isArray(companies) ? companies.length === 0 : true
       });
 
       // Limpar seleção antes de atualizar dados
@@ -962,8 +962,8 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
 
                           {/* Lista de empresas associadas */}
                           <div className="mt-2 space-y-2">
-                            {Array.isArray(customerCompanies) && customerCompanies.length > 0 ? (
-                              customerCompanies.map((membership: any, index: number) => {
+                            {Array.isArray(companies) && companies.length > 0 ? (
+                              companies.map((membership: any, index: number) => {
                                 // Garantir ID único e válido para cada empresa
                                 const companyId = membership.company_id || membership.id;
                                 const membershipId = membership.membership_id || membership.id || index;
@@ -1023,8 +1023,8 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                                             availableCompanies: availableCompanies,
                                             isArray: Array.isArray(availableCompanies),
                                             length: Array.isArray(availableCompanies) ? availableCompanies.length : 'N/A',
-                                            customerCompanies: customerCompanies,
-                                            associatedIds: Array.isArray(customerCompanies) ? customerCompanies.map((cm: any) => cm.company_id || cm.id) : []
+                                            companies: companies,
+                                            associatedIds: Array.isArray(companies) ? companies.map((cm: any) => cm.company_id || cm.id) : []
                                           });
 
                                           if (!Array.isArray(availableCompanies) || availableCompanies.length === 0) {
@@ -1036,8 +1036,8 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                                           }
 
                                           // Filtrar empresas já associadas
-                                          const associatedCompanyIds = Array.isArray(customerCompanies) 
-                                            ? customerCompanies.map((cm: any) => cm.company_id || cm.id)
+                                          const associatedCompanyIds = Array.isArray(companies) 
+                                            ? companies.map((cm: any) => cm.company_id || cm.id)
                                             : [];
 
                                           const unassociatedCompanies = availableCompanies.filter((company: any) => {
