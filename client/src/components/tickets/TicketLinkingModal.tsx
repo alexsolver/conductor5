@@ -127,7 +127,7 @@ export default function TicketLinkingModal({ isOpen, onClose, currentTicket }: T
 
     // Company filter
     if (selectedCompanyId && selectedCompanyId !== "") {
-      const ticketCompanyId = (ticket as any).customer_company_id || (ticket as any).customerCompanyId || (ticket as any).company;
+      const ticketCompanyId = (ticket as any).company_id || (ticket as any).company;
       if (!ticketCompanyId || ticketCompanyId !== selectedCompanyId) return false;
     }
 

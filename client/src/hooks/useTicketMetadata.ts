@@ -60,8 +60,8 @@ export const useTicketMetadata = () => {
           // Basic field filter
           if (option.field_name !== fieldName) return false;
 
-          // For customer_company_id field, filter out inactive companies
-          if (fieldName === 'customer_company_id' && option.status === 'inactive') {
+          // For company_id field, filter out inactive companies
+          if (fieldName === 'company_id' && option.status === 'inactive') {
             return false;
           }
 

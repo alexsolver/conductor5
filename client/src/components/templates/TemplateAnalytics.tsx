@@ -30,15 +30,15 @@ interface TemplateStats {
 }
 
 interface TemplateAnalyticsProps {
-  customerCompanyId?: string;
+  companyId?: string;
 }
 
-export default function TemplateAnalytics({ customerCompanyId = 'all' }: TemplateAnalyticsProps) {
+export default function TemplateAnalytics({ companyId = 'all' }: TemplateAnalyticsProps) {
   // Fetch comprehensive stats
   const { data: statsResponse, isLoading } = useQuery({
-    queryKey: ['/api/ticket-templates/company', customerCompanyId, 'stats'],
+    queryKey: ['/api/ticket-templates/company', companyId, 'stats'],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/ticket-templates/company/${customerCompanyId}/stats`);
+      const response = await apiRequest('GET', `/api/ticket-templates/company/${companyId}/stats`);
       return response.json();
     },
   });
@@ -47,9 +47,9 @@ export default function TemplateAnalytics({ customerCompanyId = 'all' }: Templat
 
   // Fetch popular templates
   const { data: popularResponse } = useQuery({
-    queryKey: ['/api/ticket-templates/company', customerCompanyId, 'popular'],
+    queryKey: ['/api/ticket-templates/company', companyId, 'popular'],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/ticket-templates/company/${customerCompanyId}/popular?limit=10`);
+      const response = await apiRequest('GET', `/api/ticket-templates/company/${companyId}/popular?limit=10`);
       return response.json();
     },
   });
@@ -233,7 +233,7 @@ export default function TemplateAnalytics({ customerCompanyId = 'all' }: Templat
           <CardContent>
             {popularTemplates.length > 0 ? (
               <div className="space-y-3">
-                {popularTemplates.slice(0, 5).map((template, index) => (
+                {popularTemplates.slice(0, 5).map((template: any, index: number) => (
                   <div key={template.id} className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
                     <div className="flex items-center gap-3">
                       <div className="w-6 h-6 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center font-medium">

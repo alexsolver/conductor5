@@ -1,0 +1,62 @@
+Vou analisar a página de detalhes do ticket para verificar se existe referência à "empresa cliente".
+
+Analisando o código do arquivo client/src/pages/TicketDetails.tsx, posso confirmar que SIM, existem múltiplas referências à empresa cliente na página de detalhes do ticket:
+
+1. Section "Empresa Cliente" no Sidebar Esquerdo
+{/* Empresa Cliente Section - Badge Destacado */}
+<div className="mb-6">
+  <div className="flex items-center gap-2 mb-3">
+    <Building2 className="h-4 w-4 text-blue-600" />
+    <span className="text-xs font-medium text-gray-600 uppercase tracking-wide">Empresa</span>
+  </div>
+  
+  <Badge
+    variant="outline"
+    className="px-3 py-2 text-sm font-semibold bg-gradient-to-r from-blue-500 to-indigo-600 text-white border-blue-500 shadow-md hover:shadow-lg transition-shadow duration-200 w-full justify-start cursor-pointer"
+    onClick={() => setIsCompanyDetailsOpen(true)}
+  >
+    <Building2 className="h-4 w-4 mr-2" />
+    {(() => {
+      const companyId = ticket.customer_company_id || ticket.customerCompanyId || ticket.company;
+      const companyData = (Array.isArray(companiesData) ? companiesData : companiesData?.data || []).find((c: any) => c.id === companyId);
+      return companyData?.name || ticket.customerCompany?.name || (companyId && companyId !== 'unspecified' ? 'Empresa não encontrada' : 'Não especificado');
+    })()}
+  </Badge>
+</div>
+2. Modal de Detalhes da Empresa
+Existe um modal completo (Dialog) que mostra informações detalhadas da empresa cliente:
+
+Informações básicas (nome, CNPJ, setor, porte)
+Contatos principais
+Endereço completo
+Estatísticas de suporte
+Ações rápidas
+3. Campo no Formulário de Edição
+Na seção de informações, existe um campo de seleção para empresa:
+
+<Select
+  onValueChange={(value) => {
+    handleCompanyChange(value);
+    form.setValue('customerCompanyId', value);
+  }}
+  value={selectedCompany || ''}
+>
+4. Queries para Buscar Dados da Empresa
+const { data: companiesData } = useQuery({
+  queryKey: ["/api/customers/companies"],
+  queryFn: async () => {
+    const response = await apiRequest("GET", "/api/customers/companies");
+    return response.json();
+  },
+});
+5. Mapeamento de Dados da Empresa
+O sistema mapeia corretamente os dados da empresa usando os campos:
+
+ticket.customer_company_id
+ticket.customerCompanyId
+ticket.company
+ticket.customerCompany
+6. Listagem de Tickets por Empresa
+No quadro informativo da sidebar direita, há referências à empresa e botões para ver todos os tickets da empresa.
+
+Portanto, a página de detalhes do ticket tem referências completas e funcionais à empresa cliente, incluindo visualização, edição e navegação para mais detalhes da empresa.

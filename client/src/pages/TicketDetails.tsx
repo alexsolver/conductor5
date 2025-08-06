@@ -2792,11 +2792,11 @@ const TicketDetails = React.memo(() => {
                   value={selectedCompany || ''}
                 >
                   <SelectTrigger className="h-8 text-xs">
-                    <SelectValue placeholder="Selecione a empresa cliente">
+                    <SelectValue placeholder="Selecione a empresa">
                       {(() => {
                         const currentValue = selectedCompany;
                         const companyData = (Array.isArray(companiesData) ? companiesData : companiesData?.data || []).find((c: any) => c.id === currentValue);
-                        return companyData?.name || (currentValue && currentValue !== 'unspecified' ? 'Empresa não encontrada' : 'Selecione a empresa cliente');
+                        return companyData?.name || (currentValue && currentValue !== 'unspecified' ? 'Empresa não encontrada' : 'Selecione a empresa');
                       })()}
                     </SelectValue>
                   </SelectTrigger>
@@ -2812,8 +2812,8 @@ const TicketDetails = React.memo(() => {
                 {(() => {
                   const companyId = ticket.customer_company_id || ticket.customerCompanyId || ticket.company;
                   const companyData = (Array.isArray(companiesData) ? companiesData : companiesData?.data || []).find((c: any) => c.id === companyId);
-                  const industry = ticket.customerCompany?.industry || companyData?.industry;
-                  const cnpj = ticket.customerCompany?.cnpj || companyData?.cnpj;
+                  const industry = ticket.company?.industry || companyData?.industry;
+                  const cnpj = ticket.company?.cnpj || companyData?.cnpj;
 
                   return (
                     <>
@@ -2841,7 +2841,7 @@ const TicketDetails = React.memo(() => {
                 {(() => {
                   const companyId = ticket.customer_company_id || ticket.customerCompanyId || ticket.company;
                   const companyData = (Array.isArray(companiesData) ? companiesData : companiesData?.data || []).find((c: any) => c.id === companyId);
-                  return companyData?.name || ticket.customerCompany?.name || (companyId && companyId !== 'unspecified' ? 'Empresa não encontrada' : 'Não especificado');
+                  return companyData?.name || ticket.company?.name || (companyId && companyId !== 'unspecified' ? 'Empresa não encontrada' : 'Não especificado');
                 })()}
               </Badge>
             )}
@@ -3816,7 +3816,7 @@ const TicketDetails = React.memo(() => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Building2 className="h-5 w-5 text-blue-600" />
-              Detalhes da Empresa Cliente
+              Detalhes da Empresa
             </DialogTitle>
             <DialogDescription>
               Informações completas e gestão da empresa vinculada ao ticket
@@ -3837,25 +3837,25 @@ const TicketDetails = React.memo(() => {
                   <div>
                     <Label className="text-sm font-medium text-gray-600">Nome da Empresa</Label>
                     <p className="text-lg font-semibold text-gray-900">
-                      {ticket?.customerCompany?.name || ticket?.company || 'Empresa Não Especificada'}
+                      {ticket?.company?.name || ticket?.company || 'Empresa Não Especificada'}
                     </p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-gray-600">CNPJ</Label>
                     <p className="text-sm text-gray-900">
-                      {ticket?.customerCompany?.cnpj || 'Não informado'}
+                      {ticket?.company?.cnpj || 'Não informado'}
                     </p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-gray-600">Setor</Label>
                     <p className="text-sm text-gray-900">
-                      {ticket?.customerCompany?.industry || 'Não especificado'}
+                      {ticket?.company?.industry || 'Não especificado'}
                     </p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-gray-600">Porte</Label>
                     <p className="text-sm text-gray-900">
-                      {ticket?.customerCompany?.size || 'Não especificado'}
+                      {ticket?.company?.size || 'Não especificado'}
                     </p>
                   </div>
                 </div>
@@ -3875,25 +3875,25 @@ const TicketDetails = React.memo(() => {
                   <div className="space-y-2">
                     <Label className="text-sm font-medium text-gray-600">Email Principal</Label>
                     <p className="text-sm text-gray-900">
-                      {ticket?.customerCompany?.email || 'contato@empresa.com'}
+                      {ticket?.company?.email || 'contato@empresa.com'}
                     </p>
                   </div>
                   <div className="space-y-2">
                     <Label className="text-sm font-medium text-gray-600">Telefone</Label>
                     <p className="text-sm text-gray-900">
-                      {ticket?.customerCompany?.phone || '(11) 1234-5678'}
+                      {ticket?.company?.phone || '(11) 1234-5678'}
                     </p>
                   </div>
                   <div className="space-y-2">
                     <Label className="text-sm font-medium text-gray-600">Responsável Técnico</Label>
                     <p className="text-sm text-gray-900">
-                      {ticket?.customerCompany?.techContact || 'Não designado'}
+                      {ticket?.company?.techContact || 'Não designado'}
                     </p>
                   </div>
                   <div className="space-y-2">
                     <Label className="text-sm font-medium text-gray-600">Gerente de Conta</Label>
                     <p className="text-sm text-gray-900">
-                      {ticket?.customerCompany?.accountManager || 'Não designado'}
+                      {ticket?.company?.accountManager || 'Não designado'}
                     </p>
                   </div>
                 </div>
@@ -3913,31 +3913,31 @@ const TicketDetails = React.memo(() => {
                   <div className="md:col-span-2">
                     <Label className="text-sm font-medium text-gray-600">Logradouro</Label>
                     <p className="text-sm text-gray-900">
-                      {ticket?.customerCompany?.address || 'Endereço não informado'}
+                      {ticket?.company?.address || 'Endereço não informado'}
                     </p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-gray-600">CEP</Label>
                     <p className="text-sm text-gray-900">
-                      {ticket?.customerCompany?.zipCode || '00000-000'}
+                      {ticket?.company?.zipCode || '00000-000'}
                     </p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-gray-600">Cidade</Label>
                     <p className="text-sm text-gray-900">
-                      {ticket?.customerCompany?.city || 'Não informado'}
+                      {ticket?.company?.city || 'Não informado'}
                     </p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-gray-600">Estado</Label>
                     <p className="text-sm text-gray-900">
-                      {ticket?.customerCompany?.state || 'SP'}
+                      {ticket?.company?.state || 'SP'}
                     </p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-gray-600">País</Label>
                     <p className="text-sm text-gray-900">
-                      {ticket?.customerCompany?.country || 'Brasil'}
+                      {ticket?.company?.country || 'Brasil'}
                     </p>
                   </div>
                 </div>
@@ -3992,14 +3992,14 @@ const TicketDetails = React.memo(() => {
               </Button>
               <Button
                 variant="outline"
-                onClick={() => navigate("/tickets?company=" + (ticket?.customerCompany?.id || ''))}
+                onClick={() => navigate("/tickets?company=" + (ticket?.company?.id || ''))}
               >
                 <Ticket className="h-4 w-4 mr-2" />
                 Todos os Tickets
               </Button>
               <Button
                 variant="outline"
-                onClick={() => window.open(`mailto:${ticket?.customerCompany?.email}`, '_blank')}
+                onClick={() => window.open(`mailto:${ticket?.company?.email}`, '_blank')}
               >
                 <Mail className="h-4 w-4 mr-2" />
                 Enviar Email

@@ -25,7 +25,7 @@ const createContractSchema = z.object({
   contractType: z.string().min(1, 'Tipo de contrato é obrigatório'),
   status: z.string().default('draft'),
   priority: z.string().default('medium'),
-  customerCompanyId: z.string().optional(),
+  companyId: z.string().optional(),
   managerId: z.string().optional(),
   totalValue: z.number().min(0, 'Valor deve ser maior que zero'),
   currency: z.string().default('BRL'),
@@ -63,7 +63,7 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
       priority: 'medium',
       currency: 'BRL',
       totalValue: 0,
-      customerCompanyId: '',
+      companyId: '',
       managerId: '',
       renewalTerms: '',
       paymentTerms: '',
@@ -112,7 +112,7 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
         contractType: data.contractType,
         status: data.status,
         priority: data.priority,
-        customerCompanyId: data.customerCompanyId === 'none' ? null : data.customerCompanyId,
+        companyId: data.companyId === 'none' ? null : data.companyId,
         managerId: data.managerId === 'none' ? null : data.managerId,
         totalValue: data.totalValue.toString(),
         currency: data.currency,
@@ -281,7 +281,7 @@ export function CreateContractDialog({ open, onOpenChange, onSuccess }: CreateCo
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="customerCompanyId"
+                name="companyId"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Empresa Contratante *</FormLabel>

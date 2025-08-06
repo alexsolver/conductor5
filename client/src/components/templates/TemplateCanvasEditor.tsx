@@ -64,7 +64,7 @@ const DEFAULT_FIELDS = [
   { id: 'callerId', type: 'user', label: 'Solicitante', required: true, section: 'people' },
   { id: 'beneficiaryId', type: 'user', label: 'Beneficiário', required: false, section: 'people' },
   { id: 'assignedToId', type: 'user', label: 'Atribuído a', required: false, section: 'assignment' },
-  { id: 'customerCompanyId', type: 'company', label: 'Empresa Cliente', required: false, section: 'assignment' },
+  { id: 'companyId', type: 'company', label: 'Empresa', required: false, section: 'assignment' },
   { id: 'location', type: 'location', label: 'Localização', required: false, section: 'assignment' },
   { id: 'environment', type: 'select', label: 'Ambiente', required: false, section: 'template' },
   { id: 'templateName', type: 'select', label: 'Template', required: false, section: 'template' },

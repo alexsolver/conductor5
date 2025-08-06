@@ -149,7 +149,7 @@ ticketsRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
       FROM ${schemaName}.tickets t
       LEFT JOIN ${schemaName}.customers beneficiary ON t.beneficiary_id = beneficiary.id
       LEFT JOIN ${schemaName}.customers caller ON t.caller_id = caller.id  
-      LEFT JOIN ${schemaName}.companies comp ON t.customer_company_id = comp.id
+      LEFT JOIN ${schemaName}.companies comp ON t.company_id = comp.id
       LEFT JOIN public.users u ON t.assigned_to_id = u.id
       WHERE t.tenant_id = $1
     `;
@@ -224,7 +224,7 @@ ticketsRouter.get('/:id', jwtAuth, trackTicketView, async (req: AuthenticatedReq
         caller_c.email as caller_email,
         -- Company data
         COALESCE(comp.name, comp.display_name) as company_name,
-        comp.name as customer_company_name,
+        comp.name as company_name,
         -- Assigned user data
         u.first_name as assigned_first_name,
         u.last_name as assigned_last_name,
@@ -232,7 +232,7 @@ ticketsRouter.get('/:id', jwtAuth, trackTicketView, async (req: AuthenticatedReq
       FROM ${schemaName}.tickets t
       LEFT JOIN ${schemaName}.customers c ON t.beneficiary_id = c.id
       LEFT JOIN ${schemaName}.customers caller_c ON t.caller_id = caller_c.id  
-      LEFT JOIN ${schemaName}.companies comp ON t.customer_company_id = comp.id
+      LEFT JOIN ${schemaName}.companies comp ON t.company_id = comp.id
       LEFT JOIN public.users u ON t.assigned_to_id = u.id
       WHERE t.tenant_id = $1 AND t.id = $2
     `;
@@ -303,7 +303,7 @@ ticketsRouter.post('/', jwtAuth, trackTicketCreate, async (req: AuthenticatedReq
       ...req.body,
       tenantId: req.user.tenantId,
       caller_id: callerId,
-      customer_company_id: req.body.companyId,
+      company_id: req.body.companyId,
       status: req.body.status || req.body.state || 'new'
     };
 
@@ -418,7 +418,7 @@ ticketsRouter.put('/:id', jwtAuth, trackTicketEdit, async (req: AuthenticatedReq
 
     // Standardize field naming consistency
     if (frontendUpdates.customerCompanyId !== undefined) {
-      backendUpdates.customer_company_id = frontendUpdates.customerCompanyId;
+      backendUpdates.company_id = frontendUpdates.customerCompanyId;
       delete backendUpdates.customerCompanyId;
     }
 
@@ -518,7 +518,7 @@ ticketsRouter.put('/:id', jwtAuth, trackTicketEdit, async (req: AuthenticatedReq
         );
 
         // ✅ AUDITORIA INDIVIDUAL POR CAMPO (para campos críticos)
-        const criticalFields = ['status', 'priority', 'assigned_to_id', 'customer_company_id'];
+        const criticalFields = ['status', 'priority', 'assigned_to_id', 'company_id'];
         for (const field of meaningfulChanges) {
           if (criticalFields.includes(field)) {
             await createCompleteAuditEntry(
@@ -564,7 +564,7 @@ ticketsRouter.put('/:id', jwtAuth, trackTicketEdit, async (req: AuthenticatedReq
       // Incluir apenas campos essenciais para evitar overhead
       caller_id: updatedTicket.caller_id,
       assigned_to_id: updatedTicket.assigned_to_id,
-      customer_company_id: updatedTicket.customer_company_id,
+      company_id: updatedTicket.company_id,
     };
 
     return sendSuccess(res, responseData, "Ticket updated successfully");

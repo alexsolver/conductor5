@@ -26,13 +26,13 @@ interface TemplatePreview {
 }
 
 interface TemplateSelectorProps {
-  customerCompanyId?: string;
+  companyId?: string;
   onSelectTemplate: (template: TemplatePreview) => void;
   onCancel: () => void;
 }
 
 export default function TemplateSelector({ 
-  customerCompanyId = 'all', 
+  companyId = 'all', 
   onSelectTemplate, 
   onCancel 
 }: TemplateSelectorProps) {
@@ -42,9 +42,9 @@ export default function TemplateSelector({
 
   // Fetch templates
   const { data: templatesResponse, isLoading } = useQuery({
-    queryKey: ['/api/ticket-templates/company', customerCompanyId],
+    queryKey: ['/api/ticket-templates/company', companyId],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/ticket-templates/company/${customerCompanyId}`);
+      const response = await apiRequest('GET', `/api/ticket-templates/company/${companyId}`);
       return response.json();
     },
   });
@@ -64,9 +64,9 @@ export default function TemplateSelector({
 
   // Fetch popular templates
   const { data: popularResponse } = useQuery({
-    queryKey: ['/api/ticket-templates/company', customerCompanyId, 'popular'],
+    queryKey: ['/api/ticket-templates/company', companyId, 'popular'],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/ticket-templates/company/${customerCompanyId}/popular?limit=5`);
+      const response = await apiRequest('GET', `/api/ticket-templates/company/${companyId}/popular?limit=5`);
       return response.json();
     },
   });
@@ -78,7 +78,7 @@ export default function TemplateSelector({
     const matchesSearch = template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          template.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || template.category === selectedCategory;
-    const matchesPopular = !showPopularOnly || popularTemplates.some(p => p.id === template.id);
+    const matchesPopular = !showPopularOnly || popularTemplates.some((p: TemplatePreview) => p.id === template.id);
     
     return matchesSearch && matchesCategory && matchesPopular;
   });
@@ -215,7 +215,7 @@ export default function TemplateSelector({
               <CardHeader className="pb-3">
                 <div className="flex justify-between items-start">
                   <CardTitle className="text-lg">{template.name}</CardTitle>
-                  {popularTemplates.some(p => p.id === template.id) && (
+                  {popularTemplates.some((p: TemplatePreview) => p.id === template.id) && (
                     <Star className="w-4 h-4 text-yellow-500 fill-current" />
                   )}
                 </div>
