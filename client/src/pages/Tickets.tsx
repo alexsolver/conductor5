@@ -89,12 +89,7 @@ export default function Tickets() {
 
   const { data: tickets, isLoading, error } = useQuery({
     queryKey: ["/api/tickets"],
-    queryFn: async () => {
-      const response = await apiRequest("GET", "/api/tickets");
-      return response.json();
-    },
     retry: false,
-    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   // Fetch customers for the dropdown
@@ -158,8 +153,8 @@ export default function Tickets() {
   const customers = Array.isArray(customersData?.customers) ? customersData.customers : [];
   
   // Handle customer loading errors
-  if (customersData?.error) {
-    console.error('Customer loading error:', customersData?.error);
+  if (customersData?.error || customersError) {
+    console.error('Customer loading error:', customersData?.error || customersError);
   }
 
   // Get raw companies and filter out Default if inactive
@@ -310,41 +305,6 @@ export default function Tickets() {
     },
   });
 
-  // CRITICAL DEBUG - Log everything about tickets
-  console.log('🚨 [CRITICAL-DEBUG] Tickets Full Analysis:');
-  console.log('   - tickets variable:', tickets);
-  console.log('   - typeof tickets:', typeof tickets);
-  console.log('   - tickets keys:', tickets ? Object.keys(tickets) : 'NO KEYS');
-  console.log('   - tickets.data:', tickets?.data);
-  console.log('   - tickets.data?.tickets:', tickets?.data?.tickets);
-  console.log('   - Array.isArray(tickets?.data?.tickets):', Array.isArray(tickets?.data?.tickets));
-  console.log('   - isLoading:', isLoading);
-  console.log('   - error:', error);
-
-  // Process tickets data for display with comprehensive error handling
-  let ticketsList: any[] = [];
-  
-  if (tickets?.data?.tickets && Array.isArray(tickets.data.tickets)) {
-    ticketsList = tickets.data.tickets;
-  } else if (tickets?.tickets && Array.isArray(tickets.tickets)) {
-    ticketsList = tickets.tickets;
-  } else if (Array.isArray(tickets)) {
-    ticketsList = tickets;
-  }
-  
-  console.log('TicketsTable - Final Processing:', {
-    ticketsError: error || {},
-    isLoading,
-    ticketsCount: ticketsList.length,
-    ticketsStructure: tickets ? typeof tickets : 'null',
-    actualTickets: ticketsList.slice(0, 2), // Show first 2 for debugging
-    rawTicketsData: tickets?.data,
-    directTickets: tickets?.tickets,
-    customersCount: customers.length,
-    usersCount: users.length,
-    hasToken: !!localStorage.getItem('accessToken')
-  });
-
   // Handle form submission  
   const onSubmit = (data: NewTicketModalData) => {
     console.log('🎫 New ticket form submitted:', data);
@@ -432,7 +392,8 @@ export default function Tickets() {
     );
   }
 
-  // Use the tickets list defined above - remove duplicate
+  // Parse consistente dos dados de tickets
+  const ticketsList = (tickets as any)?.data?.tickets || [];
   const ticketsCount = Array.isArray(ticketsList) ? ticketsList.length : 0;
 
   return (
@@ -946,7 +907,7 @@ export default function Tickets() {
               </div>
             </CardContent>
           </Card>
-        )
+        ))
         ) : (
           <Card>
             <CardContent className="p-12 text-center">

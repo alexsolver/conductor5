@@ -2,8 +2,6 @@ import { Router } from 'express';
 import { jwtAuth } from '../middleware/jwtAuth';
 import { requireTenantAdmin, requirePermission, AuthorizedRequest } from '../middleware/authorizationMiddleware';
 import { Permission } from '../domain/authorization/RolePermissions';
-import { poolManager } from '../db/poolManager';
-import { validateTenantAccess } from '../middleware/tenantValidation';
 
 const router = Router();
 
@@ -18,20 +16,18 @@ function sanitizeConfigForFrontend(config: any): any {
   const sanitized = { ...config };
 
   // Mascarar campos sensíveis mas manter indicação de que existem dados
-  const sensitiveFields = ['password', 'apiKey', 'apiSecret', 'clientSecret', 'dropboxAppSecret', 'dropboxAccessToken'];
+  const sensitiveFields = ['password', 'apiKey', 'apiSecret', 'clientSecret', 'dropboxAppSecret', 'dropboxAccessToken', 'telegramBotToken'];
 
   sensitiveFields.forEach(field => {
     if (sanitized[field] && sanitized[field].length > 0) {
-      sanitized[field] = '••••••••'; // Mascarar campos sensíveis
+      // Para que o frontend saiba que há dados salvos, incluir indicação
+      if (field === 'telegramBotToken') {
+        sanitized[field] = sanitized[field]; // Manter valor original para Telegram
+      } else {
+        sanitized[field] = '••••••••'; // Mascarar outros campos sensíveis
+      }
     }
   });
-
-  // Para Telegram, manter os valores originais para permitir edição
-  // Telegram bot tokens são necessários para testes e configuração
-  if (sanitized.telegramBotToken) {
-    // Manter o token original para permitir edição
-    sanitized.telegramBotToken = sanitized.telegramBotToken;
-  }
 
   return sanitized;
 }
@@ -147,20 +143,16 @@ router.get('/:integrationId/config', requirePermission(Permission.TENANT_MANAGE_
     console.log(`[GET config route] Buscando config para tenant: ${tenantId}, integration: ${integrationId}`);
     const { storage } = await import('../storage-simple');
     const configResult = await storage.getTenantIntegrationConfig(tenantId, integrationId);
-    console.log(`[GET config route] Resultado recebido do storage:`, JSON.stringify(configResult, null, 2));
+    console.log(`[GET config route] Resultado recebido do storage:`, configResult);
 
     if (!configResult) {
       console.log(`[GET config route] Nenhuma config encontrada, retornando null`);
       return res.json({ config: null, configured: false });
     }
 
-    console.log(`[GET config route] ConfigResult type:`, typeof configResult.config);
-    console.log(`[GET config route] ConfigResult keys:`, Object.keys(configResult));
-
     // Extrair apenas os dados de configuração do campo config
     const configData = configResult.config || {};
-    console.log(`[GET config route] Config data extraída:`, JSON.stringify(configData, null, 2));
-    console.log(`[GET config route] Config data type:`, typeof configData);
+    console.log(`[GET config route] Config data extraída:`, configData);
 
     // SEGURANÇA: Mascarar dados sensíveis antes de enviar ao frontend
     const sanitizedConfig = sanitizeConfigForFrontend(configData);
@@ -254,30 +246,10 @@ router.post('/:integrationId/config', requirePermission(Permission.TENANT_MANAGE
       integrationVersion: '1.0'
     };
 
-    console.log(`[POST config] Dados preparados para ${integrationId}:`, JSON.stringify(configData, null, 2));
-    console.log(`[POST config] Request body recebido:`, JSON.stringify(req.body, null, 2));
-
-    // Validate required fields for Telegram
-    if (integrationId === 'telegram') {
-      if (!configData.telegramBotToken || configData.telegramBotToken.trim() === '') {
-        return res.status(400).json({ 
-          message: 'Token do bot Telegram é obrigatório',
-          error: 'MISSING_BOT_TOKEN' 
-        });
-      }
-      console.log(`🤖 [POST config] Telegram validation passed for token: ${configData.telegramBotToken.substring(0, 10)}...`);
-    }
+    console.log(`[POST config] Dados preparados para ${integrationId}:`, configData);
 
     // Save to database
     const savedConfig = await storage.saveTenantIntegrationConfig(tenantId, integrationId, configData);
-    console.log(`[POST config] Configuração salva:`, savedConfig ? 'SUCCESS' : 'FAILED');
-
-    if (!savedConfig) {
-      return res.status(500).json({ 
-        message: 'Falha ao salvar configuração',
-        error: 'SAVE_FAILED' 
-      });
-    }
 
     // Return masked configuration for security
     const maskedConfig = {
@@ -327,7 +299,6 @@ router.post('/:integrationId/config', requirePermission(Permission.TENANT_MANAGE
  * Testar integração do tenant
  */
 router.post('/:integrationId/test', requirePermission(Permission.TENANT_MANAGE_SETTINGS), async (req: AuthorizedRequest, res) => {
-  console.log(`🔍 [ROUTE-TEST] Starting test for integration: ${req.params.integrationId}`);
   try {
     const { integrationId } = req.params;
     const tenantId = req.user!.tenantId;
@@ -465,26 +436,10 @@ router.post('/:integrationId/test', requirePermission(Permission.TENANT_MANAGE_S
       case 'telegram':
         try {
           console.log(`🔍 [TELEGRAM-TEST] Starting test for tenant ${tenantId}`);
-
+          
           // Get the saved configuration to validate
           const { storage: telegramStorage } = await import('../storage-simple');
-          
-          let telegramConfig;
-          try {
-            telegramConfig = await telegramStorage.getTenantIntegrationConfig(tenantId, integrationId);
-          } catch (configError) {
-            console.error(`❌ [TELEGRAM-TEST] Error fetching config:`, configError);
-            testResult = {
-              success: false,
-              error: 'Erro ao buscar configuração do Telegram: ' + (configError as Error).message,
-              details: { 
-                configError: (configError as Error).message,
-                tenantId: tenantId,
-                integrationId: integrationId
-              }
-            };
-            break;
-          }
+          const telegramConfig = await telegramStorage.getTenantIntegrationConfig(tenantId, integrationId);
 
           console.log(`🔍 [TELEGRAM-TEST] Config found:`, !!telegramConfig);
 
@@ -504,166 +459,85 @@ router.post('/:integrationId/test', requirePermission(Permission.TENANT_MANAGE_S
             console.log(`🔍 [TELEGRAM-TEST] Config keys:`, Object.keys(config));
 
             // Validate required fields
-            if (!config.telegramBotToken || config.telegramBotToken.trim() === '' || config.telegramBotToken === '••••••••') {
-              console.log(`❌ [TELEGRAM-TEST] Bot token missing, empty, or masked`);
+            if (!config.telegramBotToken) {
+              console.log(`❌ [TELEGRAM-TEST] Bot token missing`);
               testResult = { 
                 success: false, 
-                error: 'Bot Token é obrigatório para integração Telegram. Por favor, insira um token válido.', 
+                error: 'Bot Token é obrigatório para integração Telegram.', 
                 details: { 
                   missingFields: ['telegramBotToken'],
-                  configFields: Object.keys(config),
-                  tokenExists: !!config.telegramBotToken,
-                  tokenLength: config.telegramBotToken ? config.telegramBotToken.length : 0,
-                  isMasked: config.telegramBotToken === '••••••••'
+                  configFields: Object.keys(config)
                 }
               };
             } else {
               console.log(`✅ [TELEGRAM-TEST] Bot token found, length: ${config.telegramBotToken.length}`);
+              
+              // Set webhook automatically if not configured
+              const webhookUrl = config.telegramWebhookUrl || `${req.protocol}://${req.get('host')}/api/webhooks/telegram/${tenantId}`;
+              
+              console.log(`🔗 [TELEGRAM-TEST] Webhook URL: ${webhookUrl}`);
+              
+              // Update webhook URL in configuration if not set
+              if (!config.telegramWebhookUrl) {
+                console.log(`🔄 [TELEGRAM-TEST] Updating config with webhook URL`);
+                await telegramStorage.saveTenantIntegrationConfig(tenantId, integrationId, {
+                  ...config,
+                  telegramWebhookUrl: webhookUrl,
+                  lastUpdated: new Date().toISOString()
+                });
+              }
 
-              // Validate bot token format strictly
-              const botTokenPattern = /^\d{8,10}:[A-Za-z0-9_-]{35}$/;
+              // Try to validate bot token format
+              const botTokenPattern = /^\d+:[A-Za-z0-9_-]+$/;
               const isValidBotToken = botTokenPattern.test(config.telegramBotToken);
-
+              
               if (!isValidBotToken) {
                 console.log(`❌ [TELEGRAM-TEST] Invalid bot token format`);
                 testResult = {
                   success: false,
-                  error: 'Formato do Bot Token inválido. Deve ser no formato: 123456789:ABCdefGHIjklMNOpqrsTUVwxyz (números:35_caracteres)',
+                  error: 'Formato do Bot Token inválido. Deve ser no formato: 123456789:ABCdefGHIjklMNOpqrsTUVwxyz',
                   details: { 
                     botTokenFormat: 'invalid',
-                    expectedFormat: '123456789:ABCdefGHIjklMNOpqrsTUVwxyz',
-                    receivedTokenLength: config.telegramBotToken.length,
-                    tokenSample: config.telegramBotToken.substring(0, 15) + '...'
+                    expectedFormat: '123456789:ABCdefGHIjklMNOpqrsTUVwxyz'
                   }
                 };
               } else {
                 console.log(`✅ [TELEGRAM-TEST] Bot token format valid`);
-
-                // Set webhook automatically if not configured
-                const baseUrl = req.get('host')?.includes('replit.dev') 
-                  ? `https://${req.get('host')}` 
-                  : `${req.protocol}://${req.get('host')}`;
-                const webhookUrl = config.telegramWebhookUrl || `${baseUrl}/api/webhooks/telegram/${tenantId}`;
-
-                console.log(`🔗 [TELEGRAM-TEST] Webhook URL: ${webhookUrl}`);
-
-                // Update webhook URL in configuration if not set
-                if (!config.telegramWebhookUrl) {
-                  console.log(`🔄 [TELEGRAM-TEST] Updating config with webhook URL`);
-                  try {
-                    await telegramStorage.saveTenantIntegrationConfig(tenantId, integrationId, {
-                      ...config,
-                      telegramWebhookUrl: webhookUrl,
-                      lastUpdated: new Date().toISOString()
-                    });
-                  } catch (saveError) {
-                    console.error(`❌ [TELEGRAM-TEST] Error saving webhook URL:`, saveError);
-                  }
-                }
-
-                // Initialize test result with basic success
-                testResult = { 
-                  success: true, 
-                  error: '', 
-                  details: { 
-                    botToken: config.telegramBotToken.substring(0, 10) + '...' + config.telegramBotToken.slice(-4),
-                    chatId: config.telegramChatId || 'Não configurado',
-                    webhookUrl: webhookUrl,
-                    webhookStatus: 'Configurado automaticamente',
-                    status: 'Bot Telegram configurado com formato válido',
-                    lastTested: new Date().toISOString(),
-                    telegramApiStatus: 'validating',
-                    botInfo: null,
-                    validations: {
-                      botTokenFormat: 'valid',
-                      webhookConfigured: true,
-                      chatIdProvided: !!config.telegramChatId,
-                      telegramApiConnected: false
-                    },
-                    warnings: []
-                  }
-                };
-
-                // Try to test bot token with Telegram API
+                
                 try {
-                  const telegramApiUrl = `https://api.telegram.org/bot${config.telegramBotToken}/getMe`;
-                  console.log(`🔍 [TELEGRAM-TEST] Testing bot token with Telegram API...`);
-                  
-                  const controller = new AbortController();
-                  const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
-                  
-                  const response = await fetch(telegramApiUrl, {
-                    method: 'GET',
-                    signal: controller.signal,
-                    headers: {
-                      'Accept': 'application/json'
-                    }
-                  });
-                  
-                  clearTimeout(timeoutId);
-                  
-                  console.log(`🔍 [TELEGRAM-TEST] Response status: ${response.status}`);
-                  
-                  if (response.ok) {
-                    const responseText = await response.text();
-                    console.log(`🔍 [TELEGRAM-TEST] Response received, length: ${responseText.length}`);
-                    
-                    try {
-                      const data = JSON.parse(responseText);
-                      
-                      if (data.ok && data.result) {
-                        const botInfo = data.result;
-                        console.log(`✅ [TELEGRAM-TEST] Bot API test successful:`, botInfo.username);
-                        
-                        // Update test result with API success
-                        (testResult.details as any).telegramApiStatus = 'valid';
-                        (testResult.details as any).status = 'Bot Telegram verificado e funcionando';
-                        (testResult.details as any).botInfo = {
-                          id: botInfo.id,
-                          username: botInfo.username,
-                          first_name: botInfo.first_name
-                        };
-                        (testResult.details as any).validations.telegramApiConnected = true;
-                      } else {
-                        console.log(`❌ [TELEGRAM-TEST] Bot API test failed:`, data.description || 'Unknown error');
-                        (testResult.details as any).telegramApiStatus = 'invalid';
-                        (testResult.details as any).warnings.push('Token inválido: ' + (data.description || 'Erro desconhecido da API'));
+                  testResult = { 
+                    success: true, 
+                    error: '', 
+                    details: { 
+                      botToken: config.telegramBotToken.substring(0, 10) + '...' + config.telegramBotToken.slice(-4),
+                      chatId: config.telegramChatId || 'Não configurado',
+                      webhookUrl: webhookUrl,
+                      webhookStatus: 'Configurado automaticamente',
+                      status: 'Bot Telegram configurado com sucesso',
+                      lastTested: new Date().toISOString(),
+                      validations: {
+                        botTokenFormat: 'valid',
+                        webhookConfigured: true,
+                        chatIdProvided: !!config.telegramChatId
                       }
-                    } catch (jsonError) {
-                      console.log(`❌ [TELEGRAM-TEST] JSON parse error:`, (jsonError as Error).message);
-                      (testResult.details as any).telegramApiStatus = 'error';
-                      (testResult.details as any).warnings.push('Resposta da API do Telegram não é JSON válido');
                     }
-                  } else {
-                    console.log(`❌ [TELEGRAM-TEST] API error response: ${response.status}`);
-                    (testResult.details as any).telegramApiStatus = 'invalid';
-                    
-                    if (response.status === 401) {
-                      (testResult.details as any).warnings.push('Token do bot inválido - verifique se o token está correto');
-                    } else if (response.status === 404) {
-                      (testResult.details as any).warnings.push('Bot não encontrado - verifique o token ou se o bot foi criado corretamente');
-                    } else {
-                      (testResult.details as any).warnings.push(`Erro na API do Telegram (HTTP ${response.status})`);
-                    }
-                  }
-                } catch (apiError) {
-                  console.log(`⚠️ [TELEGRAM-TEST] Bot API test error:`, (apiError as Error).message);
-                  (testResult.details as any).telegramApiStatus = 'error';
-                  
-                  if ((apiError as Error).name === 'AbortError') {
-                    (testResult.details as any).warnings.push('Timeout ao conectar com a API do Telegram (8s)');
-                  } else {
-                    (testResult.details as any).warnings.push('Erro de conectividade: ' + (apiError as Error).message);
-                  }
-                }
+                  };
 
-                // Update status to connected if basic validation passed
-                try {
+                  // Update status to connected
                   console.log(`✅ [TELEGRAM-TEST] Updating status to connected`);
                   await telegramStorage.updateTenantIntegrationStatus(tenantId, integrationId, 'connected');
-                } catch (statusError) {
-                  console.error(`❌ [TELEGRAM-TEST] Error updating status:`, statusError);
-                  (testResult.details as any).warnings.push('Erro ao atualizar status: ' + (statusError as Error).message);
+                  
+                } catch (error) {
+                  console.error(`❌ [TELEGRAM-TEST] Error during test:`, error);
+                  testResult = {
+                    success: false,
+                    error: 'Erro ao configurar webhook Telegram: ' + (error as Error).message,
+                    details: { 
+                      webhookUrl,
+                      error: (error as Error).message,
+                      stack: (error as Error).stack
+                    }
+                  };
                 }
               }
             }
@@ -674,7 +548,8 @@ router.post('/:integrationId/test', requirePermission(Permission.TENANT_MANAGE_S
             success: false,
             error: 'Erro inesperado durante teste do Telegram: ' + (error as Error).message,
             details: { 
-              error: (error as Error).message
+              error: (error as Error).message,
+              stack: (error as Error).stack
             }
           };
         }
@@ -703,50 +578,12 @@ router.post('/:integrationId/test', requirePermission(Permission.TENANT_MANAGE_S
         };
     }
 
-    // Ensure we always return valid JSON
-    console.log(`📋 [TEST-RESULT] Final test result for ${integrationId}:`, JSON.stringify(testResult, null, 2));
-    if (!testResult || typeof testResult !== 'object') {
-      testResult = {
-        success: false,
-        error: 'Resultado de teste inválido',
-        details: { originalResult: testResult }
-      };
-    }
-
-    // Ensure required fields exist
-    if (typeof testResult.success !== 'boolean') {
-      testResult.success = false;
-    }
-    
-    if (typeof testResult.error !== 'string') {
-      testResult.error = testResult.error || '';
-    }
-
-    if (!testResult.details || typeof testResult.details !== 'object') {
-      testResult.details = {};
-    }
-
-    console.log(`🔍 [TEST-RESULT] Final result for ${integrationId}:`, JSON.stringify(testResult, null, 2));
-    console.log(`🔍 [TEST-RESULT] About to send JSON response`);
-    
-    // Force early exit with JSON response to prevent middleware interference
-    res.writeHead(200, {
-      'Content-Type': 'application/json',
-      'Cache-Control': 'no-cache'
-    });
-    res.end(JSON.stringify(testResult));
-    return;
+    res.json(testResult);
   } catch (error) {
     console.error('Error testing tenant integration:', error);
     res.status(500).json({ 
       success: false, 
-      error: 'Falha ao testar integração: ' + (error as Error).message,
-      details: {
-        integrationId: integrationId,
-        tenantId: tenantId,
-        errorMessage: (error as Error).message,
-        timestamp: new Date().toISOString()
-      }
+      error: 'Failed to test integration' 
     });
   }
 });
@@ -982,7 +819,7 @@ router.post('/telegram/webhook/:tenantId', async (req, res) => {
     console.log(`📱 Received Telegram webhook for tenant ${tenantId}:`, telegramUpdate);
 
     // Validate webhook signature if needed (implementation depends on Telegram setup)
-
+    
     // Process the update based on message type
     if (telegramUpdate.message) {
       const message = telegramUpdate.message;

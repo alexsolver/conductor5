@@ -117,43 +117,8 @@ export async function apiRequest(
     }
   }
 
-  // Check if response is ok
-  if (!res.ok) {
-    let errorMessage = '';
-    try {
-      const errorData = await res.json();
-      errorMessage = errorData.message || `HTTP ${res.status}: ${res.statusText}`;
-    } catch {
-      errorMessage = `HTTP ${res.status}: ${res.statusText}`;
-    }
-    throw new Error(errorMessage);
-  }
-
-  // Handle JSON responses
-  const contentType = res.headers.get('content-type');
-  console.log(`🔍 [API-REQUEST] Response status: ${res.status}, Content-Type: ${contentType}`);
-  
-  if (contentType && contentType.includes('application/json')) {
-    try {
-      const text = await res.text();
-      console.log(`🔍 [API-REQUEST] Raw response text for ${url}:`, text);
-      
-      if (!text || text.trim() === '') {
-        console.error(`❌ [API-REQUEST] Empty response body for ${url}`);
-        throw new Error('Resposta vazia do servidor');
-      }
-      
-      const data = JSON.parse(text);
-      console.log(`🔍 [API-REQUEST] Parsed JSON for ${url}:`, data);
-      return data;
-    } catch (parseError) {
-      console.error(`❌ [API-REQUEST] JSON parse error for ${url}:`, parseError);
-      throw new Error('Falha ao processar resposta do servidor');
-    }
-  } else {
-    // For non-JSON responses, return the response object
-    return res;
-  }
+  await throwIfResNotOk(res);
+  return res;
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
