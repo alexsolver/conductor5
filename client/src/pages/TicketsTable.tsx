@@ -2376,40 +2376,50 @@ const TicketsTable = React.memo(() => {
               {/* Filtro por Empresa */}
               <div className="space-y-2">
                 <Label>Empresa</Label>
-                <DynamicSelect
-                  endpoint="/api/companies"
-                  placeholder="Selecione uma empresa"
-                  value={selectedCompanyId}
-                  onValueChange={setSelectedCompanyId}
-                  labelKey="name"
-                  valueKey="id"
-                />
+                <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione uma empresa" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Todas as empresas</SelectItem>
+                    <SelectItem value="lansolver">LanSolver</SelectItem>
+                    <SelectItem value="techcorp">TechCorp</SelectItem>
+                    <SelectItem value="innovate">Innovate Solutions</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Filtro por Categoria */}
               <div className="space-y-2">
                 <Label>Categoria</Label>
-                <DynamicSelect
-                  endpoint="/api/ticket-config/categories"
-                  placeholder="Selecione uma categoria"
-                  value=""
-                  onValueChange={() => {}}
-                  labelKey="name"
-                  valueKey="id"
-                />
+                <Select value="" onValueChange={() => {}}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione uma categoria" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Todas as categorias</SelectItem>
+                    <SelectItem value="Suporte Técnico">Suporte Técnico</SelectItem>
+                    <SelectItem value="Atendimento ao Cliente">Atendimento ao Cliente</SelectItem>
+                    <SelectItem value="Financeiro">Financeiro</SelectItem>
+                    <SelectItem value="Administrativo">Administrativo</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Filtro por Responsável */}
               <div className="space-y-2">
                 <Label>Responsável</Label>
-                <DynamicSelect
-                  endpoint="/api/users"
-                  placeholder="Selecione um responsável"
-                  value=""
-                  onValueChange={() => {}}
-                  labelKey="fullName"
-                  valueKey="id"
-                />
+                <Select value="" onValueChange={() => {}}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um responsável" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Todos os responsáveis</SelectItem>
+                    <SelectItem value="alex">Alex Silva</SelectItem>
+                    <SelectItem value="ana">Ana Santos</SelectItem>
+                    <SelectItem value="joao">João Oliveira</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Filtro por Data de Criação */}
@@ -2439,10 +2449,17 @@ const TicketsTable = React.memo(() => {
               setPriorityFilter("all");
               setSelectedCompanyId("");
               setSearchTerm("");
+              // Refrescar dados
+              queryClient.invalidateQueries({ queryKey: ['/api/tickets'] });
             }}>
               Limpar Filtros
             </Button>
-            <Button onClick={() => setIsAdvancedFiltersOpen(false)}>
+            <Button onClick={() => {
+              // Aplicar filtros (em implementação futura)
+              setIsAdvancedFiltersOpen(false);
+              // Refrescar dados dos tickets
+              queryClient.invalidateQueries({ queryKey: ['/api/tickets'] });
+            }}>
               Aplicar Filtros
             </Button>
           </div>
