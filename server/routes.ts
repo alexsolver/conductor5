@@ -8,7 +8,7 @@ import createCSPMiddleware, { createCSPReportingEndpoint, createCSPManagementRou
 import { createMemoryRateLimitMiddleware, RATE_LIMIT_CONFIGS } from "./services/redisRateLimitService";
 import { createFeatureFlagMiddleware } from "./services/featureFlagService";
 import cookieParser from "cookie-parser";
-import { insertCustomerSchema, insertTicketSchema, insertTicketMessageSchema, ticketFieldConfigurations, ticketFieldOptions, ticketStyleConfigurations, ticketDefaultConfigurations, customerCompanies } from "@shared/schema";
+import { insertCustomerSchema, insertTicketSchema, insertTicketMessageSchema, ticketFieldConfigurations, ticketFieldOptions, ticketStyleConfigurations, ticketDefaultConfigurations, companies } from "@shared/schema";
 import { eq, and, sql, asc } from "drizzle-orm";
 import ticketConfigRoutes from "./routes/ticketConfigRoutes";
 import userManagementRoutes from "./routes/userManagementRoutes";
@@ -289,7 +289,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const schemaName = schemaManager.getSchemaName(req.user.tenantId);
 
       const result = await pool.query(
-        `SELECT * FROM "${schemaName}"."customer_companies" 
+        `SELECT * FROM "${schemaName}"."companies" 
          WHERE tenant_id = $1 
          AND status = 'active'
          ORDER BY name`,
@@ -1254,25 +1254,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     // Simplified routes (show all public templates)
     app.get('/api/ticket-templates', jwtAuth, async (req: AuthenticatedRequest, res) => {
-      req.params = { ...req.params, customerCompanyId: 'all' };
+      req.params = { ...req.params, companyId: 'all' };
       return await ticketTemplateController.getTemplatesByCompany(req, res);
     });
     app.post('/api/ticket-templates', jwtAuth, async (req: AuthenticatedRequest, res) => {
-      req.params = { ...req.params, customerCompanyId: 'all' };
+      req.params = { ...req.params, companyId: 'all' };
       return await ticketTemplateController.createTemplate(req, res);
     });
     app.get('/api/ticket-templates/stats', jwtAuth, async (req: AuthenticatedRequest, res) => {  
-      req.params = { ...req.params, customerCompanyId: 'all' };
+      req.params = { ...req.params, companyId: 'all' };
       return await ticketTemplateController.getTemplateStats(req, res);
     });
     app.get('/api/ticket-templates/categories', jwtAuth, async (req: AuthenticatedRequest, res) => {
-      req.params = { ...req.params, customerCompanyId: 'all' };
+      req.params = { ...req.params, companyId: 'all' };
       return await ticketTemplateController.getTemplateCategories(req, res);
     });
 
-    // Templates por empresa cliente
-    app.get('/api/ticket-templates/company/:customerCompanyId', jwtAuth, ticketTemplateController.getTemplatesByCompany.bind(ticketTemplateController));
-    app.post('/api/ticket-templates/company/:customerCompanyId', jwtAuth, ticketTemplateController.createTemplate.bind(ticketTemplateController)); 
+    // Templates por empresa
+    app.get('/api/ticket-templates/company/:companyId', jwtAuth, ticketTemplateController.getTemplatesByCompany.bind(ticketTemplateController));
+    app.post('/api/ticket-templates/company/:companyId', jwtAuth, ticketTemplateController.createTemplate.bind(ticketTemplateController)); 
 
     // CRUD individual de templates
     app.get('/api/ticket-templates/:templateId', jwtAuth, ticketTemplateController.getTemplateById.bind(ticketTemplateController));
@@ -1280,16 +1280,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     app.delete('/api/ticket-templates/:templateId', jwtAuth, ticketTemplateController.deleteTemplate.bind(ticketTemplateController));
 
     // Busca e filtros
-    app.get('/api/ticket-templates/company/:customerCompanyId/search', jwtAuth, ticketTemplateController.searchTemplates.bind(ticketTemplateController));
-    app.get('/api/ticket-templates/company/:customerCompanyId/categories', jwtAuth, ticketTemplateController.getTemplateCategories.bind(ticketTemplateController));
-    app.get('/api/ticket-templates/company/:customerCompanyId/popular', jwtAuth, ticketTemplateController.getPopularTemplates.bind(ticketTemplateController));
+    app.get('/api/ticket-templates/company/:companyId/search', jwtAuth, ticketTemplateController.searchTemplates.bind(ticketTemplateController));
+    app.get('/api/ticket-templates/company/:companyId/categories', jwtAuth, ticketTemplateController.getTemplateCategories.bind(ticketTemplateController));
+    app.get('/api/ticket-templates/company/:companyId/popular', jwtAuth, ticketTemplateController.getPopularTemplates.bind(ticketTemplateController));
 
     // Aplicar template e preview
     app.post('/api/ticket-templates/:templateId/apply', jwtAuth, ticketTemplateController.applyTemplate.bind(ticketTemplateController));
     app.get('/api/ticket-templates/:templateId/preview', jwtAuth, ticketTemplateController.previewTemplate.bind(ticketTemplateController));
 
     // Estatísticas
-    app.get('/api/ticket-templates/company/:customerCompanyId/stats', jwtAuth, ticketTemplateController.getTemplateStats.bind(ticketTemplateController));
+    app.get('/api/ticket-templates/company/:companyId/stats', jwtAuth, ticketTemplateController.getTemplateStats.bind(ticketTemplateController));
 
     console.log('✅ Ticket Templates routes registered');
   } catch (error) {
@@ -3195,7 +3195,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Direct database insert using Drizzle
       const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
       const [company] = await tenantDb
-        .insert(customerCompanies)
+        .insert(companies)
         .values({
           tenantId,
           name,

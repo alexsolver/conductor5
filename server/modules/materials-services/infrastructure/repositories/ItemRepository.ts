@@ -1,6 +1,6 @@
 import { eq, and, like, desc, or, sql, inArray, asc } from 'drizzle-orm';
 import { items, itemAttachments, itemLinks, itemCustomerLinks, itemSupplierLinks, customerItemMappings } from '../../../../../shared/schema-master';
-import { customerCompanies as customerTable } from '../../../../../shared/schema-master';
+import { companies as companyTable } from '../../../../../shared/schema-master';
 import { suppliers as supplierTable } from '../../../../../shared/schema-master';
 import type { Item } from '../../domain/entities';
 import type { ExtractTablesWithRelations } from 'drizzle-orm';
@@ -95,7 +95,7 @@ export class ItemRepository {
         .from(itemCustomerLinks)
         .where(and(
           eq(itemCustomerLinks.tenantId, tenantId),
-          eq(itemCustomerLinks.customerCompanyId, options.companyId),
+          eq(itemCustomerLinks.companyId, options.companyId),
           eq(itemCustomerLinks.isActive, true)
         ));
 
@@ -280,20 +280,20 @@ export class ItemRepository {
     suppliers: Array<{ id: string; name: string }>;
   }> {
     try {
-      // Buscar vínculos de empresas cliente (customer_companies)
+      // Buscar vínculos de empresas (companies)
       const customerLinks = await this.db
         .select({
-          id: customerTable.id,
-          name: customerTable.name
+          id: companyTable.id,
+          name: companyTable.name
         })
         .from(customerItemMappings)
-        .innerJoin(customerTable, eq(customerItemMappings.customerId, customerTable.id))
+        .innerJoin(companyTable, eq(customerItemMappings.customerId, companyTable.id))
         .where(
           and(
             eq(customerItemMappings.itemId, itemId),
             eq(customerItemMappings.tenantId, tenantId),
             eq(customerItemMappings.isActive, true),
-            eq(customerTable.status, 'active')
+            eq(companyTable.status, 'active')
           )
         )
         .limit(50);
@@ -436,14 +436,14 @@ export class ItemRepository {
       // 2. Inserir novos vínculos
       const promises = [];
 
-      // Vínculos de empresas cliente (usar customer_item_mappings)
+      // Vínculos de empresas (usar customer_item_mappings)
       if (links.customers.length > 0) {
         const customerLinkData = links.customers
-          .filter(customerCompanyId => customerCompanyId && customerCompanyId.trim() !== '') // Filter out empty values
-          .map(customerCompanyId => ({
+          .filter(companyId => companyId && companyId.trim() !== '') // Filter out empty values
+          .map(companyId => ({
             tenantId,
             itemId,
-            customerId: customerCompanyId, // Referencia customer_company_id
+            customerId: companyId, // Referencia company_id
             isActive: true,
             createdBy,
             createdAt: new Date()

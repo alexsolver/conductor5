@@ -23,12 +23,12 @@ export class LPURepository {
           COUNT(*) as total_lists,
           COUNT(*) FILTER (WHERE is_active = true) as active_lists,
           COUNT(*) FILTER (WHERE is_active = false) as draft_lists,
-          COUNT(*) FILTER (WHERE customer_company_id IS NOT NULL) as pending_approval,
-          COUNT(*) FILTER (WHERE is_active = true AND customer_company_id IS NOT NULL) as approved_versions,
+          COUNT(*) FILTER (WHERE company_id IS NOT NULL) as pending_approval,
+          COUNT(*) FILTER (WHERE is_active = true AND company_id IS NOT NULL) as approved_versions,
           0 as active_rules,
           CASE 
-            WHEN COUNT(*) FILTER (WHERE customer_company_id IS NOT NULL) > 0 
-            THEN ROUND((COUNT(*) FILTER (WHERE is_active = true AND customer_company_id IS NOT NULL)::numeric / COUNT(*) FILTER (WHERE customer_company_id IS NOT NULL)::numeric) * 100, 2)
+            WHEN COUNT(*) FILTER (WHERE company_id IS NOT NULL) > 0 
+            THEN ROUND((COUNT(*) FILTER (WHERE is_active = true AND company_id IS NOT NULL)::numeric / COUNT(*) FILTER (WHERE company_id IS NOT NULL)::numeric) * 100, 2)
             ELSE 0 
           END as approval_rate
         FROM ${priceLists}
@@ -69,7 +69,7 @@ export class LPURepository {
         description: priceLists.description,
         version: priceLists.version,
         isActive: priceLists.isActive,
-        customerCompanyId: priceLists.customerCompanyId,
+        companyId: priceLists.companyId,
         validFrom: priceLists.validFrom,
         validTo: priceLists.validTo,
         currency: priceLists.currency,

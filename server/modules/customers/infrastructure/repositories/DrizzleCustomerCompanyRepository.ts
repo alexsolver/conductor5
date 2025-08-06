@@ -12,7 +12,7 @@ import {
   CustomerCompanyFilter,
   CustomerCompanyMembershipFilter
 } from '../../domain/ports/ICustomerCompanyRepository';
-import { customerCompanies, customerCompanyMemberships, customers } from '../../../../../shared/schema';
+import { companies, customerCompanyMemberships, customers } from '../../../../../shared/schema';
 import { schemaManager } from '../../../../db';
 
 // Types will be inferred dynamically from tenant schema
@@ -27,7 +27,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
 
     const escapedId = id.replace(/'/g, "''");
     const sqlQuery = `
-      SELECT * FROM ${schemaName}.customer_companies
+      SELECT * FROM ${schemaName}.companies
       WHERE id = '${escapedId}'
       LIMIT 1
     `;
@@ -53,7 +53,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
     // Escape the name parameter to prevent SQL injection
     const escapedName = name.replace(/'/g, "''");
     const sqlQuery = `
-      SELECT * FROM ${schemaName}.customer_companies
+      SELECT * FROM ${schemaName}.companies
       WHERE name = '${escapedName}'
       LIMIT 1
     `;
@@ -118,7 +118,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
     }
 
     let sqlQuery = `
-      SELECT * FROM ${schemaName}.customer_companies
+      SELECT * FROM ${schemaName}.companies
       ${whereClause ? `WHERE ${whereClause}` : ''}
       ORDER BY created_at DESC
     `;
@@ -166,7 +166,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
       };
 
       const sqlQuery = `
-        UPDATE ${schemaName}.customer_companies
+        UPDATE ${schemaName}.companies
         SET
           name = ${safeString(companyData.name)},
           display_name = ${safeString(companyData.display_name)},
@@ -204,7 +204,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
       };
 
       const sqlQuery = `
-        INSERT INTO ${schemaName}.customer_companies (
+        INSERT INTO ${schemaName}.companies (
           id, name, display_name, description, industry, size, status,
           email, phone, website, subscription_tier, is_active,
           tenant_id, created_at, updated_at, created_by, updated_by
@@ -295,7 +295,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
 
     const sqlQuery = `
       SELECT COUNT(*) as count
-      FROM ${schemaName}.customer_companies
+      FROM ${schemaName}.companies
       ${whereClause ? `WHERE ${whereClause}` : ''}
     `;
 
@@ -335,7 +335,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
     const results = await tenantDb
       .select()
       .from(tenantSchema.customerCompanyMemberships)
-      .innerJoin(tenantSchema.customerCompanies, eq(tenantSchema.customerCompanyMemberships.companyId, tenantSchema.customerCompanies.id))
+      .innerJoin(tenantSchema.companies, eq(tenantSchema.customerCompanyMemberships.companyId, tenantSchema.companies.id))
       .where(eq(tenantSchema.customerCompanyMemberships.customerId, customerId));
 
     return results.map(result => this.toMembershipDomainEntity(result.customer_company_memberships));
@@ -361,7 +361,7 @@ export class DrizzleCustomerCompanyRepository implements ICustomerCompanyReposit
       membership: tenantSchema.customerCompanyMemberships,
     })
       .from(tenantSchema.customerCompanyMemberships)
-      .innerJoin(tenantSchema.customerCompanies, eq(tenantSchema.customerCompanyMemberships.companyId, tenantSchema.customerCompanies.id));
+      .innerJoin(tenantSchema.companies, eq(tenantSchema.customerCompanyMemberships.companyId, tenantSchema.companies.id));
 
     const conditions = [];
 

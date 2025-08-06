@@ -245,7 +245,7 @@ export const tickets = pgTable("tickets", {
   businessImpact: text("business_impact"),
   callerId: uuid("caller_id").references(() => customers.id),
   callerType: varchar("caller_type", { length: 50 }).default("customer"),
-  customerCompanyId: uuid("customer_company_id").references(() => customerCompanies.id), // CRITICAL: Company the ticket belongs to
+  companyId: uuid("company_id").references(() => companies.id), // CRITICAL: Company the ticket belongs to
   beneficiaryId: uuid("beneficiary_id").references(() => favorecidos.id),
   beneficiaryType: varchar("beneficiary_type", { length: 50 }).default("customer"),
   responsibleId: uuid("responsible_id").references(() => users.id),
@@ -278,7 +278,7 @@ export const tickets = pgTable("tickets", {
   index("tickets_tenant_status_priority_idx").on(table.tenantId, table.status, table.priority),
   index("tickets_tenant_assigned_idx").on(table.tenantId, table.responsibleId),
   index("tickets_tenant_customer_idx").on(table.tenantId, table.callerId),
-  index("tickets_tenant_company_idx").on(table.tenantId, table.customerCompanyId), // CRITICAL: Index for company filtering
+  index("tickets_tenant_company_idx").on(table.tenantId, table.companyId), // CRITICAL: Index for company filtering
   index("tickets_tenant_environment_idx").on(table.tenantId, table.environment),
   index("tickets_tenant_template_idx").on(table.tenantId, table.templateName),
 ]);
@@ -357,8 +357,8 @@ export const locations = pgTable("locations", {
   index("locations_geo_proximity_idx").on(table.tenantId, table.latitude, table.longitude),
 ]);
 
-// Customer Companies table - Enterprise search and filtering indexes
-export const customerCompanies = pgTable("customer_companies", {
+// Companies table - Enterprise search and filtering indexes
+export const companies = pgTable("companies", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
   name: varchar("name", { length: 255 }).notNull(),
@@ -372,10 +372,10 @@ export const customerCompanies = pgTable("customer_companies", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => [
-  index("customer_companies_tenant_name_idx").on(table.tenantId, table.name),
-  index("customer_companies_tenant_status_idx").on(table.tenantId, table.status),
-  index("customer_companies_tenant_tier_idx").on(table.tenantId, table.subscriptionTier),
-  index("customer_companies_tenant_size_idx").on(table.tenantId, table.size),
+  index("companies_tenant_name_idx").on(table.tenantId, table.name),
+  index("companies_tenant_status_idx").on(table.tenantId, table.status),
+  index("companies_tenant_tier_idx").on(table.tenantId, table.subscriptionTier),
+  index("companies_tenant_size_idx").on(table.tenantId, table.size),
 ]);
 
 // Skills table - Apenas campos básicos que funcionam
@@ -608,7 +608,7 @@ export const insertTicketSchema = createInsertSchema(tickets);
 export const insertTicketMessageSchema = createInsertSchema(ticketMessages);
 export const insertActivityLogSchema = createInsertSchema(activityLogs);
 export const insertLocationSchema = createInsertSchema(locations);
-export const insertCustomerCompanySchema = createInsertSchema(customerCompanies);
+export const insertCompanySchema = createInsertSchema(companies);
 // Schema manual para skills - evita referências a campos inexistentes
 export const insertSkillSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
@@ -1443,8 +1443,8 @@ export type InsertActivityLog = typeof activityLogs.$inferInsert;
 export type Location = typeof locations.$inferSelect;
 export type InsertLocation = typeof locations.$inferInsert;
 
-export type CustomerCompany = typeof customerCompanies.$inferSelect;
-export type InsertCustomerCompany = typeof customerCompanies.$inferInsert;
+export type Company = typeof companies.$inferSelect;
+export type InsertCompany = typeof companies.$inferInsert;
 
 export type Skill = typeof skills.$inferSelect;
 export type InsertSkill = typeof skills.$inferInsert;
@@ -1828,7 +1828,7 @@ export const contracts = pgTable("contracts", {
   title: varchar("title", { length: 255 }).notNull(),
   description: text("description"),
   customerId: uuid("customer_id").references(() => customers.id),
-  customerCompanyId: uuid("customer_company_id").references(() => customerCompanies.id),
+  companyId: uuid("company_id").references(() => companies.id),
   contractType: varchar("contract_type", { length: 50 }).notNull(), // maintenance, support, development, consultoria, sla
   status: varchar("status", { length: 50 }).default("active"), // active, suspended, cancelled, in_renewal, expired
   priority: varchar("priority", { length: 20 }).default("medium"), // low, medium, high, critical
@@ -2206,15 +2206,15 @@ export const itemCustomerLinks = pgTable("item_customer_links", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
   itemId: uuid("item_id").references(() => items.id, { onDelete: 'cascade' }).notNull(),
-  customerCompanyId: uuid("customer_company_id").references(() => customerCompanies.id).notNull(),
+  companyId: uuid("company_id").references(() => companies.id).notNull(),
   customerItemCode: varchar("customer_item_code", { length: 100 }),
   customerItemName: varchar("customer_item_name", { length: 255 }),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
 }, (table) => [
   index("item_customer_links_tenant_item_idx").on(table.tenantId, table.itemId),
-  index("item_customer_links_tenant_customer_idx").on(table.tenantId, table.customerCompanyId),
-  unique("item_customer_links_unique").on(table.tenantId, table.itemId, table.customerCompanyId),
+  index("item_customer_links_tenant_company_idx").on(table.tenantId, table.companyId),
+  unique("item_customer_links_unique").on(table.tenantId, table.itemId, table.companyId),
 ]);
 
 // Item Supplier Links table - Enhanced for hierarchical personalization
@@ -2311,7 +2311,7 @@ export const priceLists = pgTable("price_lists", {
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
   listCode: varchar("list_code", { length: 50 }).notNull(),
-  customerCompanyId: uuid("customer_company_id").references(() => customerCompanies.id),
+  companyId: uuid("company_id").references(() => companies.id),
   effectiveDate: timestamp("effective_date").defaultNow(),
   expirationDate: timestamp("expiration_date"),
   currency: varchar("currency", { length: 3 }).default("BRL"),
@@ -2321,7 +2321,7 @@ export const priceLists = pgTable("price_lists", {
 }, (table) => [
   index("price_lists_tenant_name_idx").on(table.tenantId, table.name),
   index("price_lists_tenant_code_idx").on(table.tenantId, table.listCode),
-  index("price_lists_tenant_customer_idx").on(table.tenantId, table.customerCompanyId),
+  index("price_lists_tenant_company_idx").on(table.tenantId, table.companyId),
   unique("price_lists_tenant_code_unique").on(table.tenantId, table.listCode),
 ]);
 
@@ -3110,7 +3110,7 @@ export const insertSlaMetricSchema = createInsertSchema(slaMetrics);
 export const ticketTemplates = pgTable("ticket_templates", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
-  customerCompanyId: uuid("customer_company_id").references(() => customerCompanies.id, { onDelete: 'cascade' }),
+  companyId: uuid("company_id").references(() => companies.id, { onDelete: 'cascade' }),
   
   // Identificação
   name: varchar("name", { length: 255 }).notNull(),
@@ -3153,9 +3153,9 @@ export const ticketTemplates = pgTable("ticket_templates", {
   updatedAt: timestamp("updated_at").defaultNow(),
   createdById: uuid("created_by_id").notNull(),
 }, (table) => [
-  index("templates_company_active_idx").on(table.tenantId, table.customerCompanyId, table.isActive, table.category),
-  index("templates_usage_idx").on(table.tenantId, table.customerCompanyId, table.usageCount.desc(), table.lastUsedAt.desc()),
-  unique("templates_unique_name").on(table.tenantId, table.customerCompanyId, table.name),
+  index("templates_company_active_idx").on(table.tenantId, table.companyId, table.isActive, table.category),
+  index("templates_usage_idx").on(table.tenantId, table.companyId, table.usageCount.desc(), table.lastUsedAt.desc()),
+  unique("templates_unique_name").on(table.tenantId, table.companyId, table.name),
 ]);
 
 // ========================================
@@ -3272,7 +3272,7 @@ export type InsertTemplateApproval = typeof templateApprovals.$inferInsert;
 
 // Template Zod schemas  
 export const insertTicketTemplateSchema = createInsertSchema(ticketTemplates).extend({
-  customerCompanyId: z.string().uuid().nullable().optional(),
+  companyId: z.string().uuid().nullable().optional(),
   defaultCategory: z.string().min(1, "Default category is required"),
 }).omit({ id: true, createdAt: true, updatedAt: true });
 
