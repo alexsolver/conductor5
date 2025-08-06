@@ -726,8 +726,13 @@ router.post('/:integrationId/test', requirePermission(Permission.TENANT_MANAGE_S
     }
 
     console.log(`🔍 [TEST-RESULT] Final result for ${integrationId}:`, JSON.stringify(testResult, null, 2));
+    console.log(`🔍 [TEST-RESULT] Sending response with Content-Type: application/json`);
     
-    res.json(testResult);
+    // Ensure the response has proper headers and is JSON
+    res.setHeader('Content-Type', 'application/json');
+    const responseJson = JSON.stringify(testResult);
+    console.log(`🔍 [TEST-RESULT] Response JSON length: ${responseJson.length}`);
+    res.status(200).send(responseJson);
   } catch (error) {
     console.error('Error testing tenant integration:', error);
     res.status(500).json({ 
