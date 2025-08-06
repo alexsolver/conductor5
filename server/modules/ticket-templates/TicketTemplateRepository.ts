@@ -22,7 +22,7 @@ export class TicketTemplateRepository {
       query = `
         SELECT * FROM "${schemaName}".ticket_templates 
         WHERE tenant_id = $1 
-        AND customer_company_id IS NULL
+        AND company_id IS NULL
         AND is_active = true
         ORDER BY sort_order ASC, usage_count DESC, name ASC
       `;
@@ -33,8 +33,8 @@ export class TicketTemplateRepository {
         SELECT * FROM "${schemaName}".ticket_templates 
         WHERE tenant_id = $1 
         AND (
-          customer_company_id = $2 
-          ${includePublic ? 'OR customer_company_id IS NULL' : ''}
+          company_id = $2 
+          ${includePublic ? 'OR company_id IS NULL' : ''}
         )
         AND is_active = true
         ORDER BY sort_order ASC, usage_count DESC, name ASC
@@ -68,7 +68,7 @@ export class TicketTemplateRepository {
     
     const query = `
       INSERT INTO "${schemaName}".ticket_templates (
-        tenant_id, customer_company_id, name, description, category, subcategory,
+        tenant_id, company_id, name, description, category, subcategory,
         default_title, default_description, default_type, default_priority, 
         default_status, default_category, default_urgency, default_impact,
         default_assignee_id, default_assignment_group, default_department,
@@ -189,7 +189,7 @@ export class TicketTemplateRepository {
     const values = [tenantId];
     
     if (companyId !== null) {
-      whereClause += ' AND (customer_company_id = $2 OR customer_company_id IS NULL)';
+      whereClause += ' AND (company_id = $2 OR company_id IS NULL)';
       values.push(companyId);
     }
 
@@ -222,7 +222,7 @@ export class TicketTemplateRepository {
     
     let whereClause = `
       WHERE tenant_id = $1 
-      AND (customer_company_id = $2 OR customer_company_id IS NULL)
+      AND (company_id = $2 OR company_id IS NULL)
       AND is_active = true
       AND (name ILIKE $3 OR description ILIKE $3)
     `;
@@ -251,7 +251,7 @@ export class TicketTemplateRepository {
     const values = [tenantId, limit];
     
     if (customerCompanyId) {
-      whereClause += ' AND (customer_company_id = $3 OR customer_company_id IS NULL)';
+      whereClause += ' AND (company_id = $3 OR company_id IS NULL)';
       values.push(customerCompanyId);
     }
 
@@ -279,7 +279,7 @@ export class TicketTemplateRepository {
     const values = [tenantId];
     
     if (companyId !== null) {
-      whereClause += ' AND (customer_company_id = $2 OR customer_company_id IS NULL)';
+      whereClause += ' AND (company_id = $2 OR company_id IS NULL)';
       values.push(companyId);
     }
 

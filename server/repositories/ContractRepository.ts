@@ -14,7 +14,7 @@ export class ContractRepository {
     
     const result = await pool.query(
       `INSERT INTO "${schemaName}"."contracts" 
-       (tenant_id, contract_number, title, contract_type, status, priority, total_value, currency, start_date, end_date, customer_company_id, manager_id, description, created_by_id, updated_by_id, created_at, updated_at, is_active)
+       (tenant_id, contract_number, title, contract_type, status, priority, total_value, currency, start_date, end_date, company_id, manager_id, description, created_by_id, updated_by_id, created_at, updated_at, is_active)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true)
        RETURNING *`,
       [tenantId, contractNumber, data.title, data.contractType, data.status, data.priority, data.totalValue, data.currency, data.startDate, data.endDate, data.customerCompanyId, data.managerId, data.description, userId, userId]
@@ -82,7 +82,7 @@ export class ContractRepository {
     }
     
     if (filters?.customerId) {
-      whereConditions.push(`customer_company_id = $${paramIndex}`);
+      whereConditions.push(`company_id = $${paramIndex}`);
       values.push(filters.customerId);
       paramIndex++;
     }
@@ -135,7 +135,7 @@ export class ContractRepository {
     const result = await pool.query(
       `UPDATE "${schemaName}"."contracts" 
        SET title = $3, contract_type = $4, status = $5, priority = $6, total_value = $7, currency = $8,
-           start_date = $9, end_date = $10, customer_company_id = $11, manager_id = $12, description = $13,
+           start_date = $9, end_date = $10, company_id = $11, manager_id = $12, description = $13,
            updated_by_id = $14, updated_at = CURRENT_TIMESTAMP
        WHERE id = $1 AND tenant_id = $2 
        RETURNING *`,

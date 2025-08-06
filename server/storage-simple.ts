@@ -417,7 +417,7 @@ export class DatabaseStorage implements IStorage {
         FROM ${sql.identifier(schemaName)}.tickets
         LEFT JOIN ${sql.identifier(schemaName)}.customers ON tickets.customer_id = customers.id
         LEFT JOIN ${sql.identifier(schemaName)}.customers caller ON tickets.caller_id = caller.id
-        LEFT JOIN ${sql.identifier(schemaName)}.companies companies ON tickets.customer_company_id = companies.id
+        LEFT JOIN ${sql.identifier(schemaName)}.companies companies ON tickets.company_id = companies.id
         WHERE tickets.tenant_id = ${validatedTenantId}
       `;
 
@@ -460,7 +460,7 @@ export class DatabaseStorage implements IStorage {
         FROM ${sql.identifier(schemaName)}.tickets
         LEFT JOIN ${sql.identifier(schemaName)}.customers ON tickets.customer_id = customers.id
         LEFT JOIN ${sql.identifier(schemaName)}.customers caller ON tickets.caller_id = caller.id
-        LEFT JOIN ${sql.identifier(schemaName)}.companies companies ON tickets.customer_company_id = companies.id
+        LEFT JOIN ${sql.identifier(schemaName)}.companies companies ON tickets.company_id = companies.id
         WHERE tickets.id = ${ticketId} AND tickets.tenant_id = ${validatedTenantId}
         LIMIT 1
       `);
@@ -499,7 +499,7 @@ export class DatabaseStorage implements IStorage {
       }
 
       // Get company ID for numbering configuration
-      const companyId = ticketData.customer_company_id || '00000000-0000-0000-0000-000000000001'; // Default company
+      const companyId = ticketData.company_id || '00000000-0000-0000-0000-000000000001'; // Default company
 
       // Generate ticket number using configuration
       const { ticketNumberGenerator } = await import('./utils/ticketNumberGenerator');
@@ -583,7 +583,7 @@ export class DatabaseStorage implements IStorage {
           caller_type = ${ticketData.caller_type || 'customer'},
           beneficiary_type = ${ticketData.beneficiary_type || 'customer'},
           customer_id = ${ticketData.customer_id || null},
-          customer_company_id = ${ticketData.customer_company_id || null},
+          company_id = ${ticketData.company_id || null},
 
           followers = ${ticketData.followers && Array.isArray(ticketData.followers) && ticketData.followers.length > 0 
             ? ticketData.followers 
