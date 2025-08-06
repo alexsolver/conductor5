@@ -1908,8 +1908,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Timecard routes - Registro de Ponto
-  app.use('/api/timecard', jwtAuth, timecardRoutes);
+  // Timecard routes - Registro de Ponto  
+  const { timecardRouter } = await import('./modules/timecard/routes');
+  app.use('/api/timecard', timecardRouter);
 
   // Timecard Approval Routes
   const timecardApprovalController = new TimecardApprovalController();

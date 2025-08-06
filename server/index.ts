@@ -106,7 +106,7 @@ app.use((req, res, next) => {
   // Initialize activity tracking cleanup service
   ActivityTrackingService.initializeCleanup();
 
-  app.use('/api/timecard', timecardRoutes);
+  // Timecard routes moved to routes.ts to avoid conflicts
   app.use('/api/productivity', productivityRoutes);
 
   // Employment type detection and terminology routes
