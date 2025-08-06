@@ -200,22 +200,39 @@ export default function TenantAdminIntegrations() {
 
   const testIntegrationMutation = useMutation({
     mutationFn: async (integrationId: string) => {
+      console.log(`🧪 [FRONTEND] Testing integration: ${integrationId}`);
       const response = await apiRequest('POST', `/api/tenant-admin/integrations/${integrationId}/test`);
-      return response.json();
+      
+      // Handle both direct response objects and Response objects
+      if (response && typeof response === 'object' && 'success' in response) {
+        return response;
+      } else if (response && typeof response.json === 'function') {
+        return await response.json();
+      } else {
+        return response;
+      }
     },
     onSuccess: (data, integrationId) => {
+      console.log(`✅ [FRONTEND] Test result for ${integrationId}:`, data);
       queryClient.invalidateQueries({ queryKey: ['/api/tenant-admin/integrations'] });
+      
+      const isSuccess = data?.success === true;
+      const errorMessage = data?.error || 'Erro desconhecido';
+      
       toast({
         title: "Teste realizado",
-        description: data.success ? "Integração funcionando corretamente." : "Erro na integração: " + data.error,
-        variant: data.success ? "default" : "destructive",
+        description: isSuccess 
+          ? "Integração funcionando corretamente." 
+          : `Erro na integração: ${errorMessage}`,
+        variant: isSuccess ? "default" : "destructive",
       });
       setTestingIntegrationId(null);
     },
-    onError: (error, integrationId) => {
+    onError: (error: any, integrationId) => {
+      console.error(`❌ [FRONTEND] Test error for ${integrationId}:`, error);
       toast({
         title: "Erro no teste",
-        description: "Falha ao testar a integração",
+        description: error?.message || "Falha ao testar a integração",
         variant: "destructive",
       });
       setTestingIntegrationId(null);

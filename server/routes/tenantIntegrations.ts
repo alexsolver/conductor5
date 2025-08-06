@@ -501,7 +501,10 @@ router.post('/:integrationId/test', requirePermission(Permission.TENANT_MANAGE_S
               console.log(`✅ [TELEGRAM-TEST] Bot token found, length: ${config.telegramBotToken.length}`);
 
               // Set webhook automatically if not configured
-              const webhookUrl = config.telegramWebhookUrl || `${req.protocol}://${req.get('host')}/api/webhooks/telegram/${tenantId}`;
+              const baseUrl = req.get('host')?.includes('replit.dev') 
+                ? `https://${req.get('host')}` 
+                : `${req.protocol}://${req.get('host')}`;
+              const webhookUrl = config.telegramWebhookUrl || `${baseUrl}/api/webhooks/telegram/${tenantId}`;
 
               console.log(`🔗 [TELEGRAM-TEST] Webhook URL: ${webhookUrl}`);
 
@@ -533,6 +536,28 @@ router.post('/:integrationId/test', requirePermission(Permission.TENANT_MANAGE_S
                 console.log(`✅ [TELEGRAM-TEST] Bot token format valid`);
 
                 try {
+                  // Test bot token by making a request to Telegram API
+                  const telegramApiUrl = `https://api.telegram.org/bot${config.telegramBotToken}/getMe`;
+                  let botInfo = null;
+                  let telegramApiStatus = 'not_tested';
+
+                  try {
+                    const response = await fetch(telegramApiUrl);
+                    const data = await response.json();
+                    
+                    if (data.ok) {
+                      botInfo = data.result;
+                      telegramApiStatus = 'valid';
+                      console.log(`✅ [TELEGRAM-TEST] Bot API test successful:`, botInfo.username);
+                    } else {
+                      telegramApiStatus = 'invalid';
+                      console.log(`❌ [TELEGRAM-TEST] Bot API test failed:`, data.description);
+                    }
+                  } catch (apiError) {
+                    telegramApiStatus = 'error';
+                    console.log(`⚠️ [TELEGRAM-TEST] Bot API test error (continuing):`, (apiError as Error).message);
+                  }
+
                   testResult = { 
                     success: true, 
                     error: '', 
@@ -543,10 +568,17 @@ router.post('/:integrationId/test', requirePermission(Permission.TENANT_MANAGE_S
                       webhookStatus: 'Configurado automaticamente',
                       status: 'Bot Telegram configurado com sucesso',
                       lastTested: new Date().toISOString(),
+                      telegramApiStatus,
+                      botInfo: botInfo ? {
+                        id: botInfo.id,
+                        username: botInfo.username,
+                        first_name: botInfo.first_name
+                      } : null,
                       validations: {
                         botTokenFormat: 'valid',
                         webhookConfigured: true,
-                        chatIdProvided: !!config.telegramChatId
+                        chatIdProvided: !!config.telegramChatId,
+                        telegramApiConnected: telegramApiStatus === 'valid'
                       }
                     }
                   };
@@ -559,11 +591,10 @@ router.post('/:integrationId/test', requirePermission(Permission.TENANT_MANAGE_S
                   console.error(`❌ [TELEGRAM-TEST] Error during test:`, error);
                   testResult = {
                     success: false,
-                    error: 'Erro ao configurar webhook Telegram: ' + (error as Error).message,
+                    error: 'Erro ao testar integração Telegram: ' + (error as Error).message,
                     details: { 
                       webhookUrl,
-                      error: (error as Error).message,
-                      stack: (error as Error).stack
+                      error: (error as Error).message
                     }
                   };
                 }
@@ -576,8 +607,7 @@ router.post('/:integrationId/test', requirePermission(Permission.TENANT_MANAGE_S
             success: false,
             error: 'Erro inesperado durante teste do Telegram: ' + (error as Error).message,
             details: { 
-              error: (error as Error).message,
-              stack: (error as Error).stack
+              error: (error as Error).message
             }
           };
         }
