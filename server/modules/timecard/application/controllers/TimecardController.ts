@@ -848,36 +848,13 @@ export class TimecardController {
           // Pegar primeiro registro do dia (normalmente deve ser único)
           const record = dayRecords[0];
           
-          // Calcular horas trabalhadas
-          const workStart = new Date(record.checkIn);
-          const workEnd = new Date(record.checkOut);
-          let workMinutes = (workEnd.getTime() - workStart.getTime()) / (1000 * 60);
+          // Data para análise
+          const workDate = new Date(record.checkIn);
           
-          // Se as horas ficaram negativas, pode ser um turno que cruza a meia-noite
-          if (workMinutes < 0) {
-            // Adicionar 24 horas para turnos noturnos
-            workMinutes += 24 * 60;
-          }
+          // Mapear para formato CLT brasileiro
+          const cltRecord = this.formatToCLTStandard(record, workDate);
           
-          // Subtrair tempo de pausa se houver
-          let breakMinutes = 0;
-          if (record.breakStart && record.breakEnd) {
-            const pauseStart = new Date(record.breakStart);
-            const pauseEnd = new Date(record.breakEnd);
-            breakMinutes = (pauseEnd.getTime() - pauseStart.getTime()) / (1000 * 60);
-          }
-          
-          const totalHours = Math.max(0, (workMinutes - breakMinutes) / 60);
-
-          processedRecords.push({
-            date: dateStr,
-            checkIn: record.checkIn,
-            checkOut: record.checkOut,
-            breakStart: record.breakStart,
-            breakEnd: record.breakEnd,
-            totalHours: totalHours.toFixed(2),
-            status: record.status
-          });
+          processedRecords.push(cltRecord);
         }
       }
 
@@ -1123,5 +1100,105 @@ export class TimecardController {
         details: error.message 
       });
     }
+  }
+
+  /**
+   * Formatar registro para padrão CLT brasileiro
+   */
+  private formatToCLTStandard(record: any, workDate: Date) {
+    // Dias da semana em português
+    const daysOfWeek = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+    
+    // Formatações de data e hora brasileiras
+    const dateStr = workDate.toLocaleDateString('pt-BR');
+    const dayOfWeek = daysOfWeek[workDate.getDay()];
+    
+    // Horários no formato HH:MM
+    const checkIn = record.checkIn ? new Date(record.checkIn).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : null;
+    const checkOut = record.checkOut ? new Date(record.checkOut).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : null;
+    const breakStart = record.breakStart ? new Date(record.breakStart).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : null;
+    const breakEnd = record.breakEnd ? new Date(record.breakEnd).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : null;
+    
+    // Calcular horas trabalhadas
+    let totalHours = '0:00';
+    let overtimeHours = '0:00';
+    let isConsistent = true;
+    
+    if (record.checkIn && record.checkOut) {
+      const workStart = new Date(record.checkIn);
+      const workEnd = new Date(record.checkOut);
+      let workMinutes = (workEnd.getTime() - workStart.getTime()) / (1000 * 60);
+      
+      // Verificar consistência dos horários
+      if (workMinutes < 0) {
+        // Turno noturno que cruza a meia-noite
+        workMinutes += 24 * 60;
+      }
+      
+      // Subtrair tempo de pausa se houver
+      let breakMinutes = 0;
+      if (record.breakStart && record.breakEnd) {
+        const pauseStart = new Date(record.breakStart);
+        const pauseEnd = new Date(record.breakEnd);
+        breakMinutes = (pauseEnd.getTime() - pauseStart.getTime()) / (1000 * 60);
+        
+        // Verificar consistência da pausa
+        if (breakMinutes < 0 || 
+            pauseStart < workStart || 
+            pauseEnd > workEnd ||
+            pauseStart >= pauseEnd) {
+          isConsistent = false;
+        }
+      }
+      
+      // Verificar se entrada é anterior à saída
+      if (record.checkIn && record.checkOut && new Date(record.checkIn) >= new Date(record.checkOut)) {
+        isConsistent = false;
+      }
+      
+      const totalWorkMinutes = Math.max(0, workMinutes - breakMinutes);
+      const hours = Math.floor(totalWorkMinutes / 60);
+      const minutes = Math.floor(totalWorkMinutes % 60);
+      totalHours = `${hours}:${minutes.toString().padStart(2, '0')}`;
+      
+      // Calcular horas extras (acima de 8h)
+      if (totalWorkMinutes > 480) { // 8 horas = 480 minutos
+        const overtimeMinutes = totalWorkMinutes - 480;
+        const overtimeHrs = Math.floor(overtimeMinutes / 60);
+        const overtimeMins = Math.floor(overtimeMinutes % 60);
+        overtimeHours = `${overtimeHrs}:${overtimeMins.toString().padStart(2, '0')}`;
+      }
+    }
+    
+    // Status com base na consistência
+    const status = !isConsistent ? 'Inconsistente' : 
+                  record.status === 'approved' ? 'Aprovado' :
+                  record.status === 'pending' ? 'Pendente' : 'Rejeitado';
+    
+    return {
+      // Dados obrigatórios CLT
+      date: dateStr,                    // DD/MM/AAAA
+      dayOfWeek,                       // Seg, Ter, Qua, etc.
+      firstEntry: checkIn,             // 1ª Entrada (HH:MM)
+      firstExit: breakStart,           // 1ª Saída - almoço/pausa (HH:MM)
+      secondEntry: breakEnd,           // 2ª Entrada - retorno (HH:MM)  
+      secondExit: checkOut,            // 2ª Saída - fim da jornada (HH:MM)
+      totalHours,                      // Horas trabalhadas
+      status,                          // Status de aprovação
+      
+      // Informações complementares
+      observations: !isConsistent ? 'Horários inconsistentes detectados' : '',
+      overtimeHours,                   // Horas extras
+      scheduleType: 'Não definido',    // Tipo de escala (será buscado depois)
+      isConsistent,                    // Flag para frontend
+      
+      // Dados originais para debug
+      originalRecord: {
+        checkIn: record.checkIn,
+        checkOut: record.checkOut,
+        breakStart: record.breakStart,
+        breakEnd: record.breakEnd
+      }
+    };
   }
 }

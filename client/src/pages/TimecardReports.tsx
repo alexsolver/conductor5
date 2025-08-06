@@ -234,13 +234,16 @@ export default function TimecardReports() {
         </Card>
       </div>
 
-      {/* Detalhes por Funcionário */}
+      {/* Relatório CLT Brasileiro */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5" />
-            Detalhes por Funcionário
+            Relatório de Ponto - Padrão CLT
           </CardTitle>
+          <p className="text-sm text-gray-600 mt-1">
+            Relatório conforme legislação brasileira com dados obrigatórios
+          </p>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -257,68 +260,84 @@ export default function TimecardReports() {
               <table className="w-full border-collapse border border-gray-300 text-sm">
                 <thead>
                   <tr className="bg-gray-100">
-                    <th className="border border-gray-300 px-3 py-2 text-left">Data</th>
-                    <th className="border border-gray-300 px-3 py-2 text-left">Dia da Semana</th>
-                    <th className="border border-gray-300 px-3 py-2 text-left">Entrada</th>
-                    <th className="border border-gray-300 px-3 py-2 text-left">Saída</th>
-                    <th className="border border-gray-300 px-3 py-2 text-left">Total Horas</th>
-                    <th className="border border-gray-300 px-3 py-2 text-left">Status</th>
+                    <th className="border border-gray-300 px-2 py-2 text-left">Data</th>
+                    <th className="border border-gray-300 px-2 py-2 text-left">Dia da Semana</th>
+                    <th className="border border-gray-300 px-2 py-2 text-left">1ª Entrada</th>
+                    <th className="border border-gray-300 px-2 py-2 text-left">1ª Saída</th>
+                    <th className="border border-gray-300 px-2 py-2 text-left">2ª Entrada</th>
+                    <th className="border border-gray-300 px-2 py-2 text-left">2ª Saída</th>
+                    <th className="border border-gray-300 px-2 py-2 text-left">Total Horas</th>
+                    <th className="border border-gray-300 px-2 py-2 text-left">Status</th>
+                    <th className="border border-gray-300 px-2 py-2 text-left">H. Extras</th>
+                    <th className="border border-gray-300 px-2 py-2 text-left">Observações</th>
                   </tr>
                 </thead>
                 <tbody>
                   {currentReport.records
                     .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime())
-                    .map((record: any, index: number) => {
-                      const date = new Date(record.date);
-                      const dayOfWeek = format(date, 'EEEE', { locale: ptBR });
-                      
-                      return (
-                        <tr key={index} className="hover:bg-gray-50">
-                          <td className="border border-gray-300 px-3 py-2">
-                            {formatDate(record.date)}
-                          </td>
-                          <td className="border border-gray-300 px-3 py-2 capitalize">
-                            {dayOfWeek}
-                          </td>
-                          <td className="border border-gray-300 px-3 py-2">
-                            {record.checkIn ? formatTime(record.checkIn) : '--:--'}
-                          </td>
-                          <td className="border border-gray-300 px-3 py-2">
-                            {record.checkOut ? formatTime(record.checkOut) : '--:--'}
-                          </td>
-                          <td className="border border-gray-300 px-3 py-2">
-                            {record.totalHours || '8.0'}h
-                          </td>
-                          <td className="border border-gray-300 px-3 py-2">
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              record.status === 'approved' 
-                                ? 'bg-green-100 text-green-800' 
-                                : 'bg-yellow-100 text-yellow-800'
-                            }`}>
-                              {record.status === 'approved' ? 'Aprovado' : 'Pendente'}
-                            </span>
-                          </td>
-                        </tr>
-                      );
-                    })}
+                    .map((record: any, index: number) => (
+                      <tr key={index} className={`hover:bg-gray-50 ${!record.isConsistent ? 'bg-red-50' : ''}`}>
+                        <td className="border border-gray-300 px-2 py-2 font-medium">
+                          {record.date}
+                        </td>
+                        <td className="border border-gray-300 px-2 py-2">
+                          {record.dayOfWeek}
+                        </td>
+                        <td className="border border-gray-300 px-2 py-2">
+                          {record.firstEntry || '--:--'}
+                        </td>
+                        <td className="border border-gray-300 px-2 py-2">
+                          {record.firstExit || '--:--'}
+                        </td>
+                        <td className="border border-gray-300 px-2 py-2">
+                          {record.secondEntry || '--:--'}
+                        </td>
+                        <td className="border border-gray-300 px-2 py-2">
+                          {record.secondExit || '--:--'}
+                        </td>
+                        <td className="border border-gray-300 px-2 py-2 font-medium">
+                          {record.totalHours}
+                        </td>
+                        <td className="border border-gray-300 px-2 py-2">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            record.status === 'Aprovado' ? 'bg-green-100 text-green-800' :
+                            record.status === 'Inconsistente' ? 'bg-red-100 text-red-800' :
+                            'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            {record.status}
+                          </span>
+                        </td>
+                        <td className="border border-gray-300 px-2 py-2">
+                          {record.overtimeHours !== '0:00' ? record.overtimeHours : '--'}
+                        </td>
+                        <td className="border border-gray-300 px-2 py-2 max-w-32 truncate">
+                          {record.observations || '--'}
+                        </td>
+                      </tr>
+                    ))}
                 </tbody>
               </table>
               
-              {/* Totais */}
+              {/* Resumo do Relatório */}
               {currentReport.summary && (
                 <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                  <h4 className="text-sm font-medium text-gray-900 mb-3">Resumo do Período</h4>
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
                     <div>
-                      <strong>Total de Horas:</strong> {currentReport.summary.totalHours || '0.0'}h
+                      <span className="text-gray-500">Total de Horas:</span>
+                      <div className="font-medium">{currentReport.summary.totalHours}h</div>
                     </div>
                     <div>
-                      <strong>Dias Trabalhados:</strong> {currentReport.summary.workingDays || 0}
+                      <span className="text-gray-500">Dias Trabalhados:</span>
+                      <div className="font-medium">{currentReport.summary.workingDays}</div>
                     </div>
                     <div>
-                      <strong>Horas Extras:</strong> {currentReport.summary.overtimeHours || '0.0'}h
+                      <span className="text-gray-500">Horas Extras:</span>
+                      <div className="font-medium">{currentReport.summary.overtimeHours}h</div>
                     </div>
                     <div>
-                      <strong>Média por Dia:</strong> {currentReport.summary.averageHoursPerDay || '0.0'}h
+                      <span className="text-gray-500">Média Diária:</span>
+                      <div className="font-medium">{currentReport.summary.averageHoursPerDay}h</div>
                     </div>
                   </div>
                 </div>
