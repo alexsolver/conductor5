@@ -249,6 +249,7 @@ export const ResponsiveTicketsTable: React.FC<ResponsiveTicketsTableProps> = ({
           <TableRow role="row">
             <TableHead className="w-20" scope="col">Número</TableHead>
             <TableHead scope="col">Assunto</TableHead>
+            <TableHead className="hidden lg:table-cell" scope="col">Empresa</TableHead>
             <TableHead className="hidden md:table-cell" scope="col">Cliente</TableHead>
             <TableHead className="hidden lg:table-cell" scope="col">Categoria</TableHead>
             <TableHead className="hidden lg:table-cell" scope="col">Status</TableHead>
@@ -263,7 +264,7 @@ export const ResponsiveTicketsTable: React.FC<ResponsiveTicketsTableProps> = ({
             Array.from({ length: 5 }).map((_, i) => <TicketRowSkeleton key={i} />)
           ) : tickets.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={7} className="text-center py-8">
+              <TableCell colSpan={8} className="text-center py-8">
                 <div className="text-gray-500">
                   <p>Nenhum ticket encontrado</p>
                   <p className="text-sm mt-1">Tente ajustar os filtros de busca</p>
@@ -321,8 +322,15 @@ export const ResponsiveTicketsTable: React.FC<ResponsiveTicketsTableProps> = ({
                     </div>
                   </TableCell>
                   
+                  <TableCell className="hidden lg:table-cell">
+                    {ticket.company?.name || ticket.customer_company?.name || "Não informado"}
+                  </TableCell>
+                  
                   <TableCell className="hidden md:table-cell">
-                    {ticket.caller?.fullName || "Não informado"}
+                    {ticket.caller?.fullName || 
+                     (ticket.customer_first_name && ticket.customer_last_name ? 
+                      `${ticket.customer_first_name} ${ticket.customer_last_name}` : 
+                      ticket.customer_email || "Não informado")}
                   </TableCell>
                   
                   <TableCell className="hidden lg:table-cell">
@@ -393,7 +401,7 @@ export const ResponsiveTicketsTable: React.FC<ResponsiveTicketsTableProps> = ({
                 {/* Expanded relationships */}
                 {expandedTickets.has(ticket.id) && ticketRelationships[ticket.id] && (
                   <TableRow className="bg-blue-50">
-                    <TableCell colSpan={7}>
+                    <TableCell colSpan={8}>
                       <div className="py-2 pl-6">
                         <div className="flex items-center gap-2 mb-2">
                           <GitBranch className="h-4 w-4 text-blue-600" />
@@ -414,7 +422,9 @@ export const ResponsiveTicketsTable: React.FC<ResponsiveTicketsTableProps> = ({
                                 fieldName="status" 
                                 value={rel.targetTicket?.status || rel.status} 
                                 className="text-xs"
-                              />
+                              >
+                                {rel.targetTicket?.status || rel.status}
+                              </DynamicBadge>
                             </div>
                           ))}
                         </div>

@@ -2208,45 +2208,48 @@ const TicketsTable = React.memo(() => {
 
       {/* Modal para criar nova visualização */}
       <Dialog open={isNewViewDialogOpen} onOpenChange={handleDialogClose}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingView ? "Editar Visualização" : "Criar Nova Visualização"}</DialogTitle>
+            <DialogDescription>
+              Configure sua visualização personalizada de tickets
+            </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="name" className="text-right">
-                Nome
-              </Label>
+          <div className="space-y-6 py-4">
+            {/* Nome da visualização */}
+            <div className="space-y-2">
+              <Label htmlFor="name">Nome da Visualização</Label>
               <Input 
                 type="text" 
                 id="name" 
                 value={newViewName}
                 onChange={(e) => setNewViewName(e.target.value)}
-                className="col-span-3" 
+                placeholder="Digite o nome da visualização"
               />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="description" className="text-right">
-                Descrição
-              </Label>
+
+            {/* Descrição */}
+            <div className="space-y-2">
+              <Label htmlFor="description">Descrição</Label>
               <Textarea
                 id="description"
                 value={newViewDescription}
                 onChange={(e) => setNewViewDescription(e.target.value)}
-                className="col-span-3"
+                placeholder="Descreva brevemente esta visualização"
+                rows={3}
               />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="columns" className="text-right">
-                Colunas
-              </Label>
-              <div className="col-span-3 space-y-2">
-                {availableColumns.map((column, index) => (
+
+            {/* Seleção de colunas */}
+            <div className="space-y-3">
+              <Label>Colunas Visíveis</Label>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-60 overflow-y-auto border rounded-lg p-4">
+                {availableColumns.map((column) => (
                   <div key={column.id} className="flex items-center space-x-2">
                     <input
                       type="checkbox"
                       id={`column-${column.id}`}
-                      className="h-4 w-4 accent-purple-600"
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                       checked={selectedColumns.includes(column.id)}
                       onChange={() => {
                         if (selectedColumns.includes(column.id)) {
@@ -2256,37 +2259,38 @@ const TicketsTable = React.memo(() => {
                         }
                       }}
                     />
-                    <label htmlFor={`column-${column.id}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    <label htmlFor={`column-${column.id}`} className="text-sm font-medium text-gray-700 cursor-pointer">
                       {column.label}
                     </label>
                   </div>
                 ))}
               </div>
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="public" className="text-right">
-                Público
-              </Label>
-              <div className="col-span-3">
+
+            {/* Opções adicionais */}
+            <div className="space-y-3">
+              <Label>Opções</Label>
+              <div className="flex items-center space-x-2">
                 <input
                   type="checkbox"
                   id="public"
-                  className="h-4 w-4 accent-purple-600"
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                   checked={isPublicView}
                   onChange={() => setIsPublicView(!isPublicView)}
                 />
-                <label htmlFor="public" className="ml-2 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                  Tornar esta visualização pública
+                <label htmlFor="public" className="text-sm font-medium text-gray-700 cursor-pointer">
+                  Tornar esta visualização pública (visível para outros usuários)
                 </label>
               </div>
             </div>
           </div>
-          <div className="flex justify-end space-x-2">
-            <Button type="button" variant="secondary" onClick={() => handleDialogClose(false)}>
+          
+          <div className="flex justify-end space-x-3 pt-4 border-t">
+            <Button type="button" variant="outline" onClick={() => handleDialogClose(false)}>
               Cancelar
             </Button>
-            <Button type="submit" onClick={handleCreateView}>
-              {editingView ? "Salvar" : "Criar"}
+            <Button type="button" onClick={handleCreateView} disabled={!newViewName.trim()}>
+              {editingView ? "Salvar Alterações" : "Criar Visualização"}
             </Button>
           </div>
         </DialogContent>
@@ -2320,6 +2324,127 @@ const TicketsTable = React.memo(() => {
                 </div>
               </div>
             ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Filtros Avançados */}
+      <Dialog open={isAdvancedFiltersOpen} onOpenChange={setIsAdvancedFiltersOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Filtros Avançados</DialogTitle>
+            <DialogDescription>
+              Configure filtros detalhados para refinar sua busca de tickets
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-6 py-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Filtro por Status */}
+              <div className="space-y-2">
+                <Label>Status</Label>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="open">Aberto</SelectItem>
+                    <SelectItem value="in_progress">Em Andamento</SelectItem>
+                    <SelectItem value="resolved">Resolvido</SelectItem>
+                    <SelectItem value="closed">Fechado</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Filtro por Prioridade */}
+              <div className="space-y-2">
+                <Label>Prioridade</Label>
+                <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione a prioridade" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas</SelectItem>
+                    <SelectItem value="low">Baixa</SelectItem>
+                    <SelectItem value="medium">Média</SelectItem>
+                    <SelectItem value="high">Alta</SelectItem>
+                    <SelectItem value="critical">Crítica</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Filtro por Empresa */}
+              <div className="space-y-2">
+                <Label>Empresa</Label>
+                <DynamicSelect
+                  endpoint="/api/companies"
+                  placeholder="Selecione uma empresa"
+                  value={selectedCompanyId}
+                  onValueChange={setSelectedCompanyId}
+                  labelKey="name"
+                  valueKey="id"
+                />
+              </div>
+
+              {/* Filtro por Categoria */}
+              <div className="space-y-2">
+                <Label>Categoria</Label>
+                <DynamicSelect
+                  endpoint="/api/ticket-config/categories"
+                  placeholder="Selecione uma categoria"
+                  value=""
+                  onValueChange={() => {}}
+                  labelKey="name"
+                  valueKey="id"
+                />
+              </div>
+
+              {/* Filtro por Responsável */}
+              <div className="space-y-2">
+                <Label>Responsável</Label>
+                <DynamicSelect
+                  endpoint="/api/users"
+                  placeholder="Selecione um responsável"
+                  value=""
+                  onValueChange={() => {}}
+                  labelKey="fullName"
+                  valueKey="id"
+                />
+              </div>
+
+              {/* Filtro por Data de Criação */}
+              <div className="space-y-2">
+                <Label>Data de Criação</Label>
+                <div className="flex gap-2">
+                  <Input
+                    type="date"
+                    placeholder="De"
+                    className="text-sm"
+                  />
+                  <Input
+                    type="date"
+                    placeholder="Até"
+                    className="text-sm"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="flex justify-end space-x-2 pt-4">
+            <Button variant="outline" onClick={() => setIsAdvancedFiltersOpen(false)}>
+              Cancelar
+            </Button>
+            <Button variant="outline" onClick={() => {
+              setStatusFilter("all");
+              setPriorityFilter("all");
+              setSelectedCompanyId("");
+              setSearchTerm("");
+            }}>
+              Limpar Filtros
+            </Button>
+            <Button onClick={() => setIsAdvancedFiltersOpen(false)}>
+              Aplicar Filtros
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
