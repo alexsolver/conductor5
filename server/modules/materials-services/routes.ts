@@ -304,6 +304,71 @@ router.get('/dashboard', async (req: AuthenticatedRequest, res) => {
   }
 });
 
+// ===== OVERVIEW ROUTES FOR VISUAL INDICATORS =====
+// Rota para overview de personalizações de clientes (para indicadores visuais)
+router.get('/customer-personalizations/overview', async (req: AuthenticatedRequest, res) => {
+  try {
+    const tenantId = req.user?.tenantId;
+    if (!tenantId) {
+      return res.status(401).json({ error: 'Tenant ID é obrigatório' });
+    }
+
+    const { db } = await schemaManager.getTenantDb(tenantId);
+    
+    // Simular dados de personalizações de clientes por enquanto
+    // Em uma implementação real, isso consultaria a tabela customer_item_mappings
+    const personalizations = [
+      { item_id: '1', customer_id: '1', created_at: new Date() },
+      { item_id: '2', customer_id: '1', created_at: new Date() },
+      { item_id: '2', customer_id: '2', created_at: new Date() },
+    ];
+
+    res.json({
+      success: true,
+      data: personalizations
+    });
+  } catch (error) {
+    console.error('Erro ao buscar overview de personalizações:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Erro interno do servidor',
+      data: []
+    });
+  }
+});
+
+// Rota para overview de vínculos de fornecedores (para indicadores visuais)  
+router.get('/supplier-links/overview', async (req: AuthenticatedRequest, res) => {
+  try {
+    const tenantId = req.user?.tenantId;
+    if (!tenantId) {
+      return res.status(401).json({ error: 'Tenant ID é obrigatório' });
+    }
+
+    const { db } = await schemaManager.getTenantDb(tenantId);
+    
+    // Simular dados de vínculos de fornecedores por enquanto
+    // Em uma implementação real, isso consultaria a tabela supplier_item_links
+    const supplierLinks = [
+      { item_id: '1', supplier_id: '1', created_at: new Date() },
+      { item_id: '1', supplier_id: '2', created_at: new Date() },
+      { item_id: '3', supplier_id: '1', created_at: new Date() },
+    ];
+
+    res.json({
+      success: true,
+      data: supplierLinks
+    });
+  } catch (error) {
+    console.error('Erro ao buscar overview de vínculos de fornecedores:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Erro interno do servidor',
+      data: []
+    });
+  }
+});
+
 // ===== HIERARCHICAL PERSONALIZATION ROUTES =====
 router.use('/personalization', personalizationSimpleRoutes);
 
