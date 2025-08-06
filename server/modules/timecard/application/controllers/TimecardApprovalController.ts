@@ -439,11 +439,22 @@ export class TimecardApprovalController {
         // Check if user belongs to approval group
         const isInApprovalGroup = settings.approvalGroupId && groupIds.includes(settings.approvalGroupId);
 
+        // User must be either default approver OR in approval group (not both)
         if (!isDefaultApprover && !isInApprovalGroup) {
           // User is not authorized to approve
           filteredEntries = [];
         }
       }
+
+      console.log('[PENDING-APPROVALS] User permissions check:', {
+        userId,
+        isDefaultApprover: settings?.defaultApprovers?.includes(userId),
+        userGroups: groupIds,
+        approvalGroupId: settings?.approvalGroupId,
+        isInApprovalGroup: settings?.approvalGroupId && groupIds.includes(settings.approvalGroupId),
+        pendingCount: pendingEntries.length,
+        filteredCount: filteredEntries.length
+      });
 
       res.json({ pendingApprovals: filteredEntries });
     } catch (error) {
