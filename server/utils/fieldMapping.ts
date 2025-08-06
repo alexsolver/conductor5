@@ -11,7 +11,7 @@ export interface TicketFieldMapping {
   callerId: 'caller_id';
   beneficiaryId: 'beneficiary_id';
   assignedToId: 'assigned_to_id';
-  customerCompanyId: 'customer_id'; // CRITICAL: maps to customer_id, NOT customer_company_id
+  customerCompanyId: 'customer_company_id'; // Company reference - maps to customer_company_id
   responsibleId: 'responsible_id';
   locationId: 'location_id';
   // Additional dynamic fields
@@ -26,7 +26,7 @@ export const FRONTEND_TO_BACKEND_MAPPING: Record<string, string> = {
   callerId: 'caller_id',
   beneficiaryId: 'beneficiary_id',
   assignedToId: 'assigned_to_id',
-  customerCompanyId: 'customer_id', // CRITICAL: maps to customer_id, NOT customer_company_id
+  customerCompanyId: 'customer_company_id', // Company reference - maps to customer_company_id
   responsibleId: 'responsible_id',
   
   // ===== LOCATION MAPPING (CRITICAL FIX) =====

@@ -219,7 +219,7 @@ ticketsRouter.post('/', jwtAuth, trackTicketCreate, async (req: AuthenticatedReq
       ...req.body,
       tenantId: req.user.tenantId,
       caller_id: callerId,
-      customer_company_id: req.body.companyId,
+      customer_company_id: req.body.companyId, // Company reference
       status: req.body.status || req.body.state || 'new'
     };
     
@@ -332,9 +332,9 @@ ticketsRouter.put('/:id', jwtAuth, trackTicketEdit, async (req: AuthenticatedReq
     // CORREÇÃO CRÍTICA 1: Aplicar mapeamento centralizado Frontend→Backend
     const backendUpdates = mapFrontendToBackend(frontendUpdates);
     
-    // Standardize field naming consistency
+    // Apply consistent field mapping per fieldMapping.ts  
     if (frontendUpdates.customerCompanyId !== undefined) {
-      backendUpdates.customer_company_id = frontendUpdates.customerCompanyId;
+      backendUpdates.customer_company_id = frontendUpdates.customerCompanyId; // Company reference
       delete backendUpdates.customerCompanyId;
     }
     

@@ -490,7 +490,7 @@ export class DatabaseStorage implements IStorage {
         throw new Error('Ticket subject and customer ID are required');
       }
 
-      // Get company ID for numbering configuration
+      // Get company ID for numbering configuration  
       const companyId = ticketData.customer_company_id || '00000000-0000-0000-0000-000000000001'; // Default company
 
       // Generate ticket number using configuration
