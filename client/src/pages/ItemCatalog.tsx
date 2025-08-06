@@ -1268,7 +1268,7 @@ function SupplierLinkDialog({ itemId, itemName }: { itemId?: string; itemName?: 
                       </FormControl>
                       <SelectContent>
                         {isLoadingSuppliers ? (
-                          <SelectItem value="loading" disabled>Carregando fornecedores...</SelectItem>
+                          <SelectItem value="loading-suppliers" disabled>Carregando fornecedores...</SelectItem>
                         ) : Array.isArray(suppliers) && suppliers.length > 0 ? (
                           suppliers.map((supplier: any) => (
                             <SelectItem key={supplier.id} value={supplier.id}>
@@ -1276,7 +1276,7 @@ function SupplierLinkDialog({ itemId, itemName }: { itemId?: string; itemName?: 
                             </SelectItem>
                           ))
                         ) : (
-                          <SelectItem value="empty" disabled>Nenhum fornecedor disponível</SelectItem>
+                          <SelectItem value="no-suppliers-available" disabled>Nenhum fornecedor disponível</SelectItem>
                         )}
                       </SelectContent>
                     </Select>
@@ -1932,7 +1932,7 @@ function CustomerPersonalizationTab({ itemId, itemName }: { itemId?: string; ite
                           </FormControl>
                           <SelectContent>
                             {isLoadingSuppliers ? (
-                              <SelectItem value="" disabled>Carregando fornecedores...</SelectItem>
+                              <SelectItem value="loading-suppliers" disabled>Carregando fornecedores...</SelectItem>
                             ) : Array.isArray(suppliers) && suppliers.length > 0 ? (
                               suppliers.map((supplier: any) => (
                                 <SelectItem key={supplier.id} value={supplier.id}>
@@ -1940,7 +1940,7 @@ function CustomerPersonalizationTab({ itemId, itemName }: { itemId?: string; ite
                                 </SelectItem>
                               ))
                             ) : (
-                              <SelectItem value="" disabled>Nenhum fornecedor disponível</SelectItem>
+                              <SelectItem value="no-suppliers-available" disabled>Nenhum fornecedor disponível</SelectItem>
                             )}
                           </SelectContent>
                         </Select>
