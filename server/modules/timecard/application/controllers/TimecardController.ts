@@ -1243,7 +1243,7 @@ export class TimecardController {
   private async getScheduleTypeForUser(userId: string, tenantId: string): Promise<string | null> {
     try {
       const { db } = await import('../../../../db');
-      const { workSchedules } = await import('../../../../shared/schema-master');
+      const { workSchedules } = await import('../../../../shared/schema');
       const { eq, and } = await import('drizzle-orm');
       
       console.log(`[SCHEDULE-TYPE] Buscando escala para usuário ${userId} no tenant ${tenantId}`);
