@@ -1455,17 +1455,66 @@ export class DatabaseStorage implements IStorage {
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
+      console.log(`🔍 [GET-CONFIG] Fetching config for ${integrationId} in tenant ${validatedTenantId}`);
+
       const result = await tenantDb.execute(sql`
-        SELECT * FROM ${sql.identifier(schemaName)}.integrations
+        SELECT * FROM ${sql.identifier(schemaName)}.tenant_integrations
         WHERE id = ${integrationId} AND tenant_id = ${validatedTenantId}
         LIMIT 1
       `);
 
+      console.log(`🔍 [GET-CONFIG] Found ${result.rows?.length || 0} rows for ${integrationId}`);
+      
+      if (result.rows && result.rows.length > 0) {
+        console.log(`🔍 [GET-CONFIG] Config keys:`, Object.keys(result.rows[0].config || {}));
+      }
+
       return result.rows?.[0] || undefined;
     } catch (error) {
       logError('Error fetching integration config', error, { tenantId, integrationId });
+      console.error(`❌ [GET-CONFIG] Error fetching ${integrationId}:`, error);
       return undefined;
     }
+  }
+
+  // Helper functions for integration metadata
+  private getIntegrationName(integrationId: string): string {
+    const names: Record<string, string> = {
+      'telegram': 'Telegram',
+      'gmail-oauth2': 'Gmail OAuth2',
+      'whatsapp-business': 'WhatsApp Business',
+      'slack': 'Slack',
+      'twilio-sms': 'Twilio SMS',
+      'imap-email': 'IMAP Email',
+      'dropbox-personal': 'Dropbox Personal'
+    };
+    return names[integrationId] || integrationId;
+  }
+
+  private getIntegrationCategory(integrationId: string): string {
+    const categories: Record<string, string> = {
+      'telegram': 'Comunicação',
+      'gmail-oauth2': 'Email',
+      'whatsapp-business': 'Comunicação',
+      'slack': 'Comunicação',
+      'twilio-sms': 'Comunicação',
+      'imap-email': 'Email',
+      'dropbox-personal': 'Backup'
+    };
+    return categories[integrationId] || 'Outros';
+  }
+
+  private getIntegrationDescription(integrationId: string): string {
+    const descriptions: Record<string, string> = {
+      'telegram': 'Envio de notificações e alertas via Telegram',
+      'gmail-oauth2': 'Integração OAuth2 com Gmail',
+      'whatsapp-business': 'Integração com WhatsApp Business API',
+      'slack': 'Notificações e gerenciamento via Slack',
+      'twilio-sms': 'Envio de SMS via Twilio',
+      'imap-email': 'Leitura de emails via IMAP',
+      'dropbox-personal': 'Backup automático no Dropbox'
+    };
+    return descriptions[integrationId] || 'Integração personalizada';
   }
 
   async saveTenantIntegrationConfig(tenantId: string, integrationId: string, config: any): Promise<any> {
@@ -1474,15 +1523,50 @@ export class DatabaseStorage implements IStorage {
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
-      // Update existing integration config
-      const result = await tenantDb.execute(sql`
-        UPDATE ${sql.identifier(schemaName)}.integrations
+      console.log(`💾 [SAVE-CONFIG] Attempting to save config for ${integrationId} in tenant ${validatedTenantId}`);
+      console.log(`💾 [SAVE-CONFIG] Config data:`, JSON.stringify(config, null, 2));
+
+      // Try to update existing integration config first
+      const updateResult = await tenantDb.execute(sql`
+        UPDATE ${sql.identifier(schemaName)}.tenant_integrations
         SET config = ${JSON.stringify(config)}, updated_at = NOW()
         WHERE id = ${integrationId} AND tenant_id = ${validatedTenantId}
         RETURNING *
       `);
 
-      return result.rows?.[0] || undefined;
+      if (updateResult.rows && updateResult.rows.length > 0) {
+        console.log(`✅ [SAVE-CONFIG] Updated existing integration config for ${integrationId}`);
+        return updateResult.rows[0];
+      }
+
+      // If no rows updated, try to insert new config
+      console.log(`🔄 [SAVE-CONFIG] No existing config found, creating new one for ${integrationId}`);
+      
+      const insertResult = await tenantDb.execute(sql`
+        INSERT INTO ${sql.identifier(schemaName)}.tenant_integrations 
+        (id, tenant_id, name, category, description, status, configured, config, created_at, updated_at)
+        VALUES (
+          ${integrationId}, 
+          ${validatedTenantId}, 
+          ${this.getIntegrationName(integrationId)}, 
+          ${this.getIntegrationCategory(integrationId)}, 
+          ${this.getIntegrationDescription(integrationId)}, 
+          'connected', 
+          true, 
+          ${JSON.stringify(config)}, 
+          NOW(), 
+          NOW()
+        )
+        ON CONFLICT (id, tenant_id) DO UPDATE SET
+          config = EXCLUDED.config,
+          configured = EXCLUDED.configured,
+          status = EXCLUDED.status,
+          updated_at = NOW()
+        RETURNING *
+      `);
+
+      console.log(`✅ [SAVE-CONFIG] Created/updated integration config for ${integrationId}`);
+      return insertResult.rows?.[0] || undefined;
     } catch (error) {
       logError('Error saving integration config', error, { tenantId, integrationId });
       throw error;
