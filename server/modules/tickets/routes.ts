@@ -165,11 +165,12 @@ ticketsRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
     query += ` ORDER BY t.created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
     queryParams.push(limit, offset);
 
-    const { rows: tickets } = await storageSimple.query(query, queryParams);
+    const { pool } = await import('../../db');
+    const { rows: tickets } = await pool.query(query, queryParams);
 
     // Get total count for pagination
     const totalTicketsQuery = `SELECT COUNT(*) as total FROM ${schemaName}.tickets WHERE tenant_id = $1`;
-    const totalTicketsResult = await storageSimple.query(totalTicketsQuery, [tenantId]);
+    const totalTicketsResult = await pool.query(totalTicketsQuery, [tenantId]);
     const totalTickets = parseInt(totalTicketsResult.rows[0].total, 10);
 
     return sendSuccess(res, {
@@ -228,7 +229,9 @@ ticketsRouter.get('/:id', jwtAuth, trackTicketView, async (req: AuthenticatedReq
       WHERE t.tenant_id = $1 AND t.id = $2
     `;
 
-    const ticket = await storageSimple.getTicketById(req.user.tenantId, req.params.id);
+    const { pool } = await import('../../db');
+    const ticketResult = await pool.query(query, [req.user.tenantId, req.params.id]);
+    const ticket = ticketResult.rows[0];
     if (!ticket) {
       return sendError(res, "Ticket not found", "Ticket not found", 404);
     }
