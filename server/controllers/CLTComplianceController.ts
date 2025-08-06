@@ -224,8 +224,8 @@ export class CLTComplianceController {
       res.json({
         reports: reports.map(report => ({
           ...report,
-          periodStart: report.periodStart ? report.periodStart.toISOString() : null,
-          periodEnd: report.periodEnd ? report.periodEnd.toISOString() : null,
+          periodStart: report.periodStart ? new Date(report.periodStart).toISOString() : null,
+          periodEnd: report.periodEnd ? new Date(report.periodEnd).toISOString() : null,
           submissionDate: report.submissionDate ? report.submissionDate.toISOString() : null,
           createdAt: report.createdAt ? report.createdAt.toISOString() : null
         }))
