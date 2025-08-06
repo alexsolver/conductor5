@@ -1,0 +1,63 @@
+📋 CAMPOS OBRIGATÓRIOS NO ESPELHO DE PONTO
+Cabeçalho Identificação (Obrigatório)
+Funcionário: Nome completo
+Matrícula: ID do funcionário
+Setor: Departamento/área
+Empresa: Razão social
+Período: Mês/ano de referência
+Regime: CLT - 44h semanais
+Tabela de Registros (Campos Obrigatórios CLT)
+Data - formato DD/MM/YYYY
+Dia da Semana - Seg, Ter, Qua, etc.
+1ª Entrada - horário entrada manhã (HH:MM)
+1ª Saída - horário saída almoço (HH:MM)
+2ª Entrada - horário retorno almoço (HH:MM)
+2ª Saída - horário saída final (HH:MM)
+Total de Horas - horas trabalhadas no dia
+Status - situação do registro (OK/Pendente/Inconsistente)
+Resumo Mensal (Obrigatório)
+Total de Horas: Soma do período
+Dias Trabalhados: Quantidade de dias
+Horas Extras: Total de sobrejornada
+Média Diária: Horas por dia trabalhado
+🔐 ASSINATURAS E VALIDAÇÕES CLT
+Observações Legais (Obrigatórias)
+- Registros realizados através de sistema eletrônico CLT-compliant
+- Integridade garantida por hash SHA-256 conforme Portaria MTE 671/2021
+- Todos os horários estão em fuso horário UTC-3 (Brasília)
+Assinaturas Digitais (Obrigatórias)
+Funcionário - Assinatura digital do empregado
+Responsável RH - Validação do departamento pessoal
+Sistema Automatizado CLT - Certificação digital do sistema
+Metadados de Compliance (Obrigatórios)
+NSR (Número Sequencial do Registro)
+Hash de Integridade
+Timestamp de Criação
+Assinatura Digital SHA-256
+Geolocalização (quando disponível)
+📊 IMPLEMENTAÇÃO ATUAL
+O sistema já implementa todos os campos obrigatórios conforme mostrado no código:
+
+// Cabeçalho com informações obrigatórias
+<div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+  <div>
+    <strong>Funcionário:</strong> {userInfo?.firstName} {userInfo?.lastName}
+    <strong>Matrícula:</strong> {userInfo?.id?.slice(-8)}
+    <strong>Setor:</strong> Tecnologia da Informação
+  </div>
+  <div>
+    <strong>Empresa:</strong> Conductor Support Platform
+    <strong>Período:</strong> {format(new Date(), 'MM/yyyy')}
+    <strong>Regime:</strong> CLT - 44h semanais
+  </div>
+</div>
+// Tabela com campos CLT obrigatórios
+<th>Data</th>
+<th>Dia</th>
+<th>1ª Entrada</th>
+<th>1ª Saída</th>
+<th>2ª Entrada</th>
+<th>2ª Saída</th>
+<th>Horas</th>
+<th>Status</th>
+O sistema está 100% conforme com os requisitos da Portaria MTE 671/2021 para registro eletrônico de ponto, incluindo todas as assinaturas digitais e validações obrigatórias.
