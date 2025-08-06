@@ -295,14 +295,15 @@ export default function TimecardReports() {
                 <thead>
                   <tr className="bg-gray-100">
                     <th className="border border-gray-300 px-2 py-2 text-left">Data</th>
-                    <th className="border border-gray-300 px-2 py-2 text-left">Dia da Semana</th>
+                    <th className="border border-gray-300 px-2 py-2 text-left">Dia</th>
                     <th className="border border-gray-300 px-2 py-2 text-left">1ª Entrada</th>
                     <th className="border border-gray-300 px-2 py-2 text-left">1ª Saída</th>
                     <th className="border border-gray-300 px-2 py-2 text-left">2ª Entrada</th>
                     <th className="border border-gray-300 px-2 py-2 text-left">2ª Saída</th>
-                    <th className="border border-gray-300 px-2 py-2 text-left">Total Horas</th>
-                    <th className="border border-gray-300 px-2 py-2 text-left">Status</th>
+                    <th className="border border-gray-300 px-2 py-2 text-left">H. Trabalhadas</th>
                     <th className="border border-gray-300 px-2 py-2 text-left">H. Extras</th>
+                    <th className="border border-gray-300 px-2 py-2 text-left">Status</th>
+                    <th className="border border-gray-300 px-2 py-2 text-left">Escala</th>
                     <th className="border border-gray-300 px-2 py-2 text-left">Observações</th>
                   </tr>
                 </thead>
@@ -310,42 +311,61 @@ export default function TimecardReports() {
                   {currentReport.data
                     .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime())
                     .map((record: any, index: number) => (
-                      <tr key={index} className={`hover:bg-gray-50 ${!record.isConsistent ? 'bg-red-50' : ''}`}>
+                      <tr key={index} className={`hover:bg-gray-50 ${!record.isConsistent ? 'bg-red-50 border-red-200' : ''}`}>
                         <td className="border border-gray-300 px-2 py-2 font-medium">
                           {record.date}
                         </td>
-                        <td className="border border-gray-300 px-2 py-2">
+                        <td className="border border-gray-300 px-2 py-2 text-center">
                           {record.dayOfWeek}
                         </td>
-                        <td className="border border-gray-300 px-2 py-2">
-                          {record.firstEntry || '--:--'}
+                        <td className="border border-gray-300 px-2 py-2 text-center font-mono">
+                          {record.firstEntry}
                         </td>
-                        <td className="border border-gray-300 px-2 py-2">
-                          {record.firstExit || '--:--'}
+                        <td className="border border-gray-300 px-2 py-2 text-center font-mono">
+                          {record.firstExit}
                         </td>
-                        <td className="border border-gray-300 px-2 py-2">
-                          {record.secondEntry || '--:--'}
+                        <td className="border border-gray-300 px-2 py-2 text-center font-mono">
+                          {record.secondEntry}
                         </td>
-                        <td className="border border-gray-300 px-2 py-2">
-                          {record.secondExit || '--:--'}
+                        <td className="border border-gray-300 px-2 py-2 text-center font-mono">
+                          {record.secondExit}
                         </td>
-                        <td className="border border-gray-300 px-2 py-2 font-medium">
-                          {record.totalHours}
+                        <td className="border border-gray-300 px-2 py-2 text-center font-mono font-semibold">
+                          {record.totalHours}h
                         </td>
-                        <td className="border border-gray-300 px-2 py-2">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            record.status === 'Aprovado' ? 'bg-green-100 text-green-800' :
-                            record.status === 'Inconsistente' ? 'bg-red-100 text-red-800' :
-                            'bg-yellow-100 text-yellow-800'
-                          }`}>
-                            {record.status}
+                        <td className="border border-gray-300 px-2 py-2 text-center font-mono">
+                          <span className={record.overtimeHours && parseFloat(record.overtimeHours) > 0 ? 'text-orange-600 font-semibold' : 'text-gray-500'}>
+                            {record.overtimeHours || '0.00'}h
                           </span>
                         </td>
-                        <td className="border border-gray-300 px-2 py-2">
-                          {record.overtimeHours !== '0:00' ? record.overtimeHours : '--'}
+                        <td className="border border-gray-300 px-2 py-2 text-center">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            record.status === 'approved' ? 'bg-green-100 text-green-800' :
+                            record.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                            record.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                            record.status === 'working' ? 'bg-blue-100 text-blue-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {record.status === 'approved' ? 'Aprovado' :
+                             record.status === 'pending' ? 'Pendente' :
+                             record.status === 'rejected' ? 'Rejeitado' :
+                             record.status === 'working' ? 'Em Andamento' :
+                             record.status}
+                          </span>
                         </td>
-                        <td className="border border-gray-300 px-2 py-2 max-w-32 truncate">
-                          {record.observations || '--'}
+                        <td className="border border-gray-300 px-2 py-2 text-center text-xs">
+                          {record.workScheduleType}
+                        </td>
+                        <td className="border border-gray-300 px-2 py-2 text-sm">
+                          {!record.isConsistent && (
+                            <span className="text-red-600 font-semibold">⚠️ INCONSISTENTE</span>
+                          )}
+                          {record.observations && (
+                            <div className={!record.isConsistent ? 'mt-1' : ''}>
+                              {record.observations}
+                            </div>
+                          )}
+                          {!record.observations && record.isConsistent && '-'}
                         </td>
                       </tr>
                     ))}

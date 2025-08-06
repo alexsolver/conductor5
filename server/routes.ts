@@ -1992,10 +1992,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const formatToCLTStandard = (entry: any) => {
         const date = new Date(entry.check_in);
-        const dayOfWeek = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'][date.getDay()];
+        const dayOfWeek = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'][date.getDay()];
         
         const formatTime = (timestamp: string | null) => {
-          if (!timestamp) return null;
+          if (!timestamp) return '--:--';
           return new Date(timestamp).toLocaleTimeString('pt-BR', { 
             hour: '2-digit', 
             minute: '2-digit',
@@ -2003,17 +2003,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         };
 
+        // Validação de consistência dos pares de entrada/saída
+        let isConsistent = true;
+        let inconsistencyReasons = [];
+
+        const firstEntry = entry.check_in;
+        const firstExit = entry.break_start;
+        const secondEntry = entry.break_end;
+        const secondExit = entry.check_out;
+
+        // Verificar se os pares são consistentes
+        if (firstEntry && !secondExit) {
+          // Jornada incompleta
+          if (!firstExit && !secondEntry) {
+            // Apenas entrada, sem saída
+            inconsistencyReasons.push('Jornada em andamento - apenas entrada registrada');
+          } else if (firstExit && !secondEntry) {
+            // Saiu para almoço mas não retornou
+            isConsistent = false;
+            inconsistencyReasons.push('Saída para pausa registrada, mas retorno não informado');
+          }
+        }
+
+        // Verificar ordem cronológica
+        if (firstEntry && firstExit) {
+          if (new Date(firstEntry) >= new Date(firstExit)) {
+            isConsistent = false;
+            inconsistencyReasons.push('1ª Entrada posterior à 1ª Saída');
+          }
+        }
+
+        if (secondEntry && firstExit) {
+          if (new Date(secondEntry) <= new Date(firstExit)) {
+            isConsistent = false;
+            inconsistencyReasons.push('2ª Entrada anterior à 1ª Saída');
+          }
+        }
+
+        if (secondEntry && secondExit) {
+          if (new Date(secondEntry) >= new Date(secondExit)) {
+            isConsistent = false;
+            inconsistencyReasons.push('2ª Entrada posterior à 2ª Saída');
+          }
+        }
+
+        // Calcular horas trabalhadas e extras
+        let totalHoursWorked = 0;
+        let overtimeHours = 0;
+
+        if (firstEntry && secondExit) {
+          const startTime = new Date(firstEntry);
+          const endTime = new Date(secondExit);
+          let workMinutes = (endTime.getTime() - startTime.getTime()) / (1000 * 60);
+
+          // Subtrair tempo de pausa se informado
+          if (firstExit && secondEntry) {
+            const breakMinutes = (new Date(secondEntry).getTime() - new Date(firstExit).getTime()) / (1000 * 60);
+            workMinutes -= breakMinutes;
+          }
+
+          totalHoursWorked = workMinutes / 60;
+          
+          // Calcular horas extras (acima de 8h)
+          const standardHours = 8;
+          if (totalHoursWorked > standardHours) {
+            overtimeHours = totalHoursWorked - standardHours;
+          }
+        }
+
         return {
           id: entry.id,
-          date: date.toLocaleDateString('pt-BR'),
-          dayOfWeek: dayOfWeek,
-          firstEntry: formatTime(entry.check_in),
-          firstExit: formatTime(entry.break_start),
-          secondEntry: formatTime(entry.break_end), 
-          secondExit: formatTime(entry.check_out),
-          totalHours: entry.total_hours || 0,
-          status: entry.status,
-          workScheduleType: entry.schedule_type || 'Não definido'
+          date: date.toLocaleDateString('pt-BR'), // DD/MM/AAAA
+          dayOfWeek: dayOfWeek, // Seg, Ter, Qua, etc.
+          firstEntry: formatTime(firstEntry), // 1ª Entrada (HH:MM)
+          firstExit: formatTime(firstExit), // 1ª Saída (HH:MM)
+          secondEntry: formatTime(secondEntry), // 2ª Entrada (HH:MM)
+          secondExit: formatTime(secondExit), // 2ª Saída (HH:MM)
+          totalHours: totalHoursWorked.toFixed(2), // Horas Trabalhadas
+          overtimeHours: overtimeHours > 0 ? overtimeHours.toFixed(2) : '0.00', // Horas Extras
+          status: entry.status, // Status - Aprovação/Pendência
+          workScheduleType: entry.schedule_type || 'Não definido', // Tipo de escala
+          isConsistent: isConsistent, // Consistência
+          observations: inconsistencyReasons.length > 0 ? inconsistencyReasons.join('; ') : entry.notes || '' // Observações
         };
       };
 
