@@ -155,8 +155,10 @@ export default function Timecard() {
       console.error('Erro ao registrar ponto:', error);
       let errorMessage = 'Tente novamente em alguns instantes.';
       
-      // Tentar extrair mensagem de erro específica
-      if (error?.message) {
+      // Extract error message more robustly
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.message) {
         errorMessage = error.message;
       } else if (typeof error === 'string') {
         errorMessage = error;

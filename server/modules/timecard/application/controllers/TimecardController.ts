@@ -172,10 +172,11 @@ export class TimecardController {
       res.status(201).json(entry);
     } catch (error) {
       if (error instanceof z.ZodError) {
+        console.error('Validation error:', error.errors);
         return res.status(400).json({ message: 'Dados inválidos', errors: error.errors });
       }
       console.error('Error creating timecard entry:', error);
-      res.status(500).json({ message: 'Erro interno do servidor' });
+      return res.status(500).json({ message: 'Erro interno do servidor' });
     }
   };
 
@@ -1249,7 +1250,7 @@ export class TimecardController {
   private async getScheduleTypeForUser(userId: string, tenantId: string): Promise<string | null> {
     try {
       const { db } = await import('../../../../db');
-      const { workSchedules } = await import('../../../../shared/schema');
+      const { workSchedules } = await import('../../../../shared/schema-master');
       const { eq, and } = await import('drizzle-orm');
       
       console.log(`[SCHEDULE-TYPE] Buscando escala para usuário ${userId} no tenant ${tenantId}`);
