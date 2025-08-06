@@ -8,6 +8,7 @@ import { LPUController } from './application/controllers/LPUController';
 import { ComplianceController } from './application/controllers/ComplianceController';
 import { TicketMaterialsController } from './application/controllers/TicketMaterialsController';
 import * as CustomerItemMappingController from './application/controllers/CustomerItemMappingController-v2';
+import { personalizationRoutes } from './routes/personalizationRoutes';
 import { ItemRepository } from './infrastructure/repositories/ItemRepository';
 import { SupplierRepository } from './infrastructure/repositories/SupplierRepository';
 import { StockRepository } from './infrastructure/repositories/StockRepository';
@@ -272,5 +273,8 @@ router.get('/dashboard', async (req: AuthenticatedRequest, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 });
+
+// ===== HIERARCHICAL PERSONALIZATION ROUTES =====
+router.use(personalizationRoutes);
 
 export default router;

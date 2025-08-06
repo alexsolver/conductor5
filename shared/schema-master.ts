@@ -2262,23 +2262,47 @@ export const itemCustomerLinks = pgTable("item_customer_links", {
   unique("item_customer_links_unique").on(table.tenantId, table.itemId, table.customerCompanyId),
 ]);
 
-// Item Supplier Links table
+// Item Supplier Links table - Enhanced for hierarchical personalization
 export const itemSupplierLinks = pgTable("item_supplier_links", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
   itemId: uuid("item_id").references(() => items.id, { onDelete: 'cascade' }).notNull(),
   supplierId: uuid("supplier_id").references(() => suppliers.id).notNull(),
-  supplierItemCode: varchar("supplier_item_code", { length: 100 }),
-  supplierItemName: varchar("supplier_item_name", { length: 255 }),
-  leadTime: integer("lead_time"),
-  minimumOrder: integer("minimum_order"),
-  isPreferred: boolean("is_preferred").default(false),
+  
+  // Supplier-specific identifiers
+  partNumber: varchar("part_number", { length: 100 }), // Part number from supplier
+  supplierItemCode: varchar("supplier_item_code", { length: 100 }), // Alternative code
+  supplierItemName: varchar("supplier_item_name", { length: 255 }), // Name as supplier calls it
+  description: text("description"), // Supplier's description
+  
+  // Commercial data
+  unitPrice: decimal("unit_price", { precision: 15, scale: 2 }), // Price from supplier
+  currency: varchar("currency", { length: 3 }).default("BRL"),
+  leadTimeDays: integer("lead_time_days"), // Lead time in days
+  minimumOrderQuantity: integer("minimum_order_quantity"), // Minimum order quantity
+  
+  // Identification codes
+  qrCode: varchar("qr_code", { length: 255 }), // QR code if available
+  barcode: varchar("barcode", { length: 255 }), // Barcode if available
+  
+  // Status and preferences
+  isPreferred: boolean("is_preferred").default(false), // Preferred supplier for this item
   isActive: boolean("is_active").default(true),
+  
+  // Metadata
+  notes: text("notes"),
+  lastPriceUpdate: timestamp("last_price_update"), // When price was last updated
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  createdBy: uuid("created_by").references(() => users.id),
+  updatedBy: uuid("updated_by").references(() => users.id),
 }, (table) => [
   index("item_supplier_links_tenant_item_idx").on(table.tenantId, table.itemId),
   index("item_supplier_links_tenant_supplier_idx").on(table.tenantId, table.supplierId),
+  index("item_supplier_links_tenant_part_number_idx").on(table.tenantId, table.partNumber),
+  index("item_supplier_links_tenant_preferred_idx").on(table.tenantId, table.isPreferred),
   unique("item_supplier_links_unique").on(table.tenantId, table.itemId, table.supplierId),
+  unique("item_supplier_links_part_number_unique").on(table.tenantId, table.supplierId, table.partNumber),
 ]);
 
 // Suppliers table
@@ -3481,4 +3505,19 @@ export const insertCustomerItemMappingSchema = createInsertSchema(customerItemMa
   customSku: z.string().min(1, "SKU personalizado é obrigatório").optional(),
   customName: z.string().min(1, "Nome personalizado deve ter pelo menos 1 caractere").optional(),
   leadTimeDays: z.number().int().min(0, "Dias de entrega deve ser positivo").optional(),
-});
+}).omit({ id: true, createdAt: true, updatedAt: true });
+
+// Item Supplier Links validation schema
+export const insertItemSupplierLinkSchema = createInsertSchema(itemSupplierLinks).extend({
+  partNumber: z.string().min(1, "Part number é obrigatório").optional(),
+  supplierItemName: z.string().min(1, "Nome do fornecedor deve ter pelo menos 1 caractere").optional(),
+  unitPrice: z.number().min(0, "Preço deve ser positivo").optional(),
+  leadTimeDays: z.number().int().min(0, "Prazo de entrega deve ser positivo").optional(),
+  minimumOrderQuantity: z.number().int().min(1, "Quantidade mínima deve ser pelo menos 1").optional(),
+}).omit({ id: true, createdAt: true, updatedAt: true, lastPriceUpdate: true });
+
+// Select types for enhanced tables
+export type CustomerItemMapping = typeof customerItemMappings.$inferSelect;
+export type InsertCustomerItemMapping = z.infer<typeof insertCustomerItemMappingSchema>;
+export type ItemSupplierLink = typeof itemSupplierLinks.$inferSelect;
+export type InsertItemSupplierLink = z.infer<typeof insertItemSupplierLinkSchema>;

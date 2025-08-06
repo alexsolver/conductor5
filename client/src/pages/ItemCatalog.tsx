@@ -731,29 +731,140 @@ export default function ItemCatalog() {
 
                   {/* Aba de Personalizações de Clientes */}
                   <TabsContent value="customer-mappings" className="space-y-6">
-                    <div className="text-center py-8">
-                      <Building className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                      <h3 className="text-lg font-semibold mb-2">Personalizações de Clientes</h3>
-                      <p className="text-muted-foreground">
-                        Configure como este item aparece para diferentes empresas clientes
-                      </p>
-                      <p className="text-sm text-muted-foreground mt-2">
-                        Em breve: Sistema inteligente de personalização hierárquica
-                      </p>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-semibold flex items-center gap-2">
+                          <Building className="h-5 w-5" />
+                          Personalizações de Clientes
+                        </h3>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            // Implementar formulário de nova personalização
+                            toast({
+                              title: "Em desenvolvimento",
+                              description: "Funcionalidade de personalização será implementada em breve"
+                            });
+                          }}
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Nova Personalização
+                        </Button>
+                      </div>
+
+                      <div className="border rounded-lg">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Cliente</TableHead>
+                              <TableHead>Nome Personalizado</TableHead>
+                              <TableHead>SKU Personalizado</TableHead>
+                              <TableHead>Referência</TableHead>
+                              <TableHead>Status</TableHead>
+                              <TableHead className="w-[100px]">Ações</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            <TableRow>
+                              <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                                <Building className="h-8 w-8 mx-auto mb-2" />
+                                Nenhuma personalização configurada
+                                <br />
+                                <span className="text-sm">
+                                  Configure como este item aparece para diferentes clientes
+                                </span>
+                              </TableCell>
+                            </TableRow>
+                          </TableBody>
+                        </Table>
+                      </div>
+
+                      <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                        <div className="flex items-start gap-3">
+                          <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+                          <div>
+                            <h4 className="font-medium text-blue-900 dark:text-blue-100">
+                              Sistema Hierárquico de Personalização
+                            </h4>
+                            <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
+                              Permite personalizar nomes, descrições e códigos de itens por cliente,
+                              facilitando a identificação e comunicação específica para cada empresa.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </TabsContent>
 
                   {/* Aba de Vínculos de Fornecedores */}
                   <TabsContent value="supplier-links" className="space-y-6">
-                    <div className="text-center py-8">
-                      <Truck className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                      <h3 className="text-lg font-semibold mb-2">Vínculos de Fornecedores</h3>
-                      <p className="text-muted-foreground">
-                        Vincule este item com fornecedores e configure preços
-                      </p>
-                      <p className="text-sm text-muted-foreground mt-2">
-                        Em breve: Sistema avançado de catalogação por fornecedor
-                      </p>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-semibold flex items-center gap-2">
+                          <Truck className="h-5 w-5" />
+                          Vínculos de Fornecedores
+                        </h3>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            // Implementar formulário de novo vínculo
+                            toast({
+                              title: "Em desenvolvimento",
+                              description: "Funcionalidade de vínculos será implementada em breve"
+                            });
+                          }}
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Novo Vínculo
+                        </Button>
+                      </div>
+
+                      <div className="border rounded-lg">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Fornecedor</TableHead>
+                              <TableHead>Código Fornecedor</TableHead>
+                              <TableHead>Nome Fornecedor</TableHead>
+                              <TableHead>Preço</TableHead>
+                              <TableHead>Prazo</TableHead>
+                              <TableHead>Status</TableHead>
+                              <TableHead className="w-[100px]">Ações</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            <TableRow>
+                              <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                                <Truck className="h-8 w-8 mx-auto mb-2" />
+                                Nenhum vínculo configurado
+                                <br />
+                                <span className="text-sm">
+                                  Vincule este item com fornecedores para gerenciar preços e disponibilidade
+                                </span>
+                              </TableCell>
+                            </TableRow>
+                          </TableBody>
+                        </Table>
+                      </div>
+
+                      <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                        <div className="flex items-start gap-3">
+                          <DollarSign className="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5" />
+                          <div>
+                            <h4 className="font-medium text-green-900 dark:text-green-100">
+                              Sistema de Catalogação por Fornecedor
+                            </h4>
+                            <p className="text-sm text-green-700 dark:text-green-300 mt-1">
+                              Vincule itens com múltiplos fornecedores, compare preços, prazos de entrega
+                              e mantenha informações atualizadas sobre disponibilidade e condições de compra.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </TabsContent>
 
