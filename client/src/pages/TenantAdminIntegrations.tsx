@@ -17,6 +17,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
+import CertificateManager from "./CertificateManager";
 import {
   Dialog,
   DialogContent,
@@ -682,14 +683,35 @@ export default function TenantAdminIntegrations() {
       </div>
 
       {/* Integrações por Categoria */}
-      <Tabs defaultValue={Object.keys(groupedIntegrations)[0]} className="space-y-4">
-        <TabsList className={`grid w-full ${Object.keys(groupedIntegrations).length === 3 ? 'grid-cols-3' : Object.keys(groupedIntegrations).length === 4 ? 'grid-cols-4' : 'grid-cols-5'}`}>
+      <Tabs defaultValue="certificados" className="space-y-4">
+        <TabsList className={`grid w-full grid-cols-${Object.keys(groupedIntegrations).length + 1}`}>
+          <TabsTrigger value="certificados">
+            Certificados
+          </TabsTrigger>
           {Object.keys(groupedIntegrations).map((category) => (
             <TabsTrigger key={category} value={category}>
               {category}
             </TabsTrigger>
           ))}
         </TabsList>
+
+        {/* Aba de Certificados */}
+        <TabsContent value="certificados" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Shield className="h-6 w-6 text-purple-600" />
+                <span>Gerenciamento de Certificados Digitais</span>
+              </CardTitle>
+              <p className="text-gray-600">
+                Configure e gerencie certificados digitais ICP-Brasil para assinatura de documentos CLT
+              </p>
+            </CardHeader>
+            <CardContent>
+              <CertificateManager />
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         {Object.entries(groupedIntegrations).map(([category, integrations]) => (
           <TabsContent key={category} value={category} className="space-y-4">
