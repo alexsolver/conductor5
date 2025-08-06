@@ -36,7 +36,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
         customer_id: ticket?.customer_id,
         ticketKeys: ticket ? Object.keys(ticket) : 'no ticket'
       });
-      
+
       if (!customerId) {
         // Fallback to regular items if no customer ID
         const response = await apiRequest('GET', `/api/materials-services/items`);
@@ -44,7 +44,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
         console.log('📦 [MaterialsSystem] Items fetched (fallback):', result.data?.length || 0, 'items');
         return result;
       }
-      
+
       // Fetch items with customer-specific personalization
       const response = await apiRequest('GET', `/api/materials-services/customers/${customerId}/items`);
       const result = await response.json();
@@ -141,7 +141,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
       };
 
       console.log('🔍 [CONSUMED] Sending request data:', requestData);
-      
+
       const response = await apiRequest('POST', `/api/materials-services/tickets/${ticketId}/consumed-items`, requestData);
       return response.json();
     },
@@ -224,12 +224,12 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
           <h3 className="text-sm font-semibold text-blue-800">Itens Planejados</h3>
           <div className="text-2xl font-bold text-blue-700 mt-2">{plannedMaterials.length}</div>
         </Card>
-        
+
         <Card className="p-4 text-center border-green-200 bg-green-50">
           <h3 className="text-sm font-semibold text-green-800">Itens Consumidos</h3>
           <div className="text-2xl font-bold text-green-700 mt-2">{consumedMaterials.length}</div>
         </Card>
-        
+
         <Card className="p-4 text-center border-purple-200 bg-purple-50">
           <h3 className="text-sm font-semibold text-purple-800">Custo Planejado</h3>
           <div className="text-xl font-bold text-purple-700 mt-2">
@@ -345,7 +345,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                       // Handle both old and new data structures
                       const itemData = material.ticket_planned_items || material;
                       const itemDetails = material.items || {};
-                      
+
                       return (
                         <div key={itemData.id} className="flex items-center justify-between p-3 border rounded-lg">
                           <div className="flex-1">

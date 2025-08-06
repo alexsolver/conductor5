@@ -46,12 +46,12 @@ export const itemLinks = pgTable('item_links', {
   createdBy: uuid('created_by')
 });
 
-// VÍNCULOS ITEM ↔ CLIENTE (dados específicos por cliente)
+// VÍNCULOS ITEM ↔ EMPRESA CLIENTE (dados específicos por empresa cliente)
 export const itemCustomerLinks = pgTable('item_customer_links', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id').notNull(),
   itemId: uuid('item_id').notNull(),
-  customerId: uuid('customer_id').notNull(), // Vinculado ao módulo empresa cliente
+  customerCompanyId: uuid('customer_company_id').notNull(), // Referencia customer_companies
 
   // Campos específicos do cliente conforme especificação
   alias: varchar('alias', { length: 255 }), // Apelido

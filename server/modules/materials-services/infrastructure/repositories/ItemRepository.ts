@@ -1,6 +1,6 @@
 import { eq, and, like, desc, or, sql, inArray, asc } from 'drizzle-orm';
 import { items, itemAttachments, itemLinks, itemCustomerLinks, itemSupplierLinks, customerItemMappings } from '../../../../../shared/schema-master';
-import { customers as customerTable } from '../../../../../shared/schema-master';
+import { customerCompanies as customerTable } from '../../../../../shared/schema-master';
 import { suppliers as supplierTable } from '../../../../../shared/schema-master';
 import type { Item } from '../../domain/entities';
 import type { ExtractTablesWithRelations } from 'drizzle-orm';
@@ -279,11 +279,11 @@ export class ItemRepository {
     suppliers: Array<{ id: string; name: string }>;
   }> {
     try {
-      // Buscar vínculos de clientes
+      // Buscar vínculos de empresas cliente (customer_companies)
       const customerLinks = await this.db
         .select({
           id: customerTable.id,
-          name: sql<string>`${customerTable.firstName} || ' ' || ${customerTable.lastName}`
+          name: customerTable.name
         })
         .from(customerItemMappings)
         .innerJoin(customerTable, eq(customerItemMappings.customerId, customerTable.id))
@@ -292,7 +292,7 @@ export class ItemRepository {
             eq(customerItemMappings.itemId, itemId),
             eq(customerItemMappings.tenantId, tenantId),
             eq(customerItemMappings.isActive, true),
-            eq(customerTable.isActive, true)
+            eq(customerTable.status, 'active')
           )
         )
         .limit(50);
@@ -435,14 +435,14 @@ export class ItemRepository {
       // 2. Inserir novos vínculos
       const promises = [];
 
-      // Vínculos de clientes (usar customer_item_mappings)
+      // Vínculos de empresas cliente (usar customer_item_mappings)
       if (links.customers.length > 0) {
         const customerLinkData = links.customers
-          .filter(customerId => customerId && customerId.trim() !== '') // Filter out empty values
-          .map(customerId => ({
+          .filter(customerCompanyId => customerCompanyId && customerCompanyId.trim() !== '') // Filter out empty values
+          .map(customerCompanyId => ({
             tenantId,
             itemId,
-            customerId,
+            customerId: customerCompanyId, // Referencia customer_company_id
             isActive: true,
             createdBy,
             createdAt: new Date()
