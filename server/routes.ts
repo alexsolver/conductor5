@@ -1857,7 +1857,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // OmniBridge Module temporarily removed
 
-  // Timecard Routes temporarily removed due to syntax issues
+  // Timecard Routes - Essential for CLT compliance
+  app.use('/api/timecard', timecardRoutes);
 
   // OmniBridge Auto-Start Routes - Simplified without requireTenantAccess
   app.post('/api/omnibridge/start-monitoring', jwtAuth, async (req: AuthenticatedRequest, res) => {
@@ -1961,6 +1962,142 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/timecard/compliance/generate-report', jwtAuth, cltComplianceController.generateComplianceReport.bind(cltComplianceController));
   app.get('/api/timecard/compliance/reports', jwtAuth, cltComplianceController.listComplianceReports.bind(cltComplianceController));
   app.get('/api/timecard/compliance/reports/:reportId', jwtAuth, cltComplianceController.downloadComplianceReport.bind(cltComplianceController));
+
+  // Direct CLT Reports - Bypass routing conflicts
+  app.get('/api/timecard/reports/attendance/:period', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { period } = req.params;
+      const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
+
+      if (!tenantId || !userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const [year, month] = period.split('-');
+      const startDate = new Date(`${year}-${month.padStart(2, '0')}-01T00:00:00.000Z`);
+      const endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0, 23, 59, 59, 999);
+
+      const { schemaManager } = await import('./db');
+      const pool = schemaManager.getPool();
+      const schemaName = schemaManager.getSchemaName(tenantId);
+
+      const result = await pool.query(`
+        SELECT te.*, ws.schedule_type
+        FROM "${schemaName}".timecard_entries te
+        LEFT JOIN "${schemaName}".work_schedules ws ON ws.user_id = te.user_id AND ws.is_active = true
+        WHERE te.user_id = $1 AND DATE(te.check_in) >= $2 AND DATE(te.check_in) <= $3
+        ORDER BY te.check_in
+      `, [userId, startDate.toISOString().split('T')[0], endDate.toISOString().split('T')[0]]);
+
+      const formatToCLTStandard = (entry: any) => {
+        const date = new Date(entry.check_in);
+        const dayOfWeek = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'][date.getDay()];
+        
+        const formatTime = (timestamp: string | null) => {
+          if (!timestamp) return null;
+          return new Date(timestamp).toLocaleTimeString('pt-BR', { 
+            hour: '2-digit', 
+            minute: '2-digit',
+            timeZone: 'America/Sao_Paulo'
+          });
+        };
+
+        return {
+          id: entry.id,
+          date: date.toLocaleDateString('pt-BR'),
+          dayOfWeek: dayOfWeek,
+          firstEntry: formatTime(entry.check_in),
+          firstExit: formatTime(entry.break_start),
+          secondEntry: formatTime(entry.break_end), 
+          secondExit: formatTime(entry.check_out),
+          totalHours: entry.total_hours || 0,
+          status: entry.status,
+          workScheduleType: entry.schedule_type || 'Não definido'
+        };
+      };
+
+      const attendanceData = result.rows.map(formatToCLTStandard);
+
+      res.json({
+        success: true,
+        period: period,
+        data: attendanceData,
+        summary: {
+          totalDays: attendanceData.length,
+          totalHours: attendanceData.reduce((sum, entry) => sum + (entry.totalHours || 0), 0)
+        }
+      });
+    } catch (error) {
+      console.error('[CLT-ATTENDANCE] Error:', error);
+      res.status(500).json({ success: false, error: 'Erro ao gerar relatório' });
+    }
+  });
+
+  app.get('/api/timecard/reports/overtime/:period', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { period } = req.params;
+      const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
+
+      if (!tenantId || !userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const [year, month] = period.split('-');
+      const startDate = new Date(`${year}-${month.padStart(2, '0')}-01T00:00:00.000Z`);
+      const endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0, 23, 59, 59, 999);
+
+      const { schemaManager } = await import('./db');
+      const pool = schemaManager.getPool();
+      const schemaName = schemaManager.getSchemaName(tenantId);
+
+      const result = await pool.query(`
+        SELECT te.*, ws.schedule_type
+        FROM "${schemaName}".timecard_entries te
+        LEFT JOIN "${schemaName}".work_schedules ws ON ws.user_id = te.user_id AND ws.is_active = true
+        WHERE te.user_id = $1 AND DATE(te.check_in) >= $2 AND DATE(te.check_in) <= $3
+        ORDER BY te.check_in
+      `, [userId, startDate.toISOString().split('T')[0], endDate.toISOString().split('T')[0]]);
+
+      const expectedDailyHours = 8;
+
+      const overtimeData = result.rows.map(entry => {
+        const date = new Date(entry.check_in);
+        const dayOfWeek = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'][date.getDay()];
+        
+        const totalHours = parseFloat(entry.total_hours) || 0;
+        const overtimeHours = Math.max(0, totalHours - expectedDailyHours);
+        const regularHours = Math.min(totalHours, expectedDailyHours);
+
+        return {
+          id: entry.id,
+          date: date.toLocaleDateString('pt-BR'),
+          dayOfWeek: dayOfWeek,
+          regularHours: regularHours,
+          overtimeHours: overtimeHours,
+          totalHours: totalHours,
+          overtimeType: overtimeHours > 0 ? 'Hora Extra' : 'Normal',
+          status: entry.status
+        };
+      });
+
+      const totalOvertimeHours = overtimeData.reduce((sum, entry) => sum + entry.overtimeHours, 0);
+
+      res.json({
+        success: true,
+        period: period,
+        data: overtimeData,
+        summary: {
+          totalOvertimeHours: totalOvertimeHours,
+          overtimeDays: overtimeData.filter(entry => entry.overtimeHours > 0).length
+        }
+      });
+    } catch (error) {
+      console.error('[CLT-OVERTIME] Error:', error);
+      res.status(500).json({ success: false, error: 'Erro ao gerar relatório' });
+    }
+  });
 
   // Status dos backups
   app.get('/api/timecard/compliance/backups', jwtAuth, cltComplianceController.getBackupStatus.bind(cltComplianceController));
