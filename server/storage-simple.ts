@@ -792,7 +792,24 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async getBeneficiary(id: string, tenantId: string): Promise<any | null> {
+    try {
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
+      const result = await tenantDb.execute(sql`
+        SELECT 
+          id,
+          tenant_id,
+          first_name,
+          last_name,
+          CONCAT(first_name, ' ', last_name) as full_name,
+          email,
+          birth_date,
+          rg,
+          cpf_cnpj,
+          is_active,
           customer_code,
           customer_id,
           phone,
@@ -802,62 +819,24 @@ export class DatabaseStorage implements IStorage {
           created_at,
           updated_at
         FROM ${sql.identifier(schemaName)}.beneficiaries 
-        WHERE tenant_id = ${tenantId}
-      `;
+        WHERE id = ${id} AND tenant_id = ${validatedTenantId}
+      `);
 
-      if (search) {
-        query = sql`${query} AND (
-          first_name ILIKE ${`%${search}%`} OR 
-          last_name ILIKE ${`%${search}%`} OR 
-          email ILIKE ${`%${search}%`} OR
-          customer_code ILIKE ${`%${search}%`}
-        )`;
+      const favorecido = result.rows?.[0] || null;
+
+      // Adicionar fullName computed field para compatibilidade frontend
+      if (favorecido) {
+        favorecido.fullName = `${favorecido.first_name || ''} ${favorecido.last_name || ''}`.trim();
       }
 
-      query = sql`${query} ORDER BY created_at DESC`;
-
-      if (limit > 0) {
-        query = sql`${query} LIMIT ${limit}`;
-
-        if (offset > 0) {
-          query = sql`${query} OFFSET ${offset}`;
-        }
-      }
-
-      const result = await tenantDb.execute(query);
-      console.log(`Found ${result.rows.length} beneficiaries in ${schemaName}`);
-
-      // Padronizar mapeamento de dados para interfaceconsistente
-      const beneficiaries = (result.rows || []).map(favorecido => ({
-        id: favorecido.id,
-        tenantId: favorecido.tenant_id,
-        firstName: favorecido.first_name,
-        lastName: favorecido.last_name,
-        fullName: `${favorecido.first_name || ''} ${favorecido.last_name || ''}`.trim(),
-        email: favorecido.email,
-        birthDate: favorecido.birth_date,
-        rg: favorecido.rg,
-        cpfCnpj: favorecido.cpf_cnpj,
-        isActive: favorecido.is_active,
-        customerCode: favorecido.customer_code,
-        customerId: favorecido.customer_id,
-        phone: favorecido.phone,
-        cellPhone: favorecido.cell_phone,
-        contactPerson: favorecido.contact_person,
-        contactPhone: favorecido.contact_phone,
-        createdAt: favorecido.created_at,
-        updatedAt: favorecido.updated_at
-      }));
-
-      console.log(`Fetched ${beneficiaries.length} beneficiaries for tenant ${tenantId}`);
-      return beneficiaries;
+      return favorecido;
     } catch (error) {
-      console.error('Error fetching beneficiaries:', error);
-      return []; // Return empty array instead of throwing
+      logError('Error fetching favorecido', error, { id, tenantId });
+      throw error;
     }
   }
 
-  async getBeneficiary(id: string, tenantId: string): Promise<any | null> {
+  async createCliente(tenantId: string, data: any): Promise<any> {
     try {
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
@@ -2937,7 +2916,21 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  // REMOVED DUPLICATE FUNCTION - keeping only one getBeneficiaries implementation above
+  // Get beneficiaries for a specific customer
+  async getCustomerBeneficiaries(tenantId: string, customerId: string) {
+    try {
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      console.log(`Fetching beneficiaries for customer ${customerId} in tenant ${tenantId}`);
+
+      const result = await tenantDb.execute(sql`
+        SELECT 
+          id,
+          tenant_id,
+          first_name,
+          last_name,
+          CONCAT(first_name, ' ', last_name) as full_name,
           email,
           birth_date,
           rg,
@@ -2952,22 +2945,29 @@ export class DatabaseStorage implements IStorage {
           created_at,
           updated_at
         FROM ${sql.identifier(schemaName)}.beneficiaries 
-        WHERE tenant_id = ${tenantId}
-      `;
+        WHERE tenant_id = ${tenantId} AND customer_id = ${customerId} AND is_active = true
+        ORDER BY first_name, last_name
+      `);
 
-      if (search) {
-        query = sql`${query} AND (
-          first_name ILIKE ${`%${search}%`} OR 
-          last_name ILIKE ${`%${search}%`} OR 
-          email ILIKE ${`%${search}%`} OR
-          customer_code ILIKE ${`%${search}%`}
-        )`;
-      }
+      const beneficiaries = result.rows || [];
 
-      query = sql`${query} ORDER BY created_at DESC`;
+      console.log(`Found ${beneficiaries.length} beneficiaries for customer ${customerId}`);
+      return beneficiaries;
+    } catch (error) {
+      console.error('Error fetching customer beneficiaries:', error);
+      throw error;
+    }
+  }
+}
 
-      if (limit > 0) {
-        query = sql`${query} LIMIT ${limit}`;
+// Export singleton instance
+export const storage = new DatabaseStorage();
+export const storageSimple = storage;
+export const unifiedStorage = storage;
+
+// Storage getter function for use in routes
+export async function getStorage() {
+  return storage;
 
         if (offset > 0) {
           query = sql`${query} OFFSET ${offset}`;
