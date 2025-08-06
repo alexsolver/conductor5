@@ -1144,9 +1144,15 @@ function CustomerPersonalizationTab({ itemId, itemName }: { itemId?: string; ite
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingPersonalization, setEditingPersonalization] = useState<any>(null);
   
-  // Buscar empresas clientes
+  // Buscar apenas clientes vinculados ao item
   const { data: customers } = useQuery({
     queryKey: ['/api/customers/companies'],
+    select: (data: any[]) => {
+      // Filtrar apenas clientes que estão vinculados ao item atual
+      return data?.filter((customer: any) => 
+        linkedCustomers.includes(customer.id)
+      ) || [];
+    },
     enabled: !!itemId
   });
 
