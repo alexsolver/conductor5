@@ -389,14 +389,23 @@ export class TimecardApprovalController {
 
   getPendingApprovals = async (req: Request, res: Response) => {
     try {
-      const { tenantId, userId } = (req as any).user;
+      const { tenantId, userId, id } = (req as any).user;
+      const actualUserId = userId || id; // Fallback para id se userId não existir
+      
+      console.log('[PENDING-APPROVALS] User data from request:', { 
+        tenantId, 
+        userId, 
+        id, 
+        actualUserId,
+        fullUser: (req as any).user 
+      });
 
       // Get user's approval groups
       const userGroups = await db
         .select({ groupId: approvalGroupMembers.groupId })
         .from(approvalGroupMembers)
         .where(and(
-          eq(approvalGroupMembers.userId, userId),
+          eq(approvalGroupMembers.userId, actualUserId),
           eq(approvalGroupMembers.tenantId, tenantId),
           eq(approvalGroupMembers.isActive, true)
         ));
@@ -434,7 +443,7 @@ export class TimecardApprovalController {
 
       if (settings) {
         // Check if user is a default approver
-        const isDefaultApprover = settings.defaultApprovers?.includes(userId);
+        const isDefaultApprover = settings.defaultApprovers?.includes(actualUserId);
         
         // Check if user belongs to approval group
         const isInApprovalGroup = settings.approvalGroupId && groupIds.includes(settings.approvalGroupId);
@@ -448,7 +457,8 @@ export class TimecardApprovalController {
 
       console.log('[PENDING-APPROVALS] User permissions check:', {
         userId,
-        isDefaultApprover: settings?.defaultApprovers?.includes(userId),
+        actualUserId,
+        isDefaultApprover: settings?.defaultApprovers?.includes(actualUserId),
         userGroups: groupIds,
         approvalGroupId: settings?.approvalGroupId,
         isInApprovalGroup: settings?.approvalGroupId && groupIds.includes(settings.approvalGroupId),
