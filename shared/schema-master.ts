@@ -759,7 +759,7 @@ export const marketLocalization = pgTable("market_localization", {
 // Field Alias Mapping - Aliases internacionais para campos brasileiros (cpf → tax_id)
 export const fieldAliasMapping = pgTable("field_alias_mapping", {
   id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),  sourceTable: varchar("source_table", { length: 100 }).notNull(), // favorecidos
+  tenantId: uuid("tenant_id").notNull(), sourceTable: varchar("source_table", { length: 100 }).notNull(), // favorecidos
   sourceField: varchar("source_field", { length: 100 }).notNull(), // cpf, cnpj, rg
   aliasField: varchar("alias_field", { length: 100 }).notNull(), // tax_id, business_tax_id
   aliasDisplayName: varchar("alias_display_name", { length: 200 }).notNull(),
@@ -2440,3 +2440,13 @@ export type CustomerItemMapping = typeof customerItemMappings.$inferSelect;
 export type InsertCustomerItemMapping = z.infer<typeof insertCustomerItemMappingSchema>;
 export type ItemSupplierLink = typeof itemSupplierLinks.$inferSelect;
 export type InsertItemSupplierLink = z.infer<typeof insertItemSupplierLinkSchema>;
+
+// Ticket Materials types
+export type TicketLpuSetting = typeof ticketLpuSettings.$inferSelect;
+export type InsertTicketLpuSetting = typeof ticketLpuSettings.$inferInsert;
+export type TicketPlannedItem = typeof ticketPlannedItems.$inferSelect;
+export type InsertTicketPlannedItem = typeof ticketPlannedItems.$inferInsert;
+export type TicketConsumedItem = typeof ticketConsumedItems.$inferSelect;
+export type InsertTicketConsumedItem = typeof ticketConsumedItems.$inferInsert;
+export type TicketCostsSummary = typeof ticketCostsSummary.$inferSelect;
+export type InsertTicketCostsSummary = typeof ticketCostsSummary.$inferInsert;
