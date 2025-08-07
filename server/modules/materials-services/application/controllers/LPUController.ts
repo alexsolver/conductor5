@@ -407,9 +407,18 @@ export class LPUController {
       }
 
       const deletedItem = await this.repository.deletePriceListItem(id, tenantId);
-      // Invalidate relevant cache
-      await this.repository.invalidateCache(tenantId, `price-list-items/${deletedItem.priceListId}`);
+      
+      if (!deletedItem) {
+        return res.status(404).json({ error: 'Item não encontrado' });
+      }
+      
+      // Invalidate relevant cache (only if we have priceListId)
+      if (deletedItem.priceListId) {
+        await this.repository.invalidateCache(tenantId, `price-list-items/${deletedItem.priceListId}`);
+      }
       await this.repository.invalidateCache(tenantId, 'stats');
+      await this.repository.invalidateCache(tenantId, 'price-list-items');
+      
       res.status(204).send();
     } catch (error) {
       console.error('Erro ao excluir item:', error);

@@ -349,17 +349,16 @@ export class LPURepository {
 
   // ITENS DA LISTA DE PREÇOS
   async getPriceListItems(priceListId: string, tenantId: string) {
-    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-    return await this.db
-      .execute(sql.raw(`SET search_path TO "${schemaName}"`))
-      .then(() => this.db
-        .select()
-        .from(priceListItems)
-        .where(and(
-          eq(priceListItems.priceListId, priceListId),
-          eq(priceListItems.tenantId, tenantId)
-        ))
-        .orderBy(asc(priceListItems.createdAt)));
+    const items = await this.db
+      .select()
+      .from(priceListItems)
+      .where(and(
+        eq(priceListItems.priceListId, priceListId),
+        eq(priceListItems.tenantId, tenantId)
+      ))
+      .orderBy(asc(priceListItems.createdAt));
+    
+    return items;
   }
 
   async getPriceListItemById(id: string): Promise<any> {
@@ -378,8 +377,6 @@ export class LPURepository {
   }
 
   async addPriceListItem(data: any): Promise<any> {
-    const itemId = randomUUID();
-
     // Ensure price_list_id is provided
     if (!data.priceListId && !data.price_list_id) {
       throw new Error('price_list_id é obrigatório');
@@ -393,26 +390,25 @@ export class LPURepository {
       throw new Error('tenant_id é obrigatório');
     }
 
-    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-    await this.db.execute(sql.raw(`SET search_path TO "${schemaName}"`));
+    // Invalidate cache for the tenant when an item is added
+    await this.invalidateCache(tenantId, 'price-list-items');
 
-    const insertResult = await this.db.execute(sql`
-      INSERT INTO price_list_items (
-        id, tenant_id, price_list_id, item_id, service_type_id,
-        unit_price, special_price, hourly_rate, travel_cost,
-        is_active, created_at, updated_at
-      ) VALUES (
-        ${itemId}, ${tenantId}, ${priceListId}, 
-        ${data.itemId || null}, ${data.serviceTypeId || null},
-        ${data.unitPrice || 0}, ${data.specialPrice || null}, 
-        ${data.hourlyRate || null}, ${data.travelCost || null},
-        ${data.isActive !== undefined ? data.isActive : true},
-        NOW(), NOW()
-      )
-      RETURNING *
-    `);
+    const [newItem] = await this.db
+      .insert(priceListItems)
+      .values({
+        tenantId,
+        priceListId,
+        itemId: data.itemId || null,
+        serviceTypeId: data.serviceTypeId || null,
+        unitPrice: data.unitPrice || '0',
+        specialPrice: data.specialPrice || null,
+        hourlyRate: data.hourlyRate || null,
+        travelCost: data.travelCost || null,
+        isActive: data.isActive !== undefined ? data.isActive : true
+      })
+      .returning();
 
-    return insertResult.rows?.[0] || { id: itemId, ...data };
+    return newItem;
   }
 
   async updatePriceListItem(id: string, tenantId: string, data: any) {
@@ -428,11 +424,15 @@ export class LPURepository {
   }
 
   async deletePriceListItem(id: string, tenantId: string) {
-    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-    await this.db.execute(sql.raw(`SET search_path TO "${schemaName}"`))
-      .then(() => this.db
-        .delete(priceListItems)
-        .where(and(eq(priceListItems.id, id), eq(priceListItems.tenantId, tenantId))));
+    // Invalidate cache for the tenant when an item is deleted
+    await this.invalidateCache(tenantId, 'price-list-items');
+    
+    const [deletedItem] = await this.db
+      .delete(priceListItems)
+      .where(and(eq(priceListItems.id, id), eq(priceListItems.tenantId, tenantId)))
+      .returning();
+    
+    return deletedItem;
   }
 
   // REGRAS DE PRECIFICAÇÃO
