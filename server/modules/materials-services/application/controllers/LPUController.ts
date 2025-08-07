@@ -8,23 +8,39 @@ export class LPUController {
   private pricingEngine: PricingRulesEngine;
 
   constructor(db: any) {
-    this.repository = new LPURepository(db);
-    this.pricingEngine = new PricingRulesEngine(this.repository);
+    try {
+      console.log('🏗️ LPUController: Initializing...');
+      console.log('🏗️ LPUController: DB object:', !!db);
+      this.repository = new LPURepository(db);
+      console.log('🏗️ LPUController: Repository created successfully');
+      this.pricingEngine = new PricingRulesEngine(this.repository);
+      console.log('✅ LPUController: Initialization complete');
+    } catch (error) {
+      console.error('❌ LPUController: Initialization failed:', error);
+      throw error;
+    }
   }
 
   // GESTÃO DE LISTAS DE PREÇOS
   async getAllPriceLists(req: AuthenticatedRequest, res: Response) {
     try {
+      console.log('🔍 LPUController.getAllPriceLists: Starting...');
       const tenantId = req.user?.tenantId;
+      console.log('🔍 LPUController.getAllPriceLists: TenantId:', tenantId);
+      
       if (!tenantId) {
+        console.log('❌ LPUController.getAllPriceLists: Missing tenant ID');
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
 
+      console.log('🔍 LPUController.getAllPriceLists: Calling repository...');
       const priceLists = await this.repository.getAllPriceLists(tenantId);
+      console.log('✅ LPUController.getAllPriceLists: Success, found', priceLists?.length || 0, 'price lists');
       res.json(priceLists);
     } catch (error) {
-      console.error('Erro ao buscar listas de preços:', error);
-      res.status(500).json({ error: 'Erro interno do servidor' });
+      console.error('❌ LPUController.getAllPriceLists: Error:', error);
+      console.error('❌ LPUController.getAllPriceLists: Stack:', error.stack);
+      res.status(500).json({ error: 'Erro interno do servidor', details: error.message });
     }
   }
 

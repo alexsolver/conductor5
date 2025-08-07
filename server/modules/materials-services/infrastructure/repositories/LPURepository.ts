@@ -14,7 +14,26 @@ import {
 import { eq, and, desc, asc, gte, lte, sql, inArray } from 'drizzle-orm';
 
 export class LPURepository {
-  constructor(private database = db) {}
+  private db: any;
+
+  constructor(db: any) {
+    this.db = db;
+    this.testConnection();
+  }
+
+  private async testConnection() {
+    try {
+      // Test basic database connectivity
+      console.log('🔌 LPURepository: Testing database connection...');
+      if (!this.db) {
+        throw new Error('Database connection is null or undefined');
+      }
+      console.log('✅ LPURepository: Database connection successful');
+    } catch (error) {
+      console.error('❌ LPURepository: Database connection failed:', error);
+      throw error;
+    }
+  }
 
   async getLPUStats(tenantId: string) {
     const result = await db.execute(sql`
@@ -26,10 +45,10 @@ export class LPURepository {
           COUNT(*) FILTER (WHERE company_id IS NOT NULL) as pending_approval,
           COUNT(*) FILTER (WHERE is_active = true AND company_id IS NOT NULL) as approved_versions,
           0 as active_rules,
-          CASE 
-            WHEN COUNT(*) FILTER (WHERE company_id IS NOT NULL) > 0 
+          CASE
+            WHEN COUNT(*) FILTER (WHERE company_id IS NOT NULL) > 0
             THEN ROUND((COUNT(*) FILTER (WHERE is_active = true AND company_id IS NOT NULL)::numeric / COUNT(*) FILTER (WHERE company_id IS NOT NULL)::numeric) * 100, 2)
-            ELSE 0 
+            ELSE 0
           END as approval_rate
         FROM ${priceLists}
         WHERE tenant_id = ${tenantId}
@@ -406,7 +425,7 @@ export class LPURepository {
         eq(pricingRules.id, ruleId),
         eq(pricingRules.tenantId, tenantId)
       ));
-    
+
     if (rule) {
       await db
         .update(pricingRules)
@@ -428,7 +447,7 @@ export class LPURepository {
 
   async applyRulesToPriceList(priceListId: string, ruleIds: string[] = [], tenantId: string) {
     const results = [];
-    
+
     // Get all items in the price list
     const items = await db
       .select()
@@ -464,17 +483,17 @@ export class LPURepository {
     // Apply rules to each item
     for (const item of items) {
       let newPrice = parseFloat(item.unitPrice);
-      
+
       for (const rule of rules) {
         const conditions = rule.conditions as any;
         const actions = rule.actions as any;
-        
+
         // Simple condition checking (can be expanded)
         let shouldApply = true;
-        
+
         if (conditions.minPrice && newPrice < conditions.minPrice) shouldApply = false;
         if (conditions.maxPrice && newPrice > conditions.maxPrice) shouldApply = false;
-        
+
         if (shouldApply) {
           switch (rule.ruleType) {
             case 'percentual':
@@ -489,7 +508,7 @@ export class LPURepository {
           }
         }
       }
-      
+
       // Update the item price
       if (newPrice !== parseFloat(item.unitPrice)) {
         await db
@@ -502,11 +521,11 @@ export class LPURepository {
             eq(priceListItems.id, item.id),
             eq(priceListItems.tenantId, tenantId)
           ));
-        
+
         results.push({ itemId: item.itemId, oldPrice: item.unitPrice, newPrice: newPrice.toFixed(2) });
       }
     }
-    
+
     return results;
   }
 }

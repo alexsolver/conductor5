@@ -41,19 +41,24 @@ router.use((req: any, res: any, next: any) => {
 
 // Helper function to initialize controllers for each request
 async function getControllers(tenantId: string) {
-  const { db } = await schemaManager.getTenantDb(tenantId);
-  const itemRepository = new ItemRepository(db);
-  const supplierRepository = new SupplierRepository(db);
-  const stockRepository = new StockRepository(db);
+  try {
+    const { db } = await schemaManager.getTenantDb(tenantId);
+    const itemRepository = new ItemRepository(db);
+    const supplierRepository = new SupplierRepository(db);
+    const stockRepository = new StockRepository(db);
 
-  return {
-    itemController: new ItemController(itemRepository),
-    supplierController: new SupplierController(supplierRepository),
-    stockController: new StockController(stockRepository),
-    assetController: new AssetManagementController(),
-    lpuController: new LPUController(db),
-    complianceController: new ComplianceController()
-  };
+    return {
+      itemController: new ItemController(itemRepository),
+      supplierController: new SupplierController(supplierRepository),
+      stockController: new StockController(stockRepository),
+      assetController: new AssetManagementController(),
+      lpuController: new LPUController(db),
+      complianceController: new ComplianceController()
+    };
+  } catch (error) {
+    console.error('Error initializing controllers for tenant:', tenantId, error);
+    throw error;
+  }
 }
 
 // ===== ITEMS ROUTES =====
@@ -140,15 +145,25 @@ router.get('/items/:itemId/links', jwtAuth, async (req: AuthenticatedRequest, re
 
 // Price Lists - Basic CRUD
 router.get('/price-lists', async (req: AuthenticatedRequest, res) => {
-  if (!req.user?.tenantId) return res.status(401).json({ message: 'Tenant ID required' });
-  const { lpuController } = await getControllers(req.user.tenantId);
-  return lpuController.getAllPriceLists(req, res);
+  try {
+    if (!req.user?.tenantId) return res.status(401).json({ message: 'Tenant ID required' });
+    const { lpuController } = await getControllers(req.user.tenantId);
+    return lpuController.getAllPriceLists(req, res);
+  } catch (error) {
+    console.error('Error in /price-lists route:', error);
+    res.status(500).json({ error: 'Erro interno do servidor', details: error.message });
+  }
 });
 
 router.get('/price-lists/stats', async (req: AuthenticatedRequest, res) => {
-  if (!req.user?.tenantId) return res.status(401).json({ message: 'Tenant ID required' });
-  const { lpuController } = await getControllers(req.user.tenantId);
-  return lpuController.getLPUStats(req, res);
+  try {
+    if (!req.user?.tenantId) return res.status(401).json({ message: 'Tenant ID required' });
+    const { lpuController } = await getControllers(req.user.tenantId);
+    return lpuController.getLPUStats(req, res);
+  } catch (error) {
+    console.error('Error in /price-lists/stats route:', error);
+    res.status(500).json({ error: 'Erro interno do servidor', details: error.message });
+  }
 });
 
 router.get('/price-lists/:id', async (req: AuthenticatedRequest, res) => {
@@ -202,9 +217,14 @@ router.delete('/price-lists/items/:id', async (req: AuthenticatedRequest, res) =
 
 // Pricing Rules - Complete CRUD
 router.get('/pricing-rules', async (req: AuthenticatedRequest, res) => {
-  if (!req.user?.tenantId) return res.status(401).json({ message: 'Tenant ID required' });
-  const { lpuController } = await getControllers(req.user.tenantId);
-  return lpuController.getAllPricingRules(req, res);
+  try {
+    if (!req.user?.tenantId) return res.status(401).json({ message: 'Tenant ID required' });
+    const { lpuController } = await getControllers(req.user.tenantId);
+    return lpuController.getAllPricingRules(req, res);
+  } catch (error) {
+    console.error('Error in /pricing-rules route:', error);
+    res.status(500).json({ error: 'Erro interno do servidor', details: error.message });
+  }
 });
 
 router.post('/pricing-rules', async (req: AuthenticatedRequest, res) => {
