@@ -1,5 +1,6 @@
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../../../../middleware/jwtAuth';
+import { db } from '../../../../db';
 import { LPURepository } from '../../infrastructure/repositories/LPURepository';
 import { PricingRulesEngine } from '../services/PricingRulesEngine';
 
@@ -27,7 +28,7 @@ export class LPUController {
       console.log('🔍 LPUController.getAllPriceLists: Starting...');
       const tenantId = req.user?.tenantId;
       console.log('🔍 LPUController.getAllPriceLists: TenantId:', tenantId);
-      
+
       if (!tenantId) {
         console.log('❌ LPUController.getAllPriceLists: Missing tenant ID');
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });

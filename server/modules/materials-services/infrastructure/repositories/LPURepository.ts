@@ -36,7 +36,7 @@ export class LPURepository {
   }
 
   async getLPUStats(tenantId: string) {
-    const result = await db.execute(sql`
+    const result = await this.db.execute(sql`
       WITH stats AS (
         SELECT
           COUNT(*) as total_lists,
@@ -103,7 +103,7 @@ export class LPURepository {
   }
 
   async getPriceListById(id: string, tenantId: string) {
-    const [priceList] = await db
+    const [priceList] = await this.db
       .select()
       .from(priceLists)
       .where(and(eq(priceLists.id, id), eq(priceLists.tenantId, tenantId)));
@@ -111,7 +111,7 @@ export class LPURepository {
   }
 
   async createPriceList(data: any) {
-    const [priceList] = await db
+    const [priceList] = await this.db
       .insert(priceLists)
       .values(data)
       .returning();
@@ -119,7 +119,7 @@ export class LPURepository {
   }
 
   async updatePriceList(id: string, tenantId: string, data: any) {
-    const [priceList] = await db
+    const [priceList] = await this.db
       .update(priceLists)
       .set({ ...data, updatedAt: new Date() })
       .where(and(eq(priceLists.id, id), eq(priceLists.tenantId, tenantId)))
@@ -129,7 +129,7 @@ export class LPURepository {
 
   // DELETE PRICE LIST
   async deletePriceList(id: string, tenantId: string) {
-    const [deleted] = await db
+    const [deleted] = await this.db
       .delete(priceLists)
       .where(and(eq(priceLists.id, id), eq(priceLists.tenantId, tenantId)))
       .returning();
@@ -138,7 +138,7 @@ export class LPURepository {
 
   // VERSIONAMENTO DE LISTAS
   async createPriceListVersion(data: any) {
-    const [version] = await db
+    const [version] = await this.db
       .insert(priceListVersions)
       .values(data)
       .returning();
@@ -146,7 +146,7 @@ export class LPURepository {
   }
 
   async getPriceListVersions(priceListId: string, tenantId: string) {
-    return await db
+    return await this.db
       .select()
       .from(priceListVersions)
       .where(and(
@@ -245,7 +245,7 @@ export class LPURepository {
 
   // REGRAS DE PRECIFICAÇÃO
   async getAllPricingRules(tenantId: string) {
-    return await db
+    return await this.db
       .select({
         id: pricingRules.id,
         tenantId: pricingRules.tenantId,
@@ -265,7 +265,7 @@ export class LPURepository {
   }
 
   async createPricingRule(data: InsertPricingRule) {
-    const [rule] = await db
+    const [rule] = await this.db
       .insert(pricingRules)
       .values(data)
       .returning();
@@ -273,7 +273,7 @@ export class LPURepository {
   }
 
   async updatePricingRule(id: string, tenantId: string, data: Partial<InsertPricingRule>) {
-    const [rule] = await db
+    const [rule] = await this.db
       .update(pricingRules)
       .set({ ...data, updatedAt: new Date() })
       .where(and(eq(pricingRules.id, id), eq(pricingRules.tenantId, tenantId)))
@@ -282,7 +282,7 @@ export class LPURepository {
   }
 
   async getPricingRuleById(id: string, tenantId: string) {
-    const [rule] = await db
+    const [rule] = await this.db
       .select()
       .from(pricingRules)
       .where(and(eq(pricingRules.id, id), eq(pricingRules.tenantId, tenantId)));
