@@ -59,12 +59,12 @@ export class LPURepository {
           COUNT(*) as total_lists,
           COUNT(*) FILTER (WHERE is_active = true) as active_lists,
           COUNT(*) FILTER (WHERE is_active = false) as draft_lists,
-          COUNT(*) FILTER (WHERE customer_company_id IS NOT NULL) as pending_approval,
-          COUNT(*) FILTER (WHERE is_active = true AND customer_company_id IS NOT NULL) as approved_versions,
+          COUNT(*) FILTER (WHERE company_id IS NOT NULL) as pending_approval,
+          COUNT(*) FILTER (WHERE is_active = true AND company_id IS NOT NULL) as approved_versions,
           0 as active_rules,
           CASE
-            WHEN COUNT(*) FILTER (WHERE customer_company_id IS NOT NULL) > 0
-            THEN ROUND((COUNT(*) FILTER (WHERE is_active = true AND customer_company_id IS NOT NULL)::numeric / COUNT(*) FILTER (WHERE customer_company_id IS NOT NULL)::numeric) * 100, 2)
+            WHEN COUNT(*) FILTER (WHERE company_id IS NOT NULL) > 0
+            THEN ROUND((COUNT(*) FILTER (WHERE is_active = true AND company_id IS NOT NULL)::numeric / COUNT(*) FILTER (WHERE company_id IS NOT NULL)::numeric) * 100, 2)
             ELSE 0
           END as approval_rate
         FROM price_lists
@@ -129,25 +129,24 @@ export class LPURepository {
           SELECT 
             pl.id,
             pl.tenant_id,
-            pl.list_name as name,
+            pl.name,
             pl.description,
-            pl.version,
-            pl.application_type,
-            pl.customer_company_id,
-            pl.contract_id,
-            pl.region,
-            pl.valid_from,
-            pl.valid_to,
+            pl.list_code,
+            pl.company_id as customer_company_id,
+            NULL as contract_id,
+            NULL as region,
+            pl.effective_date as valid_from,
+            pl.expiration_date as valid_to,
             pl.is_active,
-            pl.auto_apply_to_orders,
-            pl.auto_apply_to_quotes,
+            NULL as auto_apply_to_orders,
+            NULL as auto_apply_to_quotes,
             pl.created_at,
             pl.updated_at,
             pl.created_by_id,
             cc.name as customer_company_name
           FROM price_lists pl
           LEFT JOIN companies cc 
-            ON pl.customer_company_id = cc.id
+            ON pl.company_id = cc.id
           WHERE pl.tenant_id = ${tenantId}
           ORDER BY pl.created_at DESC
           LIMIT 50
