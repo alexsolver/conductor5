@@ -1429,16 +1429,16 @@ export type Tenant = typeof tenants.$inferSelect;
 export type InsertTenant = typeof tenants.$inferInsert;
 
 export type Customer = typeof customers.$inferSelect;
-export type InsertCustomer = typeof customers.$inferInsert;
+export type InsertCustomer = typeof customers.$insert;
 
 export type Ticket = typeof tickets.$inferSelect;
-export type InsertTicket = typeof tickets.$inferInsert;
+export type InsertTicket = typeof tickets.$insert;
 
 export type TicketMessage = typeof ticketMessages.$inferSelect;
-export type InsertTicketMessage = typeof ticketMessages.$inferInsert;
+export type InsertTicketMessage = typeof ticketMessages.$insert;
 
 export type ActivityLog = typeof activityLogs.$inferSelect;
-export type InsertActivityLog = typeof activityLogs.$inferInsert;
+export type InsertActivityLog = typeof activityLogs.$insert;
 
 export type Location = typeof locations.$inferSelect;
 export type InsertLocation = typeof locations.$insert;
@@ -2679,50 +2679,6 @@ export const complianceScores = pgTable("compliance_scores", {
   index("compliance_scores_tenant_type_idx").on(table.tenantId, table.scoreType),
   index("compliance_scores_tenant_period_idx").on(table.tenantId, table.period),
   index("compliance_scores_tenant_entity_idx").on(table.tenantId, table.entityId, table.entityType),
-]);
-
-// Customer Item Mappings - Personalized item configurations per customer
-export const customerItemMappings = pgTable("customer_item_mappings", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
-  customerId: uuid("customer_id").references(() => customers.id, { onDelete: 'cascade' }).notNull(),
-  itemId: uuid("item_id").references(() => items.id, { onDelete: 'cascade' }).notNull(),
-
-  // Customer-specific identifiers
-  customSku: varchar("custom_sku", { length: 100 }), // SKU que o cliente usa
-  customName: varchar("custom_name", { length: 255 }), // Nome que o cliente usa
-  customDescription: text("custom_description"), // Descrição personalizada
-  customerReference: varchar("customer_reference", { length: 100 }), // Referência interna do cliente
-
-  // Pricing and terms
-  leadTimeDays: integer("lead_time_days"), // Tempo de entrega específico
-
-  // Configuration options
-  preferredSupplier: varchar("preferred_supplier", { length: 255 }), // Fornecedor preferido
-  specialInstructions: text("special_instructions"), // Instruções especiais
-  customFields: jsonb("custom_fields").default({}), // Campos extras configuráveis
-
-  // Contract and approval
-  contractReference: varchar("contract_reference", { length: 100 }), // Referência de contrato
-  requiresApproval: boolean("requires_approval").default(false), // Requer aprovação especial
-  approvalLimit: decimal("approval_limit", { precision: 15, scale: 2 }), // Limite de aprovação
-
-  // Status and metadata
-  isActive: boolean("is_active").default(true),
-  effectiveDate: timestamp("effective_date").defaultNow(), // Data de vigência
-  expirationDate: timestamp("expiration_date"), // Data de expiração
-  notes: text("notes"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-  createdBy: uuid("created_by").references(() => users.id),
-  updatedBy: uuid("updated_by").references(() => users.id),
-}, (table) => [
-  index("customer_item_mappings_tenant_customer_idx").on(table.tenantId, table.customerId),
-  index("customer_item_mappings_tenant_item_idx").on(table.tenantId, table.itemId),
-  index("customer_item_mappings_tenant_active_idx").on(table.tenantId, table.isActive),
-  index("customer_item_mappings_custom_sku_idx").on(table.tenantId, table.customSku),
-  unique("customer_item_mappings_customer_item_unique").on(table.tenantId, table.customerId, table.itemId),
-  unique("customer_item_mappings_customer_sku_unique").on(table.tenantId, table.customerId, table.customSku),
 ]);
 
 // ========================================
