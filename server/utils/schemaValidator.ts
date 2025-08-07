@@ -1,21 +1,20 @@
-
 import { sql } from 'drizzle-orm';
 
 export class SchemaValidator {
-  
+
   static async validateTenantSchema(db: any, tenantId: string): Promise<{
     isValid: boolean;
     missingTables: string[];
     fieldMappings: Record<string, string[]>;
   }> {
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-    
+
     try {
       // Check required tables
       const requiredTables = ['customers', 'users', 'user_groups', 'locations'];
       const missingTables: string[] = [];
       const fieldMappings: Record<string, string[]> = {};
-      
+
       for (const table of requiredTables) {
         const tableExists = await db.execute(sql`
           SELECT EXISTS (
@@ -23,7 +22,7 @@ export class SchemaValidator {
             WHERE table_schema = ${schemaName} AND table_name = ${table}
           ) as exists
         `);
-        
+
         if (!tableExists.rows?.[0]?.exists) {
           missingTables.push(table);
         } else {
@@ -33,11 +32,11 @@ export class SchemaValidator {
             FROM information_schema.columns 
             WHERE table_schema = ${schemaName} AND table_name = ${table}
           `);
-          
+
           fieldMappings[table] = columns.rows.map((row: any) => row.column_name);
         }
       }
-      
+
       return {
         isValid: missingTables.length === 0,
         missingTables,

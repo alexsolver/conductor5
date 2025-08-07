@@ -572,7 +572,7 @@ export const projectActions = pgTable("project_actions", {
   title: varchar("title", { length: 255 }).notNull(),
   description: text("description"),
   type: varchar("type", { length: 50 }).notNull(),
-  status: varchar("status", { length: 50 }).default("pending"),  // CONTEXTUAL: Actions start "pending" execution
+  status: varchar("status", { length: 50 }).default("pending").notNull(),  // Actions workflow: pending → in_progress → completed
   priority: varchar("priority", { length: 20 }).default("medium"),
   estimatedHours: integer("estimated_hours"),
   actualHours: integer("actual_hours"),
