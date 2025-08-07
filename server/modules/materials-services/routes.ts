@@ -58,13 +58,18 @@ async function getControllers(tenantId: string) {
     const lpuController = new LPUController(tenantDb);
     console.log('✅ getControllers: LPUController created successfully');
 
+    console.log('🏗️ getControllers: Creating TicketMaterialsController...');
+    const ticketMaterialsController = new TicketMaterialsController(tenantDb);
+    console.log('✅ getControllers: TicketMaterialsController created successfully');
+
     return {
       itemController: new ItemController(itemRepository),
       supplierController: new SupplierController(supplierRepository),
       stockController: new StockController(stockRepository),
       assetController: new AssetManagementController(),
       lpuController: lpuController,
-      complianceController: new ComplianceController()
+      complianceController: new ComplianceController(),
+      ticketMaterialsController: ticketMaterialsController
     };
   } catch (error) {
     console.error('❌ getControllers: Failed to initialize controllers:', error);
