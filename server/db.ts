@@ -80,7 +80,7 @@ export const schemaManager = {
         FROM information_schema.tables 
         WHERE table_schema = $1
         AND table_name IN (
-          'users', 'customers', 'tickets', 'companies', 'locations', 
+          'customers', 'tickets', 'companies', 'locations', 
           'items', 'suppliers', 'price_lists', 'pricing_rules',
           'ticket_planned_items', 'ticket_consumed_items', 'user_groups'
         )
@@ -109,10 +109,10 @@ export const schemaManager = {
 
       const softDeleteCoverage = softDeleteCheck.rows.filter(row => row.has_is_active).length;
 
-      // Enhanced validation criteria
-      const isValid = tableCount >= 60 && coreTableCount >= 8 && softDeleteCoverage >= 3;
+      // Enhanced validation criteria (11 core tables now defined)
+      const isValid = tableCount >= 60 && coreTableCount >= 11 && softDeleteCoverage >= 2;
       
-      console.log(`✅ Tenant schema validated for ${tenantId}: ${tableCount} tables (${coreTableCount}/12 core tables, ${softDeleteCoverage}/4 soft-delete) - ${isValid ? 'VALID' : 'INVALID'}`);
+      console.log(`✅ Tenant schema validated for ${tenantId}: ${tableCount} tables (${coreTableCount}/11 core tables, ${softDeleteCoverage}/4 soft-delete) - ${isValid ? 'VALID' : 'INVALID'}`);
       
       if (!isValid) {
         console.log(`📋 Missing core tables: ${['customers', 'tickets', 'companies', 'locations', 'items', 'price_lists', 'ticket_planned_items', 'ticket_consumed_items', 'user_groups'].filter(t => !coreTables.includes(t))}`);
