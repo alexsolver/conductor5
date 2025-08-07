@@ -79,7 +79,7 @@ export class LPURepository {
 
   // GESTÃO DE LISTAS DE PREÇOS
   async getAllPriceLists(tenantId: string) {
-    return await this.database
+    return await this.db
       .select({
         id: priceLists.id,
         tenantId: priceLists.tenantId,
@@ -278,6 +278,14 @@ export class LPURepository {
       .set({ ...data, updatedAt: new Date() })
       .where(and(eq(pricingRules.id, id), eq(pricingRules.tenantId, tenantId)))
       .returning();
+    return rule;
+  }
+
+  async getPricingRuleById(id: string, tenantId: string) {
+    const [rule] = await db
+      .select()
+      .from(pricingRules)
+      .where(and(eq(pricingRules.id, id), eq(pricingRules.tenantId, tenantId)));
     return rule;
   }
 
