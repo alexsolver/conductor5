@@ -242,10 +242,14 @@ export class TicketMaterialsController {
         tenantId,
         ticketId,
         itemId,
-        quantity: parseFloat(quantity),
-        notes: notes || '',
+        plannedQuantity: quantity.toString(),
+        estimatedCost: null,
+        unitPriceAtPlanning: null,
+        notes: notes || null,
         lpuId: lpuId || null,
+        status: 'planned',
         createdBy: req.user.id,
+        isActive: true,
         createdAt: new Date(),
         updatedAt: new Date()
       };

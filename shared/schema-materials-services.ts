@@ -802,10 +802,10 @@ export const ticketPlannedItems = pgTable('ticket_planned_items', {
   lpuId: uuid('lpu_id'),
   notes: text('notes'),
   status: varchar('status', { length: 50 }).default('planned'),
-  createdBy: uuid('created_by').notNull(),
   isActive: boolean('is_active').default(true),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
+  createdBy: uuid('created_by')
 });
 
 export const ticketConsumedItems = pgTable('ticket_consumed_items', {

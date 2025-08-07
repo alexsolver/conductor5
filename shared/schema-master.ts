@@ -2156,19 +2156,20 @@ export const insertContractEquipmentSchema = createInsertSchema(contractEquipmen
 export const items = pgTable('items', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id').notNull().references(() => tenants.id, { onDelete: 'cascade' }),
-  name: varchar('name', { length: 255 }).notNull(),
-  description: text('description'),
-  category: varchar('category', { length: 100 }),
-  unit: varchar('unit', { length: 10 }).default('UN'),
-  type: varchar('type', { length: 50 }).notNull().default('material'), // material, service
-  maintenancePlan: text('maintenance_plan'),
-  defaultChecklist: text('default_checklist'),
-  status: varchar('status', { length: 20 }).default('active'),
   active: boolean('active').default(true),
+  type: varchar('type', { length: 50 }).notNull().default('material'), // material, service
+  name: varchar('name', { length: 255 }).notNull(),
+  integrationCode: varchar('integration_code'),
+  description: text('description'),
+  measurementUnit: varchar('measurement_unit').default('UN'),
+  maintenancePlan: text('maintenance_plan'),
+  defaultChecklist: jsonb('default_checklist'),
+  status: varchar('status', { length: 20 }).default('active'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
   createdBy: uuid('created_by'),
-  updatedBy: uuid('updated_by')
+  updatedBy: uuid('updated_by'),
+  groupName: varchar('group_name')
 });
 
 export const itemAttachments = pgTable("item_attachments", {
