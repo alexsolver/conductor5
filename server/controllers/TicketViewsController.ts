@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { TicketViewsRepository } from '../repositories/TicketViewsRepository';
 import { pool } from '../db';
-// import { insertTicketListViewSchema } from '../../shared/schema.js'; // TODO: Define schema first
+import { insertTicketListViewSchema } from '../../shared/schema.js';
 import { z } from 'zod';
 
 interface AuthenticatedRequest extends Request {
@@ -85,12 +85,21 @@ export class TicketViewsController {
       const { tenantId, id: userId, role } = req.user!;
       
       // Validar dados de entrada
-      // TODO: Add proper validation when schema is defined
-      const viewData = {
+      const validationResult = insertTicketListViewSchema.safeParse({
         ...req.body,
         tenantId,
         createdById: userId
-      };
+      });
+
+      if (!validationResult.success) {
+        return res.status(400).json({
+          success: false,
+          message: 'Dados inválidos',
+          errors: validationResult.error.errors
+        });
+      }
+
+      const viewData = validationResult.data;
 
       // Verificar permissões para views públicas
       if (viewData.isPublic && role !== 'tenant_admin') {

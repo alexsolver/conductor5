@@ -3594,7 +3594,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ========================================
 
   // Ticket SLA management routes
-  app.post('/api/sla/contract-slas', jwtAuth, requireTenantAccess, slaController.createContractSla.bind(slaController));
+  app.post('/api/sla/tickets-slas', jwtAuth, requireTenantAccess, slaController.createTicketSla.bind(slaController));
   app.get('/api/sla/tickets-slas', jwtAuth, requireTenantAccess, slaController.getTicketSlas.bind(slaController));
   app.get('/api/sla/tickets-slas/:id', jwtAuth, requireTenantAccess, slaController.getTicketSlaById.bind(slaController));
   app.put('/api/sla/tickets-slas/:id', jwtAuth, requireTenantAccess, slaController.updateTicketSla.bind(slaController));

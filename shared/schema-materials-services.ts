@@ -469,31 +469,6 @@ export const priceListsRelations = relations(priceLists, ({ many }) => ({
   items: many(priceListItems)
 }));
 
-// Customer Item Mappings table - Missing from schema
-export const customerItemMappings = pgTable('customer_item_mappings', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  tenantId: uuid('tenant_id').notNull(),
-  customerId: uuid('customer_id').notNull(),
-  itemId: uuid('item_id').notNull(),
-  customSku: varchar('custom_sku', { length: 100 }),
-  customName: varchar('custom_name', { length: 255 }),
-  customDescription: text('custom_description'),
-  customerReference: varchar('customer_reference', { length: 100 }),
-  leadTimeDays: integer('lead_time_days'),
-  preferredSupplier: varchar('preferred_supplier', { length: 255 }),
-  specialInstructions: text('special_instructions'),
-  customFields: jsonb('custom_fields'),
-  contractReference: varchar('contract_reference', { length: 100 }),
-  requiresApproval: boolean('requires_approval').default(false),
-  approvalLimit: decimal('approval_limit', { precision: 15, scale: 2 }),
-  isActive: boolean('is_active').default(true),
-  notes: text('notes'),
-  createdBy: uuid('created_by'),
-  updatedBy: uuid('updated_by'),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow(),
-});
-
 // ===============================
 // EXTENSÕES DOS TRÊS MÓDULOS FALTANTES
 // ===============================
@@ -777,75 +752,6 @@ export const complianceCertificationsRelations = relations(complianceCertificati
   evidence: many(complianceEvidence)
 }));
 
-// TICKET MATERIALS TABLES - Missing from schema
-export const ticketLpuSettings = pgTable('ticket_lpu_settings', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  tenantId: uuid('tenant_id').notNull(),
-  ticketId: uuid('ticket_id').notNull(),
-  priceListId: uuid('price_list_id').notNull(),
-  notes: text('notes'),
-  appliedBy: uuid('applied_by').notNull(),
-  appliedAt: timestamp('applied_at').defaultNow(),
-  isActive: boolean('is_active').default(true),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow(),
-});
-
-export const ticketPlannedItems = pgTable('ticket_planned_items', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  tenantId: uuid('tenant_id').notNull(),
-  ticketId: uuid('ticket_id').notNull(),
-  itemId: uuid('item_id').notNull(),
-  plannedQuantity: varchar('planned_quantity', { length: 50 }).notNull(),
-  estimatedCost: varchar('estimated_cost', { length: 50 }),
-  unitPriceAtPlanning: varchar('unit_price_at_planning', { length: 50 }),
-  lpuId: uuid('lpu_id'),
-  notes: text('notes'),
-  status: varchar('status', { length: 50 }).default('planned'),
-  isActive: boolean('is_active').default(true),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow(),
-  createdBy: uuid('created_by')
-});
-
-export const ticketConsumedItems = pgTable('ticket_consumed_items', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  tenantId: uuid('tenant_id').notNull(),
-  ticketId: uuid('ticket_id').notNull(),
-  plannedItemId: uuid('planned_item_id'),
-  itemId: uuid('item_id').notNull(),
-  plannedQuantity: varchar('planned_quantity', { length: 50 }).default('0'),
-  actualQuantity: varchar('actual_quantity', { length: 50 }).notNull(),
-  lpuId: uuid('lpu_id').notNull(),
-  unitPriceAtConsumption: varchar('unit_price_at_consumption', { length: 50 }).notNull(),
-  totalCost: varchar('total_cost', { length: 50 }).notNull(),
-  technicianId: uuid('technician_id').notNull(),
-  stockLocationId: uuid('stock_location_id'),
-  consumedAt: timestamp('consumed_at').defaultNow(),
-  consumptionType: varchar('consumption_type', { length: 50 }).default('used'),
-  status: varchar('status', { length: 50 }).default('consumed'),
-  notes: text('notes'),
-  batchNumber: varchar('batch_number', { length: 100 }),
-  serialNumber: varchar('serial_number', { length: 100 }),
-  warrantyPeriod: integer('warranty_period'),
-  isActive: boolean('is_active').default(true),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow(),
-});
-
-export const ticketCostsSummary = pgTable('ticket_costs_summary', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  tenantId: uuid('tenant_id').notNull(),
-  ticketId: uuid('ticket_id').notNull(),
-  totalPlannedCost: varchar('total_planned_cost', { length: 50 }).default('0'),
-  totalActualCost: varchar('total_actual_cost', { length: 50 }).default('0'),
-  variance: varchar('variance', { length: 50 }).default('0'),
-  status: varchar('status', { length: 50 }).default('draft'),
-  lastCalculatedAt: timestamp('last_calculated_at').defaultNow(),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow(),
-});
-
 // Types para uso no frontend - EXTENSÕES
 export type Item = typeof items.$inferSelect;
 export type InsertItem = typeof items.$inferInsert;
@@ -858,20 +764,6 @@ export type StockMovement = typeof stockMovements.$inferSelect;
 export type PriceList = typeof priceLists.$inferSelect;
 export type ServiceType = typeof serviceTypes.$inferSelect;
 export type AuditLog = typeof auditLogs.$inferSelect;
-
-// Customer Item Mappings types
-export type CustomerItemMapping = typeof customerItemMappings.$inferSelect;
-export type InsertCustomerItemMapping = typeof customerItemMappings.$inferInsert;
-
-// Ticket Materials types
-export type TicketLpuSetting = typeof ticketLpuSettings.$inferSelect;
-export type InsertTicketLpuSetting = typeof ticketLpuSettings.$inferInsert;
-export type TicketPlannedItem = typeof ticketPlannedItems.$inferSelect;
-export type InsertTicketPlannedItem = typeof ticketPlannedItems.$inferInsert;
-export type TicketConsumedItem = typeof ticketConsumedItems.$inferSelect;
-export type InsertTicketConsumedItem = typeof ticketConsumedItems.$inferInsert;
-export type TicketCostsSummary = typeof ticketCostsSummary.$inferSelect;
-export type InsertTicketCostsSummary = typeof ticketCostsSummary.$inferInsert;
 
 // Novos tipos para os módulos faltantes
 export type AssetMaintenance = typeof assetMaintenance.$inferSelect;

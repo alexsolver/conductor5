@@ -759,7 +759,7 @@ export const marketLocalization = pgTable("market_localization", {
 // Field Alias Mapping - Aliases internacionais para campos brasileiros (cpf → tax_id)
 export const fieldAliasMapping = pgTable("field_alias_mapping", {
   id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(), sourceTable: varchar("source_table", { length: 100 }).notNull(), // favorecidos
+  tenantId: uuid("tenant_id").notNull(),  sourceTable: varchar("source_table", { length: 100 }).notNull(), // favorecidos
   sourceField: varchar("source_field", { length: 100 }).notNull(), // cpf, cnpj, rg
   aliasField: varchar("alias_field", { length: 100 }).notNull(), // tax_id, business_tax_id
   aliasDisplayName: varchar("alias_display_name", { length: 200 }).notNull(),
@@ -2153,25 +2153,25 @@ export const insertContractEquipmentSchema = createInsertSchema(contractEquipmen
 // ============================================
 
 // Items table - Simplified schema matching actual database structure
-export const items = pgTable('items', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  tenantId: uuid('tenant_id').notNull().references(() => tenants.id, { onDelete: 'cascade' }),
-  active: boolean('active').default(true),
-  type: varchar('type', { length: 50 }).notNull().default('material'), // material, service
-  name: varchar('name', { length: 255 }).notNull(),
-  integrationCode: varchar('integration_code'),
-  description: text('description'),
-  measurementUnit: varchar('measurement_unit').default('UN'),
-  maintenancePlan: text('maintenance_plan'),
-  defaultChecklist: jsonb('default_checklist'),
-  status: varchar('status', { length: 20 }).default('active'),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow(),
-  createdBy: uuid('created_by'),
-  updatedBy: uuid('updated_by'),
-  groupName: varchar('group_name')
+export const items = pgTable("items", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  type: varchar("type", { length: 50 }).notNull(),
+  integrationCode: varchar("integration_code", { length: 100 }),
+  description: text("description"),
+  measurementUnit: varchar("measurement_unit", { length: 10 }).default("UN"),
+  maintenancePlan: text("maintenance_plan"),
+  defaultChecklist: text("default_checklist"),
+  status: varchar("status", { length: 20 }).default("active"),
+  active: boolean("active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  createdBy: uuid("created_by"),
+  updatedBy: uuid("updated_by")
 });
 
+// Item Attachments table
 export const itemAttachments = pgTable("item_attachments", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
@@ -2303,18 +2303,28 @@ export const supplierCatalog = pgTable("supplier_catalog", {
   index("supplier_catalog_tenant_item_idx").on(table.tenantId, table.itemId),
 ]);
 
-export const priceLists = pgTable('price_lists', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  tenantId: uuid('tenant_id').notNull().references(() => tenants.id, { onDelete: 'cascade' }),
-  name: varchar('name', { length: 255 }).notNull(),
-  description: text('description'),
-  validFrom: timestamp('valid_from').notNull(),
-  validUntil: timestamp('valid_until'),
-  isActive: boolean('is_active').default(true),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow()
-});
+// Price Lists table
+export const priceLists = pgTable("price_lists", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  listCode: varchar("list_code", { length: 50 }).notNull(),
+  companyId: uuid("company_id").references(() => companies.id),
+  effectiveDate: timestamp("effective_date").defaultNow(),
+  expirationDate: timestamp("expiration_date"),
+  currency: varchar("currency", { length: 3 }).default("BRL"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("price_lists_tenant_name_idx").on(table.tenantId, table.name),
+  index("price_lists_tenant_code_idx").on(table.tenantId, table.listCode),
+  index("price_lists_tenant_company_idx").on(table.tenantId, table.companyId),
+  unique("price_lists_tenant_code_unique").on(table.tenantId, table.listCode),
+]);
 
+// Price List Items table
 export const priceListItems = pgTable("price_list_items", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
@@ -2332,6 +2342,7 @@ export const priceListItems = pgTable("price_list_items", {
   unique("price_list_items_list_item_unique").on(table.tenantId, table.priceListId, table.itemId),
 ]);
 
+// Price List Versions table
 export const priceListVersions = pgTable("price_list_versions", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
@@ -2345,21 +2356,1032 @@ export const priceListVersions = pgTable("price_list_versions", {
   unique("price_list_versions_list_version_unique").on(table.tenantId, table.priceListId, table.version),
 ]);
 
-export const pricingRules = pgTable('pricing_rules', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  tenantId: uuid('tenant_id').notNull().references(() => tenants.id, { onDelete: 'cascade' }),
-  priceListId: uuid('price_list_id').references(() => priceLists.id, { onDelete: 'cascade' }),
-  itemId: uuid('item_id').references(() => items.id, { onDelete: 'cascade' }),
-  ruleType: varchar('rule_type', { length: 50 }).notNull(), // fixed, percentage, formula
-  basePrice: decimal('base_price', { precision: 10, scale: 2 }),
-  discountPercentage: decimal('discount_percentage', { precision: 5, scale: 2 }),
-  markupPercentage: decimal('markup_percentage', { precision: 5, scale: 2 }),
-  minPrice: decimal('min_price', { precision: 10, scale: 2 }),
-  maxPrice: decimal('max_price', { precision: 10, scale: 2 }),
-  isActive: boolean('is_active').default(true),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow()
+// Pricing Rules table
+export const pricingRules = pgTable("pricing_rules", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  ruleType: varchar("rule_type", { length: 50 }).notNull(), // percentage, fixed, tiered, dynamic
+  priority: integer("priority").default(1),
+  conditions: jsonb("conditions").notNull(),
+  actions: jsonb("actions").notNull(),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("pricing_rules_tenant_type_idx").on(table.tenantId, table.ruleType),
+  index("pricing_rules_tenant_priority_idx").on(table.tenantId, table.priority),
+]);
+
+// Dynamic Pricing table
+export const dynamicPricing = pgTable("dynamic_pricing", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  itemId: uuid("item_id").references(() => items.id, { onDelete: 'cascade' }).notNull(),
+  basePrice: decimal("base_price", { precision: 10, scale: 2 }).notNull(),
+  currentPrice: decimal("current_price", { precision: 10, scale: 2 }).notNull(),
+  lastUpdated: timestamp("last_updated").defaultNow(),
+  factors: jsonb("factors").default({}),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("dynamic_pricing_tenant_item_idx").on(table.tenantId, table.itemId),
+  unique("dynamic_pricing_tenant_item_unique").on(table.tenantId, table.itemId),
+]);
+
+// Asset Locations table
+export const assetLocations = pgTable("asset_locations", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  code: varchar("code", { length: 50 }),
+  description: text("description"),
+  locationType: varchar("location_type", { length: 50 }).notNull(),
+  parentLocationId: uuid("parent_location_id"),
+  address: text("address"),
+  coordinates: jsonb("coordinates"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("asset_locations_tenant_name_idx").on(table.tenantId, table.name),
+  index("asset_locations_tenant_type_idx").on(table.tenantId, table.locationType),
+]);
+
+// Stock Entries table
+export const stockEntries = pgTable("stock_entries", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  itemId: uuid("item_id").references(() => items.id).notNull(),
+  locationId: uuid("location_id").references(() => stockLocations.id).notNull(),
+  currentStock: decimal("current_stock", { precision: 15, scale: 4 }).default("0"),
+  reservedStock: decimal("reserved_stock", { precision: 15, scale: 4 }).default("0"),
+  minimumStock: decimal("minimum_stock", { precision: 15, scale: 4 }).default("0"),
+  maximumStock: decimal("maximum_stock", { precision: 15, scale: 4 }),
+  unitCost: decimal("unit_cost", { precision: 10, scale: 2 }),
+  lastMovementAt: timestamp("last_movement_at"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("stock_entries_tenant_item_idx").on(table.tenantId, table.itemId),
+  index("stock_entries_tenant_location_idx").on(table.tenantId, table.locationId),
+  unique("stock_entries_item_location_unique").on(table.tenantId, table.itemId, table.locationId),
+]);
+
+// Stock Movements table
+export const stockMovements = pgTable("stock_movements", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  itemId: uuid("item_id").references(() => items.id).notNull(),
+  locationId: uuid("location_id").references(() => stockLocations.id).notNull(),
+  movementType: varchar("movement_type", { length: 50 }).notNull(), // 'in', 'out', 'transfer', 'adjustment'
+  quantity: decimal("quantity", { precision: 15, scale: 4 }).notNull(),
+  unitCost: decimal("unit_cost", { precision: 10, scale: 2 }),
+  totalCost: decimal("total_cost", { precision: 15, scale: 2 }),
+  reason: varchar("reason", { length: 255 }),
+  referenceId: uuid("reference_id"), // ticket, purchase order, etc.
+  referenceType: varchar("reference_type", { length: 50 }),
+  performedBy: uuid("performed_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("stock_movements_tenant_item_idx").on(table.tenantId, table.itemId),
+  index("stock_movements_tenant_location_idx").on(table.tenantId, table.locationId),
+  index("stock_movements_tenant_type_idx").on(table.tenantId, table.movementType),
+  index("stock_movements_tenant_created_idx").on(table.tenantId, table.createdAt),
+]);
+
+// Stock locations table
+export const stockLocations = pgTable("stock_locations", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  code: varchar("code", { length: 50 }).notNull(),
+  description: text("description"),
+  parentLocationId: uuid("parent_location_id"),
+  locationPath: text("location_path"),
+  level: integer("level").default(0),
+  address: text("address"),
+  coordinates: jsonb("coordinates"),
+  capacity: jsonb("capacity"),
+  isActive: boolean("is_active").notNull().default(true),
+  allowNegativeStock: boolean("allow_negative_stock").default(false),
+  requiresApproval: boolean("requires_approval").default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  createdBy: uuid("created_by"),
+  updatedBy: uuid("updated_by")
 });
+
+// Stock levels table
+export const stockLevels = pgTable("stock_levels", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  itemId: uuid("item_id").notNull().references(() => items.id),
+  locationId: uuid("location_id").notNull().references(() => stockLocations.id),
+  currentStock: decimal("current_stock", { precision: 15, scale: 4 }).notNull().default("0"),
+  availableStock: decimal("available_stock", { precision: 15, scale: 4 }).notNull().default("0"),
+  reservedStock: decimal("reserved_stock", { precision: 15, scale: 4 }).notNull().default("0"),
+  minimumStock: decimal("minimum_stock", { precision: 15, scale: 4 }).default("0"),
+  maximumStock: decimal("maximum_stock", { precision: 15, scale: 4 }),
+  reorderPoint: decimal("reorder_point", { precision: 15, scale: 4 }),
+  averageCost: decimal("average_cost", { precision: 15, scale: 4 }),
+  lastCost: decimal("last_cost", { precision: 15, scale: 4 }),
+  lastInventoryDate: timestamp("last_inventory_date"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull()
+});
+
+// Asset Maintenance table
+export const assetMaintenance = pgTable("asset_maintenance", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  assetId: uuid("asset_id").notNull(),
+  maintenanceType: varchar("maintenance_type", { length: 50 }).notNull(),
+  scheduledDate: timestamp("scheduled_date"),
+  completedDate: timestamp("completed_date"),
+  status: varchar("status", { length: 20 }).default("scheduled"),
+  notes: text("notes"),
+  cost: decimal("cost", { precision: 10, scale: 2 }),
+  technician: varchar("technician", { length: 255 }),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("asset_maintenance_tenant_asset_idx").on(table.tenantId, table.assetId),
+  index("asset_maintenance_tenant_status_idx").on(table.tenantId, table.status),
+]);
+
+// Asset Categories table
+export const assetCategories = pgTable("asset_categories", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  parentCategoryId: uuid("parent_category_id"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("asset_categories_tenant_name_idx").on(table.tenantId, table.name),
+  index("asset_categories_tenant_parent_idx").on(table.tenantId, table.parentCategoryId),
+]);
+
+// Assets table - Fixed self-reference typing
+export const assets: any = pgTable("assets", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  assetTag: varchar("asset_tag", { length: 50 }),
+  categoryId: uuid("category_id").references(() => assetCategories.id),
+  locationId: uuid("location_id").references(() => assetLocations.id),
+  parentAssetId: uuid("parent_asset_id").references(() => assets.id), // Asset hierarchy
+  status: varchar("status", { length: 20 }).default("active"),
+  description: text("description"),
+  serialNumber: varchar("serial_number", { length: 100 }),
+  model: varchar("model", { length: 100 }),
+  manufacturer: varchar("manufacturer", { length: 100 }),
+  purchaseDate: date("purchase_date"),
+  purchasePrice: decimal("purchase_price", { precision: 10, scale: 2 }),
+  warrantyExpiry: date("warranty_expiry"),
+  qrCode: varchar("qr_code", { length: 255 }), // QR Code for tracking
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("assets_tenant_name_idx").on(table.tenantId, table.name),
+  index("assets_tenant_tag_idx").on(table.tenantId, table.assetTag),
+  index("assets_tenant_parent_idx").on(table.tenantId, table.parentAssetId),
+  unique("assets_tenant_tag_unique").on(table.tenantId, table.assetTag),
+]);
+
+// Asset Meters table
+export const assetMeters: any = pgTable("asset_meters", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  assetId: uuid("asset_id").notNull(), // Fixed: removed circular reference
+  meterType: varchar("meter_type", { length: 50 }).notNull(),
+  currentReading: decimal("current_reading", { precision: 15, scale: 4 }),
+  previousReading: decimal("previous_reading", { precision: 15, scale: 4 }),
+  unit: varchar("unit", { length: 20 }),
+  readingDate: timestamp("reading_date").defaultNow(),
+  notes: text("notes"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("asset_meters_tenant_asset_idx").on(table.tenantId, table.assetId),
+  index("asset_meters_tenant_type_idx").on(table.tenantId, table.meterType),
+]);
+
+// Compliance Audits table
+export const complianceAudits = pgTable("compliance_audits", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  auditType: varchar("audit_type", { length: 50 }).notNull(),
+  scheduledDate: timestamp("scheduled_date"),
+  completedDate: timestamp("completed_date"),
+  auditorName: varchar("auditor_name", { length: 255 }),
+  status: varchar("status", { length: 20 }).default("scheduled"),
+  score: decimal("score", { precision: 5, scale: 2 }), // Overall audit score
+  findings: text("findings"),
+  recommendations: text("recommendations"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("compliance_audits_tenant_type_idx").on(table.tenantId, table.auditType),
+  index("compliance_audits_tenant_status_idx").on(table.tenantId, table.status),
+  index("compliance_audits_tenant_score_idx").on(table.tenantId, table.score),
+]);
+
+// Compliance Certifications table
+export const complianceCertifications = pgTable("compliance_certifications", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  certificationName: varchar("certification_name", { length: 255 }).notNull(),
+  name: varchar("name", { length: 255 }).notNull(), // Alias for display
+  standard: varchar("standard", { length: 100 }), // Compliance standard (ISO, etc.)
+  issuingBody: varchar("issuing_body", { length: 255 }),
+  issueDate: date("issue_date"),
+  expiryDate: date("expiry_date"),
+  expirationDate: date("expiration_date"), // Alias for compatibility
+  status: varchar("status", { length: 20 }).default("active"),
+  certificateNumber: varchar("certificate_number", { length: 100 }),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("compliance_certifications_tenant_name_idx").on(table.tenantId, table.certificationName),
+  index("compliance_certifications_tenant_status_idx").on(table.tenantId, table.status),
+  index("compliance_certifications_tenant_expiry_idx").on(table.tenantId, table.expiryDate),
+]);
+
+// Compliance Evidence table
+export const complianceEvidence = pgTable("compliance_evidence", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  auditId: uuid("audit_id").references(() => complianceAudits.id), // Link to audit
+  certificationId: uuid("certification_id").references(() => complianceCertifications.id), // Link to certification
+  evidenceType: varchar("evidence_type", { length: 50 }).notNull(),
+  description: text("description"),
+  filePath: varchar("file_path", { length: 500 }),
+  collectedDate: timestamp("collected_date").defaultNow(), // When evidence was collected
+  uploadedBy: uuid("uploaded_by").references(() => users.id),
+  verifiedBy: uuid("verified_by").references(() => users.id),
+  verificationDate: timestamp("verification_date"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("compliance_evidence_tenant_type_idx").on(table.tenantId, table.evidenceType),
+  index("compliance_evidence_tenant_audit_idx").on(table.tenantId, table.auditId),
+  index("compliance_evidence_tenant_cert_idx").on(table.tenantId, table.certificationId),
+]);
+
+// Compliance Alerts table
+export const complianceAlerts = pgTable("compliance_alerts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  alertType: varchar("alert_type", { length: 50 }).notNull(),
+  severity: varchar("severity", { length: 20 }).default("medium"),
+  status: varchar("status", { length: 20 }).default("open"), // Alert status
+  relatedEntityId: uuid("related_entity_id"), // Generic FK to related entity
+  message: text("message"),
+  isResolved: boolean("is_resolved").default(false),
+  resolvedBy: uuid("resolved_by").references(() => users.id),
+  resolvedAt: timestamp("resolved_at"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("compliance_alerts_tenant_type_idx").on(table.tenantId, table.alertType),
+  index("compliance_alerts_tenant_severity_idx").on(table.tenantId, table.severity),
+  index("compliance_alerts_tenant_status_idx").on(table.tenantId, table.status),
+]);
+
+// Compliance Scores table
+export const complianceScores = pgTable("compliance_scores", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  entityId: uuid("entity_id"), // ID of the entity being scored
+  entityType: varchar("entity_type", { length: 50 }), // Type: 'audit', 'certification', etc.
+  scoreType: varchar("score_type", { length: 50 }).notNull(),
+  score: decimal("score", { precision: 5, scale: 2 }),
+  maxScore: decimal("max_score", { precision: 5, scale: 2 }),
+  period: varchar("period", { length: 50 }),
+  assessedAt: timestamp("assessed_at"), // When assessment was performed
+  calculatedAt: timestamp("calculated_at").defaultNow(),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("compliance_scores_tenant_type_idx").on(table.tenantId, table.scoreType),
+  index("compliance_scores_tenant_period_idx").on(table.tenantId, table.period),
+  index("compliance_scores_tenant_entity_idx").on(table.tenantId, table.entityId, table.entityType),
+]);
+
+// ========================================
+// TICKET MATERIALS AND SERVICES CONSUMPTION SYSTEM
+// ========================================
+
+// LPU Settings per ticket - Links tickets to specific price lists
+export const ticketLpuSettings = pgTable("ticket_lpu_settings", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  ticketId: uuid("ticket_id").references(() => tickets.id, { onDelete: 'cascade' }).notNull(),
+  lpuId: uuid("lpu_id").notNull(), // References LPU table
+  appliedAt: timestamp("applied_at").defaultNow().notNull(),
+  appliedById: uuid("applied_by_id").references(() => users.id),
+  isActive: boolean("is_active").default(true),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  index("ticket_lpu_settings_tenant_ticket_idx").on(table.tenantId, table.ticketId),
+  index("ticket_lpu_settings_tenant_lpu_idx").on(table.tenantId, table.lpuId),
+  index("ticket_lpu_settings_tenant_active_idx").on(table.tenantId, table.isActive),
+]);
+
+// Planned items consumption (before service execution)
+export const ticketPlannedItems = pgTable("ticket_planned_items", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  ticketId: uuid("ticket_id").references(() => tickets.id, { onDelete: 'cascade' }).notNull(),
+  itemId: uuid("item_id").references(() => items.id).notNull(),
+  plannedQuantity: decimal("planned_quantity", { precision: 15, scale: 4 }).notNull(),
+  lpuId: uuid("lpu_id").notNull(), // LPU used for pricing
+  unitPriceAtPlanning: decimal("unit_price_at_planning", { precision: 15, scale: 4 }).notNull(),
+  estimatedCost: decimal("estimated_cost", { precision: 15, scale: 2 }).notNull(),
+  status: varchar("status", { length: 20 }).default("planned").notNull(), // planned, approved, cancelled
+  plannedById: uuid("planned_by_id").references(() => users.id),
+  approvedById: uuid("approved_by_id").references(() => users.id),
+  approvedAt: timestamp("approved_at"),
+  notes: text("notes"),
+  priority: varchar("priority", { length: 20 }).default("medium"), // low, medium, high, critical
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  index("ticket_planned_items_tenant_ticket_idx").on(table.tenantId, table.ticketId),
+  index("ticket_planned_items_tenant_item_idx").on(table.tenantId, table.itemId),
+  index("ticket_planned_items_tenant_status_idx").on(table.tenantId, table.status),
+  index("ticket_planned_items_tenant_lpu_idx").on(table.tenantId, table.lpuId),
+]);
+
+// Actual items consumption (after service execution)
+export const ticketConsumedItems = pgTable("ticket_consumed_items", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  ticketId: uuid("ticket_id").references(() => tickets.id, { onDelete: 'cascade' }).notNull(),
+  plannedItemId: uuid("planned_item_id").references(() => ticketPlannedItems.id), // Optional - links to planned item
+  itemId: uuid("item_id").references(() => items.id).notNull(),
+  plannedQuantity: decimal("planned_quantity", { precision: 15, scale: 4 }).default("0"),
+  actualQuantity: decimal("actual_quantity", { precision: 15, scale: 4 }).notNull(),
+  lpuId: uuid("lpu_id").notNull(), // LPU used for final pricing
+  unitPriceAtConsumption: decimal("unit_price_at_consumption", { precision: 15, scale: 4 }).notNull(),
+  totalCost: decimal("total_cost", { precision: 15, scale: 2 }).notNull(),
+  technicianId: uuid("technician_id").references(() => users.id).notNull(),
+  stockLocationId: uuid("stock_location_id").references(() => stockLocations.id),
+  consumedAt: timestamp("consumed_at").defaultNow().notNull(),
+  consumptionType: varchar("consumption_type", { length: 50 }).default("used"), // used, wasted, returned
+  notes: text("notes"),
+  batchNumber: varchar("batch_number", { length: 100 }),
+  serialNumber: varchar("serial_number", { length: 100 }),
+  warrantyPeriod: integer("warranty_period"), // Days
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  index("ticket_consumed_items_tenant_ticket_idx").on(table.tenantId, table.ticketId),
+  index("ticket_consumed_items_tenant_item_idx").on(table.tenantId, table.itemId),
+  index("ticket_consumed_items_tenant_technician_idx").on(table.tenantId, table.technicianId),
+  index("ticket_consumed_items_tenant_consumed_idx").on(table.tenantId, table.consumedAt),
+  index("ticket_consumed_items_tenant_lpu_idx").on(table.tenantId, table.lpuId),
+  index("ticket_consumed_items_tenant_location_idx").on(table.tenantId, table.stockLocationId),
+]);
+
+// Costs summary per ticket
+export const ticketCostsSummary = pgTable("ticket_costs_summary", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  ticketId: uuid("ticket_id").references(() => tickets.id, { onDelete: 'cascade' }).notNull(),
+  totalPlannedCost: decimal("total_planned_cost", { precision: 15, scale: 2 }).default("0"),
+  totalActualCost: decimal("total_actual_cost", { precision: 15, scale: 2 }).default("0"),
+  costVariance: decimal("cost_variance", { precision: 15, scale: 2 }).default("0"), // actual - planned
+  costVariancePercentage: decimal("cost_variance_percentage", { precision: 5, scale: 2 }).default("0"),
+  materialsCount: integer("materials_count").default(0),
+  servicesCount: integer("services_count").default(0),
+  totalItemsCount: integer("total_items_count").default(0),
+  currency: varchar("currency", { length: 3 }).default("BRL"),
+  lastCalculatedAt: timestamp("last_calculated_at").defaultNow().notNull(),
+  calculatedById: uuid("calculated_by_id").references(() => users.id),
+  status: varchar("status", { length: 20 }).default("draft"), // draft, approved, closed
+  approvedById: uuid("approved_by_id").references(() => users.id),
+  approvedAt: timestamp("approved_at"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  index("ticket_costs_summary_tenant_ticket_idx").on(table.tenantId, table.ticketId),
+  index("ticket_costs_summary_tenant_status_idx").on(table.tenantId, table.status),
+  index("ticket_costs_summary_tenant_calculated_idx").on(table.tenantId, table.lastCalculatedAt),
+  unique("ticket_costs_summary_unique_ticket").on(table.tenantId, table.ticketId),
+]);
+
+// Stock movements triggered by ticket consumption
+export const ticketStockMovements = pgTable("ticket_stock_movements", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  ticketId: uuid("ticket_id").references(() => tickets.id, { onDelete: 'cascade' }).notNull(),
+  consumedItemId: uuid("consumed_item_id").references(() => ticketConsumedItems.id, { onDelete: 'cascade' }).notNull(),
+  stockLocationId: uuid("stock_location_id").references(() => stockLocations.id).notNull(),
+  itemId: uuid("item_id").references(() => items.id).notNull(),
+  movementType: varchar("movement_type", { length: 20 }).notNull(), // out, return, adjustment
+  quantity: decimal("quantity", { precision: 15, scale: 4 }).notNull(),
+  previousStock: decimal("previous_stock", { precision: 15, scale: 4 }).notNull(),
+  newStock: decimal("new_stock", { precision: 15, scale: 4 }).notNull(),
+  unitCost: decimal("unit_cost", { precision: 15, scale: 4 }),
+  totalCost: decimal("total_cost", { precision: 15, scale: 2 }),
+  technicianId: uuid("technician_id").references(() => users.id).notNull(),
+  movementDate: timestamp("movement_date").defaultNow().notNull(),
+  reason: text("reason"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [
+  index("ticket_stock_movements_tenant_ticket_idx").on(table.tenantId, table.ticketId),
+  index("ticket_stock_movements_tenant_location_idx").on(table.tenantId, table.stockLocationId),
+  index("ticket_stock_movements_tenant_item_idx").on(table.tenantId, table.itemId),
+  index("ticket_stock_movements_tenant_technician_idx").on(table.tenantId, table.technicianId),
+  index("ticket_stock_movements_tenant_date_idx").on(table.tenantId, table.movementDate),
+]);
+
+// Types for ticket materials consumption
+export type TicketLpuSetting = typeof ticketLpuSettings.$inferSelect;
+export type InsertTicketLpuSetting = typeof ticketLpuSettings.$insert;
+export type TicketPlannedItem = typeof ticketPlannedItems.$inferSelect;
+export type InsertTicketPlannedItem = typeof ticketPlannedItems.$insert;
+export type TicketConsumedItem = typeof ticketConsumedItems.$inferSelect;
+export type InsertTicketConsumedItem = typeof ticketConsumedItems.$insert;
+export type TicketCostsSummary = typeof ticketCostsSummary.$inferSelect;
+export type InsertTicketCostsSummary = typeof ticketCostsSummary.$insert;
+export type TicketStockMovement = typeof ticketStockMovements.$inferSelect;
+export type InsertTicketStockMovement = typeof ticketStockMovements.$insert;
+
+// Zod schemas for validation
+export const insertTicketLpuSettingSchema = createInsertSchema(ticketLpuSettings);
+export const insertTicketPlannedItemSchema = createInsertSchema(ticketPlannedItems);
+export const insertTicketConsumedItemSchema = createInsertSchema(ticketConsumedItems);
+export const insertTicketCostsSummarySchema = createInsertSchema(ticketCostsSummary);
+export const insertTicketStockMovementSchema = createInsertSchema(ticketStockMovements);
+
+// Types for parts and services
+export type Item = typeof items.$inferSelect;
+export type InsertItem = typeof items.$insert;
+export type StockLocation = typeof stockLocations.$inferSelect;
+export type InsertStockLocation = typeof stockLocations.$insert;
+export type StockLevel = typeof stockLevels.$inferSelect;
+export type InsertStockLevel = typeof stockLevels.$insert;
+export type Supplier = typeof suppliers.$inferSelect;
+export type InsertSupplier = typeof suppliers.$insert;
+
+// Notification types
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = typeof notifications.$insert;
+export type NotificationPreference = typeof notificationPreferences.$inferSelect;
+export type InsertNotificationPreference = typeof notificationPreferences.$insert;
+export type NotificationTemplate = typeof notificationTemplates.$inferSelect;
+export type InsertNotificationTemplate = typeof notificationTemplates.$insert;
+export type NotificationLog = typeof notificationLogs.$inferSelect;
+export type InsertNotificationLog = typeof notificationLogs.$insert;
+
+
+
+// Zod Schemas for notifications
+export const insertNotificationSchema = createInsertSchema(notifications);
+export const insertNotificationPreferenceSchema = createInsertSchema(notificationPreferences);
+export const insertNotificationTemplateSchema = createInsertSchema(notificationTemplates);
+export const insertNotificationLogSchema = createInsertSchema(notificationLogs);
+
+// ========================================
+// ENHANCED SLA SYSTEM INTEGRATED WITH TICKET METADATA
+// ========================================
+
+// Main SLA configurations table
+export const ticketSlas = pgTable("ticket_slas", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  slaLevel: varchar("sla_level", { length: 50 }).notNull(), // L1, L2, L3, L4, Premium, Standard, Basic
+  isActive: boolean("is_active").default(true),
+
+  // Integration with ticket metadata fields
+  priorityField: varchar("priority_field", { length: 100 }).default("priority"), // which field to check
+  statusField: varchar("status_field", { length: 100 }).default("status"),
+  categoryField: varchar("category_field", { length: 100 }).default("category"),
+
+  // Business Hours Configuration
+  businessHoursStart: time("business_hours_start").default("08:00"),
+  businessHoursEnd: time("business_hours_end").default("18:00"),
+  businessDays: text("business_days").array().default(["monday", "tuesday", "wednesday", "thursday", "friday"]),
+  timezone: varchar("timezone", { length: 50 }).default("America/Sao_Paulo"),
+  includeWeekends: boolean("include_weekends").default(false),
+  includeHolidays: boolean("include_holidays").default(false),
+
+  // Notification Settings
+  notifyBeachMinutes: integer("notify_breach_minutes").default(15), // Notify X minutes before breach
+  escalationEnabled: boolean("escalation_enabled").default(true),
+
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  createdBy: uuid("created_by").references(() => users.id)
+}, (table) => [
+  index("ticket_slas_tenant_level_idx").on(table.tenantId, table.slaLevel),
+  index("ticket_slas_tenant_active_idx").on(table.tenantId, table.isActive),
+  unique("ticket_slas_tenant_name_unique").on(table.tenantId, table.name),
+]);
+
+// SLA rules based on ticket metadata field values
+export const slaRules = pgTable("sla_rules", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  slaId: uuid("sla_id").references(() => ticketSlas.id, { onDelete: 'cascade' }).notNull(),
+
+  // Field-based conditions (integrated with ticket metadata)
+  fieldName: varchar("field_name", { length: 100 }).notNull(), // priority, status, category, etc.
+  fieldValue: varchar("field_value", { length: 100 }).notNull(), // urgent, high, critical, etc.
+
+  // Time limits in minutes
+  firstResponseTime: integer("first_response_time").notNull(), // Time to first response
+  resolutionTime: integer("resolution_time").notNull(), // Time to resolution
+
+  // Escalation levels
+  escalationL1Time: integer("escalation_l1_time"), // Escalate to L1 after X minutes
+  escalationL2Time: integer("escalation_l2_time"), // Escalate to L2 after X minutes
+  escalationL3Time: integer("escalation_l3_time"), // Escalate to L3 after X minutes
+  escalationL1GroupId: uuid("escalation_l1_group_id"),
+  escalationL2GroupId: uuid("escalation_l2_group_id"),
+  escalationL3GroupId: uuid("escalation_l3_group_id"),
+
+  // Priority and order
+  priority: integer("priority").default(100), // Lower number = higher priority
+  isActive: boolean("is_active").default(true),
+
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull()
+}, (table) => [
+  index("sla_rules_tenant_sla_idx").on(table.tenantId, table.slaId),
+  index("sla_rules_field_value_idx").on(table.fieldName, table.fieldValue),
+  index("sla_rules_priority_idx").on(table.priority),
+  unique("sla_rules_unique_condition").on(table.slaId, table.fieldName, table.fieldValue),
+]);
+
+// SLA status timeouts - idle time limits per status
+export const slaStatusTimeouts = pgTable("sla_status_timeouts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  slaId: uuid("sla_id").references(() => ticketSlas.id, { onDelete: 'cascade' }).notNull(),
+
+  // Status-based timeout configuration
+  statusValue: varchar("status_value", { length: 100 }).notNull(), // open, in_progress, resolved, etc.
+  maxIdleTime: integer("max_idle_time").notNull(), // Maximum idle time in minutes
+
+  // Actions on timeout
+  timeoutAction: varchar("timeout_action", { length: 50 }).default("escalate"), // escalate, notify, auto_close
+  escalateToGroupId: uuid("escalate_to_group_id"),
+  escalateToUserId: uuid("escalate_to_user_id"),
+  notificationTemplate: text("notification_template"),
+
+  // Business rules
+  applyDuringBusinessHours: boolean("apply_during_business_hours").default(true),
+  resetOnUpdate: boolean("reset_on_update").default(true), // Reset timer on ticket update
+  isActive: boolean("is_active").default(true),
+
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull()
+}, (table) => [
+  index("sla_status_timeouts_tenant_sla_idx").on(table.tenantId, table.slaId),
+  index("sla_status_timeouts_status_idx").on(table.statusValue),
+  unique("sla_status_timeouts_unique").on(table.slaId, table.statusValue),
+]);
+
+// SLA escalations tracking
+export const slaEscalations = pgTable("sla_escalations", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  ticketId: uuid("ticket_id").references(() => tickets.id, { onDelete: 'cascade' }).notNull(),
+  slaRuleId: uuid("sla_rule_id").references(() => slaRules.id).notNull(),
+
+  // Escalation details
+  escalationLevel: varchar("escalation_level", { length: 10 }).notNull(), // L1, L2, L3
+  escalatedAt: timestamp("escalated_at").defaultNow().notNull(),
+  escalatedFromGroupId: uuid("escalated_from_group_id"),
+  escalatedToGroupId: uuid("escalated_to_group_id"),
+  escalatedFromUserId: uuid("escalated_from_user_id"),
+  escalatedToUserId: uuid("escalated_to_user_id"),
+
+  // Status and resolution
+  escalationStatus: varchar("escalation_status", { length: 50 }).default("pending"), // pending, acknowledged, resolved
+  acknowledgedAt: timestamp("acknowledged_at"),
+  acknowledgedBy: uuid("acknowledged_by"),
+  resolvedAt: timestamp("resolved_at"),
+
+  // Notes and reason
+  escalationReason: text("escalation_reason"),
+  escalationNotes: text("escalation_notes"),
+  isAutomatic: boolean("is_automatic").default(true),
+
+  createdAt: timestamp("created_at").defaultNow().notNull()
+}, (table) => [
+  index("sla_escalations_tenant_ticket_idx").on(table.tenantId, table.ticketId),
+  index("sla_escalations_rule_idx").on(table.slaRuleId),
+  index("sla_escalations_level_idx").on(table.escalationLevel),
+  index("sla_escalations_status_idx").on(table.escalationStatus),
+]);
+
+// SLA metrics and compliance tracking
+export const slaMetrics = pgTable("sla_metrics", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  ticketId: uuid("ticket_id").references(() => tickets.id, { onDelete: 'cascade' }).notNull(),
+  slaRuleId: uuid("sla_rule_id").references(() => slaRules.id).notNull(),
+
+  // Time calculations (in minutes)
+  firstResponseTime: integer("first_response_time"), // Actual time to first response
+  firstResponseDue: timestamp("first_response_due"), // When first response was due
+  firstResponseMet: boolean("first_response_met"),
+
+  resolutionTime: integer("resolution_time"), // Actual time to resolution
+  resolutionDue: timestamp("resolution_due"), // When resolution was due
+  resolutionMet: boolean("resolution_met"),
+
+  // Status idle tracking
+  statusTimeouts: jsonb("status_timeouts").default({}), // { "status": { "timeSpent": 120, "maxAllowed": 240, "breached": false } }
+  totalIdleTime: integer("total_idle_time").default(0), // Total idle time across all statuses
+
+  // Overall compliance
+  overallCompliance: boolean("overall_compliance"), // Met all SLA requirements
+  breachReason: text("breach_reason"), // Reason for SLA breach
+
+  // Business metrics
+  businessHoursOnly: boolean("business_hours_only").default(true),
+  pausedTime: integer("paused_time").default(0), // Time ticket was paused (not counted)
+
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull()
+}, (table) => [
+  index("sla_metrics_tenant_ticket_idx").on(table.tenantId, table.ticketId),
+  index("sla_metrics_rule_idx").on(table.slaRuleId),
+  index("sla_metrics_compliance_idx").on(table.overallCompliance),
+  index("sla_metrics_response_met_idx").on(table.firstResponseMet),
+  index("sla_metrics_resolution_met_idx").on(table.resolutionMet),
+  unique("sla_metrics_ticket_rule_unique").on(table.ticketId, table.slaRuleId),
+]);
+
+// Enhanced SLA types
+export type TicketSla = typeof ticketSlas.$inferSelect;
+export type InsertTicketSla = typeof ticketSlas.$insert;
+export type SlaRule = typeof slaRules.$inferSelect;
+export type InsertSlaRule = typeof slaRules.$insert;
+export type SlaStatusTimeout = typeof slaStatusTimeouts.$inferSelect;
+export type InsertSlaStatusTimeout = typeof slaStatusTimeouts.$insert;
+export type SlaEscalation = typeof slaEscalations.$inferSelect;
+export type InsertSlaEscalation = typeof slaEscalations.$insert;
+export type SlaMetric = typeof slaMetrics.$inferSelect;
+export type InsertSlaMetric = typeof slaMetrics.$insert;
+
+// Enhanced SLA Zod schemas
+export const insertTicketSlaSchema = createInsertSchema(ticketSlas);
+export const insertSlaRuleSchema = createInsertSchema(slaRules);
+export const insertSlaStatusTimeoutSchema = createInsertSchema(slaStatusTimeouts);
+export const insertSlaEscalationSchema = createInsertSchema(slaEscalations);
+export const insertSlaMetricSchema = createInsertSchema(slaMetrics);
+
+// ========================================
+// TICKET TEMPLATES SYSTEM
+// ========================================
+
+export const ticketTemplates = pgTable("ticket_templates", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  companyId: uuid("company_id").references(() => companies.id, { onDelete: 'cascade' }),
+
+  // Identificação
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  category: varchar("category", { length: 100 }).notNull(),
+  subcategory: varchar("subcategory", { length: 100 }),
+
+  // Configurações padrão do ticket
+  defaultTitle: varchar("default_title", { length: 500 }),
+  defaultDescription: text("default_description"),
+  defaultType: varchar("default_type", { length: 50 }).default("support").notNull(),
+  defaultPriority: varchar("default_priority", { length: 50 }).default("medium").notNull(),
+  defaultStatus: varchar("default_status", { length: 50 }).default("open").notNull(),
+  defaultCategory: varchar("default_category", { length: 100 }).notNull(),
+  defaultUrgency: varchar("default_urgency", { length: 50 }),
+  defaultImpact: varchar("default_impact", { length: 50 }),
+
+  // Atribuições automáticas
+  defaultAssigneeId: uuid("default_assignee_id"),
+  defaultAssignmentGroup: varchar("default_assignment_group", { length: 100 }),
+  defaultDepartment: varchar("default_department", { length: 100 }),
+
+  // Configurações de campos
+  requiredFields: text("required_fields").array().default([]),
+  optionalFields: text("optional_fields").array().default([]),
+  hiddenFields: text("hidden_fields").array().default([]),
+  customFields: jsonb("custom_fields").default({}),
+
+  // Automações e SLA
+  autoAssignmentRules: jsonb("auto_assignment_rules").default({}),
+  slaOverride: jsonb("sla_override").default({}),
+
+  // Metadados
+  isActive: boolean("is_active").default(true),
+  isPublic: boolean("is_public").default(true),
+  sortOrder: integer("sort_order").default(0),
+  usageCount: integer("usage_count").default(0),
+  lastUsedAt: timestamp("last_used_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  createdById: uuid("created_by_id").notNull(),
+}, (table) => [
+  index("templates_company_active_idx").on(table.tenantId, table.companyId, table.isActive, table.category),
+  index("templates_usage_idx").on(table.tenantId, table.companyId, table.usageCount.desc(), table.lastUsedAt.desc()),
+  unique("templates_unique_name").on(table.tenantId, table.companyId, table.name),
+]);
+
+// ========================================
+// TEMPLATE VERSIONING AND DYNAMIC FIELDS
+// ========================================
+
+// Template Versions - Controle de versões
+export const templateVersions = pgTable("template_versions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  templateId: uuid("template_id").references(() => ticketTemplates.id, { onDelete: 'cascade' }).notNull(),
+  versionNumber: varchar("version_number", { length: 20 }).notNull(), // v1.0, v1.1, etc.
+  changes: text("changes").notNull(), // Descrição das mudanças
+  templateData: jsonb("template_data").notNull(), // Snapshot completo do template
+  createdById: uuid("created_by_id").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  isActive: boolean("is_active").default(true),
+}, (table) => [
+  index("template_versions_template_idx").on(table.tenantId, table.templateId),
+  index("template_versions_version_idx").on(table.tenantId, table.versionNumber),
+  unique("template_versions_unique").on(table.templateId, table.versionNumber),
+]);
+
+// Dynamic Field Definitions - Definições de campos dinâmicos
+export const dynamicFieldDefinitions = pgTable("dynamic_field_definitions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  templateId: uuid("template_id").references(() => ticketTemplates.id, { onDelete: 'cascade' }).notNull(),
+  fieldKey: varchar("field_key", { length: 100 }).notNull(), // campo único no template
+  fieldType: varchar("field_type", { length: 50 }).notNull(), // text, select, checkbox, etc.
+  fieldLabel: varchar("field_label", { length: 255 }).notNull(),
+  fieldDescription: text("field_description"),
+
+  // Configurações do campo
+  isRequired: boolean("is_required").default(false),
+  isVisible: boolean("is_visible").default(true),
+  sortOrder: integer("sort_order").default(0),
+
+  // Validações
+  validationRules: jsonb("validation_rules").default({}), // {minLength: 5, maxLength: 100, pattern: "regex"}
+
+  // Opções para campos select/radio/checkbox
+  fieldOptions: jsonb("field_options").default([]), // [{value: "opt1", label: "Opção 1"}]
+
+  // Configurações condicionais
+  conditionalLogic: jsonb("conditional_logic").default({}), // {showIf: {field: "priority", value: "high"}}
+
+  // Estilo e posicionamento
+  styling: jsonb("styling").default({}), // {width: "50%", cssClass: "custom-field"}
+  gridPosition: jsonb("grid_position").default({}), // {row: 1, col: 1, span: 2}
+
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("dynamic_fields_template_idx").on(table.tenantId, table.templateId),
+  index("dynamic_fields_order_idx").on(table.tenantId, table.templateId, table.sortOrder),
+  unique("dynamic_fields_unique_key").on(table.templateId, table.fieldKey),
+]);
+
+// Field Validation Rules - Regras de validação
+export const fieldValidationRules = pgTable("field_validation_rules", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  ruleName: varchar("rule_name", { length: 100 }).notNull(),
+  ruleType: varchar("rule_type", { length: 50 }).notNull(), // regex, length, numeric, custom
+  ruleConfig: jsonb("rule_config").notNull(), // Configuração específica da regra
+  errorMessage: text("error_message").notNull(),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("validation_rules_tenant_type_idx").on(table.tenantId, table.ruleType),
+  unique("validation_rules_tenant_name_unique").on(table.tenantId, table.ruleName),
+]);
+
+// Template Approval Workflow - Fluxo de aprovação
+export const templateApprovals = pgTable("template_approvals", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  templateId: uuid("template_id").references(() => ticketTemplates.id, { onDelete: 'cascade' }).notNull(),
+  versionId: uuid("version_id").references(() => templateVersions.id, { onDelete: 'cascade' }),
+
+  // Workflow
+  status: varchar("status", { length: 50 }).default("pending"), // pending, approved, rejected, revision_needed
+  requestedById: uuid("requested_by_id").notNull(),
+  approverIds: uuid("approver_ids").array().default([]),
+
+  // Comentários e feedback
+  requestComments: text("request_comments"),
+  approvalComments: text("approval_comments"),
+  rejectionReason: text("rejection_reason"),
+
+  // Timestamps
+  requestedAt: timestamp("requested_at").defaultNow(),
+  approvedAt: timestamp("approved_at"),
+  rejectedAt: timestamp("rejected_at"),
+
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("template_approvals_template_idx").on(table.tenantId, table.templateId),
+  index("template_approvals_status_idx").on(table.tenantId, table.status),
+]);
+
+// Template types
+export type TicketTemplate = typeof ticketTemplates.$inferSelect;
+export type InsertTicketTemplate = typeof ticketTemplates.$insert;
+export type TemplateVersion = typeof templateVersions.$inferSelect;
+export type InsertTemplateVersion = typeof templateVersions.$insert;
+export type DynamicFieldDefinition = typeof dynamicFieldDefinitions.$inferSelect;
+export type InsertDynamicFieldDefinition = typeof dynamicFieldDefinitions.$insert;
+export type FieldValidationRule = typeof fieldValidationRules.$inferSelect;
+export type InsertFieldValidationRule = typeof fieldValidationRules.$insert;
+export type TemplateApproval = typeof templateApprovals.$inferSelect;
+export type InsertTemplateApproval = typeof templateApprovals.$insert;
+
+// Template Zod schemas
+export const insertTicketTemplateSchema = createInsertSchema(ticketTemplates).extend({
+  companyId: z.string().uuid().nullable().optional(),
+  defaultCategory: z.string().min(1, "Default category is required"),
+}).omit({ id: true, createdAt: true, updatedAt: true });
+
+export const insertTemplateVersionSchema = createInsertSchema(templateVersions);
+export const insertDynamicFieldDefinitionSchema = createInsertSchema(dynamicFieldDefinitions);
+export const insertFieldValidationRuleSchema = createInsertSchema(fieldValidationRules);
+export const insertTemplateApprovalSchema = createInsertSchema(templateApprovals);
+
+export const ticketTemplateSchema = createInsertSchema(ticketTemplates).extend({
+  id: z.string().optional(),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+});
+
+// ========================================
+// TICKET LIST VIEWS - Visualizações Customizáveis
+// ========================================
+
+// Ticket List Views - Visualizações personalizadas da lista de tickets
+export const ticketListViews = pgTable("ticket_list_views", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  name: varchar("name", { length: 100 }).notNull(),
+  description: text("description"),
+
+  // Permissões e visibilidade
+  createdById: uuid("created_by_id").notNull(), // Referência ao usuário que criou
+  isPublic: boolean("is_public").default(false), // true = visível para todos do tenant
+  isDefault: boolean("is_default").default(false), // true = visualização padrão
+
+  // Configuração das colunas
+  columns: jsonb("columns").notNull(), // Array de objetos: {id, label, visible, order, width}
+
+  // Configuração de filtros
+  filters: jsonb("filters").default([]), // Array de filtros aplicados
+
+  // Configuração de ordenação
+  sorting: jsonb("sorting").default([]), // Array de ordenação: {column, direction}
+
+  // Configurações de paginação
+  pageSize: integer("page_size").default(25),
+
+  // Metadados
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("ticket_views_tenant_idx").on(table.tenantId),
+  index("ticket_views_creator_idx").on(table.tenantId, table.createdById),
+  index("ticket_views_public_idx").on(table.tenantId, table.isPublic),
+  unique("ticket_views_tenant_name_creator").on(table.tenantId, table.name, table.createdById),
+]);
+
+// Shared Views Access - Controle de acesso para visualizações compartilhadas
+export const ticketViewShares = pgTable("ticket_view_shares", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  viewId: uuid("view_id").references(() => ticketListViews.id, { onDelete: 'cascade' }).notNull(),
+  userId: uuid("user_id").notNull(), // Usuário com acesso à visualização
+
+  // Permissões
+  canEdit: boolean("can_edit").default(false), // Pode editar a visualização
+  canShare: boolean("can_share").default(false), // Pode compartilhar com outros
+
+  // Metadados
+  sharedAt: timestamp("shared_at").defaultNow(),
+  sharedById: uuid("shared_by_id").notNull(), // Quem compartilhou
+}, (table) => [
+  index("view_shares_view_idx").on(table.viewId),
+  index("view_shares_user_idx").on(table.tenantId, table.userId),
+  unique("view_shares_unique").on(table.viewId, table.userId),
+]);
+
+// User View Preferences - Preferências pessoais de visualização
+export const userViewPreferences = pgTable("user_view_preferences", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  userId: uuid("user_id").notNull(),
+
+  // Visualização ativa
+  activeViewId: uuid("active_view_id").references(() => ticketListViews.id),
+
+  // Preferências pessoais (override da visualização)
+  personalSettings: jsonb("personal_settings").default({}), // Configurações que sobrescrevem a view
+
+  // Metadados
+  lastUsedAt: timestamp("last_used_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("user_prefs_user_idx").on(table.tenantId, table.userId),
+  unique("user_prefs_unique").on(table.tenantId, table.userId),
+]);
+
+// Customer Item Mappings - Personalized item configurations per customer
+export const customerItemMappings = pgTable("customer_item_mappings", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  customerId: uuid("customer_id").references(() => customers.id, { onDelete: 'cascade' }).notNull(),
+  itemId: uuid("item_id").references(() => items.id, { onDelete: 'cascade' }).notNull(),
+
+  // Customer-specific identifiers
+  customSku: varchar("custom_sku", { length: 100 }), // SKU que o cliente usa
+  customName: varchar("custom_name", { length: 255 }), // Nome que o cliente usa
+  customDescription: text("custom_description"), // Descrição personalizada
+  customerReference: varchar("customer_reference", { length: 100 }), // Referência interna do cliente
+
+  // Pricing and terms
+  leadTimeDays: integer("lead_time_days"), // Tempo de entrega específico
+
+  // Configuration options
+  preferredSupplier: varchar("preferred_supplier", { length: 255 }), // Fornecedor preferido
+  specialInstructions: text("special_instructions"), // Instruções especiais
+  customFields: jsonb("custom_fields").default({}), // Campos extras configuráveis
+
+  // Contract and approval
+  contractReference: varchar("contract_reference", { length: 100 }), // Referência de contrato
+  requiresApproval: boolean("requires_approval").default(false), // Requer aprovação especial
+  approvalLimit: decimal("approval_limit", { precision: 15, scale: 2 }), // Limite de aprovação
+
+  // Status and metadata
+  isActive: boolean("is_active").default(true),
+  effectiveDate: timestamp("effective_date").defaultNow(), // Data de vigência
+  expirationDate: timestamp("expiration_date"), // Data de expiração
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  createdBy: uuid("created_by").references(() => users.id),
+  updatedBy: uuid("updated_by").references(() => users.id),
+}, (table) => [
+  index("customer_item_mappings_tenant_customer_idx").on(table.tenantId, table.customerId),
+  index("customer_item_mappings_tenant_item_idx").on(table.tenantId, table.itemId),
+  index("customer_item_mappings_tenant_active_idx").on(table.tenantId, table.isActive),
+  index("customer_item_mappings_custom_sku_idx").on(table.tenantId, table.customSku),
+  unique("customer_item_mappings_customer_item_unique").on(table.tenantId, table.customerId, table.itemId),
+  unique("customer_item_mappings_customer_sku_unique").on(table.tenantId, table.customerId, table.customSku),
+]);
+
+// ========================================
+// ADDITIONAL MATERIALS & SERVICES TYPES
+// ========================================
+
+// Price Lists (LPU)
+export type PriceList = typeof priceLists.$inferSelect;
+export type InsertPriceList = typeof priceLists.$insert;
+
+export type PriceListItem = typeof priceListItems.$inferSelect;
+export type InsertPriceListItem = typeof priceListItems.$insert;
+
+export type PricingRule = typeof pricingRules.$inferSelect;
+export type InsertPricingRule = typeof pricingRules.$insert;
+
+export type DynamicPricing = typeof dynamicPricing.$inferSelect;
+export type InsertDynamicPricing = typeof dynamicPricing.$insert;
 
 // ========================================
 // ASSET MANAGEMENT TYPES
@@ -2397,62 +3419,47 @@ export type ComplianceScore = typeof complianceScores.$inferSelect;
 export type InsertComplianceScore = typeof complianceScores.$insert;
 
 // Zod schemas para validação
-// TODO: Define ticketListViews table first
-// export const insertTicketListViewSchema = createInsertSchema(ticketListViews).extend({
-//   name: z.string().min(1, "Nome da visualização é obrigatório"),
-//   columns: z.array(z.object({
-//     id: z.string(),
-//     label: z.string(),
-//     visible: z.boolean(),
-//     order: z.number(),
-//     width: z.number().optional(),
-//   })),
-//   filters: z.array(z.object({
-//     column: z.string(),
-//     operator: z.string(),
-//     value: z.any(),
-//   })).optional(),
-//   sorting: z.array(z.object({
-//     column: z.string(),
-//     direction: z.enum(['asc', 'desc']),
-//   })).optional(),
-// }).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertTicketListViewSchema = createInsertSchema(ticketListViews).extend({
+  name: z.string().min(1, "Nome da visualização é obrigatório"),
+  columns: z.array(z.object({
+    id: z.string(),
+    label: z.string(),
+    visible: z.boolean(),
+    order: z.number(),
+    width: z.number().optional(),
+  })),
+  filters: z.array(z.object({
+    column: z.string(),
+    operator: z.string(),
+    value: z.any(),
+  })).optional(),
+  sorting: z.array(z.object({
+    column: z.string(),
+    direction: z.enum(['asc', 'desc']),
+  })).optional(),
+}).omit({ id: true, createdAt: true, updatedAt: true });
 
-// TODO: Define tables first before creating schemas
-// export const insertTicketViewShareSchema = createInsertSchema(ticketViewShares);
-// export const insertUserViewPreferenceSchema = createInsertSchema(userViewPreferences);
+export const insertTicketViewShareSchema = createInsertSchema(ticketViewShares);
+export const insertUserViewPreferenceSchema = createInsertSchema(userViewPreferences);
 
-// TODO: Define customerItemMappings table first
 // Customer Item Mappings validation schema
-// export const insertCustomerItemMappingSchema = createInsertSchema(customerItemMappings).extend({
-//   customSku: z.string().min(1, "SKU personalizado é obrigatório").optional(),
-//   customName: z.string().min(1, "Nome personalizado deve ter pelo menos 1 caractere").optional(),
-//   leadTimeDays: z.number().int().min(0, "Dias de entrega deve ser positivo").optional(),
-// }).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertCustomerItemMappingSchema = createInsertSchema(customerItemMappings).extend({
+  customSku: z.string().min(1, "SKU personalizado é obrigatório").optional(),
+  customName: z.string().min(1, "Nome personalizado deve ter pelo menos 1 caractere").optional(),
+  leadTimeDays: z.number().int().min(0, "Dias de entrega deve ser positivo").optional(),
+}).omit({ id: true, createdAt: true, updatedAt: true });
 
-// TODO: Define itemSupplierLinks table first
 // Item Supplier Links validation schema
-// export const insertItemSupplierLinkSchema = createInsertSchema(itemSupplierLinks).extend({
-//   partNumber: z.string().min(1, "Part number é obrigatório").optional(),
-//   supplierItemName: z.string().min(1, "Nome do fornecedor deve ter pelo menos 1 caractere").optional(),
-//   unitPrice: z.number().min(0, "Preço deve ser positivo").optional(),
-//   leadTimeDays: z.number().int().min(0, "Prazo de entrega deve ser positivo").optional(),
-//   minimumOrderQuantity: z.number().int().min(1, "Quantidade mínima deve ser pelo menos 1").optional(),
-// }).omit({ id: true, createdAt: true, updatedAt: true, lastPriceUpdate: true });
+export const insertItemSupplierLinkSchema = createInsertSchema(itemSupplierLinks).extend({
+  partNumber: z.string().min(1, "Part number é obrigatório").optional(),
+  supplierItemName: z.string().min(1, "Nome do fornecedor deve ter pelo menos 1 caractere").optional(),
+  unitPrice: z.number().min(0, "Preço deve ser positivo").optional(),
+  leadTimeDays: z.number().int().min(0, "Prazo de entrega deve ser positivo").optional(),
+  minimumOrderQuantity: z.number().int().min(1, "Quantidade mínima deve ser pelo menos 1").optional(),
+}).omit({ id: true, createdAt: true, updatedAt: true, lastPriceUpdate: true });
 
-// TODO: Define tables first before creating type mappings
 // Select types for enhanced tables
-// export type CustomerItemMapping = typeof customerItemMappings.$inferSelect;
-// export type InsertCustomerItemMapping = z.infer<typeof insertCustomerItemMappingSchema>;
-// export type ItemSupplierLink = typeof itemSupplierLinks.$inferSelect;
-// export type InsertItemSupplierLink = z.infer<typeof insertItemSupplierLinkSchema>;
-
-// Ticket Materials types
-export type TicketLpuSetting = typeof ticketLpuSettings.$inferSelect;
-export type InsertTicketLpuSetting = typeof ticketLpuSettings.$inferInsert;
-export type TicketPlannedItem = typeof ticketPlannedItems.$inferSelect;
-export type InsertTicketPlannedItem = typeof ticketPlannedItems.$inferInsert;
-export type TicketConsumedItem = typeof ticketConsumedItems.$inferSelect;
-export type InsertTicketConsumedItem = typeof ticketConsumedItems.$inferInsert;
-export type TicketCostsSummary = typeof ticketCostsSummary.$inferSelect;
-export type InsertTicketCostsSummary = typeof ticketCostsSummary.$inferInsert;
+export type CustomerItemMapping = typeof customerItemMappings.$inferSelect;
+export type InsertCustomerItemMapping = z.infer<typeof insertCustomerItemMappingSchema>;
+export type ItemSupplierLink = typeof itemSupplierLinks.$inferSelect;
+export type InsertItemSupplierLink = z.infer<typeof insertItemSupplierLinkSchema>;

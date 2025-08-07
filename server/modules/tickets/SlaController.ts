@@ -1,7 +1,11 @@
 import { Request, Response } from 'express';
 import { slaRepository } from '../../repositories/SlaRepository';
 import { 
-  insertContractSlaSchema
+  insertTicketSlaSchema,
+  insertSlaRuleSchema,
+  insertSlaStatusTimeoutSchema,
+  insertSlaEscalationSchema,
+  insertSlaMetricSchema 
 } from '../../../shared/schema.js';
 import { z } from 'zod';
 
@@ -19,12 +23,12 @@ export class SlaController {
   // TICKET SLA ENDPOINTS
   // ========================================
 
-  async createContractSla(req: AuthenticatedRequest, res: Response) {
+  async createTicketSla(req: AuthenticatedRequest, res: Response) {
     try {
       const tenantId = req.user!.tenantId;
-      const validatedData = insertContractSlaSchema.parse(req.body);
+      const validatedData = insertTicketSlaSchema.parse(req.body);
 
-      const sla = await slaRepository.createContractSla(validatedData, tenantId);
+      const sla = await slaRepository.createTicketSla(validatedData, tenantId);
 
       res.status(201).json({
         success: true,

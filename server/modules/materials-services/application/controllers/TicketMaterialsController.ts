@@ -5,7 +5,7 @@ import {
   ticketPlannedItems,
   ticketConsumedItems,
   ticketCostsSummary
-} from '../../../../../shared/schema-materials-services';
+} from '../../../../../shared/schema-master';
 import { items } from '../../../../../shared/schema-master';
 import { eq, and, desc, sum, sql, alias } from 'drizzle-orm';
 import { sendSuccess, sendError } from '../../../../utils/standardResponse';
@@ -242,14 +242,10 @@ export class TicketMaterialsController {
         tenantId,
         ticketId,
         itemId,
-        plannedQuantity: quantity.toString(),
-        estimatedCost: null,
-        unitPriceAtPlanning: null,
-        notes: notes || null,
+        quantity: parseFloat(quantity),
+        notes: notes || '',
         lpuId: lpuId || null,
-        status: 'planned',
         createdBy: req.user.id,
-        isActive: true,
         createdAt: new Date(),
         updatedAt: new Date()
       };

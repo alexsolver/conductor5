@@ -46,7 +46,7 @@ async function getControllers(tenantId: string) {
   const stockRepository = new StockRepository(db);
 
   return {
-    itemController: new ItemController(itemRepository, db),
+    itemController: new ItemController(itemRepository),
     supplierController: new SupplierController(supplierRepository),
     stockController: new StockController(stockRepository),
     assetController: new AssetManagementController(),
@@ -515,11 +515,26 @@ router.get('/analytics', jwtAuth, async (req: AuthenticatedRequest, res) => {
       return res.status(401).json({ message: 'Tenant required' });
     }
 
-    // Buscar estatísticas usando controlador
-    const { itemController } = await getControllers(tenantId);
-    return itemController.getStats(req, res);
+    // Buscar estatísticas reais do banco
+    const itemStats = await db.select()
+      .from(items)
+      .where(eq(items.tenantId, tenantId));
 
-    // Response handled by controller
+    const analytics = {
+      totalItems: itemStats.length,
+      activeItems: itemStats.filter(item => item.active).length,
+      inactiveItems: itemStats.filter(item => !item.active).length,
+      materialsCount: itemStats.filter(item => item.type === 'material').length,
+      servicesCount: itemStats.filter(item => item.type === 'service').length,
+      withIntegrationCode: itemStats.filter(item => item.integrationCode).length,
+      withoutIntegrationCode: itemStats.filter(item => !item.integrationCode).length,
+      utilizationRate: itemStats.length > 0 ? Math.round((itemStats.filter(item => item.active).length / itemStats.length) * 100) : 0
+    };
+
+    res.json({
+      success: true,
+      data: analytics
+    });
   } catch (error) {
     console.error('Erro ao buscar analytics:', error);
     res.status(500).json({

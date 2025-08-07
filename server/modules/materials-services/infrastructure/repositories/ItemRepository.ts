@@ -1,9 +1,8 @@
 import { eq, and, like, desc, or, sql, inArray, asc } from 'drizzle-orm';
-import { items, itemAttachments, itemLinks, itemCustomerLinks, itemSupplierLinks } from '../../../../../shared/schema-master';
-import { customerItemMappings } from '../../../../../shared/schema-materials-services';
+import { items, itemAttachments, itemLinks, itemCustomerLinks, itemSupplierLinks, customerItemMappings } from '../../../../../shared/schema-master';
 import { companies as companyTable } from '../../../../../shared/schema-master';
 import { suppliers as supplierTable } from '../../../../../shared/schema-master';
-import type { Item, CreateItemRequest, UpdateItemRequest, ItemQueryOptions } from '../../domain/entities/Item';
+import type { Item } from '../../domain/entities';
 import type { ExtractTablesWithRelations } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
@@ -14,16 +13,14 @@ export class ItemRepository {
     this.db = db;
   }
 
-  async create(data: CreateItemRequest & { tenantId: string; createdBy?: string }): Promise<Item> {
+  async create(data: Omit<Item, 'id' | 'createdAt' | 'updatedAt'>): Promise<Item> {
     const [item] = await this.db
       .insert(items)
       .values({
         ...data,
+        // Handle text fields properly
         maintenancePlan: data.maintenancePlan || null,
         defaultChecklist: data.defaultChecklist || null,
-        measurementUnit: data.measurementUnit || 'UN',
-        status: data.status || 'active',
-        active: true,
         createdAt: new Date(),
         updatedAt: new Date()
       })
@@ -34,7 +31,23 @@ export class ItemRepository {
 
   async findById(id: string, tenantId: string): Promise<Item | null> {
     const [item] = await this.db
-      .select()
+      .select({
+        id: items.id,
+        tenantId: items.tenantId,
+        name: items.name,
+        description: items.description,
+        type: items.type,
+        integrationCode: items.integrationCode,
+        measurementUnit: items.measurementUnit,
+        maintenancePlan: items.maintenancePlan,
+        defaultChecklist: items.defaultChecklist,
+        status: items.status,
+        active: items.active,
+        createdAt: items.createdAt,
+        updatedAt: items.updatedAt,
+        createdBy: items.createdBy,
+        updatedBy: items.updatedBy
+      })
       .from(items)
       .where(and(eq(items.id, id), eq(items.tenantId, tenantId)))
       .limit(1);
@@ -42,14 +55,23 @@ export class ItemRepository {
     return item as Item || null;
   }
 
-  async findByTenant(tenantId: string, options?: ItemQueryOptions): Promise<Item[]> {
+  async findByTenant(tenantId: string, options?: {
+    limit?: number;
+    offset?: number;
+    search?: string;
+    type?: string;
+    status?: string;
+    active?: boolean;
+    companyId?: string;
+  }): Promise<Item[]> {
     const conditions = [eq(items.tenantId, tenantId)];
 
     if (options?.search) {
       conditions.push(
         or(
           like(items.name, `%${options.search}%`),
-          like(items.description, `%${options.search}%`)
+          like(items.description, `%${options.search}%`),
+          like(items.integrationCode, `%${options.search}%`)
         )!
       );
     }
@@ -87,7 +109,24 @@ export class ItemRepository {
     }
 
     const baseQuery = this.db
-      .select()
+      .select({
+        id: items.id,
+        tenantId: items.tenantId,
+        active: items.active,
+        type: items.type,
+        name: items.name,
+        integrationCode: items.integrationCode,
+        description: items.description,
+        measurementUnit: items.measurementUnit,
+        maintenancePlan: items.maintenancePlan,
+        defaultChecklist: items.defaultChecklist,
+        // groupName: items.groupName, // Column doesn't exist in current schema
+        status: items.status,
+        createdAt: items.createdAt,
+        updatedAt: items.updatedAt,
+        createdBy: items.createdBy,
+        updatedBy: items.updatedBy
+      })
       .from(items)
       .where(and(...conditions))
       .orderBy(desc(items.createdAt));
@@ -98,8 +137,7 @@ export class ItemRepository {
       return await baseQuery.limit(options.limit);
     }
 
-    const result = await baseQuery;
-    return result as Item[];
+    return await baseQuery;
   }
 
   async update(id: string, tenantId: string, data: Partial<Item>): Promise<Item | null> {

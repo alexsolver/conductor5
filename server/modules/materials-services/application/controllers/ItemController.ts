@@ -1,18 +1,15 @@
 import { Request, Response } from 'express';
 import { ItemRepository } from '../../infrastructure/repositories/ItemRepository';
-import { MaterialsService } from '../services/MaterialsService';
-import type { CreateItemRequest, UpdateItemRequest, ItemQueryOptions } from '../../domain/entities/Item';
-import type { AuthenticatedRequest } from '../../../../middleware/jwtAuth';
+
+interface AuthenticatedRequest extends Request {
+  user?: {
+    id: string;
+    tenantId: string;
+  };
+}
 
 export class ItemController {
-  private materialsService: MaterialsService;
-
-  constructor(
-    private itemRepository: ItemRepository,
-    private db?: any
-  ) {
-    this.materialsService = new MaterialsService(itemRepository, db);
-  }
+  constructor(private itemRepository: ItemRepository) {}
 
   async createItem(req: AuthenticatedRequest, res: Response) {
     try {
@@ -21,13 +18,13 @@ export class ItemController {
         return res.status(401).json({ message: 'Tenant required' });
       }
 
-      const itemData: CreateItemRequest & { tenantId: string; createdBy?: string } = {
+      const itemData = {
         ...req.body,
         tenantId,
         createdBy: req.user?.id
       };
 
-      const item = await this.materialsService.createItem(itemData);
+      const item = await this.itemRepository.create(itemData);
       
       res.status(201).json({
         success: true,
@@ -60,7 +57,7 @@ export class ItemController {
         companyId
       } = req.query;
 
-      const options: ItemQueryOptions = {
+      const options = {
         limit: parseInt(limit as string),
         offset: parseInt(offset as string),
         search: search as string,
@@ -70,7 +67,7 @@ export class ItemController {
         companyId: companyId as string
       };
 
-      const items = await this.materialsService.getItems(tenantId, options);
+      const items = await this.itemRepository.findByTenant(tenantId, options);
       
       res.json({
         success: true,
