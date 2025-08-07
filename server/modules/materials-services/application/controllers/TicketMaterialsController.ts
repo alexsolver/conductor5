@@ -1,4 +1,4 @@
-import type { Response } from 'express';
+import type { Response, Request } from 'express';
 import { db } from '../../../../db-tenant';
 import { 
   ticketLpuSettings, 
@@ -7,9 +7,11 @@ import {
   ticketCostsSummary
 } from '../../../../../shared/schema-master';
 import { items } from '../../../../../shared/schema-master';
-import { eq, and, desc, sql } from 'drizzle-orm';
+import { eq, and, desc, sum, sql, alias } from 'drizzle-orm';
 import { sendSuccess, sendError } from '../../../../utils/standardResponse';
 import type { AuthenticatedRequest } from '../../../../middleware/jwtAuth';
+import schemaManager from '../../../../utils/schemaManager';
+
 
 // Import audit function
 async function createCompleteAuditEntry(

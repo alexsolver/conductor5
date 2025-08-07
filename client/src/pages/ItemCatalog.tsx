@@ -286,7 +286,9 @@ export default function ItemCatalog() {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          item.integrationCode?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          item.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "all" || item.status === statusFilter;
+    const matchesStatus = statusFilter === "all" || 
+                         (statusFilter === "active" && item.active) ||
+                         (statusFilter === "inactive" && !item.active);
 
     return item.type === 'material' && matchesSearch && matchesStatus;
   });
@@ -295,7 +297,9 @@ export default function ItemCatalog() {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          item.integrationCode?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          item.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "all" || item.status === statusFilter;
+    const matchesStatus = statusFilter === "all" || 
+                         (statusFilter === "active" && item.active) ||
+                         (statusFilter === "inactive" && !item.active);
 
     return item.type === 'service' && matchesSearch && matchesStatus;
   });
@@ -482,6 +486,26 @@ export default function ItemCatalog() {
           <Card>
             <CardHeader>
               <CardTitle>Materiais Cadastrados ({materialItems.length})</CardTitle>
+              <div className="flex gap-4 mt-4">
+                <div className="flex-1">
+                  <Input
+                    placeholder="Buscar por nome, código ou descrição..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="max-w-sm"
+                  />
+                </div>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="active">Ativo</SelectItem>
+                    <SelectItem value="inactive">Inativo</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </CardHeader>
             <CardContent>
               {isLoadingItems ? (
@@ -514,6 +538,26 @@ export default function ItemCatalog() {
           <Card>
             <CardHeader>
               <CardTitle>Serviços Cadastrados ({serviceItems.length})</CardTitle>
+              <div className="flex gap-4 mt-4">
+                <div className="flex-1">
+                  <Input
+                    placeholder="Buscar por nome, código ou descrição..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="max-w-sm"
+                  />
+                </div>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="active">Ativo</SelectItem>
+                    <SelectItem value="inactive">Inativo</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </CardHeader>
             <CardContent>
               {isLoadingItems ? (
