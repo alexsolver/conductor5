@@ -364,4 +364,101 @@ export class ItemController {
       });
     }
   }
+
+  async createBulkLinks(req: AuthenticatedRequest, res: Response) {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant required' });
+      }
+
+      const { 
+        sourceItemIds, 
+        targetItemIds, 
+        relationship, 
+        groupName, 
+        groupDescription 
+      } = req.body;
+
+      const { pool } = await import('../../../../db.js');
+      const tenantSchema = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+      // Criar vínculos em lote
+      const linkPromises = [];
+      for (const sourceId of sourceItemIds) {
+        for (const targetId of targetItemIds) {
+          if (sourceId !== targetId) {
+            const linkQuery = `
+              INSERT INTO ${tenantSchema}.item_links 
+              (tenant_id, item_id, linked_item_id, relationship, group_name, group_description, created_by, link_type)
+              VALUES ($1, $2, $3, $4, $5, $6, $7, 'item_item')
+              RETURNING *
+            `;
+            linkPromises.push(
+              pool.query(linkQuery, [
+                tenantId, sourceId, targetId, relationship, 
+                groupName, groupDescription, req.user?.id
+              ])
+            );
+          }
+        }
+      }
+
+      const results = await Promise.all(linkPromises);
+      
+      res.status(201).json({
+        success: true,
+        data: {
+          linksCreated: results.length,
+          links: results.map(r => r.rows[0])
+        },
+        message: 'Vínculos em lote criados com sucesso'
+      });
+    } catch (error) {
+      console.error('Error creating bulk links:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to create bulk links'
+      });
+    }
+  }
+
+  async getItemGroups(req: AuthenticatedRequest, res: Response) {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant required' });
+      }
+
+      const { pool } = await import('../../../../db.js');
+      const tenantSchema = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+      const groupsQuery = `
+        SELECT 
+          group_name,
+          group_description,
+          COUNT(*) as item_count,
+          array_agg(DISTINCT item_id) as item_ids
+        FROM ${tenantSchema}.item_links 
+        WHERE tenant_id = $1 
+          AND group_name IS NOT NULL 
+          AND is_active = true
+        GROUP BY group_name, group_description
+        ORDER BY group_name
+      `;
+
+      const result = await pool.query(groupsQuery, [tenantId]);
+      
+      res.json({
+        success: true,
+        data: result.rows
+      });
+    } catch (error) {
+      console.error('Error fetching item groups:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch item groups'
+      });
+    }
+  }
 }

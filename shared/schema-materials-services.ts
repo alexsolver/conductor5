@@ -39,11 +39,30 @@ export const itemLinks = pgTable('item_links', {
 
   // 1. VÍNCULOS ITEM ↔ ITEM
   linkedItemId: uuid('linked_item_id'),
-  relationship: varchar('relationship', { length: 50 }), // kit, substitute, equivalent, compatible
+  relationship: varchar('relationship', { length: 50 }), // kit, substitute, equivalent, compatible, group
+
+  // Suporte a grupos nomeados
+  groupName: varchar('group_name', { length: 255 }),
+  groupDescription: text('group_description'),
 
   isActive: boolean('is_active').default(true),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   createdBy: uuid('created_by')
+});
+
+// Nova tabela para operações em lote
+export const bulkItemOperations = pgTable('bulk_item_operations', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull(),
+  
+  operationType: varchar('operation_type', { length: 50 }).notNull(), // 'bulk_link', 'bulk_unlink', 'group_create'
+  itemIds: jsonb('item_ids').notNull(), // Array de IDs dos itens
+  relationship: varchar('relationship', { length: 50 }),
+  groupName: varchar('group_name', { length: 255 }),
+  
+  executedBy: uuid('executed_by').notNull(),
+  executedAt: timestamp('executed_at').defaultNow().notNull(),
+  isCompleted: boolean('is_completed').default(false)
 });
 
 // VÍNCULOS ITEM ↔ EMPRESA CLIENTE (dados específicos por empresa cliente)
@@ -78,9 +97,7 @@ export const itemSupplierLinks = pgTable('item_supplier_links', {
   qrCode: varchar('qr_code', { length: 255 }), // Código QR
   barcode: varchar('barcode', { length: 100 }), // Código de Barras
 
-  // Dados comerciais
-  unitPrice: decimal('unit_price', { precision: 10, scale: 2 }),
-  currency: varchar('currency', { length: 3 }).default('BRL'),
+  // Dados logísticos (sem preço - controlado no LPU)
   leadTime: integer('lead_time'), // days
   minimumOrderQuantity: decimal('minimum_order_quantity', { precision: 10, scale: 2 }),
 

@@ -89,6 +89,19 @@ router.delete('/items/:id', async (req: AuthenticatedRequest, res) => {
   return itemController.deleteItem(req, res);
 });
 
+// Vínculos em lote e grupos
+router.post('/items/bulk-links', async (req: AuthenticatedRequest, res) => {
+  if (!req.user?.tenantId) return res.status(401).json({ message: 'Tenant ID required' });
+  const { itemController } = await getControllers(req.user.tenantId);
+  return itemController.createBulkLinks(req, res);
+});
+
+router.get('/items/groups', async (req: AuthenticatedRequest, res) => {
+  if (!req.user?.tenantId) return res.status(401).json({ message: 'Tenant ID required' });
+  const { itemController } = await getControllers(req.user.tenantId);
+  return itemController.getItemGroups(req, res);
+});
+
 // Rota para obter vínculos de um item
 router.get('/items/:itemId/links', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {

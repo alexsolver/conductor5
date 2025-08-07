@@ -176,9 +176,17 @@ const bulkEditSchema = z.object({
 
 const itemLinkSchema = z.object({
   targetItemId: z.string().min(1, "Item de destino é obrigatório"),
-  linkType: z.enum(["kit", "substitute", "compatible", "accessory"]),
+  linkType: z.enum(["kit", "substitute", "compatible", "accessory", "group"]),
   quantity: z.number().min(1).optional(),
   description: z.string().optional(),
+});
+
+const bulkLinkSchema = z.object({
+  sourceItemIds: z.array(z.string()).min(1, "Selecione pelo menos um item de origem"),
+  targetItemIds: z.array(z.string()).min(1, "Selecione pelo menos um item de destino"),
+  relationship: z.enum(["kit", "substitute", "compatible", "accessory", "group"]),
+  groupName: z.string().optional(),
+  groupDescription: z.string().optional(),
 });
 
 const customerPersonalizationSchema = z.object({
@@ -190,7 +198,6 @@ const customerPersonalizationSchema = z.object({
 
 const supplierLinkSchema = z.object({
   supplierId: z.string().min(1, "Fornecedor é obrigatório"),
-  price: z.number().min(0).optional(),
   currency: z.string().default("BRL"),
   leadTime: z.number().min(0).optional(),
   isPreferred: z.boolean().default(false),
@@ -214,7 +221,8 @@ const linkTypeLabels = {
   kit: "Kit/Conjunto",
   substitute: "Substituto",
   compatible: "Compatível",
-  accessory: "Acessório"
+  accessory: "Acessório",
+  group: "Grupo"
 };
 
 export default function ItemCatalog() {
@@ -226,6 +234,7 @@ export default function ItemCatalog() {
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [companyFilter, setCompanyFilter] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(20);
 
@@ -242,6 +251,7 @@ export default function ItemCatalog() {
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
   const [isPersonalizationModalOpen, setIsPersonalizationModalOpen] = useState(false);
   const [isSupplierLinkModalOpen, setIsSupplierLinkModalOpen] = useState(false);
+  const [isBulkLinkModalOpen, setIsBulkLinkModalOpen] = useState(false);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -285,10 +295,20 @@ export default function ItemCatalog() {
     resolver: zodResolver(supplierLinkSchema),
     defaultValues: {
       supplierId: '',
-      price: 0,
       currency: 'BRL',
       leadTime: 0,
       isPreferred: false,
+    }
+  });
+
+  const bulkLinkForm = useForm<z.infer<typeof bulkLinkSchema>>({
+    resolver: zodResolver(bulkLinkSchema),
+    defaultValues: {
+      sourceItemIds: [],
+      targetItemIds: [],
+      relationship: 'group',
+      groupName: '',
+      groupDescription: '',
     }
   });
 
@@ -529,6 +549,30 @@ export default function ItemCatalog() {
     },
   });
 
+  const createBulkLinksMutation = useMutation({
+    mutationFn: async (data: z.infer<typeof bulkLinkSchema>) => {
+      const response = await apiRequest('POST', '/api/materials-services/items/bulk-links', data);
+      return response.json();
+    },
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items"] });
+      toast({
+        title: "Vínculos em lote criados com sucesso",
+        description: `${result.data.linksCreated} vínculos foram criados.`,
+      });
+      setIsBulkLinkModalOpen(false);
+      bulkLinkForm.reset();
+      setSelectedItems(new Set());
+    },
+    onError: () => {
+      toast({
+        title: "Erro ao criar vínculos em lote",
+        description: "Tente novamente mais tarde.",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Processar dados
   const items: Item[] = (itemsResponse as any)?.data || [];
   const itemStats = (itemStatsResponse as any)?.data || [];
@@ -541,8 +585,11 @@ export default function ItemCatalog() {
     const matchesStatus = statusFilter === "all" || 
                          (statusFilter === "active" && item.active) ||
                          (statusFilter === "inactive" && !item.active);
+    
+    // TODO: Implementar filtro por empresa vinculada
+    const matchesCompany = companyFilter === "all" || true; // Placeholder
 
-    return matchesSearch && matchesType && matchesStatus;
+    return matchesSearch && matchesType && matchesStatus && matchesCompany;
   });
 
   // Paginação
@@ -555,7 +602,7 @@ export default function ItemCatalog() {
   // Reset página quando filtros mudam
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, typeFilter, statusFilter]);
+  }, [searchTerm, typeFilter, statusFilter, companyFilter]);
 
   const materialCount = items.filter(item => item.type === 'material').length;
   const serviceCount = items.filter(item => item.type === 'service').length;
@@ -599,6 +646,10 @@ export default function ItemCatalog() {
 
   const onSubmitSupplierLink = async (data: z.infer<typeof supplierLinkSchema>) => {
     createSupplierLinkMutation.mutate(data);
+  };
+
+  const onSubmitBulkLinks = async (data: z.infer<typeof bulkLinkSchema>) => {
+    createBulkLinksMutation.mutate(data);
   };
 
   // Bulk operations handlers
@@ -856,6 +907,20 @@ export default function ItemCatalog() {
               </SelectContent>
             </Select>
 
+            <Select value={companyFilter} onValueChange={setCompanyFilter}>
+              <SelectTrigger className="w-full sm:w-48">
+                <SelectValue placeholder="Empresa" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas as Empresas</SelectItem>
+                {(availableCustomers || []).map((customer: any) => (
+                  <SelectItem key={customer.id} value={customer.id}>
+                    {customer.name || customer.tradeName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
             <div className="flex items-center gap-2">
               <Button 
                 variant="outline"
@@ -874,6 +939,15 @@ export default function ItemCatalog() {
               <Button variant="outline" onClick={() => setIsImportModalOpen(true)}>
                 <ShoppingCart className="h-4 w-4 mr-2" />
                 Importar
+              </Button>
+
+              <Button 
+                variant="outline" 
+                onClick={() => setIsBulkLinkModalOpen(true)}
+                disabled={selectedItems.size < 2}
+              >
+                <Link className="h-4 w-4 mr-2" />
+                Vínculos em Lote
               </Button>
 
               <Button onClick={() => setIsCreateModalOpen(true)}>
@@ -2021,46 +2095,24 @@ export default function ItemCatalog() {
                 )}
               />
 
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={supplierForm.control}
-                  name="price"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Preço</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="number" 
-                          step="0.01"
-                          placeholder="0,00" 
-                          {...field} 
-                          onChange={(e) => field.onChange(Number(e.target.value))}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={supplierForm.control}
-                  name="leadTime"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Lead Time (dias)</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="number" 
-                          placeholder="0" 
-                          {...field} 
-                          onChange={(e) => field.onChange(Number(e.target.value))}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              <FormField
+                control={supplierForm.control}
+                name="leadTime"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Lead Time (dias)</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="number" 
+                        placeholder="0" 
+                        {...field} 
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <FormField
                 control={supplierForm.control}
@@ -2238,6 +2290,168 @@ export default function ItemCatalog() {
               Importar Itens
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Vínculos em Lote */}
+      <Dialog open={isBulkLinkModalOpen} onOpenChange={setIsBulkLinkModalOpen}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Criar Vínculos em Lote</DialogTitle>
+            <DialogDescription>
+              Vincule múltiplos itens entre si ou crie grupos nomeados
+            </DialogDescription>
+          </DialogHeader>
+
+          <Form {...bulkLinkForm}>
+            <form onSubmit={bulkLinkForm.handleSubmit(onSubmitBulkLinks)} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <FormField
+                    control={bulkLinkForm.control}
+                    name="sourceItemIds"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Itens de Origem *</FormLabel>
+                        <FormControl>
+                          <div className="border rounded-lg p-4 max-h-48 overflow-y-auto">
+                            {paginatedItems.map((item) => (
+                              <div key={item.id} className="flex items-center space-x-2 mb-2">
+                                <Checkbox
+                                  checked={field.value.includes(item.id)}
+                                  onCheckedChange={(checked) => {
+                                    if (checked) {
+                                      field.onChange([...field.value, item.id]);
+                                    } else {
+                                      field.onChange(field.value.filter(id => id !== item.id));
+                                    }
+                                  }}
+                                />
+                                <span className="text-sm">{item.name}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div>
+                  <FormField
+                    control={bulkLinkForm.control}
+                    name="targetItemIds"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Itens de Destino *</FormLabel>
+                        <FormControl>
+                          <div className="border rounded-lg p-4 max-h-48 overflow-y-auto">
+                            {paginatedItems.map((item) => (
+                              <div key={item.id} className="flex items-center space-x-2 mb-2">
+                                <Checkbox
+                                  checked={field.value.includes(item.id)}
+                                  onCheckedChange={(checked) => {
+                                    if (checked) {
+                                      field.onChange([...field.value, item.id]);
+                                    } else {
+                                      field.onChange(field.value.filter(id => id !== item.id));
+                                    }
+                                  }}
+                                />
+                                <span className="text-sm">{item.name}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+
+              <FormField
+                control={bulkLinkForm.control}
+                name="relationship"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tipo de Relacionamento *</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o tipo" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="kit">Kit/Conjunto</SelectItem>
+                        <SelectItem value="substitute">Substituto</SelectItem>
+                        <SelectItem value="compatible">Compatível</SelectItem>
+                        <SelectItem value="accessory">Acessório</SelectItem>
+                        <SelectItem value="group">Grupo</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {bulkLinkForm.watch('relationship') === 'group' && (
+                <>
+                  <FormField
+                    control={bulkLinkForm.control}
+                    name="groupName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nome do Grupo *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Ex: Ferramentas Básicas" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={bulkLinkForm.control}
+                    name="groupDescription"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Descrição do Grupo</FormLabel>
+                        <FormControl>
+                          <Textarea placeholder="Descrição opcional do grupo" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </>
+              )}
+
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setIsBulkLinkModalOpen(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button type="submit" disabled={createBulkLinksMutation.isPending}>
+                  {createBulkLinksMutation.isPending ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                      Criando...
+                    </>
+                  ) : (
+                    <>
+                      <Link className="h-4 w-4 mr-2" />
+                      Criar Vínculos
+                    </>
+                  )}
+                </Button>
+              </div>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
     </div>
