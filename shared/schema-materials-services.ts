@@ -469,6 +469,31 @@ export const priceListsRelations = relations(priceLists, ({ many }) => ({
   items: many(priceListItems)
 }));
 
+// Customer Item Mappings table - Missing from schema
+export const customerItemMappings = pgTable('customer_item_mappings', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull(),
+  customerId: uuid('customer_id').notNull(),
+  itemId: uuid('item_id').notNull(),
+  customSku: varchar('custom_sku', { length: 100 }),
+  customName: varchar('custom_name', { length: 255 }),
+  customDescription: text('custom_description'),
+  customerReference: varchar('customer_reference', { length: 100 }),
+  leadTimeDays: integer('lead_time_days'),
+  preferredSupplier: varchar('preferred_supplier', { length: 255 }),
+  specialInstructions: text('special_instructions'),
+  customFields: jsonb('custom_fields'),
+  contractReference: varchar('contract_reference', { length: 100 }),
+  requiresApproval: boolean('requires_approval').default(false),
+  approvalLimit: decimal('approval_limit', { precision: 15, scale: 2 }),
+  isActive: boolean('is_active').default(true),
+  notes: text('notes'),
+  createdBy: uuid('created_by'),
+  updatedBy: uuid('updated_by'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
 // ===============================
 // EXTENSÕES DOS TRÊS MÓDULOS FALTANTES
 // ===============================
@@ -833,6 +858,10 @@ export type StockMovement = typeof stockMovements.$inferSelect;
 export type PriceList = typeof priceLists.$inferSelect;
 export type ServiceType = typeof serviceTypes.$inferSelect;
 export type AuditLog = typeof auditLogs.$inferSelect;
+
+// Customer Item Mappings types
+export type CustomerItemMapping = typeof customerItemMappings.$inferSelect;
+export type InsertCustomerItemMapping = typeof customerItemMappings.$inferInsert;
 
 // Ticket Materials types
 export type TicketLpuSetting = typeof ticketLpuSettings.$inferSelect;
