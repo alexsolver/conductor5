@@ -2,7 +2,7 @@
 import { eq, desc, sql } from "drizzle-orm";
 import { logError } from "../../utils/logger";
 import { db } from "../../db";
-import { tenants } from "../../../shared/schema";
+import { tenants } from '@shared/schema';
 import { ITenantRepository } from "../../domain/repositories/ITenantRepository";
 import { Tenant } from "../../domain/entities/Tenant";
 

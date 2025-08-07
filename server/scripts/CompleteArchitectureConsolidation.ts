@@ -123,7 +123,7 @@ ${content}`;
       { from: /import.*from.*['"].*\/schema-unified['"]/, to: "import from '@shared/schema'" },
       { from: /import.*from.*['"].*\/schema-master['"]/, to: "import from '@shared/schema'" },
       { from: /import.*from.*['"].*shared\/schema\/.*['"]/, to: "import from '@shared/schema'" },
-      { from: /} from '@shared\/schema';/, to: "} from '../../shared/schema.js';" }
+      { from: /} from '@shared/schema';" }
     ];
 
     // Buscar todos os arquivos .ts
@@ -168,7 +168,7 @@ ${content}`;
     const proxyPath = join(process.cwd(), 'shared/schema.ts');
     if (existsSync(proxyPath)) {
       const content = await readFile(proxyPath, 'utf8');
-      if (!content.includes('export * from "./schema-master"')) {
+      if (!content.includes('export * from '@shared/schema';')) {
         throw new Error('CRÍTICO: shared/schema.ts não re-exporta do schema-master');
       }
     }

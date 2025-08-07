@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import { TicketTemplateRepository } from './TicketTemplateRepository';
-import { insertTicketTemplateSchema } from '../../../shared/schema';
+import { insertTicketTemplateSchema } from '@shared/schema';
 import { z } from 'zod';
 import { AuthenticatedRequest } from '../../middleware/jwtAuth';
 

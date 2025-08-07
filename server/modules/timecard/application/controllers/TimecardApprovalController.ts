@@ -14,7 +14,7 @@ import type {
   InsertApprovalGroupMember, 
   InsertTimecardApprovalSettings,
   InsertTimecardApprovalHistory 
-} from '@shared/schema-master';
+} from '@shared/schema';
 
 export class TimecardApprovalController {
   // ========================================

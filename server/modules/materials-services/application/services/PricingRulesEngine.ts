@@ -1,6 +1,6 @@
 
 
-import { PricingRule, PriceListItem } from '../../../../../shared/schema-master';
+import { PricingRule, PriceListItem } from '@shared/schema';
 import { LPURepository } from '../../infrastructure/repositories/LPURepository';
 
 export interface PriceCalculationContext {

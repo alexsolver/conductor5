@@ -8,7 +8,7 @@
 import { eq, and, ilike, count, or, sql, desc } from 'drizzle-orm';
 import { User } from '../../domain/entities/User';
 import { IUserRepository } from '../../domain/ports/IUserRepository';
-import { users } from '../../../../../shared/schema';
+import { users } from '@shared/schema';
 import { db } from '../../../../db';
 
 interface UserFilter {

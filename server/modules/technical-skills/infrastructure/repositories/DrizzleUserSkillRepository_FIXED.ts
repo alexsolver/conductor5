@@ -1,6 +1,6 @@
 import { sql, eq, and, gte, lte, isNull, or, count, desc, asc } from 'drizzle-orm';
 import { db } from '../../../../db';
-import { userSkills, skills as technicalSkills, users, certifications, qualityCertifications } from '../../../../../shared/schema';
+import { userSkills, skills as technicalSkills, users, certifications, qualityCertifications } from '@shared/schema';
 import { UserSkill } from '../../domain/entities/UserSkill';
 import { IUserSkillRepository } from '../../domain/repositories/IUserSkillRepository';
 

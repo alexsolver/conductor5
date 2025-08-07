@@ -1,7 +1,7 @@
 import { eq, and, like, desc, or, sql, inArray, asc } from 'drizzle-orm';
-import { items, itemAttachments, itemLinks, itemCustomerLinks, itemSupplierLinks, customerItemMappings } from '../../../../../shared/schema-master';
-import { companies as companyTable } from '../../../../../shared/schema-master';
-import { suppliers as supplierTable } from '../../../../../shared/schema-master';
+import { items, itemAttachments, itemLinks, itemCustomerLinks, itemSupplierLinks, customerItemMappings } from '@shared/schema';
+import { companies as companyTable } from '@shared/schema';
+import { suppliers as supplierTable } from '@shared/schema';
 import type { Item } from '../../domain/entities';
 import type { ExtractTablesWithRelations } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';

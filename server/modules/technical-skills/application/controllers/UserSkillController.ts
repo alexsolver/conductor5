@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { z } from 'zod';
 import { DrizzleUserSkillRepository } from '../../infrastructure/repositories/DrizzleUserSkillRepository';
 import { UserSkill } from '../../domain/entities/UserSkill';
-import { insertUserSkillSchema } from '../../../../../shared/schema.js';
+import { insertUserSkillSchema } from '@shared/schema';
 // Logger temporariamente removido para simplificação
 
 interface AuthenticatedRequest extends Request {

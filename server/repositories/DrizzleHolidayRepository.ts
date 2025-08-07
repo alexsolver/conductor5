@@ -5,7 +5,7 @@
 import { Pool } from 'pg';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { eq, and, gte, lte, desc, asc, ne, or } from 'drizzle-orm';
-import { holidays, Holiday, InsertHoliday } from '../../shared/schema.js';
+import { holidays, Holiday, InsertHoliday } from '@shared/schema';
 
 export class DrizzleHolidayRepository {
   private db;

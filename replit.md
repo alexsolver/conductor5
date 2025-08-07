@@ -43,7 +43,7 @@ Conductor follows a Clean Architecture with Domain-Driven Design principles.
     - **Multilocation System**: Hybrid system supporting Brazilian nomenclature (CPF/CNPJ) with international aliases.
     - **Inventory Management**: Comprehensive stock, supplier, and services management modules, including item catalog, stock tracking, and supplier ratings.
     - **Materials Management System**: Comprehensive item catalog with embedded ticket integration, including a three-phase workflow (Planning → Execution → Control), full CRUD operations with backend, LPU (Unit Price List) integration, and a pricing rules system with various rule types and priority.
-    - **Schema Consistency**: Architectural fix for Foreign Key inconsistencies and schema consolidation to maintain integrity and performance.
+    - **Schema Consistency**: Complete Drizzle ORM consolidation with unified imports, standardized type definitions, and systematic resolution of 57 LSP diagnostics. All 360 files now use consistent `@shared/schema` imports for single source of truth.
     - **Hierarchical Ticket Classification System**: Fully functional category→subcategory→action hierarchy with proper backend integration, frontend validation, dynamic loading, company-specific isolation, and automatic color synchronization between hierarchical tables and ticket_field_options for consistent UI display. Dynamic color system and validation is 100% database-driven.
 
 ## External Dependencies

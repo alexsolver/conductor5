@@ -1,7 +1,7 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { eq, and, like, desc, sql } from 'drizzle-orm';
 // Note: Using mock data for now as schema is being implemented
-// import { stockItems, stockMovements, warehouses, items } from '../../../../../shared/schema-master';
+// import { stockItems, stockMovements, warehouses, items } from '@shared/schema';
 
 export interface StockItem {
   id: string;

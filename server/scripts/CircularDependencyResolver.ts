@@ -54,7 +54,7 @@ export class CircularDependencyResolver {
     // Check if unified structure is correct
     if (existingSchemas.includes('shared/schema.ts') && existingSchemas.includes('@shared/schema.ts')) {
       const schemaContent = this.readFileContent('shared/schema.ts');
-      if (schemaContent.includes('export * from "./schema-master"')) {
+      if (schemaContent.includes('export * from '@shared/schema';')) {
         fixes.push('✅ shared/schema.ts correctly re-exports schema-master.ts');
       } else {
         issues.push('❌ shared/schema.ts not properly re-exporting schema-master.ts');

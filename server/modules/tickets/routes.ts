@@ -2,7 +2,7 @@
 import { Router } from "express";
 import { jwtAuth, AuthenticatedRequest } from "../../middleware/jwtAuth";
 import { storageSimple } from "../../storage-simple";
-import { insertTicketSchema, insertTicketMessageSchema } from "../../../shared/schema";
+import { insertTicketSchema, insertTicketMessageSchema } from '@shared/schema';
 import { sendSuccess, sendError, sendValidationError } from "../../utils/standardResponse";
 import { mapFrontendToBackend } from "../../utils/fieldMapping";
 import { z } from "zod";

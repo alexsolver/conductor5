@@ -159,7 +159,7 @@ export class ArchitectureConsolidator {
  * ✅ server/db.ts - Validação alinhada com schema real
  */
 
-export * from './schema-master';
+export * from '@shared/schema';
 `;
     
     await writeFile('../../shared/schema.ts', simpleReExport);

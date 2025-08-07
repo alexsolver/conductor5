@@ -248,7 +248,7 @@ import {
   emailResponseTemplates, emailProcessingLogs,
   projects, projectActions, projectTimeline,
   sessions, tenants
-} from '../../shared/schema.js';
+} from '@shared/schema';
 import { schemaManager } from 'server/db';
 
 // Create tenant schema:

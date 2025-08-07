@@ -51,8 +51,8 @@ export class DrizzleFinalValidator {
       const content = readFileSync(schemaPath, 'utf-8');
       tests.push({
         name: 'Schema re-export correto',
-        passed: content.includes('export * from "./schema-master"'),
-        details: content.includes('export * from "./schema-master"') ? 
+        passed: content.includes('export * from '@shared/schema';'),
+        details: content.includes('export * from '@shared/schema';') ? 
           'Re-export configurado corretamente' : 
           'Re-export não encontrado ou incorreto'
       });

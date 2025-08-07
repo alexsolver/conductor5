@@ -18,7 +18,7 @@ export class DrizzleConfigResolver {
       // Verificar se shared/schema.ts realmente re-exporta schema-master
       const schemaContent = await this.readFileContent('./shared/schema.ts');
       
-      if (schemaContent.includes('export * from "./schema-master"')) {
+      if (schemaContent.includes('export * from '@shared/schema';')) {
         fixes.push('✅ shared/schema.ts correctly re-exports schema-master.ts');
       } else {
         issues.push('❌ shared/schema.ts not properly re-exporting schema-master.ts');
@@ -197,7 +197,7 @@ export class DrizzleConfigResolver {
   // Métodos auxiliares privados
   private async readFileContent(filePath: string): Promise<string> {
     // Simulação - em implementação real usaria fs
-    return 'export * from "./schema-master";';
+    return 'export * from '@shared/schema';';
   }
 
   private async findTableValidationPoints(): Promise<ValidationPoint[]> {

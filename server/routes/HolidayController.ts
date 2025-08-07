@@ -6,7 +6,7 @@ import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth';
 import { DrizzleHolidayRepository } from '../repositories/DrizzleHolidayRepository';
-import { insertHolidaySchema } from '../../shared/schema.js';
+import { insertHolidaySchema } from '@shared/schema';
 import { pool } from '../db';
 
 const router = Router();

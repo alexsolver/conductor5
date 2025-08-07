@@ -6,7 +6,7 @@ import {
   insertSlaStatusTimeoutSchema,
   insertSlaEscalationSchema,
   insertSlaMetricSchema 
-} from '../../../shared/schema.js';
+} from '@shared/schema';
 import { z } from 'zod';
 
 export interface AuthenticatedRequest extends Request {

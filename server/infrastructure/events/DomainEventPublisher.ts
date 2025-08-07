@@ -1,7 +1,7 @@
 // Infrastructure - Event Publisher Implementation
 import { DomainEvent, IDomainEventPublisher } from "../../domain/events/DomainEvent";
 import { storageSimple } from "../../storage-simple";
-import { insertActivityLogSchema } from "../../../shared/schema";
+import { insertActivityLogSchema } from '@shared/schema';
 
 export class DomainEventPublisher implements IDomainEventPublisher {
   

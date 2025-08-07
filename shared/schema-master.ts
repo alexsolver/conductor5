@@ -1429,74 +1429,74 @@ export type Tenant = typeof tenants.$inferSelect;
 export type InsertTenant = typeof tenants.$inferInsert;
 
 export type Customer = typeof customers.$inferSelect;
-export type InsertCustomer = typeof customers.$insert;
+export type InsertCustomer = typeof customers.$inferInsert;
 
 export type Ticket = typeof tickets.$inferSelect;
-export type InsertTicket = typeof tickets.$insert;
+export type InsertTicket = typeof tickets.$inferInsert;
 
 export type TicketMessage = typeof ticketMessages.$inferSelect;
-export type InsertTicketMessage = typeof ticketMessages.$insert;
+export type InsertTicketMessage = typeof ticketMessages.$inferInsert;
 
 export type ActivityLog = typeof activityLogs.$inferSelect;
-export type InsertActivityLog = typeof activityLogs.$insert;
+export type InsertActivityLog = typeof activityLogs.$inferInsert;
 
 export type Location = typeof locations.$inferSelect;
-export type InsertLocation = typeof locations.$insert;
+export type InsertLocation = typeof locations.$inferInsert;
 
 export type Company = typeof companies.$inferSelect;
-export type InsertCompany = typeof companies.$insert;
+export type InsertCompany = typeof companies.$inferInsert;
 
 export type Skill = typeof skills.$inferSelect;
-export type InsertSkill = typeof skills.$insert;
+export type InsertSkill = typeof skills.$inferInsert;
 
 export type Certification = typeof certifications.$inferSelect;
-export type InsertCertification = typeof certifications.$insert;
+export type InsertCertification = typeof certifications.$inferInsert;
 
 export type UserSkill = typeof userSkills.$inferSelect;
-export type InsertUserSkill = typeof userSkills.$insert;
+export type InsertUserSkill = typeof userSkills.$inferInsert;
 
 export type Favorecido = typeof favorecidos.$inferSelect;
-export type InsertFavorecido = typeof favorecidos.$insert;
+export type InsertFavorecido = typeof favorecidos.$inferInsert;
 
 export type Project = typeof projects.$inferSelect;
-export type InsertProject = typeof projects.$insert;
+export type InsertProject = typeof projects.$inferInsert;
 
 export type ProjectAction = typeof projectActions.$inferSelect;
-export type InsertProjectAction = typeof projectActions.$insert;
+export type InsertProjectAction = typeof projectActions.$inferInsert;
 
 export type MarketLocalization = typeof marketLocalization.$inferSelect;
-export type InsertMarketLocalization = typeof marketLocalization.$insert;
+export type InsertMarketLocalization = typeof marketLocalization.$inferInsert;
 
 export type FieldAliasMapping = typeof fieldAliasMapping.$inferSelect;
-export type InsertFieldAliasMapping = typeof fieldAliasMapping.$insert;
+export type InsertFieldAliasMapping = typeof fieldAliasMapping.$inferInsert;
 
 export type LocalizationContext = typeof localizationContext.$inferSelect;
-export type InsertLocalizationContext = typeof localizationContext.$insert;
+export type InsertLocalizationContext = typeof localizationContext.$inferInsert;
 
 export type Holiday = typeof holidays.$inferSelect;
-export type InsertHoliday = typeof holidays.$insert;
+export type InsertHoliday = typeof holidays.$inferInsert;
 
 export type Session = typeof sessions.$inferSelect;
-export type InsertSession = typeof sessions.$insert;
+export type InsertSession = typeof sessions.$inferInsert;
 
 // Timecard and Approval Types
 export type TimecardEntry = typeof timecardEntries.$inferSelect;
-export type InsertTimecardEntry = typeof timecardEntries.$insert;
+export type InsertTimecardEntry = typeof timecardEntries.$inferInsert;
 
 export type WorkSchedule = typeof workSchedules.$inferSelect;
-export type InsertWorkSchedule = typeof workSchedules.$insert;
+export type InsertWorkSchedule = typeof workSchedules.$inferInsert;
 
 export type ApprovalGroup = typeof approvalGroups.$inferSelect;
-export type InsertApprovalGroup = typeof approvalGroups.$insert;
+export type InsertApprovalGroup = typeof approvalGroups.$inferInsert;
 
 export type ApprovalGroupMember = typeof approvalGroupMembers.$inferSelect;
-export type InsertApprovalGroupMember = typeof approvalGroupMembers.$insert;
+export type InsertApprovalGroupMember = typeof approvalGroupMembers.$inferInsert;
 
 export type TimecardApprovalSettings = typeof timecardApprovalSettings.$inferSelect;
-export type InsertTimecardApprovalSettings = typeof timecardApprovalSettings.$insert;
+export type InsertTimecardApprovalSettings = typeof timecardApprovalSettings.$inferInsert;
 
 export type TimecardApprovalHistory = typeof timecardApprovalHistory.$inferSelect;
-export type InsertTimecardApprovalHistory = typeof timecardApprovalHistory.$insert;
+export type InsertTimecardApprovalHistory = typeof timecardApprovalHistory.$inferInsert;
 
 
 
@@ -2818,15 +2818,15 @@ export const ticketStockMovements = pgTable("ticket_stock_movements", {
 
 // Types for ticket materials consumption
 export type TicketLpuSetting = typeof ticketLpuSettings.$inferSelect;
-export type InsertTicketLpuSetting = typeof ticketLpuSettings.$insert;
+export type InsertTicketLpuSetting = typeof ticketLpuSettings.$inferInsert;
 export type TicketPlannedItem = typeof ticketPlannedItems.$inferSelect;
-export type InsertTicketPlannedItem = typeof ticketPlannedItems.$insert;
+export type InsertTicketPlannedItem = typeof ticketPlannedItems.$inferInsert;
 export type TicketConsumedItem = typeof ticketConsumedItems.$inferSelect;
-export type InsertTicketConsumedItem = typeof ticketConsumedItems.$insert;
+export type InsertTicketConsumedItem = typeof ticketConsumedItems.$inferInsert;
 export type TicketCostsSummary = typeof ticketCostsSummary.$inferSelect;
-export type InsertTicketCostsSummary = typeof ticketCostsSummary.$insert;
+export type InsertTicketCostsSummary = typeof ticketCostsSummary.$inferInsert;
 export type TicketStockMovement = typeof ticketStockMovements.$inferSelect;
-export type InsertTicketStockMovement = typeof ticketStockMovements.$insert;
+export type InsertTicketStockMovement = typeof ticketStockMovements.$inferInsert;
 
 // Zod schemas for validation
 export const insertTicketLpuSettingSchema = createInsertSchema(ticketLpuSettings);
@@ -2837,23 +2837,23 @@ export const insertTicketStockMovementSchema = createInsertSchema(ticketStockMov
 
 // Types for parts and services
 export type Item = typeof items.$inferSelect;
-export type InsertItem = typeof items.$insert;
+export type InsertItem = typeof items.$inferInsert;
 export type StockLocation = typeof stockLocations.$inferSelect;
-export type InsertStockLocation = typeof stockLocations.$insert;
+export type InsertStockLocation = typeof stockLocations.$inferInsert;
 export type StockLevel = typeof stockLevels.$inferSelect;
-export type InsertStockLevel = typeof stockLevels.$insert;
+export type InsertStockLevel = typeof stockLevels.$inferInsert;
 export type Supplier = typeof suppliers.$inferSelect;
-export type InsertSupplier = typeof suppliers.$insert;
+export type InsertSupplier = typeof suppliers.$inferInsert;
 
 // Notification types
 export type Notification = typeof notifications.$inferSelect;
-export type InsertNotification = typeof notifications.$insert;
+export type InsertNotification = typeof notifications.$inferInsert;
 export type NotificationPreference = typeof notificationPreferences.$inferSelect;
-export type InsertNotificationPreference = typeof notificationPreferences.$insert;
+export type InsertNotificationPreference = typeof notificationPreferences.$inferInsert;
 export type NotificationTemplate = typeof notificationTemplates.$inferSelect;
-export type InsertNotificationTemplate = typeof notificationTemplates.$insert;
+export type InsertNotificationTemplate = typeof notificationTemplates.$inferInsert;
 export type NotificationLog = typeof notificationLogs.$inferSelect;
-export type InsertNotificationLog = typeof notificationLogs.$insert;
+export type InsertNotificationLog = typeof notificationLogs.$inferInsert;
 
 
 
@@ -3041,15 +3041,15 @@ export const slaMetrics = pgTable("sla_metrics", {
 
 // Enhanced SLA types
 export type TicketSla = typeof ticketSlas.$inferSelect;
-export type InsertTicketSla = typeof ticketSlas.$insert;
+export type InsertTicketSla = typeof ticketSlas.$inferInsert;
 export type SlaRule = typeof slaRules.$inferSelect;
-export type InsertSlaRule = typeof slaRules.$insert;
+export type InsertSlaRule = typeof slaRules.$inferInsert;
 export type SlaStatusTimeout = typeof slaStatusTimeouts.$inferSelect;
-export type InsertSlaStatusTimeout = typeof slaStatusTimeouts.$insert;
+export type InsertSlaStatusTimeout = typeof slaStatusTimeouts.$inferInsert;
 export type SlaEscalation = typeof slaEscalations.$inferSelect;
-export type InsertSlaEscalation = typeof slaEscalations.$insert;
+export type InsertSlaEscalation = typeof slaEscalations.$inferInsert;
 export type SlaMetric = typeof slaMetrics.$inferSelect;
-export type InsertSlaMetric = typeof slaMetrics.$insert;
+export type InsertSlaMetric = typeof slaMetrics.$inferInsert;
 
 // Enhanced SLA Zod schemas
 export const insertTicketSlaSchema = createInsertSchema(ticketSlas);
@@ -3215,15 +3215,15 @@ export const templateApprovals = pgTable("template_approvals", {
 
 // Template types
 export type TicketTemplate = typeof ticketTemplates.$inferSelect;
-export type InsertTicketTemplate = typeof ticketTemplates.$insert;
+export type InsertTicketTemplate = typeof ticketTemplates.$inferInsert;
 export type TemplateVersion = typeof templateVersions.$inferSelect;
-export type InsertTemplateVersion = typeof templateVersions.$insert;
+export type InsertTemplateVersion = typeof templateVersions.$inferInsert;
 export type DynamicFieldDefinition = typeof dynamicFieldDefinitions.$inferSelect;
-export type InsertDynamicFieldDefinition = typeof dynamicFieldDefinitions.$insert;
+export type InsertDynamicFieldDefinition = typeof dynamicFieldDefinitions.$inferInsert;
 export type FieldValidationRule = typeof fieldValidationRules.$inferSelect;
-export type InsertFieldValidationRule = typeof fieldValidationRules.$insert;
+export type InsertFieldValidationRule = typeof fieldValidationRules.$inferInsert;
 export type TemplateApproval = typeof templateApprovals.$inferSelect;
-export type InsertTemplateApproval = typeof templateApprovals.$insert;
+export type InsertTemplateApproval = typeof templateApprovals.$inferInsert;
 
 // Template Zod schemas
 export const insertTicketTemplateSchema = createInsertSchema(ticketTemplates).extend({
@@ -3372,51 +3372,51 @@ export const customerItemMappings = pgTable("customer_item_mappings", {
 
 // Price Lists (LPU)
 export type PriceList = typeof priceLists.$inferSelect;
-export type InsertPriceList = typeof priceLists.$insert;
+export type InsertPriceList = typeof priceLists.$inferInsert;
 
 export type PriceListItem = typeof priceListItems.$inferSelect;
-export type InsertPriceListItem = typeof priceListItems.$insert;
+export type InsertPriceListItem = typeof priceListItems.$inferInsert;
 
 export type PricingRule = typeof pricingRules.$inferSelect;
-export type InsertPricingRule = typeof pricingRules.$insert;
+export type InsertPricingRule = typeof pricingRules.$inferInsert;
 
 export type DynamicPricing = typeof dynamicPricing.$inferSelect;
-export type InsertDynamicPricing = typeof dynamicPricing.$insert;
+export type InsertDynamicPricing = typeof dynamicPricing.$inferInsert;
 
 // ========================================
 // ASSET MANAGEMENT TYPES
 // ========================================
 
 export type Asset = typeof assets.$inferSelect;
-export type InsertAsset = typeof assets.$insert;
+export type InsertAsset = typeof assets.$inferInsert;
 
 export type AssetMaintenance = typeof assetMaintenance.$inferSelect;
-export type InsertAssetMaintenance = typeof assetMaintenance.$insert;
+export type InsertAssetMaintenance = typeof assetMaintenance.$inferInsert;
 
 export type AssetMeter = typeof assetMeters.$inferSelect;
-export type InsertAssetMeter = typeof assetMeters.$insert;
+export type InsertAssetMeter = typeof assetMeters.$inferInsert;
 
 export type AssetLocation = typeof assetLocations.$inferSelect;
-export type InsertAssetLocation = typeof assetLocations.$insert;
+export type InsertAssetLocation = typeof assetLocations.$inferInsert;
 
 // ========================================
 // COMPLIANCE TYPES
 // ========================================
 
 export type ComplianceAudit = typeof complianceAudits.$inferSelect;
-export type InsertComplianceAudit = typeof complianceAudits.$insert;
+export type InsertComplianceAudit = typeof complianceAudits.$inferInsert;
 
 export type ComplianceCertification = typeof complianceCertifications.$inferSelect;
-export type InsertComplianceCertification = typeof complianceCertifications.$insert;
+export type InsertComplianceCertification = typeof complianceCertifications.$inferInsert;
 
 export type ComplianceEvidence = typeof complianceEvidence.$inferSelect;
-export type InsertComplianceEvidence = typeof complianceEvidence.$insert;
+export type InsertComplianceEvidence = typeof complianceEvidence.$inferInsert;
 
 export type ComplianceAlert = typeof complianceAlerts.$inferSelect;
-export type InsertComplianceAlert = typeof complianceAlerts.$insert;
+export type InsertComplianceAlert = typeof complianceAlerts.$inferInsert;
 
 export type ComplianceScore = typeof complianceScores.$inferSelect;
-export type InsertComplianceScore = typeof complianceScores.$insert;
+export type InsertComplianceScore = typeof complianceScores.$inferInsert;
 
 // Zod schemas para validação
 export const insertTicketListViewSchema = createInsertSchema(ticketListViews).extend({

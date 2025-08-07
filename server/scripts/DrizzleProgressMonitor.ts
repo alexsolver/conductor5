@@ -33,7 +33,7 @@ export class DrizzleProgressMonitor {
       // Verificar shared/schema.ts
       const schemaPath = join(process.cwd(), 'shared', 'schema.ts');
       const schemaContent = readFileSync(schemaPath, 'utf-8');
-      const hasCorrectExport = schemaContent.includes('export * from "./schema-master"');
+      const hasCorrectExport = schemaContent.includes('export * from '@shared/schema';');
       
       // Verificar drizzle.config.ts
       const configPath = join(process.cwd(), 'drizzle.config.ts');

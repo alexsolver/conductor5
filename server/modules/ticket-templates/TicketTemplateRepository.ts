@@ -1,4 +1,4 @@
-import { TicketTemplate, InsertTicketTemplate } from '../../../shared/schema';
+import { TicketTemplate, InsertTicketTemplate } from '@shared/schema';
 
 export class TicketTemplateRepository {
   constructor(private schemaManager: any) {}

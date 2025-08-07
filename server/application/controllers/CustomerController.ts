@@ -4,7 +4,7 @@ import { CreateCustomerUseCase, CreateCustomerRequest } from "../usecases/Create
 import { GetCustomersUseCase, GetCustomersRequest } from "../usecases/GetCustomersUseCase";
 import { CustomerRepository } from "../../infrastructure/repositories/CustomerRepository";
 import { DomainEventPublisher } from "../../infrastructure/events/DomainEventPublisher";
-import { insertCustomerSchema } from "../../../shared/schema";
+import { insertCustomerSchema } from '@shared/schema';
 import { sendSuccess, sendError, sendValidationError } from "../../utils/standardResponse";
 
 export class CustomerController {

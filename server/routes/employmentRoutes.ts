@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import { drizzle } from 'drizzle-orm/neon-http';
 import { neon } from '@neondatabase/serverless';
 import { eq } from 'drizzle-orm';
-import { users } from '../../shared/schema-master';
+import { users } from '@shared/schema';
 import { jwtAuth as authenticateToken } from '../middleware/jwtAuth';
 
 const router = Router();

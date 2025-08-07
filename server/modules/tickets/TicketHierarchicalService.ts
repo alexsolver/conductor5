@@ -11,7 +11,7 @@ import {
   InsertTicketCategory,
   InsertTicketSubcategory,
   InsertTicketAction
-} from '../../../shared/schema.js';
+} from '@shared/schema';
 
 export class TicketHierarchicalService {
 

@@ -1,6 +1,6 @@
 import { eq, and, like, desc } from 'drizzle-orm';
 import { db } from '../../../../db';
-import { skills } from '../../../../../shared/schema-master';
+import { skills } from '@shared/schema';
 import type { ISkillRepository } from '../../domain/repositories/ISkillRepository';
 import { Skill, SkillEntity } from '../../domain/entities/Skill';
 

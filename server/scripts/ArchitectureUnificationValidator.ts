@@ -56,7 +56,7 @@ export class ArchitectureUnificationValidator {
     const proxyPath = join(process.cwd(), 'shared/schema.ts');
     if (existsSync(proxyPath)) {
       const content = readFileSync(proxyPath, 'utf8');
-      if (!content.includes('export * from "./schema-master"')) {
+      if (!content.includes('export * from '@shared/schema';')) {
         issues.push('❌ PROXY: shared/schema.ts não re-exporta corretamente');
       } else {
         console.log('✅ Proxy re-export configurado corretamente');

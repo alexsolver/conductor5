@@ -187,7 +187,7 @@ async function createTicketConfigTables() {
 console.log('🔧 CREATING TICKET METADATA CONFIGURATION TABLES...');
 
 import { db } from '../db.js';
-import { ticketFieldConfigurations, ticketFieldOptions } from '../../shared/schema.js';
+import { ticketFieldConfigurations, ticketFieldOptions } from '@shared/schema';
 
 async function createTicketMetadataConfigTables() {
   console.log('🔧 Creating ticket metadata configuration tables...');

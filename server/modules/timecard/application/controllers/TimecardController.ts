@@ -3,7 +3,7 @@ import { DrizzleTimecardRepository } from '../../infrastructure/repositories/Dri
 import { Request, Response } from 'express';
 import { z } from 'zod';
 import { db } from '../../../../db';
-import { timecardEntries, workSchedules } from '../../../../../shared/schema-master';
+import { timecardEntries, workSchedules } from '@shared/schema';
 import { 
   createTimecardEntrySchema,
   createAbsenceRequestSchema,

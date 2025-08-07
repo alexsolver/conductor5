@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth.js';
 import { db } from '../db.js';
-import { ticketFieldConfigurations, ticketFieldOptions, ticketStyleConfigurations } from '../../shared/schema.js';
+import { ticketFieldConfigurations, ticketFieldOptions, ticketStyleConfigurations } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 
 const router = Router();

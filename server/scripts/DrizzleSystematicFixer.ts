@@ -136,11 +136,11 @@ export class DrizzleSystematicFixer {
     const schemaPath = join(process.cwd(), 'shared', 'schema.ts');
     const content = readFileSync(schemaPath, 'utf-8');
 
-    if (!content.includes('export * from "./schema-master"')) {
+    if (!content.includes('export * from '@shared/schema';')) {
       const newContent = `// UNIFIED SCHEMA - SINGLE SOURCE OF TRUTH
 // Re-exports from schema-master.ts as the authoritative source
 
-export * from "./schema-master";
+export * from '@shared/schema';
 
 // This file serves as the single entry point for all schema definitions
 // All imports should use: import { ... } from '@shared/schema'
@@ -253,8 +253,8 @@ ${content}`;
       { from: /@shared\/schema\/index/g, to: '../../shared/schema.js' },
       { from: /shared\/schema-master/g, to: '../../shared/schema.js' },
       { from: /shared\/schema\/index/g, to: '../../shared/schema.js' },
-      { from: /from "\.\.\/\.\.\/shared\/schema-master"/g, to: 'from "../../shared/schema.js"' },
-      { from: /from "\.\.\/shared\/schema-master"/g, to: 'from "../../shared/schema.js"' },
+      { from: /from '@shared/schema';' },
+      { from: /from '@shared/schema';' },
       { from: /} from '@shared\/schema';/g, to: '} from \'../../shared/schema.js\';' }
     ];
 

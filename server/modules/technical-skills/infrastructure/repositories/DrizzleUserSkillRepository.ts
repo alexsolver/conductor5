@@ -1,6 +1,6 @@
 import { eq, and, gte, desc, count, asc, sql } from 'drizzle-orm';
 import { db } from '../../../../db';
-import { userSkills, skills as technicalSkills, users, qualityCertifications } from '../../../../../shared/schema-master';
+import { userSkills, skills as technicalSkills, users, qualityCertifications } from '@shared/schema';
 import type { IUserSkillRepository } from '../../domain/repositories/IUserSkillRepository';
 
 export class DrizzleUserSkillRepository implements IUserSkillRepository {

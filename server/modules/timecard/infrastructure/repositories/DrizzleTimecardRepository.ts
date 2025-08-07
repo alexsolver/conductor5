@@ -4,7 +4,7 @@ import {
   timecardEntries,
   hourBankEntries, 
   users
-} from '../../../../../shared/schema-master';
+} from '@shared/schema';
 
 export interface TimecardRepository {
   // Timecard Entries
