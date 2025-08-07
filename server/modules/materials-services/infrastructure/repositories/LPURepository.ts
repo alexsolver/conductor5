@@ -20,10 +20,10 @@ export class LPURepository {
     if (!db) {
       throw new Error('Database connection is required but was not provided');
     }
-    
+
     this.db = db;
     console.log('🔌 LPURepository: Database connection assigned successfully');
-    
+
     // Test connection synchronously for immediate feedback
     this.validateConnection();
   }
@@ -31,15 +31,15 @@ export class LPURepository {
   private validateConnection() {
     try {
       console.log('🔌 LPURepository: Validating database connection...');
-      
+
       if (!this.db) {
         throw new Error('Database connection is null or undefined');
       }
-      
+
       if (typeof this.db.select !== 'function') {
         throw new Error('Database connection does not have required methods');
       }
-      
+
       console.log('✅ LPURepository: Database connection validation successful');
     } catch (error) {
       console.error('❌ LPURepository: Database connection validation failed:', error);
@@ -90,28 +90,52 @@ export class LPURepository {
   }
 
   // GESTÃO DE LISTAS DE PREÇOS
-  async getAllPriceLists(tenantId: string) {
-    return await this.db
-      .select({
-        id: priceLists.id,
-        tenantId: priceLists.tenantId,
-        name: priceLists.name,
-        code: priceLists.code,
-        description: priceLists.description,
-        version: priceLists.version,
-        isActive: priceLists.isActive,
-        companyId: priceLists.companyId,
-        validFrom: priceLists.validFrom,
-        validTo: priceLists.validTo,
-        currency: priceLists.currency,
-        notes: priceLists.notes,
-        createdAt: priceLists.createdAt,
-        updatedAt: priceLists.updatedAt,
-        createdBy: priceLists.createdBy,
-      })
-      .from(priceLists)
-      .where(eq(priceLists.tenantId, tenantId))
-      .orderBy(desc(priceLists.createdAt));
+  async getAllPriceLists(tenantId: string): Promise<any[]> {
+    try {
+      console.log('🔍 LPURepository.getAllPriceLists: Starting query for tenant:', tenantId);
+
+      if (!tenantId) {
+        throw new Error('Tenant ID is required');
+      }
+
+      if (!this.db) {
+        throw new Error('Database connection not available');
+      }
+
+      console.log('🔍 LPURepository.getAllPriceLists: Executing query...');
+
+      const result = await this.db
+        .select({
+          id: priceLists.id,
+          name: priceLists.name,
+          code: priceLists.code,
+          description: priceLists.description,
+          version: priceLists.version,
+          customerId: priceLists.customerId,
+          customerCompanyId: priceLists.customerCompanyId,
+          contractId: priceLists.contractId,
+          costCenterId: priceLists.costCenterId,
+          validFrom: priceLists.validFrom,
+          validTo: priceLists.validTo,
+          isActive: priceLists.isActive,
+          currency: priceLists.currency,
+          automaticMargin: priceLists.automaticMargin,
+          notes: priceLists.notes,
+          createdAt: priceLists.createdAt,
+          updatedAt: priceLists.updatedAt
+        })
+        .from(priceLists)
+        .where(eq(priceLists.tenantId, tenantId))
+        .orderBy(desc(priceLists.createdAt));
+
+      console.log('✅ LPURepository.getAllPriceLists: Query successful, found', result.length, 'price lists');
+      return result;
+
+    } catch (error) {
+      console.error('❌ LPURepository.getAllPriceLists: Database error:', error);
+      console.error('❌ LPURepository.getAllPriceLists: Stack:', error.stack);
+      throw new Error(`Failed to fetch price lists: ${error.message}`);
+    }
   }
 
   async getPriceListById(id: string, tenantId: string) {
@@ -256,24 +280,45 @@ export class LPURepository {
   }
 
   // REGRAS DE PRECIFICAÇÃO
-  async getAllPricingRules(tenantId: string) {
-    return await this.db
-      .select({
-        id: pricingRules.id,
-        tenantId: pricingRules.tenantId,
-        name: pricingRules.name,
-        description: pricingRules.description,
-        ruleType: pricingRules.ruleType,
-        conditions: pricingRules.conditions,
-        actions: pricingRules.actions,
-        priority: pricingRules.priority,
-        isActive: pricingRules.isActive,
-        createdAt: pricingRules.createdAt,
-        updatedAt: pricingRules.updatedAt,
-      })
-      .from(pricingRules)
-      .where(eq(pricingRules.tenantId, tenantId))
-      .orderBy(desc(pricingRules.priority), asc(pricingRules.name));
+  async getAllPricingRules(tenantId: string): Promise<any[]> {
+    try {
+      console.log('🔍 LPURepository.getAllPricingRules: Starting query for tenant:', tenantId);
+
+      if (!tenantId) {
+        throw new Error('Tenant ID is required');
+      }
+
+      if (!this.db) {
+        throw new Error('Database connection not available');
+      }
+
+      console.log('🔍 LPURepository.getAllPricingRules: Executing query...');
+
+      const result = await this.db
+        .select({
+          id: pricingRules.id,
+          name: pricingRules.name,
+          description: pricingRules.description,
+          ruleType: pricingRules.ruleType,
+          conditions: pricingRules.conditions,
+          actions: pricingRules.actions,
+          priority: pricingRules.priority,
+          isActive: pricingRules.isActive,
+          createdAt: pricingRules.createdAt,
+          updatedAt: pricingRules.updatedAt
+        })
+        .from(pricingRules)
+        .where(eq(pricingRules.tenantId, tenantId))
+        .orderBy(desc(pricingRules.priority), desc(pricingRules.createdAt));
+
+      console.log('✅ LPURepository.getAllPricingRules: Query successful, found', result.length, 'pricing rules');
+      return result;
+
+    } catch (error) {
+      console.error('❌ LPURepository.getAllPricingRules: Database error:', error);
+      console.error('❌ LPURepository.getAllPricingRules: Stack:', error.stack);
+      throw new Error(`Failed to fetch pricing rules: ${error.message}`);
+    }
   }
 
   async createPricingRule(data: InsertPricingRule) {
