@@ -293,7 +293,7 @@ export class TicketMaterialsController {
         return sendError(res, 'Missing tenant ID or ticket ID', 'Missing tenant ID or ticket ID', 400);
       }
 
-      // Get item details before deletion for audit
+      // Get item details before deletion for audit - using planned item ID, not item ID
       const plannedItemToDelete = await db
         .select({
           planned: ticketPlannedItems,
@@ -304,7 +304,7 @@ export class TicketMaterialsController {
         .where(and(
           eq(ticketPlannedItems.tenantId, tenantId),
           eq(ticketPlannedItems.ticketId, ticketId),
-          eq(ticketPlannedItems.itemId, itemId)
+          eq(ticketPlannedItems.id, itemId) // Use planned item ID, not item ID
         ))
         .limit(1);
 
@@ -317,7 +317,7 @@ export class TicketMaterialsController {
         .where(and(
           eq(ticketPlannedItems.tenantId, tenantId),
           eq(ticketPlannedItems.ticketId, ticketId),
-          eq(ticketPlannedItems.itemId, itemId)
+          eq(ticketPlannedItems.id, itemId) // Use planned item ID, not item ID
         ))
         .returning();
 
@@ -483,7 +483,7 @@ export class TicketMaterialsController {
         return sendError(res, 'Missing tenant ID or ticket ID', 'Missing tenant ID or ticket ID', 400);
       }
 
-      // Get item details before deletion for audit
+      // Get item details before deletion for audit - using consumed item ID, not item ID
       const consumedItemToDelete = await db
         .select({
           consumed: ticketConsumedItems,
@@ -494,7 +494,7 @@ export class TicketMaterialsController {
         .where(and(
           eq(ticketConsumedItems.tenantId, tenantId),
           eq(ticketConsumedItems.ticketId, ticketId),
-          eq(ticketConsumedItems.itemId, itemId)
+          eq(ticketConsumedItems.id, itemId) // Use consumed item ID, not item ID
         ))
         .limit(1);
 
@@ -507,7 +507,7 @@ export class TicketMaterialsController {
         .where(and(
           eq(ticketConsumedItems.tenantId, tenantId),
           eq(ticketConsumedItems.ticketId, ticketId),
-          eq(ticketConsumedItems.itemId, itemId)
+          eq(ticketConsumedItems.id, itemId) // Use consumed item ID, not item ID
         ))
         .returning();
 
