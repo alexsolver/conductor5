@@ -195,6 +195,10 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
   const consumedMaterials = consumedData?.data?.consumedItems || [];
   const costs = costsData?.data || {};
 
+  // Enhanced error handling
+  const hasDataError = isItemsError || isAvailableItemsError || isPlannedError || isConsumedError || isCostsError;
+  const isAnyLoading = isItemsLoading || isAvailableItemsLoading || isPlannedLoading || isConsumedLoading || isCostsLoading;
+
   const handleAddPlanned = () => {
     if (!selectedItem || !quantity) {
       toast({ title: "Selecione um item e informe a quantidade", variant: "destructive" });

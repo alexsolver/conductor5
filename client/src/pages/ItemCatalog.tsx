@@ -799,9 +799,10 @@ export default function ItemCatalog() {
                 </div>
               ))}
             </div>
+          )}
 
-            {/* Paginação */}
-            {totalPages > 1 && (
+          {/* Paginação */}
+          {totalPages > 1 && (
               <div className="flex items-center justify-between mt-6">
                 <div className="text-sm text-gray-500">
                   Mostrando {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, filteredItems.length)} de {filteredItems.length} itens

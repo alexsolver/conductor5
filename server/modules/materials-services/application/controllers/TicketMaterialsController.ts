@@ -1,9 +1,9 @@
 import type { Response, Request } from 'express';
 import { db } from '../../../../db-tenant';
-import { 
-  ticketLpuSettings, 
-  ticketPlannedItems, 
-  ticketConsumedItems, 
+import {
+  ticketLpuSettings,
+  ticketPlannedItems,
+  ticketConsumedItems,
   ticketCostsSummary
 } from '../../../../../shared/schema-master';
 import { items } from '../../../../../shared/schema-master';
@@ -11,6 +11,7 @@ import { eq, and, desc, sum, sql, alias } from 'drizzle-orm';
 import { sendSuccess, sendError } from '../../../../utils/standardResponse';
 import type { AuthenticatedRequest } from '../../../../middleware/jwtAuth';
 import schemaManager from '../../../../utils/schemaManager';
+import * as crypto from 'crypto';
 
 
 // Import audit function
@@ -36,7 +37,7 @@ async function createCompleteAuditEntry(
     const userName = userResult.rows[0]?.full_name || 'Unknown User';
 
     await pool.query(`
-      INSERT INTO "${schemaName}".ticket_history 
+      INSERT INTO "${schemaName}".ticket_history
       (tenant_id, ticket_id, action_type, description, performed_by, performed_by_name, ip_address, user_agent, session_id, created_at, metadata)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), $10)
     `, [
@@ -102,7 +103,7 @@ export class TicketMaterialsController {
       // Deactivate existing LPU settings
       await db
         .update(ticketLpuSettings)
-        .set({ 
+        .set({
           isActive: false,
           updatedAt: new Date()
         })
@@ -289,7 +290,7 @@ export class TicketMaterialsController {
 
       await db
         .update(ticketPlannedItems)
-        .set({ 
+        .set({
           isActive: false,
           updatedAt: new Date()
         })
@@ -494,7 +495,7 @@ export class TicketMaterialsController {
 
       await db
         .update(ticketConsumedItems)
-        .set({ 
+        .set({
           isActive: false,
           updatedAt: new Date()
         })
@@ -625,7 +626,7 @@ export class TicketMaterialsController {
         .from(ticketPlannedItems)
         .leftJoin(items, eq(ticketPlannedItems.itemId, items.id))
         .leftJoin(
-          ticketConsumedItems, 
+          ticketConsumedItems,
           and(
             eq(ticketConsumedItems.plannedItemId, ticketPlannedItems.id),
             eq(ticketConsumedItems.isActive, true)
@@ -652,6 +653,242 @@ export class TicketMaterialsController {
     } catch (error) {
       console.error('Error fetching available items for consumption:', error);
       return sendError(res, error as Error, 'Failed to retrieve available items');
+    }
+  }
+
+  // Get item links
+  async getItemLinks(req: Request, res: Response) {
+    try {
+      const { itemId } = req.params;
+      const tenantId = req.user?.tenantId;
+
+      if (!tenantId) {
+        return res.status(400).json({ success: false, message: 'Tenant ID is required' });
+      }
+
+      const result = await this.repository.getItemLinks(tenantId, itemId);
+
+      res.json({
+        success: true,
+        data: result || []
+      });
+    } catch (error) {
+      console.error('Error fetching item links:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch item links',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
+  // Create item link
+  async createItemLink(req: Request, res: Response) {
+    try {
+      const tenantId = req.user?.tenantId;
+      const { sourceItemId, targetItemId, linkType, quantity, description } = req.body;
+
+      if (!tenantId) {
+        return res.status(400).json({ success: false, message: 'Tenant ID is required' });
+      }
+
+      if (!sourceItemId || !targetItemId || !linkType) {
+        return res.status(400).json({
+          success: false,
+          message: 'Source item, target item, and link type are required'
+        });
+      }
+
+      const linkData = {
+        id: crypto.randomUUID(),
+        sourceItemId,
+        targetItemId,
+        linkType,
+        quantity: quantity || 1,
+        description: description || '',
+        tenantId,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      const result = await this.repository.createItemLink(linkData);
+
+      res.status(201).json({
+        success: true,
+        data: result,
+        message: 'Item link created successfully'
+      });
+    } catch (error) {
+      console.error('Error creating item link:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to create item link',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
+  // Delete item link
+  async deleteItemLink(req: Request, res: Response) {
+    try {
+      const { linkId } = req.params;
+      const tenantId = req.user?.tenantId;
+
+      if (!tenantId) {
+        return res.status(400).json({ success: false, message: 'Tenant ID is required' });
+      }
+
+      await this.repository.deleteItemLink(tenantId, linkId);
+
+      res.json({
+        success: true,
+        message: 'Item link deleted successfully'
+      });
+    } catch (error) {
+      console.error('Error deleting item link:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to delete item link',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
+  // Create customer personalization
+  async createCustomerPersonalization(req: Request, res: Response) {
+    try {
+      const tenantId = req.user?.tenantId;
+      const { itemId, customerId, customSku, customName, customDescription } = req.body;
+
+      if (!tenantId || !itemId || !customerId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Tenant ID, item ID, and customer ID are required'
+        });
+      }
+
+      const personalizationData = {
+        id: crypto.randomUUID(),
+        itemId,
+        customerId,
+        customSku: customSku || '',
+        customName: customName || '',
+        customDescription: customDescription || '',
+        isActive: true,
+        tenantId,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      const result = await this.repository.createCustomerPersonalization(personalizationData);
+
+      res.status(201).json({
+        success: true,
+        data: result,
+        message: 'Customer personalization created successfully'
+      });
+    } catch (error) {
+      console.error('Error creating customer personalization:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to create customer personalization',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
+  // Get customer personalizations
+  async getCustomerPersonalizations(req: Request, res: Response) {
+    try {
+      const { itemId } = req.params;
+      const tenantId = req.user?.tenantId;
+
+      if (!tenantId) {
+        return res.status(400).json({ success: false, message: 'Tenant ID is required' });
+      }
+
+      const result = await this.repository.getCustomerPersonalizations(tenantId, itemId);
+
+      res.json({
+        success: true,
+        data: result || []
+      });
+    } catch (error) {
+      console.error('Error fetching customer personalizations:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch customer personalizations',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
+  // Create supplier link
+  async createSupplierLink(req: Request, res: Response) {
+    try {
+      const tenantId = req.user?.tenantId;
+      const { itemId, supplierId, price, currency, leadTime, isPreferred } = req.body;
+
+      if (!tenantId || !itemId || !supplierId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Tenant ID, item ID, and supplier ID are required'
+        });
+      }
+
+      const supplierLinkData = {
+        id: crypto.randomUUID(),
+        itemId,
+        supplierId,
+        price: price || 0,
+        currency: currency || 'BRL',
+        leadTime: leadTime || 0,
+        isPreferred: isPreferred || false,
+        tenantId,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      const result = await this.repository.createSupplierLink(supplierLinkData);
+
+      res.status(201).json({
+        success: true,
+        data: result,
+        message: 'Supplier link created successfully'
+      });
+    } catch (error) {
+      console.error('Error creating supplier link:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to create supplier link',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
+  // Get supplier links
+  async getSupplierLinks(req: Request, res: Response) {
+    try {
+      const { itemId } = req.params;
+      const tenantId = req.user?.tenantId;
+
+      if (!tenantId) {
+        return res.status(400).json({ success: false, message: 'Tenant ID is required' });
+      }
+
+      const result = await this.repository.getSupplierLinks(tenantId, itemId);
+
+      res.json({
+        success: true,
+        data: result || []
+      });
+    } catch (error) {
+      console.error('Error fetching supplier links:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch supplier links',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   }
 }
