@@ -54,6 +54,13 @@ export const schemaManager = {
 
       const tableCount = parseInt(result.rows[0]?.table_count || "0");
 
+      // Core tenant tables for validation
+      const requiredTables = [
+        'users', 'tickets', 'customers', 'beneficiaries', 'companies', 
+        'items', 'price_lists', 'pricing_rules', 'user_groups', 'locations', 
+        'ticket_field_options', 'ticket_metadata', 'timecard_entries', 'user_skills', 'skills'
+      ];
+
       // Check for core tables
       const coreResult = await pool.query(`
         SELECT COUNT(*) as core_table_count 

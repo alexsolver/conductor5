@@ -86,11 +86,30 @@ export default function LPUManagement() {
   const [isCreateListOpen, setIsCreateListOpen] = useState(false);
   const [isCreateRuleOpen, setIsCreateRuleOpen] = useState(false);
   const [selectedList, setSelectedList] = useState<PriceList | null>(null);
+  const [newPriceList, setNewPriceList] = useState({
+    name: '',
+    code: '',
+    version: '1.0',
+    currency: 'BRL',
+    automaticMargin: '',
+    validFrom: '',
+    validTo: '',
+    notes: ''
+  });
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   // Fetch price lists
-  const { data: priceLists = [], isLoading: listsLoading } = useQuery({
+  const { data: priceLists = [], isLoading: listsLoading, error: listsError } = useQuery<PriceList[]>({
     queryKey: ['/api/materials-services/price-lists'],
-    queryFn: () => apiRequest('GET', '/api/materials-services/price-lists')
+    queryFn: () => apiRequest('GET', '/api/materials-services/price-lists'),
+    onError: (error) => {
+      console.error('Error fetching price lists:', error);
+      toast({ 
+        title: 'Erro ao carregar listas de preços', 
+        description: 'Verifique sua conexão e tente novamente',
+        variant: 'destructive' 
+      });
+    }
   });
 
   // Fetch LPU stats with error handling
@@ -110,16 +129,32 @@ export default function LPUManagement() {
   });
 
   // Fetch pricing rules
-  const { data: pricingRules = [] } = useQuery<PricingRule[]>({
+  const { data: pricingRules = [], isLoading: rulesLoading, error: rulesError } = useQuery<PricingRule[]>({
     queryKey: ['/api/materials-services/pricing-rules'],
-    queryFn: () => apiRequest('GET', '/api/materials-services/pricing-rules')
+    queryFn: () => apiRequest('GET', '/api/materials-services/pricing-rules'),
+    onError: (error) => {
+      console.error('Error fetching pricing rules:', error);
+      toast({ 
+        title: 'Erro ao carregar regras de precificação', 
+        description: 'Verifique sua conexão e tente novamente',
+        variant: 'destructive' 
+      });
+    }
   });
 
   // Fetch versions for selected list
-  const { data: versions = [] } = useQuery<PriceListVersion[]>({
+  const { data: versions = [], isLoading: versionsLoading, error: versionsError } = useQuery<PriceListVersion[]>({
     queryKey: ['/api/materials-services/price-lists', selectedList?.id, 'versions'],
     queryFn: () => apiRequest('GET', `/api/materials-services/price-lists/${selectedList?.id}/versions`),
-    enabled: !!selectedList
+    enabled: !!selectedList,
+    onError: (error) => {
+      console.error('Error fetching versions:', error);
+      toast({ 
+        title: 'Erro ao carregar versões da lista', 
+        description: 'Verifique sua conexão e tente novamente',
+        variant: 'destructive' 
+      });
+    }
   });
 
   // Create price list mutation
@@ -127,8 +162,11 @@ export default function LPUManagement() {
     mutationFn: (data: any) => apiRequest('POST', '/api/materials-services/price-lists', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/materials-services/price-lists'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/materials-services/price-lists/stats'] });
-      setIsCreateListOpen(false);
+      queryClient.invalidateQueries({ queryKey: ['/api/materials-services/lpu/stats'] });
+      setIsCreateDialogOpen(false);
+      setNewPriceList({
+        name: '', code: '', version: '1.0', currency: 'BRL', automaticMargin: '', validFrom: '', validTo: '', notes: ''
+      });
       toast({ title: 'Lista de preços criada com sucesso!' });
     },
     onError: () => {
@@ -153,7 +191,7 @@ export default function LPUManagement() {
   const submitApprovalMutation = useMutation({
     mutationFn: (versionId: string) => apiRequest('POST', `/api/materials-services/price-lists/versions/${versionId}/submit`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/materials-services/price-lists'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/materials-services/price-lists', selectedList?.id, 'versions'] });
       toast({ title: 'Lista enviada para aprovação!' });
     },
     onError: () => {
@@ -165,7 +203,7 @@ export default function LPUManagement() {
   const approveMutation = useMutation({
     mutationFn: (versionId: string) => apiRequest('POST', `/api/materials-services/price-lists/versions/${versionId}/approve`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/materials-services/price-lists'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/materials-services/price-lists', selectedList?.id, 'versions'] });
       toast({ title: 'Lista aprovada com sucesso!' });
     },
     onError: () => {
@@ -216,6 +254,20 @@ export default function LPUManagement() {
     return <Badge variant="outline">{labels[type as keyof typeof labels] || type}</Badge>;
   };
 
+  const handleCreateList = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newPriceList.name || !newPriceList.validFrom) {
+      toast({ title: 'Por favor, preencha os campos obrigatórios.', variant: 'destructive' });
+      return;
+    }
+    createPriceListMutation.mutate({
+      ...newPriceList,
+      automaticMargin: newPriceList.automaticMargin ? parseFloat(newPriceList.automaticMargin) : undefined,
+      validFrom: newPriceList.validFrom || undefined,
+      validTo: newPriceList.validTo || undefined,
+    });
+  };
+
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
       <div className="flex justify-between items-center">
@@ -225,11 +277,15 @@ export default function LPUManagement() {
         </div>
 
         <div className="flex gap-2">
-          <Dialog open={isCreateListOpen} onOpenChange={setIsCreateListOpen}>
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
-              <Button>
-                <Plus className="w-4 h-4 mr-2" />
-                Nova Lista
+              <Button 
+                variant="default" 
+                onClick={() => setIsCreateDialogOpen(true)}
+                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium"
+              >
+                <Plus className="h-4 w-4" />
+                Nova Lista de Preços
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-2xl">
@@ -239,39 +295,38 @@ export default function LPUManagement() {
                   Configure uma nova lista de preços com parâmetros específicos
                 </DialogDescription>
               </DialogHeader>
-              <form onSubmit={(e) => {
-                e.preventDefault();
-                const formData = new FormData(e.currentTarget);
-                createPriceListMutation.mutate({
-                  name: formData.get('name'),
-                  code: formData.get('code'),
-                  version: formData.get('version'),
-                  currency: formData.get('currency'),
-                  automaticMargin: formData.get('automaticMargin'),
-                  validFrom: formData.get('validFrom'),
-                  validTo: formData.get('validTo'),
-                  notes: formData.get('notes')
-                });
-              }} className="space-y-4">
+              <form onSubmit={handleCreateList} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="name">Nome da Lista *</Label>
-                    <Input name="name" required placeholder="Ex: Lista Comercial 2025" />
+                    <Label htmlFor="name" className="text-sm font-medium">
+                      Nome da Lista <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="name"
+                      value={newPriceList.name}
+                      onChange={(e) => setNewPriceList(prev => ({ ...prev, name: e.target.value }))}
+                      placeholder="Ex: Lista Comercial 2025"
+                      className={newPriceList.name.length === 0 ? "border-red-300 focus:border-red-500" : ""}
+                      required
+                    />
+                    {newPriceList.name.length === 0 && (
+                      <p className="text-xs text-red-600">Nome é obrigatório</p>
+                    )}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="code">Código *</Label>
-                    <Input name="code" required placeholder="Ex: LC2025" />
+                    <Label htmlFor="code">Código</Label>
+                    <Input name="code" value={newPriceList.code} onChange={(e) => setNewPriceList(prev => ({ ...prev, code: e.target.value }))} placeholder="Ex: LC2025" />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="version">Versão</Label>
-                    <Input name="version" defaultValue="1.0" placeholder="1.0" />
+                    <Input name="version" value={newPriceList.version} onChange={(e) => setNewPriceList(prev => ({ ...prev, version: e.target.value }))} placeholder="1.0" />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="currency">Moeda</Label>
-                    <Select name="currency" defaultValue="BRL">
+                    <Select name="currency" value={newPriceList.currency} onValueChange={(value) => setNewPriceList(prev => ({ ...prev, currency: value }))}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -284,28 +339,33 @@ export default function LPUManagement() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="automaticMargin">Margem Automática (%)</Label>
-                    <Input name="automaticMargin" type="number" step="0.01" placeholder="0.00" />
+                    <Input name="automaticMargin" value={newPriceList.automaticMargin} onChange={(e) => setNewPriceList(prev => ({ ...prev, automaticMargin: e.target.value }))} type="number" step="0.01" placeholder="0.00" />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="validFrom">Válido De *</Label>
-                    <Input name="validFrom" type="date" required />
+                    <Label htmlFor="validFrom" className="text-sm font-medium">
+                      Válido De <span className="text-red-500">*</span>
+                    </Label>
+                    <Input name="validFrom" value={newPriceList.validFrom} onChange={(e) => setNewPriceList(prev => ({ ...prev, validFrom: e.target.value }))} type="date" required />
+                    {newPriceList.validFrom.length === 0 && (
+                      <p className="text-xs text-red-600">Data de início é obrigatória</p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="validTo">Válido Até</Label>
-                    <Input name="validTo" type="date" />
+                    <Input name="validTo" value={newPriceList.validTo} onChange={(e) => setNewPriceList(prev => ({ ...prev, validTo: e.target.value }))} type="date" />
                   </div>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="notes">Observações</Label>
-                  <Textarea name="notes" placeholder="Informações adicionais sobre esta lista..." />
+                  <Textarea name="notes" value={newPriceList.notes} onChange={(e) => setNewPriceList(prev => ({ ...prev, notes: e.target.value }))} placeholder="Informações adicionais sobre esta lista..." />
                 </div>
 
                 <div className="flex justify-end space-x-2 pt-4">
-                  <Button type="button" variant="outline" onClick={() => setIsCreateListOpen(false)}>
+                  <Button type="button" variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={createPriceListMutation.isPending}>
@@ -406,70 +466,73 @@ export default function LPUManagement() {
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Listas</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.totalLists || 0}</div>
-            <p className="text-xs text-muted-foreground">
-              {stats?.activeLists || 0} listas ativas
-            </p>
-          </CardContent>
-        </Card>
+      <div className="px-6">
+          {/* Statistics Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-6 mb-6">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total de Listas</CardTitle>
+                <FileText className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats?.totalLists || 0}</div>
+                <p className="text-xs text-muted-foreground">
+                  {stats?.activeLists || 0} listas ativas
+                </p>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pendente Aprovação</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.pendingApproval || 0}</div>
-            <p className="text-xs text-muted-foreground">
-              aguardando análise
-            </p>
-          </CardContent>
-        </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Pendente Aprovação</CardTitle>
+                <Clock className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats?.pendingApproval || 0}</div>
+                <p className="text-xs text-muted-foreground">
+                  aguardando análise
+                </p>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Taxa de Aprovação</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.approvalRate || 0}%</div>
-            <p className="text-xs text-muted-foreground">
-              {stats?.approvedVersions || 0} aprovadas
-            </p>
-          </CardContent>
-        </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Taxa de Aprovação</CardTitle>
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats?.approvalRate?.toFixed(2) || 0}%</div>
+                <p className="text-xs text-muted-foreground">
+                  {stats?.approvedVersions || 0} aprovadas
+                </p>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Regras Ativas</CardTitle>
-            <Settings className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.activeRules || 0}</div>
-            <p className="text-xs text-muted-foreground">
-              regras configuradas
-            </p>
-          </CardContent>
-        </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Regras Ativas</CardTitle>
+                <Settings className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats?.activeRules || 0}</div>
+                <p className="text-xs text-muted-foreground">
+                  regras configuradas
+                </p>
+              </CardContent>
+            </Card>
+          </div>
       </div>
 
       {/* Main Content Tabs */}
-      <Tabs defaultValue="lists" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="lists">Listas de Preços</TabsTrigger>
-          <TabsTrigger value="versions">Versionamento</TabsTrigger>
+      <Tabs defaultValue="price-lists" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2 bg-gray-100">
+          <TabsTrigger value="price-lists" className="data-[state=active]:bg-white">Listas de Preços</TabsTrigger>
           <TabsTrigger value="rules">Regras de Precificação</TabsTrigger>
-          <TabsTrigger value="dynamic">Precificação Dinâmica</TabsTrigger>
+          <TabsTrigger value="versions">Versionamento</TabsTrigger>
+          <TabsTrigger value="dynamic-pricing">Precificação Dinâmica</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="lists" className="space-y-4">
+        <TabsContent value="price-lists" className="space-y-6">
           {/* Filters */}
           <div className="flex gap-4">
             <div className="relative flex-1">
@@ -494,60 +557,113 @@ export default function LPUManagement() {
           </div>
 
           {/* Price Lists */}
-          <div className="grid gap-4">
-            {listsLoading ? (
-              <div className="text-center py-8">Carregando listas...</div>
-            ) : filteredPriceLists.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                Nenhuma lista encontrada
-              </div>
-            ) : (
-              filteredPriceLists.map((list: PriceList) => (
-                <Card key={list.id}>
-                  <CardContent className="p-6">
-                    <div className="flex justify-between items-start">
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-semibold">{list.name}</h3>
-                          <Badge variant={list.isActive ? 'default' : 'outline'}>
-                            {list.isActive ? 'Ativa' : 'Inativa'}
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                          Código: {list.code} | Versão: {list.version} | Moeda: {list.currency}
-                        </p>
-                        <div className="flex items-center gap-4 text-sm">
-                          <span>Válido: {new Date(list.validFrom).toLocaleDateString('pt-BR')}</span>
-                          {list.validTo && (
-                            <span>até {new Date(list.validTo).toLocaleDateString('pt-BR')}</span>
-                          )}
-                          {list.automaticMargin && (
-                            <span>Margem: {parseFloat(list.automaticMargin).toFixed(2)}%</span>
-                          )}
-                        </div>
-                      </div>
+          <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-gray-50">
+                        <TableHead className="font-semibold">Nome</TableHead>
+                        <TableHead className="font-semibold">Código</TableHead>
+                        <TableHead className="font-semibold">Versão</TableHead>
+                        <TableHead className="font-semibold">Moeda</TableHead>
+                        <TableHead className="font-semibold">Válido De</TableHead>
+                        <TableHead className="font-semibold">Válido Até</TableHead>
+                        <TableHead className="font-semibold">Status</TableHead>
+                        <TableHead className="font-semibold text-center">Ações</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {listsLoading ? (
+                        <TableRow>
+                          <TableCell colSpan={8} className="text-center py-12">
+                            <div className="flex items-center justify-center py-12">
+                              <div className="flex flex-col items-center space-y-4">
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                                <p className="text-gray-600 text-sm">Carregando listas de preços...</p>
+                              </div>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ) : listsError ? (
+                        <TableRow>
+                          <TableCell colSpan={8} className="text-center py-12">
+                            <div className="flex items-center justify-center py-12">
+                              <div className="flex flex-col items-center space-y-4 text-center">
+                                <div className="p-3 bg-red-100 rounded-full">
+                                  <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                </div>
+                                <div>
+                                  <p className="text-red-700 font-medium">Erro ao carregar dados</p>
+                                  <p className="text-red-600 text-sm mt-1">Verifique sua conexão e tente novamente</p>
+                                </div>
+                                <button 
+                                  onClick={() => window.location.reload()} 
+                                  className="px-4 py-2 text-sm bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                                >
+                                  Tentar Novamente
+                                </button>
+                              </div>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ) : filteredPriceLists.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={8} className="text-center py-12">
+                            <div className="flex flex-col items-center space-y-4">
+                              <div className="p-3 bg-gray-100 rounded-full">
+                                <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                              </div>
+                              <div className="text-center">
+                                <p className="text-gray-700 font-medium">Nenhuma lista de preços criada</p>
+                                <p className="text-gray-500 text-sm mt-1">Crie sua primeira lista de preços para começar</p>
+                              </div>
+                              <Button 
+                                variant="outline" 
+                                onClick={() => setIsCreateDialogOpen(true)}
+                                className="mt-2"
+                              >
+                                <Plus className="h-4 w-4 mr-2" />
+                                Criar Lista
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        filteredPriceLists.map((list) => (
+                          <TableRow key={list.id}>
+                            <TableCell className="font-medium">{list.name}</TableCell>
+                            <TableCell>{list.code}</TableCell>
+                            <TableCell>{list.version}</TableCell>
+                            <TableCell>{list.currency}</TableCell>
+                            <TableCell>{new Date(list.validFrom).toLocaleDateString('pt-BR')}</TableCell>
+                            <TableCell>{list.validTo ? new Date(list.validTo).toLocaleDateString('pt-BR') : '-'}</TableCell>
+                            <TableCell>{getStatusBadge(list.isActive ? 'active' : 'inactive')}</TableCell>
+                            <TableCell className="text-center">
+                              <div className="flex justify-center gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setSelectedList(list)}
+                                >
+                                  <FileText className="w-4 h-4 mr-1" />
+                                  Versões
+                                </Button>
 
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setSelectedList(list)}
-                        >
-                          <FileText className="w-4 h-4 mr-1" />
-                          Versões
-                        </Button>
-
-                        <Button variant="outline" size="sm">
-                          <DollarSign className="w-4 h-4 mr-1" />
-                          Itens
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
-            )}
-          </div>
+                                <Button variant="outline" size="sm">
+                                  <DollarSign className="w-4 h-4 mr-1" />
+                                  Itens
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
         </TabsContent>
 
         <TabsContent value="versions" className="space-y-4">
@@ -560,20 +676,47 @@ export default function LPUManagement() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {versions.length === 0 ? (
+                {versionsLoading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <div className="flex flex-col items-center space-y-4">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                      <p className="text-gray-600 text-sm">Carregando versões...</p>
+                    </div>
+                  </div>
+                ) : versionsError ? (
+                  <div className="flex items-center justify-center py-12">
+                    <div className="flex flex-col items-center space-y-4 text-center">
+                      <div className="p-3 bg-red-100 rounded-full">
+                        <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="text-red-700 font-medium">Erro ao carregar versões</p>
+                        <p className="text-red-600 text-sm mt-1">Verifique sua conexão e tente novamente</p>
+                      </div>
+                      <button 
+                        onClick={() => window.location.reload()} 
+                        className="px-4 py-2 text-sm bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                      >
+                        Tentar Novamente
+                      </button>
+                    </div>
+                  </div>
+                ) : versions.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
                     Nenhuma versão encontrada
                   </div>
                 ) : (
                   <Table>
                     <TableHeader>
-                      <TableRow>
-                        <TableHead>Versão</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Data Criação</TableHead>
-                        <TableHead>Data Aprovação</TableHead>
-                        <TableHead>Margem Base</TableHead>
-                        <TableHead>Ações</TableHead>
+                      <TableRow className="bg-gray-50">
+                        <TableHead className="font-semibold">Versão</TableHead>
+                        <TableHead className="font-semibold">Status</TableHead>
+                        <TableHead className="font-semibold">Data Criação</TableHead>
+                        <TableHead className="font-semibold">Data Aprovação</TableHead>
+                        <TableHead className="font-semibold">Margem Base</TableHead>
+                        <TableHead className="font-semibold text-center">Ações</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -593,8 +736,8 @@ export default function LPUManagement() {
                           <TableCell>
                             {version.baseMargin ? `${version.baseMargin}%` : '-'}
                           </TableCell>
-                          <TableCell>
-                            <div className="flex gap-2">
+                          <TableCell className="text-center">
+                            <div className="flex justify-center gap-2">
                               {version.status === 'draft' && (
                                 <Button
                                   variant="outline"
@@ -639,8 +782,41 @@ export default function LPUManagement() {
         </TabsContent>
 
         <TabsContent value="rules" className="space-y-4">
+          <div className="flex justify-end mb-4">
+            <Button variant="outline" onClick={() => setIsCreateRuleOpen(true)}>
+              <Plus className="w-4 h-4 mr-2" />
+              Nova Regra
+            </Button>
+          </div>
           <div className="grid gap-4">
-            {pricingRules.length === 0 ? (
+            {rulesLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="flex flex-col items-center space-y-4">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  <p className="text-gray-600 text-sm">Carregando regras...</p>
+                </div>
+              </div>
+            ) : rulesError ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="flex flex-col items-center space-y-4 text-center">
+                  <div className="p-3 bg-red-100 rounded-full">
+                    <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-red-700 font-medium">Erro ao carregar regras</p>
+                    <p className="text-red-600 text-sm mt-1">Verifique sua conexão e tente novamente</p>
+                  </div>
+                  <button 
+                    onClick={() => window.location.reload()} 
+                    className="px-4 py-2 text-sm bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                  >
+                    Tentar Novamente
+                  </button>
+                </div>
+              </div>
+            ) : pricingRules.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 Nenhuma regra configurada
               </div>
@@ -683,25 +859,50 @@ export default function LPUManagement() {
           </div>
         </TabsContent>
 
-        <TabsContent value="dynamic" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Precificação Dinâmica</CardTitle>
-              <CardDescription>
-                Sistema de ajuste automático de preços baseado em fatores de mercado
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                <TrendingUp className="w-12 h-12 mx-auto mb-4" />
-                <p>Módulo de precificação dinâmica em desenvolvimento</p>
-                <p className="text-sm mt-2">
-                  Fatores: demanda, sazonalidade, estoque, concorrência
-                </p>
+        <TabsContent value="dynamic-pricing" className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold">Precificação Dinâmica</h3>
+                  <p className="text-sm text-gray-600">Configure regras automáticas de precificação baseadas em critérios dinâmicos</p>
+                </div>
+                <Button 
+                  variant="outline"
+                  className="flex items-center gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  Nova Regra
+                </Button>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+
+              <Card>
+                <CardContent className="p-6">
+                  <div className="text-center py-12">
+                    <div className="flex flex-col items-center space-y-4">
+                      <div className="p-4 bg-blue-50 rounded-full">
+                        <svg className="w-12 h-12 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                      </div>
+                      <div className="text-center max-w-md">
+                        <h4 className="text-lg font-medium text-gray-900 mb-2">Precificação Inteligente</h4>
+                        <p className="text-gray-600 text-sm mb-4">
+                          Configure regras automáticas que ajustam preços baseados em fatores como demanda, 
+                          sazonalidade, margem de lucro e competitividade.
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                          <Button variant="default">
+                            Configurar Regras
+                          </Button>
+                          <Button variant="outline">
+                            Ver Exemplos
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
       </Tabs>
     </div>
   );
