@@ -56,6 +56,10 @@
 - ❌ **Problema**: `Parameter 'item' implicitly has an 'any' type`
 - ✅ **Solução**: Adicionado type annotations `(item: any) =>`
 
+### **6. Frontend Type Conversion - CORRIGIDO**
+- ❌ **Problema**: `costs.plannedCost?.toFixed is not a function` 
+- ✅ **Solução**: `parseFloat(costs.plannedCost || '0').toFixed(2)` para converter strings em números
+
 ## 📊 RESULTADOS FINAIS
 
 ### **Database Schema Status**
@@ -96,7 +100,8 @@ unit_price_at_consumption | numeric
 - ✅ **Authentication**: JWT working properly
 - ✅ **Cache**: Intelligent caching operational
 - ✅ **Drizzle ORM**: Schema consolidation complete
-- ✅ **LSP Diagnostics**: 6 remaining (non-blocking)
+- ✅ **Frontend**: Error crítico de tipos corrigido
+- ✅ **LSP Diagnostics**: 5 remaining (non-blocking)
 
 ### **LPU Integration Módulos**
 - ✅ **LPUController**: Pricing rules engine active

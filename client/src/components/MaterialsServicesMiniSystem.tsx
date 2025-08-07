@@ -297,14 +297,14 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
         <Card className="p-4 text-center border-purple-200 bg-purple-50">
           <h3 className="text-sm font-semibold text-purple-800">Custo Planejado</h3>
           <div className="text-xl font-bold text-purple-700 mt-2">
-            R$ {costs.plannedCost?.toFixed(2) || '0,00'}
+            R$ {parseFloat(costs.plannedCost || '0').toFixed(2) || '0,00'}
           </div>
         </Card>
 
         <Card className="p-4 text-center border-orange-200 bg-orange-50">
           <h3 className="text-sm font-semibold text-orange-800">Custo Real</h3>
           <div className="text-xl font-bold text-orange-700 mt-2">
-            R$ {costs.actualCost?.toFixed(2) || '0,00'}
+            R$ {parseFloat(costs.actualCost || '0').toFixed(2) || '0,00'}
           </div>
         </Card>
       </div>
