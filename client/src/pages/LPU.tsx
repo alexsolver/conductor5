@@ -1033,7 +1033,7 @@ export default function LPU() {
                       </div>
                       <div className="text-right">
                         <p className="text-sm font-medium">{Math.floor(Math.random() * 100) + 50}%</p>
-                        <p className="text-xs text-muted-foreground">utilização</p>
+                        <p className="text-sm text-muted-foreground">utilização</p>
                       </div>
                     </div>
                   ))}
@@ -1615,7 +1615,7 @@ function PriceListItemsView({
   const [itemToDelete, setItemToDelete] = useState<PriceListItem | null>(null);
 
   // Fetch available items from catalog
-  const { data: catalogItemsResponse = [] } = useQuery({
+  const { data: catalogItemsResponse, isLoading: catalogLoading } = useQuery({
     queryKey: ['/api/materials-services/items'],
     retry: 3,
     staleTime: 30000,
@@ -1707,7 +1707,7 @@ function PriceListItemsView({
         </div>
       </div>
 
-      {isLoading ? (
+      {isLoading || catalogLoading ? (
         <div className="text-center py-8">Carregando itens...</div>
       ) : items.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground">
@@ -1849,6 +1849,7 @@ function ApprovalWorkflowComponent({
 }) {
   const [selectedForApproval, setSelectedForApproval] = useState<string[]>([]);
   const [approvalNotes, setApprovalNotes] = useState('');
+  const { toast } = useToast();
 
   const pendingApprovals = priceLists.filter(list => !list.isActive);
 
@@ -1912,7 +1913,7 @@ function ApprovalWorkflowComponent({
             <Button
               className="flex-1 bg-green-600 hover:bg-green-700"
               onClick={() => {
-                // Simulate approval
+                // Simulate approval action here
                 toast({ title: `${selectedForApproval.length} item(s) aprovado(s) com sucesso!` });
                 setSelectedForApproval([]);
                 setApprovalNotes('');
@@ -2071,7 +2072,6 @@ function PriceListItemForm({
     isActive: initialData?.isActive ?? true
   });
 
-  // Ensure catalogItems is always an array
   const safeCatalogItems = Array.isArray(catalogItems) ? catalogItems : [];
   const selectedItem = safeCatalogItems.find(item => item.id === formData.itemId);
 
@@ -2079,9 +2079,9 @@ function PriceListItemForm({
     e.preventDefault();
     onSubmit({
       ...formData,
-      specialPrice: formData.specialPrice || undefined,
-      hourlyRate: formData.hourlyRate || undefined,
-      travelCost: formData.travelCost || undefined
+      specialPrice: formData.specialPrice === 0 ? undefined : formData.specialPrice, // Handle 0 as undefined if necessary
+      hourlyRate: formData.hourlyRate === 0 ? undefined : formData.hourlyRate,
+      travelCost: formData.travelCost === 0 ? undefined : formData.travelCost
     });
   };
 
@@ -2092,7 +2092,20 @@ function PriceListItemForm({
           <Label htmlFor="itemId">Item do Catálogo</Label>
           <Select
             value={formData.itemId}
-            onValueChange={(value) => setFormData(prev => ({ ...prev, itemId: value }))}
+            onValueChange={(value) => {
+              setFormData(prev => ({ ...prev, itemId: value }));
+              // Automatically set default values if an item is selected
+              if (value && safeCatalogItems.find(item => item.id === value)) {
+                const itemDefaults = safeCatalogItems.find(item => item.id === value);
+                setFormData(prev => ({
+                  ...prev,
+                  unitPrice: itemDefaults?.unitPrice || 0,
+                  specialPrice: itemDefaults?.specialPrice,
+                  hourlyRate: itemDefaults?.hourlyRate,
+                  travelCost: itemDefaults?.travelCost,
+                }));
+              }
+            }}
           >
             <SelectTrigger>
               <SelectValue placeholder="Selecione um item do catálogo" />
@@ -2137,8 +2150,8 @@ function PriceListItemForm({
             type="number"
             step="0.01"
             min="0"
-            value={formData.specialPrice || ''}
-            onChange={(e) => setFormData(prev => ({ ...prev, specialPrice: e.target.value ? parseFloat(e.target.value) : undefined }))}
+            value={formData.specialPrice === undefined ? '' : formData.specialPrice}
+            onChange={(e) => setFormData(prev => ({ ...prev, specialPrice: e.target.value === '' ? undefined : parseFloat(e.target.value) }))}
             placeholder="Opcional"
           />
         </div>
@@ -2152,8 +2165,8 @@ function PriceListItemForm({
             type="number"
             step="0.01"
             min="0"
-            value={formData.hourlyRate || ''}
-            onChange={(e) => setFormData(prev => ({ ...prev, hourlyRate: e.target.value ? parseFloat(e.target.value) : undefined }))}
+            value={formData.hourlyRate === undefined ? '' : formData.hourlyRate}
+            onChange={(e) => setFormData(prev => ({ ...prev, hourlyRate: e.target.value === '' ? undefined : parseFloat(e.target.value) }))}
             placeholder="Para serviços"
           />
         </div>
@@ -2164,8 +2177,8 @@ function PriceListItemForm({
             type="number"
             step="0.01"
             min="0"
-            value={formData.travelCost || ''}
-            onChange={(e) => setFormData(prev => ({ ...prev, travelCost: e.target.value ? parseFloat(e.target.value) : undefined }))}
+            value={formData.travelCost === undefined ? '' : formData.travelCost}
+            onChange={(e) => setFormData(prev => ({ ...prev, travelCost: e.target.value === '' ? undefined : parseFloat(e.target.value) }))}
             placeholder="Opcional"
           />
         </div>
@@ -2184,7 +2197,7 @@ function PriceListItemForm({
 
         <div className="flex gap-2">
           {onCancel && (
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" onClick={onCancel}>
               Cancelar
             </Button>
           )}
