@@ -277,8 +277,8 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                         <SelectValue placeholder="Selecione um item" />
                       </SelectTrigger>
                       <SelectContent>
-                        {items.map((item: any) => (
-                          <SelectItem key={item.id} value={item.id}>
+                        {items.map((item: any, index: number) => (
+                          <SelectItem key={`item-${item.id}-${index}`} value={item.id}>
                             <div className="flex flex-col text-left">
                               <div className="flex items-center gap-2">
                                 <span className="font-medium">{item.title}</span>
@@ -341,13 +341,13 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {plannedMaterials.map((material: any) => {
+                    {plannedMaterials.map((material: any, index: number) => {
                       // Handle both old and new data structures
                       const itemData = material.ticket_planned_items || material;
                       const itemDetails = material.items || {};
 
                       return (
-                        <div key={itemData.id} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div key={`planned-${itemData.id}-${index}`} className="flex items-center justify-between p-3 border rounded-lg">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
                               <p className="font-medium">{itemDetails.name || material.itemName || 'Item sem nome'}</p>
@@ -404,8 +404,8 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                         <SelectValue placeholder="Selecione um item planejado" />
                       </SelectTrigger>
                       <SelectContent>
-                        {availableItems.map((item: any) => (
-                          <SelectItem key={item.itemId} value={item.itemId}>
+                        {availableItems.map((item: any, index: number) => (
+                          <SelectItem key={`available-${item.itemId}-${index}`} value={item.itemId}>
                             {item.itemName} - {item.itemType} (Disponível: {item.remainingQuantity}) - R$ {parseFloat(item.unitPriceAtPlanning || 0).toFixed(2)}
                           </SelectItem>
                         ))}
@@ -450,8 +450,8 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {consumedMaterials.map((material: any) => (
-                      <div key={material.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    {consumedMaterials.map((material: any, index: number) => (
+                      <div key={`consumed-${material.id}-${index}`} className="flex items-center justify-between p-3 border rounded-lg">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
                             <p className="font-medium">{material.itemName}</p>
