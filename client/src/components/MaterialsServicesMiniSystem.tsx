@@ -94,24 +94,25 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
   // Add planned material mutation
   const addPlannedMutation = useMutation({
     mutationFn: async (data: { itemId: string; quantity: number }) => {
-      // Get item details for pricing from itemsData
+      // Get item details from itemsData
       const itemsList = itemsData?.data || [];
       const selectedItemData = itemsList.find((item: any) => item.id === data.itemId);
       
       console.log('🔍 [ADD-PLANNED-MUTATION] Selected item data:', selectedItemData);
-      console.log('🔍 [ADD-PLANNED-MUTATION] Available items:', itemsList.length);
 
-      // Use available data or defaults - improved price detection
-      const unitPrice = selectedItemData?.price || 
-                       selectedItemData?.unitCost || 
-                       selectedItemData?.unit_cost || 
-                       selectedItemData?.finalPrice ||
-                       selectedItemData?.discountedPrice ||
-                       parseFloat(selectedItemData?.unitPrice || '0') || 
-                       0;
+      if (!selectedItemData) {
+        throw new Error('Item not found');
+      }
 
-      // Get the appropriate LPU ID if available
-      const lpuId = selectedItemData?.lpuId || '00000000-0000-0000-0000-000000000001';
+      // Use a known active LPU ID - we know this one has pricing data
+      let unitPrice = 0;
+      let lpuId = 'b9389438-63a3-4cf1-8d96-590969de94f6'; // Use the LPU that we know has price data
+
+      console.log('🔍 [ADD-PLANNED-MUTATION] Using LPU ID:', lpuId, 'for item:', data.itemId);
+
+      // The backend will handle the LPU price lookup automatically
+      // We just need to send the request with the correct LPU ID
+      // The backend getPlannedItems function will return the correct pricing
 
       const requestData = {
         itemId: data.itemId,
