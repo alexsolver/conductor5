@@ -110,6 +110,32 @@ The backend APIs are now fully functional. Frontend integration should focus on:
 3. **Error States**: Test error handling in frontend components
 4. **Performance**: Monitor API response times with proper caching
 
+### 5. Missing Item Names in Price Lists ✅ RESOLVED
+- **Problem**: Price list items only showed IDs, not item names  
+- **Root Cause**: `getPriceListItems` method missing JOIN with items table
+- **Solution**: Added LEFT JOIN with items table to fetch item details:
+  - `itemName`: Item display name
+  - `itemType`: Material/service classification  
+  - `itemDescription`: Detailed description
+  - `measurementUnit`: Unit of measure
+- **Test Result**: Items now display with complete information
+
+### Updated API Response - Price List Items
+```json
+✅ SUCCESS - Now includes item details with proper JOIN
+[
+  {
+    "id": "93f4cca6-cc37-4b82-82c7-ec197ef180d6",
+    "itemId": "bfb4cf07-d10f-4aab-9aa1-0851ac409b0c",
+    "unitPrice": "38.00",
+    "itemName": "Parafuso M8",           // ← NEW: Item name from JOIN
+    "itemType": "material",              // ← NEW: Item type  
+    "itemDescription": "Parafuso sextavado M8 x 20mm", // ← NEW: Description
+    "measurementUnit": "UN"              // ← NEW: Unit of measure
+  }
+]
+```
+
 ## Final Status: 🎯 100% RESOLVED
 
 All LPU API issues have been resolved:
@@ -119,5 +145,6 @@ All LPU API issues have been resolved:
 - ✅ All operations use consistent Drizzle ORM patterns
 - ✅ Proper cache management implemented
 - ✅ Type safety and error handling improved
+- ✅ Item names and details now display correctly with proper JOINs
 
 **Backend LPU module is now production-ready for frontend integration.**
