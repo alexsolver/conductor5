@@ -1,5 +1,6 @@
 import { eq, and, like, desc, or, sql, inArray, asc } from 'drizzle-orm';
-import { items, itemAttachments, itemLinks, itemCustomerLinks, itemSupplierLinks, customerItemMappings } from '../../../../../shared/schema-master';
+import { items, itemAttachments, itemLinks, itemCustomerLinks, itemSupplierLinks } from '../../../../../shared/schema-master';
+import { customerItemMappings } from '../../../../../shared/schema-materials-services';
 import { companies as companyTable } from '../../../../../shared/schema-master';
 import { suppliers as supplierTable } from '../../../../../shared/schema-master';
 import type { Item } from '../../domain/entities';
