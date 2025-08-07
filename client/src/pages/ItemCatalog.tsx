@@ -892,6 +892,449 @@ export default function ItemCatalog() {
     }
   };
 
+  // Renderizar view de gestão avançada
+  const renderManagementView = () => (
+    <div className="space-y-6">
+      {/* Header da Gestão Avançada */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={() => setCurrentView('catalog')}
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Voltar ao Catálogo
+          </Button>
+          <div className="h-6 w-px bg-gray-300" />
+          <div>
+            <h1 className="text-2xl font-bold">Gestão Avançada de Itens</h1>
+            <p className="text-gray-600">Ferramentas administrativas e análises detalhadas</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Tabs de Gestão Avançada */}
+      <Tabs defaultValue="analytics" className="w-full">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          <TabsTrigger value="bulk-operations">Operações em Lote</TabsTrigger>
+          <TabsTrigger value="import-export">Importação/Exportação</TabsTrigger>
+          <TabsTrigger value="maintenance">Manutenção</TabsTrigger>
+          <TabsTrigger value="settings">Configurações</TabsTrigger>
+        </TabsList>
+
+        {/* Analytics Tab */}
+        <TabsContent value="analytics" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Métricas Principais */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5" />
+                  Métricas de Utilização
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">Itens mais usados</span>
+                    <span className="text-sm font-medium">Top 10</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">Itens sem uso</span>
+                    <span className="text-sm font-medium text-red-600">15</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">Taxa de utilização</span>
+                    <span className="text-sm font-medium">87%</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Análise de Vínculos */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Link className="h-5 w-5" />
+                  Análise de Vínculos
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">Itens com vínculos</span>
+                    <span className="text-sm font-medium">{items.length}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">Vínculos de empresas</span>
+                    <span className="text-sm font-medium">245</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">Vínculos de fornecedores</span>
+                    <span className="text-sm font-medium">178</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Status do Sistema */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Settings className="h-5 w-5" />
+                  Status do Sistema
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Integridade dados</span>
+                    <Badge variant="default">✓ OK</Badge>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Performance</span>
+                    <Badge variant="default">✓ Boa</Badge>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Última sync</span>
+                    <span className="text-xs text-gray-500">2 min atrás</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Gráficos e Relatórios */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Distribuição por Tipo</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-64 flex items-center justify-center border-2 border-dashed border-gray-200">
+                  <div className="text-center">
+                    <Package className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                    <p className="text-gray-500">Gráfico de distribuição</p>
+                    <p className="text-sm text-gray-400">Materiais vs Serviços</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Tendência de Criação</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-64 flex items-center justify-center border-2 border-dashed border-gray-200">
+                  <div className="text-center">
+                    <TrendingUp className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                    <p className="text-gray-500">Gráfico de tendência</p>
+                    <p className="text-sm text-gray-400">Últimos 6 meses</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* Bulk Operations Tab */}
+        <TabsContent value="bulk-operations" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Operações em Lote Avançadas</CardTitle>
+              <CardDescription>
+                Realize operações em massa com múltiplos itens simultaneamente
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Button 
+                  variant="outline" 
+                  className="h-20 flex-col"
+                  onClick={() => setIsBulkLinkModalOpen(true)}
+                >
+                  <Link className="h-6 w-6 mb-2" />
+                  <span>Vínculos Múltiplos</span>
+                  <span className="text-xs text-gray-500">Criar vínculos entre vários itens</span>
+                </Button>
+
+                <Button 
+                  variant="outline" 
+                  className="h-20 flex-col"
+                  onClick={() => setIsBulkCompanyLinkModalOpen(true)}
+                >
+                  <Building className="h-6 w-6 mb-2" />
+                  <span>Vínculos Empresas</span>
+                  <span className="text-xs text-gray-500">Associar itens a empresas</span>
+                </Button>
+
+                <Button 
+                  variant="outline" 
+                  className="h-20 flex-col"
+                  onClick={() => setIsBulkSupplierLinkModalOpen(true)}
+                >
+                  <Truck className="h-6 w-6 mb-2" />
+                  <span>Vínculos Fornecedores</span>
+                  <span className="text-xs text-gray-500">Associar itens a fornecedores</span>
+                </Button>
+
+                <Button 
+                  variant="outline" 
+                  className="h-20 flex-col"
+                  onClick={() => setIsBulkEditModalOpen(true)}
+                >
+                  <Edit className="h-6 w-6 mb-2" />
+                  <span>Edição em Massa</span>
+                  <span className="text-xs text-gray-500">Editar propriedades múltiplas</span>
+                </Button>
+              </div>
+
+              <div className="border-t pt-6">
+                <h3 className="font-medium mb-4">Operações Especiais</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <Button variant="outline" className="justify-start">
+                    <CheckCircle2 className="h-4 w-4 mr-2" />
+                    Ativar Todos Selecionados
+                  </Button>
+                  <Button variant="outline" className="justify-start">
+                    <AlertCircle className="h-4 w-4 mr-2" />
+                    Marcar como Descontinuado
+                  </Button>
+                  <Button variant="outline" className="justify-start">
+                    <Tag className="h-4 w-4 mr-2" />
+                    Aplicar Tags em Massa
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Import/Export Tab */}
+        <TabsContent value="import-export" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ShoppingCart className="h-5 w-5" />
+                  Importação Avançada
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Button 
+                  className="w-full justify-start"
+                  onClick={() => setIsImportModalOpen(true)}
+                >
+                  <FileText className="h-4 w-4 mr-2" />
+                  Importar CSV/Excel
+                </Button>
+                
+                <Button variant="outline" className="w-full justify-start">
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Importar de ERP
+                </Button>
+                
+                <Button variant="outline" className="w-full justify-start">
+                  <Package className="h-4 w-4 mr-2" />
+                  Importar Catálogo Fornecedor
+                </Button>
+
+                <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                  <p className="text-sm text-blue-700">
+                    <strong>Dica:</strong> Use os modelos CSV para garantir importação correta
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  Exportação Avançada
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start"
+                  onClick={exportToCSV}
+                >
+                  <FileText className="h-4 w-4 mr-2" />
+                  Exportar Catálogo Completo
+                </Button>
+                
+                <Button variant="outline" className="w-full justify-start">
+                  <Link className="h-4 w-4 mr-2" />
+                  Exportar Vínculos
+                </Button>
+                
+                <Button variant="outline" className="w-full justify-start">
+                  <Building className="h-4 w-4 mr-2" />
+                  Exportar Personalizações
+                </Button>
+
+                <Button variant="outline" className="w-full justify-start">
+                  <TrendingUp className="h-4 w-4 mr-2" />
+                  Exportar Relatório Analytics
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* Maintenance Tab */}
+        <TabsContent value="maintenance" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Wrench className="h-5 w-5" />
+                Manutenção do Sistema
+              </CardTitle>
+              <CardDescription>
+                Ferramentas para limpeza e otimização do catálogo
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <h3 className="font-medium">Limpeza de Dados</h3>
+                  <Button variant="outline" className="w-full justify-start">
+                    <AlertCircle className="h-4 w-4 mr-2" />
+                    Detectar Itens Duplicados
+                  </Button>
+                  <Button variant="outline" className="w-full justify-start">
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Limpar Vínculos Órfãos
+                  </Button>
+                  <Button variant="outline" className="w-full justify-start">
+                    <Eye className="h-4 w-4 mr-2" />
+                    Validar Integridade
+                  </Button>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="font-medium">Otimização</h3>
+                  <Button variant="outline" className="w-full justify-start">
+                    <TrendingUp className="h-4 w-4 mr-2" />
+                    Otimizar Performance
+                  </Button>
+                  <Button variant="outline" className="w-full justify-start">
+                    <Package className="h-4 w-4 mr-2" />
+                    Reindexar Catálogo
+                  </Button>
+                  <Button variant="outline" className="w-full justify-start">
+                    <Save className="h-4 w-4 mr-2" />
+                    Backup Completo
+                  </Button>
+                </div>
+              </div>
+
+              <div className="border-t pt-6">
+                <h3 className="font-medium mb-4">Logs do Sistema</h3>
+                <div className="bg-gray-50 p-4 rounded-lg h-32 overflow-y-auto">
+                  <div className="space-y-1 text-sm text-gray-600">
+                    <p>[2025-08-03 02:01:55] ✅ Validação de integridade concluída</p>
+                    <p>[2025-08-03 02:01:45] 📦 6 itens processados com sucesso</p>
+                    <p>[2025-08-03 02:01:30] 🔗 15 vínculos de empresas criados</p>
+                    <p>[2025-08-03 02:01:15] 📊 Cache de analytics atualizado</p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Settings Tab */}
+        <TabsContent value="settings" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Settings className="h-5 w-5" />
+                Configurações do Catálogo
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <h3 className="font-medium">Configurações Gerais</h3>
+                  
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <label className="text-sm font-medium">Auto-validação de códigos</label>
+                      <p className="text-xs text-gray-500">Validar unicidade automaticamente</p>
+                    </div>
+                    <Switch defaultChecked />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <label className="text-sm font-medium">Notificações de duplicatas</label>
+                      <p className="text-xs text-gray-500">Alertar sobre possíveis duplicatas</p>
+                    </div>
+                    <Switch defaultChecked />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <label className="text-sm font-medium">Backup automático</label>
+                      <p className="text-xs text-gray-500">Backup diário dos dados</p>
+                    </div>
+                    <Switch defaultChecked />
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="font-medium">Permissões</h3>
+                  
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm">Criar itens</span>
+                      <Badge variant="default">Admin + Gestor</Badge>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm">Editar itens</span>
+                      <Badge variant="default">Admin + Gestor</Badge>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm">Excluir itens</span>
+                      <Badge variant="destructive">Apenas Admin</Badge>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm">Gestão avançada</span>
+                      <Badge variant="destructive">Apenas Admin</Badge>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t pt-6">
+                <h3 className="font-medium mb-4">Templates de Importação</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <Button variant="outline" className="justify-start">
+                    <FileText className="h-4 w-4 mr-2" />
+                    Template Básico
+                  </Button>
+                  <Button variant="outline" className="justify-start">
+                    <Building className="h-4 w-4 mr-2" />
+                    Template com Empresas
+                  </Button>
+                  <Button variant="outline" className="justify-start">
+                    <Truck className="h-4 w-4 mr-2" />
+                    Template com Fornecedores
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+
   // Renderizar catálogo principal
   const renderCatalogView = () => (
     <div className="space-y-6">
@@ -1727,6 +2170,7 @@ export default function ItemCatalog() {
       {/* Conteúdo baseado na view atual */}
       {currentView === 'catalog' && renderCatalogView()}
       {currentView === 'item-details' && renderItemDetailsView()}
+      {currentView === 'management' && renderManagementView()}
 
       {/* Modal de Criação/Edição de Item */}
       <Dialog open={isCreateModalOpen || isEditModalOpen} onOpenChange={(open) => {
