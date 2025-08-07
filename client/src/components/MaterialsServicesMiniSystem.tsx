@@ -101,17 +101,22 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
       console.log('🔍 [ADD-PLANNED-MUTATION] Selected item data:', selectedItemData);
       console.log('🔍 [ADD-PLANNED-MUTATION] Available items:', itemsList.length);
 
-      // Use available data or defaults
+      // Use available data or defaults - improved price detection
       const unitPrice = selectedItemData?.price || 
                        selectedItemData?.unitCost || 
                        selectedItemData?.unit_cost || 
+                       selectedItemData?.finalPrice ||
+                       selectedItemData?.discountedPrice ||
                        parseFloat(selectedItemData?.unitPrice || '0') || 
                        0;
+
+      // Get the appropriate LPU ID if available
+      const lpuId = selectedItemData?.lpuId || '00000000-0000-0000-0000-000000000001';
 
       const requestData = {
         itemId: data.itemId,
         plannedQuantity: data.quantity,
-        lpuId: '00000000-0000-0000-0000-000000000001', // Default LPU ID
+        lpuId: lpuId,
         unitPriceAtPlanning: unitPrice,
         priority: 'medium',
         notes: ''
@@ -407,26 +412,66 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                 ) : (
                   <div className="space-y-3">
                     {plannedMaterials.map((material: any, index: number) => {
-                      // Handle both old and new data structures
+                      // Handle both old and new data structures with enhanced data extraction
                       const itemData = material.ticket_planned_items || material;
-                      const itemDetails = material.items || {};
+                      const itemDetails = material.items || material.item || {};
+
+                      // Enhanced name detection
+                      const itemName = itemDetails.name || 
+                                     itemDetails.title || 
+                                     material.itemName || 
+                                     material.name ||
+                                     itemData.itemName ||
+                                     'Item sem nome';
+
+                      // Enhanced type detection
+                      const itemType = itemDetails.type || 
+                                     material.itemType || 
+                                     itemData.itemType ||
+                                     'Material';
+
+                      // Enhanced pricing detection
+                      const unitPrice = parseFloat(
+                        itemData.unitPriceAtPlanning || 
+                        material.unitPriceAtPlanning || 
+                        itemDetails.unitPrice ||
+                        itemDetails.price ||
+                        itemDetails.unitCost ||
+                        itemDetails.unit_cost ||
+                        0
+                      );
+
+                      const estimatedCost = parseFloat(
+                        itemData.estimatedCost || 
+                        material.estimatedCost || 
+                        (parseFloat(itemData.plannedQuantity || material.plannedQuantity || 0) * unitPrice) ||
+                        0
+                      );
 
                       return (
                         <div key={`planned-${itemData.id}-${index}`} className="flex items-center justify-between p-3 border rounded-lg">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
-                              <p className="font-medium">{itemDetails.name || material.itemName || 'Item sem nome'}</p>
+                              <p className="font-medium">{itemName}</p>
                               <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                                {itemDetails.type || material.itemType || 'Tipo não informado'}
+                                {itemType}
                               </span>
                             </div>
-                            {(itemDetails.description || material.itemDescription) && (
-                              <p className="text-sm text-gray-500 mb-1">{itemDetails.description || material.itemDescription}</p>
+                            {(itemDetails.description || material.itemDescription || itemData.description) && (
+                              <p className="text-sm text-gray-500 mb-1">
+                                {itemDetails.description || material.itemDescription || itemData.description}
+                              </p>
                             )}
                             <div className="flex items-center gap-4 text-sm">
-                              <span className="text-gray-600">Qtd: {itemData.plannedQuantity || material.plannedQuantity || material.quantity}</span>
-                              <span className="text-gray-600">Preço unit.: R$ {parseFloat(itemData.unitPriceAtPlanning || material.unitPriceAtPlanning || 0).toFixed(2)}</span>
-                              <span className="text-green-600 font-medium">Total: R$ {parseFloat(itemData.estimatedCost || material.estimatedCost || 0).toFixed(2)}</span>
+                              <span className="text-gray-600">
+                                Qtd: {itemData.plannedQuantity || material.plannedQuantity || material.quantity || 0}
+                              </span>
+                              <span className="text-gray-600">
+                                Preço unit.: R$ {unitPrice.toFixed(2)}
+                              </span>
+                              <span className="text-green-600 font-medium">
+                                Total: R$ {estimatedCost.toFixed(2)}
+                              </span>
                             </div>
                           </div>
                           <Button
