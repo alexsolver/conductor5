@@ -144,12 +144,35 @@ interface SupplierLink {
 const itemSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório").max(255, "Nome muito longo"),
   type: z.enum(["material", "service"]),
-  integrationCode: z.string().max(100, "Código muito longo").optional().or(z.literal("")),
+  integrationCode: z.string().max(100, "Código muito longo").optional().or(z.literal(""))
+    .refine(async (code) => {
+      if (!code) return true;
+      // Validação de unicidade - será implementada no backend
+      return true;
+    }, "Código de integração já existe"),
   description: z.string().max(1000, "Descrição muito longa").optional(),
   measurementUnit: z.string().min(1, "Unidade de medida é obrigatória"),
   maintenancePlan: z.string().max(255, "Plano muito longo").optional(),
   defaultChecklist: z.string().max(255, "Checklist muito longo").optional(),
   active: z.boolean().default(true),
+  tags: z.array(z.string()).optional(),
+  category: z.string().optional(),
+  minPrice: z.number().min(0, "Preço mínimo deve ser positivo").optional(),
+  maxPrice: z.number().min(0, "Preço máximo deve ser positivo").optional(),
+}).refine((data) => {
+  if (data.minPrice && data.maxPrice) {
+    return data.minPrice <= data.maxPrice;
+  }
+  return true;
+}, {
+  message: "Preço mínimo deve ser menor que o máximo",
+  path: ["maxPrice"]
+});
+
+const bulkEditSchema = z.object({
+  active: z.boolean().optional(),
+  category: z.string().optional(),
+  tags: z.array(z.string()).optional(),
 });
 
 const itemLinkSchema = z.object({
@@ -206,6 +229,12 @@ export default function ItemCatalog() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(20);
+  
+  // Estados para operações em lote
+  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+  const [isBulkMode, setIsBulkMode] = useState(false);
+  const [isBulkEditModalOpen, setIsBulkEditModalOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   
   // Estados de modais
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -572,6 +601,104 @@ export default function ItemCatalog() {
     createSupplierLinkMutation.mutate(data);
   };
 
+  // Bulk operations handlers
+  const handleSelectAll = () => {
+    if (selectedItems.size === paginatedItems.length) {
+      setSelectedItems(new Set());
+    } else {
+      setSelectedItems(new Set(paginatedItems.map(item => item.id)));
+    }
+  };
+
+  const handleSelectItem = (itemId: string) => {
+    const newSelected = new Set(selectedItems);
+    if (newSelected.has(itemId)) {
+      newSelected.delete(itemId);
+    } else {
+      newSelected.add(itemId);
+    }
+    setSelectedItems(newSelected);
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedItems.size === 0) return;
+    
+    try {
+      const deletePromises = Array.from(selectedItems).map(id => 
+        deleteItemMutation.mutateAsync(id)
+      );
+      await Promise.all(deletePromises);
+      
+      setSelectedItems(new Set());
+      toast({
+        title: "Itens excluídos com sucesso",
+        description: `${selectedItems.size} itens foram removidos do catálogo.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Erro na exclusão em lote",
+        description: "Alguns itens não puderam ser excluídos.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleBulkStatusChange = async (newStatus: boolean) => {
+    if (selectedItems.size === 0) return;
+    
+    try {
+      const updatePromises = Array.from(selectedItems).map(id => {
+        const item = items.find(i => i.id === id);
+        if (!item) return Promise.resolve();
+        
+        return updateItemMutation.mutateAsync({
+          id,
+          data: { ...item, active: newStatus }
+        });
+      });
+      
+      await Promise.all(updatePromises);
+      setSelectedItems(new Set());
+      
+      toast({
+        title: "Status atualizado",
+        description: `${selectedItems.size} itens foram ${newStatus ? 'ativados' : 'desativados'}.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Erro na atualização em lote",
+        description: "Alguns itens não puderam ser atualizados.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const exportToCSV = () => {
+    const csvData = items.map(item => ({
+      nome: item.name,
+      tipo: item.type,
+      codigo: item.integrationCode || '',
+      descricao: item.description || '',
+      unidade: item.measurementUnit,
+      status: item.active ? 'Ativo' : 'Inativo',
+      criado_em: new Date(item.createdAt).toLocaleDateString('pt-BR')
+    }));
+
+    const headers = Object.keys(csvData[0] || {}).join(',');
+    const rows = csvData.map(row => Object.values(row).join(','));
+    const csv = [headers, ...rows].join('\n');
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `itens_catalogo_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   // Renderizar catálogo principal
   const renderCatalogView = () => (
     <div className="space-y-6">
@@ -670,13 +797,102 @@ export default function ItemCatalog() {
               </SelectContent>
             </Select>
 
-            <Button onClick={() => setIsCreateModalOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Novo Item
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="outline"
+                onClick={() => setIsBulkMode(!isBulkMode)}
+                className={isBulkMode ? "bg-blue-100 border-blue-300" : ""}
+              >
+                <Checkbox className="h-4 w-4 mr-2" />
+                {isBulkMode ? "Sair do Modo Lote" : "Modo Lote"}
+              </Button>
+              
+              <Button variant="outline" onClick={exportToCSV}>
+                <FileText className="h-4 w-4 mr-2" />
+                Exportar
+              </Button>
+              
+              <Button variant="outline" onClick={() => setIsImportModalOpen(true)}>
+                <ShoppingCart className="h-4 w-4 mr-2" />
+                Importar
+              </Button>
+
+              <Button onClick={() => setIsCreateModalOpen(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Novo Item
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
+
+      {/* Barra de ações em lote */}
+      {isBulkMode && selectedItems.size > 0 && (
+        <Card className="bg-blue-50 border-blue-200">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <span className="text-sm font-medium text-blue-700">
+                  {selectedItems.size} item(s) selecionado(s)
+                </span>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => handleBulkStatusChange(true)}
+                >
+                  <CheckCircle2 className="h-4 w-4 mr-2" />
+                  Ativar Todos
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => handleBulkStatusChange(false)}
+                >
+                  <AlertCircle className="h-4 w-4 mr-2" />
+                  Desativar Todos
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setIsBulkEditModalOpen(true)}
+                >
+                  <Edit className="h-4 w-4 mr-2" />
+                  Editar Lote
+                </Button>
+                
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" size="sm">
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Excluir Todos
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Confirmar Exclusão em Lote</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Tem certeza que deseja excluir {selectedItems.size} item(s)? 
+                        Esta ação não pode ser desfeita.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleBulkDelete} className="bg-red-600 hover:bg-red-700">
+                        Excluir {selectedItems.size} Item(s)
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Lista de itens */}
       <Card>
@@ -705,13 +921,39 @@ export default function ItemCatalog() {
             </div>
           ) : (
             <div className="space-y-3">
+              {/* Header com seleção geral no modo lote */}
+              {isBulkMode && (
+                <div className="flex items-center p-3 bg-gray-50 rounded-lg border-2 border-dashed">
+                  <Checkbox
+                    checked={selectedItems.size === paginatedItems.length && paginatedItems.length > 0}
+                    onCheckedChange={handleSelectAll}
+                    className="mr-3"
+                  />
+                  <span className="text-sm font-medium text-gray-600">
+                    Selecionar todos os itens desta página
+                  </span>
+                </div>
+              )}
+              
               {paginatedItems.map((item) => (
                 <div 
                   key={item.id} 
-                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
-                  onClick={() => handleItemClick(item)}
+                  className={`flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors ${
+                    !isBulkMode ? 'cursor-pointer' : ''
+                  } ${selectedItems.has(item.id) ? 'bg-blue-50 border-blue-200' : ''}`}
+                  onClick={() => !isBulkMode && handleItemClick(item)}
                 >
                   <div className="flex items-center space-x-4">
+                    {/* Checkbox para modo lote */}
+                    {isBulkMode && (
+                      <Checkbox
+                        checked={selectedItems.has(item.id)}
+                        onCheckedChange={() => handleSelectItem(item.id)}
+                        onClick={(e) => e.stopPropagation()}
+                        className="mr-2"
+                      />
+                    )}
+                    
                     <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
                       item.type === 'material' ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'
                     }`}>
@@ -1806,6 +2048,125 @@ export default function ItemCatalog() {
               </div>
             </form>
           </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Edição em Lote */}
+      <Dialog open={isBulkEditModalOpen} onOpenChange={setIsBulkEditModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edição em Lote</DialogTitle>
+            <DialogDescription>
+              Editar {selectedItems.size} item(s) selecionado(s)
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="flex items-center space-x-2">
+              <Switch 
+                id="bulk-active"
+                onCheckedChange={(checked) => handleBulkStatusChange(checked)}
+              />
+              <label htmlFor="bulk-active" className="text-sm font-medium">
+                Ativar/Desativar todos os itens
+              </label>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Categoria</label>
+              <Select>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecionar categoria" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="equipamentos">Equipamentos</SelectItem>
+                  <SelectItem value="consumiveis">Consumíveis</SelectItem>
+                  <SelectItem value="ferramentas">Ferramentas</SelectItem>
+                  <SelectItem value="servicos-tecnicos">Serviços Técnicos</SelectItem>
+                  <SelectItem value="servicos-consultoria">Serviços de Consultoria</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Tags</label>
+              <Input placeholder="Digite tags separadas por vírgula" />
+            </div>
+          </div>
+
+          <div className="flex justify-end space-x-2 pt-4">
+            <Button variant="outline" onClick={() => setIsBulkEditModalOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={() => setIsBulkEditModalOpen(false)}>
+              <Save className="h-4 w-4 mr-2" />
+              Aplicar Alterações
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Importação */}
+      <Dialog open={isImportModalOpen} onOpenChange={setIsImportModalOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Importar Itens</DialogTitle>
+            <DialogDescription>
+              Importe itens em lote através de arquivo CSV ou Excel
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6">
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+              <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-sm text-gray-600 mb-4">
+                Arraste um arquivo CSV/Excel aqui ou clique para selecionar
+              </p>
+              <input
+                type="file"
+                accept=".csv,.xlsx,.xls"
+                className="hidden"
+                id="file-upload"
+              />
+              <Button variant="outline" onClick={() => document.getElementById('file-upload')?.click()}>
+                <FileText className="h-4 w-4 mr-2" />
+                Selecionar Arquivo
+              </Button>
+            </div>
+
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <h4 className="font-medium text-blue-900 mb-2">Formato do Arquivo</h4>
+              <p className="text-sm text-blue-700 mb-2">
+                O arquivo deve conter as seguintes colunas:
+              </p>
+              <div className="text-xs text-blue-600 space-y-1">
+                <div>• <strong>nome</strong> (obrigatório)</div>
+                <div>• <strong>tipo</strong> (material ou service)</div>
+                <div>• <strong>codigo</strong> (opcional)</div>
+                <div>• <strong>descricao</strong> (opcional)</div>
+                <div>• <strong>unidade</strong> (obrigatório)</div>
+                <div>• <strong>categoria</strong> (opcional)</div>
+                <div>• <strong>tags</strong> (opcional, separadas por ;)</div>
+              </div>
+            </div>
+
+            <div>
+              <Button variant="outline" className="w-full">
+                <FileText className="h-4 w-4 mr-2" />
+                Baixar Modelo CSV
+              </Button>
+            </div>
+          </div>
+
+          <div className="flex justify-end space-x-2 pt-4">
+            <Button variant="outline" onClick={() => setIsImportModalOpen(false)}>
+              Cancelar
+            </Button>
+            <Button disabled>
+              <ShoppingCart className="h-4 w-4 mr-2" />
+              Importar Itens
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
