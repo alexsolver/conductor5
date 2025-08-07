@@ -1,4 +1,5 @@
 
+
 import { PricingRule, PriceListItem } from '../../../../../shared/schema-master';
 import { LPURepository } from '../../infrastructure/repositories/LPURepository';
 
@@ -28,7 +29,15 @@ export interface PriceCalculationResult {
 }
 
 export class PricingRulesEngine {
-  constructor(private repository: LPURepository) {}
+  private repository: LPURepository;
+
+  constructor(repository: LPURepository) {
+    if (!repository) {
+      throw new Error('Repository is required for PricingRulesEngine');
+    }
+    this.repository = repository;
+    console.log('✅ PricingRulesEngine: Initialized successfully');
+  }
 
   /**
    * Aplica as regras de precificação a um preço base
@@ -302,30 +311,16 @@ export class PricingRulesEngine {
       }
     }
   }
-}
-export class PricingRulesEngine {
-  private repository: any;
 
-  constructor(repository: any) {
-    if (!repository) {
-      throw new Error('Repository is required for PricingRulesEngine');
-    }
-    this.repository = repository;
-    console.log('✅ PricingRulesEngine: Initialized successfully');
-  }
-
-  // Engine methods will be implemented as needed
+  // Engine methods for backward compatibility
   async applyRules(priceListId: string, ruleIds: string[], tenantId: string) {
-    // Placeholder implementation
     return this.repository.applyRulesToPriceList(priceListId, ruleIds, tenantId);
   }
 
   async calculatePrice(basePrice: number, rules: any[]) {
-    // Placeholder implementation
     let finalPrice = basePrice;
     
     for (const rule of rules) {
-      // Apply rule logic here
       if (rule.ruleType === 'percentual') {
         finalPrice = finalPrice * (1 + (rule.actions?.percentage || 0) / 100);
       } else if (rule.ruleType === 'fixo') {
