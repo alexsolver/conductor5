@@ -27,7 +27,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Loader2, Upload, X } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { CustomFieldMetadata, ModuleType, FieldType } from '../../../shared/schema-custom-fields';
+// import { CustomFieldMetadata, ModuleType, FieldType } from "@shared/schema"; // temporarily disabled
 
 // ===========================
 // COMPONENT PROPS

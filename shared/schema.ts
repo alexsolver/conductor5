@@ -3,15 +3,19 @@
 
 export * from "./schema-master";
 
-// This file serves as the single entry point for all schema definitions
-// All imports should use: import { ... } from '@shared/schema'
-
-// Validation: Ensure all exports are properly typed
+// Validation: Ensure all critical exports are available
 import type { 
-  User, Customer, Ticket, Tenant
+  User, Customer, Ticket, Tenant,
+  TicketPlannedItem, TicketConsumedItem,
+  Item, PriceList, PricingRule
 } from "./schema-master";
 
-// Re-export types for consistency
+// Re-export all types for consistency
 export type {
-  User, Customer, Ticket, Tenant
+  User, Customer, Ticket, Tenant,
+  TicketPlannedItem, TicketConsumedItem,
+  Item, PriceList, PricingRule
 };
+
+// This file serves as the single entry point for all schema definitions
+// All imports should use: import { ... } from '@shared/schema'

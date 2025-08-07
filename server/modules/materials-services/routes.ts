@@ -341,16 +341,29 @@ router.get('/stock/items', async (req: AuthenticatedRequest, res) => {
 });
 
 // ===== TICKET MATERIALS ROUTES =====
-router.get('/tickets/:ticketId/planned-items', TicketMaterialsController.getPlannedItems);
-router.post('/tickets/:ticketId/planned-items', TicketMaterialsController.addPlannedItem);
-router.delete('/tickets/:ticketId/planned-items/:itemId', TicketMaterialsController.removePlannedItem);
+router.get('/tickets/:ticketId/planned-items', async (req: AuthenticatedRequest, res) => {
+  if (!req.user?.tenantId) return res.status(401).json({ message: 'Tenant ID required' });
+  const { ticketMaterialsController } = await getControllers(req.user.tenantId);
+  return ticketMaterialsController.getPlannedItems(req, res);
+});
 
-router.get('/tickets/:ticketId/consumed-items', TicketMaterialsController.getConsumedItems);
-router.post('/tickets/:ticketId/consumed-items', TicketMaterialsController.addConsumedItem);
-router.delete('/tickets/:ticketId/consumed-items/:itemId', TicketMaterialsController.removeConsumedItem);
+router.get('/tickets/:ticketId/consumed-items', async (req: AuthenticatedRequest, res) => {
+  if (!req.user?.tenantId) return res.status(401).json({ message: 'Tenant ID required' });
+  const { ticketMaterialsController } = await getControllers(req.user.tenantId);
+  return ticketMaterialsController.getConsumedItems(req, res);
+});
 
-router.get('/tickets/:ticketId/available-for-consumption', TicketMaterialsController.getAvailableForConsumption);
-router.get('/tickets/:ticketId/costs-summary', TicketMaterialsController.getCostsSummary);
+router.get('/tickets/:ticketId/available-for-consumption', async (req: AuthenticatedRequest, res) => {
+  if (!req.user?.tenantId) return res.status(401).json({ message: 'Tenant ID required' });
+  const { ticketMaterialsController } = await getControllers(req.user.tenantId);
+  return ticketMaterialsController.getAvailableForConsumption(req, res);
+});
+
+router.get('/tickets/:ticketId/costs-summary', async (req: AuthenticatedRequest, res) => {
+  if (!req.user?.tenantId) return res.status(401).json({ message: 'Tenant ID required' });
+  const { ticketMaterialsController } = await getControllers(req.user.tenantId);
+  return ticketMaterialsController.getCostSummary(req, res);
+});
 
 // ===== CUSTOMER ITEM MAPPINGSROUTES =====
 // Get all customer item mappings

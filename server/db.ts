@@ -70,14 +70,15 @@ export const schemaManager = {
         AND table_name IN (
           'customers', 'tickets', 'favorecidos', 'contracts', 
           'customer_companies', 'ticket_field_options', 
-          'locais', 'regioes', 'ticket_actions'
+          'locations', 'regioes', 'ticket_actions',
+          'users', 'user_groups', 'companies'
         )
       `, [schemaName]);
 
       const coreTableCount = parseInt(coreResult.rows[0]?.core_table_count || "0");
 
-      console.log(`✅ Tenant schema validated for ${tenantId}: ${tableCount} tables (${coreTableCount}/9 core tables)`);
-      return tableCount >= 30; // Simplified validation // Realistic thresholds
+      console.log(`✅ Tenant schema validated for ${tenantId}: ${tableCount} tables (${coreTableCount}/12 core tables)`);
+      return tableCount >= 50; // Standardized threshold for all tenants
     } catch (error) {
       console.error(`❌ Schema validation failed for ${tenantId}:`, error);
       return false;

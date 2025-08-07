@@ -53,7 +53,7 @@ import {
   Brain,
   BarChart3
 } from 'lucide-react';
-import { CustomFieldMetadata, ModuleType, FieldType } from '../../../shared/schema-custom-fields';
+// import { CustomFieldMetadata, ModuleType, FieldType } from "@shared/schema"; // temporarily disabled
 
 // ===========================
 // FORM SCHEMAS
