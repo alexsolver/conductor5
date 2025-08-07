@@ -621,7 +621,7 @@ export class TicketMaterialsController {
         .select({
           plannedItem: ticketPlannedItems,
           item: items,
-          consumedQuantity: sql<number>`COALESCE(SUM(CAST(consumed.actual_quantity as DECIMAL)), 0)`
+          consumedQuantity: sql<number>`COALESCE(SUM(CAST(${ticketConsumedItems.actualQuantity} as DECIMAL)), 0)`
         })
         .from(ticketPlannedItems)
         .leftJoin(items, eq(ticketPlannedItems.itemId, items.id))
@@ -630,8 +630,7 @@ export class TicketMaterialsController {
           and(
             eq(ticketConsumedItems.plannedItemId, ticketPlannedItems.id),
             eq(ticketConsumedItems.isActive, true)
-          ),
-          'consumed'
+          )
         )
         .where(and(
           eq(ticketPlannedItems.tenantId, tenantId),
@@ -640,12 +639,32 @@ export class TicketMaterialsController {
         ))
         .groupBy(ticketPlannedItems.id, items.id);
 
-      // Filter items that still have available quantity
-      const itemsWithAvailableQuantity = availableItems.filter(item => {
-        const plannedQty = parseFloat(item.plannedItem.plannedQuantity);
-        const consumedQty = item.consumedQuantity || 0;
-        return plannedQty > consumedQty;
-      });
+      // Filter items that still have available quantity and format for frontend
+      const itemsWithAvailableQuantity = availableItems
+        .filter(item => {
+          const plannedQty = parseFloat(item.plannedItem.plannedQuantity);
+          const consumedQty = item.consumedQuantity || 0;
+          return plannedQty > consumedQty;
+        })
+        .map(item => {
+          const plannedQty = parseFloat(item.plannedItem.plannedQuantity);
+          const consumedQty = item.consumedQuantity || 0;
+          const remainingQty = plannedQty - consumedQty;
+
+          return {
+            plannedItemId: item.plannedItem.id,
+            itemId: item.item?.id || item.plannedItem.itemId,
+            itemName: item.item?.name || 'Item não encontrado',
+            itemType: item.item?.type || 'unknown',
+            itemDescription: item.item?.description || '',
+            itemSku: item.item?.integrationCode || '',
+            plannedQuantity: plannedQty,
+            consumedQuantity: consumedQty,
+            remainingQuantity: remainingQty,
+            unitPriceAtPlanning: parseFloat(item.plannedItem.unitPriceAtPlanning || '0'),
+            lpuId: item.plannedItem.lpuId
+          };
+        });
 
       console.log(`✅ [AVAILABLE-FOR-CONSUMPTION] Found items: ${itemsWithAvailableQuantity.length}`);
 

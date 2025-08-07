@@ -188,7 +188,8 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
   });
 
   const items = itemsData?.data || [];
-  const availableItems = Array.isArray(availableItemsData?.data) ? availableItemsData.data : 
+  const availableItems = Array.isArray(availableItemsData?.data?.availableItems) ? availableItemsData.data.availableItems : 
+                         Array.isArray(availableItemsData?.data) ? availableItemsData.data : 
                          Array.isArray(availableItemsData?.availableItems) ? availableItemsData.availableItems :
                          Array.isArray(availableItemsData) ? availableItemsData : [];
   const plannedMaterials = plannedData?.data?.plannedItems || [];
@@ -417,7 +418,22 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                       <SelectContent>
                         {availableItems.map((item: any, index: number) => (
                           <SelectItem key={`available-${item.itemId}-${index}`} value={item.itemId}>
-                            {item.itemName} - {item.itemType} (Disponível: {item.remainingQuantity}) - R$ {parseFloat(item.unitPriceAtPlanning || 0).toFixed(2)}
+                            <div className="flex flex-col text-left w-full">
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium">{item.itemName}</span>
+                                <Badge variant="secondary" className="text-xs">{item.itemType}</Badge>
+                              </div>
+                              {item.itemDescription && (
+                                <div className="text-xs text-gray-600 mb-1 line-clamp-1">
+                                  {item.itemDescription}
+                                </div>
+                              )}
+                              <div className="flex items-center gap-3 text-xs text-gray-500">
+                                {item.itemSku && <span>SKU: {item.itemSku}</span>}
+                                <span>Disponível: {item.remainingQuantity}</span>
+                                <span className="font-medium text-green-600">R$ {parseFloat(item.unitPriceAtPlanning || 0).toFixed(2)}</span>
+                              </div>
+                            </div>
                           </SelectItem>
                         ))}
                       </SelectContent>
