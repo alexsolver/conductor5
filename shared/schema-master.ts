@@ -2529,14 +2529,14 @@ export const assetCategories = pgTable("asset_categories", {
 ]);
 
 // Assets table - Fixed self-reference typing
-export const assets: any = pgTable("assets", {
+export const assets = pgTable("assets", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   assetTag: varchar("asset_tag", { length: 50 }),
   categoryId: uuid("category_id").references(() => assetCategories.id),
   locationId: uuid("location_id").references(() => assetLocations.id),
-  parentAssetId: uuid("parent_asset_id").references(() => assets.id), // Asset hierarchy
+  parentAssetId: uuid("parent_asset_id"), // Self-reference handled separately
   status: varchar("status", { length: 20 }).default("active"),
   description: text("description"),
   serialNumber: varchar("serial_number", { length: 100 }),

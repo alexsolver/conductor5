@@ -64,7 +64,26 @@ export class DrizzleSystematicResolver {
        
       // Items tenant-first optimization
       `CREATE INDEX CONCURRENTLY IF NOT EXISTS items_tenant_type_active_idx 
-       ON items (tenant_id, type, active)`
+       ON items (tenant_id, type, active)`,
+       
+      // CRITICAL: Ticket materials consumption tenant-first
+      `CREATE INDEX CONCURRENTLY IF NOT EXISTS ticket_planned_items_tenant_ticket_idx 
+       ON ticket_planned_items (tenant_id, ticket_id)`,
+       
+      `CREATE INDEX CONCURRENTLY IF NOT EXISTS ticket_consumed_items_tenant_ticket_idx 
+       ON ticket_consumed_items (tenant_id, ticket_id)`,
+       
+      // Stock management tenant-first
+      `CREATE INDEX CONCURRENTLY IF NOT EXISTS stock_entries_tenant_item_location_idx 
+       ON stock_entries (tenant_id, item_id, location_id)`,
+       
+      // Ticket metadata tenant-first
+      `CREATE INDEX CONCURRENTLY IF NOT EXISTS ticket_field_options_tenant_config_idx 
+       ON ticket_field_options (tenant_id, field_config_id)`,
+       
+      // CLT compliance tenant-first  
+      `CREATE INDEX CONCURRENTLY IF NOT EXISTS timecard_entries_tenant_user_date_idx 
+       ON timecard_entries (tenant_id, user_id, created_at)`
     ];
     
     for (const query of indexQueries) {
@@ -100,17 +119,37 @@ export class DrizzleSystematicResolver {
   private async standardizeDataTypes(): Promise<void> {
     console.log('🔧 Padronizando tipos de dados...');
     
-    // Ensure consistent UUID types
+    // Ensure consistent UUID types for all foreign keys
     await db.execute(sql`
       DO $$ 
+      DECLARE
+        table_rec RECORD;
+        column_rec RECORD;
       BEGIN
-        -- Verify UUID consistency for user references
-        IF EXISTS (SELECT 1 FROM information_schema.columns 
-                   WHERE table_name = 'users' AND column_name = 'id' AND data_type = 'uuid') 
-        THEN
-          -- All user FK references should be UUID
-          RAISE NOTICE 'UUID consistency verified for users.id';
-        END IF;
+        -- Fix any remaining VARCHAR FK columns to UUID
+        FOR table_rec IN 
+          SELECT table_name FROM information_schema.tables 
+          WHERE table_schema = 'public' AND table_type = 'BASE TABLE'
+        LOOP
+          FOR column_rec IN
+            SELECT column_name FROM information_schema.columns
+            WHERE table_name = table_rec.table_name 
+            AND column_name LIKE '%_id' 
+            AND data_type = 'character varying'
+            AND column_name IN ('user_id', 'tenant_id', 'customer_id', 'company_id', 'item_id')
+          LOOP
+            BEGIN
+              EXECUTE format('ALTER TABLE %I ALTER COLUMN %I TYPE UUID USING %I::uuid', 
+                table_rec.table_name, column_rec.column_name, column_rec.column_name);
+              RAISE NOTICE 'Fixed %%.%% from VARCHAR to UUID', table_rec.table_name, column_rec.column_name;
+            EXCEPTION WHEN OTHERS THEN
+              RAISE NOTICE 'Could not convert %%.%% to UUID: %%', table_rec.table_name, column_rec.column_name, SQLERRM;
+            END;
+          END LOOP;
+        END LOOP;
+        
+        -- Verify UUID consistency
+        RAISE NOTICE 'UUID standardization completed';
       END $$;
     `);
   }
