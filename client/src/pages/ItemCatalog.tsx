@@ -892,6 +892,58 @@ export default function ItemCatalog() {
     }
   };
 
+  // Estados para gestão avançada
+  const [analyticsData, setAnalyticsData] = useState<any>(null);
+  const [maintenanceLogs, setMaintenanceLogs] = useState<string[]>([]);
+  const [isMaintenanceRunning, setIsMaintenanceRunning] = useState(false);
+
+  // Queries para analytics
+  const { data: realAnalyticsData } = useQuery({
+    queryKey: ["/api/materials-services/analytics"],
+    queryFn: async () => {
+      try {
+        const response = await apiRequest('GET', '/api/materials-services/analytics');
+        return response.json();
+      } catch (error) {
+        return null;
+      }
+    }
+  });
+
+  // Mutations para manutenção
+  const maintenanceMutation = useMutation({
+    mutationFn: async (operation: string) => {
+      const response = await apiRequest('POST', '/api/materials-services/maintenance', { operation });
+      return response.json();
+    },
+    onSuccess: (result) => {
+      setMaintenanceLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] ✅ ${result.message}`]);
+      toast({
+        title: "Operação concluída",
+        description: result.message,
+      });
+    },
+    onError: (error: any) => {
+      setMaintenanceLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] ❌ Erro: ${error.message}`]);
+      toast({
+        title: "Erro na operação",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleMaintenanceOperation = async (operation: string) => {
+    setIsMaintenanceRunning(true);
+    setMaintenanceLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] 🔄 Iniciando: ${operation}`]);
+    
+    try {
+      await maintenanceMutation.mutateAsync(operation);
+    } finally {
+      setIsMaintenanceRunning(false);
+    }
+  };
+
   // Renderizar view de gestão avançada
   const renderManagementView = () => (
     <div className="space-y-6">
@@ -938,16 +990,22 @@ export default function ItemCatalog() {
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Itens mais usados</span>
-                    <span className="text-sm font-medium">Top 10</span>
+                    <span className="text-sm text-gray-600">Total de itens</span>
+                    <span className="text-sm font-medium">{items.length}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Itens sem uso</span>
-                    <span className="text-sm font-medium text-red-600">15</span>
+                    <span className="text-sm text-gray-600">Itens ativos</span>
+                    <span className="text-sm font-medium text-green-600">{items.filter(i => i.active).length}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Taxa de utilização</span>
-                    <span className="text-sm font-medium">87%</span>
+                    <span className="text-sm text-gray-600">Itens inativos</span>
+                    <span className="text-sm font-medium text-red-600">{items.filter(i => !i.active).length}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">Taxa de ativação</span>
+                    <span className="text-sm font-medium">
+                      {items.length > 0 ? Math.round((items.filter(i => i.active).length / items.length) * 100) : 0}%
+                    </span>
                   </div>
                 </div>
               </CardContent>
@@ -964,16 +1022,20 @@ export default function ItemCatalog() {
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Itens com vínculos</span>
-                    <span className="text-sm font-medium">{items.length}</span>
+                    <span className="text-sm text-gray-600">Materiais</span>
+                    <span className="text-sm font-medium">{materialCount}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Vínculos de empresas</span>
-                    <span className="text-sm font-medium">245</span>
+                    <span className="text-sm text-gray-600">Serviços</span>
+                    <span className="text-sm font-medium">{serviceCount}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Vínculos de fornecedores</span>
-                    <span className="text-sm font-medium">178</span>
+                    <span className="text-sm text-gray-600">Com código integração</span>
+                    <span className="text-sm font-medium">{items.filter(i => i.integrationCode).length}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">Sem código integração</span>
+                    <span className="text-sm font-medium">{items.filter(i => !i.integrationCode).length}</span>
                   </div>
                 </div>
               </CardContent>
@@ -1202,15 +1264,30 @@ export default function ItemCatalog() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <h3 className="font-medium">Limpeza de Dados</h3>
-                  <Button variant="outline" className="w-full justify-start">
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start"
+                    onClick={() => handleMaintenanceOperation('detectar_duplicados')}
+                    disabled={isMaintenanceRunning}
+                  >
                     <AlertCircle className="h-4 w-4 mr-2" />
                     Detectar Itens Duplicados
                   </Button>
-                  <Button variant="outline" className="w-full justify-start">
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start"
+                    onClick={() => handleMaintenanceOperation('limpar_vinculos_orfaos')}
+                    disabled={isMaintenanceRunning}
+                  >
                     <Trash2 className="h-4 w-4 mr-2" />
                     Limpar Vínculos Órfãos
                   </Button>
-                  <Button variant="outline" className="w-full justify-start">
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start"
+                    onClick={() => handleMaintenanceOperation('validar_integridade')}
+                    disabled={isMaintenanceRunning}
+                  >
                     <Eye className="h-4 w-4 mr-2" />
                     Validar Integridade
                   </Button>
@@ -1218,15 +1295,30 @@ export default function ItemCatalog() {
 
                 <div className="space-y-4">
                   <h3 className="font-medium">Otimização</h3>
-                  <Button variant="outline" className="w-full justify-start">
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start"
+                    onClick={() => handleMaintenanceOperation('otimizar_performance')}
+                    disabled={isMaintenanceRunning}
+                  >
                     <TrendingUp className="h-4 w-4 mr-2" />
                     Otimizar Performance
                   </Button>
-                  <Button variant="outline" className="w-full justify-start">
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start"
+                    onClick={() => handleMaintenanceOperation('reindexar_catalogo')}
+                    disabled={isMaintenanceRunning}
+                  >
                     <Package className="h-4 w-4 mr-2" />
                     Reindexar Catálogo
                   </Button>
-                  <Button variant="outline" className="w-full justify-start">
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start"
+                    onClick={() => handleMaintenanceOperation('backup_completo')}
+                    disabled={isMaintenanceRunning}
+                  >
                     <Save className="h-4 w-4 mr-2" />
                     Backup Completo
                   </Button>
@@ -1237,12 +1329,25 @@ export default function ItemCatalog() {
                 <h3 className="font-medium mb-4">Logs do Sistema</h3>
                 <div className="bg-gray-50 p-4 rounded-lg h-32 overflow-y-auto">
                   <div className="space-y-1 text-sm text-gray-600">
-                    <p>[2025-08-03 02:01:55] ✅ Validação de integridade concluída</p>
-                    <p>[2025-08-03 02:01:45] 📦 6 itens processados com sucesso</p>
-                    <p>[2025-08-03 02:01:30] 🔗 15 vínculos de empresas criados</p>
-                    <p>[2025-08-03 02:01:15] 📊 Cache de analytics atualizado</p>
+                    {maintenanceLogs.length === 0 ? (
+                      <p className="text-gray-400 italic">Nenhuma operação de manutenção executada ainda...</p>
+                    ) : (
+                      maintenanceLogs.slice(-10).map((log, index) => (
+                        <p key={index}>{log}</p>
+                      ))
+                    )}
                   </div>
                 </div>
+                {maintenanceLogs.length > 0 && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="mt-2"
+                    onClick={() => setMaintenanceLogs([])}
+                  >
+                    Limpar Logs
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>
