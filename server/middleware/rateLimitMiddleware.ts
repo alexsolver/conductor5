@@ -22,10 +22,10 @@ const attemptStore = new Map<string, LoginAttempt>();
 // Clear all existing rate limit attempts for development
 attemptStore.clear();
 
-// Add a cleanup function that runs every minute to clear old attempts
+// Add a cleanup function that runs every 10 seconds to clear all attempts for development
 setInterval(() => {
-  attemptStore.clear();
-}, 60000);
+  attemptStore.clear(); // Clear all rate limiting for development
+}, 10000);
 
 export class RateLimitService {
   private config: RateLimitConfig;
@@ -130,11 +130,11 @@ export class RateLimitService {
   }
 }
 
-// Default configuration - very permissive for development
+// Default configuration - disabled for development
 const defaultConfig: RateLimitConfig = {
-  windowMs: 1 * 60 * 1000, // 1 minute
-  maxAttempts: 1000, // Very permissive for development
-  blockDurationMs: 30 * 1000 // 30 seconds
+  windowMs: 24 * 60 * 60 * 1000, // 24 hours // 10 minutes
+  maxAttempts: 999999, // Completely disabled // Effectively disabled for development
+  blockDurationMs: 100 // 0.1 seconds // 1 second
 };
 
 export const rateLimitService = new RateLimitService(defaultConfig);

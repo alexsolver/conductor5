@@ -1,4 +1,6 @@
 
+import { sql } from 'drizzle-orm';
+
 export class SchemaValidator {
   
   static async validateTenantSchema(db: any, tenantId: string): Promise<{
@@ -32,7 +34,7 @@ export class SchemaValidator {
             WHERE table_schema = ${schemaName} AND table_name = ${table}
           `);
           
-          fieldMappings[table] = columns.rows.map(row => row.column_name);
+          fieldMappings[table] = columns.rows.map((row: any) => row.column_name);
         }
       }
       

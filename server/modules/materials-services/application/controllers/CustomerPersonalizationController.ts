@@ -9,7 +9,7 @@ import {
   insertCustomerItemMappingSchema,
   type CustomerItemMapping,
   type InsertCustomerItemMapping 
-} from '../../../../../shared/schema-master.js';
+} from '@shared/schema';
 import { eq, and, desc, sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-postgres';
 
@@ -261,7 +261,7 @@ export class CustomerPersonalizationController {
   /**
    * Update an existing customer item mapping
    */
-  async updateMapping(req: Request, res: Response) {
+  async updateMapping(req: AuthenticatedRequest, res: Response) {
     try {
       const { mappingId } = req.params;
       const tenantId = req.user?.tenantId;
@@ -362,7 +362,7 @@ export class CustomerPersonalizationController {
   /**
    * Delete a customer item mapping
    */
-  async deleteMapping(req: Request, res: Response) {
+  async deleteMapping(req: AuthenticatedRequest, res: Response) {
     try {
       const { mappingId } = req.params;
       const tenantId = req.user?.tenantId;

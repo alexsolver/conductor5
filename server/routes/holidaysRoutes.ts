@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth';
 import { db } from '../db';
-import { holidays } from '../../shared/schema';
+import { holidays } from '@shared/schema';
 import { eq, and, sql } from 'drizzle-orm';
 
 const router = Router();

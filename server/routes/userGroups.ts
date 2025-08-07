@@ -1,9 +1,9 @@
 import { Router } from 'express';
 import { jwtAuth, AuthenticatedRequest } from '../middleware/jwtAuth';
 import { db } from '../db';
-import { userGroups, userGroupMemberships } from '../../shared/schema';
+import { userGroups, userGroupMemberships } from '@shared/schema';
 import { eq, and, sql } from 'drizzle-orm';
-import { users } from '../../shared/schema'; // Assuming users is in shared/schema
+import { users } from '@shared/schema'; // Assuming users is in shared/schema
 import crypto from 'crypto';
 
 const userGroupsRouter = Router();

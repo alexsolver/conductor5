@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import type { AuthenticatedRequest } from '../../../../middleware/jwtAuth.js';
 import { z } from 'zod';
 import { getTenantDb } from '../../../../storage/tenant-db.js';
 import { 
@@ -8,14 +9,14 @@ import {
   insertItemSupplierLinkSchema,
   type ItemSupplierLink,
   type InsertItemSupplierLink 
-} from '../../../../../shared/schema-master.js';
+} from '@shared/schema';
 import { eq, and, desc, sql } from 'drizzle-orm';
 
 export class SupplierLinksController {
   /**
    * Get all supplier links for a specific supplier
    */
-  async getSupplierLinks(req: Request, res: Response) {
+  async getSupplierLinks(req: AuthenticatedRequest, res: Response) {
     try {
       const { supplierId } = req.params;
       const tenantId = req.user?.tenantId;
@@ -82,7 +83,7 @@ export class SupplierLinksController {
   /**
    * Get items with resolved names for a specific supplier
    */
-  async getSupplierItems(req: Request, res: Response) {
+  async getSupplierItems(req: AuthenticatedRequest, res: Response) {
     try {
       const { supplierId } = req.params;
       const { search, type } = req.query;
@@ -170,7 +171,7 @@ export class SupplierLinksController {
   /**
    * Create a new supplier link
    */
-  async createLink(req: Request, res: Response) {
+  async createLink(req: AuthenticatedRequest, res: Response) {
     try {
       const { itemId } = req.params;
       const tenantId = req.user?.tenantId;
@@ -266,7 +267,7 @@ export class SupplierLinksController {
   /**
    * Update an existing supplier link
    */
-  async updateLink(req: Request, res: Response) {
+  async updateLink(req: AuthenticatedRequest, res: Response) {
     try {
       const { linkId } = req.params;
       const tenantId = req.user?.tenantId;
@@ -368,7 +369,7 @@ export class SupplierLinksController {
   /**
    * Delete a supplier link
    */
-  async deleteLink(req: Request, res: Response) {
+  async deleteLink(req: AuthenticatedRequest, res: Response) {
     try {
       const { linkId } = req.params;
       const tenantId = req.user?.tenantId;
@@ -419,7 +420,7 @@ export class SupplierLinksController {
   /**
    * Get price comparison for an item across all suppliers
    */
-  async getPriceComparison(req: Request, res: Response) {
+  async getPriceComparison(req: AuthenticatedRequest, res: Response) {
     try {
       const { itemId } = req.params;
       const tenantId = req.user?.tenantId;
