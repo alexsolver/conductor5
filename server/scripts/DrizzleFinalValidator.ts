@@ -90,8 +90,8 @@ export class DrizzleFinalValidator {
       const tableCount = (content.match(/export const.*= pgTable/g) || []).length;
       tests.push({
         name: 'Schema master completo',
-        passed: tableCount >= 20,
-        details: `${tableCount} tabelas definidas (mínimo: 20)`
+        passed: tableCount >= 60,
+        details: `${tableCount} tabelas definidas (mínimo: 60)`
       });
     } catch (error) {
       tests.push({

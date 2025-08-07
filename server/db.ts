@@ -62,23 +62,25 @@ export const schemaManager = {
 
       const tableCount = parseInt(result.rows[0]?.table_count || "0");
 
-      // Check for core tables
+      // Check for standardized core tables (Materials & LPU system)
       const coreResult = await pool.query(`
         SELECT COUNT(*) as core_table_count 
         FROM information_schema.tables 
         WHERE table_schema = $1
         AND table_name IN (
-          'customers', 'tickets', 'favorecidos', 'contracts', 
-          'customer_companies', 'ticket_field_options', 
-          'locations', 'regioes', 'ticket_actions',
-          'users', 'user_groups', 'companies'
+          'users', 'customers', 'tickets', 'companies', 'locations', 
+          'items', 'suppliers', 'price_lists', 'pricing_rules',
+          'ticket_planned_items', 'ticket_consumed_items', 'user_groups'
         )
       `, [schemaName]);
 
       const coreTableCount = parseInt(coreResult.rows[0]?.core_table_count || "0");
 
-      console.log(`✅ Tenant schema validated for ${tenantId}: ${tableCount} tables (${coreTableCount}/12 core tables)`);
-      return tableCount >= 50; // Standardized threshold for all tenants
+      // Standardized validation: require minimum core tables and reasonable total
+      const isValid = tableCount >= 60 && coreTableCount >= 8;
+      
+      console.log(`✅ Tenant schema validated for ${tenantId}: ${tableCount} tables (${coreTableCount}/12 core tables) - ${isValid ? 'VALID' : 'INVALID'}`);
+      return isValid;
     } catch (error) {
       console.error(`❌ Schema validation failed for ${tenantId}:`, error);
       return false;
