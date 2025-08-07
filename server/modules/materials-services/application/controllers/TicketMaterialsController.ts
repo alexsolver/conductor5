@@ -657,74 +657,69 @@ export class TicketMaterialsController {
   }
 
   // Get item links
-  async getItemLinks(req: Request, res: Response) {
+  static async getItemLinks(req: AuthenticatedRequest, res: Response) {
     try {
       const { itemId } = req.params;
       const tenantId = req.user?.tenantId;
 
       if (!tenantId) {
-        return res.status(400).json({ success: false, message: 'Tenant ID is required' });
+        return sendError(res, 'Tenant ID is required', 'Tenant ID is required', 400);
       }
 
-      const result = await this.repository.getItemLinks(tenantId, itemId);
+      // Query item links with target item details
+      const itemLinks = await db
+        .select({
+          id: sql`il.id`,
+          sourceItemId: sql`il.source_item_id`,
+          targetItemId: sql`il.target_item_id`,
+          linkType: sql`il.link_type`,
+          quantity: sql`il.quantity`,
+          description: sql`il.description`,
+          targetItem: {
+            id: sql`target_item.id`,
+            name: sql`target_item.name`,
+            type: sql`target_item.type`
+          },
+          createdAt: sql`il.created_at`
+        })
+        .from(sql`(SELECT * FROM item_links WHERE tenant_id = ${tenantId} AND source_item_id = ${itemId}) il`)
+        .leftJoin(sql`items target_item`, sql`target_item.id = il.target_item_id AND target_item.tenant_id = ${tenantId}`);
 
-      res.json({
-        success: true,
-        data: result || []
-      });
+      return sendSuccess(res, { itemLinks }, 'Item links retrieved successfully');
     } catch (error) {
       console.error('Error fetching item links:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Failed to fetch item links',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
+      return sendError(res, error as Error, 'Failed to fetch item links');
     }
   }
 
   // Create item link
-  async createItemLink(req: Request, res: Response) {
+  static async createItemLink(req: AuthenticatedRequest, res: Response) {
     try {
       const tenantId = req.user?.tenantId;
       const { sourceItemId, targetItemId, linkType, quantity, description } = req.body;
 
       if (!tenantId) {
-        return res.status(400).json({ success: false, message: 'Tenant ID is required' });
+        return sendError(res, 'Tenant ID is required', 'Tenant ID is required', 400);
       }
 
       if (!sourceItemId || !targetItemId || !linkType) {
-        return res.status(400).json({
-          success: false,
-          message: 'Source item, target item, and link type are required'
-        });
+        return sendError(res, 'Source item, target item, and link type are required', 'Missing required fields', 400);
       }
 
-      const linkData = {
-        id: crypto.randomUUID(),
-        sourceItemId,
-        targetItemId,
-        linkType,
-        quantity: quantity || 1,
-        description: description || '',
-        tenantId,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
+      // Create item link using raw SQL
+      const linkId = crypto.randomUUID();
+      const { pool } = await import('../../../../db');
+      
+      const result = await pool.query(`
+        INSERT INTO item_links (id, tenant_id, source_item_id, target_item_id, link_type, quantity, description, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
+        RETURNING *
+      `, [linkId, tenantId, sourceItemId, targetItemId, linkType, quantity || 1, description || '']);
 
-      const result = await this.repository.createItemLink(linkData);
-
-      res.status(201).json({
-        success: true,
-        data: result,
-        message: 'Item link created successfully'
-      });
+      return sendSuccess(res, { itemLink: result.rows[0] }, 'Item link created successfully', 201);
     } catch (error) {
       console.error('Error creating item link:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Failed to create item link',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
+      return sendError(res, error as Error, 'Failed to create item link');
     }
   }
 
@@ -755,140 +750,140 @@ export class TicketMaterialsController {
   }
 
   // Create customer personalization
-  async createCustomerPersonalization(req: Request, res: Response) {
+  static async createCustomerPersonalization(req: AuthenticatedRequest, res: Response) {
     try {
       const tenantId = req.user?.tenantId;
       const { itemId, customerId, customSku, customName, customDescription } = req.body;
 
       if (!tenantId || !itemId || !customerId) {
-        return res.status(400).json({
-          success: false,
-          message: 'Tenant ID, item ID, and customer ID are required'
-        });
+        return sendError(res, 'Tenant ID, item ID, and customer ID are required', 'Missing required fields', 400);
       }
 
-      const personalizationData = {
-        id: crypto.randomUUID(),
-        itemId,
-        customerId,
-        customSku: customSku || '',
-        customName: customName || '',
-        customDescription: customDescription || '',
-        isActive: true,
-        tenantId,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
+      const personalizationId = crypto.randomUUID();
+      const { pool } = await import('../../../../db');
 
-      const result = await this.repository.createCustomerPersonalization(personalizationData);
+      // Get customer name for display
+      const customerResult = await pool.query(`
+        SELECT name, trade_name FROM customers WHERE id = $1 AND tenant_id = $2
+      `, [customerId, tenantId]);
 
-      res.status(201).json({
-        success: true,
-        data: result,
-        message: 'Customer personalization created successfully'
-      });
+      const customerName = customerResult.rows[0]?.name || customerResult.rows[0]?.trade_name || 'Cliente desconhecido';
+
+      const result = await pool.query(`
+        INSERT INTO customer_personalizations 
+        (id, tenant_id, item_id, customer_id, customer_name, custom_sku, custom_name, custom_description, is_active, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, true, NOW(), NOW())
+        RETURNING *
+      `, [personalizationId, tenantId, itemId, customerId, customerName, customSku || '', customName || '', customDescription || '']);
+
+      return sendSuccess(res, { personalization: result.rows[0] }, 'Customer personalization created successfully', 201);
     } catch (error) {
       console.error('Error creating customer personalization:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Failed to create customer personalization',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
+      return sendError(res, error as Error, 'Failed to create customer personalization');
     }
   }
 
   // Get customer personalizations
-  async getCustomerPersonalizations(req: Request, res: Response) {
+  static async getCustomerPersonalizations(req: AuthenticatedRequest, res: Response) {
     try {
       const { itemId } = req.params;
       const tenantId = req.user?.tenantId;
 
       if (!tenantId) {
-        return res.status(400).json({ success: false, message: 'Tenant ID is required' });
+        return sendError(res, 'Tenant ID is required', 'Tenant ID is required', 400);
       }
 
-      const result = await this.repository.getCustomerPersonalizations(tenantId, itemId);
+      const { pool } = await import('../../../../db');
 
-      res.json({
-        success: true,
-        data: result || []
-      });
+      const result = await pool.query(`
+        SELECT 
+          cp.*,
+          c.name as customer_display_name,
+          c.trade_name as customer_trade_name
+        FROM customer_personalizations cp
+        LEFT JOIN customers c ON c.id = cp.customer_id AND c.tenant_id = cp.tenant_id
+        WHERE cp.tenant_id = $1 AND cp.item_id = $2 AND cp.is_active = true
+        ORDER BY cp.created_at DESC
+      `, [tenantId, itemId]);
+
+      const personalizations = result.rows.map(row => ({
+        ...row,
+        customerName: row.customer_display_name || row.customer_trade_name || row.customer_name || 'Cliente desconhecido'
+      }));
+
+      return sendSuccess(res, { personalizations }, 'Customer personalizations retrieved successfully');
     } catch (error) {
       console.error('Error fetching customer personalizations:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Failed to fetch customer personalizations',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
+      return sendError(res, error as Error, 'Failed to fetch customer personalizations');
     }
   }
 
   // Create supplier link
-  async createSupplierLink(req: Request, res: Response) {
+  static async createSupplierLink(req: AuthenticatedRequest, res: Response) {
     try {
       const tenantId = req.user?.tenantId;
       const { itemId, supplierId, price, currency, leadTime, isPreferred } = req.body;
 
       if (!tenantId || !itemId || !supplierId) {
-        return res.status(400).json({
-          success: false,
-          message: 'Tenant ID, item ID, and supplier ID are required'
-        });
+        return sendError(res, 'Tenant ID, item ID, and supplier ID are required', 'Missing required fields', 400);
       }
 
-      const supplierLinkData = {
-        id: crypto.randomUUID(),
-        itemId,
-        supplierId,
-        price: price || 0,
-        currency: currency || 'BRL',
-        leadTime: leadTime || 0,
-        isPreferred: isPreferred || false,
-        tenantId,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
+      const supplierLinkId = crypto.randomUUID();
+      const { pool } = await import('../../../../db');
 
-      const result = await this.repository.createSupplierLink(supplierLinkData);
+      // Get supplier name for display
+      const supplierResult = await pool.query(`
+        SELECT name, trade_name FROM suppliers WHERE id = $1 AND tenant_id = $2
+      `, [supplierId, tenantId]);
 
-      res.status(201).json({
-        success: true,
-        data: result,
-        message: 'Supplier link created successfully'
-      });
+      const supplierName = supplierResult.rows[0]?.name || supplierResult.rows[0]?.trade_name || 'Fornecedor desconhecido';
+
+      const result = await pool.query(`
+        INSERT INTO supplier_links 
+        (id, tenant_id, item_id, supplier_id, supplier_name, price, currency, lead_time, is_preferred, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
+        RETURNING *
+      `, [supplierLinkId, tenantId, itemId, supplierId, supplierName, price || 0, currency || 'BRL', leadTime || 0, isPreferred || false]);
+
+      return sendSuccess(res, { supplierLink: result.rows[0] }, 'Supplier link created successfully', 201);
     } catch (error) {
       console.error('Error creating supplier link:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Failed to create supplier link',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
+      return sendError(res, error as Error, 'Failed to create supplier link');
     }
   }
 
   // Get supplier links
-  async getSupplierLinks(req: Request, res: Response) {
+  static async getSupplierLinks(req: AuthenticatedRequest, res: Response) {
     try {
       const { itemId } = req.params;
       const tenantId = req.user?.tenantId;
 
       if (!tenantId) {
-        return res.status(400).json({ success: false, message: 'Tenant ID is required' });
+        return sendError(res, 'Tenant ID is required', 'Tenant ID is required', 400);
       }
 
-      const result = await this.repository.getSupplierLinks(tenantId, itemId);
+      const { pool } = await import('../../../../db');
 
-      res.json({
-        success: true,
-        data: result || []
-      });
+      const result = await pool.query(`
+        SELECT 
+          sl.*,
+          s.name as supplier_display_name,
+          s.trade_name as supplier_trade_name
+        FROM supplier_links sl
+        LEFT JOIN suppliers s ON s.id = sl.supplier_id AND s.tenant_id = sl.tenant_id
+        WHERE sl.tenant_id = $1 AND sl.item_id = $2
+        ORDER BY sl.is_preferred DESC, sl.created_at DESC
+      `, [tenantId, itemId]);
+
+      const supplierLinks = result.rows.map(row => ({
+        ...row,
+        supplierName: row.supplier_display_name || row.supplier_trade_name || row.supplier_name || 'Fornecedor desconhecido'
+      }));
+
+      return sendSuccess(res, { supplierLinks }, 'Supplier links retrieved successfully');
     } catch (error) {
       console.error('Error fetching supplier links:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Failed to fetch supplier links',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
+      return sendError(res, error as Error, 'Failed to fetch supplier links');
     }
   }
 }

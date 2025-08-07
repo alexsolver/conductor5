@@ -269,7 +269,7 @@ export const tickets = pgTable("tickets", {
   serviceVersion: varchar("service_version", { length: 100 }),
   summary: text("summary"),
 
-  
+
 
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
@@ -489,7 +489,7 @@ export const userGroupMemberships = pgTable("user_group_memberships", {
 export const favorecidos = pgTable("favorecidos", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
-  
+
   // Basic Information
   firstName: varchar("first_name", { length: 255 }),       // Standardized for consistency
   lastName: varchar("last_name", { length: 255 }),         // Standardized for consistency
@@ -497,30 +497,30 @@ export const favorecidos = pgTable("favorecidos", {
   email: varchar("email", { length: 255 }),                // Already English ✓
   phone: varchar("phone", { length: 20 }),                 // Standardized: telefone → phone
   cellPhone: varchar("cell_phone", { length: 20 }),        // Standardized: celular → cell_phone
-  
+
   // Brazilian Legal Documents
   cpf: varchar("cpf", { length: 14 }),                     // Keep Brazilian legal term ✓
   cnpj: varchar("cnpj", { length: 18 }),                   // Keep Brazilian legal term ✓
   rg: varchar("rg", { length: 20 }),                       // Keep Brazilian legal term ✓
-  
+
   // Address Information
   address: text("address"),                                 // Standardized: endereco → address
   city: varchar("city", { length: 100 }),                  // Standardized: cidade → city
   state: varchar("state", { length: 2 }),                  // Standardized: estado → state
   zipCode: varchar("zip_code", { length: 10 }),            // Standardized: cep → zip_code
-  
+
   // Contact Information
   contactPerson: varchar("contact_person", { length: 255 }),
   contactPhone: varchar("contact_phone", { length: 20 }),
-  
+
   // Integration and Customer Relationship
   integrationCode: varchar("integration_code", { length: 100 }), // Standardized: codigo_integracao → integration_code
   customerId: uuid("customer_id").references(() => customers.id), // Relationship with customer
   customerCode: varchar("customer_code", { length: 100 }),
-  
+
   // Birth Date for benefits
   birthDate: date("birth_date"),
-  
+
   // Additional Information
   notes: text("notes"),                                     // Standardized: observacoes → notes
   isActive: boolean("is_active").default(true),
@@ -794,7 +794,7 @@ export const localizationContext = pgTable("localization_context", {
 ]);
 
 // ========================================
-// HOLIDAYS SYSTEM (CONTROLE DE JORNADAS) 
+// HOLIDAYS SYSTEM (CONTROLE DE JORNADAS)
 // ========================================
 
 // Holidays table for multilocation journey control system
@@ -823,10 +823,10 @@ export const timecardEntries = pgTable("timecard_entries", {
   id: uuid("id").defaultRandom().primaryKey(),
   tenantId: uuid("tenant_id").notNull(),
   userId: uuid("user_id").notNull().references(() => users.id),
-  
+
   // 🔴 CLT COMPLIANCE: NSR (Número Sequencial de Registro) - OBRIGATÓRIO
   nsr: bigint("nsr", { mode: "number" }).notNull(), // Sequencial único por tenant
-  
+
   // Timestamps básicos
   checkIn: timestamp("check_in"),
   checkOut: timestamp("check_out"),
@@ -835,36 +835,36 @@ export const timecardEntries = pgTable("timecard_entries", {
   totalHours: decimal("total_hours", { precision: 4, scale: 2 }),
   notes: text("notes"),
   location: text("location"),
-  
+
   // 🔴 CLT COMPLIANCE: Controle de integridade e auditoria
   isManualEntry: boolean("is_manual_entry").default(false),
   approvedBy: uuid("approved_by").references(() => users.id),
   status: varchar("status", { length: 20 }).default("pending"),
-  
+
   // 🔴 CLT COMPLIANCE: Hash de integridade - OBRIGATÓRIO
   recordHash: varchar("record_hash", { length: 64 }).notNull(), // SHA-256 hash do registro
   previousRecordHash: varchar("previous_record_hash", { length: 64 }), // Hash do registro anterior (blockchain-like)
-  
+
   // 🔴 CLT COMPLIANCE: Assinatura digital - OBRIGATÓRIO
   digitalSignature: text("digital_signature"), // Assinatura digital do registro
   signatureTimestamp: timestamp("signature_timestamp"),
   signedBy: uuid("signed_by").references(() => users.id),
-  
+
   // 🔴 CLT COMPLIANCE: Metadados para auditoria - OBRIGATÓRIO
   deviceInfo: jsonb("device_info"), // Informações do dispositivo usado
   ipAddress: varchar("ip_address", { length: 45 }), // IPv4/IPv6
   geoLocation: jsonb("geo_location"), // Coordenadas GPS do registro
   modificationHistory: jsonb("modification_history").default([]), // Histórico de alterações
-  
+
   // 🔴 CLT COMPLIANCE: Controle de alterações - OBRIGATÓRIO
   originalRecordHash: varchar("original_record_hash", { length: 64 }), // Hash original (antes de alterações)
   modifiedBy: uuid("modified_by").references(() => users.id),
   modificationReason: text("modification_reason"),
-  
+
   // Timestamps de auditoria
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-  
+
   // 🔴 CLT COMPLIANCE: Soft delete para preservar histórico - OBRIGATÓRIO
   isDeleted: boolean("is_deleted").default(false),
   deletedAt: timestamp("deleted_at"),
@@ -989,31 +989,31 @@ export const approvalGroupMembers = pgTable("approval_group_members", {
 export const timecardApprovalSettings = pgTable("timecard_approval_settings", {
   id: uuid("id").defaultRandom().primaryKey(),
   tenantId: uuid("tenant_id").notNull(),
-  
+
   // Tipo de aprovação
   approvalType: varchar("approval_type", { length: 20 }).notNull(), // 'automatic', 'manual'
-  
+
   // Configurações de aprovação automática
   autoApproveComplete: boolean("auto_approve_complete").default(false), // Auto aprovar registros completos
   autoApproveAfterHours: integer("auto_approve_after_hours").default(24), // Horas para auto aprovar
-  
+
   // Configurações de aprovação manual
   requireApprovalFor: jsonb("require_approval_for").default([]), // ['inconsistencies', 'overtime', 'absences', 'manual_entries', 'all']
-  
+
   // Aprovadores
   defaultApprovers: text("default_approvers").array(), // Lista de user IDs
   approvalGroupId: uuid("approval_group_id").references(() => approvalGroups.id),
-  
+
   // Configurações de ticket automático
   createAutoTickets: boolean("create_auto_tickets").default(false),
   ticketRecurrence: varchar("ticket_recurrence", { length: 20 }).default("weekly"), // 'daily', 'weekly', 'monthly'
   ticketDay: integer("ticket_day").default(1), // Dia da semana/mês
   ticketTime: time("ticket_time").default("09:00"), // Hora para criar o ticket
-  
+
   // Configurações avançadas
   escalationRules: jsonb("escalation_rules").default({}),
   notificationSettings: jsonb("notification_settings").default({}),
-  
+
   // Auditoria
   isActive: boolean("is_active").default(true),
   createdBy: uuid("created_by").references(() => users.id),
@@ -1031,21 +1031,21 @@ export const timecardApprovalHistory = pgTable("timecard_approval_history", {
   id: uuid("id").defaultRandom().primaryKey(),
   tenantId: uuid("tenant_id").notNull(),
   timecardEntryId: uuid("timecard_entry_id").notNull().references(() => timecardEntries.id),
-  
+
   // Dados da aprovação
   approvalStatus: varchar("approval_status", { length: 20 }).notNull(), // 'pending', 'approved', 'rejected'
   approvedBy: uuid("approved_by").references(() => users.id),
   approvalDate: timestamp("approval_date"),
   rejectionReason: text("rejection_reason"),
   comments: text("comments"),
-  
+
   // Tipo de aprovação
   approvalMethod: varchar("approval_method", { length: 20 }).notNull(), // 'automatic', 'manual', 'ticket'
   ticketId: uuid("ticket_id"), // Referência ao ticket se aprovado via ticket
-  
+
   // Dados do registro na aprovação
   snapshotData: jsonb("snapshot_data"), // Snapshot dos dados no momento da aprovação
-  
+
   // Auditoria
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -1137,21 +1137,21 @@ export const timecardAuditLog = pgTable("timecard_audit_log", {
   action: varchar("action", { length: 50 }).notNull(), // 'CREATE', 'UPDATE', 'DELETE', 'APPROVE', 'REJECT'
   performedBy: uuid("performed_by").notNull().references(() => users.id),
   performedAt: timestamp("performed_at").defaultNow().notNull(),
-  
+
   // Dados antes e depois da alteração
   oldValues: jsonb("old_values"),
   newValues: jsonb("new_values"),
-  
+
   // Contexto da alteração
   reason: text("reason"),
   ipAddress: varchar("ip_address", { length: 45 }).notNull(),
   userAgent: text("user_agent"),
   deviceInfo: jsonb("device_info"),
-  
+
   // Validação e integridade
   auditHash: varchar("audit_hash", { length: 64 }).notNull(),
   isSystemGenerated: boolean("is_system_generated").default(false),
-  
+
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => [
   index("timecard_audit_tenant_entry_idx").on(table.tenantId, table.timecardEntryId),
@@ -1168,28 +1168,28 @@ export const complianceReports = pgTable("compliance_reports", {
   reportType: varchar("report_type", { length: 50 }).notNull(), // 'MONTHLY', 'QUARTERLY', 'ANNUAL', 'AUDIT'
   periodStart: date("period_start").notNull(),
   periodEnd: date("period_end").notNull(),
-  
+
   // Estatísticas do relatório
   totalRecords: integer("total_records").notNull(),
   totalEmployees: integer("total_employees").notNull(),
   totalHours: decimal("total_hours", { precision: 10, scale: 2 }).notNull(),
   overtimeHours: decimal("overtime_hours", { precision: 10, scale: 2 }).default("0"),
-  
+
   // Hash e validação
   reportHash: varchar("report_hash", { length: 64 }).notNull(),
   reportContent: jsonb("report_content").notNull(), // Dados completos do relatório
-  
+
   // Assinatura digital do relatório
   digitalSignature: text("digital_signature"),
   signedBy: uuid("signed_by").references(() => users.id),
   signedAt: timestamp("signed_at"),
-  
+
   // Metadados
   generatedBy: uuid("generated_by").notNull().references(() => users.id),
   isSubmittedToAuthorities: boolean("is_submitted_to_authorities").default(false),
   submissionDate: timestamp("submission_date"),
   submissionProtocol: varchar("submission_protocol", { length: 100 }),
-  
+
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => [
@@ -1207,17 +1207,17 @@ export const digitalSignatureKeys = pgTable("digital_signature_keys", {
   publicKey: text("public_key").notNull(),
   privateKeyHash: varchar("private_key_hash", { length: 64 }).notNull(), // Hash da chave privada (não a chave em si)
   keyAlgorithm: varchar("key_algorithm", { length: 20 }).default("RSA-2048").notNull(),
-  
+
   // Controle de validade
   isActive: boolean("is_active").default(true),
   expiresAt: timestamp("expires_at").notNull(),
-  
+
   // Auditoria das chaves
   createdBy: uuid("created_by").notNull().references(() => users.id),
   revokedBy: uuid("revoked_by").references(() => users.id),
   revokedAt: timestamp("revoked_at"),
   revocationReason: text("revocation_reason"),
-  
+
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => [
@@ -1441,62 +1441,62 @@ export type ActivityLog = typeof activityLogs.$inferSelect;
 export type InsertActivityLog = typeof activityLogs.$inferInsert;
 
 export type Location = typeof locations.$inferSelect;
-export type InsertLocation = typeof locations.$inferInsert;
+export type InsertLocation = typeof locations.$insert;
 
 export type Company = typeof companies.$inferSelect;
-export type InsertCompany = typeof companies.$inferInsert;
+export type InsertCompany = typeof companies.$insert;
 
 export type Skill = typeof skills.$inferSelect;
-export type InsertSkill = typeof skills.$inferInsert;
+export type InsertSkill = typeof skills.$insert;
 
 export type Certification = typeof certifications.$inferSelect;
-export type InsertCertification = typeof certifications.$inferInsert;
+export type InsertCertification = typeof certifications.$insert;
 
 export type UserSkill = typeof userSkills.$inferSelect;
-export type InsertUserSkill = typeof userSkills.$inferInsert;
+export type InsertUserSkill = typeof userSkills.$insert;
 
 export type Favorecido = typeof favorecidos.$inferSelect;
-export type InsertFavorecido = typeof favorecidos.$inferInsert;
+export type InsertFavorecido = typeof favorecidos.$insert;
 
 export type Project = typeof projects.$inferSelect;
-export type InsertProject = typeof projects.$inferInsert;
+export type InsertProject = typeof projects.$insert;
 
 export type ProjectAction = typeof projectActions.$inferSelect;
-export type InsertProjectAction = typeof projectActions.$inferInsert;
+export type InsertProjectAction = typeof projectActions.$insert;
 
 export type MarketLocalization = typeof marketLocalization.$inferSelect;
-export type InsertMarketLocalization = typeof marketLocalization.$inferInsert;
+export type InsertMarketLocalization = typeof marketLocalization.$insert;
 
 export type FieldAliasMapping = typeof fieldAliasMapping.$inferSelect;
-export type InsertFieldAliasMapping = typeof fieldAliasMapping.$inferInsert;
+export type InsertFieldAliasMapping = typeof fieldAliasMapping.$insert;
 
 export type LocalizationContext = typeof localizationContext.$inferSelect;
-export type InsertLocalizationContext = typeof localizationContext.$inferInsert;
+export type InsertLocalizationContext = typeof localizationContext.$insert;
 
 export type Holiday = typeof holidays.$inferSelect;
-export type InsertHoliday = typeof holidays.$inferInsert;
+export type InsertHoliday = typeof holidays.$insert;
 
 export type Session = typeof sessions.$inferSelect;
-export type InsertSession = typeof sessions.$inferInsert;
+export type InsertSession = typeof sessions.$insert;
 
 // Timecard and Approval Types
 export type TimecardEntry = typeof timecardEntries.$inferSelect;
-export type InsertTimecardEntry = typeof timecardEntries.$inferInsert;
+export type InsertTimecardEntry = typeof timecardEntries.$insert;
 
 export type WorkSchedule = typeof workSchedules.$inferSelect;
-export type InsertWorkSchedule = typeof workSchedules.$inferInsert;
+export type InsertWorkSchedule = typeof workSchedules.$insert;
 
 export type ApprovalGroup = typeof approvalGroups.$inferSelect;
-export type InsertApprovalGroup = typeof approvalGroups.$inferInsert;
+export type InsertApprovalGroup = typeof approvalGroups.$insert;
 
 export type ApprovalGroupMember = typeof approvalGroupMembers.$inferSelect;
-export type InsertApprovalGroupMember = typeof approvalGroupMembers.$inferInsert;
+export type InsertApprovalGroupMember = typeof approvalGroupMembers.$insert;
 
 export type TimecardApprovalSettings = typeof timecardApprovalSettings.$inferSelect;
-export type InsertTimecardApprovalSettings = typeof timecardApprovalSettings.$inferInsert;
+export type InsertTimecardApprovalSettings = typeof timecardApprovalSettings.$insert;
 
 export type TimecardApprovalHistory = typeof timecardApprovalHistory.$inferSelect;
-export type InsertTimecardApprovalHistory = typeof timecardApprovalHistory.$inferInsert;
+export type InsertTimecardApprovalHistory = typeof timecardApprovalHistory.$insert;
 
 
 
@@ -1691,29 +1691,29 @@ export const ticketInternalActions = pgTable("ticket_internal_actions", {
   actionType: varchar("action_type", { length: 100 }).notNull(), // analysis, investigation, escalation, resolution, follow_up
   title: varchar("title", { length: 255 }).notNull(),
   description: text("description"),
-  
+
   // Atribuição hierárquica: Grupo → Agente
   assignmentGroupId: uuid("assignment_group_id").references(() => userGroups.id), // Grupo de atribuição (prioridade sobre groupId)
   groupId: varchar("group_id", { length: 100 }), // working group (manter para compatibilidade)
   agentId: uuid("agent_id").references(() => users.id), // Agente responsável (opcional se apenas grupo atribuído)
-  
+
   // Datas previstas (planejamento)
   plannedStartDate: timestamp("planned_start_date"), // Data prevista inicial
   plannedEndDate: timestamp("planned_end_date"), // Data prevista final
-  
+
   // Datas realizadas (execução)
   actualStartDate: timestamp("actual_start_date"), // Data realizada inicial
   actualEndDate: timestamp("actual_end_date"), // Data realizada final
-  
+
   // Campos de tempo legados (manter para compatibilidade)
   startTime: timestamp("start_time"),
   endTime: timestamp("end_time"),
   estimatedHours: decimal("estimated_hours", { precision: 5, scale: 2 }),
   actualHours: decimal("actual_hours", { precision: 5, scale: 2 }),
-  
+
   // Campo de tempo realizado em minutos (calculado automaticamente)
   tempoRealizado: integer("tempo_realizado"), // tempo em minutos entre start_time e end_time
-  
+
   status: varchar("status", { length: 50 }).default("pending"), // pending, in_progress, completed, cancelled
   priority: varchar("priority", { length: 20 }).default("medium"),
   linkedItemIds: jsonb("linked_item_ids").default([]), // array of UUIDs for related items
@@ -2095,7 +2095,7 @@ export const contractEquipment = pgTable("contract_equipment", {
   serialNumber: varchar("serial_number", { length: 100 }),
   assetTag: varchar("asset_tag", { length: 100 }),
 
-  // Location and Installation
+  // Installation and Location
   installationLocationId: uuid("installation_location_id").references(() => locations.id),
   installationDate: timestamp("installation_date"),
   installationNotes: text("installation_notes"),
@@ -2141,7 +2141,7 @@ export type ContractEquipment = typeof contractEquipment.$inferSelect;
 
 // Contract validation schemas
 export const insertContractSchema = createInsertSchema(contracts);
-export const insertContractSlaSchema = createInsertSchema(contractSlas);  
+export const insertContractSlaSchema = createInsertSchema(contractSlas);
 export const insertContractServiceSchema = createInsertSchema(contractServices);
 export const insertContractDocumentSchema = createInsertSchema(contractDocuments);
 export const insertContractRenewalSchema = createInsertSchema(contractRenewals);
@@ -2186,19 +2186,20 @@ export const itemAttachments = pgTable("item_attachments", {
   index("item_attachments_tenant_item_idx").on(table.tenantId, table.itemId),
 ]);
 
-// Item Links table
+// Item Links table - for relationships between items
 export const itemLinks = pgTable("item_links", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
-  itemId: uuid("item_id").references(() => items.id, { onDelete: 'cascade' }).notNull(),
-  linkType: varchar("link_type", { length: 50 }).notNull(),
-  linkedItemId: uuid("linked_item_id").references(() => items.id, { onDelete: 'cascade' }).notNull(),
-  relationshipType: varchar("relationship_type", { length: 50 }),
-  quantity: decimal("quantity", { precision: 10, scale: 3 }),
+  sourceItemId: uuid("source_item_id").references(() => items.id, { onDelete: 'cascade' }).notNull(),
+  targetItemId: uuid("target_item_id").references(() => items.id, { onDelete: 'cascade' }).notNull(),
+  linkType: varchar("link_type", { length: 50 }).notNull(), // 'kit', 'substitute', 'compatible', 'accessory'
+  quantity: decimal("quantity", { precision: 10, scale: 3 }).default("1"),
+  description: text("description"),
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => [
-  index("item_links_tenant_item_idx").on(table.tenantId, table.itemId),
-  index("item_links_tenant_linked_idx").on(table.tenantId, table.linkedItemId),
+  index("item_links_tenant_source_idx").on(table.tenantId, table.sourceItemId),
+  index("item_links_tenant_target_idx").on(table.tenantId, table.targetItemId),
 ]);
 
 // Item Customer Links table
@@ -2223,34 +2224,33 @@ export const itemSupplierLinks = pgTable("item_supplier_links", {
   tenantId: uuid("tenant_id").notNull(),
   itemId: uuid("item_id").references(() => items.id, { onDelete: 'cascade' }).notNull(),
   supplierId: uuid("supplier_id").references(() => suppliers.id).notNull(),
-  
+
   // Supplier-specific identifiers
   partNumber: varchar("part_number", { length: 100 }), // Part number from supplier
   supplierItemCode: varchar("supplier_item_code", { length: 100 }), // Alternative code
   supplierItemName: varchar("supplier_item_name", { length: 255 }), // Name as supplier calls it
   description: text("description"), // Supplier's description
-  
+
   // Commercial data
   unitPrice: decimal("unit_price", { precision: 15, scale: 2 }), // Price from supplier
   currency: varchar("currency", { length: 3 }).default("BRL"),
   leadTimeDays: integer("lead_time_days"), // Lead time in days
   minimumOrderQuantity: integer("minimum_order_quantity"), // Minimum order quantity
-  
+
   // Identification codes
   qrCode: varchar("qr_code", { length: 255 }), // QR code if available
   barcode: varchar("barcode", { length: 255 }), // Barcode if available
-  
+
   // Status and preferences
   isPreferred: boolean("is_preferred").default(false), // Preferred supplier for this item
   isActive: boolean("is_active").default(true),
-  
+
   // Metadata
   notes: text("notes"),
   lastPriceUpdate: timestamp("last_price_update"), // When price was last updated
   createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-  createdBy: uuid("created_by").references(() => users.id),
   updatedBy: uuid("updated_by").references(() => users.id),
+  updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => [
   index("item_supplier_links_tenant_item_idx").on(table.tenantId, table.itemId),
   index("item_supplier_links_tenant_supplier_idx").on(table.tenantId, table.supplierId),
@@ -2301,7 +2301,6 @@ export const supplierCatalog = pgTable("supplier_catalog", {
 }, (table) => [
   index("supplier_catalog_tenant_supplier_idx").on(table.tenantId, table.supplierId),
   index("supplier_catalog_tenant_item_idx").on(table.tenantId, table.itemId),
-  unique("supplier_catalog_supplier_item_unique").on(table.tenantId, table.supplierId, table.itemId),
 ]);
 
 // Price Lists table
@@ -2688,26 +2687,26 @@ export const customerItemMappings = pgTable("customer_item_mappings", {
   tenantId: uuid("tenant_id").notNull(),
   customerId: uuid("customer_id").references(() => customers.id, { onDelete: 'cascade' }).notNull(),
   itemId: uuid("item_id").references(() => items.id, { onDelete: 'cascade' }).notNull(),
-  
+
   // Customer-specific identifiers
   customSku: varchar("custom_sku", { length: 100 }), // SKU que o cliente usa
   customName: varchar("custom_name", { length: 255 }), // Nome que o cliente usa
   customDescription: text("custom_description"), // Descrição personalizada
   customerReference: varchar("customer_reference", { length: 100 }), // Referência interna do cliente
-  
+
   // Pricing and terms
   leadTimeDays: integer("lead_time_days"), // Tempo de entrega específico
-  
+
   // Configuration options
   preferredSupplier: varchar("preferred_supplier", { length: 255 }), // Fornecedor preferido
   specialInstructions: text("special_instructions"), // Instruções especiais
   customFields: jsonb("custom_fields").default({}), // Campos extras configuráveis
-  
+
   // Contract and approval
   contractReference: varchar("contract_reference", { length: 100 }), // Referência de contrato
   requiresApproval: boolean("requires_approval").default(false), // Requer aprovação especial
   approvalLimit: decimal("approval_limit", { precision: 15, scale: 2 }), // Limite de aprovação
-  
+
   // Status and metadata
   isActive: boolean("is_active").default(true),
   effectiveDate: timestamp("effective_date").defaultNow(), // Data de vigência
@@ -2863,15 +2862,15 @@ export const ticketStockMovements = pgTable("ticket_stock_movements", {
 
 // Types for ticket materials consumption
 export type TicketLpuSetting = typeof ticketLpuSettings.$inferSelect;
-export type InsertTicketLpuSetting = typeof ticketLpuSettings.$inferInsert;
+export type InsertTicketLpuSetting = typeof ticketLpuSettings.$insert;
 export type TicketPlannedItem = typeof ticketPlannedItems.$inferSelect;
-export type InsertTicketPlannedItem = typeof ticketPlannedItems.$inferInsert;
+export type InsertTicketPlannedItem = typeof ticketPlannedItems.$insert;
 export type TicketConsumedItem = typeof ticketConsumedItems.$inferSelect;
-export type InsertTicketConsumedItem = typeof ticketConsumedItems.$inferInsert;
+export type InsertTicketConsumedItem = typeof ticketConsumedItems.$insert;
 export type TicketCostsSummary = typeof ticketCostsSummary.$inferSelect;
-export type InsertTicketCostsSummary = typeof ticketCostsSummary.$inferInsert;
+export type InsertTicketCostsSummary = typeof ticketCostsSummary.$insert;
 export type TicketStockMovement = typeof ticketStockMovements.$inferSelect;
-export type InsertTicketStockMovement = typeof ticketStockMovements.$inferInsert;
+export type InsertTicketStockMovement = typeof ticketStockMovements.$insert;
 
 // Zod schemas for validation
 export const insertTicketLpuSettingSchema = createInsertSchema(ticketLpuSettings);
@@ -2882,23 +2881,23 @@ export const insertTicketStockMovementSchema = createInsertSchema(ticketStockMov
 
 // Types for parts and services
 export type Item = typeof items.$inferSelect;
-export type InsertItem = typeof items.$inferInsert;
+export type InsertItem = typeof items.$insert;
 export type StockLocation = typeof stockLocations.$inferSelect;
-export type InsertStockLocation = typeof stockLocations.$inferInsert;
+export type InsertStockLocation = typeof stockLocations.$insert;
 export type StockLevel = typeof stockLevels.$inferSelect;
-export type InsertStockLevel = typeof stockLevels.$inferInsert;
+export type InsertStockLevel = typeof stockLevels.$insert;
 export type Supplier = typeof suppliers.$inferSelect;
-export type InsertSupplier = typeof suppliers.$inferInsert;
+export type InsertSupplier = typeof suppliers.$insert;
 
 // Notification types
 export type Notification = typeof notifications.$inferSelect;
-export type InsertNotification = typeof notifications.$inferInsert;
+export type InsertNotification = typeof notifications.$insert;
 export type NotificationPreference = typeof notificationPreferences.$inferSelect;
-export type InsertNotificationPreference = typeof notificationPreferences.$inferInsert;
+export type InsertNotificationPreference = typeof notificationPreferences.$insert;
 export type NotificationTemplate = typeof notificationTemplates.$inferSelect;
-export type InsertNotificationTemplate = typeof notificationTemplates.$inferInsert;
+export type InsertNotificationTemplate = typeof notificationTemplates.$insert;
 export type NotificationLog = typeof notificationLogs.$inferSelect;
-export type InsertNotificationLog = typeof notificationLogs.$inferInsert;
+export type InsertNotificationLog = typeof notificationLogs.$insert;
 
 
 
@@ -2920,12 +2919,12 @@ export const ticketSlas = pgTable("ticket_slas", {
   description: text("description"),
   slaLevel: varchar("sla_level", { length: 50 }).notNull(), // L1, L2, L3, L4, Premium, Standard, Basic
   isActive: boolean("is_active").default(true),
-  
+
   // Integration with ticket metadata fields
   priorityField: varchar("priority_field", { length: 100 }).default("priority"), // which field to check
   statusField: varchar("status_field", { length: 100 }).default("status"),
   categoryField: varchar("category_field", { length: 100 }).default("category"),
-  
+
   // Business Hours Configuration
   businessHoursStart: time("business_hours_start").default("08:00"),
   businessHoursEnd: time("business_hours_end").default("18:00"),
@@ -2933,11 +2932,11 @@ export const ticketSlas = pgTable("ticket_slas", {
   timezone: varchar("timezone", { length: 50 }).default("America/Sao_Paulo"),
   includeWeekends: boolean("include_weekends").default(false),
   includeHolidays: boolean("include_holidays").default(false),
-  
+
   // Notification Settings
   notifyBeachMinutes: integer("notify_breach_minutes").default(15), // Notify X minutes before breach
   escalationEnabled: boolean("escalation_enabled").default(true),
-  
+
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   createdBy: uuid("created_by").references(() => users.id)
@@ -2952,15 +2951,15 @@ export const slaRules = pgTable("sla_rules", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
   slaId: uuid("sla_id").references(() => ticketSlas.id, { onDelete: 'cascade' }).notNull(),
-  
+
   // Field-based conditions (integrated with ticket metadata)
   fieldName: varchar("field_name", { length: 100 }).notNull(), // priority, status, category, etc.
   fieldValue: varchar("field_value", { length: 100 }).notNull(), // urgent, high, critical, etc.
-  
+
   // Time limits in minutes
   firstResponseTime: integer("first_response_time").notNull(), // Time to first response
   resolutionTime: integer("resolution_time").notNull(), // Time to resolution
-  
+
   // Escalation levels
   escalationL1Time: integer("escalation_l1_time"), // Escalate to L1 after X minutes
   escalationL2Time: integer("escalation_l2_time"), // Escalate to L2 after X minutes
@@ -2968,11 +2967,11 @@ export const slaRules = pgTable("sla_rules", {
   escalationL1GroupId: uuid("escalation_l1_group_id"),
   escalationL2GroupId: uuid("escalation_l2_group_id"),
   escalationL3GroupId: uuid("escalation_l3_group_id"),
-  
+
   // Priority and order
   priority: integer("priority").default(100), // Lower number = higher priority
   isActive: boolean("is_active").default(true),
-  
+
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull()
 }, (table) => [
@@ -2987,22 +2986,22 @@ export const slaStatusTimeouts = pgTable("sla_status_timeouts", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
   slaId: uuid("sla_id").references(() => ticketSlas.id, { onDelete: 'cascade' }).notNull(),
-  
+
   // Status-based timeout configuration
   statusValue: varchar("status_value", { length: 100 }).notNull(), // open, in_progress, resolved, etc.
   maxIdleTime: integer("max_idle_time").notNull(), // Maximum idle time in minutes
-  
+
   // Actions on timeout
   timeoutAction: varchar("timeout_action", { length: 50 }).default("escalate"), // escalate, notify, auto_close
   escalateToGroupId: uuid("escalate_to_group_id"),
   escalateToUserId: uuid("escalate_to_user_id"),
   notificationTemplate: text("notification_template"),
-  
+
   // Business rules
   applyDuringBusinessHours: boolean("apply_during_business_hours").default(true),
   resetOnUpdate: boolean("reset_on_update").default(true), // Reset timer on ticket update
   isActive: boolean("is_active").default(true),
-  
+
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull()
 }, (table) => [
@@ -3017,7 +3016,7 @@ export const slaEscalations = pgTable("sla_escalations", {
   tenantId: uuid("tenant_id").notNull(),
   ticketId: uuid("ticket_id").references(() => tickets.id, { onDelete: 'cascade' }).notNull(),
   slaRuleId: uuid("sla_rule_id").references(() => slaRules.id).notNull(),
-  
+
   // Escalation details
   escalationLevel: varchar("escalation_level", { length: 10 }).notNull(), // L1, L2, L3
   escalatedAt: timestamp("escalated_at").defaultNow().notNull(),
@@ -3025,18 +3024,18 @@ export const slaEscalations = pgTable("sla_escalations", {
   escalatedToGroupId: uuid("escalated_to_group_id"),
   escalatedFromUserId: uuid("escalated_from_user_id"),
   escalatedToUserId: uuid("escalated_to_user_id"),
-  
+
   // Status and resolution
   escalationStatus: varchar("escalation_status", { length: 50 }).default("pending"), // pending, acknowledged, resolved
   acknowledgedAt: timestamp("acknowledged_at"),
   acknowledgedBy: uuid("acknowledged_by"),
   resolvedAt: timestamp("resolved_at"),
-  
+
   // Notes and reason
   escalationReason: text("escalation_reason"),
   escalationNotes: text("escalation_notes"),
   isAutomatic: boolean("is_automatic").default(true),
-  
+
   createdAt: timestamp("created_at").defaultNow().notNull()
 }, (table) => [
   index("sla_escalations_tenant_ticket_idx").on(table.tenantId, table.ticketId),
@@ -3051,28 +3050,28 @@ export const slaMetrics = pgTable("sla_metrics", {
   tenantId: uuid("tenant_id").notNull(),
   ticketId: uuid("ticket_id").references(() => tickets.id, { onDelete: 'cascade' }).notNull(),
   slaRuleId: uuid("sla_rule_id").references(() => slaRules.id).notNull(),
-  
+
   // Time calculations (in minutes)
   firstResponseTime: integer("first_response_time"), // Actual time to first response
   firstResponseDue: timestamp("first_response_due"), // When first response was due
   firstResponseMet: boolean("first_response_met"),
-  
+
   resolutionTime: integer("resolution_time"), // Actual time to resolution
   resolutionDue: timestamp("resolution_due"), // When resolution was due
   resolutionMet: boolean("resolution_met"),
-  
+
   // Status idle tracking
   statusTimeouts: jsonb("status_timeouts").default({}), // { "status": { "timeSpent": 120, "maxAllowed": 240, "breached": false } }
   totalIdleTime: integer("total_idle_time").default(0), // Total idle time across all statuses
-  
+
   // Overall compliance
   overallCompliance: boolean("overall_compliance"), // Met all SLA requirements
   breachReason: text("breach_reason"), // Reason for SLA breach
-  
+
   // Business metrics
   businessHoursOnly: boolean("business_hours_only").default(true),
   pausedTime: integer("paused_time").default(0), // Time ticket was paused (not counted)
-  
+
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull()
 }, (table) => [
@@ -3086,15 +3085,15 @@ export const slaMetrics = pgTable("sla_metrics", {
 
 // Enhanced SLA types
 export type TicketSla = typeof ticketSlas.$inferSelect;
-export type InsertTicketSla = typeof ticketSlas.$inferInsert;
+export type InsertTicketSla = typeof ticketSlas.$insert;
 export type SlaRule = typeof slaRules.$inferSelect;
-export type InsertSlaRule = typeof slaRules.$inferInsert;
+export type InsertSlaRule = typeof slaRules.$insert;
 export type SlaStatusTimeout = typeof slaStatusTimeouts.$inferSelect;
-export type InsertSlaStatusTimeout = typeof slaStatusTimeouts.$inferInsert;
+export type InsertSlaStatusTimeout = typeof slaStatusTimeouts.$insert;
 export type SlaEscalation = typeof slaEscalations.$inferSelect;
-export type InsertSlaEscalation = typeof slaEscalations.$inferInsert;
+export type InsertSlaEscalation = typeof slaEscalations.$insert;
 export type SlaMetric = typeof slaMetrics.$inferSelect;
-export type InsertSlaMetric = typeof slaMetrics.$inferInsert;
+export type InsertSlaMetric = typeof slaMetrics.$insert;
 
 // Enhanced SLA Zod schemas
 export const insertTicketSlaSchema = createInsertSchema(ticketSlas);
@@ -3111,13 +3110,13 @@ export const ticketTemplates = pgTable("ticket_templates", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
   companyId: uuid("company_id").references(() => companies.id, { onDelete: 'cascade' }),
-  
+
   // Identificação
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
   category: varchar("category", { length: 100 }).notNull(),
   subcategory: varchar("subcategory", { length: 100 }),
-  
+
   // Configurações padrão do ticket
   defaultTitle: varchar("default_title", { length: 500 }),
   defaultDescription: text("default_description"),
@@ -3127,22 +3126,22 @@ export const ticketTemplates = pgTable("ticket_templates", {
   defaultCategory: varchar("default_category", { length: 100 }).notNull(),
   defaultUrgency: varchar("default_urgency", { length: 50 }),
   defaultImpact: varchar("default_impact", { length: 50 }),
-  
+
   // Atribuições automáticas
   defaultAssigneeId: uuid("default_assignee_id"),
   defaultAssignmentGroup: varchar("default_assignment_group", { length: 100 }),
   defaultDepartment: varchar("default_department", { length: 100 }),
-  
+
   // Configurações de campos
   requiredFields: text("required_fields").array().default([]),
   optionalFields: text("optional_fields").array().default([]),
   hiddenFields: text("hidden_fields").array().default([]),
   customFields: jsonb("custom_fields").default({}),
-  
+
   // Automações e SLA
   autoAssignmentRules: jsonb("auto_assignment_rules").default({}),
   slaOverride: jsonb("sla_override").default({}),
-  
+
   // Metadados
   isActive: boolean("is_active").default(true),
   isPublic: boolean("is_public").default(true),
@@ -3188,25 +3187,25 @@ export const dynamicFieldDefinitions = pgTable("dynamic_field_definitions", {
   fieldType: varchar("field_type", { length: 50 }).notNull(), // text, select, checkbox, etc.
   fieldLabel: varchar("field_label", { length: 255 }).notNull(),
   fieldDescription: text("field_description"),
-  
+
   // Configurações do campo
   isRequired: boolean("is_required").default(false),
   isVisible: boolean("is_visible").default(true),
   sortOrder: integer("sort_order").default(0),
-  
+
   // Validações
   validationRules: jsonb("validation_rules").default({}), // {minLength: 5, maxLength: 100, pattern: "regex"}
-  
+
   // Opções para campos select/radio/checkbox
   fieldOptions: jsonb("field_options").default([]), // [{value: "opt1", label: "Opção 1"}]
-  
+
   // Configurações condicionais
   conditionalLogic: jsonb("conditional_logic").default({}), // {showIf: {field: "priority", value: "high"}}
-  
+
   // Estilo e posicionamento
   styling: jsonb("styling").default({}), // {width: "50%", cssClass: "custom-field"}
   gridPosition: jsonb("grid_position").default({}), // {row: 1, col: 1, span: 2}
-  
+
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => [
@@ -3236,22 +3235,22 @@ export const templateApprovals = pgTable("template_approvals", {
   tenantId: uuid("tenant_id").notNull(),
   templateId: uuid("template_id").references(() => ticketTemplates.id, { onDelete: 'cascade' }).notNull(),
   versionId: uuid("version_id").references(() => templateVersions.id, { onDelete: 'cascade' }),
-  
+
   // Workflow
   status: varchar("status", { length: 50 }).default("pending"), // pending, approved, rejected, revision_needed
   requestedById: uuid("requested_by_id").notNull(),
   approverIds: uuid("approver_ids").array().default([]),
-  
+
   // Comentários e feedback
   requestComments: text("request_comments"),
   approvalComments: text("approval_comments"),
   rejectionReason: text("rejection_reason"),
-  
+
   // Timestamps
   requestedAt: timestamp("requested_at").defaultNow(),
   approvedAt: timestamp("approved_at"),
   rejectedAt: timestamp("rejected_at"),
-  
+
   createdAt: timestamp("created_at").defaultNow(),
 }, (table) => [
   index("template_approvals_template_idx").on(table.tenantId, table.templateId),
@@ -3260,17 +3259,17 @@ export const templateApprovals = pgTable("template_approvals", {
 
 // Template types
 export type TicketTemplate = typeof ticketTemplates.$inferSelect;
-export type InsertTicketTemplate = typeof ticketTemplates.$inferInsert;
+export type InsertTicketTemplate = typeof ticketTemplates.$insert;
 export type TemplateVersion = typeof templateVersions.$inferSelect;
-export type InsertTemplateVersion = typeof templateVersions.$inferInsert;
+export type InsertTemplateVersion = typeof templateVersions.$insert;
 export type DynamicFieldDefinition = typeof dynamicFieldDefinitions.$inferSelect;
-export type InsertDynamicFieldDefinition = typeof dynamicFieldDefinitions.$inferInsert;
+export type InsertDynamicFieldDefinition = typeof dynamicFieldDefinitions.$insert;
 export type FieldValidationRule = typeof fieldValidationRules.$inferSelect;
-export type InsertFieldValidationRule = typeof fieldValidationRules.$inferInsert;
+export type InsertFieldValidationRule = typeof fieldValidationRules.$insert;
 export type TemplateApproval = typeof templateApprovals.$inferSelect;
-export type InsertTemplateApproval = typeof templateApprovals.$inferInsert;
+export type InsertTemplateApproval = typeof templateApprovals.$insert;
 
-// Template Zod schemas  
+// Template Zod schemas
 export const insertTicketTemplateSchema = createInsertSchema(ticketTemplates).extend({
   companyId: z.string().uuid().nullable().optional(),
   defaultCategory: z.string().min(1, "Default category is required"),
@@ -3297,24 +3296,24 @@ export const ticketListViews = pgTable("ticket_list_views", {
   tenantId: uuid("tenant_id").notNull(),
   name: varchar("name", { length: 100 }).notNull(),
   description: text("description"),
-  
+
   // Permissões e visibilidade
   createdById: uuid("created_by_id").notNull(), // Referência ao usuário que criou
   isPublic: boolean("is_public").default(false), // true = visível para todos do tenant
   isDefault: boolean("is_default").default(false), // true = visualização padrão
-  
+
   // Configuração das colunas
   columns: jsonb("columns").notNull(), // Array de objetos: {id, label, visible, order, width}
-  
+
   // Configuração de filtros
   filters: jsonb("filters").default([]), // Array de filtros aplicados
-  
+
   // Configuração de ordenação
   sorting: jsonb("sorting").default([]), // Array de ordenação: {column, direction}
-  
+
   // Configurações de paginação
   pageSize: integer("page_size").default(25),
-  
+
   // Metadados
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
@@ -3332,11 +3331,11 @@ export const ticketViewShares = pgTable("ticket_view_shares", {
   tenantId: uuid("tenant_id").notNull(),
   viewId: uuid("view_id").references(() => ticketListViews.id, { onDelete: 'cascade' }).notNull(),
   userId: uuid("user_id").notNull(), // Usuário com acesso à visualização
-  
+
   // Permissões
   canEdit: boolean("can_edit").default(false), // Pode editar a visualização
   canShare: boolean("can_share").default(false), // Pode compartilhar com outros
-  
+
   // Metadados
   sharedAt: timestamp("shared_at").defaultNow(),
   sharedById: uuid("shared_by_id").notNull(), // Quem compartilhou
@@ -3351,13 +3350,13 @@ export const userViewPreferences = pgTable("user_view_preferences", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
   userId: uuid("user_id").notNull(),
-  
+
   // Visualização ativa
   activeViewId: uuid("active_view_id").references(() => ticketListViews.id),
-  
+
   // Preferências pessoais (override da visualização)
   personalSettings: jsonb("personal_settings").default({}), // Configurações que sobrescrevem a view
-  
+
   // Metadados
   lastUsedAt: timestamp("last_used_at").defaultNow(),
   createdAt: timestamp("created_at").defaultNow(),
@@ -3367,15 +3366,49 @@ export const userViewPreferences = pgTable("user_view_preferences", {
   unique("user_prefs_unique").on(table.tenantId, table.userId),
 ]);
 
-// Customer Item Mappings Types - Consolidated
+// Customer Item Mappings - Personalized item configurations per customer
+export const customerItemMappings = pgTable("customer_item_mappings", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  customerId: uuid("customer_id").references(() => customers.id, { onDelete: 'cascade' }).notNull(),
+  itemId: uuid("item_id").references(() => items.id, { onDelete: 'cascade' }).notNull(),
 
-// Types para as novas tabelas
-export type TicketListView = typeof ticketListViews.$inferSelect;
-export type InsertTicketListView = typeof ticketListViews.$inferInsert;
-export type TicketViewShare = typeof ticketViewShares.$inferSelect;
-export type InsertTicketViewShare = typeof ticketViewShares.$inferInsert;
-export type UserViewPreference = typeof userViewPreferences.$inferSelect;
-export type InsertUserViewPreference = typeof userViewPreferences.$inferInsert;
+  // Customer-specific identifiers
+  customSku: varchar("custom_sku", { length: 100 }), // SKU que o cliente usa
+  customName: varchar("custom_name", { length: 255 }), // Nome que o cliente usa
+  customDescription: text("custom_description"), // Descrição personalizada
+  customerReference: varchar("customer_reference", { length: 100 }), // Referência interna do cliente
+
+  // Pricing and terms
+  leadTimeDays: integer("lead_time_days"), // Tempo de entrega específico
+
+  // Configuration options
+  preferredSupplier: varchar("preferred_supplier", { length: 255 }), // Fornecedor preferido
+  specialInstructions: text("special_instructions"), // Instruções especiais
+  customFields: jsonb("custom_fields").default({}), // Campos extras configuráveis
+
+  // Contract and approval
+  contractReference: varchar("contract_reference", { length: 100 }), // Referência de contrato
+  requiresApproval: boolean("requires_approval").default(false), // Requer aprovação especial
+  approvalLimit: decimal("approval_limit", { precision: 15, scale: 2 }), // Limite de aprovação
+
+  // Status and metadata
+  isActive: boolean("is_active").default(true),
+  effectiveDate: timestamp("effective_date").defaultNow(), // Data de vigência
+  expirationDate: timestamp("expiration_date"), // Data de expiração
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  createdBy: uuid("created_by").references(() => users.id),
+  updatedBy: uuid("updated_by").references(() => users.id),
+}, (table) => [
+  index("customer_item_mappings_tenant_customer_idx").on(table.tenantId, table.customerId),
+  index("customer_item_mappings_tenant_item_idx").on(table.tenantId, table.itemId),
+  index("customer_item_mappings_tenant_active_idx").on(table.tenantId, table.isActive),
+  index("customer_item_mappings_custom_sku_idx").on(table.tenantId, table.customSku),
+  unique("customer_item_mappings_customer_item_unique").on(table.tenantId, table.customerId, table.itemId),
+  unique("customer_item_mappings_customer_sku_unique").on(table.tenantId, table.customerId, table.customSku),
+]);
 
 // ========================================
 // ADDITIONAL MATERIALS & SERVICES TYPES
@@ -3383,51 +3416,51 @@ export type InsertUserViewPreference = typeof userViewPreferences.$inferInsert;
 
 // Price Lists (LPU)
 export type PriceList = typeof priceLists.$inferSelect;
-export type InsertPriceList = typeof priceLists.$inferInsert;
+export type InsertPriceList = typeof priceLists.$insert;
 
 export type PriceListItem = typeof priceListItems.$inferSelect;
-export type InsertPriceListItem = typeof priceListItems.$inferInsert;
+export type InsertPriceListItem = typeof priceListItems.$insert;
 
 export type PricingRule = typeof pricingRules.$inferSelect;
-export type InsertPricingRule = typeof pricingRules.$inferInsert;
+export type InsertPricingRule = typeof pricingRules.$insert;
 
 export type DynamicPricing = typeof dynamicPricing.$inferSelect;
-export type InsertDynamicPricing = typeof dynamicPricing.$inferInsert;
+export type InsertDynamicPricing = typeof dynamicPricing.$insert;
 
 // ========================================
 // ASSET MANAGEMENT TYPES
 // ========================================
 
 export type Asset = typeof assets.$inferSelect;
-export type InsertAsset = typeof assets.$inferInsert;
+export type InsertAsset = typeof assets.$insert;
 
 export type AssetMaintenance = typeof assetMaintenance.$inferSelect;
-export type InsertAssetMaintenance = typeof assetMaintenance.$inferInsert;
+export type InsertAssetMaintenance = typeof assetMaintenance.$insert;
 
 export type AssetMeter = typeof assetMeters.$inferSelect;
-export type InsertAssetMeter = typeof assetMeters.$inferInsert;
+export type InsertAssetMeter = typeof assetMeters.$insert;
 
 export type AssetLocation = typeof assetLocations.$inferSelect;
-export type InsertAssetLocation = typeof assetLocations.$inferInsert;
+export type InsertAssetLocation = typeof assetLocations.$insert;
 
 // ========================================
 // COMPLIANCE TYPES
 // ========================================
 
 export type ComplianceAudit = typeof complianceAudits.$inferSelect;
-export type InsertComplianceAudit = typeof complianceAudits.$inferInsert;
+export type InsertComplianceAudit = typeof complianceAudits.$insert;
 
 export type ComplianceCertification = typeof complianceCertifications.$inferSelect;
-export type InsertComplianceCertification = typeof complianceCertifications.$inferInsert;
+export type InsertComplianceCertification = typeof complianceCertifications.$insert;
 
 export type ComplianceEvidence = typeof complianceEvidence.$inferSelect;
-export type InsertComplianceEvidence = typeof complianceEvidence.$inferInsert;
+export type InsertComplianceEvidence = typeof complianceEvidence.$insert;
 
 export type ComplianceAlert = typeof complianceAlerts.$inferSelect;
-export type InsertComplianceAlert = typeof complianceAlerts.$inferInsert;
+export type InsertComplianceAlert = typeof complianceAlerts.$insert;
 
 export type ComplianceScore = typeof complianceScores.$inferSelect;
-export type InsertComplianceScore = typeof complianceScores.$inferInsert;
+export type InsertComplianceScore = typeof complianceScores.$insert;
 
 // Zod schemas para validação
 export const insertTicketListViewSchema = createInsertSchema(ticketListViews).extend({

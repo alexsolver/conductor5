@@ -300,13 +300,14 @@ export default function ItemCatalog() {
     queryKey: ["/api/materials-services/item-links", selectedItem?.id],
     enabled: !!selectedItem,
     queryFn: async () => {
-      if (!selectedItem) return { data: [] };
+      if (!selectedItem) return { data: { itemLinks: [] } };
       try {
         const response = await apiRequest('GET', `/api/materials-services/item-links/${selectedItem.id}`);
-        return await response.json();
+        const result = await response.json();
+        return result.success ? result : { data: { itemLinks: [] } };
       } catch (error) {
         console.error('Erro ao carregar vínculos:', error);
-        return { data: [] };
+        return { data: { itemLinks: [] } };
       }
     }
   });
@@ -316,13 +317,14 @@ export default function ItemCatalog() {
     queryKey: ["/api/materials-services/customer-personalizations", selectedItem?.id],
     enabled: !!selectedItem,
     queryFn: async () => {
-      if (!selectedItem) return { data: [] };
+      if (!selectedItem) return { data: { personalizations: [] } };
       try {
         const response = await apiRequest('GET', `/api/materials-services/customer-personalizations/item/${selectedItem.id}`);
-        return await response.json();
+        const result = await response.json();
+        return result.success ? result : { data: { personalizations: [] } };
       } catch (error) {
         console.error('Erro ao carregar personalizações:', error);
-        return { data: [] };
+        return { data: { personalizations: [] } };
       }
     }
   });
@@ -332,13 +334,14 @@ export default function ItemCatalog() {
     queryKey: ["/api/materials-services/supplier-links", selectedItem?.id],
     enabled: !!selectedItem,
     queryFn: async () => {
-      if (!selectedItem) return { data: [] };
+      if (!selectedItem) return { data: { supplierLinks: [] } };
       try {
         const response = await apiRequest('GET', `/api/materials-services/supplier-links/item/${selectedItem.id}`);
-        return await response.json();
+        const result = await response.json();
+        return result.success ? result : { data: { supplierLinks: [] } };
       } catch (error) {
         console.error('Erro ao carregar vínculos de fornecedores:', error);
-        return { data: [] };
+        return { data: { supplierLinks: [] } };
       }
     }
   });
@@ -870,9 +873,9 @@ export default function ItemCatalog() {
   const renderItemDetailsView = () => {
     if (!selectedItem) return null;
 
-    const itemLinks = (itemLinksResponse as any)?.data || [];
-    const personalizations = (personalizationsResponse as any)?.data || [];
-    const supplierLinks = (supplierLinksResponse as any)?.data || [];
+    const itemLinks = (itemLinksResponse as any)?.data?.itemLinks || [];
+    const personalizations = (personalizationsResponse as any)?.data?.personalizations || [];
+    const supplierLinks = (supplierLinksResponse as any)?.data?.supplierLinks || [];
 
     return (
       <div className="space-y-6">

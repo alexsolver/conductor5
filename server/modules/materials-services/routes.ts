@@ -314,7 +314,7 @@ router.get('/customer-personalizations/overview', async (req: AuthenticatedReque
     }
 
     const { db } = await schemaManager.getTenantDb(tenantId);
-    
+
     // Simular dados de personalizações de clientes por enquanto
     // Em uma implementação real, isso consultaria a tabela customer_item_mappings
     const personalizations = [
@@ -346,7 +346,7 @@ router.get('/supplier-links/overview', async (req: AuthenticatedRequest, res) =>
     }
 
     const { db } = await schemaManager.getTenantDb(tenantId);
-    
+
     // Simular dados de vínculos de fornecedores por enquanto
     // Em uma implementação real, isso consultaria a tabela supplier_item_links
     const supplierLinks = [
