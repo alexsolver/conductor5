@@ -1,6 +1,6 @@
 {
-  "timestamp": "2025-08-07T17:08:37.759Z",
-  "status": "REQUER CORREÇÕES",
+  "timestamp": "2025-08-07T17:19:33.826Z",
+  "status": "APROVADO",
   "statistics": {
     "tablesChecked": 32,
     "tablesCreated": 0,
@@ -8,9 +8,7 @@
     "constraintsAdded": 481,
     "dataIntegrityIssues": 0
   },
-  "errors": [
-    "Coluna obrigatória quantity ausente em tenant_3f99462f_3621_4b1b_bea8_782acc50d62e.ticket_planned_items"
-  ],
+  "errors": [],
   "warnings": [
     "Testes de API devem ser executados após criação das tabelas"
   ],
