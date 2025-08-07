@@ -509,7 +509,7 @@ export default function LPU() {
             <CardHeader>
               <CardTitle>Ações Rápidas</CardTitle>
               <CardDescription>Operações comuns do sistema LPU</CardDescription>
-            </Header>
+            </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <Button onClick={() => setIsCreateDialogOpen(true)} className="h-20 flex-col">
