@@ -1,5 +1,5 @@
 import type { Response, Request } from 'express';
-import { db } from '../../../../db-tenant';
+import { db } from '../../../../db';
 import {
   ticketLpuSettings,
   ticketPlannedItems,
@@ -190,11 +190,10 @@ export class TicketMaterialsController {
         return sendError(res, 'Missing tenant ID or ticket ID', 'Missing tenant ID or ticket ID', 400);
       }
 
-      // Use the same database connection as addPlannedItem for consistency
+      // First, get the planned items
       const plannedItemsQuery = await db
         .select()
         .from(ticketPlannedItems)
-        .leftJoin(items, eq(ticketPlannedItems.itemId, items.id))
         .where(and(
           eq(ticketPlannedItems.tenantId, tenantId),
           eq(ticketPlannedItems.ticketId, ticketId),
@@ -202,13 +201,29 @@ export class TicketMaterialsController {
         ))
         .orderBy(desc(ticketPlannedItems.createdAt));
 
-      console.log(`🔍 [GET-PLANNED-DEBUG] Found ${plannedItemsQuery.length} raw planned items`);
+      console.log(`🔍 [GET-PLANNED-FIXED] Found ${plannedItemsQuery.length} planned items`);
 
-      // For each planned item, get LPU pricing if available
+      // For each planned item, get the item data and LPU pricing
       const plannedItemsWithPricing = await Promise.all(
-        plannedItemsQuery.map(async (row: any) => {
-          const plannedItem = row.ticket_planned_items;
-          const itemData = row.items;
+        plannedItemsQuery.map(async (plannedItem: any) => {
+          // Get item data separately
+          let itemData = null;
+          if (plannedItem.itemId) {
+            try {
+              const itemQuery = await db
+                .select()
+                .from(items)
+                .where(and(
+                  eq(items.id, plannedItem.itemId),
+                  eq(items.tenantId, tenantId)
+                ))
+                .limit(1);
+              
+              itemData = itemQuery.length > 0 ? itemQuery[0] : null;
+            } catch (itemError) {
+              console.log('⚠️ [GET-PLANNED] Error fetching item data:', itemError);
+            }
+          }
           
           let effectivePrice = parseFloat(plannedItem.unitPriceAtPlanning || '0');
           let lpuUnitPrice = null;
