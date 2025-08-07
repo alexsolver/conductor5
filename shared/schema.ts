@@ -3,6 +3,45 @@
 
 export * from "./schema-master";
 
+// Selective exports from materials-services to avoid conflicts
+export {
+  itemTypeEnum,
+  measurementUnitEnum,
+  itemStatusEnum,
+  movementTypeEnum,
+  assetStatusEnum,
+  linkTypeEnum,
+  itemAttachments,
+  itemLinks,
+  bulkItemOperations,
+  itemCustomerLinks,
+  itemSupplierLinks,
+  stockLocations,
+  stockLevels,
+  stockMovements,
+  suppliers,
+  supplierCatalog,
+  serviceTypes,
+  serviceExecution,
+  assets,
+  assetMovements,
+  assetMaintenance,
+  assetMeters,
+  priceLists,
+  priceListItems,
+  priceListVersions,
+  pricingRules,
+  dynamicPricing,
+  auditLogs,
+  materialCertifications,
+  complianceAudits,
+  complianceAlerts,
+  complianceCertifications,
+  complianceEvidence,
+  complianceScores,
+  systemSettings
+} from "./schema-materials-services";
+
 // Validation: Ensure all critical exports are available
 import type { 
   User, Customer, Ticket, Tenant,

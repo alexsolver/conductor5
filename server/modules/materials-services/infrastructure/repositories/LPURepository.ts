@@ -11,7 +11,7 @@ import {
   type InsertPricingRule,
   type DynamicPricing,
   type InsertDynamicPricing
-} from '../../../../../shared/schema-materials-services';
+} from '@shared/schema';
 import { eq, and, desc, asc, gte, lte, sql, inArray } from 'drizzle-orm';
 import { randomUUID } from 'crypto';
 

@@ -15,7 +15,7 @@ import { StockRepository } from './infrastructure/repositories/StockRepository';
 import { schemaManager } from '../../db';
 import { ImportController } from './application/controllers/ImportController';
 import { AuditController } from './application/controllers/AuditController';
-import { systemSettings } from '../../../shared/schema-materials-services';
+import { systemSettings } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 import { Response } from 'express'; // Import Response type
 import crypto from 'crypto'; // Import crypto for UUID generation

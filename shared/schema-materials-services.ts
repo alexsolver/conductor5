@@ -1,22 +1,9 @@
 import { pgTable, uuid, varchar, text, boolean, timestamp, decimal, integer, jsonb, pgEnum, index, unique, date } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
-// Import items from master schema instead of redefining
-import { items } from './schema-master';
+// Import items and other tables from master schema instead of redefining
+import { items, tenants } from './schema-master';
 
-// Import tenants table from a different schema if it exists, otherwise define it.
-// Assuming 'tenants' is defined elsewhere or needs to be imported.
-// For this example, let's assume it's defined in a 'tenants' file or similar.
-// If not, you would need to import or define it here.
-// Example placeholder:
-// import { tenants } from './schema-tenants'; 
-// If tenants table is not yet defined, you might need to adjust the foreign key reference or define it.
-// For now, we'll use a placeholder reference.
-const tenants = pgTable('tenants', {
-  id: uuid('id').primaryKey(),
-  name: varchar('name', { length: 255 }).notNull(),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow()
-});
+// Tenants table imported from schema-master
 
 
 // Export the items table from master schema
