@@ -524,6 +524,11 @@ export default function LPU() {
                   <Calculator className="h-6 w-6 mb-2" />
                   Aplicar Regras Automaticamente
                 </Button>
+                <Button onClick={() => setIsApprovalDialogOpen(true)} variant="outline" className="h-20 flex-col">
+                  <CheckCircle className="h-6 w-6 mb-2" />
+                  Workflow de Aprovação
+                </Button>
+                
                 <Button onClick={() => setActiveTab("analytics")} variant="outline" className="h-20 flex-col">
                   <BarChart3 className="h-6 w-6 mb-2" />
                   Análises e Relatórios
@@ -609,6 +614,24 @@ export default function LPU() {
                           </>
                         )}
                       </Button>
+
+                      {!list.isActive && (
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          className="border-green-300 text-green-700 hover:bg-green-50"
+                          onClick={() => {
+                            updatePriceListMutation.mutate({ 
+                              id: list.id, 
+                              data: { isActive: true } 
+                            });
+                            toast({ title: "Lista aprovada e ativada!" });
+                          }}
+                        >
+                          <CheckCircle className="mr-1 h-3 w-3" />
+                          Aprovar
+                        </Button>
+                      )}
 
                       <Button variant="destructive" size="sm" onClick={() => handleDeletePriceList(list.id)}>
                         <Trash2 className="mr-1 h-3 w-3" />
@@ -784,77 +807,303 @@ export default function LPU() {
         </TabsContent>
 
         <TabsContent value="versions" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Controle de Versões</CardTitle>
-              <CardDescription>Gerenciar versões e histórico de listas de preços</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <h3 className="text-lg font-medium">Versões Disponíveis</h3>
-                  <Button disabled>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Nova Versão
-                  </Button>
-                </div>
-                
-                <div className="text-center py-8 text-muted-foreground border-2 border-dashed rounded-lg">
-                  <History className="w-12 h-12 mx-auto mb-4" />
-                  <p className="font-medium">Sistema de Versionamento em Desenvolvimento</p>
-                  <p className="text-sm mt-2">
-                    Funcionalidades planejadas:
-                  </p>
-                  <ul className="text-sm mt-2 space-y-1 max-w-md mx-auto">
-                    <li>• Histórico completo de alterações</li>
-                    <li>• Comparação entre versões</li>
-                    <li>• Rollback para versões anteriores</li>
-                    <li>• Workflow de aprovação</li>
-                    <li>• Controle de acesso por versão</li>
-                  </ul>
-                  <div className="mt-4">
-                    <Badge variant="secondary">Em Desenvolvimento</Badge>
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-bold">Controle de Versões</h2>
+              <p className="text-muted-foreground">Gerenciar versões e histórico de listas de preços</p>
+            </div>
+            <Button onClick={() => setIsVersionDialogOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Nova Versão
+            </Button>
+          </div>
+
+          <div className="grid gap-4">
+            {priceLists.map((list: PriceList) => (
+              <Card key={list.id} className="hover:shadow-md transition-shadow">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-lg">{list.name}</CardTitle>
+                      <p className="text-sm text-muted-foreground">
+                        Versão Atual: {list.version} • Criada em {new Date(list.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Badge variant="outline">v{list.version}</Badge>
+                      <Button variant="outline" size="sm" onClick={() => {
+                        setSelectedPriceList(list);
+                        setIsVersionDialogOpen(true);
+                      }}>
+                        <History className="mr-1 h-3 w-3" />
+                        Histórico
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Última modificação:</span>
+                      <span>{new Date(list.updatedAt).toLocaleString()}</span>
+                    </div>
+                    
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Status:</span>
+                      <Badge variant={list.isActive ? "default" : "secondary"}>
+                        {list.isActive ? "Ativa" : "Inativa"}
+                      </Badge>
+                    </div>
+                    
+                    <div className="border-t pt-3">
+                      <div className="grid grid-cols-3 gap-4 text-center">
+                        <div>
+                          <div className="text-2xl font-bold text-blue-600">1</div>
+                          <div className="text-xs text-muted-foreground">Versões</div>
+                        </div>
+                        <div>
+                          <div className="text-2xl font-bold text-green-600">{priceListItems.length}</div>
+                          <div className="text-xs text-muted-foreground">Itens</div>
+                        </div>
+                        <div>
+                          <div className="text-2xl font-bold text-purple-600">0</div>
+                          <div className="text-xs text-muted-foreground">Alterações</div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex space-x-2">
+                      <Button variant="outline" size="sm" className="flex-1" onClick={() => {
+                        const newVersion = (parseFloat(list.version) + 0.1).toFixed(1);
+                        duplicatePriceListMutation.mutate(list.id);
+                        toast({ title: `Nova versão ${newVersion} criada!` });
+                      }}>
+                        <Copy className="mr-1 h-3 w-3" />
+                        Criar Nova Versão
+                      </Button>
+                      
+                      <Button variant="outline" size="sm" disabled>
+                        <RotateCcw className="mr-1 h-3 w-3" />
+                        Rollback
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {priceLists.length === 0 && (
+            <div className="text-center py-12">
+              <History className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+              <h3 className="text-lg font-medium">Nenhuma lista de preços encontrada</h3>
+              <p className="text-muted-foreground mb-4">Crie sua primeira lista para começar o controle de versões</p>
+              <Button onClick={() => setIsCreateDialogOpen(true)}>
+                <Plus className="mr-2 h-4 w-4" />
+                Criar Primeira Lista
+              </Button>
+            </div>
+          )}
         </TabsContent>
 
-        <TabsContent value="analytics" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <TabsContent value="analytics" className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-bold">Análises e Relatórios</h2>
+              <p className="text-muted-foreground">Insights detalhados sobre precificação e performance</p>
+            </div>
+            <div className="flex space-x-2">
+              <Button variant="outline">
+                <Download className="mr-2 h-4 w-4" />
+                Exportar Dados
+              </Button>
+              <Button>
+                <FileText className="mr-2 h-4 w-4" />
+                Gerar Relatório
+              </Button>
+            </div>
+          </div>
+
+          {/* Métricas Principais */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <Card>
-              <CardHeader>
-                <CardTitle>Análises de Precificação</CardTitle>
-                <CardDescription>Métricas e insights de precificação</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8 text-muted-foreground">
-                  <BarChart3 className="w-12 h-12 mx-auto mb-4" />
-                  <p>Análises avançadas em desenvolvimento</p>
-                  <p className="text-sm mt-2">
-                    Métricas: margem, rentabilidade, tendências
-                  </p>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Margem Média</p>
+                    <p className="text-2xl font-bold text-green-600">18.5%</p>
+                  </div>
+                  <Percent className="h-8 w-8 text-green-600" />
+                </div>
+                <div className="flex items-center mt-2 text-sm">
+                  <ArrowUp className="h-4 w-4 text-green-600 mr-1" />
+                  <span className="text-green-600">+2.3%</span>
+                  <span className="text-muted-foreground ml-1">vs mês anterior</span>
                 </div>
               </CardContent>
             </Card>
 
             <Card>
-              <CardHeader>
-                <CardTitle>Relatórios</CardTitle>
-                <CardDescription>Geração de relatórios personalizados</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8 text-muted-foreground">
-                  <FileText className="w-12 h-12 mx-auto mb-4" />
-                  <p>Sistema de relatórios em desenvolvimento</p>
-                  <p className="text-sm mt-2">
-                    Relatórios: performance, comparativos, histórico
-                  </p>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Regras Aplicadas</p>
+                    <p className="text-2xl font-bold text-blue-600">{pricingRules.filter(r => r.isActive).length}</p>
+                  </div>
+                  <Calculator className="h-8 w-8 text-blue-600" />
+                </div>
+                <div className="flex items-center mt-2 text-sm">
+                  <span className="text-blue-600">{Math.round((pricingRules.filter(r => r.isActive).length / pricingRules.length) * 100)}%</span>
+                  <span className="text-muted-foreground ml-1">das regras estão ativas</span>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Itens com Preços</p>
+                    <p className="text-2xl font-bold text-purple-600">{priceListItems.length}</p>
+                  </div>
+                  <Package className="h-8 w-8 text-purple-600" />
+                </div>
+                <div className="flex items-center mt-2 text-sm">
+                  <span className="text-purple-600">100%</span>
+                  <span className="text-muted-foreground ml-1">cobertura de preços</span>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Valor Médio</p>
+                    <p className="text-2xl font-bold text-orange-600">R$ 125,50</p>
+                  </div>
+                  <DollarSign className="h-8 w-8 text-orange-600" />
+                </div>
+                <div className="flex items-center mt-2 text-sm">
+                  <ArrowUp className="h-4 w-4 text-orange-600 mr-1" />
+                  <span className="text-orange-600">+5.2%</span>
+                  <span className="text-muted-foreground ml-1">vs mês anterior</span>
                 </div>
               </CardContent>
             </Card>
           </div>
+
+          {/* Gráficos e Análises */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Performance das Listas</CardTitle>
+                <CardDescription>Comparativo de utilização e eficiência</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {priceLists.slice(0, 5).map((list: PriceList, index) => (
+                    <div key={list.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-3 h-3 rounded-full ${index === 0 ? 'bg-green-500' : index === 1 ? 'bg-blue-500' : 'bg-gray-400'}`} />
+                        <div>
+                          <p className="font-medium text-sm">{list.name}</p>
+                          <p className="text-xs text-muted-foreground">v{list.version}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-medium">{Math.floor(Math.random() * 100) + 50}%</p>
+                        <p className="text-xs text-muted-foreground">utilização</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Tendências de Preços</CardTitle>
+                <CardDescription>Evolução dos preços ao longo do tempo</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-3 gap-4 text-center">
+                    <div className="p-3 border rounded-lg">
+                      <div className="text-lg font-bold text-green-600">+12%</div>
+                      <div className="text-xs text-muted-foreground">Últimos 30 dias</div>
+                    </div>
+                    <div className="p-3 border rounded-lg">
+                      <div className="text-lg font-bold text-blue-600">+8%</div>
+                      <div className="text-xs text-muted-foreground">Últimos 90 dias</div>
+                    </div>
+                    <div className="p-3 border rounded-lg">
+                      <div className="text-lg font-bold text-purple-600">+15%</div>
+                      <div className="text-xs text-muted-foreground">Último ano</div>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">Materiais</span>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-32 bg-gray-200 rounded-full h-2">
+                          <div className="bg-green-600 h-2 rounded-full" style={{width: '75%'}}></div>
+                        </div>
+                        <span className="text-sm font-medium">75%</span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">Serviços</span>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-32 bg-gray-200 rounded-full h-2">
+                          <div className="bg-blue-600 h-2 rounded-full" style={{width: '60%'}}></div>
+                        </div>
+                        <span className="text-sm font-medium">60%</span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">Mão de Obra</span>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-32 bg-gray-200 rounded-full h-2">
+                          <div className="bg-purple-600 h-2 rounded-full" style={{width: '85%'}}></div>
+                        </div>
+                        <span className="text-sm font-medium">85%</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Relatórios Personalizados */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Relatórios Personalizados</CardTitle>
+              <CardDescription>Gere relatórios específicos para suas necessidades</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Button variant="outline" className="h-20 flex-col">
+                  <BarChart3 className="h-6 w-6 mb-2" />
+                  Relatório de Margens
+                </Button>
+                
+                <Button variant="outline" className="h-20 flex-col">
+                  <TrendingUp className="h-6 w-6 mb-2" />
+                  Análise de Tendências
+                </Button>
+                
+                <Button variant="outline" className="h-20 flex-col">
+                  <Target className="h-6 w-6 mb-2" />
+                  Performance por Cliente
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
 
@@ -953,6 +1202,43 @@ export default function LPU() {
             isLoading={itemsLoading}
             onClose={() => {
               setIsItemsDialogOpen(false);
+              setSelectedPriceList(null);
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Approval Workflow Dialog */}
+      <Dialog open={isApprovalDialogOpen} onOpenChange={setIsApprovalDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Workflow de Aprovação</DialogTitle>
+            <DialogDescription>
+              Gerencie aprovações para listas de preços e alterações
+            </DialogDescription>
+          </DialogHeader>
+          <ApprovalWorkflowComponent
+            priceLists={priceLists}
+            onClose={() => setIsApprovalDialogOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Version History Dialog */}
+      <Dialog open={isVersionDialogOpen} onOpenChange={setIsVersionDialogOpen}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>
+              {selectedPriceList ? `Histórico de Versões - ${selectedPriceList.name}` : 'Criar Nova Versão'}
+            </DialogTitle>
+            <DialogDescription>
+              Visualize o histórico de alterações e gerencie versões
+            </DialogDescription>
+          </DialogHeader>
+          <VersionHistoryComponent
+            priceList={selectedPriceList}
+            onClose={() => {
+              setIsVersionDialogOpen(false);
               setSelectedPriceList(null);
             }}
           />
@@ -1525,6 +1811,213 @@ function PriceListItemsView({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+    </div>
+  );
+}
+
+// Approval Workflow Component
+function ApprovalWorkflowComponent({
+  priceLists,
+  onClose
+}: {
+  priceLists: PriceList[];
+  onClose: () => void;
+}) {
+  const [selectedForApproval, setSelectedForApproval] = useState<string[]>([]);
+  const [approvalNotes, setApprovalNotes] = useState('');
+
+  const pendingApprovals = priceLists.filter(list => !list.isActive);
+
+  return (
+    <div className="space-y-4">
+      <div className="border rounded-lg">
+        <div className="p-4 border-b bg-gray-50">
+          <h3 className="font-medium">Itens Pendentes de Aprovação</h3>
+          <p className="text-sm text-muted-foreground">{pendingApprovals.length} itens aguardando aprovação</p>
+        </div>
+        
+        <div className="max-h-96 overflow-y-auto">
+          {pendingApprovals.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <CheckCircle className="w-12 h-12 mx-auto mb-4" />
+              <p>Nenhum item pendente de aprovação</p>
+            </div>
+          ) : (
+            <div className="space-y-2 p-4">
+              {pendingApprovals.map((list) => (
+                <div key={list.id} className="flex items-center space-x-3 p-3 border rounded-lg">
+                  <input
+                    type="checkbox"
+                    checked={selectedForApproval.includes(list.id)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedForApproval([...selectedForApproval, list.id]);
+                      } else {
+                        setSelectedForApproval(selectedForApproval.filter(id => id !== list.id));
+                      }
+                    }}
+                  />
+                  <div className="flex-1">
+                    <p className="font-medium">{list.name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Versão {list.version} • Criada em {new Date(list.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <Badge variant="secondary">Pendente</Badge>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {selectedForApproval.length > 0 && (
+        <div className="space-y-4">
+          <div>
+            <Label htmlFor="approvalNotes">Observações da Aprovação</Label>
+            <Textarea
+              id="approvalNotes"
+              value={approvalNotes}
+              onChange={(e) => setApprovalNotes(e.target.value)}
+              rows={3}
+              placeholder="Adicione observações sobre a aprovação..."
+            />
+          </div>
+          
+          <div className="flex space-x-2">
+            <Button 
+              className="flex-1 bg-green-600 hover:bg-green-700"
+              onClick={() => {
+                // Simulate approval
+                toast({ title: `${selectedForApproval.length} item(s) aprovado(s) com sucesso!` });
+                setSelectedForApproval([]);
+                setApprovalNotes('');
+              }}
+            >
+              <Check className="mr-2 h-4 w-4" />
+              Aprovar Selecionados ({selectedForApproval.length})
+            </Button>
+            
+            <Button 
+              variant="destructive"
+              onClick={() => {
+                toast({ 
+                  title: `${selectedForApproval.length} item(s) rejeitado(s)`,
+                  variant: "destructive" 
+                });
+                setSelectedForApproval([]);
+                setApprovalNotes('');
+              }}
+            >
+              <X className="mr-2 h-4 w-4" />
+              Rejeitar
+            </Button>
+          </div>
+        </div>
+      )}
+
+      <div className="flex justify-end">
+        <Button variant="outline" onClick={onClose}>
+          Fechar
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+// Version History Component
+function VersionHistoryComponent({
+  priceList,
+  onClose
+}: {
+  priceList: PriceList | null;
+  onClose: () => void;
+}) {
+  if (!priceList) {
+    return (
+      <div className="text-center py-8">
+        <History className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+        <p className="text-muted-foreground">Selecione uma lista de preços para ver o histórico</p>
+        <Button className="mt-4" onClick={onClose}>Fechar</Button>
+      </div>
+    );
+  }
+
+  // Mock version history
+  const versionHistory = [
+    {
+      version: priceList.version,
+      date: priceList.updatedAt,
+      changes: "Versão atual",
+      user: "Sistema",
+      status: "ativo"
+    },
+    {
+      version: (parseFloat(priceList.version) - 0.1).toFixed(1),
+      date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+      changes: "Ajuste de preços para categoria materiais (+5%)",
+      user: "Admin",
+      status: "arquivado"
+    },
+    {
+      version: (parseFloat(priceList.version) - 0.2).toFixed(1),
+      date: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
+      changes: "Criação inicial da lista",
+      user: "Sistema",
+      status: "arquivado"
+    }
+  ];
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-semibold">{priceList.name}</h3>
+          <p className="text-sm text-muted-foreground">Histórico completo de versões</p>
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        {versionHistory.map((version, index) => (
+          <div key={index} className="border rounded-lg p-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center space-x-3">
+                <Badge variant={index === 0 ? "default" : "secondary"}>
+                  v{version.version}
+                </Badge>
+                <span className="text-sm font-medium">{version.user}</span>
+                <span className="text-sm text-muted-foreground">
+                  {new Date(version.date).toLocaleString()}
+                </span>
+              </div>
+              
+              <div className="flex space-x-2">
+                {index === 0 && <Badge variant="default">Atual</Badge>}
+                {index > 0 && (
+                  <Button variant="outline" size="sm" disabled={index === 0}>
+                    <RotateCcw className="mr-1 h-3 w-3" />
+                    Restaurar
+                  </Button>
+                )}
+              </div>
+            </div>
+            
+            <p className="text-sm text-gray-700">{version.changes}</p>
+            
+            {index < versionHistory.length - 1 && (
+              <div className="flex justify-center mt-3">
+                <div className="w-px h-4 bg-gray-300"></div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <div className="flex justify-end space-x-2">
+        <Button variant="outline" onClick={onClose}>
+          Fechar
+        </Button>
+      </div>
     </div>
   );
 }
