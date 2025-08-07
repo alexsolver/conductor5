@@ -1615,11 +1615,15 @@ function PriceListItemsView({
   const [itemToDelete, setItemToDelete] = useState<PriceListItem | null>(null);
 
   // Fetch available items from catalog
-  const { data: catalogItems = [] } = useQuery({
+  const { data: catalogItemsResponse = [] } = useQuery({
     queryKey: ['/api/materials-services/items'],
     retry: 3,
     staleTime: 30000,
   });
+
+  // Ensure catalog items is always an array, handling both direct array and object with data property
+  const catalogItems = Array.isArray(catalogItemsResponse) ? catalogItemsResponse : 
+    (catalogItemsResponse?.data && Array.isArray(catalogItemsResponse.data) ? catalogItemsResponse.data : []);
 
   // Add item to price list mutation
   const addItemMutation = useMutation({
@@ -2067,7 +2071,9 @@ function PriceListItemForm({
     isActive: initialData?.isActive ?? true
   });
 
-  const selectedItem = catalogItems.find(item => item.id === formData.itemId);
+  // Ensure catalogItems is always an array
+  const safeCatalogItems = Array.isArray(catalogItems) ? catalogItems : [];
+  const selectedItem = safeCatalogItems.find(item => item.id === formData.itemId);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -2092,10 +2098,10 @@ function PriceListItemForm({
               <SelectValue placeholder="Selecione um item do catálogo" />
             </SelectTrigger>
             <SelectContent>
-              {catalogItems.length === 0 ? (
+              {safeCatalogItems.length === 0 ? (
                 <SelectItem value="no-items" disabled>Nenhum item disponível</SelectItem>
               ) : (
-                catalogItems.map((item) => (
+                safeCatalogItems.map((item) => (
                   <SelectItem key={item.id} value={item.id}>
                     {item.name} ({item.measurementUnit || 'sem unidade'})
                   </SelectItem>
