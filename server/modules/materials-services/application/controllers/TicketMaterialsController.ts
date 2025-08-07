@@ -5,7 +5,7 @@ import {
   ticketPlannedItems,
   ticketConsumedItems,
   ticketCostsSummary
-} from '../../../../../shared/schema-master';
+} from '../../../../../shared/schema-materials-services';
 import { items } from '../../../../../shared/schema-master';
 import { eq, and, desc, sum, sql, alias } from 'drizzle-orm';
 import { sendSuccess, sendError } from '../../../../utils/standardResponse';
