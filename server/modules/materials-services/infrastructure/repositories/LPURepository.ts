@@ -17,8 +17,8 @@ import { randomUUID } from 'crypto';
 
 export class LPURepository {
   private db: any;
-  private tenantSchema: string; // Added to store tenant schema
-  private tenantId: string; // Added to store tenant ID
+  private tenantSchema: string = ''; // Added to store tenant schema
+  private tenantId: string = ''; // Added to store tenant ID
 
   constructor(db: any) {
     if (!db) {
@@ -47,7 +47,7 @@ export class LPURepository {
       console.log('✅ LPURepository: Database connection validation successful');
     } catch (error) {
       console.error('❌ LPURepository: Database connection validation failed:', error);
-      throw new Error(`LPURepository database validation failed: ${error.message}`);
+      throw new Error(`LPURepository database validation failed: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
@@ -395,7 +395,7 @@ export class LPURepository {
           eq(priceListItems.id, id),
           eq(priceListItems.tenantId, this.tenantId)
         ))
-      ).then(rows => rows?.[0]);
+      ).then((rows: any[]) => rows?.[0]);
   }
 
   async addPriceListItem(data: any): Promise<any> {
@@ -413,7 +413,7 @@ export class LPURepository {
     }
 
     // Invalidate cache for the tenant when an item is added
-    await this.invalidateCache(tenantId, 'price-list-items');
+    await this.invalidateCache(tenantId);
 
     const [newItem] = await this.db
       .insert(priceListItems)
@@ -799,8 +799,8 @@ export class LPURepository {
         // Simple condition checking (can be expanded)
         let shouldApply = true;
 
-        if (conditions.minPrice && newPrice < conditions.minPrice) shouldApply = false;
-        if (conditions.maxPrice && newPrice > conditions.maxPrice) shouldApply = false;
+        if (conditions?.minPrice && newPrice < conditions.minPrice) shouldApply = false;
+        if (conditions?.maxPrice && newPrice > conditions.maxPrice) shouldApply = false;
 
         if (shouldApply) {
           switch (rule.ruleType) {

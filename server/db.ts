@@ -48,12 +48,24 @@ export const schemaManager = {
     return { db: tenantDb };
   },
 
-  // Validate tenant schema has all required tables
+  // Enhanced tenant schema validation with detailed checks
   async validateTenantSchema(tenantId: string): Promise<boolean> {
     try {
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-      // Use direct pool query instead of Drizzle for reliable results
+      // Validate schema exists
+      const schemaExists = await pool.query(`
+        SELECT schema_name 
+        FROM information_schema.schemata 
+        WHERE schema_name = $1
+      `, [schemaName]);
+
+      if (schemaExists.rows.length === 0) {
+        console.log(`❌ Schema ${schemaName} does not exist`);
+        return false;
+      }
+
+      // Get table count
       const result = await pool.query(`
         SELECT COUNT(*) as table_count 
         FROM information_schema.tables 
@@ -64,7 +76,7 @@ export const schemaManager = {
 
       // Check for standardized core tables (Materials & LPU system)
       const coreResult = await pool.query(`
-        SELECT COUNT(*) as core_table_count 
+        SELECT table_name 
         FROM information_schema.tables 
         WHERE table_schema = $1
         AND table_name IN (
@@ -72,14 +84,40 @@ export const schemaManager = {
           'items', 'suppliers', 'price_lists', 'pricing_rules',
           'ticket_planned_items', 'ticket_consumed_items', 'user_groups'
         )
+        ORDER BY table_name
       `, [schemaName]);
 
-      const coreTableCount = parseInt(coreResult.rows[0]?.core_table_count || "0");
+      const coreTableCount = coreResult.rows.length;
+      const coreTables = coreResult.rows.map(row => row.table_name);
 
-      // Standardized validation: require minimum core tables and reasonable total
-      const isValid = tableCount >= 60 && coreTableCount >= 8;
+      // Check for required soft delete columns on critical tables
+      const softDeleteCheck = await pool.query(`
+        SELECT 
+          t.table_name,
+          CASE WHEN c.column_name IS NOT NULL THEN true ELSE false END as has_is_active
+        FROM (
+          SELECT 'tickets' as table_name UNION ALL
+          SELECT 'ticket_messages' UNION ALL  
+          SELECT 'activity_logs' UNION ALL
+          SELECT 'ticket_history'
+        ) t
+        LEFT JOIN information_schema.columns c 
+          ON c.table_schema = $1 
+          AND c.table_name = t.table_name 
+          AND c.column_name = 'is_active'
+      `, [schemaName]);
+
+      const softDeleteCoverage = softDeleteCheck.rows.filter(row => row.has_is_active).length;
+
+      // Enhanced validation criteria
+      const isValid = tableCount >= 60 && coreTableCount >= 8 && softDeleteCoverage >= 3;
       
-      console.log(`✅ Tenant schema validated for ${tenantId}: ${tableCount} tables (${coreTableCount}/12 core tables) - ${isValid ? 'VALID' : 'INVALID'}`);
+      console.log(`✅ Tenant schema validated for ${tenantId}: ${tableCount} tables (${coreTableCount}/12 core tables, ${softDeleteCoverage}/4 soft-delete) - ${isValid ? 'VALID' : 'INVALID'}`);
+      
+      if (!isValid) {
+        console.log(`📋 Missing core tables: ${['users', 'customers', 'tickets', 'companies', 'locations', 'items', 'suppliers', 'price_lists', 'pricing_rules', 'ticket_planned_items', 'ticket_consumed_items', 'user_groups'].filter(t => !coreTables.includes(t))}`);
+      }
+      
       return isValid;
     } catch (error) {
       console.error(`❌ Schema validation failed for ${tenantId}:`, error);
