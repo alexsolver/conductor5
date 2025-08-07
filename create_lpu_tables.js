@@ -1,8 +1,50 @@
 
-import { pool } from './server/db.ts';
+const { createRequire } = require('module');
+const require = createRequire(import.meta.url);
 
 async function createLPUTables() {
   console.log('🔧 Criando tabelas LPU ausentes...');
+  
+  // Import the pool using dynamic import and tsx
+  let pool;
+  try {
+    // Try to use tsx to import TypeScript
+    const { execSync } = require('child_process');
+    const fs = require('fs');
+    
+    // Create a temporary JS file that uses tsx to import the TypeScript
+    const tempScript = `
+const { execSync } = require('child_process');
+const path = require('path');
+
+// Use tsx to execute TypeScript
+const result = execSync('npx tsx -e "import { pool } from \\'./server/db.ts\\'; console.log(\\'POOL_AVAILABLE\\');"', { 
+  encoding: 'utf8',
+  cwd: process.cwd()
+});
+
+console.log('✅ Database connection available');
+`;
+
+    fs.writeFileSync('temp_db_test.js', tempScript);
+    execSync('node temp_db_test.js');
+    fs.unlinkSync('temp_db_test.js');
+    
+    // Import using tsx
+    const dbModule = await import('./server/db.ts');
+    pool = dbModule.pool;
+    
+  } catch (error) {
+    console.error('❌ Erro ao conectar com o banco:', error.message);
+    console.log('🔄 Tentando abordagem alternativa...');
+    
+    // Fallback: use direct SQL connection
+    const { Pool } = require('@neondatabase/serverless');
+    if (!process.env.DATABASE_URL) {
+      throw new Error('DATABASE_URL não encontrada');
+    }
+    pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  }
   
   const tenants = [
     'cb9056df_d964_43d7_8fd8_b0cc00a72056',
