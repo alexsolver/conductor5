@@ -333,24 +333,33 @@ export class LPUController {
 
   async addPriceListItem(req: AuthenticatedRequest, res: Response) {
     try {
+      const { priceListId } = req.params;
       const tenantId = req.user?.tenantId;
+      
       if (!tenantId) {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
 
+      if (!priceListId) {
+        return res.status(400).json({ error: 'Price List ID é obrigatório' });
+      }
+
       const itemData = {
         ...req.body,
-        tenantId
+        tenantId,
+        priceListId
       };
+
+      console.log('🔍 Adding item to price list:', { priceListId, tenantId, itemData });
 
       const item = await this.repository.addPriceListItem(itemData);
       // Invalidate relevant cache
-      await this.repository.invalidateCache(tenantId, `price-list-items/${itemData.priceListId}`);
+      await this.repository.invalidateCache(tenantId, `price-list-items/${priceListId}`);
       await this.repository.invalidateCache(tenantId, 'stats');
       res.status(201).json(item);
     } catch (error) {
       console.error('Erro ao adicionar item à lista:', error);
-      res.status(500).json({ error: 'Erro interno do servidor' });
+      res.status(500).json({ error: 'Erro interno do servidor', details: error.message });
     }
   }
 

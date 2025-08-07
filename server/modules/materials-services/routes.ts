@@ -239,9 +239,18 @@ router.get('/price-lists/:priceListId/items', async (req: AuthenticatedRequest, 
 });
 
 router.post('/price-lists/:priceListId/items', async (req: AuthenticatedRequest, res) => {
-  if (!req.user?.tenantId) return res.status(401).json({ message: 'Tenant ID required' });
-  const { lpuController } = await getControllers(req.user.tenantId);
-  return lpuController.addPriceListItem(req, res);
+  try {
+    if (!req.user?.tenantId) return res.status(401).json({ message: 'Tenant ID required' });
+    
+    console.log('🔍 POST /price-lists/:priceListId/items - Params:', req.params);
+    console.log('🔍 POST /price-lists/:priceListId/items - Body:', req.body);
+    
+    const { lpuController } = await getControllers(req.user.tenantId);
+    return lpuController.addPriceListItem(req, res);
+  } catch (error) {
+    console.error('❌ Route error /price-lists/:priceListId/items:', error);
+    res.status(500).json({ error: 'Erro interno do servidor', details: error.message });
+  }
 });
 
 router.put('/price-lists/items/:id', async (req: AuthenticatedRequest, res) => {

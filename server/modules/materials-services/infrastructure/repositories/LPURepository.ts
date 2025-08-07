@@ -332,32 +332,38 @@ export class LPURepository {
     const itemId = randomUUID();
 
     // Ensure price_list_id is provided
-    if (!data.priceListId) {
+    if (!data.priceListId && !data.price_list_id) {
       throw new Error('price_list_id é obrigatório');
     }
 
-    if (!this.tenantSchema || !this.tenantId) {
-      throw new Error("Tenant context not set. Call setTenantContext first.");
+    // Use priceListId or price_list_id
+    const priceListId = data.priceListId || data.price_list_id;
+    const tenantId = data.tenantId;
+
+    if (!tenantId) {
+      throw new Error('tenant_id é obrigatório');
     }
 
-    await this.db.execute(sql.raw(`SET search_path TO "${this.tenantSchema}"`));
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    await this.db.execute(sql.raw(`SET search_path TO "${schemaName}"`));
 
-    await this.db.execute(sql`
-      INSERT INTO ${this.tenantSchema}.price_list_items (
+    const insertResult = await this.db.execute(sql`
+      INSERT INTO price_list_items (
         id, tenant_id, price_list_id, item_id, service_type_id,
         unit_price, special_price, hourly_rate, travel_cost,
         is_active, created_at, updated_at
       ) VALUES (
-        ${itemId}, ${this.tenantId}, ${data.priceListId}, 
+        ${itemId}, ${tenantId}, ${priceListId}, 
         ${data.itemId || null}, ${data.serviceTypeId || null},
-        ${data.unitPrice}, ${data.specialPrice || null}, 
+        ${data.unitPrice || 0}, ${data.specialPrice || null}, 
         ${data.hourlyRate || null}, ${data.travelCost || null},
         ${data.isActive !== undefined ? data.isActive : true},
         NOW(), NOW()
       )
+      RETURNING *
     `);
 
-    return this.getPriceListItemById(itemId);
+    return insertResult.rows?.[0] || { id: itemId, ...data };
   }
 
   async updatePriceListItem(id: string, tenantId: string, data: any) {
