@@ -352,10 +352,33 @@ router.get('/tickets/:ticketId/planned-items', async (req: AuthenticatedRequest,
   return ticketMaterialsController.getPlannedItems(req, res);
 });
 
+router.post('/tickets/:ticketId/planned-items', async (req: AuthenticatedRequest, res) => {
+  try {
+    console.log('🚀 POST /tickets/:ticketId/planned-items called');
+    if (!req.user?.tenantId) return res.status(401).json({ message: 'Tenant ID required' });
+    const { ticketMaterialsController } = await getControllers(req.user.tenantId);
+    return ticketMaterialsController.addPlannedItem(req, res);
+  } catch (error) {
+    console.error('❌ Add planned item route error:', error);
+    res.status(500).json({ success: false, error: 'Failed to add planned item' });
+  }
+});
+
 router.get('/tickets/:ticketId/consumed-items', async (req: AuthenticatedRequest, res) => {
   if (!req.user?.tenantId) return res.status(401).json({ message: 'Tenant ID required' });
   const { ticketMaterialsController } = await getControllers(req.user.tenantId);
   return ticketMaterialsController.getConsumedItems(req, res);
+});
+
+router.post('/tickets/:ticketId/consumed-items', async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.user?.tenantId) return res.status(401).json({ message: 'Tenant ID required' });
+    const { ticketMaterialsController } = await getControllers(req.user.tenantId);
+    return ticketMaterialsController.addConsumedItem(req, res);
+  } catch (error) {
+    console.error('❌ Add consumed item route error:', error);
+    res.status(500).json({ success: false, error: 'Failed to add consumed item' });
+  }
 });
 
 router.get('/tickets/:ticketId/available-for-consumption', async (req: AuthenticatedRequest, res) => {

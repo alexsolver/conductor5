@@ -191,9 +191,19 @@ export class TicketMaterialsController {
         id: crypto.randomUUID(),
         ticketId,
         tenantId,
-        ...itemData,
+        itemId: itemData.itemId,
+        plannedQuantity: itemData.plannedQuantity || 1,
+        estimatedCost: itemData.estimatedCost || 0,
+        unitPriceAtPlanning: itemData.unitPriceAtPlanning || 0,
+        lpuId: itemData.lpuId || null,
+        notes: itemData.notes || '',
+        status: 'planned',
+        isActive: true,
+        priority: itemData.priority || 'medium',
+        plannedById: req.user?.id || null,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
+        createdBy: req.user?.id || null
       };
 
       await this.db.insert(ticketPlannedItems).values(plannedItemData);
