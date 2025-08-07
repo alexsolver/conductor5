@@ -21,7 +21,7 @@ import {
   Clock, Download, ExternalLink, Filter, MoreVertical, Trash, Link2,
   AlertTriangle, Mail, PlusCircle, Activity, RefreshCw, Ticket, Link, EyeOff,
   CheckCircle, Star, TrendingUp, Building2, MapPin, BarChart3,
-  Copy, ArrowDown, ArrowUp, Calendar, Package, PackageX, DollarSign, ArrowRight, MessageCircle, Wrench, UserCheck
+  Copy, ArrowDown, ArrowUp, Calendar, Package, PackageX, DollarSign, ArrowRight, MessageCircle, Wrench, UserCheck, Unlink
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
