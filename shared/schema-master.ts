@@ -328,7 +328,7 @@ export const activityLogs = pgTable("activity_logs", {
   entityType: varchar("entity_type", { length: 50 }).notNull(),
   entityId: uuid("entity_id").notNull(),
   action: varchar("action", { length: 100 }).notNull(),
-  userId: uuid("user_id", { length: 255 }),
+  userId: uuid("user_id"),
   metadata: jsonb("metadata"),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
@@ -1644,8 +1644,8 @@ export const ticketCommunications = pgTable("ticket_communications", {
   toContact: varchar("to_contact", { length: 255 }),
   subject: varchar("subject", { length: 500 }),
   content: text("content").notNull(),
-  messageId: uuid("message_id", { length: 255 }), // external system message ID
-  threadId: uuid("thread_id", { length: 255 }), // for grouping related messages
+  messageId: varchar("message_id", { length: 255 }), // external system message ID
+  threadId: varchar("thread_id", { length: 255 }), // for grouping related messages
   attachments: jsonb("attachments"), // array of attachment info
   metadata: jsonb("metadata"), // channel-specific data
   isRead: boolean("is_read").default(false),
@@ -1978,7 +1978,7 @@ export const contractDocuments = pgTable("contract_documents", {
   signatureStatus: varchar("signature_status", { length: 50 }).default("pending"), // pending, signed, rejected, expired
   signedDate: timestamp("signed_date"),
   signedById: uuid("signed_by_id").references(() => users.id),
-  digitalSignatureId: uuid("digital_signature_id", { length: 255 }), // External signature service ID
+  digitalSignatureId: varchar("digital_signature_id", { length: 255 }), // External signature service ID
 
   // Access Control
   accessLevel: varchar("access_level", { length: 50 }).default("internal"), // public, internal, confidential, restricted

@@ -442,8 +442,8 @@ export const suppliersRelations = relations(suppliers, ({ many }) => ({
 
 export const assetsRelations = relations(assets, ({ many, one }) => ({
   children: many(assets, { relationName: "assetHierarchy" }),
-  parent: one(assets, { 
-    fields: [assets.parentAssetId], 
+  parent: one(assets, {
+    fields: [assets.parentAssetId],
     references: [assets.id],
     relationName: "assetHierarchy"
   }),
@@ -762,14 +762,14 @@ export type InsertPricingRule = typeof pricingRules.$inferInsert;
 export type DynamicPricing = typeof dynamicPricing.$inferSelect;
 export type InsertDynamicPricing = typeof dynamicPricing.$inferInsert;
 export type ComplianceAudit = typeof complianceAudits.$inferSelect;
-export type InsertComplianceAudit = typeof complianceAudits.$insert;
+export type InsertComplianceAudit = typeof complianceAudits.$inferInsert;
 export type ComplianceCertification = typeof complianceCertifications.$inferSelect;
-export type InsertComplianceCertification = typeof complianceCertifications.$insert;
+export type InsertComplianceCertification = typeof complianceCertifications.$inferInsert;
 export type ComplianceEvidence = typeof complianceEvidence.$inferSelect;
-export type InsertComplianceEvidence = typeof complianceEvidence.$insert;
+export type InsertComplianceEvidence = typeof complianceEvidence.$inferInsert;
 export type ComplianceAlert = typeof complianceAlerts.$inferSelect;
-export type InsertComplianceAlert = typeof complianceAlerts.$insert;
+export type InsertComplianceAlert = typeof complianceAlerts.$inferInsert;
 export type ComplianceScore = typeof complianceScores.$inferSelect;
-export type InsertComplianceScore = typeof complianceScores.$insert;
+export type InsertComplianceScore = typeof complianceScores.$inferInsert;
 export type SystemSetting = typeof systemSettings.$inferSelect;
 export type InsertSystemSetting = typeof systemSettings.$inferInsert;
