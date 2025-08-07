@@ -12,9 +12,12 @@ import {
   type InsertDynamicPricing
 } from '../../../../../shared/schema-materials-services';
 import { eq, and, desc, asc, gte, lte, sql, inArray } from 'drizzle-orm';
+import { generateUUID } from '../../../../../shared/utils'; // Assuming generateUUID is available
 
 export class LPURepository {
   private db: any;
+  private tenantSchema: string; // Added to store tenant schema
+  private tenantId: string; // Added to store tenant ID
 
   constructor(db: any) {
     if (!db) {
@@ -45,6 +48,13 @@ export class LPURepository {
       console.error('❌ LPURepository: Database connection validation failed:', error);
       throw new Error(`LPURepository database validation failed: ${error.message}`);
     }
+  }
+
+  // Helper to set tenant schema and ID, usually called by the service layer before repository methods
+  setTenantContext(tenantId: string) {
+    this.tenantId = tenantId;
+    this.tenantSchema = `tenant_${tenantId.replace(/-/g, '_')}`;
+    console.log(`🔌 LPURepository: Tenant context set to ${this.tenantSchema}`);
   }
 
   async getLPUStats(tenantId: string) {
@@ -290,37 +300,84 @@ export class LPURepository {
 
   // ITENS DA LISTA DE PREÇOS
   async getPriceListItems(priceListId: string, tenantId: string) {
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
     return await this.db
-      .select()
-      .from(priceListItems)
-      .where(and(
-        eq(priceListItems.priceListId, priceListId),
-        eq(priceListItems.tenantId, tenantId)
-      ))
-      .orderBy(asc(priceListItems.createdAt));
+      .execute(sql.raw(`SET search_path TO "${schemaName}"`))
+      .then(() => this.db
+        .select()
+        .from(priceListItems)
+        .where(and(
+          eq(priceListItems.priceListId, priceListId),
+          eq(priceListItems.tenantId, tenantId)
+        ))
+        .orderBy(asc(priceListItems.createdAt)));
   }
 
-  async addPriceListItem(data: any) {
-    const [item] = await this.db
-      .insert(priceListItems)
-      .values(data)
-      .returning();
-    return item;
+  async getPriceListItemById(id: string): Promise<any> {
+    if (!this.tenantSchema || !this.tenantId) {
+      throw new Error("Tenant context not set. Call setTenantContext first.");
+    }
+    return await this.db.execute(sql.raw(`SET search_path TO "${this.tenantSchema}"`))
+      .then(() => this.db
+        .select()
+        .from(priceListItems)
+        .where(and(
+          eq(priceListItems.id, id),
+          eq(priceListItems.tenantId, this.tenantId)
+        ))
+      ).then(rows => rows?.[0]);
+  }
+
+  async addPriceListItem(data: any): Promise<any> {
+    const itemId = generateUUID();
+
+    // Ensure price_list_id is provided
+    if (!data.priceListId) {
+      throw new Error('price_list_id é obrigatório');
+    }
+
+    if (!this.tenantSchema || !this.tenantId) {
+      throw new Error("Tenant context not set. Call setTenantContext first.");
+    }
+
+    await this.db.execute(sql.raw(`SET search_path TO "${this.tenantSchema}"`));
+
+    await this.db.execute(sql`
+      INSERT INTO ${this.tenantSchema}.price_list_items (
+        id, tenant_id, price_list_id, item_id, service_type_id,
+        unit_price, special_price, hourly_rate, travel_cost,
+        is_active, created_at, updated_at
+      ) VALUES (
+        ${itemId}, ${this.tenantId}, ${data.priceListId}, 
+        ${data.itemId || null}, ${data.serviceTypeId || null},
+        ${data.unitPrice}, ${data.specialPrice || null}, 
+        ${data.hourlyRate || null}, ${data.travelCost || null},
+        ${data.isActive !== undefined ? data.isActive : true},
+        NOW(), NOW()
+      )
+    `);
+
+    return this.getPriceListItemById(itemId);
   }
 
   async updatePriceListItem(id: string, tenantId: string, data: any) {
-    const [item] = await db
-      .update(priceListItems)
-      .set({ ...data, updatedAt: new Date() })
-      .where(and(eq(priceListItems.id, id), eq(priceListItems.tenantId, tenantId)))
-      .returning();
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    const [item] = await this.db
+      .execute(sql.raw(`SET search_path TO "${schemaName}"`))
+      .then(() => this.db
+        .update(priceListItems)
+        .set({ ...data, updatedAt: new Date() })
+        .where(and(eq(priceListItems.id, id), eq(priceListItems.tenantId, tenantId)))
+        .returning());
     return item;
   }
 
   async deletePriceListItem(id: string, tenantId: string) {
-    await db
-      .delete(priceListItems)
-      .where(and(eq(priceListItems.id, id), eq(priceListItems.tenantId, tenantId)));
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    await this.db.execute(sql.raw(`SET search_path TO "${schemaName}"`))
+      .then(() => this.db
+        .delete(priceListItems)
+        .where(and(eq(priceListItems.id, id), eq(priceListItems.tenantId, tenantId))));
   }
 
   // REGRAS DE PRECIFICAÇÃO
@@ -418,50 +475,59 @@ export class LPURepository {
   }
 
   async getPricingRuleById(id: string, tenantId: string) {
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
     const [rule] = await this.db
-      .select()
-      .from(pricingRules)
-      .where(and(eq(pricingRules.id, id), eq(pricingRules.tenantId, tenantId)));
+      .execute(sql.raw(`SET search_path TO "${schemaName}"`))
+      .then(() => this.db
+        .select()
+        .from(pricingRules)
+        .where(and(eq(pricingRules.id, id), eq(pricingRules.tenantId, tenantId))));
     return rule;
   }
 
   async deletePricingRule(id: string, tenantId: string) {
     // Invalidate cache for the tenant when a pricing rule is deleted
     await this.invalidateCache(tenantId, 'pricing-rules');
-    await db
-      .delete(pricingRules)
-      .where(and(eq(pricingRules.id, id), eq(pricingRules.tenantId, tenantId)));
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    await this.db.execute(sql.raw(`SET search_path TO "${schemaName}"`))
+      .then(() => this.db
+        .delete(pricingRules)
+        .where(and(eq(pricingRules.id, id), eq(pricingRules.tenantId, tenantId))));
   }
 
   // PRECIFICAÇÃO DINÂMICA
   async getDynamicPricing(priceListId: string, tenantId: string) {
-    return await db
-      .select()
-      .from(dynamicPricing)
-      .where(and(
-        eq(dynamicPricing.priceListId, priceListId),
-        eq(dynamicPricing.tenantId, tenantId)
-      ))
-      .orderBy(desc(dynamicPricing.lastUpdated));
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    return await this.db.execute(sql.raw(`SET search_path TO "${schemaName}"`))
+      .then(() => this.db
+        .select()
+        .from(dynamicPricing)
+        .where(and(
+          eq(dynamicPricing.priceListId, priceListId),
+          eq(dynamicPricing.tenantId, tenantId)
+        ))
+        .orderBy(desc(dynamicPricing.lastUpdated)));
   }
 
   async updateDynamicPricing(data: InsertDynamicPricing) {
-    const [pricing] = await db
-      .insert(dynamicPricing)
-      .values(data)
-      .onConflictDoUpdate({
-        target: [dynamicPricing.priceListId, dynamicPricing.itemId],
-        set: {
-          currentPrice: data.currentPrice,
-          demandFactor: data.demandFactor,
-          seasonalFactor: data.seasonalFactor,
-          inventoryFactor: data.inventoryFactor,
-          competitorFactor: data.competitorFactor,
-          lastUpdated: new Date(),
-          calculationRules: data.calculationRules
-        }
-      })
-      .returning();
+    const schemaName = `tenant_${data.tenantId.replace(/-/g, '_')}`;
+    const [pricing] = await this.db.execute(sql.raw(`SET search_path TO "${schemaName}"`))
+      .then(() => this.db
+        .insert(dynamicPricing)
+        .values(data)
+        .onConflictDoUpdate({
+          target: [dynamicPricing.priceListId, dynamicPricing.itemId],
+          set: {
+            currentPrice: data.currentPrice,
+            demandFactor: data.demandFactor,
+            seasonalFactor: data.seasonalFactor,
+            inventoryFactor: data.inventoryFactor,
+            competitorFactor: data.competitorFactor,
+            lastUpdated: new Date(),
+            calculationRules: data.calculationRules
+          }
+        })
+        .returning());
     return pricing;
   }
 
@@ -494,10 +560,13 @@ export class LPURepository {
     itemMargins?: Array<{ itemId: string; margin: number; }>;
   }) {
     const { baseMargin, itemMargins } = marginData;
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    await this.db.execute(sql.raw(`SET search_path TO "${schemaName}"`));
 
     // Atualizar margem base da lista
     if (baseMargin !== undefined) {
-      await db
+      await this.db
         .update(priceLists)
         .set({ automaticMargin: baseMargin, updatedAt: new Date() })
         .where(and(eq(priceLists.id, priceListId), eq(priceLists.tenantId, tenantId)));
@@ -507,7 +576,7 @@ export class LPURepository {
     if (itemMargins && itemMargins.length > 0) {
       for (const { itemId, margin } of itemMargins) {
         // Buscar preço base do item
-        const [currentItem] = await db
+        const [currentItem] = await this.db
           .select()
           .from(priceListItems)
           .where(and(
@@ -522,7 +591,7 @@ export class LPURepository {
             margin
           );
 
-          await db
+          await this.db
             .update(priceListItems)
             .set({
               finalPrice: newFinalPrice.toString(),
@@ -546,64 +615,72 @@ export class LPURepository {
 
   // ASSOCIAÇÃO DE REGRAS COM LISTAS (Simplified version)
   async getPriceListRules(priceListId: string, tenantId: string) {
-    // For now, return all active rules for the tenant
-    // This can be enhanced later with proper association table
-    return await db
-      .select({
-        id: pricingRules.id,
-        name: pricingRules.name,
-        type: pricingRules.ruleType,
-        priority: pricingRules.priority,
-        isActive: pricingRules.isActive,
-        conditions: pricingRules.conditions,
-        actions: pricingRules.actions
-      })
-      .from(pricingRules)
-      .where(and(
-        eq(pricingRules.tenantId, tenantId),
-        eq(pricingRules.isActive, true)
-      ))
-      .orderBy(desc(pricingRules.priority));
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    return await this.db.execute(sql.raw(`SET search_path TO "${schemaName}"`))
+      .then(() => this.db
+        .select({
+          id: pricingRules.id,
+          name: pricingRules.name,
+          type: pricingRules.ruleType,
+          priority: pricingRules.priority,
+          isActive: pricingRules.isActive,
+          conditions: pricingRules.conditions,
+          actions: pricingRules.actions
+        })
+        .from(pricingRules)
+        .where(and(
+          eq(pricingRules.tenantId, tenantId),
+          eq(pricingRules.isActive, true)
+        ))
+        .orderBy(desc(pricingRules.priority)));
   }
 
   async associateRuleWithPriceList(priceListId: string, ruleId: string, tenantId: string) {
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
     // Simplified: Just ensure the rule exists and is active
-    const [rule] = await db
-      .select()
-      .from(pricingRules)
-      .where(and(
-        eq(pricingRules.id, ruleId),
-        eq(pricingRules.tenantId, tenantId)
-      ));
+    const [rule] = await this.db.execute(sql.raw(`SET search_path TO "${schemaName}"`))
+      .then(() => this.db
+        .select()
+        .from(pricingRules)
+        .where(and(
+          eq(pricingRules.id, ruleId),
+          eq(pricingRules.tenantId, tenantId)
+        )));
 
     if (rule) {
-      await db
-        .update(pricingRules)
-        .set({ isActive: true })
-        .where(eq(pricingRules.id, ruleId));
+      await this.db.execute(sql.raw(`SET search_path TO "${schemaName}"`))
+        .then(() => this.db
+          .update(pricingRules)
+          .set({ isActive: true })
+          .where(eq(pricingRules.id, ruleId)));
       // Invalidate cache when rules are associated
       await this.invalidateCache(tenantId, 'pricing-rules');
     }
   }
 
   async removeRuleFromPriceList(priceListId: string, ruleId: string, tenantId: string) {
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
     // Simplified: Just deactivate the rule
-    await db
-      .update(pricingRules)
-      .set({ isActive: false })
-      .where(and(
-        eq(pricingRules.id, ruleId),
-        eq(pricingRules.tenantId, tenantId)
-      ));
+    await this.db.execute(sql.raw(`SET search_path TO "${schemaName}"`))
+      .then(() => this.db
+        .update(pricingRules)
+        .set({ isActive: false })
+        .where(and(
+          eq(pricingRules.id, ruleId),
+          eq(pricingRules.tenantId, tenantId)
+        )));
     // Invalidate cache when rules are removed
     await this.invalidateCache(tenantId, 'pricing-rules');
   }
 
   async applyRulesToPriceList(priceListId: string, ruleIds: string[] = [], tenantId: string) {
     const results = [];
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    await this.db.execute(sql.raw(`SET search_path TO "${schemaName}"`));
 
     // Get all items in the price list
-    const items = await db
+    const items = await this.db
       .select()
       .from(priceListItems)
       .where(and(
@@ -614,7 +691,7 @@ export class LPURepository {
     // Get the rules to apply - if no specific rules provided, get all active rules
     let rules;
     if (ruleIds.length > 0) {
-      rules = await db
+      rules = await this.db
         .select()
         .from(pricingRules)
         .where(and(
@@ -624,7 +701,7 @@ export class LPURepository {
         ))
         .orderBy(desc(pricingRules.priority));
     } else {
-      rules = await db
+      rules = await this.db
         .select()
         .from(pricingRules)
         .where(and(
@@ -665,7 +742,7 @@ export class LPURepository {
 
       // Update the item price
       if (newPrice !== parseFloat(item.unitPrice)) {
-        await db
+        await this.db
           .update(priceListItems)
           .set({
             unitPrice: newPrice.toFixed(2),
