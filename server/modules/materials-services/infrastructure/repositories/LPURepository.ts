@@ -107,7 +107,7 @@ export class LPURepository {
         throw new Error('Database connection not available');
       }
 
-      const { queryCache } = await import('../../../database/IntelligentCacheManager');
+      const { queryCache } = await import('../../../../database/IntelligentCacheManager');
       const cacheKey = `price-lists-${tenantId}`;
 
       // Check cache first
@@ -337,7 +337,7 @@ export class LPURepository {
         throw new Error('Database connection not available');
       }
 
-      const { queryCache } = await import('../../../database/IntelligentCacheManager');
+      const { queryCache } = await import('../../../../database/IntelligentCacheManager');
       const cacheKey = `pricing-rules-${tenantId}`;
 
       // Check cache first
@@ -690,7 +690,7 @@ export class LPURepository {
   // Cache invalidation methods
   async invalidateCache(tenantId: string, cacheType?: 'stats' | 'price-lists' | 'pricing-rules'): Promise<void> {
     try {
-      const { queryCache } = await import('../../../database/IntelligentCacheManager');
+      const { queryCache } = await import('../../../../database/IntelligentCacheManager');
 
       if (cacheType) {
         const cacheKey = `${cacheType === 'stats' ? 'lpu-stats' : cacheType}-${tenantId}`;
