@@ -1,5 +1,5 @@
 
-import { Pool } from '@neondatabase/serverless';
+import { Pool } from 'pg';
 
 async function createLPUTables() {
   console.log('🔧 Criando tabelas LPU ausentes...');
@@ -9,7 +9,10 @@ async function createLPUTables() {
     if (!process.env.DATABASE_URL) {
       throw new Error('DATABASE_URL não encontrada');
     }
-    pool = new Pool({ connectionString: process.env.DATABASE_URL });
+    pool = new Pool({ 
+      connectionString: process.env.DATABASE_URL,
+      ssl: process.env.DATABASE_URL.includes('neon.tech') ? { rejectUnauthorized: false } : false
+    });
   } catch (error) {
     console.error('❌ Erro ao conectar com o banco:', error.message);
     process.exit(1);
@@ -28,7 +31,7 @@ async function createLPUTables() {
     try {
       // 1. PRICE_LISTS
       await pool.query(`
-        CREATE TABLE IF NOT EXISTS tenant_${tenantSchema}.price_lists (
+        CREATE TABLE IF NOT EXISTS "tenant_${tenantSchema}".price_lists (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
           tenant_id UUID NOT NULL,
           name VARCHAR(255) NOT NULL,
@@ -56,7 +59,7 @@ async function createLPUTables() {
 
       // 2. PRICE_LIST_ITEMS
       await pool.query(`
-        CREATE TABLE IF NOT EXISTS tenant_${tenantSchema}.price_list_items (
+        CREATE TABLE IF NOT EXISTS "tenant_${tenantSchema}".price_list_items (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
           tenant_id UUID NOT NULL,
           price_list_id UUID NOT NULL,
@@ -78,7 +81,7 @@ async function createLPUTables() {
 
       // 3. PRICING_RULES
       await pool.query(`
-        CREATE TABLE IF NOT EXISTS tenant_${tenantSchema}.pricing_rules (
+        CREATE TABLE IF NOT EXISTS "tenant_${tenantSchema}".pricing_rules (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
           tenant_id UUID NOT NULL,
           name VARCHAR(255) NOT NULL,
@@ -96,7 +99,7 @@ async function createLPUTables() {
 
       // 4. PRICE_LIST_VERSIONS
       await pool.query(`
-        CREATE TABLE IF NOT EXISTS tenant_${tenantSchema}.price_list_versions (
+        CREATE TABLE IF NOT EXISTS "tenant_${tenantSchema}".price_list_versions (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
           tenant_id UUID NOT NULL,
           price_list_id UUID NOT NULL,
@@ -118,7 +121,7 @@ async function createLPUTables() {
 
       // 5. DYNAMIC_PRICING
       await pool.query(`
-        CREATE TABLE IF NOT EXISTS tenant_${tenantSchema}.dynamic_pricing (
+        CREATE TABLE IF NOT EXISTS "tenant_${tenantSchema}".dynamic_pricing (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
           tenant_id UUID NOT NULL,
           item_id UUID NOT NULL,
@@ -140,16 +143,16 @@ async function createLPUTables() {
       // 6. CREATE INDEXES FOR PERFORMANCE
       await pool.query(`
         CREATE INDEX IF NOT EXISTS idx_price_lists_tenant_active 
-        ON tenant_${tenantSchema}.price_lists(tenant_id, is_active);
+        ON "tenant_${tenantSchema}".price_lists(tenant_id, is_active);
         
         CREATE INDEX IF NOT EXISTS idx_price_list_items_list_item 
-        ON tenant_${tenantSchema}.price_list_items(tenant_id, price_list_id, item_id);
+        ON "tenant_${tenantSchema}".price_list_items(tenant_id, price_list_id, item_id);
         
         CREATE INDEX IF NOT EXISTS idx_pricing_rules_tenant_active 
-        ON tenant_${tenantSchema}.pricing_rules(tenant_id, is_active, priority);
+        ON "tenant_${tenantSchema}".pricing_rules(tenant_id, is_active, priority);
         
         CREATE INDEX IF NOT EXISTS idx_dynamic_pricing_tenant_item 
-        ON tenant_${tenantSchema}.dynamic_pricing(tenant_id, item_id);
+        ON "tenant_${tenantSchema}".dynamic_pricing(tenant_id, item_id);
       `);
       console.log(`✅ Índices criados no tenant_${tenantSchema}`);
 
@@ -165,7 +168,7 @@ async function createLPUTables() {
     for (const tenantSchema of tenants) {
       // Insert default price list for each tenant
       await pool.query(`
-        INSERT INTO tenant_${tenantSchema}.price_lists 
+        INSERT INTO "tenant_${tenantSchema}".price_lists 
         (tenant_id, name, code, description, version, is_active, currency) 
         VALUES 
         ('${tenantSchema.replace(/_/g, '-')}', 'Lista Padrão', 'DEFAULT', 'Lista de preços padrão do sistema', '1.0', true, 'BRL')
@@ -174,7 +177,7 @@ async function createLPUTables() {
       
       // Insert default pricing rule
       await pool.query(`
-        INSERT INTO tenant_${tenantSchema}.pricing_rules 
+        INSERT INTO "tenant_${tenantSchema}".pricing_rules 
         (tenant_id, name, description, rule_type, conditions, actions, priority) 
         VALUES 
         ('${tenantSchema.replace(/_/g, '-')}', 'Margem Padrão', 'Regra de margem padrão', 'percentage', '{}', '{"margin": 15}', 1)
