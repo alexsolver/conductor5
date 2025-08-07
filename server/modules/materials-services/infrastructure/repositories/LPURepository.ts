@@ -17,21 +17,33 @@ export class LPURepository {
   private db: any;
 
   constructor(db: any) {
+    if (!db) {
+      throw new Error('Database connection is required but was not provided');
+    }
+    
     this.db = db;
-    this.testConnection();
+    console.log('🔌 LPURepository: Database connection assigned successfully');
+    
+    // Test connection synchronously for immediate feedback
+    this.validateConnection();
   }
 
-  private async testConnection() {
+  private validateConnection() {
     try {
-      // Test basic database connectivity
-      console.log('🔌 LPURepository: Testing database connection...');
+      console.log('🔌 LPURepository: Validating database connection...');
+      
       if (!this.db) {
         throw new Error('Database connection is null or undefined');
       }
-      console.log('✅ LPURepository: Database connection successful');
+      
+      if (typeof this.db.select !== 'function') {
+        throw new Error('Database connection does not have required methods');
+      }
+      
+      console.log('✅ LPURepository: Database connection validation successful');
     } catch (error) {
-      console.error('❌ LPURepository: Database connection failed:', error);
-      throw error;
+      console.error('❌ LPURepository: Database connection validation failed:', error);
+      throw new Error(`LPURepository database validation failed: ${error.message}`);
     }
   }
 
@@ -157,7 +169,7 @@ export class LPURepository {
   }
 
   async submitForApproval(versionId: string, tenantId: string, submittedBy: string) {
-    const [version] = await db
+    const [version] = await this.db
       .update(priceListVersions)
       .set({
         status: 'pending_approval',
@@ -174,7 +186,7 @@ export class LPURepository {
   }
 
   async approvePriceList(versionId: string, tenantId: string, approvedBy: string) {
-    const [version] = await db
+    const [version] = await this.db
       .update(priceListVersions)
       .set({
         status: 'approved',
@@ -191,7 +203,7 @@ export class LPURepository {
   }
 
   async rejectPriceList(versionId: string, tenantId: string, rejectedBy: string, reason: string) {
-    const [version] = await db
+    const [version] = await this.db
       .update(priceListVersions)
       .set({
         status: 'draft',
@@ -210,7 +222,7 @@ export class LPURepository {
 
   // ITENS DA LISTA DE PREÇOS
   async getPriceListItems(priceListId: string, tenantId: string) {
-    return await db
+    return await this.db
       .select()
       .from(priceListItems)
       .where(and(
@@ -221,7 +233,7 @@ export class LPURepository {
   }
 
   async addPriceListItem(data: any) {
-    const [item] = await db
+    const [item] = await this.db
       .insert(priceListItems)
       .values(data)
       .returning();

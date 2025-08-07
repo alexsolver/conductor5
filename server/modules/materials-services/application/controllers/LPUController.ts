@@ -11,14 +11,25 @@ export class LPUController {
   constructor(db: any) {
     try {
       console.log('🏗️ LPUController: Initializing...');
-      console.log('🏗️ LPUController: DB object:', !!db);
+      console.log('🏗️ LPUController: DB object received:', typeof db, !!db);
+      
+      if (!db) {
+        throw new Error('Database connection is required but was not provided');
+      }
+      
+      console.log('🏗️ LPUController: Creating repository...');
       this.repository = new LPURepository(db);
-      console.log('🏗️ LPUController: Repository created successfully');
+      console.log('✅ LPUController: Repository created successfully');
+      
+      console.log('🏗️ LPUController: Creating pricing engine...');
       this.pricingEngine = new PricingRulesEngine(this.repository);
+      console.log('✅ LPUController: Pricing engine created successfully');
+      
       console.log('✅ LPUController: Initialization complete');
     } catch (error) {
       console.error('❌ LPUController: Initialization failed:', error);
-      throw error;
+      console.error('❌ LPUController: Error stack:', error.stack);
+      throw new Error(`LPUController initialization failed: ${error.message}`);
     }
   }
 

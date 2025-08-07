@@ -42,21 +42,32 @@ router.use((req: any, res: any, next: any) => {
 // Helper function to initialize controllers for each request
 async function getControllers(tenantId: string) {
   try {
-    const { db } = await schemaManager.getTenantDb(tenantId);
-    const itemRepository = new ItemRepository(db);
-    const supplierRepository = new SupplierRepository(db);
-    const stockRepository = new StockRepository(db);
+    console.log('🏗️ getControllers: Initializing for tenant:', tenantId);
+    const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
+    console.log('🏗️ getControllers: Database connection obtained');
+
+    if (!tenantDb) {
+      throw new Error('Failed to get tenant database connection');
+    }
+
+    const itemRepository = new ItemRepository(tenantDb);
+    const supplierRepository = new SupplierRepository(tenantDb);
+    const stockRepository = new StockRepository(tenantDb);
+
+    console.log('🏗️ getControllers: Creating LPUController...');
+    const lpuController = new LPUController(tenantDb);
+    console.log('✅ getControllers: LPUController created successfully');
 
     return {
       itemController: new ItemController(itemRepository),
       supplierController: new SupplierController(supplierRepository),
       stockController: new StockController(stockRepository),
       assetController: new AssetManagementController(),
-      lpuController: new LPUController(db),
+      lpuController: lpuController,
       complianceController: new ComplianceController()
     };
   } catch (error) {
-    console.error('Error initializing controllers for tenant:', tenantId, error);
+    console.error('❌ getControllers: Failed to initialize controllers:', error);
     throw error;
   }
 }
@@ -143,25 +154,55 @@ router.get('/items/:itemId/links', jwtAuth, async (req: AuthenticatedRequest, re
 
 // ===== LPU (LISTA DE PREÇOS UNITÁRIOS) ROUTES =====
 
-// Price Lists - Basic CRUD
+// Price Lists - Complete CRUD
 router.get('/price-lists', async (req: AuthenticatedRequest, res) => {
   try {
-    if (!req.user?.tenantId) return res.status(401).json({ message: 'Tenant ID required' });
+    console.log('🔍 Route /price-lists: Starting...');
+
+    if (!req.user?.tenantId) {
+      console.log('❌ Route /price-lists: Missing tenant ID');
+      return res.status(401).json({ message: 'Tenant ID required' });
+    }
+
+    console.log('🔍 Route /price-lists: Getting controllers for tenant:', req.user.tenantId);
     const { lpuController } = await getControllers(req.user.tenantId);
+
+    if (!lpuController) {
+      console.log('❌ Route /price-lists: LPU controller not initialized');
+      return res.status(500).json({ error: 'Controller não inicializado' });
+    }
+
+    console.log('🔍 Route /price-lists: Calling controller method...');
     return lpuController.getAllPriceLists(req, res);
   } catch (error) {
-    console.error('Error in /price-lists route:', error);
+    console.error('❌ Route /price-lists: Error:', error);
+    console.error('❌ Route /price-lists: Stack:', error.stack);
     res.status(500).json({ error: 'Erro interno do servidor', details: error.message });
   }
 });
 
 router.get('/price-lists/stats', async (req: AuthenticatedRequest, res) => {
   try {
-    if (!req.user?.tenantId) return res.status(401).json({ message: 'Tenant ID required' });
+    console.log('🔍 Route /price-lists/stats: Starting...');
+
+    if (!req.user?.tenantId) {
+      console.log('❌ Route /price-lists/stats: Missing tenant ID');
+      return res.status(401).json({ message: 'Tenant ID required' });
+    }
+
+    console.log('🔍 Route /price-lists/stats: Getting controllers for tenant:', req.user.tenantId);
     const { lpuController } = await getControllers(req.user.tenantId);
+
+    if (!lpuController) {
+      console.log('❌ Route /price-lists/stats: LPU controller not initialized');
+      return res.status(500).json({ error: 'Controller não inicializado' });
+    }
+
+    console.log('🔍 Route /price-lists/stats: Calling controller method...');
     return lpuController.getLPUStats(req, res);
   } catch (error) {
-    console.error('Error in /price-lists/stats route:', error);
+    console.error('❌ Route /price-lists/stats: Error:', error);
+    console.error('❌ Route /price-lists/stats: Stack:', error.stack);
     res.status(500).json({ error: 'Erro interno do servidor', details: error.message });
   }
 });

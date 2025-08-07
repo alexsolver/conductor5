@@ -303,3 +303,36 @@ export class PricingRulesEngine {
     }
   }
 }
+export class PricingRulesEngine {
+  private repository: any;
+
+  constructor(repository: any) {
+    if (!repository) {
+      throw new Error('Repository is required for PricingRulesEngine');
+    }
+    this.repository = repository;
+    console.log('✅ PricingRulesEngine: Initialized successfully');
+  }
+
+  // Engine methods will be implemented as needed
+  async applyRules(priceListId: string, ruleIds: string[], tenantId: string) {
+    // Placeholder implementation
+    return this.repository.applyRulesToPriceList(priceListId, ruleIds, tenantId);
+  }
+
+  async calculatePrice(basePrice: number, rules: any[]) {
+    // Placeholder implementation
+    let finalPrice = basePrice;
+    
+    for (const rule of rules) {
+      // Apply rule logic here
+      if (rule.ruleType === 'percentual') {
+        finalPrice = finalPrice * (1 + (rule.actions?.percentage || 0) / 100);
+      } else if (rule.ruleType === 'fixo') {
+        finalPrice = finalPrice + (rule.actions?.fixedAmount || 0);
+      }
+    }
+    
+    return Math.round(finalPrice * 100) / 100;
+  }
+}
