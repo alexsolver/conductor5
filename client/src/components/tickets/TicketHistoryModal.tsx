@@ -17,7 +17,7 @@ interface TicketHistoryModalProps {
 
 interface HistoryEntry {
   id: string;
-  type: 'status_change' | 'assignment' | 'comment' | 'email' | 'attachment' | 'field_update' | 'system';
+  type: 'status_change' | 'assignment' | 'comment' | 'email' | 'attachment' | 'field_update' | 'system' | 'material_planned_added' | 'material_planned_removed' | 'material_consumed_added' | 'material_consumed_removed' | 'lpu_applied' | 'lpu_changed';
   action: string;
   description: string;
   actor: string;
@@ -33,22 +33,26 @@ interface HistoryEntry {
 
 const getActionIcon = (type: string) => {
   switch (type) {
+    case 'created':
+    case 'ticket_created': return { icon: User, color: 'bg-green-100 text-green-600' };
     case 'status_change':
-      return <CheckCircle className="w-4 h-4" />;
+    case 'status_changed': return { icon: CheckCircle, color: 'bg-blue-100 text-blue-600' };
     case 'assignment':
-      return <User className="w-4 h-4" />;
+    case 'assigned': return { icon: User, color: 'bg-purple-100 text-purple-600' };
     case 'comment':
-      return <Edit className="w-4 h-4" />;
-    case 'email':
-      return <Mail className="w-4 h-4" />;
-    case 'attachment':
-      return <Paperclip className="w-4 h-4" />;
-    case 'field_update':
-      return <Edit className="w-4 h-4" />;
-    case 'system':
-      return <Bot className="w-4 h-4" />;
-    default:
-      return <Clock className="w-4 h-4" />;
+    case 'note_added': return { icon: Edit, color: 'bg-yellow-100 text-yellow-600' };
+    case 'email': return { icon: Mail, color: 'bg-indigo-100 text-indigo-600' };
+    case 'attachment': return { icon: Paperclip, color: 'bg-orange-100 text-orange-600' };
+    case 'field_update': return { icon: Edit, color: 'bg-gray-100 text-gray-600' };
+    case 'system': return { icon: Bot, color: 'bg-gray-100 text-gray-600' };
+    // Material and Services actions
+    case 'material_planned_added': return { icon: AlertTriangle, color: 'bg-green-100 text-green-600' };
+    case 'material_planned_removed': return { icon: AlertTriangle, color: 'bg-red-100 text-red-600' };
+    case 'material_consumed_added': return { icon: CheckCircle, color: 'bg-blue-100 text-blue-600' };
+    case 'material_consumed_removed': return { icon: AlertTriangle, color: 'bg-orange-100 text-orange-600' };
+    case 'lpu_applied':
+    case 'lpu_changed': return { icon: ArrowRight, color: 'bg-indigo-100 text-indigo-600' };
+    default: return { icon: Clock, color: 'bg-gray-100 text-gray-600' };
   }
 };
 
@@ -68,6 +72,14 @@ const getActionColor = (type: string) => {
       return 'text-yellow-600 bg-yellow-100';
     case 'system':
       return 'text-gray-600 bg-gray-100';
+    // Material and Services actions
+    case 'material_planned_added':
+    case 'material_planned_removed':
+    case 'material_consumed_added':
+    case 'material_consumed_removed':
+    case 'lpu_applied':
+    case 'lpu_changed':
+      return 'text-blue-600 bg-blue-100';
     default:
       return 'text-gray-600 bg-gray-100';
   }
@@ -94,13 +106,13 @@ export default function TicketHistoryModal({ ticketId, isOpen, onClose }: Ticket
     const matchesSearch = !searchTerm || 
       entry.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
       entry.actorName.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
     let matchesTime = true;
     if (timeFilter !== "all") {
       const entryDate = new Date(entry.createdAt);
       const now = new Date();
       const diffDays = Math.floor((now.getTime() - entryDate.getTime()) / (1000 * 3600 * 24));
-      
+
       switch (timeFilter) {
         case "today":
           matchesTime = diffDays === 0;
@@ -113,13 +125,13 @@ export default function TicketHistoryModal({ ticketId, isOpen, onClose }: Ticket
           break;
       }
     }
-    
+
     return matchesFilter && matchesSearch && matchesTime;
   });
 
   const renderFieldChange = (entry: HistoryEntry) => {
     if (!entry.oldValue && !entry.newValue) return null;
-    
+
     return (
       <div className="mt-2 p-2 bg-gray-50 rounded text-xs">
         <div className="flex items-center gap-2">
@@ -176,6 +188,12 @@ export default function TicketHistoryModal({ ticketId, isOpen, onClose }: Ticket
                 <SelectItem value="attachment">Anexos</SelectItem>
                 <SelectItem value="field_update">Atualizações</SelectItem>
                 <SelectItem value="system">Sistema</SelectItem>
+                <SelectItem value="material_planned_added">Material Planejado Adicionado</SelectItem>
+                <SelectItem value="material_planned_removed">Material Planejado Removido</SelectItem>
+                <SelectItem value="material_consumed_added">Material Consumido Adicionado</SelectItem>
+                <SelectItem value="material_consumed_removed">Material Consumido Removido</SelectItem>
+                <SelectItem value="lpu_applied">LPU Aplicada</SelectItem>
+                <SelectItem value="lpu_changed">LPU Alterada</SelectItem>
               </SelectContent>
             </Select>
             <Select value={timeFilter} onValueChange={setTimeFilter}>
@@ -212,15 +230,15 @@ export default function TicketHistoryModal({ ticketId, isOpen, onClose }: Ticket
               <div className="relative">
                 {/* Timeline line */}
                 <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gray-200"></div>
-                
+
                 <div className="space-y-6">
                   {filteredHistory.map((entry: HistoryEntry, index: number) => (
                     <div key={entry.id} className="relative flex items-start">
                       {/* Timeline dot */}
                       <div className={`absolute left-4 w-4 h-4 rounded-full border-2 border-white flex items-center justify-center ${getActionColor(entry.type)}`}>
-                        {getActionIcon(entry.type)}
+                        {getActionIcon(entry.type).icon({ className: "w-4 h-4" })}
                       </div>
-                      
+
                       {/* Content */}
                       <div className="ml-12 flex-1">
                         <Card className={`border-l-4 ${
@@ -258,12 +276,12 @@ export default function TicketHistoryModal({ ticketId, isOpen, onClose }: Ticket
                                 {new Date(entry.createdAt).toLocaleString()}
                               </span>
                             </div>
-                            
+
                             <p className="text-sm text-gray-700 mb-2">{entry.description}</p>
-                            
+
                             {/* Field changes */}
                             {entry.type === 'field_update' && renderFieldChange(entry)}
-                            
+
                             {/* Metadata */}
                             {entry.metadata && Object.keys(entry.metadata).length > 0 && (
                               <div className="mt-3 pt-2 border-t border-gray-200">
@@ -288,7 +306,7 @@ export default function TicketHistoryModal({ ticketId, isOpen, onClose }: Ticket
               </div>
             )}
           </div>
-          
+
           {/* Summary */}
           {!isLoading && filteredHistory.length > 0 && (
             <div className="bg-blue-50 p-4 rounded-lg">

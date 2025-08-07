@@ -21,7 +21,7 @@ import {
   Clock, Download, ExternalLink, Filter, MoreVertical, Trash, Link2,
   AlertTriangle, Mail, PlusCircle, Activity, RefreshCw, Ticket, Link, EyeOff,
   CheckCircle, Star, TrendingUp, Building2, MapPin, BarChart3,
-  Copy, ArrowDown, ArrowUp, Calendar, Package
+  Copy, ArrowDown, ArrowUp, Calendar, Package, PackageX, DollarSign, ArrowRight, MessageCircle, Wrench, UserCheck
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -1898,29 +1898,36 @@ const TicketDetails = React.memo(() => {
                       case 'assigned':
                       case 'assignment': return { icon: User, color: 'blue' };
                       case 'status_changed':
-                      case 'status_change': return { icon: RefreshCw, color: 'orange' };
-                      case 'viewed': return { icon: Eye, color: 'purple' };
-                      case 'email_sent':
-                      case 'email_received': return { icon: Mail, color: 'indigo' };
-                      case 'communication': return { icon: MessageSquare, color: 'teal' };
-                      case 'attachment_added': return { icon: Paperclip, color: 'pink' };
+                      case 'status_change': return { icon: ArrowRight, color: 'blue' };
+                      case 'field_updated':
+                      case 'field_update': return { icon: Edit, color: 'yellow' };
                       case 'note_added':
-                      case 'note_created': return { icon: FileText, color: 'blue' };
+                      case 'note_created': return { icon: MessageSquare, color: 'purple' };
+                      case 'note_updated': return { icon: Edit, color: 'orange' };
                       case 'note_deleted': return { icon: Trash2, color: 'red' };
-                      case 'relationship_created': return { icon: Link2, color: 'green' };
-                      case 'relationship_deleted': return { icon: Link2, color: 'red' };
-                      case 'internal_action':
-                      case 'internal_action_created': return { icon: Plus, color: 'purple' };
-                      case 'internal_action_updated': return { icon: Edit, color: 'blue' };
+                      case 'attachment_uploaded': return { icon: Upload, color: 'green' };
+                      case 'attachment_deleted': return { icon: FileIcon, color: 'red' };
+                      case 'email_sent': return { icon: Mail, color: 'indigo' };
+                      case 'email_received': return { icon: Mail, color: 'blue' };
+                      case 'communication': return { icon: MessageCircle, color: 'blue' };
+                      case 'internal_action_created': return { icon: Wrench, color: 'purple' };
+                      case 'internal_action_updated': return { icon: Settings, color: 'orange' };
                       case 'internal_action_deleted': return { icon: Trash2, color: 'red' };
-                      case 'action_updated': return { icon: Edit, color: 'blue' };
-                      case 'action_deleted': return { icon: Trash2, color: 'red' };
-                      case 'resolution': return { icon: CheckCircle, color: 'green' };
-                      case 'investigation': return { icon: AlertCircle, color: 'orange' };
-                      case 'analysis': return { icon: BarChart3, color: 'blue' };
-                      case 'work_log': return { icon: Clock, color: 'indigo' };
+                      case 'relationship_created': return { icon: Link, color: 'teal' };
+                      case 'relationship_deleted': return { icon: Unlink, color: 'red' };
+                      case 'ticket_viewed': return { icon: Eye, color: 'gray' };
+                      case 'ticket_updated': return { icon: Edit, color: 'gray' };
+                      case 'ticket_reassigned': return { icon: UserCheck, color: 'blue' };
+                      case 'ticket_deleted': return { icon: Trash2, color: 'red' };
                       case 'documentation': return { icon: FileIcon, color: 'teal' };
                       case 'ação interna': return { icon: Settings, color: 'purple' };
+                      // Material and Services actions
+                      case 'material_planned_added': return { icon: Package, color: 'green' };
+                      case 'material_planned_removed': return { icon: PackageX, color: 'red' };
+                      case 'material_consumed_added': return { icon: CheckCircle, color: 'blue' };
+                      case 'material_consumed_removed': return { icon: AlertCircle, color: 'orange' };
+                      case 'lpu_applied': return { icon: DollarSign, color: 'indigo' };
+                      case 'lpu_changed': return { icon: RefreshCw, color: 'indigo' };
                       default: return { icon: Activity, color: 'gray' };
                     }
                   };
@@ -2395,55 +2402,6 @@ const TicketDetails = React.memo(() => {
                     </Card>
                   );
                 })
-              )}
-            </div>
-          </div>
-        );
-
-      case "external-actions":
-        return (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">🔗 Ações Externas</h2>
-              <Badge variant="outline" className="text-xs">
-                {externalActions.length} ações disponíveis
-              </Badge>
-            </div>
-
-            {/* 🚨 CORREÇÃO: Dados reais da API eliminando botões hardcoded */}
-            <div className="space-y-4">
-              {externalActions.length === 0 ? (
-                <Card className="p-8 text-center border-2 border-dashed border-gray-300">
-                  <ExternalLink className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                  <h3 className="text-lg font-medium text-gray-700 mb-2">Nenhuma ação externa configurada</h3>
-                  <p className="text-gray-500 mb-4">
-                    Configure integrações externas no módulo de administração para automatizar ações
-                  </p>
-                </Card>
-              ) : (
-                externalActions.map((action: any, index: number) => (
-                  <Card key={`external-action-${action.id}-${index}`} className="p-4 hover:shadow-md transition-shadow">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-start gap-3">
-                        <div className="p-2 bg-blue-100 rounded-lg">
-                          <ExternalLink className="h-5 w-5 text-blue-600" />
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="font-medium text-gray-900">{action.title || action.action_type}</h4>
-                          <p className="text-sm text-gray-600 mt-1">{action.description || action.summary}</p>
-                          <div className="flex items-center gap-4 mt-2">
-                            <span className="text-xs text-gray-500">
-                              {action.created_at ? new Date(action.created_at).toLocaleDateString('pt-BR') : 'Data não disponível'}
-                            </span>
-                            <Badge variant="outline" className="text-xs">
-                              {action.status || 'pendente'}
-                            </Badge>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </Card>
-                ))
               )}
             </div>
           </div>
@@ -3284,18 +3242,18 @@ const TicketDetails = React.memo(() => {
             <div className="flex flex-wrap gap-2">
               {!isEditMode ? (
                 <>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={() => setIsEditMode(true)}
                     className="flex items-center gap-2"
                   >
                     <Edit className="h-4 w-4" />
                     <span className="hidden sm:inline">Editar</span>
                   </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={handleDelete}
                     className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
                   >
@@ -3332,7 +3290,7 @@ const TicketDetails = React.memo(() => {
 
                       // Force a manual validation first
                       const formData = form.getValues();
-                      
+
                       // Try to trigger validation manually
                       form.trigger().then((isValid) => {
                         if (isValid) {
@@ -3358,8 +3316,8 @@ const TicketDetails = React.memo(() => {
                   >
                     {updateTicketMutation.isPending && (
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <div 
-                          className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" 
+                        <div
+                          className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"
                           aria-hidden="true"
                           aria-label="Carregando"
                         ></div>
@@ -3390,9 +3348,9 @@ const TicketDetails = React.memo(() => {
         <div className="p-4 lg:p-6 border-b">
           <h3 className="font-semibold text-lg">Explorar</h3>
         </div>
-        <div 
-          className="p-2 lg:p-4 space-y-2" 
-          role="tablist" 
+        <div
+          className="p-2 lg:p-4 space-y-2"
+          role="tablist"
           aria-label="Seções do ticket"
           aria-orientation="vertical"
         >

@@ -14,27 +14,28 @@ import schemaManager from '../../../../utils/schemaManager';
 import * as crypto from 'crypto';
 
 
-// Import audit function
-async function createCompleteAuditEntry(
-  pool: any,
-  schemaName: string,
+// Create audit entry helper function
+async function createAuditEntry(
   tenantId: string,
   ticketId: string,
-  req: AuthenticatedRequest,
   actionType: string,
   description: string,
-  metadata: any = {}
+  metadata: any = {},
+  req: any
 ) {
   try {
-    const { getClientIP, getUserAgent, getSessionId } = await import('../../../../utils/ipCapture');
+    const { getClientIP, getUserAgent, getSessionId } = await import('../../../utils/ipCapture');
     const ipAddress = getClientIP(req);
     const userAgent = getUserAgent(req);
     const sessionId = getSessionId(req);
 
-    // Get user name for history record
+    // Get user name
     const userQuery = `SELECT first_name || ' ' || last_name as full_name FROM public.users WHERE id = $1`;
+    const { pool } = await import('../../../db');
     const userResult = await pool.query(userQuery, [req.user?.id]);
-    const userName = userResult.rows[0]?.full_name || 'Unknown User';
+    const userName = userResult.rows[0]?.full_name || req.user?.email || 'Unknown User';
+
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
     await pool.query(`
       INSERT INTO "${schemaName}".ticket_history
@@ -52,9 +53,11 @@ async function createCompleteAuditEntry(
       sessionId,
       JSON.stringify(metadata)
     ]);
+
+    console.log(`✅ Audit entry created: ${actionType} for ticket ${ticketId}`);
   } catch (error) {
-    console.error('Error creating audit entry:', error);
-    throw error;
+    console.error('❌ Error creating audit entry:', error);
+    // Don't throw error to avoid breaking the main operation
   }
 }
 
@@ -92,43 +95,91 @@ export class TicketMaterialsController {
   static async setTicketLpu(req: AuthenticatedRequest, res: Response) {
     try {
       const { ticketId } = req.params;
-      const { lpuId, notes } = req.body;
+      const { priceListId, notes, appliedBy } = req.body;
       const tenantId = req.user?.tenantId;
-      const userId = req.user?.id;
 
-      if (!tenantId || !ticketId || !lpuId) {
-        return sendError(res, 'Missing required fields', 'Missing required fields', 400);
+      if (!tenantId || !ticketId) {
+        return sendError(res, 'Missing tenant ID or ticket ID', 'Missing tenant ID or ticket ID', 400);
       }
 
-      // Deactivate existing LPU settings
-      await db
-        .update(ticketLpuSettings)
-        .set({
-          isActive: false,
-          updatedAt: new Date()
-        })
+      // Check if price list exists
+      const priceList = await db
+        .select()
+        .from(priceLists)
+        .where(and(
+          eq(priceLists.id, priceListId),
+          eq(priceLists.tenantId, tenantId),
+          eq(priceLists.isActive, true)
+        ))
+        .limit(1);
+
+      if (!priceList.length) {
+        return sendError(res, 'Price list not found', 'Price list not found', 404);
+      }
+
+      // Check if LPU setting already exists
+      const existingSetting = await db
+        .select()
+        .from(ticketLpuSettings)
         .where(and(
           eq(ticketLpuSettings.tenantId, tenantId),
-          eq(ticketLpuSettings.ticketId, ticketId)
-        ));
+          eq(ticketLpuSettings.ticketId, ticketId),
+          eq(ticketLpuSettings.isActive, true)
+        ))
+        .limit(1);
+
+      let auditAction = 'lpu_applied';
+      let auditDescription = `Lista de preços aplicada: ${priceList[0].name}`;
+
+      if (existingSetting.length > 0) {
+        // Deactivate existing setting
+        await db
+          .update(ticketLpuSettings)
+          .set({ isActive: false })
+          .where(eq(ticketLpuSettings.id, existingSetting[0].id));
+
+        auditAction = 'lpu_changed';
+        auditDescription = `Lista de preços alterada para: ${priceList[0].name}`;
+      }
 
       // Create new LPU setting
-      const [newLpuSetting] = await db
-        .insert(ticketLpuSettings)
-        .values({
-          tenantId,
-          ticketId,
-          lpuId,
-          appliedById: userId,
-          notes,
-          isActive: true
-        })
-        .returning();
+      const lpuSetting = {
+        id: crypto.randomUUID(),
+        tenantId,
+        ticketId,
+        priceListId,
+        notes: notes || '',
+        appliedBy: appliedBy || req.user.id,
+        appliedAt: new Date(),
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
 
-      return sendSuccess(res, { lpuSetting: newLpuSetting }, 'LPU setting created successfully', 201);
+      await db.insert(ticketLpuSettings).values(lpuSetting);
+
+      // Create audit entry for LPU setting
+      await createAuditEntry(
+        tenantId,
+        ticketId,
+        auditAction,
+        auditDescription,
+        {
+          price_list_id: priceListId,
+          price_list_name: priceList[0].name,
+          notes: notes || '',
+          applied_by: appliedBy || req.user.id,
+          lpu_setting_id: lpuSetting.id,
+          previous_setting_id: existingSetting.length > 0 ? existingSetting[0].id : null,
+          action_time: new Date().toISOString()
+        },
+        req
+      );
+
+      return sendSuccess(res, lpuSetting, 'LPU setting applied successfully', 201);
     } catch (error) {
-      console.error('Error setting LPU:', error);
-      return sendError(res, error as Error, 'Failed to set LPU');
+      console.error('Error setting ticket LPU:', error);
+      return sendError(res, error, 'Failed to set ticket LPU', 500);
     }
   }
 
@@ -164,105 +215,71 @@ export class TicketMaterialsController {
   static async addPlannedItem(req: AuthenticatedRequest, res: Response) {
     try {
       const { ticketId } = req.params;
-      const { itemId, plannedQuantity, lpuId, unitPriceAtPlanning, priority, notes } = req.body;
+      const { itemId, quantity, notes, lpuId } = req.body;
       const tenantId = req.user?.tenantId;
-      const userId = req.user?.id;
 
-      console.log('🔍 [ADD-PLANNED] Request data:', {
-        ticketId,
-        body: req.body,
+      if (!tenantId || !ticketId) {
+        return sendError(res, 'Missing tenant ID or ticket ID', 'Missing tenant ID or ticket ID', 400);
+      }
+
+      // Get item details for the response
+      const item = await db
+        .select()
+        .from(items)
+        .where(and(
+          eq(items.id, itemId),
+          eq(items.tenantId, tenantId),
+          eq(items.active, true)
+        ))
+        .limit(1);
+
+      if (!item.length) {
+        return sendError(res, 'Item not found', 'Item not found', 404);
+      }
+
+      const plannedItem = {
+        id: crypto.randomUUID(),
         tenantId,
-        userId,
-        requiredFields: { itemId, plannedQuantity, lpuId, unitPriceAtPlanning }
-      });
+        ticketId,
+        itemId,
+        quantity: parseFloat(quantity),
+        notes: notes || '',
+        lpuId: lpuId || null,
+        createdBy: req.user.id,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
 
-      if (!tenantId || !ticketId || !itemId || !plannedQuantity || !lpuId || unitPriceAtPlanning === undefined || unitPriceAtPlanning === null) {
-        console.log('❌ [ADD-PLANNED] Missing fields check:', {
-          tenantId: !!tenantId,
-          ticketId: !!ticketId,
-          itemId: !!itemId,
-          plannedQuantity: !!plannedQuantity,
-          lpuId: !!lpuId,
-          unitPriceAtPlanning: !!unitPriceAtPlanning
-        });
-        return sendError(res, 'Missing required fields', 'Missing required fields', 400);
-      }
+      await db.insert(ticketPlannedItems).values(plannedItem);
 
-      const estimatedCost = parseFloat(plannedQuantity) * parseFloat(unitPriceAtPlanning);
+      // Create audit entry for planned item addition
+      await createAuditEntry(
+        tenantId,
+        ticketId,
+        'material_planned_added',
+        `Material planejado adicionado: ${item[0].name} (Qtd: ${quantity})`,
+        {
+          item_id: itemId,
+          item_name: item[0].name,
+          item_type: item[0].type,
+          quantity: parseFloat(quantity),
+          notes: notes || '',
+          lpu_id: lpuId,
+          planned_item_id: plannedItem.id,
+          action_time: new Date().toISOString()
+        },
+        req
+      );
 
-      const [plannedItem] = await db
-        .insert(ticketPlannedItems)
-        .values({
-          tenantId,
-          ticketId,
-          itemId,
-          plannedQuantity: plannedQuantity.toString(),
-          lpuId,
-          unitPriceAtPlanning: unitPriceAtPlanning.toString(),
-          estimatedCost: estimatedCost.toString(),
-          priority: priority || 'medium',
-          notes,
-          plannedById: userId,
-          status: 'planned'
-        })
-        .returning();
+      const responseItem = {
+        ...plannedItem,
+        item: item[0]
+      };
 
-      // 📝 Registrar no histórico do ticket
-      try {
-        console.log('🔍 [HISTORY] Iniciando registro de histórico para item planejado:', {
-          ticketId,
-          itemId,
-          plannedQuantity,
-          tenantId
-        });
-
-        const { pool } = await import('../../../../db');
-        const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-
-        // Get item name for better description
-        const itemDetails = await db
-          .select({ name: items.name, type: items.type })
-          .from(items)
-          .where(eq(items.id, itemId))
-          .limit(1);
-
-        const itemName = itemDetails[0]?.name || 'Item desconhecido';
-        const itemType = itemDetails[0]?.type || 'Tipo desconhecido';
-
-        console.log('🔍 [HISTORY] Detalhes do item obtidos:', {
-          itemName,
-          itemType,
-          schemaName
-        });
-
-        await createCompleteAuditEntry(
-          pool, schemaName, tenantId, ticketId, req,
-          'material_planned',
-          `Item planejado adicionado: ${itemName} (Qtd: ${plannedQuantity})`,
-          {
-            action: 'planned_item_added',
-            item_id: itemId,
-            item_name: itemName,
-            item_type: itemType,
-            planned_quantity: plannedQuantity,
-            priority: priority || 'medium',
-            notes: notes || '',
-            lpu_id: lpuId,
-            planned_item_id: plannedItem.id,
-            estimated_cost: estimatedCost.toString()
-          }
-        );
-
-        console.log('✅ [HISTORY] Entrada de histórico criada com sucesso para item planejado');
-      } catch (historyError: any) {
-        console.error('❌ [HISTORY] Erro ao criar entrada no histórico:', historyError);
-        console.log('⚠️ Aviso: Não foi possível criar entrada no histórico:', historyError.message);
-      }
-
-      return sendSuccess(res, { plannedItem }, 'Planned item added successfully', 201);
+      return sendSuccess(res, responseItem, 'Planned item added successfully', 201);
     } catch (error) {
       console.error('Error adding planned item:', error);
-      return sendError(res, error as Error, 'Failed to add planned item');
+      return sendError(res, error, 'Failed to add planned item', 500);
     }
   }
 
@@ -272,66 +289,65 @@ export class TicketMaterialsController {
       const { ticketId, itemId } = req.params;
       const tenantId = req.user?.tenantId;
 
-      if (!tenantId || !ticketId || !itemId) {
-        return sendError(res, 'Missing required fields', 'Missing required fields', 400);
+      if (!tenantId || !ticketId) {
+        return sendError(res, 'Missing tenant ID or ticket ID', 'Missing tenant ID or ticket ID', 400);
       }
 
-      // Get item details before deletion for history
-      const itemToDelete = await db
-        .select()
+      // Get item details before deletion for audit
+      const plannedItemToDelete = await db
+        .select({
+          planned: ticketPlannedItems,
+          item: items
+        })
         .from(ticketPlannedItems)
         .leftJoin(items, eq(ticketPlannedItems.itemId, items.id))
         .where(and(
           eq(ticketPlannedItems.tenantId, tenantId),
           eq(ticketPlannedItems.ticketId, ticketId),
-          eq(ticketPlannedItems.id, itemId)
+          eq(ticketPlannedItems.itemId, itemId)
         ))
         .limit(1);
 
-      await db
-        .update(ticketPlannedItems)
-        .set({
-          isActive: false,
-          updatedAt: new Date()
-        })
+      if (!plannedItemToDelete.length) {
+        return sendError(res, 'Planned item not found', 'Planned item not found', 404);
+      }
+
+      const result = await db
+        .delete(ticketPlannedItems)
         .where(and(
           eq(ticketPlannedItems.tenantId, tenantId),
           eq(ticketPlannedItems.ticketId, ticketId),
-          eq(ticketPlannedItems.id, itemId)
-        ));
+          eq(ticketPlannedItems.itemId, itemId)
+        ))
+        .returning();
 
-      // 📝 Registrar no histórico do ticket
-      try {
-        const { pool } = await import('../../../../db');
-        const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-
-        if (itemToDelete.length > 0) {
-          const deletedItem = itemToDelete[0];
-          const itemName = deletedItem.items?.name || 'Item desconhecido';
-          const quantity = deletedItem.ticket_planned_items.plannedQuantity;
-
-          await createCompleteAuditEntry(
-            pool, schemaName, tenantId, ticketId, req,
-            'material_planned_removed',
-            `Item planejado removido: ${itemName} (Qtd: ${quantity})`,
-            {
-              action: 'planned_item_removed',
-              item_id: deletedItem.ticket_planned_items.itemId,
-              item_name: itemName,
-              planned_quantity: quantity,
-              planned_item_id: itemId,
-              removal_reason: 'manual_deletion'
-            }
-          );
-        }
-      } catch (historyError: any) {
-        console.log('⚠️ Aviso: Não foi possível criar entrada no histórico:', historyError.message);
+      if (!result.length) {
+        return sendError(res, 'Planned item not found', 'Planned item not found', 404);
       }
 
-      return sendSuccess(res, {}, 'Planned item removed successfully');
+      // Create audit entry for planned item removal
+      const deletedItem = plannedItemToDelete[0];
+      await createAuditEntry(
+        tenantId,
+        ticketId,
+        'material_planned_removed',
+        `Material planejado removido: ${deletedItem.item?.name || 'Item desconhecido'} (Qtd: ${deletedItem.planned.quantity})`,
+        {
+          item_id: itemId,
+          item_name: deletedItem.item?.name || 'Item desconhecido',
+          item_type: deletedItem.item?.type || 'unknown',
+          quantity: deletedItem.planned.quantity,
+          notes: deletedItem.planned.notes || '',
+          planned_item_id: deletedItem.planned.id,
+          action_time: new Date().toISOString()
+        },
+        req
+      );
+
+      return sendSuccess(res, null, 'Planned item removed successfully');
     } catch (error) {
       console.error('Error removing planned item:', error);
-      return sendError(res, error as Error, 'Failed to remove planned item');
+      return sendError(res, error, 'Failed to remove planned item', 500);
     }
   }
 
@@ -428,59 +444,27 @@ export class TicketMaterialsController {
         })
         .returning();
 
-      // 📝 Registrar no histórico do ticket
-      try {
-        console.log('🔍 [HISTORY] Iniciando registro de histórico para item consumido:', {
-          ticketId,
-          itemId,
-          actualQuantity,
-          tenantId
-        });
-
-        const { pool } = await import('../../../../db');
-        const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-
-        // Get item name for better description
-        const itemDetails = await db
-          .select({ name: items.name, type: items.type })
-          .from(items)
-          .where(eq(items.id, itemId))
-          .limit(1);
-
-        const itemName = itemDetails[0]?.name || 'Item desconhecido';
-        const itemType = itemDetails[0]?.type || 'Tipo desconhecido';
-
-        console.log('🔍 [HISTORY] Detalhes do item obtidos para consumo:', {
-          itemName,
-          itemType,
-          schemaName
-        });
-
-        await createCompleteAuditEntry(
-          pool, schemaName, tenantId, ticketId, req,
-          'material_consumed',
-          `Item consumido registrado: ${itemName} (Qtd: ${actualQuantity})`,
-          {
-            action: 'consumed_item_added',
-            item_id: itemId,
-            item_name: itemName,
-            item_type: itemType,
-            planned_item_id: plannedItemId,
-            actual_quantity: actualQuantity,
-            planned_quantity: plannedQuantity,
-            total_cost: totalCost.toString(),
-            unit_price: unitPriceAtConsumption.toString(),
-            consumption_type: consumptionType,
-            consumed_item_id: consumedItem.id,
-            notes: notes || ''
-          }
-        );
-
-        console.log('✅ [HISTORY] Entrada de histórico criada com sucesso para item consumido');
-      } catch (historyError: any) {
-        console.error('❌ [HISTORY] Erro ao criar entrada no histórico:', historyError);
-        console.log('⚠️ Aviso: Não foi possível criar entrada no histórico:', historyError.message);
-      }
+      // Create audit entry for consumed item addition
+      await createAuditEntry(
+        tenantId,
+        ticketId,
+        'material_consumed_added',
+        `Material consumido adicionado: ${await db.select({ name: items.name }).from(items).where(eq(items.id, itemId)).limit(1).then(res => res[0]?.name || 'Item desconhecido')} (Qtd: ${actualQuantity}${totalCost ? `, Custo: R$ ${totalCost}` : ''})`,
+        {
+          item_id: itemId,
+          item_name: await db.select({ name: items.name }).from(items).where(eq(items.id, itemId)).limit(1).then(res => res[0]?.name || 'Item desconhecido'),
+          item_type: await db.select({ type: items.type }).from(items).where(eq(items.id, itemId)).limit(1).then(res => res[0]?.type || 'unknown'),
+          planned_item_id: plannedItemId,
+          actual_quantity: actualQuantity,
+          planned_quantity: plannedQuantity,
+          total_cost: totalCost.toString(),
+          unit_price: unitPriceAtConsumption.toString(),
+          consumption_type: consumptionType,
+          consumed_item_id: consumedItem.id,
+          notes: notes || ''
+        },
+        req
+      );
 
       return sendSuccess(res, { consumedItem }, 'Consumed item added successfully', 201);
     } catch (error) {
@@ -495,63 +479,64 @@ export class TicketMaterialsController {
       const { ticketId, itemId } = req.params;
       const tenantId = req.user?.tenantId;
 
-      if (!tenantId || !ticketId || !itemId) {
-        return sendError(res, 'Missing required fields', 'Missing required fields', 400);
+      if (!tenantId || !ticketId) {
+        return sendError(res, 'Missing tenant ID or ticket ID', 'Missing tenant ID or ticket ID', 400);
       }
 
-      // Get item details before deletion for history
-      const itemToDelete = await db
-        .select()
+      // Get item details before deletion for audit
+      const consumedItemToDelete = await db
+        .select({
+          consumed: ticketConsumedItems,
+          item: items
+        })
         .from(ticketConsumedItems)
         .leftJoin(items, eq(ticketConsumedItems.itemId, items.id))
         .where(and(
           eq(ticketConsumedItems.tenantId, tenantId),
           eq(ticketConsumedItems.ticketId, ticketId),
-          eq(ticketConsumedItems.id, itemId)
+          eq(ticketConsumedItems.itemId, itemId)
         ))
         .limit(1);
 
-      await db
-        .update(ticketConsumedItems)
-        .set({
-          isActive: false,
-          updatedAt: new Date()
-        })
+      if (!consumedItemToDelete.length) {
+        return sendError(res, 'Consumed item not found', 'Consumed item not found', 404);
+      }
+
+      const result = await db
+        .delete(ticketConsumedItems)
         .where(and(
           eq(ticketConsumedItems.tenantId, tenantId),
           eq(ticketConsumedItems.ticketId, ticketId),
-          eq(ticketConsumedItems.id, itemId)
-        ));
+          eq(ticketConsumedItems.itemId, itemId)
+        ))
+        .returning();
 
-      // 📝 Registrar no histórico do ticket
-      try {
-        const { pool } = await import('../../../../db');
-        const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-
-        if (itemToDelete.length > 0) {
-          const deletedItem = itemToDelete[0];
-          const itemName = deletedItem.items?.name || 'Item desconhecido';
-          const quantity = deletedItem.ticket_consumed_items.actualQuantity;
-
-          await createCompleteAuditEntry(
-            pool, schemaName, tenantId, ticketId, req,
-            'material_consumed_removed',
-            `Item consumido removido: ${itemName} (Qtd: ${quantity})`,
-            {
-              action: 'consumed_item_removed',
-              item_id: deletedItem.ticket_consumed_items.itemId,
-              item_name: itemName,
-              actual_quantity: quantity,
-              consumed_item_id: itemId,
-              removal_reason: 'manual_deletion'
-            }
-          );
-        }
-      } catch (historyError: any) {
-        console.log('⚠️ Aviso: Não foi possível criar entrada no histórico:', historyError.message);
+      if (!result.length) {
+        return sendError(res, 'Consumed item not found', 'Consumed item not found', 404);
       }
 
-      return sendSuccess(res, {}, 'Consumed item removed successfully');
+      // Create audit entry for consumed item removal
+      const deletedItem = consumedItemToDelete[0];
+      await createAuditEntry(
+        tenantId,
+        ticketId,
+        'material_consumed_removed',
+        `Material consumido removido: ${deletedItem.item?.name || 'Item desconhecido'} (Qtd: ${deletedItem.consumed.quantity}${deletedItem.consumed.totalCost ? `, Custo: R$ ${deletedItem.consumed.totalCost}` : ''})`,
+        {
+          item_id: itemId,
+          item_name: deletedItem.item?.name || 'Item desconhecido',
+          item_type: deletedItem.item?.type || 'unknown',
+          quantity: deletedItem.consumed.quantity,
+          notes: deletedItem.consumed.notes || '',
+          cost_per_unit: deletedItem.consumed.costPerUnit,
+          total_cost: deletedItem.consumed.totalCost,
+          consumed_item_id: deletedItem.consumed.id,
+          action_time: new Date().toISOString()
+        },
+        req
+      );
+
+      return sendSuccess(res, null, 'Consumed item removed successfully');
     } catch (error) {
       console.error('Error removing consumed item:', error);
       return sendError(res, error as Error, 'Failed to remove consumed item');
@@ -746,7 +731,7 @@ export class TicketMaterialsController {
       // Create item link using raw SQL
       const linkId = crypto.randomUUID();
       const { pool } = await import('../../../../db');
-      
+
       const result = await pool.query(`
         INSERT INTO item_links (id, tenant_id, source_item_id, target_item_id, link_type, quantity, description, created_at, updated_at)
         VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
