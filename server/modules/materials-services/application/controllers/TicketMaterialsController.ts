@@ -45,7 +45,7 @@ async function createAuditEntry(
       description,
       req.user?.id,
       userName,
-      req.headers['x-forwarded-for'] || req.connection.remoteAddress || 'unknown',
+      (req.headers['x-forwarded-for']?.toString() || req.connection.remoteAddress || 'unknown').split(',')[0].trim(),
       req.headers['user-agent'] || 'unknown',
       req.sessionID || 'unknown',
       JSON.stringify(metadata)
