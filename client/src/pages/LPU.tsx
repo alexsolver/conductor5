@@ -790,12 +790,32 @@ export default function LPU() {
               <CardDescription>Gerenciar versões e histórico de listas de preços</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                <History className="w-12 h-12 mx-auto mb-4" />
-                <p>Sistema de versionamento em desenvolvimento</p>
-                <p className="text-sm mt-2">
-                  Funcionalidades: histórico de alterações, rollback, comparação de versões
-                </p>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-medium">Versões Disponíveis</h3>
+                  <Button disabled>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Nova Versão
+                  </Button>
+                </div>
+                
+                <div className="text-center py-8 text-muted-foreground border-2 border-dashed rounded-lg">
+                  <History className="w-12 h-12 mx-auto mb-4" />
+                  <p className="font-medium">Sistema de Versionamento em Desenvolvimento</p>
+                  <p className="text-sm mt-2">
+                    Funcionalidades planejadas:
+                  </p>
+                  <ul className="text-sm mt-2 space-y-1 max-w-md mx-auto">
+                    <li>• Histórico completo de alterações</li>
+                    <li>• Comparação entre versões</li>
+                    <li>• Rollback para versões anteriores</li>
+                    <li>• Workflow de aprovação</li>
+                    <li>• Controle de acesso por versão</li>
+                  </ul>
+                  <div className="mt-4">
+                    <Badge variant="secondary">Em Desenvolvimento</Badge>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -996,6 +1016,26 @@ function PriceListForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Enhanced validation
+    if (!formData.name.trim()) {
+      toast({
+        title: "Erro de Validação",
+        description: "Nome da lista é obrigatório",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (formData.validTo && new Date(formData.validTo) <= new Date(formData.validFrom)) {
+      toast({
+        title: "Erro de Validação", 
+        description: "Data de término deve ser posterior à data de início",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     const submitData = {
       ...formData,
       customerCompanyId: formData.customerCompanyId === 'none' ? undefined : formData.customerCompanyId,
