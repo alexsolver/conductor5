@@ -1,6 +1,16 @@
 import { eq, and, desc, sum, sql } from 'drizzle-orm';
 import type { Request, Response } from 'express';
-import type { AuthenticatedRequest } from '../../../auth/types/auth.types';
+// AuthenticatedRequest type (extending Express Request with user info)
+interface AuthenticatedRequest extends Request {
+  user?: {
+    id: string;
+    tenantId: string;
+    email: string;
+    role: string;
+  };
+  query: any;
+  sessionID?: string;
+}
 import crypto from 'crypto';
 import { 
   ticketPlannedItems, 
@@ -126,7 +136,7 @@ export class TicketMaterialsController {
 
       return res.json({
         success: true,
-        data: availableItems.map(item => ({
+        data: availableItems.map((item: any) => ({
           ...item,
           availableQuantity: item.plannedQuantity
         }))
@@ -156,7 +166,7 @@ export class TicketMaterialsController {
 
       return res.json({
         success: true,
-        data: consumedItems.map(item => ({
+        data: consumedItems.map((item: any) => ({
           ...item,
           totalCost: (parseFloat(item.actualQuantity) * parseFloat(item.unitPriceAtConsumption)).toFixed(2)
         }))
