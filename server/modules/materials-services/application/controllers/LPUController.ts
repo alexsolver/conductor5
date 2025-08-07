@@ -51,11 +51,7 @@ export class LPUController {
       const priceLists = await this.repository.getAllPriceLists(tenantId);
 
       console.log('✅ LPUController.getAllPriceLists: Success, returning', priceLists.length, 'price lists');
-      res.json({
-        success: true,
-        data: priceLists,
-        count: priceLists.length
-      });
+      res.json(priceLists);
     } catch (error) {
       console.error('❌ LPUController.getAllPriceLists: Error:', error);
       console.error('❌ LPUController.getAllPriceLists: Stack:', error instanceof Error ? error.stack : 'No stack trace');

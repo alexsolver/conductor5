@@ -130,23 +130,23 @@ export class LPURepository {
             pl.id,
             pl.tenant_id,
             pl.name,
-            pl.notes as description,
-            pl.list_code,
+            COALESCE(pl.description, pl.notes, '') as description,
+            COALESCE(pl.list_code, CONCAT('LIST_', pl.id)) as code,
+            '1.0' as version,
+            COALESCE(pl.currency, 'BRL') as currency,
             pl.customer_company_id,
             NULL as contract_id,
-            NULL as region,
+            NULL as cost_center_id,
             pl.valid_from,
             pl.valid_to,
             pl.is_active,
-            NULL as auto_apply_to_orders,
-            NULL as auto_apply_to_quotes,
+            pl.automatic_margin,
+            COALESCE(pl.notes, '') as notes,
             pl.created_at,
             pl.updated_at,
             pl.created_by_id,
-            cc.name as customer_company_name
+            pl.updated_by
           FROM price_lists pl
-          LEFT JOIN companies cc 
-            ON pl.customer_company_id = cc.id
           WHERE pl.tenant_id = ${tenantId}
           ORDER BY pl.created_at DESC
           LIMIT 50

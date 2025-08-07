@@ -113,7 +113,8 @@ export default function LPU() {
     staleTime: 30000,
   });
 
-  const priceLists = Array.isArray(priceListsResponse) ? priceListsResponse : [];
+  const priceLists = Array.isArray(priceListsResponse) ? priceListsResponse : 
+    (priceListsResponse?.data && Array.isArray(priceListsResponse.data) ? priceListsResponse.data : []);
 
   // Fetch pricing rules
   const { data: pricingRulesResponse, isLoading: rulesLoading, error: rulesError } = useQuery({
