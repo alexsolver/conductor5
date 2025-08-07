@@ -1,5 +1,5 @@
 
-const fetch = require('node-fetch');
+// Using native fetch API available in Node.js 18+
 
 const API_BASE = 'http://localhost:5000';
 const TENANT_ID = '3f99462f-3621-4b1b-bea8-782acc50d62e';
