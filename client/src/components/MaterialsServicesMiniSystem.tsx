@@ -25,7 +25,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
   const [consumedQuantity, setConsumedQuantity] = useState("");
 
   // Fetch items with customer-specific customizations
-  const { data: itemsData, isLoading: itemsLoading } = useQuery({
+  const { data: itemsData, isLoading: itemsLoading, error: itemsError } = useQuery({
     queryKey: ['/api/materials-services/customers', ticket?.customerId || ticket?.customer_id, 'items'],
     queryFn: async () => {
       // Get customer ID from ticket
@@ -56,7 +56,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
   });
 
   // Fetch available items for consumption (only planned items)
-  const { data: availableItemsData, isLoading: availableItemsLoading } = useQuery({
+  const { data: availableItemsData, isLoading: availableItemsLoading, error: availableItemsError } = useQuery({
     queryKey: ['/api/materials-services/tickets', ticketId, 'available-for-consumption'],
     queryFn: async () => {
       const response = await apiRequest('GET', `/api/materials-services/tickets/${ticketId}/available-for-consumption`);
@@ -65,7 +65,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
   });
 
   // Fetch planned materials
-  const { data: plannedData, isLoading: plannedLoading } = useQuery({
+  const { data: plannedData, isLoading: plannedLoading, error: plannedError } = useQuery({
     queryKey: ['/api/materials-services/tickets', ticketId, 'planned-items'],
     queryFn: async () => {
       const response = await apiRequest('GET', `/api/materials-services/tickets/${ticketId}/planned-items`);
@@ -74,7 +74,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
   });
 
   // Fetch consumed materials
-  const { data: consumedData, isLoading: consumedLoading } = useQuery({
+  const { data: consumedData, isLoading: consumedLoading, error: consumedError } = useQuery({
     queryKey: ['/api/materials-services/tickets', ticketId, 'consumed-items'],
     queryFn: async () => {
       const response = await apiRequest('GET', `/api/materials-services/tickets/${ticketId}/consumed-items`);
@@ -83,7 +83,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
   });
 
   // Fetch cost summary
-  const { data: costsData, isLoading: costsLoading } = useQuery({
+  const { data: costsData, isLoading: costsLoading, error: costsError } = useQuery({
     queryKey: ['/api/materials-services/tickets', ticketId, 'costs-summary'],
     queryFn: async () => {
       const response = await apiRequest('GET', `/api/materials-services/tickets/${ticketId}/costs-summary`);
@@ -196,8 +196,8 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
   const costs = costsData?.data || {};
 
   // Enhanced error handling
-  const hasDataError = isItemsError || isAvailableItemsError || isPlannedError || isConsumedError || isCostsError;
-  const isAnyLoading = isItemsLoading || isAvailableItemsLoading || isPlannedLoading || isConsumedLoading || isCostsLoading;
+  const hasDataError = itemsError || availableItemsError || plannedError || consumedError || costsError;
+  const isAnyLoading = itemsLoading || availableItemsLoading || plannedLoading || consumedLoading || costsLoading;
 
   const handleAddPlanned = () => {
     if (!selectedItem || !quantity) {
