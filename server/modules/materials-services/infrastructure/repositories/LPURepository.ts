@@ -169,6 +169,13 @@ export class LPURepository {
       const queryTime = Date.now() - startTime;
       console.log(`⚡ [LPURepository] Price lists query completed in ${queryTime}ms`);
       console.log(`✅ LPURepository.getAllPriceLists: Query successful, found ${result.rows.length} price lists`);
+      
+      // Debug the first row to check data types
+      if (result.rows.length > 0) {
+        console.log('🔍 [DEBUG] First price list row:', JSON.stringify(result.rows[0], null, 2));
+        console.log('🔍 [DEBUG] isActive field type:', typeof result.rows[0].is_active);
+        console.log('🔍 [DEBUG] isActive value:', result.rows[0].is_active);
+      }
 
       // Cache results with 3-minute TTL
       queryCache.set(cacheKey, result.rows, {
@@ -177,7 +184,25 @@ export class LPURepository {
       });
 
       console.log(`💾 [LPURepository] Price lists cached for tenant: ${tenantId}`);
-      return result.rows;
+      
+      // Transform snake_case to camelCase for frontend compatibility
+      const transformedRows = result.rows.map((row: any) => ({
+        ...row,
+        isActive: row.is_active, // Map snake_case to camelCase
+        validFrom: row.valid_from,
+        validTo: row.valid_to,
+        tenantId: row.tenant_id,
+        customerCompanyId: row.customer_company_id,
+        contractId: row.contract_id,
+        costCenterId: row.cost_center_id,
+        automaticMargin: row.automatic_margin,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+        createdBy: row.created_by_id || row.created_by,
+        updatedBy: row.updated_by
+      }));
+      
+      return transformedRows;
 
     } catch (error) {
       console.error('❌ LPURepository.getAllPriceLists: Database error:', error);
