@@ -430,12 +430,14 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                                      itemData.itemType ||
                                      'Material';
 
-                      // Enhanced pricing detection
+                      // Enhanced pricing detection with new LPU data structure
                       const unitPrice = parseFloat(
                         itemData.unitPriceAtPlanning || 
                         material.unitPriceAtPlanning || 
-                        itemDetails.unitPrice ||
+                        itemDetails.effectivePrice ||
                         itemDetails.price ||
+                        itemDetails.lpuSpecialPrice ||
+                        itemDetails.lpuUnitPrice ||
                         itemDetails.unitCost ||
                         itemDetails.unit_cost ||
                         0

@@ -190,7 +190,8 @@ export class TicketMaterialsController {
         return sendError(res, 'Missing tenant ID or ticket ID', 'Missing tenant ID or ticket ID', 400);
       }
 
-      const plannedItems = await db
+      // Use the same database connection as addPlannedItem for consistency
+      const plannedItemsQuery = await db
         .select()
         .from(ticketPlannedItems)
         .leftJoin(items, eq(ticketPlannedItems.itemId, items.id))
@@ -201,7 +202,67 @@ export class TicketMaterialsController {
         ))
         .orderBy(desc(ticketPlannedItems.createdAt));
 
-      return sendSuccess(res, { plannedItems }, 'Planned items retrieved successfully');
+      console.log(`🔍 [GET-PLANNED-DEBUG] Found ${plannedItemsQuery.length} raw planned items`);
+
+      // For each planned item, get LPU pricing if available
+      const plannedItemsWithPricing = await Promise.all(
+        plannedItemsQuery.map(async (row: any) => {
+          const plannedItem = row.ticket_planned_items;
+          const itemData = row.items;
+          
+          let effectivePrice = parseFloat(plannedItem.unitPriceAtPlanning || '0');
+          let lpuUnitPrice = null;
+          let lpuSpecialPrice = null;
+
+          // Try to get LPU pricing if LPU ID is valid
+          if (plannedItem.lpuId && plannedItem.lpuId !== '00000000-0000-0000-0000-000000000001') {
+            try {
+              const { pool } = await import('../../../../db');
+              const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+              
+              const lpuResult = await pool.query(`
+                SELECT unit_price, special_price
+                FROM "${schemaName}".price_list_items
+                WHERE item_id = $1 AND price_list_id = $2 AND is_active = true
+                LIMIT 1
+              `, [plannedItem.itemId, plannedItem.lpuId]);
+
+              if (lpuResult.rows.length > 0) {
+                const lpuData = lpuResult.rows[0];
+                lpuUnitPrice = lpuData.unit_price;
+                lpuSpecialPrice = lpuData.special_price;
+                
+                // Use LPU price if available
+                effectivePrice = parseFloat(lpuData.special_price || lpuData.unit_price || plannedItem.unitPriceAtPlanning || '0');
+              }
+            } catch (lpuError) {
+              console.log('⚠️ [GET-PLANNED] Error fetching LPU pricing:', lpuError);
+            }
+          }
+
+          const calculatedCost = parseFloat(plannedItem.plannedQuantity || '0') * effectivePrice;
+
+          return {
+            ticket_planned_items: {
+              ...plannedItem,
+              unitPriceAtPlanning: effectivePrice.toString(),
+              estimatedCost: calculatedCost.toString()
+            },
+            items: itemData ? {
+              ...itemData,
+              price: effectivePrice.toString(),
+              unitCost: effectivePrice.toString(),
+              lpuUnitPrice: lpuUnitPrice?.toString(),
+              lpuSpecialPrice: lpuSpecialPrice?.toString(),
+              effectivePrice: effectivePrice.toString()
+            } : null
+          };
+        })
+      );
+
+      console.log(`✅ [GET-PLANNED] Retrieved ${plannedItemsWithPricing.length} planned items with LPU pricing`);
+
+      return sendSuccess(res, { plannedItems: plannedItemsWithPricing }, 'Planned items retrieved successfully');
     } catch (error) {
       console.error('Error fetching planned items:', error);
       return sendError(res, error as Error, 'Failed to retrieve planned items');
@@ -255,8 +316,8 @@ export class TicketMaterialsController {
           if (lpuItemResult.rows.length > 0) {
             const itemData = lpuItemResult.rows[0];
             item = itemData;
-            // Use LPU price if available, otherwise fall back to item's base price
-            actualUnitPrice = parseFloat(itemData.lpu_special_price || itemData.lpu_unit_price || itemData.unit_cost || unitPriceAtPlanning || '0');
+            // Use LPU price if available, otherwise fall back to provided price
+            actualUnitPrice = parseFloat(itemData.lpu_special_price || itemData.lpu_unit_price || unitPriceAtPlanning || '0');
             console.log('💰 [ADD-PLANNED] Using LPU pricing:', actualUnitPrice);
           }
         }
@@ -275,9 +336,9 @@ export class TicketMaterialsController {
 
           if (itemResult.length > 0) {
             item = itemResult[0];
-            // Use item's base price if no LPU price was found
+            // Use provided price if no LPU price was found
             if (actualUnitPrice === 0) {
-              actualUnitPrice = parseFloat(item.unitCost || item.unit_cost || unitPriceAtPlanning || '0');
+              actualUnitPrice = parseFloat(unitPriceAtPlanning || '0');
             }
             console.log('💰 [ADD-PLANNED] Using item base pricing:', actualUnitPrice);
           }
