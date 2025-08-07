@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -26,7 +27,19 @@ import {
   FileText,
   DollarSign,
   Clock,
-  Tag
+  Tag,
+  Search,
+  Filter,
+  ArrowLeft,
+  Settings,
+  Users,
+  ShoppingCart,
+  Layers,
+  ChevronRight,
+  ExternalLink,
+  TrendingUp,
+  AlertCircle,
+  CheckCircle2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -61,9 +74,6 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-// Local Components
-// CustomerPersonalizationTab component temporarily removed
-
 // Schema and Types
 interface Item {
   id: string;
@@ -80,6 +90,37 @@ interface Item {
   status?: string;
 }
 
+interface ItemLink {
+  id: string;
+  sourceItemId: string;
+  targetItemId: string;
+  linkType: string;
+  quantity?: number;
+  description?: string;
+}
+
+interface CustomerPersonalization {
+  id: string;
+  itemId: string;
+  customerId: string;
+  customerName: string;
+  customSku?: string;
+  customName?: string;
+  customDescription?: string;
+  isActive: boolean;
+}
+
+interface SupplierLink {
+  id: string;
+  itemId: string;
+  supplierId: string;
+  supplierName: string;
+  price?: number;
+  currency: string;
+  leadTime?: number;
+  isPreferred: boolean;
+}
+
 const itemSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
   type: z.enum(["material", "service"]),
@@ -89,6 +130,28 @@ const itemSchema = z.object({
   maintenancePlan: z.string().optional(),
   defaultChecklist: z.string().optional(),
   active: z.boolean().default(true),
+});
+
+const itemLinkSchema = z.object({
+  targetItemId: z.string().min(1, "Item de destino é obrigatório"),
+  linkType: z.enum(["kit", "substitute", "compatible", "accessory"]),
+  quantity: z.number().min(1).optional(),
+  description: z.string().optional(),
+});
+
+const customerPersonalizationSchema = z.object({
+  customerId: z.string().min(1, "Cliente é obrigatório"),
+  customSku: z.string().optional(),
+  customName: z.string().optional(),
+  customDescription: z.string().optional(),
+});
+
+const supplierLinkSchema = z.object({
+  supplierId: z.string().min(1, "Fornecedor é obrigatório"),
+  price: z.number().min(0).optional(),
+  currency: z.string().default("BRL"),
+  leadTime: z.number().min(0).optional(),
+  isPreferred: z.boolean().default(false),
 });
 
 const measurementUnits = [
@@ -105,23 +168,35 @@ const measurementUnits = [
   { value: 'SET', label: 'Conjunto' }
 ];
 
-export default function ItemCatalog() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<Item | null>(null);
-  const [itemTypeTab, setItemTypeTab] = useState("materials");
+const linkTypeLabels = {
+  kit: "Kit/Conjunto",
+  substitute: "Substituto",
+  compatible: "Compatível",
+  accessory: "Acessório"
+};
 
-  // Estados para vínculos
-  const [linkedItems, setLinkedItems] = useState<string[]>([]);
-  const [linkedCustomers, setLinkedCustomers] = useState<string[]>([]);
-  const [linkedSuppliers, setLinkedSuppliers] = useState<string[]>([]);
+export default function ItemCatalog() {
+  // Estados da jornada do usuário
+  const [currentView, setCurrentView] = useState<'catalog' | 'item-details' | 'management'>('catalog');
+  const [selectedItem, setSelectedItem] = useState<Item | null>(null);
+  
+  // Estados de filtros e busca
+  const [searchTerm, setSearchTerm] = useState("");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  
+  // Estados de modais
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
+  const [isPersonalizationModalOpen, setIsPersonalizationModalOpen] = useState(false);
+  const [isSupplierLinkModalOpen, setIsSupplierLinkModalOpen] = useState(false);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const form = useForm<z.infer<typeof itemSchema>>({
+  // Forms
+  const itemForm = useForm<z.infer<typeof itemSchema>>({
     resolver: zodResolver(itemSchema),
     defaultValues: {
       name: '',
@@ -135,6 +210,37 @@ export default function ItemCatalog() {
     }
   });
 
+  const linkForm = useForm<z.infer<typeof itemLinkSchema>>({
+    resolver: zodResolver(itemLinkSchema),
+    defaultValues: {
+      targetItemId: '',
+      linkType: 'kit',
+      quantity: 1,
+      description: '',
+    }
+  });
+
+  const personalizationForm = useForm<z.infer<typeof customerPersonalizationSchema>>({
+    resolver: zodResolver(customerPersonalizationSchema),
+    defaultValues: {
+      customerId: '',
+      customSku: '',
+      customName: '',
+      customDescription: '',
+    }
+  });
+
+  const supplierForm = useForm<z.infer<typeof supplierLinkSchema>>({
+    resolver: zodResolver(supplierLinkSchema),
+    defaultValues: {
+      supplierId: '',
+      price: 0,
+      currency: 'BRL',
+      leadTime: 0,
+      isPreferred: false,
+    }
+  });
+
   // Queries
   const { data: itemsResponse, isLoading: isLoadingItems } = useQuery({
     queryKey: ["/api/materials-services/items"],
@@ -144,47 +250,6 @@ export default function ItemCatalog() {
   const { data: itemStatsResponse } = useQuery({
     queryKey: ["/api/materials-services/items/stats"],
     enabled: true
-  });
-
-  // Query para buscar vínculos de todos os itens (para indicadores visuais)
-  const { data: itemLinks = {}, isLoading: isLoadingItemLinks } = useQuery({
-    queryKey: ['/api/materials-services/item-links-overview'],
-    queryFn: async () => {
-      try {
-        const [customerLinks, supplierLinks] = await Promise.all([
-          fetch('/api/materials-services/customer-personalizations/overview'),
-          fetch('/api/materials-services/supplier-links/overview')
-        ]);
-
-        const customerData = customerLinks.ok ? await customerLinks.json() : { data: [] };
-        const supplierData = supplierLinks.ok ? await supplierLinks.json() : { data: [] };
-
-        // Organizar por item ID para acesso rápido
-        const linksByItem: Record<string, { customers: number; suppliers: number }> = {};
-        
-        // Processar vínculos de clientes
-        (customerData.data || []).forEach((link: any) => {
-          if (!linksByItem[link.item_id]) {
-            linksByItem[link.item_id] = { customers: 0, suppliers: 0 };
-          }
-          linksByItem[link.item_id].customers++;
-        });
-
-        // Processar vínculos de fornecedores
-        (supplierData.data || []).forEach((link: any) => {
-          if (!linksByItem[link.item_id]) {
-            linksByItem[link.item_id] = { customers: 0, suppliers: 0 };
-          }
-          linksByItem[link.item_id].suppliers++;
-        });
-
-        return linksByItem;
-      } catch (error) {
-        console.error('Erro ao carregar vínculos dos itens:', error);
-        return {};
-      }
-    },
-    refetchInterval: 30000 // Atualizar a cada 30 segundos
   });
 
   const { data: availableCustomers } = useQuery({
@@ -208,6 +273,54 @@ export default function ItemCatalog() {
     }
   });
 
+  // Query para vínculos do item selecionado
+  const { data: itemLinksResponse } = useQuery({
+    queryKey: ["/api/materials-services/item-links", selectedItem?.id],
+    enabled: !!selectedItem,
+    queryFn: async () => {
+      if (!selectedItem) return { data: [] };
+      try {
+        const response = await apiRequest('GET', `/api/materials-services/item-links/${selectedItem.id}`);
+        return await response.json();
+      } catch (error) {
+        console.error('Erro ao carregar vínculos:', error);
+        return { data: [] };
+      }
+    }
+  });
+
+  // Query para personalizações do item selecionado
+  const { data: personalizationsResponse } = useQuery({
+    queryKey: ["/api/materials-services/customer-personalizations", selectedItem?.id],
+    enabled: !!selectedItem,
+    queryFn: async () => {
+      if (!selectedItem) return { data: [] };
+      try {
+        const response = await apiRequest('GET', `/api/materials-services/customer-personalizations/item/${selectedItem.id}`);
+        return await response.json();
+      } catch (error) {
+        console.error('Erro ao carregar personalizações:', error);
+        return { data: [] };
+      }
+    }
+  });
+
+  // Query para vínculos de fornecedores do item selecionado
+  const { data: supplierLinksResponse } = useQuery({
+    queryKey: ["/api/materials-services/supplier-links", selectedItem?.id],
+    enabled: !!selectedItem,
+    queryFn: async () => {
+      if (!selectedItem) return { data: [] };
+      try {
+        const response = await apiRequest('GET', `/api/materials-services/supplier-links/item/${selectedItem.id}`);
+        return await response.json();
+      } catch (error) {
+        console.error('Erro ao carregar vínculos de fornecedores:', error);
+        return { data: [] };
+      }
+    }
+  });
+
   // Mutations
   const createItemMutation = useMutation({
     mutationFn: async (data: z.infer<typeof itemSchema>) => {
@@ -222,8 +335,7 @@ export default function ItemCatalog() {
         description: "O item foi adicionado ao catálogo.",
       });
       setIsCreateModalOpen(false);
-      form.reset();
-      setSelectedItem(null);
+      itemForm.reset();
     },
     onError: () => {
       toast({
@@ -245,7 +357,7 @@ export default function ItemCatalog() {
         title: "Item atualizado com sucesso",
         description: "As alterações foram salvas.",
       });
-      setIsCreateModalOpen(false);
+      setIsEditModalOpen(false);
       setSelectedItem(null);
     },
     onError: () => {
@@ -278,596 +390,774 @@ export default function ItemCatalog() {
     },
   });
 
-  // Processar dados dos itens
+  const createItemLinkMutation = useMutation({
+    mutationFn: async (data: z.infer<typeof itemLinkSchema>) => {
+      const payload = {
+        ...data,
+        sourceItemId: selectedItem?.id,
+      };
+      const response = await apiRequest('POST', '/api/materials-services/item-links', payload);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/materials-services/item-links", selectedItem?.id] });
+      toast({
+        title: "Vínculo criado com sucesso",
+        description: "O vínculo entre itens foi estabelecido.",
+      });
+      setIsLinkModalOpen(false);
+      linkForm.reset();
+    },
+    onError: () => {
+      toast({
+        title: "Erro ao criar vínculo",
+        description: "Tente novamente mais tarde.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const createPersonalizationMutation = useMutation({
+    mutationFn: async (data: z.infer<typeof customerPersonalizationSchema>) => {
+      const payload = {
+        ...data,
+        itemId: selectedItem?.id,
+      };
+      const response = await apiRequest('POST', '/api/materials-services/customer-personalizations', payload);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/materials-services/customer-personalizations", selectedItem?.id] });
+      toast({
+        title: "Personalização criada com sucesso",
+        description: "A personalização para o cliente foi configurada.",
+      });
+      setIsPersonalizationModalOpen(false);
+      personalizationForm.reset();
+    },
+    onError: () => {
+      toast({
+        title: "Erro ao criar personalização",
+        description: "Tente novamente mais tarde.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const createSupplierLinkMutation = useMutation({
+    mutationFn: async (data: z.infer<typeof supplierLinkSchema>) => {
+      const payload = {
+        ...data,
+        itemId: selectedItem?.id,
+      };
+      const response = await apiRequest('POST', '/api/materials-services/supplier-links', payload);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/materials-services/supplier-links", selectedItem?.id] });
+      toast({
+        title: "Vínculo de fornecedor criado com sucesso",
+        description: "O fornecedor foi vinculado ao item.",
+      });
+      setIsSupplierLinkModalOpen(false);
+      supplierForm.reset();
+    },
+    onError: () => {
+      toast({
+        title: "Erro ao criar vínculo de fornecedor",
+        description: "Tente novamente mais tarde.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Processar dados
   const items: Item[] = (itemsResponse as any)?.data || [];
   const itemStats = (itemStatsResponse as any)?.data || [];
 
-  const materialItems = items.filter((item: Item) => {
+  const filteredItems = items.filter((item: Item) => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          item.integrationCode?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          item.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesType = typeFilter === "all" || item.type === typeFilter;
     const matchesStatus = statusFilter === "all" || 
                          (statusFilter === "active" && item.active) ||
                          (statusFilter === "inactive" && !item.active);
 
-    return item.type === 'material' && matchesSearch && matchesStatus;
+    return matchesSearch && matchesType && matchesStatus;
   });
 
-  const serviceItems = items.filter((item: Item) => {
-    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.integrationCode?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "all" || 
-                         (statusFilter === "active" && item.active) ||
-                         (statusFilter === "inactive" && !item.active);
+  const materialCount = items.filter(item => item.type === 'material').length;
+  const serviceCount = items.filter(item => item.type === 'service').length;
 
-    return item.type === 'service' && matchesSearch && matchesStatus;
-  });
+  // Handlers
+  const handleItemClick = (item: Item) => {
+    setSelectedItem(item);
+    setCurrentView('item-details');
+  };
 
-  const onSubmit = async (data: z.infer<typeof itemSchema>) => {
-    const formDataWithLinks = {
-      ...data,
-      linkedCustomers,
-      linkedItems,
-      linkedSuppliers
-    };
+  const handleEditItem = (item: Item) => {
+    setSelectedItem(item);
+    itemForm.reset({
+      name: item.name || '',
+      type: item.type || 'material',
+      integrationCode: item.integrationCode || '',
+      description: item.description || '',
+      measurementUnit: item.measurementUnit || 'UN',
+      maintenancePlan: item.maintenancePlan || '',
+      defaultChecklist: item.defaultChecklist || '',
+      active: item.active !== undefined ? item.active : true,
+    });
+    setIsEditModalOpen(true);
+  };
 
-    if (selectedItem) {
-      updateItemMutation.mutate({ id: selectedItem.id, data: formDataWithLinks });
+  const onSubmitItem = async (data: z.infer<typeof itemSchema>) => {
+    if (selectedItem && isEditModalOpen) {
+      updateItemMutation.mutate({ id: selectedItem.id, data });
     } else {
-      createItemMutation.mutate(formDataWithLinks);
+      createItemMutation.mutate(data);
     }
   };
 
-  const renderItemCard = (item: Item) => {
-    const itemLinksData = itemLinks[item.id] || { customers: 0, suppliers: 0 };
-    
+  const onSubmitItemLink = async (data: z.infer<typeof itemLinkSchema>) => {
+    createItemLinkMutation.mutate(data);
+  };
+
+  const onSubmitPersonalization = async (data: z.infer<typeof customerPersonalizationSchema>) => {
+    createPersonalizationMutation.mutate(data);
+  };
+
+  const onSubmitSupplierLink = async (data: z.infer<typeof supplierLinkSchema>) => {
+    createSupplierLinkMutation.mutate(data);
+  };
+
+  // Renderizar catálogo principal
+  const renderCatalogView = () => (
+    <div className="space-y-6">
+      {/* Header com métricas */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <Package className="h-5 w-5 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium">Total de Itens</p>
+                <p className="text-2xl font-bold">{items.length}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <Package className="h-5 w-5 text-green-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium">Materiais</p>
+                <p className="text-2xl font-bold">{materialCount}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-purple-100 rounded-lg">
+                <Wrench className="h-5 w-5 text-purple-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium">Serviços</p>
+                <p className="text-2xl font-bold">{serviceCount}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-amber-100 rounded-lg">
+                <TrendingUp className="h-5 w-5 text-amber-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium">Ativos</p>
+                <p className="text-2xl font-bold">{items.filter(i => i.active).length}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Controles de busca e filtros */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Input
+                placeholder="Buscar por nome, código ou descrição..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            
+            <Select value={typeFilter} onValueChange={setTypeFilter}>
+              <SelectTrigger className="w-full sm:w-40">
+                <SelectValue placeholder="Tipo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="material">Materiais</SelectItem>
+                <SelectItem value="service">Serviços</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-full sm:w-40">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="active">Ativo</SelectItem>
+                <SelectItem value="inactive">Inativo</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Button onClick={() => setIsCreateModalOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Novo Item
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Lista de itens */}
+      <Card>
+        <CardContent className="p-6">
+          {isLoadingItems ? (
+            <div className="space-y-4">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="flex items-center space-x-4 p-4 border rounded-lg animate-pulse">
+                  <div className="w-12 h-12 bg-gray-200 rounded"></div>
+                  <div className="space-y-2 flex-1">
+                    <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+                    <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : filteredItems.length === 0 ? (
+            <div className="text-center py-12">
+              <Package className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum item encontrado</h3>
+              <p className="text-gray-500 mb-4">Tente ajustar os filtros ou criar um novo item.</p>
+              <Button onClick={() => setIsCreateModalOpen(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Criar Primeiro Item
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {filteredItems.map((item) => (
+                <div 
+                  key={item.id} 
+                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+                  onClick={() => handleItemClick(item)}
+                >
+                  <div className="flex items-center space-x-4">
+                    <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
+                      item.type === 'material' ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'
+                    }`}>
+                      {item.type === 'material' ? <Package className="h-6 w-6" /> : <Wrench className="h-6 w-6" />}
+                    </div>
+
+                    <div className="space-y-1">
+                      <div className="flex items-center space-x-3">
+                        <h3 className="font-medium hover:text-blue-600">{item.name}</h3>
+                        <Badge variant={item.active ? "default" : "secondary"}>
+                          {item.active ? "Ativo" : "Inativo"}
+                        </Badge>
+                        <Badge variant="outline">
+                          {item.type === 'material' ? 'Material' : 'Serviço'}
+                        </Badge>
+                      </div>
+
+                      <div className="flex items-center space-x-4 text-sm text-gray-500">
+                        {item.integrationCode && (
+                          <span className="flex items-center gap-1">
+                            <Tag className="h-3 w-3" />
+                            {item.integrationCode}
+                          </span>
+                        )}
+                        <span className="flex items-center gap-1">
+                          <Package className="h-3 w-3" />
+                          {item.measurementUnit}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          {new Date(item.createdAt).toLocaleDateString('pt-BR')}
+                        </span>
+                      </div>
+
+                      {item.description && (
+                        <p className="text-sm text-gray-600 max-w-2xl truncate">
+                          {item.description}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditItem(item);
+                      }}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteItemMutation.mutate(item.id);
+                      }}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+
+                    <ChevronRight className="h-4 w-4 text-gray-400" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  // Renderizar detalhes do item
+  const renderItemDetailsView = () => {
+    if (!selectedItem) return null;
+
+    const itemLinks = (itemLinksResponse as any)?.data || [];
+    const personalizations = (personalizationsResponse as any)?.data || [];
+    const supplierLinks = (supplierLinksResponse as any)?.data || [];
+
     return (
-      <div key={item.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
-        <div className="flex items-center space-x-4">
-          <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-            item.type === 'material' ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'
-          }`}>
-            {item.type === 'material' ? <Package className="h-6 w-6" /> : <Wrench className="h-6 w-6" />}
+      <div className="space-y-6">
+        {/* Header do item */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => setCurrentView('catalog')}
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Voltar ao Catálogo
+            </Button>
+            <div className="h-6 w-px bg-gray-300" />
+            <div className="flex items-center gap-3">
+              <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
+                selectedItem.type === 'material' ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'
+              }`}>
+                {selectedItem.type === 'material' ? <Package className="h-6 w-6" /> : <Wrench className="h-6 w-6" />}
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold">{selectedItem.name}</h1>
+                <div className="flex items-center gap-2 mt-1">
+                  <Badge variant={selectedItem.active ? "default" : "secondary"}>
+                    {selectedItem.active ? "Ativo" : "Inativo"}
+                  </Badge>
+                  <Badge variant="outline">
+                    {selectedItem.type === 'material' ? 'Material' : 'Serviço'}
+                  </Badge>
+                </div>
+              </div>
+            </div>
           </div>
-
-          <div className="space-y-1">
-            <div className="flex items-center space-x-2">
-              <h3 className="font-medium">{item.name}</h3>
-              <Badge variant={item.active ? "default" : "secondary"}>
-                {item.active ? "Ativo" : "Inativo"}
-              </Badge>
-              <Badge variant="outline">
-                {item.type === 'material' ? 'Material' : 'Serviço'}
-              </Badge>
-              
-              {/* Indicadores visuais de vínculos */}
-              <div className="flex items-center space-x-1">
-                {itemLinksData.customers > 0 && (
-                  <div className="flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
-                    <Building className="h-3 w-3" />
-                    <span>{itemLinksData.customers}</span>
-                  </div>
-                )}
-                {itemLinksData.suppliers > 0 && (
-                  <div className="flex items-center gap-1 px-2 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-medium">
-                    <Truck className="h-3 w-3" />
-                    <span>{itemLinksData.suppliers}</span>
-                  </div>
-                )}
-                {itemLinksData.customers === 0 && itemLinksData.suppliers === 0 && (
-                  <div className="text-xs text-muted-foreground px-2 py-1 bg-gray-100 rounded-full">
-                    Sem vínculos
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-              {item.integrationCode && (
-                <span>Código: {item.integrationCode}</span>
-              )}
-              <span>Unidade: {item.measurementUnit}</span>
-            </div>
-
-            {item.description && (
-              <p className="text-sm text-muted-foreground max-w-md truncate">
-                {item.description}
-              </p>
-            )}
-
-            {/* Tooltip com informações detalhadas dos vínculos */}
-            {(itemLinksData.customers > 0 || itemLinksData.suppliers > 0) && (
-              <div className="text-xs text-muted-foreground">
-                {itemLinksData.customers > 0 && (
-                  <span>
-                    {itemLinksData.customers} personalização{itemLinksData.customers > 1 ? 'ões' : ''} de cliente{itemLinksData.customers > 1 ? 's' : ''}
-                  </span>
-                )}
-                {itemLinksData.customers > 0 && itemLinksData.suppliers > 0 && <span> • </span>}
-                {itemLinksData.suppliers > 0 && (
-                  <span>
-                    {itemLinksData.suppliers} vínculo{itemLinksData.suppliers > 1 ? 's' : ''} de fornecedor{itemLinksData.suppliers > 1 ? 'es' : ''}
-                  </span>
-                )}
-              </div>
-            )}
+          
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline"
+              onClick={() => handleEditItem(selectedItem)}
+            >
+              <Edit className="h-4 w-4 mr-2" />
+              Editar Item
+            </Button>
           </div>
         </div>
 
-        <div className="flex items-center space-x-2">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => {
-              setSelectedItem(item);
-              form.reset({
-                name: item.name || '',
-                type: item.type || 'material',
-                integrationCode: item.integrationCode || '',
-                description: item.description || '',
-                measurementUnit: item.measurementUnit || 'UN',
-                maintenancePlan: item.maintenancePlan || '',
-                defaultChecklist: item.defaultChecklist || '',
-                active: item.active !== undefined ? item.active : true,
-              });
-              setIsCreateModalOpen(true);
-            }}
-          >
-            <Edit className="h-4 w-4" />
-          </Button>
+        {/* Informações básicas */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Informações principais */}
+          <div className="lg:col-span-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Informações Gerais</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {selectedItem.integrationCode && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Código de Integração</label>
+                      <p className="text-sm mt-1">{selectedItem.integrationCode}</p>
+                    </div>
+                  )}
+                  
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Unidade de Medida</label>
+                    <p className="text-sm mt-1">{selectedItem.measurementUnit}</p>
+                  </div>
 
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => {
-              setSelectedItem(item);
-              setIsViewModalOpen(true);
-            }}
-          >
-            <Eye className="h-4 w-4" />
-          </Button>
+                  {selectedItem.maintenancePlan && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Plano de Manutenção</label>
+                      <p className="text-sm mt-1">{selectedItem.maintenancePlan}</p>
+                    </div>
+                  )}
 
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => deleteItemMutation.mutate(item.id)}
-            className="text-red-600 hover:text-red-700"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
+                  {selectedItem.defaultChecklist && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Checklist Padrão</label>
+                      <p className="text-sm mt-1">{selectedItem.defaultChecklist}</p>
+                    </div>
+                  )}
+                </div>
+
+                {selectedItem.description && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Descrição</label>
+                    <p className="text-sm mt-1">{selectedItem.description}</p>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-4 pt-4 border-t text-xs text-gray-500">
+                  <div>
+                    <label className="font-medium">Criado em</label>
+                    <p>{new Date(selectedItem.createdAt).toLocaleString('pt-BR')}</p>
+                  </div>
+                  <div>
+                    <label className="font-medium">Atualizado em</label>
+                    <p>{new Date(selectedItem.updatedAt).toLocaleString('pt-BR')}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Resumo de vínculos */}
+          <div>
+            <Card>
+              <CardHeader>
+                <CardTitle>Resumo de Vínculos</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Link className="h-4 w-4 text-purple-600" />
+                    <span className="text-sm">Vínculos de Itens</span>
+                  </div>
+                  <Badge variant="secondary">{itemLinks.length}</Badge>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Building className="h-4 w-4 text-blue-600" />
+                    <span className="text-sm">Personalizações</span>
+                  </div>
+                  <Badge variant="secondary">{personalizations.length}</Badge>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Truck className="h-4 w-4 text-amber-600" />
+                    <span className="text-sm">Fornecedores</span>
+                  </div>
+                  <Badge variant="secondary">{supplierLinks.length}</Badge>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
+
+        {/* Abas de vínculos */}
+        <Tabs defaultValue="item-links" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="item-links" className="flex items-center gap-2">
+              <Link className="h-4 w-4" />
+              Vínculos de Itens ({itemLinks.length})
+            </TabsTrigger>
+            <TabsTrigger value="personalizations" className="flex items-center gap-2">
+              <Building className="h-4 w-4" />
+              Personalizações ({personalizations.length})
+            </TabsTrigger>
+            <TabsTrigger value="suppliers" className="flex items-center gap-2">
+              <Truck className="h-4 w-4" />
+              Fornecedores ({supplierLinks.length})
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="item-links" className="space-y-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle>Vínculos de Itens</CardTitle>
+                  <CardDescription>
+                    Itens relacionados, kits, substitutos e acessórios
+                  </CardDescription>
+                </div>
+                <Button onClick={() => setIsLinkModalOpen(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Novo Vínculo
+                </Button>
+              </CardHeader>
+              <CardContent>
+                {itemLinks.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Link className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-500 mb-4">Nenhum vínculo configurado</p>
+                    <Button onClick={() => setIsLinkModalOpen(true)}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Criar Primeiro Vínculo
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {itemLinks.map((link: any) => (
+                      <div key={link.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 bg-purple-100 rounded-lg">
+                            <Link className="h-4 w-4 text-purple-600" />
+                          </div>
+                          <div>
+                            <h4 className="font-medium">{link.targetItem?.name || 'Item não encontrado'}</h4>
+                            <div className="flex items-center gap-2 text-sm text-gray-500">
+                              <Badge variant="outline" className="text-xs">
+                                {linkTypeLabels[link.linkType as keyof typeof linkTypeLabels] || link.linkType}
+                              </Badge>
+                              {link.quantity && <span>Qtd: {link.quantity}</span>}
+                            </div>
+                            {link.description && (
+                              <p className="text-sm text-gray-600 mt-1">{link.description}</p>
+                            )}
+                          </div>
+                        </div>
+                        <Button variant="ghost" size="sm" className="text-red-600">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="personalizations" className="space-y-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle>Personalizações de Clientes</CardTitle>
+                  <CardDescription>
+                    Configurações específicas para cada cliente
+                  </CardDescription>
+                </div>
+                <Button onClick={() => setIsPersonalizationModalOpen(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Nova Personalização
+                </Button>
+              </CardHeader>
+              <CardContent>
+                {personalizations.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Building className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-500 mb-4">Nenhuma personalização configurada</p>
+                    <Button onClick={() => setIsPersonalizationModalOpen(true)}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Criar Primeira Personalização
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {personalizations.map((personalization: any) => (
+                      <div key={personalization.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 bg-blue-100 rounded-lg">
+                            <Building className="h-4 w-4 text-blue-600" />
+                          </div>
+                          <div>
+                            <h4 className="font-medium">{personalization.customerName}</h4>
+                            <div className="text-sm text-gray-500 space-y-1">
+                              {personalization.customSku && (
+                                <p><span className="font-medium">SKU:</span> {personalization.customSku}</p>
+                              )}
+                              {personalization.customName && (
+                                <p><span className="font-medium">Nome:</span> {personalization.customName}</p>
+                              )}
+                              {personalization.customDescription && (
+                                <p><span className="font-medium">Descrição:</span> {personalization.customDescription}</p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <Badge variant={personalization.isActive ? "default" : "secondary"}>
+                          {personalization.isActive ? "Ativo" : "Inativo"}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="suppliers" className="space-y-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle>Fornecedores</CardTitle>
+                  <CardDescription>
+                    Fornecedores, preços e condições de compra
+                  </CardDescription>
+                </div>
+                <Button onClick={() => setIsSupplierLinkModalOpen(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Novo Fornecedor
+                </Button>
+              </CardHeader>
+              <CardContent>
+                {supplierLinks.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Truck className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-500 mb-4">Nenhum fornecedor configurado</p>
+                    <Button onClick={() => setIsSupplierLinkModalOpen(true)}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Adicionar Primeiro Fornecedor
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {supplierLinks.map((link: any) => (
+                      <div key={link.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 bg-amber-100 rounded-lg">
+                            <Truck className="h-4 w-4 text-amber-600" />
+                          </div>
+                          <div>
+                            <h4 className="font-medium">{link.supplierName}</h4>
+                            <div className="flex items-center gap-4 text-sm text-gray-500">
+                              {link.price && (
+                                <span className="flex items-center gap-1">
+                                  <DollarSign className="h-3 w-3" />
+                                  {new Intl.NumberFormat('pt-BR', { 
+                                    style: 'currency', 
+                                    currency: link.currency || 'BRL' 
+                                  }).format(link.price)}
+                                </span>
+                              )}
+                              {link.leadTime && (
+                                <span className="flex items-center gap-1">
+                                  <Clock className="h-3 w-3" />
+                                  {link.leadTime} dias
+                                </span>
+                              )}
+                              {link.isPreferred && (
+                                <Badge variant="default" className="text-xs">Preferencial</Badge>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <Button variant="ghost" size="sm" className="text-red-600">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     );
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Catálogo de Itens</h1>
-          <p className="text-muted-foreground">
-            Ponto de entrada para cadastro de materiais e serviços
-          </p>
-        </div>
-        <Button onClick={() => setIsCreateModalOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Criar Item
-        </Button>
+    <div className="container mx-auto p-6 space-y-6">
+      {/* Breadcrumb */}
+      <div className="flex items-center space-x-2 text-sm text-gray-500">
+        <span>Gestão</span>
+        <ChevronRight className="h-4 w-4" />
+        <span className="font-medium text-gray-900">Catálogo de Itens</span>
+        {currentView === 'item-details' && selectedItem && (
+          <>
+            <ChevronRight className="h-4 w-4" />
+            <span className="font-medium text-gray-900">{selectedItem.name}</span>
+          </>
+        )}
       </div>
 
-      {/* Tabs */}
-      <Tabs value={itemTypeTab} onValueChange={setItemTypeTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="materials" className="flex items-center gap-2">
-            <Package className="h-4 w-4" />
-            Materiais ({materialItems.length})
-          </TabsTrigger>
-          <TabsTrigger value="services" className="flex items-center gap-2">
-            <Wrench className="h-4 w-4" />
-            Serviços ({serviceItems.length})
-          </TabsTrigger>
-          <TabsTrigger value="item-links" className="flex items-center gap-2">
-            <Link className="h-4 w-4" />
-            Vínculos de Itens
-          </TabsTrigger>
-          <TabsTrigger value="customer-mappings" className="flex items-center gap-2">
-            <Building className="h-4 w-4" />
-            Personalizações
-          </TabsTrigger>
-          <TabsTrigger value="supplier-links" className="flex items-center gap-2">
-            <Truck className="h-4 w-4" />
-            Fornecedores
-          </TabsTrigger>
-        </TabsList>
+      {/* Header principal */}
+      {currentView === 'catalog' && (
+        <div className="flex justify-between items-start">
+          <div>
+            <h1 className="text-3xl font-bold">Catálogo de Itens</h1>
+            <p className="text-gray-600 mt-2">
+              Gerencie materiais, serviços e suas configurações em um só lugar
+            </p>
+          </div>
+          <Button onClick={() => setCurrentView('management')} variant="outline">
+            <Settings className="h-4 w-4 mr-2" />
+            Gestão Avançada
+          </Button>
+        </div>
+      )}
 
-        <TabsContent value="materials" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Materiais Cadastrados ({materialItems.length})</CardTitle>
-              <div className="flex gap-4 mt-4">
-                <div className="flex-1">
-                  <Input
-                    placeholder="Buscar por nome, código ou descrição..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="max-w-sm"
-                  />
-                </div>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-40">
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos</SelectItem>
-                    <SelectItem value="active">Ativo</SelectItem>
-                    <SelectItem value="inactive">Inativo</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {isLoadingItems ? (
-                <div className="space-y-4">
-                  {[...Array(5)].map((_, i) => (
-                    <div key={i} className="flex items-center space-x-4 p-4 border rounded-lg animate-pulse">
-                      <div className="w-12 h-12 bg-gray-200 rounded"></div>
-                      <div className="space-y-2 flex-1">
-                        <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-                        <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : materialItems.length === 0 ? (
-                <div className="text-center py-8">
-                  <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">Nenhum material encontrado</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {materialItems.map(renderItemCard)}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="services" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Serviços Cadastrados ({serviceItems.length})</CardTitle>
-              <div className="flex gap-4 mt-4">
-                <div className="flex-1">
-                  <Input
-                    placeholder="Buscar por nome, código ou descrição..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="max-w-sm"
-                  />
-                </div>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-40">
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos</SelectItem>
-                    <SelectItem value="active">Ativo</SelectItem>
-                    <SelectItem value="inactive">Inativo</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {isLoadingItems ? (
-                <div className="space-y-4">
-                  {[...Array(5)].map((_, i) => (
-                    <div key={i} className="flex items-center space-x-4 p-4 border rounded-lg animate-pulse">
-                      <div className="w-12 h-12 bg-gray-200 rounded"></div>
-                      <div className="space-y-2 flex-1">
-                        <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-                        <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : serviceItems.length === 0 ? (
-                <div className="text-center py-8">
-                  <Wrench className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">Nenhum serviço encontrado</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {serviceItems.map(renderItemCard)}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="item-links" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Vínculos entre Itens</CardTitle>
-              <CardDescription>
-                Vincule itens relacionados, kits, substitutos e compatibilidades
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
-                {/* Formulário de Vínculo de Item */}
-                <div className="border rounded-lg p-4">
-                  <h4 className="font-medium mb-4">Criar Novo Vínculo de Item</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div>
-                      <label className="text-sm font-medium">Item Principal</label>
-                      <Select>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione um item" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {items.map((item) => (
-                            <SelectItem key={item.id} value={item.id}>
-                              {item.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium">Item Vinculado</label>
-                      <Select>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione outro item" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {items.map((item) => (
-                            <SelectItem key={item.id} value={item.id}>
-                              {item.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium">Tipo de Vínculo</label>
-                      <Select>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Tipo" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="kit">Kit/Conjunto</SelectItem>
-                          <SelectItem value="substitute">Substituto</SelectItem>
-                          <SelectItem value="compatible">Compatível</SelectItem>
-                          <SelectItem value="accessory">Acessório</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Button className="mt-6">
-                        <Plus className="h-4 w-4 mr-2" />
-                        Criar Vínculo
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Lista de Vínculos de Itens */}
-                <div>
-                  <h4 className="font-medium mb-4">Vínculos Ativos</h4>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center space-x-4">
-                        <Link className="h-8 w-8 text-purple-600" />
-                        <div>
-                          <h5 className="font-medium">Correia V-Belt A47 → Kit de Polias</h5>
-                          <p className="text-sm text-muted-foreground">Tipo: Kit/Conjunto • Quantidade: 1</p>
-                        </div>
-                      </div>
-                      <div className="flex space-x-2">
-                        <Button variant="outline" size="sm">
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button variant="outline" size="sm" className="text-red-600">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="customer-mappings" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Personalizações de Clientes</CardTitle>
-              <CardDescription>
-                Configure personalizações específicas para cada cliente
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
-                {/* Formulário de Personalização */}
-                <div className="border rounded-lg p-4">
-                  <h4 className="font-medium mb-4">Criar Nova Personalização</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <label className="text-sm font-medium">Item</label>
-                      <Select>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione um item" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {items.map((item) => (
-                            <SelectItem key={item.id} value={item.id}>
-                              {item.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium">Cliente</label>
-                      <Select>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione um cliente" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {(availableCustomers || []).map((customer: any) => (
-                            <SelectItem key={customer.id} value={customer.id}>
-                              {customer.name || customer.tradeName}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Button className="mt-6">
-                        <Plus className="h-4 w-4 mr-2" />
-                        Criar Vínculo
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Lista de Personalizações Existentes */}
-                <div>
-                  <h4 className="font-medium mb-4">Personalizações Ativas</h4>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center space-x-4">
-                        <Building className="h-8 w-8 text-blue-600" />
-                        <div>
-                          <h5 className="font-medium">Correia V-Belt A47 → Empresa ABC</h5>
-                          <p className="text-sm text-muted-foreground">SKU Personalizado: ABC-BELT-001</p>
-                        </div>
-                      </div>
-                      <div className="flex space-x-2">
-                        <Button variant="outline" size="sm">
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button variant="outline" size="sm" className="text-red-600">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="supplier-links" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Vínculos de Fornecedores</CardTitle>
-              <CardDescription>
-                Vincule itens com fornecedores e configure preços e condições
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
-                {/* Formulário de Vínculo de Fornecedor */}
-                <div className="border rounded-lg p-4">
-                  <h4 className="font-medium mb-4">Criar Novo Vínculo de Fornecedor</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div>
-                      <label className="text-sm font-medium">Item</label>
-                      <Select>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione um item" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {items.map((item) => (
-                            <SelectItem key={item.id} value={item.id}>
-                              {item.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium">Fornecedor</label>
-                      <Select>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione um fornecedor" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {(availableSuppliers || []).map((supplier: any) => (
-                            <SelectItem key={supplier.id} value={supplier.id}>
-                              {supplier.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium">Preço</label>
-                      <Input placeholder="0,00" type="number" step="0.01" />
-                    </div>
-                    <div>
-                      <Button className="mt-6">
-                        <Plus className="h-4 w-4 mr-2" />
-                        Criar Vínculo
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Lista de Vínculos de Fornecedores */}
-                <div>
-                  <h4 className="font-medium mb-4">Vínculos Ativos</h4>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center space-x-4">
-                        <Truck className="h-8 w-8 text-amber-600" />
-                        <div>
-                          <h5 className="font-medium">Correia V-Belt A47 → Fornecedor XYZ</h5>
-                          <p className="text-sm text-muted-foreground">Preço: R$ 45,90 • Lead Time: 5 dias</p>
-                        </div>
-                      </div>
-                      <div className="flex space-x-2">
-                        <Button variant="outline" size="sm">
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button variant="outline" size="sm" className="text-red-600">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+      {/* Conteúdo baseado na view atual */}
+      {currentView === 'catalog' && renderCatalogView()}
+      {currentView === 'item-details' && renderItemDetailsView()}
 
       {/* Modal de Criação/Edição de Item */}
-      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+      <Dialog open={isCreateModalOpen || isEditModalOpen} onOpenChange={(open) => {
+        setIsCreateModalOpen(open);
+        setIsEditModalOpen(open);
+        if (!open) {
+          setSelectedItem(null);
+          itemForm.reset();
+        }
+      }}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              {selectedItem ? 'Editar Item' : 'Criar Novo Item'}
+              {isEditModalOpen ? 'Editar Item' : 'Criar Novo Item'}
             </DialogTitle>
             <DialogDescription>
-              {selectedItem 
+              {isEditModalOpen 
                 ? 'Modifique as informações do item selecionado'
                 : 'Preencha as informações para criar um novo item no catálogo'
               }
             </DialogDescription>
           </DialogHeader>
 
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <Form {...itemForm}>
+            <form onSubmit={itemForm.handleSubmit(onSubmitItem)} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
-                  control={form.control}
+                  control={itemForm.control}
                   name="name"
                   render={({ field }) => (
                     <FormItem>
@@ -881,7 +1171,7 @@ export default function ItemCatalog() {
                 />
 
                 <FormField
-                  control={form.control}
+                  control={itemForm.control}
                   name="type"
                   render={({ field }) => (
                     <FormItem>
@@ -903,7 +1193,7 @@ export default function ItemCatalog() {
                 />
 
                 <FormField
-                  control={form.control}
+                  control={itemForm.control}
                   name="integrationCode"
                   render={({ field }) => (
                     <FormItem>
@@ -917,7 +1207,7 @@ export default function ItemCatalog() {
                 />
 
                 <FormField
-                  control={form.control}
+                  control={itemForm.control}
                   name="measurementUnit"
                   render={({ field }) => (
                     <FormItem>
@@ -941,7 +1231,7 @@ export default function ItemCatalog() {
               </div>
 
               <FormField
-                control={form.control}
+                control={itemForm.control}
                 name="description"
                 render={({ field }) => (
                   <FormItem>
@@ -960,7 +1250,7 @@ export default function ItemCatalog() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
-                  control={form.control}
+                  control={itemForm.control}
                   name="maintenancePlan"
                   render={({ field }) => (
                     <FormItem>
@@ -974,7 +1264,7 @@ export default function ItemCatalog() {
                 />
 
                 <FormField
-                  control={form.control}
+                  control={itemForm.control}
                   name="defaultChecklist"
                   render={({ field }) => (
                     <FormItem>
@@ -989,7 +1279,7 @@ export default function ItemCatalog() {
               </div>
 
               <FormField
-                control={form.control}
+                control={itemForm.control}
                 name="active"
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
@@ -1015,8 +1305,9 @@ export default function ItemCatalog() {
                   variant="outline" 
                   onClick={() => {
                     setIsCreateModalOpen(false);
+                    setIsEditModalOpen(false);
                     setSelectedItem(null);
-                    form.reset();
+                    itemForm.reset();
                   }}
                   disabled={createItemMutation.isPending || updateItemMutation.isPending}
                 >
@@ -1029,12 +1320,12 @@ export default function ItemCatalog() {
                   {createItemMutation.isPending || updateItemMutation.isPending ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                      {selectedItem ? 'Atualizando...' : 'Criando...'}
+                      {isEditModalOpen ? 'Atualizando...' : 'Criando...'}
                     </>
                   ) : (
                     <>
                       <Save className="h-4 w-4 mr-2" />
-                      {selectedItem ? 'Atualizar Item' : 'Criar Item'}
+                      {isEditModalOpen ? 'Atualizar Item' : 'Criar Item'}
                     </>
                   )}
                 </Button>
@@ -1044,112 +1335,356 @@ export default function ItemCatalog() {
         </DialogContent>
       </Dialog>
 
-      {/* Modal de Visualização de Item */}
-      <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
-        <DialogContent className="max-w-2xl">
+      {/* Modal de Vínculo de Item */}
+      <Dialog open={isLinkModalOpen} onOpenChange={setIsLinkModalOpen}>
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle>Detalhes do Item</DialogTitle>
+            <DialogTitle>Criar Vínculo de Item</DialogTitle>
             <DialogDescription>
-              Informações detalhadas do item selecionado
+              Vincule este item a outro item do catálogo
             </DialogDescription>
           </DialogHeader>
 
-          {selectedItem && (
-            <div className="space-y-6">
-              <div className="flex items-center space-x-4">
-                <div className={`w-16 h-16 rounded-lg flex items-center justify-center ${
-                  selectedItem.type === 'material' ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'
-                }`}>
-                  {selectedItem.type === 'material' ? <Package className="h-8 w-8" /> : <Wrench className="h-8 w-8" />}
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold">{selectedItem.name}</h3>
-                  <div className="flex items-center space-x-2 mt-1">
-                    <Badge variant={selectedItem.active ? "default" : "secondary"}>
-                      {selectedItem.active ? "Ativo" : "Inativo"}
-                    </Badge>
-                    <Badge variant="outline">
-                      {selectedItem.type === 'material' ? 'Material' : 'Serviço'}
-                    </Badge>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {selectedItem.integrationCode && (
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">Código de Integração</label>
-                    <p className="text-sm">{selectedItem.integrationCode}</p>
-                  </div>
+          <Form {...linkForm}>
+            <form onSubmit={linkForm.handleSubmit(onSubmitItemLink)} className="space-y-4">
+              <FormField
+                control={linkForm.control}
+                name="targetItemId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Item de Destino *</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione um item" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {items.filter(item => item.id !== selectedItem?.id).map((item) => (
+                          <SelectItem key={item.id} value={item.id}>
+                            {item.name} ({item.type === 'material' ? 'Material' : 'Serviço'})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
                 )}
-                
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Unidade de Medida</label>
-                  <p className="text-sm">{selectedItem.measurementUnit}</p>
-                </div>
+              />
 
-                {selectedItem.maintenancePlan && (
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">Plano de Manutenção</label>
-                    <p className="text-sm">{selectedItem.maintenancePlan}</p>
-                  </div>
+              <FormField
+                control={linkForm.control}
+                name="linkType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tipo de Vínculo *</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o tipo" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="kit">Kit/Conjunto</SelectItem>
+                        <SelectItem value="substitute">Substituto</SelectItem>
+                        <SelectItem value="compatible">Compatível</SelectItem>
+                        <SelectItem value="accessory">Acessório</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
                 )}
+              />
 
-                {selectedItem.defaultChecklist && (
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">Checklist Padrão</label>
-                    <p className="text-sm">{selectedItem.defaultChecklist}</p>
-                  </div>
+              <FormField
+                control={linkForm.control}
+                name="quantity"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Quantidade</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="number" 
+                        placeholder="1" 
+                        {...field} 
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
                 )}
-              </div>
+              />
 
-              {selectedItem.description && (
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Descrição</label>
-                  <p className="text-sm mt-1">{selectedItem.description}</p>
-                </div>
-              )}
-
-              <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground">
-                <div>
-                  <label className="font-medium">Criado em</label>
-                  <p>{new Date(selectedItem.createdAt).toLocaleString('pt-BR')}</p>
-                </div>
-                <div>
-                  <label className="font-medium">Atualizado em</label>
-                  <p>{new Date(selectedItem.updatedAt).toLocaleString('pt-BR')}</p>
-                </div>
-              </div>
+              <FormField
+                control={linkForm.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Descrição</FormLabel>
+                    <FormControl>
+                      <Textarea placeholder="Observações sobre o vínculo" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <div className="flex justify-end space-x-2 pt-4">
                 <Button 
+                  type="button" 
                   variant="outline" 
-                  onClick={() => setIsViewModalOpen(false)}
+                  onClick={() => setIsLinkModalOpen(false)}
                 >
-                  Fechar
+                  Cancelar
                 </Button>
-                <Button 
-                  onClick={() => {
-                    setIsViewModalOpen(false);
-                    form.reset({
-                      name: selectedItem.name || '',
-                      type: selectedItem.type || 'material',
-                      integrationCode: selectedItem.integrationCode || '',
-                      description: selectedItem.description || '',
-                      measurementUnit: selectedItem.measurementUnit || 'UN',
-                      maintenancePlan: selectedItem.maintenancePlan || '',
-                      defaultChecklist: selectedItem.defaultChecklist || '',
-                      active: selectedItem.active !== undefined ? selectedItem.active : true,
-                    });
-                    setIsCreateModalOpen(true);
-                  }}
-                >
-                  <Edit className="h-4 w-4 mr-2" />
-                  Editar Item
+                <Button type="submit" disabled={createItemLinkMutation.isPending}>
+                  {createItemLinkMutation.isPending ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                      Criando...
+                    </>
+                  ) : (
+                    <>
+                      <Link className="h-4 w-4 mr-2" />
+                      Criar Vínculo
+                    </>
+                  )}
                 </Button>
               </div>
-            </div>
-          )}
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Personalização */}
+      <Dialog open={isPersonalizationModalOpen} onOpenChange={setIsPersonalizationModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Nova Personalização de Cliente</DialogTitle>
+            <DialogDescription>
+              Configure personalizações específicas para um cliente
+            </DialogDescription>
+          </DialogHeader>
+
+          <Form {...personalizationForm}>
+            <form onSubmit={personalizationForm.handleSubmit(onSubmitPersonalization)} className="space-y-4">
+              <FormField
+                control={personalizationForm.control}
+                name="customerId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Cliente *</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione um cliente" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {(availableCustomers || []).map((customer: any) => (
+                          <SelectItem key={customer.id} value={customer.id}>
+                            {customer.name || customer.tradeName}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={personalizationForm.control}
+                name="customSku"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>SKU Personalizado</FormLabel>
+                    <FormControl>
+                      <Input placeholder="SKU do cliente" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={personalizationForm.control}
+                name="customName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nome Personalizado</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Nome usado pelo cliente" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={personalizationForm.control}
+                name="customDescription"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Descrição Personalizada</FormLabel>
+                    <FormControl>
+                      <Textarea placeholder="Descrição específica para o cliente" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setIsPersonalizationModalOpen(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button type="submit" disabled={createPersonalizationMutation.isPending}>
+                  {createPersonalizationMutation.isPending ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                      Criando...
+                    </>
+                  ) : (
+                    <>
+                      <Building className="h-4 w-4 mr-2" />
+                      Criar Personalização
+                    </>
+                  )}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Vínculo de Fornecedor */}
+      <Dialog open={isSupplierLinkModalOpen} onOpenChange={setIsSupplierLinkModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Vincular Fornecedor</DialogTitle>
+            <DialogDescription>
+              Configure um fornecedor para este item
+            </DialogDescription>
+          </DialogHeader>
+
+          <Form {...supplierForm}>
+            <form onSubmit={supplierForm.handleSubmit(onSubmitSupplierLink)} className="space-y-4">
+              <FormField
+                control={supplierForm.control}
+                name="supplierId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Fornecedor *</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione um fornecedor" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {(availableSuppliers || []).map((supplier: any) => (
+                          <SelectItem key={supplier.id} value={supplier.id}>
+                            {supplier.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={supplierForm.control}
+                  name="price"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Preço</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          step="0.01"
+                          placeholder="0,00" 
+                          {...field} 
+                          onChange={(e) => field.onChange(Number(e.target.value))}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={supplierForm.control}
+                  name="leadTime"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Lead Time (dias)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          placeholder="0" 
+                          {...field} 
+                          onChange={(e) => field.onChange(Number(e.target.value))}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={supplierForm.control}
+                name="isPreferred"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">Fornecedor Preferencial</FormLabel>
+                      <FormDescription>
+                        Marca este fornecedor como preferencial para o item
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setIsSupplierLinkModalOpen(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button type="submit" disabled={createSupplierLinkMutation.isPending}>
+                  {createSupplierLinkMutation.isPending ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                      Criando...
+                    </>
+                  ) : (
+                    <>
+                      <Truck className="h-4 w-4 mr-2" />
+                      Vincular Fornecedor
+                    </>
+                  )}
+                </Button>
+              </div>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
     </div>
