@@ -374,20 +374,7 @@ router.get('/supplier-links/overview', async (req: AuthenticatedRequest, res) =>
 // ===== HIERARCHICAL PERSONALIZATION ROUTES =====
 router.use('/personalization', personalizationSimpleRoutes);
 
-// 🎯 TICKET MATERIALS - Sistema de Materiais em Tickets
-router.get('/ticket-materials/search', jwtAuth, ticketMaterialsController.searchItems.bind(ticketMaterialsController));
-router.post('/ticket-materials/add', jwtAuth, ticketMaterialsController.addItemToTicket.bind(ticketMaterialsController));
-router.get('/ticket-materials/:ticketId', jwtAuth, ticketMaterialsController.getTicketMaterials.bind(ticketMaterialsController));
-router.delete('/ticket-materials/:ticketId/:materialId', jwtAuth, ticketMaterialsController.removeItemFromTicket.bind(ticketMaterialsController));
-router.put('/ticket-materials/:ticketId/:materialId', jwtAuth, ticketMaterialsController.updateTicketMaterial.bind(ticketMaterialsController));
-
-// 📥 IMPORT CSV - Sistema de Importação
-router.post('/import/csv', jwtAuth, importController.uploadMiddleware, importController.importItemsFromCSV.bind(importController));
-router.get('/import/template', importController.downloadTemplate.bind(importController));
-
-// 📋 AUDIT TRAIL - Histórico de Alterações
-router.get('/audit/history', jwtAuth, auditController.getAuditHistory.bind(auditController));
-router.get('/audit/item/:id', jwtAuth, auditController.getItemHistory.bind(auditController));
-router.get('/audit/stats', jwtAuth, auditController.getAuditStats.bind(auditController));
+// Note: Additional ticket materials routes would be added here when needed
+// The existing routes above already cover the main functionality
 
 export default router;
