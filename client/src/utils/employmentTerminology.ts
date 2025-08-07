@@ -103,19 +103,32 @@ export function detectEmploymentType(user: any): EmploymentType {
   });
 
   // Check if user has employmentType field (primary detection)
-  if (user?.employmentType) {
+  if (user?.employmentType && user.employmentType !== 'undefined') {
     const detected = user.employmentType === 'autonomo' ? 'autonomo' : 'clt';
     console.log('[EMPLOYMENT-DETECTION] Using employmentType field:', detected);
     return detected;
   }
-  
+
   // Fallback detection logic
   // Could be based on role, department, or other criteria
-  if (user?.role === 'contractor' || user?.position?.toLowerCase().includes('freelancer')) {
-    console.log('[EMPLOYMENT-DETECTION] Using fallback logic: autonomo');
-    return 'autonomo';
+
+  // Detect based on role
+  if (user.role && user.role !== 'undefined') {
+    if (user.role.includes('admin') || user.role.includes('saas_admin')) {
+      console.log('[EMPLOYMENT-DETECTION] Admin role detected, defaulting to CLT');
+      return 'clt';
+    }
   }
-  
+
+  // Detect based on position/title
+  if (user.position && user.position !== 'undefined') {
+    const position = user.position.toLowerCase();
+    if (position.includes('freelancer') || position.includes('consultant') || position.includes('contractor')) {
+      console.log('[EMPLOYMENT-DETECTION] Freelancer position detected');
+      return 'autonomo';
+    }
+  }
+
   // Default to CLT
   console.log('[EMPLOYMENT-DETECTION] Using default: clt');
   return 'clt';

@@ -261,9 +261,9 @@ authRouter.get('/me', jwtAuth, async (req: AuthenticatedRequest, res) => {
     const { db } = await import('../../db');
     const { users } = await import('@shared/schema');
     const { eq } = await import('drizzle-orm');
-    
+
     console.log('🔍 [AUTH-ME] Making direct DB query for user:', req.user.id);
-    
+
     const [userData] = await db
       .select({
         id: users.id,
