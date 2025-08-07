@@ -1,49 +1,18 @@
 
-const { createRequire } = require('module');
-const require = createRequire(import.meta.url);
+const { Pool } = require('@neondatabase/serverless');
 
 async function createLPUTables() {
   console.log('🔧 Criando tabelas LPU ausentes...');
   
-  // Import the pool using dynamic import and tsx
   let pool;
   try {
-    // Try to use tsx to import TypeScript
-    const { execSync } = require('child_process');
-    const fs = require('fs');
-    
-    // Create a temporary JS file that uses tsx to import the TypeScript
-    const tempScript = `
-const { execSync } = require('child_process');
-const path = require('path');
-
-// Use tsx to execute TypeScript
-const result = execSync('npx tsx -e "import { pool } from \\'./server/db.ts\\'; console.log(\\'POOL_AVAILABLE\\');"', { 
-  encoding: 'utf8',
-  cwd: process.cwd()
-});
-
-console.log('✅ Database connection available');
-`;
-
-    fs.writeFileSync('temp_db_test.js', tempScript);
-    execSync('node temp_db_test.js');
-    fs.unlinkSync('temp_db_test.js');
-    
-    // Import using tsx
-    const dbModule = await import('./server/db.ts');
-    pool = dbModule.pool;
-    
-  } catch (error) {
-    console.error('❌ Erro ao conectar com o banco:', error.message);
-    console.log('🔄 Tentando abordagem alternativa...');
-    
-    // Fallback: use direct SQL connection
-    const { Pool } = require('@neondatabase/serverless');
     if (!process.env.DATABASE_URL) {
       throw new Error('DATABASE_URL não encontrada');
     }
     pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  } catch (error) {
+    console.error('❌ Erro ao conectar com o banco:', error.message);
+    process.exit(1);
   }
   
   const tenants = [
@@ -93,11 +62,13 @@ console.log('✅ Database connection available');
           price_list_id UUID NOT NULL,
           item_id UUID,
           service_type_id UUID,
-          unit_price DECIMAL(10,2) NOT NULL,
-          special_price DECIMAL(10,2),
-          scale_discounts JSONB,
-          hourly_rate DECIMAL(10,2),
-          travel_cost DECIMAL(10,2),
+          unit_price DECIMAL(15,2) NOT NULL,
+          special_price DECIMAL(15,2),
+          scale_discounts JSONB DEFAULT '[]',
+          hourly_rate DECIMAL(15,2),
+          travel_cost DECIMAL(15,2),
+          minimum_quantity DECIMAL(10,3) DEFAULT 1,
+          discount_percent DECIMAL(5,2) DEFAULT 0,
           is_active BOOLEAN DEFAULT true,
           created_at TIMESTAMP DEFAULT NOW() NOT NULL,
           updated_at TIMESTAMP DEFAULT NOW() NOT NULL
@@ -113,8 +84,8 @@ console.log('✅ Database connection available');
           name VARCHAR(255) NOT NULL,
           description TEXT,
           rule_type VARCHAR(50) NOT NULL,
-          conditions JSONB NOT NULL,
-          actions JSONB NOT NULL,
+          conditions JSONB DEFAULT '{}',
+          actions JSONB DEFAULT '{}',
           priority INTEGER DEFAULT 1,
           is_active BOOLEAN DEFAULT true,
           created_at TIMESTAMP DEFAULT NOW() NOT NULL,
@@ -138,14 +109,9 @@ console.log('✅ Database connection available');
           rejected_by UUID,
           rejected_at TIMESTAMP,
           rejection_reason TEXT,
-          base_margin DECIMAL(5,2),
-          margin_override JSONB,
-          effective_date TIMESTAMP,
-          expiration_date TIMESTAMP,
-          notes TEXT,
-          change_log JSONB,
+          is_current BOOLEAN DEFAULT false,
           created_at TIMESTAMP DEFAULT NOW() NOT NULL,
-          updated_at TIMESTAMP DEFAULT NOW() NOT NULL
+          UNIQUE(tenant_id, price_list_id, version)
         )
       `);
       console.log(`✅ Tabela price_list_versions criada no tenant_${tenantSchema}`);
@@ -155,8 +121,7 @@ console.log('✅ Database connection available');
         CREATE TABLE IF NOT EXISTS tenant_${tenantSchema}.dynamic_pricing (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
           tenant_id UUID NOT NULL,
-          price_list_id UUID NOT NULL,
-          item_id UUID,
+          item_id UUID NOT NULL,
           base_price DECIMAL(15,2) NOT NULL,
           current_price DECIMAL(15,2) NOT NULL,
           demand_factor DECIMAL(5,4) DEFAULT 1.0000,
@@ -164,18 +129,66 @@ console.log('✅ Database connection available');
           inventory_factor DECIMAL(5,4) DEFAULT 1.0000,
           competitor_factor DECIMAL(5,4) DEFAULT 1.0000,
           last_updated TIMESTAMP DEFAULT NOW(),
-          calculation_rules JSONB,
-          created_at TIMESTAMP DEFAULT NOW() NOT NULL
+          factors JSONB DEFAULT '{}',
+          is_active BOOLEAN DEFAULT true,
+          created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+          UNIQUE(tenant_id, item_id)
         )
       `);
       console.log(`✅ Tabela dynamic_pricing criada no tenant_${tenantSchema}`);
+
+      // 6. CREATE INDEXES FOR PERFORMANCE
+      await pool.query(`
+        CREATE INDEX IF NOT EXISTS idx_price_lists_tenant_active 
+        ON tenant_${tenantSchema}.price_lists(tenant_id, is_active);
+        
+        CREATE INDEX IF NOT EXISTS idx_price_list_items_list_item 
+        ON tenant_${tenantSchema}.price_list_items(tenant_id, price_list_id, item_id);
+        
+        CREATE INDEX IF NOT EXISTS idx_pricing_rules_tenant_active 
+        ON tenant_${tenantSchema}.pricing_rules(tenant_id, is_active, priority);
+        
+        CREATE INDEX IF NOT EXISTS idx_dynamic_pricing_tenant_item 
+        ON tenant_${tenantSchema}.dynamic_pricing(tenant_id, item_id);
+      `);
+      console.log(`✅ Índices criados no tenant_${tenantSchema}`);
 
     } catch (error) {
       console.error(`❌ Erro ao criar tabelas LPU no tenant_${tenantSchema}:`, error.message);
     }
   }
+
+  // 7. INSERT DEFAULT LPU DATA
+  console.log('📋 Inserindo dados padrão LPU...');
   
-  console.log('🎯 Criação de tabelas LPU concluída!');
+  try {
+    for (const tenantSchema of tenants) {
+      // Insert default price list for each tenant
+      await pool.query(`
+        INSERT INTO tenant_${tenantSchema}.price_lists 
+        (tenant_id, name, code, description, version, is_active, currency) 
+        VALUES 
+        ('${tenantSchema.replace(/_/g, '-')}', 'Lista Padrão', 'DEFAULT', 'Lista de preços padrão do sistema', '1.0', true, 'BRL')
+        ON CONFLICT (tenant_id, code, version) DO NOTHING
+      `);
+      
+      // Insert default pricing rule
+      await pool.query(`
+        INSERT INTO tenant_${tenantSchema}.pricing_rules 
+        (tenant_id, name, description, rule_type, conditions, actions, priority) 
+        VALUES 
+        ('${tenantSchema.replace(/_/g, '-')}', 'Margem Padrão', 'Regra de margem padrão', 'percentage', '{}', '{"margin": 15}', 1)
+        ON CONFLICT DO NOTHING
+      `);
+      
+      console.log(`✅ Dados padrão inseridos no tenant_${tenantSchema}`);
+    }
+  } catch (error) {
+    console.error('❌ Erro ao inserir dados padrão:', error.message);
+  }
+  
+  await pool.end();
+  console.log('🎯 Criação de tabelas LPU concluída com sucesso!');
   process.exit(0);
 }
 
