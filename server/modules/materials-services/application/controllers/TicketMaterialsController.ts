@@ -418,7 +418,7 @@ export class TicketMaterialsController {
           unitPriceAtConsumption: unitPriceAtConsumption.toString(),
           totalCost: totalCost.toString(),
           consumptionType: consumptionType || 'used',
-          consumedById: userId,
+          technicianId: userId, // Usar technicianId conforme schema da tabela
           consumedAt: new Date(),
           status: 'consumed',
           notes,
