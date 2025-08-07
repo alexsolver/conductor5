@@ -189,8 +189,18 @@ const bulkLinkSchema = z.object({
   groupDescription: z.string().optional(),
 });
 
+const bulkCompanyLinkSchema = z.object({
+  itemIds: z.array(z.string()).min(1, "Selecione pelo menos um item"),
+  companyIds: z.array(z.string()).min(1, "Selecione pelo menos uma empresa"),
+});
+
+const bulkSupplierLinkSchema = z.object({
+  itemIds: z.array(z.string()).min(1, "Selecione pelo menos um item"),
+  supplierIds: z.array(z.string()).min(1, "Selecione pelo menos um fornecedor"),
+});
+
 const customerPersonalizationSchema = z.object({
-  customerId: z.string().min(1, "Cliente é obrigatório"),
+  companyId: z.string().min(1, "Empresa é obrigatória"),
   customSku: z.string().optional(),
   customName: z.string().optional(),
   customDescription: z.string().optional(),
@@ -252,6 +262,8 @@ export default function ItemCatalog() {
   const [isPersonalizationModalOpen, setIsPersonalizationModalOpen] = useState(false);
   const [isSupplierLinkModalOpen, setIsSupplierLinkModalOpen] = useState(false);
   const [isBulkLinkModalOpen, setIsBulkLinkModalOpen] = useState(false);
+  const [isBulkCompanyLinkModalOpen, setIsBulkCompanyLinkModalOpen] = useState(false);
+  const [isBulkSupplierLinkModalOpen, setIsBulkSupplierLinkModalOpen] = useState(false);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -284,7 +296,7 @@ export default function ItemCatalog() {
   const personalizationForm = useForm<z.infer<typeof customerPersonalizationSchema>>({
     resolver: zodResolver(customerPersonalizationSchema),
     defaultValues: {
-      customerId: '',
+      companyId: '',
       customSku: '',
       customName: '',
       customDescription: '',
@@ -309,6 +321,22 @@ export default function ItemCatalog() {
       relationship: 'group',
       groupName: '',
       groupDescription: '',
+    }
+  });
+
+  const bulkCompanyLinkForm = useForm<z.infer<typeof bulkCompanyLinkSchema>>({
+    resolver: zodResolver(bulkCompanyLinkSchema),
+    defaultValues: {
+      itemIds: [],
+      companyIds: [],
+    }
+  });
+
+  const bulkSupplierLinkForm = useForm<z.infer<typeof bulkSupplierLinkSchema>>({
+    resolver: zodResolver(bulkSupplierLinkSchema),
+    defaultValues: {
+      itemIds: [],
+      supplierIds: [],
     }
   });
 
@@ -573,6 +601,54 @@ export default function ItemCatalog() {
     },
   });
 
+  const createBulkCompanyLinksMutation = useMutation({
+    mutationFn: async (data: z.infer<typeof bulkCompanyLinkSchema>) => {
+      const response = await apiRequest('POST', '/api/materials-services/items/bulk-company-links', data);
+      return response.json();
+    },
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items"] });
+      toast({
+        title: "Vínculos de empresas criados com sucesso",
+        description: `${result.data.linksCreated} vínculos foram criados.`,
+      });
+      setIsBulkCompanyLinkModalOpen(false);
+      bulkCompanyLinkForm.reset();
+      setSelectedItems(new Set());
+    },
+    onError: () => {
+      toast({
+        title: "Erro ao criar vínculos de empresas",
+        description: "Tente novamente mais tarde.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const createBulkSupplierLinksMutation = useMutation({
+    mutationFn: async (data: z.infer<typeof bulkSupplierLinkSchema>) => {
+      const response = await apiRequest('POST', '/api/materials-services/items/bulk-supplier-links', data);
+      return response.json();
+    },
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items"] });
+      toast({
+        title: "Vínculos de fornecedores criados com sucesso",
+        description: `${result.data.linksCreated} vínculos foram criados.`,
+      });
+      setIsBulkSupplierLinkModalOpen(false);
+      bulkSupplierLinkForm.reset();
+      setSelectedItems(new Set());
+    },
+    onError: () => {
+      toast({
+        title: "Erro ao criar vínculos de fornecedores",
+        description: "Tente novamente mais tarde.",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Processar dados
   const items: Item[] = (itemsResponse as any)?.data || [];
   const itemStats = (itemStatsResponse as any)?.data || [];
@@ -651,6 +727,13 @@ export default function ItemCatalog() {
   const onSubmitBulkLinks = async (data: z.infer<typeof bulkLinkSchema>) => {
     createBulkLinksMutation.mutate(data);
   };
+
+  // Inicializar itens selecionados nos forms
+  useEffect(() => {
+    const selectedItemsArray = Array.from(selectedItems);
+    bulkCompanyLinkForm.setValue('itemIds', selectedItemsArray);
+    bulkSupplierLinkForm.setValue('itemIds', selectedItemsArray);
+  }, [selectedItems, bulkCompanyLinkForm, bulkSupplierLinkForm]);
 
   // Bulk operations handlers
   const handleSelectAll = () => {
@@ -948,6 +1031,24 @@ export default function ItemCatalog() {
               >
                 <Link className="h-4 w-4 mr-2" />
                 Vínculos em Lote
+              </Button>
+
+              <Button 
+                variant="outline" 
+                onClick={() => setIsBulkCompanyLinkModalOpen(true)}
+                disabled={selectedItems.size === 0}
+              >
+                <Building className="h-4 w-4 mr-2" />
+                Vincular Empresas
+              </Button>
+
+              <Button 
+                variant="outline" 
+                onClick={() => setIsBulkSupplierLinkModalOpen(true)}
+                disabled={selectedItems.size === 0}
+              >
+                <Truck className="h-4 w-4 mr-2" />
+                Vincular Fornecedores
               </Button>
 
               <Button onClick={() => setIsCreateModalOpen(true)}>
@@ -1399,7 +1500,7 @@ export default function ItemCatalog() {
             </TabsTrigger>
             <TabsTrigger value="personalizations" className="flex items-center gap-2">
               <Building className="h-4 w-4" />
-              Personalizações ({personalizations.length})
+              Vínculos Empresas ({personalizations.length})
             </TabsTrigger>
             <TabsTrigger value="suppliers" className="flex items-center gap-2">
               <Truck className="h-4 w-4" />
@@ -1467,24 +1568,24 @@ export default function ItemCatalog() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <div>
-                  <CardTitle>Personalizações de Clientes</CardTitle>
+                  <CardTitle>Vínculos de Empresas</CardTitle>
                   <CardDescription>
-                    Configurações específicas para cada cliente
+                    Configurações específicas para cada empresa
                   </CardDescription>
                 </div>
                 <Button onClick={() => setIsPersonalizationModalOpen(true)}>
                   <Plus className="h-4 w-4 mr-2" />
-                  Nova Personalização
+                  Novo Vínculo Empresa
                 </Button>
               </CardHeader>
               <CardContent>
                 {personalizations.length === 0 ? (
                   <div className="text-center py-8">
                     <Building className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500 mb-4">Nenhuma personalização configurada</p>
+                    <p className="text-gray-500 mb-4">Nenhum vínculo de empresa configurado</p>
                     <Button onClick={() => setIsPersonalizationModalOpen(true)}>
                       <Plus className="h-4 w-4 mr-2" />
-                      Criar Primeira Personalização
+                      Criar Primeiro Vínculo
                     </Button>
                   </div>
                 ) : (
@@ -1956,9 +2057,9 @@ export default function ItemCatalog() {
       <Dialog open={isPersonalizationModalOpen} onOpenChange={setIsPersonalizationModalOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Nova Personalização de Cliente</DialogTitle>
+            <DialogTitle>Novo Vínculo de Empresa</DialogTitle>
             <DialogDescription>
-              Configure personalizações específicas para um cliente
+              Configure personalizações específicas para uma empresa
             </DialogDescription>
           </DialogHeader>
 
@@ -1966,14 +2067,14 @@ export default function ItemCatalog() {
             <form onSubmit={personalizationForm.handleSubmit(onSubmitPersonalization)} className="space-y-4">
               <FormField
                 control={personalizationForm.control}
-                name="customerId"
+                name="companyId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Cliente *</FormLabel>
+                    <FormLabel>Empresa *</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Selecione um cliente" />
+                          <SelectValue placeholder="Selecione uma empresa" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -2446,6 +2547,204 @@ export default function ItemCatalog() {
                     <>
                       <Link className="h-4 w-4 mr-2" />
                       Criar Vínculos
+                    </>
+                  )}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Vínculos em Lote - Empresas */}
+      <Dialog open={isBulkCompanyLinkModalOpen} onOpenChange={setIsBulkCompanyLinkModalOpen}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Vincular Itens a Empresas em Lote</DialogTitle>
+            <DialogDescription>
+              Vincule múltiplos itens a múltiplas empresas de uma vez
+            </DialogDescription>
+          </DialogHeader>
+
+          <Form {...bulkCompanyLinkForm}>
+            <form onSubmit={bulkCompanyLinkForm.handleSubmit((data) => createBulkCompanyLinksMutation.mutate(data))} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <FormField
+                    control={bulkCompanyLinkForm.control}
+                    name="itemIds"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Itens Selecionados ({selectedItems.size})</FormLabel>
+                        <FormControl>
+                          <div className="border rounded-lg p-4 max-h-48 overflow-y-auto">
+                            {Array.from(selectedItems).map((itemId) => {
+                              const item = items.find(i => i.id === itemId);
+                              return (
+                                <div key={itemId} className="flex items-center space-x-2 mb-2">
+                                  <Checkbox checked={true} disabled />
+                                  <span className="text-sm">{item?.name || 'Item não encontrado'}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div>
+                  <FormField
+                    control={bulkCompanyLinkForm.control}
+                    name="companyIds"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Empresas *</FormLabel>
+                        <FormControl>
+                          <div className="border rounded-lg p-4 max-h-48 overflow-y-auto">
+                            {(availableCustomers || []).map((company: any) => (
+                              <div key={company.id} className="flex items-center space-x-2 mb-2">
+                                <Checkbox
+                                  checked={field.value.includes(company.id)}
+                                  onCheckedChange={(checked) => {
+                                    if (checked) {
+                                      field.onChange([...field.value, company.id]);
+                                    } else {
+                                      field.onChange(field.value.filter(id => id !== company.id));
+                                    }
+                                  }}
+                                />
+                                <span className="text-sm">{company.name || company.tradeName}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setIsBulkCompanyLinkModalOpen(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button type="submit" disabled={createBulkCompanyLinksMutation.isPending}>
+                  {createBulkCompanyLinksMutation.isPending ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                      Criando...
+                    </>
+                  ) : (
+                    <>
+                      <Building className="h-4 w-4 mr-2" />
+                      Vincular a Empresas
+                    </>
+                  )}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Vínculos em Lote - Fornecedores */}
+      <Dialog open={isBulkSupplierLinkModalOpen} onOpenChange={setIsBulkSupplierLinkModalOpen}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Vincular Itens a Fornecedores em Lote</DialogTitle>
+            <DialogDescription>
+              Vincule múltiplos itens a múltiplos fornecedores de uma vez
+            </DialogDescription>
+          </DialogHeader>
+
+          <Form {...bulkSupplierLinkForm}>
+            <form onSubmit={bulkSupplierLinkForm.handleSubmit((data) => createBulkSupplierLinksMutation.mutate(data))} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <FormField
+                    control={bulkSupplierLinkForm.control}
+                    name="itemIds"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Itens Selecionados ({selectedItems.size})</FormLabel>
+                        <FormControl>
+                          <div className="border rounded-lg p-4 max-h-48 overflow-y-auto">
+                            {Array.from(selectedItems).map((itemId) => {
+                              const item = items.find(i => i.id === itemId);
+                              return (
+                                <div key={itemId} className="flex items-center space-x-2 mb-2">
+                                  <Checkbox checked={true} disabled />
+                                  <span className="text-sm">{item?.name || 'Item não encontrado'}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div>
+                  <FormField
+                    control={bulkSupplierLinkForm.control}
+                    name="supplierIds"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Fornecedores *</FormLabel>
+                        <FormControl>
+                          <div className="border rounded-lg p-4 max-h-48 overflow-y-auto">
+                            {(availableSuppliers || []).map((supplier: any) => (
+                              <div key={supplier.id} className="flex items-center space-x-2 mb-2">
+                                <Checkbox
+                                  checked={field.value.includes(supplier.id)}
+                                  onCheckedChange={(checked) => {
+                                    if (checked) {
+                                      field.onChange([...field.value, supplier.id]);
+                                    } else {
+                                      field.onChange(field.value.filter(id => id !== supplier.id));
+                                    }
+                                  }}
+                                />
+                                <span className="text-sm">{supplier.name}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setIsBulkSupplierLinkModalOpen(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button type="submit" disabled={createBulkSupplierLinksMutation.isPending}>
+                  {createBulkSupplierLinksMutation.isPending ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                      Criando...
+                    </>
+                  ) : (
+                    <>
+                      <Truck className="h-4 w-4 mr-2" />
+                      Vincular a Fornecedores
                     </>
                   )}
                 </Button>

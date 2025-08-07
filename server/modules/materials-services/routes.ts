@@ -387,6 +387,106 @@ router.get('/supplier-links/overview', async (req: AuthenticatedRequest, res) =>
 // ===== HIERARCHICAL PERSONALIZATION ROUTES =====
 router.use('/personalization', personalizationSimpleRoutes);
 
+// 🔗 VÍNCULOS EM LOTE - Sistema de Vinculação em Massa
+router.post('/items/bulk-company-links', jwtAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { itemIds, companyIds } = req.body;
+    const tenantId = req.user?.tenantId;
+
+    if (!tenantId) {
+      return res.status(401).json({ success: false, message: 'Tenant ID required' });
+    }
+
+    if (!Array.isArray(itemIds) || !Array.isArray(companyIds)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'itemIds e companyIds devem ser arrays' 
+      });
+    }
+
+    let linksCreated = 0;
+    
+    for (const itemId of itemIds) {
+      for (const companyId of companyIds) {
+        try {
+          await itemRepository.addCustomerLink({
+            tenantId,
+            itemId,
+            customerId: companyId,
+            isActive: true,
+            createdBy: req.user.id
+          });
+          linksCreated++;
+        } catch (error) {
+          console.error(`Erro ao criar vínculo ${itemId} -> ${companyId}:`, error);
+        }
+      }
+    }
+
+    res.json({
+      success: true,
+      data: { linksCreated },
+      message: `${linksCreated} vínculos de empresas criados com sucesso`
+    });
+
+  } catch (error) {
+    console.error('Erro ao criar vínculos em lote para empresas:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Erro interno do servidor' 
+    });
+  }
+});
+
+router.post('/items/bulk-supplier-links', jwtAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { itemIds, supplierIds } = req.body;
+    const tenantId = req.user?.tenantId;
+
+    if (!tenantId) {
+      return res.status(401).json({ success: false, message: 'Tenant ID required' });
+    }
+
+    if (!Array.isArray(itemIds) || !Array.isArray(supplierIds)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'itemIds e supplierIds devem ser arrays' 
+      });
+    }
+
+    let linksCreated = 0;
+    
+    for (const itemId of itemIds) {
+      for (const supplierId of supplierIds) {
+        try {
+          await itemRepository.addSupplierLink({
+            tenantId,
+            itemId,
+            supplierId,
+            createdBy: req.user.id
+          });
+          linksCreated++;
+        } catch (error) {
+          console.error(`Erro ao criar vínculo ${itemId} -> ${supplierId}:`, error);
+        }
+      }
+    }
+
+    res.json({
+      success: true,
+      data: { linksCreated },
+      message: `${linksCreated} vínculos de fornecedores criados com sucesso`
+    });
+
+  } catch (error) {
+    console.error('Erro ao criar vínculos em lote para fornecedores:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Erro interno do servidor' 
+    });
+  }
+});
+
 // Note: Additional ticket materials routes would be added here when needed
 // The existing routes above already cover the main functionality
 

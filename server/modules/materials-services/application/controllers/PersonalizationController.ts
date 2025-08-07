@@ -11,7 +11,7 @@ export const getCustomerPersonalizations = async (req: AuthenticatedRequest, res
   try {
     const { customerId } = req.params;
     const tenantId = req.user?.tenantId;
-    
+
     if (!tenantId) {
       return res.status(401).json({
         success: false,
@@ -63,7 +63,7 @@ export const getItemPersonalizations = async (req: AuthenticatedRequest, res: Re
   try {
     const { itemId } = req.params;
     const tenantId = req.user?.tenantId;
-    
+
     if (!tenantId) {
       return res.status(401).json({
         success: false,
@@ -121,9 +121,9 @@ export const updateCustomerPersonalization = async (req: AuthenticatedRequest, r
       specialInstructions,
       isActive = true
     } = req.body;
-    
+
     const tenantId = req.user?.tenantId;
-    
+
     if (!tenantId) {
       return res.status(401).json({
         success: false,
@@ -180,7 +180,7 @@ export const deleteCustomerPersonalization = async (req: AuthenticatedRequest, r
   try {
     const { mappingId } = req.params;
     const tenantId = req.user?.tenantId;
-    
+
     if (!tenantId) {
       return res.status(401).json({
         success: false,
@@ -227,17 +227,17 @@ export const createCustomerPersonalization = async (req: AuthenticatedRequest, r
   try {
     const { itemId } = req.params;
     const {
-      customerId,
+      companyId,
       customSku,
       customName,
       customDescription,
       customerReference,
       specialInstructions
     } = req.body;
-    
+
     const tenantId = req.user?.tenantId;
     const userId = req.user?.id;
-    
+
     if (!tenantId || !userId) {
       return res.status(401).json({
         success: false,
@@ -245,21 +245,28 @@ export const createCustomerPersonalization = async (req: AuthenticatedRequest, r
       });
     }
 
+    if (!companyId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Company ID é obrigatório'
+      });
+    }
+
     // Usar schema correto com underscore
     const tenantSchema = `tenant_${tenantId.replace(/-/g, '_')}`;
-    
+
     // Check if personalization already exists
     const existingQuery = `
       SELECT id FROM ${tenantSchema}.customer_item_mappings 
       WHERE tenant_id = $1 AND customer_id = $2 AND item_id = $3
     `;
-    
-    const existing = await pool.query(existingQuery, [tenantId, customerId, itemId]);
-    
-    if (existing.rows.length > 0) {
+
+    const result = await pool.query(existingQuery, [tenantId, companyId, itemId]);
+
+    if (result.rows.length > 0) {
       return res.status(409).json({
         success: false,
-        message: 'Personalização já existe para este cliente e item'
+        message: 'Personalização já existe para esta empresa e item'
       });
     }
 
@@ -272,14 +279,14 @@ export const createCustomerPersonalization = async (req: AuthenticatedRequest, r
       RETURNING *
     `;
 
-    const result = await pool.query(insertQuery, [
-      tenantId, customerId, itemId, customName || '', true, userId, userId
+    const personalizationResult = await pool.query(insertQuery, [
+      tenantId, companyId, itemId, customName || '', true, userId, userId
     ]);
 
     res.status(201).json({
       success: true,
       message: 'Personalização criada com sucesso',
-      personalization: result.rows[0]
+      personalization: personalizationResult.rows[0]
     });
 
   } catch (error) {
@@ -299,7 +306,7 @@ export const getSupplierLinks = async (req: AuthenticatedRequest, res: Response)
   try {
     const { supplierId } = req.params;
     const tenantId = req.user?.tenantId;
-    
+
     if (!tenantId) {
       return res.status(401).json({
         success: false,
@@ -367,10 +374,10 @@ export const createSupplierLink = async (req: AuthenticatedRequest, res: Respons
       minimumOrderQuantity,
       isPreferred = false
     } = req.body;
-    
+
     const tenantId = req.user?.tenantId;
     const userId = req.user?.id;
-    
+
     if (!tenantId || !userId) {
       return res.status(401).json({
         success: false,
@@ -383,9 +390,9 @@ export const createSupplierLink = async (req: AuthenticatedRequest, res: Respons
       SELECT id FROM ${tenantId}.item_supplier_links 
       WHERE tenant_id = $1 AND supplier_id = $2 AND item_id = $3
     `;
-    
+
     const existing = await pool.query(existingQuery, [tenantId, supplierId, itemId]);
-    
+
     if (existing.rows.length > 0) {
       return res.status(409).json({
         success: false,
@@ -433,7 +440,7 @@ export const getCustomerContextItems = async (req: AuthenticatedRequest, res: Re
     const { customerId } = req.params;
     const { search, type } = req.query;
     const tenantId = req.user?.tenantId;
-    
+
     if (!tenantId) {
       return res.status(401).json({
         success: false,
@@ -459,6 +466,7 @@ export const getCustomerContextItems = async (req: AuthenticatedRequest, res: Re
         m.custom_sku ILIKE $${paramIndex}
       )`;
       params.push(`%${search}%`);
+      paramIndex++; // Increment paramIndex after using it for search
     }
 
     const query = `
@@ -516,7 +524,7 @@ export const getSupplierContextItems = async (req: AuthenticatedRequest, res: Re
     const { supplierId } = req.params;
     const { search, type } = req.query;
     const tenantId = req.user?.tenantId;
-    
+
     if (!tenantId) {
       return res.status(401).json({
         success: false,
@@ -542,6 +550,7 @@ export const getSupplierContextItems = async (req: AuthenticatedRequest, res: Re
         l.part_number ILIKE $${paramIndex}
       )`;
       params.push(`%${search}%`);
+      paramIndex++; // Increment paramIndex after using it for search
     }
 
     const query = `
