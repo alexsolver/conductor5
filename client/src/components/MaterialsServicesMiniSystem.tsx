@@ -26,29 +26,29 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
 
   // Fetch items with customer-specific customizations
   const { data: itemsData, isLoading: itemsLoading, error: itemsError } = useQuery({
-    queryKey: ['/api/materials-services/customers', ticket?.customerId || ticket?.customer_id, 'items'],
+    queryKey: ['/api/materials-services/companies', ticket?.companyId || ticket?.customer_id, 'items'],
     queryFn: async () => {
-      // Get customer ID from ticket
-      const customerId = ticket?.customerId || ticket?.customer_id;
-      console.log('🔍 [MaterialsSystem] Fetching items for customerId:', customerId);
+      // Get company ID from ticket (use companyId first, then customer_id as fallback)
+      const companyId = ticket?.companyId || ticket?.customer_id;
+      console.log('🔍 [MaterialsSystem] Fetching items for companyId:', companyId);
       console.log('🔍 [MaterialsSystem] Available ticket fields:', {
-        customerId: ticket?.customerId,
+        companyId: ticket?.companyId,
         customer_id: ticket?.customer_id,
         ticketKeys: ticket ? Object.keys(ticket) : 'no ticket'
       });
 
-      if (!customerId) {
-        // Fallback to regular items if no customer ID
+      if (!companyId) {
+        // Fallback to regular items if no company ID
         const response = await apiRequest('GET', `/api/materials-services/items`);
         const result = await response.json();
         console.log('📦 [MaterialsSystem] Items fetched (fallback):', result.data?.length || 0, 'items');
         return result;
       }
 
-      // Fetch items with customer-specific personalization
-      const response = await apiRequest('GET', `/api/materials-services/customers/${customerId}/items`);
+      // Fetch items with company-specific personalization
+      const response = await apiRequest('GET', `/api/materials-services/companies/${companyId}/items`);
       const result = await response.json();
-      console.log('📦 [MaterialsSystem] Customer items fetched:', result.data?.length || 0, 'items,', result.stats?.itemsWithCustomMappings || 0, 'with custom mappings');
+      console.log('📦 [MaterialsSystem] Company items fetched:', result.data?.length || 0, 'items,', result.stats?.itemsWithCustomMappings || 0, 'with custom mappings');
       return result;
     },
     enabled: !!ticket,
@@ -285,21 +285,28 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                           <SelectItem key={`item-${item.id}-${index}`} value={item.id}>
                             <div className="flex flex-col text-left">
                               <div className="flex items-center gap-2">
-                                <span className="font-medium">{item.title}</span>
-                                {item.hasCustomMapping && (
+                                <span className="font-medium">
+                                  {item.display_name || item.custom_name || item.title || item.name}
+                                </span>
+                                {item.has_custom_mapping && (
                                   <Badge variant="secondary" className="text-xs">Personalizado</Badge>
                                 )}
                               </div>
+                              {(item.display_description || item.custom_description || item.description) && (
+                                <div className="text-xs text-gray-600 mb-1 line-clamp-1">
+                                  {item.display_description || item.custom_description || item.description}
+                                </div>
+                              )}
                               <div className="flex items-center gap-3 text-xs text-gray-500">
-                                <span>SKU: {item.sku}</span>
+                                <span>SKU: {item.display_sku || item.custom_sku || item.sku || item.integration_code}</span>
                                 <span>Tipo: {item.type}</span>
-                                <span className="font-medium">R$ {parseFloat(item.price || 0).toFixed(2)}</span>
-                                {item.discountPercent && (
-                                  <span className="text-green-600">-{item.discountPercent}%</span>
+                                <span className="font-medium">R$ {parseFloat(item.price || item.unit_cost || 0).toFixed(2)}</span>
+                                {item.discount_percent && (
+                                  <span className="text-green-600">-{item.discount_percent}%</span>
                                 )}
                               </div>
-                              {item.customerReference && (
-                                <span className="text-xs text-blue-600">Ref. Cliente: {item.customerReference}</span>
+                              {item.customer_reference && (
+                                <span className="text-xs text-blue-600">Ref. Cliente: {item.customer_reference}</span>
                               )}
                             </div>
                           </SelectItem>

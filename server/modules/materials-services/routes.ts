@@ -17,6 +17,7 @@ import { ImportController } from './application/controllers/ImportController';
 import { AuditController } from './application/controllers/AuditController';
 import { systemSettings } from '../../../shared/schema-materials-services';
 import { eq } from 'drizzle-orm';
+import { Response } from 'express'; // Import Response type
 
 // Create router
 const router = Router();
@@ -296,8 +297,16 @@ router.put('/customer-item-mappings/:id', CustomerItemMappingController.updateCu
 // Delete customer item mapping
 router.delete('/customer-item-mappings/:id', CustomerItemMappingController.deleteCustomerItemMapping);
 
-// Get items with customer-specific customizations
-router.get('/customer-item-mappings/customer/:customerId/items', CustomerItemMappingController.getCustomerItems);
+// Get items with customer-specific personalization
+router.get('/customers/:customerId/items', async (req: AuthenticatedRequest, res) => {
+  return CustomerItemMappingController.getCustomerItems(req, res);
+});
+
+// Get items with company-specific personalization
+router.get('/companies/:companyId/items', async (req: AuthenticatedRequest, res) => {
+  return CustomerItemMappingController.getCompanyContextItems(req, res);
+});
+
 
 // Toggle customer item mapping active status
 router.patch('/customer-item-mappings/:id/toggle', CustomerItemMappingController.toggleCustomerItemMapping);
@@ -407,7 +416,12 @@ router.post('/items/bulk-company-links', jwtAuth, async (req: AuthenticatedReque
     }
 
     let linksCreated = 0;
-    
+    // This requires access to itemRepository, which is defined in getControllers, need to pass it here or initialize it.
+    // For now, assuming itemRepository is accessible or re-initializing for demonstration.
+    const { db } = await schemaManager.getTenantDb(tenantId);
+    const itemRepository = new ItemRepository(db);
+
+
     for (const itemId of itemIds) {
       for (const companyId of companyIds) {
         try {
@@ -457,7 +471,11 @@ router.post('/items/bulk-supplier-links', jwtAuth, async (req: AuthenticatedRequ
     }
 
     let linksCreated = 0;
-    
+    // This requires access to itemRepository, which is defined in getControllers, need to pass it here or initialize it.
+    // For now, assuming itemRepository is accessible or re-initializing for demonstration.
+    const { db } = await schemaManager.getTenantDb(tenantId);
+    const itemRepository = new ItemRepository(db);
+
     for (const itemId of itemIds) {
       for (const supplierId of supplierIds) {
         try {
@@ -660,12 +678,12 @@ router.post('/maintenance', jwtAuth, async (req: AuthenticatedRequest, res) => {
         const duplicates = await db.select()
           .from(items)
           .where(eq(items.tenantId, tenantId));
-        
+
         const duplicateNames = duplicates.reduce((acc: any, item) => {
           acc[item.name] = (acc[item.name] || 0) + 1;
           return acc;
         }, {});
-        
+
         const duplicateCount = Object.values(duplicateNames).filter((count: any) => count > 1).length;
         result = {
           message: `Detectados ${duplicateCount} nomes duplicados`,
@@ -685,7 +703,7 @@ router.post('/maintenance', jwtAuth, async (req: AuthenticatedRequest, res) => {
         const allItems = await db.select()
           .from(items)
           .where(eq(items.tenantId, tenantId));
-        
+
         const invalidItems = allItems.filter(item => !item.name || !item.measurementUnit);
         result = {
           message: `Validação concluída - ${allItems.length} itens verificados, ${invalidItems.length} problemas encontrados`,

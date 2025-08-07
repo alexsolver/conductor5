@@ -432,6 +432,134 @@ export const createSupplierLink = async (req: AuthenticatedRequest, res: Respons
 };
 
 /**
+ * Get items with hierarchical resolution for company context
+ * GET /api/materials-services/companies/:companyId/items
+ */
+export const getCompanyContextItems = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { companyId } = req.params;
+    const { search, type } = req.query;
+    const tenantId = req.user?.tenantId;
+
+    if (!tenantId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Tenant ID required'
+      });
+    }
+
+    let whereClause = `WHERE i.tenant_id = $1 AND i.active = true`;
+    const params = [tenantId];
+    let paramIndex = 2;
+
+    if (type && typeof type === 'string') {
+      whereClause += ` AND i.type = $${paramIndex}`;
+      params.push(type);
+      paramIndex++;
+    }
+
+    if (search && typeof search === 'string') {
+      whereClause += ` AND (
+        i.name ILIKE $${paramIndex} OR 
+        i.integration_code ILIKE $${paramIndex} OR
+        m.custom_name ILIKE $${paramIndex} OR
+        m.custom_sku ILIKE $${paramIndex}
+      )`;
+      params.push(`%${search}%`);
+      paramIndex++;
+    }
+
+    // Filter by company - only show items linked to specific company
+    if (companyId && companyId !== '00000000-0000-0000-0000-000000000001') {
+      whereClause += ` AND EXISTS (
+        SELECT 1 FROM customer_item_mappings cim 
+        WHERE cim.item_id = i.id 
+        AND cim.tenant_id = i.tenant_id 
+        AND cim.customer_id = $${paramIndex}
+        AND cim.is_active = true
+      )`;
+      params.push(companyId);
+      paramIndex++;
+    }
+
+    // Build company parameter reference
+    const companyParamRef = companyId && companyId !== '00000000-0000-0000-0000-000000000001' 
+      ? `$${params.indexOf(companyId) + 1}` 
+      : 'NULL';
+
+    const query = `
+      SELECT 
+        i.id,
+        i.tenant_id,
+        i.type,
+        i.name as title,
+        i.description,
+        i.integration_code as sku,
+        i.measurement_unit,
+        i.active,
+        i.created_at,
+        i.updated_at,
+        
+        -- Customer mapping fields
+        m.custom_name,
+        m.custom_sku,
+        m.custom_description,
+        m.discount_percent,
+        m.customer_reference,
+        m.unit_cost as price,
+        
+        -- Check if item has custom mapping
+        CASE WHEN m.id IS NOT NULL THEN true ELSE false END as has_custom_mapping,
+        
+        -- Determine final display values (custom takes precedence)
+        COALESCE(m.custom_name, i.name) as display_name,
+        COALESCE(m.custom_description, i.description) as display_description,
+        COALESCE(m.custom_sku, i.integration_code) as display_sku
+        
+      FROM items i
+      LEFT JOIN customer_item_mappings m ON i.id = m.item_id 
+        AND m.tenant_id = i.tenant_id 
+        AND m.customer_id = ${companyParamRef}
+        AND m.is_active = true
+      ${whereClause}
+      ORDER BY 
+        -- Prioritize items with custom mappings
+        has_custom_mapping DESC,
+        display_name ASC
+      LIMIT 100
+    `;
+
+    console.log('🔍 [getCompanyContextItems] Executing query:', query);
+    console.log('🔍 [getCompanyContextItems] Parameters:', params);
+
+    const result = await db.execute(sql.raw(query, params));
+    const items = result.rows;
+
+    const stats = {
+      totalItems: items.length,
+      itemsWithCustomMappings: items.filter((item: any) => item.has_custom_mapping).length,
+      companiesLinked: companyId && companyId !== '00000000-0000-0000-0000-000000000001' ? 1 : 0
+    };
+
+    console.log(`✅ [getCompanyContextItems] Found ${items.length} items for company ${companyId}`);
+    console.log(`📊 [getCompanyContextItems] Stats:`, stats);
+
+    res.json({
+      success: true,
+      data: items,
+      stats
+    });
+
+  } catch (error) {
+    console.error('Error fetching company context items:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Erro interno do servidor'
+    });
+  }
+};
+
+/**
  * Get items with hierarchical resolution for customer context
  * GET /api/materials-services/customers/:customerId/items
  */
