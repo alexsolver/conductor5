@@ -54,6 +54,17 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
   Form,
   FormControl,
   FormDescription,
@@ -73,6 +84,15 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 // Schema and Types
 interface Item {
@@ -122,13 +142,13 @@ interface SupplierLink {
 }
 
 const itemSchema = z.object({
-  name: z.string().min(1, "Nome é obrigatório"),
+  name: z.string().min(1, "Nome é obrigatório").max(255, "Nome muito longo"),
   type: z.enum(["material", "service"]),
-  integrationCode: z.string().optional(),
-  description: z.string().optional(),
+  integrationCode: z.string().max(100, "Código muito longo").optional().or(z.literal("")),
+  description: z.string().max(1000, "Descrição muito longa").optional(),
   measurementUnit: z.string().min(1, "Unidade de medida é obrigatória"),
-  maintenancePlan: z.string().optional(),
-  defaultChecklist: z.string().optional(),
+  maintenancePlan: z.string().max(255, "Plano muito longo").optional(),
+  defaultChecklist: z.string().max(255, "Checklist muito longo").optional(),
   active: z.boolean().default(true),
 });
 
@@ -184,6 +204,8 @@ export default function ItemCatalog() {
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(20);
   
   // Estados de modais
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -325,6 +347,10 @@ export default function ItemCatalog() {
   const createItemMutation = useMutation({
     mutationFn: async (data: z.infer<typeof itemSchema>) => {
       const response = await apiRequest('POST', '/api/materials-services/items', data);
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Erro ao criar item');
+      }
       return response.json();
     },
     onSuccess: () => {
@@ -337,10 +363,10 @@ export default function ItemCatalog() {
       setIsCreateModalOpen(false);
       itemForm.reset();
     },
-    onError: () => {
+    onError: (error: Error) => {
       toast({
         title: "Erro ao criar item",
-        description: "Tente novamente mais tarde.",
+        description: error.message || "Tente novamente mais tarde.",
         variant: "destructive",
       });
     },
@@ -486,6 +512,18 @@ export default function ItemCatalog() {
 
     return matchesSearch && matchesType && matchesStatus;
   });
+
+  // Paginação
+  const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+  const paginatedItems = filteredItems.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  // Reset página quando filtros mudam
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, typeFilter, statusFilter]);
 
   const materialCount = items.filter(item => item.type === 'material').length;
   const serviceCount = items.filter(item => item.type === 'service').length;
@@ -652,7 +690,7 @@ export default function ItemCatalog() {
                 </div>
               ))}
             </div>
-          ) : filteredItems.length === 0 ? (
+          ) : paginatedItems.length === 0 ? (
             <div className="text-center py-12">
               <Package className="h-16 w-16 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum item encontrado</h3>
@@ -664,7 +702,7 @@ export default function ItemCatalog() {
             </div>
           ) : (
             <div className="space-y-3">
-              {filteredItems.map((item) => (
+              {paginatedItems.map((item) => (
                 <div 
                   key={item.id} 
                   className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
@@ -725,23 +763,103 @@ export default function ItemCatalog() {
                       <Edit className="h-4 w-4" />
                     </Button>
 
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteItemMutation.mutate(item.id);
-                      }}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={(e) => e.stopPropagation()}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Tem certeza que deseja excluir o item "{item.name}"? 
+                            Esta ação não pode ser desfeita e removerá todos os vínculos associados.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => deleteItemMutation.mutate(item.id)}
+                            className="bg-red-600 hover:bg-red-700"
+                          >
+                            Excluir Item
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
 
                     <ChevronRight className="h-4 w-4 text-gray-400" />
                   </div>
                 </div>
               ))}
             </div>
+
+            {/* Paginação */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between mt-6">
+                <div className="text-sm text-gray-500">
+                  Mostrando {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, filteredItems.length)} de {filteredItems.length} itens
+                </div>
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious 
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          if (currentPage > 1) setCurrentPage(currentPage - 1);
+                        }}
+                        className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                      />
+                    </PaginationItem>
+                    
+                    {[...Array(totalPages)].map((_, i) => {
+                      const page = i + 1;
+                      if (page === currentPage || page === 1 || page === totalPages || (page >= currentPage - 1 && page <= currentPage + 1)) {
+                        return (
+                          <PaginationItem key={page}>
+                            <PaginationLink
+                              href="#"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                setCurrentPage(page);
+                              }}
+                              isActive={page === currentPage}
+                            >
+                              {page}
+                            </PaginationLink>
+                          </PaginationItem>
+                        );
+                      } else if (page === currentPage - 2 || page === currentPage + 2) {
+                        return (
+                          <PaginationItem key={page}>
+                            <PaginationEllipsis />
+                          </PaginationItem>
+                        );
+                      }
+                      return null;
+                    })}
+                    
+                    <PaginationItem>
+                      <PaginationNext 
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+                        }}
+                        className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
+            )}
           )}
         </CardContent>
       </Card>
