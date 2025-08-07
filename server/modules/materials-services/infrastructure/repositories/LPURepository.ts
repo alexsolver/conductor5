@@ -130,7 +130,7 @@ export class LPURepository {
             pl.id,
             pl.tenant_id,
             pl.name,
-            pl.description,
+            pl.notes as description,
             pl.list_code,
             pl.customer_company_id,
             NULL as contract_id,

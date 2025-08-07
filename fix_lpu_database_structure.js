@@ -83,6 +83,7 @@ async function fixLPUDatabaseStructure() {
         { name: 'currency', type: 'VARCHAR(3)', default: 'BRL' },
         { name: 'automatic_margin', type: 'DECIMAL(5,2)', default: null },
         { name: 'notes', type: 'TEXT', default: null },
+        { name: 'description', type: 'TEXT', default: null },
         { name: 'created_by_id', type: 'UUID', default: null },
         { name: 'updated_by', type: 'UUID', default: null }
       ];

@@ -83,7 +83,7 @@ export default function LPU() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPriceList, setSelectedPriceList] = useState<PriceList | null>(null);
   const [selectedPricingRule, setSelectedPricingRule] = useState<PricingRule | null>(null);
-  
+
   // Dialog states
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -94,7 +94,7 @@ export default function LPU() {
   const [isItemsDialogOpen, setIsItemsDialogOpen] = useState(false);
   const [isVersionDialogOpen, setIsVersionDialogOpen] = useState(false);
   const [isApprovalDialogOpen, setIsApprovalDialogOpen] = useState(false);
-  
+
   // Other states
   const [selectedPriceListForRules, setSelectedPriceListForRules] = useState<string | null>(null);
   const [itemToDelete, setItemToDelete] = useState<{ type: 'list' | 'rule', id: string } | null>(null);
@@ -374,6 +374,51 @@ export default function LPU() {
     </Card>
   );
 
+  // Improved loading state
+  if (priceListsLoading || statsLoading || rulesLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <div className="space-y-2">
+            <p className="text-lg font-medium text-gray-900">Carregando Sistema LPU</p>
+            <p className="text-sm text-gray-600">Preparando listas de preços e regras...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Improved error state
+  if (priceListsError || statsError || rulesError) {
+    const errorMessage = (priceListsError as any)?.message || (statsError as any)?.message || (rulesError as any)?.message;
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center space-y-4 max-w-md">
+          <div className="text-red-500 text-4xl">⚠️</div>
+          <div className="space-y-2">
+            <h3 className="text-lg font-semibold text-gray-900">Erro no Sistema LPU</h3>
+            <p className="text-sm text-gray-600">
+              {errorMessage || 'Erro interno do servidor'}
+            </p>
+          </div>
+          <div className="flex gap-2 justify-center">
+            <Button onClick={() => window.location.reload()} variant="outline">
+              Recarregar Página
+            </Button>
+            <Button onClick={() => {
+              queryClient.invalidateQueries({ queryKey: ['/api/materials-services/price-lists'] });
+              queryClient.invalidateQueries({ queryKey: ['/api/materials-services/price-lists/stats'] });
+              queryClient.invalidateQueries({ queryKey: ['/api/materials-services/pricing-rules'] });
+            }}>
+              Tentar Novamente
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 pl-[9px] pr-[9px]">
       <div className="flex items-center justify-between">
@@ -383,10 +428,7 @@ export default function LPU() {
         </div>
       </div>
 
-      {/* Error States */}
-      {statsError && <ErrorDisplay error={statsError} title="Erro ao carregar estatísticas" />}
-      {priceListsError && <ErrorDisplay error={priceListsError} title="Erro ao carregar listas de preços" />}
-      {rulesError && <ErrorDisplay error={rulesError} title="Erro ao carregar regras de precificação" />}
+      {/* Error States - Removed as the main error handling is done above */}
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList className="grid w-full grid-cols-6">
@@ -400,7 +442,7 @@ export default function LPU() {
 
         <TabsContent value="overview" className="space-y-4">
           {/* Statistics Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Total de Listas</CardTitle>
@@ -408,7 +450,7 @@ export default function LPU() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {statsLoading ? "..." : stats?.totalLists || 0}
+                  {stats?.totalLists || 0}
                 </div>
                 <p className="text-xs text-muted-foreground">
                   {stats?.activeLists || 0} listas ativas
@@ -423,7 +465,7 @@ export default function LPU() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {rulesLoading ? "..." : pricingRules.filter(r => r.isActive).length}
+                  {pricingRules.filter(r => r.isActive).length}
                 </div>
                 <p className="text-xs text-muted-foreground">
                   {pricingRules.length} regras totais
@@ -438,7 +480,7 @@ export default function LPU() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {statsLoading ? "..." : `${stats?.approvalRate || 0}%`}
+                  {`${stats?.approvalRate || 0}%`}
                 </div>
                 <p className="text-xs text-muted-foreground">
                   {stats?.approvedVersions || 0} aprovadas
@@ -453,7 +495,7 @@ export default function LPU() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {statsLoading ? "..." : stats?.pendingApproval || 0}
+                  {stats?.pendingApproval || 0}
                 </div>
                 <p className="text-xs text-muted-foreground">
                   aguardando análise
@@ -467,7 +509,7 @@ export default function LPU() {
             <CardHeader>
               <CardTitle>Ações Rápidas</CardTitle>
               <CardDescription>Operações comuns do sistema LPU</CardDescription>
-            </CardHeader>
+            </Header>
             <CardContent>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <Button onClick={() => setIsCreateDialogOpen(true)} className="h-20 flex-col">
@@ -530,25 +572,28 @@ export default function LPU() {
                       </p>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <Badge variant={list.isActive ? "default" : "secondary"}>
+                      <Badge 
+                        variant={list.isActive ? "default" : "secondary"}
+                        className={list.isActive ? "bg-green-500 text-white" : "bg-gray-400 text-white"}
+                      >
                         {list.isActive ? "Ativa" : "Inativa"}
                       </Badge>
-                      
+
                       <Button variant="outline" size="sm" onClick={() => handleViewItems(list)}>
                         <Package className="mr-1 h-3 w-3" />
                         Itens
                       </Button>
-                      
+
                       <Button variant="outline" size="sm" onClick={() => handleEditPriceList(list)}>
                         <Edit className="mr-1 h-3 w-3" />
                         Editar
                       </Button>
-                      
+
                       <Button variant="outline" size="sm" onClick={() => duplicatePriceListMutation.mutate(list.id)}>
                         <Copy className="mr-1 h-3 w-3" />
                         Duplicar
                       </Button>
-                      
+
                       <Button 
                         variant="outline" 
                         size="sm" 
@@ -564,7 +609,7 @@ export default function LPU() {
                           </>
                         )}
                       </Button>
-                      
+
                       <Button variant="destructive" size="sm" onClick={() => handleDeletePriceList(list.id)}>
                         <Trash2 className="mr-1 h-3 w-3" />
                         Excluir
@@ -618,7 +663,10 @@ export default function LPU() {
                       <div className="flex items-center space-x-2 mt-2">
                         <Badge variant="outline" className="capitalize">{rule.ruleType}</Badge>
                         <Badge variant="secondary">Prioridade: {rule.priority}</Badge>
-                        <Badge variant={rule.isActive ? "default" : "secondary"}>
+                        <Badge 
+                          variant={rule.isActive ? "default" : "secondary"}
+                          className={rule.isActive ? "bg-green-500 text-white" : "bg-gray-400 text-white"}
+                        >
                           {rule.isActive ? "Ativa" : "Inativa"}
                         </Badge>
                       </div>
@@ -1355,7 +1403,10 @@ function PriceListItemsView({
                     {item.hourlyRate ? `${priceList.currency} ${Number(item.hourlyRate).toFixed(2)}/h` : '-'}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={item.isActive ? "default" : "secondary"}>
+                    <Badge 
+                      variant={item.isActive ? "default" : "secondary"}
+                      className={item.isActive ? "bg-green-500 text-white" : "bg-gray-400 text-white"}
+                    >
                       {item.isActive ? "Ativo" : "Inativo"}
                     </Badge>
                   </TableCell>
