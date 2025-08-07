@@ -861,7 +861,6 @@ export default function ItemCatalog() {
                 </Pagination>
               </div>
             )}
-          )}
         </CardContent>
       </Card>
     </div>
