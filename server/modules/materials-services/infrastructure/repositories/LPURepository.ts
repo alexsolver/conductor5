@@ -144,9 +144,9 @@ export class LPURepository {
             pl.created_at,
             pl.updated_at,
             pl.created_by_id,
-            cc.company_name as customer_company_name
+            cc.name as customer_company_name
           FROM price_lists pl
-          LEFT JOIN customer_companies cc 
+          LEFT JOIN companies cc 
             ON pl.customer_company_id = cc.id
           WHERE pl.tenant_id = ${tenantId}
           ORDER BY pl.created_at DESC
