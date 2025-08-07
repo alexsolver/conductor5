@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -222,20 +221,21 @@ export default function ItemCatalog() {
   // Estados da jornada do usuário
   const [currentView, setCurrentView] = useState<'catalog' | 'item-details' | 'management'>('catalog');
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
-  
+
   // Estados de filtros e busca
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(20);
-  
+
   // Estados para operações em lote
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [isBulkMode, setIsBulkMode] = useState(false);
   const [isBulkEditModalOpen, setIsBulkEditModalOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
-  
+  const [selectedFile, setSelectedFile] = useState<File | null>(null); // State for the selected file
+
   // Estados de modais
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -293,7 +293,7 @@ export default function ItemCatalog() {
   });
 
   // Queries
-  const { data: itemsResponse, isLoading: isLoadingItems } = useQuery({
+  const { data: itemsResponse, isLoading: isLoadingItems, refetch } = useQuery({
     queryKey: ["/api/materials-services/items"],
     enabled: true
   });
@@ -622,13 +622,13 @@ export default function ItemCatalog() {
 
   const handleBulkDelete = async () => {
     if (selectedItems.size === 0) return;
-    
+
     try {
       const deletePromises = Array.from(selectedItems).map(id => 
         deleteItemMutation.mutateAsync(id)
       );
       await Promise.all(deletePromises);
-      
+
       setSelectedItems(new Set());
       toast({
         title: "Itens excluídos com sucesso",
@@ -645,21 +645,21 @@ export default function ItemCatalog() {
 
   const handleBulkStatusChange = async (newStatus: boolean) => {
     if (selectedItems.size === 0) return;
-    
+
     try {
       const updatePromises = Array.from(selectedItems).map(id => {
         const item = items.find(i => i.id === id);
         if (!item) return Promise.resolve();
-        
+
         return updateItemMutation.mutateAsync({
           id,
           data: { ...item, active: newStatus }
         });
       });
-      
+
       await Promise.all(updatePromises);
       setSelectedItems(new Set());
-      
+
       toast({
         title: "Status atualizado",
         description: `${selectedItems.size} itens foram ${newStatus ? 'ativados' : 'desativados'}.`,
@@ -697,6 +697,65 @@ export default function ItemCatalog() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  // Handlers for file upload
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files.length > 0) {
+      setSelectedFile(event.target.files[0]);
+    }
+  };
+
+  // Handler for the import action
+  const handleImport = async () => {
+    if (!selectedFile) {
+      toast({
+        title: "Erro",
+        description: "Selecione um arquivo CSV para importar.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append('csvFile', selectedFile);
+
+      const response = await fetch('/api/materials-services/import/csv', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: formData
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        toast({
+          title: "Importação concluída",
+          description: `${result.data.imported} itens importados com sucesso.`,
+        });
+
+        // Refresh items list
+        refetch(); // Assuming refetch is available from useQuery
+        setIsImportModalOpen(false);
+        setSelectedFile(null);
+      } else {
+        toast({
+          title: "Erro na importação",
+          description: result.message || "Falha ao importar arquivo CSV.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Import error:', error);
+      toast({
+        title: "Erro",
+        description: "Falha ao processar arquivo CSV.",
+        variant: "destructive",
+      });
+    }
   };
 
   // Renderizar catálogo principal
@@ -774,7 +833,7 @@ export default function ItemCatalog() {
                 className="pl-10"
               />
             </div>
-            
+
             <Select value={typeFilter} onValueChange={setTypeFilter}>
               <SelectTrigger className="w-full sm:w-40">
                 <SelectValue placeholder="Tipo" />
@@ -806,12 +865,12 @@ export default function ItemCatalog() {
                 <Checkbox className="h-4 w-4 mr-2" />
                 {isBulkMode ? "Sair do Modo Lote" : "Modo Lote"}
               </Button>
-              
+
               <Button variant="outline" onClick={exportToCSV}>
                 <FileText className="h-4 w-4 mr-2" />
                 Exportar
               </Button>
-              
+
               <Button variant="outline" onClick={() => setIsImportModalOpen(true)}>
                 <ShoppingCart className="h-4 w-4 mr-2" />
                 Importar
@@ -836,7 +895,7 @@ export default function ItemCatalog() {
                   {selectedItems.size} item(s) selecionado(s)
                 </span>
               </div>
-              
+
               <div className="flex items-center gap-2">
                 <Button 
                   variant="outline" 
@@ -846,7 +905,7 @@ export default function ItemCatalog() {
                   <CheckCircle2 className="h-4 w-4 mr-2" />
                   Ativar Todos
                 </Button>
-                
+
                 <Button 
                   variant="outline" 
                   size="sm"
@@ -855,7 +914,7 @@ export default function ItemCatalog() {
                   <AlertCircle className="h-4 w-4 mr-2" />
                   Desativar Todos
                 </Button>
-                
+
                 <Button 
                   variant="outline" 
                   size="sm"
@@ -864,7 +923,7 @@ export default function ItemCatalog() {
                   <Edit className="h-4 w-4 mr-2" />
                   Editar Lote
                 </Button>
-                
+
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button variant="destructive" size="sm">
@@ -934,7 +993,7 @@ export default function ItemCatalog() {
                   </span>
                 </div>
               )}
-              
+
               {paginatedItems.map((item) => (
                 <div 
                   key={item.id} 
@@ -953,7 +1012,7 @@ export default function ItemCatalog() {
                         className="mr-2"
                       />
                     )}
-                    
+
                     <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
                       item.type === 'material' ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'
                     }`}>
@@ -1064,7 +1123,7 @@ export default function ItemCatalog() {
                         className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
                       />
                     </PaginationItem>
-                    
+
                     {[...Array(totalPages)].map((_, i) => {
                       const page = i + 1;
                       if (page === currentPage || page === 1 || page === totalPages || (page >= currentPage - 1 && page <= currentPage + 1)) {
@@ -1091,7 +1150,7 @@ export default function ItemCatalog() {
                       }
                       return null;
                     })}
-                    
+
                     <PaginationItem>
                       <PaginationNext 
                         href="#"
@@ -1152,7 +1211,7 @@ export default function ItemCatalog() {
               </div>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-2">
             <Button 
               variant="outline"
@@ -1180,7 +1239,7 @@ export default function ItemCatalog() {
                       <p className="text-sm mt-1">{selectedItem.integrationCode}</p>
                     </div>
                   )}
-                  
+
                   <div>
                     <label className="text-sm font-medium text-gray-500">Unidade de Medida</label>
                     <p className="text-sm mt-1">{selectedItem.measurementUnit}</p>
@@ -2107,7 +2166,12 @@ export default function ItemCatalog() {
       </Dialog>
 
       {/* Modal de Importação */}
-      <Dialog open={isImportModalOpen} onOpenChange={setIsImportModalOpen}>
+      <Dialog open={isImportModalOpen} onOpenChange={(open) => {
+        setIsImportModalOpen(open);
+        if (!open) {
+          setSelectedFile(null); // Clear selected file when modal is closed
+        }
+      }}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Importar Itens</DialogTitle>
@@ -2127,11 +2191,15 @@ export default function ItemCatalog() {
                 accept=".csv,.xlsx,.xls"
                 className="hidden"
                 id="file-upload"
+                onChange={handleFileChange} // Attach the handler here
               />
               <Button variant="outline" onClick={() => document.getElementById('file-upload')?.click()}>
                 <FileText className="h-4 w-4 mr-2" />
                 Selecionar Arquivo
               </Button>
+              {selectedFile && (
+                <p className="text-xs text-gray-500 mt-2">Arquivo selecionado: {selectedFile.name}</p>
+              )}
             </div>
 
             <div className="bg-blue-50 p-4 rounded-lg">
@@ -2159,10 +2227,13 @@ export default function ItemCatalog() {
           </div>
 
           <div className="flex justify-end space-x-2 pt-4">
-            <Button variant="outline" onClick={() => setIsImportModalOpen(false)}>
+            <Button variant="outline" onClick={() => {
+              setIsImportModalOpen(false);
+              setSelectedFile(null); // Clear selected file on cancel
+            }}>
               Cancelar
             </Button>
-            <Button disabled>
+            <Button onClick={handleImport} disabled={!selectedFile}> {/* Disable if no file is selected */}
               <ShoppingCart className="h-4 w-4 mr-2" />
               Importar Itens
             </Button>
