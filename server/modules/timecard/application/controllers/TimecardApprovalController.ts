@@ -161,7 +161,7 @@ export class TimecardApprovalController {
       const tenantDb = await getTenantDb(tenantId);
       
       // Use approvalGroupMembers table 
-      const { approvalGroupMembers } = await import('@shared/schema-master');
+      const { approvalGroupMembers } = await import('@shared/schema');
       
       const members = await tenantDb
         .select({
@@ -198,7 +198,7 @@ export class TimecardApprovalController {
       const { getTenantDb } = await import('../../../../db-tenant');
       const tenantDb = await getTenantDb(tenantId);
       
-      const { approvalGroupMembers } = await import('@shared/schema-master');
+      const { approvalGroupMembers } = await import('@shared/schema');
 
       // Remove existing members first
       await tenantDb
@@ -240,7 +240,7 @@ export class TimecardApprovalController {
       const { getTenantDb } = await import('../../../../db-tenant');
       const tenantDb = await getTenantDb(tenantId);
       
-      const { approvalGroupMembers } = await import('@shared/schema-master');
+      const { approvalGroupMembers } = await import('@shared/schema');
 
       await tenantDb
         .update(approvalGroupMembers)

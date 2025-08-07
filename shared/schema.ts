@@ -39,7 +39,13 @@ export {
   complianceCertifications,
   complianceEvidence,
   complianceScores,
-  systemSettings
+  systemSettings,
+  // Relations
+  itemsRelations,
+  stockLocationsRelations,
+  suppliersRelations,
+  assetsRelations,
+  priceListsRelations
 } from "./schema-materials-services";
 
 // Validation: Ensure all critical exports are available

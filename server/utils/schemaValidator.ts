@@ -10,7 +10,7 @@ export class SchemaValidator {
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
     try {
-      // Check required tables - COMPLETE LIST from schema-master.ts
+      // Check required tables - COMPLETE LIST from unified schema
       const requiredTables = [
         // Core business tables
         'customers', 'tickets', 'ticket_messages', 'activity_logs', 'locations', 

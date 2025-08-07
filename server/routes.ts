@@ -27,7 +27,7 @@ import saasAdminRoutes from './modules/saas-admin/routes';
 import tenantAdminRoutes from './modules/tenant-admin/routes';
 import { dashboardRouter as dashboardRoutes } from './modules/dashboard/routes';
 // Removed old multilocation routes - replaced with new locations module
-import geolocationRoutes from './routes/geolocation';
+// import geolocationRoutes from './routes/geolocation'; // Temporarily disabled
 import holidayRoutes from './routes/HolidayController';
 // import omnibridgeRoutes from './routes/omnibridge'; // Removed - using real APIs only
 
