@@ -1,7 +1,23 @@
-import { pgTable, uuid, varchar, text, boolean, timestamp, decimal, integer, jsonb, pgEnum, index, unique } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, varchar, text, boolean, timestamp, decimal, integer, jsonb, pgEnum, index, unique, date } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 // Import items from master schema instead of redefining
 import { items } from './schema-master';
+
+// Import tenants table from a different schema if it exists, otherwise define it.
+// Assuming 'tenants' is defined elsewhere or needs to be imported.
+// For this example, let's assume it's defined in a 'tenants' file or similar.
+// If not, you would need to import or define it here.
+// Example placeholder:
+// import { tenants } from './schema-tenants'; 
+// If tenants table is not yet defined, you might need to adjust the foreign key reference or define it.
+// For now, we'll use a placeholder reference.
+const tenants = pgTable('tenants', {
+  id: uuid('id').primaryKey(),
+  name: varchar('name', { length: 255 }).notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow()
+});
+
 
 // Export the items table from master schema
 export { items };
@@ -54,12 +70,12 @@ export const itemLinks = pgTable('item_links', {
 export const bulkItemOperations = pgTable('bulk_item_operations', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id').notNull(),
-  
+
   operationType: varchar('operation_type', { length: 50 }).notNull(), // 'bulk_link', 'bulk_unlink', 'group_create'
   itemIds: jsonb('item_ids').notNull(), // Array de IDs dos itens
   relationship: varchar('relationship', { length: 50 }),
   groupName: varchar('group_name', { length: 255 }),
-  
+
   executedBy: uuid('executed_by').notNull(),
   executedAt: timestamp('executed_at').defaultNow().notNull(),
   isCompleted: boolean('is_completed').default(false)
@@ -707,6 +723,18 @@ export const complianceScores = pgTable('compliance_scores', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
+// ===== SYSTEM SETTINGS TABLE =====
+export const systemSettings = pgTable('materials_system_settings', {
+  id: uuid('id').primaryKey(),
+  tenantId: uuid('tenant_id').notNull().references(() => tenants.id),
+  autoValidation: boolean('auto_validation').default(true),
+  duplicateNotifications: boolean('duplicate_notifications').default(true),
+  autoBackup: boolean('auto_backup').default(true),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow()
+});
+
+
 // RELATIONS ADICIONAIS PARA OS NOVOS MÓDULOS
 export const assetMaintenanceRelations = relations(assetMaintenance, ({ one }) => ({
   asset: one(assets, { fields: [assetMaintenance.assetId], references: [assets.id] })
@@ -747,7 +775,7 @@ export type InsertPricingRule = typeof pricingRules.$inferInsert;
 export type DynamicPricing = typeof dynamicPricing.$inferSelect;
 export type InsertDynamicPricing = typeof dynamicPricing.$inferInsert;
 export type ComplianceAudit = typeof complianceAudits.$inferSelect;
-export type InsertComplianceAudit = typeof complianceAudits.$inferInsert;
+export type InsertComplianceAudit = typeof complianceAudits.$insert;
 export type ComplianceCertification = typeof complianceCertifications.$inferSelect;
 export type InsertComplianceCertification = typeof complianceCertifications.$insert;
 export type ComplianceEvidence = typeof complianceEvidence.$inferSelect;
@@ -756,3 +784,5 @@ export type ComplianceAlert = typeof complianceAlerts.$inferSelect;
 export type InsertComplianceAlert = typeof complianceAlerts.$insert;
 export type ComplianceScore = typeof complianceScores.$inferSelect;
 export type InsertComplianceScore = typeof complianceScores.$insert;
+export type SystemSetting = typeof systemSettings.$inferSelect;
+export type InsertSystemSetting = typeof systemSettings.$inferInsert;

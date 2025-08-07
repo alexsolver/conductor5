@@ -5,6 +5,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { PieChart, Pie, BarChart, Bar, CartesianGrid, XAxis, Label } from "recharts";
 
 // UI Components
 import {
@@ -833,11 +835,97 @@ export default function ItemCatalog() {
     document.body.removeChild(link);
   };
 
+  // Estados para configurações persistentes
+  const [systemSettings, setSystemSettings] = useState({
+    autoValidation: true,
+    duplicateNotifications: true,
+    autoBackup: true
+  });
+
+  // Query para configurações do sistema
+  const { data: settingsResponse } = useQuery({
+    queryKey: ["/api/materials-services/settings"],
+    queryFn: async () => {
+      try {
+        const response = await apiRequest('GET', '/api/materials-services/settings');
+        return response.json();
+      } catch (error) {
+        return { data: systemSettings };
+      }
+    }
+  });
+
+  // Mutation para salvar configurações
+  const saveSettingsMutation = useMutation({
+    mutationFn: async (settings: typeof systemSettings) => {
+      const response = await apiRequest('PUT', '/api/materials-services/settings', settings);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Configurações salvas",
+        description: "As configurações do sistema foram atualizadas.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Erro ao salvar configurações",
+        description: "Tente novamente mais tarde.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Atualizar settings quando carregados
+  useEffect(() => {
+    if (settingsResponse?.data) {
+      setSystemSettings(settingsResponse.data);
+    }
+  }, [settingsResponse]);
+
+  // Handler para mudança de configuração
+  const handleSettingChange = (key: keyof typeof systemSettings, value: boolean) => {
+    const newSettings = { ...systemSettings, [key]: value };
+    setSystemSettings(newSettings);
+    saveSettingsMutation.mutate(newSettings);
+  };
+
   // Handlers for file upload
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
       setSelectedFile(event.target.files[0]);
     }
+  };
+
+  // Handler para download de templates
+  const downloadTemplate = (templateType: string) => {
+    let csvContent = '';
+    let filename = '';
+
+    switch (templateType) {
+      case 'basic':
+        csvContent = 'nome,tipo,codigo,descricao,unidade,categoria,tags\nItem Exemplo,material,COD001,Descrição do item,UN,Equipamentos,tag1;tag2';
+        filename = 'template_basico.csv';
+        break;
+      case 'companies':
+        csvContent = 'nome,tipo,codigo,descricao,unidade,categoria,tags,empresa_id,empresa_nome\nItem Exemplo,material,COD001,Descrição do item,UN,Equipamentos,tag1;tag2,uuid-empresa,Nome da Empresa';
+        filename = 'template_com_empresas.csv';
+        break;
+      case 'suppliers':
+        csvContent = 'nome,tipo,codigo,descricao,unidade,categoria,tags,fornecedor_id,fornecedor_nome\nItem Exemplo,material,COD001,Descrição do item,UN,Equipamentos,tag1;tag2,uuid-fornecedor,Nome do Fornecedor';
+        filename = 'template_com_fornecedores.csv';
+        break;
+    }
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   // Handler for the import action
@@ -1075,28 +1163,115 @@ export default function ItemCatalog() {
                 <CardTitle>Distribuição por Tipo</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-64 flex items-center justify-center border-2 border-dashed border-gray-200">
-                  <div className="text-center">
-                    <Package className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                    <p className="text-gray-500">Gráfico de distribuição</p>
-                    <p className="text-sm text-gray-400">Materiais vs Serviços</p>
-                  </div>
-                </div>
+                <ChartContainer
+                  config={{
+                    materials: {
+                      label: "Materiais",
+                      color: "hsl(var(--chart-1))",
+                    },
+                    services: {
+                      label: "Serviços", 
+                      color: "hsl(var(--chart-2))",
+                    },
+                  }}
+                  className="h-64"
+                >
+                  <PieChart>
+                    <ChartTooltip
+                      cursor={false}
+                      content={<ChartTooltipContent hideLabel />}
+                    />
+                    <Pie
+                      data={[
+                        { name: "Materiais", value: materialCount, fill: "var(--color-materials)" },
+                        { name: "Serviços", value: serviceCount, fill: "var(--color-services)" }
+                      ]}
+                      dataKey="value"
+                      nameKey="name"
+                      innerRadius={60}
+                      strokeWidth={5}
+                    >
+                      <Label
+                        content={({ viewBox }) => {
+                          if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                            return (
+                              <text
+                                x={viewBox.cx}
+                                y={viewBox.cy}
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                              >
+                                <tspan
+                                  x={viewBox.cx}
+                                  y={viewBox.cy}
+                                  className="fill-foreground text-3xl font-bold"
+                                >
+                                  {items.length}
+                                </tspan>
+                                <tspan
+                                  x={viewBox.cx}
+                                  y={(viewBox.cy || 0) + 24}
+                                  className="fill-muted-foreground"
+                                >
+                                  Total
+                                </tspan>
+                              </text>
+                            )
+                          }
+                        }}
+                      />
+                    </Pie>
+                  </PieChart>
+                </ChartContainer>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>Tendência de Criação</CardTitle>
+                <CardTitle>Status dos Itens</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-64 flex items-center justify-center border-2 border-dashed border-gray-200">
-                  <div className="text-center">
-                    <TrendingUp className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                    <p className="text-gray-500">Gráfico de tendência</p>
-                    <p className="text-sm text-gray-400">Últimos 6 meses</p>
-                  </div>
-                </div>
+                <ChartContainer
+                  config={{
+                    active: {
+                      label: "Ativo",
+                      color: "hsl(var(--chart-3))",
+                    },
+                    inactive: {
+                      label: "Inativo",
+                      color: "hsl(var(--chart-4))",
+                    },
+                  }}
+                  className="h-64"
+                >
+                  <BarChart
+                    data={[
+                      {
+                        status: "Ativos",
+                        count: items.filter(i => i.active).length,
+                        fill: "var(--color-active)",
+                      },
+                      {
+                        status: "Inativos", 
+                        count: items.filter(i => !i.active).length,
+                        fill: "var(--color-inactive)",
+                      },
+                    ]}
+                  >
+                    <CartesianGrid vertical={false} />
+                    <XAxis
+                      dataKey="status"
+                      tickLine={false}
+                      tickMargin={10}
+                      axisLine={false}
+                    />
+                    <ChartTooltip
+                      cursor={false}
+                      content={<ChartTooltipContent hideLabel />}
+                    />
+                    <Bar dataKey="count" strokeWidth={2} radius={8} />
+                  </BarChart>
+                </ChartContainer>
               </CardContent>
             </Card>
           </div>
@@ -1372,7 +1547,11 @@ export default function ItemCatalog() {
                       <label className="text-sm font-medium">Auto-validação de códigos</label>
                       <p className="text-xs text-gray-500">Validar unicidade automaticamente</p>
                     </div>
-                    <Switch defaultChecked />
+                    <Switch 
+                      checked={systemSettings.autoValidation}
+                      onCheckedChange={(checked) => handleSettingChange('autoValidation', checked)}
+                      disabled={saveSettingsMutation.isPending}
+                    />
                   </div>
 
                   <div className="flex items-center justify-between">
@@ -1380,7 +1559,11 @@ export default function ItemCatalog() {
                       <label className="text-sm font-medium">Notificações de duplicatas</label>
                       <p className="text-xs text-gray-500">Alertar sobre possíveis duplicatas</p>
                     </div>
-                    <Switch defaultChecked />
+                    <Switch 
+                      checked={systemSettings.duplicateNotifications}
+                      onCheckedChange={(checked) => handleSettingChange('duplicateNotifications', checked)}
+                      disabled={saveSettingsMutation.isPending}
+                    />
                   </div>
 
                   <div className="flex items-center justify-between">
@@ -1388,7 +1571,11 @@ export default function ItemCatalog() {
                       <label className="text-sm font-medium">Backup automático</label>
                       <p className="text-xs text-gray-500">Backup diário dos dados</p>
                     </div>
-                    <Switch defaultChecked />
+                    <Switch 
+                      checked={systemSettings.autoBackup}
+                      onCheckedChange={(checked) => handleSettingChange('autoBackup', checked)}
+                      disabled={saveSettingsMutation.isPending}
+                    />
                   </div>
                 </div>
 
@@ -1419,15 +1606,27 @@ export default function ItemCatalog() {
               <div className="border-t pt-6">
                 <h3 className="font-medium mb-4">Templates de Importação</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Button variant="outline" className="justify-start">
+                  <Button 
+                    variant="outline" 
+                    className="justify-start"
+                    onClick={() => downloadTemplate('basic')}
+                  >
                     <FileText className="h-4 w-4 mr-2" />
                     Template Básico
                   </Button>
-                  <Button variant="outline" className="justify-start">
+                  <Button 
+                    variant="outline" 
+                    className="justify-start"
+                    onClick={() => downloadTemplate('companies')}
+                  >
                     <Building className="h-4 w-4 mr-2" />
                     Template com Empresas
                   </Button>
-                  <Button variant="outline" className="justify-start">
+                  <Button 
+                    variant="outline" 
+                    className="justify-start"
+                    onClick={() => downloadTemplate('suppliers')}
+                  >
                     <Truck className="h-4 w-4 mr-2" />
                     Template com Fornecedores
                   </Button>
