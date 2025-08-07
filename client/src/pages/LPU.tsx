@@ -13,8 +13,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
-import { 
-  Plus, Search, Edit, Eye, Copy, Trash2, TrendingUp, DollarSign, Settings, BarChart3, 
+import {
+  Plus, Search, Edit, Eye, Copy, Trash2, TrendingUp, DollarSign, Settings, BarChart3,
   FileText, Clock, CheckCircle, Calculator, X, Save, RotateCcw, Check, AlertCircle,
   History, Upload, Download, Users, Target, Percent, Hash, Calendar, Building,
   Package, ShoppingCart, CreditCard, Zap, Activity, ArrowUp, ArrowDown
@@ -293,7 +293,7 @@ export default function LPU() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/materials-services/price-lists'] });
-      toast({ 
+      toast({
         title: "Regras aplicadas com sucesso!",
         description: `${data.affectedItems || 0} itens atualizados`
       });
@@ -511,27 +511,46 @@ export default function LPU() {
               <CardDescription>Operações comuns do sistema LPU</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <Button onClick={() => setIsCreateDialogOpen(true)} className="h-20 flex-col">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+                <Button
+                  onClick={() => setIsCreateDialogOpen(true)}
+                  className="h-20 flex-col hover:scale-105 transition-transform"
+                >
                   <Plus className="h-6 w-6 mb-2" />
                   Nova Lista de Preços
                 </Button>
-                <Button onClick={() => setIsCreateRuleDialogOpen(true)} variant="outline" className="h-20 flex-col">
+                <Button
+                  onClick={() => setIsCreateRuleDialogOpen(true)}
+                  variant="outline"
+                  className="h-20 flex-col hover:scale-105 transition-transform"
+                >
                   <Settings className="h-6 w-6 mb-2" />
                   Nova Regra de Precificação
                 </Button>
-                <Button onClick={() => setActiveTab("associations")} variant="outline" className="h-20 flex-col">
+                <Button
+                  onClick={() => setActiveTab("associations")}
+                  variant="outline"
+                  className="h-20 flex-col hover:scale-105 transition-transform"
+                >
                   <Calculator className="h-6 w-6 mb-2" />
-                  Aplicar Regras Automaticamente
+                  Gerenciar Associações
                 </Button>
-                <Button onClick={() => setIsApprovalDialogOpen(true)} variant="outline" className="h-20 flex-col">
+                <Button
+                  onClick={() => setIsApprovalDialogOpen(true)}
+                  variant="outline"
+                  className="h-20 flex-col hover:scale-105 transition-transform"
+                >
                   <CheckCircle className="h-6 w-6 mb-2" />
-                  Workflow de Aprovação
+                  Central de Aprovações
                 </Button>
-                
-                <Button onClick={() => setActiveTab("analytics")} variant="outline" className="h-20 flex-col">
+
+                <Button
+                  onClick={() => setActiveTab("analytics")}
+                  variant="outline"
+                  className="h-20 flex-col hover:scale-105 transition-transform"
+                >
                   <BarChart3 className="h-6 w-6 mb-2" />
-                  Análises e Relatórios
+                  Análises Avançadas
                 </Button>
               </div>
             </CardContent>
@@ -577,7 +596,7 @@ export default function LPU() {
                       </p>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <Badge 
+                      <Badge
                         variant={list.isActive ? "default" : "secondary"}
                         className={list.isActive ? "bg-green-500 text-white" : "bg-gray-400 text-white"}
                       >
@@ -599,9 +618,9 @@ export default function LPU() {
                         Duplicar
                       </Button>
 
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
+                      <Button
+                        variant="outline"
+                        size="sm"
                         onClick={() => applyRulesMutation.mutate(list.id)}
                         disabled={applyRulesMutation.isPending}
                       >
@@ -616,14 +635,14 @@ export default function LPU() {
                       </Button>
 
                       {!list.isActive && (
-                        <Button 
-                          variant="outline" 
+                        <Button
+                          variant="outline"
                           size="sm"
                           className="border-green-300 text-green-700 hover:bg-green-50"
                           onClick={() => {
-                            updatePriceListMutation.mutate({ 
-                              id: list.id, 
-                              data: { isActive: true } 
+                            updatePriceListMutation.mutate({
+                              id: list.id,
+                              data: { isActive: true }
                             });
                             toast({ title: "Lista aprovada e ativada!" });
                           }}
@@ -686,7 +705,7 @@ export default function LPU() {
                       <div className="flex items-center space-x-2 mt-2">
                         <Badge variant="outline" className="capitalize">{rule.ruleType}</Badge>
                         <Badge variant="secondary">Prioridade: {rule.priority}</Badge>
-                        <Badge 
+                        <Badge
                           variant={rule.isActive ? "default" : "secondary"}
                           className={rule.isActive ? "bg-green-500 text-white" : "bg-gray-400 text-white"}
                         >
@@ -732,8 +751,8 @@ export default function LPU() {
                     <div
                       key={list.id}
                       className={`p-3 border rounded-lg cursor-pointer transition-colors ${
-                        selectedPriceListForRules === list.id 
-                          ? 'bg-blue-50 border-blue-300' 
+                        selectedPriceListForRules === list.id
+                          ? 'bg-blue-50 border-blue-300'
                           : 'hover:bg-gray-50'
                       }`}
                       onClick={() => setSelectedPriceListForRules(list.id)}
@@ -847,14 +866,14 @@ export default function LPU() {
                       <span className="text-muted-foreground">Última modificação:</span>
                       <span>{new Date(list.updatedAt).toLocaleString()}</span>
                     </div>
-                    
+
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">Status:</span>
                       <Badge variant={list.isActive ? "default" : "secondary"}>
                         {list.isActive ? "Ativa" : "Inativa"}
                       </Badge>
                     </div>
-                    
+
                     <div className="border-t pt-3">
                       <div className="grid grid-cols-3 gap-4 text-center">
                         <div>
@@ -871,7 +890,7 @@ export default function LPU() {
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="flex space-x-2">
                       <Button variant="outline" size="sm" className="flex-1" onClick={() => {
                         const newVersion = (parseFloat(list.version) + 0.1).toFixed(1);
@@ -881,7 +900,7 @@ export default function LPU() {
                         <Copy className="mr-1 h-3 w-3" />
                         Criar Nova Versão
                       </Button>
-                      
+
                       <Button variant="outline" size="sm" disabled>
                         <RotateCcw className="mr-1 h-3 w-3" />
                         Rollback
@@ -1042,33 +1061,33 @@ export default function LPU() {
                       <div className="text-xs text-muted-foreground">Último ano</div>
                     </div>
                   </div>
-                  
+
                   <div className="space-y-3">
                     <div className="flex justify-between items-center">
                       <span className="text-sm">Materiais</span>
                       <div className="flex items-center space-x-2">
                         <div className="w-32 bg-gray-200 rounded-full h-2">
-                          <div className="bg-green-600 h-2 rounded-full" style={{width: '75%'}}></div>
+                          <div className="bg-green-600 h-2 rounded-full" style={{ width: '75%' }}></div>
                         </div>
                         <span className="text-sm font-medium">75%</span>
                       </div>
                     </div>
-                    
+
                     <div className="flex justify-between items-center">
                       <span className="text-sm">Serviços</span>
                       <div className="flex items-center space-x-2">
                         <div className="w-32 bg-gray-200 rounded-full h-2">
-                          <div className="bg-blue-600 h-2 rounded-full" style={{width: '60%'}}></div>
+                          <div className="bg-blue-600 h-2 rounded-full" style={{ width: '60%' }}></div>
                         </div>
                         <span className="text-sm font-medium">60%</span>
                       </div>
                     </div>
-                    
+
                     <div className="flex justify-between items-center">
                       <span className="text-sm">Mão de Obra</span>
                       <div className="flex items-center space-x-2">
                         <div className="w-32 bg-gray-200 rounded-full h-2">
-                          <div className="bg-purple-600 h-2 rounded-full" style={{width: '85%'}}></div>
+                          <div className="bg-purple-600 h-2 rounded-full" style={{ width: '85%' }}></div>
                         </div>
                         <span className="text-sm font-medium">85%</span>
                       </div>
@@ -1091,12 +1110,12 @@ export default function LPU() {
                   <BarChart3 className="h-6 w-6 mb-2" />
                   Relatório de Margens
                 </Button>
-                
+
                 <Button variant="outline" className="h-20 flex-col">
                   <TrendingUp className="h-6 w-6 mb-2" />
                   Análise de Tendências
                 </Button>
-                
+
                 <Button variant="outline" className="h-20 flex-col">
                   <Target className="h-6 w-6 mb-2" />
                   Performance por Cliente
@@ -1251,7 +1270,7 @@ export default function LPU() {
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir este {itemToDelete?.type === 'list' ? 'lista de preços' : 'regra de precificação'}? 
+              Tem certeza que deseja excluir este {itemToDelete?.type === 'list' ? 'lista de preços' : 'regra de precificação'}?
               Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -1302,7 +1321,7 @@ function PriceListForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Enhanced validation
     if (!formData.name.trim()) {
       toast({
@@ -1312,16 +1331,16 @@ function PriceListForm({
       });
       return;
     }
-    
+
     if (formData.validTo && new Date(formData.validTo) <= new Date(formData.validFrom)) {
       toast({
-        title: "Erro de Validação", 
+        title: "Erro de Validação",
         description: "Data de término deve ser posterior à data de início",
         variant: "destructive"
       });
       return;
     }
-    
+
     const submitData = {
       ...formData,
       customerCompanyId: formData.customerCompanyId === 'none' ? undefined : formData.customerCompanyId,
@@ -1729,7 +1748,7 @@ function PriceListItemsView({
                     {item.hourlyRate ? `${priceList.currency} ${Number(item.hourlyRate).toFixed(2)}/h` : '-'}
                   </TableCell>
                   <TableCell>
-                    <Badge 
+                    <Badge
                       variant={item.isActive ? "default" : "secondary"}
                       className={item.isActive ? "bg-green-500 text-white" : "bg-gray-400 text-white"}
                     >
@@ -1835,7 +1854,7 @@ function ApprovalWorkflowComponent({
           <h3 className="font-medium">Itens Pendentes de Aprovação</h3>
           <p className="text-sm text-muted-foreground">{pendingApprovals.length} itens aguardando aprovação</p>
         </div>
-        
+
         <div className="max-h-96 overflow-y-auto">
           {pendingApprovals.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
@@ -1883,9 +1902,9 @@ function ApprovalWorkflowComponent({
               placeholder="Adicione observações sobre a aprovação..."
             />
           </div>
-          
+
           <div className="flex space-x-2">
-            <Button 
+            <Button
               className="flex-1 bg-green-600 hover:bg-green-700"
               onClick={() => {
                 // Simulate approval
@@ -1897,13 +1916,13 @@ function ApprovalWorkflowComponent({
               <Check className="mr-2 h-4 w-4" />
               Aprovar Selecionados ({selectedForApproval.length})
             </Button>
-            
-            <Button 
+
+            <Button
               variant="destructive"
               onClick={() => {
-                toast({ 
+                toast({
                   title: `${selectedForApproval.length} item(s) rejeitado(s)`,
-                  variant: "destructive" 
+                  variant: "destructive"
                 });
                 setSelectedForApproval([]);
                 setApprovalNotes('');
@@ -1938,7 +1957,7 @@ function VersionHistoryComponent({
       <div className="text-center py-8">
         <History className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
         <p className="text-muted-foreground">Selecione uma lista de preços para ver o histórico</p>
-        <Button className="mt-4" onClick={onClose}>Fechar</Button>
+        <Button className="mt-4" onClick={onClose}> Fechar</Button>
       </div>
     );
   }
@@ -1990,7 +2009,7 @@ function VersionHistoryComponent({
                   {new Date(version.date).toLocaleString()}
                 </span>
               </div>
-              
+
               <div className="flex space-x-2">
                 {index === 0 && <Badge variant="default">Atual</Badge>}
                 {index > 0 && (
@@ -2001,9 +2020,9 @@ function VersionHistoryComponent({
                 )}
               </div>
             </div>
-            
+
             <p className="text-sm text-gray-700">{version.changes}</p>
-            
+
             {index < versionHistory.length - 1 && (
               <div className="flex justify-center mt-3">
                 <div className="w-px h-4 bg-gray-300"></div>
@@ -2158,7 +2177,7 @@ function PriceListItemForm({
 
         <div className="flex gap-2">
           {onCancel && (
-            <Button type="button" variant="outline" onClick={onCancel}>
+            <Button type="button" variant="outline" onClick={onClose}>
               Cancelar
             </Button>
           )}
