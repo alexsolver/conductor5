@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -196,7 +196,46 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                          Array.isArray(availableItemsData?.availableItems) ? availableItemsData.availableItems :
                          Array.isArray(availableItemsData) ? availableItemsData : [];
   const plannedMaterials = plannedData?.data?.plannedItems || [];
-  const consumedMaterials = consumedData?.data?.consumedItems || [];
+
+  // Process consumed materials data
+  const consumedMaterials = useMemo(() => {
+    if (!consumedData?.data?.consumedItems) return [];
+
+    return consumedData.data.consumedItems.map((item: any, index: number) => {
+      // Handle both nested and flat data structures
+      const consumedItem = item.ticket_consumed_items || item;
+      const itemData = item.items || item.item || {};
+
+      // Extract ID with multiple fallback options
+      const itemId = consumedItem.id || item.id || consumedItem.consumedItemId;
+
+      console.log('🔍 [CONSUMED-MAPPING] Processing item:', {
+        index,
+        itemId,
+        consumedItem: { id: consumedItem.id },
+        item: { id: item.id },
+        rawItem: item
+      });
+
+      return {
+        id: itemId,
+        consumedItemId: itemId, // Explicit consumed item ID
+        itemName: itemData.name || consumedItem.itemName || 'Item não encontrado',
+        itemType: itemData.type || consumedItem.itemType || 'Material',
+        quantityUsed: consumedItem.actualQuantity || consumedItem.quantityUsed || '0',
+        actualQuantity: consumedItem.actualQuantity || '0',
+        totalCost: consumedItem.totalCost || consumedItem.actualCost || '0',
+        actualCost: consumedItem.totalCost || '0',
+        createdAt: consumedItem.createdAt || consumedItem.consumedAt || new Date().toISOString(),
+        consumedAt: consumedItem.consumedAt || consumedItem.createdAt || new Date().toISOString(),
+        // Preserve original data for debugging
+        originalItem: item,
+        consumedItem,
+        itemData
+      };
+    });
+  }, [consumedData]);
+
   const costs = costsData?.data || {};
 
   // Enhanced error handling
@@ -481,7 +520,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                 ) : (
                   <div className="space-y-3">
                     {consumedMaterials.map((material: any, index: number) => (
-                      <div key={`consumed-${material.id}-${index}`} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div key={`consumed-${material.consumedItemId}-${index}`} className="flex items-center justify-between p-3 border rounded-lg">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
                             <p className="font-medium">{material.itemName}</p>
@@ -500,7 +539,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => deleteConsumedMutation.mutate(material.id)}
+                          onClick={() => deleteConsumedMutation.mutate(material.consumedItemId)}
                         >
                           <Trash2 className="h-4 w-4 text-red-500" />
                         </Button>
