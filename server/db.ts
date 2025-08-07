@@ -37,7 +37,15 @@ export const schemaManager = {
   },
 
   async getTenantDb(tenantId: string) {
-    return { db };
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    // Create a new database connection with the tenant schema as search path
+    const tenantPool = new Pool({ 
+      connectionString: process.env.DATABASE_URL,
+      // Set the schema search path to the tenant schema
+      options: `-c search_path=${schemaName}`
+    });
+    const tenantDb = drizzle({ client: tenantPool, schema });
+    return { db: tenantDb };
   },
 
   // Validate tenant schema has all required tables

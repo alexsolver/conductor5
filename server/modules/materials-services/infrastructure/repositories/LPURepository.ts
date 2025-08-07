@@ -10,7 +10,7 @@ import {
   type InsertPricingRule,
   type DynamicPricing,
   type InsertDynamicPricing
-} from '../../../../../shared/schema-master';
+} from '../../../../../shared/schema-materials-services';
 import { eq, and, desc, asc, gte, lte, sql, inArray } from 'drizzle-orm';
 
 export class LPURepository {
@@ -48,21 +48,22 @@ export class LPURepository {
   }
 
   async getLPUStats(tenantId: string) {
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
     const result = await this.db.execute(sql`
       WITH stats AS (
         SELECT
           COUNT(*) as total_lists,
           COUNT(*) FILTER (WHERE is_active = true) as active_lists,
           COUNT(*) FILTER (WHERE is_active = false) as draft_lists,
-          COUNT(*) FILTER (WHERE company_id IS NOT NULL) as pending_approval,
-          COUNT(*) FILTER (WHERE is_active = true AND company_id IS NOT NULL) as approved_versions,
+          COUNT(*) FILTER (WHERE customer_company_id IS NOT NULL) as pending_approval,
+          COUNT(*) FILTER (WHERE is_active = true AND customer_company_id IS NOT NULL) as approved_versions,
           0 as active_rules,
           CASE
-            WHEN COUNT(*) FILTER (WHERE company_id IS NOT NULL) > 0
-            THEN ROUND((COUNT(*) FILTER (WHERE is_active = true AND company_id IS NOT NULL)::numeric / COUNT(*) FILTER (WHERE company_id IS NOT NULL)::numeric) * 100, 2)
+            WHEN COUNT(*) FILTER (WHERE customer_company_id IS NOT NULL) > 0
+            THEN ROUND((COUNT(*) FILTER (WHERE is_active = true AND customer_company_id IS NOT NULL)::numeric / COUNT(*) FILTER (WHERE customer_company_id IS NOT NULL)::numeric) * 100, 2)
             ELSE 0
           END as approval_rate
-        FROM ${priceLists}
+        FROM ${sql.raw(`"${schemaName}".price_lists`)}
         WHERE tenant_id = ${tenantId}
       )
       SELECT * FROM stats
@@ -102,39 +103,42 @@ export class LPURepository {
         throw new Error('Database connection not available');
       }
 
-      console.log('🔍 LPURepository.getAllPriceLists: Executing query...');
+      console.log('🔍 LPURepository.getAllPriceLists: Executing raw SQL query...');
 
-      const result = await this.db
-        .select({
-          id: priceLists.id,
-          name: priceLists.name,
-          code: priceLists.code,
-          description: priceLists.description,
-          version: priceLists.version,
-          customerId: priceLists.customerId,
-          customerCompanyId: priceLists.customerCompanyId,
-          contractId: priceLists.contractId,
-          costCenterId: priceLists.costCenterId,
-          validFrom: priceLists.validFrom,
-          validTo: priceLists.validTo,
-          isActive: priceLists.isActive,
-          currency: priceLists.currency,
-          automaticMargin: priceLists.automaticMargin,
-          notes: priceLists.notes,
-          createdAt: priceLists.createdAt,
-          updatedAt: priceLists.updatedAt
-        })
-        .from(priceLists)
-        .where(eq(priceLists.tenantId, tenantId))
-        .orderBy(desc(priceLists.createdAt));
+      // Use raw SQL with explicit tenant schema
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      const result = await this.db.execute(sql`
+        SELECT 
+          id,
+          name,
+          code,
+          description,
+          version,
+          customer_id as "customerId",
+          customer_company_id as "customerCompanyId", 
+          contract_id as "contractId",
+          cost_center_id as "costCenterId",
+          valid_from as "validFrom",
+          valid_to as "validTo",
+          is_active as "isActive",
+          currency,
+          automatic_margin as "automaticMargin",
+          notes,
+          created_at as "createdAt",
+          updated_at as "updatedAt"
+        FROM ${sql.raw(`"${schemaName}".price_lists`)}
+        WHERE tenant_id = ${tenantId}
+        ORDER BY created_at DESC
+      `);
 
-      console.log('✅ LPURepository.getAllPriceLists: Query successful, found', result.length, 'price lists');
-      return result;
+      const priceListsData = result.rows || [];
+      console.log('✅ LPURepository.getAllPriceLists: Query successful, found', priceListsData.length, 'price lists');
+      return priceListsData;
 
     } catch (error) {
       console.error('❌ LPURepository.getAllPriceLists: Database error:', error);
-      console.error('❌ LPURepository.getAllPriceLists: Stack:', error.stack);
-      throw new Error(`Failed to fetch price lists: ${error.message}`);
+      console.error('❌ LPURepository.getAllPriceLists: Stack:', error instanceof Error ? error.stack : 'No stack trace');
+      throw new Error(`Failed to fetch price lists: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -292,32 +296,35 @@ export class LPURepository {
         throw new Error('Database connection not available');
       }
 
-      console.log('🔍 LPURepository.getAllPricingRules: Executing query...');
+      console.log('🔍 LPURepository.getAllPricingRules: Executing raw SQL query...');
 
-      const result = await this.db
-        .select({
-          id: pricingRules.id,
-          name: pricingRules.name,
-          description: pricingRules.description,
-          ruleType: pricingRules.ruleType,
-          conditions: pricingRules.conditions,
-          actions: pricingRules.actions,
-          priority: pricingRules.priority,
-          isActive: pricingRules.isActive,
-          createdAt: pricingRules.createdAt,
-          updatedAt: pricingRules.updatedAt
-        })
-        .from(pricingRules)
-        .where(eq(pricingRules.tenantId, tenantId))
-        .orderBy(desc(pricingRules.priority), desc(pricingRules.createdAt));
+      // Use raw SQL with explicit tenant schema
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      const result = await this.db.execute(sql`
+        SELECT 
+          id,
+          name,
+          description,
+          rule_type as "ruleType",
+          conditions,
+          actions,
+          priority,
+          is_active as "isActive",
+          created_at as "createdAt",
+          updated_at as "updatedAt"
+        FROM ${sql.raw(`"${schemaName}".pricing_rules`)}
+        WHERE tenant_id = ${tenantId}
+        ORDER BY priority DESC, created_at DESC
+      `);
 
-      console.log('✅ LPURepository.getAllPricingRules: Query successful, found', result.length, 'pricing rules');
-      return result;
+      const pricingRulesData = result.rows || [];
+      console.log('✅ LPURepository.getAllPricingRules: Query successful, found', pricingRulesData.length, 'pricing rules');
+      return pricingRulesData;
 
     } catch (error) {
       console.error('❌ LPURepository.getAllPricingRules: Database error:', error);
-      console.error('❌ LPURepository.getAllPricingRules: Stack:', error.stack);
-      throw new Error(`Failed to fetch pricing rules: ${error.message}`);
+      console.error('❌ LPURepository.getAllPricingRules: Stack:', error instanceof Error ? error.stack : 'No stack trace');
+      throw new Error(`Failed to fetch pricing rules: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 

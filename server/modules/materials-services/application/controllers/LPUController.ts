@@ -58,10 +58,10 @@ export class LPUController {
       });
     } catch (error) {
       console.error('❌ LPUController.getAllPriceLists: Error:', error);
-      console.error('❌ LPUController.getAllPriceLists: Stack:', error?.stack);
+      console.error('❌ LPUController.getAllPriceLists: Stack:', error instanceof Error ? error.stack : 'No stack trace');
       res.status(500).json({ 
         error: 'Erro interno do servidor', 
-        details: error?.message || 'Erro desconhecido',
+        details: error instanceof Error ? error.message : 'Erro desconhecido',
         success: false
       });
     }
