@@ -12,7 +12,7 @@ import {
   type InsertDynamicPricing
 } from '../../../../../shared/schema-materials-services';
 import { eq, and, desc, asc, gte, lte, sql, inArray } from 'drizzle-orm';
-import { generateUUID } from '../../../../../shared/utils'; // Assuming generateUUID is available
+import { randomUUID } from 'crypto';
 
 export class LPURepository {
   private db: any;
@@ -329,7 +329,7 @@ export class LPURepository {
   }
 
   async addPriceListItem(data: any): Promise<any> {
-    const itemId = generateUUID();
+    const itemId = randomUUID();
 
     // Ensure price_list_id is provided
     if (!data.priceListId) {
