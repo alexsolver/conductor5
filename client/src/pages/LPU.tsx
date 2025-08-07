@@ -442,7 +442,7 @@ export default function LPU() {
 
         <TabsContent value="overview" className="space-y-4">
           {/* Statistics Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Total de Listas</CardTitle>
@@ -511,22 +511,22 @@ export default function LPU() {
               <CardDescription>Operações comuns do sistema LPU</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <Button onClick={() => setIsCreateDialogOpen(true)} className="h-20 flex-col">
                   <Plus className="h-6 w-6 mb-2" />
-                  Nova Lista
+                  Nova Lista de Preços
                 </Button>
                 <Button onClick={() => setIsCreateRuleDialogOpen(true)} variant="outline" className="h-20 flex-col">
                   <Settings className="h-6 w-6 mb-2" />
-                  Nova Regra
+                  Nova Regra de Precificação
                 </Button>
                 <Button onClick={() => setActiveTab("associations")} variant="outline" className="h-20 flex-col">
                   <Calculator className="h-6 w-6 mb-2" />
-                  Aplicar Regras
+                  Aplicar Regras Automaticamente
                 </Button>
                 <Button onClick={() => setActiveTab("analytics")} variant="outline" className="h-20 flex-col">
                   <BarChart3 className="h-6 w-6 mb-2" />
-                  Relatórios
+                  Análises e Relatórios
                 </Button>
               </div>
             </CardContent>
