@@ -373,6 +373,7 @@ export class TicketMaterialsController {
         actualQuantity,
         plannedQuantity,
         unitPriceAtConsumption,
+        lpuId,
         consumptionType,
         notes,
         batchNumber,
@@ -382,7 +383,23 @@ export class TicketMaterialsController {
       const tenantId = req.user?.tenantId;
       const userId = req.user?.id;
 
-      if (!tenantId || !ticketId || !itemId || !actualQuantity || !unitPriceAtConsumption) {
+      console.log('🔍 [ADD-CONSUMED] Request data:', {
+        ticketId,
+        body: req.body,
+        tenantId,
+        userId,
+        requiredFields: { itemId, actualQuantity, unitPriceAtConsumption, lpuId }
+      });
+
+      if (!tenantId || !ticketId || !itemId || !actualQuantity || unitPriceAtConsumption === undefined || unitPriceAtConsumption === null) {
+        console.log('❌ [ADD-CONSUMED] Missing fields check:', {
+          tenantId: !!tenantId,
+          ticketId: !!ticketId,
+          itemId: !!itemId,
+          actualQuantity: !!actualQuantity,
+          unitPriceAtConsumption: !!unitPriceAtConsumption,
+          lpuId: !!lpuId
+        });
         return sendError(res, 'Missing required fields', 'Missing required fields', 400);
       }
 
@@ -397,9 +414,10 @@ export class TicketMaterialsController {
           plannedItemId,
           actualQuantity: actualQuantity.toString(),
           plannedQuantity: plannedQuantity?.toString() || '0',
+          lpuId: lpuId || '00000000-0000-0000-0000-000000000001', // Default LPU if not provided
           unitPriceAtConsumption: unitPriceAtConsumption.toString(),
           totalCost: totalCost.toString(),
-          consumptionType: consumptionType || 'direct',
+          consumptionType: consumptionType || 'used',
           consumedById: userId,
           consumedAt: new Date(),
           status: 'consumed',

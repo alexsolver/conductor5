@@ -130,10 +130,13 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
       const selectedItemData = availableItems.find((item: any) => item.itemId === data.itemId);
       if (!selectedItemData) throw new Error('Item not found in available items');
 
+      console.log('🔍 [CONSUMED] Selected item data:', selectedItemData);
+
       const requestData = {
         itemId: data.itemId,
         plannedItemId: selectedItemData.plannedItemId || selectedItemData.id, // Include planned item ID
         actualQuantity: data.quantityUsed,
+        plannedQuantity: selectedItemData.plannedQuantity || 0,
         lpuId: selectedItemData.lpuId || '00000000-0000-0000-0000-000000000001', // Use LPU from planned item
         unitPriceAtConsumption: parseFloat(selectedItemData.unitPriceAtPlanning || selectedItemData.unitCost || '0'), // Ensure numeric value
         consumptionType: 'used',
