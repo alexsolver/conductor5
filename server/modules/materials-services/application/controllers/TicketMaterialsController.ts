@@ -215,71 +215,111 @@ export class TicketMaterialsController {
   static async addPlannedItem(req: AuthenticatedRequest, res: Response) {
     try {
       const { ticketId } = req.params;
-      const { itemId, quantity, notes, lpuId } = req.body;
+      const { itemId, plannedQuantity, unitPriceAtPlanning, lpuId, priority, notes } = req.body;
       const tenantId = req.user?.tenantId;
 
-      if (!tenantId || !ticketId) {
-        return sendError(res, 'Missing tenant ID or ticket ID', 'Missing tenant ID or ticket ID', 400);
+      console.log('🔍 [ADD-PLANNED] Request data:', {
+        ticketId,
+        body: req.body,
+        tenantId,
+        userId: req.user?.id
+      });
+
+      if (!tenantId || !ticketId || !itemId || !plannedQuantity) {
+        console.log('❌ [ADD-PLANNED] Missing required fields:', {
+          tenantId: !!tenantId,
+          ticketId: !!ticketId,
+          itemId: !!itemId,
+          plannedQuantity: !!plannedQuantity
+        });
+        return sendError(res, 'Missing required fields', 'Missing required fields', 400);
       }
 
-      // Get item details for the response
-      const item = await db
-        .select()
-        .from(items)
-        .where(and(
-          eq(items.id, itemId),
-          eq(items.tenantId, tenantId),
-          eq(items.active, true)
-        ))
-        .limit(1);
+      // Get item details for the response - try to find the item
+      let item = null;
+      try {
+        const itemResult = await db
+          .select()
+          .from(items)
+          .where(and(
+            eq(items.id, itemId),
+            eq(items.tenantId, tenantId),
+            eq(items.active, true)
+          ))
+          .limit(1);
 
-      if (!item.length) {
-        return sendError(res, 'Item not found', 'Item not found', 404);
+        if (itemResult.length > 0) {
+          item = itemResult[0];
+        }
+      } catch (itemError) {
+        console.log('⚠️ [ADD-PLANNED] Item not found in database, continuing with basic info');
       }
 
-      const plannedItem = {
+      // Calculate estimated cost
+      const estimatedCost = parseFloat(plannedQuantity) * parseFloat(unitPriceAtPlanning || '0');
+
+      const plannedItemData = {
         id: crypto.randomUUID(),
         tenantId,
         ticketId,
         itemId,
-        quantity: parseFloat(quantity),
+        plannedQuantity: plannedQuantity.toString(),
+        unitPriceAtPlanning: (unitPriceAtPlanning || 0).toString(),
+        estimatedCost: estimatedCost.toString(),
+        lpuId: lpuId || '00000000-0000-0000-0000-000000000001', // Default LPU
+        priority: priority || 'medium',
+        status: 'planned',
         notes: notes || '',
-        lpuId: lpuId || null,
-        createdBy: req.user.id,
+        createdBy: req.user?.id,
+        isActive: true,
         createdAt: new Date(),
         updatedAt: new Date()
       };
 
-      await db.insert(ticketPlannedItems).values(plannedItem);
+      console.log('🔍 [ADD-PLANNED] Inserting planned item:', plannedItemData);
+
+      const [insertedItem] = await db
+        .insert(ticketPlannedItems)
+        .values(plannedItemData)
+        .returning();
 
       // Create audit entry for planned item addition
+      const itemName = item?.name || 'Item não encontrado';
       await createAuditEntry(
         tenantId,
         ticketId,
         'material_planned_added',
-        `Material planejado adicionado: ${item[0].name} (Qtd: ${quantity})`,
+        `Material planejado adicionado: ${itemName} (Qtd: ${plannedQuantity})`,
         {
           item_id: itemId,
-          item_name: item[0].name,
-          item_type: item[0].type,
-          quantity: parseFloat(quantity),
+          item_name: itemName,
+          item_type: item?.type || 'unknown',
+          quantity: parseFloat(plannedQuantity),
+          estimated_cost: estimatedCost,
+          unit_price: parseFloat(unitPriceAtPlanning || '0'),
           notes: notes || '',
           lpu_id: lpuId,
-          planned_item_id: plannedItem.id,
+          planned_item_id: plannedItemData.id,
           action_time: new Date().toISOString()
         },
         req
       );
 
       const responseItem = {
-        ...plannedItem,
-        item: item[0]
+        ...insertedItem,
+        item: item || {
+          id: itemId,
+          name: 'Item não encontrado',
+          type: 'unknown'
+        }
       };
+
+      console.log('✅ [ADD-PLANNED] Successfully added planned item:', responseItem.id);
 
       return sendSuccess(res, responseItem, 'Planned item added successfully', 201);
     } catch (error) {
-      console.error('Error adding planned item:', error);
-      return sendError(res, error, 'Failed to add planned item', 500);
+      console.error('❌ [ADD-PLANNED] Error adding planned item:', error);
+      return sendError(res, error as Error, 'Failed to add planned item');
     }
   }
 

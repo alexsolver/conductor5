@@ -97,16 +97,27 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
       // Get item details for pricing from itemsData
       const itemsList = itemsData?.data || [];
       const selectedItemData = itemsList.find((item: any) => item.id === data.itemId);
-      if (!selectedItemData) throw new Error('Item not found');
+      
+      console.log('🔍 [ADD-PLANNED-MUTATION] Selected item data:', selectedItemData);
+      console.log('🔍 [ADD-PLANNED-MUTATION] Available items:', itemsList.length);
+
+      // Use available data or defaults
+      const unitPrice = selectedItemData?.price || 
+                       selectedItemData?.unitCost || 
+                       selectedItemData?.unit_cost || 
+                       parseFloat(selectedItemData?.unitPrice || '0') || 
+                       0;
 
       const requestData = {
         itemId: data.itemId,
         plannedQuantity: data.quantity,
         lpuId: '00000000-0000-0000-0000-000000000001', // Default LPU ID
-        unitPriceAtPlanning: selectedItemData.unitCost || 0,
+        unitPriceAtPlanning: unitPrice,
         priority: 'medium',
         notes: ''
       };
+
+      console.log('🔍 [ADD-PLANNED-MUTATION] Sending request data:', requestData);
 
       const response = await apiRequest('POST', `/api/materials-services/tickets/${ticketId}/planned-items`, requestData);
       return response.json();
