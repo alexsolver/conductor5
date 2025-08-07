@@ -203,27 +203,49 @@ export class TicketMaterialsController {
 
       console.log(`🔍 [GET-PLANNED-FIXED] Found ${plannedItemsQuery.length} planned items`);
 
-      // For each planned item, get the item data and LPU pricing
+      // Get all item IDs from planned items
+      const itemIds = plannedItemsQuery.map(item => item.itemId).filter(Boolean);
+      console.log(`🔍 [GET-PLANNED-ITEMS] Looking up ${itemIds.length} item IDs`);
+      
+      // Get all items in one query
+      const itemsMap = new Map();
+      if (itemIds.length > 0) {
+        try {
+          const { pool } = await import('../../../../db');
+          const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+          
+          const placeholders = itemIds.map((_, i) => `$${i + 1}`).join(', ');
+          const itemsResult = await pool.query(`
+            SELECT id, tenant_id, name, type, description, measurement_unit, status, created_at, updated_at
+            FROM "${schemaName}".items
+            WHERE id IN (${placeholders}) AND tenant_id = $${itemIds.length + 1}
+          `, [...itemIds, tenantId]);
+          
+          console.log(`✅ [GET-PLANNED-ITEMS] Found ${itemsResult.rows.length} items`);
+          
+          // Create a map for quick lookup
+          itemsResult.rows.forEach(row => {
+            itemsMap.set(row.id, {
+              id: row.id,
+              tenantId: row.tenant_id,
+              name: row.name,
+              type: row.type,
+              description: row.description,
+              measurementUnit: row.measurement_unit,
+              status: row.status,
+              createdAt: row.created_at,
+              updatedAt: row.updated_at
+            });
+          });
+        } catch (itemError) {
+          console.log('⚠️ [GET-PLANNED-ITEMS] Error fetching items:', itemError);
+        }
+      }
+
+      // For each planned item, get LPU pricing and match with item data
       const plannedItemsWithPricing = await Promise.all(
         plannedItemsQuery.map(async (plannedItem: any) => {
-          // Get item data separately
-          let itemData = null;
-          if (plannedItem.itemId) {
-            try {
-              const itemQuery = await db
-                .select()
-                .from(items)
-                .where(and(
-                  eq(items.id, plannedItem.itemId),
-                  eq(items.tenantId, tenantId)
-                ))
-                .limit(1);
-              
-              itemData = itemQuery.length > 0 ? itemQuery[0] : null;
-            } catch (itemError) {
-              console.log('⚠️ [GET-PLANNED] Error fetching item data:', itemError);
-            }
-          }
+          const itemData = itemsMap.get(plannedItem.itemId) || null;
           
           let effectivePrice = parseFloat(plannedItem.unitPriceAtPlanning || '0');
           let lpuUnitPrice = null;
