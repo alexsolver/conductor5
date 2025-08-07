@@ -207,9 +207,33 @@ export class LPURepository {
   async updatePriceList(id: string, tenantId: string, data: any) {
     // Invalidate cache for the tenant when a price list is updated
     await this.invalidateCache(tenantId, 'price-lists');
+    
+    // Build update object with only valid fields, handling timestamps properly
+    const updateData: any = {
+      updatedAt: new Date()
+    };
+
+    // Safely add fields that exist in the schema
+    const validFields = ['name', 'code', 'description', 'version', 'customerId', 'customerCompanyId', 
+                        'contractId', 'costCenterId', 'isActive', 'currency', 'automaticMargin', 'notes', 'updatedBy'];
+    
+    validFields.forEach(field => {
+      if (data[field] !== undefined) {
+        updateData[field] = data[field];
+      }
+    });
+
+    // Handle timestamp fields specially
+    if (data.validFrom) {
+      updateData.validFrom = data.validFrom instanceof Date ? data.validFrom : new Date(data.validFrom);
+    }
+    if (data.validTo) {
+      updateData.validTo = data.validTo instanceof Date ? data.validTo : new Date(data.validTo);
+    }
+
     const [priceList] = await this.db
       .update(priceLists)
-      .set({ ...data, updatedAt: new Date() })
+      .set(updateData)
       .where(and(eq(priceLists.id, id), eq(priceLists.tenantId, tenantId)))
       .returning();
     return priceList;

@@ -127,10 +127,21 @@ export class LPUController {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
 
+      // Handle date conversion properly - avoid timestamp issues
       const updateData = {
         ...req.body,
-        updatedBy: req.user?.id
+        updatedBy: req.user?.id,
+        // Convert date fields properly if they exist
+        validFrom: req.body.validFrom ? new Date(req.body.validFrom) : undefined,
+        validTo: req.body.validTo ? new Date(req.body.validTo) : undefined
       };
+
+      // Remove undefined values to avoid Drizzle issues
+      Object.keys(updateData).forEach(key => {
+        if (updateData[key] === undefined) {
+          delete updateData[key];
+        }
+      });
 
       const priceList = await this.repository.updatePriceList(id, tenantId, updateData);
       if (!priceList) {
