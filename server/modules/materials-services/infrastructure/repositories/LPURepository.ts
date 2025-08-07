@@ -5,6 +5,7 @@ import {
   priceListVersions,
   pricingRules,
   dynamicPricing,
+  items,
   type PriceList,
   type PricingRule,
   type InsertPricingRule,
@@ -349,16 +350,37 @@ export class LPURepository {
 
   // ITENS DA LISTA DE PREÇOS
   async getPriceListItems(priceListId: string, tenantId: string) {
-    const items = await this.db
-      .select()
+    const priceListItemsWithNames = await this.db
+      .select({
+        // Price List Item fields
+        id: priceListItems.id,
+        tenantId: priceListItems.tenantId,
+        priceListId: priceListItems.priceListId,
+        itemId: priceListItems.itemId,
+        serviceTypeId: priceListItems.serviceTypeId,
+        unitPrice: priceListItems.unitPrice,
+        specialPrice: priceListItems.specialPrice,
+        scaleDiscounts: priceListItems.scaleDiscounts,
+        hourlyRate: priceListItems.hourlyRate,
+        travelCost: priceListItems.travelCost,
+        isActive: priceListItems.isActive,
+        createdAt: priceListItems.createdAt,
+        updatedAt: priceListItems.updatedAt,
+        // Item fields
+        itemName: items.name,
+        itemType: items.type,
+        itemDescription: items.description,
+        measurementUnit: items.measurementUnit
+      })
       .from(priceListItems)
+      .leftJoin(items, eq(priceListItems.itemId, items.id))
       .where(and(
         eq(priceListItems.priceListId, priceListId),
         eq(priceListItems.tenantId, tenantId)
       ))
       .orderBy(asc(priceListItems.createdAt));
     
-    return items;
+    return priceListItemsWithNames;
   }
 
   async getPriceListItemById(id: string): Promise<any> {
