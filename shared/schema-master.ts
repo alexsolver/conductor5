@@ -2396,50 +2396,55 @@ export type ComplianceScore = typeof complianceScores.$inferSelect;
 export type InsertComplianceScore = typeof complianceScores.$insert;
 
 // Zod schemas para validação
-export const insertTicketListViewSchema = createInsertSchema(ticketListViews).extend({
-  name: z.string().min(1, "Nome da visualização é obrigatório"),
-  columns: z.array(z.object({
-    id: z.string(),
-    label: z.string(),
-    visible: z.boolean(),
-    order: z.number(),
-    width: z.number().optional(),
-  })),
-  filters: z.array(z.object({
-    column: z.string(),
-    operator: z.string(),
-    value: z.any(),
-  })).optional(),
-  sorting: z.array(z.object({
-    column: z.string(),
-    direction: z.enum(['asc', 'desc']),
-  })).optional(),
-}).omit({ id: true, createdAt: true, updatedAt: true });
+// TODO: Define ticketListViews table first
+// export const insertTicketListViewSchema = createInsertSchema(ticketListViews).extend({
+//   name: z.string().min(1, "Nome da visualização é obrigatório"),
+//   columns: z.array(z.object({
+//     id: z.string(),
+//     label: z.string(),
+//     visible: z.boolean(),
+//     order: z.number(),
+//     width: z.number().optional(),
+//   })),
+//   filters: z.array(z.object({
+//     column: z.string(),
+//     operator: z.string(),
+//     value: z.any(),
+//   })).optional(),
+//   sorting: z.array(z.object({
+//     column: z.string(),
+//     direction: z.enum(['asc', 'desc']),
+//   })).optional(),
+// }).omit({ id: true, createdAt: true, updatedAt: true });
 
-export const insertTicketViewShareSchema = createInsertSchema(ticketViewShares);
-export const insertUserViewPreferenceSchema = createInsertSchema(userViewPreferences);
+// TODO: Define tables first before creating schemas
+// export const insertTicketViewShareSchema = createInsertSchema(ticketViewShares);
+// export const insertUserViewPreferenceSchema = createInsertSchema(userViewPreferences);
 
+// TODO: Define customerItemMappings table first
 // Customer Item Mappings validation schema
-export const insertCustomerItemMappingSchema = createInsertSchema(customerItemMappings).extend({
-  customSku: z.string().min(1, "SKU personalizado é obrigatório").optional(),
-  customName: z.string().min(1, "Nome personalizado deve ter pelo menos 1 caractere").optional(),
-  leadTimeDays: z.number().int().min(0, "Dias de entrega deve ser positivo").optional(),
-}).omit({ id: true, createdAt: true, updatedAt: true });
+// export const insertCustomerItemMappingSchema = createInsertSchema(customerItemMappings).extend({
+//   customSku: z.string().min(1, "SKU personalizado é obrigatório").optional(),
+//   customName: z.string().min(1, "Nome personalizado deve ter pelo menos 1 caractere").optional(),
+//   leadTimeDays: z.number().int().min(0, "Dias de entrega deve ser positivo").optional(),
+// }).omit({ id: true, createdAt: true, updatedAt: true });
 
+// TODO: Define itemSupplierLinks table first
 // Item Supplier Links validation schema
-export const insertItemSupplierLinkSchema = createInsertSchema(itemSupplierLinks).extend({
-  partNumber: z.string().min(1, "Part number é obrigatório").optional(),
-  supplierItemName: z.string().min(1, "Nome do fornecedor deve ter pelo menos 1 caractere").optional(),
-  unitPrice: z.number().min(0, "Preço deve ser positivo").optional(),
-  leadTimeDays: z.number().int().min(0, "Prazo de entrega deve ser positivo").optional(),
-  minimumOrderQuantity: z.number().int().min(1, "Quantidade mínima deve ser pelo menos 1").optional(),
-}).omit({ id: true, createdAt: true, updatedAt: true, lastPriceUpdate: true });
+// export const insertItemSupplierLinkSchema = createInsertSchema(itemSupplierLinks).extend({
+//   partNumber: z.string().min(1, "Part number é obrigatório").optional(),
+//   supplierItemName: z.string().min(1, "Nome do fornecedor deve ter pelo menos 1 caractere").optional(),
+//   unitPrice: z.number().min(0, "Preço deve ser positivo").optional(),
+//   leadTimeDays: z.number().int().min(0, "Prazo de entrega deve ser positivo").optional(),
+//   minimumOrderQuantity: z.number().int().min(1, "Quantidade mínima deve ser pelo menos 1").optional(),
+// }).omit({ id: true, createdAt: true, updatedAt: true, lastPriceUpdate: true });
 
+// TODO: Define tables first before creating type mappings
 // Select types for enhanced tables
-export type CustomerItemMapping = typeof customerItemMappings.$inferSelect;
-export type InsertCustomerItemMapping = z.infer<typeof insertCustomerItemMappingSchema>;
-export type ItemSupplierLink = typeof itemSupplierLinks.$inferSelect;
-export type InsertItemSupplierLink = z.infer<typeof insertItemSupplierLinkSchema>;
+// export type CustomerItemMapping = typeof customerItemMappings.$inferSelect;
+// export type InsertCustomerItemMapping = z.infer<typeof insertCustomerItemMappingSchema>;
+// export type ItemSupplierLink = typeof itemSupplierLinks.$inferSelect;
+// export type InsertItemSupplierLink = z.infer<typeof insertItemSupplierLinkSchema>;
 
 // Ticket Materials types
 export type TicketLpuSetting = typeof ticketLpuSettings.$inferSelect;
