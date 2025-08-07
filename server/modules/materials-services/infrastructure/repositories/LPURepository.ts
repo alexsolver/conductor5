@@ -49,6 +49,10 @@ export class LPURepository {
 
   async getLPUStats(tenantId: string) {
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    
+    // Set search path and execute query
+    await this.db.execute(sql.raw(`SET search_path TO "${schemaName}"`));
+    
     const result = await this.db.execute(sql`
       WITH stats AS (
         SELECT
@@ -63,7 +67,7 @@ export class LPURepository {
             THEN ROUND((COUNT(*) FILTER (WHERE is_active = true AND customer_company_id IS NOT NULL)::numeric / COUNT(*) FILTER (WHERE customer_company_id IS NOT NULL)::numeric) * 100, 2)
             ELSE 0
           END as approval_rate
-        FROM ${sql.raw(`"${schemaName}".price_lists`)}
+        FROM price_lists
         WHERE tenant_id = ${tenantId}
       )
       SELECT * FROM stats
@@ -105,28 +109,29 @@ export class LPURepository {
 
       console.log('🔍 LPURepository.getAllPriceLists: Executing raw SQL query...');
 
-      // Use raw SQL with explicit tenant schema
+      // Use the working approach from the other methods
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      await this.db.execute(sql.raw(`SET search_path TO "${schemaName}"`));
+      
       const result = await this.db.execute(sql`
         SELECT 
-          id,
+          id::text,
           name,
           code,
-          description,
           version,
-          customer_id as "customerId",
-          customer_company_id as "customerCompanyId", 
-          contract_id as "contractId",
-          cost_center_id as "costCenterId",
-          valid_from as "validFrom",
-          valid_to as "validTo",
+          customer_id::text as "customerId",
+          customer_company_id::text as "customerCompanyId", 
+          contract_id::text as "contractId",
+          cost_center_id::text as "costCenterId",
+          valid_from,
+          valid_to,
           is_active as "isActive",
           currency,
           automatic_margin as "automaticMargin",
           notes,
           created_at as "createdAt",
           updated_at as "updatedAt"
-        FROM ${sql.raw(`"${schemaName}".price_lists`)}
+        FROM price_lists
         WHERE tenant_id = ${tenantId}
         ORDER BY created_at DESC
       `);
@@ -298,8 +303,10 @@ export class LPURepository {
 
       console.log('🔍 LPURepository.getAllPricingRules: Executing raw SQL query...');
 
-      // Use raw SQL with explicit tenant schema
+      // Set search path and execute query
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      await this.db.execute(sql.raw(`SET search_path TO "${schemaName}"`));
+      
       const result = await this.db.execute(sql`
         SELECT 
           id,
@@ -312,7 +319,7 @@ export class LPURepository {
           is_active as "isActive",
           created_at as "createdAt",
           updated_at as "updatedAt"
-        FROM ${sql.raw(`"${schemaName}".pricing_rules`)}
+        FROM pricing_rules
         WHERE tenant_id = ${tenantId}
         ORDER BY priority DESC, created_at DESC
       `);
