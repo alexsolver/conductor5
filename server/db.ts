@@ -115,7 +115,7 @@ export const schemaManager = {
       console.log(`✅ Tenant schema validated for ${tenantId}: ${tableCount} tables (${coreTableCount}/12 core tables, ${softDeleteCoverage}/4 soft-delete) - ${isValid ? 'VALID' : 'INVALID'}`);
       
       if (!isValid) {
-        console.log(`📋 Missing core tables: ${['users', 'customers', 'tickets', 'companies', 'locations', 'items', 'suppliers', 'price_lists', 'pricing_rules', 'ticket_planned_items', 'ticket_consumed_items', 'user_groups'].filter(t => !coreTables.includes(t))}`);
+        console.log(`📋 Missing core tables: ${['customers', 'tickets', 'companies', 'locations', 'items', 'price_lists', 'ticket_planned_items', 'ticket_consumed_items', 'user_groups'].filter(t => !coreTables.includes(t))}`);
       }
       
       return isValid;

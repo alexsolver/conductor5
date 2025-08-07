@@ -1,0 +1,42 @@
+✅ Tenant schema validated for 715c510a-3db5-4510-880a-9a1a5c320100: 71 tables (11/12 core tables, 0/4 soft-delete) - INVALID
+📋 Missing core tables: 
+23:39:58 [warn]: Schema validation failed for tenant 715c510a-3db5-4510-880a-9a1a5c320100, attempting auto-heal
+{
+  "context": {}
+}
+✅ Tenant tables validation for 715c510a-3db5-4510-880a-9a1a5c320100 - using existing tables
+✅ Tenant schema validated for 715c510a-3db5-4510-880a-9a1a5c320100: 71 tables (11/12 core tables, 0/4 soft-delete) - INVALID
+📋 Missing core tables: 
+23:39:58 [warn]: ⚠️ Tenant 715c510a-3db5-4510-880a-9a1a5c320100 has basic functionality but may be missing some advanced tables
+✅ Tenant schema validated for 78a4c88e-0e85-4f7c-ad92-f472dad50d7a: 68 tables (11/12 core tables, 0/4 soft-delete) - INVALID
+📋 Missing core tables: 
+23:39:58 [warn]: Schema validation failed for tenant 78a4c88e-0e85-4f7c-ad92-f472dad50d7a, attempting auto-heal
+{
+  "context": {}
+}
+✅ Tenant tables validation for 78a4c88e-0e85-4f7c-ad92-f472dad50d7a - using existing tables
+✅ Tenant schema validated for 78a4c88e-0e85-4f7c-ad92-f472dad50d7a: 68 tables (11/12 core tables, 0/4 soft-delete) - INVALID
+📋 Missing core tables: 
+23:39:58 [warn]: ⚠️ Tenant 78a4c88e-0e85-4f7c-ad92-f472dad50d7a has basic functionality but may be missing some advanced tables
+✅ Tenant schema validated for cb9056df-d964-43d7-8fd8-b0cc00a72056: 68 tables (11/12 core tables, 0/4 soft-delete) - INVALID
+📋 Missing core tables: 
+23:39:59 [warn]: Schema validation failed for tenant cb9056df-d964-43d7-8fd8-b0cc00a72056, attempting auto-heal
+{
+  "context": {}
+}
+✅ Tenant tables validation for cb9056df-d964-43d7-8fd8-b0cc00a72056 - using existing tables
+✅ Tenant schema validated for cb9056df-d964-43d7-8fd8-b0cc00a72056: 68 tables (11/12 core tables, 0/4 soft-delete) - INVALID
+📋 Missing core tables: 
+23:39:59 [warn]: ⚠️ Tenant cb9056df-d964-43d7-8fd8-b0cc00a72056 has basic functionality but may be missing some advanced tables
+✅ Tenant schema validated for 3f99462f-3621-4b1b-bea8-782acc50d62e: 116 tables (10/12 core tables, 4/4 soft-delete) - VALID
+23:39:59 [info]: Schema validated for tenant: 3f99462f-3621-4b1b-bea8-782acc50d62e
+23:39:59 [info]: Tenant schema validation completed
+✅ Tenant schema validated for 715c510a-3db5-4510-880a-9a1a5c320100: 71 tables (11/12 core tables, 0/4 soft-delete) - INVALID
+📋 Missing core tables: 
+23:40:00 [warn]: Health check: Tenant schema 715c510a-3db5-4510-880a-9a1a5c320100 needs attention, attempting auto-correction...
+✅ Tenant schema creation for 715c510a-3db5-4510-880a-9a1a5c320100 - using existing schema
+✅ Tenant schema validated for 715c510a-3db5-4510-880a-9a1a5c320100: 71 tables (11/12 core tables, 0/4 soft-delete) - INVALID
+📋 Missing core tables: 
+23:40:01 [warn]: Health check: Auto-correction completed, but some advanced tables may be missing for tenant 715c510a-3db5-4510-880a-9a1a5c320100
+23:40:01 [info]: All health checks passed
+23:40:01 [info]: Production initialization completed successfully
