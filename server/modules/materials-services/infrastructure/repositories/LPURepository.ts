@@ -49,10 +49,10 @@ export class LPURepository {
 
   async getLPUStats(tenantId: string) {
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-    
+
     // Set search path and execute query
     await this.db.execute(sql.raw(`SET search_path TO "${schemaName}"`));
-    
+
     const result = await this.db.execute(sql`
       WITH stats AS (
         SELECT
@@ -107,38 +107,68 @@ export class LPURepository {
         throw new Error('Database connection not available');
       }
 
-      console.log('🔍 LPURepository.getAllPriceLists: Executing raw SQL query...');
+      const { queryCache } = await import('../../../database/IntelligentCacheManager');
+      const cacheKey = `price-lists-${tenantId}`;
 
-      // Use the working approach from the other methods
+      // Check cache first
+      const cachedPriceLists = queryCache.get(cacheKey);
+      if (cachedPriceLists) {
+        console.log(`📈 [LPURepository] Cache hit for price lists: ${tenantId}`);
+        return cachedPriceLists;
+      }
+
+      console.log('🔍 LPURepository.getAllPriceLists: Cache miss, executing optimized query...');
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-      await this.db.execute(sql.raw(`SET search_path TO "${schemaName}"`));
-      
-      const result = await this.db.execute(sql`
-        SELECT 
-          id::text,
-          name,
-          code,
-          version,
-          customer_id::text as "customerId",
-          customer_company_id::text as "customerCompanyId", 
-          contract_id::text as "contractId",
-          cost_center_id::text as "costCenterId",
-          valid_from,
-          valid_to,
-          is_active as "isActive",
-          currency,
-          automatic_margin as "automaticMargin",
-          notes,
-          created_at as "createdAt",
-          updated_at as "updatedAt"
-        FROM price_lists
-        WHERE tenant_id = ${tenantId}
-        ORDER BY created_at DESC
-      `);
 
-      const priceListsData = result.rows || [];
-      console.log('✅ LPURepository.getAllPriceLists: Query successful, found', priceListsData.length, 'price lists');
-      return priceListsData;
+      // Set search path to tenant schema
+      await this.db.execute(sql.raw(`SET search_path TO "${schemaName}"`));
+
+      const startTime = Date.now();
+      const result = await Promise.race([
+        this.db.execute(sql`
+          SELECT 
+            pl.id,
+            pl.tenant_id,
+            pl.list_name as name,
+            pl.description,
+            pl.version,
+            pl.application_type,
+            pl.customer_company_id,
+            pl.contract_id,
+            pl.region,
+            pl.valid_from,
+            pl.valid_to,
+            pl.is_active,
+            pl.auto_apply_to_orders,
+            pl.auto_apply_to_quotes,
+            pl.created_at,
+            pl.updated_at,
+            pl.created_by_id,
+            cc.company_name as customer_company_name
+          FROM price_lists pl
+          LEFT JOIN customer_companies cc 
+            ON pl.customer_company_id = cc.id
+          WHERE pl.tenant_id = ${tenantId}
+          ORDER BY pl.created_at DESC
+          LIMIT 50
+        `),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Query timeout')), 8000)
+        )
+      ]);
+
+      const queryTime = Date.now() - startTime;
+      console.log(`⚡ [LPURepository] Price lists query completed in ${queryTime}ms`);
+      console.log(`✅ LPURepository.getAllPriceLists: Query successful, found ${result.rows.length} price lists`);
+
+      // Cache results with 3-minute TTL
+      queryCache.set(cacheKey, result.rows, {
+        ttl: 180000, // 3 minutes
+        tags: [`tenant-${tenantId}`, 'price-lists']
+      });
+
+      console.log(`💾 [LPURepository] Price lists cached for tenant: ${tenantId}`);
+      return result.rows;
 
     } catch (error) {
       console.error('❌ LPURepository.getAllPriceLists: Database error:', error);
@@ -156,6 +186,8 @@ export class LPURepository {
   }
 
   async createPriceList(data: any) {
+    // Invalidate cache for the tenant when a new price list is created
+    await this.invalidateCache(data.tenantId, 'price-lists');
     const [priceList] = await this.db
       .insert(priceLists)
       .values(data)
@@ -164,6 +196,8 @@ export class LPURepository {
   }
 
   async updatePriceList(id: string, tenantId: string, data: any) {
+    // Invalidate cache for the tenant when a price list is updated
+    await this.invalidateCache(tenantId, 'price-lists');
     const [priceList] = await this.db
       .update(priceLists)
       .set({ ...data, updatedAt: new Date() })
@@ -174,6 +208,8 @@ export class LPURepository {
 
   // DELETE PRICE LIST
   async deletePriceList(id: string, tenantId: string) {
+    // Invalidate cache for the tenant when a price list is deleted
+    await this.invalidateCache(tenantId, 'price-lists');
     const [deleted] = await this.db
       .delete(priceLists)
       .where(and(eq(priceLists.id, id), eq(priceLists.tenantId, tenantId)))
@@ -301,33 +337,59 @@ export class LPURepository {
         throw new Error('Database connection not available');
       }
 
-      console.log('🔍 LPURepository.getAllPricingRules: Executing raw SQL query...');
+      const { queryCache } = await import('../../../database/IntelligentCacheManager');
+      const cacheKey = `pricing-rules-${tenantId}`;
 
-      // Set search path and execute query
+      // Check cache first
+      const cachedRules = queryCache.get(cacheKey);
+      if (cachedRules) {
+        console.log(`📈 [LPURepository] Cache hit for pricing rules: ${tenantId}`);
+        return cachedRules;
+      }
+
+      console.log('🔍 LPURepository.getAllPricingRules: Cache miss, executing optimized query...');
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+      // Set search path to tenant schema
       await this.db.execute(sql.raw(`SET search_path TO "${schemaName}"`));
-      
-      const result = await this.db.execute(sql`
-        SELECT 
-          id,
-          name,
-          description,
-          rule_type as "ruleType",
-          conditions,
-          actions,
-          priority,
-          is_active as "isActive",
-          created_at as "createdAt",
-          updated_at as "updatedAt"
-        FROM pricing_rules
-        WHERE tenant_id = ${tenantId}
-        ORDER BY priority DESC, created_at DESC
-      `);
 
-      const pricingRulesData = result.rows || [];
-      console.log('✅ LPURepository.getAllPricingRules: Query successful, found', pricingRulesData.length, 'pricing rules');
-      return pricingRulesData;
+      const startTime = Date.now();
+      const result = await Promise.race([
+        this.db.execute(sql`
+          SELECT 
+            pr.id,
+            pr.tenant_id,
+            pr.name,
+            pr.description,
+            pr.rule_type,
+            pr.conditions,
+            pr.actions,
+            pr.priority,
+            pr.is_active,
+            pr.created_at,
+            pr.updated_at
+          FROM pricing_rules pr
+          WHERE pr.tenant_id = ${tenantId}
+          ORDER BY pr.priority DESC, pr.created_at DESC
+          LIMIT 100
+        `),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Query timeout')), 6000)
+        )
+      ]);
 
+      const queryTime = Date.now() - startTime;
+      console.log(`⚡ [LPURepository] Pricing rules query completed in ${queryTime}ms`);
+      console.log(`✅ LPURepository.getAllPricingRules: Query successful, found ${result.rows.length} pricing rules`);
+
+      // Cache results with 5-minute TTL
+      queryCache.set(cacheKey, result.rows, {
+        ttl: 300000, // 5 minutes
+        tags: [`tenant-${tenantId}`, 'pricing-rules']
+      });
+
+      console.log(`💾 [LPURepository] Pricing rules cached for tenant: ${tenantId}`);
+      return result.rows;
     } catch (error) {
       console.error('❌ LPURepository.getAllPricingRules: Database error:', error);
       console.error('❌ LPURepository.getAllPricingRules: Stack:', error instanceof Error ? error.stack : 'No stack trace');
@@ -336,6 +398,8 @@ export class LPURepository {
   }
 
   async createPricingRule(data: InsertPricingRule) {
+    // Invalidate cache for the tenant when a new pricing rule is created
+    await this.invalidateCache(data.tenantId, 'pricing-rules');
     const [rule] = await this.db
       .insert(pricingRules)
       .values(data)
@@ -344,6 +408,8 @@ export class LPURepository {
   }
 
   async updatePricingRule(id: string, tenantId: string, data: Partial<InsertPricingRule>) {
+    // Invalidate cache for the tenant when a pricing rule is updated
+    await this.invalidateCache(tenantId, 'pricing-rules');
     const [rule] = await this.db
       .update(pricingRules)
       .set({ ...data, updatedAt: new Date() })
@@ -361,6 +427,8 @@ export class LPURepository {
   }
 
   async deletePricingRule(id: string, tenantId: string) {
+    // Invalidate cache for the tenant when a pricing rule is deleted
+    await this.invalidateCache(tenantId, 'pricing-rules');
     await db
       .delete(pricingRules)
       .where(and(eq(pricingRules.id, id), eq(pricingRules.tenantId, tenantId)));
@@ -470,6 +538,10 @@ export class LPURepository {
       }
     }
 
+    // Invalidate cache when margins are updated
+    await this.invalidateCache(tenantId, 'price-lists');
+    await this.invalidateCache(tenantId, 'pricing-rules'); // Rules might be affected by margin changes
+
     return { success: true, updated: itemMargins?.length || 0 };
   }
 
@@ -510,6 +582,8 @@ export class LPURepository {
         .update(pricingRules)
         .set({ isActive: true })
         .where(eq(pricingRules.id, ruleId));
+      // Invalidate cache when rules are associated
+      await this.invalidateCache(tenantId, 'pricing-rules');
     }
   }
 
@@ -522,6 +596,8 @@ export class LPURepository {
         eq(pricingRules.id, ruleId),
         eq(pricingRules.tenantId, tenantId)
       ));
+    // Invalidate cache when rules are removed
+    await this.invalidateCache(tenantId, 'pricing-rules');
   }
 
   async applyRulesToPriceList(priceListId: string, ruleIds: string[] = [], tenantId: string) {
@@ -605,6 +681,28 @@ export class LPURepository {
       }
     }
 
+    // Invalidate cache after applying rules, as prices might have changed
+    await this.invalidateCache(tenantId, 'price-lists');
+
     return results;
+  }
+
+  // Cache invalidation methods
+  async invalidateCache(tenantId: string, cacheType?: 'stats' | 'price-lists' | 'pricing-rules'): Promise<void> {
+    try {
+      const { queryCache } = await import('../../../database/IntelligentCacheManager');
+
+      if (cacheType) {
+        const cacheKey = `${cacheType === 'stats' ? 'lpu-stats' : cacheType}-${tenantId}`;
+        queryCache.delete(cacheKey);
+        console.log(`🗑️ [LPURepository] Cache invalidated: ${cacheKey}`);
+      } else {
+        // Invalidate all tenant cache
+        const invalidated = queryCache.invalidateByTag(`tenant-${tenantId}`);
+        console.log(`🗑️ [LPURepository] All tenant cache invalidated: ${invalidated} entries`);
+      }
+    } catch (error) {
+      console.error('❌ [LPURepository] Cache invalidation error:', error);
+    }
   }
 }

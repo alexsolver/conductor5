@@ -17,7 +17,7 @@ export class OptimizedIndexStrategy {
   async createTenantOptimizedIndexes(tenantId: string): Promise<void> {
     const tenantSchema = `tenant_${tenantId.replace(/-/g, '_')}`;
     const indexKey = `optimized_${tenantSchema}`;
-    
+
     if (this.indexesCreated.has(indexKey)) {
       return; // Already created
     }
@@ -34,7 +34,7 @@ export class OptimizedIndexStrategy {
           name: `idx_${tenantSchema}_customers_tenant_active`,
           sql: `CREATE INDEX IF NOT EXISTS idx_${tenantSchema}_customers_tenant_active ON ${tenantSchema}.customers (tenant_id, active) WHERE active = true`
         },
-        
+
         // Tickets performance indexes
         {
           name: `idx_${tenantSchema}_tickets_tenant_status`,
@@ -48,7 +48,7 @@ export class OptimizedIndexStrategy {
           name: `idx_${tenantSchema}_tickets_tenant_priority`,
           sql: `CREATE INDEX IF NOT EXISTS idx_${tenantSchema}_tickets_tenant_priority ON ${tenantSchema}.tickets (tenant_id, priority, urgency, created_at DESC)`
         },
-        
+
         // Favorecidos performance indexes
         {
           name: `idx_${tenantSchema}_favorecidos_tenant_active`,
@@ -58,19 +58,19 @@ export class OptimizedIndexStrategy {
           name: `idx_${tenantSchema}_favorecidos_tenant_type`,
           sql: `CREATE INDEX IF NOT EXISTS idx_${tenantSchema}_favorecidos_tenant_type ON ${tenantSchema}.favorecidos (tenant_id, type)`
         },
-        
+
         // Locations performance indexes
         {
           name: `idx_${tenantSchema}_locations_tenant_active`,
           sql: `CREATE INDEX IF NOT EXISTS idx_${tenantSchema}_locations_tenant_active ON ${tenantSchema}.locations (tenant_id, active) WHERE active = true`
         },
-        
+
         // Message search indexes
         {
           name: `idx_${tenantSchema}_ticket_messages_tenant_ticket`,
           sql: `CREATE INDEX IF NOT EXISTS idx_${tenantSchema}_ticket_messages_tenant_ticket ON ${tenantSchema}.ticket_messages (tenant_id, ticket_id, created_at DESC)`
         },
-        
+
         // Full-text search indexes
         {
           name: `idx_${tenantSchema}_customers_search`,
@@ -79,6 +79,24 @@ export class OptimizedIndexStrategy {
         {
           name: `idx_${tenantSchema}_tickets_search`,
           sql: `CREATE INDEX IF NOT EXISTS idx_${tenantSchema}_tickets_search ON ${tenantSchema}.tickets USING GIN (to_tsvector('portuguese', coalesce(subject, '') || ' ' || coalesce(description, '')))`
+        },
+
+        // LPU Performance Indexes
+        {
+          name: 'idx_price_lists_tenant_active_created',
+          sql: `CREATE INDEX IF NOT EXISTS idx_price_lists_tenant_active_created ON ${tenantSchema}.price_lists (tenant_id, is_active, created_at DESC)`
+        },
+        {
+          name: 'idx_price_lists_tenant_customer_company',
+          sql: `CREATE INDEX IF NOT EXISTS idx_price_lists_tenant_customer_company ON ${tenantSchema}.price_lists (tenant_id, customer_company_id)`
+        },
+        {
+          name: 'idx_pricing_rules_tenant_priority',
+          sql: `CREATE INDEX IF NOT EXISTS idx_pricing_rules_tenant_priority ON ${tenantSchema}.pricing_rules (tenant_id, priority DESC, created_at DESC)`
+        },
+        {
+          name: 'idx_pricing_rules_tenant_active',
+          sql: `CREATE INDEX IF NOT EXISTS idx_pricing_rules_tenant_active ON ${tenantSchema}.pricing_rules (tenant_id, is_active)`
         }
       ];
 
@@ -104,7 +122,7 @@ export class OptimizedIndexStrategy {
   // ENTERPRISE ANALYTICS: Create performance analytics indexes
   async createAnalyticsIndexes(tenantId: string): Promise<void> {
     const tenantSchema = `tenant_${tenantId.replace(/-/g, '_')}`;
-    
+
     try {
       const analyticsIndexes = [
         // Time-based analytics
@@ -116,7 +134,7 @@ export class OptimizedIndexStrategy {
           name: `idx_${tenantSchema}_tickets_analytics_resolution`,
           sql: `CREATE INDEX IF NOT EXISTS idx_${tenantSchema}_tickets_analytics_resolution ON ${tenantSchema}.tickets (tenant_id, resolved_at, created_at) WHERE resolved_at IS NOT NULL`
         },
-        
+
         // Performance analytics
         {
           name: `idx_${tenantSchema}_customers_analytics_activity`,
@@ -141,7 +159,7 @@ export class OptimizedIndexStrategy {
   // MAINTENANCE: Check and optimize existing indexes
   async getIndexUsageStats(tenantId: string): Promise<any[]> {
     const tenantSchema = `tenant_${tenantId.replace(/-/g, '_')}`;
-    
+
     try {
       const result = await db.execute(sql.raw(`
         SELECT 
@@ -158,7 +176,7 @@ export class OptimizedIndexStrategy {
         WHERE schemaname = '${tenantSchema}'
         ORDER BY idx_tup_read DESC
       `));
-      
+
       return result.rows || [];
     } catch (error) {
       console.error(`[IndexStats] Failed for tenant ${tenantId}:`, error);
