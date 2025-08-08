@@ -258,8 +258,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         lastName: row.last_name,
         email: row.email,
         phone: row.phone,
-        company: row.company,
-        companyName: row.company,
         associated_companies: row.associated_companies || '',
         address: row.address,
         address_number: row.address_number,
