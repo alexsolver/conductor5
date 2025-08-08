@@ -237,10 +237,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             ''
           ) as associated_companies
         FROM "${schemaName}"."customers" c
-        LEFT JOIN "${schemaName}"."customer_companies" cc 
-          ON c.id = cc.customer_id AND cc.is_active = true
+        LEFT JOIN "${schemaName}"."companies_relationships" cr 
+          ON c.id = cr.customer_id AND cr.is_active = true
         LEFT JOIN "${schemaName}"."companies" comp 
-          ON cc.company_id = comp.id AND comp.is_active = true
+          ON cr.company_id = comp.id AND comp.is_active = true
         WHERE c.tenant_id = $1 
         GROUP BY c.id, c.tenant_id, c.first_name, c.last_name, c.email, 
                  c.phone, c.created_at, c.updated_at, c.address,
@@ -363,12 +363,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           c.phone,
           c.created_at,
           c.updated_at,
-          ccm.role
+          cr.relationship_type as role
         FROM "${schemaName}"."customers" c
-        INNER JOIN "${schemaName}"."company_memberships" ccm
-          ON c.id = ccm.customer_id
-        WHERE ccm.company_id = $1 
-          AND ccm.is_active = true
+        INNER JOIN "${schemaName}"."companies_relationships" cr
+          ON c.id = cr.customer_id
+        WHERE cr.company_id = $1 
+          AND cr.is_active = true
         ORDER BY c.first_name, c.last_name`,
         [companyId]
       );
@@ -640,15 +640,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           c.last_name as "lastName", 
           c.email, 
           c.phone,
-          c.company,
           'PF' as "customerType",
           'Ativo' as "status",
-          ccm.role,
-          ccm.is_active as "isActive",
-          ccm.created_at as "associatedAt"
+          cr.relationship_type as role,
+          cr.is_active as "isActive",
+          cr.created_at as "associatedAt"
         FROM "${schemaName}"."customers" c
-        INNER JOIN "${schemaName}"."company_memberships" ccm ON c.id = ccm.customer_id
-        WHERE c.tenant_id = $1 AND ccm.company_id = $2 AND ccm.tenant_id = $1 AND ccm.is_active = true
+        INNER JOIN "${schemaName}"."companies_relationships" cr ON c.id = cr.customer_id
+        WHERE c.tenant_id = $1 AND cr.company_id = $2 AND cr.is_active = true
         ORDER BY c.first_name ASC, c.last_name ASC
       `;
 
@@ -695,7 +694,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // First verify the company exists and is active
       const companyCheck = await pool.query(
-        `SELECT id FROM "${schemaName}"."customer_companies" WHERE id = $1 AND tenant_id = $2 AND is_active = true`,
+        `SELECT id FROM "${schemaName}"."companies" WHERE id = $1 AND tenant_id = $2 AND is_active = true`,
         [companyId, req.user.tenantId]
       );
 
@@ -713,14 +712,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           c.first_name as "firstName", 
           c.last_name as "lastName", 
           c.email, 
-          c.phone,
-          c.company
+          c.phone
         FROM "${schemaName}"."customers" c
         WHERE c.tenant_id = $1
         AND c.id NOT IN (
-          SELECT ccm.customer_id 
-          FROM "${schemaName}"."company_memberships" ccm
-          WHERE ccm.company_id = $2 AND ccm.tenant_id = $1
+          SELECT cr.customer_id 
+          FROM "${schemaName}"."companies_relationships" cr
+          WHERE cr.company_id = $2 AND cr.customer_id IS NOT NULL
         )
         ORDER BY c.first_name, c.last_name
         LIMIT 100
@@ -781,7 +779,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Verify company exists
       const companyCheck = await pool.query(
-        `SELECT id FROM "${schemaName}"."customer_companies" WHERE id = $1 AND tenant_id = $2`,
+        `SELECT id FROM "${schemaName}"."companies" WHERE id = $1 AND tenant_id = $2`,
         [companyId, req.user!.tenantId]
       );
 
@@ -794,8 +792,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Check for existing memberships
       const existingQuery = `
-        SELECT customer_id FROM "${schemaName}"."company_memberships" 
-        WHERE company_id = $1 AND customer_id = ANY($2::uuid[]) AND tenant_id = $3
+        SELECT customer_id FROM "${schemaName}"."companies_relationships" 
+        WHERE company_id = $1 AND customer_id = ANY($2::uuid[]) AND is_active = true
       `;
 
       const existingResult = await pool.query(existingQuery, [companyId, customerIds, req.user!.tenantId]);
