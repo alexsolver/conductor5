@@ -1,202 +1,215 @@
 
 const { Pool } = require('pg');
+const fs = require('fs');
+const path = require('path');
 
 async function validateCustomersModule() {
-  console.log('🔍 ANÁLISE COMPLETA DO MÓDULO CLIENTES - Drizzle ORM QA\n');
-  console.log('='*60 + '\n');
-
+  console.log('🔍 INICIANDO ANÁLISE COMPLETA DO MÓDULO CLIENTES\n');
+  console.log('='*80);
+  
   const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
   });
 
   try {
     // 1. ANÁLISE DO SCHEMA
-    console.log('📋 1. ANÁLISE DO SCHEMA DO MÓDULO CLIENTES\n');
+    console.log('📋 1. ANÁLISE DO SCHEMA - SHARED/SCHEMA-MASTER.TS\n');
     
-    // Check schema files
-    const schemaAnalysis = {
-      'shared/schema-master.ts': 'Schema principal - Definições de tabelas',
-      'shared/schema.ts': 'Re-export do schema principal',
-      'server/db.ts': 'Configuração Drizzle e validação'
-    };
-
-    console.log('📁 Arquivos de Schema Analisados:');
-    Object.entries(schemaAnalysis).forEach(([file, desc]) => {
-      console.log(`  ✅ ${file} - ${desc}`);
-    });
-
-    // 2. VALIDAÇÃO DE TABELAS NO BANCO
-    console.log('\n📊 2. VALIDAÇÃO DE TABELAS NO BANCO DE DADOS\n');
-
-    // Get all tenant schemas
-    const schemasResult = await pool.query(`
-      SELECT schema_name 
-      FROM information_schema.schemata 
-      WHERE schema_name LIKE 'tenant_%'
-      ORDER BY schema_name
-    `);
-
-    console.log(`📈 Encontrados ${schemasResult.rows.length} tenant schemas\n`);
-
-    // Check each tenant schema for customer-related tables
-    const expectedCustomerTables = [
-      'customers',
-      'beneficiaries', 
-      'companies',
-      'customer_item_mappings'
-    ];
-
-    for (const schema of schemasResult.rows) {
-      const schemaName = schema.schema_name;
-      console.log(`🏢 Analisando schema: ${schemaName}`);
-
-      // Check for customer tables
-      const tablesResult = await pool.query(`
-        SELECT table_name
-        FROM information_schema.tables
-        WHERE table_schema = $1
-          AND table_name = ANY($2)
-          AND table_type = 'BASE TABLE'
-        ORDER BY table_name
-      `, [schemaName, expectedCustomerTables]);
-
-      const foundTables = tablesResult.rows.map(row => row.table_name);
-      const missingTables = expectedCustomerTables.filter(table => !foundTables.includes(table));
-
-      console.log(`  ✅ Tabelas encontradas: ${foundTables.join(', ')}`);
-      if (missingTables.length > 0) {
-        console.log(`  ❌ Tabelas faltantes: ${missingTables.join(', ')}`);
-      }
-
-      // Check customers table structure
-      if (foundTables.includes('customers')) {
-        const columnsResult = await pool.query(`
-          SELECT column_name, data_type, is_nullable, column_default
-          FROM information_schema.columns
-          WHERE table_schema = $1 AND table_name = 'customers'
-          ORDER BY ordinal_position
-        `, [schemaName]);
-
-        console.log(`  📋 Estrutura da tabela customers (${columnsResult.rows.length} colunas):`);
-        columnsResult.rows.forEach(col => {
-          const nullable = col.is_nullable === 'YES' ? 'NULL' : 'NOT NULL';
-          console.log(`    • ${col.column_name}: ${col.data_type} ${nullable}`);
-        });
-
-        // Check for critical missing fields
-        const requiredFields = ['tenant_id', 'created_at', 'updated_at', 'is_active'];
-        const existingColumns = columnsResult.rows.map(row => row.column_name);
-        const missingFields = requiredFields.filter(field => !existingColumns.includes(field));
-        
-        if (missingFields.length > 0) {
-          console.log(`  ⚠️  Campos críticos faltantes: ${missingFields.join(', ')}`);
-        } else {
-          console.log(`  ✅ Todos os campos críticos presentes`);
-        }
-      }
-
-      console.log(''); // Empty line between schemas
-    }
-
-    // 3. FOREIGN KEYS E RELACIONAMENTOS
-    console.log('🔗 3. ANÁLISE DE FOREIGN KEYS E RELACIONAMENTOS\n');
-
-    // Check foreign key constraints
-    for (const schema of schemasResult.rows.slice(0, 1)) { // Check first schema only for brevity
-      const schemaName = schema.schema_name;
+    const schemaMasterPath = path.join(process.cwd(), 'shared', 'schema-master.ts');
+    const schemaPath = path.join(process.cwd(), 'shared', 'schema.ts');
+    
+    if (fs.existsSync(schemaMasterPath)) {
+      console.log('✅ shared/schema-master.ts encontrado');
+      const schemaContent = fs.readFileSync(schemaMasterPath, 'utf8');
       
-      const foreignKeysResult = await pool.query(`
-        SELECT
-          tc.table_name,
-          kcu.column_name,
-          ccu.table_name AS foreign_table_name,
-          ccu.column_name AS foreign_column_name
-        FROM information_schema.table_constraints AS tc
-        JOIN information_schema.key_column_usage AS kcu
-          ON tc.constraint_name = kcu.constraint_name
-          AND tc.table_schema = kcu.table_schema
-        JOIN information_schema.constraint_column_usage AS ccu
-          ON ccu.constraint_name = tc.constraint_name
-          AND ccu.table_schema = tc.table_schema
-        WHERE tc.constraint_type = 'FOREIGN KEY'
-          AND tc.table_schema = $1
-          AND tc.table_name = ANY($2)
-        ORDER BY tc.table_name, kcu.column_name
-      `, [schemaName, expectedCustomerTables]);
-
-      console.log(`🔗 Foreign Keys em ${schemaName}:`);
-      if (foreignKeysResult.rows.length > 0) {
-        foreignKeysResult.rows.forEach(fk => {
-          console.log(`  • ${fk.table_name}.${fk.column_name} → ${fk.foreign_table_name}.${fk.foreign_column_name}`);
-        });
+      // Check for customers table definition
+      if (schemaContent.includes('customers')) {
+        console.log('✅ Tabela customers definida no schema');
       } else {
-        console.log(`  ❌ Nenhuma foreign key encontrada nas tabelas de clientes`);
+        console.log('❌ PROBLEMA: Tabela customers não encontrada no schema');
       }
+      
+      // Check for key fields
+      const requiredFields = [
+        'tenant_id',
+        'created_at', 
+        'updated_at',
+        'is_active',
+        'customer_type',
+        'first_name',
+        'last_name',
+        'email'
+      ];
+      
+      console.log('\n🔍 Verificando campos obrigatórios na tabela customers:');
+      requiredFields.forEach(field => {
+        if (schemaContent.includes(field)) {
+          console.log(`  ✅ ${field}`);
+        } else {
+          console.log(`  ❌ FALTANDO: ${field}`);
+        }
+      });
+    } else {
+      console.log('❌ CRÍTICO: shared/schema-master.ts não encontrado');
     }
 
-    // 4. CAMPOS CRÍTICOS FALTANTES
-    console.log('\n🔍 4. VALIDAÇÃO DE CAMPOS CRÍTICOS\n');
+    if (fs.existsSync(schemaPath)) {
+      console.log('✅ shared/schema.ts encontrado');
+    } else {
+      console.log('❌ PROBLEMA: shared/schema.ts não encontrado');
+    }
 
-    // Check for standardized fields across customer tables
-    const criticalFieldsCheck = [
-      { table: 'customers', fields: ['tenant_id', 'is_active', 'created_at', 'updated_at', 'customer_type'] },
-      { table: 'beneficiaries', fields: ['tenant_id', 'is_active', 'created_at', 'updated_at', 'customer_id'] },
-      { table: 'companies', fields: ['tenant_id', 'is_active', 'created_at', 'updated_at'] }
-    ];
-
-    for (const check of criticalFieldsCheck) {
-      console.log(`📋 Verificando campos críticos em '${check.table}':`);
+    // 2. VALIDAÇÃO DRIZZLE
+    console.log('\n📋 2. VALIDAÇÃO DRIZZLE - SERVER/DB.TS\n');
+    
+    const dbPath = path.join(process.cwd(), 'server', 'db.ts');
+    if (fs.existsSync(dbPath)) {
+      console.log('✅ server/db.ts encontrado');
+      const dbContent = fs.readFileSync(dbPath, 'utf8');
       
-      for (const schema of schemasResult.rows.slice(0, 2)) { // Check first 2 schemas
-        const schemaName = schema.schema_name;
-        
-        const tableExistsResult = await pool.query(`
-          SELECT table_name 
-          FROM information_schema.tables 
-          WHERE table_schema = $1 AND table_name = $2
-        `, [schemaName, check.table]);
-
-        if (tableExistsResult.rows.length === 0) {
-          console.log(`  ❌ ${schemaName}: Tabela '${check.table}' não existe`);
-          continue;
-        }
-
-        const columnsResult = await pool.query(`
-          SELECT column_name
-          FROM information_schema.columns
-          WHERE table_schema = $1 AND table_name = $2
-        `, [schemaName, check.table]);
-
-        const existingColumns = columnsResult.rows.map(row => row.column_name);
-        const missingFields = check.fields.filter(field => !existingColumns.includes(field));
-        
-        if (missingFields.length === 0) {
-          console.log(`  ✅ ${schemaName}: Todos os campos críticos presentes`);
-        } else {
-          console.log(`  ⚠️  ${schemaName}: Campos faltantes: ${missingFields.join(', ')}`);
-        }
+      if (dbContent.includes('requiredTables')) {
+        console.log('✅ requiredTables definido');
+      } else {
+        console.log('❌ PROBLEMA: requiredTables não encontrado');
       }
-      console.log(''); // Empty line
+      
+      if (dbContent.includes('customers')) {
+        console.log('✅ customers incluído na validação');
+      } else {
+        console.log('❌ PROBLEMA: customers não incluído na validação');
+      }
+    } else {
+      console.log('❌ CRÍTICO: server/db.ts não encontrado');
+    }
+
+    // 3. TESTE DE CONEXÃO E VALIDAÇÃO DE SCHEMA
+    console.log('\n📋 3. TESTE DE CONEXÃO E VALIDAÇÃO DE SCHEMA\n');
+    
+    try {
+      // Test database connection
+      const connectionTest = await pool.query('SELECT NOW() as current_time');
+      console.log('✅ Conexão com banco de dados estabelecida');
+      console.log(`   Horário do servidor: ${connectionTest.rows[0].current_time}`);
+      
+      // Check for tenant schemas
+      const tenantSchemas = await pool.query(`
+        SELECT schema_name 
+        FROM information_schema.schemata 
+        WHERE schema_name LIKE 'tenant_%'
+        ORDER BY schema_name
+      `);
+      
+      console.log(`\n📊 Encontrados ${tenantSchemas.rows.length} schemas tenant:`);
+      
+      if (tenantSchemas.rows.length > 0) {
+        for (const schema of tenantSchemas.rows) {
+          console.log(`\n🏢 Validando schema: ${schema.schema_name}`);
+          
+          // Check if customers table exists in this tenant
+          const customersTableCheck = await pool.query(`
+            SELECT table_name 
+            FROM information_schema.tables 
+            WHERE table_schema = $1 AND table_name = 'customers'
+          `, [schema.schema_name]);
+          
+          if (customersTableCheck.rows.length > 0) {
+            console.log('  ✅ Tabela customers existe');
+            
+            // Check table structure
+            const tableStructure = await pool.query(`
+              SELECT column_name, data_type, is_nullable, column_default
+              FROM information_schema.columns 
+              WHERE table_schema = $1 AND table_name = 'customers'
+              ORDER BY ordinal_position
+            `, [schema.schema_name]);
+            
+            console.log(`  📋 Estrutura da tabela (${tableStructure.rows.length} colunas):`);
+            tableStructure.rows.forEach((col, index) => {
+              console.log(`    ${index + 1}. ${col.column_name} (${col.data_type}) ${col.is_nullable === 'NO' ? 'NOT NULL' : 'NULLABLE'}`);
+            });
+            
+            // Check for required fields
+            const existingColumns = tableStructure.rows.map(row => row.column_name);
+            const missingFields = requiredFields.filter(field => !existingColumns.includes(field));
+            
+            if (missingFields.length > 0) {
+              console.log(`  ❌ CAMPOS FALTANTES: ${missingFields.join(', ')}`);
+            } else {
+              console.log('  ✅ Todos os campos obrigatórios estão presentes');
+            }
+            
+            // Check data types consistency
+            const typeInconsistencies = [];
+            tableStructure.rows.forEach(col => {
+              if (col.column_name.includes('_id') && !col.data_type.includes('uuid') && col.data_type !== 'character varying') {
+                typeInconsistencies.push(`${col.column_name}: ${col.data_type} (esperado UUID)`);
+              }
+            });
+            
+            if (typeInconsistencies.length > 0) {
+              console.log(`  ⚠️  INCONSISTÊNCIAS DE TIPO:`);
+              typeInconsistencies.forEach(inconsistency => {
+                console.log(`    - ${inconsistency}`);
+              });
+            }
+            
+          } else {
+            console.log('  ❌ CRÍTICO: Tabela customers não existe neste tenant');
+          }
+        }
+      } else {
+        console.log('❌ CRÍTICO: Nenhum schema tenant encontrado');
+      }
+      
+    } catch (error) {
+      console.log(`❌ ERRO na validação de schema: ${error.message}`);
+    }
+
+    // 4. VALIDAÇÃO DAS ROTAS
+    console.log('\n📋 4. VALIDAÇÃO DAS ROTAS - CUSTOMERS MODULE\n');
+    
+    const routesPath = path.join(process.cwd(), 'server', 'modules', 'customers', 'routes.ts');
+    if (fs.existsSync(routesPath)) {
+      console.log('✅ server/modules/customers/routes.ts encontrado');
+      const routesContent = fs.readFileSync(routesPath, 'utf8');
+      
+      const expectedRoutes = ['GET /', 'POST /', 'PUT /', 'DELETE /'];
+      console.log('\n🔍 Verificando rotas CRUD:');
+      
+      expectedRoutes.forEach(route => {
+        const [method] = route.split(' ');
+        if (routesContent.includes(`router.${method.toLowerCase()}`)) {
+          console.log(`  ✅ ${route}`);
+        } else {
+          console.log(`  ❌ FALTANDO: ${route}`);
+        }
+      });
+      
+    } else {
+      console.log('❌ PROBLEMA: server/modules/customers/routes.ts não encontrado');
     }
 
     // 5. RELATÓRIO FINAL
-    console.log('📊 5. RELATÓRIO FINAL DA ANÁLISE\n');
+    console.log('\n' + '='*80);
+    console.log('📊 RELATÓRIO FINAL - MÓDULO CLIENTES\n');
     
-    const totalSchemas = schemasResult.rows.length;
-    console.log(`✅ Análise concluída para ${totalSchemas} tenant schemas`);
-    console.log(`📋 Tabelas do módulo clientes verificadas: ${expectedCustomerTables.join(', ')}`);
-    console.log(`🔗 Relacionamentos e constraints analisados`);
-    console.log(`🔍 Campos críticos validados para compliance`);
+    console.log('🎯 PROBLEMAS IDENTIFICADOS:');
+    console.log('1. Verificar se todos os campos obrigatórios estão presentes na tabela customers');
+    console.log('2. Validar consistência de tipos (UUID vs VARCHAR)');
+    console.log('3. Confirmar se requiredTables está atualizado no db.ts');
+    console.log('4. Verificar se todas as rotas CRUD estão implementadas');
     
-    console.log('\n' + '='*60);
-    console.log('✅ ANÁLISE COMPLETA DO MÓDULO CLIENTES FINALIZADA');
-    console.log('='*60);
+    console.log('\n🔧 PRÓXIMOS PASSOS:');
+    console.log('1. Executar migrations para corrigir schema se necessário');
+    console.log('2. Atualizar server/db.ts com tabelas corretas');
+    console.log('3. Implementar rotas faltantes');
+    console.log('4. Testar integração frontend-backend');
 
   } catch (error) {
-    console.error('❌ Erro durante a análise:', error);
-    console.error('Stack trace:', error.stack);
+    console.error('❌ Erro na análise do módulo clientes:', error);
   } finally {
     await pool.end();
+    console.log('\n✅ Análise concluída!');
   }
 }
 

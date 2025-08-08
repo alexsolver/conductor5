@@ -1,5 +1,6 @@
 
 const { Pool } = require('pg');
+require('dotenv').config();
 
 async function listAllDatabaseTables() {
   console.log('🔍 Listando todas as tabelas do banco de dados...\n');
