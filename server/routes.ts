@@ -280,6 +280,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }));
 
       console.log(`[GET-CUSTOMERS] Found ${customers.length} customers with associated companies`);
+      console.log(`[GET-CUSTOMERS] Sample customer data:`, customers[0]);
 
       res.json({
         success: true,
