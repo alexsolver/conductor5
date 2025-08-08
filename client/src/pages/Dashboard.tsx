@@ -8,7 +8,7 @@ export default function Dashboard() {
   const { t } = useTranslation();
   const { formatDate, formatNumber } = useLocalization();
   
-  const { data: stats, isLoading } = useQuery({
+  const { data: statsResponse, isLoading } = useQuery({
     queryKey: ["/api/dashboard/stats"],
     retry: false,
   });
@@ -18,7 +18,8 @@ export default function Dashboard() {
     retry: false,
   });
 
-  // Extract activity data from standardResponse format
+  // Extract data from standardResponse format
+  const stats = statsResponse?.data || {};
   const activity = activityResponse?.data || [];
 
   if (isLoading) {
