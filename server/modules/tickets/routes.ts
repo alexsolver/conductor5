@@ -65,9 +65,9 @@ async function createCompleteAuditEntry(
     const userAgent = getUserAgent(req);
     const sessionId = getSessionId(req);
 
-    // Get user name
+    // Get user name with null check
     const userQuery = `SELECT first_name || ' ' || last_name as full_name FROM public.users WHERE id = $1`;
-    const userResult = await pool.query(userQuery, [req.user.id]);
+    const userResult = await pool.query(userQuery, [req.user?.id]);
     const userName = userResult.rows[0]?.full_name || req.user?.email || 'Unknown User';
 
     const insertQuery = `
@@ -80,7 +80,7 @@ async function createCompleteAuditEntry(
     return await pool.query(insertQuery, [
       tenantId,
       ticketId,
-      req.user.id,
+      req.user?.id,
       userName,
       actionType,
       description,
@@ -569,29 +569,30 @@ ticketsRouter.put('/:id', jwtAuth, trackTicketEdit, async (req: AuthenticatedReq
 
     return sendSuccess(res, responseData, "Ticket updated successfully");
 
-  } catch (error) {
+  } catch (error: unknown) {
+    const err = error as Error;
     console.error('❌ CRITICAL ERROR updating ticket:', {
-      ticketId,
-      error: error.message,
-      stack: error.stack,
+      ticketId: req.params.id,
+      error: err.message,
+      stack: err.stack,
       tenantId: req.user?.tenantId,
       userId: req.user?.id,
-      updates: Object.keys(frontendUpdates)
+      updates: Object.keys(req.body)
     });
 
     const { logError } = await import('../../utils/logger');
-    logError('Error updating ticket', error, { 
+    logError('Error updating ticket', err, { 
       ticketId: req.params.id, 
       tenantId: req.user?.tenantId,
-      updateFields: Object.keys(frontendUpdates),
-      errorType: error.constructor.name
+      updateFields: Object.keys(req.body),
+      errorType: err.constructor.name
     });
 
     // ✅ RESPOSTA DE ERRO DETALHADA PARA DEBUG
     return sendError(res, {
-      message: error.message,
-      type: error.constructor.name,
-      ticketId: ticketId,
+      message: err.message,
+      type: err.constructor.name,
+      ticketId: req.params.id,
       timestamp: new Date().toISOString()
     }, "Failed to update ticket - check logs for details", 500);
   }
@@ -619,7 +620,7 @@ ticketsRouter.post('/:id/messages', jwtAuth, async (req: AuthenticatedRequest, r
       id: `msg-${Date.now()}`,
       ticketId,
       authorId: req.user.id,
-      message: messageData.message,
+      content: messageData.content,
       createdAt: new Date().toISOString()
     };
 
@@ -631,11 +632,11 @@ ticketsRouter.post('/:id/messages', jwtAuth, async (req: AuthenticatedRequest, r
       await createCompleteAuditEntry(
         pool, schemaName, req.user.tenantId, ticketId, req,
         'message_created',
-        `Mensagem adicionada: "${messageData.message.substring(0, 100)}..."`,
+        `Mensagem adicionada: "${messageData.content.substring(0, 100)}..."`,
         {
           message_id: message.id,
-          message_content: messageData.message,
-          message_type: messageData.messageType || 'user',
+          message_content: messageData.content,
+          message_type: messageData.senderType || 'user',
           created_time: new Date().toISOString()
         }
       );

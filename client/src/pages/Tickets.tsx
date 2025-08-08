@@ -93,7 +93,7 @@ export default function Tickets() {
   });
 
   // Fetch customers for the dropdown
-  const { data: customersData, isLoading: customersLoading } = useQuery({
+  const { data: customersData, isLoading: customersLoading, error: customersError } = useQuery({
     queryKey: ["/api/customers"],
     queryFn: async () => {
       const response = await apiRequest("GET", "/api/customers");
@@ -853,14 +853,18 @@ export default function Tickets() {
                         showIcon={true}
                         className="font-medium"
                         size="sm"
-                      />
+                      >
+                        {getFieldLabel('priority', ticket.priority || 'medium')}
+                      </DynamicBadge>
                       <DynamicBadge 
                         fieldName="status" 
                         value={mapStatusValue(ticket.status)}
                         showIcon={true}
                         className="font-medium"
                         size="sm"
-                      />
+                      >
+                        {getFieldLabel('status', ticket.status || 'open')}
+                      </DynamicBadge>
                     </div>
                   </div>
                   
@@ -871,7 +875,9 @@ export default function Tickets() {
                       showIcon={false}
                       className="font-medium text-xs"
                       size="sm"
-                    />
+                    >
+                      {getFieldLabel('category', ticket.category || 'suporte_tecnico')}
+                    </DynamicBadge>
                   </div>
                   <p className="text-gray-600 dark:text-gray-400 mb-3">
                     {ticket.description ? 

@@ -245,6 +245,7 @@ export const customers = pgTable("customers", {
 export const tickets = pgTable("tickets", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
+  number: varchar("number", { length: 50 }), // FIXED: Added missing number field
   subject: varchar("subject", { length: 500 }).notNull(),
   description: text("description"),
   priority: varchar("priority", { length: 20 }).default("medium"),
@@ -281,8 +282,11 @@ export const tickets = pgTable("tickets", {
   groupField: varchar("group_field", { length: 100 }),
   serviceVersion: varchar("service_version", { length: 100 }),
   summary: text("summary"),
-
-
+  
+  // FIXED: Added missing resolution fields
+  responsibleTeam: varchar("responsible_team", { length: 100 }),
+  resolutionCode: varchar("resolution_code", { length: 100 }),
+  resolutionNotes: text("resolution_notes"),
 
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
@@ -304,9 +308,12 @@ export const ticketMessages = pgTable("ticket_messages", {
   content: text("content").notNull(),
   sender: varchar("sender", { length: 255 }).notNull(),
   senderType: varchar("sender_type", { length: 50 }).default("agent"),
+  // FIXED: Added missing message fields from backend usage
+  message: text("message"),
+  messageType: varchar("message_type", { length: 50 }),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),  // Fixed: audit field added
+  updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => [
   index("ticket_messages_tenant_ticket_idx").on(table.tenantId, table.ticketId),
   index("ticket_messages_tenant_sender_idx").on(table.tenantId, table.senderType),
