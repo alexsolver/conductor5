@@ -1,0 +1,189 @@
+{
+  "timestamp": "2025-08-08T21:59:27.607Z",
+  "summary": {
+    "total": 10,
+    "critical": 0,
+    "high": 7,
+    "medium": 3,
+    "low": 0
+  },
+  "allIssues": [
+    {
+      "id": "SC-customers-002",
+      "layer": "schema",
+      "module": "customers",
+      "severity": "medium",
+      "type": "missing_field",
+      "description": "Algumas tabelas do módulo customers ausentes no schema",
+      "evidence": [
+        "Faltam: customer_companies"
+      ],
+      "affectedFiles": [
+        "shared/schema-master.ts"
+      ],
+      "expectedBehavior": "Todas as tabelas do módulo definidas",
+      "currentBehavior": "Algumas tabelas não estão no schema master",
+      "suggestedFix": "Adicionar definições para: customer_companies"
+    },
+    {
+      "id": "FE-customers-001",
+      "layer": "frontend",
+      "module": "customers",
+      "severity": "high",
+      "type": "missing_field",
+      "description": "Componentes frontend ausentes no módulo customers",
+      "evidence": [
+        "Componentes não encontrados: CustomerList, CustomerDetails, CreateCustomer"
+      ],
+      "affectedFiles": [
+        "CustomerList",
+        "CustomerDetails",
+        "CreateCustomer"
+      ],
+      "expectedBehavior": "Componentes React implementados",
+      "currentBehavior": "Funcionalidades inacessíveis ao usuário",
+      "suggestedFix": "Criar componentes React faltantes"
+    },
+    {
+      "id": "SC-knowledge-base-003",
+      "layer": "schema",
+      "module": "knowledge-base",
+      "severity": "high",
+      "type": "missing_field",
+      "description": "Módulo knowledge-base sem representação no schema master",
+      "evidence": [
+        "Tabelas esperadas: knowledge_base_articles, kb_categories"
+      ],
+      "affectedFiles": [
+        "shared/schema-master.ts"
+      ],
+      "expectedBehavior": "Módulo deve ter suas tabelas no schema",
+      "currentBehavior": "Módulo completamente ausente do schema",
+      "suggestedFix": "Implementar definições completas para knowledge-base"
+    },
+    {
+      "id": "SC-materials-services-002",
+      "layer": "schema",
+      "module": "materials-services",
+      "severity": "medium",
+      "type": "missing_field",
+      "description": "Algumas tabelas do módulo materials-services ausentes no schema",
+      "evidence": [
+        "Faltam: stock"
+      ],
+      "affectedFiles": [
+        "shared/schema-master.ts"
+      ],
+      "expectedBehavior": "Todas as tabelas do módulo definidas",
+      "currentBehavior": "Algumas tabelas não estão no schema master",
+      "suggestedFix": "Adicionar definições para: stock"
+    },
+    {
+      "id": "FE-timecard-001",
+      "layer": "frontend",
+      "module": "timecard",
+      "severity": "high",
+      "type": "missing_field",
+      "description": "Componentes frontend ausentes no módulo timecard",
+      "evidence": [
+        "Componentes não encontrados: TimecardEntry, TimecardList"
+      ],
+      "affectedFiles": [
+        "TimecardEntry",
+        "TimecardList"
+      ],
+      "expectedBehavior": "Componentes React implementados",
+      "currentBehavior": "Funcionalidades inacessíveis ao usuário",
+      "suggestedFix": "Criar componentes React faltantes"
+    },
+    {
+      "id": "SC-locations-002",
+      "layer": "schema",
+      "module": "locations",
+      "severity": "medium",
+      "type": "missing_field",
+      "description": "Algumas tabelas do módulo locations ausentes no schema",
+      "evidence": [
+        "Faltam: addresses"
+      ],
+      "affectedFiles": [
+        "shared/schema-master.ts"
+      ],
+      "expectedBehavior": "Todas as tabelas do módulo definidas",
+      "currentBehavior": "Algumas tabelas não estão no schema master",
+      "suggestedFix": "Adicionar definições para: addresses"
+    },
+    {
+      "id": "FE-locations-001",
+      "layer": "frontend",
+      "module": "locations",
+      "severity": "high",
+      "type": "missing_field",
+      "description": "Componentes frontend ausentes no módulo locations",
+      "evidence": [
+        "Componentes não encontrados: LocationList, LocationForm"
+      ],
+      "affectedFiles": [
+        "LocationList",
+        "LocationForm"
+      ],
+      "expectedBehavior": "Componentes React implementados",
+      "currentBehavior": "Funcionalidades inacessíveis ao usuário",
+      "suggestedFix": "Criar componentes React faltantes"
+    },
+    {
+      "id": "FE-notifications-001",
+      "layer": "frontend",
+      "module": "notifications",
+      "severity": "high",
+      "type": "missing_field",
+      "description": "Componentes frontend ausentes no módulo notifications",
+      "evidence": [
+        "Componentes não encontrados: NotificationList, NotificationSettings"
+      ],
+      "affectedFiles": [
+        "NotificationList",
+        "NotificationSettings"
+      ],
+      "expectedBehavior": "Componentes React implementados",
+      "currentBehavior": "Funcionalidades inacessíveis ao usuário",
+      "suggestedFix": "Criar componentes React faltantes"
+    },
+    {
+      "id": "FE-schedule-management-001",
+      "layer": "frontend",
+      "module": "schedule-management",
+      "severity": "high",
+      "type": "missing_field",
+      "description": "Componentes frontend ausentes no módulo schedule-management",
+      "evidence": [
+        "Componentes não encontrados: ScheduleCalendar, ScheduleForm"
+      ],
+      "affectedFiles": [
+        "ScheduleCalendar",
+        "ScheduleForm"
+      ],
+      "expectedBehavior": "Componentes React implementados",
+      "currentBehavior": "Funcionalidades inacessíveis ao usuário",
+      "suggestedFix": "Criar componentes React faltantes"
+    },
+    {
+      "id": "FE-auth-001",
+      "layer": "frontend",
+      "module": "auth",
+      "severity": "high",
+      "type": "missing_field",
+      "description": "Componentes frontend ausentes no módulo auth",
+      "evidence": [
+        "Componentes não encontrados: LoginForm, RegisterForm"
+      ],
+      "affectedFiles": [
+        "LoginForm",
+        "RegisterForm"
+      ],
+      "expectedBehavior": "Componentes React implementados",
+      "currentBehavior": "Funcionalidades inacessíveis ao usuário",
+      "suggestedFix": "Criar componentes React faltantes"
+    }
+  ]
+}
