@@ -1613,7 +1613,7 @@ const TicketDetails = React.memo(() => {
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">📎 Anexos</h2>
               <Badge variant="outline" className="text-xs">
-                {attachments.length} anexo(s)
+                {(attachmentsData && attachmentsData.length) || 0} anexo(s)
               </Badge>
             </div>
 
@@ -1628,18 +1628,25 @@ const TicketDetails = React.memo(() => {
             />
 
             {/* Existing Attachments List */}
-            {attachments.length > 0 && (
+            {(attachmentsData && attachmentsData.length > 0) && (
               <div className="space-y-3">
-                <h3 className="text-lg font-medium">Anexos Existentes ({attachments.length})</h3>
-                {attachments.map((attachment) => (
+                <h3 className="text-lg font-medium">Anexos Existentes ({attachmentsData.length})</h3>
+                {attachmentsData.map((attachment) => (
                   <div key={attachment.id} className="flex items-center justify-between p-4 border rounded-lg">
                     <div className="flex items-center gap-3">
                       <FileText className="h-8 w-8 text-gray-400" />
                       <div>
-                        <p className="font-medium">{attachment.name}</p>
+                        <p className="font-medium">{attachment.filename || attachment.original_filename || attachment.name || 'Arquivo sem nome'}</p>
                         <p className="text-sm text-gray-500">
-                          {formatFileSize(attachment.size)} • Adicionado em {
-                            attachment.uploadedAt instanceof Date
+                          {attachment.file_size && !isNaN(Number(attachment.file_size)) 
+                            ? formatFileSize(Number(attachment.file_size)) 
+                            : attachment.size && !isNaN(Number(attachment.size))
+                            ? formatFileSize(Number(attachment.size))
+                            : 'Tamanho desconhecido'
+                          } • Adicionado em {
+                            attachment.created_at
+                              ? new Date(attachment.created_at).toLocaleDateString('pt-BR')
+                              : attachment.uploadedAt instanceof Date
                               ? attachment.uploadedAt.toLocaleDateString('pt-BR')
                               : typeof attachment.uploadedAt === 'string'
                               ? new Date(attachment.uploadedAt).toLocaleDateString('pt-BR')
