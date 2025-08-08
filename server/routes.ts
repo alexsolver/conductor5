@@ -187,7 +187,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         'video/mp4', 'video/avi', 'video/quicktime',
         'audio/mpeg', 'audio/wav', 'audio/mp3'
       ];
-      
+
       if (allowedMimeTypes.includes(file.mimetype)) {
         cb(null, true);
       } else {
@@ -1289,7 +1289,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.log('✅ Category hierarchy routes registered');
 
     // ========================================
-    // TICKET TEMPLATES ROUTES
+    // TICKET TEMPLATESROUTES
     // ========================================
 
     // Simplified routes (show all public templates)
@@ -1643,7 +1643,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.warn('Locations module not available:', error);
   }
 
-  // Removed duplicate OmniBridge routes - now defined earlier before middleware
+  // Removed OmniBridge routes - now defined earlier before middleware
 
   // Helper functions for channel transformation
   function getChannelIcon(type: string): string {
@@ -2034,7 +2034,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const formatToCLTStandard = (entry: any) => {
         const date = new Date(entry.check_in);
         const dayOfWeek = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'][date.getDay()];
-        
+
         const formatTime = (timestamp: string | null) => {
           if (!timestamp) return '--:--';
           // Parse timestamp and format directly without timezone conversion to avoid UTC offset issues
@@ -2057,7 +2057,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const now = new Date();
         const entryDate = new Date(firstEntry);
         const isToday = entryDate.toDateString() === now.toDateString();
-        
+
         if (firstEntry && !secondExit) {
           // Jornada incompleta
           if (!firstExit && !secondEntry) {
@@ -2136,7 +2136,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
 
           totalHoursWorked = workMinutes / 60;
-          
+
           // Calcular horas extras (acima de 8h)
           const standardHours = 8;
           if (totalHoursWorked > standardHours) {
@@ -2164,13 +2164,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`[ATTENDANCE-REPORT] Processing ${result.rows.length} real database records`);
       console.log('[ATTENDANCE-REPORT] Raw DB records:', result.rows.map(r => ({
-        id: r.id.slice(-8),
+        id: r.id,
         date: r.check_in ? new Date(r.check_in).toLocaleDateString('pt-BR') : 'N/A',
         checkIn: r.check_in ? `${new Date(r.check_in).getUTCHours().toString().padStart(2, '0')}:${new Date(r.check_in).getUTCMinutes().toString().padStart(2, '0')}` : 'N/A',
         checkOut: r.check_out ? `${new Date(r.check_out).getUTCHours().toString().padStart(2, '0')}:${new Date(r.check_out).getUTCMinutes().toString().padStart(2, '0')}` : 'N/A',
         status: r.status
       })));
-      
+
       console.log('[ATTENDANCE-REPORT] First record detailed check:', {
         raw_check_in: result.rows[0]?.check_in,
         parsed_date: result.rows[0]?.check_in ? new Date(result.rows[0].check_in) : null,
@@ -2178,7 +2178,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         utc_minutes: result.rows[0]?.check_in ? new Date(result.rows[0].check_in).getUTCMinutes() : null,
         formatted: result.rows[0]?.check_in ? `${new Date(result.rows[0].check_in).getUTCHours().toString().padStart(2, '0')}:${new Date(result.rows[0].check_in).getUTCMinutes().toString().padStart(2, '0')}` : null
       });
-      
+
       const attendanceData = result.rows.map(formatToCLTStandard);
 
       // Calculate proper summary
@@ -2237,7 +2237,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const formatToCLTStandard = (entry: any) => {
         const date = new Date(entry.check_in);
         const dayOfWeek = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'][date.getDay()];
-        
+
         const formatTime = (timestamp: string | null) => {
           if (!timestamp) return '--:--';
           const date = new Date(timestamp);
@@ -2259,7 +2259,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const start = new Date(firstEntry);
           const end = new Date(secondExit);
           totalMinutes = (end.getTime() - start.getTime()) / (1000 * 60);
-          
+
           // Subtract break time if exists
           if (firstExit && secondEntry) {
             const breakStart = new Date(firstExit);
@@ -2267,7 +2267,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const breakMinutes = (breakEnd.getTime() - breakStart.getTime()) / (1000 * 60);
             totalMinutes -= breakMinutes;
           }
-          
+
           // Calculate overtime (over 8 hours = 480 minutes)
           if (totalMinutes > 480) {
             overtimeMinutes = totalMinutes - 480;
@@ -2297,7 +2297,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const allData = result.rows.map(formatToCLTStandard);
       const overtimeData = allData.filter((entry: any) => entry.overtimeHours && parseFloat(entry.overtimeHours) > 0);
-      
+
       const totalOvertimeHours = overtimeData.reduce((sum, entry) => sum + parseFloat(entry.overtimeHours || '0'), 0);
 
       res.json({
@@ -2473,7 +2473,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           estimatedReadTime: 8,
           viewCount: 1245,
           likeCount: 89,
-          averageRating: 4.7,
+          averageRating: '4.7',
           status: 'published',
           authorId: 'user-1',
           createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
@@ -2491,7 +2491,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           estimatedReadTime: 12,
           viewCount: 2156,
           likeCount: 143,
-          averageRating: 4.8,
+          averageRating: '4.8',
           status: 'published',
           authorId: 'user-2',
           createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
@@ -2509,7 +2509,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           estimatedReadTime: 6,
           viewCount: 3421,
           likeCount: 267,
-          averageRating: 4.9,
+          averageRating: '4.9',
           status: 'published',
           authorId: 'user-3',
           createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
@@ -2829,23 +2829,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/knowledge-base/articles', jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const tenantId = req.user?.tenantId;
-      if (!tenantId) {
-        return res.status(401).json({ message: 'Tenant ID required' });
+      const userId = req.user?.id;
+      if (!tenantId || !userId) {
+        return res.status(401).json({ message: 'Authentication required' });
       }
 
-      const newArticle = {
-        id: Date.now().toString(),
-        ...req.body,
-        tenantId,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        viewCount: 0,
-        likeCount: 0,
-        averageRating: '0',
-        ratingCount: 0
-      };
+      const { title, summary, content, categoryId, type, difficulty, tags, estimatedReadTime } = req.body;
 
-      res.json({ success: true, data: newArticle });
+      // Generate slug
+      const slug = title.toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .trim();
+
+      const result = await schemaManager.query(`
+        INSERT INTO kb_articles (
+          tenant_id, title, slug, summary, content, category_id, type, 
+          difficulty, tags, estimated_read_time, status, created_by, updated_by
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'published', $11, $12)
+        RETURNING *
+      `, [tenantId, title, slug, summary, content, categoryId, type, difficulty, tags, estimatedReadTime, userId, userId]);
+
+      res.status(201).json({ success: true, data: result.rows[0] });
     } catch (error) {
       console.error('Error creating article:', error);
       res.status(500).json({ success: false, message: 'Failed to create article' });
@@ -2855,20 +2862,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/knowledge-base/categories', jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const tenantId = req.user?.tenantId;
-      if (!tenantId) {
-        return res.status(401).json({ message: 'Tenant ID required' });
+      const userId = req.user?.id;
+      if (!tenantId || !userId) {
+        return res.status(401).json({ message: 'Authentication required' });
       }
 
-      const newCategory = {
-        id: Date.now().toString(),
-        ...req.body,
-        tenantId,
-        createdAt: new Date().toISOString(),
-        isActive: true,
-        articleCount: 0
-      };
+      const { name, description, icon, color } = req.body;
 
-      res.json({ success: true, data: newCategory });
+      // Generate slug
+      const slug = name.toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .trim();
+
+      const result = await schemaManager.query(`
+        INSERT INTO kb_categories (
+          tenant_id, name, slug, description, icon, color, level, sort_order, created_by, updated_by
+        ) VALUES ($1, $2, $3, $4, $5, $6, 0, 0, $7, $8)
+        RETURNING *
+      `, [tenantId, name, slug, description, icon, color, userId, userId]);
+
+      res.status(201).json({ success: true, data: result.rows[0] });
     } catch (error) {
       console.error('Error creating category:', error);
       res.status(500).json({ success: false, message: 'Failed to create category' });
@@ -3815,7 +3831,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ==============================
-  // USER GROUPS ROUTES
+  // USER GROUPSROUTES
   // ==============================
 
   // Get all user groups
