@@ -219,7 +219,7 @@ export const customers = pgTable("customers", {
   email: varchar("email", { length: 255 }).notNull(),
   phone: varchar("phone", { length: 20 }),
   mobilePhone: varchar("mobile_phone", { length: 20 }),
-  customerType: varchar("customer_type", { length: 10 }).default("PF"), // PF or PJ
+  customerType: varchar("customer_type", { length: 10 }).default("PF").notNull(), // PF or PJ - REQUIRED
   cpf: varchar("cpf", { length: 14 }),
   cnpj: varchar("cnpj", { length: 18 }),
   companyName: varchar("company_name", { length: 255 }),
@@ -231,14 +231,15 @@ export const customers = pgTable("customers", {
   neighborhood: varchar("neighborhood", { length: 100 }),
   city: varchar("city", { length: 100 }),
   zipCode: varchar("zip_code", { length: 10 }),
-  isActive: boolean("is_active").default(true),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+  isActive: boolean("is_active").default(true).notNull(), // REQUIRED for soft deletes
+  createdAt: timestamp("created_at").defaultNow().notNull(), // REQUIRED for audit
+  updatedAt: timestamp("updated_at").defaultNow().notNull(), // REQUIRED for audit
 }, (table) => ({
   uniqueTenantEmail: unique("customers_tenant_email_unique").on(table.tenantId, table.email),
   // Critical indexes for performance
   tenantEmailIdx: index("customers_tenant_email_idx").on(table.tenantId, table.email),
   tenantActiveIdx: index("customers_tenant_active_idx").on(table.tenantId, table.isActive),
+  tenantTypeIdx: index("customers_tenant_type_idx").on(table.tenantId, table.customerType),
 }));
 
 // Tickets table - Complete with all frontend fields and proper relationships
@@ -513,7 +514,7 @@ export const beneficiaries = pgTable("beneficiaries", {
   // Basic Information
   firstName: varchar("first_name", { length: 255 }), // Standardized for consistency
   lastName: varchar("last_name", { length: 255 }), // Standardized for consistency
-  name: varchar("name", { length: 255 }).notNull(), // Full name or display name
+  name: varchar("name", { length: 255 }).notNull(), // Full name or display name - REQUIRED
   email: varchar("email", { length: 255 }), // Already English ✓
   phone: varchar("phone", { length: 20 }), // Standardized: telefone → phone
   cellPhone: varchar("cell_phone", { length: 20 }), // Standardized: celular → cell_phone
@@ -543,9 +544,9 @@ export const beneficiaries = pgTable("beneficiaries", {
 
   // Additional Information
   notes: text("notes"), // Standardized: observacoes → notes
-  isActive: boolean("is_active").default(true).notNull(), // NOT NULL for consistency
-  createdAt: timestamp("created_at").defaultNow().notNull(), // NOT NULL
-  updatedAt: timestamp("updated_at").defaultNow().notNull(), // NOT NULL
+  isActive: boolean("is_active").default(true).notNull(), // NOT NULL for consistency - REQUIRED
+  createdAt: timestamp("created_at").defaultNow().notNull(), // NOT NULL - REQUIRED
+  updatedAt: timestamp("updated_at").defaultNow().notNull(), // NOT NULL - REQUIRED
 }, (table) => ({
   uniqueTenantEmail: unique("beneficiaries_tenant_email_unique").on(table.tenantId, table.email),
   uniqueTenantCpf: unique("beneficiaries_tenant_cpf_unique").on(table.tenantId, table.cpf),
@@ -554,6 +555,7 @@ export const beneficiaries = pgTable("beneficiaries", {
   // Critical indexes for Brazilian compliance
   tenantCpfIdx: index("beneficiaries_tenant_cpf_idx").on(table.tenantId, table.cpf),
   tenantActiveIdx: index("beneficiaries_tenant_active_idx").on(table.tenantId, table.isActive),
+  tenantCustomerIdx: index("beneficiaries_tenant_customer_idx").on(table.tenantId, table.customerId),
 }));
 
 // Projects table - Foreign keys and arrays optimized with critical indexes
@@ -659,17 +661,18 @@ export const customerCompanyMemberships = pgTable("customer_company_memberships"
   tenantId: uuid("tenant_id").notNull(),
   customerId: uuid("customer_id").references(() => customers.id, { onDelete: 'cascade' }).notNull(),
   companyId: uuid("company_id").references(() => companies.id, { onDelete: 'cascade' }).notNull(),
-  role: varchar("role", { length: 50 }).default("member"), // member, admin, contact
-  isActive: boolean("is_active").default(true),
-  assignedAt: timestamp("assigned_at").defaultNow(),
+  role: varchar("role", { length: 50 }).default("member").notNull(), // member, admin, contact - REQUIRED
+  isActive: boolean("is_active").default(true).notNull(), // REQUIRED for soft deletes
+  assignedAt: timestamp("assigned_at").defaultNow().notNull(), // REQUIRED for audit
   assignedById: uuid("assigned_by_id").references(() => users.id),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow().notNull(), // REQUIRED for audit
+  updatedAt: timestamp("updated_at").defaultNow().notNull(), // REQUIRED for audit
 }, (table) => [
   unique("customer_company_memberships_unique").on(table.tenantId, table.customerId, table.companyId),
   index("customer_company_memberships_tenant_customer_idx").on(table.tenantId, table.customerId),
   index("customer_company_memberships_tenant_company_idx").on(table.tenantId, table.companyId),
   index("customer_company_memberships_tenant_active_idx").on(table.tenantId, table.isActive),
+  index("customer_company_memberships_tenant_role_idx").on(table.tenantId, table.role),
 ]);
 
 // Customer Company Memberships types

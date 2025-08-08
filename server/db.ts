@@ -74,40 +74,40 @@ export const schemaManager = {
 
       const tableCount = parseInt(result.rows[0]?.table_count || "0");
 
-      // ✅ CUSTOMER MODULE SPECIFIC VALIDATION
+      // ✅ CUSTOMER MODULE SPECIFIC VALIDATION - UPDATED
       const customerModuleTables = await pool.query(`
         SELECT table_name 
         FROM information_schema.tables 
         WHERE table_schema = $1
         AND table_name IN (
           'customers', 'beneficiaries', 'companies', 'customer_company_memberships',
-          'tickets', 'locations', 'user_groups', 'activity_logs'
+          'customer_item_mappings', 'tickets', 'locations', 'user_groups', 'activity_logs'
         )
         ORDER BY table_name
       `, [schemaName]);
 
       const customerTables = customerModuleTables.rows.map(row => row.table_name);
       
-      // ✅ VALIDATE CUSTOMER TABLE STRUCTURE
+      // ✅ VALIDATE CUSTOMER TABLE STRUCTURE - ENHANCED
       const customerStructure = await pool.query(`
         SELECT column_name, data_type, is_nullable, column_default
         FROM information_schema.columns 
         WHERE table_schema = $1 AND table_name = 'customers'
-        AND column_name IN ('tenant_id', 'customer_type', 'first_name', 'last_name', 'email', 'is_active')
+        AND column_name IN ('tenant_id', 'customer_type', 'first_name', 'last_name', 'email', 'is_active', 'created_at', 'updated_at')
         ORDER BY ordinal_position
       `, [schemaName]);
 
-      const customerFieldsOk = customerStructure.rows.length >= 6;
+      const customerFieldsOk = customerStructure.rows.length >= 8;
 
-      // ✅ VALIDATE BENEFICIARIES TABLE STRUCTURE  
+      // ✅ VALIDATE BENEFICIARIES TABLE STRUCTURE - ENHANCED
       const beneficiariesStructure = await pool.query(`
         SELECT column_name, data_type
         FROM information_schema.columns 
         WHERE table_schema = $1 AND table_name = 'beneficiaries'
-        AND column_name IN ('tenant_id', 'name', 'cpf', 'cnpj', 'is_active')
+        AND column_name IN ('tenant_id', 'name', 'cpf', 'cnpj', 'is_active', 'created_at', 'updated_at')
       `, [schemaName]);
 
-      const beneficiariesFieldsOk = beneficiariesStructure.rows.length >= 4;
+      const beneficiariesFieldsOk = beneficiariesStructure.rows.length >= 6;
 
       // Check for required soft delete columns on customer tables
       const customerSoftDeleteCheck = await pool.query(`
