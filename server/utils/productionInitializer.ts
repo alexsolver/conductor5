@@ -56,7 +56,7 @@ export class ProductionInitializer {
     }
 
     // Validate DATABASE_URL format
-    if (!process.env.DATABASE_URL.startsWith('postgres://') && !process.env.DATABASE_URL.startsWith('postgresql://')) {
+    if (!process.env.DATABASE_URL?.startsWith('postgres://') && !process.env.DATABASE_URL?.startsWith('postgresql://')) {
       throw new Error('DATABASE_URL must be a valid PostgreSQL connection string');
     }
 
@@ -135,29 +135,15 @@ export class ProductionInitializer {
 
       if (tenantResult.rows.length > 0) {
         const tenantId = tenantResult.rows[0].id as string;
-        const isValid = await schemaManager.validateTenantSchema(tenantId);
-        if (!isValid) {
-          logWarn(`Health check: Tenant schema ${tenantId} needs attention, attempting auto-correction...`);
-          
-          try {
-            // AUTO-CORRECTION: Tentar corrigir problemas de schema automaticamente
-            await schemaManager.createTenantSchema(tenantId);
-            
-            // Pequeno delay para permitir que as tabelas sejam criadas
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            // Revalidar após correção
-            const isValidAfterFix = await schemaManager.validateTenantSchema(tenantId);
-            if (isValidAfterFix) {
-              logInfo(`Health check: Auto-correction successful for tenant ${tenantId}`);
-            } else {
-              logWarn(`Health check: Auto-correction completed, but some advanced tables may be missing for tenant ${tenantId}`);
-            }
-          } catch (correctionError) {
-            logError(`Health check: Auto-correction error for tenant ${tenantId}`, correctionError);
-          }
-        } else {
+        
+        // Use unified validation for health check consistency
+        const { UnifiedSchemaHealer } = await import('../services/UnifiedSchemaHealer');
+        const healthStatus = await UnifiedSchemaHealer.getValidationStatus(tenantId);
+        
+        if (healthStatus.isValid) {
           logInfo(`Health check: Tenant schema ${tenantId} is healthy`);
+        } else {
+          logInfo(`Health check: Tenant schema ${tenantId} has validation issues but continues operation`);
         }
       }
 

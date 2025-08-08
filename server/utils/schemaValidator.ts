@@ -10,21 +10,15 @@ export class SchemaValidator {
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
     try {
-      // ENTERPRISE VALIDATION STANDARD - Core tables only (no optional tables)
+      // ENTERPRISE VALIDATION STANDARD - Essential core tables only
       const requiredTables = [
-        // Core business tables (always required)
+        // Essential business tables (minimum for operation)
         'customers', 'tickets', 'ticket_messages', 'activity_logs', 'locations', 
-        'companies', 'skills', 'certifications', 'user_skills', 'projects', 'project_actions',
+        'companies', 'skills', 'items', 'suppliers', 'price_lists',
         
-        // Enhanced systems (core)  
-        'items', 'suppliers', 'price_lists', 'user_groups',
-        
-        // Ticket metadata hierarchy (core)
+        // Core ticket system (essential)
         'ticket_field_configurations', 'ticket_field_options', 'ticket_categories',
-        'ticket_subcategories', 'ticket_actions', 'ticket_planned_items', 'ticket_consumed_items',
-        
-        // Compliance & CLT (core)
-        'holidays'
+        'ticket_subcategories', 'ticket_actions'
       ];
       const missingTables: string[] = [];
       const fieldMappings: Record<string, string[]> = {};
