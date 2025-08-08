@@ -1,0 +1,8 @@
+nome,tipo,codigo,descricao,unidade,status,criado_em
+teste,material,,,UN,Ativo,06/08/2025
+Correia V-Belt A47,material,COR001,Correia em V modelo A47 para transmissão,UN,Ativo,25/07/2025
+Bomba Centrífuga BC-150,asset,AST001,Bomba centrífuga 150CV para sistema de refrigeração,UN,Ativo,25/07/2025
+Parafuso Inox M8x20,material,PAR001,Parafuso em aço inoxidável M8 x 20mm,UN,Ativo,25/07/2025
+Calibração de Instrumentos,service,SRV003,Serviço de calibração de instrumentos de medição,UN,Ativo,25/07/2025
+Cabo Elétrico 2,5mm²,material,CAB001,Cabo elétrico flexível 2,5mm² isolação PVC,M,Ativo,25/07/2025
+Instalação Elétrica,service,SRV002,Serviço de instalação elétrica completa,H,Ativo,25/07/2025

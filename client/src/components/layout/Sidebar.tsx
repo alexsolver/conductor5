@@ -266,39 +266,60 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
         {/* Logo */}
         <div className="flex items-center flex-shrink-0 px-4">
           <div className="flex items-center">
-            <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center mr-3">
-              <Zap className="w-5 h-5 text-purple-600" />
+            <div className={`bg-white rounded-lg flex items-center justify-center transition-all duration-300 ${
+              collapsed ? 'w-10 h-10' : 'w-8 h-8 mr-3'
+            }`}>
+              <Zap className={`text-purple-600 transition-all duration-300 ${
+                collapsed ? 'w-6 h-6' : 'w-5 h-5'
+              }`} />
             </div>
             {!collapsed && (
-              <h1 className="text-xl font-bold text-white">Conductor</h1>
+              <h1 className="text-xl font-bold text-white transition-opacity duration-300">
+                Conductor
+              </h1>
             )}
           </div>
-          {/* Toggle Button */}
-          <div className="ml-auto">
+          {/* Toggle Button - More visible when collapsed */}
+          <div className={`transition-all duration-300 ${collapsed ? 'ml-0' : 'ml-auto'}`}>
             <Button
               variant="ghost"
               size="sm"
               onClick={onToggleCollapse}
-              className="h-8 w-8 p-0 text-white hover:bg-white hover:bg-opacity-10"
+              className={`p-0 text-white transition-all duration-300 ${
+                collapsed 
+                  ? 'h-10 w-10 hover:bg-white hover:bg-opacity-20 bg-white bg-opacity-10 rounded-lg shadow-lg' 
+                  : 'h-8 w-8 hover:bg-white hover:bg-opacity-10'
+              }`}
+              title={collapsed ? "Expandir sidebar" : "Retrair sidebar"}
             >
-              {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+              {collapsed ? (
+                <ChevronRight className="h-5 w-5" />
+              ) : (
+                <ChevronLeft className="h-4 w-4" />
+              )}
             </Button>
           </div>
         </div>
 
         {/* Tenant Selector */}
         <div className="mt-6 px-4">
-          <div className="rounded-lg p-3 border" style={{
+          <div className={`rounded-lg border transition-all duration-300 ${
+            collapsed ? 'p-2' : 'p-3'
+          }`} style={{
             backgroundColor: 'rgba(255, 255, 255, 0.1)',
             borderColor: 'rgba(255, 255, 255, 0.2)'
           }}>
             <div className="flex items-center justify-between">
               <div className="flex items-center">
-                <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center mr-2">
-                  <span className="text-xs font-semibold text-purple-600">AC</span>
+                <div className={`bg-white rounded-full flex items-center justify-center transition-all duration-300 ${
+                  collapsed ? 'w-8 h-8' : 'w-6 h-6 mr-2'
+                }`}>
+                  <span className={`font-semibold text-purple-600 transition-all duration-300 ${
+                    collapsed ? 'text-sm' : 'text-xs'
+                  }`}>AC</span>
                 </div>
                 {!collapsed && (
-                  <span className="text-sm font-medium text-white">
+                  <span className="text-sm font-medium text-white transition-opacity duration-300">
                     {tenantData?.name || 'Carregando...'}
                   </span>
                 )}
@@ -316,24 +337,30 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
               const isOpen = openMenus[item.name] || false;
               const hasActiveChild = item.children.some(child => location === child.href);
 
-              // In collapsed mode, don't show submenu items
+              // In collapsed mode, don't show submenu items - larger icons and better spacing
               if (collapsed) {
                 return (
                   <div key={item.name} className="relative group">
                     <div className={cn(
-                      "flex items-center justify-center px-2 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer",
+                      "flex items-center justify-center py-3 px-2 text-sm font-medium rounded-md transition-all duration-300 cursor-pointer hover:scale-105",
                       hasActiveChild
-                        ? "text-white"
-                        : "text-white hover:bg-white hover:bg-opacity-10"
+                        ? "text-white shadow-lg"
+                        : "text-white hover:bg-white hover:bg-opacity-20"
                     )} style={hasActiveChild ? {
                       backgroundColor: 'var(--accent)',
                       color: 'white'
                     } : {}}
                     title={item.name}>
-                      <item.icon className="h-4 w-4 flex-shrink-0" />
+                      <item.icon className="h-6 w-6 flex-shrink-0" />
                       {item.badge && (
-                        <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
+                          <span className="text-xs font-bold text-white">{item.badge}</span>
+                        </div>
                       )}
+                    </div>
+                    {/* Tooltip for collapsed state */}
+                    <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+                      {item.name}
                     </div>
                   </div>
                 );
@@ -394,26 +421,30 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
             if (!item.href) return null; // Skip items without href
             const isActive = location === item.href;
 
-            // In collapsed mode, show only icons
+            // In collapsed mode, show only icons - larger and better spaced
             if (collapsed) {
               return (
                 <Link key={item.name} href={item.href}>
                   <div className={cn(
-                    "group flex items-center justify-center px-2 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer relative",
+                    "group flex items-center justify-center py-3 px-2 text-sm font-medium rounded-md transition-all duration-300 cursor-pointer relative hover:scale-105",
                     isActive
-                      ? "text-white"
-                      : "text-white hover:bg-white hover:bg-opacity-10"
+                      ? "text-white shadow-lg"
+                      : "text-white hover:bg-white hover:bg-opacity-20"
                   )} style={isActive ? {
                     backgroundColor: 'var(--accent)',
                     color: 'white'
                   } : {}}
                   title={item.name}>
-                    <item.icon className="h-4 w-4 flex-shrink-0" />
+                    <item.icon className="h-6 w-6 flex-shrink-0" />
                     {item.badge && (
-                      <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full flex items-center justify-center">
-                        <span className="text-xs text-white">{item.badge}</span>
+                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
+                        <span className="text-xs font-bold text-white">{item.badge}</span>
                       </div>
                     )}
+                    {/* Tooltip for collapsed state */}
+                    <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+                      {item.name}
+                    </div>
                   </div>
                 </Link>
               );
@@ -445,16 +476,41 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
           {/* Admin Navigation - Role-based with hierarchy */}
           {user && ['saas_admin', 'tenant_admin'].includes(user.role) && (
             <div className="pt-4 mt-4 border-t border-white border-opacity-20">
-              <div className="px-2 mb-2">
-                <span className="text-xs text-white text-opacity-70 uppercase tracking-wider font-medium">
-                  Administração
-                </span>
-              </div>
+              {!collapsed && (
+                <div className="px-2 mb-2">
+                  <span className="text-xs text-white text-opacity-70 uppercase tracking-wider font-medium">
+                    Administração
+                  </span>
+                </div>
+              )}
               {adminNavigation
                 .filter(item => item.roles.includes(user.role))
                 .map((item) => {
                   const isOpen = openMenus[item.name] || false;
                   const hasActiveChild = item.children?.some(child => location === child.href);
+
+                  // In collapsed mode, show only parent icon with tooltip
+                  if (collapsed) {
+                    return (
+                      <div key={item.name} className="relative group">
+                        <div className={cn(
+                          "flex items-center justify-center py-3 px-2 text-sm font-medium rounded-md transition-all duration-300 cursor-pointer hover:scale-105",
+                          hasActiveChild
+                            ? "text-white shadow-lg"
+                            : "text-white hover:bg-white hover:bg-opacity-20"
+                        )} style={hasActiveChild ? {
+                          backgroundColor: 'var(--accent)',
+                          color: 'white'
+                        } : {}}>
+                          <item.icon className="h-6 w-6 flex-shrink-0" />
+                          {/* Tooltip for collapsed state */}
+                          <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+                            {item.name}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }
 
                   return (
                     <Collapsible key={item.name} open={isOpen} onOpenChange={() => toggleMenu(item.name)}>
@@ -505,37 +561,52 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
           )}
 
           <div className="pt-4 mt-4 border-t border-white border-opacity-20">
+            {/* Aparência Link */}
+            <Link key="Aparência" href="/layouts">
+              <div className={cn(
+                "group flex items-center rounded-md transition-all duration-300 cursor-pointer relative",
+                collapsed ? "justify-center py-3 px-2 hover:scale-105" : "px-2 py-2",
+                location === "/layouts"
+                  ? "text-white shadow-lg"
+                  : "text-white hover:bg-white hover:bg-opacity-20"
+              )} style={location === "/layouts" ? {
+                backgroundColor: 'var(--accent)',
+                color: 'white'
+              } : {}}>
+                <Palette className={collapsed ? "h-6 w-6 flex-shrink-0" : "mr-3 h-4 w-4 flex-shrink-0"} />
+                {!collapsed && "Aparência"}
+                {/* Tooltip for collapsed state */}
+                {collapsed && (
+                  <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+                    Aparência
+                  </div>
+                )}
+              </div>
+            </Link>
 
-              <Link key="Aparência" href="/layouts">
-                <div className={cn(
-                  "group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer",
-                  location === "/layouts"
-                    ? "text-white"
-                    : "text-white hover:bg-white hover:bg-opacity-10"
-                )} style={location === "/layouts" ? {
-                  backgroundColor: 'var(--accent)',
-                  color: 'white'
-                } : {}}>
-                  <Palette className="mr-3 h-4 w-4 flex-shrink-0" />
-                  Aparência
-                </div>
-              </Link>
-
+            {/* Secondary Navigation */}
             {secondaryNavigation.map((item) => {
               const isActive = location === item.href;
               return (
                 <Link key={item.name} href={item.href}>
                   <div className={cn(
-                    "group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer",
+                    "group flex items-center rounded-md transition-all duration-300 cursor-pointer relative",
+                    collapsed ? "justify-center py-3 px-2 hover:scale-105" : "px-2 py-2",
                     isActive
-                      ? "text-white"
-                      : "text-white hover:bg-white hover:bg-opacity-10"
+                      ? "text-white shadow-lg"
+                      : "text-white hover:bg-white hover:bg-opacity-20"
                   )} style={isActive ? {
                     backgroundColor: 'var(--accent)',
                     color: 'white'
                   } : {}}>
-                    <item.icon className="mr-3 h-4 w-4 flex-shrink-0" />
-                    {item.name}
+                    <item.icon className={collapsed ? "h-6 w-6 flex-shrink-0" : "mr-3 h-4 w-4 flex-shrink-0"} />
+                    {!collapsed && item.name}
+                    {/* Tooltip for collapsed state */}
+                    {collapsed && (
+                      <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+                        {item.name}
+                      </div>
+                    )}
                   </div>
                 </Link>
               );
@@ -543,7 +614,59 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
           </div>
         </nav>
 
-
+        {/* Footer - User info and logout */}
+        <div className="flex-shrink-0 flex border-t border-white border-opacity-20">
+          <div className="w-full">
+            <div className={`flex items-center transition-all duration-300 ${
+              collapsed ? 'justify-center p-3' : 'p-3'
+            }`}>
+              {!collapsed ? (
+                <div className="flex items-center w-full">
+                  <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center mr-3">
+                    <span className="text-sm font-medium text-purple-600">
+                      {user?.email?.charAt(0).toUpperCase() || 'U'}
+                    </span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-white truncate">
+                      {user?.email}
+                    </p>
+                    <p className="text-xs text-white text-opacity-70 truncate">
+                      {user?.role === 'saas_admin' ? 'SaaS Admin' : 
+                       user?.role === 'tenant_admin' ? 'Admin' : 
+                       user?.role === 'agent' ? 'Agente' : 'Usuário'}
+                    </p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => logoutMutation.mutate()}
+                    className="h-8 w-8 p-0 text-white hover:bg-white hover:bg-opacity-10"
+                    title="Fazer logout"
+                  >
+                    <LogOut className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="relative group">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => logoutMutation.mutate()}
+                    className="h-10 w-10 p-0 text-white hover:bg-white hover:bg-opacity-20 bg-white bg-opacity-10 rounded-lg transition-all duration-300"
+                    title="Fazer logout"
+                  >
+                    <LogOut className="h-5 w-5" />
+                  </Button>
+                  {/* Tooltip for collapsed state */}
+                  <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+                    Fazer logout
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
