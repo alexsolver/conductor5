@@ -386,9 +386,15 @@ export const companies = pgTable("companies", {
   name: varchar("name", { length: 255 }).notNull(),
   displayName: varchar("display_name", { length: 255 }),
   description: text("description"),
+  email: varchar("email", { length: 255 }),
+  phone: varchar("phone", { length: 50 }),
+  address: text("address"),
+  taxId: varchar("tax_id", { length: 50 }), // Documento fiscal (CNPJ no Brasil)
+  registrationNumber: varchar("registration_number", { length: 50 }),
   size: varchar("size", { length: 50 }),
   subscriptionTier: varchar("subscription_tier", { length: 50 }),
   status: varchar("status", { length: 50 }).default("active"), // CONTEXTUAL: Companies start operational "active"
+  isActive: boolean("is_active").default(true),
   createdBy: varchar("created_by", { length: 255 }),
   updatedBy: varchar("updated_by", { length: 255 }),
   createdAt: timestamp("created_at").defaultNow(),
@@ -807,7 +813,8 @@ export const marketLocalization = pgTable("market_localization", {
 // Field Alias Mapping - Aliases internacionais para campos brasileiros (cpf → tax_id)
 export const fieldAliasMapping = pgTable("field_alias_mapping", {
   id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(), sourceTable: varchar("source_table", { length: 100 }).notNull(), // favorecidos
+  tenantId: uuid("tenant_id").notNull(),
+  sourceTable: varchar("source_table", { length: 100 }).notNull(), // favorecidos
   sourceField: varchar("source_field", { length: 100 }).notNull(), // cpf, cnpj, rg
   aliasField: varchar("alias_field", { length: 100 }).notNull(), // tax_id, business_tax_id
   aliasDisplayName: varchar("alias_display_name", { length: 200 }).notNull(),
@@ -873,7 +880,7 @@ export const timecardEntries = pgTable("timecard_entries", {
   userId: uuid("user_id").notNull().references(() => users.id),
 
   // 🔴 CLT COMPLIANCE: NSR (Número Sequencial de Registro) - OBRIGATÓRIO
-  nsr: serial("nsr", { mode: "number" }).notNull(), // Sequencial único por tenant
+  nsr: serial("nsr").notNull(), // Sequencial único por tenant
 
   // Timestamps básicos
   checkIn: timestamp("check_in"),
@@ -1491,62 +1498,62 @@ export type ActivityLog = typeof activityLogs.$inferSelect;
 export type InsertActivityLog = typeof activityLogs.$inferInsert;
 
 export type Location = typeof locations.$inferSelect;
-export type InsertLocation = typeof locations.$insert;
+export type InsertLocation = typeof locations.$inferInsert;
 
 export type Company = typeof companies.$inferSelect;
-export type InsertCompany = typeof companies.$insert;
+export type InsertCompany = typeof companies.$inferInsert;
 
 export type Skill = typeof skills.$inferSelect;
-export type InsertSkill = typeof skills.$insert;
+export type InsertSkill = typeof skills.$inferInsert;
 
 export type Certification = typeof certifications.$inferSelect;
-export type InsertCertification = typeof certifications.$insert;
+export type InsertCertification = typeof certifications.$inferInsert;
 
 export type UserSkill = typeof userSkills.$inferSelect;
-export type InsertUserSkill = typeof userSkills.$insert;
+export type InsertUserSkill = typeof userSkills.$inferInsert;
 
 export type Beneficiary = typeof beneficiaries.$inferSelect;
-export type InsertBeneficiary = typeof beneficiaries.$insert;
+export type InsertBeneficiary = typeof beneficiaries.$inferInsert;
 
 export type Project = typeof projects.$inferSelect;
-export type InsertProject = typeof projects.$insert;
+export type InsertProject = typeof projects.$inferInsert;
 
 export type ProjectAction = typeof projectActions.$inferSelect;
-export type InsertProjectAction = typeof projectActions.$insert;
+export type InsertProjectAction = typeof projectActions.$inferInsert;
 
 export type MarketLocalization = typeof marketLocalization.$inferSelect;
-export type InsertMarketLocalization = typeof marketLocalization.$insert;
+export type InsertMarketLocalization = typeof marketLocalization.$inferInsert;
 
 export type FieldAliasMapping = typeof fieldAliasMapping.$inferSelect;
-export type InsertFieldAliasMapping = typeof fieldAliasMapping.$insert;
+export type InsertFieldAliasMapping = typeof fieldAliasMapping.$inferInsert;
 
 export type LocalizationContext = typeof localizationContext.$inferSelect;
-export type InsertLocalizationContext = typeof localizationContext.$insert;
+export type InsertLocalizationContext = typeof localizationContext.$inferInsert;
 
 export type Holiday = typeof holidays.$inferSelect;
-export type InsertHoliday = typeof holidays.$insert;
+export type InsertHoliday = typeof holidays.$inferInsert;
 
 export type Session = typeof sessions.$inferSelect;
-export type InsertSession = typeof sessions.$insert;
+export type InsertSession = typeof sessions.$inferInsert;
 
 // Timecard and Approval Types
 export type TimecardEntry = typeof timecardEntries.$inferSelect;
 export type InsertTimecardEntry = typeof timecardEntries.$inferInsert;
 
 export type WorkSchedule = typeof workSchedules.$inferSelect;
-export type InsertWorkSchedule = typeof workSchedules.$insert;
+export type InsertWorkSchedule = typeof workSchedules.$inferInsert;
 
 export type ApprovalGroup = typeof approvalGroups.$inferSelect;
-export type InsertApprovalGroup = typeof approvalGroups.$insert;
+export type InsertApprovalGroup = typeof approvalGroups.$inferInsert;
 
 export type ApprovalGroupMember = typeof approvalGroupMembers.$inferSelect;
-export type InsertApprovalGroupMember = typeof approvalGroupMembers.$insert;
+export type InsertApprovalGroupMember = typeof approvalGroupMembers.$inferInsert;
 
 export type TimecardApprovalSettings = typeof timecardApprovalSettings.$inferSelect;
-export type InsertTimecardApprovalSettings = typeof timecardApprovalSettings.$insert;
+export type InsertTimecardApprovalSettings = typeof timecardApprovalSettings.$inferInsert;
 
 export type TimecardApprovalHistory = typeof timecardApprovalHistory.$inferSelect;
-export type InsertTimecardApprovalHistory = typeof timecardApprovalHistory.$insert;
+export type InsertTimecardApprovalHistory = typeof timecardApprovalHistory.$inferInsert;
 
 // ========================================
 // AGENDA/SCHEDULE MANAGEMENT TABLES

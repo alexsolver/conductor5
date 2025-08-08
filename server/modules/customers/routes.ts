@@ -327,7 +327,7 @@ customersRouter.get('/companies', jwtAuth, async (req: AuthenticatedRequest, res
       SELECT 
         id, 
         name, 
-        document, 
+        tax_id as document, 
         email, 
         phone, 
         address, 
