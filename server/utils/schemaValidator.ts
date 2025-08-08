@@ -15,7 +15,7 @@ export class SchemaValidator {
         // Essential business tables (minimum for operation)
         'customers', 'tickets', 'ticket_messages', 'activity_logs', 'locations', 
         'companies', 'skills', 'items', 'suppliers', 'price_lists',
-        
+
         // Core ticket system (essential)
         'ticket_field_configurations', 'ticket_field_options', 'ticket_categories',
         'ticket_subcategories', 'ticket_actions'
@@ -80,5 +80,65 @@ export class SchemaValidator {
     }
 
     return originalField; // Fallback to original
+  }
+
+  static async validateSchemaHealth(db: any, tenantId: string): Promise<{
+    isHealthy: boolean;
+    tableCount: number;
+    indexCount: number;
+    constraintCount: number;
+    issues: string[];
+  }> {
+    const issues: string[] = [];
+
+    try {
+      // Validate table count
+      const tableResult = await db.execute(sql`
+        SELECT COUNT(*) as count 
+        FROM information_schema.tables 
+        WHERE table_schema = ${`tenant_${tenantId.replace(/-/g, '_')}`}
+      `);
+      const tableCount = parseInt(tableResult.rows[0]?.count as string || "0");
+
+      // Validate indexes
+      const indexResult = await db.execute(sql`
+        SELECT COUNT(*) as count 
+        FROM pg_indexes 
+        WHERE schemaname = ${`tenant_${tenantId.replace(/-/g, '_')}`}
+      `);
+      const indexCount = parseInt(indexResult.rows[0]?.count as string || "0");
+
+      // Validate constraints
+      const constraintResult = await db.execute(sql`
+        SELECT COUNT(*) as count 
+        FROM information_schema.table_constraints 
+        WHERE table_schema = ${`tenant_${tenantId.replace(/-/g, '_')}`}
+      `);
+      const constraintCount = parseInt(constraintResult.rows[0]?.count as string || "0");
+
+      // Health criteria
+      const isHealthy = tableCount >= 60 && indexCount >= 50 && constraintCount >= 30;
+
+      if (tableCount < 60) issues.push(`Low table count: ${tableCount}/60`);
+      if (indexCount < 50) issues.push(`Low index count: ${indexCount}/50`);
+      if (constraintCount < 30) issues.push(`Low constraint count: ${constraintCount}/30`);
+
+      return {
+        isHealthy,
+        tableCount,
+        indexCount,
+        constraintCount,
+        issues
+      };
+    } catch (error) {
+      issues.push(`Validation error: ${error.message}`);
+      return {
+        isHealthy: false,
+        tableCount: 0,
+        indexCount: 0,
+        constraintCount: 0,
+        issues
+      };
+    }
   }
 }

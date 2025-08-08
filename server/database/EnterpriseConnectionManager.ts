@@ -32,20 +32,20 @@ export class EnterpriseConnectionManager {
   private poolMetrics = new Map<string, TenantPoolMetrics>();
   private mainPool: Pool;
   
-  // CONFIGURAÇÃO ENTERPRISE OTIMIZADA
+  // CONFIGURAÇÃO ENTERPRISE OTIMIZADA PARA NEON
   private readonly enterpriseConfig: ConnectionPoolConfig = {
-    maxConnections: 25,        // Aumentado de 8 para enterprise scale
-    minConnections: 5,         // Pool mínimo sempre ativo
+    maxConnections: 15,        // Otimizado para Neon limits
+    minConnections: 3,         // Reduzido para eficiência
     idleTimeoutMs: 300000,     // 5 minutos
     acquireTimeoutMs: 60000,   // 1 minuto timeout
     createTimeoutMs: 30000,    // 30s para criar conexão
     maxUses: 7500              // Recycle connection após uses
   };
 
-  // CONFIGURAÇÃO PER-TENANT
+  // CONFIGURAÇÃO PER-TENANT OTIMIZADA
   private readonly tenantConfig: ConnectionPoolConfig = {
-    maxConnections: 15,        // Aumentado de 8 para melhor throughput
-    minConnections: 2,         // Mínimo por tenant
+    maxConnections: 8,         // Otimizado para Neon serverless
+    minConnections: 1,         // Mínimo reduzido para eficiência
     idleTimeoutMs: 600000,     // 10 minutos para tenant pools
     acquireTimeoutMs: 45000,   // 45s timeout
     createTimeoutMs: 25000,    // 25s para criar
