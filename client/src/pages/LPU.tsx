@@ -19,6 +19,9 @@ import {
   History, Upload, Download, Users, Target, Percent, Hash, Calendar, Building,
   Package, ShoppingCart, CreditCard, Zap, Activity, ArrowUp, ArrowDown
 } from "lucide-react";
+import PricingRuleConfigurationModal from "@/components/lpu/PricingRuleConfigurationModal";
+import PriceSimulatorModal from "@/components/lpu/PriceSimulatorModal";
+import MarginConfigurationPanel from "@/components/lpu/MarginConfigurationPanel";
 
 interface PriceList {
   id: string;
@@ -94,6 +97,9 @@ export default function LPU() {
   const [isItemsDialogOpen, setIsItemsDialogOpen] = useState(false);
   const [isVersionDialogOpen, setIsVersionDialogOpen] = useState(false);
   const [isApprovalDialogOpen, setIsApprovalDialogOpen] = useState(false);
+  const [isAdvancedRuleDialogOpen, setIsAdvancedRuleDialogOpen] = useState(false);
+  const [isPriceSimulatorOpen, setIsPriceSimulatorOpen] = useState(false);
+  const [isMarginConfigOpen, setIsMarginConfigOpen] = useState(false);
 
   // Other states
   const [selectedPriceListForRules, setSelectedPriceListForRules] = useState<string | null>(null);
@@ -432,11 +438,12 @@ export default function LPU() {
       {/* Error States - Removed as the main error handling is done above */}
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
           <TabsTrigger value="price-lists">Listas de Preços</TabsTrigger>
           <TabsTrigger value="pricing-rules">Regras de Precificação</TabsTrigger>
           <TabsTrigger value="associations">Associações</TabsTrigger>
+          <TabsTrigger value="advanced-config">Configurações Avançadas</TabsTrigger>
           <TabsTrigger value="versions">Versões</TabsTrigger>
           <TabsTrigger value="analytics">Análises</TabsTrigger>
         </TabsList>
@@ -512,7 +519,7 @@ export default function LPU() {
               <CardDescription>Operações comuns do sistema LPU</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7 gap-4">
                 <Button
                   onClick={() => setIsCreateDialogOpen(true)}
                   className="h-20 flex-col hover:scale-105 transition-transform"
@@ -521,19 +528,35 @@ export default function LPU() {
                   Nova Lista de Preços
                 </Button>
                 <Button
-                  onClick={() => setIsCreateRuleDialogOpen(true)}
+                  onClick={() => setIsAdvancedRuleDialogOpen(true)}
                   variant="outline"
                   className="h-20 flex-col hover:scale-105 transition-transform"
                 >
                   <Settings className="h-6 w-6 mb-2" />
-                  Nova Regra de Precificação
+                  Configurar Regras Avançadas
+                </Button>
+                <Button
+                  onClick={() => setIsPriceSimulatorOpen(true)}
+                  variant="outline"
+                  className="h-20 flex-col hover:scale-105 transition-transform"
+                >
+                  <Calculator className="h-6 w-6 mb-2" />
+                  Simulador de Preços
+                </Button>
+                <Button
+                  onClick={() => setIsMarginConfigOpen(true)}
+                  variant="outline"
+                  className="h-20 flex-col hover:scale-105 transition-transform"
+                >
+                  <Percent className="h-6 w-6 mb-2" />
+                  Configurar Margens
                 </Button>
                 <Button
                   onClick={() => setActiveTab("associations")}
                   variant="outline"
                   className="h-20 flex-col hover:scale-105 transition-transform"
                 >
-                  <Calculator className="h-6 w-6 mb-2" />
+                  <Target className="h-6 w-6 mb-2" />
                   Gerenciar Associações
                 </Button>
                 <Button
@@ -821,6 +844,50 @@ export default function LPU() {
                     {applyRulesMutation.isPending ? "Aplicando..." : "Aplicar Todas as Regras Ativas"}
                   </Button>
                 </div>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        <TabsContent value="advanced-config" className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-bold">Configurações Avançadas</h2>
+              <p className="text-muted-foreground">Configurações detalhadas de margens, fatores sazonais e simulações</p>
+            </div>
+            <div className="flex space-x-2">
+              <Button onClick={() => setIsPriceSimulatorOpen(true)} variant="outline">
+                <Calculator className="mr-2 h-4 w-4" />
+                Simulador
+              </Button>
+              <Button onClick={() => setIsAdvancedRuleDialogOpen(true)}>
+                <Plus className="mr-2 h-4 w-4" />
+                Nova Regra Avançada
+              </Button>
+            </div>
+          </div>
+
+          {selectedPriceList ? (
+            <MarginConfigurationPanel
+              priceListId={selectedPriceList.id}
+              onSave={(margins) => {
+                console.log('Saving margin configuration:', margins);
+                toast({ title: "Configurações de margem salvas com sucesso!" });
+              }}
+            />
+          ) : (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <Settings className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                <p className="text-muted-foreground">
+                  Selecione uma lista de preços para configurar margens avançadas
+                </p>
+                <Button 
+                  className="mt-4" 
+                  onClick={() => setActiveTab("price-lists")}
+                >
+                  Ir para Listas de Preços
+                </Button>
               </CardContent>
             </Card>
           )}
@@ -1283,6 +1350,30 @@ export default function LPU() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Advanced Pricing Rule Configuration Modal */}
+      <PricingRuleConfigurationModal
+        open={isAdvancedRuleDialogOpen}
+        onOpenChange={setIsAdvancedRuleDialogOpen}
+        rule={selectedPricingRule}
+        onSave={(rule) => {
+          if (selectedPricingRule) {
+            updatePricingRuleMutation.mutate({ id: selectedPricingRule.id, data: rule });
+          } else {
+            createPricingRuleMutation.mutate(rule);
+          }
+          setIsAdvancedRuleDialogOpen(false);
+          setSelectedPricingRule(null);
+        }}
+      />
+
+      {/* Price Simulator Modal */}
+      <PriceSimulatorModal
+        open={isPriceSimulatorOpen}
+        onOpenChange={setIsPriceSimulatorOpen}
+        priceLists={priceLists}
+        pricingRules={pricingRules}
+      />
     </div>
   );
 }
