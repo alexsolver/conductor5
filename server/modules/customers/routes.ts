@@ -12,6 +12,8 @@ import { validateCreateCustomer, validateUpdateCustomer } from './middleware/cus
 import { z } from 'zod';
 import { Request, Response, NextFunction } from 'express';
 import { db } from '../../db';
+import { sql } from 'kysely';
+import { AuthenticatedUser } from '../../middleware/types';
 
 const customersRouter = Router();
 
@@ -378,7 +380,7 @@ customersRouter.get('/companies/:companyId/associated', jwtAuth, async (req: Aut
   }
 });
 
-// GET /api/customers/companies/:companyId/available - Get customers available for association
+// GET /api/customers/:companyId/available - Get customers available for association
 customersRouter.get('/companies/:companyId/available', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const { companyId } = req.params;
@@ -713,12 +715,12 @@ customersRouter.put('/companies/:id', jwtAuth, async (req: AuthenticatedRequest,
 
 // GET /api/customers/:id/companies - Get companies for a specific customer
 // Removed fallback to legacy 'customer_companies' and 'customer_company_memberships' tables
-customersRouter.get('/:customerId/companies', jwtAuth, async (req, res) => {
+customersRouter.get('/:customerId/companies', jwtAuth, async (req: Request, res: Response) => {
   try {
     const { customerId } = req.params;
-    const tenantId = req.user?.tenantId;
+    const { tenantId } = req.user as AuthenticatedUser;
 
-    console.log('[CUSTOMER-COMPANIES] Request for customer:', customerId, 'tenant:', tenantId);
+    console.log(`[CUSTOMER-COMPANIES] Request for customer: ${customerId} tenant: ${tenantId}`);
 
     if (!tenantId) {
       return res.status(400).json({ success: false, error: 'Tenant ID is required' });
@@ -726,28 +728,21 @@ customersRouter.get('/:customerId/companies', jwtAuth, async (req, res) => {
 
     // Using tenant schema directly for performance
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-    console.log('[CUSTOMER-COMPANIES] Using schema:', schemaName);
+    console.log(`[CUSTOMER-COMPANIES] Using schema: ${schemaName}`);
 
-    const query = sql.raw(`
-      SELECT DISTINCT 
-        c.id,
-        c.name,
-        c.description,
-        c.contact_info,
-        c.created_at
-      FROM "${schemaName}"."companies" c
-      INNER JOIN "${schemaName}"."companies_relationships" cr 
-        ON c.id = cr.company_id
+    const companiesQuery = `
+      SELECT c.id, c.name, c.display_name
+      FROM ${schemaName}.companies_relationships cr
+      JOIN companies c ON cr.company_id = c.id
       WHERE cr.customer_id = $1
-        AND c.tenant_id = $2
-      ORDER BY c.name ASC
-    `, [customerId, tenantId]);
+    `;
 
-    const companies = await db.execute(query);
+    const result = await db.execute(companiesQuery, [customerId]);
+    const companies = result.rows || [];
 
     res.json({
       success: true,
-      companies: companies.rows
+      companies: companies
     });
 
   } catch (error) {
