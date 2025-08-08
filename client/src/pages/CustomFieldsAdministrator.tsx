@@ -240,12 +240,12 @@ export default function CustomFieldsAdministrator() {
         ) : (
           moduleFields.map((field: CustomFieldMetadata) => (
             <Card key={field.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
                       <GripVertical className="w-4 h-4 text-gray-400 cursor-move" />
-                      <h3 className="font-medium">{field.fieldLabel}</h3>
+                      <h3 className="font-medium truncate">{field.fieldLabel}</h3>
                       <Badge variant="outline">
                         {FIELD_TYPE_CONFIG[field.fieldType as FieldType]?.label}
                       </Badge>
@@ -256,7 +256,7 @@ export default function CustomFieldsAdministrator() {
                       )}
                     </div>
                     <p className="text-sm text-gray-600">
-                      Campo: <code className="bg-gray-100 px-1 rounded">{field.fieldName}</code>
+                      Campo: <code className="bg-gray-100 px-1 rounded break-all">{field.fieldName}</code>
                     </p>
                     {field.fieldOptions?.helpText && (
                       <p className="text-xs text-gray-500 mt-1">
