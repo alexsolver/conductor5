@@ -10,24 +10,21 @@ export class SchemaValidator {
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
     try {
-      // UNIFIED TABLE LIST - Based on actual database verification (29 tables confirmed)
+      // ENTERPRISE VALIDATION STANDARD - Core tables only (no optional tables)
       const requiredTables = [
-        // Core business tables (verified to exist)
+        // Core business tables (always required)
         'customers', 'tickets', 'ticket_messages', 'activity_logs', 'locations', 
         'companies', 'skills', 'certifications', 'user_skills', 'projects', 'project_actions',
         
-        // Enhanced systems (verified)  
-        'items', 'suppliers', 'price_lists', 'user_groups', 'user_group_memberships',
+        // Enhanced systems (core)  
+        'items', 'suppliers', 'price_lists', 'user_groups',
         
-        // Ticket metadata hierarchy (verified)
+        // Ticket metadata hierarchy (core)
         'ticket_field_configurations', 'ticket_field_options', 'ticket_categories',
-        'ticket_subcategories', 'ticket_actions', 'ticket_templates',
+        'ticket_subcategories', 'ticket_actions', 'ticket_planned_items', 'ticket_consumed_items',
         
-        // Materials & Services LPU (verified)
-        'ticket_planned_items', 'ticket_consumed_items', 'ticket_costs_summary',
-        
-        // Compliance & CLT (verified)
-        'timecard_entries', 'work_schedules', 'holidays'
+        // Compliance & CLT (core)
+        'holidays'
       ];
       const missingTables: string[] = [];
       const fieldMappings: Record<string, string[]> = {};

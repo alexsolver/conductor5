@@ -69,6 +69,14 @@ export class UnifiedSchemaHealer {
       const validation = await this.validateCurrentState(tenantId);
       const tableCount = Object.keys(validation.fieldMappings).length;
       
+      // Enhanced logging for debugging
+      console.log(`🔍 [UNIFIED-HEALER] Validation details for ${tenantId}:`);
+      console.log(`   - Tables found: ${tableCount}`);
+      console.log(`   - Missing tables: ${validation.missingTables.length}`);
+      if (validation.missingTables.length > 0) {
+        console.log(`   - Missing: ${validation.missingTables.join(', ')}`);
+      }
+      
       return {
         isValid: validation.isValid,
         tableCount,
