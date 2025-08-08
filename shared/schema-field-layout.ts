@@ -13,7 +13,7 @@ import { z } from "zod";
 export const pageLayouts = pgTable("page_layouts", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
-  moduleType: varchar("module_type", { length: 50 }).notNull(), // 'customers', 'tickets', 'favorecidos', etc.
+  moduleType: varchar("module_type", { length: 50 }).notNull(), // 'customers', 'tickets', 'beneficiaries', etc.
   pageType: varchar("page_type", { length: 50 }).notNull(), // 'edit', 'create', 'details', 'list'
   layoutName: varchar("layout_name", { length: 100 }).notNull(),
   
