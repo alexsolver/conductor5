@@ -264,8 +264,12 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
         color: 'white'
       }}>
         {/* Logo */}
-        <div className="flex items-center flex-shrink-0 px-4">
-          <div className="flex items-center">
+        <div className={`flex items-center flex-shrink-0 transition-all duration-300 ${
+          collapsed ? 'px-2 justify-center' : 'px-4 justify-between'
+        }`}>
+          <div className={`flex items-center transition-all duration-300 ${
+            collapsed ? 'justify-center w-full' : ''
+          }`}>
             <div className={`bg-white rounded-lg flex items-center justify-center transition-all duration-300 ${
               collapsed ? 'w-10 h-10' : 'w-8 h-8 mr-3'
             }`}>
@@ -279,38 +283,50 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
               </h1>
             )}
           </div>
-          {/* Toggle Button - More visible when collapsed */}
-          <div className={`transition-all duration-300 ${collapsed ? 'ml-0' : 'ml-auto'}`}>
+          
+          {/* Toggle Button - Always visible and properly positioned */}
+          {!collapsed && (
             <Button
               variant="ghost"
               size="sm"
               onClick={onToggleCollapse}
-              className={`p-0 text-white transition-all duration-300 ${
-                collapsed 
-                  ? 'h-10 w-10 hover:bg-white hover:bg-opacity-20 bg-white bg-opacity-10 rounded-lg shadow-lg' 
-                  : 'h-8 w-8 hover:bg-white hover:bg-opacity-10'
-              }`}
-              title={collapsed ? "Expandir sidebar" : "Retrair sidebar"}
+              className="h-8 w-8 p-0 text-white hover:bg-white hover:bg-opacity-10 transition-all duration-300"
+              title="Retrair sidebar"
             >
-              {collapsed ? (
-                <ChevronRight className="h-5 w-5" />
-              ) : (
-                <ChevronLeft className="h-4 w-4" />
-              )}
+              <ChevronLeft className="h-4 w-4" />
             </Button>
-          </div>
+          )}
         </div>
 
+        {/* Expand Button - Only visible when collapsed, positioned below logo */}
+        {collapsed && (
+          <div className="px-2 mt-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onToggleCollapse}
+              className="w-full h-10 p-0 text-white hover:bg-white hover:bg-opacity-20 bg-white bg-opacity-10 rounded-lg shadow-lg transition-all duration-300 hover:scale-105"
+              title="Expandir sidebar"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </Button>
+          </div>
+        )}
+
         {/* Tenant Selector */}
-        <div className="mt-6 px-4">
+        <div className={`mt-6 transition-all duration-300 ${collapsed ? 'px-2' : 'px-4'}`}>
           <div className={`rounded-lg border transition-all duration-300 ${
             collapsed ? 'p-2' : 'p-3'
           }`} style={{
             backgroundColor: 'rgba(255, 255, 255, 0.1)',
             borderColor: 'rgba(255, 255, 255, 0.2)'
           }}>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
+            <div className={`flex items-center transition-all duration-300 ${
+              collapsed ? 'justify-center' : 'justify-between'
+            }`}>
+              <div className={`flex items-center transition-all duration-300 ${
+                collapsed ? 'justify-center' : ''
+              }`}>
                 <div className={`bg-white rounded-full flex items-center justify-center transition-all duration-300 ${
                   collapsed ? 'w-8 h-8' : 'w-6 h-6 mr-2'
                 }`}>
