@@ -40,20 +40,21 @@ export class EnterpriseIndexManager {
         ON ${sql.identifier(schemaName)}.customers (tenant_id, created_at DESC)
       `);
 
-      // TICKETS - Performance crítica para dashboard
+      // TICKETS - Performance crítica com índices compostos otimizados
       await this.createIndexConcurrently(sql`
         CREATE INDEX CONCURRENTLY IF NOT EXISTS tickets_tenant_status_priority_idx 
         ON ${sql.identifier(schemaName)}.tickets (tenant_id, status, priority)
       `);
 
       await this.createIndexConcurrently(sql`
-        CREATE INDEX CONCURRENTLY IF NOT EXISTS tickets_tenant_assigned_idx 
-        ON ${sql.identifier(schemaName)}.tickets (tenant_id, assigned_to_id, status)
+        CREATE INDEX CONCURRENTLY IF NOT EXISTS tickets_tenant_created_status_idx 
+        ON ${sql.identifier(schemaName)}.tickets (tenant_id, created_at DESC, status)
       `);
 
       await this.createIndexConcurrently(sql`
-        CREATE INDEX CONCURRENTLY IF NOT EXISTS tickets_tenant_created_idx 
-        ON ${sql.identifier(schemaName)}.tickets (tenant_id, created_at DESC)
+        CREATE INDEX CONCURRENTLY IF NOT EXISTS tickets_tenant_assigned_status_idx 
+        ON ${sql.identifier(schemaName)}.tickets (tenant_id, responsible_id, status)
+        WHERE responsible_id IS NOT NULL
       `);
 
       await this.createIndexConcurrently(sql`
@@ -170,7 +171,7 @@ export class EnterpriseIndexManager {
       `);
 
       const unusedIndexes = result.rows.filter(row => (row.idx_scan as number) === 0);
-      
+
       if (unusedIndexes.length > 0) {
         console.warn(`[IndexManager] Unused indexes in ${schemaName}:`, 
           unusedIndexes.map(idx => idx.indexname).join(', '));

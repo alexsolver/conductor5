@@ -31,12 +31,57 @@ export class SchemaHealthMonitor {
       AND idx_scan = 0
     `);
 
+    // Verificar bloat de tabelas e índices
+    const tablebloat = await db.execute(sql`
+      SELECT 
+        tablename,
+        attname,
+        n_distinct,
+        correlation
+      FROM pg_stats 
+      WHERE schemaname = ${schemaName}
+      AND n_distinct < -0.1
+      ORDER BY tablename, attname
+    `);
+
+    // Verificar locks ativos
+    const activeLocks = await db.execute(sql`
+      SELECT 
+        pid,
+        mode,
+        locktype,
+        granted
+      FROM pg_locks 
+      WHERE granted = false
+      AND locktype = 'relation'
+    `);
+
     report.metrics = {
       tableSizes: tableSizes.rows,
       unusedIndexes: unusedIndexes.rows,
-      totalTables: tableSizes.rows.length
+      tablebloat: tablebloat.rows,
+      activeLocks: activeLocks.rows,
+      totalTables: tableSizes.rows.length,
+      health_score: this.calculateHealthScore(tableSizes.rows, unusedIndexes.rows, activeLocks.rows)
     };
 
     return report;
+  }
+
+  private static calculateHealthScore(tableSizes: any[], unusedIndexes: any[], activeLocks: any[]): number {
+    let score = 100;
+    
+    // Penalizar por índices não utilizados
+    score -= Math.min(unusedIndexes.length * 2, 20);
+    
+    // Penalizar por locks ativos
+    score -= Math.min(activeLocks.length * 5, 30);
+    
+    // Penalizar por tabelas muito grandes sem particionamento
+    const largeTables = tableSizes.filter((t: any) => t.size_bytes > 1000000000); // 1GB
+    score -= Math.min(largeTables.length * 10, 40);
+    
+    return Math.max(score, 0);
+  }
   }
 }
