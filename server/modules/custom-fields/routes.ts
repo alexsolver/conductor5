@@ -2,18 +2,53 @@ import { Router } from 'express';
 import { CustomFieldsController } from './CustomFieldsController';
 import { CustomFieldsRepository } from './CustomFieldsRepository';
 import { schemaManager } from '../../db';
-import { jwtAuth } from '../../middleware/jwtAuth';
+import { AuthenticatedRequest } from './CustomFieldsController';
+import { Request, Response, NextFunction } from 'express';
 
 const router = Router();
+
+// Hybrid authentication middleware - supports both JWT and session
+const hybridAuth = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  try {
+    // Check for JWT token first
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1];
+      if (token && token !== 'null' && token !== 'undefined') {
+        // Use JWT auth
+        const { jwtAuth } = await import('../../middleware/jwtAuth');
+        return jwtAuth(req, res, next);
+      }
+    }
+
+    // Fall back to session authentication
+    if (req.session && req.session.user) {
+      req.user = {
+        id: req.session.user.id,
+        tenantId: req.session.user.tenantId || req.session.user.tenant_id,
+        role: req.session.user.role,
+        email: req.session.user.email
+      };
+      return next();
+    }
+
+    return res.status(401).json({ 
+      message: 'Authentication required - use JWT token or browser session' 
+    });
+  } catch (error) {
+    console.error('❌ [Custom Fields Auth] Authentication error:', error);
+    return res.status(401).json({ message: 'Authentication failed' });
+  }
+};
 
 try {
   const customFieldsRepository = new CustomFieldsRepository(schemaManager);
   const customFieldsController = new CustomFieldsController(customFieldsRepository);
 
-  // Middleware de autenticação para todas as rotas
-  router.use(jwtAuth);
+  // Apply hybrid authentication middleware
+  router.use(hybridAuth);
 
-  console.log('🔧 [Custom Fields Routes] Middleware applied');
+  console.log('🔧 [Custom Fields Routes] Hybrid authentication middleware applied');
 
 
   // Routes for field metadata management
