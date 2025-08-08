@@ -15,6 +15,7 @@ export default function Customers() {
   const [, setLocation] = useLocation();
   const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const { data: customersData, isLoading, error } = useQuery({
     queryKey: ["/api/customers"],
@@ -28,8 +29,24 @@ export default function Customers() {
     retry: false,
   });
 
-  const customers = customersData?.customers || [];
-  const total = customersData?.total || customers.length;
+  const allCustomers = customersData?.customers || [];
+  
+  // Filtrar clientes baseado no termo de busca
+  const customers = allCustomers.filter(customer => {
+    if (!searchTerm) return true;
+    const searchLower = searchTerm.toLowerCase();
+    const fullName = formatCustomerName(customer).toLowerCase();
+    const email = customer.email?.toLowerCase() || '';
+    const phone = (customer.phone || customer.mobile_phone || '').toLowerCase();
+    const companyName = (customer.companyName || '').toLowerCase();
+    
+    return fullName.includes(searchLower) || 
+           email.includes(searchLower) || 
+           phone.includes(searchLower) ||
+           companyName.includes(searchLower);
+  });
+  
+  const total = allCustomers.length;
 
   // Standardized field access helper with validation and defaults
   const getCustomerField = (customer: any, field: string) => {
@@ -256,19 +273,40 @@ export default function Customers() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Customers</h1>
-          <p className="text-gray-600 dark:text-gray-400">Manage your customer database and relationships ({total} registros)</p>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            <p className="text-gray-600 dark:text-gray-400">
+              Gerencie sua base de clientes e relacionamentos
+            </p>
+            <div className="flex items-center gap-2 text-sm">
+              <span className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
+                {customers.length} de {total} clientes
+              </span>
+              {searchTerm && (
+                <span className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded">
+                  Filtrando por "{searchTerm}"
+                </span>
+              )}
+            </div>
+          </div>
         </div>
         <div className="flex space-x-2">
-          <Button variant="outline">
-            <Search className="h-4 w-4 mr-2" />
-            Search
-          </Button>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Buscar clientes..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            />
+          </div>
           <Button 
             onClick={handleAddCustomer}
-            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+            disabled={isLoading}
+            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:opacity-50"
           >
             <Plus className="h-4 w-4 mr-2" />
-            Add Customer
+            {isLoading ? 'Carregando...' : 'Adicionar Cliente'}
           </Button>
         </div>
       </div>
@@ -345,12 +383,23 @@ export default function Customers() {
                     })()}
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center text-gray-600 dark:text-gray-400">
-                      <Building className="h-3 w-3 mr-1 flex-shrink-0" />
-                      <span className="text-sm truncate">
-                        {formatCompanyDisplay(customer.associated_companies)}
-                      </span>
-                    </div>
+                    {(() => {
+                      const companies = customer.associated_companies;
+                      const hasCompanies = companies && companies.length > 0;
+                      
+                      return (
+                        <div className="flex items-center text-gray-600 dark:text-gray-400">
+                          <Building className={`h-3 w-3 mr-1 flex-shrink-0 ${hasCompanies ? '' : 'opacity-50'}`} />
+                          {hasCompanies ? (
+                            <span className="text-sm truncate" title={companies.join(', ')}>
+                              {companies.length === 1 ? companies[0] : `${companies[0]} +${companies.length - 1}`}
+                            </span>
+                          ) : (
+                            <span className="text-sm text-gray-400 italic">Nenhuma empresa</span>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </TableCell>
                   <TableCell>
                     <Badge 
