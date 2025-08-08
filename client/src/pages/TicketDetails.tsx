@@ -1040,8 +1040,8 @@ const TicketDetails = React.memo(() => {
       followers: followers.length > 0 ? followers : (data.followers || []),
       tags: tags.length > 0 ? tags : (data.tags || []),
 
-      // CORRIGIDO: Company relationship - usar selectedCompany se companyId vazio
-      company_id: data.companyId || selectedCompany || null,
+      // CORRIGIDO: Company relationship - usar selectedCompany se customerCompanyId vazio
+      company_id: data.customerCompanyId || selectedCompany || null,
 
       // Environment
       environment: data.environment,
