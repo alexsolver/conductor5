@@ -1,0 +1,777 @@
+{
+  "timestamp": "2025-08-08T21:54:21.409Z",
+  "summary": {
+    "total": 14,
+    "critical": 11,
+    "high": 3,
+    "medium": 0,
+    "low": 0
+  },
+  "byModule": {
+    "tickets": [
+      {
+        "id": "SC-tickets-001",
+        "layer": "schema",
+        "module": "tickets",
+        "severity": "critical",
+        "type": "missing_field",
+        "description": "Schema file não encontrado para módulo tickets",
+        "evidence": [
+          "Nenhum arquivo de schema localizado"
+        ],
+        "affectedFiles": [
+          "shared/schema-*.ts"
+        ],
+        "expectedBehavior": "Schema definido para todas as tabelas",
+        "currentBehavior": "Schema ausente impede operações ORM",
+        "suggestedFix": "Criar schema Drizzle completo para o módulo"
+      },
+      {
+        "id": "FE-tickets-001",
+        "layer": "frontend",
+        "module": "tickets",
+        "severity": "high",
+        "type": "missing_field",
+        "description": "Componentes frontend ausentes no módulo tickets",
+        "evidence": [
+          "Componentes não encontrados: TicketList, TicketDetails, CreateTicket, EditTicket"
+        ],
+        "affectedFiles": [
+          "TicketList",
+          "TicketDetails",
+          "CreateTicket",
+          "EditTicket"
+        ],
+        "expectedBehavior": "Todos os componentes necessários implementados",
+        "currentBehavior": "Funcionalidades inacessíveis pelo usuário",
+        "suggestedFix": "Criar componentes React faltantes"
+      }
+    ],
+    "customers": [
+      {
+        "id": "SC-customers-001",
+        "layer": "schema",
+        "module": "customers",
+        "severity": "critical",
+        "type": "missing_field",
+        "description": "Schema file não encontrado para módulo customers",
+        "evidence": [
+          "Nenhum arquivo de schema localizado"
+        ],
+        "affectedFiles": [
+          "shared/schema-*.ts"
+        ],
+        "expectedBehavior": "Schema definido para todas as tabelas",
+        "currentBehavior": "Schema ausente impede operações ORM",
+        "suggestedFix": "Criar schema Drizzle completo para o módulo"
+      },
+      {
+        "id": "FE-customers-001",
+        "layer": "frontend",
+        "module": "customers",
+        "severity": "high",
+        "type": "missing_field",
+        "description": "Componentes frontend ausentes no módulo customers",
+        "evidence": [
+          "Componentes não encontrados: CustomerList, CustomerDetails, CreateCustomer"
+        ],
+        "affectedFiles": [
+          "CustomerList",
+          "CustomerDetails",
+          "CreateCustomer"
+        ],
+        "expectedBehavior": "Todos os componentes necessários implementados",
+        "currentBehavior": "Funcionalidades inacessíveis pelo usuário",
+        "suggestedFix": "Criar componentes React faltantes"
+      }
+    ],
+    "knowledge-base": [
+      {
+        "id": "SC-knowledge-base-001",
+        "layer": "schema",
+        "module": "knowledge-base",
+        "severity": "critical",
+        "type": "missing_field",
+        "description": "Schema file não encontrado para módulo knowledge-base",
+        "evidence": [
+          "Nenhum arquivo de schema localizado"
+        ],
+        "affectedFiles": [
+          "shared/schema-*.ts"
+        ],
+        "expectedBehavior": "Schema definido para todas as tabelas",
+        "currentBehavior": "Schema ausente impede operações ORM",
+        "suggestedFix": "Criar schema Drizzle completo para o módulo"
+      }
+    ],
+    "materials-services": [
+      {
+        "id": "SC-materials-services-001",
+        "layer": "schema",
+        "module": "materials-services",
+        "severity": "critical",
+        "type": "missing_field",
+        "description": "Schema file não encontrado para módulo materials-services",
+        "evidence": [
+          "Nenhum arquivo de schema localizado"
+        ],
+        "affectedFiles": [
+          "shared/schema-*.ts"
+        ],
+        "expectedBehavior": "Schema definido para todas as tabelas",
+        "currentBehavior": "Schema ausente impede operações ORM",
+        "suggestedFix": "Criar schema Drizzle completo para o módulo"
+      },
+      {
+        "id": "FE-materials-services-001",
+        "layer": "frontend",
+        "module": "materials-services",
+        "severity": "high",
+        "type": "missing_field",
+        "description": "Componentes frontend ausentes no módulo materials-services",
+        "evidence": [
+          "Componentes não encontrados: ItemCatalog, SupplierManagement, StockManagement"
+        ],
+        "affectedFiles": [
+          "ItemCatalog",
+          "SupplierManagement",
+          "StockManagement"
+        ],
+        "expectedBehavior": "Todos os componentes necessários implementados",
+        "currentBehavior": "Funcionalidades inacessíveis pelo usuário",
+        "suggestedFix": "Criar componentes React faltantes"
+      }
+    ],
+    "timecard": [
+      {
+        "id": "SC-timecard-001",
+        "layer": "schema",
+        "module": "timecard",
+        "severity": "critical",
+        "type": "missing_field",
+        "description": "Schema file não encontrado para módulo timecard",
+        "evidence": [
+          "Nenhum arquivo de schema localizado"
+        ],
+        "affectedFiles": [
+          "shared/schema-*.ts"
+        ],
+        "expectedBehavior": "Schema definido para todas as tabelas",
+        "currentBehavior": "Schema ausente impede operações ORM",
+        "suggestedFix": "Criar schema Drizzle completo para o módulo"
+      }
+    ],
+    "locations": [
+      {
+        "id": "SC-locations-001",
+        "layer": "schema",
+        "module": "locations",
+        "severity": "critical",
+        "type": "missing_field",
+        "description": "Schema file não encontrado para módulo locations",
+        "evidence": [
+          "Nenhum arquivo de schema localizado"
+        ],
+        "affectedFiles": [
+          "shared/schema-*.ts"
+        ],
+        "expectedBehavior": "Schema definido para todas as tabelas",
+        "currentBehavior": "Schema ausente impede operações ORM",
+        "suggestedFix": "Criar schema Drizzle completo para o módulo"
+      }
+    ],
+    "notifications": [
+      {
+        "id": "SC-notifications-001",
+        "layer": "schema",
+        "module": "notifications",
+        "severity": "critical",
+        "type": "missing_field",
+        "description": "Schema file não encontrado para módulo notifications",
+        "evidence": [
+          "Nenhum arquivo de schema localizado"
+        ],
+        "affectedFiles": [
+          "shared/schema-*.ts"
+        ],
+        "expectedBehavior": "Schema definido para todas as tabelas",
+        "currentBehavior": "Schema ausente impede operações ORM",
+        "suggestedFix": "Criar schema Drizzle completo para o módulo"
+      }
+    ],
+    "schedule-management": [
+      {
+        "id": "SC-schedule-management-001",
+        "layer": "schema",
+        "module": "schedule-management",
+        "severity": "critical",
+        "type": "missing_field",
+        "description": "Schema file não encontrado para módulo schedule-management",
+        "evidence": [
+          "Nenhum arquivo de schema localizado"
+        ],
+        "affectedFiles": [
+          "shared/schema-*.ts"
+        ],
+        "expectedBehavior": "Schema definido para todas as tabelas",
+        "currentBehavior": "Schema ausente impede operações ORM",
+        "suggestedFix": "Criar schema Drizzle completo para o módulo"
+      }
+    ],
+    "user-management": [
+      {
+        "id": "SC-user-management-001",
+        "layer": "schema",
+        "module": "user-management",
+        "severity": "critical",
+        "type": "missing_field",
+        "description": "Schema file não encontrado para módulo user-management",
+        "evidence": [
+          "Nenhum arquivo de schema localizado"
+        ],
+        "affectedFiles": [
+          "shared/schema-*.ts"
+        ],
+        "expectedBehavior": "Schema definido para todas as tabelas",
+        "currentBehavior": "Schema ausente impede operações ORM",
+        "suggestedFix": "Criar schema Drizzle completo para o módulo"
+      }
+    ],
+    "dashboard": [
+      {
+        "id": "SC-dashboard-001",
+        "layer": "schema",
+        "module": "dashboard",
+        "severity": "critical",
+        "type": "missing_field",
+        "description": "Schema file não encontrado para módulo dashboard",
+        "evidence": [
+          "Nenhum arquivo de schema localizado"
+        ],
+        "affectedFiles": [
+          "shared/schema-*.ts"
+        ],
+        "expectedBehavior": "Schema definido para todas as tabelas",
+        "currentBehavior": "Schema ausente impede operações ORM",
+        "suggestedFix": "Criar schema Drizzle completo para o módulo"
+      }
+    ],
+    "auth": [
+      {
+        "id": "SC-auth-001",
+        "layer": "schema",
+        "module": "auth",
+        "severity": "critical",
+        "type": "missing_field",
+        "description": "Schema file não encontrado para módulo auth",
+        "evidence": [
+          "Nenhum arquivo de schema localizado"
+        ],
+        "affectedFiles": [
+          "shared/schema-*.ts"
+        ],
+        "expectedBehavior": "Schema definido para todas as tabelas",
+        "currentBehavior": "Schema ausente impede operações ORM",
+        "suggestedFix": "Criar schema Drizzle completo para o módulo"
+      }
+    ]
+  },
+  "byLayer": {
+    "schema": [
+      {
+        "id": "SC-tickets-001",
+        "layer": "schema",
+        "module": "tickets",
+        "severity": "critical",
+        "type": "missing_field",
+        "description": "Schema file não encontrado para módulo tickets",
+        "evidence": [
+          "Nenhum arquivo de schema localizado"
+        ],
+        "affectedFiles": [
+          "shared/schema-*.ts"
+        ],
+        "expectedBehavior": "Schema definido para todas as tabelas",
+        "currentBehavior": "Schema ausente impede operações ORM",
+        "suggestedFix": "Criar schema Drizzle completo para o módulo"
+      },
+      {
+        "id": "SC-customers-001",
+        "layer": "schema",
+        "module": "customers",
+        "severity": "critical",
+        "type": "missing_field",
+        "description": "Schema file não encontrado para módulo customers",
+        "evidence": [
+          "Nenhum arquivo de schema localizado"
+        ],
+        "affectedFiles": [
+          "shared/schema-*.ts"
+        ],
+        "expectedBehavior": "Schema definido para todas as tabelas",
+        "currentBehavior": "Schema ausente impede operações ORM",
+        "suggestedFix": "Criar schema Drizzle completo para o módulo"
+      },
+      {
+        "id": "SC-knowledge-base-001",
+        "layer": "schema",
+        "module": "knowledge-base",
+        "severity": "critical",
+        "type": "missing_field",
+        "description": "Schema file não encontrado para módulo knowledge-base",
+        "evidence": [
+          "Nenhum arquivo de schema localizado"
+        ],
+        "affectedFiles": [
+          "shared/schema-*.ts"
+        ],
+        "expectedBehavior": "Schema definido para todas as tabelas",
+        "currentBehavior": "Schema ausente impede operações ORM",
+        "suggestedFix": "Criar schema Drizzle completo para o módulo"
+      },
+      {
+        "id": "SC-materials-services-001",
+        "layer": "schema",
+        "module": "materials-services",
+        "severity": "critical",
+        "type": "missing_field",
+        "description": "Schema file não encontrado para módulo materials-services",
+        "evidence": [
+          "Nenhum arquivo de schema localizado"
+        ],
+        "affectedFiles": [
+          "shared/schema-*.ts"
+        ],
+        "expectedBehavior": "Schema definido para todas as tabelas",
+        "currentBehavior": "Schema ausente impede operações ORM",
+        "suggestedFix": "Criar schema Drizzle completo para o módulo"
+      },
+      {
+        "id": "SC-timecard-001",
+        "layer": "schema",
+        "module": "timecard",
+        "severity": "critical",
+        "type": "missing_field",
+        "description": "Schema file não encontrado para módulo timecard",
+        "evidence": [
+          "Nenhum arquivo de schema localizado"
+        ],
+        "affectedFiles": [
+          "shared/schema-*.ts"
+        ],
+        "expectedBehavior": "Schema definido para todas as tabelas",
+        "currentBehavior": "Schema ausente impede operações ORM",
+        "suggestedFix": "Criar schema Drizzle completo para o módulo"
+      },
+      {
+        "id": "SC-locations-001",
+        "layer": "schema",
+        "module": "locations",
+        "severity": "critical",
+        "type": "missing_field",
+        "description": "Schema file não encontrado para módulo locations",
+        "evidence": [
+          "Nenhum arquivo de schema localizado"
+        ],
+        "affectedFiles": [
+          "shared/schema-*.ts"
+        ],
+        "expectedBehavior": "Schema definido para todas as tabelas",
+        "currentBehavior": "Schema ausente impede operações ORM",
+        "suggestedFix": "Criar schema Drizzle completo para o módulo"
+      },
+      {
+        "id": "SC-notifications-001",
+        "layer": "schema",
+        "module": "notifications",
+        "severity": "critical",
+        "type": "missing_field",
+        "description": "Schema file não encontrado para módulo notifications",
+        "evidence": [
+          "Nenhum arquivo de schema localizado"
+        ],
+        "affectedFiles": [
+          "shared/schema-*.ts"
+        ],
+        "expectedBehavior": "Schema definido para todas as tabelas",
+        "currentBehavior": "Schema ausente impede operações ORM",
+        "suggestedFix": "Criar schema Drizzle completo para o módulo"
+      },
+      {
+        "id": "SC-schedule-management-001",
+        "layer": "schema",
+        "module": "schedule-management",
+        "severity": "critical",
+        "type": "missing_field",
+        "description": "Schema file não encontrado para módulo schedule-management",
+        "evidence": [
+          "Nenhum arquivo de schema localizado"
+        ],
+        "affectedFiles": [
+          "shared/schema-*.ts"
+        ],
+        "expectedBehavior": "Schema definido para todas as tabelas",
+        "currentBehavior": "Schema ausente impede operações ORM",
+        "suggestedFix": "Criar schema Drizzle completo para o módulo"
+      },
+      {
+        "id": "SC-user-management-001",
+        "layer": "schema",
+        "module": "user-management",
+        "severity": "critical",
+        "type": "missing_field",
+        "description": "Schema file não encontrado para módulo user-management",
+        "evidence": [
+          "Nenhum arquivo de schema localizado"
+        ],
+        "affectedFiles": [
+          "shared/schema-*.ts"
+        ],
+        "expectedBehavior": "Schema definido para todas as tabelas",
+        "currentBehavior": "Schema ausente impede operações ORM",
+        "suggestedFix": "Criar schema Drizzle completo para o módulo"
+      },
+      {
+        "id": "SC-dashboard-001",
+        "layer": "schema",
+        "module": "dashboard",
+        "severity": "critical",
+        "type": "missing_field",
+        "description": "Schema file não encontrado para módulo dashboard",
+        "evidence": [
+          "Nenhum arquivo de schema localizado"
+        ],
+        "affectedFiles": [
+          "shared/schema-*.ts"
+        ],
+        "expectedBehavior": "Schema definido para todas as tabelas",
+        "currentBehavior": "Schema ausente impede operações ORM",
+        "suggestedFix": "Criar schema Drizzle completo para o módulo"
+      },
+      {
+        "id": "SC-auth-001",
+        "layer": "schema",
+        "module": "auth",
+        "severity": "critical",
+        "type": "missing_field",
+        "description": "Schema file não encontrado para módulo auth",
+        "evidence": [
+          "Nenhum arquivo de schema localizado"
+        ],
+        "affectedFiles": [
+          "shared/schema-*.ts"
+        ],
+        "expectedBehavior": "Schema definido para todas as tabelas",
+        "currentBehavior": "Schema ausente impede operações ORM",
+        "suggestedFix": "Criar schema Drizzle completo para o módulo"
+      }
+    ],
+    "frontend": [
+      {
+        "id": "FE-tickets-001",
+        "layer": "frontend",
+        "module": "tickets",
+        "severity": "high",
+        "type": "missing_field",
+        "description": "Componentes frontend ausentes no módulo tickets",
+        "evidence": [
+          "Componentes não encontrados: TicketList, TicketDetails, CreateTicket, EditTicket"
+        ],
+        "affectedFiles": [
+          "TicketList",
+          "TicketDetails",
+          "CreateTicket",
+          "EditTicket"
+        ],
+        "expectedBehavior": "Todos os componentes necessários implementados",
+        "currentBehavior": "Funcionalidades inacessíveis pelo usuário",
+        "suggestedFix": "Criar componentes React faltantes"
+      },
+      {
+        "id": "FE-customers-001",
+        "layer": "frontend",
+        "module": "customers",
+        "severity": "high",
+        "type": "missing_field",
+        "description": "Componentes frontend ausentes no módulo customers",
+        "evidence": [
+          "Componentes não encontrados: CustomerList, CustomerDetails, CreateCustomer"
+        ],
+        "affectedFiles": [
+          "CustomerList",
+          "CustomerDetails",
+          "CreateCustomer"
+        ],
+        "expectedBehavior": "Todos os componentes necessários implementados",
+        "currentBehavior": "Funcionalidades inacessíveis pelo usuário",
+        "suggestedFix": "Criar componentes React faltantes"
+      },
+      {
+        "id": "FE-materials-services-001",
+        "layer": "frontend",
+        "module": "materials-services",
+        "severity": "high",
+        "type": "missing_field",
+        "description": "Componentes frontend ausentes no módulo materials-services",
+        "evidence": [
+          "Componentes não encontrados: ItemCatalog, SupplierManagement, StockManagement"
+        ],
+        "affectedFiles": [
+          "ItemCatalog",
+          "SupplierManagement",
+          "StockManagement"
+        ],
+        "expectedBehavior": "Todos os componentes necessários implementados",
+        "currentBehavior": "Funcionalidades inacessíveis pelo usuário",
+        "suggestedFix": "Criar componentes React faltantes"
+      }
+    ]
+  },
+  "allIssues": [
+    {
+      "id": "SC-tickets-001",
+      "layer": "schema",
+      "module": "tickets",
+      "severity": "critical",
+      "type": "missing_field",
+      "description": "Schema file não encontrado para módulo tickets",
+      "evidence": [
+        "Nenhum arquivo de schema localizado"
+      ],
+      "affectedFiles": [
+        "shared/schema-*.ts"
+      ],
+      "expectedBehavior": "Schema definido para todas as tabelas",
+      "currentBehavior": "Schema ausente impede operações ORM",
+      "suggestedFix": "Criar schema Drizzle completo para o módulo"
+    },
+    {
+      "id": "FE-tickets-001",
+      "layer": "frontend",
+      "module": "tickets",
+      "severity": "high",
+      "type": "missing_field",
+      "description": "Componentes frontend ausentes no módulo tickets",
+      "evidence": [
+        "Componentes não encontrados: TicketList, TicketDetails, CreateTicket, EditTicket"
+      ],
+      "affectedFiles": [
+        "TicketList",
+        "TicketDetails",
+        "CreateTicket",
+        "EditTicket"
+      ],
+      "expectedBehavior": "Todos os componentes necessários implementados",
+      "currentBehavior": "Funcionalidades inacessíveis pelo usuário",
+      "suggestedFix": "Criar componentes React faltantes"
+    },
+    {
+      "id": "SC-customers-001",
+      "layer": "schema",
+      "module": "customers",
+      "severity": "critical",
+      "type": "missing_field",
+      "description": "Schema file não encontrado para módulo customers",
+      "evidence": [
+        "Nenhum arquivo de schema localizado"
+      ],
+      "affectedFiles": [
+        "shared/schema-*.ts"
+      ],
+      "expectedBehavior": "Schema definido para todas as tabelas",
+      "currentBehavior": "Schema ausente impede operações ORM",
+      "suggestedFix": "Criar schema Drizzle completo para o módulo"
+    },
+    {
+      "id": "FE-customers-001",
+      "layer": "frontend",
+      "module": "customers",
+      "severity": "high",
+      "type": "missing_field",
+      "description": "Componentes frontend ausentes no módulo customers",
+      "evidence": [
+        "Componentes não encontrados: CustomerList, CustomerDetails, CreateCustomer"
+      ],
+      "affectedFiles": [
+        "CustomerList",
+        "CustomerDetails",
+        "CreateCustomer"
+      ],
+      "expectedBehavior": "Todos os componentes necessários implementados",
+      "currentBehavior": "Funcionalidades inacessíveis pelo usuário",
+      "suggestedFix": "Criar componentes React faltantes"
+    },
+    {
+      "id": "SC-knowledge-base-001",
+      "layer": "schema",
+      "module": "knowledge-base",
+      "severity": "critical",
+      "type": "missing_field",
+      "description": "Schema file não encontrado para módulo knowledge-base",
+      "evidence": [
+        "Nenhum arquivo de schema localizado"
+      ],
+      "affectedFiles": [
+        "shared/schema-*.ts"
+      ],
+      "expectedBehavior": "Schema definido para todas as tabelas",
+      "currentBehavior": "Schema ausente impede operações ORM",
+      "suggestedFix": "Criar schema Drizzle completo para o módulo"
+    },
+    {
+      "id": "SC-materials-services-001",
+      "layer": "schema",
+      "module": "materials-services",
+      "severity": "critical",
+      "type": "missing_field",
+      "description": "Schema file não encontrado para módulo materials-services",
+      "evidence": [
+        "Nenhum arquivo de schema localizado"
+      ],
+      "affectedFiles": [
+        "shared/schema-*.ts"
+      ],
+      "expectedBehavior": "Schema definido para todas as tabelas",
+      "currentBehavior": "Schema ausente impede operações ORM",
+      "suggestedFix": "Criar schema Drizzle completo para o módulo"
+    },
+    {
+      "id": "FE-materials-services-001",
+      "layer": "frontend",
+      "module": "materials-services",
+      "severity": "high",
+      "type": "missing_field",
+      "description": "Componentes frontend ausentes no módulo materials-services",
+      "evidence": [
+        "Componentes não encontrados: ItemCatalog, SupplierManagement, StockManagement"
+      ],
+      "affectedFiles": [
+        "ItemCatalog",
+        "SupplierManagement",
+        "StockManagement"
+      ],
+      "expectedBehavior": "Todos os componentes necessários implementados",
+      "currentBehavior": "Funcionalidades inacessíveis pelo usuário",
+      "suggestedFix": "Criar componentes React faltantes"
+    },
+    {
+      "id": "SC-timecard-001",
+      "layer": "schema",
+      "module": "timecard",
+      "severity": "critical",
+      "type": "missing_field",
+      "description": "Schema file não encontrado para módulo timecard",
+      "evidence": [
+        "Nenhum arquivo de schema localizado"
+      ],
+      "affectedFiles": [
+        "shared/schema-*.ts"
+      ],
+      "expectedBehavior": "Schema definido para todas as tabelas",
+      "currentBehavior": "Schema ausente impede operações ORM",
+      "suggestedFix": "Criar schema Drizzle completo para o módulo"
+    },
+    {
+      "id": "SC-locations-001",
+      "layer": "schema",
+      "module": "locations",
+      "severity": "critical",
+      "type": "missing_field",
+      "description": "Schema file não encontrado para módulo locations",
+      "evidence": [
+        "Nenhum arquivo de schema localizado"
+      ],
+      "affectedFiles": [
+        "shared/schema-*.ts"
+      ],
+      "expectedBehavior": "Schema definido para todas as tabelas",
+      "currentBehavior": "Schema ausente impede operações ORM",
+      "suggestedFix": "Criar schema Drizzle completo para o módulo"
+    },
+    {
+      "id": "SC-notifications-001",
+      "layer": "schema",
+      "module": "notifications",
+      "severity": "critical",
+      "type": "missing_field",
+      "description": "Schema file não encontrado para módulo notifications",
+      "evidence": [
+        "Nenhum arquivo de schema localizado"
+      ],
+      "affectedFiles": [
+        "shared/schema-*.ts"
+      ],
+      "expectedBehavior": "Schema definido para todas as tabelas",
+      "currentBehavior": "Schema ausente impede operações ORM",
+      "suggestedFix": "Criar schema Drizzle completo para o módulo"
+    },
+    {
+      "id": "SC-schedule-management-001",
+      "layer": "schema",
+      "module": "schedule-management",
+      "severity": "critical",
+      "type": "missing_field",
+      "description": "Schema file não encontrado para módulo schedule-management",
+      "evidence": [
+        "Nenhum arquivo de schema localizado"
+      ],
+      "affectedFiles": [
+        "shared/schema-*.ts"
+      ],
+      "expectedBehavior": "Schema definido para todas as tabelas",
+      "currentBehavior": "Schema ausente impede operações ORM",
+      "suggestedFix": "Criar schema Drizzle completo para o módulo"
+    },
+    {
+      "id": "SC-user-management-001",
+      "layer": "schema",
+      "module": "user-management",
+      "severity": "critical",
+      "type": "missing_field",
+      "description": "Schema file não encontrado para módulo user-management",
+      "evidence": [
+        "Nenhum arquivo de schema localizado"
+      ],
+      "affectedFiles": [
+        "shared/schema-*.ts"
+      ],
+      "expectedBehavior": "Schema definido para todas as tabelas",
+      "currentBehavior": "Schema ausente impede operações ORM",
+      "suggestedFix": "Criar schema Drizzle completo para o módulo"
+    },
+    {
+      "id": "SC-dashboard-001",
+      "layer": "schema",
+      "module": "dashboard",
+      "severity": "critical",
+      "type": "missing_field",
+      "description": "Schema file não encontrado para módulo dashboard",
+      "evidence": [
+        "Nenhum arquivo de schema localizado"
+      ],
+      "affectedFiles": [
+        "shared/schema-*.ts"
+      ],
+      "expectedBehavior": "Schema definido para todas as tabelas",
+      "currentBehavior": "Schema ausente impede operações ORM",
+      "suggestedFix": "Criar schema Drizzle completo para o módulo"
+    },
+    {
+      "id": "SC-auth-001",
+      "layer": "schema",
+      "module": "auth",
+      "severity": "critical",
+      "type": "missing_field",
+      "description": "Schema file não encontrado para módulo auth",
+      "evidence": [
+        "Nenhum arquivo de schema localizado"
+      ],
+      "affectedFiles": [
+        "shared/schema-*.ts"
+      ],
+      "expectedBehavior": "Schema definido para todas as tabelas",
+      "currentBehavior": "Schema ausente impede operações ORM",
+      "suggestedFix": "Criar schema Drizzle completo para o módulo"
+    }
+  ]
+}
