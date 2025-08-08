@@ -35,40 +35,62 @@ export default function Customers() {
     return useQuery({
       queryKey: [`/api/customers/${customerId}/companies`],
       queryFn: async () => {
-        const { apiRequest } = await import('../lib/queryClient');
-        const response = await apiRequest('GET', `/api/customers/${customerId}/companies`);
-        const data = await response.json();
+        try {
+          const response = await fetch(`/api/customers/${customerId}/companies`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            credentials: 'include', // Incluir cookies da sessão
+          });
 
-        console.log(`[DEBUG] Customer ${customerId} API response:`, {
-          responseStatus: response.status,
-          dataStructure: typeof data,
-          dataKeys: Object.keys(data || {}),
-          fullData: data
-        });
-        
-        // Verificar diferentes estruturas possíveis da resposta
-        if (Array.isArray(data)) {
-          console.log(`[DEBUG] Customer ${customerId} - returning direct array with ${data.length} items`);
-          return data;
+          console.log(`[DEBUG] Customer ${customerId} API response:`, {
+            responseStatus: response.status,
+            statusText: response.statusText,
+            headers: Object.fromEntries(response.headers.entries())
+          });
+
+          if (!response.ok) {
+            console.warn(`[DEBUG] Customer ${customerId} - API error: ${response.status} ${response.statusText}`);
+            return [];
+          }
+
+          const data = await response.json();
+          
+          console.log(`[DEBUG] Customer ${customerId} response data:`, {
+            dataStructure: typeof data,
+            dataKeys: Object.keys(data || {}),
+            fullData: data
+          });
+          
+          // Verificar diferentes estruturas possíveis da resposta
+          if (Array.isArray(data)) {
+            console.log(`[DEBUG] Customer ${customerId} - returning direct array with ${data.length} items`);
+            return data;
+          }
+          if (data?.success && data?.data && Array.isArray(data.data)) {
+            console.log(`[DEBUG] Customer ${customerId} - returning data.data array with ${data.data.length} items`);
+            return data.data;
+          }
+          if (data?.data && Array.isArray(data.data)) {
+            console.log(`[DEBUG] Customer ${customerId} - returning data.data array with ${data.data.length} items (no success field)`);
+            return data.data;
+          }
+          if (data?.companies && Array.isArray(data.companies)) {
+            console.log(`[DEBUG] Customer ${customerId} - returning data.companies array with ${data.companies.length} items`);
+            return data.companies;
+          }
+          
+          console.warn(`[DEBUG] Customer ${customerId} - Invalid companies data structure:`, data);
+          return [];
+        } catch (error) {
+          console.error(`[DEBUG] Customer ${customerId} - Network error:`, error);
+          return [];
         }
-        if (data?.success && data?.data && Array.isArray(data.data)) {
-          console.log(`[DEBUG] Customer ${customerId} - returning data.data array with ${data.data.length} items`);
-          return data.data;
-        }
-        if (data?.data && Array.isArray(data.data)) {
-          console.log(`[DEBUG] Customer ${customerId} - returning data.data array with ${data.data.length} items (no success field)`);
-          return data.data;
-        }
-        if (data?.companies && Array.isArray(data.companies)) {
-          console.log(`[DEBUG] Customer ${customerId} - returning data.companies array with ${data.companies.length} items`);
-          return data.companies;
-        }
-        
-        console.warn(`[DEBUG] Customer ${customerId} - Invalid companies data structure:`, data);
-        return [];
       },
       enabled: !!customerId,
       staleTime: 5 * 60 * 1000, // Cache por 5 minutos
+      retry: 1, // Tentar apenas uma vez para evitar rate limiting
     });
   };
 

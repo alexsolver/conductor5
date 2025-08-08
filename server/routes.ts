@@ -3277,12 +3277,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { customerId } = req.params;
       const tenantId = req.user?.tenantId;
 
+      console.log(`[CUSTOMER-COMPANIES] Request for customer: ${customerId}, tenant: ${tenantId}`);
+
       if (!tenantId) {
+        console.log('[CUSTOMER-COMPANIES] No tenant ID found');
         return res.status(401).json({ message: 'Tenant required' });
       }
 
       const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
       const schemaName = schemaManager.getSchemaName(tenantId);
+
+      console.log(`[CUSTOMER-COMPANIES] Using schema: ${schemaName}`);
 
       // Get companies associated with this specific customer through the customer_companies relationship table
       const companies = await tenantDb.execute(sql`
@@ -3310,6 +3315,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           AND c.is_active = true
         ORDER BY c.name
       `);
+
+      console.log(`[CUSTOMER-COMPANIES] Found ${companies.rows.length} companies for customer ${customerId}:`, companies.rows);
 
       res.json({
         success: true,
