@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,15 @@ export default function Customers() {
   const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+
+  // Debounce search term for better performance
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
   const [customerTypeFilter, setCustomerTypeFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedCustomers, setSelectedCustomers] = useState<string[]>([]);
@@ -30,6 +39,8 @@ export default function Customers() {
       return data;
     },
     retry: false,
+    staleTime: 30000, // 30 segundos
+    refetchOnWindowFocus: false,
   });
 
   const allCustomers = customersData?.customers || [];
@@ -38,8 +49,8 @@ export default function Customers() {
   const customers = useMemo(() => {
     return allCustomers.filter(customer => {
     // Filtro de busca por texto
-    if (searchTerm) {
-      const searchLower = searchTerm.toLowerCase();
+    if (debouncedSearchTerm) {
+      const searchLower = debouncedSearchTerm.toLowerCase();
       const fullName = formatCustomerName(customer).toLowerCase();
       const email = customer.email?.toLowerCase() || '';
       const phone = (customer.phone || customer.mobile_phone || '').toLowerCase();
@@ -74,7 +85,7 @@ export default function Customers() {
     
     return true;
     });
-  }, [allCustomers, searchTerm, customerTypeFilter, statusFilter]);
+  }, [allCustomers, debouncedSearchTerm, customerTypeFilter, statusFilter]);
   
   const total = allCustomers.length;
 
@@ -218,32 +229,40 @@ export default function Customers() {
     return "?";
   };
 
-  // Simplified company display component
-  const CompanyDisplay = ({ companies }: { companies: string | null | undefined }) => {
-    if (!companies || companies === 'undefined' || companies === 'null') {
-      return <span className="text-gray-400">-</span>;
-    }
-
-    // Handle object or array companies data
-    let displayText = companies;
-    if (typeof companies === 'object' && companies !== null) {
-      if (Array.isArray(companies)) {
-        displayText = companies.filter(Boolean).join(', ') || 'N/A';
-      } else {
-        const values = Object.values(companies as Record<string, any>).filter(Boolean);
-        displayText = values.length > 0 ? values.join(', ') : 'N/A';
+  // Optimized company display component with React.memo
+  const CompanyDisplay = React.memo(({ companies }: { companies: string | null | undefined }) => {
+    const displayData = useMemo(() => {
+      if (!companies || companies === 'undefined' || companies === 'null') {
+        return null;
       }
+
+      // Handle object or array companies data
+      let displayText = companies;
+      if (typeof companies === 'object' && companies !== null) {
+        if (Array.isArray(companies)) {
+          displayText = companies.filter(Boolean).join(', ') || 'N/A';
+        } else {
+          const values = Object.values(companies as Record<string, any>).filter(Boolean);
+          displayText = values.length > 0 ? values.join(', ') : 'N/A';
+        }
+      }
+      
+      return String(displayText);
+    }, [companies]);
+
+    if (!displayData) {
+      return <span className="text-gray-400 text-sm italic">Nenhuma empresa</span>;
     }
 
     return (
       <div className="flex items-center text-gray-600 dark:text-gray-400">
-        <Building className="h-3 w-3 mr-1 flex-shrink-0" />
-        <span className="text-sm truncate" title={String(displayText)}>
-          {String(displayText)}
+        <Building className="h-3 w-3 mr-1 flex-shrink-0 text-blue-500" />
+        <span className="text-sm truncate" title={displayData}>
+          {displayData}
         </span>
       </div>
     );
-  };
+  });
 
   if (isLoading) {
     return (
@@ -275,6 +294,7 @@ export default function Customers() {
     const errorType = (error as any)?.code || 'UNKNOWN_ERROR';
     const isSchemaError = ['TABLE_NOT_FOUND', 'MISSING_COLUMNS', 'MISSING_COLUMN'].includes(errorType);
     const isPermissionError = errorType === 'PERMISSION_DENIED';
+    const isCompaniesError = (error as any)?.message?.includes('sql is not defined');
     
     return (
       <div className="p-4 space-y-6">

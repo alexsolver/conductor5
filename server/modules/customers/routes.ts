@@ -713,55 +713,48 @@ customersRouter.put('/companies/:id', jwtAuth, async (req: AuthenticatedRequest,
 
 // GET /api/customers/:id/companies - Get companies for a specific customer
 // Removed fallback to legacy 'customer_companies' and 'customer_company_memberships' tables
-customersRouter.get('/:customerId/companies', jwtAuth, async (req: Request, res: Response) => {
-  const { customerId } = req.params;
-  const tenantId = req.user?.tenantId;
-
-  if (!tenantId) {
-    return res.status(400).json({ error: 'Tenant ID is required' });
-  }
-
-  console.log(`[CUSTOMER-COMPANIES] Request for customer: ${customerId}, tenant: ${tenantId}`);
-
-  const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-  console.log(`[CUSTOMER-COMPANIES] Using schema: ${schemaName}`);
-
+customersRouter.get('/:customerId/companies', jwtAuth, async (req, res) => {
   try {
-    // ÚNICA FONTE: companies_relationships (tabelas legacy removidas)
-    const companiesResult = await db.execute(sql`
-      SELECT 
-        comp.id as company_id,
-        comp.name as company_name,
-        comp.display_name,
-        comp.cnpj,
-        comp.industry,
-        comp.website,
-        comp.phone,
-        comp.email,
-        comp.status,
-        comp.subscription_tier,
-        comp.created_at,
-        comp.updated_at,
-        cr.role,
-        cr.start_date,
-        cr.end_date,
-        cr.is_primary
-      FROM ${schemaName}.companies_relationships cr
-      JOIN public.companies comp ON cr.company_id = comp.id
-      WHERE cr.customer_id = ${customerId}
-        AND cr.tenant_id = ${tenantId}
-      ORDER BY cr.is_primary DESC, comp.name ASC
-    `);
+    const { customerId } = req.params;
+    const tenantId = req.user?.tenantId;
 
-    console.log(`[CUSTOMER-COMPANIES] Found ${companiesResult.rows.length} companies for customer ${customerId}: ${JSON.stringify(companiesResult.rows)}`);
+    console.log('[CUSTOMER-COMPANIES] Request for customer:', customerId, 'tenant:', tenantId);
 
-    res.json(companiesResult.rows);
+    if (!tenantId) {
+      return res.status(400).json({ success: false, error: 'Tenant ID is required' });
+    }
+
+    // Using tenant schema directly for performance
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    console.log('[CUSTOMER-COMPANIES] Using schema:', schemaName);
+
+    const query = sql.raw(`
+      SELECT DISTINCT 
+        c.id,
+        c.name,
+        c.description,
+        c.contact_info,
+        c.created_at
+      FROM "${schemaName}"."companies" c
+      INNER JOIN "${schemaName}"."companies_relationships" cr 
+        ON c.id = cr.company_id
+      WHERE cr.customer_id = $1
+        AND c.tenant_id = $2
+      ORDER BY c.name ASC
+    `, [customerId, tenantId]);
+
+    const companies = await db.execute(query);
+
+    res.json({
+      success: true,
+      companies: companies.rows
+    });
 
   } catch (error) {
     console.error('[CUSTOMER-COMPANIES] Error:', error);
     res.status(500).json({ 
-      error: 'Internal server error',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      success: false, 
+      error: 'Failed to fetch customer companies' 
     });
   }
 });
