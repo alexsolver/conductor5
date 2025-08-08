@@ -498,7 +498,19 @@ export default function Tickets() {
                             ) : (
                               filteredCustomers.map((customer: any) => (
                                 <SelectItem key={customer.id} value={customer.id}>
-                                  {customer.name || customer.fullName || `${customer.first_name || ''} ${customer.last_name || ''}`.trim() || customer.email} 
+                                  {(() => {
+                                    const firstName = customer.first_name || customer.firstName || '';
+                                    const lastName = customer.last_name || customer.lastName || '';
+                                    const fullName = customer.fullName || customer.full_name || '';
+                                    const name = customer.name || '';
+                                    
+                                    if (fullName) return fullName;
+                                    if (firstName && lastName) return `${firstName} ${lastName}`;
+                                    if (firstName) return firstName;
+                                    if (lastName) return lastName;
+                                    if (name) return name;
+                                    return customer.email || 'N/A';
+                                  })()} 
                                   {customer.email && ` (${customer.email})`}
                                 </SelectItem>
                               ))

@@ -155,3 +155,27 @@ export const isEmptyValue = (value: any): boolean => {
          stringValue === 'n/a' ||
          stringValue === 'none';
 };
+
+/**
+ * Safe customer name formatter with fallbacks
+ */
+export const formatCustomerName = (customer: any): string => {
+  if (!customer || typeof customer !== 'object') {
+    return 'N/A';
+  }
+
+  // Try multiple field combinations
+  const firstName = getFieldSafely(customer, 'firstName') || getFieldSafely(customer, 'first_name');
+  const lastName = getFieldSafely(customer, 'lastName') || getFieldSafely(customer, 'last_name');
+  const fullName = getFieldSafely(customer, 'fullName') || getFieldSafely(customer, 'full_name');
+  const name = getFieldSafely(customer, 'name');
+
+  if (fullName) return fullName;
+  if (firstName && lastName) return `${firstName} ${lastName}`;
+  if (firstName) return firstName;
+  if (lastName) return lastName;
+  if (name) return name;
+  if (customer.email) return customer.email;
+  
+  return 'N/A';
+};

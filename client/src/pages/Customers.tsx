@@ -9,7 +9,7 @@ import { Plus, Search, Mail, Phone, MapPin, Edit, MoreHorizontal, Building } fro
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { CustomerModal } from "@/components/CustomerModal";
 import { useLocation } from "wouter";
-import { renderAddressSafely, formatCompanyDisplay, getFieldSafely } from "@/utils/addressFormatter";
+import { renderAddressSafely, formatCompanyDisplay, getFieldSafely, formatCustomerName } from "@/utils/addressFormatter";
 
 export default function Customers() {
   const [, setLocation] = useLocation();
@@ -90,18 +90,27 @@ export default function Customers() {
   };
 
   const getInitials = (customer: any) => {
-    // Standardize field access with fallbacks
-    const firstName = customer.first_name || customer.firstName || '';
-    const lastName = customer.last_name || customer.lastName || '';
+    // Use the same consistent field access as formatCustomerName
+    const firstName = getFieldSafely(customer, 'firstName') || getFieldSafely(customer, 'first_name');
+    const lastName = getFieldSafely(customer, 'lastName') || getFieldSafely(customer, 'last_name');
+    const fullName = getFieldSafely(customer, 'fullName') || getFieldSafely(customer, 'full_name');
+    const name = getFieldSafely(customer, 'name');
     
     if (firstName && lastName) {
       return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+    }
+    if (fullName && fullName.includes(' ')) {
+      const parts = fullName.split(' ');
+      return `${parts[0].charAt(0)}${parts[parts.length - 1].charAt(0)}`.toUpperCase();
     }
     if (firstName) {
       return firstName.charAt(0).toUpperCase();
     }
     if (lastName) {
       return lastName.charAt(0).toUpperCase();
+    }
+    if (name) {
+      return name.charAt(0).toUpperCase();
     }
     if (customer.email) {
       return customer.email.charAt(0).toUpperCase();
@@ -291,12 +300,7 @@ export default function Customers() {
                   </TableCell>
                   <TableCell>
                     <div className="font-medium text-gray-900 dark:text-gray-100">
-                      {(() => {
-                        const firstName = getCustomerField(customer, 'firstName');
-                        const lastName = getCustomerField(customer, 'lastName');
-                        const fullName = `${firstName || ''} ${lastName || ''}`.trim();
-                        return fullName || customer.email || 'Nome não informado';
-                      })()}
+                      {formatCustomerName(customer)}
                     </div>
                     {(() => {
                       const customerType = getCustomerField(customer, 'customerType');

@@ -18,9 +18,9 @@ export default function Dashboard() {
     retry: false,
   });
 
-  // Extract data from standardResponse format
-  const stats = statsResponse?.data || {};
-  const activity = activityResponse?.data || [];
+  // Extract data from standardResponse format with proper type checking
+  const stats = (statsResponse as any)?.data || {};
+  const activity = (activityResponse as any)?.data || [];
 
   if (isLoading) {
     return (
