@@ -408,11 +408,9 @@ export class DatabaseStorage implements IStorage {
           customers.first_name as customer_first_name,
           customers.last_name as customer_last_name,
           customers.email as customer_email,
-          customers.company as customer_individual_company,
           caller.first_name as caller_first_name,
           caller.last_name as caller_last_name,
           caller.email as caller_email,
-          caller.company as caller_company_name,
           companies.name as customer_company_name
         FROM ${sql.identifier(schemaName)}.tickets
         LEFT JOIN ${sql.identifier(schemaName)}.customers ON tickets.customer_id = customers.id
@@ -451,11 +449,9 @@ export class DatabaseStorage implements IStorage {
           customers.first_name as customer_first_name,
           customers.last_name as customer_last_name,
           customers.email as customer_email,
-          customers.company as customer_individual_company,
           caller.first_name as caller_first_name,
           caller.last_name as caller_last_name,
           caller.email as caller_email,
-          caller.company as caller_company_name,
           companies.name as customer_company_name
         FROM ${sql.identifier(schemaName)}.tickets
         LEFT JOIN ${sql.identifier(schemaName)}.customers ON tickets.customer_id = customers.id

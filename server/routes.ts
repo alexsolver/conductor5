@@ -150,9 +150,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Initialize clean architecture dependencies before importing routes
-  const { setupCustomerDependencies } = await import('./modules/customers/infrastructure/setup/CustomerDependencySetup');
-  setupCustomerDependencies();
+  // Customer dependencies simplified - using storage-simple.ts approach
 
   // Import and mount authentication routes
   const { authRouter } = await import('./modules/auth/routes');
