@@ -312,7 +312,16 @@ export default function Customers() {
                     )}
                   </TableCell>
                   <TableCell>
-                    <Companies customerId={customer.id} />
+                    {customer.associated_companies ? (
+                      <div className="flex items-center text-gray-600 dark:text-gray-400">
+                        <Building className="h-3 w-3 mr-1 flex-shrink-0" />
+                        <span className="text-sm truncate" title={customer.associated_companies}>
+                          {customer.associated_companies}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-gray-400">-</span>
+                    )}
                   </TableCell>
                   <TableCell>
                     <Badge 

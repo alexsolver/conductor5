@@ -215,7 +215,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // === CUSTOMERSROUTES - Standardized to use /api/customers ===
 
-  // Main customers route - temporary implementation until router is fixed
+  // Main customers route with associated companies
   app.get('/api/customers', jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {
       if (!req.user?.tenantId) {
@@ -228,9 +228,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`[GET-CUSTOMERS] Fetching customers for tenant: ${req.user.tenantId}`);
 
-      // Query PostgreSQL directly for consistency with POST route
+      // Query customers with their associated companies
       const result = await pool.query(
-        `SELECT * FROM "${schemaName}"."customers" WHERE tenant_id = $1 ORDER BY created_at DESC`,
+        `SELECT 
+          c.*,
+          COALESCE(
+            STRING_AGG(comp.name, ', ' ORDER BY comp.name),
+            ''
+          ) as associated_companies
+        FROM "${schemaName}"."customers" c
+        LEFT JOIN "${schemaName}"."customer_companies" cc 
+          ON c.id = cc.customer_id AND cc.is_active = true
+        LEFT JOIN "${schemaName}"."companies" comp 
+          ON cc.company_id = comp.id AND comp.is_active = true
+        WHERE c.tenant_id = $1 
+        GROUP BY c.id, c.tenant_id, c.first_name, c.last_name, c.email, 
+                 c.phone, c.company, c.created_at, c.updated_at, c.address,
+                 c.address_number, c.complement, c.neighborhood, c.city,
+                 c.state, c.zip_code, c.is_active, c.customer_type
+        ORDER BY c.created_at DESC`,
         [req.user.tenantId]
       );
 
@@ -244,6 +260,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         phone: row.phone,
         company: row.company,
         companyName: row.company,
+        associated_companies: row.associated_companies || '',
         address: row.address,
         address_number: row.address_number,
         complement: row.complement,
@@ -254,21 +271,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         zipCode: row.zip_code,
         status: "Ativo", // Default status for display
         role: "Customer", // Default role
+        customer_type: row.customer_type,
+        is_active: row.is_active,
         created_at: row.created_at,
         updated_at: row.updated_at,
         createdAt: row.created_at,
         updatedAt: row.updated_at
       }));
 
-      console.log(`[GET-CUSTOMERS] Found ${customers.length} customers`);
+      console.log(`[GET-CUSTOMERS] Found ${customers.length} customers with associated companies`);
 
       res.json({
+        success: true,
         customers: customers,
         total: customers.length
       });
     } catch (error) {
       console.error('Error fetching customers:', error);
       res.status(500).json({ 
+        success: false,
         customers: [],
         total: 0,
         message: "Failed to fetch customers" 
