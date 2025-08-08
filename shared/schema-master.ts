@@ -653,6 +653,30 @@ export const insertBeneficiarySchema = createInsertSchema(beneficiaries);
 export const insertProjectSchema = createInsertSchema(projects);
 export const insertProjectActionSchema = createInsertSchema(projectActions);
 
+// Customer Company Memberships table - Many-to-many relationship
+export const customerCompanyMemberships = pgTable("customer_company_memberships", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  customerId: uuid("customer_id").references(() => customers.id, { onDelete: 'cascade' }).notNull(),
+  companyId: uuid("company_id").references(() => companies.id, { onDelete: 'cascade' }).notNull(),
+  role: varchar("role", { length: 50 }).default("member"), // member, admin, contact
+  isActive: boolean("is_active").default(true),
+  assignedAt: timestamp("assigned_at").defaultNow(),
+  assignedById: uuid("assigned_by_id").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  unique("customer_company_memberships_unique").on(table.tenantId, table.customerId, table.companyId),
+  index("customer_company_memberships_tenant_customer_idx").on(table.tenantId, table.customerId),
+  index("customer_company_memberships_tenant_company_idx").on(table.tenantId, table.companyId),
+  index("customer_company_memberships_tenant_active_idx").on(table.tenantId, table.isActive),
+]);
+
+// Customer Company Memberships types
+export type CustomerCompanyMembership = typeof customerCompanyMemberships.$inferSelect;
+export type InsertCustomerCompanyMembership = typeof customerCompanyMemberships.$inferInsert;
+export const insertCustomerCompanyMembershipSchema = createInsertSchema(customerCompanyMemberships);
+
 // ========================================
 // TICKET HIERARCHICAL CATEGORIES (CATEGORIA → SUBCATEGORIA → AÇÃO)
 // ========================================

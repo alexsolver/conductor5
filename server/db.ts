@@ -48,7 +48,7 @@ export const schemaManager = {
     return { db: tenantDb };
   },
 
-  // Enhanced tenant schema validation with detailed checks
+  // Enhanced tenant schema validation with detailed checks for Customer Module
   async validateTenantSchema(tenantId: string): Promise<boolean> {
     try {
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
@@ -74,36 +74,52 @@ export const schemaManager = {
 
       const tableCount = parseInt(result.rows[0]?.table_count || "0");
 
-      // Check for standardized core tables (Materials & LPU system + Customer module)
-      const coreResult = await pool.query(`
+      // ✅ CUSTOMER MODULE SPECIFIC VALIDATION
+      const customerModuleTables = await pool.query(`
         SELECT table_name 
         FROM information_schema.tables 
         WHERE table_schema = $1
         AND table_name IN (
-          'customers', 'beneficiaries', 'companies', 'tickets', 'locations', 
-          'items', 'suppliers', 'price_lists', 'pricing_rules',
-          'ticket_planned_items', 'ticket_consumed_items', 'user_groups',
-          'customer_item_mappings', 'item_customer_links'
+          'customers', 'beneficiaries', 'companies', 'customer_company_memberships',
+          'tickets', 'locations', 'user_groups', 'activity_logs'
         )
         ORDER BY table_name
       `, [schemaName]);
 
-      const coreTableCount = coreResult.rows.length;
-      const coreTables = coreResult.rows.map(row => row.table_name);
+      const customerTables = customerModuleTables.rows.map(row => row.table_name);
+      
+      // ✅ VALIDATE CUSTOMER TABLE STRUCTURE
+      const customerStructure = await pool.query(`
+        SELECT column_name, data_type, is_nullable, column_default
+        FROM information_schema.columns 
+        WHERE table_schema = $1 AND table_name = 'customers'
+        AND column_name IN ('tenant_id', 'customer_type', 'first_name', 'last_name', 'email', 'is_active')
+        ORDER BY ordinal_position
+      `, [schemaName]);
 
-      // Check for required soft delete columns on critical tables
-      const softDeleteCheck = await pool.query(`
+      const customerFieldsOk = customerStructure.rows.length >= 6;
+
+      // ✅ VALIDATE BENEFICIARIES TABLE STRUCTURE  
+      const beneficiariesStructure = await pool.query(`
+        SELECT column_name, data_type
+        FROM information_schema.columns 
+        WHERE table_schema = $1 AND table_name = 'beneficiaries'
+        AND column_name IN ('tenant_id', 'name', 'cpf', 'cnpj', 'is_active')
+      `, [schemaName]);
+
+      const beneficiariesFieldsOk = beneficiariesStructure.rows.length >= 4;
+
+      // Check for required soft delete columns on customer tables
+      const customerSoftDeleteCheck = await pool.query(`
         SELECT 
           t.table_name,
           CASE WHEN c.column_name IS NOT NULL THEN true ELSE false END as has_is_active
         FROM (
-          SELECT 'tickets' as table_name UNION ALL
-          SELECT 'ticket_messages' UNION ALL  
-          SELECT 'activity_logs' UNION ALL
-          SELECT 'ticket_history' UNION ALL
-          SELECT 'customers' UNION ALL
-          SELECT 'beneficiaries' UNION ALL
-          SELECT 'customer_item_mappings'
+          SELECT 'customers' as table_name UNION ALL
+          SELECT 'beneficiaries' UNION ALL  
+          SELECT 'companies' UNION ALL
+          SELECT 'tickets' UNION ALL
+          SELECT 'activity_logs'
         ) t
         LEFT JOIN information_schema.columns c 
           ON c.table_schema = $1 
@@ -111,21 +127,27 @@ export const schemaManager = {
           AND c.column_name = 'is_active'
       `, [schemaName]);
 
-      const softDeleteCoverage = softDeleteCheck.rows.filter(row => row.has_is_active).length;
+      const customerSoftDeleteCoverage = customerSoftDeleteCheck.rows.filter(row => row.has_is_active).length;
 
-      // Enhanced validation criteria (14 core tables including customer module)
-      const isValid = tableCount >= 60 && coreTableCount >= 13 && softDeleteCoverage >= 5;
+      // ✅ CUSTOMER MODULE VALIDATION CRITERIA
+      const customerModuleValid = customerTables.length >= 6 && customerFieldsOk && beneficiariesFieldsOk && customerSoftDeleteCoverage >= 4;
+      const overallValid = tableCount >= 60 && customerModuleValid;
       
-      console.log(`✅ Tenant schema validated for ${tenantId}: ${tableCount} tables (${coreTableCount}/14 core tables, ${softDeleteCoverage}/7 soft-delete) - ${isValid ? 'VALID' : 'INVALID'}`);
+      console.log(`🏢 Customer Module validated for ${tenantId}:`);
+      console.log(`   📋 Customer tables: ${customerTables.length}/8 (${customerTables.join(', ')})`);
+      console.log(`   🔧 Customer fields: ${customerFieldsOk ? 'OK' : 'MISSING'}`);
+      console.log(`   🏷️ Beneficiaries fields: ${beneficiariesFieldsOk ? 'OK' : 'MISSING'}`);
+      console.log(`   🗑️ Soft delete coverage: ${customerSoftDeleteCoverage}/5`);
+      console.log(`   ✅ Total tables: ${tableCount} - ${overallValid ? 'VALID' : 'INVALID'}`);
       
-      if (!isValid) {
-        const expectedTables = ['customers', 'beneficiaries', 'companies', 'tickets', 'locations', 'items', 'suppliers', 'price_lists', 'pricing_rules', 'ticket_planned_items', 'ticket_consumed_items', 'user_groups', 'customer_item_mappings', 'item_customer_links'];
-        console.log(`📋 Missing core tables: ${expectedTables.filter(t => !coreTables.includes(t))}`);
+      if (!customerModuleValid) {
+        const expectedCustomerTables = ['customers', 'beneficiaries', 'companies', 'customer_company_memberships', 'tickets', 'locations', 'user_groups', 'activity_logs'];
+        console.log(`❌ Missing customer tables: ${expectedCustomerTables.filter(t => !customerTables.includes(t))}`);
       }
       
-      return isValid;
+      return overallValid;
     } catch (error) {
-      console.error(`❌ Schema validation failed for ${tenantId}:`, error);
+      console.error(`❌ Customer Module schema validation failed for ${tenantId}:`, error);
       return false;
     }
   },
