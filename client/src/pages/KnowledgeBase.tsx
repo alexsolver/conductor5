@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,6 +47,9 @@ import {
   Palette,
   Layers
 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Edit } from "lucide-react";
+
 
 const KnowledgeBase = () => {
   const [activeTab, setActiveTab] = useState("overview");
@@ -57,18 +60,18 @@ const KnowledgeBase = () => {
   const [isCreateCategoryOpen, setIsCreateCategoryOpen] = useState(false);
 
   // Queries
-  const { data: categories = [] } = useQuery({
+  const { data: categories = [], refetch: refetchCategories } = useQuery({
     queryKey: ['/api/knowledge-base/categories'],
-    queryFn: () => fetch('/api/knowledge-base/categories').then(res => res.json()).then(data => data.data)
+    queryFn: () => fetch('/api/knowledge-base/categories').then(res => res.json()).then(data => data.data || [])
   });
 
-  const { data: articles = [] } = useQuery({
+  const { data: articles = [], refetch: refetchArticles } = useQuery({
     queryKey: ['/api/knowledge-base/articles', selectedCategory, searchQuery],
     queryFn: () => {
       const params = new URLSearchParams();
       if (selectedCategory) params.append('category', selectedCategory);
       if (searchQuery) params.append('search', searchQuery);
-      return fetch(`/api/knowledge-base/articles?${params}`).then(res => res.json()).then(data => data.data);
+      return fetch(`/api/knowledge-base/articles?${params.toString()}`).then(res => res.json()).then(data => data.data || []);
     }
   });
 
@@ -90,18 +93,98 @@ const KnowledgeBase = () => {
       Shield,
       GraduationCap,
       Wrench,
-      Folder
+      Folder,
+      FileText,
+      Video,
+      Image,
+      MessageCircle
     };
     const IconComponent = icons[iconName] || Folder;
     return <IconComponent className="h-5 w-5" />;
   };
 
   // Format numbers
-  const formatNumber = (num: number) => {
+  const formatNumber = (num: number | undefined) => {
+    if (num === undefined) return '0';
     if (num >= 1000) {
       return (num / 1000).toFixed(1) + 'k';
     }
     return num.toString();
+  };
+
+  // Handle Create Article Form Submission
+  const handleCreateArticle = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const title = formData.get('title') as string;
+    const summary = formData.get('summary') as string;
+    const categoryId = formData.get('category') as string;
+    const content = formData.get('content') as string;
+    const tags = (formData.get('tags') as string)?.split(',').map(tag => tag.trim()).filter(tag => tag);
+
+    if (!title || !categoryId || !content) {
+      alert("Título, Categoria e Conteúdo são obrigatórios.");
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/knowledge-base/articles', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          // Authorization header if needed
+        },
+        body: JSON.stringify({ title, summary, categoryId, content, tags })
+      });
+
+      if (response.ok) {
+        setIsCreateArticleOpen(false);
+        refetchArticles(); // Refetch articles after creation
+        alert("Artigo criado com sucesso!");
+      } else {
+        alert("Erro ao criar artigo.");
+      }
+    } catch (error) {
+      console.error("Error creating article:", error);
+      alert("Erro ao criar artigo.");
+    }
+  };
+
+  // Handle Create Category Form Submission
+  const handleCreateCategory = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const name = formData.get('categoryName') as string;
+    const description = formData.get('categoryDescription') as string;
+    const color = formData.get('categoryColor') as string;
+    const icon = formData.get('categoryIcon') as string;
+
+    if (!name) {
+      alert("Nome da categoria é obrigatório.");
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/knowledge-base/categories', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          // Authorization header if needed
+        },
+        body: JSON.stringify({ name, description, color, icon })
+      });
+
+      if (response.ok) {
+        setIsCreateCategoryOpen(false);
+        refetchCategories(); // Refetch categories after creation
+        alert("Categoria criada com sucesso!");
+      } else {
+        alert("Erro ao criar categoria.");
+      }
+    } catch (error) {
+      console.error("Error creating category:", error);
+      alert("Erro ao criar categoria.");
+    }
   };
 
   return (
@@ -125,6 +208,52 @@ const KnowledgeBase = () => {
                 Nova Categoria
               </Button>
             </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Criar Nova Categoria</DialogTitle>
+                <DialogDescription>
+                  Organize o conhecimento criando uma nova categoria
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleCreateCategory} className="space-y-4">
+                <div>
+                  <Label htmlFor="categoryName">Nome *</Label>
+                  <Input id="categoryName" name="categoryName" placeholder="Nome da categoria" required />
+                </div>
+                <div>
+                  <Label htmlFor="categoryDescription">Descrição</Label>
+                  <Textarea id="categoryDescription" name="categoryDescription" placeholder="Descrição da categoria" rows={3} />
+                </div>
+                <div>
+                  <Label htmlFor="categoryColor">Cor</Label>
+                  <input 
+                    type="color" 
+                    id="categoryColor" 
+                    name="categoryColor"
+                    defaultValue="#3B82F6"
+                    className="w-full h-10 rounded border px-1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="categoryIcon">Ícone</Label>
+                  <Select name="categoryIcon" defaultValue="Folder">
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione um ícone" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.keys(getCategoryIcon("")).map(key => (
+                        <SelectItem key={key} value={key}>
+                          {getCategoryIcon(key)} {key}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex justify-end pt-4">
+                  <Button type="submit">Criar Categoria</Button>
+                </div>
+              </form>
+            </DialogContent>
           </Dialog>
           <Dialog open={isCreateArticleOpen} onOpenChange={setIsCreateArticleOpen}>
             <DialogTrigger asChild>
@@ -133,6 +262,59 @@ const KnowledgeBase = () => {
                 Novo Artigo
               </Button>
             </DialogTrigger>
+            <DialogContent className="max-w-3xl">
+              <DialogHeader>
+                <DialogTitle>Criar Novo Artigo</DialogTitle>
+                <DialogDescription>
+                  Adicione um novo artigo à base de conhecimento
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleCreateArticle} className="space-y-4">
+                <div>
+                  <Label htmlFor="title">Título *</Label>
+                  <Input id="title" name="title" placeholder="Digite o título do artigo" required />
+                </div>
+                <div>
+                  <Label htmlFor="summary">Resumo</Label>
+                  <Input id="summary" name="summary" placeholder="Breve descrição do artigo" />
+                </div>
+                <div>
+                  <Label htmlFor="category">Categoria *</Label>
+                  <Select name="category" defaultValue="">
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione uma categoria" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((category: any) => (
+                        <SelectItem key={category.id} value={category.id}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="content">Conteúdo *</Label>
+                  <Textarea 
+                    id="content" 
+                    name="content"
+                    placeholder="Escreva o conteúdo do artigo em Markdown..."
+                    rows={10}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="tags">Tags</Label>
+                  <Input id="tags" name="tags" placeholder="tutorial, procedimento, técnico (separado por vírgulas)" />
+                </div>
+                <div className="flex gap-2 pt-4 justify-end">
+                  <Button type="submit">Criar Artigo</Button>
+                  <Button type="button" variant="outline" onClick={() => setIsCreateArticleOpen(false)}>
+                    Cancelar
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
           </Dialog>
         </div>
       </div>
@@ -147,7 +329,7 @@ const KnowledgeBase = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{analytics?.stats?.totalArticles || 147}</div>
+            <div className="text-2xl font-bold">{formatNumber(analytics?.stats?.totalArticles)}</div>
             <div className="flex items-center text-xs text-muted-foreground">
               <TrendingUp className="h-3 w-3 mr-1 text-green-500" />
               +12% este mês
@@ -163,7 +345,7 @@ const KnowledgeBase = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatNumber(analytics?.stats?.totalViews || 28450)}</div>
+            <div className="text-2xl font-bold">{formatNumber(analytics?.stats?.totalViews)}</div>
             <div className="flex items-center text-xs text-muted-foreground">
               <TrendingUp className="h-3 w-3 mr-1 text-green-500" />
               +18% esta semana
@@ -181,11 +363,11 @@ const KnowledgeBase = () => {
           <CardContent>
             <div className="text-2xl font-bold flex items-center gap-1">
               <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
-              {analytics?.stats?.averageRating || '4.6'}
+              {analytics?.stats?.averageRating || 'N/A'}
             </div>
             <div className="flex items-center text-xs text-muted-foreground">
               <Users className="h-3 w-3 mr-1" />
-              {analytics?.stats?.totalRatings || 892} avaliações
+              {formatNumber(analytics?.stats?.totalRatings)} avaliações
             </div>
           </CardContent>
         </Card>
@@ -198,10 +380,10 @@ const KnowledgeBase = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{mediaStats?.totalFiles || 248}</div>
+            <div className="text-2xl font-bold">{formatNumber(mediaStats?.totalFiles)}</div>
             <div className="flex items-center text-xs text-muted-foreground">
               <Camera className="h-3 w-3 mr-1" />
-              {((mediaStats?.totalSize || 850000000) / (1024 * 1024)).toFixed(0)}MB utilizados
+              {mediaStats?.totalSize ? `${(mediaStats.totalSize / (1024 * 1024)).toFixed(0)}MB` : 'N/A'} utilizados
             </div>
           </CardContent>
         </Card>
@@ -289,7 +471,7 @@ const KnowledgeBase = () => {
                           className="p-2 rounded-lg"
                           style={{ backgroundColor: category.color + '20', color: category.color }}
                         >
-                          {getCategoryIcon(category.icon)}
+                          {getCategoryIcon(category.icon || 'Folder')}
                         </div>
                         {category.name}
                       </CardTitle>
@@ -298,7 +480,7 @@ const KnowledgeBase = () => {
                     <CardContent>
                       <div className="flex items-center justify-between">
                         <Badge variant="secondary">
-                          {category.articleCount} artigos
+                          {category.articleCount || 0} artigos
                         </Badge>
                         <ChevronRight className="h-4 w-4 text-gray-400" />
                       </div>
@@ -418,7 +600,8 @@ const KnowledgeBase = () => {
                 onClick={() => setSelectedCategory(category.id)}
                 style={{ 
                   borderColor: selectedCategory === category.id ? category.color : undefined,
-                  backgroundColor: selectedCategory === category.id ? category.color : undefined
+                  backgroundColor: selectedCategory === category.id ? category.color + '20' : undefined,
+                  color: selectedCategory === category.id ? category.color : undefined
                 }}
               >
                 {category.name}
@@ -431,58 +614,69 @@ const KnowledgeBase = () => {
             ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' 
             : 'space-y-4'
           }>
-            {articles.map((article: any) => (
-              <Card key={article.id} className="cursor-pointer hover:shadow-md transition-shadow">
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <Badge 
-                      variant="secondary" 
-                      style={{ backgroundColor: article.category?.color + '20', color: article.category?.color }}
-                    >
-                      {article.category?.name}
-                    </Badge>
-                    <Badge variant="outline">
-                      {article.difficulty}
-                    </Badge>
-                  </div>
-                  <CardTitle className="line-clamp-2">{article.title}</CardTitle>
-                  <CardDescription className="line-clamp-3">
-                    {article.summary}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-wrap gap-1 mb-4">
-                    {article.tags?.slice(0, 3).map((tag: string) => (
-                      <Badge key={tag} variant="outline" className="text-xs">
-                        <Tag className="h-2 w-2 mr-1" />
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                  
-                  <div className="flex items-center justify-between text-sm text-gray-500">
-                    <div className="flex items-center gap-4">
-                      <span className="flex items-center gap-1">
-                        <Eye className="h-3 w-3" />
-                        {article.viewCount}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <ThumbsUp className="h-3 w-3" />
-                        {article.likeCount}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {article.estimatedReadTime}min
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                      {article.averageRating}
-                    </div>
-                  </div>
+            {articles.length === 0 ? (
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-500">
+                    {searchQuery || selectedCategory ? 'Nenhum artigo encontrado com os filtros aplicados.' : 'Nenhum artigo ainda. Crie o primeiro artigo!'}
+                  </p>
                 </CardContent>
               </Card>
-            ))}
+            ) : (
+              articles.map((article: any) => (
+                <Card key={article.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setActiveTab('article-detail-' + article.id)}>
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <Badge 
+                        variant="secondary" 
+                        style={{ backgroundColor: article.category?.color + '20', color: article.category?.color }}
+                      >
+                        {article.category?.name || 'Sem Categoria'}
+                      </Badge>
+                      <Badge variant="outline">
+                        {article.difficulty || 'Médio'}
+                      </Badge>
+                    </div>
+                    <CardTitle className="line-clamp-2">{article.title}</CardTitle>
+                    <CardDescription className="line-clamp-3">
+                      {article.summary || article.content}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-wrap gap-1 mb-4">
+                      {article.tags?.slice(0, 3).map((tag: string) => (
+                        <Badge key={tag} variant="outline" className="text-xs">
+                          <Tag className="h-2 w-2 mr-1" />
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+
+                    <div className="flex items-center justify-between text-sm text-gray-500">
+                      <div className="flex items-center gap-4">
+                        <span className="flex items-center gap-1">
+                          <Eye className="h-3 w-3" />
+                          {article.viewCount || 0}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <ThumbsUp className="h-3 w-3" />
+                          {article.likeCount || 0}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {article.estimatedReadTime || 'N/A'}min
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                        {article.averageRating || 'N/A'}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
           </div>
         </TabsContent>
 
@@ -583,94 +777,6 @@ const KnowledgeBase = () => {
           </Card>
         </TabsContent>
       </Tabs>
-
-      {/* Create Article Dialog */}
-      <Dialog open={isCreateArticleOpen} onOpenChange={setIsCreateArticleOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Criar Novo Artigo</DialogTitle>
-            <DialogDescription>
-              Adicione um novo artigo à base de conhecimento
-            </DialogDescription>
-          </DialogHeader>
-          <form className="space-y-4">
-            <div>
-              <Label htmlFor="title">Título *</Label>
-              <Input id="title" placeholder="Digite o título do artigo" />
-            </div>
-            <div>
-              <Label htmlFor="summary">Resumo</Label>
-              <Input id="summary" placeholder="Breve descrição do artigo" />
-            </div>
-            <div>
-              <Label htmlFor="category">Categoria *</Label>
-              <select id="category" className="w-full p-2 border rounded-md">
-                <option value="">Selecione uma categoria</option>
-                {categories.map((category: any) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <Label htmlFor="content">Conteúdo *</Label>
-              <Textarea 
-                id="content" 
-                placeholder="Escreva o conteúdo do artigo em Markdown..."
-                rows={8}
-              />
-            </div>
-            <div>
-              <Label htmlFor="tags">Tags</Label>
-              <Input id="tags" placeholder="tutorial, procedimento, técnico (separado por vírgulas)" />
-            </div>
-            <div className="flex gap-2 pt-4">
-              <Button type="submit">Criar Artigo</Button>
-              <Button type="button" variant="outline" onClick={() => setIsCreateArticleOpen(false)}>
-                Cancelar
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
-
-      {/* Create Category Dialog */}
-      <Dialog open={isCreateCategoryOpen} onOpenChange={setIsCreateCategoryOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Nova Categoria</DialogTitle>
-            <DialogDescription>
-              Organize o conhecimento criando uma nova categoria
-            </DialogDescription>
-          </DialogHeader>
-          <form className="space-y-4">
-            <div>
-              <Label htmlFor="categoryName">Nome *</Label>
-              <Input id="categoryName" placeholder="Nome da categoria" />
-            </div>
-            <div>
-              <Label htmlFor="categoryDescription">Descrição</Label>
-              <Textarea id="categoryDescription" placeholder="Descrição da categoria" rows={3} />
-            </div>
-            <div>
-              <Label htmlFor="categoryColor">Cor</Label>
-              <input 
-                type="color" 
-                id="categoryColor" 
-                defaultValue="#3B82F6"
-                className="w-full h-10 rounded border"
-              />
-            </div>
-            <div className="flex gap-2 pt-4">
-              <Button type="submit">Criar Categoria</Button>
-              <Button type="button" variant="outline" onClick={() => setIsCreateCategoryOpen(false)}>
-                Cancelar
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

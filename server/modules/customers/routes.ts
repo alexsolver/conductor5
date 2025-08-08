@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { AuthenticatedRequest, jwtAuth } from '../../middleware/jwtAuth';
 import { CustomerController } from './application/controllers/CustomerController';
 import { CustomerApplicationService } from './application/services/CustomerApplicationService';
@@ -101,7 +101,7 @@ customersRouter.get('/', jwtAuth, validateGetCustomers, async (req: Authenticate
     // Build dynamic query based on available columns with proper validation
     const requiredColumns = ['id', 'first_name', 'last_name', 'email', 'created_at', 'updated_at'];
     const missingRequired = requiredColumns.filter(col => !availableColumns.includes(col));
-    
+
     if (missingRequired.length > 0) {
       return res.status(500).json({
         success: false,
@@ -127,7 +127,7 @@ customersRouter.get('/', jwtAuth, validateGetCustomers, async (req: Authenticate
     const isActiveSelect = availableColumns.includes('is_active') 
       ? 'COALESCE(is_active, true) as is_active'
       : 'true as is_active';
-      
+
     const customerTypeSelect = availableColumns.includes('customer_type')
       ? 'COALESCE(customer_type, \'PF\') as customer_type'
       : '\'PF\' as customer_type';
@@ -160,17 +160,17 @@ customersRouter.get('/', jwtAuth, validateGetCustomers, async (req: Authenticate
             ORDER BY c.display_name, c.name
             LIMIT 3
           `, [customer.id, req.user.tenantId]);
-          
+
           console.log(`[GET-CUSTOMERS] Found ${companiesResult.rows.length} companies for customer ${customer.id}:`, 
             companiesResult.rows.map(r => r.name || r.display_name));
-          
+
           // Fallback to company_memberships if companies_relationships doesn't exist or has no data
           if (companiesResult.rows.length === 0) {
             const membershipTableExists = await pool.query(`
               SELECT 1 FROM information_schema.tables 
               WHERE table_schema = $1 AND table_name = 'company_memberships'
             `, [schemaName]);
-            
+
             if (membershipTableExists.rows.length > 0) {
               companiesResult = await pool.query(`
                 SELECT DISTINCT c.name, c.display_name
@@ -182,11 +182,11 @@ customersRouter.get('/', jwtAuth, validateGetCustomers, async (req: Authenticate
               `, [customer.id, req.user.tenantId]);
             }
           }
-          
+
           const companyNames = companiesResult.rows
             .map(c => c.display_name || c.name)
             .filter(Boolean);
-          
+
           return {
             ...customer,
             associated_companies: companyNames.length > 0 ? companyNames.join(', ') : null,
@@ -207,7 +207,7 @@ customersRouter.get('/', jwtAuth, validateGetCustomers, async (req: Authenticate
     // Add metadata to response
     // Import DTO transformer
     const { transformToCustomerDTO } = await import('./application/dto/CustomerResponseDTO');
-    
+
     // Transform customers using standardized DTO
     const transformedCustomers = customersWithCompanies.map(transformToCustomerDTO);
 
@@ -231,7 +231,7 @@ customersRouter.get('/', jwtAuth, validateGetCustomers, async (req: Authenticate
     });
   } catch (error: any) {
     console.error('[GET-CUSTOMERS] Critical error:', error);
-    
+
     // Enhanced error handling with specific codes
     const errorResponse = {
       success: false,
@@ -240,7 +240,7 @@ customersRouter.get('/', jwtAuth, validateGetCustomers, async (req: Authenticate
       timestamp: new Date().toISOString(),
       tenant_id: req.user?.tenantId
     };
-    
+
     // Handle specific database errors
     if (error.code === '42703') {
       console.error('[GET-CUSTOMERS] Column does not exist:', error.message);
@@ -249,7 +249,7 @@ customersRouter.get('/', jwtAuth, validateGetCustomers, async (req: Authenticate
       errorResponse.suggestion = 'Run database migration to fix schema';
       return res.status(500).json(errorResponse);
     }
-    
+
     if (error.code === '42P01') {
       console.error('[GET-CUSTOMERS] Table does not exist:', error.message);
       errorResponse.error = 'Customers table not found';
@@ -257,18 +257,18 @@ customersRouter.get('/', jwtAuth, validateGetCustomers, async (req: Authenticate
       errorResponse.suggestion = 'Run database migration to create table';
       return res.status(500).json(errorResponse);
     }
-    
+
     if (error.code === '42501') {
       errorResponse.error = 'Insufficient permissions';
       errorResponse.code = 'PERMISSION_DENIED';
       return res.status(403).json(errorResponse);
     }
-    
+
     if (process.env.NODE_ENV === 'development') {
       errorResponse.details = error.message;
       errorResponse.stack = error.stack;
     }
-    
+
     res.status(500).json(errorResponse);
   }
 });
@@ -322,8 +322,18 @@ customersRouter.get('/companies', jwtAuth, async (req: AuthenticatedRequest, res
     const pool = schemaManager.getPool();
     const schemaName = schemaManager.getSchemaName(req.user.tenantId);
 
+    // Use the correct table name and select specified fields
     const result = await pool.query(`
-      SELECT * FROM "${schemaName}".companies 
+      SELECT 
+        id, 
+        name, 
+        document, 
+        email, 
+        phone, 
+        address, 
+        is_active, 
+        created_at
+      FROM "${schemaName}".companies 
       WHERE tenant_id = $1
       ORDER BY name
     `, [req.user.tenantId]);

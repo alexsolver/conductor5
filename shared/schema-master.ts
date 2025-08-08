@@ -13,6 +13,7 @@ import {
   unique,
   time,
   bigint,
+  serial, // Import serial for nsr
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -867,12 +868,12 @@ export const holidays = pgTable("holidays", {
 
 // Timecard/Jornada tables - ENHANCED FOR CLT COMPLIANCE
 export const timecardEntries = pgTable("timecard_entries", {
-  id: uuid("id").defaultRandom().primaryKey(),
+  id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
   userId: uuid("user_id").notNull().references(() => users.id),
 
   // 🔴 CLT COMPLIANCE: NSR (Número Sequencial de Registro) - OBRIGATÓRIO
-  nsr: bigint("nsr", { mode: "number" }).notNull(), // Sequencial único por tenant
+  nsr: serial("nsr", { mode: "number" }).notNull(), // Sequencial único por tenant
 
   // Timestamps básicos
   checkIn: timestamp("check_in"),
@@ -889,7 +890,7 @@ export const timecardEntries = pgTable("timecard_entries", {
   status: varchar("status", { length: 20 }).default("pending"),
 
   // 🔴 CLT COMPLIANCE: Hash de integridade - OBRIGATÓRIO
-  recordHash: varchar("record_hash", { length: 64 }).notNull(), // SHA-256 hash do registro
+  recordHash: varchar("record_hash", { length: 255 }).notNull(), // SHA-256 hash do registro
   previousRecordHash: varchar("previous_record_hash", { length: 64 }), // Hash do registro anterior (blockchain-like)
 
   // 🔴 CLT COMPLIANCE: Assinatura digital - OBRIGATÓRIO
@@ -1322,6 +1323,7 @@ export const ticketFieldOptions = pgTable("ticket_field_options", {
   slaHours: integer("sla_hours"), // For priorities
   escalationRules: jsonb("escalation_rules"), // Escalation rules
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => [
   // Updated unique constraint for hierarchical support
   unique("ticket_field_options_tenant_customer_config_value_unique").on(table.tenantId, table.customerId, table.fieldConfigId, table.optionValue),
@@ -1410,7 +1412,8 @@ export const notificationPreferences = pgTable('notification_preferences', {
   scheduleSettings: jsonb('schedule_settings').default({}),
   filters: jsonb('filters').default({}),
   createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow()
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  isActive: boolean('is_active').default(true)
 });
 
 export const notificationTemplates = pgTable('notification_templates', {
@@ -1488,64 +1491,62 @@ export type ActivityLog = typeof activityLogs.$inferSelect;
 export type InsertActivityLog = typeof activityLogs.$inferInsert;
 
 export type Location = typeof locations.$inferSelect;
-export type InsertLocation = typeof locations.$inferInsert;
+export type InsertLocation = typeof locations.$insert;
 
 export type Company = typeof companies.$inferSelect;
-export type InsertCompany = typeof companies.$inferInsert;
+export type InsertCompany = typeof companies.$insert;
 
 export type Skill = typeof skills.$inferSelect;
-export type InsertSkill = typeof skills.$inferInsert;
+export type InsertSkill = typeof skills.$insert;
 
 export type Certification = typeof certifications.$inferSelect;
-export type InsertCertification = typeof certifications.$inferInsert;
+export type InsertCertification = typeof certifications.$insert;
 
 export type UserSkill = typeof userSkills.$inferSelect;
-export type InsertUserSkill = typeof userSkills.$inferInsert;
+export type InsertUserSkill = typeof userSkills.$insert;
 
 export type Beneficiary = typeof beneficiaries.$inferSelect;
-export type InsertBeneficiary = typeof beneficiaries.$inferInsert;
+export type InsertBeneficiary = typeof beneficiaries.$insert;
 
 export type Project = typeof projects.$inferSelect;
-export type InsertProject = typeof projects.$inferInsert;
+export type InsertProject = typeof projects.$insert;
 
 export type ProjectAction = typeof projectActions.$inferSelect;
-export type InsertProjectAction = typeof projectActions.$inferInsert;
+export type InsertProjectAction = typeof projectActions.$insert;
 
 export type MarketLocalization = typeof marketLocalization.$inferSelect;
-export type InsertMarketLocalization = typeof marketLocalization.$inferInsert;
+export type InsertMarketLocalization = typeof marketLocalization.$insert;
 
 export type FieldAliasMapping = typeof fieldAliasMapping.$inferSelect;
-export type InsertFieldAliasMapping = typeof fieldAliasMapping.$inferInsert;
+export type InsertFieldAliasMapping = typeof fieldAliasMapping.$insert;
 
 export type LocalizationContext = typeof localizationContext.$inferSelect;
-export type InsertLocalizationContext = typeof localizationContext.$inferInsert;
+export type InsertLocalizationContext = typeof localizationContext.$insert;
 
 export type Holiday = typeof holidays.$inferSelect;
-export type InsertHoliday = typeof holidays.$inferInsert;
+export type InsertHoliday = typeof holidays.$insert;
 
 export type Session = typeof sessions.$inferSelect;
-export type InsertSession = typeof sessions.$inferInsert;
+export type InsertSession = typeof sessions.$insert;
 
 // Timecard and Approval Types
 export type TimecardEntry = typeof timecardEntries.$inferSelect;
 export type InsertTimecardEntry = typeof timecardEntries.$inferInsert;
 
 export type WorkSchedule = typeof workSchedules.$inferSelect;
-export type InsertWorkSchedule = typeof workSchedules.$inferInsert;
+export type InsertWorkSchedule = typeof workSchedules.$insert;
 
 export type ApprovalGroup = typeof approvalGroups.$inferSelect;
-export type InsertApprovalGroup = typeof approvalGroups.$inferInsert;
+export type InsertApprovalGroup = typeof approvalGroups.$insert;
 
 export type ApprovalGroupMember = typeof approvalGroupMembers.$inferSelect;
-export type InsertApprovalGroupMember = typeof approvalGroupMembers.$inferInsert;
+export type InsertApprovalGroupMember = typeof approvalGroupMembers.$insert;
 
 export type TimecardApprovalSettings = typeof timecardApprovalSettings.$inferSelect;
-export type InsertTimecardApprovalSettings = typeof timecardApprovalSettings.$inferInsert;
+export type InsertTimecardApprovalSettings = typeof timecardApprovalSettings.$insert;
 
 export type TimecardApprovalHistory = typeof timecardApprovalHistory.$inferSelect;
-export type InsertTimecardApprovalHistory = typeof timecardApprovalHistory.$inferInsert;
-
-
+export type InsertTimecardApprovalHistory = typeof timecardApprovalHistory.$insert;
 
 // ========================================
 // AGENDA/SCHEDULE MANAGEMENT TABLES
@@ -1859,7 +1860,6 @@ export type InsertUserGroup = typeof userGroups.$inferInsert;
 export type UserGroup = typeof userGroups.$inferSelect;
 export type InsertUserGroupMembership = typeof userGroupMemberships.$inferInsert;
 
-
 export type InsertPerformanceMetric = typeof performanceMetrics.$inferInsert;
 export type PerformanceMetric = typeof performanceMetrics.$inferSelect;
 
@@ -2015,7 +2015,7 @@ export const contractDocuments = pgTable("contract_documents", {
   documentType: varchar("document_type", { length: 50 }).notNull(), // contract, addendum, amendment, signature, certificate
   fileName: varchar("file_name", { length: 255 }).notNull(),
   filePath: varchar("file_path", { length: 500 }).notNull(),
-  fileSize: bigint("file_size", { mode: "number" }), // in bytes
+  fileSize: bigint("file_size", { mode: "number" }),
   mimeType: varchar("mime_type", { length: 100 }),
 
   // Versioning
@@ -3423,32 +3423,32 @@ export type Asset = typeof assets.$inferSelect;
 export type InsertAsset = typeof assets.$inferInsert;
 
 export type AssetMaintenance = typeof assetMaintenance.$inferSelect;
-export type InsertAssetMaintenance = typeof assetMaintenance.$inferInsert;
+export type InsertAssetMaintenance = typeof assetMaintenance.$insert;
 
 export type AssetMeter = typeof assetMeters.$inferSelect;
-export type InsertAssetMeter = typeof assetMeters.$inferInsert;
+export type InsertAssetMeter = typeof assetMeters.$insert;
 
 export type AssetLocation = typeof assetLocations.$inferSelect;
-export type InsertAssetLocation = typeof assetLocations.$inferInsert;
+export type InsertAssetLocation = typeof assetLocations.$insert;
 
 // ========================================
 // COMPLIANCE TYPES
 // ========================================
 
 export type ComplianceAudit = typeof complianceAudits.$inferSelect;
-export type InsertComplianceAudit = typeof complianceAudits.$inferInsert;
+export type InsertComplianceAudit = typeof complianceAudits.$insert;
 
 export type ComplianceCertification = typeof complianceCertifications.$inferSelect;
-export type InsertComplianceCertification = typeof complianceCertifications.$inferInsert;
+export type InsertComplianceCertification = typeof complianceCertifications.$insert;
 
 export type ComplianceEvidence = typeof complianceEvidence.$inferSelect;
-export type InsertComplianceEvidence = typeof complianceEvidence.$inferInsert;
+export type InsertComplianceEvidence = typeof complianceEvidence.$insert;
 
 export type ComplianceAlert = typeof complianceAlerts.$inferSelect;
-export type InsertComplianceAlert = typeof complianceAlerts.$inferInsert;
+export type InsertComplianceAlert = typeof complianceAlerts.$insert;
 
 export type ComplianceScore = typeof complianceScores.$inferSelect;
-export type InsertComplianceScore = typeof complianceScores.$inferInsert;
+export type InsertComplianceScore = typeof complianceScores.$insert;
 
 // Zod schemas para validação
 export const insertTicketListViewSchema = createInsertSchema(ticketListViews).extend({

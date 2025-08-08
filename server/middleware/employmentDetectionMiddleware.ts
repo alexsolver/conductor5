@@ -17,26 +17,29 @@ export interface EmploymentAwareRequest extends Request {
   };
 }
 
+// Cache simples para armazenar o tipo de emprego detectado (opcional, pode ser removido se não for mais necessário)
+// const employmentCache = new Map<string, 'clt' | 'autonomo'>();
+
 /**
  * Middleware to detect and add employment type information to requests
  */
 export function employmentDetectionMiddleware(
-  req: EmploymentAwareRequest, 
-  res: Response, 
+  req: EmploymentAwareRequest,
+  res: Response,
   next: NextFunction
 ) {
   // Get user from session/token
   const user = (req as any).user;
-  
+
   if (user) {
     // Detect employment type from user data
     const employmentType = detectEmploymentTypeFromUser(user);
     req.employmentType = employmentType;
-    
+
     // Add terminology based on employment type
     req.terminology = getTerminologyForType(employmentType);
   }
-  
+
   next();
 }
 
@@ -48,12 +51,12 @@ function detectEmploymentTypeFromUser(user: any): 'clt' | 'autonomo' {
   if (user?.employmentType) {
     return user.employmentType === 'autonomo' ? 'autonomo' : 'clt';
   }
-  
+
   // Fallback detection logic
   if (user?.role === 'contractor' || user?.position?.toLowerCase().includes('freelancer')) {
     return 'autonomo';
   }
-  
+
   // Default to CLT
   return 'clt';
 }
