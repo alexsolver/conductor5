@@ -3402,7 +3402,7 @@ const TicketDetails = React.memo(() => {
 
           <button
             onClick={() => setActiveTab("attachments")}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ${
+            className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-all duration-200 ${
               activeTab === "attachments"
                 ? 'bg-purple-100 text-purple-900 border-2 border-purple-300 shadow-md font-semibold'
                 : 'hover:bg-gray-100 text-gray-700 border border-transparent'
@@ -3411,8 +3411,13 @@ const TicketDetails = React.memo(() => {
             aria-selected={activeTab === "attachments"}
             aria-controls="tab-content"
           >
-            <Paperclip className="h-4 w-4" />
-            <span className="text-sm font-medium">Anexos</span>
+            <div className="flex items-center gap-3">
+              <Paperclip className="h-4 w-4" />
+              <span className="text-sm font-medium">Anexos</span>
+            </div>
+            <Badge variant="outline" className="text-xs bg-purple-50 text-purple-600 border-purple-300">
+              {ticketAttachments?.attachments?.length || 0}
+            </Badge>
           </button>
 
           <button
