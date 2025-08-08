@@ -117,7 +117,7 @@ ticketsRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
     const assignedTo = req.query.assignedTo as string;
 
     const offset = (page - 1) * limit;
-    
+
     // CORREÇÃO: Query otimizada com nomenclatura padronizada companies
     let query = `
       SELECT 
@@ -279,6 +279,41 @@ ticketsRouter.post('/', jwtAuth, trackTicketCreate, async (req: AuthenticatedReq
       return res.status(400).json({ message: "User not associated with a tenant" });
     }
 
+    // Validate required fields
+    const { subject, customer_id, priority = 'medium', status = 'new' } = req.body;
+
+    if (!subject || subject.trim().length < 3) {
+      return res.status(400).json({
+        success: false,
+        message: 'Subject is required and must be at least 3 characters'
+      });
+    }
+
+    if (!customer_id) {
+      return res.status(400).json({
+        success: false,
+        message: 'Customer ID is required'
+      });
+    }
+
+    // Validate enum values
+    const validStatuses = ['new', 'open', 'in_progress', 'resolved', 'closed', 'pending'];
+    const validPriorities = ['low', 'medium', 'high', 'urgent'];
+
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid status value'
+      });
+    }
+
+    if (!validPriorities.includes(priority)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid priority value'
+      });
+    }
+
     // Ensure we have required fields before parsing
     if (!req.body.subject || !req.body.caller_id) {
       return res.status(400).json({ 
@@ -378,8 +413,8 @@ ticketsRouter.post('/', jwtAuth, trackTicketCreate, async (req: AuthenticatedReq
   }
 });
 
-// ✅ CORREÇÃO: Update ticket com validação completa e auditoria robusta
-ticketsRouter.put('/:id', jwtAuth, trackTicketEdit, async (req: AuthenticatedRequest, res) => {
+// PUT /api/tickets/:id - Update ticket
+router.put('/:id', jwtAuth, trackTicketEdit, async (req: AuthenticatedRequest, res) => {
   try {
     if (!req.user?.tenantId) {
       return sendError(res, "User not associated with a tenant", "User not associated with a tenant", 400);
@@ -388,18 +423,44 @@ ticketsRouter.put('/:id', jwtAuth, trackTicketEdit, async (req: AuthenticatedReq
     const ticketId = req.params.id;
     const frontendUpdates = req.body;
 
-    // ✅ VALIDAÇÃO PRÉVIA OBRIGATÓRIA
-    if (!ticketId || typeof ticketId !== 'string') {
-      return sendError(res, "Invalid ticket ID", "Ticket ID is required and must be a string", 400);
+    // Validate UUID format
+    if (!ticketId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid ticket ID format'
+      });
     }
 
-    // ✅ VALIDAÇÃO DE CAMPOS OBRIGATÓRIOS - Apenas subject é obrigatório em updates
+    // Validate fields if present
+    const updateFields = req.body;
+    const allowedFields = [
+      'subject', 'description', 'status', 'priority', 'category', 'subcategory',
+      'assigned_to_id', 'company_id', 'impact', 'urgency', 'location_id',
+      'due_date', 'resolution', 'business_impact', 'symptoms', 'workaround'
+    ];
+
+    // Filter only allowed fields
+    const filteredUpdates = Object.keys(updateFields)
+      .filter(key => allowedFields.includes(key))
+      .reduce((obj, key) => {
+        obj[key] = updateFields[key];
+        return obj;
+      }, {});
+
+    if (Object.keys(filteredUpdates).length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No valid fields to update'
+      });
+    }
+
+    // Add updated_at timestamp
+    filteredUpdates.updated_at = new Date().toISOString();
+
+    // ✅ VALIDAÇÃO PRÉVIA OBRIGATÓRIA
     if (frontendUpdates.subject !== undefined && (!frontendUpdates.subject || !frontendUpdates.subject.trim())) {
       return sendError(res, "Subject is required", "Subject cannot be empty", 400);
     }
-
-    // Description pode ser vazia em updates, então só validamos se for null ou undefined
-    // mas permitimos string vazia para permitir limpar o campo
 
     // DEBUG: Log incoming data for followers and customer_id investigation
     console.log('🔍 DEBUGGING TICKET UPDATE - Incoming data:', {
@@ -413,7 +474,7 @@ ticketsRouter.put('/:id', jwtAuth, trackTicketEdit, async (req: AuthenticatedReq
       allKeys: Object.keys(frontendUpdates)
     });
 
-    // CORREÇÃO CRÍTICA 1: Aplicar mapeamento centralizado Frontend→Backend
+    // CORREÇÃO CRÍTICA 1: AplicAR mapeamento centralizado Frontend→Backend
     const backendUpdates = mapFrontendToBackend(frontendUpdates);
 
     // Standardize field naming consistency
@@ -1258,7 +1319,7 @@ ticketsRouter.get('/:id/communications', jwtAuth, async (req: AuthenticatedReque
     const { id } = req.params;
     const tenantId = req.user.tenantId;
     const { pool } = await import('../../db');
-    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`);
 
     const query = `
       SELECT 

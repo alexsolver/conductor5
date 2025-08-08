@@ -1,102 +1,225 @@
-import { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useTranslation } from "react-i18next";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { useLocalization } from "@/hooks/useLocalization";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Plus, Search, Filter, RefreshCcw, Eye, AlertCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from '@/components/ui/table';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
+import { DynamicBadge } from '@/components/DynamicBadge';
+import { TicketViewSelector } from '@/components/TicketViewSelector';
+import { useNavigate } from 'react-router-dom';
+import { validateTicketForm } from '@shared/ticket-validation';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
-import { Plus, Filter } from "lucide-react";
-import { DynamicSelect } from "@/components/DynamicSelect";
-import { DynamicBadge } from "@/components/DynamicBadge";
+import { useLocalization } from "@/hooks/useLocalization";
 import { useFieldColors } from "@/hooks/useFieldColors";
-import { TicketViewSelector } from "@/components/TicketViewSelector";
-import { useLocation } from "wouter";
 import { useCompanyFilter } from "@/hooks/useCompanyFilter";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 
 import { NewTicketModalData, newTicketModalSchema } from "../../../shared/ticket-validation";
+
+
+// Memoized Ticket Table Row Component
+const TicketTableRow = React.memo(({ ticket, onViewTicket }) => {
+  const { t } = useTranslation();
+  const { formatDate } = useLocalization();
+
+  const mapStatusValue = (value) => {
+    if (!value) return 'new';
+    const statusMapping = {
+      'new': 'new', 'open': 'open', 'in_progress': 'in_progress', 'in progress': 'in_progress',
+      'resolved': 'resolved', 'closed': 'closed', 'cancelled': 'cancelled'
+    };
+    return statusMapping[value.toLowerCase()] || value;
+  };
+
+  const mapPriorityValue = (value) => {
+    if (!value) return 'medium';
+    const priorityMapping = { 'low': 'low', 'medium': 'medium', 'high': 'high', 'critical': 'critical' };
+    return priorityMapping[value.toLowerCase()] || value;
+  };
+
+  const mapCategoryValue = (value) => {
+    if (!value || value === null || value === 'null' || value === '' || typeof value !== 'string') {
+      return 'suporte_tecnico';
+    }
+    const categoryMapping = {
+      'hardware': 'infraestrutura', 'software': 'suporte_tecnico', 'network': 'infraestrutura',
+      'access': 'suporte_tecnico', 'other': 'suporte_tecnico', 'technical_support': 'suporte_tecnico',
+      'customer_service': 'atendimento_cliente', 'financial': 'financeiro', 'infrastructure': 'infraestrutura'
+    };
+    return categoryMapping[value.toLowerCase()] || 'suporte_tecnico';
+  };
+
+  return (
+    <TableRow
+      key={ticket.id}
+      className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
+      onClick={() => onViewTicket(ticket.id)}
+    >
+      <TableCell className="font-medium">
+        {ticket.number || ticket.id}
+      </TableCell>
+      <TableCell className="max-w-xs">
+        <div className="truncate" title={ticket.subject || 'Sem título'}>
+          {ticket.subject || 'Sem título'}
+        </div>
+      </TableCell>
+      <TableCell>
+        <DynamicBadge
+          fieldName="status"
+          value={mapStatusValue(ticket.status)}
+          showIcon={true}
+          className="font-medium"
+          size="sm"
+        />
+      </TableCell>
+      <TableCell>
+        <DynamicBadge
+          fieldName="priority"
+          value={mapPriorityValue(ticket.priority)}
+          showIcon={true}
+          className="font-medium"
+          size="sm"
+        />
+      </TableCell>
+      <TableCell>
+        {ticket.customer_name || 'N/A'}
+      </TableCell>
+      <TableCell>
+        {ticket.assigned_to_name || 'Não atribuído'}
+      </TableCell>
+      <TableCell className="text-sm text-gray-500 dark:text-gray-400">
+        {formatDate(ticket.created_at || ticket.opened_at)}
+      </TableCell>
+      <TableCell>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={(e) => {
+            e.stopPropagation();
+            onViewTicket(ticket.id);
+          }}
+        >
+          <Eye className="h-4 w-4" />
+        </Button>
+      </TableCell>
+    </TableRow>
+  );
+});
+
+TicketTableRow.displayName = 'TicketTableRow';
+
 
 export default function Tickets() {
   const { t } = useTranslation();
   const { formatDate } = useLocalization();
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [currentViewId, setCurrentViewId] = useState<string | undefined>();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [, navigate] = useLocation();
+  const navigate = useNavigate();
   const { getFieldColor, getFieldLabel, isLoading: isFieldColorsLoading, isReady } = useFieldColors();
+  const { user } = useAuth(); // Assuming useAuth provides user context
 
-  // Status mapping - manter valores em inglês conforme banco de dados 
-  const statusMapping: Record<string, string> = {
-    'new': 'new',
-    'open': 'open', 
-    'in_progress': 'in_progress',
-    'in progress': 'in_progress',
-    'resolved': 'resolved',
-    'closed': 'closed',
-    'cancelled': 'cancelled'
-  };
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [currentViewId, setCurrentViewId] = useState(undefined);
+  const [filters, setFilters] = useState({ search: '', status: '', priority: '' });
 
-  const priorityMapping: Record<string, string> = {
-    'low': 'low',
-    'medium': 'medium', 
-    'high': 'high',
-    'critical': 'critical'
-  };
+  // Status mapping - manter valores em inglês conforme banco de dados
+  const statusMapping = useMemo(() => ({
+    'new': 'new', 'open': 'open', 'in_progress': 'in_progress', 'in progress': 'in_progress',
+    'resolved': 'resolved', 'closed': 'closed', 'cancelled': 'cancelled'
+  }), []);
 
-  // Funções de mapeamento
-  const mapStatusValue = (value: string): string => {
+  const priorityMapping = useMemo(() => ({
+    'low': 'low', 'medium': 'medium', 'high': 'high', 'critical': 'critical'
+  }), []);
+
+  const mapStatusValue = useCallback((value) => {
     if (!value) return 'new';
     return statusMapping[value.toLowerCase()] || value;
-  };
+  }, [statusMapping]);
 
-  const mapPriorityValue = (value: string): string => {
+  const mapPriorityValue = useCallback((value) => {
     if (!value) return 'medium';
     return priorityMapping[value.toLowerCase()] || value;
-  };
+  }, [priorityMapping]);
 
-  const categoryMapping: Record<string, string> = {
-    'hardware': 'infraestrutura',
-    'software': 'suporte_tecnico', 
-    'network': 'infraestrutura',
-    'access': 'suporte_tecnico',
-    'other': 'suporte_tecnico',
-    'technical_support': 'suporte_tecnico',
-    'customer_service': 'atendimento_cliente',
-    'financial': 'financeiro',
-    'infrastructure': 'infraestrutura'
-  };
+  const categoryMapping = useMemo(() => ({
+    'hardware': 'infraestrutura', 'software': 'suporte_tecnico', 'network': 'infraestrutura',
+    'access': 'suporte_tecnico', 'other': 'suporte_tecnico', 'technical_support': 'suporte_tecnico',
+    'customer_service': 'atendimento_cliente', 'financial': 'financeiro', 'infrastructure': 'infraestrutura'
+  }), []);
 
-  const mapCategoryValue = (value: string): string => {
+  const mapCategoryValue = useCallback((value) => {
     if (!value || value === null || value === 'null' || value === '' || typeof value !== 'string') {
       return 'suporte_tecnico';
     }
     const mapped = categoryMapping[value.toLowerCase()] || 'suporte_tecnico';
     return mapped;
+  }, [categoryMapping]);
+
+  // Fetch tickets with filters and error handling
+  const fetchTickets = async () => {
+    const params = new URLSearchParams();
+    if (filters.search) params.append('search', filters.search);
+    if (filters.status) params.append('status', filters.status);
+    if (filters.priority) params.append('priority', filters.priority);
+    // Add other filters as needed
+
+    const response = await apiRequest("GET", `/api/tickets?${params.toString()}`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
   };
 
-  // Token management handled by auth hook
-  // Remove debug code for production
-
-  const { data: tickets, isLoading, error } = useQuery({
-    queryKey: ["/api/tickets"],
-    retry: false,
+  const { data: ticketsData, isLoading, isError, error, refetch } = useQuery({
+    queryKey: ['tickets', filters],
+    queryFn: fetchTickets,
+    staleTime: 30000, // 30 seconds
+    retry: 2,
+    refetchOnWindowFocus: false,
+    refetchOnMount: true
   });
 
+  const tickets = ticketsData?.data?.tickets || [];
+  const ticketsCount = tickets.length;
+
+  // Memoized filter handler
+  const handleFilterChange = useCallback((newFilters) => {
+    setFilters(prev => ({ ...prev, ...newFilters }));
+  }, []);
+
+  // Memoized search handler with debounce
+  const handleSearchChange = useCallback((searchTerm) => {
+    const debounceTimer = setTimeout(() => {
+      setFilters(prev => ({ ...prev, search: searchTerm }));
+    }, 300);
+
+    return () => clearTimeout(debounceTimer);
+  }, []);
+
+
   // Fetch customers for the dropdown
-  const { data: customersData, isLoading: customersLoading } = useQuery({
+  const { data: customersData, isLoading: customersLoading, isError: customersError } = useQuery({
     queryKey: ["/api/customers"],
     queryFn: async () => {
       const response = await apiRequest("GET", "/api/customers");
+      if (!response.ok) throw new Error("Failed to fetch customers");
       return response.json();
     },
     retry: 1,
@@ -104,111 +227,112 @@ export default function Tickets() {
   });
 
   // Fetch companies for filtering
-  const { data: companiesData } = useQuery({
+  const { data: companiesData, isError: companiesError } = useQuery({
     queryKey: ["/api/customers/companies"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/customers/companies");
+      if (!response.ok) throw new Error("Failed to fetch companies");
+      return response.json();
+    },
     retry: false,
   });
 
   // Fetch users for assignment
-  const { data: usersData } = useQuery({
+  const { data: usersData, isError: usersError } = useQuery({
     queryKey: ["/api/tenant-admin/users"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/tenant-admin/users");
+      if (!response.ok) throw new Error("Failed to fetch users");
+      return response.json();
+    },
     retry: false,
   });
 
   // Fetch favorecidos (beneficiaries)
-  const { data: favorecidosData } = useQuery({
+  const { data: favorecidosData, isError: favorecidosError } = useQuery({
     queryKey: ["/api/beneficiaries"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/beneficiaries");
+      if (!response.ok) throw new Error("Failed to fetch beneficiaries");
+      return response.json();
+    },
     retry: false,
   });
 
   // Fetch locations
-  const { data: locationsData } = useQuery({
+  const { data: locationsData, isError: locationsError } = useQuery({
     queryKey: ["/api/locations-new/local"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/locations-new/local");
+      if (!response.ok) throw new Error("Failed to fetch locations");
+      return response.json();
+    },
     retry: false,
   });
 
-  // Fetch hierarchical categories 
-  const { data: categoriesData } = useQuery({
+  // Fetch hierarchical categories
+  const { data: categoriesData, isError: categoriesError } = useQuery({
     queryKey: ["/api/ticket-hierarchy/categories"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/ticket-hierarchy/categories");
+      if (!response.ok) throw new Error("Failed to fetch categories");
+      return response.json();
+    },
     retry: false,
   });
 
   // Fetch subcategories based on selected category
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
-  const { data: subcategoriesData } = useQuery({
+  const [selectedCategoryId, setSelectedCategoryId] = useState("");
+  const { data: subcategoriesData, isError: subcategoriesError } = useQuery({
     queryKey: ["/api/ticket-hierarchy/subcategories", selectedCategoryId],
     enabled: !!selectedCategoryId,
+    queryFn: async () => {
+      const response = await apiRequest("GET", `/api/ticket-hierarchy/subcategories?category_id=${selectedCategoryId}`);
+      if (!response.ok) throw new Error("Failed to fetch subcategories");
+      return response.json();
+    },
     retry: false,
   });
 
   // Fetch actions based on selected subcategory
-  const [selectedSubcategoryId, setSelectedSubcategoryId] = useState<string>("");
-  const { data: actionsData } = useQuery({
+  const [selectedSubcategoryId, setSelectedSubcategoryId] = useState("");
+  const { data: actionsData, isError: actionsError } = useQuery({
     queryKey: ["/api/ticket-hierarchy/actions", selectedSubcategoryId],
     enabled: !!selectedSubcategoryId,
+    queryFn: async () => {
+      const response = await apiRequest("GET", `/api/ticket-hierarchy/actions?subcategory_id=${selectedSubcategoryId}`);
+      if (!response.ok) throw new Error("Failed to fetch actions");
+      return response.json();
+    },
     retry: false,
   });
 
   // Extract customers with proper error handling
-  const customers = Array.isArray(customersData?.customers) ? customersData.customers : [];
-  
-  // Handle customer loading errors
-  if (customersData?.error || customersError) {
-    console.error('Customer loading error:', customersData?.error || customersError);
-  }
-
-  // Get raw companies and filter out Default if inactive
-  const rawCompanies = Array.isArray(companiesData) ? companiesData : [];
+  const customers = customersData?.customers || [];
 
   // Filter companies directly removing Default if inactive
-  const companies = rawCompanies
-    .filter((company: any) => {
-      // Remove Default company if it's inactive
-      const isDefaultCompany = company.name?.toLowerCase().includes('default');
-      if (isDefaultCompany && (company.status === 'inactive' || company.is_active === false)) {
-        console.log('🚫 Filtering out Default company (inactive):', company);
-        return false;
-      }
-      return true;
-    })
-    .sort((a: any, b: any) => {
-      return (a.name || a.displayName || '').localeCompare(b.name || b.displayName || '');
-    });
+  const rawCompanies = companiesData || [];
+  const companies = useMemo(() => {
+    return rawCompanies
+      .filter((company) => {
+        const isDefaultCompany = company.name?.toLowerCase().includes('default');
+        if (isDefaultCompany && (company.status === 'inactive' || company.is_active === false)) {
+          return false;
+        }
+        return true;
+      })
+      .sort((a, b) => (a.name || a.displayName || '').localeCompare(b.name || b.displayName || ''));
+  }, [rawCompanies]);
 
-  // Debug: Check if Default company is in the list
-  console.log('🔍 Final companies list for ticket modal:', companies.map(c => ({
-    id: c.id, 
-    name: c.name, 
-    status: c.status,
-    isActive: c.is_active,
-    isDefault: c.name?.toLowerCase().includes('default')
-  })));
-
-  console.log('🔍 Raw companies from API before filtering:', rawCompanies.length);
-  console.log('🔍 Filtered companies for dropdown:', companies.length);
-
-  // Additional debug for Default company filtering
-  const defaultCompany = rawCompanies.find((c: any) => c.name?.toLowerCase().includes('default'));
-  if (defaultCompany) {
-    console.log('🎯 Default company found in raw data:', defaultCompany);
-    console.log('🎯 Default company status:', defaultCompany.status, 'is_active:', defaultCompany.is_active);
-  } else {
-    console.log('✅ No Default company in raw API data');
-  }
-
-  const users = (usersData as any)?.users || [];
-
-  // Extract data for new modal fields with safe type checking
-  const favorecidos = (favorecidosData as any)?.data?.beneficiaries || (favorecidosData as any)?.favorecidos || [];
-  const locations = (locationsData as any)?.data?.locations || (locationsData as any)?.data || [];
-  const categories = (categoriesData as any)?.data || [];
-  const subcategories = (subcategoriesData as any)?.data || [];
-  const actions = (actionsData as any)?.data || [];
-
-  console.log('Customers data:', { customersData, customers: customers.length });
+  const users = usersData?.users || [];
+  const favorecidos = favorecidosData?.data?.beneficiaries || favorecidosData?.favorecidos || [];
+  const locations = locationsData?.data?.locations || locationsData?.data || [];
+  const categories = categoriesData?.data || [];
+  const subcategories = subcategoriesData?.data || [];
+  const actions = actionsData?.data || [];
 
   // Form setup with new schema
-  const form = useForm<NewTicketModalData>({
+  const form = useForm({
     resolver: zodResolver(newTicketModalSchema),
     defaultValues: {
       companyId: "",
@@ -218,35 +342,19 @@ export default function Tickets() {
       category: "",
       subcategory: "",
       action: "",
-      priority: "medium" as const,
-      urgency: "medium" as const,
+      priority: "medium",
+      urgency: "medium",
       description: "",
       symptoms: "",
       businessImpact: "",
       workaround: "",
       location: "",
+      assignmentGroup: "", // Added assignmentGroup
     },
   });
 
-  // Watch for company selection to filter customers
-  const [selectedCompanyId, setSelectedCompanyId] = useState<string>("");
-  const [filteredCustomers, setFilteredCustomers] = useState<any[]>([]);
-
-  // Reset subcategory when category changes
-  useEffect(() => {
-    if (selectedCategoryId) {
-      setSelectedSubcategoryId("");
-      form.setValue("subcategory", "");
-      form.setValue("action", "");
-    }
-  }, [selectedCategoryId]);
-
-  // Reset action when subcategory changes  
-  useEffect(() => {
-    if (selectedSubcategoryId) {
-      form.setValue("action", "");
-    }
-  }, [selectedSubcategoryId]);
+  const [selectedCompanyId, setSelectedCompanyId] = useState("");
+  const [filteredCustomers, setFilteredCustomers] = useState([]);
 
   // Filter customers based on selected company
   useEffect(() => {
@@ -255,146 +363,143 @@ export default function Tickets() {
       return;
     }
 
-    // Fetch customers for the selected company
     const fetchCustomersForCompany = async () => {
       try {
-        console.log('Fetching customers for company:', selectedCompanyId);
         const response = await apiRequest("GET", `/api/companies/${selectedCompanyId}/customers`);
+        if (!response.ok) throw new Error("Failed to fetch customers for company");
         const data = await response.json();
-
-        console.log('Company customers response:', data);
 
         if (data.success && data.customers) {
           setFilteredCustomers(data.customers);
         } else {
-          console.warn('No customers found for company, using all customers');
-          setFilteredCustomers(customers);
+          setFilteredCustomers(customers); // Fallback
         }
       } catch (error) {
         console.error('Error fetching customers for company:', error);
-        // Fallback: use all customers if API fails
-        setFilteredCustomers(customers);
+        setFilteredCustomers(customers); // Fallback on error
       }
     };
 
     fetchCustomersForCompany();
   }, [selectedCompanyId, customers]);
 
+  // Reset subcategory and action when category changes
+  useEffect(() => {
+    form.setValue("subcategory", "");
+    form.setValue("action", "");
+    setSelectedSubcategoryId("");
+    if (selectedCategoryId) {
+      // Fetch subcategories when category changes
+    }
+  }, [selectedCategoryId, form]);
+
+  // Reset action when subcategory changes
+  useEffect(() => {
+    form.setValue("action", "");
+    if (selectedSubcategoryId) {
+      // Fetch actions when subcategory changes
+    }
+  }, [selectedSubcategoryId, form]);
+
   // Create ticket mutation
   const createTicketMutation = useMutation({
-    mutationFn: async (data: any) => {
-      const response = await apiRequest("POST", "/api/tickets", data);
+    mutationFn: async (data) => {
+      // Map form data to backend expected format
+      const ticketData = {
+        subject: data.subject,
+        description: data.description,
+        priority: data.priority,
+        urgency: data.urgency,
+        category: data.category,
+        subcategory: data.subcategory,
+        action: data.action,
+        caller_id: data.customerId,
+        beneficiary_id: data.beneficiaryId === "__none__" ? null : data.beneficiaryId,
+        customer_company_id: data.companyId,
+        location: data.location === "__none__" ? null : data.location,
+        symptoms: data.symptoms || null,
+        business_impact: data.businessImpact || null,
+        workaround: data.workaround || null,
+        assignment_group_id: data.assignmentGroup, // Assuming assignmentGroup maps to assignment_group_id
+      };
+
+      const response = await apiRequest("POST", "/api/tickets", ticketData);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Falha ao criar ticket");
+      }
       return response.json();
     },
     onSuccess: () => {
-      toast({
-        title: "Sucesso",
-        description: "Ticket criado com sucesso",
-      });
-      queryClient.invalidateQueries({ queryKey: ["/api/tickets"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
+      toast({ title: "Sucesso", description: "Ticket criado com sucesso." });
+      queryClient.invalidateQueries({ queryKey: ["tickets", filters] });
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] }); // Assuming this is relevant
       setIsCreateDialogOpen(false);
       form.reset();
     },
-    onError: (error: Error) => {
+    onError: (error) => {
       toast({
         title: "Erro",
-        description: error.message || "Falha ao criar ticket",
+        description: error.message || "Falha ao criar ticket.",
         variant: "destructive",
       });
     },
   });
 
-  // Handle form submission  
-  const onSubmit = (data: NewTicketModalData) => {
-    console.log('🎫 New ticket form submitted:', data);
-
-    // Standardized field mapping to backend
-    const ticketData = {
-      // Core fields
-      subject: data.subject,
-      description: data.description,
-      priority: data.priority,
-      urgency: data.urgency,
-      
-      // Hierarchical classification
-      category: data.category,
-      subcategory: data.subcategory,
-      action: data.action,
-      
-      // Person relationships (standardized)
-      caller_id: data.customerId,
-      beneficiary_id: data.beneficiaryId || null,
-      customer_company_id: data.companyId,
-      
-      // Assignment
-      assignment_group_id: data.assignmentGroup,
-      
-      // Location and context
-      location: data.location,
-      symptoms: data.symptoms || null,
-      business_impact: data.businessImpact || null,
-      workaround: data.workaround || null,
-    };
-
-    createTicketMutation.mutate(ticketData);
+  const onSubmit = (data) => {
+    console.log('Submitting ticket data:', data);
+    createTicketMutation.mutate(data);
   };
 
-  // Função para trocar visualização ativa
-  const handleViewChange = (viewId: string) => {
+  const handleViewTicket = (ticketId) => {
+    navigate(`/tickets/${ticketId}`);
+  };
+
+  const handleViewChange = (viewId) => {
     setCurrentViewId(viewId);
-    console.log('Visualização alterada para:', viewId);
-    // Aqui podemos adicionar lógica para aplicar filtros/colunas da visualização
+    // Logic to apply filters or columns based on the view
   };
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case "urgent": return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
-      case "high": return "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200";
-      case "medium": return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200";
-      case "low": return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
-      default: return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "open": return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
-      case "in_progress": return "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200";
-      case "resolved": return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
-      case "closed": return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
-      default: return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
-    }
-  };
-
-  if (isLoading || isFieldColorsLoading || !isReady) {
+  if (isLoading) {
     return (
-      <div className="p-4 space-y-6">
-        <div className="h-8 bg-gray-200 rounded w-48 animate-pulse"></div>
-        <div className="space-y-4">
-          {[1, 2, 3].map((i) => (
-            <Card key={i} className="animate-pulse">
-              <CardContent className="p-6">
-                <div className="space-y-3">
-                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                  <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                  <div className="flex space-x-2">
-                    <div className="h-6 bg-gray-200 rounded-full w-16"></div>
-                    <div className="h-6 bg-gray-200 rounded-full w-16"></div>
-                    <div className="h-6 bg-gray-200 rounded-full w-20"></div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <RefreshCcw className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-600" />
+          <p className="text-gray-600">Carregando tickets...</p>
+          <div className="mt-2 text-sm text-gray-400">
+            Aguarde enquanto carregamos os dados
+          </div>
         </div>
       </div>
     );
   }
 
-  // Parse consistente dos dados de tickets
-  const ticketsList = (tickets as any)?.data?.tickets || [];
-  const ticketsCount = Array.isArray(ticketsList) ? ticketsList.length : 0;
+  if (isError || error) {
+    return (
+      <div className="p-4">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            <div className="space-y-2">
+              <p className="font-medium">Erro ao carregar tickets</p>
+              <p className="text-sm">
+                {error?.message || 'Ocorreu um erro inesperado. Tente novamente.'}
+              </p>
+              <Button
+                onClick={() => refetch()}
+                variant="outline"
+                size="sm"
+                className="mt-3"
+              >
+                <RefreshCcw className="h-4 w-4 mr-2" />
+                Tentar Novamente
+              </Button>
+            </div>
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 space-y-6">
@@ -415,26 +520,24 @@ export default function Tickets() {
                 Novo Ticket
               </Button>
             </DialogTrigger>
-              <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Criar Novo Ticket</DialogTitle>
-                </DialogHeader>
-                <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  {/* Company Selection - Must be first */}
+            <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Criar Novo Ticket</DialogTitle>
+              </DialogHeader>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                   <FormField
                     control={form.control}
                     name="companyId"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-lg font-semibold">Empresa *</FormLabel>
-                        <Select 
+                        <Select
                           onValueChange={(value) => {
                             field.onChange(value);
                             setSelectedCompanyId(value);
-                            // Reset customer selection when company changes
-                            form.setValue("customerId", "");
-                          }} 
+                            form.setValue("customerId", ""); // Reset customer
+                          }}
                           value={field.value}
                         >
                           <FormControl>
@@ -443,12 +546,12 @@ export default function Tickets() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {companies.length === 0 ? (
-                              <SelectItem value="no-companies" disabled>
-                                Nenhuma empresa encontrada
-                              </SelectItem>
+                            {companiesError ? (
+                              <SelectItem value="error" disabled>Erro ao carregar empresas</SelectItem>
+                            ) : companies.length === 0 ? (
+                              <SelectItem value="no-companies" disabled>Nenhuma empresa encontrada</SelectItem>
                             ) : (
-                              companies.map((company: any) => (
+                              companies.map((company) => (
                                 <SelectItem key={company.id} value={company.id}>
                                   {company.name || company.company_name || company.displayName}
                                 </SelectItem>
@@ -461,44 +564,39 @@ export default function Tickets() {
                     )}
                   />
 
-                  {/* Customer/Cliente Selection - Filtered by Company */}
                   <FormField
                     control={form.control}
                     name="customerId"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-lg font-semibold">Cliente *</FormLabel>
-                        <Select 
-                          onValueChange={field.onChange} 
+                        <Select
+                          onValueChange={field.onChange}
                           value={field.value}
-                          disabled={!selectedCompanyId}
+                          disabled={!selectedCompanyId || customersLoading}
                         >
                           <FormControl>
                             <SelectTrigger className="h-12">
-                              <SelectValue 
+                              <SelectValue
                                 placeholder={
-                                  !selectedCompanyId 
-                                    ? "Primeiro selecione uma empresa" 
-                                    : "Selecione o cliente"
-                                } 
+                                  !selectedCompanyId ? "Primeiro selecione uma empresa"
+                                  : customersLoading ? "Carregando clientes..."
+                                  : "Selecione o cliente"
+                                }
                               />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {customersLoading ? (
+                            {!selectedCompanyId ? (
+                              <SelectItem value="no-company" disabled>Selecione uma empresa primeiro</SelectItem>
+                            ) : customersLoading ? (
                               <SelectItem value="loading" disabled>Carregando clientes...</SelectItem>
-                            ) : !selectedCompanyId ? (
-                              <SelectItem value="no-company" disabled>
-                                Selecione uma empresa primeiro
-                              </SelectItem>
                             ) : filteredCustomers.length === 0 ? (
-                              <SelectItem value="no-customers" disabled>
-                                Nenhum cliente encontrado para esta empresa
-                              </SelectItem>
+                              <SelectItem value="no-customers" disabled>Nenhum cliente encontrado para esta empresa</SelectItem>
                             ) : (
-                              filteredCustomers.map((customer: any) => (
+                              filteredCustomers.map((customer) => (
                                 <SelectItem key={customer.id} value={customer.id}>
-                                  {customer.name || customer.fullName || `${customer.first_name || ''} ${customer.last_name || ''}`.trim() || customer.email} 
+                                  {customer.name || customer.fullName || `${customer.first_name || ''} ${customer.last_name || ''}`.trim() || customer.email}
                                   {customer.email && ` (${customer.email})`}
                                 </SelectItem>
                               ))
@@ -510,7 +608,6 @@ export default function Tickets() {
                     )}
                   />
 
-                  {/* 3. FAVORECIDO */}
                   <FormField
                     control={form.control}
                     name="beneficiaryId"
@@ -525,7 +622,7 @@ export default function Tickets() {
                           </FormControl>
                           <SelectContent>
                             <SelectItem value="__none__">Nenhum favorecido</SelectItem>
-                            {favorecidos.map((favorecido: any) => (
+                            {favorecidos.map((favorecido) => (
                               <SelectItem key={favorecido.id} value={favorecido.id}>
                                 {favorecido.name || favorecido.fullName || favorecido.full_name || `${favorecido.first_name || ''} ${favorecido.last_name || ''}`.trim()}
                               </SelectItem>
@@ -537,7 +634,6 @@ export default function Tickets() {
                     )}
                   />
 
-                  {/* 4. ASSUNTO/TÍTULO */}
                   <FormField
                     control={form.control}
                     name="subject"
@@ -552,18 +648,17 @@ export default function Tickets() {
                     )}
                   />
 
-                  {/* 5. CATEGORIA */}
                   <FormField
                     control={form.control}
                     name="category"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Categoria *</FormLabel>
-                        <Select 
+                        <Select
                           onValueChange={(value) => {
                             field.onChange(value);
                             setSelectedCategoryId(value);
-                          }} 
+                          }}
                           value={field.value}
                         >
                           <FormControl>
@@ -572,11 +667,17 @@ export default function Tickets() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {categories.map((category: any) => (
-                              <SelectItem key={category.id} value={category.id}>
-                                {category.name}
-                              </SelectItem>
-                            ))}
+                            {categoriesError ? (
+                              <SelectItem value="error" disabled>Erro ao carregar categorias</SelectItem>
+                            ) : categories.length === 0 ? (
+                              <SelectItem value="no-categories" disabled>Nenhuma categoria encontrada</SelectItem>
+                            ) : (
+                              categories.map((category) => (
+                                <SelectItem key={category.id} value={category.id}>
+                                  {category.name}
+                                </SelectItem>
+                              ))
+                            )}
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -584,33 +685,34 @@ export default function Tickets() {
                     )}
                   />
 
-                  {/* 6. SUB CATEGORIA */}
                   <FormField
                     control={form.control}
                     name="subcategory"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Sub Categoria *</FormLabel>
-                        <Select 
+                        <Select
                           onValueChange={(value) => {
                             field.onChange(value);
                             setSelectedSubcategoryId(value);
-                          }} 
+                          }}
                           value={field.value}
-                          disabled={!selectedCategoryId}
+                          disabled={!selectedCategoryId || subcategoriesError}
                         >
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder={!selectedCategoryId ? "Primeiro selecione uma categoria" : "Selecione a subcategoria"} />
+                              <SelectValue placeholder={!selectedCategoryId ? "Primeiro selecione uma categoria" : subcategoriesError ? "Erro ao carregar subcategorias" : "Selecione a subcategoria"} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
                             {!selectedCategoryId ? (
                               <SelectItem value="no-category" disabled>Selecione uma categoria primeiro</SelectItem>
+                            ) : subcategoriesError ? (
+                              <SelectItem value="error" disabled>Erro ao carregar subcategorias</SelectItem>
                             ) : subcategories.length === 0 ? (
                               <SelectItem value="no-subcategories" disabled>Nenhuma subcategoria encontrada</SelectItem>
                             ) : (
-                              subcategories.map((subcategory: any) => (
+                              subcategories.map((subcategory) => (
                                 <SelectItem key={subcategory.id} value={subcategory.id}>
                                   {subcategory.name}
                                 </SelectItem>
@@ -623,30 +725,31 @@ export default function Tickets() {
                     )}
                   />
 
-                  {/* 7. AÇÃO */}
                   <FormField
                     control={form.control}
                     name="action"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Ação *</FormLabel>
-                        <Select 
-                          onValueChange={field.onChange} 
+                        <Select
+                          onValueChange={field.onChange}
                           value={field.value}
-                          disabled={!selectedSubcategoryId}
+                          disabled={!selectedSubcategoryId || actionsError}
                         >
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder={!selectedSubcategoryId ? "Primeiro selecione uma subcategoria" : "Selecione a ação"} />
+                              <SelectValue placeholder={!selectedSubcategoryId ? "Primeiro selecione uma subcategoria" : actionsError ? "Erro ao carregar ações" : "Selecione a ação"} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
                             {!selectedSubcategoryId ? (
                               <SelectItem value="no-subcategory" disabled>Selecione uma subcategoria primeiro</SelectItem>
+                            ) : actionsError ? (
+                              <SelectItem value="error" disabled>Erro ao carregar ações</SelectItem>
                             ) : actions.length === 0 ? (
                               <SelectItem value="no-actions" disabled>Nenhuma ação encontrada</SelectItem>
                             ) : (
-                              actions.map((action: any) => (
+                              actions.map((action) => (
                                 <SelectItem key={action.id} value={action.id}>
                                   {action.name}
                                 </SelectItem>
@@ -659,8 +762,7 @@ export default function Tickets() {
                     )}
                   />
 
-                  <div className="grid grid-cols-2 gap-4">
-                    {/* 8. PRIORIDADE */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
                       name="priority"
@@ -673,6 +775,7 @@ export default function Tickets() {
                               value={field.value}
                               onValueChange={field.onChange}
                               placeholder="Selecione a prioridade"
+                              options={[{ value: 'low', label: 'Baixa' }, { value: 'medium', label: 'Média' }, { value: 'high', label: 'Alta' }, { value: 'critical', label: 'Crítica' }]}
                             />
                           </FormControl>
                           <FormMessage />
@@ -680,7 +783,6 @@ export default function Tickets() {
                       )}
                     />
 
-                    {/* 9. URGÊNCIA */}
                     <FormField
                       control={form.control}
                       name="urgency"
@@ -693,6 +795,7 @@ export default function Tickets() {
                               value={field.value}
                               onValueChange={field.onChange}
                               placeholder="Selecione a urgência"
+                              options={[{ value: 'low', label: 'Baixa' }, { value: 'medium', label: 'Média' }, { value: 'high', label: 'Alta' }, { value: 'critical', label: 'Crítica' }]}
                             />
                           </FormControl>
                           <FormMessage />
@@ -701,7 +804,6 @@ export default function Tickets() {
                     />
                   </div>
 
-                  {/* 10. DESCRIÇÃO DETALHADA */}
                   <FormField
                     control={form.control}
                     name="description"
@@ -709,10 +811,10 @@ export default function Tickets() {
                       <FormItem>
                         <FormLabel className="text-lg font-semibold">Descrição Detalhada *</FormLabel>
                         <FormControl>
-                          <Textarea 
+                          <Textarea
                             placeholder="Descreva detalhadamente o problema ou solicitação"
                             className="min-h-[100px]"
-                            {...field} 
+                            {...field}
                           />
                         </FormControl>
                         <FormMessage />
@@ -720,7 +822,6 @@ export default function Tickets() {
                     )}
                   />
 
-                  {/* 11. SINTOMAS */}
                   <FormField
                     control={form.control}
                     name="symptoms"
@@ -728,10 +829,10 @@ export default function Tickets() {
                       <FormItem>
                         <FormLabel>Sintomas</FormLabel>
                         <FormControl>
-                          <Textarea 
+                          <Textarea
                             placeholder="Descreva os sintomas observados (opcional)"
                             className="min-h-[80px]"
-                            {...field} 
+                            {...field}
                           />
                         </FormControl>
                         <FormMessage />
@@ -739,7 +840,6 @@ export default function Tickets() {
                     )}
                   />
 
-                  {/* 12. IMPACTO NO NEGÓCIO */}
                   <FormField
                     control={form.control}
                     name="businessImpact"
@@ -747,10 +847,10 @@ export default function Tickets() {
                       <FormItem>
                         <FormLabel>Impacto no Negócio</FormLabel>
                         <FormControl>
-                          <Textarea 
+                          <Textarea
                             placeholder="Descreva o impacto no negócio (opcional)"
                             className="min-h-[80px]"
-                            {...field} 
+                            {...field}
                           />
                         </FormControl>
                         <FormMessage />
@@ -758,7 +858,6 @@ export default function Tickets() {
                     )}
                   />
 
-                  {/* 13. SOLUÇÃO TEMPORÁRIA */}
                   <FormField
                     control={form.control}
                     name="workaround"
@@ -766,10 +865,10 @@ export default function Tickets() {
                       <FormItem>
                         <FormLabel>Solução Temporária</FormLabel>
                         <FormControl>
-                          <Textarea 
+                          <Textarea
                             placeholder="Descreva alguma solução temporária aplicada (opcional)"
                             className="min-h-[80px]"
-                            {...field} 
+                            {...field}
                           />
                         </FormControl>
                         <FormMessage />
@@ -777,7 +876,6 @@ export default function Tickets() {
                     )}
                   />
 
-                  {/* 14. LOCAL */}
                   <FormField
                     control={form.control}
                     name="location"
@@ -792,13 +890,46 @@ export default function Tickets() {
                           </FormControl>
                           <SelectContent>
                             <SelectItem value="__none__">Nenhum local específico</SelectItem>
-                            {locations.map((location: any) => (
-                              <SelectItem key={location.id} value={location.id}>
-                                {location.name || location.nome}
-                              </SelectItem>
-                            ))}
+                            {locationsError ? (
+                              <SelectItem value="error" disabled>Erro ao carregar locais</SelectItem>
+                            ) : locations.length === 0 ? (
+                              <SelectItem value="no-locations" disabled>Nenhum local encontrado</SelectItem>
+                            ) : (
+                              locations.map((location) => (
+                                <SelectItem key={location.id} value={location.id}>
+                                  {location.name || location.nome}
+                                </SelectItem>
+                              ))
+                            )}
                           </SelectContent>
                         </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Assignment Group - Example field, adjust as needed */}
+                  <FormField
+                    control={form.control}
+                    name="assignmentGroup"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Grupo de Atribuição</FormLabel>
+                        <FormControl>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione o grupo de atribuição (opcional)" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="">Nenhum</SelectItem>
+                              {users.map((user) => ( // Assuming users can represent assignment groups or fetch actual groups
+                                <SelectItem key={user.id} value={user.id}>
+                                  {user.name || user.username}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -827,94 +958,40 @@ export default function Tickets() {
         </div>
       </div>
 
-      {/* Sistema de Visualizações de Tickets */}
-      <div className="mb-6">
-        <TicketViewSelector 
-          currentViewId={currentViewId}
-          onViewChange={handleViewChange}
-        />
+      <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="flex-1 w-full md:w-auto">
+          <Input
+            placeholder="Buscar por assunto, descrição ou ID..."
+            value={filters.search}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            className="h-10 w-full"
+          />
+        </div>
+        <div className="flex gap-2">
+          <TicketViewSelector
+            currentViewId={currentViewId}
+            onViewChange={handleViewChange}
+          />
+          {/* Add Filter component here if needed */}
+          <Button variant="outline" className="flex items-center gap-1">
+            <Filter className="h-4 w-4" /> Filtrar
+          </Button>
+          <Button variant="outline" onClick={() => refetch()} className="flex items-center gap-1">
+            <RefreshCcw className="h-4 w-4" /> Atualizar
+          </Button>
+        </div>
       </div>
 
-      <div className="space-y-4">
-        {Array.isArray(ticketsList) && ticketsList.length > 0 ? (
-          ticketsList.map((ticket: any) => (
-          <Card key={ticket.id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate(`/tickets/${ticket.id}`)}>
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-start justify-between mb-3">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mr-4">
-                      #{ticket.number || ticket.id} - {ticket.subject || 'Sem título'}
-                    </h3>
-                    <div className="flex items-center space-x-2 flex-shrink-0"></div>
-                    <DynamicBadge 
-                        fieldName="priority" 
-                        value={mapPriorityValue(ticket.priority)}
-                        showIcon={true}
-                        className="font-medium"
-                        size="sm"
-                      />
-                      <DynamicBadge 
-                        fieldName="status" 
-                        value={mapStatusValue(ticket.status)}
-                        showIcon={true}
-                        className="font-medium"
-                        size="sm"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2 mb-3">
-                    <DynamicBadge 
-                      fieldName="category" 
-                      value={mapCategoryValue(ticket.category)}
-                      showIcon={false}
-                      className="font-medium text-xs"
-                      size="sm"
-                    />
-                  </div>
-                  <p className="text-gray-600 dark:text-gray-400 mb-3">
-                    {ticket.description ? 
-                      (ticket.description.length > 150 ? 
-                        ticket.description.substring(0, 150) + '...' : 
-                        ticket.description
-                      ).replace(/<[^>]*>/g, '') : 
-                      'Sem descrição disponível'
-                    }
-                  </p>
-                  <div className="flex items-center space-x-4 text-sm text-gray-500">
-                    <span>ID: {ticket.id}</span>
-                    <span>•</span>
-                    <span>Criado: {formatDate(ticket.created_at || ticket.opened_at)}</span>
-                    {ticket.assigned_to_id && (
-                      <>
-                        <span>•</span>
-                        <span>Atribuído</span>
-                      </>
-                    )}
-                  </div>
-                </div>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate(`/tickets/${ticket.id}`);
-                  }}
-                >
-                  Ver Detalhes
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))
-        ) : (
-          <Card>
-            <CardContent className="p-12 text-center">
+      <Card>
+        <CardContent className="p-0">
+          {tickets.length === 0 ? (
+            <div className="p-12 text-center">
               <div className="text-gray-500">
                 <div className="text-lg font-medium mb-2">📋 Nenhum ticket encontrado</div>
-                <p className="text-sm mb-4">Não há tickets para exibir no momento.</p>
-                <Button 
+                <p className="text-sm mb-4">
+                  Não há tickets que correspondam aos seus filtros atuais.
+                </p>
+                <Button
                   onClick={() => setIsCreateDialogOpen(true)}
                   className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
                 >
@@ -922,10 +999,34 @@ export default function Tickets() {
                   Criar Primeiro Ticket
                 </Button>
               </div>
-            </CardContent>
-          </Card>
-        )}
-      </div>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>ID</TableHead>
+                  <TableHead className="max-w-xs">Assunto</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Prioridade</TableHead>
+                  <TableHead>Cliente</TableHead>
+                  <TableHead>Atribuído a</TableHead>
+                  <TableHead>Data Criação</TableHead>
+                  <TableHead>Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {tickets.map((ticket) => (
+                  <TicketTableRow
+                    key={ticket.id}
+                    ticket={ticket}
+                    onViewTicket={handleViewTicket}
+                  />
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
