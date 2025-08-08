@@ -1,23 +1,29 @@
+
 // Application Layer - Use Case
-import { Customer } from "../../domain/entities/Customer";
-import { ICustomerRepository } from "../../domain/repositories/ICustomerRepository";
-import { CustomerCreated } from "../../domain/events/CustomerEvents";
-import { IDomainEventPublisher } from "../../../shared/events/IDomainEventPublisher";
+import { Customer } from "../../../domain/entities/Customer";
+import { ICustomerRepository } from "../../../domain/repositories/ICustomerRepository";
+import { CustomerCreated } from "../../../domain/events/CustomerEvents";
+import { IDomainEventPublisher } from "../../../../shared/events/IDomainEventPublisher";
 
 export interface CreateCustomerRequest {
   tenantId: string;
   email: string;
-  firstName?: string;
-  lastName?: string;
-  phone?: string;
-  company?: string;
-  tags?: string[];
-  metadata?: Record<string, any>;
-  verified?: boolean;
-  timezone?: string;
-  locale?: string;
-  language?: string;
-  role?: string;
+  firstName: string;
+  lastName: string;
+  phone?: string | null;
+  mobilePhone?: string | null;
+  customerType?: string;
+  cpf?: string | null;
+  cnpj?: string | null;
+  companyName?: string | null;
+  contactPerson?: string | null;
+  state?: string | null;
+  address?: string | null;
+  addressNumber?: string | null;
+  complement?: string | null;
+  neighborhood?: string | null;
+  city?: string | null;
+  zipCode?: string | null;
 }
 
 export class CreateCustomerUseCase {
@@ -37,6 +43,25 @@ export class CreateCustomerUseCase {
       throw new Error('Customer with this email already exists');
     }
 
+    // Additional business validations
+    if (request.customerType === "PJ" && !request.companyName) {
+      throw new Error('Company name is required for PJ customers');
+    }
+
+    if (request.customerType === "PF" && request.cpf) {
+      const cpfDigits = request.cpf.replace(/\D/g, '');
+      if (cpfDigits.length !== 11) {
+        throw new Error('CPF must have exactly 11 digits');
+      }
+    }
+
+    if (request.customerType === "PJ" && request.cnpj) {
+      const cnpjDigits = request.cnpj.replace(/\D/g, '');
+      if (cnpjDigits.length !== 14) {
+        throw new Error('CNPJ must have exactly 14 digits');
+      }
+    }
+
     // Create customer entity
     const customer = Customer.create({
       tenantId: request.tenantId,
@@ -44,14 +69,19 @@ export class CreateCustomerUseCase {
       firstName: request.firstName,
       lastName: request.lastName,
       phone: request.phone,
-      company: request.company,
-      tags: request.tags,
-      metadata: request.metadata,
-      verified: request.verified,
-      timezone: request.timezone,
-      locale: request.locale,
-      language: request.language,
-      role: request.role,
+      mobilePhone: request.mobilePhone,
+      customerType: request.customerType || "PF",
+      cpf: request.cpf,
+      cnpj: request.cnpj,
+      companyName: request.companyName,
+      contactPerson: request.contactPerson,
+      state: request.state,
+      address: request.address,
+      addressNumber: request.addressNumber,
+      complement: request.complement,
+      neighborhood: request.neighborhood,
+      city: request.city,
+      zipCode: request.zipCode,
     });
 
     // Save to repository
@@ -64,7 +94,8 @@ export class CreateCustomerUseCase {
       {
         email: savedCustomer.email,
         fullName: savedCustomer.fullName,
-        company: savedCustomer.company || undefined,
+        customerType: savedCustomer.customerType,
+        companyName: savedCustomer.companyName || undefined,
       }
     );
 

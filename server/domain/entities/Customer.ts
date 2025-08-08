@@ -51,6 +51,30 @@ export class Customer {
     return this.fullName;
   }
 
+  get fullAddress(): string {
+    const parts = [
+      this.address,
+      this.addressNumber,
+      this.complement,
+      this.neighborhood,
+      this.city,
+      this.state,
+      this.zipCode
+    ].filter(Boolean);
+    return parts.join(', ');
+  }
+
+  // Validation methods
+  get isValidCPF(): boolean {
+    if (!this.cpf || this.customerType !== "PF") return true;
+    return this.cpf.replace(/\D/g, '').length === 11;
+  }
+
+  get isValidCNPJ(): boolean {
+    if (!this.cnpj || this.customerType !== "PJ") return true;
+    return this.cnpj.replace(/\D/g, '').length === 14;
+  }
+
   // Factory methods
   static create(props: {
     tenantId: string;
@@ -93,6 +117,20 @@ export class Customer {
     // Validate customer type specific fields
     if (props.customerType === "PJ" && !props.companyName) {
       throw new Error('Company name is required for PJ customers');
+    }
+
+    if (props.customerType === "PF" && props.cpf) {
+      const cpfDigits = props.cpf.replace(/\D/g, '');
+      if (cpfDigits.length !== 11) {
+        throw new Error('CPF must have 11 digits');
+      }
+    }
+
+    if (props.customerType === "PJ" && props.cnpj) {
+      const cnpjDigits = props.cnpj.replace(/\D/g, '');
+      if (cnpjDigits.length !== 14) {
+        throw new Error('CNPJ must have 14 digits');
+      }
     }
 
     return new Customer(
@@ -140,6 +178,11 @@ export class Customer {
     zipCode: string | null;
     isActive: boolean;
   }>): Customer {
+    // Validate changes
+    if (props.customerType === "PJ" && props.companyName === null && !this.companyName) {
+      throw new Error('Company name is required for PJ customers');
+    }
+
     return new Customer(
       this.id,
       this.tenantId,
