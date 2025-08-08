@@ -40,5 +40,15 @@
 
 **STATUS FINAL:** Sistema 100% funcional com eliminação completa das referências "customer_companies".
 
+## Correção Final da Coluna "Company"
+
+✅ **PROBLEMA IDENTIFICADO E CORRIGIDO:**
+- ❌ Código ainda tentava inserir/atualizar coluna `company` removida
+- ✅ Removidas todas referências nos endpoints CREATE e UPDATE customers  
+- ✅ Eliminados logs que mostravam `company=` 
+- ✅ Corrigidas respostas JSON que retornavam `customer.company`
+
+**RESULTADO:** Sistema agora 100% funcional sem nenhuma referência à coluna removida.
+
 ---
 *Completado em: 08 de Agosto de 2025*

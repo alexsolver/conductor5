@@ -881,9 +881,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         externalId, external_id, role, notes, avatar, signature
       } = req.body;
 
-      // Priority-based field selection for phone and company
+      // Priority-based field selection for phone (company field removed)
       const finalPhone = phone || mobilePhone || '';
-      const finalCompany = company || companyName || '';
       const finalZipCode = zipCode || zip_code || '';
       const finalInternalCode = internalCode || internal_code || '';
       const finalExternalId = externalId || external_id || '';
@@ -901,7 +900,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const schemaName = schemaManager.getSchemaName(req.user.tenantId);
 
       console.log(`[CREATE-CUSTOMER] Creating customer: ${firstName} ${lastName} (${email})`);
-      console.log(`[CREATE-CUSTOMER] Processed data: phone=${finalPhone}, company=${finalCompany}`);
+      console.log(`[CREATE-CUSTOMER] Processed data: phone=${finalPhone}`);
 
       // Check if customer already exists
       const existingCustomer = await pool.query(
@@ -916,13 +915,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Insert new customer with all supported fields
+      // Insert new customer with all supported fields (company field removed)
       const result = await pool.query(
         `INSERT INTO "${schemaName}"."customers" 
-         (tenant_id, first_name, last_name, email, phone, company, address, city, state, zip_code, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+         (tenant_id, first_name, last_name, email, phone, address, city, state, zip_code, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
          RETURNING *`,
-        [req.user.tenantId, firstName, lastName, email, finalPhone, finalCompany, address, city, state, finalZipCode]
+        [req.user.tenantId, firstName, lastName, email, finalPhone, address, city, state, finalZipCode]
       );
 
       const customer = result.rows[0];
@@ -938,7 +937,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           lastName: customer.last_name,
           email: customer.email,
           phone: customer.phone,
-          company: customer.company,
           address: customer.address,
           city: customer.city,
           state: customer.state,
@@ -985,9 +983,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         externalId, external_id, role, notes, avatar, signature
       } = req.body;
 
-      // Priority-based field selection for phone and company
+      // Priority-based field selection for phone (company field removed)
       const finalPhone = phone || mobilePhone || '';
-      const finalCompany = company || companyName || '';
       const finalZipCode = zipCode || zip_code || '';
 
       const { schemaManager } = await import('./db');
@@ -995,7 +992,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const schemaName = schemaManager.getSchemaName(req.user.tenantId);
 
       console.log(`[UPDATE-CUSTOMER] Updating customer: ${customerId}`);
-      console.log(`[UPDATE-CUSTOMER] Processed data: phone=${finalPhone}, company=${finalCompany}`);
+      console.log(`[UPDATE-CUSTOMER] Processed data: phone=${finalPhone}`);
 
       // Check if customer exists
       const existingCustomer = await pool.query(
@@ -1030,10 +1027,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (finalPhone !== undefined) {
         updateFields.push(`phone = $${++paramCount}`);
         updateValues.push(finalPhone);
-      }
-      if (finalCompany !== undefined) {
-        updateFields.push(`company = $${++paramCount}`);
-        updateValues.push(finalCompany);
       }
       if (address !== undefined) {
         updateFields.push(`address = $${++paramCount}`);
@@ -1081,7 +1074,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
             lastName: customer.last_name,
             email: customer.email,
             phone: customer.phone,
-            company: customer.company,
             address: customer.address,
             city: customer.city,
             state: customer.state,
