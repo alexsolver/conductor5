@@ -190,7 +190,7 @@ const TicketDetails = React.memo(() => {
   const specialTabs = [
     { 
       id: "attachments", 
-      label: getTabLabel("Anexos", ticketAttachments?.attachments?.length), 
+      label: getTabLabel("Anexos", ticketAttachments?.success ? ticketAttachments?.data?.length : ticketAttachments?.data?.length || attachments?.length), 
       icon: Paperclip 
     },
     { id: "notes", label: "Notas", icon: FileText },
@@ -3403,7 +3403,7 @@ const TicketDetails = React.memo(() => {
               <span className="text-sm font-medium">Anexos</span>
             </div>
             <Badge variant="outline" className="text-xs bg-purple-50 text-purple-600 border-purple-300">
-              {ticketAttachments?.attachments?.length || 0}
+              {ticketAttachments?.success ? ticketAttachments?.data?.length || 0 : ticketAttachments?.data?.length || attachments?.length || 0}
             </Badge>
           </button>
 

@@ -60,9 +60,9 @@ export function TicketAttachmentUpload({ ticketId, onUploadComplete }: TicketAtt
       setSelectedFiles([]);
       setDescription('');
       
-      // Invalidate related queries
-      queryClient.invalidateQueries({ queryKey: [`/api/tickets/${ticketId}/attachments`] });
-      queryClient.invalidateQueries({ queryKey: [`/api/tickets/${ticketId}`] });
+      // Invalidate related queries - use the same key format as TicketDetails
+      queryClient.invalidateQueries({ queryKey: ["/api/tickets", ticketId, "attachments"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tickets", ticketId] });
       
       onUploadComplete?.();
     },
