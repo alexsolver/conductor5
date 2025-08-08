@@ -9,6 +9,7 @@ import { Plus, Search, Mail, Phone, MapPin, Edit, MoreHorizontal, Building } fro
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { CustomerModal } from "@/components/CustomerModal";
 import { useLocation } from "wouter";
+import { renderAddressSafely } from "@/utils/addressFormatter";
 
 export default function Customers() {
   const [, setLocation] = useLocation();

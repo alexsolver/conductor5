@@ -41,11 +41,11 @@ function SimpleMapWithButtons({ initialLat, initialLng, addressData, onLocationS
   React.useEffect(() => {
     if (addressData) {
       const addressParts = [
-        addressData.address,
-        addressData.number,
-        addressData.neighborhood,
-        addressData.city,
-        addressData.state
+        typeof addressData.address === 'string' ? addressData.address : '',
+        typeof addressData.number === 'string' ? addressData.number : '',
+        typeof addressData.neighborhood === 'string' ? addressData.neighborhood : '',
+        typeof addressData.city === 'string' ? addressData.city : '',
+        typeof addressData.state === 'string' ? addressData.state : ''
       ].filter(Boolean);
       
       if (addressParts.length > 0) {

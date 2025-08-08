@@ -285,7 +285,7 @@ export const LocationField: React.FC<LocationFieldProps> = ({
                   
                   {locationData.address && (
                     <p className="text-xs text-green-700">
-                      📍 {locationData.address}
+                      📍 {typeof locationData.address === 'string' ? locationData.address : JSON.stringify(locationData.address)}
                     </p>
                   )}
                   

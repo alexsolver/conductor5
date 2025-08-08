@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -15,6 +15,7 @@ import { z } from 'zod';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import MapSelector from './MapSelector';
+import { renderAddressSafely } from '@/utils/addressFormatter';
 
 const locationSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
@@ -353,9 +354,9 @@ export function LocationModal({ isOpen, onClose, location, onSuccess }: Location
                         <FormItem>
                           <FormLabel>Latitude</FormLabel>
                           <FormControl>
-                            <Input 
-                              placeholder="-23.550520" 
-                              {...field} 
+                            <Input
+                              placeholder="-23.550520"
+                              {...field}
                               type="number"
                               step="any"
                             />
@@ -371,9 +372,9 @@ export function LocationModal({ isOpen, onClose, location, onSuccess }: Location
                         <FormItem>
                           <FormLabel>Longitude</FormLabel>
                           <FormControl>
-                            <Input 
-                              placeholder="-46.633308" 
-                              {...field} 
+                            <Input
+                              placeholder="-46.633308"
+                              {...field}
                               type="number"
                               step="any"
                             />
@@ -469,10 +470,10 @@ export function LocationModal({ isOpen, onClose, location, onSuccess }: Location
                       <FormItem>
                         <FormLabel>Instruções de Acesso</FormLabel>
                         <FormControl>
-                          <Textarea 
+                          <Textarea
                             placeholder="Instruções especiais para acesso ao local..."
                             className="min-h-[100px]"
-                            {...field} 
+                            {...field}
                           />
                         </FormControl>
                         <FormMessage />
