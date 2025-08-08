@@ -1,5 +1,6 @@
 
-import { Pool } from 'pg';
+import pkg from 'pg';
+const { Pool } = pkg;
 
 async function validateCustomersModule() {
   const pool = new Pool({
