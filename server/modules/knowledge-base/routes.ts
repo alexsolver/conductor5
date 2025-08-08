@@ -6,7 +6,8 @@ import path from 'path';
 import { Router, Response } from 'express';
 import { z } from 'zod';
 import { db } from '../../db';
-import { knowledgeBaseArticles, knowledgeBaseCategories, knowledgeBaseFiles } from '../../../shared/schema-master';
+// Comentado temporariamente até as tabelas serem criadas na base
+// import { knowledgeBaseArticles, knowledgeBaseCategories, knowledgeBaseFiles } from '../../../shared/schema-master';
 import { eq, and, like, desc, sql } from 'drizzle-orm';
 
 const router = express.Router();
@@ -87,153 +88,55 @@ const createCategorySchema = z.object({
   color: z.string().max(7).default('#3b82f6')
 });
 
-// GET /api/knowledge-base/articles
+// GET /api/knowledge-base/articles - Temporariamente desabilitado
 router.get('/knowledge-base/articles', jwtAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const tenantId = req.user!.tenantId;
-    const { category, search, status = 'published' } = req.query;
-
-    let query = db
-      .select({
-        id: knowledgeBaseArticles.id,
-        title: knowledgeBaseArticles.title,
-        content: knowledgeBaseArticles.content,
-        categoryId: knowledgeBaseArticles.categoryId,
-        status: knowledgeBaseArticles.status,
-        tags: knowledgeBaseArticles.tags,
-        viewCount: knowledgeBaseArticles.viewCount,
-        isPublic: knowledgeBaseArticles.isPublic,
-        createdAt: knowledgeBaseArticles.createdAt,
-        updatedAt: knowledgeBaseArticles.updatedAt
-      })
-      .from(knowledgeBaseArticles)
-      .where(and(
-        eq(knowledgeBaseArticles.tenantId, tenantId),
-        eq(knowledgeBaseArticles.isActive, true)
-      ))
-      .orderBy(desc(knowledgeBaseArticles.updatedAt));
-
-    if (status) {
-      query = query.where(and(
-        eq(knowledgeBaseArticles.tenantId, tenantId),
-        eq(knowledgeBaseArticles.status, status as string),
-        eq(knowledgeBaseArticles.isActive, true)
-      ));
-    }
-
-    if (category) {
-      query = query.where(and(
-        eq(knowledgeBaseArticles.tenantId, tenantId),
-        eq(knowledgeBaseArticles.categoryId, category as string),
-        eq(knowledgeBaseArticles.isActive, true)
-      ));
-    }
-
-    if (search) {
-      query = query.where(and(
-        eq(knowledgeBaseArticles.tenantId, tenantId),
-        like(knowledgeBaseArticles.title, `%${search}%`),
-        eq(knowledgeBaseArticles.isActive, true)
-      ));
-    }
-
-    const articles = await query;
-    res.json(articles);
+    // Temporariamente retornando lista vazia até as tabelas serem criadas
+    res.json([]);
   } catch (error) {
     console.error('Error fetching articles:', error);
     res.status(500).json({ error: 'Failed to fetch articles' });
   }
 });
 
-// POST /api/knowledge-base/articles
+// POST /api/knowledge-base/articles - Temporariamente desabilitado
 router.post('/knowledge-base/articles', jwtAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const tenantId = req.user!.tenantId;
-    const authorId = req.user!.id;
-    const validatedData = createArticleSchema.parse(req.body);
-
-    const newArticle = await db.insert(knowledgeBaseArticles).values({
-      tenantId,
-      authorId,
-      ...validatedData
-    }).returning();
-
-    res.status(201).json(newArticle[0]);
+    // Temporariamente retornando erro até as tabelas serem criadas
+    res.status(501).json({ error: 'Knowledge base not implemented yet' });
   } catch (error) {
     console.error('Error creating article:', error);
     res.status(500).json({ error: 'Failed to create article' });
   }
 });
 
-// GET /api/knowledge-base/categories
+// GET /api/knowledge-base/categories - Temporariamente desabilitado
 router.get('/knowledge-base/categories', jwtAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const tenantId = req.user!.tenantId;
-
-    const categories = await db
-      .select()
-      .from(knowledgeBaseCategories)
-      .where(and(
-        eq(knowledgeBaseCategories.tenantId, tenantId),
-        eq(knowledgeBaseCategories.isActive, true)
-      ))
-      .orderBy(knowledgeBaseCategories.displayOrder);
-
-    res.json(categories);
+    // Temporariamente retornando lista vazia até as tabelas serem criadas
+    res.json([]);
   } catch (error) {
     console.error('Error fetching categories:', error);
     res.status(500).json({ error: 'Failed to fetch categories' });
   }
 });
 
-// POST /api/knowledge-base/categories
+// POST /api/knowledge-base/categories - Temporariamente desabilitado
 router.post('/knowledge-base/categories', jwtAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const tenantId = req.user!.tenantId;
-    const validatedData = createCategorySchema.parse(req.body);
-
-    const newCategory = await db.insert(knowledgeBaseCategories).values({
-      tenantId,
-      ...validatedData
-    }).returning();
-
-    res.status(201).json(newCategory[0]);
+    // Temporariamente retornando erro até as tabelas serem criadas
+    res.status(501).json({ error: 'Knowledge base not implemented yet' });
   } catch (error) {
     console.error('Error creating category:', error);
     res.status(500).json({ error: 'Failed to create category' });
   }
 });
 
-// GET /api/knowledge-base/articles/:id
+// GET /api/knowledge-base/articles/:id - Temporariamente desabilitado
 router.get('/knowledge-base/articles/:id', jwtAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const tenantId = req.user!.tenantId;
-    const { id } = req.params;
-
-    const article = await db
-      .select()
-      .from(knowledgeBaseArticles)
-      .where(and(
-        eq(knowledgeBaseArticles.id, id),
-        eq(knowledgeBaseArticles.tenantId, tenantId),
-        eq(knowledgeBaseArticles.isActive, true)
-      ))
-      .limit(1);
-
-    if (article.length === 0) {
-      return res.status(404).json({ error: 'Article not found' });
-    }
-
-    // Incrementar visualizações
-    await db
-      .update(knowledgeBaseArticles)
-      .set({ 
-        viewCount: sql`${knowledgeBaseArticles.viewCount} + 1`,
-        updatedAt: new Date()
-      })
-      .where(eq(knowledgeBaseArticles.id, id));
-
-    res.json(article[0]);
+    // Temporariamente retornando 404 até as tabelas serem criadas
+    res.status(404).json({ error: 'Knowledge base not implemented yet' });
   } catch (error) {
     console.error('Error fetching article:', error);
     res.status(500).json({ error: 'Failed to fetch article' });

@@ -3399,6 +3399,82 @@ export const customerItemMappings = pgTable("customer_item_mappings", {
 ]);
 
 // ========================================
+// KNOWLEDGE BASE TABLES
+// ========================================
+
+// Knowledge base categories table
+export const knowledgeBaseCategories = pgTable("knowledge_base_categories", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  icon: varchar("icon", { length: 100 }),
+  color: varchar("color", { length: 7 }), // Hex color
+  parentId: uuid("parent_id"),
+  sortOrder: integer("sort_order").default(0),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  createdBy: uuid("created_by"),
+}, (table) => [
+  index("knowledge_base_categories_tenant_idx").on(table.tenantId),
+  index("knowledge_base_categories_parent_idx").on(table.parentId),
+  index("knowledge_base_categories_active_idx").on(table.tenantId, table.isActive),
+]);
+
+// Knowledge base articles table
+export const knowledgeBaseArticles = pgTable("knowledge_base_articles", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  categoryId: uuid("category_id").references(() => knowledgeBaseCategories.id),
+  title: varchar("title", { length: 500 }).notNull(),
+  slug: varchar("slug", { length: 500 }).notNull(),
+  content: text("content").notNull(),
+  summary: text("summary"),
+  tags: text("tags").array().default([]),
+  status: varchar("status", { length: 20 }).default("draft"), // draft, published, archived
+  viewCount: integer("view_count").default(0),
+  isPublic: boolean("is_public").default(false),
+  isFeatured: boolean("is_featured").default(false),
+  publishedAt: timestamp("published_at"),
+  metadata: jsonb("metadata").default({}),
+  version: integer("version").default(1),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  createdBy: uuid("created_by"),
+  publishedBy: uuid("published_by"),
+}, (table) => [
+  index("knowledge_base_articles_tenant_idx").on(table.tenantId),
+  index("knowledge_base_articles_category_idx").on(table.categoryId),
+  index("knowledge_base_articles_status_idx").on(table.tenantId, table.status),
+  index("knowledge_base_articles_public_idx").on(table.tenantId, table.isPublic),
+  index("knowledge_base_articles_featured_idx").on(table.tenantId, table.isFeatured),
+  unique("knowledge_base_articles_slug_unique").on(table.tenantId, table.slug),
+]);
+
+// Knowledge base files table
+export const knowledgeBaseFiles = pgTable("knowledge_base_files", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull(),
+  articleId: uuid("article_id").references(() => knowledgeBaseArticles.id),
+  filename: varchar("filename", { length: 255 }).notNull(),
+  originalName: varchar("original_name", { length: 255 }).notNull(),
+  mimeType: varchar("mime_type", { length: 100 }).notNull(),
+  size: integer("size").notNull(),
+  path: varchar("path", { length: 500 }).notNull(),
+  downloadCount: integer("download_count").default(0),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  uploadedBy: uuid("uploaded_by"),
+}, (table) => [
+  index("knowledge_base_files_tenant_idx").on(table.tenantId),
+  index("knowledge_base_files_article_idx").on(table.articleId),
+  index("knowledge_base_files_active_idx").on(table.tenantId, table.isActive),
+]);
+
+// ========================================
 // ADDITIONAL MATERIALS & SERVICES TYPES
 // ========================================
 
@@ -3423,32 +3499,45 @@ export type Asset = typeof assets.$inferSelect;
 export type InsertAsset = typeof assets.$inferInsert;
 
 export type AssetMaintenance = typeof assetMaintenance.$inferSelect;
-export type InsertAssetMaintenance = typeof assetMaintenance.$insert;
+export type InsertAssetMaintenance = typeof assetMaintenance.$inferInsert;
 
 export type AssetMeter = typeof assetMeters.$inferSelect;
-export type InsertAssetMeter = typeof assetMeters.$insert;
+export type InsertAssetMeter = typeof assetMeters.$inferInsert;
 
 export type AssetLocation = typeof assetLocations.$inferSelect;
-export type InsertAssetLocation = typeof assetLocations.$insert;
+export type InsertAssetLocation = typeof assetLocations.$inferInsert;
 
 // ========================================
 // COMPLIANCE TYPES
 // ========================================
 
 export type ComplianceAudit = typeof complianceAudits.$inferSelect;
-export type InsertComplianceAudit = typeof complianceAudits.$insert;
+export type InsertComplianceAudit = typeof complianceAudits.$inferInsert;
 
 export type ComplianceCertification = typeof complianceCertifications.$inferSelect;
-export type InsertComplianceCertification = typeof complianceCertifications.$insert;
+export type InsertComplianceCertification = typeof complianceCertifications.$inferInsert;
 
 export type ComplianceEvidence = typeof complianceEvidence.$inferSelect;
-export type InsertComplianceEvidence = typeof complianceEvidence.$insert;
+export type InsertComplianceEvidence = typeof complianceEvidence.$inferInsert;
 
 export type ComplianceAlert = typeof complianceAlerts.$inferSelect;
-export type InsertComplianceAlert = typeof complianceAlerts.$insert;
+export type InsertComplianceAlert = typeof complianceAlerts.$inferInsert;
 
 export type ComplianceScore = typeof complianceScores.$inferSelect;
-export type InsertComplianceScore = typeof complianceScores.$insert;
+export type InsertComplianceScore = typeof complianceScores.$inferInsert;
+
+// ========================================
+// KNOWLEDGE BASE TYPES
+// ========================================
+
+export type KnowledgeBaseCategory = typeof knowledgeBaseCategories.$inferSelect;
+export type InsertKnowledgeBaseCategory = typeof knowledgeBaseCategories.$inferInsert;
+
+export type KnowledgeBaseArticle = typeof knowledgeBaseArticles.$inferSelect;
+export type InsertKnowledgeBaseArticle = typeof knowledgeBaseArticles.$inferInsert;
+
+export type KnowledgeBaseFile = typeof knowledgeBaseFiles.$inferSelect;
+export type InsertKnowledgeBaseFile = typeof knowledgeBaseFiles.$inferInsert;
 
 // Zod schemas para validação
 export const insertTicketListViewSchema = createInsertSchema(ticketListViews).extend({
