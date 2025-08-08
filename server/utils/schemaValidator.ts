@@ -1,4 +1,5 @@
 import { sql } from 'drizzle-orm';
+import * as schema from '@shared/schema';
 
 export class SchemaValidator {
 
@@ -87,6 +88,7 @@ export class SchemaValidator {
     tableCount: number;
     indexCount: number;
     constraintCount: number;
+    foreignKeyCount: number;
     issues: string[];
   }> {
     const issues: string[] = [];
@@ -116,8 +118,17 @@ export class SchemaValidator {
       `);
       const constraintCount = parseInt(constraintResult.rows[0]?.count as string || "0");
 
-      // Health criteria
-      const isHealthy = tableCount >= 60 && indexCount >= 50 && constraintCount >= 30;
+      // Validate foreign keys
+      const fkResult = await db.execute(sql`
+        SELECT COUNT(*) as count 
+        FROM information_schema.table_constraints 
+        WHERE table_schema = ${`tenant_${tenantId.replace(/-/g, '_')}`}
+        AND constraint_type = 'FOREIGN KEY'
+      `);
+      const foreignKeyCount = parseInt(fkResult.rows[0]?.count as string || "0");
+
+      // Health criteria (enhanced with FK validation)
+      const isHealthy = tableCount >= 60 && indexCount >= 50 && constraintCount >= 30 && foreignKeyCount >= 15;
 
       if (tableCount < 60) issues.push(`Low table count: ${tableCount}/60`);
       if (indexCount < 50) issues.push(`Low index count: ${indexCount}/50`);

@@ -291,7 +291,10 @@ export class EnterpriseConnectionManager {
       waitingCount: (this.mainPool as any).waitingCount || 0
     };
 
-    console.log(`[PoolStatus] Main: ${mainPoolInfo.totalCount} total, ${mainPoolInfo.idleCount} idle, ${mainPoolInfo.waitingCount} waiting`);
+    // Only log if there are active connections or issues
+    if (mainPoolInfo.totalCount > 0 || mainPoolInfo.waitingCount > 0) {
+      console.log(`[PoolStatus] Main: ${mainPoolInfo.totalCount} total, ${mainPoolInfo.idleCount} idle, ${mainPoolInfo.waitingCount} waiting`);
+    }
 
     // Log tenant pool summary
     const tenantSummary = Array.from(this.poolMetrics.values()).reduce((acc, metrics) => {
