@@ -74,7 +74,7 @@ export const schemaManager = {
 
       const tableCount = parseInt(result.rows[0]?.table_count || "0");
 
-      // ✅ CUSTOMER MODULE SPECIFIC VALIDATION - UPDATED WITH FK CHECKS
+      // ✅ CUSTOMER MODULE SPECIFIC VALIDATION - COMPREHENSIVE TABLE CHECK
       const customerModuleTables = await pool.query(`
         SELECT table_name 
         FROM information_schema.tables 
@@ -87,7 +87,7 @@ export const schemaManager = {
       `, [schemaName]);
 
       const customerTables = customerModuleTables.rows.map(row => row.table_name);
-      
+
       // ✅ VALIDATE CUSTOMER TABLE STRUCTURE - ENHANCED
       const customerStructure = await pool.query(`
         SELECT column_name, data_type, is_nullable, column_default
@@ -153,7 +153,7 @@ export const schemaManager = {
       // ✅ CUSTOMER MODULE VALIDATION CRITERIA - ENHANCED
       const customerModuleValid = customerTables.length >= 6 && customerFieldsOk && beneficiariesFieldsOk && customerSoftDeleteCoverage >= 4 && foreignKeysOk;
       const overallValid = tableCount >= 60 && customerModuleValid;
-      
+
       console.log(`🏢 Customer Module validated for ${tenantId}:`);
       console.log(`   📋 Customer tables: ${customerTables.length}/8 (${customerTables.join(', ')})`);
       console.log(`   🔧 Customer fields: ${customerFieldsOk ? 'OK' : 'MISSING'}`);
@@ -161,13 +161,13 @@ export const schemaManager = {
       console.log(`   🔗 Foreign keys: ${foreignKeysOk ? 'OK' : 'MISSING'} (${foreignKeyCheck.rows.length} found)`);
       console.log(`   🗑️ Soft delete coverage: ${customerSoftDeleteCoverage}/5`);
       console.log(`   ✅ Total tables: ${tableCount} - ${overallValid ? 'VALID' : 'INVALID'}`);
-      
+
       if (!customerModuleValid) {
         const expectedCustomerTables = ['customers', 'beneficiaries', 'companies', 'customer_company_memberships', 'tickets', 'locations', 'user_groups', 'activity_logs'];
         console.log(`❌ Missing customer tables: ${expectedCustomerTables.filter(t => !customerTables.includes(t))}`);
         console.log(`❌ Missing foreign keys - expected relationships in tickets, memberships, and beneficiaries`);
       }
-      
+
       return overallValid;
     } catch (error) {
       console.error(`❌ Customer Module schema validation failed for ${tenantId}:`, error);

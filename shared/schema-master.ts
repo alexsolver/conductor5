@@ -218,7 +218,7 @@ export const customers = pgTable("customers", {
   lastName: varchar("last_name", { length: 255 }).notNull(),
   email: varchar("email", { length: 255 }).notNull(),
   phone: varchar("phone", { length: 20 }),
-  mobilePhone: varchar("mobile_phone", { length: 20 }),
+  mobilePhone: varchar("mobile_phone", { length: 20 }), // ✅ PRESENT - Critical field for customer contact
   customerType: varchar("customer_type", { length: 10 }).default("PF").notNull(), // PF or PJ - REQUIRED
   cpf: varchar("cpf", { length: 14 }),
   cnpj: varchar("cnpj", { length: 18 }),
@@ -231,9 +231,9 @@ export const customers = pgTable("customers", {
   neighborhood: varchar("neighborhood", { length: 100 }),
   city: varchar("city", { length: 100 }),
   zipCode: varchar("zip_code", { length: 10 }),
-  isActive: boolean("is_active").default(true).notNull(), // REQUIRED for soft deletes
-  createdAt: timestamp("created_at").defaultNow().notNull(), // REQUIRED for audit
-  updatedAt: timestamp("updated_at").defaultNow().notNull(), // REQUIRED for audit
+  isActive: boolean("is_active").default(true).notNull(), // ✅ REQUIRED for soft deletes
+  createdAt: timestamp("created_at").defaultNow().notNull(), // ✅ REQUIRED for audit
+  updatedAt: timestamp("updated_at").defaultNow().notNull(), // ✅ REQUIRED for audit
 }, (table) => ({
   uniqueTenantEmail: unique("customers_tenant_email_unique").on(table.tenantId, table.email),
   // Critical indexes for performance
