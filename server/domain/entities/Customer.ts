@@ -51,41 +51,6 @@ export class Customer {
     return this.fullName;
   }
 
-  // Validation rules
-  validate(): string[] {
-    const errors: string[] = [];
-    
-    if (!this.email || !this.isValidEmail) {
-      errors.push('Email válido é obrigatório');
-    }
-    
-    if (!this.firstName || !this.lastName) {
-      errors.push('Nome e sobrenome são obrigatórios');
-    }
-    
-    if (this.customerType === 'PJ' && !this.companyName) {
-      errors.push('Nome da empresa é obrigatório para Pessoa Jurídica');
-    }
-    
-    if (this.customerType === 'PF' && this.cpf) {
-      // Basic CPF validation (11 digits)
-      const cpfDigits = this.cpf.replace(/\D/g, '');
-      if (cpfDigits.length !== 11) {
-        errors.push('CPF deve ter 11 dígitos');
-      }
-    }
-    
-    if (this.customerType === 'PJ' && this.cnpj) {
-      // Basic CNPJ validation (14 digits)
-      const cnpjDigits = this.cnpj.replace(/\D/g, '');
-      if (cnpjDigits.length !== 14) {
-        errors.push('CNPJ deve ter 14 dígitos');
-      }
-    }
-    
-    return errors;
-  }
-
   // Factory methods
   static create(props: {
     tenantId: string;
@@ -107,7 +72,30 @@ export class Customer {
     city?: string | null;
     zipCode?: string | null;
   }): Customer {
-    const customer = new Customer(
+    // Business validation
+    if (!props.email) {
+      throw new Error('Customer email is required');
+    }
+    
+    if (!props.tenantId) {
+      throw new Error('Customer must belong to a tenant');
+    }
+
+    if (!props.firstName || !props.lastName) {
+      throw new Error('Customer first name and last name are required');
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(props.email)) {
+      throw new Error('Invalid email format');
+    }
+
+    // Validate customer type specific fields
+    if (props.customerType === "PJ" && !props.companyName) {
+      throw new Error('Company name is required for PJ customers');
+    }
+
+    return new Customer(
       crypto.randomUUID(),
       props.tenantId,
       props.email,
@@ -131,14 +119,6 @@ export class Customer {
       new Date(),
       new Date()
     );
-
-    // Validate before creating
-    const errors = customer.validate();
-    if (errors.length > 0) {
-      throw new Error(`Validation failed: ${errors.join(', ')}`);
-    }
-
-    return customer;
   }
 
   update(props: Partial<{
@@ -160,7 +140,7 @@ export class Customer {
     zipCode: string | null;
     isActive: boolean;
   }>): Customer {
-    const updated = new Customer(
+    return new Customer(
       this.id,
       this.tenantId,
       this.email,
@@ -184,13 +164,5 @@ export class Customer {
       this.createdAt,
       new Date()
     );
-
-    // Validate updated customer
-    const errors = updated.validate();
-    if (errors.length > 0) {
-      throw new Error(`Validation failed: ${errors.join(', ')}`);
-    }
-
-    return updated;
   }
 }
