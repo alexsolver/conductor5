@@ -1,437 +1,228 @@
-import React, { useEffect } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useForm, Controller } from 'react-hook-form';
-import { 
-  FormField, 
-  FormItem, 
-  FormLabel, 
-  FormControl, 
-  FormMessage,
-  FormDescription 
-} from '@/components/ui/form';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
-import { DatePicker } from '@/components/ui/date-picker';
-import { Card, CardContent } from '@/components/ui/card';
-import { Loader2, Upload, X } from 'lucide-react';
-import { apiRequest } from '@/lib/queryClient';
-import { useToast } from '@/hooks/use-toast';
-// import { CustomFieldMetadata, ModuleType, FieldType } from "@shared/schema"; // temporarily disabled
+import { Loader2, AlertCircle } from 'lucide-react';
 
-// ===========================
-// COMPONENT PROPS
-// ===========================
+interface CustomFieldMetadata {
+  id: string;
+  moduleType: string;
+  fieldName: string;
+  fieldType: 'text' | 'number' | 'select' | 'multiselect' | 'date' | 'boolean' | 'textarea' | 'file' | 'email' | 'phone';
+  fieldLabel: string;
+  isRequired: boolean;
+  validationRules: Record<string, any>;
+  fieldOptions: Record<string, any>;
+  displayOrder: number;
+  isActive: boolean;
+}
 
 interface DynamicCustomFieldsProps {
-  moduleType: ModuleType;
-  entityId?: string; // Para edição
+  moduleType: 'customers' | 'tickets' | 'beneficiaries' | 'materials' | 'services' | 'locations';
+  entityId?: string;
   values?: Record<string, any>;
-  onChange: (fieldName: string, value: any) => void;
-  errors?: Record<string, string>;
+  onChange?: (fieldKey: string, value: any) => void;
   readOnly?: boolean;
-  showLabels?: boolean;
   className?: string;
 }
-
-// ===========================
-// FIELD TYPE RENDERERS
-// ===========================
-
-interface FieldRendererProps {
-  field: CustomFieldMetadata;
-  value: any;
-  onChange: (value: any) => void;
-  error?: string;
-  readOnly?: boolean;
-}
-
-const TextFieldRenderer: React.FC<FieldRendererProps> = ({ 
-  field, value, onChange, error, readOnly 
-}) => (
-  <div className="space-y-1">
-    <Input
-      type="text"
-      value={value || ''}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder={field.fieldLabel}
-      disabled={readOnly}
-      className={error ? 'border-red-500' : ''}
-    />
-    {error && <p className="text-sm text-red-500">{error}</p>}
-  </div>
-);
-
-const NumberFieldRenderer: React.FC<FieldRendererProps> = ({ 
-  field, value, onChange, error, readOnly 
-}) => (
-  <div className="space-y-1">
-    <Input
-      type="number"
-      value={value || ''}
-      onChange={(e) => onChange(e.target.value ? Number(e.target.value) : null)}
-      placeholder={field.fieldLabel}
-      disabled={readOnly}
-      className={error ? 'border-red-500' : ''}
-    />
-    {error && <p className="text-sm text-red-500">{error}</p>}
-  </div>
-);
-
-const TextareaFieldRenderer: React.FC<FieldRendererProps> = ({ 
-  field, value, onChange, error, readOnly 
-}) => (
-  <div className="space-y-1">
-    <Textarea
-      value={value || ''}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder={field.fieldLabel}
-      disabled={readOnly}
-      className={error ? 'border-red-500' : ''}
-    />
-    {error && <p className="text-sm text-red-500">{error}</p>}
-  </div>
-);
-
-const EmailFieldRenderer: React.FC<FieldRendererProps> = ({ 
-  field, value, onChange, error, readOnly 
-}) => (
-  <div className="space-y-1">
-    <Input
-      type="email"
-      value={value || ''}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder={field.fieldLabel}
-      disabled={readOnly}
-      className={error ? 'border-red-500' : ''}
-    />
-    {error && <p className="text-sm text-red-500">{error}</p>}
-  </div>
-);
-
-const PhoneFieldRenderer: React.FC<FieldRendererProps> = ({ 
-  field, value, onChange, error, readOnly 
-}) => (
-  <div className="space-y-1">
-    <Input
-      type="tel"
-      value={value || ''}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder={field.fieldLabel}
-      disabled={readOnly}
-      className={error ? 'border-red-500' : ''}
-    />
-    {error && <p className="text-sm text-red-500">{error}</p>}
-  </div>
-);
-
-const BooleanFieldRenderer: React.FC<FieldRendererProps> = ({ 
-  field, value, onChange, error, readOnly 
-}) => (
-  <div className="flex items-center space-x-2">
-    <Switch
-      checked={!!value}
-      onCheckedChange={onChange}
-      disabled={readOnly}
-    />
-    <span className="text-sm">{field.fieldLabel}</span>
-    {error && <p className="text-sm text-red-500 ml-2">{error}</p>}
-  </div>
-);
-
-const DateFieldRenderer: React.FC<FieldRendererProps> = ({ 
-  field, value, onChange, error, readOnly 
-}) => (
-  <div className="space-y-1">
-    <DatePicker
-      value={value ? new Date(value) : undefined}
-      onChange={(date) => onChange(date?.toISOString())}
-      disabled={readOnly}
-      placeholder={field.fieldLabel}
-    />
-    {error && <p className="text-sm text-red-500">{error}</p>}
-  </div>
-);
-
-const SelectFieldRenderer: React.FC<FieldRendererProps> = ({ 
-  field, value, onChange, error, readOnly 
-}) => {
-  const options = Array.isArray(field.fieldOptions) ? field.fieldOptions : [];
-  
-  return (
-    <div className="space-y-1">
-      <Select 
-        value={value || ''} 
-        onValueChange={onChange}
-        disabled={readOnly}
-      >
-        <SelectTrigger className={error ? 'border-red-500' : ''}>
-          <SelectValue placeholder={`Selecione ${field.fieldLabel}`} />
-        </SelectTrigger>
-        <SelectContent>
-          {options.map((option: any) => (
-            <SelectItem key={option.value} value={option.value}>
-              <div className="flex items-center gap-2">
-                {option.color && (
-                  <div 
-                    className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: option.color }}
-                  />
-                )}
-                {option.label}
-              </div>
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      {error && <p className="text-sm text-red-500">{error}</p>}
-    </div>
-  );
-};
-
-const MultiSelectFieldRenderer: React.FC<FieldRendererProps> = ({ 
-  field, value, onChange, error, readOnly 
-}) => {
-  const options = Array.isArray(field.fieldOptions) ? field.fieldOptions : [];
-  const selectedValues = Array.isArray(value) ? value : [];
-  
-  const handleOptionToggle = (optionValue: string) => {
-    if (readOnly) return;
-    
-    const newValues = selectedValues.includes(optionValue)
-      ? selectedValues.filter(v => v !== optionValue)
-      : [...selectedValues, optionValue];
-    
-    onChange(newValues);
-  };
-  
-  return (
-    <div className="space-y-2">
-      <div className="grid gap-2">
-        {options.map((option: any) => (
-          <div key={option.value} className="flex items-center space-x-2">
-            <Checkbox
-              id={`${field.fieldName}-${option.value}`}
-              checked={selectedValues.includes(option.value)}
-              onCheckedChange={() => handleOptionToggle(option.value)}
-              disabled={readOnly}
-            />
-            <label 
-              htmlFor={`${field.fieldName}-${option.value}`}
-              className="text-sm font-medium cursor-pointer flex items-center gap-2"
-            >
-              {option.color && (
-                <div 
-                  className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: option.color }}
-                />
-              )}
-              {option.label}
-            </label>
-          </div>
-        ))}
-      </div>
-      {selectedValues.length > 0 && (
-        <div className="flex flex-wrap gap-1 mt-2">
-          {selectedValues.map((val: string) => {
-            const option = options.find((opt: any) => opt.value === val);
-            return option ? (
-              <Badge key={val} variant="secondary" className="text-xs">
-                {option.label}
-                {!readOnly && (
-                  <button
-                    onClick={() => handleOptionToggle(val)}
-                    className="ml-1 hover:bg-gray-200 rounded-full p-0.5"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                )}
-              </Badge>
-            ) : null;
-          })}
-        </div>
-      )}
-      {error && <p className="text-sm text-red-500">{error}</p>}
-    </div>
-  );
-};
-
-const FileFieldRenderer: React.FC<FieldRendererProps> = ({ 
-  field, value, onChange, error, readOnly 
-}) => {
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      // In a real implementation, you would upload the file to a server
-      // For now, we'll just store the file name
-      onChange(file.name);
-    }
-  };
-  
-  return (
-    <div className="space-y-2">
-      {!readOnly && (
-        <div className="flex items-center gap-2">
-          <input
-            type="file"
-            onChange={handleFileChange}
-            className="hidden"
-            id={`file-${field.fieldName}`}
-          />
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => document.getElementById(`file-${field.fieldName}`)?.click()}
-          >
-            <Upload className="w-4 h-4 mr-2" />
-            Selecionar Arquivo
-          </Button>
-        </div>
-      )}
-      {value && (
-        <Badge variant="outline" className="text-xs">
-          {value}
-        </Badge>
-      )}
-      {error && <p className="text-sm text-red-500">{error}</p>}
-    </div>
-  );
-};
-
-// ===========================
-// FIELD RENDERER MAP
-// ===========================
-
-const FIELD_RENDERERS: Record<FieldType, React.FC<FieldRendererProps>> = {
-  text: TextFieldRenderer,
-  number: NumberFieldRenderer,
-  textarea: TextareaFieldRenderer,
-  email: EmailFieldRenderer,
-  phone: PhoneFieldRenderer,
-  boolean: BooleanFieldRenderer,
-  date: DateFieldRenderer,
-  select: SelectFieldRenderer,
-  multiselect: MultiSelectFieldRenderer,
-  file: FileFieldRenderer
-};
-
-// ===========================
-// MAIN COMPONENT
-// ===========================
 
 const DynamicCustomFields: React.FC<DynamicCustomFieldsProps> = ({
   moduleType,
   entityId,
   values = {},
   onChange,
-  errors = {},
   readOnly = false,
-  showLabels = true,
   className = ''
 }) => {
-  const { toast } = useToast();
+  const [fieldValues, setFieldValues] = useState<Record<string, any>>(values);
 
-  // ===========================
-  // DATA QUERIES
-  // ===========================
-
+  // Fetch custom fields for the module
   const { data: fields = [], isLoading, error } = useQuery({
-    queryKey: ['/api/custom-fields/fields', moduleType],
+    queryKey: ['custom-fields', moduleType],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/custom-fields/fields/${moduleType}`);
-      const result = await response.json();
-      return result.success ? result.data : [];
+      const response = await fetch(`/api/custom-fields/fields/${moduleType}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch custom fields');
+      }
+      const data = await response.json();
+      return data.data || [];
     }
   });
 
-  const { data: entityValues = {}, isLoading: valuesLoading } = useQuery({
-    queryKey: ['/api/custom-fields/values', moduleType, entityId],
+  // Fetch entity values if entityId is provided
+  const { data: entityValues } = useQuery({
+    queryKey: ['custom-field-values', moduleType, entityId],
     queryFn: async () => {
       if (!entityId) return {};
-      const response = await apiRequest('GET', `/api/custom-fields/values/${moduleType}/${entityId}`);
-      const result = await response.json();
-      return result.success ? result.data : {};
+      const response = await fetch(`/api/custom-fields/values/${moduleType}/${entityId}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch entity values');
+      }
+      const data = await response.json();
+      const valuesMap: Record<string, any> = {};
+      data.data?.forEach((item: any) => {
+        valuesMap[item.field_id] = JSON.parse(item.field_value || 'null');
+      });
+      return valuesMap;
     },
     enabled: !!entityId
   });
 
-  // ===========================
-  // EFFECTS
-  // ===========================
-
-  // Merge entity values with passed values
   useEffect(() => {
-    if (entityId && entityValues) {
-      Object.entries(entityValues).forEach(([fieldName, value]) => {
-        if (!values.hasOwnProperty(fieldName)) {
-          onChange(fieldName, value);
-        }
-      });
+    if (entityValues) {
+      setFieldValues(prev => ({ ...prev, ...entityValues }));
     }
-  }, [entityValues, entityId, onChange, values]);
+  }, [entityValues]);
 
-  // ===========================
-  // RENDER HELPERS
-  // ===========================
-
-  const renderField = (field: CustomFieldMetadata) => {
-    const FieldRenderer = FIELD_RENDERERS[field.fieldType as FieldType];
-    const fieldValue = values[field.fieldName];
-    const fieldError = errors[field.fieldName];
-
-    if (!FieldRenderer) {
-      console.warn(`No renderer found for field type: ${field.fieldType}`);
-      return null;
+  const handleFieldChange = (fieldId: string, value: any) => {
+    const newValues = { ...fieldValues, [fieldId]: value };
+    setFieldValues(newValues);
+    
+    if (onChange) {
+      onChange(fieldId, value);
     }
-
-    const fieldContent = (
-      <FieldRenderer
-        field={field}
-        value={fieldValue}
-        onChange={(value) => onChange(field.fieldName, value)}
-        error={fieldError}
-        readOnly={readOnly}
-      />
-    );
-
-    if (!showLabels || field.fieldType === 'boolean') {
-      return fieldContent;
-    }
-
-    return (
-      <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          <label className="text-sm font-medium text-gray-700">
-            {field.fieldLabel}
-            {field.isRequired && <span className="text-red-500 ml-1">*</span>}
-          </label>
-        </div>
-        {fieldContent}
-      </div>
-    );
   };
 
-  // ===========================
-  // LOADING AND ERROR STATES
-  // ===========================
+  const renderField = (field: CustomFieldMetadata) => {
+    const value = fieldValues[field.id];
+    const fieldProps = {
+      disabled: readOnly,
+      required: field.isRequired
+    };
 
-  if (isLoading || valuesLoading) {
+    switch (field.fieldType) {
+      case 'text':
+      case 'email':
+      case 'phone':
+        return (
+          <Input
+            {...fieldProps}
+            type={field.fieldType === 'email' ? 'email' : field.fieldType === 'phone' ? 'tel' : 'text'}
+            value={value || ''}
+            onChange={(e) => handleFieldChange(field.id, e.target.value)}
+            placeholder={field.fieldOptions?.placeholder || ''}
+          />
+        );
+
+      case 'number':
+        return (
+          <Input
+            {...fieldProps}
+            type="number"
+            value={value || ''}
+            onChange={(e) => handleFieldChange(field.id, Number(e.target.value))}
+            min={field.validationRules?.min}
+            max={field.validationRules?.max}
+          />
+        );
+
+      case 'textarea':
+        return (
+          <Textarea
+            {...fieldProps}
+            value={value || ''}
+            onChange={(e) => handleFieldChange(field.id, e.target.value)}
+            rows={field.fieldOptions?.rows || 3}
+            placeholder={field.fieldOptions?.placeholder || ''}
+          />
+        );
+
+      case 'select':
+        return (
+          <Select
+            disabled={readOnly}
+            value={value || ''}
+            onValueChange={(newValue) => handleFieldChange(field.id, newValue)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione..." />
+            </SelectTrigger>
+            <SelectContent>
+              {field.fieldOptions?.options?.map((option: any) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        );
+
+      case 'boolean':
+        return (
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              disabled={readOnly}
+              checked={value || false}
+              onCheckedChange={(checked) => handleFieldChange(field.id, checked)}
+            />
+            <Label>{field.fieldOptions?.checkboxLabel || 'Sim'}</Label>
+          </div>
+        );
+
+      case 'date':
+        return (
+          <Input
+            {...fieldProps}
+            type="date"
+            value={value || ''}
+            onChange={(e) => handleFieldChange(field.id, e.target.value)}
+          />
+        );
+
+      case 'multiselect':
+        const selectedValues = Array.isArray(value) ? value : [];
+        return (
+          <div className="space-y-2">
+            {field.fieldOptions?.options?.map((option: any) => (
+              <div key={option.value} className="flex items-center space-x-2">
+                <Checkbox
+                  disabled={readOnly}
+                  checked={selectedValues.includes(option.value)}
+                  onCheckedChange={(checked) => {
+                    const newValues = checked
+                      ? [...selectedValues, option.value]
+                      : selectedValues.filter((v: any) => v !== option.value);
+                    handleFieldChange(field.id, newValues);
+                  }}
+                />
+                <Label>{option.label}</Label>
+              </div>
+            ))}
+          </div>
+        );
+
+      default:
+        return (
+          <div className="text-sm text-gray-500">
+            Tipo de campo não suportado: {field.fieldType}
+          </div>
+        );
+    }
+  };
+
+  if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-8">
-        <Loader2 className="w-6 h-6 animate-spin" />
-        <span className="ml-2 text-sm text-gray-600">Carregando campos customizados...</span>
-      </div>
+      <Card className="p-4">
+        <div className="flex items-center justify-center">
+          <Loader2 className="w-6 h-6 animate-spin mr-2" />
+          <span>Carregando campos customizados...</span>
+        </div>
+      </Card>
     );
   }
 
@@ -439,9 +230,12 @@ const DynamicCustomFields: React.FC<DynamicCustomFieldsProps> = ({
     return (
       <Card className="border-red-200 bg-red-50">
         <CardContent className="p-4">
-          <p className="text-sm text-red-600">
-            Erro ao carregar campos customizados. Tente novamente.
-          </p>
+          <div className="flex items-center text-red-600">
+            <AlertCircle className="w-4 h-4 mr-2" />
+            <span className="text-sm">
+              Erro ao carregar campos customizados. Tente novamente.
+            </span>
+          </div>
         </CardContent>
       </Card>
     );
@@ -459,15 +253,26 @@ const DynamicCustomFields: React.FC<DynamicCustomFieldsProps> = ({
     );
   }
 
-  // ===========================
-  // MAIN RENDER
-  // ===========================
-
   return (
     <div className={`space-y-4 ${className}`}>
       {fields.map((field: CustomFieldMetadata) => (
         <div key={field.id} className="space-y-1">
+          <div className="flex items-center gap-2">
+            <Label htmlFor={field.id} className="text-sm font-medium">
+              {field.fieldLabel}
+            </Label>
+            {field.isRequired && (
+              <Badge variant="destructive" className="text-xs">
+                Obrigatório
+              </Badge>
+            )}
+          </div>
           {renderField(field)}
+          {field.fieldOptions?.helpText && (
+            <p className="text-xs text-gray-500">
+              {field.fieldOptions.helpText}
+            </p>
+          )}
         </div>
       ))}
     </div>
