@@ -1,9 +1,32 @@
 import { Router } from 'express';
 import { AuthenticatedRequest, jwtAuth } from '../../middleware/jwtAuth';
+import { CustomerController } from './application/controllers/CustomerController';
+import { CustomerApplicationService } from './application/services/CustomerApplicationService';
+import { CreateCustomerUseCase } from './application/usecases/CreateCustomerUseCase';
+import { GetCustomersUseCase } from './application/usecases/GetCustomersUseCase';
+import { UpdateCustomerUseCase } from './application/usecases/UpdateCustomerUseCase';
+import { DeleteCustomerUseCase } from './application/usecases/DeleteCustomerUseCase';
+import { CustomerRepository } from '../../infrastructure/repositories/CustomerRepository';
 
 const customersRouter = Router();
 
-// GET /api/customers - Get all customers
+// Initialize customer controller with dependency injection
+const customerRepository = new CustomerRepository();
+const createCustomerUseCase = new CreateCustomerUseCase(customerRepository);
+const getCustomersUseCase = new GetCustomersUseCase(customerRepository);
+const updateCustomerUseCase = new UpdateCustomerUseCase(customerRepository);
+const deleteCustomerUseCase = new DeleteCustomerUseCase(customerRepository);
+
+const customerApplicationService = new CustomerApplicationService(
+  createCustomerUseCase,
+  getCustomersUseCase,
+  updateCustomerUseCase,
+  deleteCustomerUseCase
+);
+
+const customerController = new CustomerController(customerApplicationService);
+
+// GET /api/customers - Get all customers with proper validation
 customersRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const { schemaManager } = await import('../../db');
@@ -135,16 +158,29 @@ customersRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
     );
 
     // Add metadata to response
-    res.status(200).json({
-      success: true,
-      customers: customersWithCompanies,
+    // Import DTO transformer
+    const { transformToCustomerDTO } = await import('./application/dto/CustomerResponseDTO');
+    
+    // Transform customers using standardized DTO
+    const transformedCustomers = customersWithCompanies.map(transformToCustomerDTO);
+
+    const response: CustomerListResponseDTO = {
+      customers: transformedCustomers,
       total: result.rows.length,
+      page: parseInt(req.query.page as string) || 1,
+      limit: parseInt(req.query.limit as string) || 100,
+      totalPages: Math.ceil(result.rows.length / (parseInt(req.query.limit as string) || 100)),
       metadata: {
         tenant_id: req.user.tenantId,
         schema: schemaName,
         available_columns: availableColumns,
         timestamp: new Date().toISOString()
       }
+    };
+
+    res.status(200).json({
+      success: true,
+      ...response
     });
   } catch (error: any) {
     console.error('[GET-CUSTOMERS] Critical error:', error);
@@ -187,6 +223,48 @@ customersRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
     }
     
     res.status(500).json(errorResponse);
+  }
+});
+
+// POST /api/customers - Create new customer
+customersRouter.post('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    await customerController.createCustomer(req, res);
+  } catch (error) {
+    console.error('[CREATE-CUSTOMER] Error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to create customer',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// PUT /api/customers/:id - Update customer
+customersRouter.put('/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    await customerController.updateCustomer(req, res);
+  } catch (error) {
+    console.error('[UPDATE-CUSTOMER] Error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update customer',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// DELETE /api/customers/:id - Delete customer
+customersRouter.delete('/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    await customerController.deleteCustomer(req, res);
+  } catch (error) {
+    console.error('[DELETE-CUSTOMER] Error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to delete customer',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 });
 

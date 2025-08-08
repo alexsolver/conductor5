@@ -56,10 +56,18 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
       return res.status(401).json({ message: 'User not found or inactive' });
     }
 
-    // Add user context to request - with permissions
+    // Add user context to request - with permissions and enhanced tenant validation
     const { RBACService } = await import('./rbacMiddleware');
     const rbacInstance = RBACService.getInstance();
     const permissions = rbacInstance.getRolePermissions(user.role);
+
+    // Enhanced tenant validation for customers module
+    if (!user.tenantId && req.path.includes('/customers')) {
+      return res.status(403).json({ 
+        message: 'Tenant access required for customer operations',
+        code: 'MISSING_TENANT_ACCESS'
+      });
+    }
 
     req.user = {
       id: user.id,
@@ -67,7 +75,9 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
       role: user.role,
       tenantId: user.tenantId,
       permissions: permissions,
-      attributes: {}
+      attributes: {},
+      // Add customer-specific permissions
+      hasCustomerAccess: permissions.some(p => p.includes('customer'))
     };
 
     // Log successful authentication for parts-services endpoints
