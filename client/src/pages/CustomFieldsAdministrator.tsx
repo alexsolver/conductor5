@@ -271,14 +271,16 @@ export default function CustomFieldsAdministrator() {
                       size="sm"
                       onClick={() => setEditingField(field)}
                       disabled={updateFieldMutation.isPending}
+                      aria-label={`Editar campo ${field.fieldLabel}`}
                     >
                       <Edit className="w-4 h-4" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => setFieldToDelete(field)} // Open confirmation dialog
+                      onClick={() => setFieldToDelete(field)}
                       disabled={deleteFieldMutation.isPending}
+                      aria-label={`Excluir campo ${field.fieldLabel}`}
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
@@ -323,7 +325,7 @@ export default function CustomFieldsAdministrator() {
       <div className="flex items-center gap-4">
         <Label htmlFor="module-select">Módulo:</Label>
         <Select value={selectedModule} onValueChange={(value: ModuleType) => setSelectedModule(value)}>
-          <SelectTrigger className="w-48">
+          <SelectTrigger id="module-select" className="w-48" aria-label="Selecionar módulo para gerenciar campos">
             <SelectValue placeholder="Selecione um módulo" />
           </SelectTrigger>
           <SelectContent>
@@ -512,19 +514,27 @@ function CreateFieldForm({ moduleType, onSubmit, isLoading }: any) {
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="fieldName">Nome do Campo</Label>
+          <Label htmlFor="fieldName">Nome do Campo <span className="text-red-500">*</span></Label>
           <Input
             id="fieldName"
             value={formData.fieldName}
-            onChange={(e) => setFormData(prev => ({ ...prev, fieldName: e.target.value }))}
+            onChange={(e) => {
+              const value = e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '_');
+              setFormData(prev => ({ ...prev, fieldName: value }));
+            }}
             placeholder="nome_do_campo"
+            pattern="^[a-z][a-z0-9_]*$"
             required
             disabled={isLoading}
+            aria-describedby="fieldName-help"
           />
+          <p id="fieldName-help" className="text-xs text-gray-500">
+            Use apenas letras minúsculas, números e underscore. Exemplo: meu_campo_customizado
+          </p>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="fieldLabel">Rótulo do Campo</Label>
+          <Label htmlFor="fieldLabel">Rótulo do Campo <span className="text-red-500">*</span></Label>
           <Input
             id="fieldLabel"
             value={formData.fieldLabel}
@@ -532,14 +542,18 @@ function CreateFieldForm({ moduleType, onSubmit, isLoading }: any) {
             placeholder="Rótulo visível"
             required
             disabled={isLoading}
+            aria-describedby="fieldLabel-help"
           />
+          <p id="fieldLabel-help" className="text-xs text-gray-500">
+            Este texto será exibido como etiqueta do campo no formulário
+          </p>
         </div>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="fieldType">Tipo do Campo</Label>
+        <Label htmlFor="fieldType">Tipo do Campo <span className="text-red-500">*</span></Label>
         <Select value={formData.fieldType} onValueChange={handleFieldTypeChange} disabled={isLoading}>
-          <SelectTrigger>
+          <SelectTrigger id="fieldType">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -617,8 +631,17 @@ function CreateFieldForm({ moduleType, onSubmit, isLoading }: any) {
 
       <div className="flex justify-end gap-2 pt-4 border-t">
         <Button type="submit" disabled={isLoading}>
-          {isLoading && <Save className="w-4 h-4 mr-2 animate-spin" />}
-          Criar Campo
+          {isLoading ? (
+            <>
+              <Save className="w-4 h-4 mr-2 animate-spin" />
+              Criando Campo...
+            </>
+          ) : (
+            <>
+              <Save className="w-4 h-4 mr-2" />
+              Criar Campo
+            </>
+          )}
         </Button>
       </div>
     </form>
@@ -780,8 +803,17 @@ function EditFieldForm({ field, onSubmit, isLoading }: any) {
 
       <div className="flex justify-end gap-2 pt-4 border-t">
         <Button type="submit" disabled={isLoading}>
-          {isLoading && <Save className="w-4 h-4 mr-2 animate-spin" />}
-          Salvar Alterações
+          {isLoading ? (
+            <>
+              <Save className="w-4 h-4 mr-2 animate-spin" />
+              Salvando Alterações...
+            </>
+          ) : (
+            <>
+              <Save className="w-4 h-4 mr-2" />
+              Salvar Alterações
+            </>
+          )}
         </Button>
       </div>
     </form>
