@@ -47,6 +47,7 @@ import TicketLinkingModal from "@/components/tickets/TicketLinkingModal";
 import InternalActionModal from "@/components/tickets/InternalActionModal";
 
 import { TicketDescriptionEditor } from "@/components/TicketDescriptionEditor";
+import { TicketAttachmentUpload } from "@/components/TicketAttachmentUpload";
 import { GroupSelect } from "@/components/GroupSelect";
 import { FilteredUserSelect } from "@/components/FilteredUserSelect";
 import { FilteredCustomerSelect } from "@/components/FilteredCustomerSelect";
@@ -1601,41 +1602,27 @@ const TicketDetails = React.memo(() => {
       case "attachments":
         return (
           <div className="space-y-6">
-            {/* Upload Area */}
-            <div
-              className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-                dragActive ? 'border-blue-400 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
-              }`}
-              onDragEnter={handleDrag}
-              onDragLeave={handleDrag}
-              onDragOver={handleDrag}
-              onDrop={handleDrop}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <div className="flex flex-col items-center gap-4 cursor-pointer">
-                <Upload className="h-12 w-12 text-gray-400" />
-                <div>
-                  <p className="text-lg font-medium text-gray-700">
-                    Arraste arquivos aqui ou clique para selecionar
-                  </p>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Máximo 200MB por arquivo. Todos os formatos aceitos.
-                  </p>
-                </div>
-              </div>
-              <input
-                ref={fileInputRef}
-                type="file"
-                multiple
-                className="hidden"
-                onChange={(e) => e.target.files && handleFiles(e.target.files)}
-              />
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">📎 Anexos</h2>
+              <Badge variant="outline" className="text-xs">
+                {attachments.length} anexo(s)
+              </Badge>
             </div>
 
-            {/* Attachments List */}
+            {/* Upload Component with Description Field */}
+            <TicketAttachmentUpload 
+              ticketId={id!}
+              onUploadComplete={() => {
+                // Refresh attachments data
+                queryClient.invalidateQueries({ queryKey: ["/api/tickets", id, "attachments"] });
+                queryClient.invalidateQueries({ queryKey: ["/api/tickets", id] });
+              }}
+            />
+
+            {/* Existing Attachments List */}
             {attachments.length > 0 && (
               <div className="space-y-3">
-                <h3 className="text-lg font-medium">Anexos ({attachments.length})</h3>
+                <h3 className="text-lg font-medium">Anexos Existentes ({attachments.length})</h3>
                 {attachments.map((attachment) => (
                   <div key={attachment.id} className="flex items-center justify-between p-4 border rounded-lg">
                     <div className="flex items-center gap-3">
