@@ -116,8 +116,11 @@ export function FilteredCustomerSelect({
               const customerName = customer.fullName || customer.name || 
                                   `${customer.firstName || ''} ${customer.lastName || ''}`.trim() || 
                                   customer.email || 'Cliente sem nome';
+              // Ensure customer.id is not empty or undefined
+              const customerId = customer.id || `customer_${Math.random().toString(36).substr(2, 9)}`;
+              
               return (
-                <SelectItem key={customer.id} value={customer.id}>
+                <SelectItem key={customerId} value={customerId}>
                   <div className="flex flex-col">
                     <span>{customerName}</span>
                     <span className="text-sm text-gray-500">

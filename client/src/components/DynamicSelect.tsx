@@ -167,9 +167,11 @@ export function DynamicSelect(props: DynamicSelectProps) {
         {fieldOptions.map((option, index) => {
           // Usar sempre o ID como chave única, com prefixo do campo para evitar conflitos
           const uniqueKey = `${fieldName}-${option.id || `${index}-${option.value || 'unknown'}`}`;
+          // Ensure option.value is not empty string
+          const optionValue = option.value || `option_${index}`;
           
           return (
-            <SelectItem key={uniqueKey} value={option.value}>
+            <SelectItem key={uniqueKey} value={optionValue}>
               <div className="flex items-center gap-2">
                 {option.color && (
                   <div
