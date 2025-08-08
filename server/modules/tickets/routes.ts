@@ -821,28 +821,125 @@ ticketsRouter.get('/:id/attachments', jwtAuth, async (req: AuthenticatedRequest,
 });
 
 // Upload ticket attachment
-ticketsRouter.post('/:id/attachments', jwtAuth, async (req: AuthenticatedRequest, res) => {
+import multer from 'multer';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as crypto from 'crypto';
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 200 * 1024 * 1024 }, // 200MB limit
+  fileFilter: (req, file, cb) => {
+    const allowedMimeTypes = [
+      'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp',
+      'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'text/plain', 'text/csv', 'application/json',
+      'video/mp4', 'video/avi', 'video/quicktime',
+      'audio/mpeg', 'audio/wav', 'audio/mp3'
+    ];
+    
+    if (allowedMimeTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error(`File type ${file.mimetype} not allowed`), false);
+    }
+  }
+});
+
+ticketsRouter.post('/:id/attachments', jwtAuth, upload.array('attachments', 5), async (req: any, res) => {
+  console.log('🚀 TICKETS MODULE ATTACHMENT UPLOAD STARTED');
+  console.log('🔍 Request params:', req.params);
+  console.log('🔍 Request body:', req.body);
+  console.log('🔍 Files received:', req.files ? req.files.length : 0);
+  
   try {
     if (!req.user?.tenantId) {
       return res.status(400).json({ message: "User not associated with a tenant" });
     }
 
-    const { id } = req.params;
-    const { filename, fileSize, contentType } = req.body;
+    const { id: ticketId } = req.params;
+    const { description } = req.body;
     const tenantId = req.user.tenantId;
+    const userId = req.user.id;
+    const files = req.files as Express.Multer.File[];
     const { pool } = await import('../../db');
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    console.log('🔍 Auth info:', { tenantId, userId, ticketId });
+
+    if (!files || files.length === 0) {
+      console.log('❌ No files provided');
+      return res.status(400).json({ success: false, message: 'No files provided' });
+    }
+
+    // Verify ticket exists
+    const ticketQuery = `SELECT id FROM "${schemaName}".tickets WHERE id = $1 AND tenant_id = $2`;
+    const ticketResult = await pool.query(ticketQuery, [ticketId, tenantId]);
+    
+    if (ticketResult.rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Ticket not found' });
+    }
+
+    // Create attachments directory if it doesn't exist
+    const attachmentsDir = path.join(process.cwd(), 'uploads', 'attachments', tenantId);
+    if (!fs.existsSync(attachmentsDir)) {
+      fs.mkdirSync(attachmentsDir, { recursive: true });
+    }
+
+    const savedFiles = [];
+
+    for (const file of files) {
+      try {
+        // Generate unique filename
+        const timestamp = Date.now();
+        const sanitizedName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
+        const fileName = `${timestamp}_${sanitizedName}`;
+        const filePath = path.join(attachmentsDir, fileName);
+
+        // Save file to disk
+        fs.writeFileSync(filePath, file.buffer);
+
+        // Save attachment record to database
+        console.log(`🗃️ Inserting attachment record for: ${file.originalname}`);
+        
+        const insertQuery = `
+          INSERT INTO "${schemaName}".ticket_attachments 
+          (id, tenant_id, ticket_id, file_name, file_size, file_type, file_path, content_type, description, is_active, created_by, created_at, updated_at)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW())
+          RETURNING *
+        `;
+
+        const attachmentId = crypto.randomUUID();
+        const result = await pool.query(insertQuery, [
+          attachmentId,
+          tenantId,
+          ticketId,
+          file.originalname,
+          file.size,
+          file.mimetype,
+          `/uploads/attachments/${tenantId}/${fileName}`,
+          file.mimetype,
+          description || null,
+          true,
+          userId
+        ]);
+
+        savedFiles.push(result.rows[0]);
+        console.log(`✅ File uploaded: ${file.originalname} -> ${fileName}`);
+      } catch (fileError) {
+        console.error(`❌ Error uploading file ${file.originalname}:`, fileError);
+      }
+    }
 
     // Create audit trail for attachment upload
     try {
       await createCompleteAuditEntry(
-        pool, schemaName, tenantId, id, req,
+        pool, schemaName, tenantId, ticketId, req,
         'attachment_uploaded',
-        `Anexo enviado: ${filename || 'arquivo'}`,
+        `Anexo enviado: ${savedFiles.map(f => f.file_name).join(', ')}${description ? ` - ${description}` : ''}`,
         {
-          filename: filename,
-          file_size: fileSize,
-          content_type: contentType,
+          files: savedFiles.map(f => ({ filename: f.file_name, file_size: f.file_size, content_type: f.content_type })),
           upload_time: new Date().toISOString()
         }
       );
@@ -850,11 +947,18 @@ ticketsRouter.post('/:id/attachments', jwtAuth, async (req: AuthenticatedRequest
       console.log('⚠️ Aviso: Não foi possível criar entrada no histórico:', historyError.message);
     }
 
-    // Placeholder - return success for now
-    res.json({ success: true, message: "Attachment uploaded successfully" });
+    res.json({ 
+      success: true, 
+      message: `Successfully uploaded ${savedFiles.length} file(s)`,
+      data: savedFiles
+    });
   } catch (error) {
     console.error("Error uploading attachment:", error);
-    res.status(500).json({ message: "Failed to upload attachment" });
+    res.status(500).json({ 
+      success: false,
+      message: "Failed to upload attachment",
+      error: error.message
+    });
   }
 });
 
