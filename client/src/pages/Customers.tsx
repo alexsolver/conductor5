@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -5,108 +6,103 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Search, Mail, Phone, MapPin, Edit, MoreHorizontal, Building, Download, Upload } from "lucide-react";
+import { Plus, Search, Mail, Phone, MapPin, Edit, MoreHorizontal, Building, Download, Upload, Filter, X, Users } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { CustomerModal } from "@/components/CustomerModal";
 import { useLocation } from "wouter";
 import { renderAddressSafely, formatCompanyDisplay, getFieldSafely, formatCustomerName } from "@/utils/addressFormatter";
 
-export default function Customers() {
-  const [, setLocation] = useLocation();
-  const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
-  const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+// Componente otimizado para exibição de empresas
+const CompanyDisplay = React.memo(({ companies, customerName }: { companies: any; customerName: string }) => {
+  if (!companies || companies === 'undefined' || companies === 'null' || companies === '') {
+    return (
+      <div className="flex items-center text-gray-400 dark:text-gray-500">
+        <Building className="h-3 w-3 mr-1 opacity-50" />
+        <span className="text-sm italic">Nenhuma empresa</span>
+      </div>
+    );
+  }
 
-  // Debounce search term for better performance
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearchTerm(searchTerm);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [searchTerm]);
-  const [customerTypeFilter, setCustomerTypeFilter] = useState('all');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [selectedCustomers, setSelectedCustomers] = useState<string[]>([]);
-
-  const { data: customersData, isLoading, error } = useQuery({
-    queryKey: ["/api/customers"],
-    queryFn: async () => {
-      const { apiRequest } = await import('../lib/queryClient');
-      const response = await apiRequest('GET', '/api/customers');
-      const data = await response.json();
-      console.log('Customers API Response:', data);
-      return data;
-    },
-    retry: false,
-    staleTime: 30000, // 30 segundos
-    refetchOnWindowFocus: false,
-  });
-
-  const allCustomers = customersData?.customers || [];
+  let companiesList: string[] = [];
   
-  // Memoizar filtros para evitar recálculos desnecessários
-  const customers = useMemo(() => {
-    return allCustomers.filter(customer => {
-    // Filtro de busca por texto
-    if (debouncedSearchTerm) {
-      const searchLower = debouncedSearchTerm.toLowerCase();
-      const fullName = formatCustomerName(customer).toLowerCase();
-      const email = customer.email?.toLowerCase() || '';
-      const phone = (customer.phone || customer.mobile_phone || '').toLowerCase();
-      const companyName = (customer.companyName || '').toLowerCase();
-      
-      // Buscar também nas empresas associadas
-      const associatedCompanies = customer.associated_companies || '';
-      const associatedCompaniesText = typeof associatedCompanies === 'string' ? 
-        associatedCompanies.toLowerCase() : 
-        (Array.isArray(associatedCompanies) ? associatedCompanies.join(' ').toLowerCase() : '');
-      
-      const matchesSearch = fullName.includes(searchLower) || 
-             email.includes(searchLower) || 
-             phone.includes(searchLower) ||
-             companyName.includes(searchLower) ||
-             associatedCompaniesText.includes(searchLower);
-             
-      if (!matchesSearch) return false;
-    }
-    
-    // Filtro de tipo de cliente
-    if (customerTypeFilter !== 'all') {
-      const customerType = getCustomerField(customer, 'customerType') || 'PF';
-      if (customerType !== customerTypeFilter) return false;
-    }
-    
-    // Filtro de status
-    if (statusFilter !== 'all') {
-      const status = customer.status || 'active';
-      if (status !== statusFilter) return false;
-    }
-    
-    return true;
-    });
-  }, [allCustomers, debouncedSearchTerm, customerTypeFilter, statusFilter]);
-  
-  const total = allCustomers.length;
+  if (typeof companies === 'string') {
+    companiesList = companies.split(',').map(c => c.trim()).filter(Boolean);
+  } else if (Array.isArray(companies)) {
+    companiesList = companies.filter(Boolean);
+  }
 
-  // Standardized field access helper with validation and defaults
-  const getCustomerField = (customer: any, field: string) => {
-    if (!customer || typeof customer !== 'object') {
-      console.warn('[CUSTOMERS] Invalid customer object:', customer);
-      return null;
-    }
+  if (companiesList.length === 0) {
+    return (
+      <div className="flex items-center text-gray-400 dark:text-gray-500">
+        <Building className="h-3 w-3 mr-1 opacity-50" />
+        <span className="text-sm italic">Nenhuma empresa</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center text-gray-700 dark:text-gray-300">
+      <Building className="h-3 w-3 mr-1 text-blue-500 flex-shrink-0" />
+      <div className="flex flex-col">
+        <span 
+          className="text-sm font-medium truncate max-w-[200px]" 
+          title={companiesList.join(', ')}
+        >
+          {companiesList.length === 1 ? 
+            companiesList[0] : 
+            `${companiesList[0]} ${companiesList.length > 1 ? `+${companiesList.length - 1}` : ''}`
+          }
+        </span>
+        {companiesList.length > 1 && (
+          <span className="text-xs text-blue-600 dark:text-blue-400">
+            {companiesList.length} empresas
+          </span>
+        )}
+      </div>
+    </div>
+  );
+});
+
+// Componente para linha da tabela otimizada
+const CustomerTableRow = React.memo(({ 
+  customer, 
+  index, 
+  onEdit 
+}: { 
+  customer: any; 
+  index: number; 
+  onEdit: (customer: any) => void;
+}) => {
+  const getInitials = useCallback((customer: any) => {
+    const firstName = getFieldSafely(customer, 'firstName') || getFieldSafely(customer, 'first_name');
+    const lastName = getFieldSafely(customer, 'lastName') || getFieldSafely(customer, 'last_name');
+    const fullName = getFieldSafely(customer, 'fullName') || getFieldSafely(customer, 'full_name');
+    const name = getFieldSafely(customer, 'name');
     
-    // Handle both camelCase and snake_case variations with proper defaults
+    if (firstName && lastName) {
+      return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+    }
+    if (fullName && fullName.includes(' ')) {
+      const parts = fullName.split(' ');
+      return `${parts[0].charAt(0)}${parts[parts.length - 1].charAt(0)}`.toUpperCase();
+    }
+    if (firstName) return firstName.charAt(0).toUpperCase();
+    if (lastName) return lastName.charAt(0).toUpperCase();
+    if (name) return name.charAt(0).toUpperCase();
+    if (customer.email) return customer.email.charAt(0).toUpperCase();
+    return "?";
+  }, []);
+
+  const getCustomerField = useCallback((customer: any, field: string) => {
+    if (!customer || typeof customer !== 'object') return null;
+    
     const variations: Record<string, string[]> = {
       firstName: ['first_name', 'firstName'],
       lastName: ['last_name', 'lastName'],  
       customerType: ['customer_type', 'customerType'],
       companyName: ['company_name', 'companyName'],
       mobilePhone: ['mobile_phone', 'mobilePhone'],
-      zipCode: ['zip_code', 'zipCode'],
-      isActive: ['is_active', 'isActive'],
       phone: ['phone', 'mobile_phone', 'mobilePhone'],
-      fullName: ['full_name', 'fullName']
     };
     
     const fieldVariations = variations[field] || [field];
@@ -117,22 +113,215 @@ export default function Customers() {
       }
     }
     
-    // Return appropriate defaults
-    switch (field) {
-      case 'customerType':
-        return 'PF';
-      case 'isActive':
-        return true;
-      case 'firstName':
-      case 'lastName':
-        return '';
-      default:
-        return null;
-    }
-  };
+    return field === 'customerType' ? 'PF' : null;
+  }, []);
 
-  console.log('Customers data:', { customers, total, error, isLoading });
+  const customerType = getCustomerField(customer, 'customerType');
+  const phone = getCustomerField(customer, 'phone') || customer.phone || customer.mobile_phone || customer.mobilePhone;
 
+  return (
+    <TableRow 
+      className={`hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors ${
+        index % 2 === 0 ? 'bg-white dark:bg-gray-900' : 'bg-gray-50/50 dark:bg-gray-800/50'
+      }`}
+    >
+      <TableCell>
+        <Avatar className="h-8 w-8">
+          <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold text-sm">
+            {getInitials(customer)}
+          </AvatarFallback>
+        </Avatar>
+      </TableCell>
+      
+      <TableCell>
+        <div className="space-y-1">
+          <div className="font-medium text-gray-900 dark:text-gray-100">
+            {formatCustomerName(customer)}
+          </div>
+          <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+            {customerType === 'PJ' ? (
+              <>
+                <Building className="h-3 w-3 mr-1" />
+                <span>{getCustomerField(customer, 'companyName') || 'Pessoa Jurídica'}</span>
+              </>
+            ) : (
+              <>
+                <Users className="h-3 w-3 mr-1" />
+                <span>Pessoa Física</span>
+              </>
+            )}
+          </div>
+          
+          {/* Mobile-only compact info */}
+          <div className="sm:hidden space-y-1">
+            {customer.email && (
+              <div className="flex items-center text-xs text-gray-500">
+                <Mail className="h-3 w-3 mr-1" />
+                <span className="truncate">{customer.email}</span>
+              </div>
+            )}
+            {phone && (
+              <div className="flex items-center text-xs text-gray-500">
+                <Phone className="h-3 w-3 mr-1" />
+                <span>{String(phone)}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </TableCell>
+      
+      <TableCell className="hidden sm:table-cell">
+        {customer.email ? (
+          <div className="flex items-center text-gray-600 dark:text-gray-400">
+            <Mail className="h-3 w-3 mr-1" />
+            <span className="truncate max-w-[180px]">{customer.email}</span>
+          </div>
+        ) : (
+          <span className="text-gray-400">-</span>
+        )}
+      </TableCell>
+      
+      <TableCell className="hidden md:table-cell">
+        {phone ? (
+          <div className="flex items-center text-gray-600 dark:text-gray-400">
+            <Phone className="h-3 w-3 mr-1" />
+            <span>{String(phone)}</span>
+          </div>
+        ) : (
+          <span className="text-gray-400">-</span>
+        )}
+      </TableCell>
+      
+      <TableCell className="hidden lg:table-cell">
+        <CompanyDisplay 
+          companies={customer.associated_companies} 
+          customerName={formatCustomerName(customer)}
+        />
+      </TableCell>
+      
+      <TableCell>
+        <Badge 
+          className={
+            (customer.status || "active") === 'active' 
+              ? "bg-green-100 text-green-800 border-green-200 hover:bg-green-200 dark:bg-green-900 dark:text-green-100 dark:border-green-800" 
+              : "bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-700 dark:text-gray-300"
+          }
+        >
+          {customer.status === 'active' ? 'Ativo' :
+           customer.status === 'inactive' ? 'Inativo' :
+           'Ativo'}
+        </Badge>
+      </TableCell>
+      
+      <TableCell className="hidden xl:table-cell">
+        <span className="text-sm text-gray-500">
+          {new Date(customer.created_at).toLocaleDateString('pt-BR')}
+        </span>
+      </TableCell>
+      
+      <TableCell>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => onEdit(customer)}>
+              <Edit className="h-3 w-3 mr-2" />
+              Editar
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <Plus className="h-3 w-3 mr-2" />
+              Criar Ticket
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <MapPin className="h-3 w-3 mr-2" />
+              Localizações
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </TableCell>
+    </TableRow>
+  );
+});
+
+export default function Customers() {
+  const [, setLocation] = useLocation();
+  const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+  const [customerTypeFilter, setCustomerTypeFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [filtersVisible, setFiltersVisible] = useState(false);
+
+  // Debounce optimizado
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // Query otimizada
+  const { data: customersData, isLoading, error, refetch } = useQuery({
+    queryKey: ["/api/customers"],
+    queryFn: async () => {
+      const { apiRequest } = await import('../lib/queryClient');
+      const response = await apiRequest('GET', '/api/customers');
+      const data = await response.json();
+      console.log('Customers API Response:', data);
+      return data;
+    },
+    retry: 2,
+    staleTime: 60000, // 1 minuto
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+  });
+
+  const allCustomers = customersData?.customers || [];
+  
+  // Filtros otimizados com useMemo
+  const filteredCustomers = useMemo(() => {
+    return allCustomers.filter(customer => {
+      // Filtro de busca
+      if (debouncedSearchTerm) {
+        const searchLower = debouncedSearchTerm.toLowerCase();
+        const fullName = formatCustomerName(customer).toLowerCase();
+        const email = customer.email?.toLowerCase() || '';
+        const phone = (customer.phone || customer.mobile_phone || '').toLowerCase();
+        
+        const associatedCompanies = customer.associated_companies || '';
+        const associatedCompaniesText = typeof associatedCompanies === 'string' ? 
+          associatedCompanies.toLowerCase() : 
+          (Array.isArray(associatedCompanies) ? associatedCompanies.join(' ').toLowerCase() : '');
+        
+        const matchesSearch = fullName.includes(searchLower) || 
+               email.includes(searchLower) || 
+               phone.includes(searchLower) ||
+               associatedCompaniesText.includes(searchLower);
+               
+        if (!matchesSearch) return false;
+      }
+      
+      // Filtro de tipo
+      if (customerTypeFilter !== 'all') {
+        const customerType = customer.customer_type || customer.customerType || 'PF';
+        if (customerType !== customerTypeFilter) return false;
+      }
+      
+      // Filtro de status
+      if (statusFilter !== 'all') {
+        const status = customer.status || 'active';
+        if (status !== statusFilter) return false;
+      }
+      
+      return true;
+    });
+  }, [allCustomers, debouncedSearchTerm, customerTypeFilter, statusFilter]);
+
+  // Handlers otimizados
   const handleAddCustomer = useCallback(() => {
     setSelectedCustomer(null);
     setIsCustomerModalOpen(true);
@@ -143,20 +332,14 @@ export default function Customers() {
     setIsCustomerModalOpen(true);
   }, []);
 
-  const handleLocationModalOpen = useCallback(() => {
-    setLocation('/locations');
-  }, [setLocation]);
-
   const handleExportCustomers = useCallback(() => {
-    if (!customers || customers.length === 0) {
-      return;
-    }
+    if (!filteredCustomers || filteredCustomers.length === 0) return;
 
-    const csvData = customers.map(customer => ({
+    const csvData = filteredCustomers.map(customer => ({
       'Nome': formatCustomerName(customer),
       'Email': customer.email || '',
-      'Telefone': getCustomerField(customer, 'phone') || customer.mobile_phone || '',
-      'Tipo': getCustomerField(customer, 'customerType') === 'PJ' ? 'Pessoa Jurídica' : 'Pessoa Física',
+      'Telefone': customer.phone || customer.mobile_phone || '',
+      'Tipo': (customer.customer_type || customer.customerType) === 'PJ' ? 'Pessoa Jurídica' : 'Pessoa Física',
       'Status': customer.status === 'active' ? 'Ativo' : 'Inativo',
       'Empresas': typeof customer.associated_companies === 'string' ? 
         customer.associated_companies : 
@@ -176,98 +359,30 @@ export default function Customers() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-  }, [customers]);
+  }, [filteredCustomers]);
 
-  const handleSelectAll = useCallback((checked: boolean) => {
-    if (checked) {
-      setSelectedCustomers(customers?.map(c => c.id) || []);
-    } else {
-      setSelectedCustomers([]);
-    }
-  }, [customers]);
-
-  const handleSelectCustomer = useCallback((customerId: string, checked: boolean) => {
-    if (checked) {
-      setSelectedCustomers(prev => [...prev, customerId]);
-    } else {
-      setSelectedCustomers(prev => prev.filter(id => id !== customerId));
-    }
+  const clearFilters = useCallback(() => {
+    setSearchTerm('');
+    setCustomerTypeFilter('all');
+    setStatusFilter('all');
   }, []);
 
-  const handleBulkStatusChange = useCallback(async (newStatus: 'active' | 'inactive') => {
-    // Implementar ação em lote quando disponível na API
-    console.log('Bulk status change:', selectedCustomers, newStatus);
-    setSelectedCustomers([]);
-  }, [selectedCustomers]);
+  const hasActiveFilters = searchTerm || customerTypeFilter !== 'all' || statusFilter !== 'all';
 
-  const getInitials = (customer: any) => {
-    // Use the same consistent field access as formatCustomerName
-    const firstName = getFieldSafely(customer, 'firstName') || getFieldSafely(customer, 'first_name');
-    const lastName = getFieldSafely(customer, 'lastName') || getFieldSafely(customer, 'last_name');
-    const fullName = getFieldSafely(customer, 'fullName') || getFieldSafely(customer, 'full_name');
-    const name = getFieldSafely(customer, 'name');
-    
-    if (firstName && lastName) {
-      return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
-    }
-    if (fullName && fullName.includes(' ')) {
-      const parts = fullName.split(' ');
-      return `${parts[0].charAt(0)}${parts[parts.length - 1].charAt(0)}`.toUpperCase();
-    }
-    if (firstName) {
-      return firstName.charAt(0).toUpperCase();
-    }
-    if (lastName) {
-      return lastName.charAt(0).toUpperCase();
-    }
-    if (name) {
-      return name.charAt(0).toUpperCase();
-    }
-    if (customer.email) {
-      return customer.email.charAt(0).toUpperCase();
-    }
-    return "?";
-  };
-
-  // Optimized company display component with React.memo
-  const CompanyDisplay = React.memo(({ companies }: { companies: string | null | undefined }) => {
-    const displayData = useMemo(() => {
-      if (!companies || companies === 'undefined' || companies === 'null') {
-        return null;
-      }
-
-      // Handle object or array companies data
-      let displayText = companies;
-      if (typeof companies === 'object' && companies !== null) {
-        if (Array.isArray(companies)) {
-          displayText = companies.filter(Boolean).join(', ') || 'N/A';
-        } else {
-          const values = Object.values(companies as Record<string, any>).filter(Boolean);
-          displayText = values.length > 0 ? values.join(', ') : 'N/A';
-        }
-      }
-      
-      return String(displayText);
-    }, [companies]);
-
-    if (!displayData) {
-      return <span className="text-gray-400 text-sm italic">Nenhuma empresa</span>;
-    }
-
-    return (
-      <div className="flex items-center text-gray-600 dark:text-gray-400">
-        <Building className="h-3 w-3 mr-1 flex-shrink-0 text-blue-500" />
-        <span className="text-sm truncate" title={displayData}>
-          {displayData}
-        </span>
-      </div>
-    );
-  });
-
+  // Loading state melhorado
   if (isLoading) {
     return (
       <div className="p-4 space-y-6">
-        <div className="h-8 bg-gray-200 rounded w-48 animate-pulse"></div>
+        <div className="flex justify-between items-center">
+          <div className="space-y-2">
+            <div className="h-8 bg-gray-200 rounded w-48 animate-pulse"></div>
+            <div className="h-4 bg-gray-100 rounded w-64 animate-pulse"></div>
+          </div>
+          <div className="flex gap-2">
+            <div className="h-10 bg-gray-200 rounded w-32 animate-pulse"></div>
+            <div className="h-10 bg-gray-200 rounded w-40 animate-pulse"></div>
+          </div>
+        </div>
         <Card>
           <CardContent className="p-6">
             <div className="space-y-4">
@@ -289,79 +404,27 @@ export default function Customers() {
     );
   }
 
+  // Error state melhorado
   if (error) {
-    // Enhanced error categorization with proper typing
-    const errorType = (error as any)?.code || 'UNKNOWN_ERROR';
-    const isSchemaError = ['TABLE_NOT_FOUND', 'MISSING_COLUMNS', 'MISSING_COLUMN'].includes(errorType);
-    const isPermissionError = errorType === 'PERMISSION_DENIED';
-    const isCompaniesError = (error as any)?.message?.includes('sql is not defined');
-    
     return (
       <div className="p-4 space-y-6">
         <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Customers</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Clientes</h1>
         </div>
         <Card>
           <CardContent className="p-8 text-center">
-            <div className={`mb-4 ${isPermissionError ? 'text-orange-500' : 'text-red-500'}`}>
-              <h4 className="text-lg font-medium mb-2">
-                {isSchemaError ? '🗄️ Problema de Esquema de Banco' :
-                 isPermissionError ? '🔒 Problema de Permissão' :
-                 '❌ Erro ao carregar clientes'}
-              </h4>
-              <p className="text-sm text-gray-600 mb-2">
+            <div className="text-red-500 mb-4">
+              <h4 className="text-lg font-medium mb-2">❌ Erro ao carregar clientes</h4>
+              <p className="text-sm text-gray-600 mb-4">
                 {error?.message || 'Não foi possível carregar os dados dos clientes.'}
               </p>
-              
-              {/* Error Code Display */}
-              {(error as any)?.code && (
-                <div className="inline-block bg-gray-100 px-2 py-1 rounded text-xs font-mono mb-2">
-                  Código: {(error as any).code}
-                </div>
-              )}
-              
-              {/* Technical Details */}
-              {(error as any)?.details && (
-                <details className="text-left bg-gray-50 dark:bg-gray-800 p-3 rounded text-xs mt-3">
-                  <summary className="cursor-pointer font-medium">Detalhes técnicos</summary>
-                  <pre className="mt-2 whitespace-pre-wrap overflow-auto max-h-32">{JSON.stringify((error as any).details, null, 2)}</pre>
-                </details>
-              )}
-              
-              {/* Suggestions */}
-              {(error as any)?.suggestion && (
-                <div className="text-sm text-blue-600 dark:text-blue-400 mt-3 p-2 bg-blue-50 dark:bg-blue-900/20 rounded">
-                  💡 <strong>Sugestão:</strong> {(error as any).suggestion}
-                </div>
-              )}
-              
-              {/* Schema-specific help */}
-              {isSchemaError && (
-                <div className="text-sm text-purple-600 dark:text-purple-400 mt-2 p-2 bg-purple-50 dark:bg-purple-900/20 rounded">
-                  🔧 <strong>Para resolver:</strong> Execute as migrações de banco de dados ou consulte um administrador.
-                </div>
-              )}
             </div>
             
             <div className="flex gap-2 justify-center">
-              <Button 
-                onClick={() => window.location.reload()} 
-                variant="outline"
-              >
+              <Button onClick={() => refetch()} variant="outline">
                 🔄 Tentar novamente
               </Button>
-              {isSchemaError && (
-                <Button 
-                  onClick={() => setLocation('/settings')} 
-                  variant="secondary"
-                >
-                  ⚙️ Verificar configurações
-                </Button>
-              )}
-              <Button 
-                onClick={() => setLocation('/dashboard')} 
-                variant="ghost"
-              >
+              <Button onClick={() => setLocation('/dashboard')} variant="ghost">
                 🏠 Voltar ao Dashboard
               </Button>
             </div>
@@ -373,100 +436,32 @@ export default function Customers() {
 
   return (
     <div className="p-4 space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Customers</h1>
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+      {/* Header otimizado */}
+      <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Clientes</h1>
+          <div className="flex flex-wrap items-center gap-2 text-sm">
             <p className="text-gray-600 dark:text-gray-400">
               Gerencie sua base de clientes e relacionamentos
             </p>
-            <div className="flex items-center gap-2 text-sm">
-              <span className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
-                {customers.length} de {total} clientes
-              </span>
-              {searchTerm && (
-                <span className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded">
-                  Filtrando por "{searchTerm}"
-                </span>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                {filteredCustomers.length} de {allCustomers.length} clientes
+              </Badge>
+              {hasActiveFilters && (
+                <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
+                  Filtros ativos
+                </Badge>
               )}
             </div>
           </div>
         </div>
-        <div className="flex flex-col lg:flex-row gap-4">
-          {/* Barra de Busca Aprimorada */}
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Buscar por nome, email, telefone ou empresa..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent w-full"
-            />
-            {searchTerm && (
-              <button
-                onClick={() => setSearchTerm('')}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                title="Limpar busca"
-              >
-                ✕
-              </button>
-            )}
-          </div>
 
-          {/* Filtros Organizados */}
-          <div className="flex flex-wrap gap-2">
-            <div className="flex flex-col">
-              <label className="text-xs text-gray-500 mb-1">Tipo</label>
-              <select
-                value={customerTypeFilter}
-                onChange={(e) => setCustomerTypeFilter(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white min-w-[120px]"
-              >
-                <option value="all">Todos</option>
-                <option value="PF">Pessoa Física</option>
-                <option value="PJ">Pessoa Jurídica</option>
-              </select>
-            </div>
-            
-            <div className="flex flex-col">
-              <label className="text-xs text-gray-500 mb-1">Status</label>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white min-w-[100px]"
-              >
-                <option value="all">Todos</option>
-                <option value="active">Ativo</option>
-                <option value="inactive">Inativo</option>
-              </select>
-            </div>
-
-            {/* Botão Clear Filters */}
-            {(searchTerm || customerTypeFilter !== 'all' || statusFilter !== 'all') && (
-              <div className="flex flex-col">
-                <div className="text-xs">&nbsp;</div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setSearchTerm('');
-                    setCustomerTypeFilter('all');
-                    setStatusFilter('all');
-                  }}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  Limpar Filtros
-                </Button>
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="flex gap-2">
+        {/* Actions */}
+        <div className="flex flex-col sm:flex-row gap-2">
           <Button 
             onClick={handleExportCustomers}
-            disabled={isLoading || customers?.length === 0}
+            disabled={isLoading || filteredCustomers?.length === 0}
             variant="outline"
             className="border-gray-300"
           >
@@ -476,213 +471,184 @@ export default function Customers() {
           <Button 
             onClick={handleAddCustomer}
             disabled={isLoading}
-            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:opacity-50"
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
           >
             <Plus className="h-4 w-4 mr-2" />
-            {isLoading ? 'Carregando...' : 'Adicionar Cliente'}
+            Adicionar Cliente
           </Button>
         </div>
       </div>
 
+      {/* Filtros otimizados */}
+      <Card>
+        <CardHeader className="pb-4">
+          <div className="flex flex-col lg:flex-row gap-4">
+            {/* Busca principal */}
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Buscar por nome, email, telefone ou empresa..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
+              />
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm('')}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+
+            {/* Toggle filtros */}
+            <Button
+              variant="outline"
+              onClick={() => setFiltersVisible(!filtersVisible)}
+              className="lg:hidden"
+            >
+              <Filter className="h-4 w-4 mr-2" />
+              Filtros
+            </Button>
+
+            {/* Filtros desktop */}
+            <div className="hidden lg:flex gap-2">
+              <select
+                value={customerTypeFilter}
+                onChange={(e) => setCustomerTypeFilter(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 bg-white min-w-[120px]"
+              >
+                <option value="all">Todos os tipos</option>
+                <option value="PF">Pessoa Física</option>
+                <option value="PJ">Pessoa Jurídica</option>
+              </select>
+              
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 bg-white min-w-[120px]"
+              >
+                <option value="all">Todos os status</option>
+                <option value="active">Ativo</option>
+                <option value="inactive">Inativo</option>
+              </select>
+
+              {hasActiveFilters && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearFilters}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <X className="h-4 w-4 mr-1" />
+                  Limpar
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {/* Filtros mobile */}
+          {filtersVisible && (
+            <div className="lg:hidden pt-4 border-t space-y-2">
+              <select
+                value={customerTypeFilter}
+                onChange={(e) => setCustomerTypeFilter(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 bg-white"
+              >
+                <option value="all">Todos os tipos</option>
+                <option value="PF">Pessoa Física</option>
+                <option value="PJ">Pessoa Jurídica</option>
+              </select>
+              
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 bg-white"
+              >
+                <option value="all">Todos os status</option>
+                <option value="active">Ativo</option>
+                <option value="inactive">Inativo</option>
+              </select>
+
+              {hasActiveFilters && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={clearFilters}
+                  className="w-full"
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  Limpar Filtros
+                </Button>
+              )}
+            </div>
+          )}
+        </CardHeader>
+      </Card>
+
+      {/* Tabela otimizada */}
       <Card>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow>
+                <TableRow className="bg-gray-50 dark:bg-gray-800">
                   <TableHead className="w-12"></TableHead>
-                  <TableHead className="min-w-[150px]">Nome</TableHead>
-                  <TableHead className="min-w-[200px] hidden sm:table-cell">Email</TableHead>
-                  <TableHead className="min-w-[120px] hidden md:table-cell">Telefone</TableHead>
-                  <TableHead className="min-w-[150px] hidden lg:table-cell">Empresa</TableHead>
-                  <TableHead className="min-w-[80px]">Status</TableHead>
-                  <TableHead className="min-w-[100px] hidden xl:table-cell">Criado em</TableHead>
-                  <TableHead className="w-24">Ações</TableHead>
+                  <TableHead className="min-w-[200px] font-semibold">Cliente</TableHead>
+                  <TableHead className="min-w-[200px] hidden sm:table-cell font-semibold">Email</TableHead>
+                  <TableHead className="min-w-[120px] hidden md:table-cell font-semibold">Telefone</TableHead>
+                  <TableHead className="min-w-[180px] hidden lg:table-cell font-semibold">Empresas</TableHead>
+                  <TableHead className="min-w-[80px] font-semibold">Status</TableHead>
+                  <TableHead className="min-w-[100px] hidden xl:table-cell font-semibold">Criado em</TableHead>
+                  <TableHead className="w-24 font-semibold">Ações</TableHead>
                 </TableRow>
               </TableHeader>
-            <TableBody>
-              {customers?.length > 0 ? customers.map((customer: any, index: number) => (
-                <TableRow 
-                  key={customer.id} 
-                  className={`hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors ${
-                    index % 2 === 0 ? 'bg-white dark:bg-gray-900' : 'bg-gray-50/50 dark:bg-gray-800/50'
-                  }`}
-                >
-                  <TableCell>
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback className="bg-purple-500 text-white font-semibold text-sm">
-                        {getInitials(customer) || "U"}
-                      </AvatarFallback>
-                    </Avatar>
-                  </TableCell>
-                  <TableCell>
-                    <div className="font-medium text-gray-900 dark:text-gray-100">
-                      {formatCustomerName(customer)}
-                    </div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400 space-y-1">
-                      {(() => {
-                        const customerType = getCustomerField(customer, 'customerType');
-                        if (customerType === 'PJ') {
-                          const companyName = getCustomerField(customer, 'companyName');
-                          return (
-                            <div>🏢 {companyName || 'Pessoa Jurídica'}</div>
-                          );
-                        } else if (customerType === 'PF') {
-                          return (
-                            <div>👤 Pessoa Física</div>
-                          );
-                        }
-                        return null;
-                      })()}
-                      
-                      {/* Mobile-only compact info */}
-                      <div className="sm:hidden">
-                        {customer.email && (
-                          <div className="flex items-center">
-                            <Mail className="h-3 w-3 mr-1" />
-                            <span className="truncate">{customer.email}</span>
-                          </div>
+              <TableBody>
+                {filteredCustomers.length > 0 ? (
+                  filteredCustomers.map((customer: any, index: number) => (
+                    <CustomerTableRow
+                      key={customer.id}
+                      customer={customer}
+                      index={index}
+                      onEdit={handleEditCustomer}
+                    />
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center py-12">
+                      <div className="text-gray-500 space-y-2">
+                        <div className="text-lg font-medium">
+                          {hasActiveFilters ? 'Nenhum cliente encontrado' : 'Nenhum cliente cadastrado'}
+                        </div>
+                        <p className="text-sm">
+                          {hasActiveFilters 
+                            ? 'Tente ajustar os filtros de busca.' 
+                            : 'Adicione seu primeiro cliente para começar.'
+                          }
+                        </p>
+                        {hasActiveFilters && (
+                          <Button variant="outline" size="sm" onClick={clearFilters}>
+                            Limpar filtros
+                          </Button>
                         )}
-                        {(() => {
-                          const phone = getCustomerField(customer, 'phone') || 
-                                       customer.phone || 
-                                       customer.mobile_phone || 
-                                       customer.mobilePhone;
-                          return phone ? (
-                            <div className="flex items-center">
-                              <Phone className="h-3 w-3 mr-1" />
-                              <span>{String(phone)}</span>
-                            </div>
-                          ) : null;
-                        })()}
                       </div>
-                    </div>
-                  </TableCell>
-                  <TableCell className="hidden sm:table-cell">
-                    <div className="flex items-center text-gray-600 dark:text-gray-400">
-                      <Mail className="h-3 w-3 mr-1" />
-                      <span className="truncate max-w-[180px]">{customer.email}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell">
-                    {(() => {
-                      const phone = getCustomerField(customer, 'phone') || 
-                                   customer.phone || 
-                                   customer.mobile_phone || 
-                                   customer.mobilePhone;
-                      
-                      return phone ? (
-                        <div className="flex items-center text-gray-600 dark:text-gray-400">
-                          <Phone className="h-3 w-3 mr-1" />
-                          <span>{String(phone)}</span>
-                        </div>
-                      ) : (
-                        <span className="text-gray-400">-</span>
-                      );
-                    })()}
-                  </TableCell>
-                  <TableCell className="hidden lg:table-cell">
-                    {(() => {
-                      const companies = customer.associated_companies;
-                      
-                      // Handle different data formats
-                      let companiesList = [];
-                      if (typeof companies === 'string' && companies.trim()) {
-                        companiesList = companies.split(',').map(c => c.trim()).filter(Boolean);
-                      } else if (Array.isArray(companies)) {
-                        companiesList = companies.filter(Boolean);
-                      }
-                      
-                      const hasCompanies = companiesList.length > 0;
-                      
-                      return (
-                        <div className="flex items-center text-gray-600 dark:text-gray-400">
-                          <Building className={`h-3 w-3 mr-1 flex-shrink-0 ${hasCompanies ? 'text-blue-500' : 'opacity-50'}`} />
-                          {hasCompanies ? (
-                            <div className="flex flex-col">
-                              <span className="text-sm truncate max-w-[200px]" title={companiesList.join(', ')}>
-                                {companiesList.length === 1 ? 
-                                  companiesList[0] : 
-                                  `${companiesList[0]} ${companiesList.length > 1 ? `+${companiesList.length - 1}` : ''}`
-                                }
-                              </span>
-                              {companiesList.length > 1 && (
-                                <span className="text-xs text-gray-400">
-                                  {companiesList.length} empresas
-                                </span>
-                              )}
-                            </div>
-                          ) : (
-                            <span className="text-sm text-gray-400 italic">Nenhuma empresa</span>
-                          )}
-                        </div>
-                      );
-                    })()}
-                  </TableCell>
-                  <TableCell>
-                    <Badge 
-                      className={
-                        (customer.status || "active") === 'active' 
-                          ? "bg-blue-600 text-white hover:bg-blue-700 border-blue-600" 
-                          : "bg-gray-500 text-white"
-                      }
-                    >
-                      {customer.status === 'active' ? 'Ativo' :
-                       customer.status === 'inactive' ? 'Inativo' :
-                       customer.status || 'Ativo'}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="hidden xl:table-cell">
-                    <span className="text-sm text-gray-500">
-                      {new Date(customer.created_at).toLocaleDateString('pt-BR')}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleEditCustomer(customer)}>
-                          <Edit className="h-3 w-3 mr-2" />
-                          Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Plus className="h-3 w-3 mr-2" />
-                          Criar Ticket
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleEditCustomer(customer)}>
-                          <MapPin className="h-3 w-3 mr-2" />
-                          Localizações
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              )) : (
-                <TableRow>
-                  <TableCell colSpan={8} className="text-center py-12">
-                    <div className="text-gray-500">
-                      <div className="text-lg font-medium mb-2">Nenhum cliente encontrado</div>
-                      <p className="text-sm">Adicione seu primeiro cliente para começar.</p>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
           </div>
         </CardContent>
       </Card>
 
-      {/* Customer Modal */}
+      {/* Modal */}
       <CustomerModal
         isOpen={isCustomerModalOpen}
         onClose={() => setIsCustomerModalOpen(false)}
         customer={selectedCustomer}
-        onLocationModalOpen={handleLocationModalOpen}
+        onLocationModalOpen={() => setLocation('/locations')}
       />
     </div>
   );
