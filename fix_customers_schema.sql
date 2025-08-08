@@ -1,5 +1,5 @@
 
--- Fix customers table schema for production
+-- Fix customers table schema for production with data cleanup
 DO $$
 DECLARE
     tenant_schema TEXT;
@@ -10,6 +10,9 @@ DECLARE
 BEGIN
     FOR tenant_record IN tenant_cursor LOOP
         tenant_schema := tenant_record.schema_name;
+        
+        -- First, clean up invalid data before applying constraints
+        EXECUTE format('UPDATE %I.customers SET customer_type = ''PF'' WHERE customer_type IS NULL OR customer_type NOT IN (''PF'', ''PJ'')', tenant_schema);
         
         -- Add missing columns if they don't exist
         IF NOT EXISTS (
@@ -75,16 +78,25 @@ BEGIN
             EXECUTE format('ALTER TABLE %I.customers ADD COLUMN zip_code varchar(10)', tenant_schema);
         END IF;
         
-        -- Add constraint for customer_type
+        -- Drop existing constraint if it exists
         BEGIN
-            EXECUTE format('ALTER TABLE %I.customers ADD CONSTRAINT customer_type_check CHECK (customer_type IN (''PF'', ''PJ''))', tenant_schema);
+            EXECUTE format('ALTER TABLE %I.customers DROP CONSTRAINT IF EXISTS customer_type_check', tenant_schema);
         EXCEPTION
-            WHEN duplicate_object THEN NULL; -- Constraint already exists
+            WHEN OTHERS THEN NULL;
         END;
         
-        -- Update existing records
-        EXECUTE format('UPDATE %I.customers SET customer_type = ''PF'' WHERE customer_type IS NULL', tenant_schema);
+        -- Add constraint for customer_type AFTER data cleanup
+        EXECUTE format('ALTER TABLE %I.customers ADD CONSTRAINT customer_type_check CHECK (customer_type IN (''PF'', ''PJ''))', tenant_schema);
         
-        RAISE NOTICE 'Fixed customers table for schema %', tenant_schema;
+        -- Create indexes for performance
+        BEGIN
+            EXECUTE format('CREATE INDEX IF NOT EXISTS idx_customers_type_%s ON %I.customers (customer_type)', replace(tenant_schema, 'tenant_', ''), tenant_schema);
+            EXECUTE format('CREATE INDEX IF NOT EXISTS idx_customers_active_%s ON %I.customers (is_active) WHERE is_active = true', replace(tenant_schema, 'tenant_', ''), tenant_schema);
+            EXECUTE format('CREATE INDEX IF NOT EXISTS idx_customers_email_%s ON %I.customers (email)', replace(tenant_schema, 'tenant_', ''), tenant_schema);
+        EXCEPTION
+            WHEN OTHERS THEN NULL;
+        END;
+        
+        RAISE NOTICE 'Fixed customers table for schema % with data cleanup and constraints', tenant_schema;
     END LOOP;
 END $$;

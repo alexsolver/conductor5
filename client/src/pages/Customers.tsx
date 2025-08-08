@@ -30,26 +30,46 @@ export default function Customers() {
   const customers = customersData?.customers || [];
   const total = customersData?.total || customers.length;
 
-  // Standardized field access helper
+  // Standardized field access helper with validation and defaults
   const getCustomerField = (customer: any, field: string) => {
-    // Handle both camelCase and snake_case variations
+    if (!customer || typeof customer !== 'object') {
+      console.warn('[CUSTOMERS] Invalid customer object:', customer);
+      return null;
+    }
+    
+    // Handle both camelCase and snake_case variations with proper defaults
     const variations = {
       firstName: ['first_name', 'firstName'],
-      lastName: ['last_name', 'lastName'],
+      lastName: ['last_name', 'lastName'],  
       customerType: ['customer_type', 'customerType'],
       companyName: ['company_name', 'companyName'],
       mobilePhone: ['mobile_phone', 'mobilePhone'],
       zipCode: ['zip_code', 'zipCode'],
-      isActive: ['is_active', 'isActive']
+      isActive: ['is_active', 'isActive'],
+      phone: ['phone', 'mobile_phone', 'mobilePhone'],
+      fullName: ['full_name', 'fullName']
     };
     
     const fieldVariations = variations[field] || [field];
     for (const variant of fieldVariations) {
-      if (customer[variant] !== undefined && customer[variant] !== null) {
-        return customer[variant];
+      const value = customer[variant];
+      if (value !== undefined && value !== null && value !== '') {
+        return value;
       }
     }
-    return null;
+    
+    // Return appropriate defaults
+    switch (field) {
+      case 'customerType':
+        return 'PF';
+      case 'isActive':
+        return true;
+      case 'firstName':
+      case 'lastName':
+        return '';
+      default:
+        return null;
+    }
   };
 
   console.log('Customers data:', { customers, total, error, isLoading });
@@ -130,6 +150,11 @@ export default function Customers() {
   }
 
   if (error) {
+    // Enhanced error categorization
+    const errorType = error?.code || 'UNKNOWN_ERROR';
+    const isSchemaError = ['TABLE_NOT_FOUND', 'MISSING_COLUMNS', 'MISSING_COLUMN'].includes(errorType);
+    const isPermissionError = errorType === 'PERMISSION_DENIED';
+    
     return (
       <div className="p-4 space-y-6">
         <div className="flex justify-between items-center">
@@ -137,35 +162,66 @@ export default function Customers() {
         </div>
         <Card>
           <CardContent className="p-8 text-center">
-            <div className="text-red-500 mb-4">
-              <h4 className="text-lg font-medium mb-2">Erro ao carregar clientes</h4>
+            <div className={`mb-4 ${isPermissionError ? 'text-orange-500' : 'text-red-500'}`}>
+              <h4 className="text-lg font-medium mb-2">
+                {isSchemaError ? '🗄️ Problema de Esquema de Banco' :
+                 isPermissionError ? '🔒 Problema de Permissão' :
+                 '❌ Erro ao carregar clientes'}
+              </h4>
               <p className="text-sm text-gray-600 mb-2">
                 {error?.message || 'Não foi possível carregar os dados dos clientes.'}
               </p>
+              
+              {/* Error Code Display */}
+              {error?.code && (
+                <div className="inline-block bg-gray-100 px-2 py-1 rounded text-xs font-mono mb-2">
+                  Código: {error.code}
+                </div>
+              )}
+              
+              {/* Technical Details */}
               {error?.details && (
-                <details className="text-left bg-gray-50 p-3 rounded text-xs">
+                <details className="text-left bg-gray-50 dark:bg-gray-800 p-3 rounded text-xs mt-3">
                   <summary className="cursor-pointer font-medium">Detalhes técnicos</summary>
-                  <pre className="mt-2 whitespace-pre-wrap">{error.details}</pre>
+                  <pre className="mt-2 whitespace-pre-wrap overflow-auto max-h-32">{JSON.stringify(error.details, null, 2)}</pre>
                 </details>
               )}
+              
+              {/* Suggestions */}
               {error?.suggestion && (
-                <p className="text-sm text-blue-600 mt-2">
-                  💡 {error.suggestion}
-                </p>
+                <div className="text-sm text-blue-600 dark:text-blue-400 mt-3 p-2 bg-blue-50 dark:bg-blue-900/20 rounded">
+                  💡 <strong>Sugestão:</strong> {error.suggestion}
+                </div>
+              )}
+              
+              {/* Schema-specific help */}
+              {isSchemaError && (
+                <div className="text-sm text-purple-600 dark:text-purple-400 mt-2 p-2 bg-purple-50 dark:bg-purple-900/20 rounded">
+                  🔧 <strong>Para resolver:</strong> Execute as migrações de banco de dados ou consulte um administrador.
+                </div>
               )}
             </div>
+            
             <div className="flex gap-2 justify-center">
               <Button 
                 onClick={() => window.location.reload()} 
                 variant="outline"
               >
-                Tentar novamente
+                🔄 Tentar novamente
               </Button>
+              {isSchemaError && (
+                <Button 
+                  onClick={() => setLocation('/settings')} 
+                  variant="secondary"
+                >
+                  ⚙️ Verificar configurações
+                </Button>
+              )}
               <Button 
-                onClick={() => setLocation('/settings')} 
-                variant="secondary"
+                onClick={() => setLocation('/dashboard')} 
+                variant="ghost"
               >
-                Verificar configurações
+                🏠 Voltar ao Dashboard
               </Button>
             </div>
           </CardContent>
@@ -223,15 +279,31 @@ export default function Customers() {
                   </TableCell>
                   <TableCell>
                     <div className="font-medium text-gray-900 dark:text-gray-100">
-                      {getCustomerField(customer, 'firstName') || ''} {getCustomerField(customer, 'lastName') || ''}
+                      {(() => {
+                        const firstName = getCustomerField(customer, 'firstName');
+                        const lastName = getCustomerField(customer, 'lastName');
+                        const fullName = `${firstName || ''} ${lastName || ''}`.trim();
+                        return fullName || customer.email || 'Nome não informado';
+                      })()}
                     </div>
-                    {getCustomerField(customer, 'customerType') && (
-                      <div className="text-sm text-gray-500 dark:text-gray-400">
-                        {getCustomerField(customer, 'customerType') === 'PJ' ? 
-                          (getCustomerField(customer, 'companyName') || 'Empresa') : 
-                          getCustomerField(customer, 'customerType')}
-                      </div>
-                    )}
+                    {(() => {
+                      const customerType = getCustomerField(customer, 'customerType');
+                      if (customerType === 'PJ') {
+                        const companyName = getCustomerField(customer, 'companyName');
+                        return (
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
+                            🏢 {companyName || 'Pessoa Jurídica'}
+                          </div>
+                        );
+                      } else if (customerType === 'PF') {
+                        return (
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
+                            👤 Pessoa Física
+                          </div>
+                        );
+                      }
+                      return null;
+                    })()}
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center text-gray-600 dark:text-gray-400">

@@ -12,9 +12,18 @@ customersRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
 
     console.log('[GET-CUSTOMERS] Fetching customers for tenant:', req.user.tenantId);
 
+    // Validate tenant ID
+    if (!req.user.tenantId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Tenant ID is required',
+        code: 'MISSING_TENANT_ID'
+      });
+    }
+
     // First check if table exists and get available columns
     const tableCheck = await pool.query(`
-      SELECT column_name 
+      SELECT column_name, data_type 
       FROM information_schema.columns 
       WHERE table_schema = $1 AND table_name = 'customers'
       ORDER BY ordinal_position
@@ -24,15 +33,29 @@ customersRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
       console.error('[GET-CUSTOMERS] Customers table does not exist in schema:', schemaName);
       return res.status(500).json({
         success: false,
-        error: 'Customers table not found'
+        error: 'Customers table not found',
+        code: 'TABLE_NOT_FOUND',
+        suggestion: 'Run database migration to create the customers table'
       });
     }
 
     const availableColumns = tableCheck.rows.map(row => row.column_name);
     console.log('[GET-CUSTOMERS] Available columns:', availableColumns);
 
-    // Build dynamic query based on available columns
-    const baseColumns = ['id', 'first_name', 'last_name', 'email', 'created_at', 'updated_at'];
+    // Build dynamic query based on available columns with proper validation
+    const requiredColumns = ['id', 'first_name', 'last_name', 'email', 'created_at', 'updated_at'];
+    const missingRequired = requiredColumns.filter(col => !availableColumns.includes(col));
+    
+    if (missingRequired.length > 0) {
+      return res.status(500).json({
+        success: false,
+        error: 'Required columns missing from customers table',
+        code: 'MISSING_COLUMNS',
+        details: missingRequired,
+        suggestion: 'Run database migration to add missing columns'
+      });
+    }
+
     const optionalColumns = [
       'phone', 'mobile_phone', 'customer_type', 'cpf', 'cnpj', 'company_name',
       'contact_person', 'state', 'address', 'address_number', 'complement',
@@ -40,36 +63,53 @@ customersRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
     ];
 
     const selectColumns = [
-      ...baseColumns,
+      ...requiredColumns,
       ...optionalColumns.filter(col => availableColumns.includes(col))
     ];
 
-    // Add fallback for is_active if column doesn't exist
+    // Add fallback for is_active and customer_type with proper defaults
     const isActiveSelect = availableColumns.includes('is_active') 
       ? 'COALESCE(is_active, true) as is_active'
       : 'true as is_active';
+      
+    const customerTypeSelect = availableColumns.includes('customer_type')
+      ? 'COALESCE(customer_type, \'PF\') as customer_type'
+      : '\'PF\' as customer_type';
 
-    const finalColumns = selectColumns.join(', ') + ', ' + isActiveSelect;
+    const finalColumns = selectColumns.join(', ') + ', ' + isActiveSelect + ', ' + customerTypeSelect;
 
+    // Enhanced query with better error handling
     const result = await pool.query(`
       SELECT ${finalColumns}
       FROM "${schemaName}".customers 
       WHERE ${availableColumns.includes('is_active') ? 'COALESCE(is_active, true) = true' : '1=1'}
-      ORDER BY first_name, last_name
+        AND ${availableColumns.includes('customer_type') ? 'COALESCE(customer_type, \'PF\') IN (\'PF\', \'PJ\')' : '1=1'}
+      ORDER BY first_name NULLS LAST, last_name NULLS LAST
       LIMIT 100
     `);
 
     console.log('[GET-CUSTOMERS] Found', result.rows.length, 'customers');
 
-    // Add computed field for associated companies
+    // Add computed field for associated companies with better error handling
     const customersWithCompanies = await Promise.all(
       result.rows.map(async (customer) => {
         try {
+          // Check if company_memberships table exists
+          const tableExists = await pool.query(`
+            SELECT 1 FROM information_schema.tables 
+            WHERE table_schema = $1 AND table_name = 'company_memberships'
+          `, [schemaName]);
+          
+          if (tableExists.rows.length === 0) {
+            return { ...customer, associated_companies: null };
+          }
+          
           const companiesResult = await pool.query(`
-            SELECT c.name, c.display_name
+            SELECT DISTINCT c.name, c.display_name
             FROM "${schemaName}".company_memberships cm
             JOIN "${schemaName}".companies c ON cm.company_id = c.id
-            WHERE cm.customer_id = $1 AND cm.tenant_id = $2
+            WHERE cm.customer_id = $1 AND cm.tenant_id = $2 AND c.is_active = true
+            ORDER BY c.display_name, c.name
             LIMIT 3
           `, [customer.id, req.user.tenantId]);
           
@@ -79,46 +119,74 @@ customersRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
           
           return {
             ...customer,
-            associated_companies: companyNames.length > 0 ? companyNames.join(', ') : null
+            associated_companies: companyNames.length > 0 ? companyNames.join(', ') : null,
+            // Normalize customer type
+            customer_type: customer.customer_type || 'PF'
           };
-        } catch {
-          return { ...customer, associated_companies: null };
+        } catch (companyError) {
+          console.warn('[GET-CUSTOMERS] Error fetching companies for customer:', customer.id, companyError.message);
+          return { 
+            ...customer, 
+            associated_companies: null,
+            customer_type: customer.customer_type || 'PF'
+          };
         }
       })
     );
 
+    // Add metadata to response
     res.status(200).json({
       success: true,
-      customers: customersWithCompanies
+      customers: customersWithCompanies,
+      total: result.rows.length,
+      metadata: {
+        tenant_id: req.user.tenantId,
+        schema: schemaName,
+        available_columns: availableColumns,
+        timestamp: new Date().toISOString()
+      }
     });
   } catch (error: any) {
-    console.error('Error fetching customers:', error);
+    console.error('[GET-CUSTOMERS] Critical error:', error);
+    
+    // Enhanced error handling with specific codes
+    const errorResponse = {
+      success: false,
+      error: 'Internal server error',
+      code: 'UNKNOWN_ERROR',
+      timestamp: new Date().toISOString(),
+      tenant_id: req.user?.tenantId
+    };
     
     // Handle specific database errors
     if (error.code === '42703') {
       console.error('[GET-CUSTOMERS] Column does not exist:', error.message);
-      return res.status(500).json({
-        success: false,
-        error: 'Database schema mismatch - missing columns',
-        details: error.message,
-        suggestion: 'Run database migration to fix schema'
-      });
+      errorResponse.error = 'Database schema mismatch - missing columns';
+      errorResponse.code = 'MISSING_COLUMN';
+      errorResponse.suggestion = 'Run database migration to fix schema';
+      return res.status(500).json(errorResponse);
     }
     
     if (error.code === '42P01') {
       console.error('[GET-CUSTOMERS] Table does not exist:', error.message);
-      return res.status(500).json({
-        success: false,
-        error: 'Customers table not found',
-        details: error.message
-      });
+      errorResponse.error = 'Customers table not found';
+      errorResponse.code = 'TABLE_NOT_FOUND';
+      errorResponse.suggestion = 'Run database migration to create table';
+      return res.status(500).json(errorResponse);
     }
     
-    res.status(500).json({
-      success: false,
-      error: 'Internal server error',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+    if (error.code === '42501') {
+      errorResponse.error = 'Insufficient permissions';
+      errorResponse.code = 'PERMISSION_DENIED';
+      return res.status(403).json(errorResponse);
+    }
+    
+    if (process.env.NODE_ENV === 'development') {
+      errorResponse.details = error.message;
+      errorResponse.stack = error.stack;
+    }
+    
+    res.status(500).json(errorResponse);
   }
 });
 
