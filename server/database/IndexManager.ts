@@ -79,12 +79,7 @@ export class IndexManager {
       { name: 'external_contacts_tenant_type_idx', columns: ['tenant_id', 'type', 'email'], type: 'composite' },
       { name: 'external_contacts_tenant_active_idx', columns: ['tenant_id', 'is_active'], type: 'performance' }
     ],
-    projects: [
-      { name: 'projects_tenant_status_idx', columns: ['tenant_id', 'status', 'priority'], type: 'composite' },
-      { name: 'projects_tenant_manager_idx', columns: ['tenant_id', 'manager_id'], type: 'performance' },
-      { name: 'projects_tenant_created_idx', columns: ['tenant_id', 'created_at DESC'], type: 'performance' },
-      { name: 'projects_tenant_deadline_idx', columns: ['tenant_id', 'end_date', 'status'], type: 'composite' }
-    ]
+    // projects: Completely removed - module eliminated from system
   };
 
   // Duplicate indexes to be removed

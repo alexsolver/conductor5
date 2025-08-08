@@ -79,7 +79,7 @@ const PERMISSION_CATEGORIES = {
   'knowledge_base': 'Base de Conhecimento',
   'hr_team': 'Recursos Humanos e Equipe',
   'timecard': 'Timecard e Ponto',
-  'projects': 'Projetos e Tarefas',
+  // 'projects': Completely removed - module eliminated from system
   'analytics': 'Analytics e Relatórios',
   'settings': 'Configurações e Personalização',
   'multilocation': 'Localização e Multilocation',

@@ -54,8 +54,7 @@ import TechnicalSkills from "./pages/TechnicalSkills";
 import TicketTemplates from "./pages/TicketTemplates";
 
 // Removed: ExternalContactsManagement - functionality eliminated
-import Projects from "./pages/Projects"; // Import the Projects component
-import ProjectActions from "./pages/ProjectActions"; // Import the Project Actions component
+// Removed: Projects and ProjectActions - module completely eliminated
 import OmniBridge from "./pages/OmniBridge";
 // Removed: JourneyControl - functionality eliminated from system
 import Timecard from "./pages/Timecard";
@@ -167,8 +166,7 @@ function AppRouter() {
         <Route path="/security" component={SecuritySettings} />
         <Route path="/layouts" component={TemplateSelector} />
         <Route path="/internal-forms" component={InternalForms} />
-        <Route path="/projects" component={Projects} />
-        <Route path="/project-actions" component={ProjectActions} />
+        {/* Removed: Projects and ProjectActions routes - module completely eliminated */}
         {/* Employment-specific timecard routes with route guards */}
         <Route path="/timecard">
           {() => (

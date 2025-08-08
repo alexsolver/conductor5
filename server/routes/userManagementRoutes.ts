@@ -702,10 +702,6 @@ router.get('/permissions',
         { id: 'timecard.approve', name: 'Aprovar Horas', category: 'timecard', description: 'Aprovar registros de horas', level: 'workspace' },
         
         // Projetos e Tarefas
-        { id: 'projects.view', name: 'Visualizar Projetos', category: 'projects', description: 'Ver projetos', level: 'workspace' },
-        { id: 'projects.create', name: 'Criar Projetos', category: 'projects', description: 'Adicionar projetos', level: 'workspace' },
-        { id: 'projects.edit', name: 'Editar Projetos', category: 'projects', description: 'Modificar projetos', level: 'workspace' },
-        { id: 'projects.manage', name: 'Gerenciar Projetos', category: 'projects', description: 'Controle total de projetos', level: 'workspace' },
         
         // Analytics e Relatórios
         { id: 'analytics.view', name: 'Visualizar Analytics', category: 'analytics', description: 'Acessar relatórios', level: 'workspace' },
