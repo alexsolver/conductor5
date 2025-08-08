@@ -1858,8 +1858,7 @@ export type Department = typeof departments.$inferSelect;
 export type InsertUserGroup = typeof userGroups.$inferInsert;
 export type UserGroup = typeof userGroups.$inferSelect;
 export type InsertUserGroupMembership = typeof userGroupMemberships.$inferInsert;
-export type InsertCustomerCompanyMembership = typeof customerCompanyMemberships.$inferSelect;
-export type CustomerCompanyMembership = typeof customerCompanyMemberships.$inferInsert;
+
 
 export type InsertPerformanceMetric = typeof performanceMetrics.$inferInsert;
 export type PerformanceMetric = typeof performanceMetrics.$inferSelect;
