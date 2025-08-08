@@ -66,7 +66,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (!response.ok) {
           if (response.status === 401 || response.status === 403) {
+            // Try to refresh token before giving up
+            const refreshed = await attemptTokenRefresh();
+            if (refreshed) {
+              // Retry with new token
+              const newToken = localStorage.getItem('accessToken');
+              const retryResponse = await fetch('/api/auth/user', {
+                headers: {
+                  Authorization: `Bearer ${newToken}`,
+                  'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+              });
+              
+              if (retryResponse.ok) {
+                return await retryResponse.json();
+              }
+            }
+            
             localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
             return null;
           }
           console.warn(`Auth check failed: ${response.status}`);
@@ -78,6 +97,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } catch (error) {
         // Auth query error handled by UI
         localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
         return null;
       }
     },
@@ -85,6 +105,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
   });
+
+  // Token refresh mechanism
+  const attemptTokenRefresh = async (): Promise<boolean> => {
+    const refreshToken = localStorage.getItem('refreshToken');
+    if (!refreshToken) {
+      return false;
+    }
+
+    try {
+      const response = await fetch('/api/auth/refresh', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ refreshToken }),
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        const { accessToken, refreshToken: newRefreshToken } = await response.json();
+        localStorage.setItem('accessToken', accessToken);
+        if (newRefreshToken) {
+          localStorage.setItem('refreshToken', newRefreshToken);
+        }
+        return true;
+      } else {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        return false;
+      }
+    } catch (error) {
+      console.error('Token refresh failed:', error);
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      return false;
+    }
+  };
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginData) => {

@@ -8,6 +8,10 @@ import createCSPMiddleware, { createCSPReportingEndpoint, createCSPManagementRou
 import { createMemoryRateLimitMiddleware, RATE_LIMIT_CONFIGS } from "./services/redisRateLimitService";
 import { createFeatureFlagMiddleware } from "./services/featureFlagService";
 import cookieParser from "cookie-parser";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
+import crypto from "crypto";
 import { insertCustomerSchema, insertTicketSchema, insertTicketMessageSchema, ticketFieldConfigurations, ticketFieldOptions, ticketStyleConfigurations, ticketDefaultConfigurations, companies } from "@shared/schema";
 import { eq, and, sql, asc } from "drizzle-orm";
 import ticketConfigRoutes from "./routes/ticketConfigRoutes";
@@ -166,6 +170,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Module Integrity Control System
 
+  // Configure multer for file uploads
+  const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+      fileSize: 10 * 1024 * 1024, // 10MB limit
+      files: 5, // Maximum 5 files per request
+    },
+    fileFilter: (req, file, cb) => {
+      // Allow most file types but exclude dangerous ones
+      const allowedMimeTypes = [
+        'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+        'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'text/plain', 'text/csv', 'application/json',
+        'video/mp4', 'video/avi', 'video/quicktime',
+        'audio/mpeg', 'audio/wav', 'audio/mp3'
+      ];
+      
+      if (allowedMimeTypes.includes(file.mimetype)) {
+        cb(null, true);
+      } else {
+        cb(new Error(`File type ${file.mimetype} not allowed`), false);
+      }
+    }
+  });
+
   // Mount microservice routes
   app.use('/api/dashboard', dashboardRouter);
   app.use('/api/customers', customersRouter);
@@ -175,6 +205,115 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Import and mount ticket relationships routes
   const ticketRelationshipsRouter = await import('./routes/ticketRelationships');
   app.use('/api/ticket-relationships', ticketRelationshipsRouter.default);
+
+  // File upload endpoints for tickets
+  app.post('/api/tickets/:ticketId/attachments', jwtAuth, upload.array('attachments', 5), async (req: AuthenticatedRequest, res) => {
+    try {
+      const { ticketId } = req.params;
+      const { description } = req.body; // Extract description from request body
+      const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
+      const files = req.files as Express.Multer.File[];
+
+      if (!tenantId || !userId) {
+        return res.status(401).json({ success: false, message: 'Authentication required' });
+      }
+
+      if (!files || files.length === 0) {
+        return res.status(400).json({ success: false, message: 'No files provided' });
+      }
+
+      const pool = schemaManager.getPool();
+      const schemaName = schemaManager.getSchemaName(tenantId);
+
+      // Verify ticket exists
+      const ticketQuery = `SELECT id FROM "${schemaName}".tickets WHERE id = $1 AND tenant_id = $2`;
+      const ticketResult = await pool.query(ticketQuery, [ticketId, tenantId]);
+      
+      if (ticketResult.rows.length === 0) {
+        return res.status(404).json({ success: false, message: 'Ticket not found' });
+      }
+
+      // Create attachments directory if it doesn't exist
+      const attachmentsDir = path.join(process.cwd(), 'uploads', 'attachments', tenantId);
+      if (!fs.existsSync(attachmentsDir)) {
+        fs.mkdirSync(attachmentsDir, { recursive: true });
+      }
+
+      const savedFiles = [];
+
+      for (const file of files) {
+        try {
+          // Generate unique filename
+          const timestamp = Date.now();
+          const fileExtension = path.extname(file.originalname);
+          const sanitizedName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
+          const fileName = `${timestamp}_${sanitizedName}`;
+          const filePath = path.join(attachmentsDir, fileName);
+
+          // Save file to disk
+          fs.writeFileSync(filePath, file.buffer);
+
+          // Save attachment record to database
+          const insertQuery = `
+            INSERT INTO "${schemaName}".ticket_attachments 
+            (id, tenant_id, ticket_id, file_name, file_size, file_type, file_path, content_type, description, is_active, created_by, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW())
+            RETURNING *
+          `;
+
+          const attachmentId = crypto.randomUUID();
+          const result = await pool.query(insertQuery, [
+            attachmentId,
+            tenantId,
+            ticketId,
+            fileName,
+            file.size,
+            file.mimetype,
+            `/uploads/attachments/${tenantId}/${fileName}`,
+            file.mimetype,
+            description || null,
+            true,
+            userId
+          ]);
+
+          savedFiles.push(result.rows[0]);
+          console.log(`✅ File uploaded: ${file.originalname} -> ${fileName}`);
+        } catch (fileError) {
+          console.error(`❌ Error uploading file ${file.originalname}:`, fileError);
+        }
+      }
+
+      // Create audit log entry
+      const auditQuery = `
+        INSERT INTO "${schemaName}".ticket_history 
+        (tenant_id, ticket_id, performed_by, action_type, description, created_at)
+        VALUES ($1, $2, $3, $4, $5, NOW())
+      `;
+
+      await pool.query(auditQuery, [
+        tenantId,
+        ticketId,
+        userId,
+        'attachment_uploaded',
+        `Uploaded ${savedFiles.length} file(s): ${savedFiles.map(f => f.original_name).join(', ')}${description ? ` - ${description}` : ''}`
+      ]);
+
+      res.json({
+        success: true,
+        message: `Successfully uploaded ${savedFiles.length} file(s)`,
+        data: savedFiles
+      });
+
+    } catch (error) {
+      console.error('Error uploading attachments:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to upload attachments',
+        error: error.message
+      });
+    }
+  });
 
   // Ticket metadata configuration routes
   const { TicketMetadataController } = await import('./modules/tickets/TicketMetadataController');

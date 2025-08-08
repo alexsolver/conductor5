@@ -846,8 +846,8 @@ export default function Tickets() {
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mr-4">
                       #{ticket.number || ticket.id} - {ticket.subject || 'Sem título'}
                     </h3>
-                    <div className="flex items-center space-x-2 flex-shrink-0"></div>
-                    <DynamicBadge 
+                    <div className="flex items-center space-x-2 flex-shrink-0">
+                      <DynamicBadge 
                         fieldName="priority" 
                         value={mapPriorityValue(ticket.priority)}
                         showIcon={true}
@@ -913,7 +913,7 @@ export default function Tickets() {
               </div>
             </CardContent>
           </Card>
-        ))}
+        ))
         ) : (
           <Card>
             <CardContent className="p-12 text-center">

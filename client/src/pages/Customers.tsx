@@ -9,7 +9,7 @@ import { Plus, Search, Mail, Phone, MapPin, Edit, MoreHorizontal, Building } fro
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { CustomerModal } from "@/components/CustomerModal";
 import { useLocation } from "wouter";
-import { renderAddressSafely } from "@/utils/addressFormatter";
+import { renderAddressSafely, formatCompanyDisplay, getFieldSafely } from "@/utils/addressFormatter";
 
 export default function Customers() {
   const [, setLocation] = useLocation();
@@ -117,10 +117,13 @@ export default function Customers() {
 
     // Handle object or array companies data
     let displayText = companies;
-    if (typeof companies === 'object') {
-      displayText = Array.isArray(companies) 
-        ? companies.join(', ')
-        : Object.values(companies).filter(Boolean).join(', ') || 'N/A';
+    if (typeof companies === 'object' && companies !== null) {
+      if (Array.isArray(companies)) {
+        displayText = companies.filter(Boolean).join(', ') || 'N/A';
+      } else {
+        const values = Object.values(companies as Record<string, any>).filter(Boolean);
+        displayText = values.length > 0 ? values.join(', ') : 'N/A';
+      }
     }
 
     return (
@@ -159,8 +162,8 @@ export default function Customers() {
   }
 
   if (error) {
-    // Enhanced error categorization
-    const errorType = error?.code || 'UNKNOWN_ERROR';
+    // Enhanced error categorization with proper typing
+    const errorType = (error as any)?.code || 'UNKNOWN_ERROR';
     const isSchemaError = ['TABLE_NOT_FOUND', 'MISSING_COLUMNS', 'MISSING_COLUMN'].includes(errorType);
     const isPermissionError = errorType === 'PERMISSION_DENIED';
     
@@ -182,24 +185,24 @@ export default function Customers() {
               </p>
               
               {/* Error Code Display */}
-              {error?.code && (
+              {(error as any)?.code && (
                 <div className="inline-block bg-gray-100 px-2 py-1 rounded text-xs font-mono mb-2">
-                  Código: {error.code}
+                  Código: {(error as any).code}
                 </div>
               )}
               
               {/* Technical Details */}
-              {error?.details && (
+              {(error as any)?.details && (
                 <details className="text-left bg-gray-50 dark:bg-gray-800 p-3 rounded text-xs mt-3">
                   <summary className="cursor-pointer font-medium">Detalhes técnicos</summary>
-                  <pre className="mt-2 whitespace-pre-wrap overflow-auto max-h-32">{JSON.stringify(error.details, null, 2)}</pre>
+                  <pre className="mt-2 whitespace-pre-wrap overflow-auto max-h-32">{JSON.stringify((error as any).details, null, 2)}</pre>
                 </details>
               )}
               
               {/* Suggestions */}
-              {error?.suggestion && (
+              {(error as any)?.suggestion && (
                 <div className="text-sm text-blue-600 dark:text-blue-400 mt-3 p-2 bg-blue-50 dark:bg-blue-900/20 rounded">
-                  💡 <strong>Sugestão:</strong> {error.suggestion}
+                  💡 <strong>Sugestão:</strong> {(error as any).suggestion}
                 </div>
               )}
               
@@ -338,7 +341,12 @@ export default function Customers() {
                     })()}
                   </TableCell>
                   <TableCell>
-                    <CompanyDisplay companies={customer.associated_companies} />
+                    <div className="flex items-center text-gray-600 dark:text-gray-400">
+                      <Building className="h-3 w-3 mr-1 flex-shrink-0" />
+                      <span className="text-sm truncate">
+                        {formatCompanyDisplay(customer.associated_companies)}
+                      </span>
+                    </div>
                   </TableCell>
                   <TableCell>
                     <Badge 

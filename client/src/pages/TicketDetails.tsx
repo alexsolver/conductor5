@@ -163,9 +163,20 @@ const TicketDetails = React.memo(() => {
     { id: "basico", label: "Informações", icon: FileText },
   ];
 
-  // Special functionality tabs
+  // Special functionality tabs (with dynamic counters)
+  const getTabLabel = (baseLabel: string, count?: number) => {
+    if (count && count > 0) {
+      return `${baseLabel} (${count})`;
+    }
+    return baseLabel;
+  };
+
   const specialTabs = [
-    { id: "attachments", label: "Anexos", icon: Paperclip },
+    { 
+      id: "attachments", 
+      label: getTabLabel("Anexos", ticketAttachments?.attachments?.length), 
+      icon: Paperclip 
+    },
     { id: "notes", label: "Notas", icon: FileText },
     { id: "communications", label: "Comunicação", icon: MessageSquare },
     { id: "history", label: "Histórico", icon: History },
