@@ -67,6 +67,33 @@ export function formatAddressToString(addressData: AddressData | string | null |
 }
 
 /**
+ * Formats address object to a readable string
+ */
+export function formatAddressToString(addressData: any): string {
+  if (!addressData) return '';
+  
+  if (typeof addressData === 'string') {
+    return addressData;
+  }
+  
+  if (typeof addressData === 'object') {
+    const parts = [
+      addressData.street || addressData.address,
+      addressData.number,
+      addressData.complement,
+      addressData.neighborhood,
+      addressData.city,
+      addressData.state,
+      addressData.zipCode
+    ].filter(Boolean);
+    
+    return parts.join(', ') || JSON.stringify(addressData);
+  }
+  
+  return String(addressData);
+}
+
+/**
  * Safely renders address data for React components
  */
 export function renderAddressSafely(addressData: any): string {

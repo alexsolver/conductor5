@@ -406,7 +406,7 @@ function SimpleMapWithButtons({ initialLat, initialLng, addressData, onLocationS
         </p>
         {searchResult && (
           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-            <span className="font-medium">Encontrado:</span> {searchResult}
+            <span className="font-medium">Encontrado:</span> {String(searchResult)}
           </p>
         )}
         {searchQuery && !searchResult && (
