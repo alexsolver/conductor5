@@ -508,18 +508,26 @@ const TicketDetails = React.memo(() => {
       setCommunications([]);
     }
 
-    // Set attachments from API with fallback
+    // Set attachments from API with comprehensive debugging
+    console.log('🔍 [ATTACHMENTS-DEBUG] Raw ticketAttachments data:', ticketAttachments);
+    console.log('🔍 [ATTACHMENTS-DEBUG] Has success flag:', !!ticketAttachments?.success);
+    console.log('🔍 [ATTACHMENTS-DEBUG] Data type:', typeof ticketAttachments?.data);
+    console.log('🔍 [ATTACHMENTS-DEBUG] Is data array:', Array.isArray(ticketAttachments?.data));
+    console.log('🔍 [ATTACHMENTS-DEBUG] Data length:', ticketAttachments?.data?.length);
+    console.log('🔍 [ATTACHMENTS-DEBUG] Data content:', ticketAttachments?.data);
+    
     if (ticketAttachments?.success && Array.isArray(ticketAttachments.data)) {
-      console.log('📎 Setting attachments:', ticketAttachments.data.length, 'items');
+      console.log('📎 Setting attachments (success + array):', ticketAttachments.data.length, 'items');
       setAttachments(ticketAttachments.data);
     } else if (ticketAttachments?.data && Array.isArray(ticketAttachments.data)) {
-      console.log('📎 Setting attachments (no success flag):', ticketAttachments.data.length, 'items');
+      console.log('📎 Setting attachments (no success flag, but array):', ticketAttachments.data.length, 'items');
       setAttachments(ticketAttachments.data);
     } else if (ticketRelationships?.attachments && Array.isArray(ticketRelationships.attachments)) {
       console.log('📎 Setting attachments from relationships:', ticketRelationships.attachments.length, 'items');
       setAttachments(ticketRelationships.attachments);
     } else {
       console.log('📎 No attachments found, setting empty array');
+      console.log('📎 [DEBUG] ticketAttachments structure:', JSON.stringify(ticketAttachments, null, 2));
       setAttachments([]);
     }
 
