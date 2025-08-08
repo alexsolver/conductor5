@@ -20,9 +20,10 @@ export const baseCustomerSchema = z.object({
     .transform(val => val ? val.replace(/\D/g, '') : val), // Remove non-digits
   customerType: z.enum(['PF', 'PJ'], { required_error: 'Tipo de cliente é obrigatório' }),
   document: z.string()
-    .min(1, 'Documento é obrigatório')
-    .transform(val => val.replace(/\D/g, '')) // Remove formatting
+    .optional()
+    .transform(val => val ? val.replace(/\D/g, '') : val) // Remove formatting if present
     .refine((val, ctx) => {
+      if (!val) return true; // Allow empty document
       const customerType = (ctx.parent as any).customerType;
       if (customerType === 'PF') {
         return validateCPF(val);
@@ -48,19 +49,8 @@ export const baseCustomerSchema = z.object({
   country: z.string().optional().default('BR')
 });
 
-// Export the creation schema with validation
-export const createCustomerSchema = baseCustomerSchema.refine((data) => {
-  if (data.customerType === 'PF' && !data.document) {
-    return false; // This should already be caught by the document.min(1) and refine for PF
-  }
-  if (data.customerType === 'PJ' && !data.document) {
-    return false; // This should already be caught by the document.min(1) and refine for PJ
-  }
-  return true;
-}, {
-  message: "Documento é obrigatório para PF e PJ",
-  path: ["document"] // Pointing to the document field for more specific error reporting
-});
+// Export the creation schema without document requirement
+export const createCustomerSchema = baseCustomerSchema;
 
 
 // Update customer validation schema (partial of base schema)
