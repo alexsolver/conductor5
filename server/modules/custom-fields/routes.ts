@@ -13,6 +13,9 @@ try {
   // Middleware de autenticação para todas as rotas
   router.use(jwtAuth);
 
+  console.log('🔧 [Custom Fields Routes] Middleware applied');
+
+
   // Routes for field metadata management
   router.get('/fields/:moduleType', async (req, res) => {
     try {

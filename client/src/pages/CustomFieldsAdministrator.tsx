@@ -80,31 +80,51 @@ export default function CustomFieldsAdministrator() {
   const { data: moduleFields = [], isLoading } = useQuery({
     queryKey: ['custom-fields', selectedModule],
     queryFn: async () => {
+      const token = localStorage.getItem('token');
+      console.log('🔍 [Custom Fields] Token available:', !!token);
+      
+      if (!token) {
+        toast({
+          title: 'Não Autorizado',
+          description: 'Token de autenticação não encontrado. Faça login novamente.',
+          variant: 'destructive',
+        });
+        window.location.href = '/login';
+        throw new Error('No token available');
+      }
+
       const response = await fetch(`/api/custom-fields/fields/${selectedModule}`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
       });
+
+      console.log('🔍 [Custom Fields] Response status:', response.status);
+
       if (!response.ok) {
-        // Handle specific errors more gracefully if possible
+        const errorData = await response.json().catch(() => ({}));
+        console.log('❌ [Custom Fields] Error response:', errorData);
+
         if (response.status === 401) {
           toast({
             title: 'Não Autorizado',
             description: 'Sua sessão expirou. Por favor, faça login novamente.',
             variant: 'destructive',
           });
-          // Optionally redirect to login
-          // window.location.href = '/login';
+          localStorage.removeItem('token');
+          window.location.href = '/login';
         } else {
           toast({
             title: 'Erro ao buscar campos',
-            description: 'Não foi possível carregar os campos customizados.',
+            description: errorData.message || 'Não foi possível carregar os campos customizados.',
             variant: 'destructive',
           });
         }
-        throw new Error('Failed to fetch fields');
+        throw new Error(`HTTP ${response.status}: ${errorData.message || 'Failed to fetch fields'}`);
       }
       const data = await response.json();
+      console.log('✅ [Custom Fields] Data received:', data);
       return data.data || [];
     }
   });
