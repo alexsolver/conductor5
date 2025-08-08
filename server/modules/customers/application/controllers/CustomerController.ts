@@ -10,7 +10,7 @@ export class CustomerController {
 
   async createCustomer(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      const { logInfo, logError } = await import('../../../utils/logger');
+      const { logInfo, logError } = await import('../../../../utils/logger');
       const customerData = req.body;
       const tenantId = req.user?.tenantId;
       const userId = req.user?.id;
@@ -56,7 +56,7 @@ export class CustomerController {
         message: 'Customer created successfully'
       });
     } catch (error) {
-      const { logError } = await import('../../../utils/logger');
+      const { logError } = await import('../../../../utils/logger');
       logError('Customer creation failed', error, {
         operation: 'CREATE_CUSTOMER',
         tenantId: req.user?.tenantId,
