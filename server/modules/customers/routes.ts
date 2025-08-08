@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { AuthenticatedRequest, jwtAuth } from '../../middleware/jwtAuth';
+import crypto from 'crypto'; // Assuming crypto is needed for UUID generation
 
 const customersRouter = Router();
 
@@ -152,18 +153,18 @@ customersRouter.post('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
 
   } catch (error: any) {
     console.error('[CREATE-CUSTOMER] Error:', error);
-    
+
     const errorResponse = {
       success: false,
       error: 'Erro ao criar cliente',
       code: error.code || 'UNKNOWN_ERROR',
       timestamp: new Date().toISOString()
     };
-    
+
     if (process.env.NODE_ENV === 'development') {
       errorResponse.details = error.message;
     }
-    
+
     res.status(500).json(errorResponse);
   }
 });
@@ -249,7 +250,7 @@ customersRouter.put('/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
 
   } catch (error: any) {
     console.error('[UPDATE-CUSTOMER] Error:', error);
-    
+
     res.status(500).json({
       success: false,
       error: 'Erro ao atualizar cliente',
@@ -265,7 +266,7 @@ customersRouter.put('/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
     // Get associated companies in batch for better performance
     const customerIds = result.rows.map(r => r.id);
     let companiesMap = new Map();
-    
+
     if (customerIds.length > 0) {
       try {
         const companiesResult = await pool.query(`
@@ -279,7 +280,7 @@ customersRouter.put('/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
             AND COALESCE(c.is_active, true) = true
           GROUP BY cm.customer_id
         `, [customerIds, req.user.tenantId]);
-        
+
         companiesResult.rows.forEach(row => {
           companiesMap.set(row.customer_id, row.company_names);
         });
@@ -307,7 +308,7 @@ customersRouter.put('/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
 
   } catch (error: any) {
     console.error('[GET-CUSTOMERS] Error:', error);
-    
+
     const errorResponse = {
       success: false,
       error: 'Failed to fetch customers',
@@ -315,24 +316,24 @@ customersRouter.put('/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
       timestamp: new Date().toISOString(),
       tenant_id: req.user?.tenantId
     };
-    
+
     // Specific error handling
     if (error.code === '42P01') {
       errorResponse.error = 'Customers table not found';
       errorResponse.code = 'TABLE_NOT_FOUND';
       return res.status(500).json(errorResponse);
     }
-    
+
     if (error.code === '42703') {
       errorResponse.error = 'Database schema mismatch';
       errorResponse.code = 'SCHEMA_MISMATCH';
       return res.status(500).json(errorResponse);
     }
-    
+
     if (process.env.NODE_ENV === 'development') {
       errorResponse.details = error.message;
     }
-    
+
     res.status(500).json(errorResponse);
   }
 });

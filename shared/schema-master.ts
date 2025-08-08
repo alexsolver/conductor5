@@ -213,32 +213,31 @@ export const userActivityLogs = pgTable("user_activity_logs", {
 // Customers table (Solicitantes - internal system requesters) - Data types optimized
 export const customers = pgTable("customers", {
   id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
-  firstName: varchar("first_name", { length: 255 }).notNull(),
-  lastName: varchar("last_name", { length: 255 }).notNull(),
-  email: varchar("email", { length: 255 }).notNull(),
+  tenantId: uuid("tenant_id").notNull().references(() => tenants.id),
+  name: varchar("name", { length: 255 }).notNull(),
+  email: varchar("email", { length: 255 }),
   phone: varchar("phone", { length: 20 }),
   mobilePhone: varchar("mobile_phone", { length: 20 }),
-  customerType: varchar("customer_type", { length: 10 }).default("PF"), // PF or PJ
+  customerType: varchar("customer_type", { length: 2 }).default('PF'),
   cpf: varchar("cpf", { length: 14 }),
   cnpj: varchar("cnpj", { length: 18 }),
   companyName: varchar("company_name", { length: 255 }),
   contactPerson: varchar("contact_person", { length: 255 }),
   state: varchar("state", { length: 2 }),
-  address: text("address"),
-  addressNumber: varchar("address_number", { length: 20 }),
+  address: varchar("address", { length: 255 }),
+  addressNumber: varchar("address_number", { length: 10 }),
   complement: varchar("complement", { length: 100 }),
   neighborhood: varchar("neighborhood", { length: 100 }),
   city: varchar("city", { length: 100 }),
-  zipCode: varchar("zip_code", { length: 10 }),
-  isActive: boolean("is_active").default(true),
+  zipCode: varchar("zip_code", { length: 9 }),
   createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
 }, (table) => ({
-  uniqueTenantEmail: unique("customers_tenant_email_unique").on(table.tenantId, table.email),
-  // Critical indexes for performance
-  tenantEmailIdx: index("customers_tenant_email_idx").on(table.tenantId, table.email),
-  tenantActiveIdx: index("customers_tenant_active_idx").on(table.tenantId, table.isActive),
+  tenantIdIdx: index("customers_tenant_id_idx").on(table.tenantId),
+  customerTypeIdx: index("customers_customer_type_idx").on(table.customerType),
+  emailIdx: index("customers_email_idx").on(table.email),
+  cpfIdx: index("customers_cpf_idx").on(table.cpf),
+  cnpjIdx: index("customers_cnpj_idx").on(table.cnpj)
 }));
 
 // Tickets table - Complete with all frontend fields and proper relationships

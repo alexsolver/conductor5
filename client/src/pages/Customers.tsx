@@ -33,7 +33,7 @@ export default function Customers() {
   // Simplified field access helper
   const getCustomerField = (customer: any, field: string) => {
     if (!customer) return null;
-    
+
     // Direct access to snake_case fields (API standard)
     const fieldMap = {
       firstName: customer.first_name || '',
@@ -44,7 +44,7 @@ export default function Customers() {
       isActive: customer.is_active ?? true,
       fullName: [customer.first_name, customer.last_name].filter(Boolean).join(' ') || customer.email || 'N/A'
     };
-    
+
     return fieldMap[field] ?? customer[field] ?? null;
   };
 
@@ -67,7 +67,7 @@ export default function Customers() {
   const getInitials = (customer: any) => {
     const firstName = customer.first_name || '';
     const lastName = customer.last_name || '';
-    
+
     if (firstName && lastName) {
       return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
     }
@@ -142,7 +142,7 @@ export default function Customers() {
     const errorType = error?.code || 'UNKNOWN_ERROR';
     const isSchemaError = ['TABLE_NOT_FOUND', 'MISSING_COLUMNS', 'MISSING_COLUMN'].includes(errorType);
     const isPermissionError = errorType === 'PERMISSION_DENIED';
-    
+
     return (
       <div className="p-4 space-y-6">
         <div className="flex justify-between items-center">
@@ -159,14 +159,14 @@ export default function Customers() {
               <p className="text-sm text-gray-600 mb-2">
                 {error?.message || 'Não foi possível carregar os dados dos clientes.'}
               </p>
-              
+
               {/* Error Code Display */}
               {error?.code && (
                 <div className="inline-block bg-gray-100 px-2 py-1 rounded text-xs font-mono mb-2">
                   Código: {error.code}
                 </div>
               )}
-              
+
               {/* Technical Details */}
               {error?.details && (
                 <details className="text-left bg-gray-50 dark:bg-gray-800 p-3 rounded text-xs mt-3">
@@ -174,14 +174,14 @@ export default function Customers() {
                   <pre className="mt-2 whitespace-pre-wrap overflow-auto max-h-32">{JSON.stringify(error.details, null, 2)}</pre>
                 </details>
               )}
-              
+
               {/* Suggestions */}
               {error?.suggestion && (
                 <div className="text-sm text-blue-600 dark:text-blue-400 mt-3 p-2 bg-blue-50 dark:bg-blue-900/20 rounded">
                   💡 <strong>Sugestão:</strong> {error.suggestion}
                 </div>
               )}
-              
+
               {/* Schema-specific help */}
               {isSchemaError && (
                 <div className="text-sm text-purple-600 dark:text-purple-400 mt-2 p-2 bg-purple-50 dark:bg-purple-900/20 rounded">
@@ -189,7 +189,7 @@ export default function Customers() {
                 </div>
               )}
             </div>
-            
+
             <div className="flex gap-2 justify-center">
               <Button 
                 onClick={() => window.location.reload()} 
