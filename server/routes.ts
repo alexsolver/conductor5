@@ -1491,7 +1491,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 // Advanced ticket configuration routes
   // CustomFields routes - Universal metadata and dynamic fields system
-  app.use('/api/custom-fields', jwtAuth, customFieldsRoutes);
+  app.use('/api/custom-fields', customFieldsRoutes);
 
   // Holiday routes for journey control system
   app.use('/api/holidays', holidayRoutes);

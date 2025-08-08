@@ -7,21 +7,20 @@ import { Request, Response, NextFunction } from 'express';
 
 const router = Router();
 
-// Hybrid authentication middleware - supports both JWT and session
-const hybridAuth = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+// Session-based authentication middleware for Custom Fields
+const sessionAuth = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
-    // Check for JWT token first
-    const authHeader = req.headers.authorization;
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      const token = authHeader.split(' ')[1];
-      if (token && token !== 'null' && token !== 'undefined') {
-        // Use JWT auth
-        const { jwtAuth } = await import('../../middleware/jwtAuth');
-        return jwtAuth(req, res, next);
-      }
-    }
+    console.log('🔍 [Custom Fields Auth] Session check:', {
+      hasSession: !!req.session,
+      hasUser: !!(req.session && req.session.user),
+      userInfo: req.session?.user ? {
+        id: req.session.user.id,
+        email: req.session.user.email,
+        role: req.session.user.role
+      } : null
+    });
 
-    // Fall back to session authentication
+    // Check session authentication (browser login)
     if (req.session && req.session.user) {
       req.user = {
         id: req.session.user.id,
@@ -29,11 +28,19 @@ const hybridAuth = async (req: AuthenticatedRequest, res: Response, next: NextFu
         role: req.session.user.role,
         email: req.session.user.email
       };
+      
+      console.log('✅ [Custom Fields Auth] Session authenticated:', {
+        userId: req.user.id,
+        tenantId: req.user.tenantId,
+        role: req.user.role
+      });
+      
       return next();
     }
 
+    console.log('❌ [Custom Fields Auth] No valid session found');
     return res.status(401).json({ 
-      message: 'Authentication required - use JWT token or browser session' 
+      message: 'Authentication required - please login' 
     });
   } catch (error) {
     console.error('❌ [Custom Fields Auth] Authentication error:', error);
@@ -45,10 +52,10 @@ try {
   const customFieldsRepository = new CustomFieldsRepository(schemaManager);
   const customFieldsController = new CustomFieldsController(customFieldsRepository);
 
-  // Apply hybrid authentication middleware
-  router.use(hybridAuth);
+  // Apply session authentication middleware
+  router.use(sessionAuth);
 
-  console.log('🔧 [Custom Fields Routes] Hybrid authentication middleware applied');
+  console.log('🔧 [Custom Fields Routes] Session authentication middleware applied');
 
 
   // Routes for field metadata management
