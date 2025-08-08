@@ -14,6 +14,7 @@ export class CustomFieldsController {
 
   constructor(repository: CustomFieldsRepository) {
     this.customFieldsRepository = repository;
+    console.log('✅ Custom Fields Controller initialized successfully');
   }
 
   // Get all fields for a specific module
