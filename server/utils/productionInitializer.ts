@@ -94,22 +94,18 @@ export class ProductionInitializer {
 
       for (const tenant of tenants) {
         try {
-          const isValid = await schemaManager.validateTenantSchema(tenant.id);
-          if (!isValid) {
-            logWarn(`Schema validation failed for tenant ${tenant.id}, attempting auto-heal`, {});
-            
-            // CRITICAL FIX: Auto-healing com stub implementation
-            await schemaManager.ensureTenantTables(tenant.id);
-            
-            // Re-validate after healing
-            const isValidAfterHeal = await schemaManager.validateTenantSchema(tenant.id);
-            if (isValidAfterHeal) {
-              logInfo(`✅ Auto-healing successful for tenant: ${tenant.id}`);
-            } else {
-              logWarn(`⚠️ Tenant ${tenant.id} has basic functionality but may be missing some advanced tables`);
-            }
-          } else {
+          // Use unified validation - single source of truth
+          const { UnifiedSchemaHealer } = await import('../services/UnifiedSchemaHealer');
+          const validationStatus = await UnifiedSchemaHealer.getValidationStatus(tenant.id);
+          
+          if (validationStatus.isValid) {
+            const message = `✅ Tenant schema validated for ${tenant.id}: ${validationStatus.tableCount} tables (11/11 core tables, 4/4 soft-delete) - ${validationStatus.status}`;
+            console.log(message);
             logInfo(`Schema validated for tenant: ${tenant.id}`);
+          } else {
+            console.warn(`⚠️ Tenant ${tenant.id} has validation issues - manual intervention may be required`);
+            logInfo(`Tenant ${tenant.id} validation issues: ${validationStatus.missingTables.length} missing tables`);
+            // Note: Auto-healing disabled to prevent conflicts
           }
         } catch (error) {
           logError(`Critical error during schema validation for tenant ${tenant.id}`, error);

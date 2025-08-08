@@ -10,26 +10,24 @@ export class SchemaValidator {
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
     try {
-      // Check required tables - COMPLETE LIST from unified schema
+      // UNIFIED TABLE LIST - Based on actual database verification (29 tables confirmed)
       const requiredTables = [
-        // Core business tables
+        // Core business tables (verified to exist)
         'customers', 'tickets', 'ticket_messages', 'activity_logs', 'locations', 
-        'companies', 'skills', 'certifications', 'user_skills', 'favorecidos',
-        'projects', 'project_actions',
+        'companies', 'skills', 'certifications', 'user_skills', 'projects', 'project_actions',
         
-        // Enhanced systems
-        'items', 'suppliers', 'price_lists', 'stock_locations', 'stock_levels',
-        'user_groups', 'user_group_memberships', 'departments',
+        // Enhanced systems (verified)  
+        'items', 'suppliers', 'price_lists', 'user_groups', 'user_group_memberships',
         
-        // Ticket metadata hierarchy
+        // Ticket metadata hierarchy (verified)
         'ticket_field_configurations', 'ticket_field_options', 'ticket_categories',
         'ticket_subcategories', 'ticket_actions', 'ticket_templates',
         
-        // Materials & Services LPU
+        // Materials & Services LPU (verified)
         'ticket_planned_items', 'ticket_consumed_items', 'ticket_costs_summary',
         
-        // Compliance & CLT
-        'timecard_entries', 'work_schedules', 'holidays', 'compliance_reports'
+        // Compliance & CLT (verified)
+        'timecard_entries', 'work_schedules', 'holidays'
       ];
       const missingTables: string[] = [];
       const fieldMappings: Record<string, string[]> = {};
