@@ -48,6 +48,9 @@ customersRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
       FROM "${schemaName}".customers 
       WHERE COALESCE(is_active, true) = true
         AND tenant_id = $1
+      ORDER BY first_name NULLS LAST, last_name NULLS LAST
+      LIMIT 100
+    `, [req.user.tenantId]);
 
 
 // POST /api/customers - Create new customer
