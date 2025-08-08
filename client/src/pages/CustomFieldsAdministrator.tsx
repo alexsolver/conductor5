@@ -342,7 +342,7 @@ export default function CustomFieldsAdministrator() {
               Novo Campo
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Criar Novo Campo Customizado</DialogTitle>
             </DialogHeader>
@@ -414,7 +414,7 @@ export default function CustomFieldsAdministrator() {
       {/* Edit Field Dialog */}
       {editingField && (
         <Dialog open={!!editingField} onOpenChange={() => setEditingField(null)}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Editar Campo: {editingField.fieldLabel}</DialogTitle>
             </DialogHeader>
@@ -563,7 +563,7 @@ function CreateFieldForm({ moduleType, onSubmit, isLoading }: any) {
           </div>
           <div className="space-y-2 max-h-48 overflow-y-auto">
             {(formData.fieldOptions.options || []).map((option: any, index: number) => (
-              <div key={index} className="flex gap-2">
+              <div key={`create-option-${index}-${option.value || index}`} className="flex gap-2">
                 <Input
                   placeholder="Rótulo"
                   value={option.label}
@@ -715,7 +715,7 @@ function EditFieldForm({ field, onSubmit, isLoading }: any) {
           </div>
           <div className="space-y-2 max-h-48 overflow-y-auto">
             {(formData.fieldOptions.options || []).map((option: any, index: number) => (
-              <div key={index} className="flex gap-2">
+              <div key={`edit-option-${index}-${option.value || index}`} className="flex gap-2">
                 <Input
                   placeholder="Rótulo"
                   value={option.label}
