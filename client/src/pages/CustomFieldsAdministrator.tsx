@@ -22,6 +22,9 @@ import {
   X
 } from 'lucide-react';
 
+// Import ConfirmationDialog component
+import ConfirmationDialog from '@/components/ui/confirmation-dialog';
+
 type ModuleType = 'customers' | 'tickets' | 'beneficiaries' | 'materials' | 'services' | 'locations';
 type FieldType = 'text' | 'number' | 'select' | 'multiselect' | 'date' | 'boolean' | 'textarea' | 'file' | 'email' | 'phone';
 
@@ -70,6 +73,7 @@ export default function CustomFieldsAdministrator() {
   const [selectedModule, setSelectedModule] = useState<ModuleType>('customers');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingField, setEditingField] = useState<CustomFieldMetadata | null>(null);
+  const [fieldToDelete, setFieldToDelete] = useState<CustomFieldMetadata | null>(null); // State for delete confirmation
   const [activeTab, setActiveTab] = useState('fields');
 
   // Fetch fields for selected module
@@ -82,6 +86,22 @@ export default function CustomFieldsAdministrator() {
         }
       });
       if (!response.ok) {
+        // Handle specific errors more gracefully if possible
+        if (response.status === 401) {
+          toast({
+            title: 'Não Autorizado',
+            description: 'Sua sessão expirou. Por favor, faça login novamente.',
+            variant: 'destructive',
+          });
+          // Optionally redirect to login
+          // window.location.href = '/login';
+        } else {
+          toast({
+            title: 'Erro ao buscar campos',
+            description: 'Não foi possível carregar os campos customizados.',
+            variant: 'destructive',
+          });
+        }
         throw new Error('Failed to fetch fields');
       }
       const data = await response.json();
@@ -101,7 +121,8 @@ export default function CustomFieldsAdministrator() {
         body: JSON.stringify(fieldData)
       });
       if (!response.ok) {
-        throw new Error('Failed to create field');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to create field');
       }
       return response.json();
     },
@@ -113,10 +134,10 @@ export default function CustomFieldsAdministrator() {
         description: 'Campo customizado criado com sucesso!'
       });
     },
-    onError: () => {
+    onError: (error: any) => {
       toast({
         title: 'Erro',
-        description: 'Erro ao criar campo customizado.',
+        description: error.message || 'Erro ao criar campo customizado.',
         variant: 'destructive'
       });
     }
@@ -134,7 +155,8 @@ export default function CustomFieldsAdministrator() {
         body: JSON.stringify(fieldData)
       });
       if (!response.ok) {
-        throw new Error('Failed to update field');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to update field');
       }
       return response.json();
     },
@@ -146,10 +168,10 @@ export default function CustomFieldsAdministrator() {
         description: 'Campo customizado atualizado com sucesso!'
       });
     },
-    onError: () => {
+    onError: (error: any) => {
       toast({
         title: 'Erro',
-        description: 'Erro ao atualizar campo customizado.',
+        description: error.message || 'Erro ao atualizar campo customizado.',
         variant: 'destructive'
       });
     }
@@ -165,30 +187,30 @@ export default function CustomFieldsAdministrator() {
         }
       });
       if (!response.ok) {
-        throw new Error('Failed to delete field');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to delete field');
       }
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['custom-fields', selectedModule] });
+      setFieldToDelete(null); // Close the dialog
       toast({
         title: 'Campo removido',
         description: 'Campo customizado removido com sucesso!'
       });
     },
-    onError: () => {
+    onError: (error: any) => {
       toast({
         title: 'Erro',
-        description: 'Erro ao remover campo customizado.',
+        description: error.message || 'Erro ao remover campo customizado.',
         variant: 'destructive'
       });
     }
   });
 
   const confirmDelete = (field: CustomFieldMetadata) => {
-    if (window.confirm(`Tem certeza que deseja excluir o campo "${field.fieldLabel}"? Esta ação não pode ser desfeita.`)) {
-      deleteFieldMutation.mutate(field.id);
-    }
+    deleteFieldMutation.mutate(field.id);
   };
 
   const renderFieldsList = () => {
@@ -255,7 +277,7 @@ export default function CustomFieldsAdministrator() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => confirmDelete(field)}
+                      onClick={() => setFieldToDelete(field)} // Open confirmation dialog
                       disabled={deleteFieldMutation.isPending}
                     >
                       <Trash2 className="w-4 h-4" />
@@ -404,6 +426,19 @@ export default function CustomFieldsAdministrator() {
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmationDialog
+        open={!!fieldToDelete}
+        onOpenChange={(open) => !open && setFieldToDelete(null)}
+        title="Excluir Campo Customizado"
+        description={`Tem certeza que deseja excluir o campo "${fieldToDelete?.fieldLabel}"? Esta ação não pode ser desfeita e removerá todos os dados associados.`}
+        confirmText="Excluir Campo"
+        cancelText="Cancelar"
+        variant="destructive"
+        onConfirm={() => fieldToDelete && confirmDelete(fieldToDelete)}
+        loading={deleteFieldMutation.isPending}
+      />
     </div>
   );
 }
@@ -487,7 +522,7 @@ function CreateFieldForm({ moduleType, onSubmit, isLoading }: any) {
             disabled={isLoading}
           />
         </div>
-        
+
         <div className="space-y-2">
           <Label htmlFor="fieldLabel">Rótulo do Campo</Label>
           <Input
