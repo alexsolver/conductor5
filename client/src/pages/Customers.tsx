@@ -14,48 +14,22 @@ import { renderAddressSafely, formatCompanyDisplay, getFieldSafely, formatCustom
 
 // Componente otimizado para exibição de empresas
 const CompanyDisplay = React.memo(({ companies, customerName }: { companies: any; customerName: string }) => {
-  const processCompanies = () => {
-    // Verifica se companies é válido
-    if (!companies || 
-        companies === 'undefined' || 
-        companies === 'null' || 
-        companies === '' ||
-        companies === null ||
-        companies === undefined) {
-      return [];
-    }
+  if (!companies || companies === 'undefined' || companies === 'null' || companies === '') {
+    return (
+      <div className="flex items-center text-gray-400 dark:text-gray-500">
+        <Building className="h-3 w-3 mr-1 opacity-50" />
+        <span className="text-sm italic">Nenhuma empresa</span>
+      </div>
+    );
+  }
 
-    let companiesList: string[] = [];
-    
-    try {
-      if (typeof companies === 'string') {
-        // Tenta fazer parse caso seja JSON string
-        try {
-          const parsed = JSON.parse(companies);
-          if (Array.isArray(parsed)) {
-            companiesList = parsed.filter(Boolean);
-          } else {
-            companiesList = companies.split(',').map(c => c.trim()).filter(Boolean);
-          }
-        } catch {
-          companiesList = companies.split(',').map(c => c.trim()).filter(Boolean);
-        }
-      } else if (Array.isArray(companies)) {
-        companiesList = companies.filter(Boolean);
-      } else if (typeof companies === 'object' && companies !== null) {
-        // Se for um objeto, tenta extrair propriedades relevantes
-        const possibleNames = [companies.name, companies.display_name, companies.company_name].filter(Boolean);
-        companiesList = possibleNames;
-      }
-    } catch (error) {
-      console.warn(`[CompanyDisplay] Error processing companies for ${customerName}:`, error);
-      return [];
-    }
-
-    return companiesList;
-  };
-
-  const companiesList = processCompanies();
+  let companiesList: string[] = [];
+  
+  if (typeof companies === 'string') {
+    companiesList = companies.split(',').map(c => c.trim()).filter(Boolean);
+  } else if (Array.isArray(companies)) {
+    companiesList = companies.filter(Boolean);
+  }
 
   if (companiesList.length === 0) {
     return (
@@ -294,28 +268,16 @@ export default function Customers() {
   const { data: customersData, isLoading, error, refetch } = useQuery({
     queryKey: ["/api/customers"],
     queryFn: async () => {
-      try {
-        const { apiRequest } = await import('../lib/queryClient');
-        const response = await apiRequest('GET', '/api/customers');
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-        const data = await response.json();
-        console.log('Customers API Response:', data);
-        return data;
-      } catch (error) {
-        console.error('Failed to fetch customers:', error);
-        throw error;
-      }
+      const { apiRequest } = await import('../lib/queryClient');
+      const response = await apiRequest('GET', '/api/customers');
+      const data = await response.json();
+      console.log('Customers API Response:', data);
+      return data;
     },
-    retry: (failureCount, error) => {
-      if (error?.message?.includes('500')) return false;
-      return failureCount < 2;
-    },
-    staleTime: 30000, // 30 segundos
+    retry: 2,
+    staleTime: 60000, // 1 minuto
     refetchOnWindowFocus: false,
-    refetchOnMount: true,
-    refetchInterval: false,
+    refetchOnMount: false,
   });
 
   const allCustomers = customersData?.customers || [];
@@ -444,9 +406,6 @@ export default function Customers() {
 
   // Error state melhorado
   if (error) {
-    const isServerError = error?.message?.includes('500');
-    const isCriticalError = error?.message?.includes('sql is not defined');
-    
     return (
       <div className="p-4 space-y-6">
         <div className="flex justify-between items-center">
@@ -454,29 +413,15 @@ export default function Customers() {
         </div>
         <Card>
           <CardContent className="p-8 text-center">
-            <div className={`mb-4 ${isServerError ? 'text-red-600' : 'text-orange-500'}`}>
-              <h4 className="text-lg font-medium mb-2">
-                {isServerError ? '🚨 Erro do Servidor' : '⚠️ Erro ao carregar clientes'}
-              </h4>
+            <div className="text-red-500 mb-4">
+              <h4 className="text-lg font-medium mb-2">❌ Erro ao carregar clientes</h4>
               <p className="text-sm text-gray-600 mb-4">
-                {isCriticalError 
-                  ? 'Erro crítico no backend: problema na consulta SQL das empresas associadas.'
-                  : error?.message || 'Não foi possível carregar os dados dos clientes.'
-                }
+                {error?.message || 'Não foi possível carregar os dados dos clientes.'}
               </p>
-              {isServerError && (
-                <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded text-xs text-left">
-                  <strong>Detalhes técnicos:</strong> {error?.message}
-                </div>
-              )}
             </div>
             
             <div className="flex gap-2 justify-center">
-              <Button 
-                onClick={() => refetch()} 
-                variant="outline"
-                disabled={isServerError && isCriticalError}
-              >
+              <Button onClick={() => refetch()} variant="outline">
                 🔄 Tentar novamente
               </Button>
               <Button onClick={() => setLocation('/dashboard')} variant="ghost">
