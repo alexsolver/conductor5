@@ -213,7 +213,7 @@ export const userActivityLogs = pgTable("user_activity_logs", {
 // Customers table (Solicitantes - internal system requesters) - Data types optimized
 export const customers = pgTable("customers", {
   id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
+  tenantId: uuid("tenant_id").notNull().references(() => tenants.id),
   firstName: varchar("first_name", { length: 255 }).notNull(),
   lastName: varchar("last_name", { length: 255 }).notNull(),
   email: varchar("email", { length: 255 }).notNull(),
@@ -245,7 +245,7 @@ export const customers = pgTable("customers", {
 // Tickets table - Complete with all frontend fields and proper relationships
 export const tickets = pgTable("tickets", {
   id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
+  tenantId: uuid("tenant_id").notNull().references(() => tenants.id),
   number: varchar("number", { length: 50 }), // FIXED: Added missing number field
   subject: varchar("subject", { length: 500 }).notNull(),
   description: text("description"),

@@ -81,7 +81,7 @@ export const schemaManager = {
         WHERE table_schema = $1
         AND table_name IN (
           'customers', 'beneficiaries', 'companies', 'customer_company_memberships',
-          'tickets', 'locations', 'user_groups', 'activity_logs'
+          'customer_item_mappings', 'tickets', 'locations', 'user_groups', 'activity_logs'
         )
         ORDER BY table_name
       `, [schemaName]);
