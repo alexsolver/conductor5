@@ -3673,7 +3673,9 @@ const TicketDetails = React.memo(() => {
                   const name = caller ? (caller.fullName || caller.name ||
                              `${caller.firstName || ''} ${caller.lastName || ''}`.trim() || 'Nome não informado') : 'Não especificado';
                   const email = caller?.email || 'Não informado';
-                  const address = caller?.address || 'Não informado';
+                  const address = typeof caller?.address === 'string' ? caller.address : 
+                                 caller?.address ? 
+                                 `${caller.address.street || ''} ${caller.address.number || ''}`.trim() || 'Não informado' : 'Não informado';
                   const addressNumber = caller?.addressNumber || '';
 
                   return (
