@@ -3284,29 +3284,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
       const schemaName = schemaManager.getSchemaName(tenantId);
 
-      // Get companies associated with this specific customer through memberships
+      // Get companies associated with this specific customer through the customer_companies relationship table
       const companies = await tenantDb.execute(sql`
         SELECT 
-          cc.id as company_id,
-          cc.name as company_name,
-          cc.display_name,
-          cc.cnpj,
-          cc.industry,
-          cc.website,
-          cc.phone,
-          cc.email,
-          cc.status,
-          cc.subscription_tier,
-          cc.created_at,
-          cc.updated_at,
-          ccm.role,
-          ccm.department,
-          ccm.start_date
-        FROM ${sql.identifier(schemaName)}.company_memberships ccm
-        INNER JOIN ${sql.identifier(schemaName)}.customer_companies cc ON ccm.company_id = cc.id
-        WHERE ccm.customer_id = ${customerId} 
-          AND ccm.is_active = true
-        ORDER BY cc.name
+          c.id as company_id,
+          c.name as company_name,
+          c.display_name,
+          c.cnpj,
+          c.industry,
+          c.website,
+          c.phone,
+          c.email,
+          c.status,
+          c.subscription_tier,
+          c.created_at,
+          c.updated_at,
+          cc.relationship_type as role,
+          cc.start_date,
+          cc.end_date,
+          cc.is_primary
+        FROM ${sql.identifier(schemaName)}.customer_companies cc
+        INNER JOIN ${sql.identifier(schemaName)}.companies c ON cc.company_id = c.id
+        WHERE cc.customer_id = ${customerId} 
+          AND cc.is_active = true
+          AND c.is_active = true
+        ORDER BY c.name
       `);
 
       res.json({
@@ -3326,7 +3328,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/customers/:customerId/companies', jwtAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const { customerId } = req.params;
-      const { companyId, role = 'member', isPrimary = false } = req.body;
+      const { companyId, relationshipType = 'client', isPrimary = false } = req.body;
       const tenantId = req.user?.tenantId;
 
       if (!tenantId) {
@@ -3336,36 +3338,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
       const schemaName = schemaManager.getSchemaName(tenantId);
 
-      // Check if membership already exists
+      // Check if relationship already exists
       const existing = await tenantDb.execute(sql`
-        SELECT id FROM ${sql.identifier(schemaName)}.company_memberships
-        WHERE customer_id = ${customerId} AND company_id = ${companyId}
+        SELECT id FROM ${sql.identifier(schemaName)}.customer_companies
+        WHERE customer_id = ${customerId} AND company_id = ${companyId} AND is_active = true
       `);
 
       if (existing.rows.length > 0) {
         return res.status(400).json({ 
           success: false, 
-          message: 'Customer is already associated with this company' 
+          message: 'Cliente já está associado a esta empresa' 
         });
       }
 
-      // Create new membership - using only existing columns
-      const membership = await tenantDb.execute(sql`
-        INSERT INTO ${sql.identifier(schemaName)}.company_memberships 
-        (tenant_id, customer_id, company_id, role, is_active, start_date, created_at, updated_at)
-        VALUES (${tenantId}, ${customerId}, ${companyId}, ${role}, true, NOW(), NOW(), NOW())
+      // Create new customer-company relationship
+      const relationship = await tenantDb.execute(sql`
+        INSERT INTO ${sql.identifier(schemaName)}.customer_companies 
+        (customer_id, company_id, relationship_type, is_primary, is_active, start_date, created_at, updated_at)
+        VALUES (${customerId}, ${companyId}, ${relationshipType}, ${isPrimary}, true, CURRENT_DATE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
         RETURNING *
       `);
 
       res.status(201).json({
         success: true,
-        data: membership.rows[0]
+        message: 'Cliente associado à empresa com sucesso',
+        data: relationship.rows[0]
       });
     } catch (error) {
       console.error('Error adding customer to company:', error);
       res.status(500).json({ 
         success: false, 
-        message: 'Failed to add customer to company' 
+        message: 'Erro ao associar cliente à empresa' 
       });
     }
   });
@@ -3383,9 +3386,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
       const schemaName = schemaManager.getSchemaName(tenantId);
 
+      // Soft delete the customer-company relationship
       await tenantDb.execute(sql`
-        UPDATE ${sql.identifier(schemaName)}.company_memberships
-        SET is_active = false
+        UPDATE ${sql.identifier(schemaName)}.customer_companies
+        SET is_active = false, end_date = CURRENT_DATE, updated_at = CURRENT_TIMESTAMP
         WHERE customer_id = ${customerId} AND company_id = ${companyId}
       `);
 
