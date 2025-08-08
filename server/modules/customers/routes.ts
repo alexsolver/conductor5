@@ -9,6 +9,7 @@ import { DeleteCustomerUseCase } from './application/usecases/DeleteCustomerUseC
 import { CustomerRepository } from '../../infrastructure/repositories/CustomerRepository';
 import { CustomerListResponseDTO } from './application/dto/CustomerResponseDTO';
 import { validateCreateCustomer, validateUpdateCustomer } from './middleware/customerValidation';
+import { z } from 'zod';
 
 const customersRouter = Router();
 
@@ -28,8 +29,38 @@ const customerApplicationService = new CustomerApplicationService(
 
 const customerController = new CustomerController(customerApplicationService);
 
+// Validation middleware for query parameters
+const validateGetCustomers = (req: Request, res: Response, next: NextFunction) => {
+  const querySchema = z.object({
+    page: z.string().optional().transform(val => val ? parseInt(val) : 1),
+    limit: z.string().optional().transform(val => val ? parseInt(val) : 100),
+    search: z.string().optional(),
+    customerType: z.enum(['PF', 'PJ']).optional()
+  });
+
+  try {
+    const validation = querySchema.safeParse(req.query);
+    if (!validation.success) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid query parameters',
+        details: validation.error.errors,
+        code: 'QUERY_VALIDATION_ERROR'
+      });
+    }
+    req.query = validation.data;
+    next();
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Query validation error',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+};
+
 // GET /api/customers - Get all customers with proper validation
-customersRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
+customersRouter.get('/', jwtAuth, validateGetCustomers, async (req: AuthenticatedRequest, res) => {
   try {
     const { schemaManager } = await import('../../db');
     const pool = schemaManager.getPool();
