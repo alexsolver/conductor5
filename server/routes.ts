@@ -280,40 +280,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
         [req.user.tenantId]
       );
 
-      const customers = result.rows.map(row => ({
-        id: row.id,
-        first_name: row.first_name,
-        last_name: row.last_name,
-        firstName: row.first_name,
-        lastName: row.last_name,
-        email: row.email,
-        phone: row.phone,
-        associated_companies: row.associated_companies || '',
-        address: row.address,
-        address_number: row.address_number,
-        complement: row.complement,
-        neighborhood: row.neighborhood,
-        city: row.city,
-        state: row.state,
-        zip_code: row.zip_code,
-        zipCode: row.zip_code,
-        status: "Ativo", // Default status for display
-        role: "Customer", // Default role
-        customer_type: row.customer_type,
-        is_active: row.is_active,
-        created_at: row.created_at,
-        updated_at: row.updated_at,
-        createdAt: row.created_at,
-        updatedAt: row.updated_at
-      }));
+      const customersWithCompanies = await Promise.all(
+        result.rows.map(async (customer) => {
+          try {
+            console.log(`[GET-CUSTOMERS] Checking companies_relationships for customer ${customer.id}`);
 
-      console.log(`[GET-CUSTOMERS] Found ${customers.length} customers with associated companies`);
-      console.log(`[GET-CUSTOMERS] Sample customer data:`, customers[0]);
+            // Try companies_relationships without tenant_id filter (since column doesn't exist)
+            let companiesResult = await pool.query(`
+              SELECT DISTINCT c.name, c.display_name
+              FROM "${schemaName}".companies_relationships cr
+              JOIN "${schemaName}".companies c ON cr.company_id = c.id
+              WHERE cr.customer_id = $1 AND cr.is_active = true AND c.is_active = true
+              ORDER BY c.display_name, c.name
+              LIMIT 3
+            `, [customer.id]);
+
+            console.log(`[GET-CUSTOMERS] Found ${companiesResult.rows.length} companies for customer ${customer.id}:`, 
+              companiesResult.rows.map(r => r.name || r.display_name));
+
+            // Fallback to company_memberships if companies_relationships has no data
+            if (companiesResult.rows.length === 0) {
+              const membershipTableExists = await pool.query(`
+                SELECT 1 FROM information_schema.tables 
+                WHERE table_schema = $1 AND table_name = 'company_memberships'
+              `, [schemaName]);
+
+              if (membershipTableExists.rows.length > 0) {
+                companiesResult = await pool.query(`
+                  SELECT DISTINCT c.name, c.display_name
+                  FROM "${schemaName}".company_memberships cm
+                  JOIN "${schemaName}".companies c ON cm.company_id = c.id
+                  WHERE cm.customer_id = $1 AND c.is_active = true
+                  ORDER BY c.display_name, c.name
+                  LIMIT 3
+                `, [customer.id]);
+              }
+            }
+
+            const companyNames = companiesResult.rows
+              .map(c => c.display_name || c.name)
+              .join(', ');
+
+            return {
+              id: customer.id,
+              first_name: customer.first_name,
+              last_name: customer.last_name,
+              firstName: customer.first_name,
+              lastName: customer.last_name,
+              email: customer.email,
+              phone: customer.phone,
+              associated_companies: companyNames,
+              address: customer.address,
+              address_number: customer.address_number,
+              complement: customer.complement,
+              neighborhood: customer.neighborhood,
+              city: customer.city,
+              state: customer.state,
+              zip_code: customer.zip_code,
+              zipCode: customer.zip_code,
+              status: "Ativo", // Default status for display
+              role: "Customer", // Default role
+              customer_type: customer.customer_type,
+              is_active: customer.is_active,
+              created_at: customer.created_at,
+              updated_at: customer.updated_at,
+              createdAt: customer.created_at,
+              updatedAt: customer.updated_at
+            };
+          } catch (error) {
+            console.error(`Error processing companies for customer ${customer.id}:`, error);
+            return {
+              ...customer,
+              associated_companies: 'Error fetching companies'
+            };
+          }
+        })
+      );
+
+      console.log(`[GET-CUSTOMERS] Found ${customersWithCompanies.length} customers with associated companies`);
+      console.log(`[GET-CUSTOMERS] Sample customer data:`, customersWithCompanies[0]);
 
       res.json({
         success: true,
-        customers: customers,
-        total: customers.length
+        customers: customersWithCompanies,
+        total: customersWithCompanies.length
       });
     } catch (error) {
       console.error('Error fetching customers:', error);
@@ -3652,7 +3702,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/field-layouts', fieldLayoutRoutes);
 
   // ========================================
-  // HIERARCHICAL TICKET METADATA ROUTES - HANDLED ABOVE
+  // HIERARCHICAL TICKET METADATAROUTES - HANDLED ABOVE
   // ========================================
   // Note: Hierarchical routes are now registered above with proper error handling
 
