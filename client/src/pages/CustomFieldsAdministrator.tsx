@@ -76,35 +76,24 @@ export default function CustomFieldsAdministrator() {
   const [fieldToDelete, setFieldToDelete] = useState<CustomFieldMetadata | null>(null); // State for delete confirmation
   const [activeTab, setActiveTab] = useState('fields');
 
-  // Fetch fields for selected module
+  // Fetch fields for selected module using session authentication
   const { data: moduleFields = [], isLoading } = useQuery({
     queryKey: ['custom-fields', selectedModule],
     queryFn: async () => {
-      const token = localStorage.getItem('token');
-      console.log('🔍 [Custom Fields] Token available:', !!token);
+      console.log('🔍 [Custom Fields] Fetching fields for module:', selectedModule);
       
-      if (!token) {
-        toast({
-          title: 'Não Autorizado',
-          description: 'Token de autenticação não encontrado. Faça login novamente.',
-          variant: 'destructive',
-        });
-        window.location.href = '/login';
-        throw new Error('No token available');
-      }
-
       const response = await fetch(`/api/custom-fields/fields/${selectedModule}`, {
+        credentials: 'include', // Use session cookies instead of JWT tokens
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          'Accept': 'application/json',
         }
       });
 
       console.log('🔍 [Custom Fields] Response status:', response.status);
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        console.log('❌ [Custom Fields] Error response:', errorData);
+        const errorText = await response.text();
+        console.error('❌ [Custom Fields] API Error:', response.status, errorText);
 
         if (response.status === 401) {
           toast({
@@ -112,16 +101,15 @@ export default function CustomFieldsAdministrator() {
             description: 'Sua sessão expirou. Por favor, faça login novamente.',
             variant: 'destructive',
           });
-          localStorage.removeItem('token');
           window.location.href = '/login';
         } else {
           toast({
             title: 'Erro ao buscar campos',
-            description: errorData.message || 'Não foi possível carregar os campos customizados.',
+            description: 'Não foi possível carregar os campos customizados.',
             variant: 'destructive',
           });
         }
-        throw new Error(`HTTP ${response.status}: ${errorData.message || 'Failed to fetch fields'}`);
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
       const data = await response.json();
       console.log('✅ [Custom Fields] Data received:', data);
@@ -129,20 +117,20 @@ export default function CustomFieldsAdministrator() {
     }
   });
 
-  // Create field mutation
+  // Create field mutation with session authentication
   const createFieldMutation = useMutation({
     mutationFn: async (fieldData: Partial<CustomFieldMetadata>) => {
       const response = await fetch('/api/custom-fields/fields', {
         method: 'POST',
+        credentials: 'include', // Use session cookies
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify(fieldData)
       });
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to create field');
+        const errorText = await response.text();
+        throw new Error(errorText || 'Failed to create field');
       }
       return response.json();
     },

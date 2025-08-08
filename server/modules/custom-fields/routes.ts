@@ -52,11 +52,21 @@ try {
   const customFieldsRepository = new CustomFieldsRepository(schemaManager);
   const customFieldsController = new CustomFieldsController(customFieldsRepository);
 
+  // Test route without authentication (temporary for debugging)
+  router.get('/test', async (req, res) => {
+    res.json({ 
+      message: 'Custom Fields module is working!',
+      timestamp: new Date().toISOString(),
+      hasSession: !!req.session,
+      sessionUser: req.session?.user || null
+    });
+  });
+
   // Apply session authentication middleware
   router.use(sessionAuth);
 
   console.log('🔧 [Custom Fields Routes] Session authentication middleware applied');
-
+  console.log('🔧 [Custom Fields Routes] All routes initialized and ready');
 
   // Routes for field metadata management
   router.get('/fields/:moduleType', async (req, res) => {
