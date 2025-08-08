@@ -3,8 +3,8 @@ import { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { validateCPF, validateCNPJ } from '@shared/validators/brazilian-documents';
 
-// Customer creation validation schema
-export const createCustomerSchema = z.object({
+// Base customer validation schema
+const baseCustomerSchema = z.object({
   firstName: z.string().min(1, "First name is required").max(255),
   lastName: z.string().min(1, "Last name is required").max(255),
   email: z.string().email("Valid email is required").max(255),
@@ -44,8 +44,11 @@ export const createCustomerSchema = z.object({
   path: ["customerType"]
 });
 
-// Update customer validation schema
-export const updateCustomerSchema = createCustomerSchema.partial();
+// Export the creation schema
+export const createCustomerSchema = baseCustomerSchema;
+
+// Update customer validation schema (partial of base schema)
+export const updateCustomerSchema = baseCustomerSchema.partial();
 
 // Validation middleware
 export const validateCreateCustomer = (req: Request, res: Response, next: NextFunction) => {
