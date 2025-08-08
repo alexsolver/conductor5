@@ -913,7 +913,7 @@ export default function Tickets() {
               </div>
             </CardContent>
           </Card>
-        ))
+        ))}
         ) : (
           <Card>
             <CardContent className="p-12 text-center">
