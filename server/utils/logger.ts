@@ -94,32 +94,81 @@ const logger = winston.createLogger({
   exitOnError: false,
 });
 
+// Enhanced logging utility with structured format and monitoring
+interface LogMetadata {
+  operation?: string;
+  tenantId?: string;
+  userId?: string;
+  module?: string;
+  timestamp?: string;
+  requestId?: string;
+  [key: string]: any;
+}
+
 // Função auxiliar para logging de erros com contexto
-export const logError = (message: string, error?: Error | unknown, context?: Record<string, any>) => {
-  const logData: any = { message };
-  
-  if (error) {
-    if (error instanceof Error) {
-      logData.error = {
-        name: error.name,
-        message: error.message,
-        stack: error.stack,
-      };
-    } else {
-      logData.error = error;
+export const logError = (message: string, error: any, metadata?: LogMetadata) => {
+  const errorLog = {
+    level: 'ERROR',
+    message,
+    error: {
+      name: error?.name,
+      message: error?.message,
+      stack: error?.stack,
+      code: error?.code
+    },
+    metadata: {
+      ...metadata,
+      timestamp: new Date().toISOString(),
+      severity: 'high'
     }
+  };
+
+  console.error(JSON.stringify(errorLog, null, 2));
+
+  // Critical error monitoring
+  if (isCriticalError(error)) {
+    logCritical('CRITICAL ERROR DETECTED', error, metadata);
   }
-  
-  if (context) {
-    logData.context = context;
-  }
-  
-  logger.error(logData);
+};
+
+export const logCritical = (message: string, error?: any, metadata?: LogMetadata) => {
+  const criticalLog = {
+    level: 'CRITICAL',
+    message,
+    error: error ? {
+      name: error?.name,
+      message: error?.message,
+      stack: error?.stack
+    } : null,
+    metadata: {
+      ...metadata,
+      timestamp: new Date().toISOString(),
+      severity: 'critical',
+      alertRequired: true
+    }
+  };
+
+  console.error('🚨 CRITICAL:', JSON.stringify(criticalLog, null, 2));
+};
+
+const isCriticalError = (error: any): boolean => {
+  const criticalPatterns = [
+    'ECONNREFUSED',
+    'ENOTFOUND',
+    'MODULE_NOT_FOUND',
+    'TENANT_VALIDATION_FAILED',
+    'AUTH_CRITICAL_FAILURE'
+  ];
+
+  return criticalPatterns.some(pattern => 
+    error?.code?.includes(pattern) || 
+    error?.message?.includes(pattern)
+  );
 };
 
 // Função auxiliar para logging de info com contexto
-export const logInfo = (message: string, context?: Record<string, any>) => {
-  logger.info({ message, ...(context && { context }) });
+export const logInfo = (message: string, metadata?: LogMetadata) => {
+  logger.info({ message, ...(metadata && { context: metadata }) });
 };
 
 // Função auxiliar para logging de warning com contexto

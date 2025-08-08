@@ -1,3 +1,5 @@
+import { validateCPF, validateCNPJ, validateRG } from '../../shared/validators/brazilian-documents';
+import { z } from 'zod';
 
 export interface ValidationResult {
   isValid: boolean;
@@ -40,10 +42,10 @@ export class LocationDataValidator {
   static validateLocationData(data: any, recordType: string): ValidationResult {
     const errors: ValidationError[] = [];
     const warnings: ValidationWarning[] = [];
-    
+
     // Check required fields
     const requiredFields = this.REQUIRED_FIELDS[recordType as keyof typeof this.REQUIRED_FIELDS] || [];
-    
+
     for (const field of requiredFields) {
       if (!data[field] || (typeof data[field] === 'string' && data[field].trim() === '')) {
         errors.push({
@@ -229,3 +231,55 @@ export class LocationDataValidator {
     return sanitized;
   }
 }
+
+export class DataValidationService {
+  static sanitizeString(input: string): string {
+    return input.trim().replace(/\s+/g, ' ').replace(/[<>]/g, '');
+  }
+
+  static validateEmail(email: string): boolean {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  }
+
+  static validatePhone(phone: string): boolean {
+    const cleanPhone = phone.replace(/\D/g, '');
+    return cleanPhone.length >= 10 && cleanPhone.length <= 15;
+  }
+
+  static validateBrazilianDocument(document: string, type: 'CPF' | 'CNPJ' | 'RG'): boolean {
+    switch (type) {
+      case 'CPF':
+        return validateCPF(document);
+      case 'CNPJ':
+        return validateCNPJ(document);
+      case 'RG':
+        return validateRG(document);
+      default:
+        return false;
+    }
+  }
+
+  static sanitizeInput(data: Record<string, any>): Record<string, any> {
+    const sanitized: Record<string, any> = {};
+
+    for (const [key, value] of Object.entries(data)) {
+      if (typeof value === 'string') {
+        sanitized[key] = this.sanitizeString(value);
+      } else if (value !== null && value !== undefined) {
+        sanitized[key] = value;
+      }
+    }
+
+    return sanitized;
+  }
+}
+
+export const customerValidationSchema = z.object({
+  firstName: z.string().min(1).max(100),
+  lastName: z.string().min(1).max(100),
+  email: z.string().email(),
+  phone: z.string().optional(),
+  document: z.string().min(1),
+  customerType: z.enum(['PF', 'PJ'])
+});

@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
-import { validateCPF, validateCNPJ } from '../../../shared/validators/brazilian-documents';
+import { validateCPF, validateCNPJ } from '../../../../shared/validators/brazilian-documents';
 
 // Enhanced customer schema with comprehensive validation
 export const baseCustomerSchema = z.object({

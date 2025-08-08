@@ -58,14 +58,11 @@ export class CustomerController {
     } catch (error) {
       const { logError } = await import('../../../utils/logger');
       logError('Customer creation failed', error, {
-        tenantId: req.user?.tenantId,
-        userId: req.user?.id,
         operation: 'CREATE_CUSTOMER',
-        customerData: {
-          customerType: req.body?.customerType,
-          hasDocument: !!req.body?.document
-        }
+        tenantId: req.user?.tenantId,
+        userId: req.user?.id
       });
+
       res.status(500).json({
         success: false,
         error: 'Internal server error',
