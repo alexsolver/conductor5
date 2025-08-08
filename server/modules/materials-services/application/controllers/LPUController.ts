@@ -157,47 +157,59 @@ export class LPUController {
     }
   }
 
-  async duplicatePriceList(req: AuthenticatedRequest, res: Response) {
+  // Duplicate price list
+  async duplicatePriceList(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const tenantId = req.user?.tenantId;
 
       if (!tenantId) {
-        return res.status(400).json({ error: 'Tenant ID é obrigatório' });
+        return res.status(400).json({ 
+          success: false,
+          error: 'Tenant ID é obrigatório' 
+        });
       }
 
-      // Buscar a lista original
-      const originalList = await this.repository.getPriceListById(id, tenantId);
-      if (!originalList) {
-        return res.status(404).json({ error: 'Lista de preços não encontrada' });
+      // Validate UUID format
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(id)) {
+        return res.status(400).json({
+          success: false,
+          error: 'ID da lista de preços inválido'
+        });
       }
 
-      // Criar dados para duplicação
-      const duplicateData = {
-        ...originalList,
-        name: `${originalList.name} (Cópia)`,
-        code: `${originalList.code}_COPY_${Date.now()}`,
-        version: "1.0",
-        validFrom: new Date().toISOString(),
-        validTo: null,
-        tenantId,
-        createdBy: req.user?.id,
-        updatedBy: req.user?.id
-      };
+      const duplicatedList = await this.repository.duplicatePriceList(id, tenantId);
 
-      // Remover campos que não devem ser duplicados
-      delete (duplicateData as any).id;
-      delete (duplicateData as any).createdAt;
-      delete (duplicateData as any).updatedAt;
+      if (!duplicatedList) {
+        return res.status(404).json({
+          success: false,
+          error: 'Lista de preços não encontrada'
+        });
+      }
 
-      const duplicatedList = await this.repository.createPriceList(duplicateData);
-      // Invalidate relevant cache
-      await this.repository.invalidateCache(tenantId, 'price-lists');
-      await this.repository.invalidateCache(tenantId, 'stats');
-      res.status(201).json(duplicatedList);
+      res.status(201).json({
+        success: true,
+        message: 'Lista de preços duplicada com sucesso',
+        data: duplicatedList
+      });
     } catch (error) {
-      console.error('Erro ao duplicar lista de preços:', error);
-      res.status(500).json({ error: 'Erro interno do servidor' });
+      console.error('❌ Duplicate price list error:', error);
+
+      // Handle specific error types
+      if (error instanceof SyntaxError && error.message.includes('JSON')) {
+        return res.status(400).json({
+          success: false,
+          error: 'Dados JSON inválidos',
+          details: 'Verifique o formato dos dados enviados'
+        });
+      }
+
+      res.status(500).json({ 
+        success: false, 
+        error: 'Erro ao duplicar lista de preços',
+        details: error instanceof Error ? error.message : 'Erro interno do servidor'
+      });
     }
   }
 
@@ -346,7 +358,7 @@ export class LPUController {
     try {
       const { priceListId } = req.params;
       const tenantId = req.user?.tenantId;
-      
+
       if (!tenantId) {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
@@ -407,18 +419,18 @@ export class LPUController {
       }
 
       const deletedItem = await this.repository.deletePriceListItem(id, tenantId);
-      
+
       if (!deletedItem) {
         return res.status(404).json({ error: 'Item não encontrado' });
       }
-      
+
       // Invalidate relevant cache (only if we have priceListId)
       if (deletedItem.priceListId) {
         await this.repository.invalidateCache(tenantId, `price-list-items/${deletedItem.priceListId}`);
       }
       await this.repository.invalidateCache(tenantId, 'stats');
       await this.repository.invalidateCache(tenantId, 'price-list-items');
-      
+
       res.status(204).send();
     } catch (error) {
       console.error('Erro ao excluir item:', error);

@@ -246,10 +246,10 @@ router.get('/price-lists/:priceListId/items', async (req: AuthenticatedRequest, 
 router.post('/price-lists/:priceListId/items', async (req: AuthenticatedRequest, res) => {
   try {
     if (!req.user?.tenantId) return res.status(401).json({ message: 'Tenant ID required' });
-    
+
     console.log('🔍 POST /price-lists/:priceListId/items - Params:', req.params);
     console.log('🔍 POST /price-lists/:priceListId/items - Body:', req.body);
-    
+
     const { lpuController } = await getControllers(req.user.tenantId);
     return lpuController.addPriceListItem(req, res);
   } catch (error) {
@@ -311,6 +311,37 @@ router.post('/price-lists/:priceListId/apply-rules', async (req: AuthenticatedRe
   if (!req.user?.tenantId) return res.status(401).json({ message: 'Tenant ID required' });
   const { lpuController } = await getControllers(req.user.tenantId);
   return lpuController.applyRulesToPriceList(req, res);
+});
+
+// Duplicate price list
+router.post('/price-lists/:id/duplicate', async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.user?.tenantId) {
+      return res.status(401).json({ 
+        success: false,
+        error: 'Tenant ID required' 
+      });
+    }
+
+    console.log('🔍 Route /price-lists/:id/duplicate: Starting for ID:', req.params.id);
+
+    const { lpuController } = await getControllers(req.user.tenantId);
+    if (!lpuController) {
+      return res.status(500).json({ 
+        success: false,
+        error: 'Controller não inicializado' 
+      });
+    }
+
+    return lpuController.duplicatePriceList(req, res);
+  } catch (error) {
+    console.error('❌ Route /price-lists/:id/duplicate: Error:', error);
+    return res.status(500).json({ 
+      success: false,
+      error: 'Erro interno do servidor',
+      details: error instanceof Error ? error.message : 'Erro desconhecido'
+    });
+  }
 });
 
 // ===== SUPPLIERS ROUTES =====
@@ -797,7 +828,7 @@ router.post('/maintenance', jwtAuth, async (req: AuthenticatedRequest, res) => {
     // For demonstration, let's assume they are available.
     // const { db } = await schemaManager.getTenantDb(tenantId); // Uncomment if needed
 
-    // Mock data for items if db and items are not available
+    // Mock data for items if db is not available
     const mockItems = [{ tenantId: tenantId, name: 'Item1', measurementUnit: 'kg', active: true, name: 'ItemA' }, { tenantId: tenantId, name: 'ItemB', measurementUnit: 'm', active: false }];
 
     switch (operation) {

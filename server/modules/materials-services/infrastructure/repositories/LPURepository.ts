@@ -19,13 +19,15 @@ export class LPURepository {
   private db: any;
   private tenantSchema: string = ''; // Added to store tenant schema
   private tenantId: string = ''; // Added to store tenant ID
+  private cache: any; // Assuming cache is available
 
-  constructor(db: any) {
+  constructor(db: any, cache: any = null) { // Added cache parameter
     if (!db) {
       throw new Error('Database connection is required but was not provided');
     }
 
     this.db = db;
+    this.cache = cache; // Assign cache
     console.log('🔌 LPURepository: Database connection assigned successfully');
 
     // Test connection synchronously for immediate feedback
@@ -170,7 +172,7 @@ export class LPURepository {
       const queryTime = Date.now() - startTime;
       console.log(`⚡ [LPURepository] Price lists query completed in ${queryTime}ms`);
       console.log(`✅ LPURepository.getAllPriceLists: Query successful, found ${result.rows.length} price lists`);
-      
+
       // Debug the first row to check data types
       if (result.rows.length > 0) {
         console.log('🔍 [DEBUG] First price list row:', JSON.stringify(result.rows[0], null, 2));
@@ -185,7 +187,7 @@ export class LPURepository {
       });
 
       console.log(`💾 [LPURepository] Price lists cached for tenant: ${tenantId}`);
-      
+
       // Transform snake_case to camelCase for frontend compatibility
       const transformedRows = result.rows.map((row: any) => ({
         ...row,
@@ -202,7 +204,7 @@ export class LPURepository {
         createdBy: row.created_by_id || row.created_by,
         updatedBy: row.updated_by
       }));
-      
+
       return transformedRows;
 
     } catch (error) {
@@ -233,7 +235,7 @@ export class LPURepository {
   async updatePriceList(id: string, tenantId: string, data: any) {
     // Invalidate cache for the tenant when a price list is updated
     await this.invalidateCache(tenantId, 'price-lists');
-    
+
     // Build update object with only valid fields, handling timestamps properly
     const updateData: any = {
       updatedAt: new Date()
@@ -242,7 +244,7 @@ export class LPURepository {
     // Safely add fields that exist in the schema
     const validFields = ['name', 'code', 'description', 'version', 'customerId', 'customerCompanyId', 
                         'contractId', 'costCenterId', 'isActive', 'currency', 'automaticMargin', 'notes', 'updatedBy'];
-    
+
     validFields.forEach(field => {
       if (data[field] !== undefined) {
         updateData[field] = data[field];
@@ -275,6 +277,128 @@ export class LPURepository {
       .returning();
     return deleted;
   }
+
+  async duplicatePriceList(priceListId: string, tenantId: string): Promise<any> {
+    try {
+      console.log('🔍 LPURepository.duplicatePriceList: Starting for ID:', priceListId);
+
+      // Validate inputs
+      if (!priceListId || !tenantId) {
+        throw new Error('ID da lista e tenant são obrigatórios');
+      }
+
+      // Get original price list
+      const originalList = await this.db
+        .select()
+        .from(priceLists)
+        .where(and(
+          eq(priceLists.id, priceListId),
+          eq(priceLists.tenantId, tenantId)
+        ))
+        .limit(1);
+
+      if (originalList.length === 0) {
+        console.log('❌ Lista de preços não encontrada:', priceListId);
+        return null;
+      }
+
+      const original = originalList[0];
+      console.log('✅ Lista original encontrada:', original.name);
+
+      // Create duplicate with new ID and updated version
+      const currentVersion = parseFloat(original.version || '1.0');
+      const newVersion = (currentVersion + 0.1).toFixed(1);
+      const timestamp = Date.now();
+
+      const duplicateData = {
+        id: crypto.randomUUID(),
+        tenantId,
+        name: `${original.name} (Cópia)`,
+        description: original.description || null,
+        code: `${original.code}_COPY_${timestamp}`.substring(0, 50), // Ensure code length limit
+        version: newVersion,
+        currency: original.currency || 'BRL',
+        customerCompanyId: original.customerCompanyId || null,
+        contractId: original.contractId || null,
+        costCenterId: original.costCenterId || null,
+        validFrom: new Date(),
+        validTo: original.validTo || null,
+        isActive: false, // Duplicates start as inactive
+        automaticMargin: original.automaticMargin || null,
+        notes: `Duplicado de: ${original.name} (v${original.version})`,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        createdById: original.createdById || null,
+        updatedBy: original.updatedBy || null
+      };
+
+      // Insert new price list
+      const [newPriceList] = await this.db
+        .insert(priceLists)
+        .values(duplicateData)
+        .returning();
+
+      console.log('✅ Nova lista criada:', newPriceList.id);
+
+      // Also duplicate price list items if they exist
+      try {
+        const originalItems = await this.db
+          .select()
+          .from(priceListItems)
+          .where(eq(priceListItems.priceListId, priceListId));
+
+        if (originalItems.length > 0) {
+          console.log(`🔄 Duplicando ${originalItems.length} itens...`);
+
+          const duplicateItems = originalItems.map(item => ({
+            id: crypto.randomUUID(),
+            priceListId: newPriceList.id,
+            tenantId: tenantId,
+            itemId: item.itemId || null,
+            serviceTypeId: item.serviceTypeId || null,
+            unitPrice: item.unitPrice || 0,
+            specialPrice: item.specialPrice || null,
+            hourlyRate: item.hourlyRate || null,
+            travelCost: item.travelCost || null,
+            isActive: item.isActive || true,
+            notes: item.notes || null,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            createdById: item.createdById || null,
+            updatedBy: item.updatedBy || null
+          }));
+
+          await this.db
+            .insert(priceListItems)
+            .values(duplicateItems);
+
+          console.log('✅ Itens duplicados com sucesso');
+        }
+      } catch (itemsError) {
+        console.warn('⚠️ Erro ao duplicar itens (não crítico):', itemsError);
+        // Continue even if items duplication fails
+      }
+
+      // Clear cache
+      const cacheKey = `price-lists-${tenantId}`;
+      if (this.cache) {
+        this.cache.delete(cacheKey);
+      }
+
+      console.log('✅ Lista duplicada com sucesso:', newPriceList.name);
+      return newPriceList;
+
+    } catch (error) {
+      console.error('❌ Repository duplicate price list error:', error);
+
+      // Re-throw with more specific error message
+      if (error instanceof Error) {
+        throw new Error(`Erro ao duplicar lista: ${error.message}`);
+      }
+      throw new Error('Erro interno ao duplicar lista de preços');
+    }
+  }
+
 
   // VERSIONAMENTO DE LISTAS
   async createPriceListVersion(data: any) {
@@ -379,7 +503,7 @@ export class LPURepository {
         eq(priceListItems.tenantId, tenantId)
       ))
       .orderBy(asc(priceListItems.createdAt));
-    
+
     return priceListItemsWithNames;
   }
 
@@ -448,12 +572,12 @@ export class LPURepository {
   async deletePriceListItem(id: string, tenantId: string) {
     // Invalidate cache for the tenant when an item is deleted
     await this.invalidateCache(tenantId, 'price-list-items');
-    
+
     const [deletedItem] = await this.db
       .delete(priceListItems)
       .where(and(eq(priceListItems.id, id), eq(priceListItems.tenantId, tenantId)))
       .returning();
-    
+
     return deletedItem;
   }
 
