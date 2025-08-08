@@ -1,11 +1,11 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Search, Mail, Phone, MapPin, Edit, MoreHorizontal, Building } from "lucide-react";
+import { Plus, Search, Mail, Phone, MapPin, Edit, MoreHorizontal, Building, Download, Upload } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { CustomerModal } from "@/components/CustomerModal";
 import { useLocation } from "wouter";
@@ -18,6 +18,7 @@ export default function Customers() {
   const [searchTerm, setSearchTerm] = useState('');
   const [customerTypeFilter, setCustomerTypeFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [selectedCustomers, setSelectedCustomers] = useState<string[]>([]);
 
   const { data: customersData, isLoading, error } = useQuery({
     queryKey: ["/api/customers"],
@@ -121,19 +122,72 @@ export default function Customers() {
 
   console.log('Customers data:', { customers, total, error, isLoading });
 
-  const handleAddCustomer = () => {
+  const handleAddCustomer = useCallback(() => {
     setSelectedCustomer(null);
     setIsCustomerModalOpen(true);
-  };
+  }, []);
 
-  const handleEditCustomer = (customer: any) => {
+  const handleEditCustomer = useCallback((customer: any) => {
     setSelectedCustomer(customer);
     setIsCustomerModalOpen(true);
-  };
+  }, []);
 
-  const handleLocationModalOpen = () => {
+  const handleLocationModalOpen = useCallback(() => {
     setLocation('/locations');
-  };
+  }, [setLocation]);
+
+  const handleExportCustomers = useCallback(() => {
+    if (!customers || customers.length === 0) {
+      return;
+    }
+
+    const csvData = customers.map(customer => ({
+      'Nome': formatCustomerName(customer),
+      'Email': customer.email || '',
+      'Telefone': getCustomerField(customer, 'phone') || customer.mobile_phone || '',
+      'Tipo': getCustomerField(customer, 'customerType') === 'PJ' ? 'Pessoa Jurídica' : 'Pessoa Física',
+      'Status': customer.status === 'active' ? 'Ativo' : 'Inativo',
+      'Empresas': typeof customer.associated_companies === 'string' ? 
+        customer.associated_companies : 
+        (Array.isArray(customer.associated_companies) ? customer.associated_companies.join(', ') : ''),
+      'Criado em': new Date(customer.created_at).toLocaleDateString('pt-BR')
+    }));
+
+    const csvContent = [
+      Object.keys(csvData[0]).join(','),
+      ...csvData.map(row => Object.values(row).map(val => `"${val}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `clientes_${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }, [customers]);
+
+  const handleSelectAll = useCallback((checked: boolean) => {
+    if (checked) {
+      setSelectedCustomers(customers?.map(c => c.id) || []);
+    } else {
+      setSelectedCustomers([]);
+    }
+  }, [customers]);
+
+  const handleSelectCustomer = useCallback((customerId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedCustomers(prev => [...prev, customerId]);
+    } else {
+      setSelectedCustomers(prev => prev.filter(id => id !== customerId));
+    }
+  }, []);
+
+  const handleBulkStatusChange = useCallback(async (newStatus: 'active' | 'inactive') => {
+    // Implementar ação em lote quando disponível na API
+    console.log('Bulk status change:', selectedCustomers, newStatus);
+    setSelectedCustomers([]);
+  }, [selectedCustomers]);
 
   const getInitials = (customer: any) => {
     // Use the same consistent field access as formatCustomerName
@@ -318,37 +372,87 @@ export default function Customers() {
             </div>
           </div>
         </div>
-        <div className="flex flex-col sm:flex-row gap-2">
-          <div className="relative">
+        <div className="flex flex-col lg:flex-row gap-4">
+          {/* Barra de Busca Aprimorada */}
+          <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <input
               type="text"
-              placeholder="Buscar clientes..."
+              placeholder="Buscar por nome, email, telefone ou empresa..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent w-full sm:w-64"
+              className="pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent w-full"
             />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm('')}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                title="Limpar busca"
+              >
+                ✕
+              </button>
+            )}
           </div>
-          
-          <select
-            value={customerTypeFilter}
-            onChange={(e) => setCustomerTypeFilter(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+
+          {/* Filtros Organizados */}
+          <div className="flex flex-wrap gap-2">
+            <div className="flex flex-col">
+              <label className="text-xs text-gray-500 mb-1">Tipo</label>
+              <select
+                value={customerTypeFilter}
+                onChange={(e) => setCustomerTypeFilter(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white min-w-[120px]"
+              >
+                <option value="all">Todos</option>
+                <option value="PF">Pessoa Física</option>
+                <option value="PJ">Pessoa Jurídica</option>
+              </select>
+            </div>
+            
+            <div className="flex flex-col">
+              <label className="text-xs text-gray-500 mb-1">Status</label>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white min-w-[100px]"
+              >
+                <option value="all">Todos</option>
+                <option value="active">Ativo</option>
+                <option value="inactive">Inativo</option>
+              </select>
+            </div>
+
+            {/* Botão Clear Filters */}
+            {(searchTerm || customerTypeFilter !== 'all' || statusFilter !== 'all') && (
+              <div className="flex flex-col">
+                <div className="text-xs">&nbsp;</div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setSearchTerm('');
+                    setCustomerTypeFilter('all');
+                    setStatusFilter('all');
+                  }}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  Limpar Filtros
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="flex gap-2">
+          <Button 
+            onClick={handleExportCustomers}
+            disabled={isLoading || customers?.length === 0}
+            variant="outline"
+            className="border-gray-300"
           >
-            <option value="all">Todos os tipos</option>
-            <option value="PF">Pessoa Física</option>
-            <option value="PJ">Pessoa Jurídica</option>
-          </select>
-          
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-          >
-            <option value="all">Todos os status</option>
-            <option value="active">Ativo</option>
-            <option value="inactive">Inativo</option>
-          </select>
+            <Download className="h-4 w-4 mr-2" />
+            Exportar CSV
+          </Button>
           <Button 
             onClick={handleAddCustomer}
             disabled={isLoading}
@@ -377,8 +481,13 @@ export default function Customers() {
                 </TableRow>
               </TableHeader>
             <TableBody>
-              {customers?.length > 0 ? customers.map((customer: any) => (
-                <TableRow key={customer.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+              {customers?.length > 0 ? customers.map((customer: any, index: number) => (
+                <TableRow 
+                  key={customer.id} 
+                  className={`hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors ${
+                    index % 2 === 0 ? 'bg-white dark:bg-gray-900' : 'bg-gray-50/50 dark:bg-gray-800/50'
+                  }`}
+                >
                   <TableCell>
                     <Avatar className="h-8 w-8">
                       <AvatarFallback className="bg-purple-500 text-white font-semibold text-sm">
