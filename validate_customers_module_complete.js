@@ -1,5 +1,5 @@
 
-const { Pool } = require('pg');
+import { Pool } from 'pg';
 
 async function validateCustomersModule() {
   const pool = new Pool({
@@ -155,8 +155,8 @@ async function validateCustomersModule() {
 }
 
 // Executar se chamado diretamente
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   validateCustomersModule();
 }
 
-module.exports = { validateCustomersModule };
+export { validateCustomersModule };
