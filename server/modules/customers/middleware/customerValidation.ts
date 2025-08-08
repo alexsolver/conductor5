@@ -35,6 +35,7 @@ export const baseCustomerSchema = z.object({
   companyName: z.string()
     .optional()
     .transform(val => val ? val.trim().replace(/\s+/g, ' ') : val),
+  status: z.enum(['Ativo', 'Inativo', 'active', 'inactive']).optional().default('Ativo'),
   isActive: z.boolean().optional().default(true),
   // Additional validation fields
   address: z.string().optional(),

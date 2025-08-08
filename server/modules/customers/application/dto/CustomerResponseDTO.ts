@@ -21,7 +21,7 @@ export interface CustomerResponseDTO {
     state?: string;
     zipCode?: string;
   };
-  status: 'active' | 'inactive';
+  status: 'active' | 'inactive' | 'Ativo' | 'Inativo';
   isActive: boolean;
   verified: boolean;
   tags: string[];

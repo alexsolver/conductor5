@@ -6,7 +6,7 @@ export class Customer {
     
     // Tipo e status
     public readonly customerType: 'PF' | 'PJ' = 'PF',
-    public readonly status: 'Ativo' | 'Inativo' = 'Ativo',
+    public readonly status: 'Ativo' | 'Inativo' | 'active' | 'inactive' = 'Ativo',
     
     // Informações básicas
     public readonly email: string,
