@@ -163,6 +163,21 @@ const TicketDetails = React.memo(() => {
     { id: "basico", label: "Informações", icon: FileText },
   ];
 
+  // Fetch ticket attachments - moved here to avoid initialization error
+  const { data: ticketAttachments, isLoading: attachmentsLoading, error: attachmentsError } = useQuery({
+    queryKey: ["/api/tickets", id, "attachments"],
+    queryFn: async () => {
+      console.log('📎 Fetching ticket attachments for:', id);
+      const response = await apiRequest("GET", `/api/tickets/${id}/attachments`);
+      const data = await response.json();
+      console.log('📎 Attachments API response:', data);
+      return data;
+    },
+    enabled: !!id,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
   // Special functionality tabs (with dynamic counters)
   const getTabLabel = (baseLabel: string, count?: number) => {
     if (count && count > 0) {
@@ -435,20 +450,6 @@ const TicketDetails = React.memo(() => {
     gcTime: 8 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
-  });
-
-  const { data: ticketAttachments, isLoading: attachmentsLoading, error: attachmentsError } = useQuery({
-    queryKey: ["/api/tickets", id, "attachments"],
-    queryFn: async () => {
-      console.log('📎 Fetching ticket attachments for:', id);
-      const response = await apiRequest("GET", `/api/tickets/${id}/attachments`);
-      const data = await response.json();
-      console.log('📎 Attachments API response:', data);
-      return data;
-    },
-    enabled: !!id,
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
   });
 
   const { data: ticketActions, isLoading: actionsLoading, error: actionsError } = useQuery({
