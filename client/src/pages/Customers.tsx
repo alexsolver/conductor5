@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -33,8 +33,9 @@ export default function Customers() {
 
   const allCustomers = customersData?.customers || [];
   
-  // Filtrar clientes baseado nos filtros aplicados
-  const customers = allCustomers.filter(customer => {
+  // Memoizar filtros para evitar recálculos desnecessários
+  const customers = useMemo(() => {
+    return allCustomers.filter(customer => {
     // Filtro de busca por texto
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
@@ -71,7 +72,8 @@ export default function Customers() {
     }
     
     return true;
-  });
+    });
+  }, [allCustomers, searchTerm, customerTypeFilter, statusFilter]);
   
   const total = allCustomers.length;
 
