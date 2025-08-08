@@ -11,7 +11,6 @@ import { CustomerListResponseDTO } from './application/dto/CustomerResponseDTO';
 import { validateCreateCustomer, validateUpdateCustomer } from './middleware/customerValidation';
 import { z } from 'zod';
 import { Request, Response, NextFunction } from 'express';
-import { sql } from '@databases/pg';
 import { db } from '../../db';
 
 const customersRouter = Router();
