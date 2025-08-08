@@ -16,6 +16,8 @@ export default function Customers() {
   const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [customerTypeFilter, setCustomerTypeFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
 
   const { data: customersData, isLoading, error } = useQuery({
     queryKey: ["/api/customers"],
@@ -31,19 +33,44 @@ export default function Customers() {
 
   const allCustomers = customersData?.customers || [];
   
-  // Filtrar clientes baseado no termo de busca
+  // Filtrar clientes baseado nos filtros aplicados
   const customers = allCustomers.filter(customer => {
-    if (!searchTerm) return true;
-    const searchLower = searchTerm.toLowerCase();
-    const fullName = formatCustomerName(customer).toLowerCase();
-    const email = customer.email?.toLowerCase() || '';
-    const phone = (customer.phone || customer.mobile_phone || '').toLowerCase();
-    const companyName = (customer.companyName || '').toLowerCase();
+    // Filtro de busca por texto
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      const fullName = formatCustomerName(customer).toLowerCase();
+      const email = customer.email?.toLowerCase() || '';
+      const phone = (customer.phone || customer.mobile_phone || '').toLowerCase();
+      const companyName = (customer.companyName || '').toLowerCase();
+      
+      // Buscar também nas empresas associadas
+      const associatedCompanies = customer.associated_companies || '';
+      const associatedCompaniesText = typeof associatedCompanies === 'string' ? 
+        associatedCompanies.toLowerCase() : 
+        (Array.isArray(associatedCompanies) ? associatedCompanies.join(' ').toLowerCase() : '');
+      
+      const matchesSearch = fullName.includes(searchLower) || 
+             email.includes(searchLower) || 
+             phone.includes(searchLower) ||
+             companyName.includes(searchLower) ||
+             associatedCompaniesText.includes(searchLower);
+             
+      if (!matchesSearch) return false;
+    }
     
-    return fullName.includes(searchLower) || 
-           email.includes(searchLower) || 
-           phone.includes(searchLower) ||
-           companyName.includes(searchLower);
+    // Filtro de tipo de cliente
+    if (customerTypeFilter !== 'all') {
+      const customerType = getCustomerField(customer, 'customerType') || 'PF';
+      if (customerType !== customerTypeFilter) return false;
+    }
+    
+    // Filtro de status
+    if (statusFilter !== 'all') {
+      const status = customer.status || 'Ativo';
+      if (status !== statusFilter) return false;
+    }
+    
+    return true;
   });
   
   const total = allCustomers.length;
@@ -289,7 +316,7 @@ export default function Customers() {
             </div>
           </div>
         </div>
-        <div className="flex space-x-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <input
@@ -297,9 +324,29 @@ export default function Customers() {
               placeholder="Buscar clientes..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent w-full sm:w-64"
             />
           </div>
+          
+          <select
+            value={customerTypeFilter}
+            onChange={(e) => setCustomerTypeFilter(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+          >
+            <option value="all">Todos os tipos</option>
+            <option value="PF">Pessoa Física</option>
+            <option value="PJ">Pessoa Jurídica</option>
+          </select>
+          
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+          >
+            <option value="all">Todos os status</option>
+            <option value="Ativo">Ativo</option>
+            <option value="Inativo">Inativo</option>
+          </select>
           <Button 
             onClick={handleAddCustomer}
             disabled={isLoading}
@@ -313,19 +360,20 @@ export default function Customers() {
 
       <Card>
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-12"></TableHead>
-                <TableHead>Nome</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Telefone</TableHead>
-                <TableHead>Empresa</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Criado em</TableHead>
-                <TableHead className="w-24">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-12"></TableHead>
+                  <TableHead className="min-w-[150px]">Nome</TableHead>
+                  <TableHead className="min-w-[200px] hidden sm:table-cell">Email</TableHead>
+                  <TableHead className="min-w-[120px] hidden md:table-cell">Telefone</TableHead>
+                  <TableHead className="min-w-[150px] hidden lg:table-cell">Empresa</TableHead>
+                  <TableHead className="min-w-[80px]">Status</TableHead>
+                  <TableHead className="min-w-[100px] hidden xl:table-cell">Criado em</TableHead>
+                  <TableHead className="w-24">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
             <TableBody>
               {customers?.length > 0 ? customers.map((customer: any) => (
                 <TableRow key={customer.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
@@ -340,32 +388,52 @@ export default function Customers() {
                     <div className="font-medium text-gray-900 dark:text-gray-100">
                       {formatCustomerName(customer)}
                     </div>
-                    {(() => {
-                      const customerType = getCustomerField(customer, 'customerType');
-                      if (customerType === 'PJ') {
-                        const companyName = getCustomerField(customer, 'companyName');
-                        return (
-                          <div className="text-sm text-gray-500 dark:text-gray-400">
-                            🏢 {companyName || 'Pessoa Jurídica'}
+                    <div className="text-sm text-gray-500 dark:text-gray-400 space-y-1">
+                      {(() => {
+                        const customerType = getCustomerField(customer, 'customerType');
+                        if (customerType === 'PJ') {
+                          const companyName = getCustomerField(customer, 'companyName');
+                          return (
+                            <div>🏢 {companyName || 'Pessoa Jurídica'}</div>
+                          );
+                        } else if (customerType === 'PF') {
+                          return (
+                            <div>👤 Pessoa Física</div>
+                          );
+                        }
+                        return null;
+                      })()}
+                      
+                      {/* Mobile-only compact info */}
+                      <div className="sm:hidden">
+                        {customer.email && (
+                          <div className="flex items-center">
+                            <Mail className="h-3 w-3 mr-1" />
+                            <span className="truncate">{customer.email}</span>
                           </div>
-                        );
-                      } else if (customerType === 'PF') {
-                        return (
-                          <div className="text-sm text-gray-500 dark:text-gray-400">
-                            👤 Pessoa Física
-                          </div>
-                        );
-                      }
-                      return null;
-                    })()}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center text-gray-600 dark:text-gray-400">
-                      <Mail className="h-3 w-3 mr-1" />
-                      <span className="truncate">{customer.email}</span>
+                        )}
+                        {(() => {
+                          const phone = getCustomerField(customer, 'phone') || 
+                                       customer.phone || 
+                                       customer.mobile_phone || 
+                                       customer.mobilePhone;
+                          return phone ? (
+                            <div className="flex items-center">
+                              <Phone className="h-3 w-3 mr-1" />
+                              <span>{String(phone)}</span>
+                            </div>
+                          ) : null;
+                        })()}
+                      </div>
                     </div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="hidden sm:table-cell">
+                    <div className="flex items-center text-gray-600 dark:text-gray-400">
+                      <Mail className="h-3 w-3 mr-1" />
+                      <span className="truncate max-w-[180px]">{customer.email}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="hidden md:table-cell">
                     {(() => {
                       const phone = getCustomerField(customer, 'phone') || 
                                    customer.phone || 
@@ -382,18 +450,37 @@ export default function Customers() {
                       );
                     })()}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="hidden lg:table-cell">
                     {(() => {
                       const companies = customer.associated_companies;
-                      const hasCompanies = companies && companies.length > 0;
+                      
+                      // Handle different data formats
+                      let companiesList = [];
+                      if (typeof companies === 'string' && companies.trim()) {
+                        companiesList = companies.split(',').map(c => c.trim()).filter(Boolean);
+                      } else if (Array.isArray(companies)) {
+                        companiesList = companies.filter(Boolean);
+                      }
+                      
+                      const hasCompanies = companiesList.length > 0;
                       
                       return (
                         <div className="flex items-center text-gray-600 dark:text-gray-400">
-                          <Building className={`h-3 w-3 mr-1 flex-shrink-0 ${hasCompanies ? '' : 'opacity-50'}`} />
+                          <Building className={`h-3 w-3 mr-1 flex-shrink-0 ${hasCompanies ? 'text-blue-500' : 'opacity-50'}`} />
                           {hasCompanies ? (
-                            <span className="text-sm truncate" title={companies.join(', ')}>
-                              {companies.length === 1 ? companies[0] : `${companies[0]} +${companies.length - 1}`}
-                            </span>
+                            <div className="flex flex-col">
+                              <span className="text-sm truncate max-w-[200px]" title={companiesList.join(', ')}>
+                                {companiesList.length === 1 ? 
+                                  companiesList[0] : 
+                                  `${companiesList[0]} ${companiesList.length > 1 ? `+${companiesList.length - 1}` : ''}`
+                                }
+                              </span>
+                              {companiesList.length > 1 && (
+                                <span className="text-xs text-gray-400">
+                                  {companiesList.length} empresas
+                                </span>
+                              )}
+                            </div>
                           ) : (
                             <span className="text-sm text-gray-400 italic">Nenhuma empresa</span>
                           )}
@@ -412,7 +499,7 @@ export default function Customers() {
                       {customer.status || "Ativo"}
                     </Badge>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="hidden xl:table-cell">
                     <span className="text-sm text-gray-500">
                       {new Date(customer.created_at).toLocaleDateString('pt-BR')}
                     </span>
@@ -453,6 +540,7 @@ export default function Customers() {
               )}
             </TableBody>
           </Table>
+          </div>
         </CardContent>
       </Card>
 

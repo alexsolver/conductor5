@@ -156,7 +156,7 @@ customersRouter.get('/', jwtAuth, validateGetCustomers, async (req: Authenticate
             SELECT DISTINCT c.name, c.display_name
             FROM "${schemaName}".companies_relationships cr
             JOIN "${schemaName}".companies c ON cr.company_id = c.id
-            WHERE cr.customer_id = $1 AND cr.tenant_id = $2 AND c.is_active = true
+            WHERE cr.customer_id = $1 AND c.tenant_id = $2 AND c.is_active = true AND cr.is_active = true
             ORDER BY c.display_name, c.name
             LIMIT 3
           `, [customer.id, req.user.tenantId]);
