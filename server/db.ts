@@ -74,15 +74,16 @@ export const schemaManager = {
 
       const tableCount = parseInt(result.rows[0]?.table_count || "0");
 
-      // Check for standardized core tables (Materials & LPU system)
+      // Check for standardized core tables (Materials & LPU system + Customer module)
       const coreResult = await pool.query(`
         SELECT table_name 
         FROM information_schema.tables 
         WHERE table_schema = $1
         AND table_name IN (
-          'customers', 'tickets', 'companies', 'locations', 
+          'customers', 'beneficiaries', 'companies', 'tickets', 'locations', 
           'items', 'suppliers', 'price_lists', 'pricing_rules',
-          'ticket_planned_items', 'ticket_consumed_items', 'user_groups'
+          'ticket_planned_items', 'ticket_consumed_items', 'user_groups',
+          'customer_item_mappings', 'item_customer_links'
         )
         ORDER BY table_name
       `, [schemaName]);
@@ -99,7 +100,10 @@ export const schemaManager = {
           SELECT 'tickets' as table_name UNION ALL
           SELECT 'ticket_messages' UNION ALL  
           SELECT 'activity_logs' UNION ALL
-          SELECT 'ticket_history'
+          SELECT 'ticket_history' UNION ALL
+          SELECT 'customers' UNION ALL
+          SELECT 'beneficiaries' UNION ALL
+          SELECT 'customer_item_mappings'
         ) t
         LEFT JOIN information_schema.columns c 
           ON c.table_schema = $1 
@@ -109,13 +113,14 @@ export const schemaManager = {
 
       const softDeleteCoverage = softDeleteCheck.rows.filter(row => row.has_is_active).length;
 
-      // Enhanced validation criteria (11 core tables now defined)
-      const isValid = tableCount >= 60 && coreTableCount >= 11 && softDeleteCoverage >= 2;
+      // Enhanced validation criteria (14 core tables including customer module)
+      const isValid = tableCount >= 60 && coreTableCount >= 13 && softDeleteCoverage >= 5;
       
-      console.log(`✅ Tenant schema validated for ${tenantId}: ${tableCount} tables (${coreTableCount}/11 core tables, ${softDeleteCoverage}/4 soft-delete) - ${isValid ? 'VALID' : 'INVALID'}`);
+      console.log(`✅ Tenant schema validated for ${tenantId}: ${tableCount} tables (${coreTableCount}/14 core tables, ${softDeleteCoverage}/7 soft-delete) - ${isValid ? 'VALID' : 'INVALID'}`);
       
       if (!isValid) {
-        console.log(`📋 Missing core tables: ${['customers', 'tickets', 'companies', 'locations', 'items', 'price_lists', 'ticket_planned_items', 'ticket_consumed_items', 'user_groups'].filter(t => !coreTables.includes(t))}`);
+        const expectedTables = ['customers', 'beneficiaries', 'companies', 'tickets', 'locations', 'items', 'suppliers', 'price_lists', 'pricing_rules', 'ticket_planned_items', 'ticket_consumed_items', 'user_groups', 'customer_item_mappings', 'item_customer_links'];
+        console.log(`📋 Missing core tables: ${expectedTables.filter(t => !coreTables.includes(t))}`);
       }
       
       return isValid;

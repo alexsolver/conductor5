@@ -50,16 +50,18 @@ export {
 
 // Validation: Ensure all critical exports are available
 import type { 
-  User, Customer, Ticket, Tenant,
+  User, Customer, Ticket, Tenant, Company, Beneficiary,
   TicketPlannedItem, TicketConsumedItem,
-  Item, PriceList, PricingRule
+  Item, PriceList, PricingRule,
+  CustomerItemMapping, InsertCustomerItemMapping
 } from "./schema-master";
 
 // Re-export all types for consistency
 export type {
-  User, Customer, Ticket, Tenant,
+  User, Customer, Ticket, Tenant, Company, Beneficiary,
   TicketPlannedItem, TicketConsumedItem,
-  Item, PriceList, PricingRule
+  Item, PriceList, PricingRule,
+  CustomerItemMapping, InsertCustomerItemMapping
 };
 
 // This file serves as the single entry point for all schema definitions

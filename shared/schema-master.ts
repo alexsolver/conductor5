@@ -282,7 +282,7 @@ export const tickets = pgTable("tickets", {
   groupField: varchar("group_field", { length: 100 }),
   serviceVersion: varchar("service_version", { length: 100 }),
   summary: text("summary"),
-  
+
   // FIXED: Added missing resolution fields
   responsibleTeam: varchar("responsible_team", { length: 100 }),
   resolutionCode: varchar("resolution_code", { length: 100 }),
@@ -352,7 +352,7 @@ export const activityLogs = pgTable("activity_logs", {
   metadata: jsonb("metadata"),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),  // Fixed: audit field added
+  updatedAt: timestamp("updated_at").defaultNow(), // Fixed: audit field added
 }, (table) => [
   index("activity_logs_tenant_entity_idx").on(table.tenantId, table.entityType, table.entityId),
   index("activity_logs_tenant_time_idx").on(table.tenantId, table.createdAt),
@@ -386,7 +386,7 @@ export const companies = pgTable("companies", {
   description: text("description"),
   size: varchar("size", { length: 50 }),
   subscriptionTier: varchar("subscription_tier", { length: 50 }),
-  status: varchar("status", { length: 50 }).default("active"),    // CONTEXTUAL: Companies start operational "active"
+  status: varchar("status", { length: 50 }).default("active"), // CONTEXTUAL: Companies start operational "active"
   createdBy: varchar("created_by", { length: 255 }),
   updatedBy: varchar("updated_by", { length: 255 }),
   createdAt: timestamp("created_at").defaultNow(),
@@ -511,23 +511,23 @@ export const beneficiaries = pgTable("beneficiaries", {
   tenantId: uuid("tenant_id").notNull(),
 
   // Basic Information
-  firstName: varchar("first_name", { length: 255 }),       // Standardized for consistency
-  lastName: varchar("last_name", { length: 255 }),         // Standardized for consistency
-  name: varchar("name", { length: 255 }).notNull(),        // Full name or display name
-  email: varchar("email", { length: 255 }),                // Already English ✓
-  phone: varchar("phone", { length: 20 }),                 // Standardized: telefone → phone
-  cellPhone: varchar("cell_phone", { length: 20 }),        // Standardized: celular → cell_phone
+  firstName: varchar("first_name", { length: 255 }), // Standardized for consistency
+  lastName: varchar("last_name", { length: 255 }), // Standardized for consistency
+  name: varchar("name", { length: 255 }).notNull(), // Full name or display name
+  email: varchar("email", { length: 255 }), // Already English ✓
+  phone: varchar("phone", { length: 20 }), // Standardized: telefone → phone
+  cellPhone: varchar("cell_phone", { length: 20 }), // Standardized: celular → cell_phone
 
   // Brazilian Legal Documents
-  cpf: varchar("cpf", { length: 14 }),                     // Keep Brazilian legal term ✓
-  cnpj: varchar("cnpj", { length: 18 }),                   // Keep Brazilian legal term ✓
-  rg: varchar("rg", { length: 20 }),                       // Keep Brazilian legal term ✓
+  cpf: varchar("cpf", { length: 14 }), // Keep Brazilian legal term ✓
+  cnpj: varchar("cnpj", { length: 18 }), // Keep Brazilian legal term ✓
+  rg: varchar("rg", { length: 20 }), // Keep Brazilian legal term ✓
 
   // Address Information
-  address: text("address"),                                 // Standardized: endereco → address
-  city: varchar("city", { length: 100 }),                  // Standardized: cidade → city
-  state: varchar("state", { length: 2 }),                  // Standardized: estado → state
-  zipCode: varchar("zip_code", { length: 10 }),            // Standardized: cep → zip_code
+  address: text("address"), // Standardized: endereco → address
+  city: varchar("city", { length: 100 }), // Standardized: cidade → city
+  state: varchar("state", { length: 2 }), // Standardized: estado → state
+  zipCode: varchar("zip_code", { length: 10 }), // Standardized: cep → zip_code
 
   // Contact Information
   contactPerson: varchar("contact_person", { length: 255 }),
@@ -542,10 +542,10 @@ export const beneficiaries = pgTable("beneficiaries", {
   birthDate: date("birth_date"),
 
   // Additional Information
-  notes: text("notes"),                                     // Standardized: observacoes → notes
-  isActive: boolean("is_active").default(true),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+  notes: text("notes"), // Standardized: observacoes → notes
+  isActive: boolean("is_active").default(true).notNull(), // NOT NULL for consistency
+  createdAt: timestamp("created_at").defaultNow().notNull(), // NOT NULL
+  updatedAt: timestamp("updated_at").defaultNow().notNull(), // NOT NULL
 }, (table) => ({
   uniqueTenantEmail: unique("beneficiaries_tenant_email_unique").on(table.tenantId, table.email),
   uniqueTenantCpf: unique("beneficiaries_tenant_cpf_unique").on(table.tenantId, table.cpf),
@@ -570,9 +570,9 @@ export const projects = pgTable("projects", {
   actualHours: integer("actual_hours"),
   startDate: date("start_date"),
   endDate: date("end_date"),
-  managerId: uuid("manager_id").references(() => users.id),    // Fixed: added FK reference
-  clientId: uuid("client_id").references(() => customers.id),  // Fixed: added FK reference
-  teamMemberIds: uuid("team_member_ids").array().default([]),  // Fixed: JSONB → native array
+  managerId: uuid("manager_id").references(() => users.id), // Fixed: added FK reference
+  clientId: uuid("client_id").references(() => customers.id), // Fixed: added FK reference
+  teamMemberIds: uuid("team_member_ids").array().default([]), // Fixed: JSONB → native array
   tags: text("tags").array(),
   customFields: jsonb("custom_fields"),
   isActive: boolean("is_active").default(true),
@@ -592,13 +592,13 @@ export const projectActions = pgTable("project_actions", {
   title: varchar("title", { length: 255 }).notNull(),
   description: text("description"),
   type: varchar("type", { length: 50 }).notNull(),
-  status: varchar("status", { length: 50 }).default("pending").notNull(),  // Actions workflow: pending → in_progress → completed
+  status: varchar("status", { length: 50 }).default("pending").notNull(), // Actions workflow: pending → in_progress → completed
   priority: varchar("priority", { length: 20 }).default("medium"),
   estimatedHours: integer("estimated_hours"),
   actualHours: integer("actual_hours"),
   scheduledDate: date("scheduled_date"),
-  responsibleId: uuid("responsible_id").references(() => users.id),      // Fixed: added FK reference
-  responsibleIds: uuid("responsible_ids").array().default([]),          // Fixed: JSONB → native array
+  responsibleId: uuid("responsible_id").references(() => users.id), // Fixed: added FK reference
+  responsibleIds: uuid("responsible_ids").array().default([]), // Fixed: JSONB → native array
   dependsOnActionIds: uuid("depends_on_action_ids").array().default([]), // Fixed: JSONB → native array
   blockedByActionIds: uuid("blocked_by_action_ids").array().default([]), // Fixed: JSONB → native array
   relatedTicketId: uuid("related_ticket_id").references(() => tickets.id), // Fixed: added FK reference
@@ -779,7 +779,7 @@ export const marketLocalization = pgTable("market_localization", {
 // Field Alias Mapping - Aliases internacionais para campos brasileiros (cpf → tax_id)
 export const fieldAliasMapping = pgTable("field_alias_mapping", {
   id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),  sourceTable: varchar("source_table", { length: 100 }).notNull(), // favorecidos
+  tenantId: uuid("tenant_id").notNull(), sourceTable: varchar("source_table", { length: 100 }).notNull(), // favorecidos
   sourceField: varchar("source_field", { length: 100 }).notNull(), // cpf, cnpj, rg
   aliasField: varchar("alias_field", { length: 100 }).notNull(), // tax_id, business_tax_id
   aliasDisplayName: varchar("alias_display_name", { length: 200 }).notNull(),
@@ -919,7 +919,7 @@ export const workSchedules = pgTable("work_schedules", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Absence Requests - Solicitações de Ausência  
+// Absence Requests - Solicitações de Ausência
 export const absenceRequests = pgTable("absence_requests", {
   id: uuid("id").defaultRandom().primaryKey(),
   tenantId: uuid("tenant_id").notNull(),
@@ -1830,6 +1830,10 @@ export type InsertDepartment = typeof departments.$inferInsert;
 export type Department = typeof departments.$inferSelect;
 export type InsertUserGroup = typeof userGroups.$inferInsert;
 export type UserGroup = typeof userGroups.$inferSelect;
+export type InsertUserGroupMembership = typeof userGroupMemberships.$inferInsert;
+export type InsertCustomerCompanyMembership = typeof customerCompanyMemberships.$inferSelect;
+export type CustomerCompanyMembership = typeof customerCompanyMemberships.$inferInsert;
+
 export type InsertPerformanceMetric = typeof performanceMetrics.$inferInsert;
 export type PerformanceMetric = typeof performanceMetrics.$inferSelect;
 
@@ -2865,24 +2869,6 @@ export type InsertStockLevel = typeof stockLevels.$inferInsert;
 export type Supplier = typeof suppliers.$inferSelect;
 export type InsertSupplier = typeof suppliers.$inferInsert;
 
-// Notification types
-export type Notification = typeof notifications.$inferSelect;
-export type InsertNotification = typeof notifications.$inferInsert;
-export type NotificationPreference = typeof notificationPreferences.$inferSelect;
-export type InsertNotificationPreference = typeof notificationPreferences.$inferInsert;
-export type NotificationTemplate = typeof notificationTemplates.$inferSelect;
-export type InsertNotificationTemplate = typeof notificationTemplates.$inferInsert;
-export type NotificationLog = typeof notificationLogs.$inferSelect;
-export type InsertNotificationLog = typeof notificationLogs.$inferInsert;
-
-
-
-// Zod Schemas for notifications
-export const insertNotificationSchema = createInsertSchema(notifications);
-export const insertNotificationPreferenceSchema = createInsertSchema(notificationPreferences);
-export const insertNotificationTemplateSchema = createInsertSchema(notificationTemplates);
-export const insertNotificationLogSchema = createInsertSchema(notificationLogs);
-
 // ========================================
 // ENHANCED SLA SYSTEM INTEGRATED WITH TICKET METADATA
 // ========================================
@@ -3233,7 +3219,7 @@ export const templateApprovals = pgTable("template_approvals", {
   index("template_approvals_status_idx").on(table.tenantId, table.status),
 ]);
 
-// Template types
+// Ticket types
 export type TicketTemplate = typeof ticketTemplates.$inferSelect;
 export type InsertTicketTemplate = typeof ticketTemplates.$inferInsert;
 export type TemplateVersion = typeof templateVersions.$inferSelect;
