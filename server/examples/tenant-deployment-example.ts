@@ -113,7 +113,7 @@ export async function checkTenantTemplateStatus(
     if (hasTemplate) {
       // Buscar dados da empresa Default
       const companyQuery = `
-        SELECT * FROM "${schemaName}".customer_companies 
+        SELECT * FROM "${schemaName}".companies_relationships 
         WHERE id = $1 AND tenant_id = $2
       `;
       const result = await pool.query(companyQuery, [DEFAULT_COMPANY_TEMPLATE.company.id, tenantId]);
@@ -175,7 +175,7 @@ export async function handleTenantCreationRoute(req: any, res: any) {
     res.status(500).json({
       success: false,
       message: 'Failed to create tenant',
-      error: error.message
+      error: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 }

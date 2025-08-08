@@ -3322,14 +3322,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           c.subscription_tier,
           c.created_at,
           c.updated_at,
-          cc.relationship_type as role,
-          cc.start_date,
-          cc.end_date,
-          cc.is_primary
-        FROM ${sql.identifier(schemaName)}.customer_companies cc
-        INNER JOIN ${sql.identifier(schemaName)}.companies c ON cc.company_id = c.id
-        WHERE cc.customer_id = ${customerId} 
-          AND cc.is_active = true
+          cr.relationship_type as role,
+          cr.start_date,
+          cr.end_date,
+          cr.is_primary
+        FROM ${sql.identifier(schemaName)}.companies_relationships cr
+        INNER JOIN ${sql.identifier(schemaName)}.companies c ON cr.company_id = c.id
+        WHERE cr.customer_id = ${customerId} 
+          AND cr.is_active = true
           AND c.is_active = true
         ORDER BY c.name
       `);
@@ -3365,7 +3365,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Check if relationship already exists
       const existing = await tenantDb.execute(sql`
-        SELECT id FROM ${sql.identifier(schemaName)}.customer_companies
+        SELECT id FROM ${sql.identifier(schemaName)}.companies_relationships
         WHERE customer_id = ${customerId} AND company_id = ${companyId} AND is_active = true
       `);
 
@@ -3378,7 +3378,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Create new customer-company relationship
       const relationship = await tenantDb.execute(sql`
-        INSERT INTO ${sql.identifier(schemaName)}.customer_companies 
+        INSERT INTO ${sql.identifier(schemaName)}.companies_relationships 
         (customer_id, company_id, relationship_type, is_primary, is_active, start_date, created_at, updated_at)
         VALUES (${customerId}, ${companyId}, ${relationshipType}, ${isPrimary}, true, CURRENT_DATE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
         RETURNING *
@@ -3413,7 +3413,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Soft delete the customer-company relationship
       await tenantDb.execute(sql`
-        UPDATE ${sql.identifier(schemaName)}.customer_companies
+        UPDATE ${sql.identifier(schemaName)}.companies_relationships
         SET is_active = false, end_date = CURRENT_DATE, updated_at = CURRENT_TIMESTAMP
         WHERE customer_id = ${customerId} AND company_id = ${companyId}
       `);
