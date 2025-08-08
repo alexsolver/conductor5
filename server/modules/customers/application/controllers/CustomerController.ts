@@ -1,36 +1,8 @@
-/**
- * Customer Controller
- * Clean Architecture - Application Layer
- * Handles HTTP requests and delegates to Application Service
- */
 
-import { Request, Response } from 'express';
-import { z } from 'zod';
-import { CustomerApplicationService } from '../services/CustomerApplicationService';
+import { Response } from 'express';
 import { AuthenticatedRequest } from '../../../middleware/jwtAuth';
-
-// Input validation schemas
-const createCustomerSchema = z.object({
-  firstName: z.string().min(1, "First name is required").max(255),
-  lastName: z.string().min(1, "Last name is required").max(255),
-  email: z.string().email("Valid email is required").max(255),
-  phone: z.string().max(50).optional(),
-  company: z.string().max(255).optional(),
-  tags: z.array(z.string()).default([]),
-  verified: z.boolean().default(false),
-  active: z.boolean().default(true),
-  timezone: z.string().max(50).default("UTC"),
-  locale: z.string().max(10).default("en-US"),
-  language: z.string().max(5).default("en"),
-});
-
-const queryParamsSchema = z.object({
-  limit: z.string().regex(/^\d+$/).transform(Number).optional(),
-  offset: z.string().regex(/^\d+$/).transform(Number).optional(),
-  search: z.string().optional(),
-  active: z.enum(['true', 'false']).optional(),
-  verified: z.enum(['true', 'false']).optional(),
-});
+import { CustomerApplicationService } from '../services/CustomerApplicationService';
+import { transformToCustomerDTO } from '../dto/CustomerResponseDTO';
 
 export class CustomerController {
   constructor(
@@ -40,145 +12,172 @@ export class CustomerController {
   async createCustomer(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       if (!req.user?.tenantId) {
-        res.status(400).json({ message: "User not associated with a tenant" });
-        return;
-      }
-
-      // Validate input with Zod schema
-      const validationResult = createCustomerSchema.safeParse(req.body);
-      if (!validationResult.success) {
-        res.status(400).json({ 
-          message: "Invalid input data", 
-          errors: validationResult.error.format() 
+        res.status(403).json({
+          success: false,
+          error: 'Tenant access required',
+          code: 'MISSING_TENANT_ACCESS'
         });
         return;
       }
 
-      const input = {
-        tenantId: req.user.tenantId,
-        ...validationResult.data
+      const customerData = {
+        ...req.body,
+        tenantId: req.user.tenantId
       };
 
-      const result = await this.customerApplicationService.createCustomer(input);
+      const result = await this.customerApplicationService.createCustomer(customerData);
 
       if (result.success) {
-        res.status(201).json(result.customer);
-      } else {
-        res.status(400).json({ message: result.error });
-      }
-    } catch (error: unknown) {
-      const { logError } = await import('../../../utils/logger');
-      logError("Error creating customer", error);
-      res.status(500).json({ message: "Failed to create customer" });
-    }
-  }
-
-  async getCustomers(req: AuthenticatedRequest, res: Response): Promise<void> {
-    try {
-      if (!req.user?.tenantId) {
-        res.status(400).json({ message: "User not associated with a tenant" });
-        return;
-      }
-
-      // Validate query parameters with Zod schema
-      const validationResult = queryParamsSchema.safeParse(req.query);
-      if (!validationResult.success) {
-        res.status(400).json({ 
-          message: "Invalid query parameters", 
-          errors: validationResult.error.format() 
-        });
-        return;
-      }
-
-      const { limit, offset, search, active, verified } = validationResult.data;
-
-      const input = {
-        tenantId: req.user.tenantId,
-        limit,
-        offset,
-        search,
-        active: active ? active === 'true' : undefined,
-        verified: verified ? verified === 'true' : undefined
-      };
-
-      const result = await this.customerApplicationService.getCustomers(input);
-
-      if (result.success) {
-        res.json({
-          customers: result.customers,
-          total: result.total
+        res.status(201).json({
+          success: true,
+          data: transformToCustomerDTO(result.customer),
+          message: 'Customer created successfully'
         });
       } else {
-        res.status(500).json({ message: result.error });
+        res.status(400).json({
+          success: false,
+          error: result.error,
+          code: 'CREATION_FAILED'
+        });
       }
-    } catch (error: unknown) {
-      const { logError } = await import('../../../utils/logger');
-      logError("Error fetching customers", error);
-      res.status(500).json({ message: "Failed to fetch customers" });
+    } catch (error) {
+      console.error('[CONTROLLER] Create customer error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   }
 
   async updateCustomer(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       if (!req.user?.tenantId) {
-        res.status(400).json({ message: "User not associated with a tenant" });
-        return;
-      }
-
-      // Validate input with Zod schema
-      const updateCustomerSchema = createCustomerSchema.partial();
-      const validationResult = updateCustomerSchema.safeParse(req.body);
-      if (!validationResult.success) {
-        res.status(400).json({ 
-          message: "Invalid input data", 
-          errors: validationResult.error.format() 
+        res.status(403).json({
+          success: false,
+          error: 'Tenant access required',
+          code: 'MISSING_TENANT_ACCESS'
         });
         return;
       }
 
-      const input = {
-        id: req.params.id,
-        tenantId: req.user.tenantId,
-        ...validationResult.data
+      const customerId = req.params.id;
+      const updateData = {
+        ...req.body,
+        tenantId: req.user.tenantId
       };
 
-      const result = await this.customerApplicationService.updateCustomer(input);
+      const result = await this.customerApplicationService.updateCustomer({
+        id: customerId,
+        ...updateData
+      });
 
       if (result.success) {
-        res.json(result.customer);
+        res.json({
+          success: true,
+          data: transformToCustomerDTO(result.customer),
+          message: 'Customer updated successfully'
+        });
       } else {
-        res.status(400).json({ message: result.error });
+        res.status(400).json({
+          success: false,
+          error: result.error,
+          code: 'UPDATE_FAILED'
+        });
       }
-    } catch (error: unknown) {
-      const { logError } = await import('../../../utils/logger');
-      logError("Error updating customer", error);
-      res.status(500).json({ message: "Failed to update customer" });
+    } catch (error) {
+      console.error('[CONTROLLER] Update customer error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   }
 
   async deleteCustomer(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       if (!req.user?.tenantId) {
-        res.status(400).json({ message: "User not associated with a tenant" });
+        res.status(403).json({
+          success: false,
+          error: 'Tenant access required',
+          code: 'MISSING_TENANT_ACCESS'
+        });
         return;
       }
 
-      const input = {
-        id: req.params.id,
-        tenantId: req.user.tenantId
-      };
+      const customerId = req.params.id;
 
-      const result = await this.customerApplicationService.deleteCustomer(input);
+      const result = await this.customerApplicationService.deleteCustomer({
+        id: customerId,
+        tenantId: req.user.tenantId
+      });
 
       if (result.success) {
-        res.status(204).send();
+        res.json({
+          success: true,
+          message: 'Customer deleted successfully'
+        });
       } else {
-        res.status(400).json({ message: result.error });
+        res.status(400).json({
+          success: false,
+          error: result.error,
+          code: 'DELETE_FAILED'
+        });
       }
     } catch (error) {
-      const { logError } = await import('../../../utils/logger');
-      logError("Error deleting customer", error);
-      res.status(500).json({ message: "Failed to delete customer" });
+      console.error('[CONTROLLER] Delete customer error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
+  async getCustomers(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      if (!req.user?.tenantId) {
+        res.status(403).json({
+          success: false,
+          error: 'Tenant access required',
+          code: 'MISSING_TENANT_ACCESS'
+        });
+        return;
+      }
+
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 50;
+
+      const result = await this.customerApplicationService.getCustomers({
+        tenantId: req.user.tenantId,
+        page,
+        limit
+      });
+
+      if (result.success) {
+        res.json({
+          success: true,
+          customers: result.customers?.map(transformToCustomerDTO) || [],
+          total: result.total || 0,
+          page,
+          limit,
+          totalPages: Math.ceil((result.total || 0) / limit)
+        });
+      } else {
+        res.status(500).json({
+          success: false,
+          error: result.error,
+          code: 'FETCH_FAILED'
+        });
+      }
+    } catch (error) {
+      console.error('[CONTROLLER] Get customers error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   }
 }

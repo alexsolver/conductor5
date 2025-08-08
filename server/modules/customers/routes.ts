@@ -7,6 +7,8 @@ import { GetCustomersUseCase } from './application/usecases/GetCustomersUseCase'
 import { UpdateCustomerUseCase } from './application/usecases/UpdateCustomerUseCase';
 import { DeleteCustomerUseCase } from './application/usecases/DeleteCustomerUseCase';
 import { CustomerRepository } from '../../infrastructure/repositories/CustomerRepository';
+import { CustomerListResponseDTO } from './application/dto/CustomerResponseDTO';
+import { validateCreateCustomer, validateUpdateCustomer } from './middleware/customerValidation';
 
 const customersRouter = Router();
 
@@ -227,7 +229,7 @@ customersRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
 });
 
 // POST /api/customers - Create new customer
-customersRouter.post('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
+customersRouter.post('/', jwtAuth, validateCreateCustomer, async (req: AuthenticatedRequest, res) => {
   try {
     await customerController.createCustomer(req, res);
   } catch (error) {
@@ -241,7 +243,7 @@ customersRouter.post('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
 });
 
 // PUT /api/customers/:id - Update customer
-customersRouter.put('/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
+customersRouter.put('/:id', jwtAuth, validateUpdateCustomer, async (req: AuthenticatedRequest, res) => {
   try {
     await customerController.updateCustomer(req, res);
   } catch (error) {

@@ -74,10 +74,10 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
       email: user.email,
       role: user.role,
       tenantId: user.tenantId,
-      permissions: permissions,
+      permissions: permissions || [],
       attributes: {},
       // Add customer-specific permissions
-      hasCustomerAccess: permissions.some(p => p.includes('customer'))
+      hasCustomerAccess: Array.isArray(permissions) ? permissions.some(p => typeof p === 'string' && p.includes('customer')) : false
     };
 
     // Log successful authentication for parts-services endpoints
