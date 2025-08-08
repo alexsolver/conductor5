@@ -243,7 +243,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ON cc.company_id = comp.id AND comp.is_active = true
         WHERE c.tenant_id = $1 
         GROUP BY c.id, c.tenant_id, c.first_name, c.last_name, c.email, 
-                 c.phone, c.company, c.created_at, c.updated_at, c.address,
+                 c.phone, c.created_at, c.updated_at, c.address,
                  c.address_number, c.complement, c.neighborhood, c.city,
                  c.state, c.zip_code, c.is_active, c.customer_type
         ORDER BY c.created_at DESC`,
