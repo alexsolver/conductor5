@@ -150,24 +150,38 @@ customersRouter.get('/', jwtAuth, validateGetCustomers, async (req: Authenticate
     const customersWithCompanies = await Promise.all(
       result.rows.map(async (customer) => {
         try {
-          // Check if company_memberships table exists
-          const tableExists = await pool.query(`
-            SELECT 1 FROM information_schema.tables 
-            WHERE table_schema = $1 AND table_name = 'company_memberships'
-          `, [schemaName]);
-          
-          if (tableExists.rows.length === 0) {
-            return { ...customer, associated_companies: null };
-          }
-          
-          const companiesResult = await pool.query(`
+          // First try companies_relationships (current structure)
+          console.log(`[GET-CUSTOMERS] Checking companies_relationships for customer ${customer.id}`);
+          let companiesResult = await pool.query(`
             SELECT DISTINCT c.name, c.display_name
-            FROM "${schemaName}".company_memberships cm
-            JOIN "${schemaName}".companies c ON cm.company_id = c.id
-            WHERE cm.customer_id = $1 AND cm.tenant_id = $2 AND c.is_active = true
+            FROM "${schemaName}".companies_relationships cr
+            JOIN "${schemaName}".companies c ON cr.company_id = c.id
+            WHERE cr.customer_id = $1 AND cr.tenant_id = $2 AND c.is_active = true
             ORDER BY c.display_name, c.name
             LIMIT 3
           `, [customer.id, req.user.tenantId]);
+          
+          console.log(`[GET-CUSTOMERS] Found ${companiesResult.rows.length} companies for customer ${customer.id}:`, 
+            companiesResult.rows.map(r => r.name || r.display_name));
+          
+          // Fallback to company_memberships if companies_relationships doesn't exist or has no data
+          if (companiesResult.rows.length === 0) {
+            const membershipTableExists = await pool.query(`
+              SELECT 1 FROM information_schema.tables 
+              WHERE table_schema = $1 AND table_name = 'company_memberships'
+            `, [schemaName]);
+            
+            if (membershipTableExists.rows.length > 0) {
+              companiesResult = await pool.query(`
+                SELECT DISTINCT c.name, c.display_name
+                FROM "${schemaName}".company_memberships cm
+                JOIN "${schemaName}".companies c ON cm.company_id = c.id
+                WHERE cm.customer_id = $1 AND cm.tenant_id = $2 AND c.is_active = true
+                ORDER BY c.display_name, c.name
+                LIMIT 3
+              `, [customer.id, req.user.tenantId]);
+            }
+          }
           
           const companyNames = companiesResult.rows
             .map(c => c.display_name || c.name)
