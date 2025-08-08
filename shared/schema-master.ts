@@ -245,7 +245,7 @@ export const customers = pgTable("customers", {
 // Tickets table - Complete with all frontend fields and proper relationships
 export const tickets = pgTable("tickets", {
   id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull().references(() => tenants.id),
+  tenantId: varchar("tenant_id", { length: 36 }).notNull().references(() => tenants.id),
   number: varchar("number", { length: 50 }), // FIXED: Added missing number field
   subject: varchar("subject", { length: 500 }).notNull(),
   description: text("description"),
@@ -304,7 +304,7 @@ export const tickets = pgTable("tickets", {
 // Ticket Messages table - Critical indexes added for performance
 export const ticketMessages = pgTable("ticket_messages", {
   id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
+  tenantId: varchar("tenant_id", { length: 36 }).notNull(),
   ticketId: uuid("ticket_id").references(() => tickets.id),
   content: text("content").notNull(),
   sender: varchar("sender", { length: 255 }).notNull(),
@@ -345,7 +345,7 @@ export const ticketRelationships = pgTable("ticket_relationships", {
 // Activity Logs table - Critical indexes added, audit fields completed
 export const activityLogs = pgTable("activity_logs", {
   id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
+  tenantId: varchar("tenant_id", { length: 36 }).notNull(),
   entityType: varchar("entity_type", { length: 50 }).notNull(),
   entityId: uuid("entity_id").notNull(),
   action: varchar("action", { length: 100 }).notNull(),
@@ -402,7 +402,7 @@ export const companies = pgTable("companies", {
 // Skills table - Apenas campos básicos que funcionam
 export const skills = pgTable("skills", {
   id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
+  tenantId: varchar("tenant_id", { length: 36 }).notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   category: varchar("category", { length: 100 }).notNull(),
   description: text("description"),
@@ -416,10 +416,10 @@ export const skills = pgTable("skills", {
   index("skills_category_active_idx").on(table.tenantId, table.category, table.isActive),
 ]);
 
-// Certifications table - FIXED: tenant_id corrigido para UUID
+// Certifications table - FIXED: tenant_id corrigido para VARCHAR
 export const certifications = pgTable("certifications", {
   id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
+  tenantId: varchar("tenant_id", { length: 36 }).notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   issuer: varchar("issuer", { length: 255 }),
   description: text("description"),
