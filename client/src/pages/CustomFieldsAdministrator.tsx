@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 
 // Import ConfirmationDialog component
-import ConfirmationDialog from '@/components/ui/confirmation-dialog';
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 
 type ModuleType = 'customers' | 'tickets' | 'beneficiaries' | 'materials' | 'services' | 'locations';
 type FieldType = 'text' | 'number' | 'select' | 'multiselect' | 'date' | 'boolean' | 'textarea' | 'file' | 'email' | 'phone';
