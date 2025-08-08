@@ -93,37 +93,68 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
 
   // Add planned material mutation
   const addPlannedMutation = useMutation({
-    mutationFn: async (data: { itemId: string; quantity: number }) => {
-      // Get item details from itemsData
-      const itemsList = itemsData?.data || [];
-      const selectedItemData = itemsList.find((item: any) => item.id === data.itemId);
-      
+    mutationFn: async (data: any) => {
+      const selectedItemData = itemsData?.data?.items?.find((item: any) => item.id === selectedItem);
+
       console.log('🔍 [ADD-PLANNED-MUTATION] Selected item data:', selectedItemData);
 
-      if (!selectedItemData) {
-        throw new Error('Item not found');
+      // Use customer ID from ticket as LPU ID (this should be improved to fetch actual LPU)
+      const lpuId = ticket?.companyId || ticket?.customer_id || 'b9389438-63a3-4cf1-8d96-590969de94f6';
+      console.log('🔍 [ADD-PLANNED-MUTATION] Using LPU ID:', lpuId, 'for item:', selectedItem);
+
+      // Fetch price from LPU before creating planned item
+      let unitPrice = 0;
+      try {
+        console.log('💰 [PRICE-LOOKUP] Fetching price for item:', selectedItem, 'from LPU:', lpuId);
+
+        // First, get price lists for the tenant
+        const priceListsResponse = await apiRequest('GET', '/api/materials-services/price-lists');
+        const priceListsData = await priceListsResponse.json();
+
+        console.log('💰 [PRICE-LOOKUP] Available price lists:', priceListsData.length);
+
+        if (priceListsData && priceListsData.length > 0) {
+          // Use the first active price list (in a real scenario, you'd match by customer/company)
+          const activePriceList = priceListsData.find((pl: any) => pl.isActive) || priceListsData[0];
+
+          if (activePriceList) {
+            console.log('💰 [PRICE-LOOKUP] Using price list:', activePriceList.name, 'ID:', activePriceList.id);
+
+            // Get items from this price list
+            const priceListItemsResponse = await apiRequest('GET', `/api/materials-services/price-lists/${activePriceList.id}/items`);
+            const priceListItems = await priceListItemsResponse.json();
+
+            console.log('💰 [PRICE-LOOKUP] Price list items:', priceListItems.length);
+
+            // Find the item in the price list
+            const priceListItem = priceListItems.find((item: any) => item.itemId === selectedItem);
+
+            if (priceListItem) {
+              unitPrice = parseFloat(priceListItem.unitPrice) || parseFloat(priceListItem.specialPrice) || 0;
+              console.log('💰 [PRICE-LOOKUP] Found price:', unitPrice, 'for item:', selectedItem);
+            } else {
+              console.log('⚠️ [PRICE-LOOKUP] Item not found in price list, using default price from item catalog');
+              // Fallback to item catalog price if available
+              unitPrice = parseFloat(selectedItemData?.unitCost || selectedItemData?.price || 0);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('❌ [PRICE-LOOKUP] Error fetching price:', error);
+        // Fallback to item catalog price
+        unitPrice = parseFloat(selectedItemData?.unitCost || selectedItemData?.price || 0);
       }
 
-      // Use a known active LPU ID - we know this one has pricing data
-      let unitPrice = 0;
-      let lpuId = 'b9389438-63a3-4cf1-8d96-590969de94f6'; // Use the LPU that we know has price data
-
-      console.log('🔍 [ADD-PLANNED-MUTATION] Using LPU ID:', lpuId, 'for item:', data.itemId);
-
-      // The backend will handle the LPU price lookup automatically
-      // We just need to send the request with the correct LPU ID
-      // The backend getPlannedItems function will return the correct pricing
-
       const requestData = {
-        itemId: data.itemId,
-        plannedQuantity: data.quantity,
+        itemId: selectedItem,
+        plannedQuantity: parseFloat(quantity),
         lpuId: lpuId,
         unitPriceAtPlanning: unitPrice,
-        priority: 'medium',
-        notes: ''
+        priority: "medium",
+        notes: ""
       };
 
-      console.log('🔍 [ADD-PLANNED-MUTATION] Sending request data:', requestData);
+      console.log('🔍 [ADD-PLANNED-MUTATION] Sending request data with price:', requestData);
 
       const response = await apiRequest('POST', `/api/materials-services/tickets/${ticketId}/planned-items`, requestData);
       return response.json();
@@ -208,8 +239,8 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
   });
 
   const items = itemsData?.data || [];
-  const availableItems = Array.isArray(availableItemsData?.data?.availableItems) ? availableItemsData.data.availableItems : 
-                         Array.isArray(availableItemsData?.data) ? availableItemsData.data : 
+  const availableItems = Array.isArray(availableItemsData?.data?.availableItems) ? availableItemsData.data.availableItems :
+                         Array.isArray(availableItemsData?.data) ? availableItemsData.data :
                          Array.isArray(availableItemsData?.availableItems) ? availableItemsData.availableItems :
                          Array.isArray(availableItemsData) ? availableItemsData : [];
   const plannedMaterials = plannedData?.data?.plannedItems || [];
@@ -388,14 +419,35 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                 </div>
               </div>
 
-              <Button 
-                onClick={handleAddPlanned}
-                disabled={addPlannedMutation.isPending || items.length === 0}
-                className="w-full"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                {addPlannedMutation.isPending ? "Adicionando..." : "Adicionar Planejado"}
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  onClick={async () => {
+                    // Show price preview if available
+                    const selectedItemData = itemsData?.data?.items?.find((item: any) => item.id === selectedItem);
+                    if (selectedItemData) {
+                      const itemName = selectedItemData.name || 'Item selecionado';
+                      const estimatedTotal = parseFloat(quantity) * (parseFloat(selectedItemData.unitCost || selectedItemData.price || 0));
+
+                      if (estimatedTotal > 0) {
+                        const confirmed = window.confirm(
+                          `Confirmar adição de:\n` +
+                          `Item: ${itemName}\n` +
+                          `Quantidade: ${quantity}\n` +
+                          `Preço estimado: R$ ${estimatedTotal.toFixed(2)}\n\n` +
+                          `Deseja continuar?`
+                        );
+                        if (!confirmed) return;
+                      }
+                    }
+
+                    addPlannedMutation.mutate({});
+                  }}
+                  disabled={!selectedItem || !quantity || addPlannedMutation.isPending}
+                  className="flex-1"
+                >
+                  {addPlannedMutation.isPending ? "Adicionando..." : "Adicionar Item"}
+                </Button>
+              </div>
 
               {/* Lista de Itens Planejados */}
               <div className="mt-6">
@@ -418,23 +470,23 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                       const itemDetails = material.items || material.item || {};
 
                       // Enhanced name detection
-                      const itemName = itemDetails.name || 
-                                     itemDetails.title || 
-                                     material.itemName || 
+                      const itemName = itemDetails.name ||
+                                     itemDetails.title ||
+                                     material.itemName ||
                                      material.name ||
                                      itemData.itemName ||
                                      'Item sem nome';
 
                       // Enhanced type detection
-                      const itemType = itemDetails.type || 
-                                     material.itemType || 
+                      const itemType = itemDetails.type ||
+                                     material.itemType ||
                                      itemData.itemType ||
                                      'Material';
 
                       // Enhanced pricing detection with new LPU data structure
                       const unitPrice = parseFloat(
-                        itemData.unitPriceAtPlanning || 
-                        material.unitPriceAtPlanning || 
+                        itemData.unitPriceAtPlanning ||
+                        material.unitPriceAtPlanning ||
                         itemDetails.effectivePrice ||
                         itemDetails.price ||
                         itemDetails.lpuSpecialPrice ||
@@ -445,8 +497,8 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                       );
 
                       const estimatedCost = parseFloat(
-                        itemData.estimatedCost || 
-                        material.estimatedCost || 
+                        itemData.estimatedCost ||
+                        material.estimatedCost ||
                         (parseFloat(itemData.plannedQuantity || material.plannedQuantity || 0) * unitPrice) ||
                         0
                       );
@@ -554,7 +606,7 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                 </div>
               </div>
 
-              <Button 
+              <Button
                 onClick={handleAddConsumed}
                 disabled={addConsumedMutation.isPending || availableItems.length === 0}
                 className="w-full"

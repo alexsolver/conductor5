@@ -184,34 +184,95 @@ export class TicketMaterialsController {
   async addPlannedItem(req: AuthenticatedRequest, res: Response) {
     try {
       const { ticketId } = req.params;
-      const itemData = req.body;
-      const tenantId = req.user?.tenantId || itemData.tenantId;
+      const {
+        itemId,
+        plannedQuantity,
+        lpuId,
+        unitPriceAtPlanning,
+        priority = 'medium',
+        notes = ''
+      } = req.body;
 
-      const plannedItemData = {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(400).json({ success: false, error: 'Tenant ID é obrigatório' });
+      }
+
+      // Enhance price lookup if unitPriceAtPlanning is 0 or not provided
+      let finalUnitPrice = parseFloat(unitPriceAtPlanning || 0);
+
+      if (finalUnitPrice === 0 && itemId) {
+        console.log('💰 [BACKEND-PRICE-LOOKUP] Attempting to find price for item:', itemId);
+
+        try {
+          // Set tenant schema for price lookup
+          const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+          await this.db.execute(sql.raw(`SET search_path TO "${schemaName}"`));
+
+          // Look for item in active price lists
+          const priceQuery = await this.db.execute(sql`
+            SELECT pli.unit_price, pli.special_price
+            FROM price_list_items pli
+            JOIN price_lists pl ON pli.price_list_id = pl.id
+            WHERE pli.item_id = ${itemId} 
+              AND pli.tenant_id = ${tenantId}
+              AND pl.is_active = true
+              AND pli.is_active = true
+            ORDER BY pl.created_at DESC
+            LIMIT 1
+          `);
+
+          if (priceQuery.rows && priceQuery.rows.length > 0) {
+            const priceRow = priceQuery.rows[0];
+            finalUnitPrice = parseFloat(priceRow.special_price || priceRow.unit_price || 0);
+            console.log('💰 [BACKEND-PRICE-LOOKUP] Found LPU price:', finalUnitPrice);
+          } else {
+            // Fallback to item catalog price
+            const itemQuery = await this.db.execute(sql`
+              SELECT unit_cost, cost_price
+              FROM items
+              WHERE id = ${itemId} AND tenant_id = ${tenantId}
+              LIMIT 1
+            `);
+
+            if (itemQuery.rows && itemQuery.rows.length > 0) {
+              const itemRow = itemQuery.rows[0];
+              finalUnitPrice = parseFloat(itemRow.unit_cost || itemRow.cost_price || 0);
+              console.log('💰 [BACKEND-PRICE-LOOKUP] Found item catalog price:', finalUnitPrice);
+            }
+          }
+        } catch (priceError) {
+          console.error('❌ [BACKEND-PRICE-LOOKUP] Error:', priceError);
+        }
+      }
+
+      // Calculate estimated cost with the final price
+      const estimatedCost = parseFloat(plannedQuantity) * finalUnitPrice;
+
+      const newPlannedItem = {
         id: crypto.randomUUID(),
-        ticketId,
         tenantId,
-        itemId: itemData.itemId,
-        plannedQuantity: itemData.plannedQuantity || 1,
-        estimatedCost: itemData.estimatedCost || 0,
-        unitPriceAtPlanning: itemData.unitPriceAtPlanning || 0,
-        lpuId: itemData.lpuId || null,
-        notes: itemData.notes || '',
+        ticketId,
+        itemId,
+        plannedQuantity: parseFloat(plannedQuantity),
+        lpuId,
+        unitPriceAtPlanning: finalUnitPrice,
+        estimatedCost,
         status: 'planned',
+        priority,
+        notes,
         isActive: true,
-        priority: itemData.priority || 'medium',
-        plannedById: req.user?.id || null,
         createdAt: new Date(),
         updatedAt: new Date(),
-        createdBy: req.user?.id || null
+        plannedById: req.user?.id
       };
 
-      await this.db.insert(ticketPlannedItems).values(plannedItemData);
+      await this.db.insert(ticketPlannedItems).values(newPlannedItem);
 
       return res.json({
         success: true,
         message: 'Planned item added successfully',
-        data: plannedItemData
+        data: newPlannedItem
       });
     } catch (error) {
       console.error('❌ Add planned item error:', error);
