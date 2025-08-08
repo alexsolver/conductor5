@@ -12,31 +12,49 @@ customersRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
 
     console.log('[GET-CUSTOMERS] Fetching customers for tenant:', req.user.tenantId);
 
+    // First check if table exists and get available columns
+    const tableCheck = await pool.query(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_schema = $1 AND table_name = 'customers'
+      ORDER BY ordinal_position
+    `, [schemaName]);
+
+    if (tableCheck.rows.length === 0) {
+      console.error('[GET-CUSTOMERS] Customers table does not exist in schema:', schemaName);
+      return res.status(500).json({
+        success: false,
+        error: 'Customers table not found'
+      });
+    }
+
+    const availableColumns = tableCheck.rows.map(row => row.column_name);
+    console.log('[GET-CUSTOMERS] Available columns:', availableColumns);
+
+    // Build dynamic query based on available columns
+    const baseColumns = ['id', 'first_name', 'last_name', 'email', 'created_at', 'updated_at'];
+    const optionalColumns = [
+      'phone', 'mobile_phone', 'customer_type', 'cpf', 'cnpj', 'company_name',
+      'contact_person', 'state', 'address', 'address_number', 'complement',
+      'neighborhood', 'city', 'zip_code', 'is_active'
+    ];
+
+    const selectColumns = [
+      ...baseColumns,
+      ...optionalColumns.filter(col => availableColumns.includes(col))
+    ];
+
+    // Add fallback for is_active if column doesn't exist
+    const isActiveSelect = availableColumns.includes('is_active') 
+      ? 'COALESCE(is_active, true) as is_active'
+      : 'true as is_active';
+
+    const finalColumns = selectColumns.join(', ') + ', ' + isActiveSelect;
+
     const result = await pool.query(`
-      SELECT 
-        id,
-        first_name,
-        last_name,
-        email,
-        phone,
-        mobile_phone,
-        customer_type,
-        cpf,
-        cnpj,
-        company_name,
-        contact_person,
-        state,
-        address,
-        address_number,
-        complement,
-        neighborhood,
-        city,
-        zip_code,
-        COALESCE(is_active, true) as is_active,
-        created_at,
-        updated_at
+      SELECT ${finalColumns}
       FROM "${schemaName}".customers 
-      WHERE COALESCE(is_active, true) = true
+      WHERE ${availableColumns.includes('is_active') ? 'COALESCE(is_active, true) = true' : '1=1'}
       ORDER BY first_name, last_name
       LIMIT 100
     `);
@@ -75,9 +93,31 @@ customersRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
     });
   } catch (error: any) {
     console.error('Error fetching customers:', error);
+    
+    // Handle specific database errors
+    if (error.code === '42703') {
+      console.error('[GET-CUSTOMERS] Column does not exist:', error.message);
+      return res.status(500).json({
+        success: false,
+        error: 'Database schema mismatch - missing columns',
+        details: error.message,
+        suggestion: 'Run database migration to fix schema'
+      });
+    }
+    
+    if (error.code === '42P01') {
+      console.error('[GET-CUSTOMERS] Table does not exist:', error.message);
+      return res.status(500).json({
+        success: false,
+        error: 'Customers table not found',
+        details: error.message
+      });
+    }
+    
     res.status(500).json({
       success: false,
-      error: 'Internal server error'
+      error: 'Internal server error',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });

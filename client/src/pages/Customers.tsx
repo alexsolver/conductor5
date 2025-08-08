@@ -30,7 +30,27 @@ export default function Customers() {
   const customers = customersData?.customers || [];
   const total = customersData?.total || customers.length;
 
-  // Remove the complex companies hook - data comes from main API now
+  // Standardized field access helper
+  const getCustomerField = (customer: any, field: string) => {
+    // Handle both camelCase and snake_case variations
+    const variations = {
+      firstName: ['first_name', 'firstName'],
+      lastName: ['last_name', 'lastName'],
+      customerType: ['customer_type', 'customerType'],
+      companyName: ['company_name', 'companyName'],
+      mobilePhone: ['mobile_phone', 'mobilePhone'],
+      zipCode: ['zip_code', 'zipCode'],
+      isActive: ['is_active', 'isActive']
+    };
+    
+    const fieldVariations = variations[field] || [field];
+    for (const variant of fieldVariations) {
+      if (customer[variant] !== undefined && customer[variant] !== null) {
+        return customer[variant];
+      }
+    }
+    return null;
+  };
 
   console.log('Customers data:', { customers, total, error, isLoading });
 
@@ -49,8 +69,9 @@ export default function Customers() {
   };
 
   const getInitials = (customer: any) => {
-    const firstName = customer.firstName || customer.first_name;
-    const lastName = customer.lastName || customer.last_name;
+    // Standardize field access with fallbacks
+    const firstName = customer.first_name || customer.firstName || '';
+    const lastName = customer.last_name || customer.lastName || '';
     
     if (firstName && lastName) {
       return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
@@ -64,7 +85,7 @@ export default function Customers() {
     if (customer.email) {
       return customer.email.charAt(0).toUpperCase();
     }
-    return "U";
+    return "?";
   };
 
   // Simplified company display component
@@ -118,16 +139,35 @@ export default function Customers() {
           <CardContent className="p-8 text-center">
             <div className="text-red-500 mb-4">
               <h4 className="text-lg font-medium mb-2">Erro ao carregar clientes</h4>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-600 mb-2">
                 {error?.message || 'Não foi possível carregar os dados dos clientes.'}
               </p>
+              {error?.details && (
+                <details className="text-left bg-gray-50 p-3 rounded text-xs">
+                  <summary className="cursor-pointer font-medium">Detalhes técnicos</summary>
+                  <pre className="mt-2 whitespace-pre-wrap">{error.details}</pre>
+                </details>
+              )}
+              {error?.suggestion && (
+                <p className="text-sm text-blue-600 mt-2">
+                  💡 {error.suggestion}
+                </p>
+              )}
             </div>
-            <Button 
-              onClick={() => window.location.reload()} 
-              variant="outline"
-            >
-              Tentar novamente
-            </Button>
+            <div className="flex gap-2 justify-center">
+              <Button 
+                onClick={() => window.location.reload()} 
+                variant="outline"
+              >
+                Tentar novamente
+              </Button>
+              <Button 
+                onClick={() => setLocation('/settings')} 
+                variant="secondary"
+              >
+                Verificar configurações
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -183,11 +223,13 @@ export default function Customers() {
                   </TableCell>
                   <TableCell>
                     <div className="font-medium text-gray-900 dark:text-gray-100">
-                      {customer.first_name} {customer.last_name}
+                      {getCustomerField(customer, 'firstName') || ''} {getCustomerField(customer, 'lastName') || ''}
                     </div>
-                    {customer.customer_type && (
+                    {getCustomerField(customer, 'customerType') && (
                       <div className="text-sm text-gray-500 dark:text-gray-400">
-                        {customer.customer_type === 'PJ' ? (customer.company_name || 'Empresa') : customer.customer_type}
+                        {getCustomerField(customer, 'customerType') === 'PJ' ? 
+                          (getCustomerField(customer, 'companyName') || 'Empresa') : 
+                          getCustomerField(customer, 'customerType')}
                       </div>
                     )}
                   </TableCell>
