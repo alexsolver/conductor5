@@ -24,11 +24,11 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
       return res.status(401).json({ message: 'Access token required' });
     }
 
-    const token = authHeader.substring(7);
+    const token = authHeader?.split(' ')[1];
 
     if (!token || token === 'null' || token === 'undefined') {
-      console.error('Invalid token format:', token);
-      return res.status(401).json({ message: 'Invalid token format' });
+      console.log('Invalid token format:', token);
+      return res.status(401).json({ message: 'Authentication token required' });
     }
 
     // Verify JWT token using enhanced token manager

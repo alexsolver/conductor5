@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import { CustomFieldsController, AuthenticatedRequest } from './CustomFieldsController.ts';
-import { CustomFieldsRepository } from './CustomFieldsRepository.ts';
-import { jwtAuth } from '../../middleware/jwtAuth.js';
-import { schemaManager } from '../../db.js';
+import { jwtAuth } from '../../middleware/jwtAuth';
+import { CustomFieldsController } from './CustomFieldsController';
+import { CustomFieldsRepository } from './CustomFieldsRepository';
+import { schemaManager } from '../../db';
 
 const router = Router();
 
@@ -10,128 +10,29 @@ const router = Router();
 const customFieldsRepository = new CustomFieldsRepository(schemaManager);
 const customFieldsController = new CustomFieldsController(customFieldsRepository);
 
-// Middleware to validate module access
-const moduleAccessMiddleware = (req: AuthenticatedRequest, res: any, next: any) => {
-  const { moduleType } = req.params;
-  // TODO: Add module access validation here when implementing SaaS features
-  // For now, allow all modules
-  next();
-};
+// Apply JWT authentication to all routes
+router.use(jwtAuth);
 
-// ===========================
-// CUSTOM FIELDS METADATA ROUTES
-// ===========================
+// Field management routes
+router.get('/fields/:moduleType', (req, res) => customFieldsController.getFieldsByModule(req as any, res));
+router.get('/fields/single/:fieldId', (req, res) => customFieldsController.getFieldById(req as any, res));
+router.post('/fields', (req, res) => customFieldsController.createField(req as any, res));
+router.put('/fields/:fieldId', (req, res) => customFieldsController.updateField(req as any, res));
+router.delete('/fields/:fieldId', (req, res) => customFieldsController.deleteField(req as any, res));
 
-// Get all fields for a module
-router.get('/fields/:moduleType', jwtAuth, moduleAccessMiddleware, (req, res) => {
-  customFieldsController.getFieldsByModule(req as AuthenticatedRequest, res);
-});
+// Field reordering
+router.put('/fields/:moduleType/reorder', (req, res) => customFieldsController.reorderFields(req as any, res));
 
-// Get specific field by ID
-router.get('/fields/detail/:fieldId', jwtAuth, (req, res) => {
-  customFieldsController.getFieldById(req as AuthenticatedRequest, res);
-});
+// Entity values management
+router.get('/values/:entityType/:entityId', (req, res) => customFieldsController.getEntityValues(req as any, res));
+router.post('/values/:entityType/:entityId', (req, res) => customFieldsController.saveEntityValues(req as any, res));
+router.delete('/values/:entityType/:entityId', (req, res) => customFieldsController.deleteEntityValues(req as any, res));
 
-// Create new field
-router.post('/fields', jwtAuth, (req, res) => {
-  customFieldsController.createField(req as AuthenticatedRequest, res);
-});
+// Module access management
+router.get('/module-access', (req, res) => customFieldsController.getTenantModuleAccess(req as any, res));
+router.put('/module-access/:moduleType', (req, res) => customFieldsController.updateModuleAccess(req as any, res));
 
-// Update field
-router.put('/fields/:fieldId', jwtAuth, (req, res) => {
-  customFieldsController.updateField(req as AuthenticatedRequest, res);
-});
+// Statistics
+router.get('/stats/:moduleType', (req, res) => customFieldsController.getModuleFieldStats(req as any, res));
 
-// Delete field (soft delete)
-router.delete('/fields/:fieldId', jwtAuth, (req, res) => {
-  customFieldsController.deleteField(req as AuthenticatedRequest, res);
-});
-
-// Reorder fields for a module
-router.post('/fields/:moduleType/reorder', jwtAuth, moduleAccessMiddleware, (req, res) => {
-  customFieldsController.reorderFields(req as AuthenticatedRequest, res);
-});
-
-// ===========================
-// CUSTOM FIELDS VALUES ROUTES
-// ===========================
-
-// Get values for an entity
-router.get('/values/:entityType/:entityId', jwtAuth, moduleAccessMiddleware, (req, res) => {
-  customFieldsController.getEntityValues(req as AuthenticatedRequest, res);
-});
-
-// Save values for an entity
-router.post('/values/:entityType/:entityId', jwtAuth, moduleAccessMiddleware, (req, res) => {
-  customFieldsController.saveEntityValues(req as AuthenticatedRequest, res);
-});
-
-// Delete values for an entity
-router.delete('/values/:entityType/:entityId', jwtAuth, moduleAccessMiddleware, (req, res) => {
-  customFieldsController.deleteEntityValues(req as AuthenticatedRequest, res);
-});
-
-// ===========================
-// SIMPLIFIED TICKET ROUTES FOR DRAG-AND-DROP
-// ===========================
-
-// Get custom fields for a specific ticket
-router.get('/ticket/:ticketId', jwtAuth, (req, res) => {
-  // Modify params to match the entity values route structure
-  const modifiedReq = req as AuthenticatedRequest;
-  modifiedReq.params = {
-    ...modifiedReq.params,
-    entityType: 'tickets',
-    entityId: req.params.ticketId
-  };
-  customFieldsController.getEntityValues(modifiedReq, res);
-});
-
-// Save custom fields for a specific ticket
-router.post('/ticket/:ticketId', jwtAuth, (req, res) => {
-  // Modify params to match the entity values route structure
-  const modifiedReq = req as AuthenticatedRequest;
-  modifiedReq.params = {
-    ...modifiedReq.params,
-    entityType: 'tickets',
-    entityId: req.params.ticketId
-  };
-  customFieldsController.saveEntityValues(modifiedReq, res);
-});
-
-// Delete custom fields for a specific ticket
-router.delete('/ticket/:ticketId', jwtAuth, (req, res) => {
-  // Modify params to match the entity values route structure
-  const modifiedReq = req as AuthenticatedRequest;
-  modifiedReq.params = {
-    ...modifiedReq.params,
-    entityType: 'tickets',
-    entityId: req.params.ticketId
-  };
-  customFieldsController.deleteEntityValues(modifiedReq, res);
-});
-
-// ===========================
-// TENANT MODULE ACCESS ROUTES
-// ===========================
-
-// Get tenant module access configuration
-router.get('/modules/access', jwtAuth, (req, res) => {
-  customFieldsController.getTenantModuleAccess(req as AuthenticatedRequest, res);
-});
-
-// Update module access
-router.put('/modules/:moduleType/access', jwtAuth, (req, res) => {
-  customFieldsController.updateModuleAccess(req as AuthenticatedRequest, res);
-});
-
-// ===========================
-// STATISTICS ROUTES
-// ===========================
-
-// Get field statistics for a module
-router.get('/stats/:moduleType', jwtAuth, moduleAccessMiddleware, (req, res) => {
-  customFieldsController.getModuleFieldStats(req as AuthenticatedRequest, res);
-});
-
-export default router;
+export { router as customFieldsRoutes };

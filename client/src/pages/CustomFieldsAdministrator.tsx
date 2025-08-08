@@ -185,72 +185,114 @@ export default function CustomFieldsAdministrator() {
     }
   });
 
-  const renderFieldsList = () => (
-    <div className="space-y-4">
-      {moduleFields.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">
-          <Package className="w-12 h-12 mx-auto mb-4 opacity-50" />
-          <p>Nenhum campo customizado criado para este módulo</p>
-          <p className="text-sm">Clique em "Novo Campo" para começar</p>
+  const confirmDelete = (field: CustomFieldMetadata) => {
+    if (window.confirm(`Tem certeza que deseja excluir o campo "${field.fieldLabel}"? Esta ação não pode ser desfeita.`)) {
+      deleteFieldMutation.mutate(field.id);
+    }
+  };
+
+  const renderFieldsList = () => {
+    if (isLoading) {
+      return (
+        <div className="space-y-4">
+          {[1, 2, 3].map((i) => (
+            <Card key={i} className="animate-pulse">
+              <CardContent className="p-4">
+                <div className="h-4 bg-gray-200 rounded w-1/3 mb-2"></div>
+                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
-      ) : (
-        moduleFields.map((field: CustomFieldMetadata) => (
-          <Card key={field.id} className="hover:shadow-md transition-shadow">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <GripVertical className="w-4 h-4 text-gray-400 cursor-move" />
-                    <h3 className="font-medium">{field.fieldLabel}</h3>
-                    <Badge variant="outline">
-                      {FIELD_TYPE_CONFIG[field.fieldType as FieldType]?.label}
-                    </Badge>
-                    {field.isRequired && (
-                      <Badge variant="destructive" className="text-xs">
-                        Obrigatório
+      );
+    }
+
+    return (
+      <div className="space-y-4">
+        {moduleFields.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            <Package className="w-12 h-12 mx-auto mb-4 opacity-50" />
+            <p>Nenhum campo customizado criado para este módulo</p>
+            <p className="text-sm">Clique em "Novo Campo" para começar</p>
+          </div>
+        ) : (
+          moduleFields.map((field: CustomFieldMetadata) => (
+            <Card key={field.id} className="hover:shadow-md transition-shadow">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <GripVertical className="w-4 h-4 text-gray-400 cursor-move" />
+                      <h3 className="font-medium">{field.fieldLabel}</h3>
+                      <Badge variant="outline">
+                        {FIELD_TYPE_CONFIG[field.fieldType as FieldType]?.label}
                       </Badge>
+                      {field.isRequired && (
+                        <Badge variant="destructive" className="text-xs">
+                          Obrigatório
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-600">
+                      Campo: <code className="bg-gray-100 px-1 rounded">{field.fieldName}</code>
+                    </p>
+                    {field.fieldOptions?.helpText && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        {field.fieldOptions.helpText}
+                      </p>
                     )}
                   </div>
-                  <p className="text-sm text-gray-600">
-                    Campo: <code className="bg-gray-100 px-1 rounded">{field.fieldName}</code>
-                  </p>
-                  {field.fieldOptions?.helpText && (
-                    <p className="text-xs text-gray-500 mt-1">
-                      {field.fieldOptions.helpText}
-                    </p>
-                  )}
-                </div>
 
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setEditingField(field)}
-                  >
-                    <Edit className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => deleteFieldMutation.mutate(field.id)}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setEditingField(field)}
+                      disabled={updateFieldMutation.isPending}
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => confirmDelete(field)}
+                      disabled={deleteFieldMutation.isPending}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))
-      )}
-    </div>
-  );
+              </CardContent>
+            </Card>
+          ))
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="container mx-auto p-6 space-y-6">
+      {/* Breadcrumbs */}
+      <nav className="flex" aria-label="Breadcrumb">
+        <ol className="flex items-center space-x-4">
+          <li>
+            <div className="text-gray-400">Administração</div>
+          </li>
+          <li>
+            <div className="flex items-center">
+              <svg className="flex-shrink-0 h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 111.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+              </svg>
+              <span className="ml-4 text-gray-900 font-medium">Campos Customizados</span>
+            </div>
+          </li>
+        </ol>
+      </nav>
+
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Administrador de Campos Customizados</h1>
-          <p className="text-gray-600">
+          <p className="text-gray-600 mt-1">
             Configure campos personalizados para diferentes módulos do sistema
           </p>
         </div>
@@ -307,30 +349,41 @@ export default function CustomFieldsAdministrator() {
               <CardTitle>Estatísticas do Módulo</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="text-center">
-                  <div className="text-2xl font-bold">{moduleFields.length}</div>
-                  <div className="text-sm text-gray-600">Total de Campos</div>
+              {isLoading ? (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="text-center animate-pulse">
+                      <div className="h-8 bg-gray-200 rounded mb-2 mx-auto w-12"></div>
+                      <div className="h-4 bg-gray-200 rounded w-24 mx-auto"></div>
+                    </div>
+                  ))}
                 </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold">
-                    {moduleFields.filter((f: CustomFieldMetadata) => f.isRequired).length}
+              ) : (
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="text-center p-4 bg-blue-50 rounded-lg">
+                    <div className="text-3xl font-bold text-blue-600">{moduleFields.length}</div>
+                    <div className="text-sm text-blue-700">Total de Campos</div>
                   </div>
-                  <div className="text-sm text-gray-600">Campos Obrigatórios</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold">
-                    {moduleFields.filter((f: CustomFieldMetadata) => f.fieldType === 'text').length}
+                  <div className="text-center p-4 bg-red-50 rounded-lg">
+                    <div className="text-3xl font-bold text-red-600">
+                      {moduleFields.filter((f: CustomFieldMetadata) => f.isRequired).length}
+                    </div>
+                    <div className="text-sm text-red-700">Campos Obrigatórios</div>
                   </div>
-                  <div className="text-sm text-gray-600">Campos de Texto</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold">
-                    {moduleFields.filter((f: CustomFieldMetadata) => f.fieldType === 'select').length}
+                  <div className="text-center p-4 bg-green-50 rounded-lg">
+                    <div className="text-3xl font-bold text-green-600">
+                      {moduleFields.filter((f: CustomFieldMetadata) => f.fieldType === 'text').length}
+                    </div>
+                    <div className="text-sm text-green-700">Campos de Texto</div>
                   </div>
-                  <div className="text-sm text-gray-600">Campos de Seleção</div>
+                  <div className="text-center p-4 bg-purple-50 rounded-lg">
+                    <div className="text-3xl font-bold text-purple-600">
+                      {moduleFields.filter((f: CustomFieldMetadata) => f.fieldType === 'select').length}
+                    </div>
+                    <div className="text-sm text-purple-700">Campos de Seleção</div>
+                  </div>
                 </div>
-              </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -355,11 +408,347 @@ export default function CustomFieldsAdministrator() {
   );
 }
 
-// Form components would be implemented here as well...
+// Form components implementation
 function CreateFieldForm({ moduleType, onSubmit, isLoading }: any) {
-  return <div>Create Field Form - To be implemented</div>;
+  const [formData, setFormData] = useState({
+    fieldName: '',
+    fieldLabel: '',
+    fieldType: 'text' as FieldType,
+    isRequired: false,
+    displayOrder: 0,
+    validationRules: {},
+    fieldOptions: {}
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit({
+      ...formData,
+      moduleType,
+      validationRules: formData.validationRules || {},
+      fieldOptions: formData.fieldOptions || {}
+    });
+  };
+
+  const handleFieldTypeChange = (value: FieldType) => {
+    setFormData(prev => ({
+      ...prev,
+      fieldType: value,
+      fieldOptions: value === 'select' || value === 'multiselect' 
+        ? { options: [{ label: '', value: '' }] }
+        : {}
+    }));
+  };
+
+  const addOption = () => {
+    if (formData.fieldType === 'select' || formData.fieldType === 'multiselect') {
+      setFormData(prev => ({
+        ...prev,
+        fieldOptions: {
+          ...prev.fieldOptions,
+          options: [...(prev.fieldOptions.options || []), { label: '', value: '' }]
+        }
+      }));
+    }
+  };
+
+  const updateOption = (index: number, key: 'label' | 'value', value: string) => {
+    if (formData.fieldType === 'select' || formData.fieldType === 'multiselect') {
+      const options = [...(formData.fieldOptions.options || [])];
+      options[index] = { ...options[index], [key]: value };
+      setFormData(prev => ({
+        ...prev,
+        fieldOptions: { ...prev.fieldOptions, options }
+      }));
+    }
+  };
+
+  const removeOption = (index: number) => {
+    if (formData.fieldType === 'select' || formData.fieldType === 'multiselect') {
+      const options = (formData.fieldOptions.options || []).filter((_, i) => i !== index);
+      setFormData(prev => ({
+        ...prev,
+        fieldOptions: { ...prev.fieldOptions, options }
+      }));
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="fieldName">Nome do Campo</Label>
+          <Input
+            id="fieldName"
+            value={formData.fieldName}
+            onChange={(e) => setFormData(prev => ({ ...prev, fieldName: e.target.value }))}
+            placeholder="nome_do_campo"
+            required
+            disabled={isLoading}
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="fieldLabel">Rótulo do Campo</Label>
+          <Input
+            id="fieldLabel"
+            value={formData.fieldLabel}
+            onChange={(e) => setFormData(prev => ({ ...prev, fieldLabel: e.target.value }))}
+            placeholder="Rótulo visível"
+            required
+            disabled={isLoading}
+          />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="fieldType">Tipo do Campo</Label>
+        <Select value={formData.fieldType} onValueChange={handleFieldTypeChange} disabled={isLoading}>
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {Object.entries(FIELD_TYPE_CONFIG).map(([key, config]) => (
+              <SelectItem key={key} value={key}>
+                {config.label} - {config.description}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {(formData.fieldType === 'select' || formData.fieldType === 'multiselect') && (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label>Opções</Label>
+            <Button type="button" variant="outline" size="sm" onClick={addOption} disabled={isLoading}>
+              <Plus className="w-4 h-4 mr-1" />
+              Adicionar
+            </Button>
+          </div>
+          <div className="space-y-2 max-h-48 overflow-y-auto">
+            {(formData.fieldOptions.options || []).map((option: any, index: number) => (
+              <div key={index} className="flex gap-2">
+                <Input
+                  placeholder="Rótulo"
+                  value={option.label}
+                  onChange={(e) => updateOption(index, 'label', e.target.value)}
+                  disabled={isLoading}
+                />
+                <Input
+                  placeholder="Valor"
+                  value={option.value}
+                  onChange={(e) => updateOption(index, 'value', e.target.value)}
+                  disabled={isLoading}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => removeOption(index)}
+                  disabled={isLoading}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="space-y-2">
+        <Label htmlFor="helpText">Texto de Ajuda (opcional)</Label>
+        <Textarea
+          id="helpText"
+          value={formData.fieldOptions.helpText || ''}
+          onChange={(e) => setFormData(prev => ({
+            ...prev,
+            fieldOptions: { ...prev.fieldOptions, helpText: e.target.value }
+          }))}
+          placeholder="Texto explicativo para o campo"
+          disabled={isLoading}
+        />
+      </div>
+
+      <div className="flex items-center space-x-2">
+        <Checkbox
+          id="isRequired"
+          checked={formData.isRequired}
+          onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isRequired: !!checked }))}
+          disabled={isLoading}
+        />
+        <Label htmlFor="isRequired">Campo obrigatório</Label>
+      </div>
+
+      <div className="flex justify-end gap-2 pt-4 border-t">
+        <Button type="submit" disabled={isLoading}>
+          {isLoading && <Save className="w-4 h-4 mr-2 animate-spin" />}
+          Criar Campo
+        </Button>
+      </div>
+    </form>
+  );
 }
 
 function EditFieldForm({ field, onSubmit, isLoading }: any) {
-  return <div>Edit Field Form - To be implemented</div>;
+  const [formData, setFormData] = useState({
+    fieldLabel: field?.fieldLabel || '',
+    isRequired: field?.isRequired || false,
+    displayOrder: field?.displayOrder || 0,
+    validationRules: field?.validationRules || {},
+    fieldOptions: field?.fieldOptions || {}
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit({
+      ...formData,
+      validationRules: formData.validationRules || {},
+      fieldOptions: formData.fieldOptions || {}
+    });
+  };
+
+  const addOption = () => {
+    if (field?.fieldType === 'select' || field?.fieldType === 'multiselect') {
+      setFormData(prev => ({
+        ...prev,
+        fieldOptions: {
+          ...prev.fieldOptions,
+          options: [...(prev.fieldOptions.options || []), { label: '', value: '' }]
+        }
+      }));
+    }
+  };
+
+  const updateOption = (index: number, key: 'label' | 'value', value: string) => {
+    if (field?.fieldType === 'select' || field?.fieldType === 'multiselect') {
+      const options = [...(formData.fieldOptions.options || [])];
+      options[index] = { ...options[index], [key]: value };
+      setFormData(prev => ({
+        ...prev,
+        fieldOptions: { ...prev.fieldOptions, options }
+      }));
+    }
+  };
+
+  const removeOption = (index: number) => {
+    if (field?.fieldType === 'select' || field?.fieldType === 'multiselect') {
+      const options = (formData.fieldOptions.options || []).filter((_, i) => i !== index);
+      setFormData(prev => ({
+        ...prev,
+        fieldOptions: { ...prev.fieldOptions, options }
+      }));
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <Label>Nome do Campo</Label>
+        <div className="p-2 bg-gray-50 rounded border text-sm text-gray-700">
+          {field?.fieldName} (não editável)
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label>Tipo do Campo</Label>
+        <div className="p-2 bg-gray-50 rounded border text-sm text-gray-700">
+          {FIELD_TYPE_CONFIG[field?.fieldType as FieldType]?.label || field?.fieldType} (não editável)
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="fieldLabel">Rótulo do Campo</Label>
+        <Input
+          id="fieldLabel"
+          value={formData.fieldLabel}
+          onChange={(e) => setFormData(prev => ({ ...prev, fieldLabel: e.target.value }))}
+          placeholder="Rótulo visível"
+          required
+          disabled={isLoading}
+        />
+      </div>
+
+      {(field?.fieldType === 'select' || field?.fieldType === 'multiselect') && (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label>Opções</Label>
+            <Button type="button" variant="outline" size="sm" onClick={addOption} disabled={isLoading}>
+              <Plus className="w-4 h-4 mr-1" />
+              Adicionar
+            </Button>
+          </div>
+          <div className="space-y-2 max-h-48 overflow-y-auto">
+            {(formData.fieldOptions.options || []).map((option: any, index: number) => (
+              <div key={index} className="flex gap-2">
+                <Input
+                  placeholder="Rótulo"
+                  value={option.label}
+                  onChange={(e) => updateOption(index, 'label', e.target.value)}
+                  disabled={isLoading}
+                />
+                <Input
+                  placeholder="Valor"
+                  value={option.value}
+                  onChange={(e) => updateOption(index, 'value', e.target.value)}
+                  disabled={isLoading}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => removeOption(index)}
+                  disabled={isLoading}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="space-y-2">
+        <Label htmlFor="helpText">Texto de Ajuda</Label>
+        <Textarea
+          id="helpText"
+          value={formData.fieldOptions.helpText || ''}
+          onChange={(e) => setFormData(prev => ({
+            ...prev,
+            fieldOptions: { ...prev.fieldOptions, helpText: e.target.value }
+          }))}
+          placeholder="Texto explicativo para o campo"
+          disabled={isLoading}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="displayOrder">Ordem de Exibição</Label>
+        <Input
+          id="displayOrder"
+          type="number"
+          value={formData.displayOrder}
+          onChange={(e) => setFormData(prev => ({ ...prev, displayOrder: parseInt(e.target.value) || 0 }))}
+          disabled={isLoading}
+        />
+      </div>
+
+      <div className="flex items-center space-x-2">
+        <Checkbox
+          id="isRequired"
+          checked={formData.isRequired}
+          onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isRequired: !!checked }))}
+          disabled={isLoading}
+        />
+        <Label htmlFor="isRequired">Campo obrigatório</Label>
+      </div>
+
+      <div className="flex justify-end gap-2 pt-4 border-t">
+        <Button type="submit" disabled={isLoading}>
+          {isLoading && <Save className="w-4 h-4 mr-2 animate-spin" />}
+          Salvar Alterações
+        </Button>
+      </div>
+    </form>
+  );
 }
