@@ -23,7 +23,7 @@ import { useCompanyFilter } from '@/hooks/useCompanyFilter';
 const customerSchema = z.object({
   // Tipo e status
   customerType: z.enum(['PF', 'PJ'], { required_error: 'Tipo de cliente é obrigatório' }),
-  status: z.enum(['Ativo', 'Inativo']).default('Ativo'),
+  status: z.enum(['active', 'inactive']).default('active'),
 
   // Informações básicas
   email: z.string().email('Email inválido'),
@@ -99,7 +99,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
     resolver: zodResolver(customerSchema),
     defaultValues: {
       customerType: "PF",
-      status: "Ativo",
+      status: "active",
       email: "",
       description: "",
       internalCode: "",
@@ -174,7 +174,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
     // Parse available companies and filter Default if inactive
     const rawCompanies = Array.isArray(availableCompaniesData) ? availableCompaniesData : [];
     const { filteredCompanies } = useCompanyFilter(rawCompanies);
-    
+
     // Sort filtered companies to put Default first (if it's active)
     const availableCompanies = filteredCompanies.sort((a: any, b: any) => {
       const aIsDefault = a.name?.toLowerCase().includes('default') || a.displayName?.toLowerCase().includes('default');
@@ -238,7 +238,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
     if (customer && isOpen) {
       form.reset({
         customerType: customer.customerType || customer.customer_type || "PF",
-        status: customer.status || "Ativo",
+        status: customer.status || "active",
         email: customer.email || "",
         description: customer.description || "",
         internalCode: customer.internalCode || customer.internal_code || "",
@@ -271,7 +271,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
       // Reset to empty form for new customer
       form.reset({
         customerType: "PF",
-        status: "Ativo",
+        status: "active",
         email: "",
         description: "",
         internalCode: "",
@@ -546,8 +546,8 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="Ativo">Ativo</SelectItem>
-                              <SelectItem value="Inativo">Inativo</SelectItem>
+                              <SelectItem value="active">Ativo</SelectItem>
+                              <SelectItem value="inactive">Inativo</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -749,7 +749,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                     />
                   </div>
 
-                  
+
                 </TabsContent>
 
                 <TabsContent value="hierarquia" className="space-y-4">

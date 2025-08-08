@@ -190,8 +190,11 @@ customersRouter.get('/', jwtAuth, validateGetCustomers, async (req: Authenticate
           return {
             ...customer,
             associated_companies: companyNames.length > 0 ? companyNames.join(', ') : null,
-            // Normalize customer type
-            customer_type: customer.customer_type || 'PF'
+            // Normalize customer type and status
+            customer_type: customer.customer_type || 'PF',
+            status: customer.status === 'Ativo' ? 'active' : 
+                   customer.status === 'Inativo' ? 'inactive' : 
+                   customer.status || 'active'
           };
         } catch (companyError) {
           console.warn('[GET-CUSTOMERS] Error fetching companies for customer:', customer.id, companyError.message);

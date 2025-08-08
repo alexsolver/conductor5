@@ -66,7 +66,7 @@ export default function Customers() {
     
     // Filtro de status
     if (statusFilter !== 'all') {
-      const status = customer.status || 'Ativo';
+      const status = customer.status || 'active';
       if (status !== statusFilter) return false;
     }
     
@@ -344,8 +344,8 @@ export default function Customers() {
             className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
           >
             <option value="all">Todos os status</option>
-            <option value="Ativo">Ativo</option>
-            <option value="Inativo">Inativo</option>
+            <option value="active">Ativo</option>
+            <option value="inactive">Inativo</option>
           </select>
           <Button 
             onClick={handleAddCustomer}
@@ -491,12 +491,14 @@ export default function Customers() {
                   <TableCell>
                     <Badge 
                       className={
-                        (customer.status || "Ativo") === 'Ativo' 
+                        (customer.status || "active") === 'active' 
                           ? "bg-blue-600 text-white hover:bg-blue-700 border-blue-600" 
                           : "bg-gray-500 text-white"
                       }
                     >
-                      {customer.status || "Ativo"}
+                      {customer.status === 'active' ? 'Ativo' :
+                       customer.status === 'inactive' ? 'Inativo' :
+                       customer.status || 'Ativo'}
                     </Badge>
                   </TableCell>
                   <TableCell className="hidden xl:table-cell">
