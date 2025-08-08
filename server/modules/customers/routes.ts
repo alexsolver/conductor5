@@ -3,14 +3,12 @@ import { AuthenticatedRequest, jwtAuth } from '../../middleware/jwtAuth';
 
 const customersRouter = Router();
 
-// GET /api/customers - Get all customers
+// GET /api/customers - Get all customers (optimized)
 customersRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const { schemaManager } = await import('../../db');
     const pool = schemaManager.getPool();
     const schemaName = schemaManager.getSchemaName(req.user.tenantId);
-
-    console.log('[GET-CUSTOMERS] Fetching customers for tenant:', req.user.tenantId);
 
     // Validate tenant ID
     if (!req.user.tenantId) {
@@ -21,120 +19,281 @@ customersRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
       });
     }
 
-    // First check if table exists and get available columns
-    const tableCheck = await pool.query(`
-      SELECT column_name, data_type 
-      FROM information_schema.columns 
-      WHERE table_schema = $1 AND table_name = 'customers'
-      ORDER BY ordinal_position
-    `, [schemaName]);
-
-    if (tableCheck.rows.length === 0) {
-      console.error('[GET-CUSTOMERS] Customers table does not exist in schema:', schemaName);
-      return res.status(500).json({
-        success: false,
-        error: 'Customers table not found',
-        code: 'TABLE_NOT_FOUND',
-        suggestion: 'Run database migration to create the customers table'
-      });
-    }
-
-    const availableColumns = tableCheck.rows.map(row => row.column_name);
-    console.log('[GET-CUSTOMERS] Available columns:', availableColumns);
-
-    // Build dynamic query based on available columns with proper validation
-    const requiredColumns = ['id', 'first_name', 'last_name', 'email', 'created_at', 'updated_at'];
-    const missingRequired = requiredColumns.filter(col => !availableColumns.includes(col));
-    
-    if (missingRequired.length > 0) {
-      return res.status(500).json({
-        success: false,
-        error: 'Required columns missing from customers table',
-        code: 'MISSING_COLUMNS',
-        details: missingRequired,
-        suggestion: 'Run database migration to add missing columns'
-      });
-    }
-
-    const optionalColumns = [
-      'phone', 'mobile_phone', 'customer_type', 'cpf', 'cnpj', 'company_name',
-      'contact_person', 'state', 'address', 'address_number', 'complement',
-      'neighborhood', 'city', 'zip_code', 'is_active'
-    ];
-
-    const selectColumns = [
-      ...requiredColumns,
-      ...optionalColumns.filter(col => availableColumns.includes(col))
-    ];
-
-    // Add fallback for is_active and customer_type with proper defaults
-    const isActiveSelect = availableColumns.includes('is_active') 
-      ? 'COALESCE(is_active, true) as is_active'
-      : 'true as is_active';
-      
-    const customerTypeSelect = availableColumns.includes('customer_type')
-      ? 'COALESCE(customer_type, \'PF\') as customer_type'
-      : '\'PF\' as customer_type';
-
-    const finalColumns = selectColumns.join(', ') + ', ' + isActiveSelect + ', ' + customerTypeSelect;
-
-    // Enhanced query with better error handling
+    // Optimized query with all standard fields
     const result = await pool.query(`
-      SELECT ${finalColumns}
+      SELECT 
+        id,
+        tenant_id,
+        first_name,
+        last_name,
+        email,
+        phone,
+        mobile_phone,
+        COALESCE(customer_type, 'PF') as customer_type,
+        cpf,
+        cnpj,
+        company_name,
+        contact_person,
+        state,
+        address,
+        address_number,
+        complement,
+        neighborhood,
+        city,
+        zip_code,
+        COALESCE(is_active, true) as is_active,
+        created_at,
+        updated_at
       FROM "${schemaName}".customers 
-      WHERE ${availableColumns.includes('is_active') ? 'COALESCE(is_active, true) = true' : '1=1'}
-        AND ${availableColumns.includes('customer_type') ? 'COALESCE(customer_type, \'PF\') IN (\'PF\', \'PJ\')' : '1=1'}
+      WHERE COALESCE(is_active, true) = true
+        AND tenant_id = $1
+
+
+// POST /api/customers - Create new customer
+customersRouter.post('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    const { schemaManager } = await import('../../db');
+    const pool = schemaManager.getPool();
+    const schemaName = schemaManager.getSchemaName(req.user.tenantId);
+
+    // Validate tenant ID
+    if (!req.user.tenantId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Tenant ID is required',
+        code: 'MISSING_TENANT_ID'
+      });
+    }
+
+    // Extract and validate data
+    const {
+      firstName,
+      lastName,
+      email,
+      phone,
+      mobilePhone,
+      customerType = 'PF',
+      cpf,
+      cnpj,
+      companyName,
+      contactPerson,
+      state,
+      address,
+      addressNumber,
+      complement,
+      neighborhood,
+      city,
+      zipCode
+    } = req.body;
+
+    // Validation
+    const errors = [];
+    if (!firstName || !lastName) {
+      errors.push('Nome e sobrenome são obrigatórios');
+    }
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      errors.push('Email válido é obrigatório');
+    }
+    if (customerType === 'PJ' && !companyName) {
+      errors.push('Nome da empresa é obrigatório para Pessoa Jurídica');
+    }
+    if (cpf && cpf.replace(/\D/g, '').length !== 11) {
+      errors.push('CPF deve ter 11 dígitos');
+    }
+    if (cnpj && cnpj.replace(/\D/g, '').length !== 14) {
+      errors.push('CNPJ deve ter 14 dígitos');
+    }
+
+    if (errors.length > 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Dados inválidos',
+        details: errors
+      });
+    }
+
+    // Check if email already exists
+    const existingCustomer = await pool.query(`
+      SELECT id FROM "${schemaName}".customers 
+      WHERE email = $1 AND tenant_id = $2
+    `, [email, req.user.tenantId]);
+
+    if (existingCustomer.rows.length > 0) {
+      return res.status(409).json({
+        success: false,
+        error: 'Email já está em uso',
+        code: 'EMAIL_EXISTS'
+      });
+    }
+
+    // Create customer
+    const customerId = crypto.randomUUID();
+    const result = await pool.query(`
+      INSERT INTO "${schemaName}".customers (
+        id, tenant_id, first_name, last_name, email, phone, mobile_phone,
+        customer_type, cpf, cnpj, company_name, contact_person, state,
+        address, address_number, complement, neighborhood, city, zip_code,
+        is_active, created_at, updated_at
+      ) VALUES (
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13,
+        $14, $15, $16, $17, $18, $19, true, NOW(), NOW()
+      ) RETURNING *
+    `, [
+      customerId, req.user.tenantId, firstName, lastName, email, phone, mobilePhone,
+      customerType, cpf, cnpj, companyName, contactPerson, state,
+      address, addressNumber, complement, neighborhood, city, zipCode
+    ]);
+
+    res.status(201).json({
+      success: true,
+      customer: result.rows[0],
+      message: 'Cliente criado com sucesso'
+    });
+
+  } catch (error: any) {
+    console.error('[CREATE-CUSTOMER] Error:', error);
+    
+    const errorResponse = {
+      success: false,
+      error: 'Erro ao criar cliente',
+      code: error.code || 'UNKNOWN_ERROR',
+      timestamp: new Date().toISOString()
+    };
+    
+    if (process.env.NODE_ENV === 'development') {
+      errorResponse.details = error.message;
+    }
+    
+    res.status(500).json(errorResponse);
+  }
+});
+
+// PUT /api/customers/:id - Update customer
+customersRouter.put('/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    const { schemaManager } = await import('../../db');
+    const pool = schemaManager.getPool();
+    const schemaName = schemaManager.getSchemaName(req.user.tenantId);
+    const customerId = req.params.id;
+
+    // Validate tenant ID
+    if (!req.user.tenantId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Tenant ID is required',
+        code: 'MISSING_TENANT_ID'
+      });
+    }
+
+    // Check if customer exists
+    const existingCustomer = await pool.query(`
+      SELECT * FROM "${schemaName}".customers 
+      WHERE id = $1 AND tenant_id = $2
+    `, [customerId, req.user.tenantId]);
+
+    if (existingCustomer.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'Cliente não encontrado',
+        code: 'CUSTOMER_NOT_FOUND'
+      });
+    }
+
+    const current = existingCustomer.rows[0];
+    const updateData = { ...current, ...req.body, updated_at: new Date() };
+
+    // Validation
+    const errors = [];
+    if (updateData.customerType === 'PJ' && !updateData.company_name) {
+      errors.push('Nome da empresa é obrigatório para Pessoa Jurídica');
+    }
+    if (updateData.cpf && updateData.cpf.replace(/\D/g, '').length !== 11) {
+      errors.push('CPF deve ter 11 dígitos');
+    }
+    if (updateData.cnpj && updateData.cnpj.replace(/\D/g, '').length !== 14) {
+      errors.push('CNPJ deve ter 14 dígitos');
+    }
+
+    if (errors.length > 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Dados inválidos',
+        details: errors
+      });
+    }
+
+    // Update customer
+    const result = await pool.query(`
+      UPDATE "${schemaName}".customers SET
+        first_name = $3, last_name = $4, phone = $5, mobile_phone = $6,
+        customer_type = $7, cpf = $8, cnpj = $9, company_name = $10,
+        contact_person = $11, state = $12, address = $13, address_number = $14,
+        complement = $15, neighborhood = $16, city = $17, zip_code = $18,
+        is_active = $19, updated_at = NOW()
+      WHERE id = $1 AND tenant_id = $2
+      RETURNING *
+    `, [
+      customerId, req.user.tenantId, updateData.first_name, updateData.last_name,
+      updateData.phone, updateData.mobile_phone, updateData.customer_type,
+      updateData.cpf, updateData.cnpj, updateData.company_name, updateData.contact_person,
+      updateData.state, updateData.address, updateData.address_number,
+      updateData.complement, updateData.neighborhood, updateData.city, updateData.zip_code,
+      updateData.is_active
+    ]);
+
+    res.json({
+      success: true,
+      customer: result.rows[0],
+      message: 'Cliente atualizado com sucesso'
+    });
+
+  } catch (error: any) {
+    console.error('[UPDATE-CUSTOMER] Error:', error);
+    
+    res.status(500).json({
+      success: false,
+      error: 'Erro ao atualizar cliente',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
       ORDER BY first_name NULLS LAST, last_name NULLS LAST
       LIMIT 100
-    `);
+    `, [req.user.tenantId]);
 
-    console.log('[GET-CUSTOMERS] Found', result.rows.length, 'customers');
+    // Get associated companies in batch for better performance
+    const customerIds = result.rows.map(r => r.id);
+    let companiesMap = new Map();
+    
+    if (customerIds.length > 0) {
+      try {
+        const companiesResult = await pool.query(`
+          SELECT 
+            cm.customer_id,
+            string_agg(COALESCE(c.display_name, c.name), ', ' ORDER BY c.name) as company_names
+          FROM "${schemaName}".company_memberships cm
+          JOIN "${schemaName}".companies c ON cm.company_id = c.id
+          WHERE cm.customer_id = ANY($1::uuid[]) 
+            AND cm.tenant_id = $2 
+            AND COALESCE(c.is_active, true) = true
+          GROUP BY cm.customer_id
+        `, [customerIds, req.user.tenantId]);
+        
+        companiesResult.rows.forEach(row => {
+          companiesMap.set(row.customer_id, row.company_names);
+        });
+      } catch (companyError) {
+        console.warn('[GET-CUSTOMERS] Error fetching companies:', companyError.message);
+      }
+    }
 
-    // Add computed field for associated companies with better error handling
-    const customersWithCompanies = await Promise.all(
-      result.rows.map(async (customer) => {
-        try {
-          // Check if company_memberships table exists
-          const tableExists = await pool.query(`
-            SELECT 1 FROM information_schema.tables 
-            WHERE table_schema = $1 AND table_name = 'company_memberships'
-          `, [schemaName]);
-          
-          if (tableExists.rows.length === 0) {
-            return { ...customer, associated_companies: null };
-          }
-          
-          const companiesResult = await pool.query(`
-            SELECT DISTINCT c.name, c.display_name
-            FROM "${schemaName}".company_memberships cm
-            JOIN "${schemaName}".companies c ON cm.company_id = c.id
-            WHERE cm.customer_id = $1 AND cm.tenant_id = $2 AND c.is_active = true
-            ORDER BY c.display_name, c.name
-            LIMIT 3
-          `, [customer.id, req.user.tenantId]);
-          
-          const companyNames = companiesResult.rows
-            .map(c => c.display_name || c.name)
-            .filter(Boolean);
-          
-          return {
-            ...customer,
-            associated_companies: companyNames.length > 0 ? companyNames.join(', ') : null,
-            // Normalize customer type
-            customer_type: customer.customer_type || 'PF'
-          };
-        } catch (companyError) {
-          console.warn('[GET-CUSTOMERS] Error fetching companies for customer:', customer.id, companyError.message);
-          return { 
-            ...customer, 
-            associated_companies: null,
-            customer_type: customer.customer_type || 'PF'
-          };
-        }
-      })
-    );
+    // Add associated companies to customers
+    const customersWithCompanies = result.rows.map(customer => ({
+      ...customer,
+      associated_companies: companiesMap.get(customer.id) || null
+    }));
 
-    // Add metadata to response
     res.status(200).json({
       success: true,
       customers: customersWithCompanies,
@@ -142,48 +301,36 @@ customersRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
       metadata: {
         tenant_id: req.user.tenantId,
         schema: schemaName,
-        available_columns: availableColumns,
         timestamp: new Date().toISOString()
       }
     });
+
   } catch (error: any) {
-    console.error('[GET-CUSTOMERS] Critical error:', error);
+    console.error('[GET-CUSTOMERS] Error:', error);
     
-    // Enhanced error handling with specific codes
     const errorResponse = {
       success: false,
-      error: 'Internal server error',
-      code: 'UNKNOWN_ERROR',
+      error: 'Failed to fetch customers',
+      code: error.code || 'UNKNOWN_ERROR',
       timestamp: new Date().toISOString(),
       tenant_id: req.user?.tenantId
     };
     
-    // Handle specific database errors
-    if (error.code === '42703') {
-      console.error('[GET-CUSTOMERS] Column does not exist:', error.message);
-      errorResponse.error = 'Database schema mismatch - missing columns';
-      errorResponse.code = 'MISSING_COLUMN';
-      errorResponse.suggestion = 'Run database migration to fix schema';
-      return res.status(500).json(errorResponse);
-    }
-    
+    // Specific error handling
     if (error.code === '42P01') {
-      console.error('[GET-CUSTOMERS] Table does not exist:', error.message);
       errorResponse.error = 'Customers table not found';
       errorResponse.code = 'TABLE_NOT_FOUND';
-      errorResponse.suggestion = 'Run database migration to create table';
       return res.status(500).json(errorResponse);
     }
     
-    if (error.code === '42501') {
-      errorResponse.error = 'Insufficient permissions';
-      errorResponse.code = 'PERMISSION_DENIED';
-      return res.status(403).json(errorResponse);
+    if (error.code === '42703') {
+      errorResponse.error = 'Database schema mismatch';
+      errorResponse.code = 'SCHEMA_MISMATCH';
+      return res.status(500).json(errorResponse);
     }
     
     if (process.env.NODE_ENV === 'development') {
       errorResponse.details = error.message;
-      errorResponse.stack = error.stack;
     }
     
     res.status(500).json(errorResponse);
