@@ -349,11 +349,11 @@ export const activityLogs = pgTable("activity_logs", {
   entityType: varchar("entity_type", { length: 50 }).notNull(),
   entityId: uuid("entity_id").notNull(),
   action: varchar("action", { length: 100 }).notNull(),
-  userId: uuid("user_id"),
+  userId: uuid("user_id"), // FIXED: Consistent UUID type
   metadata: jsonb("metadata"),
   isActive: boolean("is_active").default(true),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(), // Fixed: audit field added
+  createdAt: timestamp("created_at").defaultNow().notNull(), // FIXED: NOT NULL constraint
+  updatedAt: timestamp("updated_at").defaultNow().notNull(), // FIXED: NOT NULL constraint
 }, (table) => [
   index("activity_logs_tenant_entity_idx").on(table.tenantId, table.entityType, table.entityId),
   index("activity_logs_tenant_time_idx").on(table.tenantId, table.createdAt),

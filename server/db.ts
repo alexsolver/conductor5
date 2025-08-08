@@ -74,14 +74,14 @@ export const schemaManager = {
 
       const tableCount = parseInt(result.rows[0]?.table_count || "0");
 
-      // ✅ CUSTOMER MODULE SPECIFIC VALIDATION - UPDATED
+      // ✅ CUSTOMER MODULE SPECIFIC VALIDATION - UPDATED WITH FK CHECKS
       const customerModuleTables = await pool.query(`
         SELECT table_name 
         FROM information_schema.tables 
         WHERE table_schema = $1
         AND table_name IN (
           'customers', 'beneficiaries', 'companies', 'customer_company_memberships',
-          'customer_item_mappings', 'tickets', 'locations', 'user_groups', 'activity_logs'
+          'tickets', 'locations', 'user_groups', 'activity_logs'
         )
         ORDER BY table_name
       `, [schemaName]);
@@ -109,6 +109,27 @@ export const schemaManager = {
 
       const beneficiariesFieldsOk = beneficiariesStructure.rows.length >= 6;
 
+      // ✅ VALIDATE FOREIGN KEYS FOR CUSTOMER MODULE
+      const foreignKeyCheck = await pool.query(`
+        SELECT 
+          tc.table_name,
+          kcu.column_name,
+          ccu.table_name AS foreign_table_name,
+          ccu.column_name AS foreign_column_name
+        FROM information_schema.table_constraints tc
+        JOIN information_schema.key_column_usage kcu
+          ON tc.constraint_name = kcu.constraint_name
+          AND tc.table_schema = kcu.table_schema
+        JOIN information_schema.constraint_column_usage ccu
+          ON ccu.constraint_name = tc.constraint_name
+          AND ccu.table_schema = tc.table_schema
+        WHERE tc.constraint_type = 'FOREIGN KEY'
+          AND tc.table_schema = $1
+          AND tc.table_name IN ('tickets', 'customer_company_memberships', 'beneficiaries')
+      `, [schemaName]);
+
+      const foreignKeysOk = foreignKeyCheck.rows.length >= 3; // At least 3 FK relationships expected
+
       // Check for required soft delete columns on customer tables
       const customerSoftDeleteCheck = await pool.query(`
         SELECT 
@@ -129,20 +150,22 @@ export const schemaManager = {
 
       const customerSoftDeleteCoverage = customerSoftDeleteCheck.rows.filter(row => row.has_is_active).length;
 
-      // ✅ CUSTOMER MODULE VALIDATION CRITERIA
-      const customerModuleValid = customerTables.length >= 6 && customerFieldsOk && beneficiariesFieldsOk && customerSoftDeleteCoverage >= 4;
+      // ✅ CUSTOMER MODULE VALIDATION CRITERIA - ENHANCED
+      const customerModuleValid = customerTables.length >= 6 && customerFieldsOk && beneficiariesFieldsOk && customerSoftDeleteCoverage >= 4 && foreignKeysOk;
       const overallValid = tableCount >= 60 && customerModuleValid;
       
       console.log(`🏢 Customer Module validated for ${tenantId}:`);
       console.log(`   📋 Customer tables: ${customerTables.length}/8 (${customerTables.join(', ')})`);
       console.log(`   🔧 Customer fields: ${customerFieldsOk ? 'OK' : 'MISSING'}`);
       console.log(`   🏷️ Beneficiaries fields: ${beneficiariesFieldsOk ? 'OK' : 'MISSING'}`);
+      console.log(`   🔗 Foreign keys: ${foreignKeysOk ? 'OK' : 'MISSING'} (${foreignKeyCheck.rows.length} found)`);
       console.log(`   🗑️ Soft delete coverage: ${customerSoftDeleteCoverage}/5`);
       console.log(`   ✅ Total tables: ${tableCount} - ${overallValid ? 'VALID' : 'INVALID'}`);
       
       if (!customerModuleValid) {
         const expectedCustomerTables = ['customers', 'beneficiaries', 'companies', 'customer_company_memberships', 'tickets', 'locations', 'user_groups', 'activity_logs'];
         console.log(`❌ Missing customer tables: ${expectedCustomerTables.filter(t => !customerTables.includes(t))}`);
+        console.log(`❌ Missing foreign keys - expected relationships in tickets, memberships, and beneficiaries`);
       }
       
       return overallValid;
