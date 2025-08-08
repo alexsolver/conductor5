@@ -229,15 +229,14 @@ export function useAuth() {
     throw new Error('useAuth must be used within an AuthProvider');
   }
 
-  const { logoutMutation: { mutate: logout } } = useAuthContext();
-  const [token, setToken] = React.useState(localStorage.getItem('access_token'));
+  const [token, setToken] = React.useState(localStorage.getItem('accessToken'));
 
   const refreshToken = async () => {
     try {
-      const refresh = localStorage.getItem('refresh_token');
+      const refresh = localStorage.getItem('refreshToken');
       if (!refresh) {
         console.warn('No refresh token available');
-        logout();
+        context.logoutMutation.mutate();
         return false;
       }
 
@@ -251,34 +250,28 @@ export function useAuth() {
 
       if (response.ok) {
         const data = await response.json();
-        localStorage.setItem('access_token', data.accessToken);
+        localStorage.setItem('accessToken', data.accessToken);
         if (data.refreshToken) {
-          localStorage.setItem('refresh_token', data.refreshToken);
+          localStorage.setItem('refreshToken', data.refreshToken);
         }
         setToken(data.accessToken);
         return true;
       } else {
         console.error('Failed to refresh token:', response.status);
-        logout();
+        context.logoutMutation.mutate();
         return false;
       }
     } catch (error) {
       console.error('Error refreshing token:', error);
-      logout();
+      context.logoutMutation.mutate();
       return false;
     }
   };
 
   return {
-        ...context,
-        refreshToken
-    };
+    ...context,
+    refreshToken,
+    token
+  };
 }
 
-const useAuthContext = () => {
-    const context = useContext(AuthContext);
-    if (context === null) {
-        throw new Error("useAuthContext must be used within a AuthProvider");
-    }
-    return context;
-};

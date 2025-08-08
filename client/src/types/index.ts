@@ -18,6 +18,30 @@ export interface DashboardStats {
   totalAgents: number;
 }
 
+export interface CustomerResponse {
+  id: string;
+  first_name?: string;
+  last_name?: string;
+  firstName?: string;
+  lastName?: string;
+  email: string;
+  phone?: string;
+  mobile_phone?: string;
+  mobilePhone?: string;
+  customer_type?: string;
+  customerType?: string;
+  company_name?: string;
+  companyName?: string;
+  associated_companies?: string;
+  status?: string;
+  is_active?: boolean;
+  isActive?: boolean;
+  created_at: string;
+  updated_at?: string;
+  tenant_id: string;
+  tenantId?: string;
+}
+
 export interface TicketWithRelations extends Ticket {
   customer: Customer;
   assignedTo?: User;

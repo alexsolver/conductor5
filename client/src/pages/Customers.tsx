@@ -39,7 +39,7 @@ export default function Customers() {
     }
     
     // Handle both camelCase and snake_case variations with proper defaults
-    const variations = {
+    const variations: Record<string, string[]> = {
       firstName: ['first_name', 'firstName'],
       lastName: ['last_name', 'lastName'],  
       customerType: ['customer_type', 'customerType'],
@@ -110,16 +110,24 @@ export default function Customers() {
   };
 
   // Simplified company display component
-  const CompanyDisplay = ({ companies }: { companies: string | null }) => {
-    if (!companies) {
+  const CompanyDisplay = ({ companies }: { companies: string | null | undefined }) => {
+    if (!companies || companies === 'undefined' || companies === 'null') {
       return <span className="text-gray-400">-</span>;
+    }
+
+    // Handle object or array companies data
+    let displayText = companies;
+    if (typeof companies === 'object') {
+      displayText = Array.isArray(companies) 
+        ? companies.join(', ')
+        : Object.values(companies).filter(Boolean).join(', ') || 'N/A';
     }
 
     return (
       <div className="flex items-center text-gray-600 dark:text-gray-400">
         <Building className="h-3 w-3 mr-1 flex-shrink-0" />
-        <span className="text-sm truncate" title={companies}>
-          {companies}
+        <span className="text-sm truncate" title={String(displayText)}>
+          {String(displayText)}
         </span>
       </div>
     );
@@ -313,14 +321,21 @@ export default function Customers() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    {customer.phone || customer.mobile_phone ? (
-                      <div className="flex items-center text-gray-600 dark:text-gray-400">
-                        <Phone className="h-3 w-3 mr-1" />
-                        <span>{customer.phone || customer.mobile_phone}</span>
-                      </div>
-                    ) : (
-                      <span className="text-gray-400">-</span>
-                    )}
+                    {(() => {
+                      const phone = getCustomerField(customer, 'phone') || 
+                                   customer.phone || 
+                                   customer.mobile_phone || 
+                                   customer.mobilePhone;
+                      
+                      return phone ? (
+                        <div className="flex items-center text-gray-600 dark:text-gray-400">
+                          <Phone className="h-3 w-3 mr-1" />
+                          <span>{String(phone)}</span>
+                        </div>
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      );
+                    })()}
                   </TableCell>
                   <TableCell>
                     <CompanyDisplay companies={customer.associated_companies} />
