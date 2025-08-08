@@ -12,49 +12,66 @@ customersRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
 
     console.log('[GET-CUSTOMERS] Fetching customers for tenant:', req.user.tenantId);
 
-    // Check if is_active column exists first
-    const columnCheck = await pool.query(`
-      SELECT 1 FROM information_schema.columns 
-      WHERE table_schema = $1 AND table_name = 'customers' AND column_name = 'is_active'
-    `, [schemaName]);
-
-    let whereClause = '';
-    if (columnCheck.rows.length > 0) {
-      whereClause = 'WHERE COALESCE(is_active, true) = true';
-    }
-
-    // Check which columns exist to avoid SQL errors
-    const columnsCheck = await pool.query(`
-      SELECT column_name FROM information_schema.columns 
-      WHERE table_schema = $1 AND table_name = 'customers'
-    `, [schemaName]);
-    
-    const availableColumns = columnsCheck.rows.map(row => row.column_name);
-    console.log('[GET-CUSTOMERS] Available columns:', availableColumns);
-    
-    // Build SELECT clause with only existing columns
-    const baseColumns = ['id', 'first_name', 'last_name', 'email', 'phone', 'customer_type', 'created_at', 'updated_at'];
-    const optionalColumns = ['state', 'cpf', 'cnpj', 'company_name', 'contact_person', 'mobile_phone'];
-    
-    const selectColumns = [
-      ...baseColumns.filter(col => availableColumns.includes(col)),
-      ...optionalColumns.filter(col => availableColumns.includes(col)),
-      availableColumns.includes('is_active') ? 'COALESCE(is_active, true) as is_active' : 'true as is_active'
-    ];
-
     const result = await pool.query(`
-      SELECT ${selectColumns.join(', ')}
+      SELECT 
+        id,
+        first_name,
+        last_name,
+        email,
+        phone,
+        mobile_phone,
+        customer_type,
+        cpf,
+        cnpj,
+        company_name,
+        contact_person,
+        state,
+        address,
+        address_number,
+        complement,
+        neighborhood,
+        city,
+        zip_code,
+        COALESCE(is_active, true) as is_active,
+        created_at,
+        updated_at
       FROM "${schemaName}".customers 
-      ${whereClause}
+      WHERE COALESCE(is_active, true) = true
       ORDER BY first_name, last_name
       LIMIT 100
     `);
 
     console.log('[GET-CUSTOMERS] Found', result.rows.length, 'customers');
 
+    // Add computed field for associated companies
+    const customersWithCompanies = await Promise.all(
+      result.rows.map(async (customer) => {
+        try {
+          const companiesResult = await pool.query(`
+            SELECT c.name, c.display_name
+            FROM "${schemaName}".company_memberships cm
+            JOIN "${schemaName}".companies c ON cm.company_id = c.id
+            WHERE cm.customer_id = $1 AND cm.tenant_id = $2
+            LIMIT 3
+          `, [customer.id, req.user.tenantId]);
+          
+          const companyNames = companiesResult.rows
+            .map(c => c.display_name || c.name)
+            .filter(Boolean);
+          
+          return {
+            ...customer,
+            associated_companies: companyNames.length > 0 ? companyNames.join(', ') : null
+          };
+        } catch {
+          return { ...customer, associated_companies: null };
+        }
+      })
+    );
+
     res.status(200).json({
       success: true,
-      customers: result.rows
+      customers: customersWithCompanies
     });
   } catch (error: any) {
     console.error('Error fetching customers:', error);

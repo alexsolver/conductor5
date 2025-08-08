@@ -30,69 +30,7 @@ export default function Customers() {
   const customers = customersData?.customers || [];
   const total = customersData?.total || customers.length;
 
-  // Hook para buscar empresas associadas de cada cliente
-  const useCompanies = (customerId: string) => {
-    return useQuery({
-      queryKey: [`/api/customers/${customerId}/companies`],
-      queryFn: async () => {
-        try {
-          const response = await fetch(`/api/customers/${customerId}/companies`, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            credentials: 'include', // Incluir cookies da sessão
-          });
-
-          console.log(`[DEBUG] Customer ${customerId} API response:`, {
-            responseStatus: response.status,
-            statusText: response.statusText,
-            headers: Object.fromEntries(response.headers.entries())
-          });
-
-          if (!response.ok) {
-            console.warn(`[DEBUG] Customer ${customerId} - API error: ${response.status} ${response.statusText}`);
-            return [];
-          }
-
-          const data = await response.json();
-          
-          console.log(`[DEBUG] Customer ${customerId} response data:`, {
-            dataStructure: typeof data,
-            dataKeys: Object.keys(data || {}),
-            fullData: data
-          });
-          
-          // Verificar diferentes estruturas possíveis da resposta
-          if (Array.isArray(data)) {
-            console.log(`[DEBUG] Customer ${customerId} - returning direct array with ${data.length} items`);
-            return data;
-          }
-          if (data?.success && data?.data && Array.isArray(data.data)) {
-            console.log(`[DEBUG] Customer ${customerId} - returning data.data array with ${data.data.length} items`);
-            return data.data;
-          }
-          if (data?.data && Array.isArray(data.data)) {
-            console.log(`[DEBUG] Customer ${customerId} - returning data.data array with ${data.data.length} items (no success field)`);
-            return data.data;
-          }
-          if (data?.companies && Array.isArray(data.companies)) {
-            console.log(`[DEBUG] Customer ${customerId} - returning data.companies array with ${data.companies.length} items`);
-            return data.companies;
-          }
-          
-          console.warn(`[DEBUG] Customer ${customerId} - Invalid companies data structure:`, data);
-          return [];
-        } catch (error) {
-          console.error(`[DEBUG] Customer ${customerId} - Network error:`, error);
-          return [];
-        }
-      },
-      enabled: !!customerId,
-      staleTime: 5 * 60 * 1000, // Cache por 5 minutos
-      retry: 1, // Tentar apenas uma vez para evitar rate limiting
-    });
-  };
+  // Remove the complex companies hook - data comes from main API now
 
   console.log('Customers data:', { customers, total, error, isLoading });
 
@@ -129,62 +67,20 @@ export default function Customers() {
     return "U";
   };
 
-  // Componente para renderizar empresas associadas
-  const Companies = ({ customerId }: { customerId: string }) => {
-    const { data: companies, isLoading } = useCompanies(customerId);
-    
-    if (isLoading) {
-      return <div className="h-4 w-16 bg-gray-200 rounded animate-pulse"></div>;
-    }
-    
-    // Filtrar empresa Default inativa para evitar problemas de renderização
-    const activeCompanies = Array.isArray(companies) ? companies.filter((company: any) => {
-      const companyId = company?.company_id || company?.id;
-      const companyStatus = company?.status;
-      
-      // Filtrar empresa Default se estiver inativa
-      if (companyId === '00000000-0000-0000-0000-000000000001') {
-        return companyStatus === 'active';
-      }
-      
-      return true;
-    }) : [];
-    
-    console.log(`Customer ${customerId} companies:`, {
-      originalCount: companies?.length || 0,
-      filteredCount: activeCompanies.length,
-      filtered: activeCompanies
-    });
-    
-    // Verificação adicional para garantir que activeCompanies é um array
-    if (!activeCompanies || !Array.isArray(activeCompanies) || activeCompanies.length === 0) {
+  // Simplified company display component
+  const CompanyDisplay = ({ companies }: { companies: string | null }) => {
+    if (!companies) {
       return <span className="text-gray-400">-</span>;
     }
-    
-    // Renderizar lista de empresas ativas
-    try {
-      return (
-        <div className="flex flex-col gap-1 max-w-xs">
-          {activeCompanies.map((company: any, index: number) => {
-            // Verificação defensiva para evitar erros - usar campos corretos da estrutura
-            const companyName = company?.company_name || company?.display_name || company?.name || company?.displayName || 'Empresa sem nome';
-            const companyId = company?.company_id || company?.id || index;
-            
-            return (
-              <div key={companyId} className="flex items-center text-gray-600 dark:text-gray-400">
-                <Building className="h-3 w-3 mr-1 flex-shrink-0" />
-                <span className="text-sm truncate" title={companyName}>
-                  {companyName}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      );
-    } catch (error) {
-      console.error(`Error rendering companies for customer ${customerId}:`, error, activeCompanies);
-      return <span className="text-red-400">Erro ao carregar empresas</span>;
-    }
+
+    return (
+      <div className="flex items-center text-gray-600 dark:text-gray-400">
+        <Building className="h-3 w-3 mr-1 flex-shrink-0" />
+        <span className="text-sm truncate" title={companies}>
+          {companies}
+        </span>
+      </div>
+    );
   };
 
   if (isLoading) {
@@ -291,7 +187,7 @@ export default function Customers() {
                     </div>
                     {customer.customer_type && (
                       <div className="text-sm text-gray-500 dark:text-gray-400">
-                        {customer.customer_type === 'PJ' ? customer.company_name : `${customer.customer_type}`}
+                        {customer.customer_type === 'PJ' ? (customer.company_name || 'Empresa') : customer.customer_type}
                       </div>
                     )}
                   </TableCell>
@@ -302,26 +198,17 @@ export default function Customers() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    {customer.phone || customer.mobilePhone ? (
+                    {customer.phone || customer.mobile_phone ? (
                       <div className="flex items-center text-gray-600 dark:text-gray-400">
                         <Phone className="h-3 w-3 mr-1" />
-                        <span>{customer.phone || customer.mobilePhone}</span>
+                        <span>{customer.phone || customer.mobile_phone}</span>
                       </div>
                     ) : (
                       <span className="text-gray-400">-</span>
                     )}
                   </TableCell>
                   <TableCell>
-                    {customer.associated_companies ? (
-                      <div className="flex items-center text-gray-600 dark:text-gray-400">
-                        <Building className="h-3 w-3 mr-1 flex-shrink-0" />
-                        <span className="text-sm truncate" title={customer.associated_companies}>
-                          {customer.associated_companies}
-                        </span>
-                      </div>
-                    ) : (
-                      <span className="text-gray-400">-</span>
-                    )}
+                    <CompanyDisplay companies={customer.associated_companies} />
                   </TableCell>
                   <TableCell>
                     <Badge 

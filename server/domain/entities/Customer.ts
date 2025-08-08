@@ -1,15 +1,26 @@
-// Domain Entity - Pure business logic, no dependencies
+
 export class Customer {
   constructor(
     public readonly id: string,
     public readonly tenantId: string,
     public readonly email: string,
-    public readonly firstName: string | null = null,
-    public readonly lastName: string | null = null,
+    public readonly firstName: string,
+    public readonly lastName: string,
     public readonly phone: string | null = null,
-    public readonly company: string | null = null,
-    public readonly tags: string[] = [],
-    public readonly metadata: Record<string, string | number | boolean | null> = {},
+    public readonly mobilePhone: string | null = null,
+    public readonly customerType: string = "PF",
+    public readonly cpf: string | null = null,
+    public readonly cnpj: string | null = null,
+    public readonly companyName: string | null = null,
+    public readonly contactPerson: string | null = null,
+    public readonly state: string | null = null,
+    public readonly address: string | null = null,
+    public readonly addressNumber: string | null = null,
+    public readonly complement: string | null = null,
+    public readonly neighborhood: string | null = null,
+    public readonly city: string | null = null,
+    public readonly zipCode: string | null = null,
+    public readonly isActive: boolean = true,
     public readonly createdAt: Date = new Date(),
     public readonly updatedAt: Date = new Date()
   ) {}
@@ -25,24 +36,41 @@ export class Customer {
     return emailRegex.test(this.email);
   }
 
-  hasTag(tag: string): boolean {
-    return this.tags.includes(tag);
+  get isPF(): boolean {
+    return this.customerType === "PF";
   }
 
-  isFromCompany(company: string): boolean {
-    return this.company?.toLowerCase() === company.toLowerCase();
+  get isPJ(): boolean {
+    return this.customerType === "PJ";
+  }
+
+  get displayName(): string {
+    if (this.isPJ && this.companyName) {
+      return this.companyName;
+    }
+    return this.fullName;
   }
 
   // Factory methods
   static create(props: {
     tenantId: string;
     email: string;
-    firstName?: string | null;
-    lastName?: string | null;
+    firstName: string;
+    lastName: string;
     phone?: string | null;
-    company?: string | null;
-    tags?: string[];
-    metadata?: Record<string, string | number | boolean | null>;
+    mobilePhone?: string | null;
+    customerType?: string;
+    cpf?: string | null;
+    cnpj?: string | null;
+    companyName?: string | null;
+    contactPerson?: string | null;
+    state?: string | null;
+    address?: string | null;
+    addressNumber?: string | null;
+    complement?: string | null;
+    neighborhood?: string | null;
+    city?: string | null;
+    zipCode?: string | null;
   }): Customer {
     // Business validation
     if (!props.email) {
@@ -53,9 +81,18 @@ export class Customer {
       throw new Error('Customer must belong to a tenant');
     }
 
+    if (!props.firstName || !props.lastName) {
+      throw new Error('Customer first name and last name are required');
+    }
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(props.email)) {
       throw new Error('Invalid email format');
+    }
+
+    // Validate customer type specific fields
+    if (props.customerType === "PJ" && !props.companyName) {
+      throw new Error('Company name is required for PJ customers');
     }
 
     return new Customer(
@@ -65,21 +102,43 @@ export class Customer {
       props.firstName,
       props.lastName,
       props.phone,
-      props.company,
-      props.tags || [],
-      props.metadata || {},
+      props.mobilePhone,
+      props.customerType || "PF",
+      props.cpf,
+      props.cnpj,
+      props.companyName,
+      props.contactPerson,
+      props.state,
+      props.address,
+      props.addressNumber,
+      props.complement,
+      props.neighborhood,
+      props.city,
+      props.zipCode,
+      true,
       new Date(),
       new Date()
     );
   }
 
   update(props: Partial<{
-    firstName: string | null;
-    lastName: string | null;
+    firstName: string;
+    lastName: string;
     phone: string | null;
-    company: string | null;
-    tags: string[];
-    metadata: Record<string, unknown>;
+    mobilePhone: string | null;
+    customerType: string;
+    cpf: string | null;
+    cnpj: string | null;
+    companyName: string | null;
+    contactPerson: string | null;
+    state: string | null;
+    address: string | null;
+    addressNumber: string | null;
+    complement: string | null;
+    neighborhood: string | null;
+    city: string | null;
+    zipCode: string | null;
+    isActive: boolean;
   }>): Customer {
     return new Customer(
       this.id,
@@ -88,9 +147,20 @@ export class Customer {
       props.firstName !== undefined ? props.firstName : this.firstName,
       props.lastName !== undefined ? props.lastName : this.lastName,
       props.phone !== undefined ? props.phone : this.phone,
-      props.company !== undefined ? props.company : this.company,
-      props.tags !== undefined ? props.tags : this.tags,
-      props.metadata !== undefined ? props.metadata : this.metadata,
+      props.mobilePhone !== undefined ? props.mobilePhone : this.mobilePhone,
+      props.customerType !== undefined ? props.customerType : this.customerType,
+      props.cpf !== undefined ? props.cpf : this.cpf,
+      props.cnpj !== undefined ? props.cnpj : this.cnpj,
+      props.companyName !== undefined ? props.companyName : this.companyName,
+      props.contactPerson !== undefined ? props.contactPerson : this.contactPerson,
+      props.state !== undefined ? props.state : this.state,
+      props.address !== undefined ? props.address : this.address,
+      props.addressNumber !== undefined ? props.addressNumber : this.addressNumber,
+      props.complement !== undefined ? props.complement : this.complement,
+      props.neighborhood !== undefined ? props.neighborhood : this.neighborhood,
+      props.city !== undefined ? props.city : this.city,
+      props.zipCode !== undefined ? props.zipCode : this.zipCode,
+      props.isActive !== undefined ? props.isActive : this.isActive,
       this.createdAt,
       new Date()
     );
