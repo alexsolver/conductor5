@@ -285,7 +285,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           try {
             console.log(`[GET-CUSTOMERS] Checking companies_relationships for customer ${customer.id}`);
 
-            // Try companies_relationships without tenant_id filter (since column doesn't exist)
+            // Get associated companies for this customer
             let companiesResult = await pool.query(`
               SELECT DISTINCT c.name, c.display_name
               FROM "${schemaName}".companies_relationships cr
@@ -3451,17 +3451,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
       const schemaName = schemaManager.getSchemaName(tenantId);
 
-      // Check if relationship already exists
+      // Check if relationship already exists (including inactive ones)
       const existing = await tenantDb.execute(sql`
-        SELECT id FROM ${sql.identifier(schemaName)}.companies_relationships
-        WHERE customer_id = ${customerId} AND company_id = ${companyId} AND is_active = true
+        SELECT id, is_active FROM ${sql.identifier(schemaName)}.companies_relationships
+        WHERE customer_id = ${customerId} AND company_id = ${companyId}
       `);
 
       if (existing.rows.length > 0) {
-        return res.status(400).json({ 
-          success: false, 
-          message: 'Cliente já está associado a esta empresa' 
-        });
+        const existingRelation = existing.rows[0];
+        
+        if (existingRelation.is_active) {
+          return res.status(400).json({ 
+            success: false, 
+            message: 'Cliente já está associado a esta empresa' 
+          });
+        } else {
+          // Reactivate existing relationship
+          const reactivated = await tenantDb.execute(sql`
+            UPDATE ${sql.identifier(schemaName)}.companies_relationships
+            SET is_active = true, relationship_type = ${relationshipType}, 
+                is_primary = ${isPrimary}, start_date = CURRENT_DATE, 
+                updated_at = CURRENT_TIMESTAMP, end_date = NULL
+            WHERE id = ${existingRelation.id}
+            RETURNING *
+          `);
+          
+          return res.status(200).json({
+            success: true,
+            message: 'Associação reativada com sucesso',
+            data: reactivated.rows[0]
+          });
+        }
       }
 
       // Create new customer-company relationship
