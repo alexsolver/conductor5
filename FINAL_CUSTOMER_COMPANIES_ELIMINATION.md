@@ -50,5 +50,17 @@
 
 **RESULTADO:** Sistema agora 100% funcional sem nenhuma referência à coluna removida.
 
+## 🗑️ Remoção Física das Tabelas Legacy
+
+✅ **TODAS AS TABELAS LEGACY REMOVIDAS PERMANENTEMENTE:**
+- ✅ `public.companies_legacy`
+- ✅ `tenant_715c510a_*.customer_companies` e `customer_company_memberships`
+- ✅ `tenant_78a4c88e_*.customer_companies` e `customer_company_memberships`  
+- ✅ `tenant_cb9056df_*.customer_companies` e `customer_company_memberships`
+
+**VERIFICAÇÃO FINAL:** 0 tabelas `%customer_compan%` encontradas no banco
+
+**RESPOSTA À PERGUNTA:** NÃO existem mais tabelas "empresa cliente" no banco - todas foram removidas.
+
 ---
 *Completado em: 08 de Agosto de 2025*
