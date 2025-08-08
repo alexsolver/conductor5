@@ -1,198 +1,137 @@
 import { Router } from 'express';
-import { CustomFieldsController } from './CustomFieldsController';
-import { CustomFieldsRepository } from './CustomFieldsRepository';
-import { schemaManager } from '../../db';
-import { AuthenticatedRequest } from './CustomFieldsController';
-import { Request, Response, NextFunction } from 'express';
+import { CustomFieldsController, AuthenticatedRequest } from './CustomFieldsController.ts';
+import { CustomFieldsRepository } from './CustomFieldsRepository.ts';
+import { jwtAuth } from '../../middleware/jwtAuth.js';
+import { schemaManager } from '../../db.js';
 
 const router = Router();
 
-// Session-based authentication middleware for Custom Fields
-const sessionAuth = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-  try {
-    console.log('🔍 [Custom Fields Auth] Session check:', {
-      hasSession: !!req.session,
-      hasUser: !!(req.session && req.session.user),
-      userInfo: req.session?.user ? {
-        id: req.session.user.id,
-        email: req.session.user.email,
-        role: req.session.user.role
-      } : null
-    });
+// Initialize repository and controller
+const customFieldsRepository = new CustomFieldsRepository(schemaManager);
+const customFieldsController = new CustomFieldsController(customFieldsRepository);
 
-    // Check session authentication (browser login)
-    if (req.session && req.session.user) {
-      req.user = {
-        id: req.session.user.id,
-        tenantId: req.session.user.tenantId || req.session.user.tenant_id,
-        role: req.session.user.role,
-        email: req.session.user.email
-      };
-      
-      console.log('✅ [Custom Fields Auth] Session authenticated:', {
-        userId: req.user.id,
-        tenantId: req.user.tenantId,
-        role: req.user.role
-      });
-      
-      return next();
-    }
-
-    console.log('❌ [Custom Fields Auth] No valid session found');
-    return res.status(401).json({ 
-      message: 'Authentication required - please login' 
-    });
-  } catch (error) {
-    console.error('❌ [Custom Fields Auth] Authentication error:', error);
-    return res.status(401).json({ message: 'Authentication failed' });
-  }
+// Middleware to validate module access
+const moduleAccessMiddleware = (req: AuthenticatedRequest, res: any, next: any) => {
+  const { moduleType } = req.params;
+  // TODO: Add module access validation here when implementing SaaS features
+  // For now, allow all modules
+  next();
 };
 
-try {
-  const customFieldsRepository = new CustomFieldsRepository(schemaManager);
-  const customFieldsController = new CustomFieldsController(customFieldsRepository);
+// ===========================
+// CUSTOM FIELDS METADATA ROUTES
+// ===========================
 
-  // Test route without authentication (temporary for debugging)
-  router.get('/test', async (req, res) => {
-    res.json({ 
-      message: 'Custom Fields module is working!',
-      timestamp: new Date().toISOString(),
-      hasSession: !!req.session,
-      sessionUser: req.session?.user || null
-    });
-  });
+// Get all fields for a module
+router.get('/fields/:moduleType', jwtAuth, moduleAccessMiddleware, (req, res) => {
+  customFieldsController.getFieldsByModule(req as AuthenticatedRequest, res);
+});
 
-  // Apply session authentication middleware
-  router.use(sessionAuth);
+// Get specific field by ID
+router.get('/fields/detail/:fieldId', jwtAuth, (req, res) => {
+  customFieldsController.getFieldById(req as AuthenticatedRequest, res);
+});
 
-  console.log('🔧 [Custom Fields Routes] Session authentication middleware applied');
-  console.log('🔧 [Custom Fields Routes] All routes initialized and ready');
+// Create new field
+router.post('/fields', jwtAuth, (req, res) => {
+  customFieldsController.createField(req as AuthenticatedRequest, res);
+});
 
-  // Routes for field metadata management
-  router.get('/fields/:moduleType', async (req, res) => {
-    try {
-      await customFieldsController.getFieldsByModule(req as any, res);
-    } catch (error) {
-      console.error('❌ [CUSTOM-FIELDS] Error in getFieldsByModule:', error);
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  });
+// Update field
+router.put('/fields/:fieldId', jwtAuth, (req, res) => {
+  customFieldsController.updateField(req as AuthenticatedRequest, res);
+});
 
-  router.get('/fields/single/:fieldId', async (req, res) => {
-    try {
-      await customFieldsController.getFieldById(req as any, res);
-    } catch (error) {
-      console.error('❌ [CUSTOM-FIELDS] Error in getFieldById:', error);
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  });
+// Delete field (soft delete)
+router.delete('/fields/:fieldId', jwtAuth, (req, res) => {
+  customFieldsController.deleteField(req as AuthenticatedRequest, res);
+});
 
-  router.post('/fields', async (req, res) => {
-    try {
-      await customFieldsController.createField(req as any, res);
-    } catch (error) {
-      console.error('❌ [CUSTOM-FIELDS] Error in createField:', error);
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  });
+// Reorder fields for a module
+router.post('/fields/:moduleType/reorder', jwtAuth, moduleAccessMiddleware, (req, res) => {
+  customFieldsController.reorderFields(req as AuthenticatedRequest, res);
+});
 
-  router.put('/fields/:fieldId', async (req, res) => {
-    try {
-      await customFieldsController.updateField(req as any, res);
-    } catch (error) {
-      console.error('❌ [CUSTOM-FIELDS] Error in updateField:', error);
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  });
+// ===========================
+// CUSTOM FIELDS VALUES ROUTES
+// ===========================
 
-  router.delete('/fields/:fieldId', async (req, res) => {
-    try {
-      await customFieldsController.deleteField(req as any, res);
-    } catch (error) {
-      console.error('❌ [CUSTOM-FIELDS] Error in deleteField:', error);
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  });
+// Get values for an entity
+router.get('/values/:entityType/:entityId', jwtAuth, moduleAccessMiddleware, (req, res) => {
+  customFieldsController.getEntityValues(req as AuthenticatedRequest, res);
+});
 
-  // Routes for field ordering
-  router.post('/fields/:moduleType/reorder', async (req, res) => {
-    try {
-      await customFieldsController.reorderFields(req as any, res);
-    } catch (error) {
-      console.error('❌ [CUSTOM-FIELDS] Error in reorderFields:', error);
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  });
+// Save values for an entity
+router.post('/values/:entityType/:entityId', jwtAuth, moduleAccessMiddleware, (req, res) => {
+  customFieldsController.saveEntityValues(req as AuthenticatedRequest, res);
+});
 
-  // Routes for entity values
-  router.get('/values/:entityType/:entityId', async (req, res) => {
-    try {
-      await customFieldsController.getEntityValues(req as any, res);
-    } catch (error) {
-      console.error('❌ [CUSTOM-FIELDS] Error in getEntityValues:', error);
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  });
+// Delete values for an entity
+router.delete('/values/:entityType/:entityId', jwtAuth, moduleAccessMiddleware, (req, res) => {
+  customFieldsController.deleteEntityValues(req as AuthenticatedRequest, res);
+});
 
-  router.post('/values/:entityType/:entityId', async (req, res) => {
-    try {
-      await customFieldsController.saveEntityValues(req as any, res);
-    } catch (error) {
-      console.error('❌ [CUSTOM-FIELDS] Error in saveEntityValues:', error);
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  });
+// ===========================
+// SIMPLIFIED TICKET ROUTES FOR DRAG-AND-DROP
+// ===========================
 
-  router.delete('/values/:entityType/:entityId', async (req, res) => {
-    try {
-      await customFieldsController.deleteEntityValues(req as any, res);
-    } catch (error) {
-      console.error('❌ [CUSTOM-FIELDS] Error in deleteEntityValues:', error);
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  });
+// Get custom fields for a specific ticket
+router.get('/ticket/:ticketId', jwtAuth, (req, res) => {
+  // Modify params to match the entity values route structure
+  const modifiedReq = req as AuthenticatedRequest;
+  modifiedReq.params = {
+    ...modifiedReq.params,
+    entityType: 'tickets',
+    entityId: req.params.ticketId
+  };
+  customFieldsController.getEntityValues(modifiedReq, res);
+});
 
-  // Routes for module access management
-  router.get('/access', async (req, res) => {
-    try {
-      await customFieldsController.getTenantModuleAccess(req as any, res);
-    } catch (error) {
-      console.error('❌ [CUSTOM-FIELDS] Error in getTenantModuleAccess:', error);
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  });
+// Save custom fields for a specific ticket
+router.post('/ticket/:ticketId', jwtAuth, (req, res) => {
+  // Modify params to match the entity values route structure
+  const modifiedReq = req as AuthenticatedRequest;
+  modifiedReq.params = {
+    ...modifiedReq.params,
+    entityType: 'tickets',
+    entityId: req.params.ticketId
+  };
+  customFieldsController.saveEntityValues(modifiedReq, res);
+});
 
-  router.put('/access/:moduleType', async (req, res) => {
-    try {
-      await customFieldsController.updateModuleAccess(req as any, res);
-    } catch (error) {
-      console.error('❌ [CUSTOM-FIELDS] Error in updateModuleAccess:', error);
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  });
+// Delete custom fields for a specific ticket
+router.delete('/ticket/:ticketId', jwtAuth, (req, res) => {
+  // Modify params to match the entity values route structure
+  const modifiedReq = req as AuthenticatedRequest;
+  modifiedReq.params = {
+    ...modifiedReq.params,
+    entityType: 'tickets',
+    entityId: req.params.ticketId
+  };
+  customFieldsController.deleteEntityValues(modifiedReq, res);
+});
 
-  // Routes for statistics
-  router.get('/stats/:moduleType', async (req, res) => {
-    try {
-      await customFieldsController.getModuleFieldStats(req as any, res);
-    } catch (error) {
-      console.error('❌ [CUSTOM-FIELDS] Error in getModuleFieldStats:', error);
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  });
+// ===========================
+// TENANT MODULE ACCESS ROUTES
+// ===========================
 
-  console.log('✅ [CUSTOM-FIELDS] Routes initialized successfully');
+// Get tenant module access configuration
+router.get('/modules/access', jwtAuth, (req, res) => {
+  customFieldsController.getTenantModuleAccess(req as AuthenticatedRequest, res);
+});
 
-} catch (error) {
-  console.error('❌ [CUSTOM-FIELDS] Failed to initialize routes:', error);
+// Update module access
+router.put('/modules/:moduleType/access', jwtAuth, (req, res) => {
+  customFieldsController.updateModuleAccess(req as AuthenticatedRequest, res);
+});
 
-  // Fallback error route
-  router.use('*', (req, res) => {
-    res.status(500).json({
-      error: 'Custom fields module is temporarily unavailable',
-      message: 'Please try again later'
-    });
-  });
-}
+// ===========================
+// STATISTICS ROUTES
+// ===========================
+
+// Get field statistics for a module
+router.get('/stats/:moduleType', jwtAuth, moduleAccessMiddleware, (req, res) => {
+  customFieldsController.getModuleFieldStats(req as AuthenticatedRequest, res);
+});
 
 export default router;

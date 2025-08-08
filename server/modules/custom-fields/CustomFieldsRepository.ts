@@ -7,12 +7,12 @@ export class CustomFieldsRepository {
 
   constructor(schemaManager: any) {
     this.schemaManager = schemaManager;
-    console.log('✅ Custom Fields Repository initialized successfully');
   }
 
   // Get all fields for a specific module
   async getFieldsByModule(tenantId: string, moduleType: string) {
     try {
+      const schema = await this.schemaManager.getSchema(tenantId);
       const db = await this.schemaManager.getConnection(tenantId);
 
       const result = await db.execute(sql`

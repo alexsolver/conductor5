@@ -675,7 +675,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // First verify the company exists and is active
       const companyCheck = await pool.query(
-        `SELECT id FROM "${schemaName}"."customer_companies" WHERE id = $1 AND tenant_id = $2`,
+        `SELECT id FROM "${schemaName}"."customer_companies" WHERE id = $1 AND tenant_id = $2 AND is_active = true`,
         [companyId, req.user.tenantId]
       );
 
@@ -1249,7 +1249,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.log('✅ Category hierarchy routes registered');
 
     // ========================================
-    // TICKET TEMPLATESROUTES
+    // TICKET TEMPLATES ROUTES
     // ========================================
 
     // Simplified routes (show all public templates)
@@ -1491,7 +1491,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 // Advanced ticket configuration routes
   // CustomFields routes - Universal metadata and dynamic fields system
-  app.use('/api/custom-fields', customFieldsRoutes);
+  app.use('/api/custom-fields', jwtAuth, customFieldsRoutes);
 
   // Holiday routes for journey control system
   app.use('/api/holidays', holidayRoutes);
@@ -1994,7 +1994,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const formatToCLTStandard = (entry: any) => {
         const date = new Date(entry.check_in);
         const dayOfWeek = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'][date.getDay()];
-
+        
         const formatTime = (timestamp: string | null) => {
           if (!timestamp) return '--:--';
           // Parse timestamp and format directly without timezone conversion to avoid UTC offset issues
@@ -2017,7 +2017,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const now = new Date();
         const entryDate = new Date(firstEntry);
         const isToday = entryDate.toDateString() === now.toDateString();
-
+        
         if (firstEntry && !secondExit) {
           // Jornada incompleta
           if (!firstExit && !secondEntry) {
@@ -2096,7 +2096,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
 
           totalHoursWorked = workMinutes / 60;
-
+          
           // Calcular horas extras (acima de 8h)
           const standardHours = 8;
           if (totalHoursWorked > standardHours) {
@@ -2124,13 +2124,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`[ATTENDANCE-REPORT] Processing ${result.rows.length} real database records`);
       console.log('[ATTENDANCE-REPORT] Raw DB records:', result.rows.map(r => ({
-        id: r.id,
+        id: r.id.slice(-8),
         date: r.check_in ? new Date(r.check_in).toLocaleDateString('pt-BR') : 'N/A',
         checkIn: r.check_in ? `${new Date(r.check_in).getUTCHours().toString().padStart(2, '0')}:${new Date(r.check_in).getUTCMinutes().toString().padStart(2, '0')}` : 'N/A',
         checkOut: r.check_out ? `${new Date(r.check_out).getUTCHours().toString().padStart(2, '0')}:${new Date(r.check_out).getUTCMinutes().toString().padStart(2, '0')}` : 'N/A',
         status: r.status
       })));
-
+      
       console.log('[ATTENDANCE-REPORT] First record detailed check:', {
         raw_check_in: result.rows[0]?.check_in,
         parsed_date: result.rows[0]?.check_in ? new Date(result.rows[0].check_in) : null,
@@ -2138,7 +2138,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         utc_minutes: result.rows[0]?.check_in ? new Date(result.rows[0].check_in).getUTCMinutes() : null,
         formatted: result.rows[0]?.check_in ? `${new Date(result.rows[0].check_in).getUTCHours().toString().padStart(2, '0')}:${new Date(result.rows[0].check_in).getUTCMinutes().toString().padStart(2, '0')}` : null
       });
-
+      
       const attendanceData = result.rows.map(formatToCLTStandard);
 
       // Calculate proper summary
@@ -2197,7 +2197,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const formatToCLTStandard = (entry: any) => {
         const date = new Date(entry.check_in);
         const dayOfWeek = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'][date.getDay()];
-
+        
         const formatTime = (timestamp: string | null) => {
           if (!timestamp) return '--:--';
           const date = new Date(timestamp);
@@ -2219,7 +2219,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const start = new Date(firstEntry);
           const end = new Date(secondExit);
           totalMinutes = (end.getTime() - start.getTime()) / (1000 * 60);
-
+          
           // Subtract break time if exists
           if (firstExit && secondEntry) {
             const breakStart = new Date(firstExit);
@@ -2227,7 +2227,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const breakMinutes = (breakEnd.getTime() - breakStart.getTime()) / (1000 * 60);
             totalMinutes -= breakMinutes;
           }
-
+          
           // Calculate overtime (over 8 hours = 480 minutes)
           if (totalMinutes > 480) {
             overtimeMinutes = totalMinutes - 480;
@@ -2257,7 +2257,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const allData = result.rows.map(formatToCLTStandard);
       const overtimeData = allData.filter((entry: any) => entry.overtimeHours && parseFloat(entry.overtimeHours) > 0);
-
+      
       const totalOvertimeHours = overtimeData.reduce((sum, entry) => sum + parseFloat(entry.overtimeHours || '0'), 0);
 
       res.json({
@@ -3585,7 +3585,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/field-layouts', fieldLayoutRoutes);
 
   // ========================================
-  // HIERARCHICAL TICKET METADATAROUTES - HANDLED ABOVE
+  // HIERARCHICAL TICKET METADATA ROUTES - HANDLED ABOVE
   // ========================================
   // Note: Hierarchical routes are now registered above with proper error handling
 
@@ -3626,7 +3626,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/sla/metrics/calculate/:ticketId', jwtAuth, requireTenantAccess, slaController.calculateTicketSlaMetrics.bind(slaController));
 
   // ========================================
-  // PROJECT MANAGEMENTROUTES WITH AUTOMATIC TICKET INTEGRATION
+  // PROJECT MANAGEMENT ROUTES WITH AUTOMATIC TICKET INTEGRATION
   // ========================================
 
   // Project CRUD Routes
@@ -3741,7 +3741,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ========================================
-  // PROJECT ACTIONSROUTES WITH AUTOMATIC TICKET INTEGRATION
+  // PROJECT ACTIONS ROUTES WITH AUTOMATIC TICKET INTEGRATION
   // ========================================
 
   app.get('/api/project-actions', jwtAuth, async (req: AuthenticatedRequest, res) => {
@@ -4008,7 +4008,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ==============================
-  // USER GROUPSROUTES
+  // USER GROUPS ROUTES
   // ==============================
 
   // Get all user groups

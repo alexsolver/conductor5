@@ -1,3 +1,4 @@
+
 import { Request, Response } from 'express';
 import { CustomFieldsRepository } from './CustomFieldsRepository';
 
@@ -14,39 +15,23 @@ export class CustomFieldsController {
 
   constructor(repository: CustomFieldsRepository) {
     this.customFieldsRepository = repository;
-    console.log('✅ Custom Fields Controller initialized successfully');
   }
 
   // Get all fields for a specific module
   async getFieldsByModule(req: AuthenticatedRequest, res: Response) {
     try {
       const { moduleType } = req.params;
-      const tenantId = req.user!.tenantId;
+      const tenantId = req.user?.tenantId;
 
-      console.log('🔍 [Custom Fields] Getting fields for module:', moduleType, 'tenant:', tenantId);
-
-      if (!moduleType) {
-        return res.status(400).json({
-          success: false,
-          message: 'Module type is required'
-        });
+      if (!tenantId) {
+        return res.status(401).json({ error: 'Tenant ID not found' });
       }
 
       const fields = await this.customFieldsRepository.getFieldsByModule(tenantId, moduleType);
-
-      console.log('✅ [Custom Fields] Found', fields.length, 'fields for module:', moduleType);
-
-      return res.json({
-        success: true,
-        message: 'Fields retrieved successfully',
-        data: fields
-      });
+      res.json({ success: true, data: fields });
     } catch (error) {
-      console.error('❌ [Custom Fields] Error fetching fields by module:', error);
-      return res.status(500).json({
-        success: false,
-        message: 'Internal server error'
-      });
+      console.error('Error getting fields by module:', error);
+      res.status(500).json({ error: 'Internal server error' });
     }
   }
 
