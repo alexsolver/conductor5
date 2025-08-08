@@ -146,42 +146,30 @@ customersRouter.get('/', jwtAuth, validateGetCustomers, async (req: Authenticate
 
     console.log('[GET-CUSTOMERS] Found', result.rows.length, 'customers');
 
-    // Add computed field for associated companies with better error handling
+    // Add computed field for associated companies using UNIFIED PATH
     const customersWithCompanies = await Promise.all(
       result.rows.map(async (customer) => {
         try {
-          // First try companies_relationships (current structure)
-          console.log(`[GET-CUSTOMERS] Checking companies_relationships for customer ${customer.id}`);
-          let companiesResult = await pool.query(`
-            SELECT DISTINCT c.name, c.display_name
+          // UNIFIED PATH: Use ONLY companies_relationships table
+          console.log(`[GET-CUSTOMERS] Getting companies for customer ${customer.id} via companies_relationships`);
+          const companiesResult = await pool.query(`
+            SELECT DISTINCT 
+              c.name, 
+              c.display_name,
+              cr.relationship_type,
+              cr.is_primary
             FROM "${schemaName}".companies_relationships cr
             JOIN "${schemaName}".companies c ON cr.company_id = c.id
-            WHERE cr.customer_id = $1 AND c.tenant_id = $2 AND c.is_active = true AND cr.is_active = true
-            ORDER BY c.display_name, c.name
-            LIMIT 3
+            WHERE cr.customer_id = $1 
+              AND c.tenant_id = $2 
+              AND c.is_active = true 
+              AND cr.is_active = true
+            ORDER BY cr.is_primary DESC, c.display_name, c.name
+            LIMIT 5
           `, [customer.id, req.user.tenantId]);
           
           console.log(`[GET-CUSTOMERS] Found ${companiesResult.rows.length} companies for customer ${customer.id}:`, 
             companiesResult.rows.map(r => r.name || r.display_name));
-          
-          // Fallback to company_memberships if companies_relationships doesn't exist or has no data
-          if (companiesResult.rows.length === 0) {
-            const membershipTableExists = await pool.query(`
-              SELECT 1 FROM information_schema.tables 
-              WHERE table_schema = $1 AND table_name = 'company_memberships'
-            `, [schemaName]);
-            
-            if (membershipTableExists.rows.length > 0) {
-              companiesResult = await pool.query(`
-                SELECT DISTINCT c.name, c.display_name
-                FROM "${schemaName}".company_memberships cm
-                JOIN "${schemaName}".companies c ON cm.company_id = c.id
-                WHERE cm.customer_id = $1 AND cm.tenant_id = $2 AND c.is_active = true
-                ORDER BY c.display_name, c.name
-                LIMIT 3
-              `, [customer.id, req.user.tenantId]);
-            }
-          }
           
           const companyNames = companiesResult.rows
             .map(c => c.display_name || c.name)
