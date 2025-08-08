@@ -35,4 +35,4 @@ router.put('/module-access/:moduleType', (req, res) => customFieldsController.up
 // Statistics
 router.get('/stats/:moduleType', (req, res) => customFieldsController.getModuleFieldStats(req as any, res));
 
-export { router as customFieldsRoutes };
+export default router;

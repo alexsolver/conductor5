@@ -97,7 +97,7 @@ const createCustomFieldsTables = async () => {
 };
 
 // Execute if called directly
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   createCustomFieldsTables().then(() => {
     console.log('Done');
     process.exit(0);
