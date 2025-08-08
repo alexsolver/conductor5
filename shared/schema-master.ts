@@ -260,7 +260,7 @@ export const tickets = pgTable("tickets", {
   callerId: uuid("caller_id").references(() => customers.id),
   callerType: varchar("caller_type", { length: 50 }).default("customer"),
   companyId: uuid("company_id").references(() => companies.id), // CRITICAL: Company the ticket belongs to
-  beneficiaryId: uuid("beneficiary_id").references(() => favorecidos.id),
+  beneficiaryId: uuid("beneficiary_id").references(() => beneficiaries.id),
   beneficiaryType: varchar("beneficiary_type", { length: 50 }).default("customer"),
   responsibleId: uuid("responsible_id").references(() => users.id),
   assignmentGroupId: uuid("assignment_group_id").references(() => userGroups.id),
@@ -505,8 +505,8 @@ export const userGroupMemberships = pgTable("user_group_memberships", {
   index("user_group_memberships_tenant_group_idx").on(table.tenantId, table.groupId),
 ]);
 
-// Favorecidos table (Brazilian beneficiaries) - Nomenclature standardized and constraints added
-export const favorecidos = pgTable("favorecidos", {
+// Beneficiaries table (Brazilian beneficiaries) - FIXED: Nomenclature standardized to English
+export const beneficiaries = pgTable("beneficiaries", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),
 
@@ -547,13 +547,13 @@ export const favorecidos = pgTable("favorecidos", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => ({
-  uniqueTenantEmail: unique("favorecidos_tenant_email_unique").on(table.tenantId, table.email),
-  uniqueTenantCpf: unique("favorecidos_tenant_cpf_unique").on(table.tenantId, table.cpf),
-  uniqueTenantCnpj: unique("favorecidos_tenant_cnpj_unique").on(table.tenantId, table.cnpj),
-  uniqueTenantRg: unique("favorecidos_tenant_rg_unique").on(table.tenantId, table.rg),
+  uniqueTenantEmail: unique("beneficiaries_tenant_email_unique").on(table.tenantId, table.email),
+  uniqueTenantCpf: unique("beneficiaries_tenant_cpf_unique").on(table.tenantId, table.cpf),
+  uniqueTenantCnpj: unique("beneficiaries_tenant_cnpj_unique").on(table.tenantId, table.cnpj),
+  uniqueTenantRg: unique("beneficiaries_tenant_rg_unique").on(table.tenantId, table.rg),
   // Critical indexes for Brazilian compliance
-  tenantCpfIdx: index("favorecidos_tenant_cpf_idx").on(table.tenantId, table.cpf),
-  tenantActiveIdx: index("favorecidos_tenant_active_idx").on(table.tenantId, table.isActive),
+  tenantCpfIdx: index("beneficiaries_tenant_cpf_idx").on(table.tenantId, table.cpf),
+  tenantActiveIdx: index("beneficiaries_tenant_active_idx").on(table.tenantId, table.isActive),
 }));
 
 // Projects table - Foreign keys and arrays optimized with critical indexes
@@ -649,7 +649,7 @@ export const insertCertificationSchema = createInsertSchema(certifications);
 export const insertUserSkillSchema = createInsertSchema(userSkills);
 export const insertUserGroupSchema = createInsertSchema(userGroups);
 export const insertUserGroupMembershipSchema = createInsertSchema(userGroupMemberships);
-export const insertFavorecidoSchema = createInsertSchema(favorecidos);
+export const insertBeneficiarySchema = createInsertSchema(beneficiaries);
 export const insertProjectSchema = createInsertSchema(projects);
 export const insertProjectActionSchema = createInsertSchema(projectActions);
 
@@ -1475,8 +1475,8 @@ export type InsertCertification = typeof certifications.$inferInsert;
 export type UserSkill = typeof userSkills.$inferSelect;
 export type InsertUserSkill = typeof userSkills.$inferInsert;
 
-export type Favorecido = typeof favorecidos.$inferSelect;
-export type InsertFavorecido = typeof favorecidos.$inferInsert;
+export type Beneficiary = typeof beneficiaries.$inferSelect;
+export type InsertBeneficiary = typeof beneficiaries.$inferInsert;
 
 export type Project = typeof projects.$inferSelect;
 export type InsertProject = typeof projects.$inferInsert;
@@ -1714,7 +1714,7 @@ export const ticketInternalActions = pgTable("ticket_internal_actions", {
 
   // Atribuição hierárquica: Grupo → Agente
   assignmentGroupId: uuid("assignment_group_id").references(() => userGroups.id), // Grupo de atribuição (prioridade sobre groupId)
-  groupId: uuid("group_id", { length: 100 }), // working group (manter para compatibilidade)
+  groupId: uuid("group_id"), // working group (manter para compatibilidade)
   agentId: uuid("agent_id").references(() => users.id), // Agente responsável (opcional se apenas grupo atribuído)
 
   // Datas previstas (planejamento)
