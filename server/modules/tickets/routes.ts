@@ -792,7 +792,7 @@ ticketsRouter.get('/:id/attachments', jwtAuth, async (req: AuthenticatedRequest,
         ta.file_size,
         ta.content_type as mime_type,
         ta.file_path,
-        ta.file_type as description,
+        ta.description,
         ta.created_by as uploaded_by,
         ta.created_at,
         u.first_name || ' ' || u.last_name as uploaded_by_name

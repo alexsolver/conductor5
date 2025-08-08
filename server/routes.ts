@@ -267,7 +267,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             attachmentId,
             tenantId,
             ticketId,
-            fileName,
+            file.originalname, // Use original filename instead of generated one
             file.size,
             file.mimetype,
             `/uploads/attachments/${tenantId}/${fileName}`,
@@ -296,7 +296,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ticketId,
         userId,
         'attachment_uploaded',
-        `Uploaded ${savedFiles.length} file(s): ${savedFiles.map(f => f.original_name).join(', ')}${description ? ` - ${description}` : ''}`
+        `Uploaded ${savedFiles.length} file(s): ${savedFiles.map(f => f.file_name).join(', ')}${description ? ` - ${description}` : ''}`
       ]);
 
       res.json({
