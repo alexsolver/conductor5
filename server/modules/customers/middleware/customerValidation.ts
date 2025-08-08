@@ -1,96 +1,185 @@
-
 import { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
-import { validateCPF, validateCNPJ } from '@shared/validators/brazilian-documents';
+import { validateCPF, validateCNPJ } from '../../../shared/validators/brazilian-documents';
 
-// Base customer validation schema (without refine for partial usage)
-const baseCustomerSchemaFields = z.object({
-  firstName: z.string().min(1, "First name is required").max(255),
-  lastName: z.string().min(1, "Last name is required").max(255),
-  email: z.string().email("Valid email is required").max(255),
-  phone: z.string().max(50).optional(),
-  mobilePhone: z.string().max(50).optional(),
-  customerType: z.enum(['PF', 'PJ']).default('PF'),
-  cpf: z.string().optional().refine((val) => {
-    if (!val) return true;
-    return validateCPF(val);
-  }, "CPF inválido"),
-  cnpj: z.string().optional().refine((val) => {
-    if (!val) return true;
-    return validateCNPJ(val);
-  }, "CNPJ inválido"),
-  companyName: z.string().max(255).optional(),
-  contactPerson: z.string().max(255).optional(),
-  address: z.string().max(500).optional(),
-  addressNumber: z.string().max(50).optional(),
-  complement: z.string().max(255).optional(),
-  neighborhood: z.string().max(255).optional(),
-  city: z.string().max(255).optional(),
-  state: z.string().max(2).optional(),
-  zipCode: z.string().max(20).optional(),
-  tags: z.array(z.string()).default([]),
-  verified: z.boolean().default(false),
-  metadata: z.record(z.any()).default({})
+// Enhanced customer schema with comprehensive validation
+export const baseCustomerSchema = z.object({
+  firstName: z.string()
+    .min(1, 'Nome é obrigatório')
+    .max(100, 'Nome muito longo')
+    .transform(val => val.trim().replace(/\s+/g, ' ')), // Sanitize whitespace
+  lastName: z.string()
+    .min(1, 'Sobrenome é obrigatório')
+    .max(100, 'Sobrenome muito longo')
+    .transform(val => val.trim().replace(/\s+/g, ' ')),
+  email: z.string()
+    .email('Email inválido')
+    .transform(val => val.toLowerCase().trim()),
+  phone: z.string()
+    .optional()
+    .transform(val => val ? val.replace(/\D/g, '') : val), // Remove non-digits
+  customerType: z.enum(['PF', 'PJ'], { required_error: 'Tipo de cliente é obrigatório' }),
+  document: z.string()
+    .min(1, 'Documento é obrigatório')
+    .transform(val => val.replace(/\D/g, '')) // Remove formatting
+    .refine((val, ctx) => {
+      const customerType = (ctx.parent as any).customerType;
+      if (customerType === 'PF') {
+        return validateCPF(val);
+      } else if (customerType === 'PJ') {
+        return validateCNPJ(val);
+      }
+      return true;
+    }, 'Documento inválido para o tipo de cliente'),
+  companyName: z.string()
+    .optional()
+    .transform(val => val ? val.trim().replace(/\s+/g, ' ') : val),
+  isActive: z.boolean().optional().default(true),
+  // Additional validation fields
+  address: z.string().optional(),
+  zipCode: z.string()
+    .optional()
+    .transform(val => val ? val.replace(/\D/g, '') : val)
+    .refine(val => !val || /^\d{8}$/.test(val), 'CEP deve ter 8 dígitos'),
+  city: z.string().optional(),
+  state: z.string()
+    .optional()
+    .refine(val => !val || val.length === 2, 'Estado deve ter 2 caracteres'),
+  country: z.string().optional().default('BR')
 });
 
 // Export the creation schema with validation
-export const createCustomerSchema = baseCustomerSchemaFields.refine((data) => {
-  if (data.customerType === 'PF' && !data.cpf) {
-    return false;
+export const createCustomerSchema = baseCustomerSchema.refine((data) => {
+  if (data.customerType === 'PF' && !data.document) {
+    return false; // This should already be caught by the document.min(1) and refine for PF
   }
-  if (data.customerType === 'PJ' && !data.cnpj) {
-    return false;
+  if (data.customerType === 'PJ' && !data.document) {
+    return false; // This should already be caught by the document.min(1) and refine for PJ
   }
   return true;
 }, {
-  message: "CPF é obrigatório para PF e CNPJ é obrigatório para PJ",
-  path: ["customerType"]
+  message: "Documento é obrigatório para PF e PJ",
+  path: ["document"] // Pointing to the document field for more specific error reporting
 });
 
-// Update customer validation schema (partial of base schema)
-export const updateCustomerSchema = baseCustomerSchemaFields.partial();
 
-// Validation middleware
-export const validateCreateCustomer = (req: Request, res: Response, next: NextFunction) => {
+// Update customer validation schema (partial of base schema)
+// Note: .partial() will make all fields optional, which might not be desired for certain updates.
+// Consider creating a specific update schema if needed, or using .partial({ document: false }) for required fields.
+export const updateCustomerSchema = baseCustomerSchema.partial();
+
+// Validation middleware for CREATE operations with enhanced logging
+export const validateCreateCustomer = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const { logInfo, logWarn } = await import('../../../utils/logger');
+
+    // Log validation attempt
+    logInfo('Customer validation started', {
+      operation: 'CREATE',
+      customerType: req.body?.customerType,
+      hasDocument: !!req.body?.document,
+      tenantId: (req as any).user?.tenantId
+    });
+
     const validation = createCustomerSchema.safeParse(req.body);
     if (!validation.success) {
+      logWarn('Customer validation failed', {
+        operation: 'CREATE',
+        errors: validation.error.errors,
+        tenantId: (req as any).user?.tenantId
+      });
+
       return res.status(400).json({
         success: false,
-        error: 'Invalid input data',
+        error: 'Validation failed',
         details: validation.error.errors,
-        code: 'VALIDATION_ERROR'
+        code: 'VALIDATION_ERROR',
+        timestamp: new Date().toISOString(),
+        validatorVersion: '2.0.0'
       });
     }
+
+    // Log successful validation
+    logInfo('Customer validation successful', {
+      operation: 'CREATE',
+      customerType: validation.data.customerType,
+      tenantId: (req as any).user?.tenantId
+    });
+
     req.body = validation.data;
     next();
   } catch (error) {
+    const { logError } = await import('../../../utils/logger');
+    logError('Customer validation error', error, {
+      operation: 'CREATE',
+      tenantId: (req as any).user?.tenantId
+    });
+
     res.status(500).json({
       success: false,
       error: 'Validation error',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      message: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString()
     });
   }
 };
 
-export const validateUpdateCustomer = (req: Request, res: Response, next: NextFunction) => {
+// Validation middleware for UPDATE operations
+export const validateUpdateCustomer = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const { logInfo, logWarn } = await import('../../../utils/logger');
+
+    // Log validation attempt for update
+    logInfo('Customer validation started', {
+      operation: 'UPDATE',
+      customerType: req.body?.customerType,
+      hasDocument: !!req.body?.document,
+      tenantId: (req as any).user?.tenantId
+    });
+
+    // Use updateCustomerSchema for partial updates
     const validation = updateCustomerSchema.safeParse(req.body);
     if (!validation.success) {
+      logWarn('Customer validation failed', {
+        operation: 'UPDATE',
+        errors: validation.error.errors,
+        tenantId: (req as any).user?.tenantId
+      });
+
       return res.status(400).json({
         success: false,
-        error: 'Invalid input data',
+        error: 'Validation failed',
         details: validation.error.errors,
-        code: 'VALIDATION_ERROR'
+        code: 'VALIDATION_ERROR',
+        timestamp: new Date().toISOString(),
+        validatorVersion: '2.0.0'
       });
     }
+
+    // Log successful validation for update
+    logInfo('Customer validation successful', {
+      operation: 'UPDATE',
+      customerType: validation.data.customerType,
+      tenantId: (req as any).user?.tenantId
+    });
+
+    // Merge validated data with existing data if necessary, or simply replace
+    // For partial updates, it's common to merge. Zod's safeParse already returns the validated data.
+    // The body of the request will contain only the fields that were present and passed validation.
     req.body = validation.data;
     next();
   } catch (error) {
+    const { logError } = await import('../../../utils/logger');
+    logError('Customer validation error', error, {
+      operation: 'UPDATE',
+      tenantId: (req as any).user?.tenantId
+    });
+
     res.status(500).json({
       success: false,
       error: 'Validation error',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      message: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString()
     });
   }
 };

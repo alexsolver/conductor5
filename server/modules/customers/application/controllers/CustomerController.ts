@@ -1,4 +1,3 @@
-
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../../../middleware/jwtAuth';
 import { CustomerApplicationService } from '../services/CustomerApplicationService';
@@ -11,7 +10,24 @@ export class CustomerController {
 
   async createCustomer(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      if (!req.user?.tenantId) {
+      const { logInfo, logError } = await import('../../../utils/logger');
+      const customerData = req.body;
+      const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
+
+      // Log operation start
+      logInfo('Customer creation started', {
+        tenantId,
+        userId,
+        customerType: customerData.customerType,
+        operation: 'CREATE_CUSTOMER'
+      });
+
+      if (!tenantId) {
+        logError('Customer creation failed - missing tenant ID', new Error('Missing tenant ID'), {
+          userId,
+          operation: 'CREATE_CUSTOMER'
+        });
         res.status(403).json({
           success: false,
           error: 'Tenant access required',
@@ -20,28 +36,36 @@ export class CustomerController {
         return;
       }
 
-      const customerData = {
-        ...req.body,
-        tenantId: req.user.tenantId
-      };
+      const result = await this.customerApplicationService.createCustomer({
+        ...customerData,
+        tenantId
+      });
 
-      const result = await this.customerApplicationService.createCustomer(customerData);
+      // Log successful creation
+      logInfo('Customer created successfully', {
+        tenantId,
+        userId,
+        customerId: result.customer.id, // Assuming result.customer exists and has an id
+        customerType: result.customer.customerType, // Assuming result.customer exists and has customerType
+        operation: 'CREATE_CUSTOMER'
+      });
 
-      if (result.success) {
-        res.status(201).json({
-          success: true,
-          data: transformToCustomerDTO(result.customer),
-          message: 'Customer created successfully'
-        });
-      } else {
-        res.status(400).json({
-          success: false,
-          error: result.error,
-          code: 'CREATION_FAILED'
-        });
-      }
+      res.status(201).json({
+        success: true,
+        data: transformToCustomerDTO(result.customer), // Use the DTO transformer
+        message: 'Customer created successfully'
+      });
     } catch (error) {
-      console.error('[CONTROLLER] Create customer error:', error);
+      const { logError } = await import('../../../utils/logger');
+      logError('Customer creation failed', error, {
+        tenantId: req.user?.tenantId,
+        userId: req.user?.id,
+        operation: 'CREATE_CUSTOMER',
+        customerData: {
+          customerType: req.body?.customerType,
+          hasDocument: !!req.body?.document
+        }
+      });
       res.status(500).json({
         success: false,
         error: 'Internal server error',
