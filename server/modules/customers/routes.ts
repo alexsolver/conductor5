@@ -10,8 +10,6 @@ import { CustomerRepository } from '../../infrastructure/repositories/CustomerRe
 import { CustomerListResponseDTO } from './application/dto/CustomerResponseDTO';
 import { validateCreateCustomer, validateUpdateCustomer } from './middleware/customerValidation';
 import { z } from 'zod';
-import { Request, Response, NextFunction } from 'express';
-import { db } from '../../db';
 
 const customersRouter = Router();
 
@@ -67,7 +65,6 @@ customersRouter.get('/', jwtAuth, validateGetCustomers, async (req: Authenticate
     const { schemaManager } = await import('../../db');
     const pool = schemaManager.getPool();
     const schemaName = schemaManager.getSchemaName(req.user.tenantId);
-    const tenantId = req.user.tenantId; // Added for consistency with other parts of the file
 
     console.log('[GET-CUSTOMERS] Fetching customers for tenant:', req.user.tenantId);
 
@@ -104,7 +101,7 @@ customersRouter.get('/', jwtAuth, validateGetCustomers, async (req: Authenticate
     // Build dynamic query based on available columns with proper validation
     const requiredColumns = ['id', 'first_name', 'last_name', 'email', 'created_at', 'updated_at'];
     const missingRequired = requiredColumns.filter(col => !availableColumns.includes(col));
-
+    
     if (missingRequired.length > 0) {
       return res.status(500).json({
         success: false,
@@ -130,7 +127,7 @@ customersRouter.get('/', jwtAuth, validateGetCustomers, async (req: Authenticate
     const isActiveSelect = availableColumns.includes('is_active') 
       ? 'COALESCE(is_active, true) as is_active'
       : 'true as is_active';
-
+      
     const customerTypeSelect = availableColumns.includes('customer_type')
       ? 'COALESCE(customer_type, \'PF\') as customer_type'
       : '\'PF\' as customer_type';
@@ -149,43 +146,52 @@ customersRouter.get('/', jwtAuth, validateGetCustomers, async (req: Authenticate
 
     console.log('[GET-CUSTOMERS] Found', result.rows.length, 'customers');
 
-    // Add computed field for associated companies using UNIFIED PATH
+    // Add computed field for associated companies with better error handling
     const customersWithCompanies = await Promise.all(
       result.rows.map(async (customer) => {
         try {
-          // UNIFIED PATH: Use ONLY companies_relationships
-          console.log(`[GET-CUSTOMERS] Getting companies for customer ${customer.id} via companies_relationships`);
-          const companiesResult = await pool.query(`
-            SELECT DISTINCT 
-              c.name, 
-              c.display_name,
-              cr.relationship_type,
-              cr.is_primary
+          // First try companies_relationships (current structure)
+          console.log(`[GET-CUSTOMERS] Checking companies_relationships for customer ${customer.id}`);
+          let companiesResult = await pool.query(`
+            SELECT DISTINCT c.name, c.display_name
             FROM "${schemaName}".companies_relationships cr
             JOIN "${schemaName}".companies c ON cr.company_id = c.id
-            WHERE cr.customer_id = $1 
-              AND c.tenant_id = $2 
-              AND c.is_active = true 
-              AND cr.is_active = true
-            ORDER BY cr.is_primary DESC, c.display_name, c.name
-            LIMIT 5
+            WHERE cr.customer_id = $1 AND cr.tenant_id = $2 AND c.is_active = true
+            ORDER BY c.display_name, c.name
+            LIMIT 3
           `, [customer.id, req.user.tenantId]);
-
-          console.log(`[GET-CUSTOMERS] Found ${companiesResult.rows.length} companies for customer ${customer.id}: `, 
+          
+          console.log(`[GET-CUSTOMERS] Found ${companiesResult.rows.length} companies for customer ${customer.id}:`, 
             companiesResult.rows.map(r => r.name || r.display_name));
-
+          
+          // Fallback to company_memberships if companies_relationships doesn't exist or has no data
+          if (companiesResult.rows.length === 0) {
+            const membershipTableExists = await pool.query(`
+              SELECT 1 FROM information_schema.tables 
+              WHERE table_schema = $1 AND table_name = 'company_memberships'
+            `, [schemaName]);
+            
+            if (membershipTableExists.rows.length > 0) {
+              companiesResult = await pool.query(`
+                SELECT DISTINCT c.name, c.display_name
+                FROM "${schemaName}".company_memberships cm
+                JOIN "${schemaName}".companies c ON cm.company_id = c.id
+                WHERE cm.customer_id = $1 AND cm.tenant_id = $2 AND c.is_active = true
+                ORDER BY c.display_name, c.name
+                LIMIT 3
+              `, [customer.id, req.user.tenantId]);
+            }
+          }
+          
           const companyNames = companiesResult.rows
             .map(c => c.display_name || c.name)
             .filter(Boolean);
-
+          
           return {
             ...customer,
             associated_companies: companyNames.length > 0 ? companyNames.join(', ') : null,
-            // Normalize customer type and status
-            customer_type: customer.customer_type || 'PF',
-            status: customer.status === 'Ativo' ? 'active' : 
-                   customer.status === 'Inativo' ? 'inactive' : 
-                   customer.status || 'active'
+            // Normalize customer type
+            customer_type: customer.customer_type || 'PF'
           };
         } catch (companyError) {
           console.warn('[GET-CUSTOMERS] Error fetching companies for customer:', customer.id, companyError.message);
@@ -201,7 +207,7 @@ customersRouter.get('/', jwtAuth, validateGetCustomers, async (req: Authenticate
     // Add metadata to response
     // Import DTO transformer
     const { transformToCustomerDTO } = await import('./application/dto/CustomerResponseDTO');
-
+    
     // Transform customers using standardized DTO
     const transformedCustomers = customersWithCompanies.map(transformToCustomerDTO);
 
@@ -225,7 +231,7 @@ customersRouter.get('/', jwtAuth, validateGetCustomers, async (req: Authenticate
     });
   } catch (error: any) {
     console.error('[GET-CUSTOMERS] Critical error:', error);
-
+    
     // Enhanced error handling with specific codes
     const errorResponse = {
       success: false,
@@ -234,7 +240,7 @@ customersRouter.get('/', jwtAuth, validateGetCustomers, async (req: Authenticate
       timestamp: new Date().toISOString(),
       tenant_id: req.user?.tenantId
     };
-
+    
     // Handle specific database errors
     if (error.code === '42703') {
       console.error('[GET-CUSTOMERS] Column does not exist:', error.message);
@@ -243,7 +249,7 @@ customersRouter.get('/', jwtAuth, validateGetCustomers, async (req: Authenticate
       errorResponse.suggestion = 'Run database migration to fix schema';
       return res.status(500).json(errorResponse);
     }
-
+    
     if (error.code === '42P01') {
       console.error('[GET-CUSTOMERS] Table does not exist:', error.message);
       errorResponse.error = 'Customers table not found';
@@ -251,18 +257,18 @@ customersRouter.get('/', jwtAuth, validateGetCustomers, async (req: Authenticate
       errorResponse.suggestion = 'Run database migration to create table';
       return res.status(500).json(errorResponse);
     }
-
+    
     if (error.code === '42501') {
       errorResponse.error = 'Insufficient permissions';
       errorResponse.code = 'PERMISSION_DENIED';
       return res.status(403).json(errorResponse);
     }
-
+    
     if (process.env.NODE_ENV === 'development') {
       errorResponse.details = error.message;
       errorResponse.stack = error.stack;
     }
-
+    
     res.status(500).json(errorResponse);
   }
 });
@@ -329,7 +335,7 @@ customersRouter.get('/companies', jwtAuth, async (req: AuthenticatedRequest, res
   }
 });
 
-// GET /api/customers/:companyId/associated - Get customers associated with a company
+// GET /api/customers/companies/:companyId/associated - Get customers associated with a company
 customersRouter.get('/companies/:companyId/associated', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const { companyId } = req.params;
@@ -708,54 +714,6 @@ customersRouter.put('/companies/:id', jwtAuth, async (req: AuthenticatedRequest,
   } catch (error) {
     console.error('Error updating company:', error);
     res.status(500).json({ message: 'Failed to update company' });
-  }
-});
-
-// GET /api/customers/:id/companies - Get companies for a specific customer
-// Removed fallback to legacy 'customer_companies' and 'customer_company_memberships' tables
-customersRouter.get('/:customerId/companies', jwtAuth, async (req, res) => {
-  try {
-    const { customerId } = req.params;
-    const tenantId = req.user?.tenantId;
-
-    console.log('[CUSTOMER-COMPANIES] Request for customer:', customerId, 'tenant:', tenantId);
-
-    if (!tenantId) {
-      return res.status(400).json({ success: false, error: 'Tenant ID is required' });
-    }
-
-    // Using tenant schema directly for performance
-    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-    console.log('[CUSTOMER-COMPANIES] Using schema:', schemaName);
-
-    const query = sql.raw(`
-      SELECT DISTINCT 
-        c.id,
-        c.name,
-        c.description,
-        c.contact_info,
-        c.created_at
-      FROM "${schemaName}"."companies" c
-      INNER JOIN "${schemaName}"."companies_relationships" cr 
-        ON c.id = cr.company_id
-      WHERE cr.customer_id = $1
-        AND c.tenant_id = $2
-      ORDER BY c.name ASC
-    `, [customerId, tenantId]);
-
-    const companies = await db.execute(query);
-
-    res.json({
-      success: true,
-      companies: companies.rows
-    });
-
-  } catch (error) {
-    console.error('[CUSTOMER-COMPANIES] Error:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Failed to fetch customer companies' 
-    });
   }
 });
 
