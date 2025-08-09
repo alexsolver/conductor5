@@ -1,5 +1,5 @@
 
-import { Request, Response } from 'express';
+// Removendo dependência direta do Express para seguir Clean Architecture
 import { standardResponse } from '../../../utils/standardResponse';
 import { CreateLocationUseCase } from '../use-cases/CreateLocationUseCase';
 
@@ -40,7 +40,7 @@ export class LocationController {
     }
   }
 
-  async create(req: Request, res: Response): Promise<void> {
+  async create(data: any): Promise<any> {
     try {
       const tenantId = req.user?.tenantId;
       if (!tenantId) {

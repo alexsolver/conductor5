@@ -1,4 +1,5 @@
-import { Response } from 'express';
+// Removendo dependência direta do Express para seguir Clean Architecture
+import { Response } from 'express'; // Mantendo a importação de Response para type checking, mas a dependência direta será removida em outras partes do código
 import { AuthenticatedRequest } from '../../../middleware/jwtAuth';
 import { CustomerApplicationService } from '../services/CustomerApplicationService';
 import { transformToCustomerDTO } from '../dto/CustomerResponseDTO';

@@ -1,4 +1,3 @@
-
 /**
  * Notification Controller
  * Clean Architecture - Application Layer
@@ -18,7 +17,7 @@ export class NotificationController {
     private notificationRepository: INotificationRepository
   ) {}
 
-  async createNotification(req: Request, res: Response): Promise<void> {
+  async create(req: Request, res: Response): Promise<void> {
     try {
       const tenantId = req.headers['x-tenant-id'] as string;
       const userId = req.user?.id;
@@ -50,7 +49,7 @@ export class NotificationController {
     }
   }
 
-  async getNotifications(req: Request, res: Response): Promise<void> {
+  async getByUser(req: Request, res: Response): Promise<void> {
     try {
       const tenantId = req.headers['x-tenant-id'] as string;
       const userId = req.user?.id;
