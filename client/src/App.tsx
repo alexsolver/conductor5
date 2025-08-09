@@ -61,7 +61,6 @@ import Timecard from "./pages/Timecard";
 import TimecardAutonomous from "./pages/TimecardAutonomous";
 import { EmploymentRouteGuard } from "./components/routing/EmploymentRouteGuard";
 import AbsenceManagement from "./pages/AbsenceManagement";
-import ScheduleTemplates from "./pages/ScheduleTemplates";
 
 import LocationsNew from "./pages/LocationsNew";
 import HolidayCalendar from "./pages/HolidayCalendar";
@@ -189,7 +188,6 @@ function AppRouter() {
         <Route path="/timecard-approvals" component={TimecardApprovals} />
         <Route path="/hour-bank" component={HourBank} />
         <Route path="/absence-management" component={AbsenceManagement} />
-        <Route path="/schedule-templates" component={ScheduleTemplates} />
         <Route path="/holiday-calendar" component={HolidayCalendar} />
         <Route path="/agenda-manager" component={AgendaManager} />
         <Route path="/omnibridge" component={OmniBridge} />
