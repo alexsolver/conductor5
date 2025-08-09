@@ -1,136 +1,8 @@
 [
   {
-    "priority": "high",
-    "module": "auth",
-    "actions": [
-      {
-        "type": "create_directory",
-        "description": "Criar controllers na camada Application e usar nas rotas",
-        "target": "server/modules/auth/routes.ts",
-        "steps": [
-          "Criar controllers na camada Application e usar nas rotas"
-        ]
-      },
-      {
-        "type": "refactor_code",
-        "description": "Refatorar dependência inválida na camada application",
-        "target": "server/modules/auth/application/controllers/AuthController.ts",
-        "steps": [
-          "Identificar a dependência problemática",
-          "Criar interface/port na camada Domain",
-          "Implementar interface na camada Infrastructure",
-          "Usar injeção de dependência",
-          "Remover import direto da dependência externa"
-        ]
-      },
-      {
-        "type": "move_code",
-        "description": "Resolver acoplamento: Repository contém possível lógica de negócio",
-        "target": "server/modules/auth/infrastructure/repositories/DrizzleUserRepository.ts",
-        "steps": [
-          "Identificar código acoplado",
-          "Determinar camada correta para o código",
-          "Mover código para camada apropriada",
-          "Criar interfaces para comunicação entre camadas",
-          "Atualizar dependências"
-        ]
-      }
-    ],
-    "estimatedTime": "2h"
-  },
-  {
-    "priority": "high",
-    "module": "beneficiaries",
-    "actions": [
-      {
-        "type": "move_code",
-        "description": "Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados",
-        "target": "server/modules/beneficiaries/routes.ts",
-        "steps": [
-          "Identificar código acoplado",
-          "Determinar camada correta para o código",
-          "Mover código para camada apropriada",
-          "Criar interfaces para comunicação entre camadas",
-          "Atualizar dependências"
-        ]
-      },
-      {
-        "type": "rename_file",
-        "description": "Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'",
-        "target": "server/modules/beneficiaries/application/use-cases/index.ts",
-        "steps": [
-          "Renomear arquivo seguindo padrão",
-          "Atualizar imports em outros arquivos",
-          "Atualizar nome da classe/interface",
-          "Verificar consistência com padrões do projeto"
-        ]
-      }
-    ],
-    "estimatedTime": "1h"
-  },
-  {
-    "priority": "high",
-    "module": "customers",
-    "actions": [
-      {
-        "type": "move_code",
-        "description": "Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados",
-        "target": "server/modules/customers/routes.ts",
-        "steps": [
-          "Identificar código acoplado",
-          "Determinar camada correta para o código",
-          "Mover código para camada apropriada",
-          "Criar interfaces para comunicação entre camadas",
-          "Atualizar dependências"
-        ]
-      },
-      {
-        "type": "refactor_code",
-        "description": "Refatorar dependência inválida na camada application",
-        "target": "server/modules/customers/application/controllers/CompanyController.ts",
-        "steps": [
-          "Identificar a dependência problemática",
-          "Criar interface/port na camada Domain",
-          "Implementar interface na camada Infrastructure",
-          "Usar injeção de dependência",
-          "Remover import direto da dependência externa"
-        ]
-      },
-      {
-        "type": "create_file",
-        "description": "Criar Repository com interface",
-        "target": "server/modules/customers/infrastructure/repositories/CustomerRepository.ts",
-        "code": "import { Customer } from '../../domain/entities/Customer';\nimport { ICustomerRepository } from '../../domain/ports/ICustomerRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleCustomerRepository implements ICustomerRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<Customer | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<Customer[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: Customer): Promise<Customer> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<Customer>, tenantId: string): Promise<Customer | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
-        "steps": [
-          "Criar interface do Repository na camada Domain",
-          "Implementar Repository na camada Infrastructure",
-          "Adicionar injeção de dependência",
-          "Integrar com Use Cases"
-        ]
-      }
-    ],
-    "estimatedTime": "3h"
-  },
-  {
-    "priority": "high",
+    "priority": "immediate",
     "module": "knowledge-base",
     "actions": [
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo events na camada domain",
-        "target": "server/modules/knowledge-base/domain/events",
-        "steps": [
-          "Criar diretório/arquivo events na camada domain"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo services na camada domain",
-        "target": "server/modules/knowledge-base/domain/services",
-        "steps": [
-          "Criar diretório/arquivo services na camada domain"
-        ]
-      },
       {
         "type": "move_code",
         "description": "Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados",
@@ -141,6 +13,18 @@
           "Mover código para camada apropriada",
           "Criar interfaces para comunicação entre camadas",
           "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada domain",
+        "target": "server/modules/knowledge-base/domain/ports/IMediaRepository.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
         ]
       },
       {
@@ -222,20 +106,8 @@
       {
         "type": "create_file",
         "description": "Criar Repository com interface",
-        "target": "server/modules/knowledge-base/infrastructure/repositories/KnowledgeBaseEntryRepository.ts",
-        "code": "import { KnowledgeBaseEntry } from '../../domain/entities/KnowledgeBaseEntry';\nimport { IKnowledgeBaseEntryRepository } from '../../domain/ports/IKnowledgeBaseEntryRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleKnowledgeBaseEntryRepository implements IKnowledgeBaseEntryRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<KnowledgeBaseEntry | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<KnowledgeBaseEntry[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: KnowledgeBaseEntry): Promise<KnowledgeBaseEntry> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<KnowledgeBaseEntry>, tenantId: string): Promise<KnowledgeBaseEntry | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
-        "steps": [
-          "Criar interface do Repository na camada Domain",
-          "Implementar Repository na camada Infrastructure",
-          "Adicionar injeção de dependência",
-          "Integrar com Use Cases"
-        ]
-      },
-      {
-        "type": "create_file",
-        "description": "Criar Repository com interface",
-        "target": "server/modules/knowledge-base/domain/ports/IMediaRepository.ts",
-        "code": "import { IMedia } from '../../domain/entities/IMedia';\nimport { IIMediaRepository } from '../../domain/ports/IIMediaRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleIMediaRepository implements IIMediaRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<IMedia | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<IMedia[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: IMedia): Promise<IMedia> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<IMedia>, tenantId: string): Promise<IMedia | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
+        "target": "server/modules/knowledge-base/domain/ports/IKnowledgeBaseEntryRepository.ts",
+        "code": "import { IKnowledgeBaseEntry } from '../../domain/entities/IKnowledgeBaseEntry';\nimport { IIKnowledgeBaseEntryRepository } from '../../domain/ports/IIKnowledgeBaseEntryRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleIKnowledgeBaseEntryRepository implements IIKnowledgeBaseEntryRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<IKnowledgeBaseEntry | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<IKnowledgeBaseEntry[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: IKnowledgeBaseEntry): Promise<IKnowledgeBaseEntry> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<IKnowledgeBaseEntry>, tenantId: string): Promise<IKnowledgeBaseEntry | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
         "steps": [
           "Criar interface do Repository na camada Domain",
           "Implementar Repository na camada Infrastructure",
@@ -244,52 +116,12 @@
         ]
       }
     ],
-    "estimatedTime": "7h"
+    "estimatedTime": "8h"
   },
   {
-    "priority": "high",
+    "priority": "immediate",
     "module": "materials-services",
     "actions": [
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo repositories na camada domain",
-        "target": "server/modules/materials-services/domain/repositories",
-        "steps": [
-          "Criar diretório/arquivo repositories na camada domain"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo events na camada domain",
-        "target": "server/modules/materials-services/domain/events",
-        "steps": [
-          "Criar diretório/arquivo events na camada domain"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo services na camada domain",
-        "target": "server/modules/materials-services/domain/services",
-        "steps": [
-          "Criar diretório/arquivo services na camada domain"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo use-cases na camada application",
-        "target": "server/modules/materials-services/application/use-cases",
-        "steps": [
-          "Criar diretório/arquivo use-cases na camada application"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo dto na camada application",
-        "target": "server/modules/materials-services/application/dto",
-        "steps": [
-          "Criar diretório/arquivo dto na camada application"
-        ]
-      },
       {
         "type": "move_code",
         "description": "Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados",
@@ -300,6 +132,90 @@
           "Mover código para camada apropriada",
           "Criar interfaces para comunicação entre camadas",
           "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada domain",
+        "target": "server/modules/materials-services/domain/ports/IAssetManagementRepository.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada domain",
+        "target": "server/modules/materials-services/domain/ports/IComplianceRepository.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada domain",
+        "target": "server/modules/materials-services/domain/ports/IItemRepository.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada domain",
+        "target": "server/modules/materials-services/domain/ports/ILPUCacheWarmer.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada domain",
+        "target": "server/modules/materials-services/domain/ports/ILPURepository.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada domain",
+        "target": "server/modules/materials-services/domain/ports/IStockRepository.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada domain",
+        "target": "server/modules/materials-services/domain/ports/ISupplierRepository.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
         ]
       },
       {
@@ -623,92 +539,8 @@
       {
         "type": "create_file",
         "description": "Criar Repository com interface",
-        "target": "server/modules/materials-services/infrastructure/repositories/indexRepository.ts",
-        "code": "import { index } from '../../domain/entities/index';\nimport { IindexRepository } from '../../domain/ports/IindexRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleindexRepository implements IindexRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<index | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<index[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: index): Promise<index> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<index>, tenantId: string): Promise<index | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
-        "steps": [
-          "Criar interface do Repository na camada Domain",
-          "Implementar Repository na camada Infrastructure",
-          "Adicionar injeção de dependência",
-          "Integrar com Use Cases"
-        ]
-      },
-      {
-        "type": "create_file",
-        "description": "Criar Repository com interface",
-        "target": "server/modules/materials-services/domain/ports/IAssetManagementRepository.ts",
-        "code": "import { IAssetManagement } from '../../domain/entities/IAssetManagement';\nimport { IIAssetManagementRepository } from '../../domain/ports/IIAssetManagementRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleIAssetManagementRepository implements IIAssetManagementRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<IAssetManagement | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<IAssetManagement[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: IAssetManagement): Promise<IAssetManagement> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<IAssetManagement>, tenantId: string): Promise<IAssetManagement | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
-        "steps": [
-          "Criar interface do Repository na camada Domain",
-          "Implementar Repository na camada Infrastructure",
-          "Adicionar injeção de dependência",
-          "Integrar com Use Cases"
-        ]
-      },
-      {
-        "type": "create_file",
-        "description": "Criar Repository com interface",
-        "target": "server/modules/materials-services/domain/ports/IComplianceRepository.ts",
-        "code": "import { ICompliance } from '../../domain/entities/ICompliance';\nimport { IIComplianceRepository } from '../../domain/ports/IIComplianceRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleIComplianceRepository implements IIComplianceRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<ICompliance | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<ICompliance[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: ICompliance): Promise<ICompliance> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<ICompliance>, tenantId: string): Promise<ICompliance | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
-        "steps": [
-          "Criar interface do Repository na camada Domain",
-          "Implementar Repository na camada Infrastructure",
-          "Adicionar injeção de dependência",
-          "Integrar com Use Cases"
-        ]
-      },
-      {
-        "type": "create_file",
-        "description": "Criar Repository com interface",
-        "target": "server/modules/materials-services/domain/ports/IItemRepository.ts",
-        "code": "import { IItem } from '../../domain/entities/IItem';\nimport { IIItemRepository } from '../../domain/ports/IIItemRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleIItemRepository implements IIItemRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<IItem | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<IItem[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: IItem): Promise<IItem> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<IItem>, tenantId: string): Promise<IItem | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
-        "steps": [
-          "Criar interface do Repository na camada Domain",
-          "Implementar Repository na camada Infrastructure",
-          "Adicionar injeção de dependência",
-          "Integrar com Use Cases"
-        ]
-      },
-      {
-        "type": "create_file",
-        "description": "Criar Repository com interface",
-        "target": "server/modules/materials-services/domain/ports/ILPUCacheWarmer.ts",
-        "code": "import { ILPUCacheWarmer } from '../../domain/entities/ILPUCacheWarmer';\nimport { IILPUCacheWarmerRepository } from '../../domain/ports/IILPUCacheWarmerRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleILPUCacheWarmerRepository implements IILPUCacheWarmerRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<ILPUCacheWarmer | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<ILPUCacheWarmer[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: ILPUCacheWarmer): Promise<ILPUCacheWarmer> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<ILPUCacheWarmer>, tenantId: string): Promise<ILPUCacheWarmer | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
-        "steps": [
-          "Criar interface do Repository na camada Domain",
-          "Implementar Repository na camada Infrastructure",
-          "Adicionar injeção de dependência",
-          "Integrar com Use Cases"
-        ]
-      },
-      {
-        "type": "create_file",
-        "description": "Criar Repository com interface",
-        "target": "server/modules/materials-services/domain/ports/ILPURepository.ts",
-        "code": "import { ILPU } from '../../domain/entities/ILPU';\nimport { IILPURepository } from '../../domain/ports/IILPURepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleILPURepository implements IILPURepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<ILPU | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<ILPU[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: ILPU): Promise<ILPU> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<ILPU>, tenantId: string): Promise<ILPU | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
-        "steps": [
-          "Criar interface do Repository na camada Domain",
-          "Implementar Repository na camada Infrastructure",
-          "Adicionar injeção de dependência",
-          "Integrar com Use Cases"
-        ]
-      },
-      {
-        "type": "create_file",
-        "description": "Criar Repository com interface",
-        "target": "server/modules/materials-services/domain/ports/IStockRepository.ts",
-        "code": "import { IStock } from '../../domain/entities/IStock';\nimport { IIStockRepository } from '../../domain/ports/IIStockRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleIStockRepository implements IIStockRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<IStock | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<IStock[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: IStock): Promise<IStock> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<IStock>, tenantId: string): Promise<IStock | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
-        "steps": [
-          "Criar interface do Repository na camada Domain",
-          "Implementar Repository na camada Infrastructure",
-          "Adicionar injeção de dependência",
-          "Integrar com Use Cases"
-        ]
-      },
-      {
-        "type": "create_file",
-        "description": "Criar Repository com interface",
-        "target": "server/modules/materials-services/domain/ports/ISupplierRepository.ts",
-        "code": "import { ISupplier } from '../../domain/entities/ISupplier';\nimport { IISupplierRepository } from '../../domain/ports/IISupplierRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleISupplierRepository implements IISupplierRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<ISupplier | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<ISupplier[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: ISupplier): Promise<ISupplier> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<ISupplier>, tenantId: string): Promise<ISupplier | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
+        "target": "server/modules/materials-services/domain/ports/IindexRepository.ts",
+        "code": "import { Iindex } from '../../domain/entities/Iindex';\nimport { IIindexRepository } from '../../domain/ports/IIindexRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleIindexRepository implements IIindexRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<Iindex | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<Iindex[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: Iindex): Promise<Iindex> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<Iindex>, tenantId: string): Promise<Iindex | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
         "steps": [
           "Criar interface do Repository na camada Domain",
           "Implementar Repository na camada Infrastructure",
@@ -717,123 +549,30 @@
         ]
       }
     ],
-    "estimatedTime": "27h"
+    "estimatedTime": "29h"
   },
   {
-    "priority": "high",
-    "module": "saas-admin",
-    "actions": [
-      {
-        "type": "create_directory",
-        "description": "Criar estrutura da camada domain",
-        "target": "server/modules/saas-admin/domain",
-        "steps": [
-          "Criar diretório: server/modules/saas-admin/domain",
-          "Adicionar arquivo README.md explicando responsabilidades da camada",
-          "Criar subdiretórios conforme padrão Clean Architecture"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar estrutura da camada application",
-        "target": "server/modules/saas-admin/application",
-        "steps": [
-          "Criar diretório: server/modules/saas-admin/application",
-          "Adicionar arquivo README.md explicando responsabilidades da camada",
-          "Criar subdiretórios conforme padrão Clean Architecture"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar estrutura da camada infrastructure",
-        "target": "server/modules/saas-admin/infrastructure",
-        "steps": [
-          "Criar diretório: server/modules/saas-admin/infrastructure",
-          "Adicionar arquivo README.md explicando responsabilidades da camada",
-          "Criar subdiretórios conforme padrão Clean Architecture"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar controllers na camada Application e usar nas rotas",
-        "target": "server/modules/saas-admin/routes.ts",
-        "steps": [
-          "Criar controllers na camada Application e usar nas rotas"
-        ]
-      },
-      {
-        "type": "move_code",
-        "description": "Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados",
-        "target": "server/modules/saas-admin/routes.ts",
-        "steps": [
-          "Identificar código acoplado",
-          "Determinar camada correta para o código",
-          "Mover código para camada apropriada",
-          "Criar interfaces para comunicação entre camadas",
-          "Atualizar dependências"
-        ]
-      }
-    ],
-    "estimatedTime": "2h"
-  },
-  {
-    "priority": "high",
+    "priority": "immediate",
     "module": "schedule-management",
     "actions": [
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo repositories na camada domain",
-        "target": "server/modules/schedule-management/domain/repositories",
-        "steps": [
-          "Criar diretório/arquivo repositories na camada domain"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo events na camada domain",
-        "target": "server/modules/schedule-management/domain/events",
-        "steps": [
-          "Criar diretório/arquivo events na camada domain"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo services na camada domain",
-        "target": "server/modules/schedule-management/domain/services",
-        "steps": [
-          "Criar diretório/arquivo services na camada domain"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo use-cases na camada application",
-        "target": "server/modules/schedule-management/application/use-cases",
-        "steps": [
-          "Criar diretório/arquivo use-cases na camada application"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo dto na camada application",
-        "target": "server/modules/schedule-management/application/dto",
-        "steps": [
-          "Criar diretório/arquivo dto na camada application"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo services na camada application",
-        "target": "server/modules/schedule-management/application/services",
-        "steps": [
-          "Criar diretório/arquivo services na camada application"
-        ]
-      },
       {
         "type": "create_file",
         "description": "Criar arquivo routes.ts para definir endpoints da API",
         "target": "server/modules/schedule-management/routes.ts",
         "steps": [
           "Criar arquivo routes.ts para definir endpoints da API"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada domain",
+        "target": "server/modules/schedule-management/domain/ports/IScheduleRepository.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
         ]
       },
       {
@@ -859,24 +598,12 @@
           "Criar interfaces para comunicação entre camadas",
           "Atualizar dependências"
         ]
-      },
-      {
-        "type": "create_file",
-        "description": "Criar Repository com interface",
-        "target": "server/modules/schedule-management/domain/ports/IScheduleRepository.ts",
-        "code": "import { ISchedule } from '../../domain/entities/ISchedule';\nimport { IIScheduleRepository } from '../../domain/ports/IIScheduleRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleIScheduleRepository implements IIScheduleRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<ISchedule | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<ISchedule[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: ISchedule): Promise<ISchedule> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<ISchedule>, tenantId: string): Promise<ISchedule | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
-        "steps": [
-          "Criar interface do Repository na camada Domain",
-          "Implementar Repository na camada Infrastructure",
-          "Adicionar injeção de dependência",
-          "Integrar com Use Cases"
-        ]
       }
     ],
     "estimatedTime": "4h"
   },
   {
-    "priority": "high",
+    "priority": "immediate",
     "module": "shared",
     "actions": [
       {
@@ -885,6 +612,18 @@
         "target": "server/modules/shared/routes.ts",
         "steps": [
           "Criar controllers na camada Application e usar nas rotas"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada domain",
+        "target": "server/modules/shared/domain/ports/Iindex.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
         ]
       },
       {
@@ -920,20 +659,8 @@
       {
         "type": "create_file",
         "description": "Criar Repository com interface",
-        "target": "server/modules/shared/infrastructure/repositories/BaseEntityRepository.ts",
-        "code": "import { BaseEntity } from '../../domain/entities/BaseEntity';\nimport { IBaseEntityRepository } from '../../domain/ports/IBaseEntityRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleBaseEntityRepository implements IBaseEntityRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<BaseEntity | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<BaseEntity[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: BaseEntity): Promise<BaseEntity> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<BaseEntity>, tenantId: string): Promise<BaseEntity | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
-        "steps": [
-          "Criar interface do Repository na camada Domain",
-          "Implementar Repository na camada Infrastructure",
-          "Adicionar injeção de dependência",
-          "Integrar com Use Cases"
-        ]
-      },
-      {
-        "type": "create_file",
-        "description": "Criar Repository com interface",
-        "target": "server/modules/shared/domain/ports/Iindex.ts",
-        "code": "import { Iindex } from '../../domain/entities/Iindex';\nimport { IIindexRepository } from '../../domain/ports/IIindexRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleIindexRepository implements IIindexRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<Iindex | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<Iindex[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: Iindex): Promise<Iindex> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<Iindex>, tenantId: string): Promise<Iindex | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
+        "target": "server/modules/shared/domain/ports/IBaseEntityRepository.ts",
+        "code": "import { IBaseEntity } from '../../domain/entities/IBaseEntity';\nimport { IIBaseEntityRepository } from '../../domain/ports/IIBaseEntityRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleIBaseEntityRepository implements IIBaseEntityRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<IBaseEntity | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<IBaseEntity[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: IBaseEntity): Promise<IBaseEntity> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<IBaseEntity>, tenantId: string): Promise<IBaseEntity | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
         "steps": [
           "Criar interface do Repository na camada Domain",
           "Implementar Repository na camada Infrastructure",
@@ -942,52 +669,12 @@
         ]
       }
     ],
-    "estimatedTime": "2h"
+    "estimatedTime": "3h"
   },
   {
-    "priority": "high",
+    "priority": "immediate",
     "module": "technical-skills",
     "actions": [
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo events na camada domain",
-        "target": "server/modules/technical-skills/domain/events",
-        "steps": [
-          "Criar diretório/arquivo events na camada domain"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo services na camada domain",
-        "target": "server/modules/technical-skills/domain/services",
-        "steps": [
-          "Criar diretório/arquivo services na camada domain"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo use-cases na camada application",
-        "target": "server/modules/technical-skills/application/use-cases",
-        "steps": [
-          "Criar diretório/arquivo use-cases na camada application"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo dto na camada application",
-        "target": "server/modules/technical-skills/application/dto",
-        "steps": [
-          "Criar diretório/arquivo dto na camada application"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo services na camada application",
-        "target": "server/modules/technical-skills/application/services",
-        "steps": [
-          "Criar diretório/arquivo services na camada application"
-        ]
-      },
       {
         "type": "move_code",
         "description": "Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados",
@@ -998,6 +685,18 @@
           "Mover código para camada apropriada",
           "Criar interfaces para comunicação entre camadas",
           "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada domain",
+        "target": "server/modules/technical-skills/domain/ports/IUserSkillRepository_FIXED.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
         ]
       },
       {
@@ -1045,129 +744,56 @@
           "Atualizar nome da classe/interface",
           "Verificar consistência com padrões do projeto"
         ]
-      },
-      {
-        "type": "create_file",
-        "description": "Criar Repository com interface",
-        "target": "server/modules/technical-skills/domain/ports/IUserSkillRepository_FIXED.ts",
-        "code": "import { IUserSkill } from '../../domain/entities/IUserSkill';\nimport { IIUserSkillRepository } from '../../domain/ports/IIUserSkillRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleIUserSkillRepository implements IIUserSkillRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<IUserSkill | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<IUserSkill[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: IUserSkill): Promise<IUserSkill> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<IUserSkill>, tenantId: string): Promise<IUserSkill | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
-        "steps": [
-          "Criar interface do Repository na camada Domain",
-          "Implementar Repository na camada Infrastructure",
-          "Adicionar injeção de dependência",
-          "Integrar com Use Cases"
-        ]
       }
     ],
     "estimatedTime": "5h"
   },
   {
-    "priority": "high",
-    "module": "tickets",
+    "priority": "immediate",
+    "module": "timecard",
     "actions": [
       {
         "type": "create_directory",
+        "description": "Criar diretório/arquivo entities na camada domain",
+        "target": "server/modules/timecard/domain/entities",
+        "steps": [
+          "Criar diretório/arquivo entities na camada domain"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Criar diretório/arquivo repositories na camada domain",
+        "target": "server/modules/timecard/domain/repositories",
+        "steps": [
+          "Criar diretório/arquivo repositories na camada domain"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Criar diretório/arquivo events na camada domain",
+        "target": "server/modules/timecard/domain/events",
+        "steps": [
+          "Criar diretório/arquivo events na camada domain"
+        ]
+      },
+      {
+        "type": "create_directory",
         "description": "Criar diretório/arquivo services na camada domain",
-        "target": "server/modules/tickets/domain/services",
+        "target": "server/modules/timecard/domain/services",
         "steps": [
           "Criar diretório/arquivo services na camada domain"
         ]
       },
       {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo controllers na camada application",
-        "target": "server/modules/tickets/application/controllers",
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada domain",
+        "target": "server/modules/timecard/domain/ports/ITimecardRepository.ts",
         "steps": [
-          "Criar diretório/arquivo controllers na camada application"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo dto na camada application",
-        "target": "server/modules/tickets/application/dto",
-        "steps": [
-          "Criar diretório/arquivo dto na camada application"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar controllers na camada Application e usar nas rotas",
-        "target": "server/modules/tickets/routes.ts",
-        "steps": [
-          "Criar controllers na camada Application e usar nas rotas"
-        ]
-      },
-      {
-        "type": "move_code",
-        "description": "Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados",
-        "target": "server/modules/tickets/routes.ts",
-        "steps": [
-          "Identificar código acoplado",
-          "Determinar camada correta para o código",
-          "Mover código para camada apropriada",
-          "Criar interfaces para comunicação entre camadas",
-          "Atualizar dependências"
-        ]
-      },
-      {
-        "type": "move_code",
-        "description": "Resolver acoplamento: Repository contém possível lógica de negócio",
-        "target": "server/modules/tickets/infrastructure/repositories/DrizzleTicketRepository.ts",
-        "steps": [
-          "Identificar código acoplado",
-          "Determinar camada correta para o código",
-          "Mover código para camada apropriada",
-          "Criar interfaces para comunicação entre camadas",
-          "Atualizar dependências"
-        ]
-      },
-      {
-        "type": "create_file",
-        "description": "Criar diretório controllers na camada Application",
-        "target": "server/modules/tickets/application/controllers",
-        "steps": [
-          "Criar diretório controllers na camada Application"
-        ]
-      }
-    ],
-    "estimatedTime": "3h"
-  },
-  {
-    "priority": "high",
-    "module": "timecard",
-    "actions": [
-      {
-        "type": "create_directory",
-        "description": "Criar estrutura da camada domain",
-        "target": "server/modules/timecard/domain",
-        "steps": [
-          "Criar diretório: server/modules/timecard/domain",
-          "Adicionar arquivo README.md explicando responsabilidades da camada",
-          "Criar subdiretórios conforme padrão Clean Architecture"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo use-cases na camada application",
-        "target": "server/modules/timecard/application/use-cases",
-        "steps": [
-          "Criar diretório/arquivo use-cases na camada application"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo dto na camada application",
-        "target": "server/modules/timecard/application/dto",
-        "steps": [
-          "Criar diretório/arquivo dto na camada application"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo services na camada application",
-        "target": "server/modules/timecard/application/services",
-        "steps": [
-          "Criar diretório/arquivo services na camada application"
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
         ]
       },
       {
@@ -1213,21 +839,247 @@
         "steps": [
           "Criar interface I[Entity]Repository no domain e implementar"
         ]
-      },
-      {
-        "type": "create_file",
-        "description": "Criar Repository com interface",
-        "target": "server/modules/timecard/domain/ports/ITimecardRepository.ts",
-        "code": "import { ITimecard } from '../../domain/entities/ITimecard';\nimport { IITimecardRepository } from '../../domain/ports/IITimecardRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleITimecardRepository implements IITimecardRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<ITimecard | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<ITimecard[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: ITimecard): Promise<ITimecard> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<ITimecard>, tenantId: string): Promise<ITimecard | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
-        "steps": [
-          "Criar interface do Repository na camada Domain",
-          "Implementar Repository na camada Infrastructure",
-          "Adicionar injeção de dependência",
-          "Integrar com Use Cases"
-        ]
       }
     ],
     "estimatedTime": "5h"
+  },
+  {
+    "priority": "high",
+    "module": "auth",
+    "actions": [
+      {
+        "type": "create_directory",
+        "description": "Criar controllers na camada Application e usar nas rotas",
+        "target": "server/modules/auth/routes.ts",
+        "steps": [
+          "Criar controllers na camada Application e usar nas rotas"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "server/modules/auth/application/controllers/AuthController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Repository contém possível lógica de negócio",
+        "target": "server/modules/auth/infrastructure/repositories/DrizzleUserRepository.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      }
+    ],
+    "estimatedTime": "2h"
+  },
+  {
+    "priority": "high",
+    "module": "beneficiaries",
+    "actions": [
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados",
+        "target": "server/modules/beneficiaries/routes.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'",
+        "target": "server/modules/beneficiaries/application/use-cases/index.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      }
+    ],
+    "estimatedTime": "1h"
+  },
+  {
+    "priority": "high",
+    "module": "customers",
+    "actions": [
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados",
+        "target": "server/modules/customers/routes.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "server/modules/customers/application/controllers/CompanyController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      }
+    ],
+    "estimatedTime": "2h"
+  },
+  {
+    "priority": "high",
+    "module": "saas-admin",
+    "actions": [
+      {
+        "type": "create_directory",
+        "description": "Criar diretório/arquivo entities na camada domain",
+        "target": "server/modules/saas-admin/domain/entities",
+        "steps": [
+          "Criar diretório/arquivo entities na camada domain"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Criar diretório/arquivo repositories na camada domain",
+        "target": "server/modules/saas-admin/domain/repositories",
+        "steps": [
+          "Criar diretório/arquivo repositories na camada domain"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Criar diretório/arquivo events na camada domain",
+        "target": "server/modules/saas-admin/domain/events",
+        "steps": [
+          "Criar diretório/arquivo events na camada domain"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Criar diretório/arquivo services na camada domain",
+        "target": "server/modules/saas-admin/domain/services",
+        "steps": [
+          "Criar diretório/arquivo services na camada domain"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Criar diretório/arquivo use-cases na camada application",
+        "target": "server/modules/saas-admin/application/use-cases",
+        "steps": [
+          "Criar diretório/arquivo use-cases na camada application"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Criar diretório/arquivo controllers na camada application",
+        "target": "server/modules/saas-admin/application/controllers",
+        "steps": [
+          "Criar diretório/arquivo controllers na camada application"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Criar diretório/arquivo dto na camada application",
+        "target": "server/modules/saas-admin/application/dto",
+        "steps": [
+          "Criar diretório/arquivo dto na camada application"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Criar diretório/arquivo services na camada application",
+        "target": "server/modules/saas-admin/application/services",
+        "steps": [
+          "Criar diretório/arquivo services na camada application"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Criar diretório/arquivo repositories na camada infrastructure",
+        "target": "server/modules/saas-admin/infrastructure/repositories",
+        "steps": [
+          "Criar diretório/arquivo repositories na camada infrastructure"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Criar controllers na camada Application e usar nas rotas",
+        "target": "server/modules/saas-admin/routes.ts",
+        "steps": [
+          "Criar controllers na camada Application e usar nas rotas"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados",
+        "target": "server/modules/saas-admin/routes.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      }
+    ],
+    "estimatedTime": "3h"
+  },
+  {
+    "priority": "high",
+    "module": "tickets",
+    "actions": [
+      {
+        "type": "create_directory",
+        "description": "Criar controllers na camada Application e usar nas rotas",
+        "target": "server/modules/tickets/routes.ts",
+        "steps": [
+          "Criar controllers na camada Application e usar nas rotas"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados",
+        "target": "server/modules/tickets/routes.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Repository contém possível lógica de negócio",
+        "target": "server/modules/tickets/infrastructure/repositories/DrizzleTicketRepository.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      }
+    ],
+    "estimatedTime": "2h"
   },
   {
     "priority": "low",
