@@ -20,7 +20,10 @@ const beneficiaryRepository = new DrizzleBeneficiaryRepository(db);
 const beneficiaryService = new BeneficiaryApplicationService(beneficiaryRepository);
 
 // Initialize use cases
-const createBeneficiaryUseCase = new (require('./application/use-cases/CreateBeneficiaryUseCase').CreateBeneficiaryUseCase)(beneficiaryRepository, new (require('./domain/services/BeneficiaryDomainService').BeneficiaryDomainService)());
+import { CreateBeneficiaryUseCase } from './application/use-cases/CreateBeneficiaryUseCase';
+import { BeneficiaryDomainService } from './domain/services/BeneficiaryDomainService';
+
+const createBeneficiaryUseCase = new CreateBeneficiaryUseCase(beneficiaryRepository, new BeneficiaryDomainService());
 const getBeneficiariesUseCase = new (require('./application/use-cases/GetBeneficiariesUseCase').GetBeneficiariesUseCase)(beneficiaryRepository);
 const updateBeneficiaryUseCase = new (require('./application/use-cases/UpdateBeneficiaryUseCase').UpdateBeneficiaryUseCase)(beneficiaryRepository);
 const deleteBeneficiaryUseCase = new (require('./application/use-cases/DeleteBeneficiaryUseCase').DeleteBeneficiaryUseCase)(beneficiaryRepository);

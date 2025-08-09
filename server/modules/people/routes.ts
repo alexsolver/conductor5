@@ -1,7 +1,6 @@
 import { Router } from "express";
 import { jwtAuth, AuthenticatedRequest } from "../../middleware/jwtAuth";
 import { enhancedTenantValidator } from "../../middleware/tenantValidator";
-import { PersonController } from "./application/controllers/PersonController";
 import { DrizzlePersonRepository } from "./infrastructure/repositories/DrizzlePersonRepository";
 import { db } from "../../db";
 
