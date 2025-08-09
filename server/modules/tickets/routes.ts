@@ -1702,7 +1702,7 @@ ticketsRouter.delete('/:id/notes/:noteId', jwtAuth, async (req: AuthenticatedReq
       );
       console.log('✅ Entrada de auditoria criada para exclusão de nota:', noteId);
     } catch (historyError) {
-      console.error('❌ ERRO ao criar entrada no histórico para exclusão:', historyError);
+      console.error('❌ ERRO ao criar entrada no histórico:', historyError);
       // Fallback simpler audit entry
       try {
         const { getClientIP, getUserAgent, getSessionId } = await import('../../utils/ipCapture');

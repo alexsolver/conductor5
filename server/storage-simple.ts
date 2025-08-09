@@ -393,105 +393,91 @@ export class DatabaseStorage implements IStorage {
     try {
       const { page = 1, limit = 50, search, status, priority, assignedToId, companyId } = options;
       const offset = (page - 1) * limit;
-      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-
+      
       console.log('🎫 [STORAGE-SIMPLE] Getting tickets for tenant:', tenantId);
-      console.log('🎫 [STORAGE-SIMPLE] Schema name:', schemaName);
       console.log('🎫 [STORAGE-SIMPLE] Options:', options);
 
-      // First check if schema exists
-      const schemaCheck = await this.pool.query(
-        `SELECT EXISTS(SELECT 1 FROM information_schema.schemata WHERE schema_name = $1)`,
-        [schemaName]
-      );
+      const validatedTenantId = await validateTenantAccess(tenantId);
+      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
+      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
-      if (!schemaCheck.rows[0]?.exists) {
-        console.error('❌ [STORAGE-SIMPLE] Schema does not exist:', schemaName);
-        return [];
-      }
-
-      // Then check if tickets table exists in schema
-      const tableCheck = await this.pool.query(
-        `SELECT EXISTS(SELECT 1 FROM information_schema.tables WHERE table_schema = $1 AND table_name = 'tickets')`,
-        [schemaName]
-      );
+      // Check if tickets table exists in schema
+      const tableCheck = await tenantDb.execute(sql`
+        SELECT EXISTS(SELECT 1 FROM information_schema.tables WHERE table_schema = ${schemaName} AND table_name = 'tickets')
+      `);
 
       if (!tableCheck.rows[0]?.exists) {
-        console.error('❌ [STORAGE-SIMPLE] Tickets table does not exist in schema:', schemaName);
+        console.log('❌ [STORAGE-SIMPLE] Tickets table does not exist in schema:', schemaName);
         return [];
       }
 
-      let query = `
+      let baseQuery = sql`
         SELECT 
-          t.*,
-          u.first_name || ' ' || u.last_name as assigned_to_name,
-          c.name as customer_name,
-          comp.name as company_name
-        FROM "${schemaName}".tickets t
-        LEFT JOIN public.users u ON t.assigned_to_id = u.id
-        LEFT JOIN "${schemaName}".customers c ON t.caller_id = c.id
-        LEFT JOIN "${schemaName}".companies comp ON t.company_id = comp.id
-        WHERE t.tenant_id = $1
+          t.id,
+          t.number,
+          t.subject,
+          t.description,
+          t.status,
+          t.priority,
+          t.impact,
+          t.urgency,
+          t.category,
+          t.subcategory,
+          t.caller_id,
+          t.assigned_to_id,
+          t.created_at,
+          t.updated_at,
+          c.first_name as caller_first_name,
+          c.last_name as caller_last_name,
+          c.email as caller_email
+        FROM ${sql.identifier(schemaName)}.tickets t
+        LEFT JOIN ${sql.identifier(schemaName)}.customers c ON t.caller_id = c.id
+        WHERE t.tenant_id = ${validatedTenantId}
       `;
 
-      const params: any[] = [tenantId];
-      let paramIndex = 2;
-
+      // Apply filters
       if (search) {
-        query += ` AND (t.subject ILIKE $${paramIndex} OR t.description ILIKE $${paramIndex})`;
-        params.push(`%${search}%`);
-        paramIndex++;
+        baseQuery = sql`${baseQuery} AND (
+          t.subject ILIKE ${'%' + search + '%'} OR 
+          t.description ILIKE ${'%' + search + '%'}
+        )`;
       }
 
       if (status) {
-        query += ` AND t.status = $${paramIndex}`;
-        params.push(status);
-        paramIndex++;
+        baseQuery = sql`${baseQuery} AND t.status = ${status}`;
       }
 
       if (priority) {
-        query += ` AND t.priority = $${paramIndex}`;
-        params.push(priority);
-        paramIndex++;
+        baseQuery = sql`${baseQuery} AND t.priority = ${priority}`;
       }
 
       if (assignedToId) {
-        query += ` AND t.assigned_to_id = $${paramIndex}`;
-        params.push(assignedToId);
-        paramIndex++;
+        baseQuery = sql`${baseQuery} AND t.assigned_to_id = ${assignedToId}`;
       }
 
       if (companyId) {
-        query += ` AND t.company_id = $${paramIndex}`;
-        params.push(companyId);
-        paramIndex++;
+        baseQuery = sql`${baseQuery} AND t.company_id = ${companyId}`;
       }
 
-      query += ` ORDER BY t.created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
-      params.push(limit, offset);
+      const finalQuery = sql`${baseQuery} 
+        ORDER BY t.created_at DESC 
+        LIMIT ${limit} 
+        OFFSET ${offset}
+      `;
 
-      console.log('🎫 [STORAGE-SIMPLE] Executing query:', query);
-      console.log('🎫 [STORAGE-SIMPLE] With params:', params);
-
-      const result = await this.pool.query(query, params);
+      const result = await tenantDb.execute(finalQuery);
 
       console.log('🎫 [STORAGE-SIMPLE] Query result:', {
-        rowCount: result.rows.length,
-        tenantId,
-        schemaName,
-        firstRow: result.rows[0] ? { id: result.rows[0].id, subject: result.rows[0].subject } : null
+        rowCount: result.rows?.length || 0,
+        tenantId: validatedTenantId,
+        schemaName
       });
 
-      return result.rows;
+      return result.rows || [];
     } catch (error) {
       console.error('❌ [STORAGE-SIMPLE] Error getting tickets:', error);
-      console.error('❌ [STORAGE-SIMPLE] Error details:', {
-        message: error.message,
-        code: error.code,
-        tenantId,
-        stack: error.stack
-      });
-      throw error;
+      logError('Error getting tickets', error, { tenantId, options });
+      return [];
     }
   }
 
