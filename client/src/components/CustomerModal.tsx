@@ -23,7 +23,12 @@ import { useCompanyFilter } from '@/hooks/useCompanyFilter';
 const customerSchema = z.object({
   // Tipo e status
   customerType: z.enum(['PF', 'PJ'], { required_error: 'Tipo de cliente é obrigatório' }),
-  status: z.enum(['Ativo', 'Inativo']).default('Ativo'),
+  status: z.enum(['Ativo', 'Inativo', 'active', 'inactive']).transform((val) => {
+    // Normalize status values to Portuguese
+    if (val === 'active') return 'Ativo';
+    if (val === 'inactive') return 'Inativo';
+    return val;
+  }).default('Ativo'),
 
   // Informações básicas
   email: z.string().email('Email inválido'),

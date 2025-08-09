@@ -208,8 +208,32 @@ customersRouter.get('/', jwtAuth, validateGetCustomers, async (req: Authenticate
     // Import DTO transformer
     const { transformToCustomerDTO } = await import('./application/dto/CustomerResponseDTO');
 
+    // Helper function to safely get field values, handling potential nested structures or missing properties
+    const getFieldValue = (obj: any, path: string, defaultValue: any = null) => {
+      const keys = path.split('.');
+      let value = obj;
+      for (const key of keys) {
+        if (value === null || value === undefined || typeof value !== 'object') {
+          return defaultValue;
+        }
+        value = value[key];
+      }
+      return value !== undefined ? value : defaultValue;
+    };
+
     // Transform customers using standardized DTO
-    const transformedCustomers = customersWithCompanies.map(transformToCustomerDTO);
+    const transformedCustomers = customersWithCompanies.map(customer => {
+      const normalizedCustomer = {
+          ...customer,
+          fullName: customer.fullName || getFieldValue(customer, 'fullName') || 
+                   `${getFieldValue(customer, 'firstName', '')} ${getFieldValue(customer, 'lastName', '')}`.trim() || 
+                   getFieldValue(customer, 'email', 'N/A'),
+          status: customer.status === 'active' ? 'Ativo' : 
+                  customer.status === 'inactive' ? 'Inativo' : 
+                  customer.status || 'Ativo',
+      };
+      return transformToCustomerDTO(normalizedCustomer);
+    });
 
     const response: CustomerListResponseDTO = {
       customers: transformedCustomers,

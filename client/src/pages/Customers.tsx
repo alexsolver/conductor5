@@ -41,7 +41,7 @@ export default function Customers() {
     // Handle both camelCase and snake_case variations with proper defaults
     const variations: Record<string, string[]> = {
       firstName: ['first_name', 'firstName'],
-      lastName: ['last_name', 'lastName'],  
+      lastName: ['last_name', 'lastName'],
       customerType: ['customer_type', 'customerType'],
       companyName: ['company_name', 'companyName'],
       mobilePhone: ['mobile_phone', 'mobilePhone'],
@@ -80,8 +80,17 @@ export default function Customers() {
     setIsCustomerModalOpen(true);
   };
 
+  const normalizeCustomerStatus = (customer: any) => {
+    return {
+      ...customer,
+      status: customer.status === 'active' ? 'Ativo' :
+              customer.status === 'inactive' ? 'Inativo' :
+              customer.status || 'Ativo'
+    };
+  };
+
   const handleEditCustomer = (customer: any) => {
-    setSelectedCustomer(customer);
+    setSelectedCustomer(normalizeCustomerStatus(customer));
     setIsCustomerModalOpen(true);
   };
 
@@ -224,22 +233,22 @@ export default function Customers() {
             </div>
 
             <div className="flex gap-2 justify-center">
-              <Button 
-                onClick={() => window.location.reload()} 
+              <Button
+                onClick={() => window.location.reload()}
                 variant="outline"
               >
                 🔄 Tentar novamente
               </Button>
               {isSchemaError && (
-                <Button 
-                  onClick={() => setLocation('/settings')} 
+                <Button
+                  onClick={() => setLocation('/settings')}
                   variant="secondary"
                 >
                   ⚙️ Verificar configurações
                 </Button>
               )}
-              <Button 
-                onClick={() => setLocation('/dashboard')} 
+              <Button
+                onClick={() => setLocation('/dashboard')}
                 variant="ghost"
               >
                 🏠 Voltar ao Dashboard
@@ -263,7 +272,7 @@ export default function Customers() {
             <Search className="h-4 w-4 mr-2" />
             Search
           </Button>
-          <Button 
+          <Button
             onClick={handleAddCustomer}
             className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
           >
@@ -329,9 +338,9 @@ export default function Customers() {
                   </TableCell>
                   <TableCell>
                     {(() => {
-                      const phone = getCustomerField(customer, 'phone') || 
-                                   customer.phone || 
-                                   customer.mobile_phone || 
+                      const phone = getCustomerField(customer, 'phone') ||
+                                   customer.phone ||
+                                   customer.mobile_phone ||
                                    customer.mobilePhone;
 
                       return phone ? (
@@ -354,23 +363,23 @@ export default function Customers() {
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      <Badge 
+                      <Badge
                         variant={
-                          customer.status === 'Ativo' || customer.status === 'active' || customer.isActive === true 
-                            ? 'default' 
+                          customer.status === 'Ativo' || customer.status === 'active' || customer.isActive === true
+                            ? 'default'
                             : 'destructive'
                         }
                         className="text-xs"
                       >
-                        {customer.status === 'Ativo' || customer.status === 'active' || customer.isActive === true 
-                          ? 'Ativo' 
+                        {customer.status === 'Ativo' || customer.status === 'active' || customer.isActive === true
+                          ? 'Ativo'
                           : 'Inativo'}
                       </Badge>
                       {(() => {
                         const customerType = getCustomerField(customer, 'customerType');
                         if (customerType) {
                           return (
-                            <Badge 
+                            <Badge
                               variant={customerType === 'PJ' ? 'outline' : 'secondary'}
                               className="text-xs"
                             >
