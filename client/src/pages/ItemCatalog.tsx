@@ -5,8 +5,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { PieChart, Pie, BarChart, Bar, CartesianGrid, XAxis, Label } from "recharts";
 
 // UI Components
 import {
@@ -20,39 +18,39 @@ import {
   Truck,
   Link,
   Save,
-  Calendar,
-  User,
-  MapPin,
-  Phone,
-  Mail,
-  FileText,
-  DollarSign,
-  Clock,
-  Tag,
   Search,
   Filter,
   ArrowLeft,
   Settings,
-  Users,
-  ShoppingCart,
-  Layers,
   ChevronRight,
   ExternalLink,
-  TrendingUp,
+  Users,
+  Layers,
+  CheckCircle2,
   AlertCircle,
-  CheckCircle2
+  FileText,
+  ShoppingCart,
+  Tag,
+  Calendar
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   AlertDialog,
@@ -88,7 +86,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Pagination,
   PaginationContent,
-  PaginationEllipsis,
   PaginationItem,
   PaginationLink,
   PaginationNext,
@@ -108,124 +105,27 @@ interface Item {
   active: boolean;
   createdAt: string;
   updatedAt: string;
-  status?: string;
-}
-
-interface ItemLink {
-  id: string;
-  sourceItemId: string;
-  targetItemId: string;
-  linkType: string;
-  quantity?: number;
-  description?: string;
-}
-
-interface CustomerPersonalization {
-  id: string;
-  itemId: string;
-  customerId: string;
-  customerName: string;
-  customSku?: string;
-  customName?: string;
-  customDescription?: string;
-  isActive: boolean;
-}
-
-interface SupplierLink {
-  id: string;
-  itemId: string;
-  supplierId: string;
-  supplierName: string;
-  price?: number;
-  currency: string;
-  leadTime?: number;
-  isPreferred: boolean;
+  // Campos para hierarquia
+  parentId?: string;
+  isParent?: boolean;
+  childrenCount?: number;
+  // Campos para vínculos
+  companiesCount?: number;
+  suppliersCount?: number;
+  linkedCompanies?: { id: string; name: string }[];
+  linkedSuppliers?: { id: string; name: string }[];
 }
 
 const itemSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório").max(255, "Nome muito longo"),
   type: z.enum(["material", "service"]),
-  integrationCode: z.string().max(100, "Código muito longo").optional().or(z.literal(""))
-    .refine(async (code) => {
-      if (!code) return true;
-      // Validação de unicidade - será implementada no backend
-      return true;
-    }, "Código de integração já existe"),
+  integrationCode: z.string().max(100, "Código muito longo").optional().or(z.literal("")),
   description: z.string().max(1000, "Descrição muito longa").optional(),
   measurementUnit: z.string().min(1, "Unidade de medida é obrigatória"),
   maintenancePlan: z.string().max(255, "Plano muito longo").optional(),
   defaultChecklist: z.string().max(255, "Checklist muito longo").optional(),
   active: z.boolean().default(true),
-  tags: z.array(z.string()).optional(),
-  category: z.string().optional(),
-  minPrice: z.number().min(0, "Preço mínimo deve ser positivo").optional(),
-  maxPrice: z.number().min(0, "Preço máximo deve ser positivo").optional(),
-}).refine((data) => {
-  if (data.minPrice && data.maxPrice) {
-    return data.minPrice <= data.maxPrice;
-  }
-  return true;
-}, {
-  message: "Preço mínimo deve ser menor que o máximo",
-  path: ["maxPrice"]
-});
-
-const bulkEditSchema = z.object({
-  active: z.boolean().optional(),
-  category: z.string().optional(),
-  tags: z.array(z.string()).optional(),
-});
-
-const itemLinkSchema = z.object({
-  targetItemId: z.string().min(1, "Item de destino é obrigatório"),
-  linkType: z.enum(["kit", "substitute", "compatible", "accessory", "group"]),
-  quantity: z.number().min(1).optional(),
-  description: z.string().optional(),
-});
-
-const bulkLinkSchema = z.object({
-  sourceItemIds: z.array(z.string()).min(1, "Selecione pelo menos um item de origem"),
-  targetItemIds: z.array(z.string()).min(1, "Selecione pelo menos um item de destino"),
-  relationship: z.enum(["one_to_many", "many_to_one"]),
-  groupName: z.string().optional(),
-  groupDescription: z.string().optional(),
-}).refine((data) => {
-  // Validação para 1-para-many: 1 origem, múltiplos destinos
-  if (data.relationship === 'one_to_many') {
-    return data.sourceItemIds.length === 1 && data.targetItemIds.length >= 1;
-  }
-  // Validação para many-para-1: múltiplas origens, 1 destino
-  if (data.relationship === 'many_to_one') {
-    return data.sourceItemIds.length >= 1 && data.targetItemIds.length === 1;
-  }
-  return true;
-}, {
-  message: "Configuração de vínculos inválida para o tipo selecionado",
-  path: ["relationship"]
-});
-
-const bulkCompanyLinkSchema = z.object({
-  itemIds: z.array(z.string()).min(1, "Selecione pelo menos um item"),
-  companyIds: z.array(z.string()).min(1, "Selecione pelo menos uma empresa"),
-});
-
-const bulkSupplierLinkSchema = z.object({
-  itemIds: z.array(z.string()).min(1, "Selecione pelo menos um item"),
-  supplierIds: z.array(z.string()).min(1, "Selecione pelo menos um fornecedor"),
-});
-
-const customerPersonalizationSchema = z.object({
-  companyId: z.string().min(1, "Empresa é obrigatória"),
-  customSku: z.string().optional(),
-  customName: z.string().optional(),
-  customDescription: z.string().optional(),
-});
-
-const supplierLinkSchema = z.object({
-  supplierId: z.string().min(1, "Fornecedor é obrigatório"),
-  currency: z.string().default("BRL"),
-  leadTime: z.number().min(0).optional(),
-  isPreferred: z.boolean().default(false),
+  parentId: z.string().optional(),
 });
 
 const measurementUnits = [
@@ -242,48 +142,31 @@ const measurementUnits = [
   { value: 'SET', label: 'Conjunto' }
 ];
 
-const linkTypeLabels = {
-  kit: "Kit/Conjunto",
-  substitute: "Substituto",
-  compatible: "Compatível",
-  accessory: "Acessório",
-  group: "Grupo"
-};
-
 export default function ItemCatalog() {
-  // Estados da jornada do usuário
-  const [currentView, setCurrentView] = useState<'catalog' | 'item-details' | 'management'>('catalog');
+  // Estados principais
+  const [currentView, setCurrentView] = useState<'catalog' | 'item-details'>('catalog');
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
 
   // Estados de filtros e busca
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [companyFilter, setCompanyFilter] = useState<string>("all");
+  const [hierarchyFilter, setHierarchyFilter] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(20);
+  const [itemsPerPage] = useState(50); // Aumentado para lidar com alto volume
 
   // Estados para operações em lote
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [isBulkMode, setIsBulkMode] = useState(false);
-  const [isBulkEditModalOpen, setIsBulkEditModalOpen] = useState(false);
-  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null); // State for the selected file
 
   // Estados de modais
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
-  const [isPersonalizationModalOpen, setIsPersonalizationModalOpen] = useState(false);
-  const [isSupplierLinkModalOpen, setIsSupplierLinkModalOpen] = useState(false);
-  const [isBulkLinkModalOpen, setIsBulkLinkModalOpen] = useState(false);
-  const [isBulkCompanyLinkModalOpen, setIsBulkCompanyLinkModalOpen] = useState(false);
-  const [isBulkSupplierLinkModalOpen, setIsBulkSupplierLinkModalOpen] = useState(false);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Forms
+  // Form
   const itemForm = useForm<z.infer<typeof itemSchema>>({
     resolver: zodResolver(itemSchema),
     defaultValues: {
@@ -295,74 +178,13 @@ export default function ItemCatalog() {
       maintenancePlan: '',
       defaultChecklist: '',
       active: true,
-    }
-  });
-
-  const linkForm = useForm<z.infer<typeof itemLinkSchema>>({
-    resolver: zodResolver(itemLinkSchema),
-    defaultValues: {
-      targetItemId: '',
-      linkType: 'kit',
-      quantity: 1,
-      description: '',
-    }
-  });
-
-  const personalizationForm = useForm<z.infer<typeof customerPersonalizationSchema>>({
-    resolver: zodResolver(customerPersonalizationSchema),
-    defaultValues: {
-      companyId: '',
-      customSku: '',
-      customName: '',
-      customDescription: '',
-    }
-  });
-
-  const supplierForm = useForm<z.infer<typeof supplierLinkSchema>>({
-    resolver: zodResolver(supplierLinkSchema),
-    defaultValues: {
-      supplierId: '',
-      currency: 'BRL',
-      leadTime: 0,
-      isPreferred: false,
-    }
-  });
-
-  const bulkLinkForm = useForm<z.infer<typeof bulkLinkSchema>>({
-    resolver: zodResolver(bulkLinkSchema),
-    defaultValues: {
-      sourceItemIds: [],
-      targetItemIds: [],
-      relationship: 'one_to_many',
-      groupName: '',
-      groupDescription: '',
-    }
-  });
-
-  const bulkCompanyLinkForm = useForm<z.infer<typeof bulkCompanyLinkSchema>>({
-    resolver: zodResolver(bulkCompanyLinkSchema),
-    defaultValues: {
-      itemIds: [],
-      companyIds: [],
-    }
-  });
-
-  const bulkSupplierLinkForm = useForm<z.infer<typeof bulkSupplierLinkSchema>>({
-    resolver: zodResolver(bulkSupplierLinkSchema),
-    defaultValues: {
-      itemIds: [],
-      supplierIds: [],
+      parentId: undefined,
     }
   });
 
   // Queries
-  const { data: itemsResponse, isLoading: isLoadingItems, refetch } = useQuery({
-    queryKey: ["/api/materials-services/items"],
-    enabled: true
-  });
-
-  const { data: itemStatsResponse } = useQuery({
-    queryKey: ["/api/materials-services/items/stats"],
+  const { data: itemsResponse, isLoading: isLoadingItems } = useQuery({
+    queryKey: ["/api/materials-services/items", searchTerm, typeFilter, statusFilter, hierarchyFilter],
     enabled: true
   });
 
@@ -371,71 +193,7 @@ export default function ItemCatalog() {
   });
 
   const { data: availableSuppliers } = useQuery({
-    queryKey: ["/api/materials-services/suppliers"],
-    queryFn: async () => {
-      try {
-        const response = await apiRequest('GET', '/api/materials-services/suppliers');
-        const data = await response.json();
-        return data.data?.map((supplier: any) => ({
-          id: supplier.id,
-          name: supplier.name || supplier.tradeName || 'Sem nome'
-        })) || [];
-      } catch (error) {
-        console.error('Erro ao carregar fornecedores:', error);
-        return [];
-      }
-    }
-  });
-
-  // Query para vínculos do item selecionado
-  const { data: itemLinksResponse } = useQuery({
-    queryKey: ["/api/materials-services/item-links", selectedItem?.id],
-    enabled: !!selectedItem,
-    queryFn: async () => {
-      if (!selectedItem) return { data: { itemLinks: [] } };
-      try {
-        const response = await apiRequest('GET', `/api/materials-services/item-links/${selectedItem.id}`);
-        const result = await response.json();
-        return result.success ? result : { data: { itemLinks: [] } };
-      } catch (error) {
-        console.error('Erro ao carregar vínculos:', error);
-        return { data: { itemLinks: [] } };
-      }
-    }
-  });
-
-  // Query para personalizações do item selecionado
-  const { data: personalizationsResponse } = useQuery({
-    queryKey: ["/api/materials-services/customer-personalizations", selectedItem?.id],
-    enabled: !!selectedItem,
-    queryFn: async () => {
-      if (!selectedItem) return { data: { personalizations: [] } };
-      try {
-        const response = await apiRequest('GET', `/api/materials-services/customer-personalizations/item/${selectedItem.id}`);
-        const result = await response.json();
-        return result.success ? result : { data: { personalizations: [] } };
-      } catch (error) {
-        console.error('Erro ao carregar personalizações:', error);
-        return { data: { personalizations: [] } };
-      }
-    }
-  });
-
-  // Query para vínculos de fornecedores do item selecionado
-  const { data: supplierLinksResponse } = useQuery({
-    queryKey: ["/api/materials-services/supplier-links", selectedItem?.id],
-    enabled: !!selectedItem,
-    queryFn: async () => {
-      if (!selectedItem) return { data: { supplierLinks: [] } };
-      try {
-        const response = await apiRequest('GET', `/api/materials-services/supplier-links/item/${selectedItem.id}`);
-        const result = await response.json();
-        return result.success ? result : { data: { supplierLinks: [] } };
-      } catch (error) {
-        console.error('Erro ao carregar vínculos de fornecedores:', error);
-        return { data: { supplierLinks: [] } };
-      }
-    }
+    queryKey: ["/api/materials-services/suppliers"]
   });
 
   // Mutations
@@ -450,7 +208,6 @@ export default function ItemCatalog() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items/stats"] });
       toast({
         title: "Item criado com sucesso",
         description: "O item foi adicionado ao catálogo.",
@@ -511,162 +268,8 @@ export default function ItemCatalog() {
     },
   });
 
-  const createItemLinkMutation = useMutation({
-    mutationFn: async (data: z.infer<typeof itemLinkSchema>) => {
-      const payload = {
-        ...data,
-        sourceItemId: selectedItem?.id,
-      };
-      const response = await apiRequest('POST', '/api/materials-services/item-links', payload);
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/materials-services/item-links", selectedItem?.id] });
-      toast({
-        title: "Vínculo criado com sucesso",
-        description: "O vínculo entre itens foi estabelecido.",
-      });
-      setIsLinkModalOpen(false);
-      linkForm.reset();
-    },
-    onError: () => {
-      toast({
-        title: "Erro ao criar vínculo",
-        description: "Tente novamente mais tarde.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const createPersonalizationMutation = useMutation({
-    mutationFn: async (data: z.infer<typeof customerPersonalizationSchema>) => {
-      const payload = {
-        ...data,
-        itemId: selectedItem?.id,
-      };
-      const response = await apiRequest('POST', '/api/materials-services/customer-personalizations', payload);
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/materials-services/customer-personalizations", selectedItem?.id] });
-      toast({
-        title: "Personalização criada com sucesso",
-        description: "A personalização para o cliente foi configurada.",
-      });
-      setIsPersonalizationModalOpen(false);
-      personalizationForm.reset();
-    },
-    onError: () => {
-      toast({
-        title: "Erro ao criar personalização",
-        description: "Tente novamente mais tarde.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const createSupplierLinkMutation = useMutation({
-    mutationFn: async (data: z.infer<typeof supplierLinkSchema>) => {
-      const payload = {
-        ...data,
-        itemId: selectedItem?.id,
-      };
-      const response = await apiRequest('POST', '/api/materials-services/supplier-links', payload);
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/materials-services/supplier-links", selectedItem?.id] });
-      toast({
-        title: "Vínculo de fornecedor criado com sucesso",
-        description: "O fornecedor foi vinculado ao item.",
-      });
-      setIsSupplierLinkModalOpen(false);
-      supplierForm.reset();
-    },
-    onError: () => {
-      toast({
-        title: "Erro ao criar vínculo de fornecedor",
-        description: "Tente novamente mais tarde.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const createBulkLinksMutation = useMutation({
-    mutationFn: async (data: z.infer<typeof bulkLinkSchema>) => {
-      const response = await apiRequest('POST', '/api/materials-services/items/bulk-links', data);
-      return response.json();
-    },
-    onSuccess: (result) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items"] });
-      toast({
-        title: "Vínculos em lote criados com sucesso",
-        description: `${result.data.linksCreated} vínculos foram criados.`,
-      });
-      setIsBulkLinkModalOpen(false);
-      bulkLinkForm.reset();
-      setSelectedItems(new Set());
-    },
-    onError: () => {
-      toast({
-        title: "Erro ao criar vínculos em lote",
-        description: "Tente novamente mais tarde.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const createBulkCompanyLinksMutation = useMutation({
-    mutationFn: async (data: z.infer<typeof bulkCompanyLinkSchema>) => {
-      const response = await apiRequest('POST', '/api/materials-services/items/bulk-company-links', data);
-      return response.json();
-    },
-    onSuccess: (result) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items"] });
-      toast({
-        title: "Vínculos de empresas criados com sucesso",
-        description: `${result.data.linksCreated} vínculos foram criados.`,
-      });
-      setIsBulkCompanyLinkModalOpen(false);
-      bulkCompanyLinkForm.reset();
-      setSelectedItems(new Set());
-    },
-    onError: () => {
-      toast({
-        title: "Erro ao criar vínculos de empresas",
-        description: "Tente novamente mais tarde.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const createBulkSupplierLinksMutation = useMutation({
-    mutationFn: async (data: z.infer<typeof bulkSupplierLinkSchema>) => {
-      const response = await apiRequest('POST', '/api/materials-services/items/bulk-supplier-links', data);
-      return response.json();
-    },
-    onSuccess: (result) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items"] });
-      toast({
-        title: "Vínculos de fornecedores criados com sucesso",
-        description: `${result.data.linksCreated} vínculos foram criados.`,
-      });
-      setIsBulkSupplierLinkModalOpen(false);
-      bulkSupplierLinkForm.reset();
-      setSelectedItems(new Set());
-    },
-    onError: () => {
-      toast({
-        title: "Erro ao criar vínculos de fornecedores",
-        description: "Tente novamente mais tarde.",
-        variant: "destructive",
-      });
-    },
-  });
-
   // Processar dados
   const items: Item[] = (itemsResponse as any)?.data || [];
-  const itemStats = (itemStatsResponse as any)?.data || [];
 
   const filteredItems = items.filter((item: Item) => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -676,11 +279,12 @@ export default function ItemCatalog() {
     const matchesStatus = statusFilter === "all" || 
                          (statusFilter === "active" && item.active) ||
                          (statusFilter === "inactive" && !item.active);
-    
-    // TODO: Implementar filtro por empresa vinculada
-    const matchesCompany = companyFilter === "all" || true; // Placeholder
+    const matchesHierarchy = hierarchyFilter === "all" ||
+                           (hierarchyFilter === "parent" && item.isParent) ||
+                           (hierarchyFilter === "child" && item.parentId) ||
+                           (hierarchyFilter === "standalone" && !item.parentId && !item.isParent);
 
-    return matchesSearch && matchesType && matchesStatus && matchesCompany;
+    return matchesSearch && matchesType && matchesStatus && matchesHierarchy;
   });
 
   // Paginação
@@ -693,10 +297,7 @@ export default function ItemCatalog() {
   // Reset página quando filtros mudam
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, typeFilter, statusFilter, companyFilter]);
-
-  const materialCount = items.filter(item => item.type === 'material').length;
-  const serviceCount = items.filter(item => item.type === 'service').length;
+  }, [searchTerm, typeFilter, statusFilter, hierarchyFilter]);
 
   // Handlers
   const handleItemClick = (item: Item) => {
@@ -715,6 +316,7 @@ export default function ItemCatalog() {
       maintenancePlan: item.maintenancePlan || '',
       defaultChecklist: item.defaultChecklist || '',
       active: item.active !== undefined ? item.active : true,
+      parentId: item.parentId || undefined,
     });
     setIsEditModalOpen(true);
   };
@@ -727,30 +329,6 @@ export default function ItemCatalog() {
     }
   };
 
-  const onSubmitItemLink = async (data: z.infer<typeof itemLinkSchema>) => {
-    createItemLinkMutation.mutate(data);
-  };
-
-  const onSubmitPersonalization = async (data: z.infer<typeof customerPersonalizationSchema>) => {
-    createPersonalizationMutation.mutate(data);
-  };
-
-  const onSubmitSupplierLink = async (data: z.infer<typeof supplierLinkSchema>) => {
-    createSupplierLinkMutation.mutate(data);
-  };
-
-  const onSubmitBulkLinks = async (data: z.infer<typeof bulkLinkSchema>) => {
-    createBulkLinksMutation.mutate(data);
-  };
-
-  // Inicializar itens selecionados nos forms
-  useEffect(() => {
-    const selectedItemsArray = Array.from(selectedItems);
-    bulkCompanyLinkForm.setValue('itemIds', selectedItemsArray);
-    bulkSupplierLinkForm.setValue('itemIds', selectedItemsArray);
-  }, [selectedItems, bulkCompanyLinkForm, bulkSupplierLinkForm]);
-
-  // Bulk operations handlers
   const handleSelectAll = () => {
     if (selectedItems.size === paginatedItems.length) {
       setSelectedItems(new Set());
@@ -769,955 +347,34 @@ export default function ItemCatalog() {
     setSelectedItems(newSelected);
   };
 
-  const handleBulkDelete = async () => {
-    if (selectedItems.size === 0) return;
-
-    try {
-      const deletePromises = Array.from(selectedItems).map(id => 
-        deleteItemMutation.mutateAsync(id)
-      );
-      await Promise.all(deletePromises);
-
-      setSelectedItems(new Set());
-      toast({
-        title: "Itens excluídos com sucesso",
-        description: `${selectedItems.size} itens foram removidos do catálogo.`,
-      });
-    } catch (error) {
-      toast({
-        title: "Erro na exclusão em lote",
-        description: "Alguns itens não puderam ser excluídos.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleBulkStatusChange = async (newStatus: boolean) => {
-    if (selectedItems.size === 0) return;
-
-    try {
-      const updatePromises = Array.from(selectedItems).map(id => {
-        const item = items.find(i => i.id === id);
-        if (!item) return Promise.resolve();
-
-        return updateItemMutation.mutateAsync({
-          id,
-          data: { ...item, active: newStatus }
-        });
-      });
-
-      await Promise.all(updatePromises);
-      setSelectedItems(new Set());
-
-      toast({
-        title: "Status atualizado",
-        description: `${selectedItems.size} itens foram ${newStatus ? 'ativados' : 'desativados'}.`,
-      });
-    } catch (error) {
-      toast({
-        title: "Erro na atualização em lote",
-        description: "Alguns itens não puderam ser atualizados.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const exportToCSV = () => {
-    const csvData = items.map(item => ({
-      nome: item.name,
-      tipo: item.type,
-      codigo: item.integrationCode || '',
-      descricao: item.description || '',
-      unidade: item.measurementUnit,
-      status: item.active ? 'Ativo' : 'Inativo',
-      criado_em: new Date(item.createdAt).toLocaleDateString('pt-BR')
-    }));
-
-    const headers = Object.keys(csvData[0] || {}).join(',');
-    const rows = csvData.map(row => Object.values(row).join(','));
-    const csv = [headers, ...rows].join('\n');
-
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `itens_catalogo_${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
-  // Estados para configurações persistentes
-  const [systemSettings, setSystemSettings] = useState({
-    autoValidation: true,
-    duplicateNotifications: true,
-    autoBackup: true
-  });
-
-  // Query para configurações do sistema
-  const { data: settingsResponse } = useQuery({
-    queryKey: ["/api/materials-services/settings"],
-    queryFn: async () => {
-      try {
-        const response = await apiRequest('GET', '/api/materials-services/settings');
-        return response.json();
-      } catch (error) {
-        return { data: systemSettings };
-      }
-    }
-  });
-
-  // Mutation para salvar configurações
-  const saveSettingsMutation = useMutation({
-    mutationFn: async (settings: typeof systemSettings) => {
-      const response = await apiRequest('PUT', '/api/materials-services/settings', settings);
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Configurações salvas",
-        description: "As configurações do sistema foram atualizadas.",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Erro ao salvar configurações",
-        description: "Tente novamente mais tarde.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  // Atualizar settings quando carregados
-  useEffect(() => {
-    if (settingsResponse?.data) {
-      setSystemSettings(settingsResponse.data);
-    }
-  }, [settingsResponse]);
-
-  // Handler para mudança de configuração
-  const handleSettingChange = (key: keyof typeof systemSettings, value: boolean) => {
-    const newSettings = { ...systemSettings, [key]: value };
-    setSystemSettings(newSettings);
-    saveSettingsMutation.mutate(newSettings);
-  };
-
-  // Handlers for file upload
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files.length > 0) {
-      setSelectedFile(event.target.files[0]);
-    }
-  };
-
-  // Handler para download de templates
-  const downloadTemplate = (templateType: string) => {
-    let csvContent = '';
-    let filename = '';
-
-    switch (templateType) {
-      case 'basic':
-        csvContent = 'nome,tipo,codigo,descricao,unidade,categoria,tags\nItem Exemplo,material,COD001,Descrição do item,UN,Equipamentos,tag1;tag2';
-        filename = 'template_basico.csv';
-        break;
-      case 'companies':
-        csvContent = 'nome,tipo,codigo,descricao,unidade,categoria,tags,empresa_id,empresa_nome\nItem Exemplo,material,COD001,Descrição do item,UN,Equipamentos,tag1;tag2,uuid-empresa,Nome da Empresa';
-        filename = 'template_com_empresas.csv';
-        break;
-      case 'suppliers':
-        csvContent = 'nome,tipo,codigo,descricao,unidade,categoria,tags,fornecedor_id,fornecedor_nome\nItem Exemplo,material,COD001,Descrição do item,UN,Equipamentos,tag1;tag2,uuid-fornecedor,Nome do Fornecedor';
-        filename = 'template_com_fornecedores.csv';
-        break;
-    }
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', filename);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
-  // Handler for the import action
-  const handleImport = async () => {
-    if (!selectedFile) {
-      toast({
-        title: "Erro",
-        description: "Selecione um arquivo CSV para importar.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      const formData = new FormData();
-      formData.append('csvFile', selectedFile);
-
-      const response = await fetch('/api/materials-services/import/csv', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: formData
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        toast({
-          title: "Importação concluída",
-          description: `${result.data.imported} itens importados com sucesso.`,
-        });
-
-        // Refresh items list
-        refetch(); // Assuming refetch is available from useQuery
-        setIsImportModalOpen(false);
-        setSelectedFile(null);
-      } else {
-        toast({
-          title: "Erro na importação",
-          description: result.message || "Falha ao importar arquivo CSV.",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error('Import error:', error);
-      toast({
-        title: "Erro",
-        description: "Falha ao processar arquivo CSV.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  // Estados para gestão avançada
-  const [analyticsData, setAnalyticsData] = useState<any>(null);
-  const [maintenanceLogs, setMaintenanceLogs] = useState<string[]>([]);
-  const [isMaintenanceRunning, setIsMaintenanceRunning] = useState(false);
-
-  // Queries para analytics
-  const { data: realAnalyticsData } = useQuery({
-    queryKey: ["/api/materials-services/analytics"],
-    queryFn: async () => {
-      try {
-        const response = await apiRequest('GET', '/api/materials-services/analytics');
-        return response.json();
-      } catch (error) {
-        return null;
-      }
-    }
-  });
-
-  // Mutations para manutenção
-  const maintenanceMutation = useMutation({
-    mutationFn: async (operation: string) => {
-      const response = await apiRequest('POST', '/api/materials-services/maintenance', { operation });
-      return response.json();
-    },
-    onSuccess: (result) => {
-      setMaintenanceLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] ✅ ${result.message}`]);
-      toast({
-        title: "Operação concluída",
-        description: result.message,
-      });
-    },
-    onError: (error: any) => {
-      setMaintenanceLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] ❌ Erro: ${error.message}`]);
-      toast({
-        title: "Erro na operação",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-
-  const handleMaintenanceOperation = async (operation: string) => {
-    setIsMaintenanceRunning(true);
-    setMaintenanceLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] 🔄 Iniciando: ${operation}`]);
-    
-    try {
-      await maintenanceMutation.mutateAsync(operation);
-    } finally {
-      setIsMaintenanceRunning(false);
-    }
-  };
-
-  // Renderizar view de gestão avançada
-  const renderManagementView = () => (
+  // Renderizar página principal de catálogo
+  const renderCatalogView = () => (
     <div className="space-y-6">
-      {/* Header da Gestão Avançada */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button 
-            variant="ghost" 
-            size="sm"
-            onClick={() => setCurrentView('catalog')}
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Voltar ao Catálogo
+      {/* Header com métricas resumidas */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold">Catálogo de Itens</h1>
+          <p className="text-gray-600">
+            {items.length} itens • {items.filter(i => i.active).length} ativos • {items.filter(i => i.isParent).length} pais
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => setCurrentView('management')}>
+            <Settings className="h-4 w-4 mr-2" />
+            Ferramentas
           </Button>
-          <div className="h-6 w-px bg-gray-300" />
-          <div>
-            <h1 className="text-2xl font-bold">Gestão Avançada de Itens</h1>
-            <p className="text-gray-600">Ferramentas administrativas e análises detalhadas</p>
-          </div>
+          <Button onClick={() => setIsCreateModalOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Novo Item
+          </Button>
         </div>
       </div>
 
-      {/* Tabs de Gestão Avançada */}
-      <Tabs defaultValue="analytics" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          <TabsTrigger value="bulk-operations">Operações em Lote</TabsTrigger>
-          <TabsTrigger value="import-export">Importação/Exportação</TabsTrigger>
-          <TabsTrigger value="maintenance">Manutenção</TabsTrigger>
-          <TabsTrigger value="settings">Configurações</TabsTrigger>
-        </TabsList>
-
-        {/* Analytics Tab */}
-        <TabsContent value="analytics" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Métricas Principais */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5" />
-                  Métricas de Utilização
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Total de itens</span>
-                    <span className="text-sm font-medium">{items.length}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Itens ativos</span>
-                    <span className="text-sm font-medium text-green-600">{items.filter(i => i.active).length}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Itens inativos</span>
-                    <span className="text-sm font-medium text-red-600">{items.filter(i => !i.active).length}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Taxa de ativação</span>
-                    <span className="text-sm font-medium">
-                      {items.length > 0 ? Math.round((items.filter(i => i.active).length / items.length) * 100) : 0}%
-                    </span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Análise de Vínculos */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Link className="h-5 w-5" />
-                  Análise de Vínculos
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Materiais</span>
-                    <span className="text-sm font-medium">{materialCount}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Serviços</span>
-                    <span className="text-sm font-medium">{serviceCount}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Com código integração</span>
-                    <span className="text-sm font-medium">{items.filter(i => i.integrationCode).length}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Sem código integração</span>
-                    <span className="text-sm font-medium">{items.filter(i => !i.integrationCode).length}</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Status do Sistema */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Settings className="h-5 w-5" />
-                  Status do Sistema
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Integridade dados</span>
-                    <Badge variant="default">✓ OK</Badge>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Performance</span>
-                    <Badge variant="default">✓ Boa</Badge>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Última sync</span>
-                    <span className="text-xs text-gray-500">2 min atrás</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Gráficos e Relatórios */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Distribuição por Tipo</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ChartContainer
-                  config={{
-                    materials: {
-                      label: "Materiais",
-                      color: "hsl(var(--chart-1))",
-                    },
-                    services: {
-                      label: "Serviços", 
-                      color: "hsl(var(--chart-2))",
-                    },
-                  }}
-                  className="h-64"
-                >
-                  <PieChart>
-                    <ChartTooltip
-                      cursor={false}
-                      content={<ChartTooltipContent hideLabel />}
-                    />
-                    <Pie
-                      data={[
-                        { name: "Materiais", value: materialCount, fill: "var(--color-materials)" },
-                        { name: "Serviços", value: serviceCount, fill: "var(--color-services)" }
-                      ]}
-                      dataKey="value"
-                      nameKey="name"
-                      innerRadius={60}
-                      strokeWidth={5}
-                    >
-                      <Label
-                        content={({ viewBox }) => {
-                          if (viewBox && "cx" in viewBox && "cy" in viewBox) {
-                            return (
-                              <text
-                                x={viewBox.cx}
-                                y={viewBox.cy}
-                                textAnchor="middle"
-                                dominantBaseline="middle"
-                              >
-                                <tspan
-                                  x={viewBox.cx}
-                                  y={viewBox.cy}
-                                  className="fill-foreground text-3xl font-bold"
-                                >
-                                  {items.length}
-                                </tspan>
-                                <tspan
-                                  x={viewBox.cx}
-                                  y={(viewBox.cy || 0) + 24}
-                                  className="fill-muted-foreground"
-                                >
-                                  Total
-                                </tspan>
-                              </text>
-                            )
-                          }
-                        }}
-                      />
-                    </Pie>
-                  </PieChart>
-                </ChartContainer>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Status dos Itens</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ChartContainer
-                  config={{
-                    active: {
-                      label: "Ativo",
-                      color: "hsl(var(--chart-3))",
-                    },
-                    inactive: {
-                      label: "Inativo",
-                      color: "hsl(var(--chart-4))",
-                    },
-                  }}
-                  className="h-64"
-                >
-                  <BarChart
-                    data={[
-                      {
-                        status: "Ativos",
-                        count: items.filter(i => i.active).length,
-                        fill: "var(--color-active)",
-                      },
-                      {
-                        status: "Inativos", 
-                        count: items.filter(i => !i.active).length,
-                        fill: "var(--color-inactive)",
-                      },
-                    ]}
-                  >
-                    <CartesianGrid vertical={false} />
-                    <XAxis
-                      dataKey="status"
-                      tickLine={false}
-                      tickMargin={10}
-                      axisLine={false}
-                    />
-                    <ChartTooltip
-                      cursor={false}
-                      content={<ChartTooltipContent hideLabel />}
-                    />
-                    <Bar dataKey="count" strokeWidth={2} radius={8} />
-                  </BarChart>
-                </ChartContainer>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        {/* Bulk Operations Tab */}
-        <TabsContent value="bulk-operations" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Operações em Lote Avançadas</CardTitle>
-              <CardDescription>
-                Realize operações em massa com múltiplos itens simultaneamente
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Button 
-                  variant="outline" 
-                  className="h-20 flex-col"
-                  onClick={() => setIsBulkLinkModalOpen(true)}
-                >
-                  <Link className="h-6 w-6 mb-2" />
-                  <span>Vínculos Múltiplos</span>
-                  <span className="text-xs text-gray-500">Criar vínculos entre vários itens</span>
-                </Button>
-
-                <Button 
-                  variant="outline" 
-                  className="h-20 flex-col"
-                  onClick={() => setIsBulkCompanyLinkModalOpen(true)}
-                >
-                  <Building className="h-6 w-6 mb-2" />
-                  <span>Vínculos Empresas</span>
-                  <span className="text-xs text-gray-500">Associar itens a empresas</span>
-                </Button>
-
-                <Button 
-                  variant="outline" 
-                  className="h-20 flex-col"
-                  onClick={() => setIsBulkSupplierLinkModalOpen(true)}
-                >
-                  <Truck className="h-6 w-6 mb-2" />
-                  <span>Vínculos Fornecedores</span>
-                  <span className="text-xs text-gray-500">Associar itens a fornecedores</span>
-                </Button>
-
-                <Button 
-                  variant="outline" 
-                  className="h-20 flex-col"
-                  onClick={() => setIsBulkEditModalOpen(true)}
-                >
-                  <Edit className="h-6 w-6 mb-2" />
-                  <span>Edição em Massa</span>
-                  <span className="text-xs text-gray-500">Editar propriedades múltiplas</span>
-                </Button>
-              </div>
-
-              <div className="border-t pt-6">
-                <h3 className="font-medium mb-4">Operações Especiais</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Button variant="outline" className="justify-start">
-                    <CheckCircle2 className="h-4 w-4 mr-2" />
-                    Ativar Todos Selecionados
-                  </Button>
-                  <Button variant="outline" className="justify-start">
-                    <AlertCircle className="h-4 w-4 mr-2" />
-                    Marcar como Descontinuado
-                  </Button>
-                  <Button variant="outline" className="justify-start">
-                    <Tag className="h-4 w-4 mr-2" />
-                    Aplicar Tags em Massa
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Import/Export Tab */}
-        <TabsContent value="import-export" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <ShoppingCart className="h-5 w-5" />
-                  Importação Avançada
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Button 
-                  className="w-full justify-start"
-                  onClick={() => setIsImportModalOpen(true)}
-                >
-                  <FileText className="h-4 w-4 mr-2" />
-                  Importar CSV/Excel
-                </Button>
-                
-                <Button variant="outline" className="w-full justify-start">
-                  <ExternalLink className="h-4 w-4 mr-2" />
-                  Importar de ERP
-                </Button>
-                
-                <Button variant="outline" className="w-full justify-start">
-                  <Package className="h-4 w-4 mr-2" />
-                  Importar Catálogo Fornecedor
-                </Button>
-
-                <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-                  <p className="text-sm text-blue-700">
-                    <strong>Dica:</strong> Use os modelos CSV para garantir importação correta
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
-                  Exportação Avançada
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start"
-                  onClick={exportToCSV}
-                >
-                  <FileText className="h-4 w-4 mr-2" />
-                  Exportar Catálogo Completo
-                </Button>
-                
-                <Button variant="outline" className="w-full justify-start">
-                  <Link className="h-4 w-4 mr-2" />
-                  Exportar Vínculos
-                </Button>
-                
-                <Button variant="outline" className="w-full justify-start">
-                  <Building className="h-4 w-4 mr-2" />
-                  Exportar Personalizações
-                </Button>
-
-                <Button variant="outline" className="w-full justify-start">
-                  <TrendingUp className="h-4 w-4 mr-2" />
-                  Exportar Relatório Analytics
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        {/* Maintenance Tab */}
-        <TabsContent value="maintenance" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Wrench className="h-5 w-5" />
-                Manutenção do Sistema
-              </CardTitle>
-              <CardDescription>
-                Ferramentas para limpeza e otimização do catálogo
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <h3 className="font-medium">Limpeza de Dados</h3>
-                  <Button 
-                    variant="outline" 
-                    className="w-full justify-start"
-                    onClick={() => handleMaintenanceOperation('detectar_duplicados')}
-                    disabled={isMaintenanceRunning}
-                  >
-                    <AlertCircle className="h-4 w-4 mr-2" />
-                    Detectar Itens Duplicados
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="w-full justify-start"
-                    onClick={() => handleMaintenanceOperation('limpar_vinculos_orfaos')}
-                    disabled={isMaintenanceRunning}
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Limpar Vínculos Órfãos
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="w-full justify-start"
-                    onClick={() => handleMaintenanceOperation('validar_integridade')}
-                    disabled={isMaintenanceRunning}
-                  >
-                    <Eye className="h-4 w-4 mr-2" />
-                    Validar Integridade
-                  </Button>
-                </div>
-
-                <div className="space-y-4">
-                  <h3 className="font-medium">Otimização</h3>
-                  <Button 
-                    variant="outline" 
-                    className="w-full justify-start"
-                    onClick={() => handleMaintenanceOperation('otimizar_performance')}
-                    disabled={isMaintenanceRunning}
-                  >
-                    <TrendingUp className="h-4 w-4 mr-2" />
-                    Otimizar Performance
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="w-full justify-start"
-                    onClick={() => handleMaintenanceOperation('reindexar_catalogo')}
-                    disabled={isMaintenanceRunning}
-                  >
-                    <Package className="h-4 w-4 mr-2" />
-                    Reindexar Catálogo
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="w-full justify-start"
-                    onClick={() => handleMaintenanceOperation('backup_completo')}
-                    disabled={isMaintenanceRunning}
-                  >
-                    <Save className="h-4 w-4 mr-2" />
-                    Backup Completo
-                  </Button>
-                </div>
-              </div>
-
-              <div className="border-t pt-6">
-                <h3 className="font-medium mb-4">Logs do Sistema</h3>
-                <div className="bg-gray-50 p-4 rounded-lg h-32 overflow-y-auto">
-                  <div className="space-y-1 text-sm text-gray-600">
-                    {maintenanceLogs.length === 0 ? (
-                      <p className="text-gray-400 italic">Nenhuma operação de manutenção executada ainda...</p>
-                    ) : (
-                      maintenanceLogs.slice(-10).map((log, index) => (
-                        <p key={index}>{log}</p>
-                      ))
-                    )}
-                  </div>
-                </div>
-                {maintenanceLogs.length > 0 && (
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="mt-2"
-                    onClick={() => setMaintenanceLogs([])}
-                  >
-                    Limpar Logs
-                  </Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Settings Tab */}
-        <TabsContent value="settings" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Settings className="h-5 w-5" />
-                Configurações do Catálogo
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <h3 className="font-medium">Configurações Gerais</h3>
-                  
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <label className="text-sm font-medium">Auto-validação de códigos</label>
-                      <p className="text-xs text-gray-500">Validar unicidade automaticamente</p>
-                    </div>
-                    <Switch 
-                      checked={systemSettings.autoValidation}
-                      onCheckedChange={(checked) => handleSettingChange('autoValidation', checked)}
-                      disabled={saveSettingsMutation.isPending}
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <label className="text-sm font-medium">Notificações de duplicatas</label>
-                      <p className="text-xs text-gray-500">Alertar sobre possíveis duplicatas</p>
-                    </div>
-                    <Switch 
-                      checked={systemSettings.duplicateNotifications}
-                      onCheckedChange={(checked) => handleSettingChange('duplicateNotifications', checked)}
-                      disabled={saveSettingsMutation.isPending}
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <label className="text-sm font-medium">Backup automático</label>
-                      <p className="text-xs text-gray-500">Backup diário dos dados</p>
-                    </div>
-                    <Switch 
-                      checked={systemSettings.autoBackup}
-                      onCheckedChange={(checked) => handleSettingChange('autoBackup', checked)}
-                      disabled={saveSettingsMutation.isPending}
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <h3 className="font-medium">Permissões</h3>
-                  
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm">Criar itens</span>
-                      <Badge variant="default">Admin + Gestor</Badge>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm">Editar itens</span>
-                      <Badge variant="default">Admin + Gestor</Badge>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm">Excluir itens</span>
-                      <Badge variant="destructive">Apenas Admin</Badge>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm">Gestão avançada</span>
-                      <Badge variant="destructive">Apenas Admin</Badge>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="border-t pt-6">
-                <h3 className="font-medium mb-4">Templates de Importação</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Button 
-                    variant="outline" 
-                    className="justify-start"
-                    onClick={() => downloadTemplate('basic')}
-                  >
-                    <FileText className="h-4 w-4 mr-2" />
-                    Template Básico
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="justify-start"
-                    onClick={() => downloadTemplate('companies')}
-                  >
-                    <Building className="h-4 w-4 mr-2" />
-                    Template com Empresas
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="justify-start"
-                    onClick={() => downloadTemplate('suppliers')}
-                  >
-                    <Truck className="h-4 w-4 mr-2" />
-                    Template com Fornecedores
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
-  );
-
-  // Renderizar catálogo principal
-  const renderCatalogView = () => (
-    <div className="space-y-6">
-      {/* Header com métricas */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Package className="h-5 w-5 text-blue-600" />
-              </div>
-              <div>
-                <p className="text-sm font-medium">Total de Itens</p>
-                <p className="text-2xl font-bold">{items.length}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <Package className="h-5 w-5 text-green-600" />
-              </div>
-              <div>
-                <p className="text-sm font-medium">Materiais</p>
-                <p className="text-2xl font-bold">{materialCount}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <Wrench className="h-5 w-5 text-purple-600" />
-              </div>
-              <div>
-                <p className="text-sm font-medium">Serviços</p>
-                <p className="text-2xl font-bold">{serviceCount}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-amber-100 rounded-lg">
-                <TrendingUp className="h-5 w-5 text-amber-600" />
-              </div>
-              <div>
-                <p className="text-sm font-medium">Ativos</p>
-                <p className="text-2xl font-bold">{items.filter(i => i.active).length}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Controles de busca e filtros */}
+      {/* Controles de busca e filtros - SEMPRE VISÍVEIS */}
       <Card>
         <CardContent className="p-4">
-          <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex flex-col lg:flex-row gap-4">
+            {/* Busca */}
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
@@ -1728,378 +385,311 @@ export default function ItemCatalog() {
               />
             </div>
 
-            <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger className="w-full sm:w-40">
-                <SelectValue placeholder="Tipo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="material">Materiais</SelectItem>
-                <SelectItem value="service">Serviços</SelectItem>
-              </SelectContent>
-            </Select>
+            {/* Filtros */}
+            <div className="flex gap-2">
+              <Select value={typeFilter} onValueChange={setTypeFilter}>
+                <SelectTrigger className="w-32">
+                  <SelectValue placeholder="Tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="material">Materiais</SelectItem>
+                  <SelectItem value="service">Serviços</SelectItem>
+                </SelectContent>
+              </Select>
 
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full sm:w-40">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="active">Ativo</SelectItem>
-                <SelectItem value="inactive">Inativo</SelectItem>
-              </SelectContent>
-            </Select>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-32">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="active">Ativo</SelectItem>
+                  <SelectItem value="inactive">Inativo</SelectItem>
+                </SelectContent>
+              </Select>
 
-            <Select value={companyFilter} onValueChange={setCompanyFilter}>
-              <SelectTrigger className="w-full sm:w-48">
-                <SelectValue placeholder="Empresa" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas as Empresas</SelectItem>
-                {(availableCustomers || []).map((customer: any) => (
-                  <SelectItem key={customer.id} value={customer.id}>
-                    {customer.name || customer.tradeName}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              <Select value={hierarchyFilter} onValueChange={setHierarchyFilter}>
+                <SelectTrigger className="w-36">
+                  <SelectValue placeholder="Hierarquia" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="parent">Apenas Pais</SelectItem>
+                  <SelectItem value="child">Apenas Filhos</SelectItem>
+                  <SelectItem value="standalone">Independentes</SelectItem>
+                </SelectContent>
+              </Select>
 
-            <div className="flex items-center gap-2">
+              {/* Operações em lote */}
               <Button 
-                variant="outline"
+                variant={isBulkMode ? "default" : "outline"}
                 onClick={() => setIsBulkMode(!isBulkMode)}
-                className={isBulkMode ? "bg-blue-100 border-blue-300" : ""}
               >
                 <Checkbox className="h-4 w-4 mr-2" />
-                {isBulkMode ? "Sair do Modo Lote" : "Modo Lote"}
+                Lote ({selectedItems.size})
               </Button>
 
-              <Button variant="outline" onClick={exportToCSV}>
-                <FileText className="h-4 w-4 mr-2" />
-                Exportar
-              </Button>
-
-              <Button variant="outline" onClick={() => setIsImportModalOpen(true)}>
-                <ShoppingCart className="h-4 w-4 mr-2" />
-                Importar
-              </Button>
-
-              <Button 
-                variant="outline" 
-                onClick={() => setIsBulkLinkModalOpen(true)}
-                disabled={selectedItems.size < 2}
-              >
-                <Link className="h-4 w-4 mr-2" />
-                Vínculos em Lote
-              </Button>
-
-              <Button 
-                variant="outline" 
-                onClick={() => setIsBulkCompanyLinkModalOpen(true)}
-                disabled={selectedItems.size === 0}
-              >
-                <Building className="h-4 w-4 mr-2" />
-                Vincular Empresas
-              </Button>
-
-              <Button 
-                variant="outline" 
-                onClick={() => setIsBulkSupplierLinkModalOpen(true)}
-                disabled={selectedItems.size === 0}
-              >
-                <Truck className="h-4 w-4 mr-2" />
-                Vincular Fornecedores
-              </Button>
-
-              <Button onClick={() => setIsCreateModalOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Novo Item
-              </Button>
+              {isBulkMode && selectedItems.size > 0 && (
+                <>
+                  <Button variant="outline" size="sm">
+                    <Building className="h-4 w-4 mr-1" />
+                    Empresas
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    <Truck className="h-4 w-4 mr-1" />
+                    Fornecedores
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    <Link className="h-4 w-4 mr-1" />
+                    Vincular
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Barra de ações em lote */}
-      {isBulkMode && selectedItems.size > 0 && (
-        <Card className="bg-blue-50 border-blue-200">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <span className="text-sm font-medium text-blue-700">
-                  {selectedItems.size} item(s) selecionado(s)
-                </span>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => handleBulkStatusChange(true)}
-                >
-                  <CheckCircle2 className="h-4 w-4 mr-2" />
-                  Ativar Todos
-                </Button>
-
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => handleBulkStatusChange(false)}
-                >
-                  <AlertCircle className="h-4 w-4 mr-2" />
-                  Desativar Todos
-                </Button>
-
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => setIsBulkEditModalOpen(true)}
-                >
-                  <Edit className="h-4 w-4 mr-2" />
-                  Editar Lote
-                </Button>
-
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="destructive" size="sm">
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Excluir Todos
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Confirmar Exclusão em Lote</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Tem certeza que deseja excluir {selectedItems.size} item(s)? 
-                        Esta ação não pode ser desfeita.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                      <AlertDialogAction onClick={handleBulkDelete} className="bg-red-600 hover:bg-red-700">
-                        Excluir {selectedItems.size} Item(s)
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Lista de itens */}
+      {/* Lista principal - TABELA EFICIENTE */}
       <Card>
-        <CardContent className="p-6">
+        <CardContent className="p-0">
           {isLoadingItems ? (
-            <div className="space-y-4">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="flex items-center space-x-4 p-4 border rounded-lg animate-pulse">
-                  <div className="w-12 h-12 bg-gray-200 rounded"></div>
-                  <div className="space-y-2 flex-1">
-                    <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-                    <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <div className="p-8 text-center">Carregando itens...</div>
           ) : paginatedItems.length === 0 ? (
             <div className="text-center py-12">
               <Package className="h-16 w-16 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum item encontrado</h3>
-              <p className="text-gray-500 mb-4">Tente ajustar os filtros ou criar um novo item.</p>
+              <p className="text-gray-500 mb-4">Ajuste os filtros ou crie um novo item.</p>
               <Button onClick={() => setIsCreateModalOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Criar Primeiro Item
               </Button>
             </div>
           ) : (
-            <div className="space-y-3">
-              {/* Header com seleção geral no modo lote */}
-              {isBulkMode && (
-                <div className="flex items-center p-3 bg-gray-50 rounded-lg border-2 border-dashed">
-                  <Checkbox
-                    checked={selectedItems.size === paginatedItems.length && paginatedItems.length > 0}
-                    onCheckedChange={handleSelectAll}
-                    className="mr-3"
-                  />
-                  <span className="text-sm font-medium text-gray-600">
-                    Selecionar todos os itens desta página
-                  </span>
-                </div>
-              )}
-
-              {paginatedItems.map((item) => (
-                <div 
-                  key={item.id} 
-                  className={`flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors ${
-                    !isBulkMode ? 'cursor-pointer' : ''
-                  } ${selectedItems.has(item.id) ? 'bg-blue-50 border-blue-200' : ''}`}
-                  onClick={() => !isBulkMode && handleItemClick(item)}
-                >
-                  <div className="flex items-center space-x-4">
-                    {/* Checkbox para modo lote */}
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow>
                     {isBulkMode && (
-                      <Checkbox
-                        checked={selectedItems.has(item.id)}
-                        onCheckedChange={() => handleSelectItem(item.id)}
-                        onClick={(e) => e.stopPropagation()}
-                        className="mr-2"
-                      />
+                      <TableHead className="w-12">
+                        <Checkbox
+                          checked={selectedItems.size === paginatedItems.length && paginatedItems.length > 0}
+                          onCheckedChange={handleSelectAll}
+                        />
+                      </TableHead>
                     )}
+                    <TableHead>Nome</TableHead>
+                    <TableHead className="w-24">Tipo</TableHead>
+                    <TableHead className="w-32">Código</TableHead>
+                    <TableHead className="w-24">Unidade</TableHead>
+                    <TableHead className="w-32">Hierarquia</TableHead>
+                    <TableHead className="w-32">Empresas</TableHead>
+                    <TableHead className="w-32">Fornecedores</TableHead>
+                    <TableHead className="w-24">Status</TableHead>
+                    <TableHead className="w-32">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paginatedItems.map((item) => (
+                    <TableRow 
+                      key={item.id} 
+                      className={`hover:bg-gray-50 transition-colors ${
+                        selectedItems.has(item.id) ? 'bg-blue-50' : ''
+                      }`}
+                    >
+                      {isBulkMode && (
+                        <TableCell>
+                          <Checkbox
+                            checked={selectedItems.has(item.id)}
+                            onCheckedChange={() => handleSelectItem(item.id)}
+                          />
+                        </TableCell>
+                      )}
 
-                    <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-                      item.type === 'material' ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'
-                    }`}>
-                      {item.type === 'material' ? <Package className="h-6 w-6" /> : <Wrench className="h-6 w-6" />}
-                    </div>
+                      <TableCell 
+                        className="font-medium cursor-pointer hover:text-blue-600"
+                        onClick={() => handleItemClick(item)}
+                      >
+                        <div className="flex items-center gap-2">
+                          {item.type === 'material' ? 
+                            <Package className="h-4 w-4 text-blue-600" /> : 
+                            <Wrench className="h-4 w-4 text-green-600" />
+                          }
+                          <div>
+                            <div className="font-medium">{item.name}</div>
+                            {item.description && (
+                              <div className="text-sm text-gray-500 truncate max-w-64">
+                                {item.description}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </TableCell>
 
-                    <div className="space-y-1">
-                      <div className="flex items-center space-x-3">
-                        <h3 className="font-medium hover:text-blue-600">{item.name}</h3>
+                      <TableCell>
+                        <Badge variant={item.type === 'material' ? 'default' : 'secondary'}>
+                          {item.type === 'material' ? 'Material' : 'Serviço'}
+                        </Badge>
+                      </TableCell>
+
+                      <TableCell className="text-sm font-mono">
+                        {item.integrationCode || '-'}
+                      </TableCell>
+
+                      <TableCell className="text-sm">
+                        {item.measurementUnit}
+                      </TableCell>
+
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          {item.isParent && (
+                            <Badge variant="outline" className="text-xs">
+                              <Layers className="h-3 w-3 mr-1" />
+                              Pai ({item.childrenCount || 0})
+                            </Badge>
+                          )}
+                          {item.parentId && (
+                            <Badge variant="outline" className="text-xs">
+                              <ChevronRight className="h-3 w-3 mr-1" />
+                              Filho
+                            </Badge>
+                          )}
+                          {!item.parentId && !item.isParent && (
+                            <span className="text-xs text-gray-400">-</span>
+                          )}
+                        </div>
+                      </TableCell>
+
+                      <TableCell>
+                        {(item.companiesCount || 0) > 0 ? (
+                          <div className="flex items-center gap-1">
+                            <Building className="h-3 w-3 text-blue-600" />
+                            <span className="text-sm">{item.companiesCount}</span>
+                            {item.linkedCompanies && item.linkedCompanies.length > 0 && (
+                              <div className="text-xs text-gray-500">
+                                {item.linkedCompanies[0].name}
+                                {item.linkedCompanies.length > 1 && ` +${item.linkedCompanies.length - 1}`}
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-xs text-gray-400">-</span>
+                        )}
+                      </TableCell>
+
+                      <TableCell>
+                        {(item.suppliersCount || 0) > 0 ? (
+                          <div className="flex items-center gap-1">
+                            <Truck className="h-3 w-3 text-amber-600" />
+                            <span className="text-sm">{item.suppliersCount}</span>
+                            {item.linkedSuppliers && item.linkedSuppliers.length > 0 && (
+                              <div className="text-xs text-gray-500">
+                                {item.linkedSuppliers[0].name}
+                                {item.linkedSuppliers.length > 1 && ` +${item.linkedSuppliers.length - 1}`}
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-xs text-gray-400">-</span>
+                        )}
+                      </TableCell>
+
+                      <TableCell>
                         <Badge variant={item.active ? "default" : "secondary"}>
                           {item.active ? "Ativo" : "Inativo"}
                         </Badge>
-                        <Badge variant="outline">
-                          {item.type === 'material' ? 'Material' : 'Serviço'}
-                        </Badge>
-                      </div>
+                      </TableCell>
 
-                      <div className="flex items-center space-x-4 text-sm text-gray-500">
-                        {item.integrationCode && (
-                          <span className="flex items-center gap-1">
-                            <Tag className="h-3 w-3" />
-                            {item.integrationCode}
-                          </span>
-                        )}
-                        <span className="flex items-center gap-1">
-                          <Package className="h-3 w-3" />
-                          {item.measurementUnit}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          {new Date(item.createdAt).toLocaleDateString('pt-BR')}
-                        </span>
-                      </div>
-
-                      {item.description && (
-                        <p className="text-sm text-gray-600 max-w-2xl truncate">
-                          {item.description}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleEditItem(item);
-                      }}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={(e) => e.stopPropagation()}
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Tem certeza que deseja excluir o item "{item.name}"? 
-                            Esta ação não pode ser desfeita e removerá todos os vínculos associados.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => deleteItemMutation.mutate(item.id)}
-                            className="bg-red-600 hover:bg-red-700"
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleItemClick(item);
+                            }}
                           >
-                            Excluir Item
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditItem(item);
+                            }}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={(e) => e.stopPropagation()}
+                                className="text-red-600 hover:text-red-700"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Tem certeza que deseja excluir o item "{item.name}"?
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => deleteItemMutation.mutate(item.id)}
+                                  className="bg-red-600 hover:bg-red-700"
+                                >
+                                  Excluir
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
 
-                    <ChevronRight className="h-4 w-4 text-gray-400" />
+              {/* Paginação eficiente */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between p-4 border-t">
+                  <div className="text-sm text-gray-500">
+                    Mostrando {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, filteredItems.length)} de {filteredItems.length} itens
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                      disabled={currentPage === 1}
+                    >
+                      Anterior
+                    </Button>
+                    <span className="text-sm">
+                      Página {currentPage} de {totalPages}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                      disabled={currentPage === totalPages}
+                    >
+                      Próxima
+                    </Button>
                   </div>
                 </div>
-              ))}
-            </div>
+              )}
+            </>
           )}
-
-          {/* Paginação */}
-          {totalPages > 1 && (
-              <div className="flex items-center justify-between mt-6">
-                <div className="text-sm text-gray-500">
-                  Mostrando {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, filteredItems.length)} de {filteredItems.length} itens
-                </div>
-                <Pagination>
-                  <PaginationContent>
-                    <PaginationItem>
-                      <PaginationPrevious 
-                        href="#"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          if (currentPage > 1) setCurrentPage(currentPage - 1);
-                        }}
-                        className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
-                      />
-                    </PaginationItem>
-
-                    {[...Array(totalPages)].map((_, i) => {
-                      const page = i + 1;
-                      if (page === currentPage || page === 1 || page === totalPages || (page >= currentPage - 1 && page <= currentPage + 1)) {
-                        return (
-                          <PaginationItem key={page}>
-                            <PaginationLink
-                              href="#"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                setCurrentPage(page);
-                              }}
-                              isActive={page === currentPage}
-                            >
-                              {page}
-                            </PaginationLink>
-                          </PaginationItem>
-                        );
-                      } else if (page === currentPage - 2 || page === currentPage + 2) {
-                        return (
-                          <PaginationItem key={page}>
-                            <PaginationEllipsis />
-                          </PaginationItem>
-                        );
-                      }
-                      return null;
-                    })}
-
-                    <PaginationItem>
-                      <PaginationNext 
-                        href="#"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          if (currentPage < totalPages) setCurrentPage(currentPage + 1);
-                        }}
-                        className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
-                      />
-                    </PaginationItem>
-                  </PaginationContent>
-                </Pagination>
-              </div>
-            )}
         </CardContent>
       </Card>
     </div>
@@ -2108,10 +698,6 @@ export default function ItemCatalog() {
   // Renderizar detalhes do item
   const renderItemDetailsView = () => {
     if (!selectedItem) return null;
-
-    const itemLinks = (itemLinksResponse as any)?.data?.itemLinks || [];
-    const personalizations = (personalizationsResponse as any)?.data?.personalizations || [];
-    const supplierLinks = (supplierLinksResponse as any)?.data?.supplierLinks || [];
 
     return (
       <div className="space-y-6">
@@ -2142,6 +728,12 @@ export default function ItemCatalog() {
                   <Badge variant="outline">
                     {selectedItem.type === 'material' ? 'Material' : 'Serviço'}
                   </Badge>
+                  {selectedItem.isParent && (
+                    <Badge variant="outline">
+                      <Layers className="h-3 w-3 mr-1" />
+                      Item Pai
+                    </Badge>
+                  )}
                 </div>
               </div>
             </div>
@@ -2158,7 +750,7 @@ export default function ItemCatalog() {
           </div>
         </div>
 
-        {/* Informações básicas */}
+        {/* Informações básicas em cards */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Informações principais */}
           <div className="lg:col-span-2">
@@ -2201,17 +793,6 @@ export default function ItemCatalog() {
                     <p className="text-sm mt-1">{selectedItem.description}</p>
                   </div>
                 )}
-
-                <div className="grid grid-cols-2 gap-4 pt-4 border-t text-xs text-gray-500">
-                  <div>
-                    <label className="font-medium">Criado em</label>
-                    <p>{new Date(selectedItem.createdAt).toLocaleString('pt-BR')}</p>
-                  </div>
-                  <div>
-                    <label className="font-medium">Atualizado em</label>
-                    <p>{new Date(selectedItem.updatedAt).toLocaleString('pt-BR')}</p>
-                  </div>
-                </div>
               </CardContent>
             </Card>
           </div>
@@ -2220,23 +801,15 @@ export default function ItemCatalog() {
           <div>
             <Card>
               <CardHeader>
-                <CardTitle>Resumo de Vínculos</CardTitle>
+                <CardTitle>Vínculos</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Link className="h-4 w-4 text-purple-600" />
-                    <span className="text-sm">Vínculos de Itens</span>
-                  </div>
-                  <Badge variant="secondary">{itemLinks.length}</Badge>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
                     <Building className="h-4 w-4 text-blue-600" />
-                    <span className="text-sm">Personalizações</span>
+                    <span className="text-sm">Empresas</span>
                   </div>
-                  <Badge variant="secondary">{personalizations.length}</Badge>
+                  <Badge variant="secondary">{selectedItem.companiesCount || 0}</Badge>
                 </div>
 
                 <div className="flex items-center justify-between">
@@ -2244,211 +817,56 @@ export default function ItemCatalog() {
                     <Truck className="h-4 w-4 text-amber-600" />
                     <span className="text-sm">Fornecedores</span>
                   </div>
-                  <Badge variant="secondary">{supplierLinks.length}</Badge>
+                  <Badge variant="secondary">{selectedItem.suppliersCount || 0}</Badge>
                 </div>
+
+                {selectedItem.isParent && (
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Layers className="h-4 w-4 text-purple-600" />
+                      <span className="text-sm">Itens Filhos</span>
+                    </div>
+                    <Badge variant="secondary">{selectedItem.childrenCount || 0}</Badge>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
         </div>
 
-        {/* Abas de vínculos */}
-        <Tabs defaultValue="item-links" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="item-links" className="flex items-center gap-2">
-              <Link className="h-4 w-4" />
-              Vínculos de Itens ({itemLinks.length})
-            </TabsTrigger>
-            <TabsTrigger value="personalizations" className="flex items-center gap-2">
-              <Building className="h-4 w-4" />
-              Vínculos Empresas ({personalizations.length})
-            </TabsTrigger>
-            <TabsTrigger value="suppliers" className="flex items-center gap-2">
-              <Truck className="h-4 w-4" />
-              Fornecedores ({supplierLinks.length})
-            </TabsTrigger>
-          </TabsList>
+        {/* Abas de vínculos detalhados */}
+        <Card>
+          <CardContent className="p-6">
+            <Tabs defaultValue="hierarchy" className="w-full">
+              <TabsList>
+                <TabsTrigger value="hierarchy">Hierarquia Pai-Filho</TabsTrigger>
+                <TabsTrigger value="companies">Empresas Vinculadas</TabsTrigger>
+                <TabsTrigger value="suppliers">Fornecedores</TabsTrigger>
+              </TabsList>
 
-          <TabsContent value="item-links" className="space-y-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <div>
-                  <CardTitle>Vínculos de Itens</CardTitle>
-                  <CardDescription>
-                    Itens relacionados, kits, substitutos e acessórios
-                  </CardDescription>
+              <TabsContent value="hierarchy" className="space-y-4 mt-6">
+                <div className="text-center py-8">
+                  <Layers className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-500">Funcionalidade de vínculos pai-filho será implementada</p>
                 </div>
-                <Button onClick={() => setIsLinkModalOpen(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Novo Vínculo
-                </Button>
-              </CardHeader>
-              <CardContent>
-                {itemLinks.length === 0 ? (
-                  <div className="text-center py-8">
-                    <Link className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500 mb-4">Nenhum vínculo configurado</p>
-                    <Button onClick={() => setIsLinkModalOpen(true)}>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Criar Primeiro Vínculo
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {itemLinks.map((link: any) => (
-                      <div key={link.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 bg-purple-100 rounded-lg">
-                            <Link className="h-4 w-4 text-purple-600" />
-                          </div>
-                          <div>
-                            <h4 className="font-medium">{link.targetItem?.name || 'Item não encontrado'}</h4>
-                            <div className="flex items-center gap-2 text-sm text-gray-500">
-                              <Badge variant="outline" className="text-xs">
-                                {linkTypeLabels[link.linkType as keyof typeof linkTypeLabels] || link.linkType}
-                              </Badge>
-                              {link.quantity && <span>Qtd: {link.quantity}</span>}
-                            </div>
-                            {link.description && (
-                              <p className="text-sm text-gray-600 mt-1">{link.description}</p>
-                            )}
-                          </div>
-                        </div>
-                        <Button variant="ghost" size="sm" className="text-red-600">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
+              </TabsContent>
 
-          <TabsContent value="personalizations" className="space-y-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <div>
-                  <CardTitle>Vínculos de Empresas</CardTitle>
-                  <CardDescription>
-                    Configurações específicas para cada empresa
-                  </CardDescription>
+              <TabsContent value="companies" className="space-y-4 mt-6">
+                <div className="text-center py-8">
+                  <Building className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-500">Lista de empresas vinculadas será implementada</p>
                 </div>
-                <Button onClick={() => setIsPersonalizationModalOpen(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Novo Vínculo Empresa
-                </Button>
-              </CardHeader>
-              <CardContent>
-                {personalizations.length === 0 ? (
-                  <div className="text-center py-8">
-                    <Building className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500 mb-4">Nenhum vínculo de empresa configurado</p>
-                    <Button onClick={() => setIsPersonalizationModalOpen(true)}>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Criar Primeiro Vínculo
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {personalizations.map((personalization: any) => (
-                      <div key={personalization.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 bg-blue-100 rounded-lg">
-                            <Building className="h-4 w-4 text-blue-600" />
-                          </div>
-                          <div>
-                            <h4 className="font-medium">{personalization.customerName}</h4>
-                            <div className="text-sm text-gray-500 space-y-1">
-                              {personalization.customSku && (
-                                <p><span className="font-medium">SKU:</span> {personalization.customSku}</p>
-                              )}
-                              {personalization.customName && (
-                                <p><span className="font-medium">Nome:</span> {personalization.customName}</p>
-                              )}
-                              {personalization.customDescription && (
-                                <p><span className="font-medium">Descrição:</span> {personalization.customDescription}</p>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                        <Badge variant={personalization.isActive ? "default" : "secondary"}>
-                          {personalization.isActive ? "Ativo" : "Inativo"}
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
+              </TabsContent>
 
-          <TabsContent value="suppliers" className="space-y-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <div>
-                  <CardTitle>Fornecedores</CardTitle>
-                  <CardDescription>
-                    Fornecedores, preços e condições de compra
-                  </CardDescription>
+              <TabsContent value="suppliers" className="space-y-4 mt-6">
+                <div className="text-center py-8">
+                  <Truck className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-500">Lista de fornecedores será implementada</p>
                 </div>
-                <Button onClick={() => setIsSupplierLinkModalOpen(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Novo Fornecedor
-                </Button>
-              </CardHeader>
-              <CardContent>
-                {supplierLinks.length === 0 ? (
-                  <div className="text-center py-8">
-                    <Truck className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500 mb-4">Nenhum fornecedor configurado</p>
-                    <Button onClick={() => setIsSupplierLinkModalOpen(true)}>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Adicionar Primeiro Fornecedor
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {supplierLinks.map((link: any) => (
-                      <div key={link.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 bg-amber-100 rounded-lg">
-                            <Truck className="h-4 w-4 text-amber-600" />
-                          </div>
-                          <div>
-                            <h4 className="font-medium">{link.supplierName}</h4>
-                            <div className="flex items-center gap-4 text-sm text-gray-500">
-                              {link.price && (
-                                <span className="flex items-center gap-1">
-                                  <DollarSign className="h-3 w-3" />
-                                  {new Intl.NumberFormat('pt-BR', { 
-                                    style: 'currency', 
-                                    currency: link.currency || 'BRL' 
-                                  }).format(link.price)}
-                                </span>
-                              )}
-                              {link.leadTime && (
-                                <span className="flex items-center gap-1">
-                                  <Clock className="h-3 w-3" />
-                                  {link.leadTime} dias
-                                </span>
-                              )}
-                              {link.isPreferred && (
-                                <Badge variant="default" className="text-xs">Preferencial</Badge>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                        <Button variant="ghost" size="sm" className="text-red-600">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
       </div>
     );
   };
@@ -2468,26 +886,9 @@ export default function ItemCatalog() {
         )}
       </div>
 
-      {/* Header principal */}
-      {currentView === 'catalog' && (
-        <div className="flex justify-between items-start">
-          <div>
-            <h1 className="text-3xl font-bold">Catálogo de Itens</h1>
-            <p className="text-gray-600 mt-2">
-              Gerencie materiais, serviços e suas configurações em um só lugar
-            </p>
-          </div>
-          <Button onClick={() => setCurrentView('management')} variant="outline">
-            <Settings className="h-4 w-4 mr-2" />
-            Gestão Avançada
-          </Button>
-        </div>
-      )}
-
-      {/* Conteúdo baseado na view atual */}
+      {/* Renderizar view baseada no estado atual */}
       {currentView === 'catalog' && renderCatalogView()}
       {currentView === 'item-details' && renderItemDetailsView()}
-      {currentView === 'management' && renderManagementView()}
 
       {/* Modal de Criação/Edição de Item */}
       <Dialog open={isCreateModalOpen || isEditModalOpen} onOpenChange={(open) => {
@@ -2506,13 +907,13 @@ export default function ItemCatalog() {
             <DialogDescription>
               {isEditModalOpen 
                 ? 'Modifique as informações do item selecionado'
-                : 'Preencha as informações para criar um novo item no catálogo'
+                : 'Preencha as informações essenciais para criar um novo item'
               }
             </DialogDescription>
           </DialogHeader>
 
           <Form {...itemForm}>
-            <form onSubmit={itemForm.handleSubmit(onSubmitItem)} className="space-y-6">
+            <form onSubmit={itemForm.handleSubmit(onSubmitItem)} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={itemForm.control}
@@ -2555,9 +956,9 @@ export default function ItemCatalog() {
                   name="integrationCode"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Código de Integração</FormLabel>
+                      <FormLabel>Código</FormLabel>
                       <FormControl>
-                        <Input placeholder="Código" {...field} />
+                        <Input placeholder="Código de integração" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -2569,11 +970,11 @@ export default function ItemCatalog() {
                   name="measurementUnit"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Unidade de Medida *</FormLabel>
+                      <FormLabel>Unidade *</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Selecione a unidade" />
+                            <SelectValue placeholder="Unidade" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -2588,6 +989,36 @@ export default function ItemCatalog() {
                 />
               </div>
 
+              {/* Campo para item pai */}
+              <FormField
+                control={itemForm.control}
+                name="parentId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Item Pai (Opcional)</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value || ""}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione um item pai" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="">Nenhum (item independente)</SelectItem>
+                        {items.filter(item => item.id !== selectedItem?.id && !item.parentId).map((item) => (
+                          <SelectItem key={item.id} value={item.id}>
+                            {item.name} ({item.type})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      Defina se este item é filho de outro item
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               <FormField
                 control={itemForm.control}
                 name="description"
@@ -2595,46 +1026,12 @@ export default function ItemCatalog() {
                   <FormItem>
                     <FormLabel>Descrição</FormLabel>
                     <FormControl>
-                      <Textarea 
-                        placeholder="Descrição detalhada do item" 
-                        className="min-h-[100px]"
-                        {...field} 
-                      />
+                      <Textarea placeholder="Descrição do item" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={itemForm.control}
-                  name="maintenancePlan"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Plano de Manutenção</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Plano de Manutenção" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={itemForm.control}
-                  name="defaultChecklist"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Checklist Padrão</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Checklist Padrão" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
 
               <FormField
                 control={itemForm.control}
@@ -2644,7 +1041,7 @@ export default function ItemCatalog() {
                     <div className="space-y-0.5">
                       <FormLabel className="text-base">Status Ativo</FormLabel>
                       <FormDescription>
-                        Determina se o item está disponível para uso
+                        Item disponível para uso
                       </FormDescription>
                     </div>
                     <FormControl>
@@ -2667,7 +1064,6 @@ export default function ItemCatalog() {
                     setSelectedItem(null);
                     itemForm.reset();
                   }}
-                  disabled={createItemMutation.isPending || updateItemMutation.isPending}
                 >
                   Cancelar
                 </Button>
@@ -2678,881 +1074,12 @@ export default function ItemCatalog() {
                   {createItemMutation.isPending || updateItemMutation.isPending ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                      {isEditModalOpen ? 'Atualizando...' : 'Criando...'}
+                      {isEditModalOpen ? 'Salvando...' : 'Criando...'}
                     </>
                   ) : (
                     <>
                       <Save className="h-4 w-4 mr-2" />
-                      {isEditModalOpen ? 'Atualizar Item' : 'Criar Item'}
-                    </>
-                  )}
-                </Button>
-              </div>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
-
-      {/* Modal de Vínculo de Item */}
-      <Dialog open={isLinkModalOpen} onOpenChange={setIsLinkModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Criar Vínculo de Item</DialogTitle>
-            <DialogDescription>
-              Vincule este item a outro item do catálogo
-            </DialogDescription>
-          </DialogHeader>
-
-          <Form {...linkForm}>
-            <form onSubmit={linkForm.handleSubmit(onSubmitItemLink)} className="space-y-4">
-              <FormField
-                control={linkForm.control}
-                name="targetItemId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Item de Destino *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione um item" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {items.filter(item => item.id !== selectedItem?.id).map((item) => (
-                          <SelectItem key={item.id} value={item.id}>
-                            {item.name} ({item.type === 'material' ? 'Material' : 'Serviço'})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={linkForm.control}
-                name="linkType"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Tipo de Vínculo *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione o tipo" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="kit">Kit/Conjunto</SelectItem>
-                        <SelectItem value="substitute">Substituto</SelectItem>
-                        <SelectItem value="compatible">Compatível</SelectItem>
-                        <SelectItem value="accessory">Acessório</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={linkForm.control}
-                name="quantity"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Quantidade</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number" 
-                        placeholder="1" 
-                        {...field} 
-                        onChange={(e) => field.onChange(Number(e.target.value))}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={linkForm.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Descrição</FormLabel>
-                    <FormControl>
-                      <Textarea placeholder="Observações sobre o vínculo" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="flex justify-end space-x-2 pt-4">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => setIsLinkModalOpen(false)}
-                >
-                  Cancelar
-                </Button>
-                <Button type="submit" disabled={createItemLinkMutation.isPending}>
-                  {createItemLinkMutation.isPending ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                      Criando...
-                    </>
-                  ) : (
-                    <>
-                      <Link className="h-4 w-4 mr-2" />
-                      Criar Vínculo
-                    </>
-                  )}
-                </Button>
-              </div>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
-
-      {/* Modal de Personalização */}
-      <Dialog open={isPersonalizationModalOpen} onOpenChange={setIsPersonalizationModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Novo Vínculo de Empresa</DialogTitle>
-            <DialogDescription>
-              Configure personalizações específicas para uma empresa
-            </DialogDescription>
-          </DialogHeader>
-
-          <Form {...personalizationForm}>
-            <form onSubmit={personalizationForm.handleSubmit(onSubmitPersonalization)} className="space-y-4">
-              <FormField
-                control={personalizationForm.control}
-                name="companyId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Empresa *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione uma empresa" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {(availableCustomers || []).map((customer: any) => (
-                          <SelectItem key={customer.id} value={customer.id}>
-                            {customer.name || customer.tradeName}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={personalizationForm.control}
-                name="customSku"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>SKU Personalizado</FormLabel>
-                    <FormControl>
-                      <Input placeholder="SKU do cliente" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={personalizationForm.control}
-                name="customName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nome Personalizado</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Nome usado pelo cliente" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={personalizationForm.control}
-                name="customDescription"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Descrição Personalizada</FormLabel>
-                    <FormControl>
-                      <Textarea placeholder="Descrição específica para o cliente" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="flex justify-end space-x-2 pt-4">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => setIsPersonalizationModalOpen(false)}
-                >
-                  Cancelar
-                </Button>
-                <Button type="submit" disabled={createPersonalizationMutation.isPending}>
-                  {createPersonalizationMutation.isPending ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                      Criando...
-                    </>
-                  ) : (
-                    <>
-                      <Building className="h-4 w-4 mr-2" />
-                      Criar Personalização
-                    </>
-                  )}
-                </Button>
-              </div>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
-
-      {/* Modal de Vínculo de Fornecedor */}
-      <Dialog open={isSupplierLinkModalOpen} onOpenChange={setIsSupplierLinkModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Vincular Fornecedor</DialogTitle>
-            <DialogDescription>
-              Configure um fornecedor para este item
-            </DialogDescription>
-          </DialogHeader>
-
-          <Form {...supplierForm}>
-            <form onSubmit={supplierForm.handleSubmit(onSubmitSupplierLink)} className="space-y-4">
-              <FormField
-                control={supplierForm.control}
-                name="supplierId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Fornecedor *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione um fornecedor" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {(availableSuppliers || []).map((supplier: any) => (
-                          <SelectItem key={supplier.id} value={supplier.id}>
-                            {supplier.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={supplierForm.control}
-                name="leadTime"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Lead Time (dias)</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number" 
-                        placeholder="0" 
-                        {...field} 
-                        onChange={(e) => field.onChange(Number(e.target.value))}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={supplierForm.control}
-                name="isPreferred"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                    <div className="space-y-0.5">
-                      <FormLabel className="text-base">Fornecedor Preferencial</FormLabel>
-                      <FormDescription>
-                        Marca este fornecedor como preferencial para o item
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-
-              <div className="flex justify-end space-x-2 pt-4">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => setIsSupplierLinkModalOpen(false)}
-                >
-                  Cancelar
-                </Button>
-                <Button type="submit" disabled={createSupplierLinkMutation.isPending}>
-                  {createSupplierLinkMutation.isPending ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                      Criando...
-                    </>
-                  ) : (
-                    <>
-                      <Truck className="h-4 w-4 mr-2" />
-                      Vincular Fornecedor
-                    </>
-                  )}
-                </Button>
-              </div>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
-
-      {/* Modal de Edição em Lote */}
-      <Dialog open={isBulkEditModalOpen} onOpenChange={setIsBulkEditModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edição em Lote</DialogTitle>
-            <DialogDescription>
-              Editar {selectedItems.size} item(s) selecionado(s)
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4">
-            <div className="flex items-center space-x-2">
-              <Switch 
-                id="bulk-active"
-                onCheckedChange={(checked) => handleBulkStatusChange(checked)}
-              />
-              <label htmlFor="bulk-active" className="text-sm font-medium">
-                Ativar/Desativar todos os itens
-              </label>
-            </div>
-
-            <div>
-              <label className="text-sm font-medium">Categoria</label>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecionar categoria" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="equipamentos">Equipamentos</SelectItem>
-                  <SelectItem value="consumiveis">Consumíveis</SelectItem>
-                  <SelectItem value="ferramentas">Ferramentas</SelectItem>
-                  <SelectItem value="servicos-tecnicos">Serviços Técnicos</SelectItem>
-                  <SelectItem value="servicos-consultoria">Serviços de Consultoria</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <label className="text-sm font-medium">Tags</label>
-              <Input placeholder="Digite tags separadas por vírgula" />
-            </div>
-          </div>
-
-          <div className="flex justify-end space-x-2 pt-4">
-            <Button variant="outline" onClick={() => setIsBulkEditModalOpen(false)}>
-              Cancelar
-            </Button>
-            <Button onClick={() => setIsBulkEditModalOpen(false)}>
-              <Save className="h-4 w-4 mr-2" />
-              Aplicar Alterações
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Modal de Importação */}
-      <Dialog open={isImportModalOpen} onOpenChange={(open) => {
-        setIsImportModalOpen(open);
-        if (!open) {
-          setSelectedFile(null); // Clear selected file when modal is closed
-        }
-      }}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Importar Itens</DialogTitle>
-            <DialogDescription>
-              Importe itens em lote através de arquivo CSV ou Excel
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-6">
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-              <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-sm text-gray-600 mb-4">
-                Arraste um arquivo CSV/Excel aqui ou clique para selecionar
-              </p>
-              <input
-                type="file"
-                accept=".csv,.xlsx,.xls"
-                className="hidden"
-                id="file-upload"
-                onChange={handleFileChange} // Attach the handler here
-              />
-              <Button variant="outline" onClick={() => document.getElementById('file-upload')?.click()}>
-                <FileText className="h-4 w-4 mr-2" />
-                Selecionar Arquivo
-              </Button>
-              {selectedFile && (
-                <p className="text-xs text-gray-500 mt-2">Arquivo selecionado: {selectedFile.name}</p>
-              )}
-            </div>
-
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <h4 className="font-medium text-blue-900 mb-2">Formato do Arquivo</h4>
-              <p className="text-sm text-blue-700 mb-2">
-                O arquivo deve conter as seguintes colunas:
-              </p>
-              <div className="text-xs text-blue-600 space-y-1">
-                <div>• <strong>nome</strong> (obrigatório)</div>
-                <div>• <strong>tipo</strong> (material ou service)</div>
-                <div>• <strong>codigo</strong> (opcional)</div>
-                <div>• <strong>descricao</strong> (opcional)</div>
-                <div>• <strong>unidade</strong> (obrigatório)</div>
-                <div>• <strong>categoria</strong> (opcional)</div>
-                <div>• <strong>tags</strong> (opcional, separadas por ;)</div>
-              </div>
-            </div>
-
-            <div>
-              <Button variant="outline" className="w-full">
-                <FileText className="h-4 w-4 mr-2" />
-                Baixar Modelo CSV
-              </Button>
-            </div>
-          </div>
-
-          <div className="flex justify-end space-x-2 pt-4">
-            <Button variant="outline" onClick={() => {
-              setIsImportModalOpen(false);
-              setSelectedFile(null); // Clear selected file on cancel
-            }}>
-              Cancelar
-            </Button>
-            <Button onClick={handleImport} disabled={!selectedFile}> {/* Disable if no file is selected */}
-              <ShoppingCart className="h-4 w-4 mr-2" />
-              Importar Itens
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Modal de Vínculos em Lote */}
-      <Dialog open={isBulkLinkModalOpen} onOpenChange={setIsBulkLinkModalOpen}>
-        <DialogContent className="max-w-4xl">
-          <DialogHeader>
-            <DialogTitle>Criar Vínculos em Lote</DialogTitle>
-            <DialogDescription>
-              Vincule múltiplos itens entre si ou crie grupos nomeados
-            </DialogDescription>
-          </DialogHeader>
-
-          <Form {...bulkLinkForm}>
-            <form onSubmit={bulkLinkForm.handleSubmit(onSubmitBulkLinks)} className="space-y-6">
-              <div className="space-y-4">
-                {/* Seletor de Tipo de Vínculo */}
-                <FormField
-                  control={bulkLinkForm.control}
-                  name="relationship"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Tipo de Relacionamento *</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione o tipo" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="one_to_many">1 para Muitos (1 origem → N destinos)</SelectItem>
-                          <SelectItem value="many_to_one">Muitos para 1 (N origens → 1 destino)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Condicional baseada no tipo de relacionamento */}
-                {bulkLinkForm.watch('relationship') === 'one_to_many' && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <FormField
-                        control={bulkLinkForm.control}
-                        name="sourceItemIds"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Item de Origem (selecione apenas 1) *</FormLabel>
-                            <FormControl>
-                              <div className="border rounded-lg p-4 max-h-48 overflow-y-auto">
-                                {paginatedItems.map((item) => (
-                                  <div key={item.id} className="flex items-center space-x-2 mb-2">
-                                    <Checkbox
-                                      checked={field.value.includes(item.id)}
-                                      onCheckedChange={(checked) => {
-                                        if (checked) {
-                                          // Para 1-para-many, só permite 1 item de origem
-                                          field.onChange([item.id]);
-                                        } else {
-                                          field.onChange([]);
-                                        }
-                                      }}
-                                    />
-                                    <span className="text-sm">{item.name}</span>
-                                  </div>
-                                ))}
-                              </div>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    <div>
-                      <FormField
-                        control={bulkLinkForm.control}
-                        name="targetItemIds"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Itens de Destino (selecione vários) *</FormLabel>
-                            <FormControl>
-                              <div className="border rounded-lg p-4 max-h-48 overflow-y-auto">
-                                {paginatedItems
-                                  .filter(item => !bulkLinkForm.watch('sourceItemIds').includes(item.id))
-                                  .map((item) => (
-                                  <div key={item.id} className="flex items-center space-x-2 mb-2">
-                                    <Checkbox
-                                      checked={field.value.includes(item.id)}
-                                      onCheckedChange={(checked) => {
-                                        if (checked) {
-                                          field.onChange([...field.value, item.id]);
-                                        } else {
-                                          field.onChange(field.value.filter(id => id !== item.id));
-                                        }
-                                      }}
-                                    />
-                                    <span className="text-sm">{item.name}</span>
-                                  </div>
-                                ))}
-                              </div>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {bulkLinkForm.watch('relationship') === 'many_to_one' && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <FormField
-                        control={bulkLinkForm.control}
-                        name="sourceItemIds"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Itens de Origem (selecione vários) *</FormLabel>
-                            <FormControl>
-                              <div className="border rounded-lg p-4 max-h-48 overflow-y-auto">
-                                {paginatedItems
-                                  .filter(item => !bulkLinkForm.watch('targetItemIds').includes(item.id))
-                                  .map((item) => (
-                                  <div key={item.id} className="flex items-center space-x-2 mb-2">
-                                    <Checkbox
-                                      checked={field.value.includes(item.id)}
-                                      onCheckedChange={(checked) => {
-                                        if (checked) {
-                                          field.onChange([...field.value, item.id]);
-                                        } else {
-                                          field.onChange(field.value.filter(id => id !== item.id));
-                                        }
-                                      }}
-                                    />
-                                    <span className="text-sm">{item.name}</span>
-                                  </div>
-                                ))}
-                              </div>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    <div>
-                      <FormField
-                        control={bulkLinkForm.control}
-                        name="targetItemIds"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Item de Destino (selecione apenas 1) *</FormLabel>
-                            <FormControl>
-                              <div className="border rounded-lg p-4 max-h-48 overflow-y-auto">
-                                {paginatedItems.map((item) => (
-                                  <div key={item.id} className="flex items-center space-x-2 mb-2">
-                                    <Checkbox
-                                      checked={field.value.includes(item.id)}
-                                      onCheckedChange={(checked) => {
-                                        if (checked) {
-                                          // Para many-para-1, só permite 1 item de destino
-                                          field.onChange([item.id]);
-                                        } else {
-                                          field.onChange([]);
-                                        }
-                                      }}
-                                    />
-                                    <span className="text-sm">{item.name}</span>
-                                  </div>
-                                ))}
-                              </div>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Campos de grupo removidos pois não se aplicam aos tipos 1-para-many e many-para-1 */}
-
-              <div className="flex justify-end space-x-2 pt-4">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => setIsBulkLinkModalOpen(false)}
-                >
-                  Cancelar
-                </Button>
-                <Button type="submit" disabled={createBulkLinksMutation.isPending}>
-                  {createBulkLinksMutation.isPending ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                      Criando...
-                    </>
-                  ) : (
-                    <>
-                      <Link className="h-4 w-4 mr-2" />
-                      Criar Vínculos
-                    </>
-                  )}
-                </Button>
-              </div>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
-
-      {/* Modal de Vínculos em Lote - Empresas */}
-      <Dialog open={isBulkCompanyLinkModalOpen} onOpenChange={setIsBulkCompanyLinkModalOpen}>
-        <DialogContent className="max-w-4xl">
-          <DialogHeader>
-            <DialogTitle>Vincular Itens a Empresas em Lote</DialogTitle>
-            <DialogDescription>
-              Vincule múltiplos itens a múltiplas empresas de uma vez
-            </DialogDescription>
-          </DialogHeader>
-
-          <Form {...bulkCompanyLinkForm}>
-            <form onSubmit={bulkCompanyLinkForm.handleSubmit((data) => createBulkCompanyLinksMutation.mutate(data))} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <FormField
-                    control={bulkCompanyLinkForm.control}
-                    name="itemIds"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Itens Selecionados ({selectedItems.size})</FormLabel>
-                        <FormControl>
-                          <div className="border rounded-lg p-4 max-h-48 overflow-y-auto">
-                            {Array.from(selectedItems).map((itemId) => {
-                              const item = items.find(i => i.id === itemId);
-                              return (
-                                <div key={itemId} className="flex items-center space-x-2 mb-2">
-                                  <Checkbox checked={true} disabled />
-                                  <span className="text-sm">{item?.name || 'Item não encontrado'}</span>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div>
-                  <FormField
-                    control={bulkCompanyLinkForm.control}
-                    name="companyIds"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Empresas *</FormLabel>
-                        <FormControl>
-                          <div className="border rounded-lg p-4 max-h-48 overflow-y-auto">
-                            {(availableCustomers || []).map((company: any) => (
-                              <div key={company.id} className="flex items-center space-x-2 mb-2">
-                                <Checkbox
-                                  checked={field.value.includes(company.id)}
-                                  onCheckedChange={(checked) => {
-                                    if (checked) {
-                                      field.onChange([...field.value, company.id]);
-                                    } else {
-                                      field.onChange(field.value.filter(id => id !== company.id));
-                                    }
-                                  }}
-                                />
-                                <span className="text-sm">{company.name || company.tradeName}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
-
-              <div className="flex justify-end space-x-2 pt-4">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => setIsBulkCompanyLinkModalOpen(false)}
-                >
-                  Cancelar
-                </Button>
-                <Button type="submit" disabled={createBulkCompanyLinksMutation.isPending}>
-                  {createBulkCompanyLinksMutation.isPending ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                      Criando...
-                    </>
-                  ) : (
-                    <>
-                      <Building className="h-4 w-4 mr-2" />
-                      Vincular a Empresas
-                    </>
-                  )}
-                </Button>
-              </div>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
-
-      {/* Modal de Vínculos em Lote - Fornecedores */}
-      <Dialog open={isBulkSupplierLinkModalOpen} onOpenChange={setIsBulkSupplierLinkModalOpen}>
-        <DialogContent className="max-w-4xl">
-          <DialogHeader>
-            <DialogTitle>Vincular Itens a Fornecedores em Lote</DialogTitle>
-            <DialogDescription>
-              Vincule múltiplos itens a múltiplos fornecedores de uma vez
-            </DialogDescription>
-          </DialogHeader>
-
-          <Form {...bulkSupplierLinkForm}>
-            <form onSubmit={bulkSupplierLinkForm.handleSubmit((data) => createBulkSupplierLinksMutation.mutate(data))} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <FormField
-                    control={bulkSupplierLinkForm.control}
-                    name="itemIds"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Itens Selecionados ({selectedItems.size})</FormLabel>
-                        <FormControl>
-                          <div className="border rounded-lg p-4 max-h-48 overflow-y-auto">
-                            {Array.from(selectedItems).map((itemId) => {
-                              const item = items.find(i => i.id === itemId);
-                              return (
-                                <div key={itemId} className="flex items-center space-x-2 mb-2">
-                                  <Checkbox checked={true} disabled />
-                                  <span className="text-sm">{item?.name || 'Item não encontrado'}</span>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div>
-                  <FormField
-                    control={bulkSupplierLinkForm.control}
-                    name="supplierIds"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Fornecedores *</FormLabel>
-                        <FormControl>
-                          <div className="border rounded-lg p-4 max-h-48 overflow-y-auto">
-                            {(availableSuppliers || []).map((supplier: any) => (
-                              <div key={supplier.id} className="flex items-center space-x-2 mb-2">
-                                <Checkbox
-                                  checked={field.value.includes(supplier.id)}
-                                  onCheckedChange={(checked) => {
-                                    if (checked) {
-                                      field.onChange([...field.value, supplier.id]);
-                                    } else {
-                                      field.onChange(field.value.filter(id => id !== supplier.id));
-                                    }
-                                  }}
-                                />
-                                <span className="text-sm">{supplier.name}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
-
-              <div className="flex justify-end space-x-2 pt-4">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => setIsBulkSupplierLinkModalOpen(false)}
-                >
-                  Cancelar
-                </Button>
-                <Button type="submit" disabled={createBulkSupplierLinksMutation.isPending}>
-                  {createBulkSupplierLinksMutation.isPending ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                      Criando...
-                    </>
-                  ) : (
-                    <>
-                      <Truck className="h-4 w-4 mr-2" />
-                      Vincular a Fornecedores
+                      {isEditModalOpen ? 'Salvar' : 'Criar Item'}
                     </>
                   )}
                 </Button>
