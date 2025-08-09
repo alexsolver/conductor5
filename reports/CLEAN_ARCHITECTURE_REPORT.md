@@ -7,10 +7,10 @@
 ## Resumo de Problemas
 
 - 🔥 **Críticos:** 0
-- ⚠️ **Altos:** 110
-- 📋 **Médios:** 101
+- ⚠️ **Altos:** 109
+- 📋 **Médios:** 95
 - 💡 **Baixos:** 2
-- **Total:** 213
+- **Total:** 206
 
 ## Principais Problemas por Módulo
 
@@ -39,20 +39,19 @@
   - Camada infrastructure ausente no módulo custom-fields
 
 ### ⚠️ customers
-- **Total de problemas:** 6
+- **Total de problemas:** 5
 - **Críticos:** 0 | **Altos:** 5
 - **Principais problemas:**
-  - Estrutura services ausente na camada domain
   - Routes contém lógica de negócio ou acesso a dados
+  - Application Layer violando dependência: express
   - Application Layer violando dependência: express
 
 ### ⚠️ dashboard
-- **Total de problemas:** 6
+- **Total de problemas:** 2
 - **Críticos:** 0 | **Altos:** 1
 - **Principais problemas:**
-  - Estrutura events ausente na camada domain
-  - Estrutura services ausente na camada domain
-  - Estrutura dto ausente na camada application
+  - Routes não utiliza controllers - lógica direta nas rotas
+  - Entity DashboardMetric não possui Repository correspondente
 
 ### ⚠️ field-layout
 - **Total de problemas:** 4
@@ -78,12 +77,11 @@
   - Estrutura use-cases ausente na camada application
   - Estrutura dto ausente na camada application
 
-### ⚠️ locations
-- **Total de problemas:** 2
-- **Críticos:** 0 | **Altos:** 1
+### 📋 locations
+- **Total de problemas:** 1
+- **Críticos:** 0 | **Altos:** 0
 - **Principais problemas:**
   - Estrutura repositories ausente na camada domain
-  - Application Layer violando dependência: express
 
 ### ⚠️ materials-services
 - **Total de problemas:** 62
@@ -92,14 +90,6 @@
   - Estrutura repositories ausente na camada domain
   - Estrutura events ausente na camada domain
   - Estrutura services ausente na camada domain
-
-### ⚠️ notifications
-- **Total de problemas:** 3
-- **Críticos:** 0 | **Altos:** 2
-- **Principais problemas:**
-  - Estrutura repositories ausente na camada domain
-  - Application Layer violando dependência: express
-  - Application Layer violando dependência: express
 
 ### ⚠️ people
 - **Total de problemas:** 4
@@ -197,6 +187,13 @@
   - Estrutura use-cases ausente na camada application
   - Estrutura dto ausente na camada application
 
+### ⚠️ notifications
+- **Total de problemas:** 2
+- **Críticos:** 0 | **Altos:** 2
+- **Principais problemas:**
+  - Application Layer violando dependência: express
+  - Application Layer violando dependência: express
+
 
 ## Plano de Correção
 
@@ -224,26 +221,21 @@
 ### ⚠️ customers
 - **Prioridade:** high
 - **Tempo estimado:** 4h
-- **Ações:** 6
+- **Ações:** 5
 
-1. **create_directory:** Criar diretório/arquivo services na camada domain
-2. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
+1. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
+2. **refactor_code:** Refatorar dependência inválida na camada application
 3. **refactor_code:** Refatorar dependência inválida na camada application
-4. **refactor_code:** Refatorar dependência inválida na camada application
+4. **create_file:** Criar Repository com interface
 5. **create_file:** Criar Repository com interface
-6. **create_file:** Criar Repository com interface
 
 ### ⚠️ dashboard
 - **Prioridade:** high
-- **Tempo estimado:** 2h
-- **Ações:** 6
+- **Tempo estimado:** 40min
+- **Ações:** 2
 
-1. **create_directory:** Criar diretório/arquivo events na camada domain
-2. **create_directory:** Criar diretório/arquivo services na camada domain
-3. **create_directory:** Criar diretório/arquivo dto na camada application
-4. **create_directory:** Criar diretório/arquivo services na camada application
-5. **create_directory:** Criar controllers na camada Application e usar nas rotas
-6. **create_file:** Criar Repository com interface
+1. **create_directory:** Criar controllers na camada Application e usar nas rotas
+2. **create_file:** Criar Repository com interface
 
 ### ⚠️ field-layout
 - **Prioridade:** high
@@ -283,14 +275,6 @@
 11. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 12. **create_file:** Criar Repository com interface
 13. **create_file:** Criar Repository com interface
-
-### ⚠️ locations
-- **Prioridade:** high
-- **Tempo estimado:** 2h
-- **Ações:** 2
-
-1. **create_directory:** Criar diretório/arquivo repositories na camada domain
-2. **refactor_code:** Refatorar dependência inválida na camada application
 
 ### ⚠️ materials-services
 - **Prioridade:** high
@@ -340,15 +324,6 @@
 41. **create_file:** Criar Repository com interface
 42. **create_file:** Criar Repository com interface
 43. **create_file:** Criar Repository com interface
-
-### ⚠️ notifications
-- **Prioridade:** high
-- **Tempo estimado:** 3h
-- **Ações:** 3
-
-1. **create_directory:** Criar diretório/arquivo repositories na camada domain
-2. **refactor_code:** Refatorar dependência inválida na camada application
-3. **refactor_code:** Refatorar dependência inválida na camada application
 
 ### ⚠️ people
 - **Prioridade:** high
@@ -482,6 +457,14 @@
 8. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 9. **create_file:** Criar Repository com interface
 
+### ⚠️ notifications
+- **Prioridade:** high
+- **Tempo estimado:** 2h
+- **Ações:** 2
+
+1. **refactor_code:** Refatorar dependência inválida na camada application
+2. **refactor_code:** Refatorar dependência inválida na camada application
+
 ### 📋 auth
 - **Prioridade:** medium
 - **Tempo estimado:** 3h
@@ -513,6 +496,13 @@
 9. **create_directory:** Criar diretório/arquivo repositories na camada infrastructure
 10. **create_file:** Criar arquivo routes.ts para definir endpoints da API
 
+### 💡 locations
+- **Prioridade:** low
+- **Tempo estimado:** 10min
+- **Ações:** 1
+
+1. **create_directory:** Criar diretório/arquivo repositories na camada domain
+
 
 ## Recomendações
 
@@ -522,14 +512,12 @@ Nenhuma ação imediata necessária
 ### Prioridade Alta ⚠️
 - **beneficiaries:** 5 ações (2h)
 - **custom-fields:** 4 ações (2h)
-- **customers:** 6 ações (4h)
-- **dashboard:** 6 ações (2h)
+- **customers:** 5 ações (4h)
+- **dashboard:** 2 ações (40min)
 - **field-layout:** 4 ações (1h)
 - **field-layouts:** 4 ações (40min)
 - **knowledge-base:** 13 ações (8h)
-- **locations:** 2 ações (2h)
 - **materials-services:** 43 ações (27h)
-- **notifications:** 3 ações (3h)
 - **people:** 4 ações (40min)
 - **saas-admin:** 5 ações (2h)
 - **schedule-management:** 10 ações (4h)
@@ -541,6 +529,7 @@ Nenhuma ação imediata necessária
 - **ticket-templates:** 4 ações (1h)
 - **tickets:** 7 ações (3h)
 - **timecard:** 9 ações (5h)
+- **notifications:** 2 ações (2h)
 
 ## Comandos para Correção
 

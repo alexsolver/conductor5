@@ -110,14 +110,6 @@
     "module": "customers",
     "actions": [
       {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo services na camada domain",
-        "target": "server/modules/customers/domain/services",
-        "steps": [
-          "Criar diretório/arquivo services na camada domain"
-        ]
-      },
-      {
         "type": "move_code",
         "description": "Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados",
         "target": "server/modules/customers/routes.ts",
@@ -186,38 +178,6 @@
     "actions": [
       {
         "type": "create_directory",
-        "description": "Criar diretório/arquivo events na camada domain",
-        "target": "server/modules/dashboard/domain/events",
-        "steps": [
-          "Criar diretório/arquivo events na camada domain"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo services na camada domain",
-        "target": "server/modules/dashboard/domain/services",
-        "steps": [
-          "Criar diretório/arquivo services na camada domain"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo dto na camada application",
-        "target": "server/modules/dashboard/application/dto",
-        "steps": [
-          "Criar diretório/arquivo dto na camada application"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo services na camada application",
-        "target": "server/modules/dashboard/application/services",
-        "steps": [
-          "Criar diretório/arquivo services na camada application"
-        ]
-      },
-      {
-        "type": "create_directory",
         "description": "Criar controllers na camada Application e usar nas rotas",
         "target": "server/modules/dashboard/routes.ts",
         "steps": [
@@ -237,7 +197,7 @@
         ]
       }
     ],
-    "estimatedTime": "2h"
+    "estimatedTime": "40min"
   },
   {
     "priority": "high",
@@ -473,33 +433,6 @@
       }
     ],
     "estimatedTime": "8h"
-  },
-  {
-    "priority": "high",
-    "module": "locations",
-    "actions": [
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo repositories na camada domain",
-        "target": "server/modules/locations/domain/repositories",
-        "steps": [
-          "Criar diretório/arquivo repositories na camada domain"
-        ]
-      },
-      {
-        "type": "refactor_code",
-        "description": "Refatorar dependência inválida na camada application",
-        "target": "server/modules/locations/application/controllers/LocationController.ts",
-        "steps": [
-          "Identificar a dependência problemática",
-          "Criar interface/port na camada Domain",
-          "Implementar interface na camada Infrastructure",
-          "Usar injeção de dependência",
-          "Remover import direto da dependência externa"
-        ]
-      }
-    ],
-    "estimatedTime": "2h"
   },
   {
     "priority": "high",
@@ -973,45 +906,6 @@
       }
     ],
     "estimatedTime": "27h"
-  },
-  {
-    "priority": "high",
-    "module": "notifications",
-    "actions": [
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo repositories na camada domain",
-        "target": "server/modules/notifications/domain/repositories",
-        "steps": [
-          "Criar diretório/arquivo repositories na camada domain"
-        ]
-      },
-      {
-        "type": "refactor_code",
-        "description": "Refatorar dependência inválida na camada application",
-        "target": "server/modules/notifications/application/controllers/NotificationController.ts",
-        "steps": [
-          "Identificar a dependência problemática",
-          "Criar interface/port na camada Domain",
-          "Implementar interface na camada Infrastructure",
-          "Usar injeção de dependência",
-          "Remover import direto da dependência externa"
-        ]
-      },
-      {
-        "type": "refactor_code",
-        "description": "Refatorar dependência inválida na camada application",
-        "target": "server/modules/notifications/application/controllers/NotificationPreferenceController.ts",
-        "steps": [
-          "Identificar a dependência problemática",
-          "Criar interface/port na camada Domain",
-          "Implementar interface na camada Infrastructure",
-          "Usar injeção de dependência",
-          "Remover import direto da dependência externa"
-        ]
-      }
-    ],
-    "estimatedTime": "3h"
   },
   {
     "priority": "high",
@@ -1725,6 +1619,37 @@
     "estimatedTime": "5h"
   },
   {
+    "priority": "high",
+    "module": "notifications",
+    "actions": [
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "server/modules/notifications/application/controllers/NotificationController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "server/modules/notifications/application/controllers/NotificationPreferenceController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      }
+    ],
+    "estimatedTime": "2h"
+  },
+  {
     "priority": "medium",
     "module": "auth",
     "actions": [
@@ -1893,5 +1818,20 @@
       }
     ],
     "estimatedTime": "2h"
+  },
+  {
+    "priority": "low",
+    "module": "locations",
+    "actions": [
+      {
+        "type": "create_directory",
+        "description": "Criar diretório/arquivo repositories na camada domain",
+        "target": "server/modules/locations/domain/repositories",
+        "steps": [
+          "Criar diretório/arquivo repositories na camada domain"
+        ]
+      }
+    ],
+    "estimatedTime": "10min"
   }
 ]
