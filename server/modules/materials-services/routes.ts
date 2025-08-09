@@ -312,33 +312,56 @@ router.delete('/items/:id/unlink-customer/:customerId', async (req, res) => {
 });
 
 // Link supplier to item
-router.post('/items/:id/link-supplier', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { supplierId } = req.body;
-    const tenantId = req.user?.tenantId;
+  router.post('/items/:id/link-supplier', jwtAuth, async (req, res) => {
+    try {
+      const { id: itemId } = req.params;
+      const { supplierId } = req.body;
+      const tenantId = req.user?.tenantId;
 
-    if (!tenantId) {
-      return res.status(400).json({ error: 'Tenant ID é obrigatório' });
+      // Validar parâmetros obrigatórios
+      if (!itemId) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'ID do item é obrigatório' 
+        });
+      }
+
+      if (!supplierId) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'ID do fornecedor é obrigatório' 
+        });
+      }
+
+      if (!tenantId) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Tenant ID é obrigatório' 
+        });
+      }
+
+      console.log('🔗 Vinculando fornecedor:', { itemId, supplierId, tenantId });
+
+      // Re-inicializando o ItemRepository para garantir que tenha a conexão correta do tenant.
+      // Em um cenário ideal, isso seria injetado ou obtido de forma mais centralizada.
+      const { db } = await schemaManager.getTenantDb(tenantId);
+      const itemRepository = new ItemRepository(db);
+
+      await itemRepository.linkSupplierToItem(itemId, supplierId, tenantId);
+
+      res.json({ 
+        success: true, 
+        message: 'Fornecedor vinculado ao item com sucesso' 
+      });
+    } catch (error) {
+      console.error('Erro ao vincular fornecedor ao item:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Erro ao vincular fornecedor ao item',
+        details: error.message 
+      });
     }
-
-    if (!supplierId) {
-      return res.status(400).json({ error: 'Supplier ID é obrigatório' });
-    }
-
-    const { db } = await schemaManager.getTenantDb(tenantId);
-    const itemRepository = new ItemRepository(db);
-    await itemRepository.linkSupplierToItem(id, supplierId);
-
-    res.json({ success: true, message: 'Fornecedor vinculado ao item com sucesso' });
-  } catch (error) {
-    console.error('Erro ao vincular fornecedor ao item:', error);
-    res.status(500).json({ 
-      error: 'Erro interno do servidor',
-      details: error instanceof Error ? error.message : 'Erro desconhecido'
-    });
-  }
-});
+  });
 
 // Unlink supplier from item
 router.delete('/items/:id/unlink-supplier/:supplierId', async (req, res) => {

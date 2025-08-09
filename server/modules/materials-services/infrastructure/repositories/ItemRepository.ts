@@ -554,16 +554,53 @@ export class ItemRepository {
 
   async linkSupplierToItem(itemId: string, supplierId: string, tenantId: string): Promise<void> {
     try {
+      // Validar parâmetros obrigatórios
+      if (!itemId || !supplierId || !tenantId) {
+        throw new Error('itemId, supplierId e tenantId são obrigatórios');
+      }
+
       const { pool } = await import('../../../../db.js');
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-      await pool.query(`
+      // Primeiro, verificar se as colunas existem na tabela
+      const columnCheck = await pool.query(`
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_schema = '${schemaName}' 
+        AND table_name = 'item_supplier_links'
+      `);
+      
+      const columns = columnCheck.rows.map(row => row.column_name);
+      const hasLeadTime = columns.includes('lead_time');
+      const hasMinimumOrder = columns.includes('minimum_order');
+
+      // Query base sem as colunas problemáticas
+      let insertQuery = `
         INSERT INTO "${schemaName}".item_supplier_links 
-        (id, tenant_id, item_id, supplier_id, is_active, created_at)
-        VALUES ($1, $2, $3, $4, true, NOW())
-        ON CONFLICT (item_id, supplier_id) 
-        DO UPDATE SET is_active = true
-      `, [crypto.randomUUID(), tenantId, itemId, supplierId]);
+        (id, tenant_id, item_id, supplier_id, is_active, created_at`;
+      
+      let values = `VALUES ($1, $2, $3, $4, true, NOW()`;
+      let params = [crypto.randomUUID(), tenantId, itemId, supplierId];
+
+      // Adicionar colunas condicionalmente se existirem
+      if (hasLeadTime) {
+        insertQuery += `, lead_time`;
+        values += `, $5`;
+        params.push(null);
+      }
+
+      if (hasMinimumOrder) {
+        insertQuery += `, minimum_order`;
+        values += `, $${params.length + 1}`;
+        params.push(null);
+      }
+
+      insertQuery += `) ${values})`;
+      
+      // Adicionar ON CONFLICT
+      insertQuery += ` ON CONFLICT (item_id, supplier_id) DO UPDATE SET is_active = true`;
+
+      await pool.query(insertQuery, params);
 
       console.log(`✅ Fornecedor ${supplierId} vinculado ao item ${itemId}`);
     } catch (error) {
