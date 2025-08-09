@@ -1,6 +1,6 @@
 
 import { Request, Response } from 'express';
-import { standardResponse } from '../../../utils/standardResponse';
+import { sendSuccess, sendError } from '../../../../utils/standardResponse';
 
 export class FieldLayoutController {
   
@@ -8,15 +8,14 @@ export class FieldLayoutController {
     try {
       const tenantId = req.user?.tenantId;
       if (!tenantId) {
-        res.status(400).json(standardResponse(false, 'Tenant ID é obrigatório'));
-        return;
+        return sendError(res, 'Tenant ID é obrigatório', 'Tenant ID é obrigatório', 400);
       }
 
       // Implementar lógica usando Use Case
-      res.status(200).json(standardResponse(true, 'Layouts obtidos com sucesso', []));
+      sendSuccess(res, [], 'Layouts obtidos com sucesso');
     } catch (error) {
       console.error('Erro ao obter layouts:', error);
-      res.status(500).json(standardResponse(false, 'Erro interno do servidor'));
+      sendError(res, error, 'Erro interno do servidor');
     }
   }
 
@@ -26,15 +25,14 @@ export class FieldLayoutController {
       const tenantId = req.user?.tenantId;
 
       if (!tenantId) {
-        res.status(400).json(standardResponse(false, 'Tenant ID é obrigatório'));
-        return;
+        return sendError(res, 'Tenant ID é obrigatório', 'Tenant ID é obrigatório', 400);
       }
 
       // Implementar lógica usando Use Case
-      res.status(200).json(standardResponse(true, 'Layout encontrado', {}));
+      sendSuccess(res, {}, 'Layout encontrado');
     } catch (error) {
       console.error('Erro ao obter layout:', error);
-      res.status(500).json(standardResponse(false, 'Erro interno do servidor'));
+      sendError(res, error, 'Erro interno do servidor');
     }
   }
 
@@ -42,15 +40,14 @@ export class FieldLayoutController {
     try {
       const tenantId = req.user?.tenantId;
       if (!tenantId) {
-        res.status(400).json(standardResponse(false, 'Tenant ID é obrigatório'));
-        return;
+        return sendError(res, 'Tenant ID é obrigatório', 'Tenant ID é obrigatório', 400);
       }
 
       // Implementar lógica usando Use Case
-      res.status(201).json(standardResponse(true, 'Layout criado com sucesso', {}));
+      sendSuccess(res, {}, 'Layout criado com sucesso', 201);
     } catch (error) {
       console.error('Erro ao criar layout:', error);
-      res.status(500).json(standardResponse(false, 'Erro interno do servidor'));
+      sendError(res, error, 'Erro interno do servidor');
     }
   }
 
@@ -60,15 +57,14 @@ export class FieldLayoutController {
       const tenantId = req.user?.tenantId;
 
       if (!tenantId) {
-        res.status(400).json(standardResponse(false, 'Tenant ID é obrigatório'));
-        return;
+        return sendError(res, 'Tenant ID é obrigatório', 'Tenant ID é obrigatório', 400);
       }
 
       // Implementar lógica usando Use Case
-      res.status(200).json(standardResponse(true, 'Layout atualizado com sucesso', {}));
+      sendSuccess(res, {}, 'Layout atualizado com sucesso');
     } catch (error) {
       console.error('Erro ao atualizar layout:', error);
-      res.status(500).json(standardResponse(false, 'Erro interno do servidor'));
+      sendError(res, error, 'Erro interno do servidor');
     }
   }
 
@@ -78,15 +74,14 @@ export class FieldLayoutController {
       const tenantId = req.user?.tenantId;
 
       if (!tenantId) {
-        res.status(400).json(standardResponse(false, 'Tenant ID é obrigatório'));
-        return;
+        return sendError(res, 'Tenant ID é obrigatório', 'Tenant ID é obrigatório', 400);
       }
 
       // Implementar lógica usando Use Case
-      res.status(200).json(standardResponse(true, 'Layout excluído com sucesso'));
+      sendSuccess(res, null, 'Layout excluído com sucesso');
     } catch (error) {
       console.error('Erro ao excluir layout:', error);
-      res.status(500).json(standardResponse(false, 'Erro interno do servidor'));
+      sendError(res, error, 'Erro interno do servidor');
     }
   }
 }
