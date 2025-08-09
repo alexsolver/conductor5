@@ -116,6 +116,36 @@ router.delete('/items/:id', async (req: AuthenticatedRequest, res) => {
   return itemController.deleteItem(req, res);
 });
 
+// Item Groups
+router.get('/item-groups', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  if (!req.user?.tenantId) return res.status(401).json({ message: 'Tenant ID required' });
+  const { itemController } = await getControllers(req.user.tenantId);
+  return itemController.getItemGroups(req, res);
+});
+router.post('/item-groups', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  if (!req.user?.tenantId) return res.status(401).json({ message: 'Tenant ID required' });
+  const { itemController } = await getControllers(req.user.tenantId);
+  return itemController.createItemGroup(req, res);
+});
+router.post('/item-groups/:groupId/assign-items', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  if (!req.user?.tenantId) return res.status(401).json({ message: 'Tenant ID required' });
+  const { itemController } = await getControllers(req.user.tenantId);
+  return itemController.assignItemsToGroup(req, res);
+});
+
+// Item Hierarchy (Parent/Child)
+router.get('/items/:itemId/hierarchy', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  if (!req.user?.tenantId) return res.status(401).json({ message: 'Tenant ID required' });
+  const { itemController } = await getControllers(req.user.tenantId);
+  return itemController.getItemHierarchy(req, res);
+});
+router.post('/item-hierarchy', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  if (!req.user?.tenantId) return res.status(401).json({ message: 'Tenant ID required' });
+  const { itemController } = await getControllers(req.user.tenantId);
+  return itemController.createItemHierarchy(req, res);
+});
+
+
 // Vínculos em lote e grupos
 router.post('/items/bulk-links', async (req: AuthenticatedRequest, res) => {
   try {

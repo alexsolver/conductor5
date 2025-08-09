@@ -13,6 +13,18 @@ import { apiRequest } from "@/lib/queryClient";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
+// Helper function to format currency
+function formatCurrency(amount: number | string | undefined): string {
+  const numericAmount = parseFloat(String(amount));
+  if (isNaN(numericAmount)) {
+    return "R$ 0,00";
+  }
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  }).format(numericAmount);
+}
+
 interface MaterialsServicesMiniSystemProps {
   ticketId: string;
   ticket?: any; // Add ticket data to get company information
@@ -333,6 +345,13 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
     addPlannedMutation.mutate({ itemId: selectedItem, quantity: parseFloat(quantity) });
   };
 
+  const handleConsumeItem = (item: any) => {
+    setSelectedItem(item.itemId || item.id); // Set selected item for consumption
+    // Potentially pre-fill quantity or other fields if needed
+    console.log("Consuming item:", item);
+    // For now, just set the item and let the user input quantity
+  };
+
   const handleAddConsumed = () => {
     if (!selectedItem || !consumedQuantity) {
       toast({ title: "Selecione um item e informe a quantidade consumida", variant: "destructive" });
@@ -496,54 +515,57 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                     <p className="text-sm text-gray-500">Carregando materiais planejados...</p>
                   </div>
                 ) : plannedData?.data?.plannedItems?.length > 0 ? (
-                  plannedData.data.plannedItems.map((item: any) => (
-                    <div key={item.id} className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg mb-2">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="font-medium text-blue-900">{item.itemName || 'Item sem nome'}</span>
-                          <Badge variant="outline" className="text-xs text-blue-700 border-blue-300">
-                            {item.status || 'planned'}
-                          </Badge>
-                          {item.priority && (
-                            <Badge variant="secondary" className="text-xs">
-                              {item.priority}
+                  plannedData.data.plannedItems.map((item: any) => {
+                    const hasChildren = item.hasChildren || false; // Assuming 'hasChildren' property indicates a group/kit
+                    return (
+                      <div key={item.id} className={`flex items-center justify-between p-3 rounded-lg border ${
+                        hasChildren
+                          ? 'bg-amber-50 border-amber-200 border-l-4 border-l-amber-500'
+                          : 'bg-blue-50 border-blue-200'
+                      }`}>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            {hasChildren && (
+                              <div className="flex items-center gap-1">
+                                <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                </svg>
+                                <span className="text-xs font-semibold text-amber-700 uppercase">Kit/Conjunto</span>
+                              </div>
+                            )}
+                            <Badge variant="outline" className={`text-white text-xs ${
+                              hasChildren ? 'bg-amber-500' : 'bg-blue-500'
+                            }`}>
+                              {item.itemType || 'Material'}
                             </Badge>
-                          )}
-                        </div>
-                        <div className="text-sm text-blue-700 space-y-1">
-                          <div className="flex items-center gap-4">
-                            <span>Qtd: {item.plannedQuantity}</span>
-                            <span>Preço: R$ {(item.unitPriceAtPlanning || 0).toFixed(2)}</span>
-                            <span className="font-medium">Total: R$ {(item.estimatedCost || 0).toFixed(2)}</span>
+                            <span className="font-medium text-sm">
+                              {item.itemName || 'Item sem nome'}
+                            </span>
+                            {item.measurementUnit && (
+                              <span className="text-xs text-gray-500">({item.measurementUnit})</span>
+                            )}
                           </div>
-                          {item.notes && (
-                            <p className="text-xs text-gray-600 italic">{item.notes}</p>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="text-xs text-gray-500">
-                          {format(new Date(item.createdAt), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                          <div className="text-xs text-gray-600 mt-1">
+                            Qtd: {item.plannedQuantity} |
+                            Preço Unit.: {formatCurrency(item.unitPriceAtPlanning || item.unitPrice)} |
+                            Total: {formatCurrency(item.estimatedCost || item.totalCost)}
+                          </div>
                         </div>
                         <Button
-                          variant="outline"
                           size="sm"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            const itemId = item.id;
-                            console.log('🗑️ Deleting planned item:', itemId);
-                            deletePlannedMutation.mutate(itemId);
-                          }}
-                          disabled={deletePlannedMutation.isPending}
-                          className={`h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 ${deletePlannedMutation.isPending ? 'opacity-50 cursor-not-allowed' : ''}`}
-                          style={{ isolation: 'isolate' }}
+                          variant="outline"
+                          onClick={() => handleConsumeItem(item)}
+                          className={`text-white border ${
+                            hasChildren
+                              ? 'bg-amber-600 border-amber-600 hover:bg-amber-700'
+                              : 'bg-green-600 border-green-600 hover:bg-green-700'
+                          }`}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          {hasChildren ? 'Consumir Kit' : 'Consumir'}
                         </Button>
                       </div>
-                    </div>
-                  ))
+                    );
+                  })
                 ) : (
                   <div className="text-center py-8 text-gray-500">
                     <Package className="w-8 h-8 mx-auto mb-2 opacity-50" />
@@ -581,10 +603,10 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                         {availableItems.map((item: any, index: number) => {
                           // Handle different data structures - try nested object first
                           const itemData = item.item || item.items || item;
-                          
+
                           // Try to get the item name from various possible locations in the data structure
                           let itemName = null;
-                          
+
                           // Priority 1: Direct name fields
                           if (itemData.itemName) itemName = itemData.itemName;
                           else if (itemData.name) itemName = itemData.name;
@@ -608,16 +630,16 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                             itemDataKeys: item.item ? Object.keys(item.item) : 'no item nested',
                             itemsDataKeys: item.items ? Object.keys(item.items) : 'no items nested'
                           });
-                          
+
                           const itemType = itemData.itemType || itemData.type || item.itemType || item.type || 'Material';
-                          const itemDescription = itemData.itemDescription || itemData.description || itemData.display_description || 
+                          const itemDescription = itemData.itemDescription || itemData.description || itemData.display_description ||
                                                  item.itemDescription || item.description || item.display_description || '';
-                          const itemSku = itemData.itemSku || itemData.sku || itemData.integrationCode || itemData.integration_code || 
-                                         itemData.display_sku || item.itemSku || item.sku || item.integrationCode || 
+                          const itemSku = itemData.itemSku || itemData.sku || itemData.integrationCode || itemData.integration_code ||
+                                         itemData.display_sku || item.itemSku || item.sku || item.integrationCode ||
                                          item.integration_code || item.display_sku || '';
                           const remainingQty = item.remainingQuantity || item.plannedQuantity || '0';
                           const unitPrice = parseFloat(item.unitPriceAtPlanning || item.unitPrice || item.price || item.unit_cost || 0);
-                          
+
                           return (
                             <SelectItem key={`available-${item.itemId}-${index}`} value={item.itemId}>
                               <div className="flex flex-col text-left w-full">

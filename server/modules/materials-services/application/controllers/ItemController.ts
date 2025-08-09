@@ -365,6 +365,260 @@ export class ItemController {
     }
   }
 
+  // ===== GRUPOS DE ITENS =====
+  async getItemGroups(req: AuthenticatedRequest, res: Response) {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant required' });
+      }
+
+      const { pool } = await import('../../../../db');
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      const query = `
+        SELECT 
+          g.*,
+          COUNT(m.item_id) as item_count
+        FROM "${schemaName}".item_groups g
+        LEFT JOIN "${schemaName}".item_group_memberships m ON g.id = m.group_id AND m.is_active = true
+        WHERE g.tenant_id = $1 AND g.is_active = true
+        GROUP BY g.id
+        ORDER BY g.name
+      `;
+
+      const result = await pool.query(query, [tenantId]);
+
+      res.json({
+        success: true,
+        data: result.rows
+      });
+    } catch (error) {
+      console.error('Error fetching item groups:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch item groups'
+      });
+    }
+  }
+
+  async createItemGroup(req: AuthenticatedRequest, res: Response) {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant required' });
+      }
+
+      const { name, description, color, icon } = req.body;
+      const { pool } = await import('../../../../db');
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+      const newGroup = {
+        id: crypto.randomUUID(),
+        tenantId,
+        name,
+        description,
+        color: color || '#3B82F6',
+        icon: icon || 'folder',
+        isActive: true,
+        createdAt: new Date(),
+        createdBy: req.user?.id,
+        updatedAt: new Date(),
+        updatedBy: req.user?.id
+      };
+
+      const insertQuery = `
+        INSERT INTO "${schemaName}".item_groups 
+        (id, tenant_id, name, description, color, icon, is_active, created_at, created_by, updated_at, updated_by)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+        RETURNING *
+      `;
+
+      const result = await pool.query(insertQuery, [
+        newGroup.id, newGroup.tenantId, newGroup.name, newGroup.description,
+        newGroup.color, newGroup.icon, newGroup.isActive, newGroup.createdAt,
+        newGroup.createdBy, newGroup.updatedAt, newGroup.updatedBy
+      ]);
+
+      res.status(201).json({
+        success: true,
+        data: result.rows[0],
+        message: 'Item group created successfully'
+      });
+    } catch (error) {
+      console.error('Error creating item group:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to create item group'
+      });
+    }
+  }
+
+  async assignItemsToGroup(req: AuthenticatedRequest, res: Response) {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant required' });
+      }
+
+      const { groupId } = req.params;
+      const { itemIds } = req.body;
+
+      if (!Array.isArray(itemIds) || itemIds.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'itemIds array is required'
+        });
+      }
+
+      const { pool } = await import('../../../../db');
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+      // Remove existing memberships for these items in this group
+      await pool.query(`
+        DELETE FROM "${schemaName}".item_group_memberships 
+        WHERE group_id = $1 AND item_id = ANY($2::uuid[]) AND tenant_id = $3
+      `, [groupId, itemIds, tenantId]);
+
+      // Add new memberships
+      const values = itemIds.map((itemId, index) => 
+        `($${index * 5 + 1}, $${index * 5 + 2}, $${index * 5 + 3}, $${index * 5 + 4}, $${index * 5 + 5})`
+      ).join(', ');
+
+      const params = itemIds.flatMap(itemId => [
+        crypto.randomUUID(),
+        tenantId,
+        itemId,
+        groupId,
+        req.user?.id
+      ]);
+
+      await pool.query(`
+        INSERT INTO "${schemaName}".item_group_memberships 
+        (id, tenant_id, item_id, group_id, created_by)
+        VALUES ${values}
+      `, params);
+
+      res.json({
+        success: true,
+        message: `${itemIds.length} items assigned to group`
+      });
+    } catch (error) {
+      console.error('Error assigning items to group:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to assign items to group'
+      });
+    }
+  }
+
+  // ===== HIERARQUIA PAI/FILHO =====
+  async getItemHierarchy(req: AuthenticatedRequest, res: Response) {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant required' });
+      }
+
+      const { itemId } = req.params;
+      const { pool } = await import('../../../../db');
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+      // Get parent and children for this item
+      const [parentResult, childrenResult] = await Promise.all([
+        // Get parent
+        pool.query(`
+          SELECT 
+            h.*,
+            pi.name as parent_name,
+            pi.type as parent_type
+          FROM "${schemaName}".item_hierarchy h
+          JOIN "${schemaName}".items pi ON h.parent_item_id = pi.id
+          WHERE h.child_item_id = $1 AND h.tenant_id = $2 AND h.is_active = true
+        `, [itemId, tenantId]),
+
+        // Get children
+        pool.query(`
+          SELECT 
+            h.*,
+            ci.name as child_name,
+            ci.type as child_type
+          FROM "${schemaName}".item_hierarchy h
+          JOIN "${schemaName}".items ci ON h.child_item_id = ci.id
+          WHERE h.parent_item_id = $1 AND h.tenant_id = $2 AND h.is_active = true
+          ORDER BY h.order, ci.name
+        `, [itemId, tenantId])
+      ]);
+
+      res.json({
+        success: true,
+        data: {
+          parent: parentResult.rows[0] || null,
+          children: childrenResult.rows,
+          hasChildren: childrenResult.rows.length > 0
+        }
+      });
+    } catch (error) {
+      console.error('Error fetching item hierarchy:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch item hierarchy'
+      });
+    }
+  }
+
+  async createItemHierarchy(req: AuthenticatedRequest, res: Response) {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant required' });
+      }
+
+      const { parentItemId, childItemIds, notes } = req.body;
+
+      if (!Array.isArray(childItemIds) || childItemIds.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'childItemIds array is required'
+        });
+      }
+
+      const { pool } = await import('../../../../db');
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+      // Create hierarchy relationships
+      const values = childItemIds.map((childItemId, index) => 
+        `($${index * 6 + 1}, $${index * 6 + 2}, $${index * 6 + 3}, $${index * 6 + 4}, $${index * 6 + 5}, $${index * 6 + 6})`
+      ).join(', ');
+
+      const params = childItemIds.flatMap((childItemId, index) => [
+        crypto.randomUUID(),
+        tenantId,
+        parentItemId,
+        childItemId,
+        index,
+        req.user?.id
+      ]);
+
+      await pool.query(`
+        INSERT INTO "${schemaName}".item_hierarchy 
+        (id, tenant_id, parent_item_id, child_item_id, "order", created_by)
+        VALUES ${values}
+      `, params);
+
+      res.status(201).json({
+        success: true,
+        message: `Hierarchy created: ${childItemIds.length} child items linked to parent`
+      });
+    } catch (error) {
+      console.error('Error creating item hierarchy:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to create item hierarchy'
+      });
+    }
+  }
+
   async createBulkLinks(req: AuthenticatedRequest, res: Response) {
     try {
       const { sourceItemIds, targetItemIds, relationship, groupName, groupDescription } = req.body;

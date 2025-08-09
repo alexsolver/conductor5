@@ -9,6 +9,19 @@ import { items, tenants } from './schema-master';
 // Export the items table from master schema
 export { items };
 
+// Extend items table with group reference
+export const itemGroupMemberships = pgTable('item_group_memberships', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull(),
+  
+  itemId: uuid('item_id').notNull(),
+  groupId: uuid('group_id').notNull(),
+  
+  isActive: boolean('is_active').default(true),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  createdBy: uuid('created_by')
+});
+
 // Enums específicos do módulo Materiais e Serviços
 export const itemTypeEnum = pgEnum('item_type', ['material', 'service', 'asset']);
 export const measurementUnitEnum = pgEnum('measurement_unit', ['UN', 'M', 'M2', 'M3', 'KG', 'L', 'H', 'PC', 'CX', 'GL', 'SET']);
@@ -32,22 +45,35 @@ export const itemAttachments = pgTable('item_attachments', {
   createdBy: uuid('created_by')
 });
 
-// VÍNCULOS DE ITENS - SISTEMA COMPLEXO CONFORME ESPECIFICAÇÃO
-export const itemLinks = pgTable('item_links', {
+// GRUPOS DE ITENS - Para agrupamentos e organização
+export const itemGroups = pgTable('item_groups', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id').notNull(),
+  
+  name: varchar('name', { length: 255 }).notNull(),
+  description: text('description'),
+  color: varchar('color', { length: 7 }), // Hex color for UI
+  icon: varchar('icon', { length: 50 }), // Icon name for UI
+  
+  isActive: boolean('is_active').default(true),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  createdBy: uuid('created_by'),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  updatedBy: uuid('updated_by')
+});
 
-  linkType: linkTypeEnum('link_type').notNull(),
-  itemId: uuid('item_id').notNull(), // Item principal
-
-  // 1. VÍNCULOS ITEM ↔ ITEM
-  linkedItemId: uuid('linked_item_id'),
-  relationship: varchar('relationship', { length: 50 }), // kit, substitute, equivalent, compatible, group
-
-  // Suporte a grupos nomeados
-  groupName: varchar('group_name', { length: 255 }),
-  groupDescription: text('group_description'),
-
+// VÍNCULOS PAI/FILHO - Hierarquia simples entre itens
+export const itemHierarchy = pgTable('item_hierarchy', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').notNull(),
+  
+  parentItemId: uuid('parent_item_id').notNull(),
+  childItemId: uuid('child_item_id').notNull(),
+  
+  // Metadados do vínculo
+  order: integer('order').default(0), // Ordem dos filhos
+  notes: text('notes'),
+  
   isActive: boolean('is_active').default(true),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   createdBy: uuid('created_by')
@@ -425,9 +451,33 @@ export const materialCertifications = pgTable('certifications', {
 // Relations
 export const itemsRelations = relations(items, ({ many }) => ({
   attachments: many(itemAttachments),
-  links: many(itemLinks),
   stockLevels: many(stockLevels),
-  movements: many(stockMovements)
+  movements: many(stockMovements),
+  groupMemberships: many(itemGroupMemberships),
+  parentRelations: many(itemHierarchy, { relationName: "parentItem" }),
+  childRelations: many(itemHierarchy, { relationName: "childItem" })
+}));
+
+export const itemGroupsRelations = relations(itemGroups, ({ many }) => ({
+  memberships: many(itemGroupMemberships)
+}));
+
+export const itemGroupMembershipsRelations = relations(itemGroupMemberships, ({ one }) => ({
+  item: one(items, { fields: [itemGroupMemberships.itemId], references: [items.id] }),
+  group: one(itemGroups, { fields: [itemGroupMemberships.groupId], references: [itemGroups.id] })
+}));
+
+export const itemHierarchyRelations = relations(itemHierarchy, ({ one }) => ({
+  parentItem: one(items, { 
+    fields: [itemHierarchy.parentItemId], 
+    references: [items.id],
+    relationName: "parentItem"
+  }),
+  childItem: one(items, { 
+    fields: [itemHierarchy.childItemId], 
+    references: [items.id],
+    relationName: "childItem"
+  })
 }));
 
 export const stockLocationsRelations = relations(stockLocations, ({ many }) => ({

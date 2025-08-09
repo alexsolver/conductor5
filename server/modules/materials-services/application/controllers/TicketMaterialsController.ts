@@ -506,14 +506,20 @@ export class TicketMaterialsController {
           i.name as item_name,
           i.description as item_description,
           i.measurement_unit,
-          i.type as item_type
+          i.type as item_type,
+          CASE 
+            WHEN EXISTS (SELECT 1 FROM "${schemaName}".items WHERE parent_id = tpi.item_id AND tenant_id = $3) 
+            THEN true 
+            ELSE false 
+          END as has_children,
+          (SELECT COUNT(*) FROM "${schemaName}".items WHERE parent_id = tpi.item_id AND tenant_id = $3) as children_count
         FROM "${schemaName}".ticket_planned_items tpi
         LEFT JOIN "${schemaName}".items i ON tpi.item_id = i.id
         WHERE tpi.ticket_id = $1 AND tpi.tenant_id = $2
         ORDER BY tpi.created_at DESC
       `;
 
-      const result = await pool.query(query, [ticketId, tenantId]);
+      const result = await pool.query(query, [ticketId, tenantId, tenantId]);
 
       const plannedItems = result.rows.map((row: any) => ({
         id: row.id,
@@ -524,13 +530,15 @@ export class TicketMaterialsController {
         itemDescription: row.item_description,
         measurementUnit: row.measurement_unit,
         itemType: row.item_type,
+        lpuId: row.lpu_id,
         plannedQuantity: parseFloat(row.planned_quantity || 0),
-        unitPriceAtPlanning: parseFloat(row.unit_price_at_planning || 0),
-        estimatedCost: parseFloat(row.estimated_cost || 0),
+        unitPrice: parseFloat(row.unit_price || 0),
+        totalCost: parseFloat(row.total_cost || 0),
         status: row.status,
-        priority: row.priority,
         notes: row.notes,
         isActive: row.is_active,
+        hasChildren: row.has_children,
+        childrenCount: parseInt(row.children_count || 0),
         createdAt: row.created_at,
         updatedAt: row.updated_at
       }));
