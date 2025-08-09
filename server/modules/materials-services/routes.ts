@@ -19,7 +19,8 @@ import { systemSettings } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 import { Response } from 'express'; // Import Response type
 import crypto from 'crypto'; // Import crypto for UUID generation
-import { Pool } from 'pg'; // Import Pool for PostgreSQL client
+import pkg from 'pg';
+const { Pool } = pkg;
 import { drizzle } from 'drizzle-orm/node-postgres'; // Import drizzle for Drizzle ORM integration
 
 // Mocking drizzleDb and pool as they are not defined in the original context
