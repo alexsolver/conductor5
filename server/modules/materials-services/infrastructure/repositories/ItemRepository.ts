@@ -622,14 +622,14 @@ export class ItemRepository {
       // Insert into customer_item_mappings (the table that actually exists)
       const result = await this.db.execute(
         sql.raw(`
-          INSERT INTO "${schemaName}".customer_item_mappings (
-            id, tenant_id, item_id, customer_id, created_by, is_active, created_at, updated_at
-          ) VALUES ($1, $2, $3, $4, $5, true, NOW(), NOW())
-          ON CONFLICT (tenant_id, item_id, customer_id) DO UPDATE SET
-            is_active = true,
-            updated_at = NOW()
-          RETURNING id
-        `, [linkId, this.tenantId, itemId, customerId, userId])
+            INSERT INTO "${schemaName}".customer_item_mappings (
+              id, tenant_id, item_id, customer_id, created_by, is_active, created_at, updated_at
+            ) VALUES ($1, $2, $3, $4, $5, true, NOW(), NOW())
+            ON CONFLICT (tenant_id, item_id, customer_id) DO UPDATE SET
+              is_active = true,
+              updated_at = NOW()
+            RETURNING id
+          `, [linkId, this.tenantId, itemId, customerId, userId])
       );
 
       if (result.rows.length > 0) {
