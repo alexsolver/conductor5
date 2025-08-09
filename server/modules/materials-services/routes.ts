@@ -92,6 +92,13 @@ router.get('/items', async (req: AuthenticatedRequest, res) => {
   return itemController.getItems(req, res);
 });
 
+// Route for frontend compatibility
+router.get('/items/all/all/all', async (req: AuthenticatedRequest, res) => {
+  if (!req.user?.tenantId) return res.status(401).json({ message: 'Tenant ID required' });
+  const { itemController } = await getControllers(req.user.tenantId);
+  return itemController.getItems(req, res);
+});
+
 router.get('/items/stats', async (req: AuthenticatedRequest, res) => {
   if (!req.user?.tenantId) return res.status(401).json({ message: 'Tenant ID required' });
   const { itemController } = await getControllers(req.user.tenantId);

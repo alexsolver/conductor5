@@ -185,6 +185,12 @@ export default function ItemCatalog() {
   // Queries
   const { data: itemsResponse, isLoading: isLoadingItems } = useQuery({
     queryKey: ["/api/materials-services/items", searchTerm, typeFilter, statusFilter, hierarchyFilter],
+    queryFn: () => apiRequest('GET', '/api/materials-services/items', {
+      search: searchTerm || undefined,
+      type: typeFilter !== 'all' ? typeFilter : undefined,
+      status: statusFilter !== 'all' ? statusFilter : undefined,
+      active: statusFilter === 'active' ? 'true' : statusFilter === 'inactive' ? 'false' : undefined
+    }).then(res => res.json()),
     enabled: true
   });
 
@@ -207,7 +213,9 @@ export default function ItemCatalog() {
       return response.json();
     },
     onSuccess: () => {
+      // Invalidate all item-related queries
       queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items/stats"] });
       toast({
         title: "Item criado com sucesso",
         description: "O item foi adicionado ao catálogo.",
@@ -230,7 +238,9 @@ export default function ItemCatalog() {
       return response.json();
     },
     onSuccess: () => {
+      // Invalidate all item-related queries
       queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items/stats"] });
       toast({
         title: "Item atualizado com sucesso",
         description: "As alterações foram salvas.",

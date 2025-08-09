@@ -57,24 +57,90 @@ export class ItemController {
         companyId
       } = req.query;
 
-      const options = {
-        limit: parseInt(limit as string),
-        offset: parseInt(offset as string),
-        search: search as string,
-        type: type as string,
-        status: status as string,
-        active: active === 'true' ? true : active === 'false' ? false : undefined,
-        companyId: companyId as string
-      };
+      // Direct SQL query to get items with hierarchy and link counts
+      const { pool } = await import('../../../../db.js');
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-      const items = await this.itemRepository.findByTenant(tenantId, options);
+      let whereConditions = [`i.tenant_id = $1`];
+      let queryParams = [tenantId];
+      let paramIndex = 2;
+
+      // Add search filter
+      if (search) {
+        whereConditions.push(`(
+          LOWER(i.name) LIKE LOWER($${paramIndex}) OR 
+          LOWER(i.integration_code) LIKE LOWER($${paramIndex}) OR 
+          LOWER(i.description) LIKE LOWER($${paramIndex})
+        )`);
+        queryParams.push(`%${search}%`);
+        paramIndex++;
+      }
+
+      // Add type filter
+      if (type && type !== 'all') {
+        whereConditions.push(`i.type = $${paramIndex}`);
+        queryParams.push(type);
+        paramIndex++;
+      }
+
+      // Add active status filter
+      if (active !== undefined && active !== 'all') {
+        whereConditions.push(`i.active = $${paramIndex}`);
+        queryParams.push(active === 'true');
+        paramIndex++;
+      }
+
+      const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
+
+      const query = `
+        SELECT 
+          i.*,
+          -- Check if item is a parent (has children)
+          CASE 
+            WHEN EXISTS (
+              SELECT 1 FROM "${schemaName}".item_hierarchy h 
+              WHERE h.parent_item_id = i.id AND h.is_active = true
+            ) THEN true 
+            ELSE false 
+          END as "isParent",
+          
+          -- Count children
+          (SELECT COUNT(*) FROM "${schemaName}".item_hierarchy h 
+           WHERE h.parent_item_id = i.id AND h.is_active = true) as "childrenCount",
+          
+          -- Get parent ID
+          (SELECT h.parent_item_id FROM "${schemaName}".item_hierarchy h 
+           WHERE h.child_item_id = i.id AND h.is_active = true LIMIT 1) as "parentId",
+          
+          -- Count linked companies
+          (SELECT COUNT(*) FROM "${schemaName}".customer_item_mappings cim 
+           WHERE cim.item_id = i.id AND cim.is_active = true) as "companiesCount",
+          
+          -- Count linked suppliers  
+          (SELECT COUNT(*) FROM "${schemaName}".supplier_item_links sil 
+           WHERE sil.item_id = i.id AND sil.is_active = true) as "suppliersCount"
+           
+        FROM "${schemaName}".items i
+        ${whereClause}
+        ORDER BY i.created_at DESC
+        LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
+      `;
+
+      queryParams.push(parseInt(limit as string), parseInt(offset as string));
+
+      console.log('🔍 [ITEMS-QUERY] Executing query:', query);
+      console.log('🔍 [ITEMS-QUERY] With params:', queryParams);
+
+      const result = await pool.query(query, queryParams);
+
+      console.log(`✅ [ITEMS-QUERY] Found ${result.rows.length} items`);
 
       res.json({
         success: true,
-        data: items
+        data: result.rows
       });
     } catch (error) {
-      console.error('Error fetching items:', error);
+      console.error('❌ Error fetching items:', error);
       res.status(500).json({
         success: false,
         message: 'Failed to fetch items'
