@@ -1,10 +1,26 @@
-// People Search API Routes - Unified person search
 import { Router } from "express";
 import { jwtAuth, AuthenticatedRequest } from "../../middleware/jwtAuth";
-import { DrizzlePersonRepository } from "../shared/infrastructure/DrizzlePersonRepository";
+import { tenantValidator } from "../../middleware/tenantValidator";
+import { PersonController } from "./application/controllers/PersonController";
+import { DrizzlePersonRepository } from "./infrastructure/repositories/DrizzlePersonRepository";
+import { db } from "../../db";
 
 const peopleRouter = Router();
-const personRepository = new DrizzlePersonRepository();
+
+// Middleware de autenticação para todas as rotas
+peopleRouter.use(jwtAuth);
+peopleRouter.use(tenantValidator);
+
+// Inicializar dependências
+const personRepository = new DrizzlePersonRepository(db);
+const personController = new PersonController();
+
+// Rotas CRUD
+peopleRouter.get('/', personController.getAll.bind(personController));
+peopleRouter.get('/:id', personController.getById.bind(personController));
+peopleRouter.post('/', personController.create.bind(personController));
+peopleRouter.put('/:id', personController.update.bind(personController));
+peopleRouter.delete('/:id', personController.delete.bind(personController));
 
 // Search people (users and customers) with unified results
 peopleRouter.get('/search', jwtAuth, async (req: AuthenticatedRequest, res) => {
@@ -15,7 +31,7 @@ peopleRouter.get('/search', jwtAuth, async (req: AuthenticatedRequest, res) => {
 
     const query = req.query.q as string;
     const typesParam = req.query.types as string;
-    
+
     if (!query || query.length < 2) {
       return res.json([]);
     }
@@ -43,13 +59,13 @@ peopleRouter.get('/:type/:id', jwtAuth, async (req: AuthenticatedRequest, res) =
     }
 
     const { type, id } = req.params;
-    
+
     if (!['user', 'customer'].includes(type)) {
       return res.status(400).json({ message: "Invalid person type" });
     }
 
     const person = await personRepository.findPersonById(id, type as 'user' | 'customer', req.user.tenantId);
-    
+
     if (!person) {
       return res.status(404).json({ message: "Person not found" });
     }

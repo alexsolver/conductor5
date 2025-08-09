@@ -1,7 +1,8 @@
 import { IDashboardRepository } from '../../domain/repositories/IDashboardRepository';
 import { DashboardMetric } from '../../domain/entities/DashboardMetric';
+import { IDashboardMetricRepository } from '../../domain/repositories/IDashboardMetricRepository';
 
-export class DrizzleDashboardRepository implements IDashboardRepository {
+export class DrizzleDashboardRepository implements IDashboardMetricRepository {
   async findAll(): Promise<DashboardMetric[]> {
     // Implementação do Drizzle ORM
     return [];
