@@ -298,7 +298,10 @@ export class ItemController {
       }
 
       // Separar vínculos dos dados básicos do item
-      const { linkedCustomers, linkedItems, linkedSuppliers, ...itemData } = req.body;
+      const { linkedCustomers, linkedItems, linkedSuppliers, childrenIds, ...itemData } = req.body;
+
+      console.log('🔧 [UPDATE-ITEM] Processing update for item:', id);
+      console.log('🔧 [UPDATE-ITEM] Children IDs received:', childrenIds);
 
       const updateData = {
         ...itemData,
@@ -314,12 +317,27 @@ export class ItemController {
         });
       }
 
-      // 🔧 CORREÇÃO: Processar vínculos se fornecidos
+      // Processar vínculos hierárquicos (pai-filho)
+      if (childrenIds && Array.isArray(childrenIds)) {
+        try {
+          await this.processItemHierarchy(id, tenantId, childrenIds, req.user?.id);
+          console.log('✅ [UPDATE-ITEM] Hierarchy processed successfully');
+        } catch (hierarchyError) {
+          console.error('❌ [UPDATE-ITEM] Hierarchy processing failed:', hierarchyError);
+        }
+      }
+
+      // Processar outros vínculos
       if (linkedCustomers || linkedItems || linkedSuppliers) {
-        await this.itemRepository.updateItemLinks(id, tenantId, {
-          customers: linkedCustomers || [],
-          suppliers: linkedSuppliers || []
-        }, req.user?.id);
+        try {
+          await this.itemRepository.updateItemLinks(id, tenantId, {
+            customers: linkedCustomers || [],
+            suppliers: linkedSuppliers || []
+          }, req.user?.id);
+          console.log('✅ [UPDATE-ITEM] Links processed successfully');
+        } catch (linkError) {
+          console.error('❌ [UPDATE-ITEM] Links processing failed:', linkError);
+        }
       }
 
       res.json({
@@ -333,6 +351,50 @@ export class ItemController {
         success: false,
         message: 'Failed to update item'
       });
+    }
+  }
+
+  private async processItemHierarchy(parentItemId: string, tenantId: string, childrenIds: string[], userId?: string) {
+    const { pool } = await import('../../../../db.js');
+    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+    // Primeiro, remover vínculos hierárquicos existentes para este item
+    try {
+      await pool.query(`
+        DELETE FROM "${schemaName}".item_hierarchy 
+        WHERE parent_item_id = $1 AND tenant_id = $2
+      `, [parentItemId, tenantId]);
+    } catch (error) {
+      console.log('⚠️ [HIERARCHY] Table item_hierarchy does not exist, skipping deletion');
+    }
+
+    // Criar novos vínculos hierárquicos
+    if (childrenIds.length > 0) {
+      try {
+        const values = childrenIds.map((childId, index) => 
+          `($${index * 6 + 1}, $${index * 6 + 2}, $${index * 6 + 3}, $${index * 6 + 4}, $${index * 6 + 5}, $${index * 6 + 6})`
+        ).join(', ');
+
+        const params = childrenIds.flatMap((childId, index) => [
+          crypto.randomUUID(),
+          tenantId,
+          parentItemId,
+          childId,
+          index,
+          userId || null
+        ]);
+
+        await pool.query(`
+          INSERT INTO "${schemaName}".item_hierarchy 
+          (id, tenant_id, parent_item_id, child_item_id, "order", created_by)
+          VALUES ${values}
+        `, params);
+
+        console.log(`✅ [HIERARCHY] Created ${childrenIds.length} hierarchical links`);
+      } catch (error) {
+        console.error('❌ [HIERARCHY] Failed to create hierarchy:', error);
+        throw error;
+      }
     }
   }
 

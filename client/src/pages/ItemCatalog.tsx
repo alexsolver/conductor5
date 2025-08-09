@@ -355,19 +355,40 @@ export default function ItemCatalog() {
 
   const onSubmitItem = async (data: z.infer<typeof itemSchema>) => {
     if (selectedItem && currentView === 'item-edit') {
+      console.log('🔧 [FRONTEND] Submitting item update with data:', data);
+      
       // Logic to update item and its hierarchical links
       try {
-        const updateResponse = await apiRequest('PUT', `/api/materials-services/items/${selectedItem.id}`, {
+        const updatePayload = {
           ...data,
-          childrenIds: data.childrenIds, // Ensure childrenIds are sent
-        });
-        if (!updateResponse.ok) throw new Error('Failed to update item');
+          childrenIds: data.childrenIds || [], // Ensure childrenIds are sent as array
+        };
+
+        console.log('🔧 [FRONTEND] Update payload:', updatePayload);
+
+        const updateResponse = await apiRequest('PUT', `/api/materials-services/items/${selectedItem.id}`, updatePayload);
         
-        toast({ title: "Item atualizado", description: "Informações e vínculos salvos." });
+        if (!updateResponse.ok) {
+          const errorData = await updateResponse.json();
+          throw new Error(errorData.message || 'Failed to update item');
+        }
+        
+        toast({ 
+          title: "Item atualizado", 
+          description: "Informações e vínculos hierárquicos salvos com sucesso." 
+        });
+        
         queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items", selectedItem.id, "links"] });
+        
         setCurrentView('item-details');
       } catch (error) {
-        toast({ title: "Erro ao atualizar", description: "Tente novamente.", variant: "destructive" });
+        console.error('❌ [FRONTEND] Update error:', error);
+        toast({ 
+          title: "Erro ao atualizar", 
+          description: error instanceof Error ? error.message : "Tente novamente.", 
+          variant: "destructive" 
+        });
       }
     } else {
       createItemMutation.mutate(data);
