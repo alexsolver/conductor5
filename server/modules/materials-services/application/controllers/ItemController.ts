@@ -92,9 +92,22 @@ export class ItemController {
 
       const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
 
-      const query = `
-        SELECT 
-          i.*,
+      // Check if hierarchy table exists first
+      let hierarchyTableExists = false;
+      try {
+        const tableCheck = await pool.query(`
+          SELECT EXISTS (
+            SELECT FROM information_schema.tables 
+            WHERE table_schema = '${schemaName}' 
+            AND table_name = 'item_hierarchy'
+          );
+        `);
+        hierarchyTableExists = tableCheck.rows[0].exists;
+      } catch (error) {
+        console.log('Could not check hierarchy table existence:', error);
+      }
+
+      const hierarchyFields = hierarchyTableExists ? `
           -- Check if item is a parent (has children)
           CASE 
             WHEN EXISTS (
@@ -111,14 +124,24 @@ export class ItemController {
           -- Get parent ID
           (SELECT h.parent_item_id FROM "${schemaName}".item_hierarchy h 
            WHERE h.child_item_id = i.id AND h.is_active = true LIMIT 1) as "parentId",
+      ` : `
+          false as "isParent",
+          0 as "childrenCount", 
+          null as "parentId",
+      `;
+
+      const query = `
+        SELECT 
+          i.*,
+          ${hierarchyFields}
           
           -- Count linked companies
-          (SELECT COUNT(*) FROM "${schemaName}".customer_item_mappings cim 
-           WHERE cim.item_id = i.id AND cim.is_active = true) as "companiesCount",
+          COALESCE((SELECT COUNT(*) FROM "${schemaName}".customer_item_mappings cim 
+           WHERE cim.item_id = i.id AND cim.is_active = true), 0) as "companiesCount",
           
           -- Count linked suppliers  
-          (SELECT COUNT(*) FROM "${schemaName}".supplier_item_links sil 
-           WHERE sil.item_id = i.id AND sil.is_active = true) as "suppliersCount"
+          COALESCE((SELECT COUNT(*) FROM "${schemaName}".supplier_item_links sil 
+           WHERE sil.item_id = i.id AND sil.is_active = true), 0) as "suppliersCount"
            
         FROM "${schemaName}".items i
         ${whereClause}
