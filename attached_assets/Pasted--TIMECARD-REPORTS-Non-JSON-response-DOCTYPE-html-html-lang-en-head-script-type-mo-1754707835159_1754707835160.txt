@@ -1,0 +1,36 @@
+[TIMECARD-REPORTS] Non-JSON response: <!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script type="module">
+import { createHotContext } from "/@vite/client";
+const hot = createHotContext("/__dummy__runtime-error-plugin");
+
+function sendErr
+[TIMECARD-REPORTS] Error fetching overtime report: 
+Error {}
+
+[TIMECARD-REPORTS-DEBUG] Current state: 
+Object {reportType: "overtime", currentReport: null, isLoading: false, currentError: "Resposta inválida do servidor - esperado JSON"}
+[TIMECARD-REPORTS-DEBUG] Current state: 
+Object {reportType: "compliance", currentReport: null, isLoading: true, currentError: "Resposta inválida do servidor - esperado JSON"}
+[TIMECARD-REPORTS] Fetching compliance report with filters: 
+Object {period: "2025-08", startDate: "2025-08-01", endDate: "2025-08-31", employee: "todos"}
+[TIMECARD-REPORTS] Non-JSON response: <!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script type="module">
+import { createHotContext } from "/@vite/client";
+const hot = createHotContext("/__dummy__runtime-error-plugin");
+
+function sendErr
+[TIMECARD-REPORTS] Error fetching compliance report: 
+Error {}
+
+at t.value (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400
+[TIMECARD-REPORTS-DEBUG] Current state: 
+Object {reportType: "compliance", currentReport: null, isLoading: false, currentError: "Resposta inválida do servidor - esperado JSON"}
+[TIMECARD-REPORTS-DEBUG] Current state: 
+Object {reportType: "attendance", currentReport: {…}, isLoading: false, currentError: "Resposta inválida do servidor - esperado JSON"}
