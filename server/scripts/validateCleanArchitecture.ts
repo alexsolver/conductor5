@@ -1,6 +1,3 @@
-
-#!/usr/bin/env tsx
-
 /**
  * SCRIPT PRINCIPAL - VALIDAÇÃO CLEAN ARCHITECTURE
  * 
@@ -16,7 +13,7 @@ import { CleanArchitectureValidator } from './CleanArchitectureValidator';
 import { CleanArchitectureCorrector } from './CleanArchitectureCorrector';
 
 class CleanArchitectureOrchestrator {
-  
+
   async run(): Promise<void> {
     const args = process.argv.slice(2);
     const shouldFix = args.includes('--fix');
@@ -40,7 +37,7 @@ class CleanArchitectureOrchestrator {
       if (validationResult.issues.length > 0) {
         const corrector = new CleanArchitectureCorrector();
         const correctionPlans = await corrector.generateCorrectionPlan(validationResult);
-        
+
         if (!quiet) {
           corrector.generateCorrectionReport(correctionPlans);
         }
@@ -48,11 +45,11 @@ class CleanArchitectureOrchestrator {
         // 3. Executar correções se solicitado
         if (shouldFix) {
           await corrector.executeCorrectionPlan(correctionPlans, true);
-          
+
           // Revalidar após correções
           console.log('\n🔄 Revalidando após correções...');
           const revalidationResult = await validator.validateCompleteArchitecture();
-          
+
           if (revalidationResult.score > validationResult.score) {
             console.log(`✅ Melhoria detectada! Score: ${validationResult.score}/100 → ${revalidationResult.score}/100`);
           }
@@ -63,7 +60,7 @@ class CleanArchitectureOrchestrator {
 
         // 5. Status de saída
         process.exit(validationResult.passed ? 0 : 1);
-      
+
       } else {
         if (!quiet) {
           console.log('\n🎉 PARABÉNS! Arquitetura Clean 100% em conformidade!');
@@ -91,7 +88,7 @@ class CleanArchitectureOrchestrator {
 
   private saveReports(validationResult: any, correctionPlans: any[]): void {
     const fs = require('fs');
-    
+
     // Salvar resultado da validação
     fs.writeFileSync(
       'reports/clean-architecture-validation-result.json',
@@ -116,7 +113,7 @@ class CleanArchitectureOrchestrator {
 
   private generateMarkdownReport(validationResult: any, correctionPlans: any[]): string {
     const timestamp = new Date().toISOString().split('T')[0];
-    
+
     return `# Clean Architecture Validation Report
 
 **Data:** ${timestamp}  
@@ -183,7 +180,7 @@ npm run validate:architecture --report
         const critical = moduleIssues.filter(i => i.severity === 'critical').length;
         const high = moduleIssues.filter(i => i.severity === 'high').length;
         const status = critical > 0 ? '🔥' : high > 0 ? '⚠️' : '📋';
-        
+
         return `### ${status} ${module}
 - **Total de problemas:** ${moduleIssues.length}
 - **Críticos:** ${critical} | **Altos:** ${high}
