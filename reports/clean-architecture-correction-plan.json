@@ -614,14 +614,6 @@
     "module": "saas-admin",
     "actions": [
       {
-        "type": "create_directory",
-        "description": "Criar controllers na camada Application e usar nas rotas",
-        "target": "server/modules/saas-admin/routes.ts",
-        "steps": [
-          "Criar controllers na camada Application e usar nas rotas"
-        ]
-      },
-      {
         "type": "move_code",
         "description": "Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados",
         "target": "server/modules/saas-admin/routes.ts",
@@ -700,7 +692,7 @@
         ]
       }
     ],
-    "estimatedTime": "5h"
+    "estimatedTime": "4h"
   },
   {
     "priority": "immediate",

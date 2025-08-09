@@ -8,9 +8,9 @@
 
 - 🔥 **Críticos:** 18
 - ⚠️ **Altos:** 68
-- 📋 **Médios:** 36
+- 📋 **Médios:** 35
 - 💡 **Baixos:** 4
-- **Total:** 126
+- **Total:** 125
 
 ## Principais Problemas por Módulo
 
@@ -46,12 +46,12 @@
   - Domain Layer violando dependência: drizzle-orm/neon-http
 
 ### 🔥 saas-admin
-- **Total de problemas:** 8
+- **Total de problemas:** 7
 - **Críticos:** 1 | **Altos:** 2
 - **Principais problemas:**
-  - Routes não utiliza controllers - lógica direta nas rotas
   - Routes contém lógica de negócio ou acesso a dados
   - Domain Layer violando dependência: drizzle-orm/neon-http
+  - Application Layer violando dependência: express
 
 ### 🔥 technical-skills
 - **Total de problemas:** 10
@@ -204,17 +204,16 @@
 
 ### 🔥 saas-admin
 - **Prioridade:** immediate
-- **Tempo estimado:** 5h
-- **Ações:** 8
+- **Tempo estimado:** 4h
+- **Ações:** 7
 
-1. **create_directory:** Criar controllers na camada Application e usar nas rotas
-2. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
-3. **refactor_code:** Refatorar dependência inválida na camada domain
-4. **refactor_code:** Refatorar dependência inválida na camada application
-5. **rename_file:** Padronizar nomenclatura: Entity index não segue padrão PascalCase
-6. **rename_file:** Padronizar nomenclatura: Repository index deve terminar com 'Repository'
-7. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
-8. **create_file:** Criar Repository com interface
+1. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
+2. **refactor_code:** Refatorar dependência inválida na camada domain
+3. **refactor_code:** Refatorar dependência inválida na camada application
+4. **rename_file:** Padronizar nomenclatura: Entity index não segue padrão PascalCase
+5. **rename_file:** Padronizar nomenclatura: Repository index deve terminar com 'Repository'
+6. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
+7. **create_file:** Criar Repository com interface
 
 ### 🔥 technical-skills
 - **Prioridade:** immediate
@@ -328,7 +327,7 @@
 - **beneficiaries:** 5 ações (4h)
 - **knowledge-base:** 10 ações (8h)
 - **materials-services:** 37 ações (30h)
-- **saas-admin:** 8 ações (5h)
+- **saas-admin:** 7 ações (4h)
 - **technical-skills:** 6 ações (5h)
 - **schedule-management:** 2 ações (2h)
 - **shared:** 6 ações (4h)
