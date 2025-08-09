@@ -134,18 +134,6 @@
         ]
       },
       {
-        "type": "refactor_code",
-        "description": "Refatorar dependência inválida na camada application",
-        "target": "server/modules/customers/application/controllers/CustomerController.ts",
-        "steps": [
-          "Identificar a dependência problemática",
-          "Criar interface/port na camada Domain",
-          "Implementar interface na camada Infrastructure",
-          "Usar injeção de dependência",
-          "Remover import direto da dependência externa"
-        ]
-      },
-      {
         "type": "create_file",
         "description": "Criar Repository com interface",
         "target": "server/modules/customers/infrastructure/repositories/CompanyMembershipRepository.ts",
@@ -170,7 +158,7 @@
         ]
       }
     ],
-    "estimatedTime": "4h"
+    "estimatedTime": "3h"
   },
   {
     "priority": "high",
@@ -1818,20 +1806,5 @@
       }
     ],
     "estimatedTime": "2h"
-  },
-  {
-    "priority": "low",
-    "module": "locations",
-    "actions": [
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo repositories na camada domain",
-        "target": "server/modules/locations/domain/repositories",
-        "steps": [
-          "Criar diretório/arquivo repositories na camada domain"
-        ]
-      }
-    ],
-    "estimatedTime": "10min"
   }
 ]

@@ -7,10 +7,10 @@
 ## Resumo de Problemas
 
 - 🔥 **Críticos:** 0
-- ⚠️ **Altos:** 109
-- 📋 **Médios:** 95
+- ⚠️ **Altos:** 108
+- 📋 **Médios:** 94
 - 💡 **Baixos:** 2
-- **Total:** 206
+- **Total:** 204
 
 ## Principais Problemas por Módulo
 
@@ -39,12 +39,12 @@
   - Camada infrastructure ausente no módulo custom-fields
 
 ### ⚠️ customers
-- **Total de problemas:** 5
-- **Críticos:** 0 | **Altos:** 5
+- **Total de problemas:** 4
+- **Críticos:** 0 | **Altos:** 4
 - **Principais problemas:**
   - Routes contém lógica de negócio ou acesso a dados
   - Application Layer violando dependência: express
-  - Application Layer violando dependência: express
+  - Entity CompanyMembership não possui Repository correspondente
 
 ### ⚠️ dashboard
 - **Total de problemas:** 2
@@ -76,12 +76,6 @@
   - Camada domain ausente no módulo knowledge-base
   - Estrutura use-cases ausente na camada application
   - Estrutura dto ausente na camada application
-
-### 📋 locations
-- **Total de problemas:** 1
-- **Críticos:** 0 | **Altos:** 0
-- **Principais problemas:**
-  - Estrutura repositories ausente na camada domain
 
 ### ⚠️ materials-services
 - **Total de problemas:** 62
@@ -220,14 +214,13 @@
 
 ### ⚠️ customers
 - **Prioridade:** high
-- **Tempo estimado:** 4h
-- **Ações:** 5
+- **Tempo estimado:** 3h
+- **Ações:** 4
 
 1. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
 2. **refactor_code:** Refatorar dependência inválida na camada application
-3. **refactor_code:** Refatorar dependência inválida na camada application
+3. **create_file:** Criar Repository com interface
 4. **create_file:** Criar Repository com interface
-5. **create_file:** Criar Repository com interface
 
 ### ⚠️ dashboard
 - **Prioridade:** high
@@ -496,13 +489,6 @@
 9. **create_directory:** Criar diretório/arquivo repositories na camada infrastructure
 10. **create_file:** Criar arquivo routes.ts para definir endpoints da API
 
-### 💡 locations
-- **Prioridade:** low
-- **Tempo estimado:** 10min
-- **Ações:** 1
-
-1. **create_directory:** Criar diretório/arquivo repositories na camada domain
-
 
 ## Recomendações
 
@@ -512,7 +498,7 @@ Nenhuma ação imediata necessária
 ### Prioridade Alta ⚠️
 - **beneficiaries:** 5 ações (2h)
 - **custom-fields:** 4 ações (2h)
-- **customers:** 5 ações (4h)
+- **customers:** 4 ações (3h)
 - **dashboard:** 2 ações (40min)
 - **field-layout:** 4 ações (1h)
 - **field-layouts:** 4 ações (40min)
