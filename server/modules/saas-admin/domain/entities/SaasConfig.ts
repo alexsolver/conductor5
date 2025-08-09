@@ -34,3 +34,47 @@ export class SaasConfig extends BaseEntity {
     this.updatedAt = new Date();
   }
 }
+export class SaasConfig {
+  constructor(
+    public readonly id: string,
+    public readonly tenantId: string,
+    public readonly configKey: string,
+    public readonly configValue: string,
+    public readonly isActive: boolean = true,
+    public readonly createdAt: Date = new Date(),
+    public readonly updatedAt: Date = new Date()
+  ) {}
+
+  static create(tenantId: string, configKey: string, configValue: string): SaasConfig {
+    return new SaasConfig(
+      crypto.randomUUID(),
+      tenantId,
+      configKey,
+      configValue
+    );
+  }
+
+  update(configValue: string): SaasConfig {
+    return new SaasConfig(
+      this.id,
+      this.tenantId,
+      this.configKey,
+      configValue,
+      this.isActive,
+      this.createdAt,
+      new Date()
+    );
+  }
+
+  deactivate(): SaasConfig {
+    return new SaasConfig(
+      this.id,
+      this.tenantId,
+      this.configKey,
+      this.configValue,
+      false,
+      this.createdAt,
+      new Date()
+    );
+  }
+}
