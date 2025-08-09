@@ -5,9 +5,11 @@ import { suppliers as supplierTable } from '@shared/schema';
 import type { Item } from '../../domain/entities';
 import type { ExtractTablesWithRelations } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import * as crypto from 'crypto';
 
 export class ItemRepository {
   private db: NodePgDatabase<any>;
+  private tenantId: string; // Adicionado para uso nos métodos SQL brutos
 
   constructor(db: NodePgDatabase<any>) {
     this.db = db;
@@ -64,6 +66,7 @@ export class ItemRepository {
     active?: boolean;
     companyId?: string;
   }): Promise<Item[]> {
+    this.tenantId = tenantId; // Define o tenantId para uso em métodos SQL brutos
     const conditions = [eq(items.tenantId, tenantId)];
 
     if (options?.search) {
@@ -310,7 +313,7 @@ export class ItemRepository {
           and(
             eq(itemSupplierLinks.itemId, itemId),
             eq(itemSupplierLinks.tenantId, tenantId),
-            eq(supplierTable.active, true)
+            eq(supplierTable.active, true) // Corrigido para usar 'active' que é o nome correto da coluna em suppliers
           )
         )
         .limit(50);
@@ -478,6 +481,79 @@ export class ItemRepository {
       console.error('Error updating item links:', error);
       // Não lançar erro para não quebrar o fluxo principal de atualização
       // Retornar false ou lançar um erro específico se necessário para o fluxo chamador
+    }
+  }
+
+  // Métodos adicionados para vincular/desvincular clientes e fornecedores a itens
+  async linkCustomerToItem(itemId: string, customerId: string, tenantId: string): Promise<void> {
+    try {
+      const query = `
+        INSERT INTO "${tenantId}".customer_item_mappings
+        (id, customer_id, item_id, is_active, created_at, updated_at)
+        VALUES ($1, $2, $3, true, NOW(), NOW())
+        ON CONFLICT (customer_id, item_id)
+        DO UPDATE SET is_active = true, updated_at = NOW()
+      `;
+
+      await this.db.execute(sql.raw(query), [
+        crypto.randomUUID(),
+        customerId,
+        itemId
+      ]);
+    } catch (error) {
+      console.error('Erro ao vincular cliente ao item:', error);
+      throw error;
+    }
+  }
+
+  async unlinkCustomerFromItem(itemId: string, customerId: string, tenantId: string): Promise<void> {
+    try {
+      const query = `
+        UPDATE "${tenantId}".customer_item_mappings
+        SET is_active = false, updated_at = NOW()
+        WHERE customer_id = $1 AND item_id = $2
+      `;
+
+      await this.db.execute(sql.raw(query), [customerId, itemId]);
+    } catch (error) {
+      console.error('Erro ao desvincular cliente do item:', error);
+      throw error;
+    }
+  }
+
+  async linkSupplierToItem(itemId: string, supplierId: string, tenantId: string): Promise<void> {
+    try {
+      const query = `
+        INSERT INTO "${tenantId}".supplier_item_links
+        (id, supplier_id, item_id, is_active, created_at, updated_at)
+        VALUES ($1, $2, $3, true, NOW(), NOW())
+        ON CONFLICT (supplier_id, item_id)
+        DO UPDATE SET is_active = true, updated_at = NOW()
+      `;
+
+      await this.db.execute(sql.raw(query), [
+        crypto.randomUUID(),
+        supplierId,
+        itemId
+      ]);
+    } catch (error) {
+      console.error('Erro ao vincular fornecedor ao item:', error);
+      throw error;
+    }
+  }
+
+  async unlinkSupplierFromItem(itemId: string, supplierId: string, tenantId: string): Promise<void> {
+    try {
+      const query = `
+        UPDATE "${tenantId}".supplier_item_links
+        SET is_active = false, updated_at = NOW()
+        WHERE supplier_id = $1 AND item_id = $2
+      `;
+
+      await this.db.execute(sql.raw(query), [supplierId, itemId]);
+    } catch (error) {
+      console.error('Erro ao desvincular fornecedor do item:', error);
+      throw error;
     }
   }
 }

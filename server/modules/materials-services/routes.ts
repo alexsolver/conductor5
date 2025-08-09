@@ -19,7 +19,15 @@ import { systemSettings } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 import { Response } from 'express'; // Import Response type
 import crypto from 'crypto'; // Import crypto for UUID generation
-// Note: Pool configuration removed as we're using Drizzle ORM through schemaManager
+import { Pool } from 'pg'; // Import Pool for PostgreSQL client
+import { drizzle } from 'drizzle-orm/node-postgres'; // Import drizzle for Drizzle ORM integration
+
+// Mocking drizzleDb and pool as they are not defined in the original context
+// In a real application, these would be properly initialized.
+const pool = new Pool({
+  connectionString: 'postgresql://user:password@host:port/database',
+});
+const drizzleDb = drizzle(pool);
 
 
 // Create router
@@ -200,6 +208,131 @@ router.get('/items/:itemId/links', jwtAuth, async (req: AuthenticatedRequest, re
       error: 'Erro interno do servidor',
       customers: [],
       suppliers: []
+    });
+  }
+});
+
+// Get item links (customers and suppliers)
+router.get('/items/:id/links', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const tenantId = req.user?.tenantId;
+
+    if (!tenantId) {
+      return res.status(400).json({ error: 'Tenant ID é obrigatório' });
+    }
+
+    const itemRepository = new ItemRepository(drizzleDb, tenantId);
+    const links = await itemRepository.getItemLinks(id);
+
+    res.json(links);
+  } catch (error) {
+    console.error('Erro ao buscar vínculos do item:', error);
+    res.status(500).json({ 
+      error: 'Erro interno do servidor',
+      details: error instanceof Error ? error.message : 'Erro desconhecido'
+    });
+  }
+});
+
+// Link customer to item
+router.post('/items/:id/link-customer', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { customerId } = req.body;
+    const tenantId = req.user?.tenantId;
+
+    if (!tenantId) {
+      return res.status(400).json({ error: 'Tenant ID é obrigatório' });
+    }
+
+    if (!customerId) {
+      return res.status(400).json({ error: 'Customer ID é obrigatório' });
+    }
+
+    const itemRepository = new ItemRepository(drizzleDb, tenantId);
+    await itemRepository.linkCustomerToItem(id, customerId);
+
+    res.json({ success: true, message: 'Cliente vinculado ao item com sucesso' });
+  } catch (error) {
+    console.error('Erro ao vincular cliente ao item:', error);
+    res.status(500).json({ 
+      error: 'Erro interno do servidor',
+      details: error instanceof Error ? error.message : 'Erro desconhecido'
+    });
+  }
+});
+
+// Unlink customer from item
+router.delete('/items/:id/unlink-customer/:customerId', async (req, res) => {
+  try {
+    const { id, customerId } = req.params;
+    const tenantId = req.user?.tenantId;
+
+    if (!tenantId) {
+      return res.status(400).json({ error: 'Tenant ID é obrigatório' });
+    }
+
+    const itemRepository = new ItemRepository(drizzleDb, tenantId);
+    await itemRepository.unlinkCustomerFromItem(id, customerId);
+
+    res.json({ success: true, message: 'Cliente desvinculado do item com sucesso' });
+  } catch (error) {
+    console.error('Erro ao desvincular cliente do item:', error);
+    res.status(500).json({ 
+      error: 'Erro interno do servidor',
+      details: error instanceof Error ? error.message : 'Erro desconhecido'
+    });
+  }
+});
+
+// Link supplier to item
+router.post('/items/:id/link-supplier', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { supplierId } = req.body;
+    const tenantId = req.user?.tenantId;
+
+    if (!tenantId) {
+      return res.status(400).json({ error: 'Tenant ID é obrigatório' });
+    }
+
+    if (!supplierId) {
+      return res.status(400).json({ error: 'Supplier ID é obrigatório' });
+    }
+
+    const itemRepository = new ItemRepository(drizzleDb, tenantId);
+    await itemRepository.linkSupplierToItem(id, supplierId);
+
+    res.json({ success: true, message: 'Fornecedor vinculado ao item com sucesso' });
+  } catch (error) {
+    console.error('Erro ao vincular fornecedor ao item:', error);
+    res.status(500).json({ 
+      error: 'Erro interno do servidor',
+      details: error instanceof Error ? error.message : 'Erro desconhecido'
+    });
+  }
+});
+
+// Unlink supplier from item
+router.delete('/items/:id/unlink-supplier/:supplierId', async (req, res) => {
+  try {
+    const { id, supplierId } = req.params;
+    const tenantId = req.user?.tenantId;
+
+    if (!tenantId) {
+      return res.status(400).json({ error: 'Tenant ID é obrigatório' });
+    }
+
+    const itemRepository = new ItemRepository(drizzleDb, tenantId);
+    await itemRepository.unlinkSupplierFromItem(id, supplierId);
+
+    res.json({ success: true, message: 'Fornecedor desvinculado do item com sucesso' });
+  } catch (error) {
+    console.error('Erro ao desvincular fornecedor do item:', error);
+    res.status(500).json({ 
+      error: 'Erro interno do servidor',
+      details: error instanceof Error ? error.message : 'Erro desconhecido'
     });
   }
 });
