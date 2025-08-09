@@ -6,7 +6,8 @@ import { insertTicketSchema, insertTicketMessageSchema } from '@shared/schema';
 import { sendSuccess, sendError, sendValidationError } from "../../utils/standardResponse";
 import { mapFrontendToBackend } from "../../utils/fieldMapping";
 import { z } from "zod";
-import { trackTicketView, trackTicketEdit, trackTicketCreate, trackNoteView, trackNoteCreate } from '../../middleware/activityTrackingMiddleware';
+import { trackTicketView, trackTicketEdit, trackNoteView, trackNoteCreate } from '../../middleware/activityTrackingMiddleware';
+import { TicketController } from './application/controllers/TicketController';
 
 // Generate unique action number for internal actions
 async function generateActionNumber(pool: any, tenantId: string, ticketId: string): Promise<string> {
@@ -99,158 +100,14 @@ async function createCompleteAuditEntry(
 }
 
 const ticketsRouter = Router();
+const ticketController = new TicketController();
 
-// Get all tickets with pagination and filters
-ticketsRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
-  try {
-    if (!req.user?.tenantId) {
-      return res.status(400).json({ message: "User not associated with a tenant" });
-    }
-
-    const tenantId = req.user.tenantId;
-    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-
-    const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 50;
-    const status = req.query.status as string;
-    const priority = req.query.priority as string;
-    const assignedTo = req.query.assignedTo as string;
-
-    const offset = (page - 1) * limit;
-
-    // CORREÇÃO: Query otimizada com nomenclatura padronizada companies
-    let query = `
-      SELECT 
-        t.*,
-        -- Beneficiário (quem será atendido) 
-        COALESCE(
-          beneficiary.first_name || ' ' || beneficiary.last_name,
-          beneficiary.first_name,
-          beneficiary.email,
-          'Beneficiário não identificado'
-        ) as beneficiary_name,
-        -- Cliente (quem abriu o ticket)
-        COALESCE(
-          caller.first_name || ' ' || caller.last_name,
-          caller.first_name, 
-          caller.email,
-          'Cliente não identificado'
-        ) as caller_name,
-        -- Empresa (nomenclatura padronizada)
-        COALESCE(
-          comp.name,
-          comp.display_name,
-          'Empresa não informada'
-        ) as company_name,
-        comp.id as company_id,
-        -- Responsável
-        COALESCE(u.first_name || ' ' || u.last_name, 'Não atribuído') as assigned_name,
-        u.email as assigned_email
-      FROM ${schemaName}.tickets t
-      LEFT JOIN ${schemaName}.customers beneficiary ON t.beneficiary_id = beneficiary.id
-      LEFT JOIN ${schemaName}.customers caller ON t.caller_id = caller.id  
-      LEFT JOIN ${schemaName}.companies comp ON t.company_id = comp.id
-      LEFT JOIN public.users u ON t.assigned_to_id = u.id
-      WHERE t.tenant_id = $1
-    `;
-
-    const queryParams: any[] = [tenantId];
-    let paramIndex = 2;
-
-    if (status) {
-      query += ` AND t.status = $${paramIndex++}`;
-      queryParams.push(status);
-    }
-    if (priority) {
-      query += ` AND t.priority = $${paramIndex++}`;
-      queryParams.push(priority);
-    }
-    if (assignedTo) {
-      query += ` AND t.assigned_to_id = $${paramIndex++}`;
-      queryParams.push(assignedTo);
-    }
-
-    query += ` ORDER BY t.created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
-    queryParams.push(limit, offset);
-
-    const { pool } = await import('../../db');
-    const { rows: tickets } = await pool.query(query, queryParams);
-
-    // Get total count for pagination
-    const totalTicketsQuery = `SELECT COUNT(*) as total FROM ${schemaName}.tickets WHERE tenant_id = $1`;
-    const totalTicketsResult = await pool.query(totalTicketsQuery, [tenantId]);
-    const totalTickets = parseInt(totalTicketsResult.rows[0].total, 10);
-
-    return sendSuccess(res, {
-      tickets,
-      pagination: {
-        page,
-        limit,
-        total: totalTickets,
-        hasNextPage: (page * limit) < totalTickets,
-        hasPreviousPage: page > 1
-      },
-      filters: { status, priority, assignedTo }
-    }, "Tickets retrieved successfully");
-  } catch (error) {
-    const { logError } = await import('../../utils/logger');
-    logError('Error fetching tickets', error, { tenantId: req.user?.tenantId });
-    return sendError(res, error, "Failed to fetch tickets", 500);
-  }
-});
-
-// Get ticket by ID with messages
-ticketsRouter.get('/:id', jwtAuth, trackTicketView, async (req: AuthenticatedRequest, res) => {
-  try {
-    if (!req.user?.tenantId) {
-      return res.status(400).json({ message: "User not associated with a tenant" });
-    }
-
-    const tenantId = req.user.tenantId;
-    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-
-    // CORREÇÃO: Query aprimorada para incluir dados do cliente e empresa
-    const query = `
-      SELECT 
-        t.*,
-        -- Customer/Caller data
-        COALESCE(c.first_name || ' ' || c.last_name, c.email, caller_c.first_name || ' ' || caller_c.last_name, caller_c.email) as caller_name,
-        COALESCE(c.email, caller_c.email) as caller_email,
-        c.first_name as customer_first_name,
-        c.last_name as customer_last_name,
-        c.email as customer_email,
-        caller_c.first_name as caller_first_name,
-        caller_c.last_name as caller_last_name,
-        caller_c.email as caller_email,
-        -- Company data
-        COALESCE(comp.name, comp.display_name) as company_name,
-        comp.name as company_name,
-        -- Assigned user data
-        u.first_name as assigned_first_name,
-        u.last_name as assigned_last_name,
-        u.email as assigned_email
-      FROM ${schemaName}.tickets t
-      LEFT JOIN ${schemaName}.customers c ON t.beneficiary_id = c.id
-      LEFT JOIN ${schemaName}.customers caller_c ON t.caller_id = caller_c.id  
-      LEFT JOIN ${schemaName}.companies comp ON t.company_id = comp.id
-      LEFT JOIN public.users u ON t.assigned_to_id = u.id
-      WHERE t.tenant_id = $1 AND t.id = $2
-    `;
-
-    const { pool } = await import('../../db');
-    const ticketResult = await pool.query(query, [req.user.tenantId, req.params.id]);
-    const ticket = ticketResult.rows[0];
-    if (!ticket) {
-      return sendError(res, "Ticket not found", "Ticket not found", 404);
-    }
-
-    return sendSuccess(res, ticket, "Ticket retrieved successfully");
-  } catch (error) {
-    const { logError } = await import('../../utils/logger');
-    logError('Error fetching ticket', error, { ticketId: req.params.id, tenantId: req.user?.tenantId });
-    return sendError(res, error, "Failed to fetch ticket", 500);
-  }
-});
+// Using controllers instead of direct logic
+ticketsRouter.get('/', jwtAuth, ticketController.getTickets.bind(ticketController));
+ticketsRouter.post('/', jwtAuth, ticketController.createTicket.bind(ticketController));
+ticketsRouter.get('/:id', jwtAuth, ticketController.getTicketById.bind(ticketController));
+ticketsRouter.put('/:id', jwtAuth, ticketController.updateTicket.bind(ticketController));
+ticketsRouter.delete('/:id', jwtAuth, ticketController.deleteTicket.bind(ticketController));
 
 // Get urgent tickets (filtered from all tickets)
 ticketsRouter.get('/urgent', jwtAuth, async (req: AuthenticatedRequest, res) => {
@@ -1324,7 +1181,7 @@ ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, re
         content: newAction.description,
         description: newAction.description,
         workLog: newAction.work_log,
-        timeSpent: newAction.time_spent,
+        timeSpent: newAction.estimated_hours,
         status: 'active',
         time_spent: newAction.estimated_hours,
         start_time: newAction.start_time,

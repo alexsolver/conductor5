@@ -515,7 +515,7 @@
       {
         "type": "move_code",
         "description": "Resolver acoplamento: Repository contém possível lógica de negócio",
-        "target": "server/modules/materials-services/infrastructure/repositories/LPUCacheWarmer.ts",
+        "target": "server/modules/materials-services/infrastructure/repositories/LPUCacheWarmerRepository.ts",
         "steps": [
           "Identificar código acoplado",
           "Determinar camada correta para o código",
@@ -572,17 +572,6 @@
         ]
       },
       {
-        "type": "rename_file",
-        "description": "Padronizar nomenclatura: Repository LPUCacheWarmer deve terminar com 'Repository'",
-        "target": "server/modules/materials-services/infrastructure/repositories/LPUCacheWarmer.ts",
-        "steps": [
-          "Renomear arquivo seguindo padrão",
-          "Atualizar imports em outros arquivos",
-          "Atualizar nome da classe/interface",
-          "Verificar consistência com padrões do projeto"
-        ]
-      },
-      {
         "type": "create_directory",
         "description": "Criar interface I[Entity]Repository no domain e implementar",
         "target": "server/modules/materials-services/infrastructure/repositories/LPURepository.ts",
@@ -604,6 +593,18 @@
         "target": "server/modules/materials-services/infrastructure/repositories/SupplierRepository.ts",
         "steps": [
           "Criar interface I[Entity]Repository no domain e implementar"
+        ]
+      },
+      {
+        "type": "create_file",
+        "description": "Criar Repository com interface",
+        "target": "server/modules/materials-services/domain/ports/ILPUCacheWarmerRepository.ts",
+        "code": "import { ILPUCacheWarmer } from '../../domain/entities/ILPUCacheWarmer';\nimport { IILPUCacheWarmerRepository } from '../../domain/ports/IILPUCacheWarmerRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleILPUCacheWarmerRepository implements IILPUCacheWarmerRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<ILPUCacheWarmer | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<ILPUCacheWarmer[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: ILPUCacheWarmer): Promise<ILPUCacheWarmer> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<ILPUCacheWarmer>, tenantId: string): Promise<ILPUCacheWarmer | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
+        "steps": [
+          "Criar interface do Repository na camada Domain",
+          "Implementar Repository na camada Infrastructure",
+          "Adicionar injeção de dependência",
+          "Integrar com Use Cases"
         ]
       }
     ],
@@ -672,20 +673,9 @@
         ]
       },
       {
-        "type": "rename_file",
-        "description": "Padronizar nomenclatura: Repository index deve terminar com 'Repository'",
-        "target": "server/modules/saas-admin/infrastructure/repositories/index.ts",
-        "steps": [
-          "Renomear arquivo seguindo padrão",
-          "Atualizar imports em outros arquivos",
-          "Atualizar nome da classe/interface",
-          "Verificar consistência com padrões do projeto"
-        ]
-      },
-      {
         "type": "create_directory",
         "description": "Criar interface I[Entity]Repository no domain e implementar",
-        "target": "server/modules/saas-admin/infrastructure/repositories/index.ts",
+        "target": "server/modules/saas-admin/infrastructure/repositories/indexRepository.ts",
         "steps": [
           "Criar interface I[Entity]Repository no domain e implementar"
         ]
@@ -703,7 +693,7 @@
         ]
       }
     ],
-    "estimatedTime": "5h"
+    "estimatedTime": "4h"
   },
   {
     "priority": "immediate",
@@ -758,25 +748,15 @@
         ]
       },
       {
-        "type": "rename_file",
-        "description": "Padronizar nomenclatura: Nome da classe SkillEntity não corresponde ao arquivo Skill",
-        "target": "server/modules/technical-skills/domain/entities/Skill.ts",
+        "type": "create_file",
+        "description": "Criar Repository com interface",
+        "target": "server/modules/technical-skills/infrastructure/repositories/SkillEntityRepository.ts",
+        "code": "import { SkillEntity } from '../../domain/entities/SkillEntity';\nimport { ISkillEntityRepository } from '../../domain/ports/ISkillEntityRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleSkillEntityRepository implements ISkillEntityRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<SkillEntity | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<SkillEntity[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: SkillEntity): Promise<SkillEntity> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<SkillEntity>, tenantId: string): Promise<SkillEntity | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
         "steps": [
-          "Renomear arquivo seguindo padrão",
-          "Atualizar imports em outros arquivos",
-          "Atualizar nome da classe/interface",
-          "Verificar consistência com padrões do projeto"
-        ]
-      },
-      {
-        "type": "rename_file",
-        "description": "Padronizar nomenclatura: Repository DrizzleUserSkillRepository_FIXED deve terminar com 'Repository'",
-        "target": "server/modules/technical-skills/infrastructure/repositories/DrizzleUserSkillRepository_FIXED.ts",
-        "steps": [
-          "Renomear arquivo seguindo padrão",
-          "Atualizar imports em outros arquivos",
-          "Atualizar nome da classe/interface",
-          "Verificar consistência com padrões do projeto"
+          "Criar interface do Repository na camada Domain",
+          "Implementar Repository na camada Infrastructure",
+          "Adicionar injeção de dependência",
+          "Integrar com Use Cases"
         ]
       }
     ],
@@ -811,18 +791,19 @@
         ]
       },
       {
-        "type": "rename_file",
-        "description": "Padronizar nomenclatura: Nome da classe ScheduleEntity não corresponde ao arquivo Schedule",
-        "target": "server/modules/schedule-management/domain/entities/Schedule.ts",
+        "type": "create_file",
+        "description": "Criar Repository com interface",
+        "target": "server/modules/schedule-management/infrastructure/repositories/ScheduleEntityRepository.ts",
+        "code": "import { ScheduleEntity } from '../../domain/entities/ScheduleEntity';\nimport { IScheduleEntityRepository } from '../../domain/ports/IScheduleEntityRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleScheduleEntityRepository implements IScheduleEntityRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<ScheduleEntity | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<ScheduleEntity[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: ScheduleEntity): Promise<ScheduleEntity> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<ScheduleEntity>, tenantId: string): Promise<ScheduleEntity | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
         "steps": [
-          "Renomear arquivo seguindo padrão",
-          "Atualizar imports em outros arquivos",
-          "Atualizar nome da classe/interface",
-          "Verificar consistência com padrões do projeto"
+          "Criar interface do Repository na camada Domain",
+          "Implementar Repository na camada Infrastructure",
+          "Adicionar injeção de dependência",
+          "Integrar com Use Cases"
         ]
       }
     ],
-    "estimatedTime": "2h"
+    "estimatedTime": "3h"
   },
   {
     "priority": "immediate",
@@ -853,33 +834,23 @@
         ]
       },
       {
-        "type": "rename_file",
-        "description": "Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'",
-        "target": "server/modules/shared/application/use-cases/index.ts",
-        "steps": [
-          "Renomear arquivo seguindo padrão",
-          "Atualizar imports em outros arquivos",
-          "Atualizar nome da classe/interface",
-          "Verificar consistência com padrões do projeto"
-        ]
-      },
-      {
-        "type": "rename_file",
-        "description": "Padronizar nomenclatura: Repository index deve terminar com 'Repository'",
-        "target": "server/modules/shared/infrastructure/repositories/index.ts",
-        "steps": [
-          "Renomear arquivo seguindo padrão",
-          "Atualizar imports em outros arquivos",
-          "Atualizar nome da classe/interface",
-          "Verificar consistência com padrões do projeto"
-        ]
-      },
-      {
         "type": "create_directory",
         "description": "Criar interface I[Entity]Repository no domain e implementar",
-        "target": "server/modules/shared/infrastructure/repositories/index.ts",
+        "target": "server/modules/shared/infrastructure/repositories/indexRepository.ts",
         "steps": [
           "Criar interface I[Entity]Repository no domain e implementar"
+        ]
+      },
+      {
+        "type": "create_file",
+        "description": "Criar Repository com interface",
+        "target": "server/modules/shared/domain/ports/IindexRepository.ts",
+        "code": "import { Iindex } from '../../domain/entities/Iindex';\nimport { IIindexRepository } from '../../domain/ports/IIindexRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleIindexRepository implements IIindexRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<Iindex | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<Iindex[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: Iindex): Promise<Iindex> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<Iindex>, tenantId: string): Promise<Iindex | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
+        "steps": [
+          "Criar interface do Repository na camada Domain",
+          "Implementar Repository na camada Infrastructure",
+          "Adicionar injeção de dependência",
+          "Integrar com Use Cases"
         ]
       }
     ],
@@ -1019,14 +990,6 @@
     "module": "tickets",
     "actions": [
       {
-        "type": "create_directory",
-        "description": "Criar controllers na camada Application e usar nas rotas",
-        "target": "server/modules/tickets/routes.ts",
-        "steps": [
-          "Criar controllers na camada Application e usar nas rotas"
-        ]
-      },
-      {
         "type": "move_code",
         "description": "Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados",
         "target": "server/modules/tickets/routes.ts",
@@ -1068,20 +1031,9 @@
           "Usar injeção de dependência",
           "Remover import direto da dependência externa"
         ]
-      },
-      {
-        "type": "rename_file",
-        "description": "Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'",
-        "target": "server/modules/people/application/use-cases/index.ts",
-        "steps": [
-          "Renomear arquivo seguindo padrão",
-          "Atualizar imports em outros arquivos",
-          "Atualizar nome da classe/interface",
-          "Verificar consistência com padrões do projeto"
-        ]
       }
     ],
-    "estimatedTime": "2h"
+    "estimatedTime": "1h"
   },
   {
     "priority": "low",
@@ -1120,59 +1072,5 @@
       }
     ],
     "estimatedTime": "45min"
-  },
-  {
-    "priority": "low",
-    "module": "custom-fields",
-    "actions": [
-      {
-        "type": "rename_file",
-        "description": "Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'",
-        "target": "server/modules/custom-fields/application/use-cases/index.ts",
-        "steps": [
-          "Renomear arquivo seguindo padrão",
-          "Atualizar imports em outros arquivos",
-          "Atualizar nome da classe/interface",
-          "Verificar consistência com padrões do projeto"
-        ]
-      }
-    ],
-    "estimatedTime": "15min"
-  },
-  {
-    "priority": "low",
-    "module": "field-layouts",
-    "actions": [
-      {
-        "type": "rename_file",
-        "description": "Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'",
-        "target": "server/modules/field-layouts/application/use-cases/index.ts",
-        "steps": [
-          "Renomear arquivo seguindo padrão",
-          "Atualizar imports em outros arquivos",
-          "Atualizar nome da classe/interface",
-          "Verificar consistência com padrões do projeto"
-        ]
-      }
-    ],
-    "estimatedTime": "15min"
-  },
-  {
-    "priority": "low",
-    "module": "tenant-admin",
-    "actions": [
-      {
-        "type": "rename_file",
-        "description": "Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'",
-        "target": "server/modules/tenant-admin/application/use-cases/index.ts",
-        "steps": [
-          "Renomear arquivo seguindo padrão",
-          "Atualizar imports em outros arquivos",
-          "Atualizar nome da classe/interface",
-          "Verificar consistência com padrões do projeto"
-        ]
-      }
-    ],
-    "estimatedTime": "15min"
   }
 ]

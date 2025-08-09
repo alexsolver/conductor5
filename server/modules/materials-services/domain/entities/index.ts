@@ -2,97 +2,219 @@
 
 // Removidos imports de infrastructure - Domain deve ser independente
 
+// Domain entities should not depend on ORM libraries
+
 export interface Item {
   id: string;
   tenantId: string;
-  active: boolean;
-  type: string;
   name: string;
-  integrationCode?: string;
   description?: string;
-  measurementUnit?: string;
-  maintenancePlan?: string;
-
-  defaultChecklist?: any;
-  status?: string;
+  unitPrice: number;
+  category: string;
+  isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
-  createdBy?: string;
-  updatedBy?: string;
 }
 
-export interface ItemAttachment {
-  id: string;
+export interface NewItem {
   tenantId: string;
-  itemId: string;
-  fileName: string;
-  fileSize: number;
-  fileType: string;
-  fileUrl: string;
+  name: string;
   description?: string;
-  createdAt: Date;
-  createdBy?: string;
-}
-
-export interface ItemLink {
-  id: string;
-  tenantId: string;
-  parentItemId: string;
-  linkedItemId?: string;
-  linkedCustomerId?: string;
-  linkedSupplierId?: string;
-  linkType: 'item_item' | 'item_customer' | 'item_supplier';
-  relationship?: string;
-  customerAlias?: string;
-  customerSku?: string;
-  customerBarcode?: string;
-  customerQrCode?: string;
-  isAsset?: boolean;
-  supplierPartNumber?: string;
-  supplierDescription?: string;
-  supplierQrCode?: string;
-  supplierBarcode?: string;
-  createdAt: Date;
-  createdBy?: string;
+  unitPrice: number;
+  category: string;
+  isActive?: boolean;
 }
 
 export interface Supplier {
   id: string;
   tenantId: string;
-  active: boolean;
   name: string;
-  tradeName?: string;
-  document: string;
-  email?: string;
-  phone?: string;
-  address?: string;
-  city?: string;
-  state?: string;
-  country?: string;
-  zipCode?: string;
-  website?: string;
-  contactPerson?: string;
-  paymentTerms?: string;
+  contactInfo?: string;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface NewSupplier {
+  tenantId: string;
+  name: string;
+  contactInfo?: string;
+  isActive?: boolean;
+}
+
+export interface SupplierItem {
+  id: string;
+  supplierId: string;
+  itemId: string;
+  supplierPrice: number;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface NewSupplierItem {
+  supplierId: string;
+  itemId: string;
+  supplierPrice: number;
+  isActive?: boolean;
+}
+
+export interface Stock {
+  id: string;
+  tenantId: string;
+  itemId: string;
+  quantity: number;
+  minQuantity: number;
+  location?: string;
+  updatedAt: Date;
+}
+
+export interface NewStock {
+  tenantId: string;
+  itemId: string;
+  quantity: number;
+  minQuantity: number;
+  location?: string;
+}
+
+export interface AssetManagement {
+  id: string;
+  tenantId: string;
+  itemId: string;
+  assetTag: string;
+  status: string;
+  location?: string;
+  assignedTo?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface NewAssetManagement {
+  tenantId: string;
+  itemId: string;
+  assetTag: string;
+  status: string;
+  location?: string;
+  assignedTo?: string;
+}
+
+export interface Compliance {
+  id: string;
+  tenantId: string;
+  itemId: string;
+  complianceType: string;
+  status: string;
+  validUntil?: Date;
   notes?: string;
   createdAt: Date;
   updatedAt: Date;
-  createdBy?: string;
-  updatedBy?: string;
 }
 
-export interface SupplierCatalog {
+export interface NewCompliance {
+  tenantId: string;
+  itemId: string;
+  complianceType: string;
+  status: string;
+  validUntil?: Date;
+  notes?: string;
+}
+
+export interface CustomerItemMapping {
   id: string;
   tenantId: string;
-  supplierId: string;
+  customerId: string;
   itemId: string;
-  supplierItemCode?: string;
-  supplierDescription?: string;
-  unitPrice?: number;
-  currency?: string;
-  leadTime?: number;
-  minimumOrderQuantity?: number;
-  validFrom?: Date;
-  validTo?: Date;
+  customerSpecificName?: string;
+  customerSpecificPrice?: number;
+  isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface NewCustomerItemMapping {
+  tenantId: string;
+  customerId: string;
+  itemId: string;
+  customerSpecificName?: string;
+  customerSpecificPrice?: number;
+  isActive?: boolean;
+}
+
+export interface ItemHierarchy {
+  id: string;
+  tenantId: string;
+  parentItemId?: string;
+  childItemId: string;
+  hierarchyType: string;
+  createdAt: Date;
+}
+
+export interface NewItemHierarchy {
+  tenantId: string;
+  parentItemId?: string;
+  childItemId: string;
+  hierarchyType: string;
+}
+
+export interface ItemGroup {
+  id: string;
+  tenantId: string;
+  name: string;
+  description?: string;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface NewItemGroup {
+  tenantId: string;
+  name: string;
+  description?: string;
+  isActive?: boolean;
+}
+
+export interface TicketMaterial {
+  id: string;
+  tenantId: string;
+  ticketId: string;
+  itemId: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+  status: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface NewTicketMaterial {
+  tenantId: string;
+  ticketId: string;
+  itemId: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+  status: string;
+}
+
+export interface LPU {
+  id: string;
+  tenantId: string;
+  itemId: string;
+  basePrice: number;
+  margin: number;
+  finalPrice: number;
+  validFrom: Date;
+  validUntil?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface NewLPU {
+  tenantId: string;
+  itemId: string;
+  basePrice: number;
+  margin: number;
+  finalPrice: number;
+  validFrom: Date;
+  validUntil?: Date;
 }
