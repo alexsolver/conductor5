@@ -503,7 +503,8 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                             deletePlannedMutation.mutate(itemId);
                           }}
                           disabled={deletePlannedMutation.isPending}
-                          className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                          className={`h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 ${deletePlannedMutation.isPending ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          style={{ isolation: 'isolate' }}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -632,6 +633,9 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                             console.log('🗑️ Deleting consumed item:', itemId);
                             deleteConsumedMutation.mutate(itemId);
                           }}
+                          disabled={deleteConsumedMutation.isPending}
+                          className={`${deleteConsumedMutation.isPending ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          style={{ isolation: 'isolate' }}
                         >
                           <Trash2 className="h-4 w-4 text-red-500" />
                         </Button>
