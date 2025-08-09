@@ -1211,24 +1211,45 @@ export class TimecardController {
   }
 
   async getOvertimeReport(req: AuthenticatedRequest, res: Response) {
+    console.log('[OVERTIME-REPORT] Route hit - starting...');
+
     try {
+      // Force JSON response headers early
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Cache-Control', 'no-cache');
+
       const { period } = req.params;
       const { startDate: filterStartDate, endDate: filterEndDate, employeeId } = req.query;
       const tenantId = req.user?.tenantId;
       const userId = req.user?.id;
 
+      console.log('[OVERTIME-REPORT] Auth check:', {
+        hasUser: !!req.user,
+        userId: userId?.slice(-8),
+        tenantId: tenantId?.slice(-8),
+        period,
+        filters: { startDate: filterStartDate, endDate: filterEndDate, employeeId }
+      });
+
       if (!tenantId || !userId) {
+        console.log('[OVERTIME-REPORT] Missing auth data');
         return res.status(400).json({
           success: false,
-          error: 'Tenant ID e User ID são obrigatórios'
+          error: 'Dados de autenticação obrigatórios',
+          message: 'Tenant ID e User ID são obrigatórios'
         });
       }
 
-      console.log('[OVERTIME-REPORT] Generating report with filters:', {
-        period,
-        userId: userId.slice(-8),
-        filters: { startDate: filterStartDate, endDate: filterEndDate, employeeId }
-      });
+      if (!period || !/^\d{4}-\d{2}$/.test(period)) {
+        console.log('[OVERTIME-REPORT] Invalid period format:', period);
+        return res.status(400).json({
+          success: false,
+          error: 'Formato de período inválido',
+          message: 'Use o formato YYYY-MM'
+        });
+      }
+
+      console.log('[OVERTIME-REPORT] Generating report for period:', period, 'user:', userId);
 
       // Parse period (formato: YYYY-MM) - base date range
       const [year, month] = period.split('-').map(Number);
@@ -1263,41 +1284,61 @@ export class TimecardController {
           eq(timecardEntries.userId, targetUserId),
           eq(timecardEntries.tenantId, tenantId),
           eq(timecardEntries.status, 'approved'),
-          sql`DATE(${timecardEntries.checkIn}) >= ${startDate.toISOString().split('T')[0]}`,
-          sql`DATE(${timecardEntries.checkIn}) <= ${endDate.toISOString().split('T')[0]}`
+          sql`(
+            (${timecardEntries.checkIn} IS NOT NULL AND DATE(${timecardEntries.checkIn}) >= ${startDate.toISOString().split('T')[0]} AND DATE(${timecardEntries.checkIn}) <= ${endDate.toISOString().split('T')[0]})
+            OR
+            (${timecardEntries.checkIn} IS NULL AND DATE(${timecardEntries.createdAt}) >= ${startDate.toISOString().split('T')[0]} AND DATE(${timecardEntries.createdAt}) <= ${endDate.toISOString().split('T')[0]})
+          )`
         ));
+
+      console.log('[OVERTIME-REPORT] Found records:', records.length);
 
       // Calcular horas extras (acima de 8h por dia)
       let totalOvertimeHours = 0;
       const overtimeDays = [];
+      const processedRecords = [];
 
       records.forEach(record => {
         if (record.checkIn && record.checkOut) {
           const checkInTime = new Date(record.checkIn);
           const checkOutTime = new Date(record.checkOut);
           const hoursWorked = (checkOutTime.getTime() - checkInTime.getTime()) / (1000 * 60 * 60);
+          let overtime = 0;
 
           if (hoursWorked > 8) {
-            const overtime = hoursWorked - 8;
+            overtime = hoursWorked - 8;
             totalOvertimeHours += overtime;
             overtimeDays.push({
               date: checkInTime.toISOString().split('T')[0],
               overtimeHours: overtime.toFixed(2)
             });
           }
+          processedRecords.push({
+            date: checkInTime.toLocaleDateString('pt-BR'),
+            checkIn: checkInTime.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+            checkOut: checkOutTime.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+            hoursWorked: hoursWorked.toFixed(2),
+            overtimeHours: overtime > 0 ? overtime.toFixed(2) : '0.00',
+            status: record.status
+          });
         }
       });
 
+      const totalDaysInMonth = new Date(year, month, 0).getDate();
+      const averageOvertimePerDay = totalDaysInMonth > 0 ? (totalOvertimeHours / totalDaysInMonth).toFixed(2) : '0.00';
+
       const overtimeReport = {
         period,
-        totalOvertimeHours: totalOvertimeHours.toFixed(2),
-        totalOvertimeValue: (totalOvertimeHours * 25.5).toFixed(2), // R$ 25,50 por hora extra
-        averageOvertimePerDay: (totalOvertimeHours / new Date(year, month, 0).getDate()).toFixed(2),
-        overtimeDays,
+        records: processedRecords,
+        summary: {
+          totalOvertimeHours: totalOvertimeHours.toFixed(2),
+          totalOvertimeValue: (totalOvertimeHours * 25.5).toFixed(2), // R$ 25,50 por hora extra
+          averageOvertimePerDay: averageOvertimePerDay,
+        },
         employeeDetails: [
           {
-            userId,
-            userName: 'Alex Santos',
+            userId: targetUserId,
+            userName: 'Nome do Usuário', // Precisaria buscar o nome do usuário
             overtimeHours: totalOvertimeHours.toFixed(2),
             overtimeValue: (totalOvertimeHours * 25.5).toFixed(2),
             overtimeDays: overtimeDays.length
@@ -1305,16 +1346,193 @@ export class TimecardController {
         ]
       };
 
-      res.json({
+      console.log('[OVERTIME-REPORT] Final report summary:', overtimeReport.summary);
+
+      // Force JSON response with explicit headers
+      res.setHeader('Content-Type', 'application/json');
+      res.status(200).json({
         success: true,
         ...overtimeReport
       });
     } catch (error: any) {
       console.error('[TIMECARD-CONTROLLER] Error generating overtime report:', error);
+      res.setHeader('Content-Type', 'application/json');
       res.status(500).json({
         success: false,
         error: 'Erro ao gerar relatório de horas extras',
-        details: error.message
+        details: error?.message || 'Unknown error'
+      });
+    }
+  }
+
+  async getComplianceReport(req: AuthenticatedRequest, res: Response) {
+    console.log('[COMPLIANCE-REPORT] Route hit - starting...');
+
+    try {
+      // Force JSON response headers early
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Cache-Control', 'no-cache');
+
+      const { period } = req.params;
+      const { startDate: filterStartDate, endDate: filterEndDate, employeeId } = req.query;
+      const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
+
+      console.log('[COMPLIANCE-REPORT] Auth check:', {
+        hasUser: !!req.user,
+        userId: userId?.slice(-8),
+        tenantId: tenantId?.slice(-8),
+        period,
+        filters: { startDate: filterStartDate, endDate: filterEndDate, employeeId }
+      });
+
+      if (!tenantId || !userId) {
+        console.log('[COMPLIANCE-REPORT] Missing auth data');
+        return res.status(400).json({
+          success: false,
+          error: 'Dados de autenticação obrigatórios',
+          message: 'Tenant ID e User ID são obrigatórios'
+        });
+      }
+
+      if (!period || !/^\d{4}-\d{2}$/.test(period)) {
+        console.log('[COMPLIANCE-REPORT] Invalid period format:', period);
+        return res.status(400).json({
+          success: false,
+          error: 'Formato de período inválido',
+          message: 'Use o formato YYYY-MM'
+        });
+      }
+
+      console.log('[COMPLIANCE-REPORT] Generating report for period:', period, 'user:', userId);
+
+      // Parse period (formato: YYYY-MM) - base date range
+      const [year, month] = period.split('-').map(Number);
+      let startDate = new Date(year, month - 1, 1);
+      let endDate = new Date(year, month, 0, 23, 59, 59);
+
+      // Override with filter dates if provided
+      if (filterStartDate && typeof filterStartDate === 'string') {
+        startDate = new Date(filterStartDate + 'T00:00:00');
+        console.log('[COMPLIANCE-REPORT] Using filter start date:', startDate.toISOString());
+      }
+      if (filterEndDate && typeof filterEndDate === 'string') {
+        endDate = new Date(filterEndDate + 'T23:59:59');
+        console.log('[COMPLIANCE-REPORT] Using filter end date:', endDate.toISOString());
+      }
+
+      // Determine target user ID (for admin users to see other employees)
+      let targetUserId = userId;
+      if (employeeId && typeof employeeId === 'string' && employeeId !== 'todos') {
+        targetUserId = employeeId;
+        console.log('[COMPLIANCE-REPORT] Filtering for specific employee:', targetUserId.slice(-8));
+      }
+
+      console.log('[COMPLIANCE-REPORT] Date range:', startDate.toISOString(), 'to', endDate.toISOString());
+
+      // Buscar registros do período
+      const records = await db
+        .select()
+        .from(timecardEntries)
+        .where(and(
+          eq(timecardEntries.userId, targetUserId),
+          eq(timecardEntries.tenantId, tenantId),
+          inArray(timecardEntries.status, ['pending', 'approved']),
+          sql`(
+            (${timecardEntries.checkIn} IS NOT NULL AND DATE(${timecardEntries.checkIn}) >= ${startDate.toISOString().split('T')[0]} AND DATE(${timecardEntries.checkIn}) <= ${endDate.toISOString().split('T')[0]})
+            OR
+            (${timecardEntries.checkIn} IS NULL AND DATE(${timecardEntries.createdAt}) >= ${startDate.toISOString().split('T')[0]} AND DATE(${timecardEntries.createdAt}) <= ${endDate.toISOString().split('T')[0]})
+          )`
+        ));
+
+      console.log('[COMPLIANCE-REPORT] Found records:', records.length);
+
+      // Análise de compliance
+      let totalRecords = records.length;
+      let consistentRecords = 0;
+      let issuesFound = 0;
+      let highSeverityIssues = 0;
+
+      const processedData = [];
+
+      records.forEach(record => {
+        let isConsistent = true;
+        let recordIssues = [];
+
+        // Validações de compliance
+        if (!record.checkIn) {
+          isConsistent = false;
+          recordIssues.push('Sem horário de entrada');
+          highSeverityIssues++;
+        }
+
+        if (record.checkIn && !record.checkOut) {
+          recordIssues.push('Registro em andamento');
+        }
+
+        if (record.checkIn && record.checkOut) {
+          const workMinutes = (new Date(record.checkOut).getTime() - new Date(record.checkIn).getTime()) / (1000 * 60);
+
+          // Jornada muito longa
+          if (workMinutes > 960) { // >16h
+            isConsistent = false;
+            recordIssues.push('Jornada excessivamente longa (>16h)');
+            highSeverityIssues++;
+          }
+
+          // Jornada sem pausa obrigatória
+          if (workMinutes > 360 && !record.breakStart) { // >6h sem pausa
+            isConsistent = false;
+            recordIssues.push('Jornada >6h sem pausa obrigatória');
+            issuesFound++;
+          }
+        }
+
+        if (isConsistent) {
+          consistentRecords++;
+        } else {
+          issuesFound++;
+        }
+
+        processedData.push({
+          date: record.checkIn ? new Date(record.checkIn).toLocaleDateString('pt-BR') : 'N/A',
+          status: record.status === 'approved' ? 'Aprovado' :
+                  record.status === 'pending' ? 'Pendente' : 'Inconsistente',
+          isConsistent,
+          issues: recordIssues,
+          checkIn: record.checkIn ? new Date(record.checkIn).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '--',
+          checkOut: record.checkOut ? new Date(record.checkOut).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '--'
+        });
+      });
+
+      const complianceRate = totalRecords > 0 ? Math.round((consistentRecords / totalRecords) * 100) : 100;
+
+      const complianceReport = {
+        period,
+        data: processedData,
+        summary: {
+          complianceRate: `${complianceRate}%`,
+          totalRecords,
+          issuesFound,
+          highSeverityIssues
+        }
+      };
+
+      console.log('[COMPLIANCE-REPORT] Final report summary:', complianceReport.summary);
+
+      // Force JSON response with explicit headers
+      res.setHeader('Content-Type', 'application/json');
+      res.status(200).json({
+        success: true,
+        ...complianceReport
+      });
+    } catch (error: any) {
+      console.error('[TIMECARD-CONTROLLER] Error generating compliance report:', error);
+      res.setHeader('Content-Type', 'application/json');
+      res.status(500).json({
+        success: false,
+        error: 'Erro ao gerar relatório de compliance',
+        details: error?.message || 'Unknown error'
       });
     }
   }
