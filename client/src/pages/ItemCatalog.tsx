@@ -115,6 +115,7 @@ interface Item {
   suppliersCount?: number;
   linkedCompanies?: { id: string; name: string }[];
   linkedSuppliers?: { id: string; name: string }[];
+  linkedChildren?: { id: string; name: string }[]; // Assumed field for linked children in edit view
 }
 
 const itemSchema = z.object({
@@ -215,20 +216,20 @@ export default function ItemCatalog() {
       try {
         console.log(`🔍 [FRONTEND] Buscando vínculos para item: ${selectedItem.id}`);
         const response = await apiRequest('GET', `/api/materials-services/items/${selectedItem.id}/links`);
-        
+
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
-        
+
         const result = await response.json();
         console.log('🔗 [FRONTEND] Links carregados:', result);
-        
+
         // Validação da estrutura de dados
         const validatedData = {
           customers: Array.isArray(result?.data?.customers) ? result.data.customers : [],
           suppliers: Array.isArray(result?.data?.suppliers) ? result.data.suppliers : []
         };
-        
+
         console.log(`✅ [FRONTEND] Dados validados: ${validatedData.customers.length} empresas, ${validatedData.suppliers.length} fornecedores`);
         return validatedData;
       } catch (error) {
@@ -278,6 +279,10 @@ export default function ItemCatalog() {
   const updateItemMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: z.infer<typeof itemSchema> }) => {
       const response = await apiRequest('PUT', `/api/materials-services/items/${id}`, data);
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Erro ao atualizar item');
+      }
       return response.json();
     },
     onSuccess: () => {
@@ -289,10 +294,10 @@ export default function ItemCatalog() {
       });
       setCurrentView('item-details');
     },
-    onError: () => {
+    onError: (error: Error) => {
       toast({
         title: "Erro ao atualizar item",
-        description: "Tente novamente mais tarde.",
+        description: error.message || "Tente novamente mais tarde.",
         variant: "destructive",
       });
     },
@@ -301,6 +306,10 @@ export default function ItemCatalog() {
   const deleteItemMutation = useMutation({
     mutationFn: async (id: string) => {
       const response = await apiRequest('DELETE', `/api/materials-services/items/${id}`);
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Erro ao excluir item');
+      }
       return response.json();
     },
     onSuccess: () => {
@@ -310,10 +319,10 @@ export default function ItemCatalog() {
         description: "O item foi removido do catálogo.",
       });
     },
-    onError: () => {
+    onError: (error: Error) => {
       toast({
         title: "Erro ao excluir item",
-        description: "Tente novamente mais tarde.",
+        description: error.message || "Tente novamente mais tarde.",
         variant: "destructive",
       });
     },
@@ -377,7 +386,7 @@ export default function ItemCatalog() {
   const onSubmitItem = async (data: z.infer<typeof itemSchema>) => {
     if (selectedItem && currentView === 'item-edit') {
       console.log('🔧 [FRONTEND] Submitting item update with data:', data);
-      
+
       // Logic to update item and its hierarchical links
       try {
         const updatePayload = {
@@ -388,20 +397,20 @@ export default function ItemCatalog() {
         console.log('🔧 [FRONTEND] Update payload:', updatePayload);
 
         const updateResponse = await apiRequest('PUT', `/api/materials-services/items/${selectedItem.id}`, updatePayload);
-        
+
         if (!updateResponse.ok) {
           const errorData = await updateResponse.json();
           throw new Error(errorData.message || 'Failed to update item');
         }
-        
+
         toast({ 
           title: "Item atualizado", 
           description: "Informações e vínculos hierárquicos salvos com sucesso." 
         });
-        
+
         queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items"] });
         queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items", selectedItem.id, "links"] });
-        
+
         setCurrentView('item-details');
       } catch (error) {
         console.error('❌ [FRONTEND] Update error:', error);
@@ -1162,7 +1171,7 @@ export default function ItemCatalog() {
                 </div>
               </CardContent>
             </Card>
-          
+
             <Card>
               <CardHeader>
                 <CardTitle>Vínculos com Empresas e Fornecedores</CardTitle>
@@ -1183,11 +1192,11 @@ export default function ItemCatalog() {
                         </Badge>
                         <Select
                           onValueChange={async (companyId) => {
-                            if (!selectedItem?.id || !companyId || companyId === "none") return;
+                            if (!selectedItem?.id || !companyId || companyId === "select-company") return;
 
                             try {
                               console.log(`🔗 [FRONTEND] Vinculando empresa ${companyId} ao item ${selectedItem.id}`);
-                              
+
                               const response = await fetch(`/api/materials-services/items/${selectedItem.id}/link-customer`, {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
@@ -1216,24 +1225,21 @@ export default function ItemCatalog() {
                           value="" // Always reset to allow multiple selections
                         >
                           <SelectTrigger>
-                            <SelectValue placeholder="+ Vincular Empresa" />
+                            <SelectValue placeholder="Selecione uma empresa" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="none">Selecione uma empresa...</SelectItem>
-                            {companies.filter(company => 
+                            <SelectItem value="select-company">Selecione uma empresa</SelectItem>
+                            {companies.filter((company: any) => 
                               !itemLinks?.customers?.some((linked: any) => linked.id === company.id)
-                            ).map((company) => (
+                            ).map((company: any) => (
                               <SelectItem key={company.id} value={company.id}>
-                                <div className="flex items-center gap-2">
-                                  <Building className="h-4 w-4 text-blue-600" />
-                                  {company.name}
-                                </div>
+                                {company.name}
                               </SelectItem>
                             ))}
-                            {companies.filter(company => 
+                            {companies.filter((company: any) => 
                               !itemLinks?.customers?.some((linked: any) => linked.id === company.id)
                             ).length === 0 && (
-                              <SelectItem value="none" disabled>
+                              <SelectItem value="select-company" disabled>
                                 Todas as empresas já estão vinculadas
                               </SelectItem>
                             )}
@@ -1262,7 +1268,7 @@ export default function ItemCatalog() {
 
                               try {
                                 console.log(`🗑️ [FRONTEND] Desvinculando empresa ${company.id} do item ${selectedItem.id}`);
-                                
+
                                 const response = await fetch(`/api/materials-services/items/${selectedItem.id}/unlink-customer/${company.id}`, {
                                   method: 'DELETE'
                                 });
@@ -1314,7 +1320,7 @@ export default function ItemCatalog() {
                       <h3 className="text-lg font-medium">Fornecedores Vinculados</h3>
                       <Select
                         onValueChange={async (supplierId) => {
-                          if (!selectedItem?.id || !supplierId || supplierId === "none") return;
+                          if (!selectedItem?.id || !supplierId || supplierId === "select-supplier") return;
 
                           try {
                             const response = await fetch(`/api/materials-services/items/${selectedItem.id}/link-supplier`, {
@@ -1330,12 +1336,14 @@ export default function ItemCatalog() {
                               });
                               refetchItemLinks();
                             } else {
-                              throw new Error('Falha ao vincular fornecedor');
+                              const errorData = await response.json();
+                              throw new Error(errorData.message || 'Falha ao vincular fornecedor');
                             }
                           } catch (error) {
+                            console.error('❌ [FRONTEND] Erro ao vincular fornecedor:', error);
                             toast({
                               title: "Erro",
-                              description: "Erro ao vincular fornecedor",
+                              description: error instanceof Error ? error.message : "Erro ao vincular fornecedor",
                               variant: "destructive"
                             });
                           }
@@ -1346,14 +1354,21 @@ export default function ItemCatalog() {
                           <SelectValue placeholder="Vincular Fornecedor" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="none">Selecione um fornecedor...</SelectItem>
-                          {suppliers.filter(supplier => 
+                          <SelectItem value="select-supplier">Selecione um fornecedor</SelectItem>
+                          {suppliers?.filter((supplier: any) => 
                             !itemLinks?.suppliers?.some((linked: any) => linked.id === supplier.id)
-                          ).map((supplier) => (
+                          ).map((supplier: any) => (
                             <SelectItem key={supplier.id} value={supplier.id}>
                               {supplier.name}
                             </SelectItem>
                           ))}
+                          {suppliers?.filter((supplier: any) => 
+                            !itemLinks?.suppliers?.some((linked: any) => linked.id === supplier.id)
+                          ).length === 0 && (
+                            <SelectItem value="select-supplier" disabled>
+                              Todos os fornecedores já estão vinculados
+                            </SelectItem>
+                          )}
                         </SelectContent>
                       </Select>
                     </div>
@@ -1380,12 +1395,14 @@ export default function ItemCatalog() {
                                   });
                                   refetchItemLinks();
                                 } else {
-                                  throw new Error('Falha ao desvincular fornecedor');
+                                  const errorData = await response.json();
+                                  throw new Error(errorData.message || 'Falha ao desvincular fornecedor');
                                 }
                               } catch (error) {
+                                console.error('❌ [FRONTEND] Erro ao desvincular fornecedor:', error);
                                 toast({
                                   title: "Erro",
-                                  description: "Erro ao desvincular fornecedor",
+                                  description: error instanceof Error ? error.message : "Erro ao desvincular fornecedor",
                                   variant: "destructive"
                                 });
                               }
