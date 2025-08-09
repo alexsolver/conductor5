@@ -70,8 +70,8 @@ export type {
 };
 
 // Ensure critical table exports are available
-import { beneficiaries } from "./schema-master";
-export { beneficiaries };
+import { beneficiaries, customFields } from "./schema-master";
+export { beneficiaries, customFields };
 
 // This file serves as the single entry point for all schema definitions
 // All imports should use: import { ... } from '@shared/schema'

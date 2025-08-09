@@ -1,16 +1,16 @@
 # Clean Architecture Validation Report
 
 **Data:** 2025-08-09  
-**Score:** 39/100  
+**Score:** 38/100  
 **Status:** ❌ REPROVADO
 
 ## Resumo de Problemas
 
 - 🔥 **Críticos:** 0
-- ⚠️ **Altos:** 101
-- 📋 **Médios:** 110
+- ⚠️ **Altos:** 97
+- 📋 **Médios:** 95
 - 💡 **Baixos:** 5
-- **Total:** 216
+- **Total:** 197
 
 ## Principais Problemas por Módulo
 
@@ -23,20 +23,12 @@
   - Estrutura use-cases ausente na camada application
 
 ### ⚠️ beneficiaries
-- **Total de problemas:** 7
+- **Total de problemas:** 3
 - **Críticos:** 0 | **Altos:** 2
 - **Principais problemas:**
-  - Estrutura events ausente na camada domain
-  - Estrutura services ausente na camada domain
-  - Estrutura dto ausente na camada application
-
-### ⚠️ custom-fields
-- **Total de problemas:** 4
-- **Críticos:** 0 | **Altos:** 4
-- **Principais problemas:**
-  - Camada domain ausente no módulo custom-fields
-  - Camada application ausente no módulo custom-fields
-  - Camada infrastructure ausente no módulo custom-fields
+  - Routes contém lógica de negócio ou acesso a dados
+  - Application Layer violando dependência: express
+  - Use Case index deve terminar com 'UseCase'
 
 ### ⚠️ customers
 - **Total de problemas:** 4
@@ -62,14 +54,6 @@
   - Camada application ausente no módulo field-layout
   - Camada infrastructure ausente no módulo field-layout
 
-### ⚠️ field-layouts
-- **Total de problemas:** 7
-- **Críticos:** 0 | **Altos:** 1
-- **Principais problemas:**
-  - Estrutura events ausente na camada domain
-  - Estrutura services ausente na camada domain
-  - Estrutura use-cases ausente na camada application
-
 ### ⚠️ knowledge-base
 - **Total de problemas:** 18
 - **Críticos:** 0 | **Altos:** 10
@@ -85,14 +69,6 @@
   - Estrutura repositories ausente na camada domain
   - Estrutura events ausente na camada domain
   - Estrutura services ausente na camada domain
-
-### ⚠️ people
-- **Total de problemas:** 7
-- **Críticos:** 0 | **Altos:** 1
-- **Principais problemas:**
-  - Estrutura events ausente na camada domain
-  - Estrutura services ausente na camada domain
-  - Estrutura use-cases ausente na camada application
 
 ### ⚠️ saas-admin
 - **Total de problemas:** 5
@@ -150,14 +126,6 @@
   - Camada application ausente no módulo template-versions
   - Camada infrastructure ausente no módulo template-versions
 
-### ⚠️ tenant-admin
-- **Total de problemas:** 7
-- **Críticos:** 0 | **Altos:** 1
-- **Principais problemas:**
-  - Estrutura events ausente na camada domain
-  - Estrutura services ausente na camada domain
-  - Estrutura use-cases ausente na camada application
-
 ### ⚠️ ticket-templates
 - **Total de problemas:** 4
 - **Críticos:** 0 | **Altos:** 3
@@ -182,6 +150,14 @@
   - Estrutura use-cases ausente na camada application
   - Estrutura dto ausente na camada application
 
+### ⚠️ field-layouts
+- **Total de problemas:** 3
+- **Críticos:** 0 | **Altos:** 1
+- **Principais problemas:**
+  - Application Layer violando dependência: express
+  - Nome da classe FieldLayoutEntity não corresponde ao arquivo FieldLayout
+  - Use Case index deve terminar com 'UseCase'
+
 ### ⚠️ notifications
 - **Total de problemas:** 2
 - **Críticos:** 0 | **Altos:** 2
@@ -189,31 +165,39 @@
   - Application Layer violando dependência: express
   - Application Layer violando dependência: express
 
+### ⚠️ people
+- **Total de problemas:** 3
+- **Críticos:** 0 | **Altos:** 1
+- **Principais problemas:**
+  - Application Layer violando dependência: express
+  - Nome da classe PersonEntity não corresponde ao arquivo Person
+  - Use Case index deve terminar com 'UseCase'
+
+### ⚠️ tenant-admin
+- **Total de problemas:** 3
+- **Críticos:** 0 | **Altos:** 1
+- **Principais problemas:**
+  - Application Layer violando dependência: express
+  - Nome da classe TenantConfigEntity não corresponde ao arquivo TenantConfig
+  - Use Case index deve terminar com 'UseCase'
+
+### 📋 custom-fields
+- **Total de problemas:** 1
+- **Críticos:** 0 | **Altos:** 0
+- **Principais problemas:**
+  - Use Case index deve terminar com 'UseCase'
+
 
 ## Plano de Correção
 
 ### ⚠️ beneficiaries
 - **Prioridade:** high
-- **Tempo estimado:** 3h
-- **Ações:** 7
-
-1. **create_directory:** Criar diretório/arquivo events na camada domain
-2. **create_directory:** Criar diretório/arquivo services na camada domain
-3. **create_directory:** Criar diretório/arquivo dto na camada application
-4. **create_directory:** Criar diretório/arquivo services na camada application
-5. **create_directory:** Criar controllers na camada Application e usar nas rotas
-6. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
-7. **refactor_code:** Refatorar dependência inválida na camada application
-
-### ⚠️ custom-fields
-- **Prioridade:** high
 - **Tempo estimado:** 2h
-- **Ações:** 4
+- **Ações:** 3
 
-1. **create_directory:** Criar estrutura da camada domain
-2. **create_directory:** Criar estrutura da camada application
-3. **create_directory:** Criar estrutura da camada infrastructure
-4. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
+1. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
+2. **refactor_code:** Refatorar dependência inválida na camada application
+3. **rename_file:** Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'
 
 ### ⚠️ customers
 - **Prioridade:** high
@@ -243,19 +227,6 @@
 2. **create_directory:** Criar estrutura da camada application
 3. **create_directory:** Criar estrutura da camada infrastructure
 4. **create_file:** Criar arquivo routes.ts para definir endpoints da API
-
-### ⚠️ field-layouts
-- **Prioridade:** high
-- **Tempo estimado:** 3h
-- **Ações:** 7
-
-1. **create_directory:** Criar diretório/arquivo events na camada domain
-2. **create_directory:** Criar diretório/arquivo services na camada domain
-3. **create_directory:** Criar diretório/arquivo use-cases na camada application
-4. **create_directory:** Criar diretório/arquivo dto na camada application
-5. **create_directory:** Criar diretório/arquivo services na camada application
-6. **refactor_code:** Refatorar dependência inválida na camada application
-7. **rename_file:** Padronizar nomenclatura: Nome da classe FieldLayoutEntity não corresponde ao arquivo FieldLayout
 
 ### ⚠️ knowledge-base
 - **Prioridade:** high
@@ -324,19 +295,6 @@
 41. **create_file:** Criar Repository com interface
 42. **create_file:** Criar Repository com interface
 43. **create_file:** Criar Repository com interface
-
-### ⚠️ people
-- **Prioridade:** high
-- **Tempo estimado:** 3h
-- **Ações:** 7
-
-1. **create_directory:** Criar diretório/arquivo events na camada domain
-2. **create_directory:** Criar diretório/arquivo services na camada domain
-3. **create_directory:** Criar diretório/arquivo use-cases na camada application
-4. **create_directory:** Criar diretório/arquivo dto na camada application
-5. **create_directory:** Criar diretório/arquivo services na camada application
-6. **refactor_code:** Refatorar dependência inválida na camada application
-7. **rename_file:** Padronizar nomenclatura: Nome da classe PersonEntity não corresponde ao arquivo Person
 
 ### ⚠️ saas-admin
 - **Prioridade:** high
@@ -412,19 +370,6 @@
 3. **create_directory:** Criar estrutura da camada infrastructure
 4. **create_file:** Criar arquivo routes.ts para definir endpoints da API
 
-### ⚠️ tenant-admin
-- **Prioridade:** high
-- **Tempo estimado:** 3h
-- **Ações:** 7
-
-1. **create_directory:** Criar diretório/arquivo events na camada domain
-2. **create_directory:** Criar diretório/arquivo services na camada domain
-3. **create_directory:** Criar diretório/arquivo use-cases na camada application
-4. **create_directory:** Criar diretório/arquivo dto na camada application
-5. **create_directory:** Criar diretório/arquivo services na camada application
-6. **refactor_code:** Refatorar dependência inválida na camada application
-7. **rename_file:** Padronizar nomenclatura: Nome da classe TenantConfigEntity não corresponde ao arquivo TenantConfig
-
 ### ⚠️ ticket-templates
 - **Prioridade:** high
 - **Tempo estimado:** 1h
@@ -463,6 +408,15 @@
 8. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 9. **create_file:** Criar Repository com interface
 
+### ⚠️ field-layouts
+- **Prioridade:** high
+- **Tempo estimado:** 2h
+- **Ações:** 3
+
+1. **refactor_code:** Refatorar dependência inválida na camada application
+2. **rename_file:** Padronizar nomenclatura: Nome da classe FieldLayoutEntity não corresponde ao arquivo FieldLayout
+3. **rename_file:** Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'
+
 ### ⚠️ notifications
 - **Prioridade:** high
 - **Tempo estimado:** 2h
@@ -470,6 +424,24 @@
 
 1. **refactor_code:** Refatorar dependência inválida na camada application
 2. **refactor_code:** Refatorar dependência inválida na camada application
+
+### ⚠️ people
+- **Prioridade:** high
+- **Tempo estimado:** 2h
+- **Ações:** 3
+
+1. **refactor_code:** Refatorar dependência inválida na camada application
+2. **rename_file:** Padronizar nomenclatura: Nome da classe PersonEntity não corresponde ao arquivo Person
+3. **rename_file:** Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'
+
+### ⚠️ tenant-admin
+- **Prioridade:** high
+- **Tempo estimado:** 2h
+- **Ações:** 3
+
+1. **refactor_code:** Refatorar dependência inválida na camada application
+2. **rename_file:** Padronizar nomenclatura: Nome da classe TenantConfigEntity não corresponde ao arquivo TenantConfig
+3. **rename_file:** Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'
 
 ### 📋 auth
 - **Prioridade:** medium
@@ -502,6 +474,13 @@
 9. **create_directory:** Criar diretório/arquivo repositories na camada infrastructure
 10. **create_file:** Criar arquivo routes.ts para definir endpoints da API
 
+### 💡 custom-fields
+- **Prioridade:** low
+- **Tempo estimado:** 15min
+- **Ações:** 1
+
+1. **rename_file:** Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'
+
 
 ## Recomendações
 
@@ -509,26 +488,25 @@
 Nenhuma ação imediata necessária
 
 ### Prioridade Alta ⚠️
-- **beneficiaries:** 7 ações (3h)
-- **custom-fields:** 4 ações (2h)
+- **beneficiaries:** 3 ações (2h)
 - **customers:** 4 ações (3h)
 - **dashboard:** 3 ações (2h)
 - **field-layout:** 4 ações (1h)
-- **field-layouts:** 7 ações (3h)
 - **knowledge-base:** 13 ações (8h)
 - **materials-services:** 43 ações (27h)
-- **people:** 7 ações (3h)
 - **saas-admin:** 5 ações (2h)
 - **schedule-management:** 10 ações (4h)
 - **technical-skills:** 11 ações (5h)
 - **template-audit:** 4 ações (1h)
 - **template-hierarchy:** 4 ações (1h)
 - **template-versions:** 4 ações (1h)
-- **tenant-admin:** 7 ações (3h)
 - **ticket-templates:** 4 ações (1h)
 - **tickets:** 7 ações (3h)
 - **timecard:** 9 ações (5h)
+- **field-layouts:** 3 ações (2h)
 - **notifications:** 2 ações (2h)
+- **people:** 3 ações (2h)
+- **tenant-admin:** 3 ações (2h)
 
 ## Comandos para Correção
 

@@ -3,8 +3,10 @@ import { Router } from "express";
 import { jwtAuth, AuthenticatedRequest } from "../../middleware/jwtAuth";
 import { unifiedStorage } from "../../storage-master";
 import { sendSuccess, sendError } from "../../utils/standardResponse";
+import { DashboardController } from './application/controllers/DashboardController';
 
 const dashboardRouter = Router();
+const dashboardController = new DashboardController();
 
 // Dashboard statistics endpoint
 dashboardRouter.get('/stats', jwtAuth, async (req: AuthenticatedRequest, res) => {
@@ -40,34 +42,6 @@ dashboardRouter.get('/activity', jwtAuth, async (req: AuthenticatedRequest, res)
 });
 
 // Dashboard metrics endpoint
-dashboardRouter.get('/metrics', jwtAuth, async (req: AuthenticatedRequest, res) => {
-  try {
-    if (!req.user?.tenantId) {
-      return sendError(res, "User not associated with a tenant", "User not associated with a tenant", 400);
-    }
-
-    // Additional dashboard metrics
-    const metrics = {
-      responseTime: {
-        average: "2.4h",
-        trend: "improving"
-      },
-      customerSatisfaction: {
-        score: 4.8,
-        trend: "stable"
-      },
-      ticketVolume: {
-        today: 12,
-        trend: "increasing"
-      }
-    };
-
-    return sendSuccess(res, metrics, "Dashboard metrics retrieved successfully");
-  } catch (error) {
-    const { logError } = await import('../../utils/logger');
-    logError("Error fetching dashboard metrics", error as any);
-    return sendError(res, error as any, "Failed to fetch metrics", 500);
-  }
-});
+dashboardRouter.get('/metrics', jwtAuth, dashboardController.getMetrics);
 
 export { dashboardRouter };

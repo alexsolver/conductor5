@@ -234,9 +234,9 @@ customersRouter.get('/', jwtAuth, validateGetCustomers, async (req: Authenticate
           // Ensure associated_companies is always included
           associated_companies: customer.associated_companies || null
       };
-      
+
       const dto = transformToCustomerDTO(normalizedCustomer);
-      
+
       // Add associated_companies to the final response object
       return {
         ...dto,
