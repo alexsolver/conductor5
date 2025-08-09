@@ -4,8 +4,7 @@ import { SharedController } from './application/controllers/SharedController';
 const router = Router();
 const sharedController = new SharedController();
 
-// Use controller methods instead of direct route logic
+// Usar controller
 router.get('/health', sharedController.health.bind(sharedController));
-router.get('/status', sharedController.status.bind(sharedController));
 
 export default router;

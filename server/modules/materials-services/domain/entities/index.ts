@@ -1,5 +1,7 @@
 // Domain entities for Materials and Services module
 
+// Removidos imports de infrastructure - Domain deve ser independente
+
 export interface Item {
   id: string;
   tenantId: string;

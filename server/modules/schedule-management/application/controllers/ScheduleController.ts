@@ -60,10 +60,10 @@ export class ScheduleController {
     try {
       const { tenantId } = (req as any).user;
       const validatedData = createScheduleSchema.parse(req.body);
-      
+
       const startDateTime = new Date(validatedData.startDateTime);
       const endDateTime = new Date(startDateTime.getTime() + validatedData.duration * 60000);
-      
+
       // Check for conflicts
       const conflicts = await this.scheduleRepository.detectConflicts({
         ...validatedData,
@@ -71,7 +71,7 @@ export class ScheduleController {
         startDateTime,
         endDateTime,
       }, tenantId);
-      
+
       if (conflicts.length > 0) {
         return res.status(409).json({
           message: 'Conflito de horário detectado',
@@ -82,7 +82,7 @@ export class ScheduleController {
           })),
         });
       }
-      
+
       const schedule = await this.scheduleRepository.createSchedule({
         ...validatedData,
         tenantId,
@@ -90,7 +90,7 @@ export class ScheduleController {
         endDateTime,
         status: 'scheduled',
       });
-      
+
       res.status(201).json(schedule);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -105,17 +105,17 @@ export class ScheduleController {
     try {
       const { tenantId } = (req as any).user;
       const { startDate, endDate } = req.query;
-      
+
       if (!startDate || !endDate) {
         return res.status(400).json({ message: 'startDate e endDate são obrigatórios' });
       }
-      
+
       const schedules = await this.scheduleRepository.getSchedulesByDateRange(
         tenantId,
         new Date(startDate as string),
         new Date(endDate as string)
       );
-      
+
       res.json({ schedules });
     } catch (error) {
       console.error('Error fetching schedules by date range:', error);
@@ -128,14 +128,14 @@ export class ScheduleController {
       const { tenantId } = (req as any).user;
       const { agentId } = req.params;
       const { startDate, endDate } = req.query;
-      
+
       const schedules = await this.scheduleRepository.getSchedulesByAgent(
         agentId,
         tenantId,
         startDate ? new Date(startDate as string) : undefined,
         endDate ? new Date(endDate as string) : undefined
       );
-      
+
       res.json({ schedules });
     } catch (error) {
       console.error('Error fetching schedules by agent:', error);
@@ -148,22 +148,22 @@ export class ScheduleController {
       const { tenantId } = (req as any).user;
       const { id } = req.params;
       const validatedData = updateScheduleSchema.parse(req.body);
-      
+
       let updateData: any = { ...validatedData };
-      
+
       if (validatedData.startDateTime && validatedData.duration) {
         const startDateTime = new Date(validatedData.startDateTime);
         const endDateTime = new Date(startDateTime.getTime() + validatedData.duration * 60000);
         updateData.startDateTime = startDateTime;
         updateData.endDateTime = endDateTime;
-        
+
         // Check for conflicts when updating time
         const conflicts = await this.scheduleRepository.detectConflicts({
           id,
           ...updateData,
           tenantId,
         }, tenantId);
-        
+
         if (conflicts.length > 0) {
           return res.status(409).json({
             message: 'Conflito de horário detectado',
@@ -175,7 +175,7 @@ export class ScheduleController {
           });
         }
       }
-      
+
       const schedule = await this.scheduleRepository.updateSchedule(id, tenantId, updateData);
       res.json(schedule);
     } catch (error) {
@@ -191,7 +191,7 @@ export class ScheduleController {
     try {
       const { tenantId } = (req as any).user;
       const { id } = req.params;
-      
+
       await this.scheduleRepository.deleteSchedule(id, tenantId);
       res.status(204).send();
     } catch (error) {
@@ -205,13 +205,13 @@ export class ScheduleController {
     try {
       const { tenantId } = (req as any).user;
       const validatedData = createActivityTypeSchema.parse(req.body);
-      
+
       const activityType = await this.scheduleRepository.createActivityType({
         ...validatedData,
         tenantId,
         isActive: true,
       });
-      
+
       res.status(201).json(activityType);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -238,12 +238,12 @@ export class ScheduleController {
     try {
       const { tenantId } = (req as any).user;
       const validatedData = createAvailabilitySchema.parse(req.body);
-      
+
       const availability = await this.scheduleRepository.createAgentAvailability({
         ...validatedData,
         tenantId,
       });
-      
+
       res.status(201).json(availability);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -258,7 +258,7 @@ export class ScheduleController {
     try {
       const { tenantId } = (req as any).user;
       const { agentId } = req.params;
-      
+
       const availability = await this.scheduleRepository.getAgentAvailability(agentId, tenantId);
       res.json({ availability });
     } catch (error) {
@@ -273,18 +273,18 @@ export class ScheduleController {
       const { tenantId } = (req as any).user;
       const { agentId } = req.params;
       const { startDate, endDate } = req.query;
-      
+
       if (!startDate || !endDate) {
         return res.status(400).json({ message: 'startDate e endDate são obrigatórios' });
       }
-      
+
       const stats = await this.scheduleRepository.getAgentScheduleStats(
         agentId,
         tenantId,
         new Date(startDate as string),
         new Date(endDate as string)
       );
-      
+
       res.json(stats);
     } catch (error) {
       console.error('Error fetching agent schedule stats:', error);
@@ -296,17 +296,17 @@ export class ScheduleController {
     try {
       const { tenantId } = (req as any).user;
       const { startDate, endDate } = req.query;
-      
+
       if (!startDate || !endDate) {
         return res.status(400).json({ message: 'startDate e endDate são obrigatórios' });
       }
-      
+
       const overview = await this.scheduleRepository.getTeamScheduleOverview(
         tenantId,
         new Date(startDate as string),
         new Date(endDate as string)
       );
-      
+
       res.json(overview);
     } catch (error) {
       console.error('Error fetching team schedule overview:', error);
@@ -327,9 +327,9 @@ export class ScheduleController {
         endDate,
         searchText,
       } = req.query;
-      
+
       const filters: any = {};
-      
+
       if (agentIds) filters.agentIds = (agentIds as string).split(',');
       if (customerIds) filters.customerIds = (customerIds as string).split(',');
       if (activityTypeIds) filters.activityTypeIds = (activityTypeIds as string).split(',');
@@ -338,7 +338,7 @@ export class ScheduleController {
       if (startDate) filters.startDate = new Date(startDate as string);
       if (endDate) filters.endDate = new Date(endDate as string);
       if (searchText) filters.searchText = searchText as string;
-      
+
       const schedules = await this.scheduleRepository.searchSchedules(tenantId, filters);
       res.json({ schedules });
     } catch (error) {
@@ -351,20 +351,20 @@ export class ScheduleController {
     try {
       const { tenantId } = (req as any).user;
       const { recurrenceEnd, ...scheduleData } = req.body;
-      
+
       const validatedData = createScheduleSchema.parse(scheduleData);
-      
+
       if (!validatedData.isRecurring || !validatedData.recurringPattern) {
         return res.status(400).json({ message: 'Padrão de recorrência é obrigatório' });
       }
-      
+
       if (!recurrenceEnd) {
         return res.status(400).json({ message: 'Data final da recorrência é obrigatória' });
       }
-      
+
       const startDateTime = new Date(validatedData.startDateTime);
       const endDateTime = new Date(startDateTime.getTime() + validatedData.duration * 60000);
-      
+
       const schedules = await this.scheduleRepository.createRecurringSchedules(
         {
           ...validatedData,
@@ -375,7 +375,7 @@ export class ScheduleController {
         },
         new Date(recurrenceEnd)
       );
-      
+
       res.status(201).json({ schedules, count: schedules.length });
     } catch (error) {
       if (error instanceof z.ZodError) {
