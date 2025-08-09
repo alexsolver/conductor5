@@ -117,6 +117,34 @@ ticketsRouter.use((req: any, res, next) => {
   next();
 });
 
+// Get all tickets (main listing route)
+ticketsRouter.get('/', async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.user?.tenantId) {
+      return sendError(res, "User not associated with a tenant", "User not associated with a tenant", 400);
+    }
+
+    // Parse query parameters for filtering and pagination
+    const status = req.query.status as string;
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
+    const offset = req.query.offset ? parseInt(req.query.offset as string) : 0;
+
+    const options = {
+      limit,
+      offset,
+      ...(status && { status })
+    };
+
+    const tickets = await storageSimple.getTickets(req.user.tenantId, options);
+    
+    return sendSuccess(res, tickets, "Tickets retrieved successfully");
+  } catch (error) {
+    const { logError } = await import('../../utils/logger');
+    logError('Error fetching tickets', error, { tenantId: req.user?.tenantId });
+    return sendError(res, error, "Failed to fetch tickets", 500);
+  }
+});
+
 // Get urgent tickets (filtered from all tickets)
 ticketsRouter.get('/urgent', async (req: AuthenticatedRequest, res) => {
   try {
