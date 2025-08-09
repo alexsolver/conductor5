@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -47,6 +47,25 @@ interface User {
   firstName: string;
   lastName: string;
   email: string;
+  role?: string;
+}
+
+// Interface for Schedule Template
+interface ScheduleTemplate {
+  id: string;
+  name: string;
+  description?: string;
+  scheduleType: '5x2' | '6x1' | '12x36' | 'shift' | 'flexible' | 'intermittent';
+  workDays: number[];
+  startTime?: string;
+  endTime?: string;
+  breakStart?: string; // If needed for more granular break control
+  breakEnd?: string;   // If needed for more granular break control
+  breakDurationMinutes?: number;
+  useWeeklySchedule?: boolean;
+  weeklySchedule?: WeeklySchedule;
+  isActive: boolean;
+  category: 'default' | 'custom';
 }
 
 import { SCHEDULE_TYPE_OPTIONS, SCHEDULE_TYPE_LABELS } from '@shared/schedule-types';
@@ -168,7 +187,28 @@ function WorkSchedulesContent() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [bulkAssignOpen, setBulkAssignOpen] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
-  
+
+  // Template related states
+  const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<ScheduleTemplate | null>(null);
+  const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
+  const [templateFormData, setTemplateFormData] = useState({
+    id: '',
+    name: '',
+    description: '',
+    scheduleType: '5x2' as '5x2' | '6x1' | '12x36' | 'shift' | 'flexible' | 'intermittent',
+    workDays: [1, 2, 3, 4, 5] as number[],
+    startTime: '08:00',
+    endTime: '17:00',
+    breakStart: '',
+    breakEnd: '',
+    breakDurationMinutes: 60,
+    useWeeklySchedule: false,
+    weeklySchedule: {} as WeeklySchedule,
+    isActive: true,
+    category: 'custom' as 'default' | 'custom'
+  });
+
   // Updated formData with new states for weekly schedules
   const [formData, setFormData] = useState({
     userId: '',
@@ -218,8 +258,8 @@ function WorkSchedulesContent() {
     retryDelay: 1000
   });
 
-  // Fetching custom schedule types
-  const { data: scheduleTypesData, error: templatesError } = useQuery({
+  // Fetching custom schedule types (templates)
+  const { data: scheduleTemplatesData, error: templatesError, isLoading: templatesLoading } = useQuery<any, Error>({
     queryKey: ['/api/timecard/schedule-templates'],
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/timecard/schedule-templates');
@@ -308,7 +348,7 @@ function WorkSchedulesContent() {
 
   // Create template mutation
   const createTemplateMutation = useMutation({
-    mutationFn: async (templateData: any) => {
+    mutationFn: async (templateData: Partial<ScheduleTemplate>) => {
       const response = await apiRequest('POST', '/api/timecard/schedule-templates', templateData);
       console.log('[TEMPLATE-CREATE] Response:', response);
       return response;
@@ -320,11 +360,91 @@ function WorkSchedulesContent() {
       });
       await queryClient.invalidateQueries({ queryKey: ['/api/timecard/schedule-templates'] });
       await queryClient.refetchQueries({ queryKey: ['/api/timecard/schedule-templates'] });
+      setIsTemplateDialogOpen(false); // Close template dialog
+      resetTemplateForm(); // Reset template form
     },
     onError: (error: any) => {
       console.error('[TEMPLATE-CREATE-ERROR]:', error);
       toast({
         title: 'Erro ao criar template',
+        description: error.message || 'Tente novamente em alguns instantes.',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Update template mutation
+  const updateTemplateMutation = useMutation({
+    mutationFn: async (templateData: ScheduleTemplate) => {
+      const response = await apiRequest('PUT', `/api/timecard/schedule-templates/${templateData.id}`, templateData);
+      console.log('[TEMPLATE-UPDATE] Response:', response);
+      return response;
+    },
+    onSuccess: async () => {
+      toast({
+        title: 'Template atualizado!',
+        description: 'O template da escala foi atualizado com sucesso.',
+      });
+      await queryClient.invalidateQueries({ queryKey: ['/api/timecard/schedule-templates'] });
+      await queryClient.refetchQueries({ queryKey: ['/api/timecard/schedule-templates'] });
+      setIsTemplateDialogOpen(false);
+      setSelectedTemplate(null);
+    },
+    onError: (error: any) => {
+      console.error('[TEMPLATE-UPDATE-ERROR]:', error);
+      toast({
+        title: 'Erro ao atualizar template',
+        description: error.message || 'Tente novamente em alguns instantes.',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Delete template mutation
+  const deleteTemplateMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await apiRequest('DELETE', `/api/timecard/schedule-templates/${id}`);
+      console.log('[TEMPLATE-DELETE] Response:', response);
+      return response;
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Template excluído!',
+        description: 'O template da escala foi removido com sucesso.',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/timecard/schedule-templates'] });
+      setSelectedTemplate(null); // Clear selected template if deleted
+    },
+    onError: (error: any) => {
+      console.error('[TEMPLATE-DELETE-ERROR]:', error);
+      toast({
+        title: 'Erro ao excluir template',
+        description: error.message || 'Tente novamente em alguns instantes.',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Assign template to user mutation
+  const assignTemplateMutation = useMutation({
+    mutationFn: async ({ userId, templateId }: { userId: string; templateId: string }) => {
+      const response = await apiRequest('POST', `/api/timecard/work-schedules/assign-template/${templateId}`, { userId });
+      console.log('[TEMPLATE-ASSIGN] Response:', response);
+      return response;
+    },
+    onSuccess: async () => {
+      toast({
+        title: 'Template atribuído!',
+        description: 'O template foi atribuído ao funcionário com sucesso.',
+      });
+      await queryClient.invalidateQueries({ queryKey: ['/api/timecard/work-schedules'] });
+      setIsAssignDialogOpen(false);
+      setSelectedTemplate(null);
+    },
+    onError: (error: any) => {
+      console.error('[TEMPLATE-ASSIGN-ERROR]:', error);
+      toast({
+        title: 'Erro ao atribuir template',
         description: error.message || 'Tente novamente em alguns instantes.',
         variant: 'destructive',
       });
@@ -426,18 +546,19 @@ function WorkSchedulesContent() {
     schedules = [];
   }
 
+  // Filter custom templates (excluding default ones like 5x2, 6x1, 12x36)
+  const customTemplates = Array.isArray(scheduleTemplatesData?.templates)
+    ? scheduleTemplatesData.templates.filter((t: ScheduleTemplate) => t.category === 'custom')
+    : [];
+
   const users = Array.isArray(usersData) ? usersData : (usersData?.users || usersData?.members || []);
 
   // Debug information for troubleshooting
   if (process.env.NODE_ENV === 'development') {
     console.log('Work schedules loaded:', schedules.length);
     console.log('Users available:', users.length);
-    console.log('Schedule templates:', scheduleTypesData?.templates?.length || 0);
-    console.log('Active templates:', scheduleTypesData?.templates?.filter((t: any) => t.isActive)?.length || 0);
-    console.log('Raw users data:', usersData);
-    console.log('Raw templates data:', scheduleTypesData);
-    console.log('Active templates list:', scheduleTypesData?.templates?.filter((t: any) => t.isActive));
-    console.log('Custom templates (excluding defaults):', scheduleTypesData?.templates?.filter((t: any) => t.isActive && !['5x2', '6x1', '12x36'].includes(t.name)));
+    console.log('Schedule templates data:', scheduleTemplatesData);
+    console.log('Custom templates (excluding defaults):', customTemplates);
   }
 
   if (templatesError) {
@@ -470,6 +591,25 @@ function WorkSchedulesContent() {
       saveAsTemplate: false,
       templateName: '',
       templateDescription: ''
+    });
+  };
+
+  const resetTemplateForm = () => {
+    setTemplateFormData({
+      id: '',
+      name: '',
+      description: '',
+      scheduleType: '5x2',
+      workDays: [1, 2, 3, 4, 5],
+      startTime: '08:00',
+      endTime: '17:00',
+      breakStart: '',
+      breakEnd: '',
+      breakDurationMinutes: 60,
+      useWeeklySchedule: false,
+      weeklySchedule: {},
+      isActive: true,
+      category: 'custom'
     });
   };
 
@@ -554,6 +694,41 @@ function WorkSchedulesContent() {
     }
   };
 
+  const handleCreateOrUpdateTemplate = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Basic validation for template name
+    if (!templateFormData.name.trim()) {
+      toast({ title: 'Erro de validação', description: 'O nome do template é obrigatório.', variant: 'destructive' });
+      return;
+    }
+
+    const templatePayload: Partial<ScheduleTemplate> = {
+      name: templateFormData.name.trim(),
+      description: templateFormData.description,
+      scheduleType: templateFormData.scheduleType,
+      workDays: templateFormData.workDays,
+      useWeeklySchedule: templateFormData.useWeeklySchedule,
+      ...(templateFormData.useWeeklySchedule
+        ? { weeklySchedule: templateFormData.weeklySchedule }
+        : {
+            startTime: templateFormData.startTime,
+            endTime: templateFormData.endTime,
+            breakDurationMinutes: Math.max(0, Math.min(480, templateFormData.breakDurationMinutes)),
+          }),
+      isActive: templateFormData.isActive,
+      category: 'custom', // Ensure it's marked as custom
+    };
+
+    if (selectedTemplate) {
+      // Update existing template
+      updateTemplateMutation.mutate({ ...selectedTemplate, ...templatePayload });
+    } else {
+      // Create new template
+      createTemplateMutation.mutate(templatePayload);
+    }
+  };
+
   const handleEdit = (schedule: WorkSchedule) => {
     setSelectedSchedule(schedule);
     setFormData({
@@ -579,6 +754,34 @@ function WorkSchedulesContent() {
     resetForm();
     setIsDialogOpen(true);
   };
+
+  const handleNewTemplate = () => {
+    resetTemplateForm();
+    setSelectedTemplate(null);
+    setIsTemplateDialogOpen(true);
+  };
+
+  const handleEditTemplate = (template: ScheduleTemplate) => {
+    setSelectedTemplate(template);
+    setTemplateFormData({
+      id: template.id,
+      name: template.name,
+      description: template.description || '',
+      scheduleType: template.scheduleType,
+      workDays: template.workDays || [],
+      startTime: template.startTime || '08:00',
+      endTime: template.endTime || '17:00',
+      breakStart: template.breakStart || '',
+      breakEnd: template.breakEnd || '',
+      breakDurationMinutes: template.breakDurationMinutes || 60,
+      useWeeklySchedule: template.useWeeklySchedule || false,
+      weeklySchedule: template.weeklySchedule || {},
+      isActive: template.isActive,
+      category: template.category
+    });
+    setIsTemplateDialogOpen(true);
+  };
+
 
   const handleDelete = (id: string) => {
     if (confirm('Tem certeza que deseja excluir esta escala?')) {
@@ -634,6 +837,25 @@ function WorkSchedulesContent() {
     }
   };
 
+  const handleAssignTemplate = () => {
+    if (!selectedTemplate || selectedUsers.length === 0) {
+      toast({ title: 'Erro', description: 'Selecione um template e pelo menos um funcionário.', variant: 'destructive' });
+      return;
+    }
+
+    // Here we need to map selectedUsers to the assignTemplateMutation
+    // Assuming assignTemplateMutation can handle an array of userIds or we loop
+    selectedUsers.forEach(userId => {
+      assignTemplateMutation.mutate({ userId, templateId: selectedTemplate.id });
+    });
+
+    // Close dialogs and reset selections
+    setIsAssignDialogOpen(false);
+    setSelectedUsers([]);
+    setSelectedTemplate(null);
+  };
+
+
   const getWorkDaysText = (workDays: number[] | null | undefined) => {
     try {
       if (!workDays || !Array.isArray(workDays) || workDays.length === 0) return 'Não definido';
@@ -652,11 +874,11 @@ function WorkSchedulesContent() {
     );
   };
 
-  if (schedulesLoading) {
+  if (schedulesLoading || templatesLoading) {
     return (
       <div className="p-4">
         <div className="flex items-center justify-center h-64">
-          <div className="text-lg text-gray-600">Carregando escalas...</div>
+          <div className="text-lg text-gray-600">Carregando dados...</div>
         </div>
       </div>
     );
@@ -698,308 +920,298 @@ function WorkSchedulesContent() {
 
   return (
     <div className="p-4 space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Escalas de Trabalho</h1>
-        <div className="space-x-2">
-          <Dialog open={bulkAssignOpen} onOpenChange={setBulkAssignOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline">
-                <Users className="h-4 w-4 mr-2" />
-                Atribuir em Lote
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>Atribuição em Lote</DialogTitle>
-                <DialogDescription>
-                  Selecione os funcionários e configure a escala que será aplicada para todos.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <Label>Funcionários</Label>
-                  <div className="border rounded-md p-3 max-h-48 overflow-y-auto">
-                    {users.map((user: User) => (
-                      <div key={user.id} className="flex items-center space-x-2 py-1">
-                        <Checkbox
-                          id={user.id}
-                          checked={selectedUsers.includes(user.id)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setSelectedUsers([...selectedUsers, user.id]);
-                            } else {
-                              setSelectedUsers(selectedUsers.filter(id => id !== user.id));
-                            }
-                          }}
-                        />
-                        <Label htmlFor={user.id} className="cursor-pointer">
-                          {user.firstName} {user.lastName}
-                        </Label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="bulk-schedule-type">Tipo de Escala</Label>
-                    <Select value={formData.scheduleType} onValueChange={(value) => setFormData(prev => ({ ...prev, scheduleType: value }))}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {scheduleTypeOptions.map(option => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="bulk-start-date">Data de Início</Label>
-                    <Input
-                      id="bulk-start-date"
-                      type="date"
-                      value={formData.startDate}
-                      onChange={(e) => setFormData(prev => ({ ...prev, startDate: e.target.value }))}
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="flex justify-end space-x-2">
-                  <Button variant="outline" onClick={() => setBulkAssignOpen(false)}>
-                    Cancelar
-                  </Button>
-                  <Button onClick={handleBulkAssign}>
-                    Atribuir para {selectedUsers.length} funcionários
-                  </Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
-
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={handleNew}>
-                <Plus className="h-4 w-4 mr-2" />
-                Nova Escala
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>
-                  {selectedSchedule ? 'Editar Escala' : 'Nova Escala de Trabalho'}
-                </DialogTitle>
-                <DialogDescription>
-                  {selectedSchedule
-                    ? 'Modifique os dados da escala de trabalho existente.'
-                    : 'Configure uma nova escala de trabalho para o funcionário selecionado.'}
-                </DialogDescription>
-              </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="userId">Funcionário</Label>
-                    <Select value={formData.userId} onValueChange={(value) => setFormData({ ...formData, userId: value })}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione o funcionário" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {users.map((user: any) => (
-                          <SelectItem key={user.id} value={user.id}>
-                            {user.firstName || user.first_name || user.name || ''} {user.lastName || user.last_name || ''} - {user.role || 'Funcionário'}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="scheduleType">Tipo de Escala</Label>
-                    <Select value={formData.scheduleType} onValueChange={(value) => setFormData({ ...formData, scheduleType: value })}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {scheduleTypeOptions.map(option => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <Label htmlFor="startDate">Data de Início</Label>
-                    <Input
-                      type="date"
-                      value={formData.startDate}
-                      onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="endDate">Data de Fim (opcional)</Label>
-                    <Input
-                      type="date"
-                      value={formData.endDate}
-                      onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                    />
-                  </div>
-                </div>
-
-                {/* New section for weekly schedule toggle and form */}
-                <div className="space-y-4">
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="useWeeklySchedule"
-                      checked={formData.useWeeklySchedule}
-                      onCheckedChange={(checked) => {
-                        setFormData(prev => ({ ...prev, useWeeklySchedule: checked, workDays: checked ? [] : [1, 2, 3, 4, 5] }));
-                        if (!checked) {
-                          setFormData(prev => ({ ...prev, weeklySchedule: {} })); // Clear weekly schedule when toggled off
-                        }
-                      }}
-                    />
-                    <Label htmlFor="useWeeklySchedule">Horários diferentes por dia da semana</Label>
-                  </div>
-
-                  {formData.useWeeklySchedule ? (
-                    <WeeklyScheduleForm
-                      weeklySchedule={formData.weeklySchedule}
-                      workDays={formData.workDays}
-                      onWeeklyScheduleChange={(schedule) => setFormData(prev => ({ ...prev, weeklySchedule: schedule }))}
-                      onWorkDaysChange={(days) => setFormData(prev => ({ ...prev, workDays: days }))}
-                    />
-                  ) : (
-                    <>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="startTime">Horário de Entrada</Label>
-                          <Input
-                            id="startTime"
-                            type="time"
-                            value={formData.startTime}
-                            onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
-                            required
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="endTime">Horário de Saída</Label>
-                          <Input
-                            id="endTime"
-                            type="time"
-                            value={formData.endTime}
-                            onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
-                            required
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <Label htmlFor="breakDurationMinutes">Pausa (minutos)</Label>
-                        <Input
-                          id="breakDurationMinutes"
-                          type="number"
-                          value={formData.breakDurationMinutes}
-                          onChange={(e) => setFormData({ ...formData, breakDurationMinutes: parseInt(e.target.value) })}
-                          min="0"
-                          max="480"
-                        />
-                      </div>
-
-                      <div>
-                        <Label>Dias da Semana</Label>
-                        <div className="flex flex-wrap gap-2 mt-2">
-                          {weekDays.map((day) => (
-                            <Button
-                              key={day.value}
-                              type="button"
-                              variant={formData.workDays.includes(day.value) ? "default" : "outline"}
-                              size="sm"
-                              onClick={() => {
-                                const newWorkDays = formData.workDays.includes(day.value)
-                                  ? formData.workDays.filter(d => d !== day.value)
-                                  : [...formData.workDays, day.value];
-                                setFormData({ ...formData, workDays: newWorkDays });
-                              }}
-                            >
-                              {day.label}
-                            </Button>
-                          ))}
-                        </div>
-                      </div>
-                    </>
-                  )}
-                </div>
-
-                {/* Save as Template Section */}
-                {!selectedSchedule && (
-                  <div className="space-y-4 pt-4 border-t">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="saveAsTemplate"
-                        checked={formData.saveAsTemplate}
-                        onCheckedChange={(checked) => setFormData(prev => ({ ...prev, saveAsTemplate: checked as boolean }))}
-                      />
-                      <Label htmlFor="saveAsTemplate" className="text-sm font-medium">
-                        Salvar configuração como template
-                      </Label>
-                    </div>
-
-                    {formData.saveAsTemplate && (
-                      <div className="grid grid-cols-1 gap-4 pl-6">
-                        <div>
-                          <Label htmlFor="templateName">Nome do Template *</Label>
-                          <Input
-                            id="templateName"
-                            type="text"
-                            placeholder="Ex: Escala Comercial Personalizada"
-                            value={formData.templateName}
-                            onChange={(e) => setFormData(prev => ({ ...prev, templateName: e.target.value }))}
-                            required={formData.saveAsTemplate}
-                          />
-                        </div>
-                        
-                        <div>
-                          <Label htmlFor="templateDescription">Descrição (opcional)</Label>
-                          <Input
-                            id="templateDescription"
-                            type="text"
-                            placeholder="Descreva quando usar este template..."
-                            value={formData.templateDescription}
-                            onChange={(e) => setFormData(prev => ({ ...prev, templateDescription: e.target.value }))}
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                <div className="flex justify-end space-x-2">
-                  <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                    Cancelar
-                  </Button>
-                  <Button
-                    type="submit"
-                    disabled={createScheduleMutation.isPending || updateScheduleMutation.isPending || createTemplateMutation.isPending}
-                  >
-                    {(createScheduleMutation.isPending || updateScheduleMutation.isPending || createTemplateMutation.isPending) ? 'Salvando...' : 'Salvar'}
-                  </Button>
-                </div>
-              </form>
-            </DialogContent>
-          </Dialog>
+      {/* Header Section */}
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold tracking-tight">Escalas de Trabalho</h1>
+        <div className="flex gap-2">
+          <Button
+            onClick={handleNewTemplate}
+            variant="outline"
+            className="flex items-center gap-2"
+          >
+            <Settings className="h-4 w-4" />
+            Novo Template
+          </Button>
+          <Button
+            onClick={() => setBulkAssignOpen(true)}
+            variant="outline"
+            className="flex items-center gap-2"
+          >
+            <Users className="h-4 w-4" />
+            Atribuição em Massa
+          </Button>
+          <Button
+            onClick={handleNew}
+            className="flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Nova Escala
+          </Button>
         </div>
       </div>
 
+      {/* Templates Management Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Settings className="h-5 w-5" />
+            Templates de Escala Disponíveis
+          </CardTitle>
+          <CardDescription>
+            Gerencie templates independentes que podem ser atribuídos a funcionários
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {templatesLoading ? (
+            <div className="flex justify-center items-center h-32">
+              <div className="text-gray-500">Carregando templates...</div>
+            </div>
+          ) : customTemplates.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              Nenhum template personalizado encontrado. Crie um novo template.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {customTemplates.map((template) => (
+                <Card key={template.id} className="border-l-4 border-l-blue-500">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-base">{template.name}</CardTitle>
+                      <div className="flex gap-1">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            handleEditTemplate(template); // Use handleEditTemplate to populate form
+                            setIsAssignDialogOpen(true);
+                          }}
+                        >
+                          Atribuir
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => deleteTemplateMutation.mutate(template.id)}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                    {template.description && (
+                      <CardDescription className="text-sm">{template.description}</CardDescription>
+                    )}
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="space-y-2 text-sm">
+                      <div><strong>Tipo:</strong> {template.scheduleType}</div>
+                      <div><strong>Horário:</strong> {template.startTime ? `${template.startTime} - ${template.endTime}` : 'N/A'}</div>
+                      <div><strong>Dias:</strong> {template.workDays?.length || 0} dias por semana</div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Dialog for creating/editing templates */}
+      <Dialog open={isTemplateDialogOpen} onOpenChange={setIsTemplateDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{selectedTemplate ? 'Editar Template' : 'Novo Template de Escala'}</DialogTitle>
+            <DialogDescription>
+              {selectedTemplate ? 'Modifique os detalhes do template.' : 'Crie um novo template de escala independente.'}
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleCreateOrUpdateTemplate} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="template-name">Nome do Template *</Label>
+                <Input
+                  id="template-name"
+                  type="text"
+                  value={templateFormData.name}
+                  onChange={(e) => setTemplateFormData({ ...templateFormData, name: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="template-description">Descrição (opcional)</Label>
+                <Input
+                  id="template-description"
+                  type="text"
+                  value={templateFormData.description}
+                  onChange={(e) => setTemplateFormData({ ...templateFormData, description: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="template-scheduleType">Tipo de Escala</Label>
+                <Select
+                  value={templateFormData.scheduleType}
+                  onValueChange={(value) => setTemplateFormData(prev => ({ ...prev, scheduleType: value as any }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {scheduleTypeOptions.map(option => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Toggle for weekly schedule */}
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="template-useWeeklySchedule"
+                checked={templateFormData.useWeeklySchedule}
+                onCheckedChange={(checked) => {
+                  setTemplateFormData(prev => ({ ...prev, useWeeklySchedule: checked, workDays: checked ? [] : [1, 2, 3, 4, 5] }));
+                  if (!checked) {
+                    setTemplateFormData(prev => ({ ...prev, weeklySchedule: {} })); // Clear weekly schedule when toggled off
+                  }
+                }}
+              />
+              <Label htmlFor="template-useWeeklySchedule">Horários diferentes por dia da semana</Label>
+            </div>
+
+            {templateFormData.useWeeklySchedule ? (
+              <WeeklyScheduleForm
+                weeklySchedule={templateFormData.weeklySchedule}
+                workDays={templateFormData.workDays}
+                onWeeklyScheduleChange={(schedule) => setTemplateFormData(prev => ({ ...prev, weeklySchedule: schedule }))}
+                onWorkDaysChange={(days) => setTemplateFormData(prev => ({ ...prev, workDays: days }))}
+              />
+            ) : (
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="template-startTime">Horário de Entrada</Label>
+                    <Input
+                      id="template-startTime"
+                      type="time"
+                      value={templateFormData.startTime}
+                      onChange={(e) => setTemplateFormData({ ...templateFormData, startTime: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="template-endTime">Horário de Saída</Label>
+                    <Input
+                      id="template-endTime"
+                      type="time"
+                      value={templateFormData.endTime}
+                      onChange={(e) => setTemplateFormData({ ...templateFormData, endTime: e.target.value })}
+                      required
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="template-breakDurationMinutes">Pausa (minutos)</Label>
+                  <Input
+                    id="template-breakDurationMinutes"
+                    type="number"
+                    value={templateFormData.breakDurationMinutes}
+                    onChange={(e) => setTemplateFormData({ ...templateFormData, breakDurationMinutes: parseInt(e.target.value) })}
+                    min="0"
+                    max="480"
+                  />
+                </div>
+
+                <div>
+                  <Label>Dias da Semana</Label>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {weekDays.map((day) => (
+                      <Button
+                        key={day.value}
+                        type="button"
+                        variant={templateFormData.workDays.includes(day.value) ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => {
+                          const newWorkDays = templateFormData.workDays.includes(day.value)
+                            ? templateFormData.workDays.filter(d => d !== day.value)
+                            : [...templateFormData.workDays, day.value];
+                          setTemplateFormData({ ...templateFormData, workDays: newWorkDays });
+                        }}
+                      >
+                        {day.label}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+
+            <div className="flex justify-end space-x-2">
+              <Button type="button" variant="outline" onClick={() => setIsTemplateDialogOpen(false)}>
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                disabled={createTemplateMutation.isPending || updateTemplateMutation.isPending}
+              >
+                {(createTemplateMutation.isPending || updateTemplateMutation.isPending) ? 'Salvando...' : 'Salvar Template'}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog for assigning template to users */}
+      <Dialog open={isAssignDialogOpen} onOpenChange={setIsAssignDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Atribuir Template a Funcionários</DialogTitle>
+            <DialogDescription>
+              Selecione os funcionários para os quais o template "{selectedTemplate?.name}" será atribuído.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Funcionários</Label>
+              <div className="border rounded-md p-3 max-h-48 overflow-y-auto">
+                {users.map((user: User) => (
+                  <div key={user.id} className="flex items-center space-x-2 py-1">
+                    <Checkbox
+                      id={user.id}
+                      checked={selectedUsers.includes(user.id)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setSelectedUsers([...selectedUsers, user.id]);
+                        } else {
+                          setSelectedUsers(selectedUsers.filter(id => id !== user.id));
+                        }
+                      }}
+                    />
+                    <Label htmlFor={user.id} className="cursor-pointer">
+                      {user.firstName} {user.lastName} ({user.role || 'Funcionário'})
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-2">
+              <Button variant="outline" onClick={() => setIsAssignDialogOpen(false)}>
+                Cancelar
+              </Button>
+              <Button onClick={handleAssignTemplate} disabled={selectedUsers.length === 0 || !selectedTemplate}>
+                Atribuir a {selectedUsers.length} funcionários
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Main schedules list */}
       <div className="grid gap-4">
         {schedules.length > 0 ? (
           schedules.map((schedule: WorkSchedule) => (

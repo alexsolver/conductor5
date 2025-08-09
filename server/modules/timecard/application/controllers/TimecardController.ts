@@ -345,16 +345,15 @@ export class TimecardController {
 
   createWorkSchedule = async (req: Request, res: Response) => {
     try {
-      const { tenantId, userId: currentUserId } = (req as any).user;
+      const { tenantId } = (req as any).user;
 
       const scheduleData = {
         ...req.body,
-        tenantId,
-        createdBy: currentUserId
+        tenantId
       };
 
       console.log('[CONTROLLER-QA] Creating work schedule:', scheduleData);
-      const schedule = await this.timecardRepository.createWorkSchedule(scheduleData);
+      const schedule = await this.timecardRepository.createWorkSchedule(scheduleData, tenantId);
       res.status(201).json(schedule);
     } catch (error: any) {
       console.error('[CONTROLLER-QA] Error creating work schedule:', error);
@@ -589,6 +588,51 @@ export class TimecardController {
       res.status(204).send();
     } catch (error) {
       console.error('Error deleting schedule template:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+  };
+
+  // Assign template to users
+  assignTemplateToUsers = async (req: Request, res: Response) => {
+    try {
+      const { tenantId } = (req as any).user;
+      const { templateId } = req.params;
+      const { userIds } = req.body;
+
+      if (!Array.isArray(userIds) || userIds.length === 0) {
+        return res.status(400).json({ message: 'Lista de usuários é obrigatória' });
+      }
+
+      // Get template details
+      const templates = await this.timecardRepository.getScheduleTemplates(tenantId);
+      const template = templates.find(t => t.id === templateId);
+      
+      if (!template) {
+        return res.status(404).json({ message: 'Template não encontrado' });
+      }
+
+      console.log('[TEMPLATE-ASSIGN] Assigning template to users:', { templateId, userIds: userIds.length });
+
+      // Create work schedules for each user based on template
+      const schedules = await this.timecardRepository.createBulkWorkSchedules(userIds, {
+        scheduleType: template.scheduleType,
+        scheduleName: template.name,
+        workDays: template.workDays,
+        startTime: template.startTime,
+        endTime: template.endTime,
+        breakStart: template.breakStart,
+        breakEnd: template.breakEnd,
+        useWeeklySchedule: template.useWeeklySchedule || false,
+        weeklySchedule: template.weeklySchedule,
+        isActive: true
+      }, tenantId);
+      
+      res.status(201).json({ 
+        message: `Template "${template.name}" atribuído a ${schedules.length} usuários`,
+        schedules 
+      });
+    } catch (error) {
+      console.error('Error assigning template to users:', error);
       res.status(500).json({ message: 'Erro interno do servidor' });
     }
   };
