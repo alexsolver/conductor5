@@ -291,45 +291,77 @@ export class ItemRepository {
 
       console.log(`🔍 Buscando vínculos para item ${itemId} no schema ${schemaName}`);
 
-      // 🔧 CORREÇÃO: Buscar vínculos de empresas com fallback robusto
+      // 🔧 CORREÇÃO: Buscar vínculos de empresas com fallback robusto e verificação de tabelas
       let customerLinks = [];
+      
+      // Primeiro: verificar quais tabelas existem
+      const tableCheckQuery = `
+        SELECT table_name 
+        FROM information_schema.tables 
+        WHERE table_schema = '${schemaName}' 
+        AND table_name IN ('customer_item_mappings', 'item_customer_links', 'companies', 'customers')
+      `;
+      
       try {
-        // Primeiro: tentar com customer_item_mappings
-        const customerLinksResult = await pool.query(`
-          SELECT cim.customer_id as id, 
-                 COALESCE(cim.customer_name, cim.alias, 'Cliente sem nome') as name 
-          FROM "${schemaName}".customer_item_mappings cim
-          WHERE cim.item_id = $1 
-            AND cim.tenant_id = $2 
-            AND cim.is_active = true
-          LIMIT 50
-        `, [itemId, tenantId]);
-        customerLinks = customerLinksResult.rows;
-        console.log(`✅ [CUSTOMER-LINKS] Found ${customerLinks.length} companies via customer_item_mappings`);
-      } catch (error) {
-        console.log('📋 [CUSTOMER-LINKS] Table customer_item_mappings not found, trying alternative structure...');
-
-        // Fallback 1: item_customer_links + companies
-        try {
-          const fallbackResult = await pool.query(`
-            SELECT c.id, COALESCE(c.name, c.company, 'Cliente sem nome') as name 
-            FROM "${schemaName}".item_customer_links icl
-            INNER JOIN "${schemaName}".companies c ON icl.company_id = c.id
-            WHERE icl.item_id = $1 
-              AND icl.tenant_id = $2 
-              AND icl.is_active = true
-              AND (c.status = 'active' OR c.status IS NULL)
-            LIMIT 50
-          `, [itemId, tenantId]);
-          customerLinks = fallbackResult.rows;
-          console.log(`✅ [CUSTOMER-LINKS] Found ${customerLinks.length} companies via item_customer_links + companies`);
-        } catch (fallbackError) {
-          console.log('🔍 [CUSTOMER-LINKS] Fallback 1 failed, trying customers table...');
-          
-          // Fallback 2: item_customer_links + customers
+        const tablesResult = await pool.query(tableCheckQuery);
+        const availableTables = tablesResult.rows.map(row => row.table_name);
+        console.log(`🔍 [CUSTOMER-LINKS] Available tables: ${availableTables.join(', ')}`);
+        
+        // Estratégia 1: customer_item_mappings (preferencial)
+        if (availableTables.includes('customer_item_mappings')) {
+          try {
+            const customerLinksResult = await pool.query(`
+              SELECT 
+                cim.customer_id as id, 
+                COALESCE(cim.customer_name, cim.alias, 'Cliente sem nome') as name,
+                cim.created_at as linked_at,
+                cim.is_active
+              FROM "${schemaName}".customer_item_mappings cim
+              WHERE cim.item_id = $1 
+                AND cim.tenant_id = $2 
+                AND cim.is_active = true
+              LIMIT 50
+            `, [itemId, tenantId]);
+            customerLinks = customerLinksResult.rows;
+            console.log(`✅ [CUSTOMER-LINKS] Found ${customerLinks.length} companies via customer_item_mappings`);
+          } catch (error) {
+            console.log(`⚠️ [CUSTOMER-LINKS] customer_item_mappings query failed:`, error.message);
+          }
+        }
+        
+        // Estratégia 2: item_customer_links + companies
+        if (customerLinks.length === 0 && availableTables.includes('item_customer_links') && availableTables.includes('companies')) {
+          try {
+            const fallbackResult = await pool.query(`
+              SELECT 
+                c.id, 
+                COALESCE(c.name, c.company, 'Cliente sem nome') as name,
+                icl.created_at as linked_at,
+                icl.is_active
+              FROM "${schemaName}".item_customer_links icl
+              INNER JOIN "${schemaName}".companies c ON icl.company_id = c.id
+              WHERE icl.item_id = $1 
+                AND icl.tenant_id = $2 
+                AND icl.is_active = true
+                AND (c.status = 'active' OR c.status IS NULL)
+              LIMIT 50
+            `, [itemId, tenantId]);
+            customerLinks = fallbackResult.rows;
+            console.log(`✅ [CUSTOMER-LINKS] Found ${customerLinks.length} companies via item_customer_links + companies`);
+          } catch (fallbackError) {
+            console.log(`⚠️ [CUSTOMER-LINKS] Fallback 1 failed:`, fallbackError.message);
+          }
+        }
+        
+        // Estratégia 3: item_customer_links + customers
+        if (customerLinks.length === 0 && availableTables.includes('item_customer_links') && availableTables.includes('customers')) {
           try {
             const fallback2Result = await pool.query(`
-              SELECT c.id, COALESCE(c.name, c.company, 'Cliente sem nome') as name 
+              SELECT 
+                c.id, 
+                COALESCE(c.name, c.company, 'Cliente sem nome') as name,
+                icl.created_at as linked_at,
+                icl.is_active
               FROM "${schemaName}".item_customer_links icl
               INNER JOIN "${schemaName}".customers c ON icl.customer_id = c.id
               WHERE icl.item_id = $1 
@@ -340,10 +372,17 @@ export class ItemRepository {
             customerLinks = fallback2Result.rows;
             console.log(`✅ [CUSTOMER-LINKS] Found ${customerLinks.length} companies via item_customer_links + customers`);
           } catch (fallback2Error) {
-            console.log('❌ [CUSTOMER-LINKS] All fallback methods failed');
-            customerLinks = [];
+            console.log(`⚠️ [CUSTOMER-LINKS] Fallback 2 failed:`, fallback2Error.message);
           }
         }
+        
+        if (customerLinks.length === 0) {
+          console.log('❌ [CUSTOMER-LINKS] No customer links found using any strategy');
+        }
+        
+      } catch (error) {
+        console.error('❌ [CUSTOMER-LINKS] Critical error in table detection:', error);
+        customerLinks = [];
       }
 
       // 🔧 CORREÇÃO: Buscar vínculos de fornecedores

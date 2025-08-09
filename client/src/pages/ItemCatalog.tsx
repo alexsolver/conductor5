@@ -208,21 +208,42 @@ export default function ItemCatalog() {
   });
 
   // Query para vínculos do item específico quando estiver editando
-  const { data: itemLinksData, refetch: refetchItemLinks } = useQuery({
+  const { data: itemLinksData, refetch: refetchItemLinks, isLoading: isLoadingLinks } = useQuery({
     queryKey: ['/api/materials-services/items', selectedItem?.id, 'links'],
     queryFn: async () => {
       if (!selectedItem?.id) return { customers: [], suppliers: [] };
       try {
+        console.log(`🔍 [FRONTEND] Buscando vínculos para item: ${selectedItem.id}`);
         const response = await apiRequest('GET', `/api/materials-services/items/${selectedItem.id}/links`);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
         const result = await response.json();
-        console.log('🔗 Links carregados:', result);
-        return result?.data || { customers: [], suppliers: [] };
+        console.log('🔗 [FRONTEND] Links carregados:', result);
+        
+        // Validação da estrutura de dados
+        const validatedData = {
+          customers: Array.isArray(result?.data?.customers) ? result.data.customers : [],
+          suppliers: Array.isArray(result?.data?.suppliers) ? result.data.suppliers : []
+        };
+        
+        console.log(`✅ [FRONTEND] Dados validados: ${validatedData.customers.length} empresas, ${validatedData.suppliers.length} fornecedores`);
+        return validatedData;
       } catch (error) {
-        console.error('Erro ao carregar vínculos do item:', error);
+        console.error('❌ [FRONTEND] Erro ao carregar vínculos do item:', error);
+        toast({
+          title: "Aviso",
+          description: `Não foi possível carregar os vínculos: ${error instanceof Error ? error.message : 'Erro desconhecido'}`,
+          variant: "default"
+        });
         return { customers: [], suppliers: [] };
       }
     },
-    enabled: !!selectedItem?.id && (currentView === 'item-details' || currentView === 'item-edit')
+    enabled: !!selectedItem?.id && (currentView === 'item-details' || currentView === 'item-edit'),
+    retry: 2,
+    retryDelay: 1000
   });
 
   // Mutations

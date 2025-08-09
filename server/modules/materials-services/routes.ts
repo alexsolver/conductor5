@@ -311,7 +311,7 @@ router.delete('/items/:id/unlink-customer/:customerId', async (req, res) => {
 });
 
 // Link supplier to item
-  router.post('/items/:id/link-supplier', jwtAuth, async (req, res) => {
+  router.post('/items/:id/link-supplier', async (req: AuthenticatedRequest, res) => {
     try {
       const { id: itemId } = req.params;
       const { supplierId } = req.body;
