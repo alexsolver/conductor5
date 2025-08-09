@@ -579,25 +579,6 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                       </SelectTrigger>
                       <SelectContent>
                         {availableItems.map((item: any, index: number) => {
-                          // Debug log to see item structure
-                          console.log('🔍 [CONSUMPTION-SELECT] Available item structure:', {
-                            rawItem: item,
-                            itemData: item.item || item.items || item,
-                            itemId: item.itemId,
-                            detectedName: itemName,
-                            allKeys: Object.keys(item),
-                            itemDataKeys: item.item ? Object.keys(item.item) : 'no item nested',
-                            itemsDataKeys: item.items ? Object.keys(item.items) : 'no items nested',
-                            possibleNames: {
-                              'itemData.itemName': itemData.itemName,
-                              'itemData.name': itemData.name,
-                              'item.itemName': item.itemName,
-                              'item.name': item.name,
-                              'itemData.display_name': itemData.display_name,
-                              'item.display_name': item.display_name
-                            }
-                          });
-                          
                           // Handle different data structures - try nested object first
                           const itemData = item.item || item.items || item;
                           
@@ -616,6 +597,17 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                           else if (item.title) itemName = item.title;
                           // Fallback: Use a descriptive fallback instead of UUID
                           else itemName = `Material ${item.itemId ? item.itemId.substring(0, 8) : 'Não identificado'}`;
+
+                          // Debug log to see item structure
+                          console.log('🔍 [CONSUMPTION-SELECT] Available item structure:', {
+                            rawItem: item,
+                            itemData: itemData,
+                            itemId: item.itemId,
+                            detectedName: itemName,
+                            allKeys: Object.keys(item),
+                            itemDataKeys: item.item ? Object.keys(item.item) : 'no item nested',
+                            itemsDataKeys: item.items ? Object.keys(item.items) : 'no items nested'
+                          });
                           
                           const itemType = itemData.itemType || itemData.type || item.itemType || item.type || 'Material';
                           const itemDescription = itemData.itemDescription || itemData.description || itemData.display_description || 
