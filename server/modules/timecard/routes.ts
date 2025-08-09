@@ -80,7 +80,10 @@ timecardRouter.get('/reports/attendance/:period', jwtAuth, async (req, res) => {
 timecardRouter.get('/reports/overtime/:period', jwtAuth, async (req, res) => {
   try {
     console.log('[TIMECARD-ROUTES] Processing overtime report request for period:', req.params.period);
-    res.setHeader('Content-Type', 'application/json');
+    
+    // Set headers early and ensure JSON response
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-cache');
     
     // Check if response was already sent
     if (res.headersSent) {
@@ -94,7 +97,7 @@ timecardRouter.get('/reports/overtime/:period', jwtAuth, async (req, res) => {
     
     // Only send error if response wasn't sent yet
     if (!res.headersSent) {
-      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
       res.status(500).json({
         success: false,
         error: 'Erro ao gerar relatório de horas extras',
@@ -107,7 +110,10 @@ timecardRouter.get('/reports/overtime/:period', jwtAuth, async (req, res) => {
 timecardRouter.get('/reports/compliance/:period', jwtAuth, async (req, res) => {
   try {
     console.log('[TIMECARD-ROUTES] Processing compliance report request for period:', req.params.period);
-    res.setHeader('Content-Type', 'application/json');
+    
+    // Set headers early and ensure JSON response
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-cache');
     
     // Check if response was already sent
     if (res.headersSent) {
@@ -121,7 +127,7 @@ timecardRouter.get('/reports/compliance/:period', jwtAuth, async (req, res) => {
     
     // Only send error if response wasn't sent yet
     if (!res.headersSent) {
-      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
       res.status(500).json({
         success: false,
         error: 'Erro ao gerar relatório de compliance',

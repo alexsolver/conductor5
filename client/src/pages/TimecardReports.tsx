@@ -218,10 +218,10 @@ export default function TimecardReports() {
     reportType,
     currentReport: currentReport ? {
       success: currentReport.success,
-      hasData: !!currentReport.data,
-      isArray: Array.isArray(currentReport.data),
-      dataLength: currentReport.data?.length,
-      firstItem: currentReport.data?.[0]
+      hasData: !!(currentReport.data || currentReport.records),
+      isArray: Array.isArray(currentReport.data || currentReport.records),
+      dataLength: (currentReport.data || currentReport.records)?.length,
+      firstItem: (currentReport.data || currentReport.records)?.[0]
     } : null,
     isLoading,
     currentError: currentError?.message
@@ -404,7 +404,7 @@ export default function TimecardReports() {
           ) : currentReport?.success && (
             (reportType === 'attendance' && currentReport?.records && Array.isArray(currentReport.records) && currentReport.records.length > 0) ||
             (reportType === 'overtime' && currentReport?.data && Array.isArray(currentReport.data) && currentReport.data.length > 0) ||
-            (reportType === 'compliance' && currentReport?.data && Array.isArray(currentReport.data))
+            (reportType === 'compliance' && currentReport?.data && Array.isArray(currentReport.data) && currentReport.data.length >= 0)
           ) ? (
             <div className="overflow-x-auto">
               <table className="w-full border-collapse border-2 border-black text-xs">
@@ -421,8 +421,15 @@ export default function TimecardReports() {
                   </tr>
                 </thead>
                 <tbody>
-                  {(reportType === 'attendance' ? currentReport.records : currentReport.data)
-                    ?.sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime())
+                  {(reportType === 'attendance' ? 
+                      currentReport.records : 
+                      (currentReport.data || [])
+                    )
+                    ?.sort((a: any, b: any) => {
+                      const dateA = new Date(a.date || '1970-01-01').getTime();
+                      const dateB = new Date(b.date || '1970-01-01').getTime();
+                      return dateA - dateB;
+                    })
                     ?.map((record: any, index: number) => (
                       <tr key={index} className={`${!record.isConsistent ? 'bg-red-50 border-red-200' : 'hover:bg-gray-50'} h-14`}>
                         <td className="border-2 border-black px-2 py-3 text-center font-bold text-sm">

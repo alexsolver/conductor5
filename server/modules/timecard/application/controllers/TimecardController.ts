@@ -1329,21 +1329,14 @@ export class TimecardController {
 
       const overtimeReport = {
         period,
-        records: processedRecords,
+        data: processedRecords, // Frontend expects 'data' field
         summary: {
           totalOvertimeHours: totalOvertimeHours.toFixed(2),
           totalOvertimeValue: (totalOvertimeHours * 25.5).toFixed(2), // R$ 25,50 por hora extra
+          overtimeDaysCount: overtimeDays.length,
           averageOvertimePerDay: averageOvertimePerDay,
-        },
-        employeeDetails: [
-          {
-            userId: targetUserId,
-            userName: 'Nome do Usuário', // Precisaria buscar o nome do usuário
-            overtimeHours: totalOvertimeHours.toFixed(2),
-            overtimeValue: (totalOvertimeHours * 25.5).toFixed(2),
-            overtimeDays: overtimeDays.length
-          }
-        ]
+          hourlyRate: '25.50'
+        }
       };
 
       console.log('[OVERTIME-REPORT] Final report summary:', overtimeReport.summary);
