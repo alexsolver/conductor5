@@ -1,4 +1,3 @@
-
 import { z } from 'zod';
 
 // Schema para criação de entrada de timecard
@@ -55,3 +54,50 @@ export type CreateTimecardEntryInput = z.infer<typeof createTimecardEntrySchema>
 export type CreateAbsenceRequestInput = z.infer<typeof createAbsenceRequestSchema>;
 export type CreateScheduleTemplateInput = z.infer<typeof createScheduleTemplateSchema>;
 export type CreateFlexibleWorkArrangementInput = z.infer<typeof createFlexibleWorkArrangementSchema>;
+
+const dayScheduleSchema = z.object({
+  startTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Formato de hora inválido'),
+  endTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Formato de hora inválido'),
+  breakStart: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Formato de hora inválido').optional(),
+  breakEnd: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Formato de hora inválido').optional(),
+  breakDurationMinutes: z.number().min(0).max(480).default(60)
+});
+
+const weeklyScheduleSchema = z.object({
+  monday: dayScheduleSchema.optional(),
+  tuesday: dayScheduleSchema.optional(),
+  wednesday: dayScheduleSchema.optional(),
+  thursday: dayScheduleSchema.optional(),
+  friday: dayScheduleSchema.optional(),
+  saturday: dayScheduleSchema.optional(),
+  sunday: dayScheduleSchema.optional()
+});
+
+export const createWorkScheduleSchema = z.object({
+  userId: z.string().uuid(),
+  scheduleName: z.string().min(1, 'Nome da escala é obrigatório'),
+  scheduleType: z.enum(['5x2', '6x1', '12x36', 'shift', 'flexible', 'intermittent']),
+  startDate: z.string(),
+  endDate: z.string().optional(),
+  workDays: z.array(z.string()),
+  // Campos legados (opcionais se useWeeklySchedule = true)
+  startTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Formato de hora inválido').optional(),
+  endTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Formato de hora inválido').optional(),
+  breakStart: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Formato de hora inválido').optional(),
+  breakEnd: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Formato de hora inválido').optional(),
+  breakDurationMinutes: z.number().min(0).max(480).default(60),
+  // Novos campos
+  useWeeklySchedule: z.boolean().default(false),
+  weeklySchedule: weeklyScheduleSchema.optional()
+}).refine((data) => {
+  // Se usar horário semanal, weeklySchedule deve estar presente
+  if (data.useWeeklySchedule) {
+    return data.weeklySchedule && Object.keys(data.weeklySchedule).length > 0;
+  }
+  // Se não usar horário semanal, campos legados devem estar presentes
+  return data.startTime && data.endTime;
+}, {
+  message: "Horários são obrigatórios"
+});
+
+export type CreateWorkScheduleInput = z.infer<typeof createWorkScheduleSchema>;

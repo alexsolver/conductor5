@@ -3,7 +3,8 @@ import { db } from '../../../../db';
 import { 
   timecardEntries,
   hourBankEntries, 
-  users
+  users,
+  workSchedules // Assuming workSchedules is imported from @shared/schema
 } from '@shared/schema';
 
 export interface TimecardRepository {
@@ -14,11 +15,12 @@ export interface TimecardRepository {
   deleteTimecardEntry(id: string, tenantId: string): Promise<void>;
 
   // Work Schedules
-  createWorkSchedule(data: any): Promise<any>;
+  createWorkSchedule(data: any, tenantId: string): Promise<any>;
   getWorkSchedulesByUser(userId: string, tenantId: string): Promise<any[]>;
   getAllWorkSchedules(tenantId: string): Promise<any[]>;
   updateWorkSchedule(id: string, tenantId: string, data: any): Promise<any>;
   deleteWorkSchedule(id: string, tenantId: string): Promise<void>;
+  createBulkWorkSchedules(userIds: string[], scheduleData: any, tenantId: string): Promise<any[]>;
 
   // Absence Requests
   createAbsenceRequest(data: any): Promise<any>;
@@ -207,7 +209,9 @@ export class DrizzleTimecardRepository implements TimecardRepository {
             tenantId: row.tenant_id,
             createdAt: row.created_at,
             updatedAt: row.updated_at,
-            userName: `${row.first_name || ''} ${row.last_name || ''}`.trim() || row.email || 'Usuário'
+            userName: `${row.first_name || ''} ${row.last_name || ''}`.trim() || row.email || 'Usuário',
+            useWeeklySchedule: row.use_weekly_schedule || false,
+            weeklySchedule: row.weekly_schedule ? JSON.parse(row.weekly_schedule) : null
           }));
         }
       } catch (tableError) {
@@ -240,84 +244,43 @@ export class DrizzleTimecardRepository implements TimecardRepository {
     }
   }
 
-  async createWorkSchedule(data: any): Promise<any> {
-    console.log('[CONTROLLER-QA] Creating work schedule:', data);
-    
-    try {
-      // Try to insert into real work_schedules table
-      const result = await db.execute(sql`
-        INSERT INTO work_schedules (
-          tenant_id, user_id, schedule_type, schedule_name, work_days,
-          start_time, end_time, break_start, break_end, is_active,
-          created_at, updated_at
-        ) VALUES (
-          ${data.tenantId}, ${data.userId}, ${data.scheduleType},
-          ${`Escala ${data.scheduleType}`}, ${JSON.stringify(data.workDays || [1, 2, 3, 4, 5])},
-          ${data.startTime}, ${data.endTime}, ${data.breakStart}, ${data.breakEnd},
-          ${data.isActive !== false}, NOW(), NOW()
-        )
-        ON CONFLICT (tenant_id, user_id) DO UPDATE SET
-          schedule_type = EXCLUDED.schedule_type,
-          schedule_name = EXCLUDED.schedule_name,
-          work_days = EXCLUDED.work_days,
-          start_time = EXCLUDED.start_time,
-          end_time = EXCLUDED.end_time,
-          break_start = EXCLUDED.break_start,
-          break_end = EXCLUDED.break_end,
-          is_active = EXCLUDED.is_active,
-          updated_at = NOW()
-        RETURNING *
-      `);
+  async createWorkSchedule(data: any, tenantId: string): Promise<any> {
+    console.log('[DRIZZLE-QA] Creating work schedule:', data);
 
-      if (result.rows && result.rows.length > 0) {
-        const newSchedule = result.rows[0] as any;
-        console.log('[DATABASE-QA] Work schedule saved to database:', newSchedule.id);
-        return {
-          id: newSchedule.id,
-          tenantId: newSchedule.tenant_id,
-          userId: newSchedule.user_id,
-          scheduleType: newSchedule.schedule_type,
-          scheduleName: newSchedule.schedule_name,
-          workDays: JSON.parse(newSchedule.work_days || '[1,2,3,4,5]'),
-          startTime: newSchedule.start_time,
-          endTime: newSchedule.end_time,
-          breakStart: newSchedule.break_start,
-          breakEnd: newSchedule.break_end,
-          isActive: newSchedule.is_active,
-          createdAt: newSchedule.created_at,
-          updatedAt: newSchedule.updated_at
-        };
-      }
-    } catch (error) {
-      console.error('[DATABASE-QA] Failed to save work schedule to database:', error);
-      
-      // Fallback: return structured data without saving
-      const newSchedule = {
-        id: `temp-${Date.now()}`,
-        tenantId: data.tenantId,
-        userId: data.userId,
-        scheduleType: data.scheduleType,
-        scheduleName: `Escala ${data.scheduleType}`,
-        workDays: data.workDays || [1, 2, 3, 4, 5],
-        startTime: data.startTime,
-        endTime: data.endTime,
-        breakStart: data.breakStart,
-        breakEnd: data.breakEnd,
-        isActive: data.isActive !== false,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
-      
-      console.log('[FALLBACK-QA] Using temporary schedule data:', newSchedule.id);
-      return newSchedule;
+    const scheduleData: any = {
+      tenantId,
+      userId: data.userId,
+      scheduleName: data.scheduleName,
+      scheduleType: data.scheduleType,
+      startDate: data.startDate,
+      endDate: data.endDate,
+      workDays: data.workDays,
+      useWeeklySchedule: data.useWeeklySchedule || false,
+      isActive: true
+    };
+
+    // Se usar horário semanal
+    if (data.useWeeklySchedule && data.weeklySchedule) {
+      scheduleData.weeklySchedule = JSON.stringify(data.weeklySchedule); // Store as JSON string
+    } else {
+      // Usar campos legados
+      scheduleData.startTime = data.startTime;
+      scheduleData.endTime = data.endTime;
+      scheduleData.breakStart = data.breakStart;
+      scheduleData.breakEnd = data.breakEnd;
+      scheduleData.breakDurationMinutes = data.breakDurationMinutes || 60;
     }
+
+    const workSchedule = await db.insert(workSchedules).values(scheduleData).returning();
+
+    return workSchedule[0];
   }
 
   async createBulkWorkSchedules(userIds: string[], scheduleData: any, tenantId: string): Promise<any[]> {
     console.log('[BULK-QA] Creating bulk schedules for', userIds.length, 'users');
-    
+
     const createdSchedules = [];
-    
+
     try {
       // Try bulk insert into database
       for (const userId of userIds) {
@@ -325,59 +288,68 @@ export class DrizzleTimecardRepository implements TimecardRepository {
           INSERT INTO work_schedules (
             tenant_id, user_id, schedule_type, schedule_name, work_days,
             start_time, end_time, break_start, break_end, is_active,
-            created_at, updated_at
+            created_at, updated_at, use_weekly_schedule, weekly_schedule
           ) VALUES (
             ${tenantId}, ${userId}, ${scheduleData.scheduleType},
             ${`Escala ${scheduleData.scheduleType}`}, ${JSON.stringify(scheduleData.workDays || [1, 2, 3, 4, 5])},
             ${scheduleData.startTime}, ${scheduleData.endTime}, ${scheduleData.breakStart}, ${scheduleData.breakEnd},
-            ${scheduleData.isActive !== false}, NOW(), NOW()
+            ${scheduleData.isActive !== false}, NOW(), NOW(), ${scheduleData.useWeeklySchedule || false}, ${scheduleData.useWeeklySchedule && scheduleData.weeklySchedule ? JSON.stringify(scheduleData.weeklySchedule) : null}
           )
           ON CONFLICT (tenant_id, user_id) DO UPDATE SET
             schedule_type = EXCLUDED.schedule_type,
             work_days = EXCLUDED.work_days,
             start_time = EXCLUDED.start_time,
             end_time = EXCLUDED.end_time,
-            updated_at = NOW()
+            updated_at = NOW(),
+            use_weekly_schedule = EXCLUDED.use_weekly_schedule,
+            weekly_schedule = EXCLUDED.weekly_schedule
           RETURNING *
         `);
-        
+
         if (result.rows && result.rows.length > 0) {
           createdSchedules.push(result.rows[0]);
         }
       }
-      
+
       console.log('[BULK-DATABASE] Successfully created', createdSchedules.length, 'schedules in database');
     } catch (error) {
       console.error('[BULK-DATABASE] Error creating bulk schedules:', error);
-      
+
       // Fallback to individual creation
       for (const userId of userIds) {
         const newSchedule = await this.createWorkSchedule({
           ...scheduleData,
           userId,
           tenantId
-        });
+        }, tenantId); // Pass tenantId here
         createdSchedules.push(newSchedule);
       }
     }
-    
+
     console.log('[BULK-QA] Created', createdSchedules.length, 'schedules');
     return createdSchedules;
   }
 
   async updateWorkSchedule(id: string, tenantId: string, data: any): Promise<any> {
     console.log('Work schedule update not implemented - table missing');
+    // Placeholder for actual update logic
+    // Example:
+    // const [updatedSchedule] = await db.update(workSchedules).set(data).where(and(eq(workSchedules.id, id), eq(workSchedules.tenantId, tenantId))).returning();
+    // return updatedSchedule;
     return { id, ...data, updatedAt: new Date() };
   }
 
   async deleteWorkSchedule(id: string, tenantId: string): Promise<void> {
     console.log('Work schedule deletion not implemented - table missing');
+    // Placeholder for actual delete logic
+    // Example:
+    // await db.delete(workSchedules).where(and(eq(workSchedules.id, id), eq(workSchedules.tenantId, tenantId)));
   }
 
   async getWorkSchedulesByUser(userId: string, tenantId: string): Promise<any[]> {
     try {
       console.log('Fetching work schedules for user:', userId);
-      
+
       // Get user info
       const user = await db
         .select({
@@ -397,7 +369,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
         return [];
       }
 
-      // Return mock schedule for this user
+      // Mock implementation returning default schedule
       return [{
         id: `schedule-${userId}`,
         tenantId: tenantId,
@@ -411,7 +383,9 @@ export class DrizzleTimecardRepository implements TimecardRepository {
         breakEnd: '13:00',
         isActive: true,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
+        useWeeklySchedule: false,
+        weeklySchedule: null
       }];
     } catch (error) {
       console.error('Error fetching user work schedules:', error);
@@ -454,7 +428,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
   async createScheduleTemplate(data: any): Promise<any> {
     try {
       const { scheduleTemplates } = await import('@shared/schema');
-      
+
       const [template] = await db
         .insert(scheduleTemplates)
         .values({
@@ -484,7 +458,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
     try {
       // Get real templates from database using existing db connection
       const { scheduleTemplates } = await import('@shared/schema');
-      
+
       const templates = await db
         .select()
         .from(scheduleTemplates)
@@ -500,7 +474,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
         }
         return template;
       });
-      
+
       // Combinar templates reais com templates padrão
       const defaultTemplates = [
         {
@@ -646,7 +620,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
   async updateScheduleTemplate(id: string, tenantId: string, data: any): Promise<any> {
     try {
       const { scheduleTemplates } = await import('@shared/schema');
-      
+
       const [updated] = await db
         .update(scheduleTemplates)
         .set({ 
@@ -677,7 +651,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
       }
 
       const { scheduleTemplates } = await import('@shared/schema');
-      
+
       await db
         .delete(scheduleTemplates)
         .where(and(

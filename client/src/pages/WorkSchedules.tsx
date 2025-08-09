@@ -7,12 +7,23 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Calendar, Clock, Users, Plus, Edit, Trash2, Settings } from 'lucide-react';
+import { Calendar, Clock, Users, Plus, Edit, Trash2, Settings, Switch } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+
+// Define the new interface for weekly schedules
+interface DaySchedule {
+  startTime: string;
+  endTime: string;
+  breakDurationMinutes: number;
+}
+
+interface WeeklySchedule {
+  [key: number]: DaySchedule; // Key is the day of the week (0 for Sunday, 6 for Saturday)
+}
 
 interface WorkSchedule {
   id: string;
@@ -21,11 +32,13 @@ interface WorkSchedule {
   startDate: string;
   endDate?: string;
   workDays: number[];
-  startTime: string;
-  endTime: string;
-  breakDurationMinutes: number;
+  startTime?: string; // Optional if using weeklySchedule
+  endTime?: string; // Optional if using weeklySchedule
+  breakDurationMinutes?: number; // Optional if using weeklySchedule
   isActive: boolean;
   userName?: string;
+  useWeeklySchedule?: boolean;
+  weeklySchedule?: WeeklySchedule;
 }
 
 interface User {
@@ -51,6 +64,102 @@ const weekDays = [
   { value: 6, label: 'Sábado' }
 ];
 
+// Component for configuring weekly schedules
+function WeeklyScheduleForm({ weeklySchedule, workDays, onWeeklyScheduleChange, onWorkDaysChange }: {
+  weeklySchedule: WeeklySchedule;
+  workDays: number[];
+  onWeeklyScheduleChange: (schedule: WeeklySchedule) => void;
+  onWorkDaysChange: (days: number[]) => void;
+}) {
+  const handleDayChange = (dayValue: number, field: keyof DaySchedule, value: string) => {
+    const newWeeklySchedule = {
+      ...weeklySchedule,
+      [dayValue]: {
+        ...(weeklySchedule[dayValue] || { startTime: '08:00', endTime: '17:00', breakDurationMinutes: 60 }),
+        [field]: value,
+      },
+    };
+    onWeeklyScheduleChange(newWeeklySchedule);
+  };
+
+  const handleDayToggle = (dayValue: number) => {
+    const currentIndex = workDays.indexOf(dayValue);
+    const newWorkDays = [...workDays];
+
+    if (currentIndex > -1) {
+      newWorkDays.splice(currentIndex, 1);
+      // Optionally remove the schedule for this day if it exists
+      const { [dayValue]: _, ...rest } = weeklySchedule;
+      onWeeklyScheduleChange(rest);
+    } else {
+      newWorkDays.push(dayValue);
+      // Ensure a default entry exists if it's the first time for this day
+      if (!weeklySchedule[dayValue]) {
+        onWeeklyScheduleChange({
+          ...weeklySchedule,
+          [dayValue]: { startTime: '08:00', endTime: '17:00', breakDurationMinutes: 60 }
+        });
+      }
+    }
+    onWorkDaysChange(newWorkDays);
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-4 gap-2">
+        {weekDays.map(day => (
+          <Button
+            key={day.value}
+            type="button"
+            variant={workDays.includes(day.value) ? "default" : "outline"}
+            size="sm"
+            onClick={() => handleDayToggle(day.value)}
+          >
+            {day.label}
+          </Button>
+        ))}
+      </div>
+      {workDays.sort((a, b) => a - b).map(dayValue => (
+        <div key={dayValue} className="border rounded-md p-4 bg-gray-50">
+          <h4 className="text-lg font-semibold mb-3">{weekDays.find(d => d.value === dayValue)?.label}</h4>
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <Label htmlFor={`weekly-start-time-${dayValue}`}>Entrada</Label>
+              <Input
+                id={`weekly-start-time-${dayValue}`}
+                type="time"
+                value={weeklySchedule[dayValue]?.startTime || '08:00'}
+                onChange={(e) => handleDayChange(dayValue, 'startTime', e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor={`weekly-end-time-${dayValue}`}>Saída</Label>
+              <Input
+                id={`weekly-end-time-${dayValue}`}
+                type="time"
+                value={weeklySchedule[dayValue]?.endTime || '17:00'}
+                onChange={(e) => handleDayChange(dayValue, 'endTime', e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor={`weekly-break-${dayValue}`}>Pausa (min)</Label>
+              <Input
+                id={`weekly-break-${dayValue}`}
+                type="number"
+                value={weeklySchedule[dayValue]?.breakDurationMinutes || 60}
+                onChange={(e) => handleDayChange(dayValue, 'breakDurationMinutes', e.target.value)}
+                min="0"
+                max="480"
+              />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+
 import { WorkScheduleErrorBoundary } from '@/components/WorkScheduleErrorBoundary';
 
 function WorkSchedulesContent() {
@@ -58,22 +167,26 @@ function WorkSchedulesContent() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [bulkAssignOpen, setBulkAssignOpen] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  
+  // Updated formData with new states for weekly schedules
   const [formData, setFormData] = useState({
     userId: '',
     scheduleType: '5x2',
     startDate: '',
     endDate: '',
-    workDays: [1, 2, 3, 4, 5],
+    workDays: [1, 2, 3, 4, 5], // Default to weekdays
     startTime: '08:00',
-    endTime: '18:00',
+    endTime: '17:00',
     breakDurationMinutes: 60,
-    isActive: true
+    isActive: true,
+    useWeeklySchedule: false, // New state for toggling weekly schedule
+    weeklySchedule: {} as WeeklySchedule // New state for weekly schedule data
   });
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Buscar todas as escalas
+  // Fetching all schedules
   const { data: schedulesData, isLoading: schedulesLoading, error: schedulesError } = useQuery({
     queryKey: ['/api/timecard/work-schedules'],
     queryFn: async () => {
@@ -83,12 +196,12 @@ function WorkSchedulesContent() {
       console.log('[FRONTEND-QA] API Response:', data);
       return data;
     },
-    staleTime: 1000, // Reduzido para 1 segundo para ver mudanças mais rápido
+    staleTime: 1000, // Reduced for faster updates during development
     retry: 3,
     retryDelay: 1000
   });
 
-  // Buscar usuários/funcionários do sistema via endpoint de admin que funciona
+  // Fetching users/employees via the admin endpoint
   const { data: usersData, error: usersError } = useQuery({
     queryKey: ['/api/tenant-admin/users'],
     queryFn: async () => {
@@ -101,7 +214,7 @@ function WorkSchedulesContent() {
     retryDelay: 1000
   });
 
-  // Buscar tipos de escalas personalizados
+  // Fetching custom schedule types
   const { data: scheduleTypesData, error: templatesError } = useQuery({
     queryKey: ['/api/timecard/schedule-templates'],
     queryFn: async () => {
@@ -114,7 +227,7 @@ function WorkSchedulesContent() {
     retryDelay: 1000
   });
 
-  // Criar escala
+  // Create schedule mutation
   const createScheduleMutation = useMutation({
     mutationFn: async (data: any) => {
       const response = await apiRequest('POST', '/api/timecard/work-schedules', data);
@@ -126,7 +239,6 @@ function WorkSchedulesContent() {
         title: 'Escala criada!',
         description: 'A escala de trabalho foi criada com sucesso.',
       });
-      // Invalidar e reforçar o reload dos dados
       await queryClient.invalidateQueries({ queryKey: ['/api/timecard/work-schedules'] });
       await queryClient.refetchQueries({ queryKey: ['/api/timecard/work-schedules'] });
       setIsDialogOpen(false);
@@ -142,7 +254,7 @@ function WorkSchedulesContent() {
     },
   });
 
-  // Atualizar escala
+  // Update schedule mutation
   const updateScheduleMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: any }) => {
       const response = await apiRequest('PUT', `/api/timecard/work-schedules/${id}`, data);
@@ -169,7 +281,7 @@ function WorkSchedulesContent() {
     },
   });
 
-  // Excluir escala
+  // Delete schedule mutation
   const deleteScheduleMutation = useMutation({
     mutationFn: async (id: string) => {
       return await apiRequest('DELETE', `/api/timecard/work-schedules/${id}`);
@@ -192,11 +304,11 @@ function WorkSchedulesContent() {
 
   // Safe data processing with proper type checking
   let schedules: WorkSchedule[] = [];
-  
+
   console.log('[FRONTEND-DEBUG] Processing schedules data:', schedulesData);
   console.log('[FRONTEND-DEBUG] Data type:', typeof schedulesData);
   console.log('[FRONTEND-DEBUG] Is array:', Array.isArray(schedulesData));
-  
+
   try {
     if (Array.isArray(schedulesData)) {
       console.log('[FRONTEND-DEBUG] Processing as direct array, length:', schedulesData.length);
@@ -211,6 +323,8 @@ function WorkSchedulesContent() {
             scheduleType: schedule.scheduleType || '5x2',
             breakDurationMinutes: schedule.breakDurationMinutes || 60,
             isActive: schedule.isActive ?? true,
+            useWeeklySchedule: schedule.useWeeklySchedule ?? false,
+            weeklySchedule: schedule.weeklySchedule || {},
             // Safe date handling
             createdAt: schedule.createdAt ? new Date(schedule.createdAt).toISOString() : new Date().toISOString(),
             updatedAt: schedule.updatedAt ? new Date(schedule.updatedAt).toISOString() : new Date().toISOString(),
@@ -226,6 +340,8 @@ function WorkSchedulesContent() {
             scheduleType: '5x2',
             breakDurationMinutes: 60,
             isActive: true,
+            useWeeklySchedule: false,
+            weeklySchedule: {},
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
             startDate: null,
@@ -247,6 +363,8 @@ function WorkSchedulesContent() {
               scheduleType: schedule.scheduleType || '5x2',
               breakDurationMinutes: schedule.breakDurationMinutes || 60,
               isActive: schedule.isActive ?? true,
+              useWeeklySchedule: schedule.useWeeklySchedule ?? false,
+              weeklySchedule: schedule.weeklySchedule || {},
               // Safe date handling
               createdAt: schedule.createdAt ? new Date(schedule.createdAt).toISOString() : new Date().toISOString(),
               updatedAt: schedule.updatedAt ? new Date(schedule.updatedAt).toISOString() : new Date().toISOString(),
@@ -262,6 +380,8 @@ function WorkSchedulesContent() {
               scheduleType: '5x2',
               breakDurationMinutes: 60,
               isActive: true,
+              useWeeklySchedule: false,
+              weeklySchedule: {},
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
               startDate: null,
@@ -276,9 +396,9 @@ function WorkSchedulesContent() {
     console.error('[QA-ERROR] Error processing schedules data:', error);
     schedules = [];
   }
-  
+
   const users = Array.isArray(usersData) ? usersData : (usersData?.users || usersData?.members || []);
-  
+
   // Debug information for troubleshooting
   if (process.env.NODE_ENV === 'development') {
     console.log('Work schedules loaded:', schedules.length);
@@ -290,15 +410,15 @@ function WorkSchedulesContent() {
     console.log('Active templates list:', scheduleTypesData?.templates?.filter((t: any) => t.isActive));
     console.log('Custom templates (excluding defaults):', scheduleTypesData?.templates?.filter((t: any) => t.isActive && !['5x2', '6x1', '12x36'].includes(t.name)));
   }
-  
+
   if (templatesError) {
     console.error('Templates fetch error:', templatesError);
   }
-  
+
   if (usersError) {
     console.error('Users fetch error:', usersError);
   }
-  
+
   // Add error state handling
   if (schedulesError) {
     console.error('[QA-DEBUG] Schedules fetch error:', schedulesError);
@@ -313,64 +433,55 @@ function WorkSchedulesContent() {
       endDate: '',
       workDays: [1, 2, 3, 4, 5],
       startTime: '08:00',
-      endTime: '18:00',
+      endTime: '17:00',
       breakDurationMinutes: 60,
-      isActive: true
+      isActive: true,
+      useWeeklySchedule: false,
+      weeklySchedule: {}
     });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validações obrigatórias
+    // Validations
     if (!formData.userId) {
-      toast({
-        title: 'Erro de validação',
-        description: 'Selecione um funcionário.',
-        variant: 'destructive',
-      });
+      toast({ title: 'Erro de validação', description: 'Selecione um funcionário.', variant: 'destructive' });
       return;
     }
-
     if (!formData.startDate) {
-      toast({
-        title: 'Erro de validação',
-        description: 'Data de início é obrigatória.',
-        variant: 'destructive',
-      });
+      toast({ title: 'Erro de validação', description: 'Data de início é obrigatória.', variant: 'destructive' });
+      return;
+    }
+    if (!formData.useWeeklySchedule && (!formData.startTime || !formData.endTime)) {
+      toast({ title: 'Erro de validação', description: 'Horários de entrada e saída são obrigatórios para escalas fixas.', variant: 'destructive' });
+      return;
+    }
+    if (!formData.useWeeklySchedule && formData.startTime >= formData.endTime) {
+      toast({ title: 'Erro de validação', description: 'Horário de saída deve ser posterior ao de entrada.', variant: 'destructive' });
+      return;
+    }
+    if (formData.workDays.length === 0) {
+      toast({ title: 'Erro de validação', description: 'Selecione pelo menos um dia da semana.', variant: 'destructive' });
       return;
     }
 
-    if (!Array.isArray(formData.workDays) || formData.workDays.length === 0) {
-      toast({
-        title: 'Erro de validação',
-        description: 'Selecione pelo menos um dia da semana.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    // Validação de horários
-    if (formData.startTime >= formData.endTime) {
-      toast({
-        title: 'Erro de validação',
-        description: 'Horário de saída deve ser posterior ao de entrada.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    // Mapear dados do frontend para o formato esperado pela API
+    // Prepare data for API
     const apiData = {
       userId: formData.userId,
       scheduleType: formData.scheduleType as '5x2' | '6x1' | '12x36' | 'shift' | 'flexible' | 'intermittent',
       startDate: formData.startDate,
-      endDate: formData.endDate || null,
+      endDate: formData.endDate || undefined,
       workDays: Array.from(new Set(formData.workDays)), // Remove duplicates
-      startTime: formData.startTime,
-      endTime: formData.endTime,
-      breakDurationMinutes: Math.max(0, Math.min(480, formData.breakDurationMinutes)), // Validate range
-      isActive: formData.isActive
+      isActive: formData.isActive,
+      useWeeklySchedule: formData.useWeeklySchedule,
+      ...(formData.useWeeklySchedule
+        ? { weeklySchedule: formData.weeklySchedule }
+        : {
+            startTime: formData.startTime,
+            endTime: formData.endTime,
+            breakDurationMinutes: Math.max(0, Math.min(480, formData.breakDurationMinutes)), // Validate range
+          }),
     };
 
     console.log('[QA-DEBUG] Submitting schedule data:', apiData);
@@ -392,11 +503,13 @@ function WorkSchedulesContent() {
       scheduleType: schedule.scheduleType,
       startDate: schedule.startDate ? schedule.startDate.split('T')[0] : '',
       endDate: schedule.endDate ? schedule.endDate.split('T')[0] : '',
-      workDays: schedule.workDays,
-      startTime: schedule.startTime,
-      endTime: schedule.endTime,
-      breakDurationMinutes: schedule.breakDurationMinutes,
-      isActive: schedule.isActive
+      workDays: schedule.workDays || [],
+      startTime: schedule.startTime || '08:00',
+      endTime: schedule.endTime || '17:00',
+      breakDurationMinutes: schedule.breakDurationMinutes || 60,
+      isActive: schedule.isActive,
+      useWeeklySchedule: schedule.useWeeklySchedule || false,
+      weeklySchedule: schedule.weeklySchedule || {}
     });
     setIsDialogOpen(true);
   };
@@ -422,27 +535,31 @@ function WorkSchedulesContent() {
       return;
     }
 
-    const scheduleData = {
+    const bulkScheduleData = {
       scheduleType: formData.scheduleType,
       startDate: formData.startDate,
       endDate: formData.endDate || null,
       workDays: formData.workDays,
-      startTime: formData.startTime,
-      endTime: formData.endTime,
-      breakDurationMinutes: formData.breakDurationMinutes,
-      isActive: formData.isActive
+      useWeeklySchedule: formData.useWeeklySchedule,
+      ...(formData.useWeeklySchedule
+        ? { weeklySchedule: formData.weeklySchedule }
+        : {
+            startTime: formData.startTime,
+            endTime: formData.endTime,
+            breakDurationMinutes: formData.breakDurationMinutes,
+          }),
     };
 
     try {
       await apiRequest('POST', '/api/timecard/work-schedules/bulk-assign', {
-        userIds: selectedUsers, 
-        scheduleData
+        userIds: selectedUsers,
+        scheduleData: bulkScheduleData
       });
-      
+
       queryClient.invalidateQueries({ queryKey: ['/api/timecard/work-schedules'] });
       setBulkAssignOpen(false);
       setSelectedUsers([]);
-      
+
       toast({
         title: 'Sucesso!',
         description: `Escalas atribuídas para ${selectedUsers.length} funcionários.`,
@@ -491,8 +608,8 @@ function WorkSchedulesContent() {
           <div className="text-center">
             <div className="text-lg text-red-600 mb-2">Erro ao carregar escalas</div>
             <div className="text-sm text-gray-600">{schedulesError.message}</div>
-            <button 
-              onClick={() => window.location.reload()} 
+            <button
+              onClick={() => window.location.reload()}
               className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
             >
               Tentar Novamente
@@ -502,6 +619,21 @@ function WorkSchedulesContent() {
       </div>
     );
   }
+
+  // Helper to get schedule details for display, handling weekly schedules
+  const getScheduleDetails = (schedule: WorkSchedule) => {
+    if (schedule.useWeeklySchedule && schedule.weeklySchedule) {
+      const days = Object.keys(schedule.weeklySchedule)
+        .map(Number)
+        .sort((a, b) => a - b)
+        .map(dayValue => weekDays.find(wd => wd.value === dayValue)?.label)
+        .filter(Boolean)
+        .join(', ');
+      return `Horários variados por dia: ${days}`;
+    } else {
+      return `${schedule.startTime} - ${schedule.endTime} (${schedule.breakDurationMinutes} min pausa)`;
+    }
+  };
 
   return (
     <div className="p-4 space-y-6">
@@ -546,7 +678,7 @@ function WorkSchedulesContent() {
                     ))}
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="bulk-schedule-type">Tipo de Escala</Label>
@@ -563,7 +695,7 @@ function WorkSchedulesContent() {
                       </SelectContent>
                     </Select>
                   </div>
-                  
+
                   <div>
                     <Label htmlFor="bulk-start-date">Data de Início</Label>
                     <Input
@@ -575,7 +707,7 @@ function WorkSchedulesContent() {
                     />
                   </div>
                 </div>
-                
+
                 <div className="flex justify-end space-x-2">
                   <Button variant="outline" onClick={() => setBulkAssignOpen(false)}>
                     Cancelar
@@ -587,7 +719,7 @@ function WorkSchedulesContent() {
               </div>
             </DialogContent>
           </Dialog>
-          
+
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button onClick={handleNew}>
@@ -596,139 +728,169 @@ function WorkSchedulesContent() {
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>
-                {selectedSchedule ? 'Editar Escala' : 'Nova Escala de Trabalho'}
-              </DialogTitle>
-              <DialogDescription>
-                {selectedSchedule 
-                  ? 'Modifique os dados da escala de trabalho existente.' 
-                  : 'Configure uma nova escala de trabalho para o funcionário selecionado.'}
-              </DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="userId">Funcionário</Label>
-                  <Select value={formData.userId} onValueChange={(value) => setFormData({...formData, userId: value})}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o funcionário" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {users.map((user: any) => (
-                        <SelectItem key={user.id} value={user.id}>
-                          {user.firstName || user.first_name || user.name || ''} {user.lastName || user.last_name || ''} - {user.role || 'Funcionário'}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+              <DialogHeader>
+                <DialogTitle>
+                  {selectedSchedule ? 'Editar Escala' : 'Nova Escala de Trabalho'}
+                </DialogTitle>
+                <DialogDescription>
+                  {selectedSchedule
+                    ? 'Modifique os dados da escala de trabalho existente.'
+                    : 'Configure uma nova escala de trabalho para o funcionário selecionado.'}
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="userId">Funcionário</Label>
+                    <Select value={formData.userId} onValueChange={(value) => setFormData({ ...formData, userId: value })}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o funcionário" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {users.map((user: any) => (
+                          <SelectItem key={user.id} value={user.id}>
+                            {user.firstName || user.first_name || user.name || ''} {user.lastName || user.last_name || ''} - {user.role || 'Funcionário'}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="scheduleType">Tipo de Escala</Label>
+                    <Select value={formData.scheduleType} onValueChange={(value) => setFormData({ ...formData, scheduleType: value })}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {scheduleTypeOptions.map(option => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
-                <div>
-                  <Label htmlFor="scheduleType">Tipo de Escala</Label>
-                  <Select value={formData.scheduleType} onValueChange={(value) => setFormData({...formData, scheduleType: value})}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {scheduleTypeOptions.map(option => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="startDate">Data de Início</Label>
+                    <Input
+                      type="date"
+                      value={formData.startDate}
+                      onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                      required
+                    />
+                  </div>
 
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="startDate">Data de Início</Label>
-                  <Input
-                    type="date"
-                    value={formData.startDate}
-                    onChange={(e) => setFormData({...formData, startDate: e.target.value})}
-                    required
-                  />
+                  <div>
+                    <Label htmlFor="endDate">Data de Fim (opcional)</Label>
+                    <Input
+                      type="date"
+                      value={formData.endDate}
+                      onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                    />
+                  </div>
                 </div>
 
-                <div>
-                  <Label htmlFor="endDate">Data de Fim (opcional)</Label>
-                  <Input
-                    type="date"
-                    value={formData.endDate}
-                    onChange={(e) => setFormData({...formData, endDate: e.target.value})}
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="breakDurationMinutes">Pausa (minutos)</Label>
-                  <Input
-                    type="number"
-                    value={formData.breakDurationMinutes}
-                    onChange={(e) => setFormData({...formData, breakDurationMinutes: parseInt(e.target.value)})}
-                    min="0"
-                    max="240"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="startTime">Horário de Entrada</Label>
-                  <Input
-                    type="time"
-                    value={formData.startTime}
-                    onChange={(e) => setFormData({...formData, startTime: e.target.value})}
-                    required
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="endTime">Horário de Saída</Label>
-                  <Input
-                    type="time"
-                    value={formData.endTime}
-                    onChange={(e) => setFormData({...formData, endTime: e.target.value})}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label>Dias da Semana</Label>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {weekDays.map((day) => (
-                    <Button
-                      key={day.value}
-                      type="button"
-                      variant={formData.workDays.includes(day.value) ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => {
-                        const newWorkDays = formData.workDays.includes(day.value)
-                          ? formData.workDays.filter(d => d !== day.value)
-                          : [...formData.workDays, day.value];
-                        setFormData({...formData, workDays: newWorkDays});
+                {/* New section for weekly schedule toggle and form */}
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="useWeeklySchedule"
+                      checked={formData.useWeeklySchedule}
+                      onCheckedChange={(checked) => {
+                        setFormData(prev => ({ ...prev, useWeeklySchedule: checked, workDays: checked ? [] : [1, 2, 3, 4, 5] }));
+                        if (!checked) {
+                          setFormData(prev => ({ ...prev, weeklySchedule: {} })); // Clear weekly schedule when toggled off
+                        }
                       }}
-                    >
-                      {day.label}
-                    </Button>
-                  ))}
-                </div>
-              </div>
+                    />
+                    <Label htmlFor="useWeeklySchedule">Horários diferentes por dia da semana</Label>
+                  </div>
 
-              <div className="flex justify-end space-x-2">
-                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                  Cancelar
-                </Button>
-                <Button 
-                  type="submit" 
-                  disabled={createScheduleMutation.isPending || updateScheduleMutation.isPending}
-                >
-                  {(createScheduleMutation.isPending || updateScheduleMutation.isPending) ? 'Salvando...' : 'Salvar'}
-                </Button>
-              </div>
-            </form>
+                  {formData.useWeeklySchedule ? (
+                    <WeeklyScheduleForm
+                      weeklySchedule={formData.weeklySchedule}
+                      workDays={formData.workDays}
+                      onWeeklyScheduleChange={(schedule) => setFormData(prev => ({ ...prev, weeklySchedule: schedule }))}
+                      onWorkDaysChange={(days) => setFormData(prev => ({ ...prev, workDays: days }))}
+                    />
+                  ) : (
+                    <>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="startTime">Horário de Entrada</Label>
+                          <Input
+                            id="startTime"
+                            type="time"
+                            value={formData.startTime}
+                            onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
+                            required
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="endTime">Horário de Saída</Label>
+                          <Input
+                            id="endTime"
+                            type="time"
+                            value={formData.endTime}
+                            onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label htmlFor="breakDurationMinutes">Pausa (minutos)</Label>
+                        <Input
+                          id="breakDurationMinutes"
+                          type="number"
+                          value={formData.breakDurationMinutes}
+                          onChange={(e) => setFormData({ ...formData, breakDurationMinutes: parseInt(e.target.value) })}
+                          min="0"
+                          max="480"
+                        />
+                      </div>
+
+                      <div>
+                        <Label>Dias da Semana</Label>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {weekDays.map((day) => (
+                            <Button
+                              key={day.value}
+                              type="button"
+                              variant={formData.workDays.includes(day.value) ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => {
+                                const newWorkDays = formData.workDays.includes(day.value)
+                                  ? formData.workDays.filter(d => d !== day.value)
+                                  : [...formData.workDays, day.value];
+                                setFormData({ ...formData, workDays: newWorkDays });
+                              }}
+                            >
+                              {day.label}
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                <div className="flex justify-end space-x-2">
+                  <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                    Cancelar
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={createScheduleMutation.isPending || updateScheduleMutation.isPending}
+                  >
+                    {(createScheduleMutation.isPending || updateScheduleMutation.isPending) ? 'Salvando...' : 'Salvar'}
+                  </Button>
+                </div>
+              </form>
             </DialogContent>
           </Dialog>
         </div>
@@ -741,7 +903,7 @@ function WorkSchedulesContent() {
               <CardContent className="p-6">
                 <div className="flex justify-between items-start">
                   <div className="flex-1 space-y-3">
-                    {/* Cabeçalho com nome e badges */}
+                    {/* Header with name and badges */}
                     <div className="flex items-center gap-3 flex-wrap">
                       <div className="flex items-center gap-2">
                         <Users className="h-4 w-4 text-blue-600" />
@@ -753,47 +915,55 @@ function WorkSchedulesContent() {
                       </Badge>
                     </div>
 
-                    {/* Informações principais organizadas */}
+                    {/* Main information organized */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                      {/* Schedule Type Details */}
                       <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-md">
                         <Clock className="h-4 w-4 text-gray-600" />
                         <div>
-                          <div className="text-xs text-gray-500">Horário</div>
-                          <div className="font-medium">{schedule.startTime} - {schedule.endTime}</div>
+                          <div className="text-xs text-gray-500">Jornada</div>
+                          <div className="font-medium">{getScheduleDetails(schedule)}</div>
                         </div>
                       </div>
 
+                      {/* Work Days */}
                       <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-md">
                         <Calendar className="h-4 w-4 text-gray-600" />
                         <div>
                           <div className="text-xs text-gray-500">Dias da Semana</div>
                           <div className="font-medium text-sm">
-                            {schedule?.workDays ? getWorkDaysText(schedule.workDays) : 'Não definido'}
+                            {schedule.useWeeklySchedule ? getWorkDaysText(Object.keys(schedule.weeklySchedule || {}).map(Number)) : getWorkDaysText(schedule.workDays)}
                           </div>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-md">
-                        <Settings className="h-4 w-4 text-gray-600" />
-                        <div>
-                          <div className="text-xs text-gray-500">Pausa</div>
-                          <div className="font-medium">{schedule.breakDurationMinutes} min</div>
-                        </div>
-                      </div>
-
+                      {/* Start Date */}
                       <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-md">
                         <Calendar className="h-4 w-4 text-gray-600" />
                         <div>
                           <div className="text-xs text-gray-500">Data de Início</div>
                           <div className="font-medium">
-                            {format(new Date(schedule.startDate), 'dd/MM/yyyy', { locale: ptBR })}
+                            {schedule.startDate ? format(new Date(schedule.startDate), 'dd/MM/yyyy', { locale: ptBR }) : 'N/A'}
                           </div>
                         </div>
                       </div>
+
+                      {/* End Date */}
+                      {schedule.endDate && (
+                        <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-md">
+                          <Calendar className="h-4 w-4 text-gray-600" />
+                          <div>
+                            <div className="text-xs text-gray-500">Data de Fim</div>
+                            <div className="font-medium">
+                              {format(new Date(schedule.endDate), 'dd/MM/yyyy', { locale: ptBR })}
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
 
-                  {/* Botões de ação */}
+                  {/* Action buttons */}
                   <div className="flex gap-2 ml-4">
                     <Button
                       variant="outline"
