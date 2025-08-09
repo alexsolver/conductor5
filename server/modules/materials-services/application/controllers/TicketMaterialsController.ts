@@ -156,26 +156,59 @@ export class TicketMaterialsController {
       const { ticketId } = req.params;
       const tenantId = req.user?.tenantId || req.query.tenantId as string;
 
-      const consumedItems = await this.db
-        .select()
-        .from(ticketConsumedItems)
-        .where(and(
-          eq(ticketConsumedItems.ticketId, ticketId),
-          eq(ticketConsumedItems.tenantId, tenantId)
-        ));
+      console.log('🔍 [GET-CONSUMED-ITEMS] Fetching for ticket:', ticketId, 'tenant:', tenantId);
+
+      // Import pool for direct SQL queries
+      const { pool } = await import('../../../../db');
+
+      // Use raw SQL to get consumed items with item details
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      const query = `
+        SELECT 
+          tci.*,
+          i.name as item_name,
+          i.description as item_description,
+          i.measurement_unit,
+          i.type as item_type
+        FROM "${schemaName}".ticket_consumed_items tci
+        LEFT JOIN "${schemaName}".items i ON tci.item_id = i.id
+        WHERE tci.ticket_id = $1 AND tci.tenant_id = $2
+        ORDER BY tci.created_at DESC
+      `;
+
+      const result = await pool.query(query, [ticketId, tenantId]);
+
+      const consumedItems = result.rows.map((row: any) => ({
+        id: row.id,
+        tenantId: row.tenant_id,
+        ticketId: row.ticket_id,
+        itemId: row.item_id,
+        itemName: row.item_name || 'Item não encontrado',
+        itemDescription: row.item_description,
+        measurementUnit: row.measurement_unit,
+        itemType: row.item_type,
+        actualQuantity: parseFloat(row.actual_quantity || 0),
+        unitPriceAtConsumption: parseFloat(row.unit_price_at_consumption || 0),
+        totalCost: parseFloat(row.total_cost || 0),
+        consumptionType: row.consumption_type,
+        notes: row.notes,
+        isActive: row.is_active,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at
+      }));
+
+      console.log('✅ [GET-CONSUMED-ITEMS] Found', consumedItems.length, 'consumed items');
 
       return res.json({
         success: true,
-        data: consumedItems.map((item: any) => ({
-          ...item,
-          totalCost: (parseFloat(item.actualQuantity) * parseFloat(item.unitPriceAtConsumption)).toFixed(2)
-        }))
+        data: { consumedItems }
       });
     } catch (error) {
       console.error('❌ Get consumed items error:', error);
       return res.status(500).json({
         success: false,
-        error: 'Failed to retrieve consumed items'
+        error: 'Failed to retrieve consumed items',
+        data: { consumedItems: [] }
       });
     }
   }
@@ -362,24 +395,88 @@ export class TicketMaterialsController {
   async addConsumedItem(req: AuthenticatedRequest, res: Response) {
     try {
       const { ticketId } = req.params;
-      const itemData = req.body;
-      const tenantId = req.user?.tenantId || itemData.tenantId;
+      const {
+        itemId,
+        actualQuantity,
+        unitPriceAtConsumption,
+        plannedItemId,
+        lpuId,
+        consumptionType = 'used',
+        notes = ''
+      } = req.body;
 
-      const consumedItemData = {
-        id: crypto.randomUUID(),
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(400).json({ success: false, error: 'Tenant ID é obrigatório' });
+      }
+
+      console.log('🔍 [ADD-CONSUMED-ITEM] Adding consumed item:', {
         ticketId,
+        itemId,
+        actualQuantity,
+        unitPriceAtConsumption
+      });
+
+      // Calculate total cost ensuring it's never null
+      const quantity = parseFloat(actualQuantity || 0);
+      const unitPrice = parseFloat(unitPriceAtConsumption || 0);
+      const totalCost = quantity * unitPrice;
+
+      const newConsumedItem = {
+        id: crypto.randomUUID(),
         tenantId,
-        ...itemData,
+        ticketId,
+        itemId,
+        plannedItemId: plannedItemId || null,
+        actualQuantity: quantity,
+        unitPriceAtConsumption: unitPrice,
+        totalCost: totalCost,
+        lpuId: lpuId || '00000000-0000-0000-0000-000000000001',
+        consumptionType,
+        notes,
+        isActive: true,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
+        status: 'consumed'
       };
 
-      await this.db.insert(ticketConsumedItems).values(consumedItemData);
+      // Import pool for direct insertion
+      const { pool } = await import('../../../../db');
+
+      // Use direct SQL insertion to avoid Drizzle issues
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      const insertQuery = `
+        INSERT INTO "${schemaName}".ticket_consumed_items (
+          id, tenant_id, ticket_id, item_id, planned_item_id, actual_quantity,
+          unit_price_at_consumption, total_cost, lpu_id, consumption_type, notes,
+          is_active, created_at, updated_at, status
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+      `;
+
+      await pool.query(insertQuery, [
+        newConsumedItem.id,
+        newConsumedItem.tenantId,
+        newConsumedItem.ticketId,
+        newConsumedItem.itemId,
+        newConsumedItem.plannedItemId,
+        newConsumedItem.actualQuantity,
+        newConsumedItem.unitPriceAtConsumption,
+        newConsumedItem.totalCost,
+        newConsumedItem.lpuId,
+        newConsumedItem.consumptionType,
+        newConsumedItem.notes,
+        newConsumedItem.isActive,
+        newConsumedItem.createdAt,
+        newConsumedItem.updatedAt,
+        newConsumedItem.status
+      ]);
+
+      console.log('✅ [ADD-CONSUMED-ITEM] Successfully added consumed item:', newConsumedItem.id);
 
       return res.json({
         success: true,
         message: 'Consumed item added successfully',
-        data: consumedItemData
+        data: newConsumedItem
       });
     } catch (error) {
       console.error('❌ Add consumed item error:', error);
