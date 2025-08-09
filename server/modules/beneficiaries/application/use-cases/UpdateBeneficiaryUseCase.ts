@@ -40,3 +40,30 @@ export class UpdateBeneficiaryUseCase {
     // Publish event logic would go here
   }
 }
+import { IBeneficiaryRepository } from '../../domain/repositories/IBeneficiaryRepository';
+import { Beneficiary } from '../../domain/entities/Beneficiary';
+
+export class UpdateBeneficiaryUseCase {
+  constructor(
+    private readonly beneficiaryRepository: IBeneficiaryRepository
+  ) {}
+
+  async execute(id: string, data: {
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    phone?: string;
+    document?: string;
+    address?: string;
+    beneficiaryType?: 'individual' | 'corporate';
+    isActive?: boolean;
+  }): Promise<Beneficiary | null> {
+    const existingBeneficiary = await this.beneficiaryRepository.findById(id);
+    if (!existingBeneficiary) {
+      return null;
+    }
+
+    const updatedBeneficiary = existingBeneficiary.update(data);
+    return await this.beneficiaryRepository.update(id, updatedBeneficiary);
+  }
+}

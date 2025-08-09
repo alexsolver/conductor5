@@ -22,10 +22,14 @@ const beneficiaryService = new BeneficiaryApplicationService(beneficiaryReposito
 // Initialize use cases
 import { CreateBeneficiaryUseCase } from './application/use-cases/CreateBeneficiaryUseCase';
 import { GetBeneficiariesUseCase } from './application/use-cases/GetBeneficiariesUseCase';
+import { UpdateBeneficiaryUseCase } from './application/use-cases/UpdateBeneficiaryUseCase';
+import { DeleteBeneficiaryUseCase } from './application/use-cases/DeleteBeneficiaryUseCase';
 import { BeneficiaryDomainService } from './domain/services/BeneficiaryDomainService';
 
 const createBeneficiaryUseCase = new CreateBeneficiaryUseCase(beneficiaryRepository, new BeneficiaryDomainService());
 const getBeneficiariesUseCase = new GetBeneficiariesUseCase(beneficiaryRepository);
+const updateBeneficiaryUseCase = new UpdateBeneficiaryUseCase(beneficiaryRepository);
+const deleteBeneficiaryUseCase = new DeleteBeneficiaryUseCase(beneficiaryRepository);
 
 const beneficiaryController = new BeneficiaryController(
   createBeneficiaryUseCase,
