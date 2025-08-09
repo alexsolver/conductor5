@@ -1,7 +1,11 @@
 
-const { pool } = require('../db.js');
-const fs = require('fs');
-const path = require('path');
+import { pool } from '../db.js';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 async function createItemHierarchyTables() {
   console.log('🔧 [HIERARCHY] Iniciando criação das tabelas item_hierarchy...');
@@ -39,7 +43,7 @@ async function createItemHierarchyTables() {
 }
 
 // Executar se chamado diretamente
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   createItemHierarchyTables()
     .then(() => {
       console.log('🎉 [HIERARCHY] Processo concluído com sucesso!');
@@ -51,4 +55,4 @@ if (require.main === module) {
     });
 }
 
-module.exports = { createItemHierarchyTables };
+export { createItemHierarchyTables };
