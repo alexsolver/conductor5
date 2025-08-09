@@ -102,7 +102,18 @@ export class CustomerController {
       const tenantId = user?.tenantId;
       const userId = user?.id;
 
+      console.log('🔍 [CUSTOMER-CONTROLLER] getCustomers called:', {
+        hasUser: !!user,
+        userId: user?.id,
+        tenantId: user?.tenantId,
+        userRole: user?.role,
+        headers: req.headers
+      });
+
       if (!tenantId) {
+        console.error('❌ [CUSTOMER-CONTROLLER] Missing tenantId:', {
+          user: user ? { id: user.id, email: user.email, role: user.role } : null
+        });
         res.status(400).json({
           success: false,
           error: 'Tenant ID is required'

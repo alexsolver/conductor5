@@ -73,12 +73,20 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
       id: user.id,
       email: user.email,
       role: user.role,
-      tenantId: user.tenantId,
+      tenantId: user.tenantId || payload.tenantId, // Fallback to token tenantId
       permissions: permissions || [],
       attributes: {},
       // Add customer-specific permissions
       hasCustomerAccess: Array.isArray(permissions) ? permissions.some(p => typeof p === 'string' && p.includes('customer')) : false
     };
+
+    // Debug log to verify tenantId is being set
+    console.log('🔐 [JWT-AUTH] User context set:', {
+      userId: req.user.id,
+      tenantId: req.user.tenantId,
+      payloadTenantId: payload.tenantId,
+      userTenantId: user.tenantId
+    });
 
     // Log successful authentication for parts-services endpoints
     if (req.path.includes('/parts-services')) {

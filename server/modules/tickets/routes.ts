@@ -101,8 +101,21 @@ async function createCompleteAuditEntry(
 
 const ticketsRouter = Router();
 
-// Middleware
+// Apply middleware
 ticketsRouter.use(jwtAuth);
+// ticketsRouter.use(enhancedTenantValidator()); // Assuming this is another middleware not provided
+
+// Debug middleware for tickets
+ticketsRouter.use((req: any, res, next) => {
+  console.log('🎫 [TICKETS-ROUTES] Request context:', {
+    path: req.path,
+    method: req.method,
+    hasUser: !!req.user,
+    tenantId: req.user?.tenantId,
+    userId: req.user?.id
+  });
+  next();
+});
 
 // Get urgent tickets (filtered from all tickets)
 ticketsRouter.get('/urgent', async (req: AuthenticatedRequest, res) => {

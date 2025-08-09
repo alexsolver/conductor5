@@ -68,7 +68,7 @@ customersRouter.get('/', jwtAuth, validateGetCustomers, async (req: Authenticate
         error: 'Tenant ID is required'
       });
     }
-    
+
     const result = await customerApplicationService.getCustomers({
       tenantId: req.user.tenantId,
       page: parseInt(req.query.page as string, 10) || 1,

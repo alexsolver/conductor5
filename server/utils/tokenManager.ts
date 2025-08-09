@@ -15,7 +15,7 @@ export class TokenManager {
   private static instance: TokenManager;
   private readonly accessSecret: string;
   private readonly refreshSecret: string;
-  
+
   private constructor() {
     // Fixed secrets for development stability
     this.accessSecret = process.env.JWT_ACCESS_SECRET || 'conductor-platform-development-fixed-secret-2025';
@@ -147,7 +147,7 @@ export class TokenManager {
     try {
       const decoded = jwt.decode(token) as TokenPayload;
       if (!decoded || !decoded.exp) return false;
-      
+
       // Consider token expiring if less than 2 hours remaining
       return (decoded.exp * 1000) < (Date.now() + 2 * 60 * 60 * 1000);
     } catch {

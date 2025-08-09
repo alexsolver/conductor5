@@ -9,7 +9,9 @@ export function useTenantId(): string | null {
   
   console.log('🔍 [USE-TENANT-ID] Hook called:', { 
     isAuthenticated, 
-    user: user ? { id: user.id, tenantId: user.tenantId } : null 
+    user: user ? { id: user.id, tenantId: user.tenantId, email: user.email } : null,
+    localStorage_tenantId: localStorage.getItem('tenantId'),
+    localStorage_accessToken: !!localStorage.getItem('accessToken')
   });
   
   if (!isAuthenticated || !user) {
