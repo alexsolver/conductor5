@@ -7,10 +7,10 @@
 ## Resumo de Problemas
 
 - 🔥 **Críticos:** 20
-- ⚠️ **Altos:** 69
+- ⚠️ **Altos:** 68
 - 📋 **Médios:** 31
 - 💡 **Baixos:** 5
-- **Total:** 125
+- **Total:** 124
 
 ## Principais Problemas por Módulo
 
@@ -68,13 +68,6 @@
   - Routes contém lógica de negócio ou acesso a dados
   - Repository contém possível lógica de negócio
 
-### ⚠️ people
-- **Total de problemas:** 2
-- **Críticos:** 0 | **Altos:** 1
-- **Principais problemas:**
-  - Application Layer violando dependência: express
-  - Use Case index deve terminar com 'UseCase'
-
 ### 🔥 schedule-management
 - **Total de problemas:** 6
 - **Críticos:** 3 | **Altos:** 1
@@ -112,6 +105,12 @@
   - Repository contém possível lógica de negócio
 
 ### 📋 custom-fields
+- **Total de problemas:** 1
+- **Críticos:** 0 | **Altos:** 0
+- **Principais problemas:**
+  - Use Case index deve terminar com 'UseCase'
+
+### 📋 people
 - **Total de problemas:** 1
 - **Críticos:** 0 | **Altos:** 0
 - **Principais problemas:**
@@ -265,14 +264,6 @@
 1. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
 2. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
 
-### ⚠️ people
-- **Prioridade:** high
-- **Tempo estimado:** 2h
-- **Ações:** 2
-
-1. **refactor_code:** Refatorar dependência inválida na camada application
-2. **rename_file:** Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'
-
 ### 💡 auth
 - **Prioridade:** low
 - **Tempo estimado:** 45min
@@ -288,6 +279,13 @@
 1. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
 
 ### 💡 custom-fields
+- **Prioridade:** low
+- **Tempo estimado:** 15min
+- **Ações:** 1
+
+1. **rename_file:** Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'
+
+### 💡 people
 - **Prioridade:** low
 - **Tempo estimado:** 15min
 - **Ações:** 1
@@ -310,7 +308,6 @@
 ### Prioridade Alta ⚠️
 - **customers:** 2 ações (2h)
 - **tickets:** 2 ações (2h)
-- **people:** 2 ações (2h)
 
 ## Comandos para Correção
 

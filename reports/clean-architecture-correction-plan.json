@@ -1036,36 +1036,6 @@
     "estimatedTime": "2h"
   },
   {
-    "priority": "high",
-    "module": "people",
-    "actions": [
-      {
-        "type": "refactor_code",
-        "description": "Refatorar dependência inválida na camada application",
-        "target": "server/modules/people/application/controllers/PersonController.ts",
-        "steps": [
-          "Identificar a dependência problemática",
-          "Criar interface/port na camada Domain",
-          "Implementar interface na camada Infrastructure",
-          "Usar injeção de dependência",
-          "Remover import direto da dependência externa"
-        ]
-      },
-      {
-        "type": "rename_file",
-        "description": "Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'",
-        "target": "server/modules/people/application/use-cases/index.ts",
-        "steps": [
-          "Renomear arquivo seguindo padrão",
-          "Atualizar imports em outros arquivos",
-          "Atualizar nome da classe/interface",
-          "Verificar consistência com padrões do projeto"
-        ]
-      }
-    ],
-    "estimatedTime": "2h"
-  },
-  {
     "priority": "low",
     "module": "auth",
     "actions": [
@@ -1111,6 +1081,24 @@
         "type": "rename_file",
         "description": "Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'",
         "target": "server/modules/custom-fields/application/use-cases/index.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      }
+    ],
+    "estimatedTime": "15min"
+  },
+  {
+    "priority": "low",
+    "module": "people",
+    "actions": [
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'",
+        "target": "server/modules/people/application/use-cases/index.ts",
         "steps": [
           "Renomear arquivo seguindo padrão",
           "Atualizar imports em outros arquivos",
