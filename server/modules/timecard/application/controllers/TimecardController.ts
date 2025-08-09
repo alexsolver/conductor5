@@ -25,21 +25,7 @@ const createWorkScheduleSchema = z.object({
   isActive: z.boolean().default(true),
 });
 
-const createScheduleTemplateSchema = z.object({
-  name: z.string().min(3),
-  description: z.string().optional(),
-  category: z.enum(['fixed', 'rotating', 'flexible', 'shift']),
-  scheduleType: z.string(),
-  rotationCycleDays: z.number().optional(),
-  configuration: z.object({
-    workDays: z.array(z.number()),
-    startTime: z.string(),
-    endTime: z.string(),
-    breakDuration: z.number(),
-    flexTimeWindow: z.number().optional(),
-  }),
-  requiresApproval: z.boolean().default(true),
-});
+
 
 export class TimecardController {
   private timecardRepository: DrizzleTimecardRepository;
