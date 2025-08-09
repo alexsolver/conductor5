@@ -130,18 +130,56 @@ export class ItemController {
           null as "parentId",
       `;
 
+      // Check if supplier_item_links table exists
+      let supplierLinksTableExists = false;
+      try {
+        const supplierTableCheck = await pool.query(`
+          SELECT EXISTS (
+            SELECT FROM information_schema.tables 
+            WHERE table_schema = '${schemaName}' 
+            AND table_name = 'supplier_item_links'
+          );
+        `);
+        supplierLinksTableExists = supplierTableCheck.rows[0].exists;
+      } catch (error) {
+        console.log('Could not check supplier_item_links table existence:', error);
+      }
+
+      // Check if customer_item_mappings table exists
+      let customerMappingsTableExists = false;
+      try {
+        const customerTableCheck = await pool.query(`
+          SELECT EXISTS (
+            SELECT FROM information_schema.tables 
+            WHERE table_schema = '${schemaName}' 
+            AND table_name = 'customer_item_mappings'
+          );
+        `);
+        customerMappingsTableExists = customerTableCheck.rows[0].exists;
+      } catch (error) {
+        console.log('Could not check customer_item_mappings table existence:', error);
+      }
+
+      const companiesCountField = customerMappingsTableExists ? 
+        `COALESCE((SELECT COUNT(*) FROM "${schemaName}".customer_item_mappings cim 
+           WHERE cim.item_id = i.id AND cim.is_active = true), 0)` : 
+        '0';
+
+      const suppliersCountField = supplierLinksTableExists ?
+        `COALESCE((SELECT COUNT(*) FROM "${schemaName}".supplier_item_links sil 
+           WHERE sil.item_id = i.id AND sil.is_active = true), 0)` :
+        '0';
+
       const query = `
         SELECT 
           i.*,
           ${hierarchyFields}
           
           -- Count linked companies
-          COALESCE((SELECT COUNT(*) FROM "${schemaName}".customer_item_mappings cim 
-           WHERE cim.item_id = i.id AND cim.is_active = true), 0) as "companiesCount",
+          ${companiesCountField} as "companiesCount",
           
           -- Count linked suppliers  
-          COALESCE((SELECT COUNT(*) FROM "${schemaName}".supplier_item_links sil 
-           WHERE sil.item_id = i.id AND sil.is_active = true), 0) as "suppliersCount"
+          ${suppliersCountField} as "suppliersCount"
            
         FROM "${schemaName}".items i
         ${whereClause}
