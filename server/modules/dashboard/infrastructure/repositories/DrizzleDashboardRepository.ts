@@ -1,28 +1,3 @@
-import { IDashboardRepository } from '../../domain/repositories/IDashboardRepository';
-import { DashboardMetric } from '../../domain/entities/DashboardMetric';
-import { IDashboardMetricRepository } from '../../domain/repositories/IDashboardMetricRepository';
-
-export class DrizzleDashboardRepository implements IDashboardMetricRepository {
-  async findAll(): Promise<DashboardMetric[]> {
-    // Implementação do Drizzle ORM
-    return [];
-  }
-
-  async findByCategory(category: string): Promise<DashboardMetric[]> {
-    // Implementação do Drizzle ORM
-    return [];
-  }
-
-  async save(metric: DashboardMetric): Promise<DashboardMetric> {
-    // Implementação do Drizzle ORM
-    return metric;
-  }
-
-  async findById(id: string): Promise<DashboardMetric | null> {
-    // Implementação do Drizzle ORM
-    return null;
-  }
-}
 import { drizzle } from 'drizzle-orm/neon-http';
 import { sql } from 'drizzle-orm';
 import { IDashboardRepository } from '../../domain/repositories/IDashboardRepository';
@@ -39,9 +14,9 @@ export class DrizzleDashboardRepository implements IDashboardRepository {
         NOW() as created_at
       FROM tickets 
       WHERE tenant_id = ${tenantId}
-      
+
       UNION ALL
-      
+
       SELECT 
         'open_tickets' as metric_type,
         COUNT(*)::text as value,
