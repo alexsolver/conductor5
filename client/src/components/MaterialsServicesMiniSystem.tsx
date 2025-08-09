@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Package, Plus, Trash2, Calculator, AlertTriangle, Wrench } from "lucide-react";
+import { Package, Plus, Trash2, Calculator, AlertTriangle, Wrench, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -456,89 +456,42 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                   Itens Planejados
                 </h3>
                 {plannedLoading ? (
-                  <div className="text-center py-4">Carregando...</div>
-                ) : plannedMaterials.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
-                    <Package className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    <p>Nenhum item planejado</p>
+                  <div className="text-center py-4">
+                    <Clock className="w-6 h-6 animate-spin mx-auto mb-2" />
+                    <p className="text-sm text-gray-500">Carregando materiais planejados...</p>
                   </div>
-                ) : (
-                  <div className="space-y-3">
-                    {plannedMaterials.map((material: any, index: number) => {
-                      // Handle both old and new data structures with enhanced data extraction
-                      const itemData = material.ticket_planned_items || material;
-                      const itemDetails = material.items || material.item || {};
-
-                      // Enhanced name detection
-                      const itemName = itemDetails.name ||
-                                     itemDetails.title ||
-                                     material.itemName ||
-                                     material.name ||
-                                     itemData.itemName ||
-                                     'Item sem nome';
-
-                      // Enhanced type detection
-                      const itemType = itemDetails.type ||
-                                     material.itemType ||
-                                     itemData.itemType ||
-                                     'Material';
-
-                      // Enhanced pricing detection with new LPU data structure
-                      const unitPrice = parseFloat(
-                        itemData.unitPriceAtPlanning ||
-                        material.unitPriceAtPlanning ||
-                        itemDetails.effectivePrice ||
-                        itemDetails.price ||
-                        itemDetails.lpuSpecialPrice ||
-                        itemDetails.lpuUnitPrice ||
-                        itemDetails.unitCost ||
-                        itemDetails.unit_cost ||
-                        0
-                      );
-
-                      const estimatedCost = parseFloat(
-                        itemData.estimatedCost ||
-                        material.estimatedCost ||
-                        (parseFloat(itemData.plannedQuantity || material.plannedQuantity || 0) * unitPrice) ||
-                        0
-                      );
-
-                      return (
-                        <div key={`planned-${itemData.id}-${index}`} className="flex items-center justify-between p-3 border rounded-lg">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <p className="font-medium">{itemName}</p>
-                              <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                                {itemType}
-                              </span>
-                            </div>
-                            {(itemDetails.description || material.itemDescription || itemData.description) && (
-                              <p className="text-sm text-gray-500 mb-1">
-                                {itemDetails.description || material.itemDescription || itemData.description}
-                              </p>
-                            )}
-                            <div className="flex items-center gap-4 text-sm">
-                              <span className="text-gray-600">
-                                Qtd: {itemData.plannedQuantity || material.plannedQuantity || material.quantity || 0}
-                              </span>
-                              <span className="text-gray-600">
-                                Preço unit.: R$ {unitPrice.toFixed(2)}
-                              </span>
-                              <span className="text-green-600 font-medium">
-                                Total: R$ {estimatedCost.toFixed(2)}
-                              </span>
-                            </div>
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => deletePlannedMutation.mutate(itemData.id)}
-                          >
-                            <Trash2 className="h-4 w-4 text-red-500" />
-                          </Button>
+                ) : plannedData?.data?.plannedItems?.length > 0 ? (
+                  plannedData.data.plannedItems.map((item: any) => (
+                    <div key={item.id} className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-medium text-blue-900">{item.itemName || 'Item sem nome'}</span>
+                          <Badge variant="outline" className="text-xs text-blue-700 border-blue-300">
+                            {item.status || 'planned'}
+                          </Badge>
+                          {item.priority && (
+                            <Badge variant="secondary" className="text-xs">
+                              {item.priority}
+                            </Badge>
+                          )}
                         </div>
-                      );
-                    })}
+                        <div className="text-sm text-blue-700 space-y-1">
+                          <div className="flex items-center gap-4">
+                            <span>Qtd: {item.plannedQuantity}</span>
+                            <span>Preço: R$ {(item.unitPriceAtPlanning || 0).toFixed(2)}</span>
+                            <span className="font-medium">Total: R$ {(item.estimatedCost || 0).toFixed(2)}</span>
+                          </div>
+                          {item.notes && (
+                            <p className="text-xs text-gray-600 italic">{item.notes}</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <Package className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                    <p>Nenhum material planejado</p>
                   </div>
                 )}
               </div>

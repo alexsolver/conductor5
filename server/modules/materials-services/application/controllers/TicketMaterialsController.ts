@@ -229,7 +229,7 @@ export class TicketMaterialsController {
           } else {
             // Fallback to item catalog price
             const itemQuery = await this.db.execute(sql`
-              SELECT unit_cost, cost_price
+              SELECT cost_price, unit_price
               FROM items
               WHERE id = ${itemId} AND tenant_id = ${tenantId}
               LIMIT 1
@@ -237,7 +237,7 @@ export class TicketMaterialsController {
 
             if (itemQuery.rows && itemQuery.rows.length > 0) {
               const itemRow = itemQuery.rows[0];
-              finalUnitPrice = parseFloat(itemRow.unit_cost || itemRow.cost_price || 0);
+              finalUnitPrice = parseFloat(itemRow.cost_price || itemRow.unit_price || 0);
               console.log('💰 [BACKEND-PRICE-LOOKUP] Found item catalog price:', finalUnitPrice);
             }
           }
@@ -321,23 +321,60 @@ export class TicketMaterialsController {
       const { ticketId } = req.params;
       const tenantId = req.user?.tenantId || req.query.tenantId as string;
 
-      const plannedItems = await this.db
-        .select()
-        .from(ticketPlannedItems)
-        .where(and(
-          eq(ticketPlannedItems.ticketId, ticketId),
-          eq(ticketPlannedItems.tenantId, tenantId)
-        ));
+      console.log('🔍 [GET-PLANNED-ITEMS] Fetching for ticket:', ticketId, 'tenant:', tenantId);
+
+      // Use raw SQL to get planned items with item details
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      const query = `
+        SELECT 
+          tpi.*,
+          i.name as item_name,
+          i.description as item_description,
+          i.measurement_unit,
+          i.type as item_type
+        FROM "${schemaName}".ticket_planned_items tpi
+        LEFT JOIN "${schemaName}".items i ON tpi.item_id = i.id
+        WHERE tpi.ticket_id = $1 AND tpi.tenant_id = $2
+        ORDER BY tpi.created_at DESC
+      `;
+
+      const result = await this.db.execute({
+        sql: query,
+        args: [ticketId, tenantId]
+      });
+
+      const plannedItems = result.rows.map((row: any) => ({
+        id: row.id,
+        tenantId: row.tenant_id,
+        ticketId: row.ticket_id,
+        itemId: row.item_id,
+        itemName: row.item_name || 'Item não encontrado',
+        itemDescription: row.item_description,
+        measurementUnit: row.measurement_unit,
+        itemType: row.item_type,
+        plannedQuantity: parseFloat(row.planned_quantity || 0),
+        unitPriceAtPlanning: parseFloat(row.unit_price_at_planning || 0),
+        estimatedCost: parseFloat(row.estimated_cost || 0),
+        status: row.status,
+        priority: row.priority,
+        notes: row.notes,
+        isActive: row.is_active,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at
+      }));
+
+      console.log('✅ [GET-PLANNED-ITEMS] Found', plannedItems.length, 'planned items');
 
       return res.json({
         success: true,
-        data: plannedItems
+        data: { plannedItems }
       });
     } catch (error) {
       console.error('❌ Get planned items error:', error);
       return res.status(500).json({
         success: false,
-        error: 'Failed to retrieve planned items'
+        error: 'Failed to retrieve planned items',
+        data: { plannedItems: [] }
       });
     }
   }
