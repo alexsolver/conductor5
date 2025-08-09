@@ -7,10 +7,10 @@
 ## Resumo de Problemas
 
 - 🔥 **Críticos:** 0
-- ⚠️ **Altos:** 117
-- 📋 **Médios:** 100
-- 💡 **Baixos:** 2
-- **Total:** 219
+- ⚠️ **Altos:** 115
+- 📋 **Médios:** 105
+- 💡 **Baixos:** 3
+- **Total:** 223
 
 ## Principais Problemas por Módulo
 
@@ -79,12 +79,12 @@
   - Estrutura dto ausente na camada application
 
 ### ⚠️ locations
-- **Total de problemas:** 3
-- **Críticos:** 0 | **Altos:** 3
+- **Total de problemas:** 7
+- **Críticos:** 0 | **Altos:** 1
 - **Principais problemas:**
-  - Camada domain ausente no módulo locations
-  - Camada application ausente no módulo locations
-  - Camada infrastructure ausente no módulo locations
+  - Estrutura repositories ausente na camada domain
+  - Estrutura events ausente na camada domain
+  - Estrutura services ausente na camada domain
 
 ### ⚠️ materials-services
 - **Total de problemas:** 62
@@ -293,12 +293,16 @@
 
 ### ⚠️ locations
 - **Prioridade:** high
-- **Tempo estimado:** 30min
-- **Ações:** 3
+- **Tempo estimado:** 3h
+- **Ações:** 7
 
-1. **create_directory:** Criar estrutura da camada domain
-2. **create_directory:** Criar estrutura da camada application
-3. **create_directory:** Criar estrutura da camada infrastructure
+1. **create_directory:** Criar diretório/arquivo repositories na camada domain
+2. **create_directory:** Criar diretório/arquivo events na camada domain
+3. **create_directory:** Criar diretório/arquivo services na camada domain
+4. **create_directory:** Criar diretório/arquivo dto na camada application
+5. **create_directory:** Criar diretório/arquivo services na camada application
+6. **refactor_code:** Refatorar dependência inválida na camada application
+7. **rename_file:** Padronizar nomenclatura: Nome da classe LocationEntity não corresponde ao arquivo Location
 
 ### ⚠️ materials-services
 - **Prioridade:** high
@@ -548,7 +552,7 @@ Nenhuma ação imediata necessária
 - **field-layout:** 4 ações (1h)
 - **field-layouts:** 4 ações (40min)
 - **knowledge-base:** 13 ações (8h)
-- **locations:** 3 ações (30min)
+- **locations:** 7 ações (3h)
 - **materials-services:** 43 ações (27h)
 - **notifications:** 7 ações (3h)
 - **people:** 4 ações (40min)

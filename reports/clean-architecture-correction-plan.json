@@ -466,36 +466,69 @@
     "actions": [
       {
         "type": "create_directory",
-        "description": "Criar estrutura da camada domain",
-        "target": "server/modules/locations/domain",
+        "description": "Criar diretório/arquivo repositories na camada domain",
+        "target": "server/modules/locations/domain/repositories",
         "steps": [
-          "Criar diretório: server/modules/locations/domain",
-          "Adicionar arquivo README.md explicando responsabilidades da camada",
-          "Criar subdiretórios conforme padrão Clean Architecture"
+          "Criar diretório/arquivo repositories na camada domain"
         ]
       },
       {
         "type": "create_directory",
-        "description": "Criar estrutura da camada application",
-        "target": "server/modules/locations/application",
+        "description": "Criar diretório/arquivo events na camada domain",
+        "target": "server/modules/locations/domain/events",
         "steps": [
-          "Criar diretório: server/modules/locations/application",
-          "Adicionar arquivo README.md explicando responsabilidades da camada",
-          "Criar subdiretórios conforme padrão Clean Architecture"
+          "Criar diretório/arquivo events na camada domain"
         ]
       },
       {
         "type": "create_directory",
-        "description": "Criar estrutura da camada infrastructure",
-        "target": "server/modules/locations/infrastructure",
+        "description": "Criar diretório/arquivo services na camada domain",
+        "target": "server/modules/locations/domain/services",
         "steps": [
-          "Criar diretório: server/modules/locations/infrastructure",
-          "Adicionar arquivo README.md explicando responsabilidades da camada",
-          "Criar subdiretórios conforme padrão Clean Architecture"
+          "Criar diretório/arquivo services na camada domain"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Criar diretório/arquivo dto na camada application",
+        "target": "server/modules/locations/application/dto",
+        "steps": [
+          "Criar diretório/arquivo dto na camada application"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Criar diretório/arquivo services na camada application",
+        "target": "server/modules/locations/application/services",
+        "steps": [
+          "Criar diretório/arquivo services na camada application"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "server/modules/locations/application/controllers/LocationController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Nome da classe LocationEntity não corresponde ao arquivo Location",
+        "target": "server/modules/locations/domain/entities/Location.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
         ]
       }
     ],
-    "estimatedTime": "30min"
+    "estimatedTime": "3h"
   },
   {
     "priority": "high",
