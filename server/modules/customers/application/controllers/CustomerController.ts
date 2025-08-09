@@ -1,5 +1,5 @@
 // Removido import do express - Application layer não deve depender de frameworks específicos
-// Framework-agnostic controller interface
+// Using DTOs instead of express framework types
 import { CustomerApplicationService } from '../services/CustomerApplicationService';
 import { transformToCustomerDTO } from '../dto/CustomerResponseDTO';
 

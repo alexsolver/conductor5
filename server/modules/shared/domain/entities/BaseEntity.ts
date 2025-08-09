@@ -1,3 +1,4 @@
+// Domain entities should not depend on infrastructure
 
 export abstract class BaseEntity {
   public readonly id: string;

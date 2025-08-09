@@ -1,5 +1,5 @@
 // Schedule Controller - Application Layer
-import { Request, Response } from 'express';
+// Using DTOs instead of express types in application layer
 import { z } from 'zod';
 import { DrizzleScheduleRepository } from '../../infrastructure/repositories/DrizzleScheduleRepository';
 

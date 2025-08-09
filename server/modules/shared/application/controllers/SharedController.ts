@@ -1,5 +1,5 @@
 
-import { Request, Response } from 'express';
+// Using DTOs and interfaces instead of framework dependencies
 import { BaseController } from './BaseController';
 
 export class SharedController extends BaseController {
