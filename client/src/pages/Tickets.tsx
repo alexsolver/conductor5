@@ -394,15 +394,35 @@ export default function Tickets() {
 
   // Parse consistente dos dados de tickets
   // A API retorna { success: true, message: "...", data: [...] }
-  const ticketsList = (tickets as any)?.data || [];
-  const ticketsCount = Array.isArray(ticketsList) ? ticketsList.length : 0;
+  let ticketsList: any[] = [];
+  
+  if (tickets && typeof tickets === 'object') {
+    // Se tickets tem uma propriedade 'data'
+    if (tickets.data && Array.isArray(tickets.data)) {
+      ticketsList = tickets.data;
+    }
+    // Se tickets é diretamente um array
+    else if (Array.isArray(tickets)) {
+      ticketsList = tickets;
+    }
+    // Se tickets tem success e data
+    else if (tickets.success && tickets.data && Array.isArray(tickets.data)) {
+      ticketsList = tickets.data;
+    }
+  }
+  
+  const ticketsCount = ticketsList.length;
   
   // Debug para verificar estrutura dos dados
-  console.log('TicketsTable - Data:', {
+  console.log('TicketsTable - Detailed Data Analysis:', {
     ticketsError: error,
     isLoading,
     ticketsCount,
-    rawTicketsData: tickets
+    ticketsListLength: ticketsList.length,
+    ticketsListType: typeof ticketsList,
+    isArray: Array.isArray(ticketsList),
+    rawTicketsData: tickets,
+    firstTicket: ticketsList[0]
   });
 
   return (
