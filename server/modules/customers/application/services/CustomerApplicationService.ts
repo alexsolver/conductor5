@@ -11,19 +11,7 @@ import { DeleteCustomerUseCase, DeleteCustomerInput, DeleteCustomerOutput } from
 // Assuming logError is imported from a logging utility
 import { logError } from '../../../../utils/logger';
 
-// Assuming CustomerRepository and its methods are defined elsewhere and injected
-// For the sake of this example, we'll assume it has a countByTenant method
-interface CustomerRepository {
-  countByTenant(tenantId: string): Promise<number>;
-}
-
-// Placeholder for the actual CustomerRepository instance
-let customerRepository: CustomerRepository;
-
-// This is a placeholder and would typically be injected via a dependency injection container
-export function setCustomerRepository(repo: CustomerRepository) {
-  customerRepository = repo;
-}
+// Clean architecture - application service orchestrates use cases
 
 
 export class CustomerApplicationService {
@@ -41,20 +29,15 @@ export class CustomerApplicationService {
   async getCustomers({ tenantId, page = 1, limit = 50 }: { tenantId: string; page?: number; limit?: number }) {
     try {
       const offset = (page - 1) * limit;
-      const customers = await this.getCustomersUseCase.execute({ tenantId, limit, offset });
-      // Ensure customerRepository is available before calling its methods
-      if (!customerRepository) {
-        throw new Error("CustomerRepository not initialized");
-      }
-      const total = await customerRepository.countByTenant(tenantId);
+      const result = await this.getCustomersUseCase.execute({ tenantId, limit, offset });
 
       return {
         success: true,
-        customers,
-        total,
+        customers: result.customers || [],
+        total: result.total || 0,
         page,
         limit,
-        totalPages: Math.ceil(total / limit)
+        totalPages: Math.ceil((result.total || 0) / limit)
       };
     } catch (error) {
       logError('Error in getCustomers', error, { tenantId });
