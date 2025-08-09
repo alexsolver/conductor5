@@ -2080,76 +2080,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ success: false, error: 'Erro ao gerar relatório de espelho de ponto' });
     }
   });
-          // Transform ONLY real data to CLT standard format
-      const formatToCLTStandard = (record: any) => {
-        const totalHours = record.total_hours ? parseFloat(record.total_hours) : 0;
-        const overtimeHours = Math.max(0, totalHours - 8); // Standard 8h workday
 
-        // Calculate if consistent (has entry and exit times)
-        const isConsistent = record.check_in && record.check_out;
-
-        // Generate observations based on real data
-        let observations = '';
-        if (!record.check_out) {
-          observations = 'Ponto em aberto';
-        } else if (totalHours > 6 && !record.break_start && !record.break_end) {
-          observations = 'Jornada >6h sem pausa registrada';
-        } else if (record.notes) {
-          observations = record.notes;
-        }
-
-        return {
-          id: record.id,
-          date: record.date,
-          dayOfWeek: record.day_of_week || 'N/A',
-          firstEntry: record.check_in,
-          firstExit: record.break_start, // Real break start time
-          secondEntry: record.break_end, // Real break end time  
-          secondExit: record.check_out,
-          totalHours: totalHours.toFixed(2),
-          overtimeHours: overtimeHours.toFixed(2),
-          status: record.status === 'pending' ? 'Pendente' : 
-                  record.status === 'approved' ? 'Aprovado' : 
-                  record.status === 'rejected' ? 'Rejeitado' : 'Inconsistente',
-          originalStatus: record.status,
-          workScheduleType: record.work_schedule_type || 'Não definido',
-          isConsistent: isConsistent,
-          observations: observations
-        };
-      };
-
-      const attendanceData = result.rows.map(formatToCLTStandard);
-
-      // Calculate summary from real data only
-      const workingDays = attendanceData.filter(entry => parseFloat(entry.totalHours) > 0).length;
-      const totalHours = attendanceData.reduce((sum, entry) => sum + parseFloat(entry.totalHours || '0'), 0);
-      const totalOvertimeHours = attendanceData.reduce((sum, entry) => sum + parseFloat(entry.overtimeHours || '0'), 0);
-      const averageHoursPerDay = workingDays > 0 ? (totalHours / workingDays).toFixed(2) : '0.00';
-
-      console.log('[ATTENDANCE-REPORT] Processed real data summary:', {
-        totalRecords: attendanceData.length,
-        workingDays,
-        totalHours: totalHours.toFixed(2),
-        totalOvertimeHours: totalOvertimeHours.toFixed(2)
-      });
-
-      res.json({
-        success: true,
-        period: period,
-        data: attendanceData,
-        summary: {
-          totalDays: attendanceData.length,
-          workingDays: workingDays,
-          totalHours: totalHours.toFixed(2),
-          overtimeHours: totalOvertimeHours.toFixed(2),
-          averageHoursPerDay: averageHoursPerDay
-        }
-      });
-    } catch (error) {
-      console.error('[ATTENDANCE-REPORT] Error:', error);
-      res.status(500).json({ success: false, error: 'Erro ao gerar relatório de espelho de ponto' });
-    }
-  });
+        
 
   // Status dos backups
   app.get('/api/timecard/compliance/backups', jwtAuth, cltComplianceController.getBackupStatus.bind(cltComplianceController));
