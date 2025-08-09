@@ -368,7 +368,7 @@ export class ItemRepository {
                 icl.is_active,
                 'item_customer_links_alt' as source_table
               FROM "${schemaName}".item_customer_links icl
-              JOIN "${schemaName}".companies c ON icl.customer_company_id = c.id
+              JOIN "${schemaName}".companies c ON icl.company_id = c.id
               WHERE icl.item_id = $1 AND icl.is_active = true AND c.is_active = true
               ORDER BY COALESCE(c.display_name, c.name)
             `, [itemId]);
@@ -583,77 +583,73 @@ export class ItemRepository {
     }
   }
 
-  // Métodos adicionados para vincular/desvincular clientes e fornecedores a itens
-  async linkCustomerToItem(itemId: string, customerId: string, tenantId: string): Promise<void> {
+  /**
+   * Link a customer to an item
+   */
+  async linkCustomerToItem(itemId: string, customerId: string, userId: string): Promise<any> {
     try {
-      const { pool } = await import('../../../../db.js');
-      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      console.log(`🔗 [LINK-CUSTOMER] Iniciando vinculação: item=${itemId}, customer=${customerId}, tenant=${this.tenantId}`);
 
-      console.log(`🔗 [LINK-CUSTOMER] Iniciando vinculação: item=${itemId}, customer=${customerId}, tenant=${tenantId}`);
+      const schemaName = `tenant_${this.tenantId.replace(/-/g, '_')}`;
       console.log(`🔗 [LINK-CUSTOMER] Schema: ${schemaName}`);
 
-      // Primeiro, verificar se o item e a empresa existem
-      const itemExists = await pool.query(`
-        SELECT id, name FROM "${schemaName}".items WHERE id = $1
-      `, [itemId]);
-
-      const companyExists = await pool.query(`
-        SELECT id, name FROM "${schemaName}".companies WHERE id = $1
-      `, [customerId]);
+      // Verify item exists
+      const itemExists = await this.db.execute(
+        sql.raw(`SELECT id, name FROM "${schemaName}".items WHERE id = $1 AND tenant_id = $2`, [itemId, this.tenantId])
+      );
 
       if (itemExists.rows.length === 0) {
-        throw new Error(`Item ${itemId} não encontrado`);
-      }
-
-      if (companyExists.rows.length === 0) {
-        throw new Error(`Empresa ${customerId} não encontrada`);
+        throw new Error('Item não encontrado');
       }
 
       console.log(`✅ [LINK-CUSTOMER] Item encontrado: ${itemExists.rows[0].name}`);
-      console.log(`✅ [LINK-CUSTOMER] Empresa encontrada: ${companyExists.rows[0].name}`);
 
-      // Verificar se a tabela customer_item_mappings existe, senão usar estrutura alternativa
-      try {
-        const linkId = crypto.randomUUID();
-        console.log(`🔗 [LINK-CUSTOMER] Tentando inserir em customer_item_mappings com ID: ${linkId}`);
+      // Verify customer exists
+      const customerExists = await this.db.execute(
+        sql.raw(`SELECT id, name FROM "${schemaName}".companies WHERE id = $1 AND tenant_id = $2`, [customerId, this.tenantId])
+      );
 
-        await pool.query(`
-          INSERT INTO "${schemaName}".customer_item_mappings 
-          (id, tenant_id, item_id, customer_id, is_active, created_at, updated_at)
-          VALUES ($1, $2, $3, $4, true, NOW(), NOW())
-          ON CONFLICT (customer_id, item_id) 
-          DO UPDATE SET is_active = true, updated_at = NOW()
-        `, [linkId, tenantId, itemId, customerId]);
-
-        console.log(`✅ [LINK-CUSTOMER] Empresa ${customerId} (${companyExists.rows[0].name}) vinculada ao item ${itemId} (${itemExists.rows[0].name})`);
-      } catch (error) {
-        console.log(`⚠️ [LINK-CUSTOMER] Tabela customer_item_mappings não encontrada, tentando estrutura alternativa...`);
-        console.log(`⚠️ [LINK-CUSTOMER] Erro original:`, error.message);
-
-        // Fallback para item_customer_links
-        const linkId = crypto.randomUUID();
-        console.log(`🔗 [LINK-CUSTOMER] Tentando inserir em item_customer_links com ID: ${linkId}`);
-
-        await pool.query(`
-          INSERT INTO "${schemaName}".item_customer_links 
-          (id, tenant_id, item_id, company_id, is_active, created_at)
-          VALUES ($1, $2, $3, $4, true, NOW())
-          ON CONFLICT (item_id, company_id) 
-          DO UPDATE SET is_active = true
-        `, [linkId, tenantId, itemId, customerId]);
-
-        console.log(`✅ [LINK-CUSTOMER] Empresa ${customerId} (${companyExists.rows[0].name}) vinculada ao item ${itemId} (${itemExists.rows[0].name}) via estrutura alternativa`);
+      if (customerExists.rows.length === 0) {
+        throw new Error('Empresa não encontrada');
       }
+
+      console.log(`✅ [LINK-CUSTOMER] Empresa encontrada: ${customerExists.rows[0].name}`);
+
+      // Generate unique ID for the link
+      const linkId = crypto.randomUUID();
+      console.log(`🔗 [LINK-CUSTOMER] Inserindo em customer_item_mappings com ID: ${linkId}`);
+
+      // Insert into customer_item_mappings (the table that actually exists)
+      const result = await this.db.execute(
+        sql.raw(`
+          INSERT INTO "${schemaName}".customer_item_mappings (
+            id, tenant_id, item_id, customer_id, created_by, is_active, created_at, updated_at
+          ) VALUES ($1, $2, $3, $4, $5, true, NOW(), NOW())
+          ON CONFLICT (tenant_id, item_id, customer_id) DO UPDATE SET
+            is_active = true,
+            updated_at = NOW()
+          RETURNING id
+        `, [linkId, this.tenantId, itemId, customerId, userId])
+      );
+
+      if (result.rows.length > 0) {
+        console.log(`✅ [LINK-CUSTOMER] Vínculo criado/atualizado com sucesso: ${result.rows[0].id}`);
+        return { success: true, linkId: result.rows[0].id };
+      } else {
+        console.log(`⚠️ [LINK-CUSTOMER] Nenhuma linha retornada`);
+        return { success: true, message: 'Vínculo processado' };
+      }
+
     } catch (error) {
       console.error(`❌ [LINK-CUSTOMER] Erro ao vincular cliente ao item:`, error);
-      throw error;
+      throw new Error(`Erro ao vincular empresa: ${error.message}`);
     }
   }
 
   async unlinkCustomerFromItem(itemId: string, customerId: string, tenantId: string): Promise<void> {
     try {
       const { pool } = await import('../../../../db.js');
-      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`);
 
       // Tentar desvincular da tabela customer_item_mappings
       try {
@@ -694,7 +690,7 @@ export class ItemRepository {
       }
 
       const { pool } = await import('../../../../db.js');
-      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`);
 
       // Primeiro, verificar se as colunas existem na tabela
       const columnCheck = await pool.query(`
@@ -746,7 +742,7 @@ export class ItemRepository {
   async unlinkSupplierFromItem(itemId: string, supplierId: string, tenantId: string): Promise<void> {
     try {
       const { pool } = await import('../../../../db.js');
-      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`);
 
       await pool.query(`
         UPDATE "${schemaName}".item_supplier_links
