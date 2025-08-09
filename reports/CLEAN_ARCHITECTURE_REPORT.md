@@ -1,16 +1,16 @@
 # Clean Architecture Validation Report
 
 **Data:** 2025-08-09  
-**Score:** 37/100  
+**Score:** 39/100  
 **Status:** ❌ REPROVADO
 
 ## Resumo de Problemas
 
 - 🔥 **Críticos:** 0
-- ⚠️ **Altos:** 108
-- 📋 **Médios:** 94
-- 💡 **Baixos:** 2
-- **Total:** 204
+- ⚠️ **Altos:** 103
+- 📋 **Médios:** 106
+- 💡 **Baixos:** 5
+- **Total:** 214
 
 ## Principais Problemas por Módulo
 
@@ -47,10 +47,11 @@
   - Entity CompanyMembership não possui Repository correspondente
 
 ### ⚠️ dashboard
-- **Total de problemas:** 2
-- **Críticos:** 0 | **Altos:** 1
+- **Total de problemas:** 3
+- **Críticos:** 0 | **Altos:** 2
 - **Principais problemas:**
   - Routes não utiliza controllers - lógica direta nas rotas
+  - Application Layer violando dependência: express
   - Entity DashboardMetric não possui Repository correspondente
 
 ### ⚠️ field-layout
@@ -62,12 +63,12 @@
   - Camada infrastructure ausente no módulo field-layout
 
 ### ⚠️ field-layouts
-- **Total de problemas:** 4
-- **Críticos:** 0 | **Altos:** 3
+- **Total de problemas:** 7
+- **Críticos:** 0 | **Altos:** 1
 - **Principais problemas:**
-  - Camada domain ausente no módulo field-layouts
-  - Camada application ausente no módulo field-layouts
-  - Camada infrastructure ausente no módulo field-layouts
+  - Estrutura events ausente na camada domain
+  - Estrutura services ausente na camada domain
+  - Estrutura use-cases ausente na camada application
 
 ### ⚠️ knowledge-base
 - **Total de problemas:** 18
@@ -86,12 +87,12 @@
   - Estrutura services ausente na camada domain
 
 ### ⚠️ people
-- **Total de problemas:** 4
-- **Críticos:** 0 | **Altos:** 3
+- **Total de problemas:** 7
+- **Críticos:** 0 | **Altos:** 1
 - **Principais problemas:**
-  - Camada domain ausente no módulo people
-  - Camada application ausente no módulo people
-  - Camada infrastructure ausente no módulo people
+  - Estrutura events ausente na camada domain
+  - Estrutura services ausente na camada domain
+  - Estrutura use-cases ausente na camada application
 
 ### ⚠️ saas-admin
 - **Total de problemas:** 5
@@ -150,12 +151,12 @@
   - Camada infrastructure ausente no módulo template-versions
 
 ### ⚠️ tenant-admin
-- **Total de problemas:** 4
-- **Críticos:** 0 | **Altos:** 3
+- **Total de problemas:** 7
+- **Críticos:** 0 | **Altos:** 1
 - **Principais problemas:**
-  - Camada domain ausente no módulo tenant-admin
-  - Camada application ausente no módulo tenant-admin
-  - Camada infrastructure ausente no módulo tenant-admin
+  - Estrutura events ausente na camada domain
+  - Estrutura services ausente na camada domain
+  - Estrutura use-cases ausente na camada application
 
 ### ⚠️ ticket-templates
 - **Total de problemas:** 4
@@ -224,11 +225,12 @@
 
 ### ⚠️ dashboard
 - **Prioridade:** high
-- **Tempo estimado:** 40min
-- **Ações:** 2
+- **Tempo estimado:** 2h
+- **Ações:** 3
 
 1. **create_directory:** Criar controllers na camada Application e usar nas rotas
-2. **create_file:** Criar Repository com interface
+2. **refactor_code:** Refatorar dependência inválida na camada application
+3. **create_file:** Criar Repository com interface
 
 ### ⚠️ field-layout
 - **Prioridade:** high
@@ -242,13 +244,16 @@
 
 ### ⚠️ field-layouts
 - **Prioridade:** high
-- **Tempo estimado:** 40min
-- **Ações:** 4
+- **Tempo estimado:** 3h
+- **Ações:** 7
 
-1. **create_directory:** Criar estrutura da camada domain
-2. **create_directory:** Criar estrutura da camada application
-3. **create_directory:** Criar estrutura da camada infrastructure
-4. **create_directory:** Criar controllers na camada Application e usar nas rotas
+1. **create_directory:** Criar diretório/arquivo events na camada domain
+2. **create_directory:** Criar diretório/arquivo services na camada domain
+3. **create_directory:** Criar diretório/arquivo use-cases na camada application
+4. **create_directory:** Criar diretório/arquivo dto na camada application
+5. **create_directory:** Criar diretório/arquivo services na camada application
+6. **refactor_code:** Refatorar dependência inválida na camada application
+7. **rename_file:** Padronizar nomenclatura: Nome da classe FieldLayoutEntity não corresponde ao arquivo FieldLayout
 
 ### ⚠️ knowledge-base
 - **Prioridade:** high
@@ -320,13 +325,16 @@
 
 ### ⚠️ people
 - **Prioridade:** high
-- **Tempo estimado:** 40min
-- **Ações:** 4
+- **Tempo estimado:** 3h
+- **Ações:** 7
 
-1. **create_directory:** Criar estrutura da camada domain
-2. **create_directory:** Criar estrutura da camada application
-3. **create_directory:** Criar estrutura da camada infrastructure
-4. **create_directory:** Criar controllers na camada Application e usar nas rotas
+1. **create_directory:** Criar diretório/arquivo events na camada domain
+2. **create_directory:** Criar diretório/arquivo services na camada domain
+3. **create_directory:** Criar diretório/arquivo use-cases na camada application
+4. **create_directory:** Criar diretório/arquivo dto na camada application
+5. **create_directory:** Criar diretório/arquivo services na camada application
+6. **refactor_code:** Refatorar dependência inválida na camada application
+7. **rename_file:** Padronizar nomenclatura: Nome da classe PersonEntity não corresponde ao arquivo Person
 
 ### ⚠️ saas-admin
 - **Prioridade:** high
@@ -404,13 +412,16 @@
 
 ### ⚠️ tenant-admin
 - **Prioridade:** high
-- **Tempo estimado:** 40min
-- **Ações:** 4
+- **Tempo estimado:** 3h
+- **Ações:** 7
 
-1. **create_directory:** Criar estrutura da camada domain
-2. **create_directory:** Criar estrutura da camada application
-3. **create_directory:** Criar estrutura da camada infrastructure
-4. **create_directory:** Criar controllers na camada Application e usar nas rotas
+1. **create_directory:** Criar diretório/arquivo events na camada domain
+2. **create_directory:** Criar diretório/arquivo services na camada domain
+3. **create_directory:** Criar diretório/arquivo use-cases na camada application
+4. **create_directory:** Criar diretório/arquivo dto na camada application
+5. **create_directory:** Criar diretório/arquivo services na camada application
+6. **refactor_code:** Refatorar dependência inválida na camada application
+7. **rename_file:** Padronizar nomenclatura: Nome da classe TenantConfigEntity não corresponde ao arquivo TenantConfig
 
 ### ⚠️ ticket-templates
 - **Prioridade:** high
@@ -499,19 +510,19 @@ Nenhuma ação imediata necessária
 - **beneficiaries:** 5 ações (2h)
 - **custom-fields:** 4 ações (2h)
 - **customers:** 4 ações (3h)
-- **dashboard:** 2 ações (40min)
+- **dashboard:** 3 ações (2h)
 - **field-layout:** 4 ações (1h)
-- **field-layouts:** 4 ações (40min)
+- **field-layouts:** 7 ações (3h)
 - **knowledge-base:** 13 ações (8h)
 - **materials-services:** 43 ações (27h)
-- **people:** 4 ações (40min)
+- **people:** 7 ações (3h)
 - **saas-admin:** 5 ações (2h)
 - **schedule-management:** 10 ações (4h)
 - **technical-skills:** 11 ações (5h)
 - **template-audit:** 4 ações (1h)
 - **template-hierarchy:** 4 ações (1h)
 - **template-versions:** 4 ações (1h)
-- **tenant-admin:** 4 ações (40min)
+- **tenant-admin:** 7 ações (3h)
 - **ticket-templates:** 4 ações (1h)
 - **tickets:** 7 ações (3h)
 - **timecard:** 9 ações (5h)
