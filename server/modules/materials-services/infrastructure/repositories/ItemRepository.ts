@@ -313,7 +313,7 @@ export class ItemRepository {
           and(
             eq(itemSupplierLinks.itemId, itemId),
             eq(itemSupplierLinks.tenantId, tenantId),
-            eq(supplierTable.isActive, true) // Corrigido para usar 'is_active' que é o nome correto da coluna em suppliers
+            eq(itemSupplierLinks.isActive, true)
           )
         )
         .limit(50);
@@ -487,19 +487,24 @@ export class ItemRepository {
   // Métodos adicionados para vincular/desvincular clientes e fornecedores a itens
   async linkCustomerToItem(itemId: string, customerId: string, tenantId: string): Promise<void> {
     try {
-      const query = `
-        INSERT INTO "${tenantId}".customer_item_mappings
-        (id, customer_id, item_id, is_active, created_at, updated_at)
-        VALUES ($1, $2, $3, true, NOW(), NOW())
-        ON CONFLICT (customer_id, item_id)
-        DO UPDATE SET is_active = true, updated_at = NOW()
-      `;
-
-      await this.db.execute(sql.raw(query), [
-        crypto.randomUUID(),
-        customerId,
-        itemId
-      ]);
+      await this.db
+        .insert(customerItemMappings)
+        .values({
+          id: crypto.randomUUID(),
+          tenantId,
+          itemId,
+          customerId,
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+        .onConflictDoUpdate({
+          target: [customerItemMappings.customerId, customerItemMappings.itemId],
+          set: {
+            isActive: true,
+            updatedAt: new Date()
+          }
+        });
     } catch (error) {
       console.error('Erro ao vincular cliente ao item:', error);
       throw error;
@@ -523,19 +528,24 @@ export class ItemRepository {
 
   async linkSupplierToItem(itemId: string, supplierId: string, tenantId: string): Promise<void> {
     try {
-      const query = `
-        INSERT INTO "${tenantId}".supplier_item_links
-        (id, supplier_id, item_id, is_active, created_at, updated_at)
-        VALUES ($1, $2, $3, true, NOW(), NOW())
-        ON CONFLICT (supplier_id, item_id)
-        DO UPDATE SET is_active = true, updated_at = NOW()
-      `;
-
-      await this.db.execute(sql.raw(query), [
-        crypto.randomUUID(),
-        supplierId,
-        itemId
-      ]);
+      await this.db
+        .insert(itemSupplierLinks)
+        .values({
+          id: crypto.randomUUID(),
+          tenantId,
+          itemId,
+          supplierId,
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+        .onConflictDoUpdate({
+          target: [itemSupplierLinks.supplierId, itemSupplierLinks.itemId],
+          set: {
+            isActive: true,
+            updatedAt: new Date()
+          }
+        });
     } catch (error) {
       console.error('Erro ao vincular fornecedor ao item:', error);
       throw error;

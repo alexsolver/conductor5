@@ -1048,33 +1048,34 @@ export default function ItemCatalog() {
                 <div className="space-y-4">
                   <div>
                     <label className="text-sm font-medium">Itens Filhos</label>
-                    <Select 
-                      onValueChange={(value) => {
-                        if (value && value !== "none") {
-                          const currentChildren = itemForm.watch("childrenIds") || [];
-                          if (!currentChildren.includes(value)) {
-                            itemForm.setValue("childrenIds", [...currentChildren, value]);
+                    <div className="mt-2">
+                      <Select 
+                        onValueChange={(value) => {
+                          if (value && value !== "none") {
+                            const currentChildren = itemForm.watch("childrenIds") || [];
+                            if (!currentChildren.includes(value)) {
+                              itemForm.setValue("childrenIds", [...currentChildren, value]);
+                            }
                           }
-                        }
-                      }}
-                      value="" // Always reset to empty to allow multiple selections
-                    >
-                      <SelectTrigger className="mt-2">
-                        <SelectValue placeholder="Selecione itens filhos" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">Selecionar item...</SelectItem>
-                        {items.filter(item => 
-                          item.id !== selectedItem?.id && 
-                          !item.parentId && 
-                          !(itemForm.watch("childrenIds") || []).includes(item.id)
-                        ).map((item) => (
-                          <SelectItem key={item.id} value={item.id}>
-                            {item.name} ({item.type})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione itens filhos" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">Selecionar item...</SelectItem>
+                          {items.filter(item => 
+                            item.id !== selectedItem?.id && 
+                            !item.parentId && 
+                            !(itemForm.watch("childrenIds") || []).includes(item.id)
+                          ).map((item) => (
+                            <SelectItem key={item.id} value={item.id}>
+                              {item.name} ({item.type})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
                     {/* Lista dos itens filhos selecionados */}
                     <div className="mt-2">
