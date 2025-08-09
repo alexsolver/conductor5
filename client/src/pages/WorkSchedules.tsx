@@ -126,7 +126,7 @@ function WeeklyScheduleForm({ weeklySchedule, workDays, onWeeklyScheduleChange, 
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2">
         {weekDays.map(day => (
           <Button
             key={day.value}
@@ -134,47 +134,61 @@ function WeeklyScheduleForm({ weeklySchedule, workDays, onWeeklyScheduleChange, 
             variant={workDays.includes(day.value) ? "default" : "outline"}
             size="sm"
             onClick={() => handleDayToggle(day.value)}
+            className="text-xs px-2 py-1 min-w-0"
           >
-            {day.label}
+            {day.label.substring(0, 3)}
           </Button>
         ))}
       </div>
-      {workDays.sort((a, b) => a - b).map(dayValue => (
-        <div key={dayValue} className="border rounded-md p-4 bg-gray-50">
-          <h4 className="text-lg font-semibold mb-3">{weekDays.find(d => d.value === dayValue)?.label}</h4>
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <Label htmlFor={`weekly-start-time-${dayValue}`}>Entrada</Label>
-              <Input
-                id={`weekly-start-time-${dayValue}`}
-                type="time"
-                value={weeklySchedule[dayValue]?.startTime || '08:00'}
-                onChange={(e) => handleDayChange(dayValue, 'startTime', e.target.value)}
-              />
-            </div>
-            <div>
-              <Label htmlFor={`weekly-end-time-${dayValue}`}>Saída</Label>
-              <Input
-                id={`weekly-end-time-${dayValue}`}
-                type="time"
-                value={weeklySchedule[dayValue]?.endTime || '17:00'}
-                onChange={(e) => handleDayChange(dayValue, 'endTime', e.target.value)}
-              />
-            </div>
-            <div>
-              <Label htmlFor={`weekly-break-${dayValue}`}>Pausa (min)</Label>
-              <Input
-                id={`weekly-break-${dayValue}`}
-                type="number"
-                value={weeklySchedule[dayValue]?.breakDurationMinutes || 60}
-                onChange={(e) => handleDayChange(dayValue, 'breakDurationMinutes', e.target.value)}
-                min="0"
-                max="480"
-              />
+      <div className="space-y-3 max-h-72 overflow-y-auto">
+        {workDays.sort((a, b) => a - b).map(dayValue => (
+          <div key={dayValue} className="border rounded-md p-3 bg-white shadow-sm">
+            <h4 className="text-sm font-semibold mb-2 text-gray-700">
+              {weekDays.find(d => d.value === dayValue)?.label}
+            </h4>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="space-y-1">
+                <Label htmlFor={`weekly-start-time-${dayValue}`} className="text-xs text-gray-600">
+                  Entrada
+                </Label>
+                <Input
+                  id={`weekly-start-time-${dayValue}`}
+                  type="time"
+                  value={weeklySchedule[dayValue]?.startTime || '08:00'}
+                  onChange={(e) => handleDayChange(dayValue, 'startTime', e.target.value)}
+                  className="text-sm"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor={`weekly-end-time-${dayValue}`} className="text-xs text-gray-600">
+                  Saída
+                </Label>
+                <Input
+                  id={`weekly-end-time-${dayValue}`}
+                  type="time"
+                  value={weeklySchedule[dayValue]?.endTime || '17:00'}
+                  onChange={(e) => handleDayChange(dayValue, 'endTime', e.target.value)}
+                  className="text-sm"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor={`weekly-break-${dayValue}`} className="text-xs text-gray-600">
+                  Pausa (min)
+                </Label>
+                <Input
+                  id={`weekly-break-${dayValue}`}
+                  type="number"
+                  value={weeklySchedule[dayValue]?.breakDurationMinutes || 60}
+                  onChange={(e) => handleDayChange(dayValue, 'breakDurationMinutes', e.target.value)}
+                  min="0"
+                  max="480"
+                  className="text-sm"
+                />
+              </div>
             </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }
@@ -1075,14 +1089,14 @@ function WorkSchedulesContent() {
 
       {/* Dialog for creating/editing templates */}
       <Dialog open={isTemplateDialogOpen} onOpenChange={setIsTemplateDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{selectedTemplate ? 'Editar Template' : 'Novo Template de Escala'}</DialogTitle>
             <DialogDescription>
               {selectedTemplate ? 'Modifique os detalhes do template.' : 'Crie um novo template de escala independente.'}
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleCreateOrUpdateTemplate} className="space-y-4">
+          <form onSubmit={handleCreateOrUpdateTemplate} className="space-y-4 max-h-[calc(90vh-120px)] overflow-y-auto"  style={{ scrollbarWidth: 'thin' }}>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="template-name">Nome do Template *</Label>
@@ -1142,12 +1156,14 @@ function WorkSchedulesContent() {
             </div>
 
             {templateFormData.useWeeklySchedule ? (
-              <WeeklyScheduleForm
-                weeklySchedule={templateFormData.weeklySchedule}
-                workDays={templateFormData.workDays}
-                onWeeklyScheduleChange={(schedule) => setTemplateFormData(prev => ({ ...prev, weeklySchedule: schedule }))}
-                onWorkDaysChange={(days) => setTemplateFormData(prev => ({ ...prev, workDays: days }))}
-              />
+              <div className="max-h-96 overflow-y-auto border rounded-md p-4 bg-gray-50">
+                <WeeklyScheduleForm
+                  weeklySchedule={templateFormData.weeklySchedule}
+                  workDays={templateFormData.workDays}
+                  onWeeklyScheduleChange={(schedule) => setTemplateFormData(prev => ({ ...prev, weeklySchedule: schedule }))}
+                  onWorkDaysChange={(days) => setTemplateFormData(prev => ({ ...prev, workDays: days }))}
+                />
+              </div>
             ) : (
               <>
                 <div className="grid grid-cols-2 gap-4">
@@ -1225,7 +1241,7 @@ function WorkSchedulesContent() {
 
       {/* Dialog for bulk assignment */}
       <Dialog open={bulkAssignOpen} onOpenChange={setBulkAssignOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Atribuição em Massa</DialogTitle>
             <DialogDescription>
@@ -1325,7 +1341,7 @@ function WorkSchedulesContent() {
 
       {/* Dialog for assigning template to users */}
       <Dialog open={isAssignDialogOpen} onOpenChange={setIsAssignDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Atribuir Template a Funcionários</DialogTitle>
             <DialogDescription>
