@@ -1055,35 +1055,34 @@ export default function ItemCatalog() {
                   </Button>
                 </div>
                 
-                {/* Campo para item pai */}
-                <FormField
-                  control={itemForm.control}
-                  name="parentId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Item Pai (Opcional)</FormLabel>
-                      <Select onValueChange={(value) => field.onChange(value === "none" ? undefined : value)} value={field.value || "none"}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione um item pai" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="none">Nenhum (item independente)</SelectItem>
-                          {items.filter(item => item.id !== selectedItem?.id && !item.parentId).map((item) => (
-                            <SelectItem key={item.id} value={item.id}>
-                              {item.name} ({item.type})
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormDescription>
-                        Defina se este item é filho de outro item
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {/* Campo para item pai - movido para dentro do Form principal */}
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium">Item Pai (Opcional)</label>
+                    <Select 
+                      onValueChange={(value) => {
+                        const parentId = value === "none" ? undefined : value;
+                        itemForm.setValue("parentId", parentId);
+                      }} 
+                      value={itemForm.watch("parentId") || "none"}
+                    >
+                      <SelectTrigger className="mt-2">
+                        <SelectValue placeholder="Selecione um item pai" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Nenhum (item independente)</SelectItem>
+                        {items.filter(item => item.id !== selectedItem?.id && !item.parentId).map((item) => (
+                          <SelectItem key={item.id} value={item.id}>
+                            {item.name} ({item.type})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Defina se este item é filho de outro item
+                    </p>
+                  </div>
+                </div>
               </TabsContent>
 
               <TabsContent value="companies" className="space-y-4 mt-6">
