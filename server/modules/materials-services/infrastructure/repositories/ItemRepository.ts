@@ -11,8 +11,9 @@ export class ItemRepository {
   private db: NodePgDatabase<any>;
   private tenantId: string; // Adicionado para uso nos métodos SQL brutos
 
-  constructor(db: NodePgDatabase<any>) {
+  constructor(db: NodePgDatabase<any>, tenantId?: string) {
     this.db = db;
+    this.tenantId = tenantId || '';
   }
 
   async create(data: Omit<Item, 'id' | 'createdAt' | 'updatedAt'>): Promise<Item> {

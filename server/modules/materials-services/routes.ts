@@ -56,7 +56,7 @@ async function getControllers(tenantId: string) {
       throw new Error('Failed to get tenant database connection');
     }
 
-    const itemRepository = new ItemRepository(tenantDb);
+    const itemRepository = new ItemRepository(tenantDb, tenantId);
     const supplierRepository = new SupplierRepository(tenantDb);
     const stockRepository = new StockRepository(tenantDb);
 
@@ -195,7 +195,7 @@ router.get('/items/:id/links', jwtAuth, async (req: AuthenticatedRequest, res: R
     console.log(`🔗 Buscando vínculos para item ${id}`);
 
     const { db } = await schemaManager.getTenantDb(tenantId);
-    const itemRepository = new ItemRepository(db);
+    const itemRepository = new ItemRepository(db, tenantId);
     const links = await itemRepository.getItemLinks(id, tenantId);
 
     // Garantir estrutura consistente da resposta
@@ -261,10 +261,10 @@ router.post('/items/:itemId/link-customer', jwtAuth, async (req: AuthenticatedRe
 
     console.log(`🏗️ [API-LINK-CUSTOMER] Obtendo conexão com banco para tenant: ${tenantId}`);
     const { db } = await schemaManager.getTenantDb(tenantId);
-    const itemRepository = new ItemRepository(db);
+    const itemRepository = new ItemRepository(db, tenantId);
 
     console.log(`🔗 [API-LINK-CUSTOMER] Executando vinculação via repository...`);
-    await itemRepository.linkCustomerToItem(itemId, customerId, tenantId);
+    await itemRepository.linkCustomerToItem(itemId, customerId, userId);
 
     console.log(`✅ [API-LINK-CUSTOMER] Vinculação realizada com sucesso`);
     res.json({
@@ -297,7 +297,7 @@ router.delete('/items/:id/unlink-customer/:customerId', async (req, res) => {
     }
 
     const { db } = await schemaManager.getTenantDb(tenantId);
-    const itemRepository = new ItemRepository(db);
+    const itemRepository = new ItemRepository(db, tenantId);
     await itemRepository.unlinkCustomerFromItem(id, customerId);
 
     res.json({ success: true, message: 'Cliente desvinculado do item com sucesso' });
@@ -344,7 +344,7 @@ router.delete('/items/:id/unlink-customer/:customerId', async (req, res) => {
       // Re-inicializando o ItemRepository para garantir que tenha a conexão correta do tenant.
       // Em um cenário ideal, isso seria injetado ou obtido de forma mais centralizada.
       const { db } = await schemaManager.getTenantDb(tenantId);
-      const itemRepository = new ItemRepository(db);
+      const itemRepository = new ItemRepository(db, tenantId);
 
       await itemRepository.linkSupplierToItem(itemId, supplierId, tenantId);
 
@@ -373,8 +373,8 @@ router.delete('/items/:id/unlink-supplier/:supplierId', async (req, res) => {
     }
 
     const { db } = await schemaManager.getTenantDb(tenantId);
-    const itemRepository = new ItemRepository(db);
-    await itemRepository.unlinkSupplierFromItem(id, supplierId);
+    const itemRepository = new ItemRepository(db, tenantId);
+    await itemRepository.unlinkSupplierFromItem(id, supplierId, tenantId);
 
     res.json({ success: true, message: 'Fornecedor desvinculado do item com sucesso' });
   } catch (error) {
@@ -922,7 +922,7 @@ router.post('/items/bulk-company-links', jwtAuth, async (req: AuthenticatedReque
     // This requires access to itemRepository, which is defined in getControllers, need to pass it here or initialize it.
     // For now, assuming itemRepository is accessible or re-initializing for demonstration.
     const { db } = await schemaManager.getTenantDb(tenantId);
-    const itemRepository = new ItemRepository(db);
+    const itemRepository = new ItemRepository(db, tenantId);
 
 
     for (const itemId of itemIds) {
@@ -977,7 +977,7 @@ router.post('/items/bulk-supplier-links', jwtAuth, async (req: AuthenticatedRequ
     // This requires access to itemRepository, which is defined in getControllers, need to pass it here or initialize it.
     // For now, assuming itemRepository is accessible or re-initializing for demonstration.
     const { db } = await schemaManager.getTenantDb(tenantId);
-    const itemRepository = new ItemRepository(db);
+    const itemRepository = new ItemRepository(db, tenantId);
 
     for (const itemId of itemIds) {
       for (const supplierId of supplierIds) {
