@@ -7,10 +7,10 @@
 ## Resumo de Problemas
 
 - 🔥 **Críticos:** 14
-- ⚠️ **Altos:** 67
-- 📋 **Médios:** 43
+- ⚠️ **Altos:** 68
+- 📋 **Médios:** 40
 - 💡 **Baixos:** 4
-- **Total:** 128
+- **Total:** 126
 
 ## Principais Problemas por Módulo
 
@@ -46,12 +46,12 @@
   - Domain Layer violando dependência: drizzle-orm/neon-http
 
 ### ⚠️ saas-admin
-- **Total de problemas:** 10
-- **Críticos:** 0 | **Altos:** 2
+- **Total de problemas:** 8
+- **Críticos:** 0 | **Altos:** 3
 - **Principais problemas:**
-  - Estrutura services ausente na camada domain
-  - Estrutura use-cases ausente na camada application
-  - Estrutura controllers ausente na camada application
+  - Estrutura dto ausente na camada application
+  - Estrutura services ausente na camada application
+  - Estrutura repositories ausente na camada infrastructure
 
 ### 🔥 technical-skills
 - **Total de problemas:** 10
@@ -257,19 +257,17 @@
 
 ### ⚠️ saas-admin
 - **Prioridade:** high
-- **Tempo estimado:** 3h
-- **Ações:** 10
+- **Tempo estimado:** 4h
+- **Ações:** 8
 
-1. **create_directory:** Criar diretório/arquivo services na camada domain
-2. **create_directory:** Criar diretório/arquivo use-cases na camada application
-3. **create_directory:** Criar diretório/arquivo controllers na camada application
-4. **create_directory:** Criar diretório/arquivo dto na camada application
-5. **create_directory:** Criar diretório/arquivo services na camada application
-6. **create_directory:** Criar diretório/arquivo repositories na camada infrastructure
-7. **create_directory:** Criar controllers na camada Application e usar nas rotas
-8. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
-9. **rename_file:** Padronizar nomenclatura: Entity index não segue padrão PascalCase
-10. **create_file:** Criar Repository com interface
+1. **create_directory:** Criar diretório/arquivo dto na camada application
+2. **create_directory:** Criar diretório/arquivo services na camada application
+3. **create_directory:** Criar diretório/arquivo repositories na camada infrastructure
+4. **create_directory:** Criar controllers na camada Application e usar nas rotas
+5. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
+6. **refactor_code:** Refatorar dependência inválida na camada application
+7. **rename_file:** Padronizar nomenclatura: Entity index não segue padrão PascalCase
+8. **create_file:** Criar Repository com interface
 
 ### ⚠️ tickets
 - **Prioridade:** high
@@ -338,7 +336,7 @@
 
 ### Prioridade Alta ⚠️
 - **customers:** 2 ações (2h)
-- **saas-admin:** 10 ações (3h)
+- **saas-admin:** 8 ações (4h)
 - **tickets:** 3 ações (2h)
 - **auth:** 2 ações (2h)
 - **people:** 2 ações (2h)
