@@ -18,19 +18,11 @@ interface HttpResponse {
 }
 
 // Remove Express dependency - use DTOs and interfaces instead
-import { CreateCustomerUseCase } from '../use-cases/CreateCustomerUseCase';
-import { GetCustomersUseCase } from '../use-cases/GetCustomersUseCase';
-import { UpdateCustomerUseCase } from '../usecases/UpdateCustomerUseCase';
-import { DeleteCustomerUseCase } from '../usecases/DeleteCustomerUseCase';
 import { transformToCustomerDTO } from '../dto/CustomerResponseDTO';
 
 export class CustomerController {
   constructor(
-    private customerApplicationService: any, // Placeholder, as the original code uses this and the changes introduce use cases
-    private createCustomerUseCase: CreateCustomerUseCase,
-    private getCustomersUseCase: GetCustomersUseCase,
-    private updateCustomerUseCase: UpdateCustomerUseCase,
-    private deleteCustomerUseCase: DeleteCustomerUseCase
+    private customerApplicationService: any // Keep using the application service for compatibility
   ) {}
 
   async createCustomer(req: HttpRequest, res: HttpResponse): Promise<void> {
@@ -121,18 +113,26 @@ export class CustomerController {
         return;
       }
 
-      const customers = await this.getCustomersUseCase.execute({
-        tenantId: tenantId as string,
-        userId: userId as string
+      const result = await this.customerApplicationService.getCustomers({
+        tenantId,
+        page: 1,
+        limit: 50
       });
 
-      const customerDTOs = customers.map(transformToCustomerDTO);
-
-      res.json({
-        success: true,
-        data: customerDTOs
-      });
+      if (result.success) {
+        res.status(200).json({
+          success: true,
+          customers: result.customers?.map(transformToCustomerDTO) || [],
+          total: result.total || 0
+        });
+      } else {
+        res.status(400).json({
+          success: false,
+          error: result.error
+        });
+      }
     } catch (error) {
+      console.error('[CUSTOMER-CONTROLLER] Error in getCustomers:', error);
       res.status(500).json({
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error'
@@ -154,18 +154,23 @@ export class CustomerController {
         return;
       }
 
-      const customer = await this.updateCustomerUseCase.execute({
+      const result = await this.customerApplicationService.updateCustomer({
         id,
-        tenantId: tenantId as string,
+        tenantId,
         ...req.body
       });
 
-      const customerDTO = transformToCustomerDTO(customer);
-
-      res.json({
-        success: true,
-        data: customerDTO
-      });
+      if (result.success) {
+        res.json({
+          success: true,
+          data: transformToCustomerDTO(result.customer)
+        });
+      } else {
+        res.status(400).json({
+          success: false,
+          error: result.error
+        });
+      }
     } catch (error) {
       res.status(500).json({
         success: false,
@@ -188,15 +193,22 @@ export class CustomerController {
         return;
       }
 
-      await this.deleteCustomerUseCase.execute({
+      const result = await this.customerApplicationService.deleteCustomer({
         id,
-        tenantId: tenantId as string
+        tenantId
       });
 
-      res.json({
-        success: true,
-        message: 'Customer deleted successfully'
-      });
+      if (result.success) {
+        res.json({
+          success: true,
+          message: 'Customer deleted successfully'
+        });
+      } else {
+        res.status(400).json({
+          success: false,
+          error: result.error
+        });
+      }
     } catch (error) {
       res.status(500).json({
         success: false,
