@@ -514,6 +514,16 @@ export const userGroupMemberships = pgTable("user_group_memberships", {
 ]);
 
 // Beneficiaries table (Brazilian beneficiaries) - FIXED: Nomenclature standardized to English
+export const customFields = pgTable("custom_fields", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  type: varchar("type", { length: 50 }).notNull(),
+  required: boolean("required").default(false),
+  tenantId: varchar("tenant_id", { length: 36 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
 export const beneficiaries = pgTable("beneficiaries", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull(),

@@ -15,7 +15,7 @@ dashboardRouter.get('/stats', jwtAuth, async (req: AuthenticatedRequest, res) =>
       return sendError(res, "User not associated with a tenant", "User not associated with a tenant", 400);
     }
 
-    const stats = await unifiedStorage.getDashboardStats(req.user.tenantId);
+    const stats = await dashboardController.getStats(req.user.tenantId);
     return sendSuccess(res, stats, "Dashboard stats retrieved successfully");
   } catch (error) {
     const { logError } = await import('../../utils/logger');

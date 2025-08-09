@@ -1,5 +1,5 @@
 // Removido import do express - Application layer não deve depender de frameworks específicos
-import { AuthenticatedRequest } from '../../../middleware/jwtAuth';
+// Framework-agnostic controller interface
 import { CustomerApplicationService } from '../services/CustomerApplicationService';
 import { transformToCustomerDTO } from '../dto/CustomerResponseDTO';
 

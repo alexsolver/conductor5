@@ -39,3 +39,16 @@ export class DashboardController {
     }
   }
 }
+import { DashboardApplicationService } from '../services/DashboardApplicationService';
+
+export class DashboardController {
+  constructor(private dashboardService: DashboardApplicationService) {}
+
+  async getStats(tenantId: string): Promise<any> {
+    return await this.dashboardService.getDashboardStats(tenantId);
+  }
+
+  async getActivity(tenantId: string): Promise<any> {
+    return await this.dashboardService.getActivityFeed(tenantId);
+  }
+}
