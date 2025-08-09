@@ -508,7 +508,20 @@ export class TimecardController {
   createScheduleTemplate = async (req: Request, res: Response) => {
     try {
       const { tenantId, id: createdBy } = (req as any).user;
-      const validatedData = createScheduleTemplateSchema.parse(req.body);
+      
+      console.log('[TEMPLATE-CREATE] Raw request body:', req.body);
+      
+      // Ensure category is set to 'custom' if not provided
+      const templateData = {
+        ...req.body,
+        category: req.body.category || 'custom'
+      };
+      
+      console.log('[TEMPLATE-CREATE] Processing template data:', templateData);
+      
+      const validatedData = createScheduleTemplateSchema.parse(templateData);
+      
+      console.log('[TEMPLATE-CREATE] Validated data:', validatedData);
 
       const template = await this.timecardRepository.createScheduleTemplate({
         ...validatedData,
@@ -516,12 +529,21 @@ export class TimecardController {
         createdBy,
       });
 
+      console.log('[TEMPLATE-CREATE] Template created successfully:', template.id);
       res.status(201).json(template);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: 'Dados inválidos', errors: error.errors });
+        console.error('[TEMPLATE-CREATE] Validation error:', error.errors);
+        return res.status(400).json({ 
+          message: 'Dados inválidos', 
+          errors: error.errors.map(e => ({
+            field: e.path.join('.'),
+            message: e.message,
+            received: e.received
+          }))
+        });
       }
-      console.error('Error creating schedule template:', error);
+      console.error('[TEMPLATE-CREATE] Error creating schedule template:', error);
       res.status(500).json({ message: 'Erro interno do servidor' });
     }
   };

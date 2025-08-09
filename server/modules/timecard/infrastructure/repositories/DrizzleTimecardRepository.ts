@@ -429,27 +429,37 @@ export class DrizzleTimecardRepository implements TimecardRepository {
     try {
       const { scheduleTemplates } = await import('@shared/schema');
 
+      console.log('[REPO-TEMPLATE-CREATE] Creating template with data:', data);
+
+      const templateData = {
+        tenantId: data.tenantId,
+        name: data.name,
+        description: data.description || null,
+        scheduleType: data.scheduleType,
+        workDays: JSON.stringify(data.workDays || []),
+        startTime: data.startTime || null,
+        endTime: data.endTime || null,
+        breakStart: data.breakStart || null,
+        breakEnd: data.breakEnd || null,
+        breakDurationMinutes: data.breakDurationMinutes || null,
+        useWeeklySchedule: data.useWeeklySchedule || false,
+        weeklySchedule: data.weeklySchedule ? JSON.stringify(data.weeklySchedule) : null,
+        flexibilityWindow: data.flexibilityWindow || 0,
+        isActive: data.isActive ?? true,
+        createdBy: data.createdBy || null
+      };
+
+      console.log('[REPO-TEMPLATE-CREATE] Inserting template data:', templateData);
+
       const [template] = await db
         .insert(scheduleTemplates)
-        .values({
-          tenantId: data.tenantId,
-          name: data.name,
-          description: data.description,
-          scheduleType: data.scheduleType,
-          workDays: JSON.stringify(data.workDays),
-          startTime: data.startTime,
-          endTime: data.endTime,
-          breakStart: data.breakStart,
-          breakEnd: data.breakEnd,
-          flexibilityWindow: data.flexibilityWindow || 0,
-          isActive: data.isActive ?? true,
-        })
+        .values(templateData)
         .returning();
 
       console.log('[TEMPLATES-DEBUG] Created new template:', template.name);
       return template;
     } catch (error) {
-      console.error('Error creating schedule template:', error);
+      console.error('[REPO-TEMPLATE-CREATE] Error creating schedule template:', error);
       throw error;
     }
   }

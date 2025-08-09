@@ -31,10 +31,18 @@ export const createScheduleTemplateSchema = z.object({
   description: z.string().optional(),
   scheduleType: z.string(),
   workDays: z.array(z.number().min(0).max(6)),
-  startTime: z.string().regex(/^\d{2}:\d{2}$/, 'Formato de hora inválido'),
-  endTime: z.string().regex(/^\d{2}:\d{2}$/, 'Formato de hora inválido'),
+  startTime: z.string().regex(/^\d{2}:\d{2}$/, 'Formato de hora inválido').optional(),
+  endTime: z.string().regex(/^\d{2}:\d{2}$/, 'Formato de hora inválido').optional(),
   breakStart: z.string().regex(/^\d{2}:\d{2}$/, 'Formato de hora inválido').optional(),
   breakEnd: z.string().regex(/^\d{2}:\d{2}$/, 'Formato de hora inválido').optional(),
+  breakDurationMinutes: z.number().min(0).max(480).optional(),
+  useWeeklySchedule: z.boolean().optional().default(false),
+  weeklySchedule: z.record(z.object({
+    startTime: z.string(),
+    endTime: z.string(),
+    breakDurationMinutes: z.number()
+  })).optional(),
+  category: z.enum(['default', 'custom']).optional().default('custom'),
   flexibilityWindow: z.number().min(0).default(0),
   isActive: z.boolean().default(true),
 });

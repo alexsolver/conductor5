@@ -703,22 +703,42 @@ function WorkSchedulesContent() {
       return;
     }
 
-    const templatePayload: Partial<ScheduleTemplate> = {
+    // Validate work days
+    if (!templateFormData.useWeeklySchedule && templateFormData.workDays.length === 0) {
+      toast({ title: 'Erro de validação', description: 'Selecione pelo menos um dia da semana.', variant: 'destructive' });
+      return;
+    }
+
+    // Validate time fields for non-weekly schedules
+    if (!templateFormData.useWeeklySchedule) {
+      if (!templateFormData.startTime || !templateFormData.endTime) {
+        toast({ title: 'Erro de validação', description: 'Horários de entrada e saída são obrigatórios.', variant: 'destructive' });
+        return;
+      }
+      if (templateFormData.startTime >= templateFormData.endTime) {
+        toast({ title: 'Erro de validação', description: 'Horário de saída deve ser posterior ao de entrada.', variant: 'destructive' });
+        return;
+      }
+    }
+
+    const templatePayload = {
       name: templateFormData.name.trim(),
-      description: templateFormData.description,
+      description: templateFormData.description?.trim() || '',
       scheduleType: templateFormData.scheduleType,
       workDays: templateFormData.workDays,
       useWeeklySchedule: templateFormData.useWeeklySchedule,
+      category: 'custom', // Explicitly set as custom
+      isActive: templateFormData.isActive,
       ...(templateFormData.useWeeklySchedule
         ? { weeklySchedule: templateFormData.weeklySchedule }
         : {
             startTime: templateFormData.startTime,
             endTime: templateFormData.endTime,
             breakDurationMinutes: Math.max(0, Math.min(480, templateFormData.breakDurationMinutes)),
-          }),
-      isActive: templateFormData.isActive,
-      category: 'custom', // Ensure it's marked as custom
+          })
     };
+
+    console.log('[FRONTEND-TEMPLATE] Submitting template:', templatePayload);
 
     if (selectedTemplate) {
       // Update existing template
