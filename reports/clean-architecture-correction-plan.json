@@ -651,6 +651,17 @@
       },
       {
         "type": "rename_file",
+        "description": "Padronizar nomenclatura: Nome da classe SaasConfigEntity não corresponde ao arquivo Index",
+        "target": "server/modules/saas-admin/domain/entities/Index.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "rename_file",
         "description": "Padronizar nomenclatura: Entity index não segue padrão PascalCase",
         "target": "server/modules/saas-admin/domain/entities/index.ts",
         "steps": [
@@ -682,6 +693,18 @@
       {
         "type": "create_file",
         "description": "Criar Repository com interface",
+        "target": "server/modules/saas-admin/infrastructure/repositories/IndexRepository.ts",
+        "code": "import { Index } from '../../domain/entities/Index';\nimport { IIndexRepository } from '../../domain/ports/IIndexRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleIndexRepository implements IIndexRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<Index | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<Index[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: Index): Promise<Index> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<Index>, tenantId: string): Promise<Index | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
+        "steps": [
+          "Criar interface do Repository na camada Domain",
+          "Implementar Repository na camada Infrastructure",
+          "Adicionar injeção de dependência",
+          "Integrar com Use Cases"
+        ]
+      },
+      {
+        "type": "create_file",
+        "description": "Criar Repository com interface",
         "target": "server/modules/saas-admin/domain/ports/IindexRepository.ts",
         "code": "import { Iindex } from '../../domain/entities/Iindex';\nimport { IIindexRepository } from '../../domain/ports/IIindexRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleIindexRepository implements IIindexRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<Iindex | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<Iindex[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: Iindex): Promise<Iindex> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<Iindex>, tenantId: string): Promise<Iindex | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
         "steps": [
@@ -692,7 +715,7 @@
         ]
       }
     ],
-    "estimatedTime": "4h"
+    "estimatedTime": "5h"
   },
   {
     "priority": "immediate",
@@ -988,9 +1011,21 @@
           "Usar injeção de dependência",
           "Remover import direto da dependência externa"
         ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "server/modules/customers/application/controllers/CustomerController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
       }
     ],
-    "estimatedTime": "2h"
+    "estimatedTime": "3h"
   },
   {
     "priority": "high",

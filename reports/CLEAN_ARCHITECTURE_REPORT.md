@@ -7,10 +7,10 @@
 ## Resumo de Problemas
 
 - 🔥 **Críticos:** 18
-- ⚠️ **Altos:** 68
+- ⚠️ **Altos:** 70
 - 📋 **Médios:** 35
-- 💡 **Baixos:** 4
-- **Total:** 125
+- 💡 **Baixos:** 5
+- **Total:** 128
 
 ## Principais Problemas por Módulo
 
@@ -23,10 +23,11 @@
   - Domain Layer violando dependência: ../../application/dto/CreateBeneficiaryDTO
 
 ### ⚠️ customers
-- **Total de problemas:** 2
-- **Críticos:** 0 | **Altos:** 2
+- **Total de problemas:** 3
+- **Críticos:** 0 | **Altos:** 3
 - **Principais problemas:**
   - Routes contém lógica de negócio ou acesso a dados
+  - Application Layer violando dependência: express
   - Application Layer violando dependência: express
 
 ### 🔥 knowledge-base
@@ -46,8 +47,8 @@
   - Domain Layer violando dependência: drizzle-orm/neon-http
 
 ### 🔥 saas-admin
-- **Total de problemas:** 7
-- **Críticos:** 1 | **Altos:** 2
+- **Total de problemas:** 9
+- **Críticos:** 1 | **Altos:** 3
 - **Principais problemas:**
   - Routes contém lógica de negócio ou acesso a dados
   - Domain Layer violando dependência: drizzle-orm/neon-http
@@ -204,16 +205,18 @@
 
 ### 🔥 saas-admin
 - **Prioridade:** immediate
-- **Tempo estimado:** 4h
-- **Ações:** 7
+- **Tempo estimado:** 5h
+- **Ações:** 9
 
 1. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
 2. **refactor_code:** Refatorar dependência inválida na camada domain
 3. **refactor_code:** Refatorar dependência inválida na camada application
-4. **rename_file:** Padronizar nomenclatura: Entity index não segue padrão PascalCase
-5. **rename_file:** Padronizar nomenclatura: Repository index deve terminar com 'Repository'
-6. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
-7. **create_file:** Criar Repository com interface
+4. **rename_file:** Padronizar nomenclatura: Nome da classe SaasConfigEntity não corresponde ao arquivo Index
+5. **rename_file:** Padronizar nomenclatura: Entity index não segue padrão PascalCase
+6. **rename_file:** Padronizar nomenclatura: Repository index deve terminar com 'Repository'
+7. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
+8. **create_file:** Criar Repository com interface
+9. **create_file:** Criar Repository com interface
 
 ### 🔥 technical-skills
 - **Prioridade:** immediate
@@ -262,11 +265,12 @@
 
 ### ⚠️ customers
 - **Prioridade:** high
-- **Tempo estimado:** 2h
-- **Ações:** 2
+- **Tempo estimado:** 3h
+- **Ações:** 3
 
 1. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
 2. **refactor_code:** Refatorar dependência inválida na camada application
+3. **refactor_code:** Refatorar dependência inválida na camada application
 
 ### ⚠️ tickets
 - **Prioridade:** high
@@ -327,14 +331,14 @@
 - **beneficiaries:** 5 ações (4h)
 - **knowledge-base:** 10 ações (8h)
 - **materials-services:** 37 ações (30h)
-- **saas-admin:** 7 ações (4h)
+- **saas-admin:** 9 ações (5h)
 - **technical-skills:** 6 ações (5h)
 - **schedule-management:** 2 ações (2h)
 - **shared:** 6 ações (4h)
 - **timecard:** 7 ações (5h)
 
 ### Prioridade Alta ⚠️
-- **customers:** 2 ações (2h)
+- **customers:** 3 ações (3h)
 - **tickets:** 3 ações (2h)
 - **people:** 2 ações (2h)
 
