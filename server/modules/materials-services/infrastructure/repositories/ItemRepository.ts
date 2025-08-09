@@ -328,12 +328,14 @@ export class ItemRepository {
       let supplierLinks = [];
       try {
         const supplierLinksResult = await pool.query(`
-          SELECT sil.supplier_id as id, 
-                 COALESCE(sil.supplier_name, 'Fornecedor sem nome') as name 
+          SELECT s.id, 
+                 COALESCE(s.name, 'Fornecedor sem nome') as name 
           FROM "${schemaName}".supplier_item_links sil
+          INNER JOIN "${schemaName}".suppliers s ON sil.supplier_id = s.id
           WHERE sil.item_id = $1 
             AND sil.tenant_id = $2 
             AND sil.is_active = true
+            AND s.active = true
           LIMIT 50
         `, [itemId, tenantId]);
         supplierLinks = supplierLinksResult.rows;

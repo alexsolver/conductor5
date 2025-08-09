@@ -1040,11 +1040,11 @@ export class ItemController {
       try {
         const supplierLinksResult = await pool.query(`
           SELECT s.id, s.name 
-          FROM "${schemaName}".item_supplier_links isl
-          INNER JOIN "${schemaName}".suppliers s ON isl.supplier_id = s.id
-          WHERE isl.item_id = $1 
-            AND isl.tenant_id = $2 
-            AND isl.is_active = true
+          FROM "${schemaName}".supplier_item_links sil
+          INNER JOIN "${schemaName}".suppliers s ON sil.supplier_id = s.id
+          WHERE sil.item_id = $1 
+            AND sil.tenant_id = $2 
+            AND sil.is_active = true
             AND s.active = true
           LIMIT 50
         `, [itemId, tenantId]);
