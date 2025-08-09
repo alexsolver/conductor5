@@ -51,8 +51,8 @@ timecardRouter.get('/reports/attendance/:period', jwtAuth, async (req, res) => {
   } catch (error) {
     console.error('[TIMECARD-ROUTES] Error in attendance report:', error);
     res.setHeader('Content-Type', 'application/json');
-    res.status(500).json({ 
-      success: false, 
+    res.status(500).json({
+      success: false,
       error: 'Erro ao gerar relatório de frequência',
       details: error instanceof Error ? error.message : 'Unknown error'
     });
@@ -67,15 +67,15 @@ timecardRouter.get('/reports/overtime/:period', jwtAuth, async (req, res) => {
   } catch (error) {
     console.error('[TIMECARD-ROUTES] Error in overtime report:', error);
     res.setHeader('Content-Type', 'application/json');
-    res.status(500).json({ 
-      success: false, 
+    res.status(500).json({
+      success: false,
       error: 'Erro ao gerar relatório de horas extras',
       details: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 });
 
-// Current status route  
+// Current status route
 timecardRouter.get('/current-status', jwtAuth, timecardController.getCurrentStatus.bind(timecardController));
 
 export { timecardRouter };

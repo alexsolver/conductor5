@@ -181,7 +181,10 @@ function WorkSchedulesContent() {
     breakDurationMinutes: 60,
     isActive: true,
     useWeeklySchedule: false, // New state for toggling weekly schedule
-    weeklySchedule: {} as WeeklySchedule // New state for weekly schedule data
+    weeklySchedule: {} as WeeklySchedule, // New state for weekly schedule data
+    saveAsTemplate: false, // New field for template saving
+    templateName: '', // Template name when saving as template
+    templateDescription: '' // Template description when saving as template
   });
 
   const { toast } = useToast();
@@ -297,6 +300,31 @@ function WorkSchedulesContent() {
     onError: (error: any) => {
       toast({
         title: 'Erro ao excluir escala',
+        description: error.message || 'Tente novamente em alguns instantes.',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Create template mutation
+  const createTemplateMutation = useMutation({
+    mutationFn: async (templateData: any) => {
+      const response = await apiRequest('POST', '/api/timecard/schedule-templates', templateData);
+      console.log('[TEMPLATE-CREATE] Response:', response);
+      return response;
+    },
+    onSuccess: async () => {
+      toast({
+        title: 'Template criado!',
+        description: 'O template da escala foi salvo com sucesso.',
+      });
+      await queryClient.invalidateQueries({ queryKey: ['/api/timecard/schedule-templates'] });
+      await queryClient.refetchQueries({ queryKey: ['/api/timecard/schedule-templates'] });
+    },
+    onError: (error: any) => {
+      console.error('[TEMPLATE-CREATE-ERROR]:', error);
+      toast({
+        title: 'Erro ao criar template',
         description: error.message || 'Tente novamente em alguns instantes.',
         variant: 'destructive',
       });
@@ -438,7 +466,10 @@ function WorkSchedulesContent() {
       breakDurationMinutes: 60,
       isActive: true,
       useWeeklySchedule: false,
-      weeklySchedule: {}
+      weeklySchedule: {},
+      saveAsTemplate: false,
+      templateName: '',
+      templateDescription: ''
     });
   };
 
@@ -466,6 +497,10 @@ function WorkSchedulesContent() {
       toast({ title: 'Erro de validação', description: 'Selecione pelo menos um dia da semana.', variant: 'destructive' });
       return;
     }
+    if (formData.saveAsTemplate && !formData.templateName.trim()) {
+      toast({ title: 'Erro de validação', description: 'Nome do template é obrigatório quando salvar como template.', variant: 'destructive' });
+      return;
+    }
 
     // Prepare data for API
     const apiData = {
@@ -486,6 +521,28 @@ function WorkSchedulesContent() {
     };
 
     console.log('[QA-DEBUG] Submitting schedule data:', apiData);
+
+    // If saving as template, create template first
+    if (formData.saveAsTemplate && !selectedSchedule) {
+      const templateData = {
+        name: formData.templateName.trim(),
+        description: formData.templateDescription.trim() || `Template baseado em escala ${formData.scheduleType}`,
+        scheduleType: formData.scheduleType,
+        category: 'custom',
+        workDays: Array.from(new Set(formData.workDays)),
+        useWeeklySchedule: formData.useWeeklySchedule,
+        ...(formData.useWeeklySchedule
+          ? { weeklySchedule: formData.weeklySchedule }
+          : {
+              startTime: formData.startTime,
+              endTime: formData.endTime,
+              breakDurationMinutes: Math.max(0, Math.min(480, formData.breakDurationMinutes)),
+            }),
+        isActive: true
+      };
+
+      createTemplateMutation.mutate(templateData);
+    }
 
     if (selectedSchedule) {
       updateScheduleMutation.mutate({
@@ -510,7 +567,10 @@ function WorkSchedulesContent() {
       breakDurationMinutes: schedule.breakDurationMinutes || 60,
       isActive: schedule.isActive,
       useWeeklySchedule: schedule.useWeeklySchedule || false,
-      weeklySchedule: schedule.weeklySchedule || {}
+      weeklySchedule: schedule.weeklySchedule || {},
+      saveAsTemplate: false,
+      templateName: '',
+      templateDescription: ''
     });
     setIsDialogOpen(true);
   };
@@ -880,15 +940,58 @@ function WorkSchedulesContent() {
                   )}
                 </div>
 
+                {/* Save as Template Section */}
+                {!selectedSchedule && (
+                  <div className="space-y-4 pt-4 border-t">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="saveAsTemplate"
+                        checked={formData.saveAsTemplate}
+                        onCheckedChange={(checked) => setFormData(prev => ({ ...prev, saveAsTemplate: checked as boolean }))}
+                      />
+                      <Label htmlFor="saveAsTemplate" className="text-sm font-medium">
+                        Salvar configuração como template
+                      </Label>
+                    </div>
+
+                    {formData.saveAsTemplate && (
+                      <div className="grid grid-cols-1 gap-4 pl-6">
+                        <div>
+                          <Label htmlFor="templateName">Nome do Template *</Label>
+                          <Input
+                            id="templateName"
+                            type="text"
+                            placeholder="Ex: Escala Comercial Personalizada"
+                            value={formData.templateName}
+                            onChange={(e) => setFormData(prev => ({ ...prev, templateName: e.target.value }))}
+                            required={formData.saveAsTemplate}
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="templateDescription">Descrição (opcional)</Label>
+                          <Input
+                            id="templateDescription"
+                            type="text"
+                            placeholder="Descreva quando usar este template..."
+                            value={formData.templateDescription}
+                            onChange={(e) => setFormData(prev => ({ ...prev, templateDescription: e.target.value }))}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <div className="flex justify-end space-x-2">
                   <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                     Cancelar
                   </Button>
                   <Button
                     type="submit"
-                    disabled={createScheduleMutation.isPending || updateScheduleMutation.isPending}
+                    disabled={createScheduleMutation.isPending || updateScheduleMutation.isPending || createTemplateMutation.isPending}
                   >
-                    {(createScheduleMutation.isPending || updateScheduleMutation.isPending) ? 'Salvando...' : 'Salvar'}
+                    {(createScheduleMutation.isPending || updateScheduleMutation.isPending || createTemplateMutation.isPending) ? 'Salvando...' : 'Salvar'}
                   </Button>
                 </div>
               </form>
