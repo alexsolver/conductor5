@@ -19,7 +19,8 @@ import { systemSettings } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 import { Response } from 'express'; // Import Response type
 import crypto from 'crypto'; // Import crypto for UUID generation
-import { Pool } from 'pg'; // Import Pool for database operations
+import pkg from 'pg';
+const { Pool } = pkg;
 
 // Assume pool is initialized elsewhere and available in this scope
 // For demonstration, we'll create a mock pool if it's not defined.
