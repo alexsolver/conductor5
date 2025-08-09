@@ -495,7 +495,13 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => deletePlannedMutation.mutate(item.id)}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const itemId = item.id;
+                            console.log('🗑️ Deleting planned item:', itemId);
+                            deletePlannedMutation.mutate(itemId);
+                          }}
                           disabled={deletePlannedMutation.isPending}
                           className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
                         >
@@ -619,7 +625,13 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => deleteConsumedMutation.mutate(material.consumedItemId)}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const itemId = material.consumedItemId;
+                            console.log('🗑️ Deleting consumed item:', itemId);
+                            deleteConsumedMutation.mutate(itemId);
+                          }}
                         >
                           <Trash2 className="h-4 w-4 text-red-500" />
                         </Button>
