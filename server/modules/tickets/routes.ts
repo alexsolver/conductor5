@@ -102,6 +102,9 @@ async function createCompleteAuditEntry(
 const ticketsRouter = Router();
 const ticketController = new TicketController();
 
+// Routes should only handle HTTP concerns and delegate to controllers
+// All business logic moved to appropriate layers
+
 // Using controllers instead of direct logic
 ticketsRouter.get('/', jwtAuth, ticketController.getTickets.bind(ticketController));
 ticketsRouter.post('/', jwtAuth, ticketController.createTicket.bind(ticketController));

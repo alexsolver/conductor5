@@ -1,16 +1,16 @@
 # Clean Architecture Validation Report
 
 **Data:** 2025-08-09  
-**Score:** 29/100  
+**Score:** 30/100  
 **Status:** ❌ REPROVADO
 
 ## Resumo de Problemas
 
 - 🔥 **Críticos:** 20
 - ⚠️ **Altos:** 69
-- 📋 **Médios:** 27
+- 📋 **Médios:** 31
 - 💡 **Baixos:** 6
-- **Total:** 122
+- **Total:** 126
 
 ## Principais Problemas por Módulo
 
@@ -78,12 +78,12 @@
   - Domain Layer violando dependência: drizzle-orm/neon-http
 
 ### 🔥 shared
-- **Total de problemas:** 4
+- **Total de problemas:** 6
 - **Críticos:** 2 | **Altos:** 0
 - **Principais problemas:**
   - Domain Layer violando dependência: drizzle-orm/neon-http
   - Domain Layer violando dependência: drizzle-orm/neon-http
-  - Repository indexRepository deve implementar interface
+  - Repository index deve terminar com 'Repository'
 
 ### 🔥 timecard
 - **Total de problemas:** 11
@@ -104,6 +104,18 @@
 - **Críticos:** 0 | **Altos:** 0
 - **Principais problemas:**
   - Repository contém possível lógica de negócio
+
+### 📋 custom-fields
+- **Total de problemas:** 1
+- **Críticos:** 0 | **Altos:** 0
+- **Principais problemas:**
+  - Use Case index deve terminar com 'UseCase'
+
+### 📋 people
+- **Total de problemas:** 1
+- **Críticos:** 0 | **Altos:** 0
+- **Principais problemas:**
+  - Use Case index deve terminar com 'UseCase'
 
 
 ## Plano de Correção
@@ -215,13 +227,15 @@
 
 ### 🔥 shared
 - **Prioridade:** immediate
-- **Tempo estimado:** 3h
-- **Ações:** 4
+- **Tempo estimado:** 4h
+- **Ações:** 6
 
 1. **refactor_code:** Refatorar dependência inválida na camada domain
 2. **refactor_code:** Refatorar dependência inválida na camada domain
-3. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
-4. **create_file:** Criar Repository com interface
+3. **rename_file:** Padronizar nomenclatura: Repository index deve terminar com 'Repository'
+4. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
+5. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
+6. **create_file:** Criar Repository com interface
 
 ### 🔥 timecard
 - **Prioridade:** immediate
@@ -267,6 +281,20 @@
 
 1. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
 
+### 💡 custom-fields
+- **Prioridade:** low
+- **Tempo estimado:** 15min
+- **Ações:** 1
+
+1. **rename_file:** Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'
+
+### 💡 people
+- **Prioridade:** low
+- **Tempo estimado:** 15min
+- **Ações:** 1
+
+1. **rename_file:** Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'
+
 
 ## Recomendações
 
@@ -277,7 +305,7 @@
 - **saas-admin:** 7 ações (4h)
 - **technical-skills:** 5 ações (5h)
 - **schedule-management:** 5 ações (4h)
-- **shared:** 4 ações (3h)
+- **shared:** 6 ações (4h)
 - **timecard:** 7 ações (5h)
 
 ### Prioridade Alta ⚠️

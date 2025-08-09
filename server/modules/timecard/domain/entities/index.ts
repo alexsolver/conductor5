@@ -68,3 +68,6 @@ export interface NewWeeklySchedule {
   totalHours: number;
   status: string;
 }
+
+export * from './Timecard';
+export * from './WorkSchedule';

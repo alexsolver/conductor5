@@ -857,6 +857,25 @@
         ]
       },
       {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Repository index deve terminar com 'Repository'",
+        "target": "server/modules/shared/infrastructure/repositories/index.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Criar interface I[Entity]Repository no domain e implementar",
+        "target": "server/modules/shared/infrastructure/repositories/index.ts",
+        "steps": [
+          "Criar interface I[Entity]Repository no domain e implementar"
+        ]
+      },
+      {
         "type": "create_directory",
         "description": "Criar interface I[Entity]Repository no domain e implementar",
         "target": "server/modules/shared/infrastructure/repositories/indexRepository.ts",
@@ -877,7 +896,7 @@
         ]
       }
     ],
-    "estimatedTime": "3h"
+    "estimatedTime": "4h"
   },
   {
     "priority": "immediate",
@@ -1076,5 +1095,41 @@
       }
     ],
     "estimatedTime": "45min"
+  },
+  {
+    "priority": "low",
+    "module": "custom-fields",
+    "actions": [
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'",
+        "target": "server/modules/custom-fields/application/use-cases/index.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      }
+    ],
+    "estimatedTime": "15min"
+  },
+  {
+    "priority": "low",
+    "module": "people",
+    "actions": [
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'",
+        "target": "server/modules/people/application/use-cases/index.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      }
+    ],
+    "estimatedTime": "15min"
   }
 ]
