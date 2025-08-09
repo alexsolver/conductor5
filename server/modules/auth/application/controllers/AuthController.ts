@@ -1,4 +1,16 @@
-import { Request, Response } from 'express';
+// Using generic HTTP types instead of Express-specific types
+interface RequestData {
+  params: Record<string, string>;
+  query: Record<string, any>;
+  body: any;
+  tenantId?: string;
+  userId?: string;
+}
+
+interface ResponseData {
+  status: (code: number) => ResponseData;
+  json: (data: any) => void;
+}
 import { LoginUseCase } from '../use-cases/LoginUseCase';
 import { sendSuccess, sendError } from '../../../../utils/standardResponse';
 

@@ -4,6 +4,10 @@ interface HttpRequest {
   body: any;
   params: any;
   query: any;
+  headers: {
+    'x-tenant-id'?: string;
+    'x-user-id'?: string;
+  }
 }
 
 interface HttpResponse {

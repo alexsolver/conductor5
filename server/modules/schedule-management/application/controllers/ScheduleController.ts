@@ -3,6 +3,20 @@
 import { z } from 'zod';
 import { IScheduleRepository } from '../../domain/ports/IScheduleRepository';
 
+// Using generic HTTP types instead of Express-specific types
+interface RequestData {
+  params: Record<string, string>;
+  query: Record<string, any>;
+  body: any;
+  tenantId?: string;
+  userId?: string;
+}
+
+interface ResponseData {
+  status: (code: number) => ResponseData;
+  json: (data: any) => void;
+}
+
 // Validation schemas
 const createScheduleSchema = z.object({
   agentId: z.string().uuid(),
@@ -56,7 +70,7 @@ export class ScheduleController {
   ) {}
 
   // Schedule endpoints
-  createSchedule = async (req: Request, res: Response) => {
+  createSchedule = async (req: RequestData, res: ResponseData) => {
     try {
       const { tenantId } = (req as any).user;
       const validatedData = createScheduleSchema.parse(req.body);
@@ -101,7 +115,7 @@ export class ScheduleController {
     }
   };
 
-  getSchedulesByDateRange = async (req: Request, res: Response) => {
+  getSchedulesByDateRange = async (req: RequestData, res: ResponseData) => {
     try {
       const { tenantId } = (req as any).user;
       const { startDate, endDate } = req.query;
@@ -123,7 +137,7 @@ export class ScheduleController {
     }
   };
 
-  getSchedulesByAgent = async (req: Request, res: Response) => {
+  getSchedulesByAgent = async (req: RequestData, res: ResponseData) => {
     try {
       const { tenantId } = (req as any).user;
       const { agentId } = req.params;
@@ -143,7 +157,7 @@ export class ScheduleController {
     }
   };
 
-  updateSchedule = async (req: Request, res: Response) => {
+  updateSchedule = async (req: RequestData, res: ResponseData) => {
     try {
       const { tenantId } = (req as any).user;
       const { id } = req.params;
@@ -187,7 +201,7 @@ export class ScheduleController {
     }
   };
 
-  deleteSchedule = async (req: Request, res: Response) => {
+  deleteSchedule = async (req: RequestData, res: ResponseData) => {
     try {
       const { tenantId } = (req as any).user;
       const { id } = req.params;
@@ -201,7 +215,7 @@ export class ScheduleController {
   };
 
   // Activity Types endpoints
-  createActivityType = async (req: Request, res: Response) => {
+  createActivityType = async (req: RequestData, res: ResponseData) => {
     try {
       const { tenantId } = (req as any).user;
       const validatedData = createActivityTypeSchema.parse(req.body);
@@ -222,7 +236,7 @@ export class ScheduleController {
     }
   };
 
-  getActivityTypes = async (req: Request, res: Response) => {
+  getActivityTypes = async (req: RequestData, res: ResponseData) => {
     try {
       const { tenantId } = (req as any).user;
       const activityTypes = await this.scheduleRepository.getActivityTypes(tenantId);
@@ -234,7 +248,7 @@ export class ScheduleController {
   };
 
   // Agent Availability endpoints
-  createAgentAvailability = async (req: Request, res: Response) => {
+  createAgentAvailability = async (req: RequestData, res: ResponseData) => {
     try {
       const { tenantId } = (req as any).user;
       const validatedData = createAvailabilitySchema.parse(req.body);
@@ -254,7 +268,7 @@ export class ScheduleController {
     }
   };
 
-  getAgentAvailability = async (req: Request, res: Response) => {
+  getAgentAvailability = async (req: RequestData, res: ResponseData) => {
     try {
       const { tenantId } = (req as any).user;
       const { agentId } = req.params;
@@ -268,7 +282,7 @@ export class ScheduleController {
   };
 
   // Analytics endpoints
-  getAgentScheduleStats = async (req: Request, res: Response) => {
+  getAgentScheduleStats = async (req: RequestData, res: ResponseData) => {
     try {
       const { tenantId } = (req as any).user;
       const { agentId } = req.params;
@@ -292,7 +306,7 @@ export class ScheduleController {
     }
   };
 
-  getTeamScheduleOverview = async (req: Request, res: Response) => {
+  getTeamScheduleOverview = async (req: RequestData, res: ResponseData) => {
     try {
       const { tenantId } = (req as any).user;
       const { startDate, endDate } = req.query;
@@ -314,7 +328,7 @@ export class ScheduleController {
     }
   };
 
-  searchSchedules = async (req: Request, res: Response) => {
+  searchSchedules = async (req: RequestData, res: ResponseData) => {
     try {
       const { tenantId } = (req as any).user;
       const {
@@ -347,7 +361,7 @@ export class ScheduleController {
     }
   };
 
-  createRecurringSchedules = async (req: Request, res: Response) => {
+  createRecurringSchedules = async (req: RequestData, res: ResponseData) => {
     try {
       const { tenantId } = (req as any).user;
       const { recurrenceEnd, ...scheduleData } = req.body;

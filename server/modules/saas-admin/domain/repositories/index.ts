@@ -8,3 +8,4 @@ export interface ISaasConfigurationRepository {
   update(id: string, config: Partial<SaasConfiguration>): Promise<SaasConfiguration>;
   delete(id: string): Promise<void>;
 }
+export { ISaasConfigRepository } from './ISaasConfigRepository';

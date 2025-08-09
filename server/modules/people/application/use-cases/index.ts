@@ -1,3 +1,3 @@
-export * from './SearchPeopleUseCase';
-export * from './CreatePersonUseCase';
-export * from './UpdatePersonUseCase';
+export { SearchPeopleUseCase } from './SearchPeopleUseCase';
+export { CreatePersonUseCase } from './CreatePersonUseCase';
+export { UpdatePersonUseCase } from './UpdatePersonUseCase';

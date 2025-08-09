@@ -1,5 +1,5 @@
 
-// Shared use cases index
-// This file exports common use cases that can be reused across modules
+export { BaseUseCase } from './BaseUseCase';
 
-export * from './BaseUseCase';
+// Export all use cases following UseCase naming pattern
+// Add new use cases here as they are created

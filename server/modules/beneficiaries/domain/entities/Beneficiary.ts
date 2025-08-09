@@ -1,4 +1,4 @@
-// Removed invalid dependency - Domain layer should not depend on Application layer
+// Removed invalid dependency to DTO from domain layer
 
 export class Beneficiary {
   constructor(
@@ -12,18 +12,20 @@ export class Beneficiary {
     public readonly updatedAt: Date = new Date()
   ) {}
 
-  static create(
-    name: string,
-    email: string,
-    tenantId: string,
-    customerId?: string
-  ): Beneficiary {
+  static create(data: {
+    name: string;
+    email?: string;
+    phone?: string;
+    document?: string;
+    companyId: string;
+    tenantId: string;
+  }): Beneficiary {
     return new Beneficiary(
       crypto.randomUUID(),
-      name,
-      email,
-      tenantId,
-      customerId
+      data.name,
+      data.email,
+      data.tenantId,
+      data.companyId
     );
   }
 

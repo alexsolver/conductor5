@@ -66,20 +66,7 @@ const beneficiarySchema = z.object({
 });
 
 // GET /api/beneficiaries - Get all beneficiaries with pagination and search
-beneficiariesRouter.get('/', async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const tenantId = req.tenantId!;
-    const page = parseInt(req.query.page as string || '1');
-    const limit = parseInt(req.query.limit as string || '20');
-    const search = req.query.search as string | undefined;
-
-    const beneficiaries = await beneficiaryController.getAll({ tenantId, page, limit, search });
-    return sendSuccess(res, beneficiaries, 'Beneficiaries retrieved successfully');
-  } catch (error: any) {
-    console.error("Error fetching beneficiaries:", error);
-    return sendError(res, error.message, 500);
-  }
-});
+beneficiariesRouter.get('/', beneficiaryController.getAll.bind(beneficiaryController));
 
 // GET /api/beneficiaries/:id - Get a specific beneficiary
 beneficiariesRouter.get("/:id", async (req: AuthenticatedRequest, res: Response) => {
@@ -103,21 +90,7 @@ beneficiariesRouter.get("/:id", async (req: AuthenticatedRequest, res: Response)
 });
 
 // POST /api/beneficiaries - Create a new beneficiary
-beneficiariesRouter.post("/", async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const tenantId = req.tenantId!;
-    const beneficiaryData = beneficiarySchema.parse({ ...req.body, tenantId });
-
-    const beneficiary = await beneficiaryController.create({ ...beneficiaryData, tenantId });
-    return sendSuccess(res, { beneficiary }, "Beneficiary created successfully", 201);
-  } catch (error: any) {
-    console.error("Error creating beneficiary:", error);
-    if (error instanceof z.ZodError) {
-      return sendValidationError(res, error.errors.map(e => e.message));
-    }
-    return sendError(res, error.message, 400);
-  }
-});
+beneficiariesRouter.post("/", beneficiaryController.create.bind(beneficiaryController));
 
 // PUT /api/beneficiaries/:id - Update a beneficiary
 beneficiariesRouter.put("/:id", async (req: AuthenticatedRequest, res: Response) => {
@@ -143,23 +116,7 @@ beneficiariesRouter.put("/:id", async (req: AuthenticatedRequest, res: Response)
 });
 
 // DELETE /api/beneficiaries/:id - Delete a beneficiary
-beneficiariesRouter.delete("/:id", async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const tenantId = req.tenantId!;
-    const { id } = beneficiaryIdSchema.parse(req.params);
-
-    const deleted = await beneficiaryController.delete({ id, tenantId });
-
-    if (!deleted) {
-      return sendError(res, "Beneficiary not found", 404);
-    }
-
-    return sendSuccess(res, null, "Beneficiary deleted successfully");
-  } catch (error: any) {
-    console.error("Error deleting beneficiary:", error);
-    return sendError(res, error.message, 500);
-  }
-});
+beneficiariesRouter.delete("/:id", beneficiaryController.delete.bind(beneficiaryController));
 
 // Get customers associated with a beneficiary
 beneficiariesRouter.get('/:id/customers', async (req: AuthenticatedRequest, res: Response) => {
