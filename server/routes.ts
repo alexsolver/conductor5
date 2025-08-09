@@ -338,10 +338,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
               state: customer.state,
               zip_code: customer.zip_code,
               zipCode: customer.zip_code,
-              status: "Ativo", // Default status for display
-              role: "Customer", // Default role
+              status: customer.is_active ? "Ativo" : "Inativo",
+              role: "Customer",
               customer_type: customer.customer_type,
+              customerType: customer.customer_type,
               is_active: customer.is_active,
+              isActive: customer.is_active,
               created_at: customer.created_at,
               updated_at: customer.updated_at,
               createdAt: customer.created_at,

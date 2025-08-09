@@ -37,7 +37,7 @@ export default function Customers() {
       console.warn('[CUSTOMERS] Invalid customer object:', customer);
       return null;
     }
-    
+
     // Handle both camelCase and snake_case variations with proper defaults
     const variations: Record<string, string[]> = {
       firstName: ['first_name', 'firstName'],
@@ -50,7 +50,7 @@ export default function Customers() {
       phone: ['phone', 'mobile_phone', 'mobilePhone'],
       fullName: ['full_name', 'fullName']
     };
-    
+
     const fieldVariations = variations[field] || [field];
     for (const variant of fieldVariations) {
       const value = customer[variant];
@@ -58,7 +58,7 @@ export default function Customers() {
         return value;
       }
     }
-    
+
     // Return appropriate defaults
     switch (field) {
       case 'customerType':
@@ -95,7 +95,7 @@ export default function Customers() {
     const lastName = getFieldSafely(customer, 'lastName') || getFieldSafely(customer, 'last_name');
     const fullName = getFieldSafely(customer, 'fullName') || getFieldSafely(customer, 'full_name');
     const name = getFieldSafely(customer, 'name');
-    
+
     if (firstName && lastName) {
       return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
     }
@@ -175,7 +175,7 @@ export default function Customers() {
     const errorType = (error as any)?.code || 'UNKNOWN_ERROR';
     const isSchemaError = ['TABLE_NOT_FOUND', 'MISSING_COLUMNS', 'MISSING_COLUMN'].includes(errorType);
     const isPermissionError = errorType === 'PERMISSION_DENIED';
-    
+
     return (
       <div className="p-4 space-y-6">
         <div className="flex justify-between items-center">
@@ -192,14 +192,14 @@ export default function Customers() {
               <p className="text-sm text-gray-600 mb-2">
                 {error?.message || 'Não foi possível carregar os dados dos clientes.'}
               </p>
-              
+
               {/* Error Code Display */}
               {(error as any)?.code && (
                 <div className="inline-block bg-gray-100 px-2 py-1 rounded text-xs font-mono mb-2">
                   Código: {(error as any).code}
                 </div>
               )}
-              
+
               {/* Technical Details */}
               {(error as any)?.details && (
                 <details className="text-left bg-gray-50 dark:bg-gray-800 p-3 rounded text-xs mt-3">
@@ -207,14 +207,14 @@ export default function Customers() {
                   <pre className="mt-2 whitespace-pre-wrap overflow-auto max-h-32">{JSON.stringify((error as any).details, null, 2)}</pre>
                 </details>
               )}
-              
+
               {/* Suggestions */}
               {(error as any)?.suggestion && (
                 <div className="text-sm text-blue-600 dark:text-blue-400 mt-3 p-2 bg-blue-50 dark:bg-blue-900/20 rounded">
                   💡 <strong>Sugestão:</strong> {(error as any).suggestion}
                 </div>
               )}
-              
+
               {/* Schema-specific help */}
               {isSchemaError && (
                 <div className="text-sm text-purple-600 dark:text-purple-400 mt-2 p-2 bg-purple-50 dark:bg-purple-900/20 rounded">
@@ -222,7 +222,7 @@ export default function Customers() {
                 </div>
               )}
             </div>
-            
+
             <div className="flex gap-2 justify-center">
               <Button 
                 onClick={() => window.location.reload()} 
@@ -333,7 +333,7 @@ export default function Customers() {
                                    customer.phone || 
                                    customer.mobile_phone || 
                                    customer.mobilePhone;
-                      
+
                       return phone ? (
                         <div className="flex items-center text-gray-600 dark:text-gray-400">
                           <Phone className="h-3 w-3 mr-1" />
@@ -353,15 +353,34 @@ export default function Customers() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge 
-                      className={
-                        (customer.status || "Ativo") === 'Ativo' 
-                          ? "bg-blue-600 text-white hover:bg-blue-700 border-blue-600" 
-                          : "bg-gray-500 text-white"
-                      }
-                    >
-                      {customer.status || "Ativo"}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge 
+                        variant={
+                          customer.status === 'Ativo' || customer.status === 'active' || customer.isActive === true 
+                            ? 'default' 
+                            : 'destructive'
+                        }
+                        className="text-xs"
+                      >
+                        {customer.status === 'Ativo' || customer.status === 'active' || customer.isActive === true 
+                          ? 'Ativo' 
+                          : 'Inativo'}
+                      </Badge>
+                      {(() => {
+                        const customerType = getCustomerField(customer, 'customerType');
+                        if (customerType) {
+                          return (
+                            <Badge 
+                              variant={customerType === 'PJ' ? 'outline' : 'secondary'}
+                              className="text-xs"
+                            >
+                              {customerType}
+                            </Badge>
+                          );
+                        }
+                        return null;
+                      })()}
+                    </div>
                   </TableCell>
                   <TableCell>
                     <span className="text-sm text-gray-500">
