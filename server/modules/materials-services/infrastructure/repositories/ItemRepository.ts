@@ -283,40 +283,35 @@ export class ItemRepository {
     suppliers: Array<{ id: string; name: string }>;
   }> {
     try {
-      // Buscar vínculos de empresas (companies)
-      const customerLinks = await this.db
-        .select({
-          id: companyTable.id,
-          name: companyTable.name
-        })
-        .from(customerItemMappings)
-        .innerJoin(companyTable, eq(customerItemMappings.customerId, companyTable.id))
-        .where(
-          and(
-            eq(customerItemMappings.itemId, itemId),
-            eq(customerItemMappings.tenantId, tenantId),
-            eq(customerItemMappings.isActive, true),
-            eq(companyTable.status, 'active')
-          )
-        )
-        .limit(50);
+      // Buscar vínculos de empresas usando SQL direto para evitar erros de sintaxe
+      const { pool } = await import('../../../../db.js');
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      const customerLinksResult = await pool.query(`
+        SELECT c.id, c.name 
+        FROM "${schemaName}".customer_item_mappings cim
+        INNER JOIN "${schemaName}".companies c ON cim.customer_id = c.id
+        WHERE cim.item_id = $1 
+          AND cim.tenant_id = $2 
+          AND cim.is_active = true 
+          AND c.status = 'active'
+        LIMIT 50
+      `, [itemId, tenantId]);
+      
+      const customerLinks = customerLinksResult.rows;
 
-      // Buscar vínculos de fornecedores
-      const supplierLinks = await this.db
-        .select({
-          id: supplierTable.id,
-          name: supplierTable.name
-        })
-        .from(itemSupplierLinks)
-        .innerJoin(supplierTable, eq(itemSupplierLinks.supplierId, supplierTable.id))
-        .where(
-          and(
-            eq(itemSupplierLinks.itemId, itemId),
-            eq(itemSupplierLinks.tenantId, tenantId),
-            eq(itemSupplierLinks.isActive, true)
-          )
-        )
-        .limit(50);
+      // Buscar vínculos de fornecedores usando SQL direto
+      const supplierLinksResult = await pool.query(`
+        SELECT s.id, s.name 
+        FROM "${schemaName}".item_supplier_links isl
+        INNER JOIN "${schemaName}".suppliers s ON isl.supplier_id = s.id
+        WHERE isl.item_id = $1 
+          AND isl.tenant_id = $2 
+          AND isl.is_active = true
+        LIMIT 50
+      `, [itemId, tenantId]);
+      
+      const supplierLinks = supplierLinksResult.rows;
 
       console.log(`Links encontrados para item ${itemId}: ${customerLinks.length} clientes, ${supplierLinks.length} fornecedores`);
 
