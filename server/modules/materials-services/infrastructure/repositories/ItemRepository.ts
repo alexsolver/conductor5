@@ -278,53 +278,85 @@ export class ItemRepository {
     return result;
   }
 
-  async getItemLinks(itemId: string, tenantId: string): Promise<{
-    customers: Array<{ id: string; name: string }>;
-    suppliers: Array<{ id: string; name: string }>;
-  }> {
+  async getItemLinks(itemId: string, tenantId?: string): Promise<{ customers: any[], suppliers: any[] }> {
     try {
-      // Buscar vínculos de empresas usando SQL direto para evitar erros de sintaxe
       const { pool } = await import('../../../../db.js');
+
+      if (!tenantId) {
+        console.warn('⚠️  Tenant ID não fornecido para getItemLinks');
+        return { customers: [], suppliers: [] };
+      }
+
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-      
-      const customerLinksResult = await pool.query(`
-        SELECT c.id, c.name 
+
+      console.log(`🔍 Buscando vínculos para item ${itemId} no schema ${schemaName}`);
+
+      // Buscar vínculos de clientes
+      const customersQuery = `
+        SELECT DISTINCT
+          c.id,
+          c.name,
+          cim.created_at as linked_at,
+          cim.is_active
         FROM "${schemaName}".customer_item_mappings cim
-        INNER JOIN "${schemaName}".companies c ON cim.customer_id = c.id
+        JOIN "${schemaName}".customers c ON c.id = cim.customer_id
         WHERE cim.item_id = $1 
           AND cim.tenant_id = $2 
-          AND cim.is_active = true 
-          AND c.status = 'active'
-        LIMIT 50
-      `, [itemId, tenantId]);
-      
-      const customerLinks = customerLinksResult.rows;
+          AND cim.is_active = true
+        ORDER BY cim.created_at DESC
+      `;
 
-      // Buscar vínculos de fornecedores usando SQL direto
-      const supplierLinksResult = await pool.query(`
-        SELECT s.id, s.name 
-        FROM "${schemaName}".item_supplier_links isl
-        INNER JOIN "${schemaName}".suppliers s ON isl.supplier_id = s.id
-        WHERE isl.item_id = $1 
-          AND isl.tenant_id = $2 
-          AND isl.is_active = true
-        LIMIT 50
-      `, [itemId, tenantId]);
-      
-      const supplierLinks = supplierLinksResult.rows;
+      // Buscar vínculos de fornecedores  
+      const suppliersQuery = `
+        SELECT DISTINCT
+          s.id,
+          s.name,
+          sil.created_at as linked_at,
+          sil.is_active
+        FROM "${schemaName}".item_supplier_links sil
+        JOIN "${schemaName}".suppliers s ON s.id = sil.supplier_id
+        WHERE sil.item_id = $1 
+          AND sil.tenant_id = $2 
+          AND sil.is_active = true
+        ORDER BY sil.created_at DESC
+      `;
 
-      console.log(`Links encontrados para item ${itemId}: ${customerLinks.length} clientes, ${supplierLinks.length} fornecedores`);
+      console.log(`🔍 Executando queries de vínculos...`);
+
+      const [customersResult, suppliersResult] = await Promise.all([
+        pool.query(customersQuery, [itemId, tenantId]).catch(err => {
+          console.error('Erro na query de clientes:', err);
+          return { rows: [] };
+        }),
+        pool.query(suppliersQuery, [itemId, tenantId]).catch(err => {
+          console.error('Erro na query de fornecedores:', err);
+          return { rows: [] };
+        })
+      ]);
+
+      const customers = customersResult.rows || [];
+      const suppliers = suppliersResult.rows || [];
+
+      console.log(`✅ Links encontrados para item ${itemId}: ${customers.length} clientes, ${suppliers.length} fornecedores`);
 
       return {
-        customers: customerLinks || [],
-        suppliers: supplierLinks || []
+        customers: customers.map(c => ({
+          id: c.id,
+          name: c.name,
+          linked_at: c.linked_at,
+          is_active: c.is_active
+        })),
+        suppliers: suppliers.map(s => ({
+          id: s.id,
+          name: s.name,
+          linked_at: s.linked_at,
+          is_active: s.is_active
+        }))
       };
+
     } catch (error) {
-      console.error('Erro ao buscar vínculos do item:', error);
-      return {
-        customers: [],
-        suppliers: []
-      };
+      console.error('❌ Erro crítico ao buscar vínculos do item:', error);
+      return { customers: [], suppliers: [] };
     }
   }
 
@@ -498,7 +530,7 @@ export class ItemRepository {
         console.log(`✅ Empresa ${customerId} vinculada ao item ${itemId}`);
       } catch (error) {
         console.log('Tabela customer_item_mappings não encontrada, tentando estrutura alternativa...');
-        
+
         // Fallback para item_customer_links
         await pool.query(`
           INSERT INTO "${schemaName}".item_customer_links 
@@ -569,36 +601,21 @@ export class ItemRepository {
         WHERE table_schema = '${schemaName}' 
         AND table_name = 'item_supplier_links'
       `);
-      
+
       const columns = columnCheck.rows.map(row => row.column_name);
       const hasLeadTime = columns.includes('lead_time');
       const hasMinimumOrder = columns.includes('minimum_order');
 
-      // Query base sem as colunas problemáticas
-      let insertQuery = `
+      // Query simplificada sem colunas problemáticas
+      const insertQuery = `
         INSERT INTO "${schemaName}".item_supplier_links 
-        (id, tenant_id, item_id, supplier_id, is_active, created_at`;
-      
-      let values = `VALUES ($1, $2, $3, $4, true, NOW()`;
-      let params = [crypto.randomUUID(), tenantId, itemId, supplierId];
+        (id, tenant_id, item_id, supplier_id, is_active, created_at)
+        VALUES ($1, $2, $3, $4, true, NOW())
+        ON CONFLICT (item_id, supplier_id) 
+        DO UPDATE SET is_active = true, updated_at = NOW()
+      `;
 
-      // Adicionar colunas condicionalmente se existirem
-      if (hasLeadTime) {
-        insertQuery += `, lead_time`;
-        values += `, $5`;
-        params.push(null);
-      }
-
-      if (hasMinimumOrder) {
-        insertQuery += `, minimum_order`;
-        values += `, $${params.length + 1}`;
-        params.push(null);
-      }
-
-      insertQuery += `) ${values})`;
-      
-      // Adicionar ON CONFLICT
-      insertQuery += ` ON CONFLICT (item_id, supplier_id) DO UPDATE SET is_active = true`;
+      const params = [crypto.randomUUID(), tenantId, itemId, supplierId];
 
       await pool.query(insertQuery, params);
 

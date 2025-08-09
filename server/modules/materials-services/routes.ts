@@ -178,82 +178,45 @@ router.get('/items/groups', async (req: AuthenticatedRequest, res) => {
   return itemController.getItemGroups(req, res);
 });
 
-// Rota para obter vínculos de um item
-router.get('/items/:itemId/links', jwtAuth, async (req: AuthenticatedRequest, res) => {
-  try {
-    const { itemId } = req.params;
-    const tenantId = req.user?.tenantId;
-
-    if (!tenantId) {
-      return res.status(400).json({ error: 'Tenant ID é obrigatório' });
-    }
-    const { db } = await schemaManager.getTenantDb(tenantId);
-    const itemRepository = new ItemRepository(db);
-    const links = await itemRepository.getItemLinks(itemId, tenantId);
-
-    // Garantir estrutura consistente da resposta
-    const response = {
-      customers: Array.isArray(links.customers) ? links.customers : [],
-      suppliers: Array.isArray(links.suppliers) ? links.suppliers : []
-    };
-
-    res.json(response);
-  } catch (error) {
-    console.error('Erro ao obter vínculos do item:', error);
-    res.status(500).json({ 
-      error: 'Erro interno do servidor',
-      customers: [],
-      suppliers: []
-    });
-  }
-});
-
-// Get item links (customers and suppliers)
-router.get('/items/:id/links', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const tenantId = req.user?.tenantId;
-
-    if (!tenantId) {
-      return res.status(400).json({ error: 'Tenant ID é obrigatório' });
-    }
-
-    const itemRepository = new ItemRepository(drizzleDb, tenantId);
-    const links = await itemRepository.getItemLinks(id);
-
-    res.json(links);
-  } catch (error) {
-    console.error('Erro ao buscar vínculos do item:', error);
-    res.status(500).json({ 
-      error: 'Erro interno do servidor',
-      details: error instanceof Error ? error.message : 'Erro desconhecido'
-    });
-  }
-});
-
-// Endpoint para buscar vínculos de um item específico
+// Rota unificada para obter vínculos de um item
 router.get('/items/:id/links', jwtAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { id } = req.params;
     const tenantId = req.user?.tenantId;
 
     if (!tenantId) {
-      return res.status(401).json({ success: false, message: 'Tenant ID required' });
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Tenant ID é obrigatório',
+        data: { customers: [], suppliers: [] }
+      });
     }
 
-    const { itemController } = await getControllers(tenantId);
-    const links = await itemController.itemRepository.getItemLinks(id, tenantId);
+    console.log(`🔗 Buscando vínculos para item ${id}`);
 
-    res.json({
+    const { db } = await schemaManager.getTenantDb(tenantId);
+    const itemRepository = new ItemRepository(db);
+    const links = await itemRepository.getItemLinks(id, tenantId);
+
+    // Garantir estrutura consistente da resposta
+    const response = {
       success: true,
-      data: links
-    });
+      data: {
+        customers: Array.isArray(links.customers) ? links.customers : [],
+        suppliers: Array.isArray(links.suppliers) ? links.suppliers : []
+      }
+    };
+
+    console.log(`✅ Vínculos retornados: ${response.data.customers.length} clientes, ${response.data.suppliers.length} fornecedores`);
+
+    res.json(response);
   } catch (error) {
-    console.error('Erro ao buscar vínculos do item:', error);
+    console.error('❌ Erro ao obter vínculos do item:', error);
     res.status(500).json({
       success: false,
-      message: 'Erro interno do servidor',
-      data: { customers: [], suppliers: [] }
+      message: 'Erro interno do servidor ao buscar vínculos',
+      data: { customers: [], suppliers: [] },
+      details: error instanceof Error ? error.message : 'Erro desconhecido'
     });
   }
 });
