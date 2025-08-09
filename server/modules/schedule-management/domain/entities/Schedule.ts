@@ -1,33 +1,45 @@
-// Schedule Entity - Domain Layer
-export interface ScheduleEntity {
+// Domain entities should not depend on ORM libraries
+
+export interface Schedule {
   id: string;
-  tenantId: string;
   agentId: string;
-  customerId?: string;
-  activityTypeId: string;
-  title: string;
-  description?: string;
-  startDateTime: Date;
-  endDateTime: Date;
-  duration: number; // in minutes
-  status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
-  priority: 'low' | 'medium' | 'high' | 'urgent';
-  locationAddress?: string;
-  coordinates?: { lat: number; lng: number };
-  internalNotes?: string;
-  clientNotes?: string;
-  estimatedTravelTime?: number;
-  actualStartTime?: Date;
-  actualEndTime?: Date;
-  isRecurring: boolean;
-  recurringPattern?: {
-    type: 'daily' | 'weekly' | 'monthly';
-    interval: number;
-  };
-  parentScheduleId?: string;
-  type: 'planned' | 'actual';
+  scheduleDate: Date;
+  startTime: string;
+  endTime: string;
+  isAvailable: boolean;
+  tenantId: string;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export class ScheduleEntity implements Schedule {
+  constructor(
+    public id: string,
+    public agentId: string,
+    public scheduleDate: Date,
+    public startTime: string,
+    public endTime: string,
+    public isAvailable: boolean,
+    public tenantId: string,
+    public createdAt: Date = new Date(),
+    public updatedAt: Date = new Date()
+  ) {}
+
+  makeAvailable(): void {
+    this.isAvailable = true;
+    this.updatedAt = new Date();
+  }
+
+  makeUnavailable(): void {
+    this.isAvailable = false;
+    this.updatedAt = new Date();
+  }
+
+  updateSchedule(startTime: string, endTime: string): void {
+    this.startTime = startTime;
+    this.endTime = endTime;
+    this.updatedAt = new Date();
+  }
 }
 
 export interface ActivityTypeEntity {

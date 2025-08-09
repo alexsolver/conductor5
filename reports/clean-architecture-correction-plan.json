@@ -651,8 +651,8 @@
       },
       {
         "type": "rename_file",
-        "description": "Padronizar nomenclatura: Nome da classe SaasConfigEntity não corresponde ao arquivo Index",
-        "target": "server/modules/saas-admin/domain/entities/Index.ts",
+        "description": "Padronizar nomenclatura: Nome da classe SaasConfigEntity não corresponde ao arquivo SaasConfig",
+        "target": "server/modules/saas-admin/domain/entities/SaasConfig.ts",
         "steps": [
           "Renomear arquivo seguindo padrão",
           "Atualizar imports em outros arquivos",
@@ -688,18 +688,6 @@
         "target": "server/modules/saas-admin/infrastructure/repositories/index.ts",
         "steps": [
           "Criar interface I[Entity]Repository no domain e implementar"
-        ]
-      },
-      {
-        "type": "create_file",
-        "description": "Criar Repository com interface",
-        "target": "server/modules/saas-admin/infrastructure/repositories/IndexRepository.ts",
-        "code": "import { Index } from '../../domain/entities/Index';\nimport { IIndexRepository } from '../../domain/ports/IIndexRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleIndexRepository implements IIndexRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<Index | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<Index[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: Index): Promise<Index> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<Index>, tenantId: string): Promise<Index | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
-        "steps": [
-          "Criar interface do Repository na camada Domain",
-          "Implementar Repository na camada Infrastructure",
-          "Adicionar injeção de dependência",
-          "Integrar com Use Cases"
         ]
       },
       {
@@ -821,6 +809,17 @@
           "Criar interfaces para comunicação entre camadas",
           "Atualizar dependências"
         ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Nome da classe ScheduleEntity não corresponde ao arquivo Schedule",
+        "target": "server/modules/schedule-management/domain/entities/Schedule.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
       }
     ],
     "estimatedTime": "2h"
@@ -845,18 +844,6 @@
         "type": "refactor_code",
         "description": "Refatorar dependência inválida na camada domain",
         "target": "server/modules/shared/domain/ports/Iindex.ts",
-        "steps": [
-          "Identificar a dependência problemática",
-          "Criar interface/port na camada Domain",
-          "Implementar interface na camada Infrastructure",
-          "Usar injeção de dependência",
-          "Remover import direto da dependência externa"
-        ]
-      },
-      {
-        "type": "refactor_code",
-        "description": "Refatorar dependência inválida na camada application",
-        "target": "server/modules/shared/application/controllers/SharedController.ts",
         "steps": [
           "Identificar a dependência problemática",
           "Criar interface/port na camada Domain",
@@ -896,7 +883,7 @@
         ]
       }
     ],
-    "estimatedTime": "4h"
+    "estimatedTime": "3h"
   },
   {
     "priority": "immediate",

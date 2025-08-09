@@ -3,6 +3,18 @@ import { CreatePersonUseCase } from '../use-cases/CreatePersonUseCase';
 import { UpdatePersonUseCase } from '../use-cases/UpdatePersonUseCase';
 import { SearchPeopleUseCase } from '../use-cases/SearchPeopleUseCase';
 
+// Using interface-based approach instead of direct Express dependency
+import { PersonApplicationService } from '../services/PersonApplicationService';
+
+interface HttpRequest {
+  body: any;
+  params: any;
+  headers: {
+    'x-tenant-id'?: string;
+    'x-user-id'?: string;
+  };
+}
+
 export class PersonController {
   constructor(
     private createPersonUseCase: CreatePersonUseCase,

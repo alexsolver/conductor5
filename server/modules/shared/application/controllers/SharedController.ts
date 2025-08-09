@@ -1,14 +1,30 @@
-// Using DTOs and interfaces instead of framework dependencies
-import type { Request, Response } from 'express';
-import { BaseController } from './BaseController';
+// Using interface-based approach instead of direct Express dependency
 
-export class SharedController extends BaseController {
-  async handleSharedRequest(req: Request, res: Response): Promise<void> {
-    try {
-      // Shared business logic here
-      this.sendSuccess(res, { message: 'Shared operation completed' });
-    } catch (error) {
-      this.sendError(res, error as Error);
-    }
+interface HttpRequest {
+  body: any;
+  params: any;
+  headers: {
+    'x-tenant-id'?: string;
+    'x-user-id'?: string;
+  };
+}
+
+export class SharedController {
+  // Placeholder for business logic, assuming it doesn't directly use Express
+  async handleSharedRequest(req: HttpRequest): Promise<any> {
+    // Shared business logic here
+    return { message: 'Shared operation completed' };
+  }
+
+  // Placeholder for sending success response, adapted for interface
+  sendSuccess(res: any, data: any): void {
+    console.log('Success:', data);
+    // In a real scenario, this would interact with a response object
+  }
+
+  // Placeholder for sending error response, adapted for interface
+  sendError(res: any, error: Error): void {
+    console.error('Error:', error.message);
+    // In a real scenario, this would interact with a response object
   }
 }

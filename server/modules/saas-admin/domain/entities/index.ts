@@ -14,4 +14,4 @@ export interface SaasConfiguration extends SaasAdminEntity {
 
 // Domain entities should be framework-agnostic
 
-export { SaasConfig } from './SaasConfig';
+export * from './SaasConfig';

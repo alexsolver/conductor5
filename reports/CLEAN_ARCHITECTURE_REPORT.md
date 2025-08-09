@@ -1,16 +1,16 @@
 # Clean Architecture Validation Report
 
 **Data:** 2025-08-09  
-**Score:** 30/100  
+**Score:** 31/100  
 **Status:** ❌ REPROVADO
 
 ## Resumo de Problemas
 
 - 🔥 **Críticos:** 18
-- ⚠️ **Altos:** 70
+- ⚠️ **Altos:** 68
 - 📋 **Médios:** 35
-- 💡 **Baixos:** 5
-- **Total:** 128
+- 💡 **Baixos:** 6
+- **Total:** 127
 
 ## Principais Problemas por Módulo
 
@@ -47,8 +47,8 @@
   - Domain Layer violando dependência: drizzle-orm/neon-http
 
 ### 🔥 saas-admin
-- **Total de problemas:** 9
-- **Críticos:** 1 | **Altos:** 3
+- **Total de problemas:** 8
+- **Críticos:** 1 | **Altos:** 2
 - **Principais problemas:**
   - Routes contém lógica de negócio ou acesso a dados
   - Domain Layer violando dependência: drizzle-orm/neon-http
@@ -78,19 +78,20 @@
   - Use Case index deve terminar com 'UseCase'
 
 ### 🔥 schedule-management
-- **Total de problemas:** 2
+- **Total de problemas:** 3
 - **Críticos:** 1 | **Altos:** 0
 - **Principais problemas:**
   - Domain Layer violando dependência: drizzle-orm/neon-http
   - Repository contém possível lógica de negócio
+  - Nome da classe ScheduleEntity não corresponde ao arquivo Schedule
 
 ### 🔥 shared
-- **Total de problemas:** 6
-- **Críticos:** 2 | **Altos:** 1
+- **Total de problemas:** 5
+- **Críticos:** 2 | **Altos:** 0
 - **Principais problemas:**
   - Domain Layer violando dependência: drizzle-orm/neon-http
   - Domain Layer violando dependência: drizzle-orm/neon-http
-  - Application Layer violando dependência: express
+  - Use Case index deve terminar com 'UseCase'
 
 ### 🔥 timecard
 - **Total de problemas:** 11
@@ -206,17 +207,16 @@
 ### 🔥 saas-admin
 - **Prioridade:** immediate
 - **Tempo estimado:** 5h
-- **Ações:** 9
+- **Ações:** 8
 
 1. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
 2. **refactor_code:** Refatorar dependência inválida na camada domain
 3. **refactor_code:** Refatorar dependência inválida na camada application
-4. **rename_file:** Padronizar nomenclatura: Nome da classe SaasConfigEntity não corresponde ao arquivo Index
+4. **rename_file:** Padronizar nomenclatura: Nome da classe SaasConfigEntity não corresponde ao arquivo SaasConfig
 5. **rename_file:** Padronizar nomenclatura: Entity index não segue padrão PascalCase
 6. **rename_file:** Padronizar nomenclatura: Repository index deve terminar com 'Repository'
 7. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 8. **create_file:** Criar Repository com interface
-9. **create_file:** Criar Repository com interface
 
 ### 🔥 technical-skills
 - **Prioridade:** immediate
@@ -233,22 +233,22 @@
 ### 🔥 schedule-management
 - **Prioridade:** immediate
 - **Tempo estimado:** 2h
-- **Ações:** 2
+- **Ações:** 3
 
 1. **refactor_code:** Refatorar dependência inválida na camada domain
 2. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
+3. **rename_file:** Padronizar nomenclatura: Nome da classe ScheduleEntity não corresponde ao arquivo Schedule
 
 ### 🔥 shared
 - **Prioridade:** immediate
-- **Tempo estimado:** 4h
-- **Ações:** 6
+- **Tempo estimado:** 3h
+- **Ações:** 5
 
 1. **refactor_code:** Refatorar dependência inválida na camada domain
 2. **refactor_code:** Refatorar dependência inválida na camada domain
-3. **refactor_code:** Refatorar dependência inválida na camada application
-4. **rename_file:** Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'
-5. **rename_file:** Padronizar nomenclatura: Repository index deve terminar com 'Repository'
-6. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
+3. **rename_file:** Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'
+4. **rename_file:** Padronizar nomenclatura: Repository index deve terminar com 'Repository'
+5. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 
 ### 🔥 timecard
 - **Prioridade:** immediate
@@ -331,10 +331,10 @@
 - **beneficiaries:** 5 ações (4h)
 - **knowledge-base:** 10 ações (8h)
 - **materials-services:** 37 ações (30h)
-- **saas-admin:** 9 ações (5h)
+- **saas-admin:** 8 ações (5h)
 - **technical-skills:** 6 ações (5h)
-- **schedule-management:** 2 ações (2h)
-- **shared:** 6 ações (4h)
+- **schedule-management:** 3 ações (2h)
+- **shared:** 5 ações (3h)
 - **timecard:** 7 ações (5h)
 
 ### Prioridade Alta ⚠️
