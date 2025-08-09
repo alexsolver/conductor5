@@ -381,45 +381,116 @@ export class DatabaseStorage implements IStorage {
   // Fixes: N+1 queries, complex joins
   // ===========================
 
-  async getTickets(tenantId: string, options: { limit?: number; offset?: number; status?: string } = {}): Promise<any[]> {
+  async getTickets(tenantId: string, options: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    status?: string;
+    priority?: string;
+    assignedToId?: string;
+    companyId?: string;
+  } = {}): Promise<any[]> {
     try {
-      const validatedTenantId = await validateTenantAccess(tenantId);
-      const { limit = 50, offset = 0, status } = options;
-      const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
-      const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
+      const { page = 1, limit = 50, search, status, priority, assignedToId, companyId } = options;
+      const offset = (page - 1) * limit;
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-      // OPTIMIZED: Single JOIN query instead of N+1  
-      let baseQuery = sql`
-        SELECT 
-          tickets.*,
-          customers.first_name as customer_first_name,
-          customers.last_name as customer_last_name,
-          customers.email as customer_email,
-          caller.first_name as caller_first_name,
-          caller.last_name as caller_last_name,
-          caller.email as caller_email,
-          companies.name as customer_company_name
-        FROM ${sql.identifier(schemaName)}.tickets
-        LEFT JOIN ${sql.identifier(schemaName)}.customers ON tickets.customer_id = customers.id
-        LEFT JOIN ${sql.identifier(schemaName)}.customers caller ON tickets.caller_id = caller.id
-        LEFT JOIN ${sql.identifier(schemaName)}.companies companies ON tickets.company_id = companies.id
-        WHERE tickets.tenant_id = ${validatedTenantId}
-      `;
+      console.log('🎫 [STORAGE-SIMPLE] Getting tickets for tenant:', tenantId);
+      console.log('🎫 [STORAGE-SIMPLE] Schema name:', schemaName);
+      console.log('🎫 [STORAGE-SIMPLE] Options:', options);
 
-      if (status) {
-        baseQuery = sql`${baseQuery} AND tickets.status = ${status}`;
+      // First check if schema exists
+      const schemaCheck = await this.pool.query(
+        `SELECT EXISTS(SELECT 1 FROM information_schema.schemata WHERE schema_name = $1)`,
+        [schemaName]
+      );
+
+      if (!schemaCheck.rows[0]?.exists) {
+        console.error('❌ [STORAGE-SIMPLE] Schema does not exist:', schemaName);
+        return [];
       }
 
-      const finalQuery = sql`${baseQuery} 
-        ORDER BY tickets.created_at DESC 
-        LIMIT ${limit} 
-        OFFSET ${offset}
+      // Then check if tickets table exists in schema
+      const tableCheck = await this.pool.query(
+        `SELECT EXISTS(SELECT 1 FROM information_schema.tables WHERE table_schema = $1 AND table_name = 'tickets')`,
+        [schemaName]
+      );
+
+      if (!tableCheck.rows[0]?.exists) {
+        console.error('❌ [STORAGE-SIMPLE] Tickets table does not exist in schema:', schemaName);
+        return [];
+      }
+
+      let query = `
+        SELECT 
+          t.*,
+          u.first_name || ' ' || u.last_name as assigned_to_name,
+          c.name as customer_name,
+          comp.name as company_name
+        FROM "${schemaName}".tickets t
+        LEFT JOIN public.users u ON t.assigned_to_id = u.id
+        LEFT JOIN "${schemaName}".customers c ON t.caller_id = c.id
+        LEFT JOIN "${schemaName}".companies comp ON t.company_id = comp.id
+        WHERE t.tenant_id = $1
       `;
 
-      const result = await tenantDb.execute(finalQuery);
-      return result.rows || [];
+      const params: any[] = [tenantId];
+      let paramIndex = 2;
+
+      if (search) {
+        query += ` AND (t.subject ILIKE $${paramIndex} OR t.description ILIKE $${paramIndex})`;
+        params.push(`%${search}%`);
+        paramIndex++;
+      }
+
+      if (status) {
+        query += ` AND t.status = $${paramIndex}`;
+        params.push(status);
+        paramIndex++;
+      }
+
+      if (priority) {
+        query += ` AND t.priority = $${paramIndex}`;
+        params.push(priority);
+        paramIndex++;
+      }
+
+      if (assignedToId) {
+        query += ` AND t.assigned_to_id = $${paramIndex}`;
+        params.push(assignedToId);
+        paramIndex++;
+      }
+
+      if (companyId) {
+        query += ` AND t.company_id = $${paramIndex}`;
+        params.push(companyId);
+        paramIndex++;
+      }
+
+      query += ` ORDER BY t.created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
+      params.push(limit, offset);
+
+      console.log('🎫 [STORAGE-SIMPLE] Executing query:', query);
+      console.log('🎫 [STORAGE-SIMPLE] With params:', params);
+
+      const result = await this.pool.query(query, params);
+
+      console.log('🎫 [STORAGE-SIMPLE] Query result:', {
+        rowCount: result.rows.length,
+        tenantId,
+        schemaName,
+        firstRow: result.rows[0] ? { id: result.rows[0].id, subject: result.rows[0].subject } : null
+      });
+
+      return result.rows;
     } catch (error) {
-      logError('Error fetching tickets', error, { tenantId, options });
+      console.error('❌ [STORAGE-SIMPLE] Error getting tickets:', error);
+      console.error('❌ [STORAGE-SIMPLE] Error details:', {
+        message: error.message,
+        code: error.code,
+        tenantId,
+        stack: error.stack
+      });
       throw error;
     }
   }
@@ -620,7 +691,7 @@ export class DatabaseStorage implements IStorage {
         FROM ${sql.identifier(schemaName)}.tickets 
         WHERE tenant_id = ${validatedTenantId}
       `);
-      
+
       return parseInt((result.rows?.[0]?.count as string) || '0');
     } catch (error) {
       logError('Error getting tickets count', error, { tenantId });
@@ -1610,7 +1681,7 @@ export class DatabaseStorage implements IStorage {
       const result = await tenantDb.execute(sql`
         DELETE FROM ${sql.identifier(schemaName)}.beneficiary_customer_relationships
         WHERE beneficiary_id = ${beneficiaryId} 
-        AND customer_id = ${customerId}
+          AND customer_id = ${customerId}
       `);
 
       return (result.rowCount || 0) > 0;

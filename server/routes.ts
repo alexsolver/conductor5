@@ -1372,7 +1372,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     app.put('/api/ticket-templates/:templateId', jwtAuth, ticketTemplateController.updateTemplate.bind(ticketTemplateController));
     app.delete('/api/ticket-templates/:templateId', jwtAuth, ticketTemplateController.deleteTemplate.bind(ticketTemplateController));
 
-    // Busca e filtros
+    // Busca e filters
     app.get('/api/ticket-templates/company/:companyId/search', jwtAuth, ticketTemplateController.searchTemplates.bind(ticketTemplateController));
     app.get('/api/ticket-templates/company/:companyId/categories', jwtAuth, ticketTemplateController.getTemplateCategories.bind(ticketTemplateController));
     app.get('/api/ticket-templates/company/:companyId/popular', jwtAuth, ticketTemplateController.getPopularTemplates.bind(ticketTemplateController));
@@ -2071,7 +2071,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Usar o TimecardController que já tem acesso ao db correto
       const timecardController = new TimecardController();
-      
+
       // Redirecionar para o método correto do controller
       req.params = { period };
       return await timecardController.getAttendanceReport(req, res);
@@ -2081,7 +2081,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-        
+
 
   // Status dos backups
   app.get('/api/timecard/compliance/backups', jwtAuth, cltComplianceController.getBackupStatus.bind(cltComplianceController));
@@ -2541,7 +2541,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({ success: true, data: analyticsData });
     } catch (error) {
-      console.error('Error fetching analytics:', error);
+      console.error('Error fetching KB analytics:', error);
       res.status(500).json({ success: false, message: 'Failed to fetch analytics' });
     }
   });

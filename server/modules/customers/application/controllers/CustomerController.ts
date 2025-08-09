@@ -88,7 +88,7 @@ export class CustomerController {
     }
   }
 
-  async getCustomers(req: HttpRequest, res: HttpResponse): Promise<void> {
+  async getCustomers(req: HttpRequest, res:HttpResponse): Promise<void> {
     try {
       const user = (req as any).user;
       const tenantId = user?.tenantId;
@@ -233,8 +233,7 @@ export class CustomerController {
         return;
       }
 
-      const result = await this.customerApplicationService.getCustomers({
-        tenantId,
+      const result = await this.customerApplicationService.getCustomers(tenantId, {
         page,
         limit
       });
