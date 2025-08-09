@@ -96,89 +96,97 @@ export class CustomerController {
     }
   }
 
-  async updateCustomer(req: HttpRequest, res: HttpResponse): Promise<void> {
+  async getCustomers(req: HttpRequest, res: HttpResponse): Promise<void> {
     try {
-      const { customerId } = req.params;
-      const updateData = req.body;
-      const tenantId = req.headers['x-tenant-id'] as string | undefined;
-      const userId = req.headers['x-user-id'] as string | undefined;
+      const tenantId = req.headers['x-tenant-id'];
+      const userId = req.headers['x-user-id'];
 
       if (!tenantId) {
         res.status(400).json({
           success: false,
-          error: 'Tenant access required',
-          code: 'MISSING_TENANT_ACCESS'
+          error: 'Tenant ID is required'
         });
         return;
       }
 
-      const result = await this.customerApplicationService.updateCustomer({
-        id: customerId,
-        ...updateData,
-        tenantId
+      const customers = await this.getCustomersUseCase.execute({
+        tenantId: tenantId as string,
+        userId: userId as string
       });
 
-      if (result.success) {
-        res.status(200).json({
-          success: true,
-          data: transformToCustomerDTO(result.customer),
-          message: 'Customer updated successfully'
-        });
-      } else {
-        res.status(400).json({
-          success: false,
-          error: result.error,
-          code: 'UPDATE_FAILED'
-        });
-      }
+      const customerDTOs = customers.map(transformToCustomerDTO);
+
+      res.json({
+        success: true,
+        data: customerDTOs
+      });
     } catch (error) {
-      console.error('[CONTROLLER] Update customer error:', error);
       res.status(500).json({
         success: false,
-        error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
+  async updateCustomer(req: HttpRequest, res: HttpResponse): Promise<void> {
+    try {
+      const { id } = req.params;
+      const tenantId = req.headers['x-tenant-id'];
+
+      if (!tenantId) {
+        res.status(400).json({
+          success: false,
+          error: 'Tenant ID is required'
+        });
+        return;
+      }
+
+      const customer = await this.updateCustomerUseCase.execute({
+        id,
+        tenantId: tenantId as string,
+        ...req.body
+      });
+
+      const customerDTO = transformToCustomerDTO(customer);
+
+      res.json({
+        success: true,
+        data: customerDTO
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   }
 
   async deleteCustomer(req: HttpRequest, res: HttpResponse): Promise<void> {
     try {
-      const { customerId } = req.params;
-      const tenantId = req.headers['x-tenant-id'] as string | undefined;
-      const userId = req.headers['x-user-id'] as string | undefined;
+      const { id } = req.params;
+      const tenantId = req.headers['x-tenant-id'];
 
       if (!tenantId) {
         res.status(400).json({
           success: false,
-          error: 'Tenant access required',
-          code: 'MISSING_TENANT_ACCESS'
+          error: 'Tenant ID is required'
         });
         return;
       }
 
-      const result = await this.customerApplicationService.deleteCustomer({
-        id: customerId,
-        tenantId
+      await this.deleteCustomerUseCase.execute({
+        id,
+        tenantId: tenantId as string
       });
 
-      if (result.success) {
-        res.status(200).json({
-          success: true,
-          message: 'Customer deleted successfully'
-        });
-      } else {
-        res.status(400).json({
-          success: false,
-          error: result.error,
-          code: 'DELETE_FAILED'
-        });
-      }
+      res.json({
+        success: true,
+        message: 'Customer deleted successfully'
+      });
     } catch (error) {
-      console.error('[CONTROLLER] Delete customer error:', error);
       res.status(500).json({
         success: false,
-        error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   }

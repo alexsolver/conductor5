@@ -1,4 +1,4 @@
-import type { Request, Response } from 'express';
+// Using interface-based approach instead of direct Express dependency
 import { CreatePersonUseCase } from '../use-cases/CreatePersonUseCase';
 import { UpdatePersonUseCase } from '../use-cases/UpdatePersonUseCase';
 import { SearchPeopleUseCase } from '../use-cases/SearchPeopleUseCase';
