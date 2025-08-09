@@ -482,24 +482,34 @@ export class ItemRepository {
   // Métodos adicionados para vincular/desvincular clientes e fornecedores a itens
   async linkCustomerToItem(itemId: string, customerId: string, tenantId: string): Promise<void> {
     try {
-      await this.db
-        .insert(customerItemMappings)
-        .values({
-          id: crypto.randomUUID(),
-          tenantId,
-          itemId,
-          customerId,
-          isActive: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        })
-        .onConflictDoUpdate({
-          target: [customerItemMappings.customerId, customerItemMappings.itemId],
-          set: {
-            isActive: true,
-            updatedAt: new Date()
-          }
-        });
+      const { pool } = await import('../../../../db.js');
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+      // Verificar se a tabela customer_item_mappings existe, senão usar estrutura alternativa
+      try {
+        await pool.query(`
+          INSERT INTO "${schemaName}".customer_item_mappings 
+          (id, tenant_id, item_id, customer_id, is_active, created_at, updated_at)
+          VALUES ($1, $2, $3, $4, true, NOW(), NOW())
+          ON CONFLICT (customer_id, item_id) 
+          DO UPDATE SET is_active = true, updated_at = NOW()
+        `, [crypto.randomUUID(), tenantId, itemId, customerId]);
+
+        console.log(`✅ Empresa ${customerId} vinculada ao item ${itemId}`);
+      } catch (error) {
+        console.log('Tabela customer_item_mappings não encontrada, tentando estrutura alternativa...');
+        
+        // Fallback para item_customer_links
+        await pool.query(`
+          INSERT INTO "${schemaName}".item_customer_links 
+          (id, tenant_id, item_id, company_id, is_active, created_at)
+          VALUES ($1, $2, $3, $4, true, NOW())
+          ON CONFLICT (item_id, company_id) 
+          DO UPDATE SET is_active = true
+        `, [crypto.randomUUID(), tenantId, itemId, customerId]);
+
+        console.log(`✅ Empresa ${customerId} vinculada ao item ${itemId} (estrutura alternativa)`);
+      }
     } catch (error) {
       console.error('Erro ao vincular cliente ao item:', error);
       throw error;
@@ -508,13 +518,34 @@ export class ItemRepository {
 
   async unlinkCustomerFromItem(itemId: string, customerId: string, tenantId: string): Promise<void> {
     try {
-      const query = `
-        UPDATE "${tenantId}".customer_item_mappings
-        SET is_active = false, updated_at = NOW()
-        WHERE customer_id = $1 AND item_id = $2
-      `;
+      const { pool } = await import('../../../../db.js');
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-      await this.db.execute(sql.raw(query), [customerId, itemId]);
+      // Tentar desvincular da tabela customer_item_mappings
+      try {
+        const result = await pool.query(`
+          UPDATE "${schemaName}".customer_item_mappings
+          SET is_active = false, updated_at = NOW()
+          WHERE customer_id = $1 AND item_id = $2
+        `, [customerId, itemId]);
+
+        if (result.rowCount === 0) {
+          // Fallback para item_customer_links
+          await pool.query(`
+            UPDATE "${schemaName}".item_customer_links
+            SET is_active = false
+            WHERE company_id = $1 AND item_id = $2
+          `, [customerId, itemId]);
+        }
+
+        console.log(`✅ Empresa ${customerId} desvinculada do item ${itemId}`);
+      } catch (error) {
+        console.log('Tentando estrutura alternativa...');
+        await pool.query(`
+          DELETE FROM "${schemaName}".item_customer_links
+          WHERE company_id = $1 AND item_id = $2
+        `, [customerId, itemId]);
+      }
     } catch (error) {
       console.error('Erro ao desvincular cliente do item:', error);
       throw error;
@@ -523,24 +554,18 @@ export class ItemRepository {
 
   async linkSupplierToItem(itemId: string, supplierId: string, tenantId: string): Promise<void> {
     try {
-      await this.db
-        .insert(itemSupplierLinks)
-        .values({
-          id: crypto.randomUUID(),
-          tenantId,
-          itemId,
-          supplierId,
-          isActive: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        })
-        .onConflictDoUpdate({
-          target: [itemSupplierLinks.supplierId, itemSupplierLinks.itemId],
-          set: {
-            isActive: true,
-            updatedAt: new Date()
-          }
-        });
+      const { pool } = await import('../../../../db.js');
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+      await pool.query(`
+        INSERT INTO "${schemaName}".item_supplier_links 
+        (id, tenant_id, item_id, supplier_id, is_active, created_at)
+        VALUES ($1, $2, $3, $4, true, NOW())
+        ON CONFLICT (item_id, supplier_id) 
+        DO UPDATE SET is_active = true
+      `, [crypto.randomUUID(), tenantId, itemId, supplierId]);
+
+      console.log(`✅ Fornecedor ${supplierId} vinculado ao item ${itemId}`);
     } catch (error) {
       console.error('Erro ao vincular fornecedor ao item:', error);
       throw error;
@@ -549,13 +574,16 @@ export class ItemRepository {
 
   async unlinkSupplierFromItem(itemId: string, supplierId: string, tenantId: string): Promise<void> {
     try {
-      const query = `
-        UPDATE "${tenantId}".supplier_item_links
-        SET is_active = false, updated_at = NOW()
-        WHERE supplier_id = $1 AND item_id = $2
-      `;
+      const { pool } = await import('../../../../db.js');
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-      await this.db.execute(sql.raw(query), [supplierId, itemId]);
+      await pool.query(`
+        UPDATE "${schemaName}".item_supplier_links
+        SET is_active = false
+        WHERE supplier_id = $1 AND item_id = $2
+      `, [supplierId, itemId]);
+
+      console.log(`✅ Fornecedor ${supplierId} desvinculado do item ${itemId}`);
     } catch (error) {
       console.error('Erro ao desvincular fornecedor do item:', error);
       throw error;

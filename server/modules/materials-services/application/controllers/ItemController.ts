@@ -116,11 +116,11 @@ export class ItemController {
             ) THEN true 
             ELSE false 
           END as "isParent",
-          
+
           -- Count children
           (SELECT COUNT(*) FROM "${schemaName}".item_hierarchy h 
            WHERE h.parent_item_id = i.id AND h.is_active = true) as "childrenCount",
-          
+
           -- Get parent ID
           (SELECT h.parent_item_id FROM "${schemaName}".item_hierarchy h 
            WHERE h.child_item_id = i.id AND h.is_active = true LIMIT 1) as "parentId",
@@ -174,13 +174,13 @@ export class ItemController {
         SELECT 
           i.*,
           ${hierarchyFields}
-          
+
           -- Count linked companies
           ${companiesCountField} as "companiesCount",
-          
+
           -- Count linked suppliers  
           ${suppliersCountField} as "suppliersCount"
-           
+
         FROM "${schemaName}".items i
         ${whereClause}
         ORDER BY i.created_at DESC
@@ -502,7 +502,7 @@ export class ItemController {
 
       const { pool } = await import('../../../../db');
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-      
+
       const query = `
         SELECT 
           g.*,
@@ -851,6 +851,82 @@ export class ItemController {
         success: false,
         message: 'Erro ao criar vínculos em lote'
       });
+    }
+  }
+
+  async getItemLinks(itemId: string, tenantId: string): Promise<{
+    customers: Array<{ id: string; name: string }>;
+    suppliers: Array<{ id: string; name: string }>;
+  }> {
+    try {
+      // Buscar vínculos de empresas usando SQL direto para evitar erros de sintaxe
+      const { pool } = await import('../../../../db.js');
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+      // 🔧 CORREÇÃO: Buscar vínculos de empresas da tabela correta
+      let customerLinks = [];
+      try {
+        const customerLinksResult = await pool.query(`
+          SELECT c.id, c.company as name 
+          FROM "${schemaName}".customer_item_mappings cim
+          INNER JOIN "${schemaName}".companies c ON cim.customer_id = c.id
+          WHERE cim.item_id = $1 
+            AND cim.tenant_id = $2 
+            AND cim.is_active = true 
+            AND c.status = 'active'
+          LIMIT 50
+        `, [itemId, tenantId]);
+        customerLinks = customerLinksResult.rows;
+      } catch (error) {
+        console.log('Tabela customer_item_mappings ou companies não encontrada, tentando estrutura alternativa...');
+
+        // Fallback: tentar com estrutura alternativa
+        try {
+          const fallbackResult = await pool.query(`
+            SELECT c.id, c.name 
+            FROM "${schemaName}".item_customer_links icl
+            INNER JOIN "${schemaName}".customers c ON icl.customer_id = c.id
+            WHERE icl.item_id = $1 
+              AND icl.tenant_id = $2 
+              AND icl.is_active = true
+            LIMIT 50
+          `, [itemId, tenantId]);
+          customerLinks = fallbackResult.rows;
+        } catch (fallbackError) {
+          console.log('Estrutura alternativa também não encontrada.');
+        }
+      }
+
+      // 🔧 CORREÇÃO: Buscar vínculos de fornecedores
+      let supplierLinks = [];
+      try {
+        const supplierLinksResult = await pool.query(`
+          SELECT s.id, s.name 
+          FROM "${schemaName}".item_supplier_links isl
+          INNER JOIN "${schemaName}".suppliers s ON isl.supplier_id = s.id
+          WHERE isl.item_id = $1 
+            AND isl.tenant_id = $2 
+            AND isl.is_active = true
+            AND s.active = true
+          LIMIT 50
+        `, [itemId, tenantId]);
+        supplierLinks = supplierLinksResult.rows;
+      } catch (error) {
+        console.log('Erro ao buscar vínculos de fornecedores:', error);
+      }
+
+      console.log(`✅ Links encontrados para item ${itemId}: ${customerLinks.length} empresas, ${supplierLinks.length} fornecedores`);
+
+      return {
+        customers: customerLinks || [],
+        suppliers: supplierLinks || []
+      };
+    } catch (error) {
+      console.error('❌ Erro ao buscar vínculos do item:', error);
+      return {
+        customers: [],
+        suppliers: []
+      };
     }
   }
 

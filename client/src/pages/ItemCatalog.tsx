@@ -214,8 +214,9 @@ export default function ItemCatalog() {
       if (!selectedItem?.id) return { customers: [], suppliers: [] };
       try {
         const response = await apiRequest('GET', `/api/materials-services/items/${selectedItem.id}/links`);
-        const data = await response.json();
-        return data || { customers: [], suppliers: [] };
+        const result = await response.json();
+        console.log('🔗 Links carregados:', result);
+        return result?.data || { customers: [], suppliers: [] };
       } catch (error) {
         console.error('Erro ao carregar vínculos do item:', error);
         return { customers: [], suppliers: [] };
@@ -1050,11 +1051,13 @@ export default function ItemCatalog() {
                     <label className="text-sm font-medium">Itens Filhos</label>
                     <div className="mt-2">
                       <Select 
+                        value=""
                         onValueChange={(value) => {
                           if (value && value !== "none") {
                             const currentChildren = itemForm.watch("childrenIds") || [];
                             if (!currentChildren.includes(value)) {
                               itemForm.setValue("childrenIds", [...currentChildren, value]);
+                              console.log('🔗 Item filho adicionado:', value);
                             }
                           }
                         }}
@@ -1070,7 +1073,7 @@ export default function ItemCatalog() {
                             !(itemForm.watch("childrenIds") || []).includes(item.id)
                           ).map((item) => (
                             <SelectItem key={item.id} value={item.id}>
-                              {item.name} ({item.type})
+                              {item.name} ({item.type === 'material' ? 'Material' : 'Serviço'})
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -1078,14 +1081,20 @@ export default function ItemCatalog() {
                     </div>
 
                     {/* Lista dos itens filhos selecionados */}
-                    <div className="mt-2">
+                    <div className="mt-2 space-y-1">
                       {(itemForm.watch("childrenIds") || []).map((childId) => {
                         const child = items.find(item => item.id === childId);
                         if (!child) return null;
 
                         return (
-                          <div key={childId} className="flex items-center justify-between bg-gray-100 p-2 rounded mt-1">
-                            <span className="text-sm">{child.name} ({child.type})</span>
+                          <div key={childId} className="flex items-center justify-between bg-blue-50 border border-blue-200 p-2 rounded">
+                            <div className="flex items-center gap-2">
+                              <ChevronRight className="h-3 w-3 text-blue-600" />
+                              <span className="text-sm font-medium">{child.name}</span>
+                              <Badge variant="outline" className="text-xs">
+                                {child.type === 'material' ? 'Material' : 'Serviço'}
+                              </Badge>
+                            </div>
                             <Button
                               type="button"
                               variant="ghost"
@@ -1093,9 +1102,11 @@ export default function ItemCatalog() {
                               onClick={() => {
                                 const currentChildren = itemForm.watch("childrenIds") || [];
                                 itemForm.setValue("childrenIds", currentChildren.filter(id => id !== childId));
+                                console.log('🗑️ Item filho removido:', childId);
                               }}
+                              className="h-6 w-6 p-0 hover:bg-red-100"
                             >
-                              ×
+                              <X className="h-3 w-3 text-red-600" />
                             </Button>
                           </div>
                         );
@@ -1103,7 +1114,7 @@ export default function ItemCatalog() {
                     </div>
 
                     <p className="text-sm text-muted-foreground mt-2">
-                      Selecione itens que serão filhos deste item
+                      Selecione itens que serão filhos deste item. Os vínculos serão salvos automaticamente.
                     </p>
                   </div>
                 </div>

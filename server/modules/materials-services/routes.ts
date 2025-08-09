@@ -23,6 +23,7 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 
 // Use the existing database connection from db.ts
 import { db as drizzleDb } from '../../db';
+import { pool } from '../../db';
 
 
 // Create router
@@ -226,6 +227,33 @@ router.get('/items/:id/links', async (req, res) => {
     res.status(500).json({ 
       error: 'Erro interno do servidor',
       details: error instanceof Error ? error.message : 'Erro desconhecido'
+    });
+  }
+});
+
+// Endpoint para buscar vínculos de um item específico
+router.get('/items/:id/links', jwtAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const tenantId = req.user?.tenantId;
+
+    if (!tenantId) {
+      return res.status(401).json({ success: false, message: 'Tenant ID required' });
+    }
+
+    const { itemController } = await getControllers(tenantId);
+    const links = await itemController.itemRepository.getItemLinks(id, tenantId);
+
+    res.json({
+      success: true,
+      data: links
+    });
+  } catch (error) {
+    console.error('Erro ao buscar vínculos do item:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erro interno do servidor',
+      data: { customers: [], suppliers: [] }
     });
   }
 });
