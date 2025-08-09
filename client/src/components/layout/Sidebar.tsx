@@ -40,6 +40,7 @@ import {
   Building2,
   Award,
   UserCheck,
+  User,
   FileText,
   Mail,
   FolderOpen,

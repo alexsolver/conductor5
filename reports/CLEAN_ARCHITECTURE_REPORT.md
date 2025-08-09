@@ -6,8 +6,8 @@
 
 ## Resumo de Problemas
 
-- 🔥 **Críticos:** 12
-- ⚠️ **Altos:** 70
+- 🔥 **Críticos:** 14
+- ⚠️ **Altos:** 68
 - 📋 **Médios:** 46
 - 💡 **Baixos:** 4
 - **Total:** 132
@@ -22,12 +22,13 @@
   - Application Layer violando dependência: express
   - Repository contém possível lógica de negócio
 
-### ⚠️ beneficiaries
-- **Total de problemas:** 2
-- **Críticos:** 0 | **Altos:** 1
+### 🔥 beneficiaries
+- **Total de problemas:** 4
+- **Críticos:** 2 | **Altos:** 1
 - **Principais problemas:**
   - Routes contém lógica de negócio ou acesso a dados
-  - Use Case index deve terminar com 'UseCase'
+  - Domain Layer violando dependência: ../../application/dto/CreateBeneficiaryDTO
+  - Domain Layer violando dependência: ../../application/dto/CreateBeneficiaryDTO
 
 ### ⚠️ customers
 - **Total de problemas:** 2
@@ -45,12 +46,19 @@
   - Application Layer violando dependência: express
 
 ### 🔥 materials-services
-- **Total de problemas:** 57
+- **Total de problemas:** 56
 - **Críticos:** 7 | **Altos:** 36
 - **Principais problemas:**
   - Routes contém lógica de negócio ou acesso a dados
   - Domain Layer violando dependência: drizzle-orm/neon-http
   - Domain Layer violando dependência: drizzle-orm/neon-http
+
+### 📋 people
+- **Total de problemas:** 2
+- **Críticos:** 0 | **Altos:** 0
+- **Principais problemas:**
+  - Routes não utiliza controllers - lógica direta nas rotas
+  - Use Case index deve terminar com 'UseCase'
 
 ### ⚠️ saas-admin
 - **Total de problemas:** 10
@@ -61,12 +69,12 @@
   - Estrutura controllers ausente na camada application
 
 ### 🔥 shared
-- **Total de problemas:** 7
-- **Críticos:** 1 | **Altos:** 1
+- **Total de problemas:** 6
+- **Críticos:** 1 | **Altos:** 0
 - **Principais problemas:**
   - Routes não utiliza controllers - lógica direta nas rotas
   - Domain Layer violando dependência: drizzle-orm/neon-http
-  - Application Layer violando dependência: express
+  - Use Case index deve terminar com 'UseCase'
 
 ### 🔥 technical-skills
 - **Total de problemas:** 10
@@ -93,11 +101,11 @@
   - Domain Layer violando dependência: drizzle-orm/neon-http
 
 ### 🔥 schedule-management
-- **Total de problemas:** 5
-- **Críticos:** 1 | **Altos:** 3
+- **Total de problemas:** 4
+- **Críticos:** 1 | **Altos:** 2
 - **Principais problemas:**
   - Domain Layer violando dependência: drizzle-orm/neon-http
-  - Application Layer violando dependência: express
+  - Application Layer violando dependência: ../../infrastructure/repositories/DrizzleScheduleRepository
   - Application Layer violando dependência: ../../infrastructure/repositories/DrizzleScheduleRepository
 
 ### 📋 dashboard
@@ -118,12 +126,6 @@
 - **Principais problemas:**
   - Use Case index deve terminar com 'UseCase'
 
-### 📋 people
-- **Total de problemas:** 1
-- **Críticos:** 0 | **Altos:** 0
-- **Principais problemas:**
-  - Use Case index deve terminar com 'UseCase'
-
 ### 📋 tenant-admin
 - **Total de problemas:** 1
 - **Críticos:** 0 | **Altos:** 0
@@ -132,6 +134,15 @@
 
 
 ## Plano de Correção
+
+### 🔥 beneficiaries
+- **Prioridade:** immediate
+- **Tempo estimado:** 2h
+- **Ações:** 3
+
+1. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
+2. **refactor_code:** Refatorar dependência inválida na camada domain
+3. **rename_file:** Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'
 
 ### 🔥 knowledge-base
 - **Prioridade:** immediate
@@ -152,7 +163,7 @@
 ### 🔥 materials-services
 - **Prioridade:** immediate
 - **Tempo estimado:** 29h
-- **Ações:** 38
+- **Ações:** 37
 
 1. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
 2. **refactor_code:** Refatorar dependência inválida na camada domain
@@ -190,21 +201,19 @@
 34. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 35. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 36. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
-37. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
-38. **create_file:** Criar Repository com interface
+37. **create_file:** Criar Repository com interface
 
 ### 🔥 shared
 - **Prioridade:** immediate
-- **Tempo estimado:** 4h
-- **Ações:** 7
+- **Tempo estimado:** 3h
+- **Ações:** 6
 
 1. **create_directory:** Criar controllers na camada Application e usar nas rotas
 2. **refactor_code:** Refatorar dependência inválida na camada domain
-3. **refactor_code:** Refatorar dependência inválida na camada application
-4. **rename_file:** Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'
-5. **rename_file:** Padronizar nomenclatura: Repository index deve terminar com 'Repository'
-6. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
-7. **create_file:** Criar Repository com interface
+3. **rename_file:** Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'
+4. **rename_file:** Padronizar nomenclatura: Repository index deve terminar com 'Repository'
+5. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
+6. **create_file:** Criar Repository com interface
 
 ### 🔥 technical-skills
 - **Prioridade:** immediate
@@ -251,14 +260,6 @@
 2. **refactor_code:** Refatorar dependência inválida na camada application
 3. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
 
-### ⚠️ beneficiaries
-- **Prioridade:** high
-- **Tempo estimado:** 1h
-- **Ações:** 2
-
-1. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
-2. **rename_file:** Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'
-
 ### ⚠️ customers
 - **Prioridade:** high
 - **Tempo estimado:** 2h
@@ -292,6 +293,14 @@
 2. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
 3. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
 
+### 💡 people
+- **Prioridade:** low
+- **Tempo estimado:** 25min
+- **Ações:** 2
+
+1. **create_directory:** Criar controllers na camada Application e usar nas rotas
+2. **rename_file:** Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'
+
 ### 💡 dashboard
 - **Prioridade:** low
 - **Tempo estimado:** 45min
@@ -313,13 +322,6 @@
 
 1. **rename_file:** Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'
 
-### 💡 people
-- **Prioridade:** low
-- **Tempo estimado:** 15min
-- **Ações:** 1
-
-1. **rename_file:** Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'
-
 ### 💡 tenant-admin
 - **Prioridade:** low
 - **Tempo estimado:** 15min
@@ -331,16 +333,16 @@
 ## Recomendações
 
 ### Prioridade Imediata 🔥
+- **beneficiaries:** 3 ações (2h)
 - **knowledge-base:** 10 ações (8h)
-- **materials-services:** 38 ações (29h)
-- **shared:** 7 ações (4h)
+- **materials-services:** 37 ações (29h)
+- **shared:** 6 ações (3h)
 - **technical-skills:** 6 ações (5h)
 - **timecard:** 9 ações (5h)
 - **schedule-management:** 3 ações (3h)
 
 ### Prioridade Alta ⚠️
 - **auth:** 3 ações (2h)
-- **beneficiaries:** 2 ações (1h)
 - **customers:** 2 ações (2h)
 - **saas-admin:** 10 ações (3h)
 - **tickets:** 3 ações (2h)

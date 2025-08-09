@@ -1,0 +1,23 @@
+{
+  "passed": false,
+  "score": 0,
+  "issues": [
+    {
+      "id": "ARCH-001",
+      "layer": "infrastructure",
+      "module": "system",
+      "severity": "critical",
+      "type": "structure_violation",
+      "description": "Diretório de módulos não encontrado",
+      "file": "server/modules",
+      "suggestedFix": "Criar estrutura de módulos seguindo padrão Clean Architecture"
+    }
+  ],
+  "summary": {
+    "total": 1,
+    "critical": 1,
+    "high": 0,
+    "medium": 0,
+    "low": 0
+  }
+}

@@ -1,0 +1,17 @@
+[
+  {
+    "priority": "immediate",
+    "module": "system",
+    "actions": [
+      {
+        "type": "create_directory",
+        "description": "Criar estrutura de módulos seguindo padrão Clean Architecture",
+        "target": "server/modules",
+        "steps": [
+          "Criar estrutura de módulos seguindo padrão Clean Architecture"
+        ]
+      }
+    ],
+    "estimatedTime": "10min"
+  }
+]
