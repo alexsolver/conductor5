@@ -358,19 +358,64 @@ export class ItemController {
     const { pool } = await import('../../../../db.js');
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-    // Primeiro, remover vínculos hierárquicos existentes para este item
+    // Verificar se a tabela existe, se não, criar
     try {
+      const tableExists = await pool.query(`
+        SELECT EXISTS (
+          SELECT FROM information_schema.tables 
+          WHERE table_schema = '${schemaName}' 
+          AND table_name = 'item_hierarchy'
+        );
+      `);
+
+      if (!tableExists.rows[0].exists) {
+        console.log('⚠️ [HIERARCHY] Table item_hierarchy does not exist, creating...');
+        
+        // Criar tabela item_hierarchy
+        await pool.query(`
+          CREATE TABLE "${schemaName}".item_hierarchy (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            tenant_id UUID NOT NULL,
+            parent_item_id UUID NOT NULL,
+            child_item_id UUID NOT NULL,
+            "order" INTEGER DEFAULT 0,
+            is_active BOOLEAN DEFAULT true,
+            notes TEXT,
+            created_at TIMESTAMP DEFAULT NOW(),
+            created_by UUID,
+            updated_at TIMESTAMP DEFAULT NOW(),
+            updated_by UUID,
+            
+            CONSTRAINT fk_parent_item FOREIGN KEY (parent_item_id) 
+              REFERENCES "${schemaName}".items(id) ON DELETE CASCADE,
+            CONSTRAINT fk_child_item FOREIGN KEY (child_item_id) 
+              REFERENCES "${schemaName}".items(id) ON DELETE CASCADE,
+            CONSTRAINT unique_parent_child UNIQUE (parent_item_id, child_item_id)
+          );
+        `);
+
+        // Criar índices
+        await pool.query(`
+          CREATE INDEX idx_${schemaName.replace(/-/g, '_')}_item_hierarchy_parent 
+          ON "${schemaName}".item_hierarchy(parent_item_id);
+        `);
+        
+        await pool.query(`
+          CREATE INDEX idx_${schemaName.replace(/-/g, '_')}_item_hierarchy_child 
+          ON "${schemaName}".item_hierarchy(child_item_id);
+        `);
+
+        console.log('✅ [HIERARCHY] Table item_hierarchy created successfully');
+      }
+
+      // Remover vínculos hierárquicos existentes para este item
       await pool.query(`
         DELETE FROM "${schemaName}".item_hierarchy 
         WHERE parent_item_id = $1 AND tenant_id = $2
       `, [parentItemId, tenantId]);
-    } catch (error) {
-      console.log('⚠️ [HIERARCHY] Table item_hierarchy does not exist, skipping deletion');
-    }
 
-    // Criar novos vínculos hierárquicos
-    if (childrenIds.length > 0) {
-      try {
+      // Criar novos vínculos hierárquicos
+      if (childrenIds.length > 0) {
         const values = childrenIds.map((childId, index) => 
           `($${index * 6 + 1}, $${index * 6 + 2}, $${index * 6 + 3}, $${index * 6 + 4}, $${index * 6 + 5}, $${index * 6 + 6})`
         ).join(', ');
@@ -391,10 +436,10 @@ export class ItemController {
         `, params);
 
         console.log(`✅ [HIERARCHY] Created ${childrenIds.length} hierarchical links`);
-      } catch (error) {
-        console.error('❌ [HIERARCHY] Failed to create hierarchy:', error);
-        throw error;
       }
+    } catch (error) {
+      console.error('❌ [HIERARCHY] Failed to process hierarchy:', error);
+      throw error;
     }
   }
 
@@ -929,13 +974,13 @@ export class ItemController {
       let customerLinks = [];
       try {
         const customerLinksResult = await pool.query(`
-          SELECT c.id, c.company as name 
+          SELECT c.id, COALESCE(c.company, c.name, c.customer_name, 'Nome não informado') as name 
           FROM "${schemaName}".customer_item_mappings cim
           INNER JOIN "${schemaName}".companies c ON cim.customer_id = c.id
           WHERE cim.item_id = $1 
             AND cim.tenant_id = $2 
             AND cim.is_active = true 
-            AND c.status = 'active'
+            AND (c.status = 'active' OR c.status IS NULL)
           LIMIT 50
         `, [itemId, tenantId]);
         customerLinks = customerLinksResult.rows;

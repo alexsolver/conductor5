@@ -295,7 +295,7 @@ export class ItemRepository {
       const customersQuery = `
         SELECT DISTINCT
           c.id,
-          c.name,
+          COALESCE(c.name, c.company, c.customer_name, 'Nome não informado') as name,
           cim.created_at as linked_at,
           cim.is_active
         FROM "${schemaName}".customer_item_mappings cim
