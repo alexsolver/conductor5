@@ -242,7 +242,6 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
           },
           { name: "Configuração de Aprovações", href: "/timecard-approval-settings", icon: Settings },
           { name: "Gestão de Ausências", href: "/absence-management", icon: Calendar },
-          { name: "Templates de Escalas", href: "/schedule-templates", icon: Settings },
         ]
       };
     }
