@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { ItemRepository } from '../../infrastructure/repositories/ItemRepository';
+import crypto from 'crypto';
 
 interface AuthenticatedRequest extends Request {
   user?: {
@@ -360,7 +361,7 @@ export class ItemController {
 
     // Verificar se a tabela existe, se não, criar
     try {
-      const tableExists = await pool.query(`
+      const tableCheck = await pool.query(`
         SELECT EXISTS (
           SELECT FROM information_schema.tables 
           WHERE table_schema = '${schemaName}' 
@@ -368,9 +369,9 @@ export class ItemController {
         );
       `);
 
-      if (!tableExists.rows[0].exists) {
+      if (!tableCheck.rows[0].exists) {
         console.log('⚠️ [HIERARCHY] Table item_hierarchy does not exist, creating...');
-        
+
         // Criar tabela item_hierarchy
         await pool.query(`
           CREATE TABLE "${schemaName}".item_hierarchy (
@@ -385,7 +386,7 @@ export class ItemController {
             created_by UUID,
             updated_at TIMESTAMP DEFAULT NOW(),
             updated_by UUID,
-            
+
             CONSTRAINT fk_parent_item FOREIGN KEY (parent_item_id) 
               REFERENCES "${schemaName}".items(id) ON DELETE CASCADE,
             CONSTRAINT fk_child_item FOREIGN KEY (child_item_id) 
@@ -394,16 +395,38 @@ export class ItemController {
           );
         `);
 
-        // Criar índices
-        await pool.query(`
-          CREATE INDEX idx_${schemaName.replace(/-/g, '_')}_item_hierarchy_parent 
-          ON "${schemaName}".item_hierarchy(parent_item_id);
-        `);
-        
-        await pool.query(`
-          CREATE INDEX idx_${schemaName.replace(/-/g, '_')}_item_hierarchy_child 
-          ON "${schemaName}".item_hierarchy(child_item_id);
-        `);
+        // Criar índices (verificar se já existem primeiro)
+        try {
+          const indexName1 = `idx_${schemaName.replace(/-/g, '_')}_item_hierarchy_parent`;
+          const indexCheck1 = await pool.query(`
+            SELECT indexname FROM pg_indexes 
+            WHERE schemaname = '${schemaName}' 
+            AND indexname = '${indexName1}'
+          `);
+
+          if (indexCheck1.rows.length === 0) {
+            await pool.query(`
+              CREATE INDEX ${indexName1} 
+              ON "${schemaName}".item_hierarchy(parent_item_id);
+            `);
+          }
+
+          const indexName2 = `idx_${schemaName.replace(/-/g, '_')}_item_hierarchy_child`;
+          const indexCheck2 = await pool.query(`
+            SELECT indexname FROM pg_indexes 
+            WHERE schemaname = '${schemaName}' 
+            AND indexname = '${indexName2}'
+          `);
+
+          if (indexCheck2.rows.length === 0) {
+            await pool.query(`
+              CREATE INDEX ${indexName2} 
+              ON "${schemaName}".item_hierarchy(child_item_id);
+            `);
+          }
+        } catch (indexError) {
+          console.warn('⚠️ [HIERARCHY] Index creation warning:', indexError.message);
+        }
 
         console.log('✅ [HIERARCHY] Table item_hierarchy created successfully');
       }
@@ -416,26 +439,34 @@ export class ItemController {
 
       // Criar novos vínculos hierárquicos
       if (childrenIds.length > 0) {
-        const values = childrenIds.map((childId, index) => 
-          `($${index * 6 + 1}, $${index * 6 + 2}, $${index * 6 + 3}, $${index * 6 + 4}, $${index * 6 + 5}, $${index * 6 + 6})`
-        ).join(', ');
+        // Inserir um por vez para evitar conflitos
+        let successCount = 0;
+        for (let i = 0; i < childrenIds.length; i++) {
+          const childId = childrenIds[i];
+          try {
+            await pool.query(`
+              INSERT INTO "${schemaName}".item_hierarchy 
+              (id, tenant_id, parent_item_id, child_item_id, "order", created_by)
+              VALUES ($1, $2, $3, $4, $5, $6)
+              ON CONFLICT (parent_item_id, child_item_id) DO UPDATE SET
+                "order" = EXCLUDED."order",
+                updated_at = NOW(),
+                updated_by = EXCLUDED.created_by
+            `, [
+              crypto.randomUUID(),
+              tenantId,
+              parentItemId,
+              childId,
+              i,
+              userId || null
+            ]);
+            successCount++;
+          } catch (insertError) {
+            console.warn(`⚠️ [HIERARCHY] Failed to insert child ${childId}:`, insertError.message);
+          }
+        }
 
-        const params = childrenIds.flatMap((childId, index) => [
-          crypto.randomUUID(),
-          tenantId,
-          parentItemId,
-          childId,
-          index,
-          userId || null
-        ]);
-
-        await pool.query(`
-          INSERT INTO "${schemaName}".item_hierarchy 
-          (id, tenant_id, parent_item_id, child_item_id, "order", created_by)
-          VALUES ${values}
-        `, params);
-
-        console.log(`✅ [HIERARCHY] Created ${childrenIds.length} hierarchical links`);
+        console.log(`✅ [HIERARCHY] Created ${successCount}/${childrenIds.length} hierarchical links`);
       }
     } catch (error) {
       console.error('❌ [HIERARCHY] Failed to process hierarchy:', error);
