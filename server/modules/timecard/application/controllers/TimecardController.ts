@@ -1214,8 +1214,14 @@ export class TimecardController {
     console.log('[OVERTIME-REPORT] Route hit - starting...');
 
     try {
+      // Check if response was already sent
+      if (res.headersSent) {
+        console.log('[OVERTIME-REPORT] Response already sent, skipping');
+        return;
+      }
+
       // Force JSON response headers early
-      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
       res.setHeader('Cache-Control', 'no-cache');
 
       const { period } = req.params;
@@ -1275,15 +1281,13 @@ export class TimecardController {
 
       console.log('[OVERTIME-REPORT] Date range:', startDate.toISOString(), 'to', endDate.toISOString());
 
-      // Use static imports already available at module level
-
       const records = await db
         .select()
         .from(timecardEntries)
         .where(and(
           eq(timecardEntries.userId, targetUserId),
           eq(timecardEntries.tenantId, tenantId),
-          eq(timecardEntries.status, 'approved'),
+          inArray(timecardEntries.status, ['pending', 'approved']),
           sql`(
             (${timecardEntries.checkIn} IS NOT NULL AND DATE(${timecardEntries.checkIn}) >= ${startDate.toISOString().split('T')[0]} AND DATE(${timecardEntries.checkIn}) <= ${endDate.toISOString().split('T')[0]})
             OR
@@ -1329,10 +1333,10 @@ export class TimecardController {
 
       const overtimeReport = {
         period,
-        data: processedRecords, // Frontend expects 'data' field
+        data: processedRecords,
         summary: {
           totalOvertimeHours: totalOvertimeHours.toFixed(2),
-          totalOvertimeValue: (totalOvertimeHours * 25.5).toFixed(2), // R$ 25,50 por hora extra
+          totalOvertimeValue: (totalOvertimeHours * 25.5).toFixed(2),
           overtimeDaysCount: overtimeDays.length,
           averageOvertimePerDay: averageOvertimePerDay,
           hourlyRate: '25.50'
@@ -1341,20 +1345,25 @@ export class TimecardController {
 
       console.log('[OVERTIME-REPORT] Final report summary:', overtimeReport.summary);
 
-      // Force JSON response with explicit headers
-      res.setHeader('Content-Type', 'application/json');
-      res.status(200).json({
-        success: true,
-        ...overtimeReport
-      });
+      // Only send response if not already sent
+      if (!res.headersSent) {
+        return res.status(200).json({
+          success: true,
+          ...overtimeReport
+        });
+      }
     } catch (error: any) {
       console.error('[TIMECARD-CONTROLLER] Error generating overtime report:', error);
-      res.setHeader('Content-Type', 'application/json');
-      res.status(500).json({
-        success: false,
-        error: 'Erro ao gerar relatório de horas extras',
-        details: error?.message || 'Unknown error'
-      });
+      
+      // Only send error if response wasn't sent yet
+      if (!res.headersSent) {
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        return res.status(500).json({
+          success: false,
+          error: 'Erro ao gerar relatório de horas extras',
+          details: error?.message || 'Unknown error'
+        });
+      }
     }
   }
 
@@ -1362,8 +1371,14 @@ export class TimecardController {
     console.log('[COMPLIANCE-REPORT] Route hit - starting...');
 
     try {
+      // Check if response was already sent
+      if (res.headersSent) {
+        console.log('[COMPLIANCE-REPORT] Response already sent, skipping');
+        return;
+      }
+
       // Force JSON response headers early
-      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
       res.setHeader('Cache-Control', 'no-cache');
 
       const { period } = req.params;
@@ -1513,20 +1528,25 @@ export class TimecardController {
 
       console.log('[COMPLIANCE-REPORT] Final report summary:', complianceReport.summary);
 
-      // Force JSON response with explicit headers
-      res.setHeader('Content-Type', 'application/json');
-      res.status(200).json({
-        success: true,
-        ...complianceReport
-      });
+      // Only send response if not already sent
+      if (!res.headersSent) {
+        return res.status(200).json({
+          success: true,
+          ...complianceReport
+        });
+      }
     } catch (error: any) {
       console.error('[TIMECARD-CONTROLLER] Error generating compliance report:', error);
-      res.setHeader('Content-Type', 'application/json');
-      res.status(500).json({
-        success: false,
-        error: 'Erro ao gerar relatório de compliance',
-        details: error?.message || 'Unknown error'
-      });
+      
+      // Only send error if response wasn't sent yet
+      if (!res.headersSent) {
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        return res.status(500).json({
+          success: false,
+          error: 'Erro ao gerar relatório de compliance',
+          details: error?.message || 'Unknown error'
+        });
+      }
     }
   }
 
