@@ -580,13 +580,28 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                       <SelectContent>
                         {availableItems.map((item: any, index: number) => {
                           // Debug log to see item structure
-                          console.log('🔍 [CONSUMPTION-SELECT] Available item:', item);
+                          console.log('🔍 [CONSUMPTION-SELECT] Available item structure:', {
+                            rawItem: item,
+                            itemData: item.item || item.items || item,
+                            itemId: item.itemId,
+                            detectedName: (item.item || item.items || item).itemName || 
+                                         (item.item || item.items || item).name ||
+                                         item.itemName || item.name || 'not found',
+                            allKeys: Object.keys(item)
+                          });
                           
-                          // Handle different data structures
-                          const itemName = item.itemName || item.name || item.display_name || item.title || 'Item sem nome';
-                          const itemType = item.itemType || item.type || 'Material';
-                          const itemDescription = item.itemDescription || item.description || item.display_description || '';
-                          const itemSku = item.itemSku || item.sku || item.integrationCode || item.integration_code || item.display_sku || '';
+                          // Handle different data structures - try nested object first
+                          const itemData = item.item || item.items || item;
+                          const itemName = itemData.itemName || itemData.name || itemData.display_name || itemData.title || 
+                                          item.itemName || item.name || item.display_name || item.title || 
+                                          `Item ${item.itemId}`;
+                          
+                          const itemType = itemData.itemType || itemData.type || item.itemType || item.type || 'Material';
+                          const itemDescription = itemData.itemDescription || itemData.description || itemData.display_description || 
+                                                 item.itemDescription || item.description || item.display_description || '';
+                          const itemSku = itemData.itemSku || itemData.sku || itemData.integrationCode || itemData.integration_code || 
+                                         itemData.display_sku || item.itemSku || item.sku || item.integrationCode || 
+                                         item.integration_code || item.display_sku || '';
                           const remainingQty = item.remainingQuantity || item.plannedQuantity || '0';
                           const unitPrice = parseFloat(item.unitPriceAtPlanning || item.unitPrice || item.price || item.unit_cost || 0);
                           
