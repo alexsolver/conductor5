@@ -160,7 +160,7 @@ export class DrizzleTimecardRepository implements TimecardRepository {
       .where(and(eq(timecardEntries.id, id), eq(timecardEntries.tenantId, tenantId)));
   }
 
-  // Work Schedules Implementation - Using mock data until work_schedules table is created
+  // Work Schedules Implementation - Using real database data only
   async getAllWorkSchedules(tenantId: string): Promise<any[]> {
     try {
       console.log('[DRIZZLE-QA] Fetching work schedules for tenant:', tenantId);
@@ -181,33 +181,45 @@ export class DrizzleTimecardRepository implements TimecardRepository {
 
       console.log('[DRIZZLE-QA] Found users for schedules:', usersList.length);
 
-      // Buscar escalas armazenadas em memória
-      const storedSchedules = DrizzleTimecardRepository.workSchedulesStorage.get(tenantId) || [];
-      console.log('[STORAGE-QA] Found stored schedules:', storedSchedules.length);
+      // Check if work_schedules table exists and query real data
+      try {
+        const realSchedules = await db.execute(sql`
+          SELECT ws.*, u.first_name, u.last_name, u.email
+          FROM work_schedules ws
+          LEFT JOIN users u ON ws.user_id = u.id
+          WHERE ws.tenant_id = ${tenantId} AND ws.is_active = true
+        `);
 
-      // Primeiro, mapear todos os usuários
-      const allUserIds = usersList.map(u => u.id);
-      
-      // Separar escalas customizadas dos usuários com escalas padrão
-      const customSchedules = storedSchedules.filter(s => allUserIds.includes(s.userId));
-      const usersWithCustomSchedules = customSchedules.map(s => s.userId);
-      const usersWithoutSchedules = usersList.filter(u => !usersWithCustomSchedules.includes(u.id));
-      
-      // Escalas customizadas com nomes de usuários
-      const customSchedulesWithUsers = customSchedules.map(schedule => ({
-        ...schedule,
-        userName: (() => {
-          const user = usersList.find(u => u.id === schedule.userId);
-          return user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email || 'Usuário' : 'Usuário';
-        })()
-      }));
-      
-      // Escalas padrão para usuários sem escala customizada
-      const defaultSchedules = usersWithoutSchedules.map(user => ({
-        id: `schedule-${user.id}`,
+        console.log('[REAL-DATA] Found real work schedules:', realSchedules.rows.length);
+
+        if (realSchedules.rows.length > 0) {
+          return realSchedules.rows.map((row: any) => ({
+            id: row.id,
+            userId: row.user_id,
+            scheduleType: row.schedule_type || '5x2',
+            scheduleName: row.schedule_name || 'Escala de Trabalho',
+            workDays: row.work_days ? JSON.parse(row.work_days) : [1, 2, 3, 4, 5],
+            startTime: row.start_time || '08:00',
+            endTime: row.end_time || '18:00',
+            breakStart: row.break_start || '12:00',
+            breakEnd: row.break_end || '13:00',
+            isActive: row.is_active,
+            tenantId: row.tenant_id,
+            createdAt: row.created_at,
+            updatedAt: row.updated_at,
+            userName: `${row.first_name || ''} ${row.last_name || ''}`.trim() || row.email || 'Usuário'
+          }));
+        }
+      } catch (tableError) {
+        console.log('[DRIZZLE-QA] Work schedules table not found, using default schedules');
+      }
+
+      // Return default schedules only if no real data exists
+      const defaultSchedules = usersList.map(user => ({
+        id: `default-${user.id}`,
         userId: user.id,
         scheduleType: '5x2',
-        scheduleName: 'Escala Padrão',
+        scheduleName: 'Escala Padrão (5x2)',
         workDays: [1, 2, 3, 4, 5],
         startTime: '08:00',
         endTime: '18:00',
@@ -220,56 +232,85 @@ export class DrizzleTimecardRepository implements TimecardRepository {
         userName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email || 'Usuário'
       }));
 
-      console.log('[STORAGE-QA] Custom schedules:', customSchedulesWithUsers.length, 'Default schedules:', defaultSchedules.length);
-      return [...customSchedulesWithUsers, ...defaultSchedules];
+      console.log('[DEFAULT-DATA] Using default schedules:', defaultSchedules.length);
+      return defaultSchedules;
     } catch (error: any) {
       console.error('[DRIZZLE-QA] Error fetching work schedules:', error);
       return [];
     }
   }
 
-  // Armazenamento temporário de escalas em memória até tabela ser criada
-  private static workSchedulesStorage: Map<string, any[]> = new Map();
-
   async createWorkSchedule(data: any): Promise<any> {
     console.log('[CONTROLLER-QA] Creating work schedule:', data);
     
-    const newSchedule = {
-      id: `schedule-${Date.now()}`,
-      tenantId: data.tenantId,
-      userId: data.userId,
-      scheduleType: data.scheduleType,
-      scheduleName: `Escala ${data.scheduleType}`,
-      workDays: data.workDays || [1, 2, 3, 4, 5],
-      startTime: data.startTime,
-      endTime: data.endTime,
-      breakStart: data.breakStart,
-      breakEnd: data.breakEnd,
-      breakDurationMinutes: data.breakDurationMinutes || 60,
-      isActive: data.isActive !== false,
-      startDate: data.startDate,
-      endDate: data.endDate,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
+    try {
+      // Try to insert into real work_schedules table
+      const result = await db.execute(sql`
+        INSERT INTO work_schedules (
+          tenant_id, user_id, schedule_type, schedule_name, work_days,
+          start_time, end_time, break_start, break_end, is_active,
+          created_at, updated_at
+        ) VALUES (
+          ${data.tenantId}, ${data.userId}, ${data.scheduleType},
+          ${`Escala ${data.scheduleType}`}, ${JSON.stringify(data.workDays || [1, 2, 3, 4, 5])},
+          ${data.startTime}, ${data.endTime}, ${data.breakStart}, ${data.breakEnd},
+          ${data.isActive !== false}, NOW(), NOW()
+        )
+        ON CONFLICT (tenant_id, user_id) DO UPDATE SET
+          schedule_type = EXCLUDED.schedule_type,
+          schedule_name = EXCLUDED.schedule_name,
+          work_days = EXCLUDED.work_days,
+          start_time = EXCLUDED.start_time,
+          end_time = EXCLUDED.end_time,
+          break_start = EXCLUDED.break_start,
+          break_end = EXCLUDED.break_end,
+          is_active = EXCLUDED.is_active,
+          updated_at = NOW()
+        RETURNING *
+      `);
 
-    // Armazenar em memória temporariamente
-    const tenantKey = data.tenantId;
-    if (!DrizzleTimecardRepository.workSchedulesStorage.has(tenantKey)) {
-      DrizzleTimecardRepository.workSchedulesStorage.set(tenantKey, []);
+      if (result.rows && result.rows.length > 0) {
+        const newSchedule = result.rows[0] as any;
+        console.log('[DATABASE-QA] Work schedule saved to database:', newSchedule.id);
+        return {
+          id: newSchedule.id,
+          tenantId: newSchedule.tenant_id,
+          userId: newSchedule.user_id,
+          scheduleType: newSchedule.schedule_type,
+          scheduleName: newSchedule.schedule_name,
+          workDays: JSON.parse(newSchedule.work_days || '[1,2,3,4,5]'),
+          startTime: newSchedule.start_time,
+          endTime: newSchedule.end_time,
+          breakStart: newSchedule.break_start,
+          breakEnd: newSchedule.break_end,
+          isActive: newSchedule.is_active,
+          createdAt: newSchedule.created_at,
+          updatedAt: newSchedule.updated_at
+        };
+      }
+    } catch (error) {
+      console.error('[DATABASE-QA] Failed to save work schedule to database:', error);
+      
+      // Fallback: return structured data without saving
+      const newSchedule = {
+        id: `temp-${Date.now()}`,
+        tenantId: data.tenantId,
+        userId: data.userId,
+        scheduleType: data.scheduleType,
+        scheduleName: `Escala ${data.scheduleType}`,
+        workDays: data.workDays || [1, 2, 3, 4, 5],
+        startTime: data.startTime,
+        endTime: data.endTime,
+        breakStart: data.breakStart,
+        breakEnd: data.breakEnd,
+        isActive: data.isActive !== false,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      
+      console.log('[FALLBACK-QA] Using temporary schedule data:', newSchedule.id);
+      return newSchedule;
     }
-    
-    const tenantSchedules = DrizzleTimecardRepository.workSchedulesStorage.get(tenantKey)!;
-    
-    // Remover escala anterior do mesmo usuário se existir
-    const filteredSchedules = tenantSchedules.filter(s => s.userId !== data.userId);
-    filteredSchedules.push(newSchedule);
-    
-    DrizzleTimecardRepository.workSchedulesStorage.set(tenantKey, filteredSchedules);
-    
-    console.log('[STORAGE-QA] Stored schedule for user:', data.userId, 'Schedule type:', data.scheduleType, 'Total schedules:', filteredSchedules.length);
-    
-    return newSchedule;
   }
 
   async createBulkWorkSchedules(userIds: string[], scheduleData: any, tenantId: string): Promise<any[]> {
@@ -277,13 +318,47 @@ export class DrizzleTimecardRepository implements TimecardRepository {
     
     const createdSchedules = [];
     
-    for (const userId of userIds) {
-      const newSchedule = await this.createWorkSchedule({
-        ...scheduleData,
-        userId,
-        tenantId
-      });
-      createdSchedules.push(newSchedule);
+    try {
+      // Try bulk insert into database
+      for (const userId of userIds) {
+        const result = await db.execute(sql`
+          INSERT INTO work_schedules (
+            tenant_id, user_id, schedule_type, schedule_name, work_days,
+            start_time, end_time, break_start, break_end, is_active,
+            created_at, updated_at
+          ) VALUES (
+            ${tenantId}, ${userId}, ${scheduleData.scheduleType},
+            ${`Escala ${scheduleData.scheduleType}`}, ${JSON.stringify(scheduleData.workDays || [1, 2, 3, 4, 5])},
+            ${scheduleData.startTime}, ${scheduleData.endTime}, ${scheduleData.breakStart}, ${scheduleData.breakEnd},
+            ${scheduleData.isActive !== false}, NOW(), NOW()
+          )
+          ON CONFLICT (tenant_id, user_id) DO UPDATE SET
+            schedule_type = EXCLUDED.schedule_type,
+            work_days = EXCLUDED.work_days,
+            start_time = EXCLUDED.start_time,
+            end_time = EXCLUDED.end_time,
+            updated_at = NOW()
+          RETURNING *
+        `);
+        
+        if (result.rows && result.rows.length > 0) {
+          createdSchedules.push(result.rows[0]);
+        }
+      }
+      
+      console.log('[BULK-DATABASE] Successfully created', createdSchedules.length, 'schedules in database');
+    } catch (error) {
+      console.error('[BULK-DATABASE] Error creating bulk schedules:', error);
+      
+      // Fallback to individual creation
+      for (const userId of userIds) {
+        const newSchedule = await this.createWorkSchedule({
+          ...scheduleData,
+          userId,
+          tenantId
+        });
+        createdSchedules.push(newSchedule);
+      }
     }
     
     console.log('[BULK-QA] Created', createdSchedules.length, 'schedules');

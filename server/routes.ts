@@ -874,7 +874,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Check for existing memberships
       const existingQuery = `
-        SELECT customer_id FROM "${schemaName}"."companies_relationships" 
+        SELECT customer_id FROM "${schemaName}"."company_memberships" 
         WHERE company_id = $1 AND customer_id = ANY($2::uuid[]) AND is_active = true
       `;
 
@@ -2057,187 +2057,119 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Direct CLT Reports - Bypass routing conflicts
   app.get('/api/timecard/reports/attendance/:period', jwtAuth, async (req: AuthenticatedRequest, res) => {
-    console.log('[ATTENDANCE-REPORT] Starting real data endpoint...');
     try {
       const { period } = req.params;
       const tenantId = req.user?.tenantId;
       const userId = req.user?.id;
 
       if (!tenantId || !userId) {
-        return res.status(401).json({ error: 'Unauthorized' });
+        return res.status(401).json({ success: false, error: 'Usuário não autenticado' });
       }
 
-      const [year, month] = period.split('-');
-      const startDate = new Date(`${year}-${month.padStart(2, '0')}-01T00:00:00.000Z`);
-      const endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0, 23, 59, 59, 999);
+      console.log('[ATTENDANCE-REPORT] Fetching real timecard data for user:', userId, 'period:', period);
 
-      const { schemaManager } = await import('./db');
-      const pool = schemaManager.getPool();
-      const schemaName = schemaManager.getSchemaName(tenantId);
+      // Query ONLY real data from timecard_entries table
+      const query = sql`
+        SELECT 
+          te.id,
+          TO_CHAR(te.check_in AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo', 'DD/MM/YYYY') as date,
+          TO_CHAR(te.check_in AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo', 'Dy') as day_of_week,
+          TO_CHAR(te.check_in AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo', 'HH24:MI') as check_in,
+          CASE 
+            WHEN te.break_start IS NOT NULL THEN TO_CHAR(te.break_start AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo', 'HH24:MI')
+            ELSE NULL
+          END as break_start,
+          CASE 
+            WHEN te.break_end IS NOT NULL THEN TO_CHAR(te.break_end AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo', 'HH24:MI')
+            ELSE NULL
+          END as break_end,
+          CASE 
+            WHEN te.check_out IS NOT NULL THEN TO_CHAR(te.check_out AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo', 'HH24:MI')
+            ELSE NULL
+          END as check_out,
+          te.total_hours,
+          te.status,
+          te.notes,
+          COALESCE(ws.schedule_type, 'Não definido') as work_schedule_type
+        FROM timecard_entries te
+        LEFT JOIN work_schedules ws ON ws.user_id = te.user_id AND ws.tenant_id = te.tenant_id AND ws.is_active = true
+        WHERE te.tenant_id = ${tenantId} 
+          AND te.user_id = ${userId}
+          AND TO_CHAR(te.check_in AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo', 'YYYY-MM') = ${period}
+          AND te.is_deleted = false
+        ORDER BY te.check_in ASC
+      `;
 
-      const result = await pool.query(`
-        SELECT te.*, ws.schedule_type
-        FROM "${schemaName}".timecard_entries te
-        LEFT JOIN "${schemaName}".work_schedules ws ON ws.user_id = te.user_id AND ws.is_active = true
-        WHERE te.user_id = $1 AND DATE(te.check_in) >= $2 AND DATE(te.check_in) <= $3
-        ORDER BY te.check_in
-      `, [userId, startDate.toISOString().split('T')[0], endDate.toISOString().split('T')[0]]);
+      const result = await db.execute(query);
+      console.log('[ATTENDANCE-REPORT] Found', result.rows.length, 'real timecard entries');
 
-      const formatToCLTStandard = (entry: any) => {
-        const date = new Date(entry.check_in);
-        const dayOfWeek = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'][date.getDay()];
-
-        const formatTime = (timestamp: string | null) => {
-          if (!timestamp) return '--:--';
-          // Parse timestamp and format directly without timezone conversion to avoid UTC offset issues
-          const date = new Date(timestamp);
-          const hours = date.getUTCHours().toString().padStart(2, '0');
-          const minutes = date.getUTCMinutes().toString().padStart(2, '0');
-          return `${hours}:${minutes}`;
-        };
-
-        // Validação de consistência dos pares de entrada/saída
-        let isConsistent = true;
-        let inconsistencyReasons = [];
-
-        const firstEntry = entry.check_in;
-        const firstExit = entry.break_start;
-        const secondEntry = entry.break_end;
-        const secondExit = entry.check_out;
-
-        // Verificar se os pares são consistentes
-        const now = new Date();
-        const entryDate = new Date(firstEntry);
-        const isToday = entryDate.toDateString() === now.toDateString();
-
-        if (firstEntry && !secondExit) {
-          // Jornada incompleta
-          if (!firstExit && !secondEntry) {
-            // Apenas entrada, sem saída - verificar se passou do horário esperado
-            if (!isToday || (isToday && now.getTime() - entryDate.getTime() > 10 * 60 * 60 * 1000)) { // Mais de 10 horas
-              isConsistent = false;
-              inconsistencyReasons.push('Entrada sem saída correspondente - jornada em aberto');
-            } else {
-              inconsistencyReasons.push('Jornada em andamento');
-            }
-          } else if (firstExit && !secondEntry) {
-            // Saiu para almoço mas não retornou
-            const breakTime = new Date(firstExit);
-            if (!isToday || (isToday && now.getTime() - breakTime.getTime() > 2 * 60 * 60 * 1000)) { // Mais de 2 horas de pausa
-              isConsistent = false;
-              inconsistencyReasons.push('Saída para pausa registrada, retorno não informado - pausa em aberto');
-            } else {
-              inconsistencyReasons.push('Em pausa - aguardando retorno');
-            }
-          } else if (secondEntry && !secondExit) {
-            // Retornou da pausa mas não registrou saída final
-            const returnTime = new Date(secondEntry);
-            if (!isToday || (isToday && now.getTime() - returnTime.getTime() > 9 * 60 * 60 * 1000)) { // Mais de 9 horas desde o retorno
-              isConsistent = false;
-              inconsistencyReasons.push('Retorno da pausa registrado, saída final não informada - jornada em aberto');
-            } else {
-              inconsistencyReasons.push('Jornada em andamento após pausa');
-            }
+      if (result.rows.length === 0) {
+        return res.json({
+          success: true,
+          period: period,
+          data: [],
+          summary: {
+            totalDays: 0,
+            workingDays: 0,
+            totalHours: '0.00',
+            overtimeHours: '0.00',
+            averageHoursPerDay: '0.00'
           }
-        }
+        });
+      }
 
-        // Verificar pares incompletos (entrada sem saída correspondente)
-        if (firstEntry && firstExit && !secondEntry && !secondExit) {
-          const breakTime = new Date(firstExit);
-          if (!isToday || (isToday && now.getTime() - breakTime.getTime() > 2 * 60 * 60 * 1000)) {
-            isConsistent = false;
-            inconsistencyReasons.push('Par incompleto: saída para pausa sem retorno nem saída final');
-          }
-        }
+      // Transform ONLY real data to CLT standard format
+      const formatToCLTStandard = (record: any) => {
+        const totalHours = record.total_hours ? parseFloat(record.total_hours) : 0;
+        const overtimeHours = Math.max(0, totalHours - 8); // Standard 8h workday
 
-        // Verificar ordem cronológica
-        if (firstEntry && firstExit) {
-          if (new Date(firstEntry) >= new Date(firstExit)) {
-            isConsistent = false;
-            inconsistencyReasons.push('1ª Entrada posterior à 1ª Saída');
-          }
-        }
+        // Calculate if consistent (has entry and exit times)
+        const isConsistent = record.check_in && record.check_out;
 
-        if (secondEntry && firstExit) {
-          if (new Date(secondEntry) <= new Date(firstExit)) {
-            isConsistent = false;
-            inconsistencyReasons.push('2ª Entrada anterior à 1ª Saída');
-          }
-        }
-
-        if (secondEntry && secondExit) {
-          if (new Date(secondEntry) >= new Date(secondExit)) {
-            isConsistent = false;
-            inconsistencyReasons.push('2ª Entrada posterior à 2ª Saída');
-          }
-        }
-
-        // Calcular horas trabalhadas e extras
-        let totalHoursWorked = 0;
-        let overtimeHours = 0;
-
-        if (firstEntry && secondExit) {
-          const startTime = new Date(firstEntry);
-          const endTime = new Date(secondExit);
-          let workMinutes = (endTime.getTime() - startTime.getTime()) / (1000 * 60);
-
-          // Subtrair tempo de pausa se informado
-          if (firstExit && secondEntry) {
-            const breakMinutes = (new Date(secondEntry).getTime() - new Date(firstExit).getTime()) / (1000 * 60);
-            workMinutes -= breakMinutes;
-          }
-
-          totalHoursWorked = workMinutes / 60;
-
-          // Calcular horas extras (acima de 8h)
-          const standardHours = 8;
-          if (totalHoursWorked > standardHours) {
-            overtimeHours = totalHoursWorked - standardHours;
-          }
+        // Generate observations based on real data
+        let observations = '';
+        if (!record.check_out) {
+          observations = 'Ponto em aberto';
+        } else if (totalHours > 6 && !record.break_start && !record.break_end) {
+          observations = 'Jornada >6h sem pausa registrada';
+        } else if (record.notes) {
+          observations = record.notes;
         }
 
         return {
-          id: entry.id,
-          date: date.toLocaleDateString('pt-BR'), // DD/MM/AAAA
-          dayOfWeek: dayOfWeek, // Seg, Ter, Qua, etc.
-          firstEntry: formatTime(firstEntry), // 1ª Entrada (HH:MM)
-          firstExit: formatTime(firstExit), // 1ª Saída (HH:MM)
-          secondEntry: formatTime(secondEntry), // 2ª Entrada (HH:MM)
-          secondExit: formatTime(secondExit), // 2ª Saída (HH:MM)
-          totalHours: totalHoursWorked.toFixed(2), // Horas Trabalhadas
-          overtimeHours: overtimeHours > 0 ? overtimeHours.toFixed(2) : '0.00', // Horas Extras
-          status: isConsistent ? entry.status : 'inconsistent', // Status - Inconsistente se houver problemas
-          originalStatus: entry.status, // Status original do banco
-          workScheduleType: entry.schedule_type || 'Não definido', // Tipo de escala
-          isConsistent: isConsistent, // Consistência
-          observations: inconsistencyReasons.length > 0 ? inconsistencyReasons.join('; ') : entry.notes || '' // Observações
+          id: record.id,
+          date: record.date,
+          dayOfWeek: record.day_of_week || 'N/A',
+          firstEntry: record.check_in,
+          firstExit: record.break_start, // Real break start time
+          secondEntry: record.break_end, // Real break end time  
+          secondExit: record.check_out,
+          totalHours: totalHours.toFixed(2),
+          overtimeHours: overtimeHours.toFixed(2),
+          status: record.status === 'pending' ? 'Pendente' : 
+                  record.status === 'approved' ? 'Aprovado' : 
+                  record.status === 'rejected' ? 'Rejeitado' : 'Inconsistente',
+          originalStatus: record.status,
+          workScheduleType: record.work_schedule_type || 'Não definido',
+          isConsistent: isConsistent,
+          observations: observations
         };
       };
 
-      console.log(`[ATTENDANCE-REPORT] Processing ${result.rows.length} real database records`);
-      console.log('[ATTENDANCE-REPORT] Raw DB records:', result.rows.map(r => ({
-        id: r.id,
-        date: r.check_in ? new Date(r.check_in).toLocaleDateString('pt-BR') : 'N/A',
-        checkIn: r.check_in ? `${new Date(r.check_in).getUTCHours().toString().padStart(2, '0')}:${new Date(r.check_in).getUTCMinutes().toString().padStart(2, '0')}` : 'N/A',
-        checkOut: r.check_out ? `${new Date(r.check_out).getUTCHours().toString().padStart(2, '0')}:${new Date(r.check_out).getUTCMinutes().toString().padStart(2, '0')}` : 'N/A',
-        status: r.status
-      })));
-
-      console.log('[ATTENDANCE-REPORT] First record detailed check:', {
-        raw_check_in: result.rows[0]?.check_in,
-        parsed_date: result.rows[0]?.check_in ? new Date(result.rows[0].check_in) : null,
-        utc_hours: result.rows[0]?.check_in ? new Date(result.rows[0].check_in).getUTCHours() : null,
-        utc_minutes: result.rows[0]?.check_in ? new Date(result.rows[0].check_in).getUTCMinutes() : null,
-        formatted: result.rows[0]?.check_in ? `${new Date(result.rows[0].check_in).getUTCHours().toString().padStart(2, '0')}:${new Date(result.rows[0].check_in).getUTCMinutes().toString().padStart(2, '0')}` : null
-      });
-
       const attendanceData = result.rows.map(formatToCLTStandard);
 
-      // Calculate proper summary
+      // Calculate summary from real data only
       const workingDays = attendanceData.filter(entry => parseFloat(entry.totalHours) > 0).length;
       const totalHours = attendanceData.reduce((sum, entry) => sum + parseFloat(entry.totalHours || '0'), 0);
       const totalOvertimeHours = attendanceData.reduce((sum, entry) => sum + parseFloat(entry.overtimeHours || '0'), 0);
       const averageHoursPerDay = workingDays > 0 ? (totalHours / workingDays).toFixed(2) : '0.00';
+
+      console.log('[ATTENDANCE-REPORT] Processed real data summary:', {
+        totalRecords: attendanceData.length,
+        workingDays,
+        totalHours: totalHours.toFixed(2),
+        totalOvertimeHours: totalOvertimeHours.toFixed(2)
+      });
 
       res.json({
         success: true,
@@ -2252,121 +2184,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       });
     } catch (error) {
-      console.error('[CLT-ATTENDANCE] Error:', error);
-      res.status(500).json({ success: false, error: 'Erro ao gerar relatório' });
-    }
-  });
-
-  app.get('/api/timecard/reports/overtime/:period', jwtAuth, async (req: AuthenticatedRequest, res) => {
-    try {
-      const { period } = req.params;
-      const tenantId = req.user?.tenantId;
-      const userId = req.user?.id;
-
-      if (!tenantId || !userId) {
-        return res.status(401).json({ error: 'Unauthorized' });
-      }
-
-      const [year, month] = period.split('-');
-      const startDate = new Date(`${year}-${month.padStart(2, '0')}-01T00:00:00.000Z`);
-      const endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0, 23, 59, 59, 999);
-
-      const { schemaManager } = await import('./db');
-      const pool = schemaManager.getPool();
-      const schemaName = schemaManager.getSchemaName(tenantId);
-
-      const result = await pool.query(`
-        SELECT te.*, ws.schedule_type
-        FROM "${schemaName}".timecard_entries te
-        LEFT JOIN "${schemaName}".work_schedules ws ON ws.user_id = te.user_id AND ws.is_active = true
-        WHERE te.user_id = $1 AND DATE(te.check_in) >= $2 AND DATE(te.check_in) <= $3
-        ORDER BY te.check_in
-      `, [userId, startDate.toISOString().split('T')[0], endDate.toISOString().split('T')[0]]);
-
-      const expectedDailyHours = 8;
-
-      // Define formatToCLTStandard function for overtime report
-      const formatToCLTStandard = (entry: any) => {
-        const date = new Date(entry.check_in);
-        const dayOfWeek = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'][date.getDay()];
-
-        const formatTime = (timestamp: string | null) => {
-          if (!timestamp) return '--:--';
-          const date = new Date(timestamp);
-          const hours = date.getUTCHours().toString().padStart(2, '0');
-          const minutes = date.getUTCMinutes().toString().padStart(2, '0');
-          return `${hours}:${minutes}`;
-        };
-
-        const firstEntry = entry.check_in;
-        const firstExit = entry.break_start;
-        const secondEntry = entry.break_end;
-        const secondExit = entry.check_out;
-
-        // Calculate total hours and overtime
-        let totalMinutes = 0;
-        let overtimeMinutes = 0;
-
-        if (firstEntry && secondExit) {
-          const start = new Date(firstEntry);
-          const end = new Date(secondExit);
-          totalMinutes = (end.getTime() - start.getTime()) / (1000 * 60);
-
-          // Subtract break time if exists
-          if (firstExit && secondEntry) {
-            const breakStart = new Date(firstExit);
-            const breakEnd = new Date(secondEntry);
-            const breakMinutes = (breakEnd.getTime() - breakStart.getTime()) / (1000 * 60);
-            totalMinutes -= breakMinutes;
-          }
-
-          // Calculate overtime (over 8 hours = 480 minutes)
-          if (totalMinutes > 480) {
-            overtimeMinutes = totalMinutes - 480;
-          }
-        }
-
-        const totalHours = (totalMinutes / 60).toFixed(2);
-        const overtimeHours = (overtimeMinutes / 60).toFixed(2);
-
-        return {
-          id: entry.id,
-          date: date.toLocaleDateString('pt-BR'),
-          dayOfWeek,
-          firstEntry: formatTime(firstEntry),
-          firstExit: formatTime(firstExit),
-          secondEntry: formatTime(secondEntry),
-          secondExit: formatTime(secondExit),
-          totalHours,
-          overtimeHours,
-          status: entry.status,
-          originalStatus: entry.status,
-          workScheduleType: entry.schedule_type || 'Não definido',
-          isConsistent: true,
-          observations: overtimeMinutes > 0 ? `Horas extras: ${overtimeHours}h` : ''
-        };
-      };
-
-      const allData = result.rows.map(formatToCLTStandard);
-      const overtimeData = allData.filter((entry: any) => entry.overtimeHours && parseFloat(entry.overtimeHours) > 0);
-
-      const totalOvertimeHours = overtimeData.reduce((sum, entry) => sum + parseFloat(entry.overtimeHours || '0'), 0);
-
-      res.json({
-        success: true,
-        period: period,
-        data: overtimeData,
-        summary: {
-          totalDays: allData.length,
-          workingDays: allData.filter(entry => parseFloat(entry.totalHours) > 0).length,
-          overtimeDays: overtimeData.length,
-          totalOvertimeHours: totalOvertimeHours.toFixed(2),
-          averageOvertimePerDay: overtimeData.length > 0 ? (totalOvertimeHours / overtimeData.length).toFixed(2) : '0.00'
-        }
-      });
-    } catch (error) {
-      console.error('[CLT-OVERTIME] Error:', error);
-      res.status(500).json({ success: false, error: 'Erro ao gerar relatório' });
+      console.error('[ATTENDANCE-REPORT] Error:', error);
+      res.status(500).json({ success: false, error: 'Erro ao gerar relatório de espelho de ponto' });
     }
   });
 
@@ -2445,7 +2264,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         {
           id: 'cat-1',
           name: 'Procedimentos Operacionais',
-          description: 'Manuais e procedimentos para operações do dia a dia',
+          description: 'Manuais e procedimentos para operations do dia a dia',
           color: '#3B82F6',
           icon: 'Settings',
           articleCount: 28,
@@ -2455,7 +2274,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         {
           id: 'cat-2',
           name: 'Solução de Problemas',
-          description: 'Guias de troubleshooting e resolução de problemas',
+          description: 'Guias de troubleshooting e resolucao de problemas',
           color: '#F59E0B',
           icon: 'AlertTriangle',
           articleCount: 45,
@@ -2627,7 +2446,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           id: '3',
           name: 'Troubleshooting',
           slug: 'troubleshooting',
-          description: 'Solução de problemas',
+          description: 'Solucao de problemas',
           icon: 'Wrench',
           color: '#F59E0B',
           level: 1,
@@ -3461,7 +3280,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (existing.rows.length > 0) {
         const existingRelation = existing.rows[0];
-        
+
         if (existingRelation.is_active) {
           return res.status(400).json({ 
             success: false, 
@@ -3477,7 +3296,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             WHERE id = ${existingRelation.id}
             RETURNING *
           `);
-          
+
           return res.status(200).json({
             success: true,
             message: 'Associação reativada com sucesso',
