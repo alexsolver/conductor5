@@ -1,9 +1,9 @@
-import { eq, and, gte, lte, desc, asc, sql, inArray } from 'drizzle-orm';
+import { eq, and, gte, lte, desc, asc, sql, inArray, isNotNull } from 'drizzle-orm';
 import { DrizzleTimecardRepository } from '../../infrastructure/repositories/DrizzleTimecardRepository';
 import { Request, Response } from 'express';
 import { z } from 'zod';
 import { db } from '../../../../db';
-import { timecardEntries, workSchedules } from '@shared/schema';
+import { timecardEntries, workSchedules, users } from '@shared/schema';
 import {
   createTimecardEntrySchema,
   createAbsenceRequestSchema,

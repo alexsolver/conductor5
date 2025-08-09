@@ -81,15 +81,53 @@ timecardRouter.get('/reports/overtime/:period', jwtAuth, async (req, res) => {
   try {
     console.log('[TIMECARD-ROUTES] Processing overtime report request for period:', req.params.period);
     res.setHeader('Content-Type', 'application/json');
+    
+    // Check if response was already sent
+    if (res.headersSent) {
+      console.log('[TIMECARD-ROUTES] Response already sent, skipping');
+      return;
+    }
+    
     await timecardController.getOvertimeReport(req, res);
   } catch (error) {
     console.error('[TIMECARD-ROUTES] Error in overtime report:', error);
+    
+    // Only send error if response wasn't sent yet
+    if (!res.headersSent) {
+      res.setHeader('Content-Type', 'application/json');
+      res.status(500).json({
+        success: false,
+        error: 'Erro ao gerar relatório de horas extras',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+});
+
+timecardRouter.get('/reports/compliance/:period', jwtAuth, async (req, res) => {
+  try {
+    console.log('[TIMECARD-ROUTES] Processing compliance report request for period:', req.params.period);
     res.setHeader('Content-Type', 'application/json');
-    res.status(500).json({
-      success: false,
-      error: 'Erro ao gerar relatório de horas extras',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    });
+    
+    // Check if response was already sent
+    if (res.headersSent) {
+      console.log('[TIMECARD-ROUTES] Response already sent, skipping');
+      return;
+    }
+    
+    await timecardController.getComplianceReport(req, res);
+  } catch (error) {
+    console.error('[TIMECARD-ROUTES] Error in compliance report:', error);
+    
+    // Only send error if response wasn't sent yet
+    if (!res.headersSent) {
+      res.setHeader('Content-Type', 'application/json');
+      res.status(500).json({
+        success: false,
+        error: 'Erro ao gerar relatório de compliance',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
   }
 });
 

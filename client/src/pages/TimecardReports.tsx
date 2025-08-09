@@ -126,16 +126,52 @@ export default function TimecardReports() {
     retry: false
   });
 
-  const { data: complianceReport, isLoading: complianceLoading } = useQuery({
-    queryKey: ['/api/timecard/compliance/reports'],
+  const { data: complianceReport, isLoading: complianceLoading, error: complianceError } = useQuery({
+    queryKey: ['compliance-report', selectedPeriod, startDate, endDate, selectedEmployee],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/timecard/compliance/reports');
-      if (!response.ok) {
-        throw new Error(`Erro ${response.status}: ${response.statusText}`);
+      console.log('[TIMECARD-REPORTS] Fetching compliance report with filters:', {
+        period: selectedPeriod,
+        startDate,
+        endDate,
+        employee: selectedEmployee
+      });
+      try {
+        // Build query params with filters
+        const params = new URLSearchParams();
+        if (startDate) params.append('startDate', startDate);
+        if (endDate) params.append('endDate', endDate);
+        if (selectedEmployee !== 'todos') params.append('employeeId', selectedEmployee);
+        
+        const url = `/api/timecard/reports/compliance/${selectedPeriod}${params.toString() ? '?' + params.toString() : ''}`;
+        const response = await apiRequest('GET', url);
+
+        if (!response.ok) {
+          console.error('[TIMECARD-REPORTS] HTTP Error:', response.status, response.statusText);
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          const text = await response.text();
+          console.error('[TIMECARD-REPORTS] Non-JSON response:', text.substring(0, 200));
+          throw new Error('Resposta inválida do servidor - esperado JSON');
+        }
+
+        const data = await response.json();
+        console.log('[TIMECARD-REPORTS] Compliance report data received:', data);
+
+        if (!data.success && data.error) {
+          throw new Error(data.error);
+        }
+
+        return data;
+      } catch (error) {
+        console.error('[TIMECARD-REPORTS] Error fetching compliance report:', error);
+        throw error;
       }
-      return response.json();
     },
-    enabled: reportType === 'compliance'
+    enabled: reportType === 'compliance',
+    retry: false
   });
 
   const formatTime = (dateString: string) => {
@@ -158,12 +194,24 @@ export default function TimecardReports() {
     console.log('Exportando para PDF...');
   };
 
+  // Fetch users for employee filter
+  const { data: usersData } = useQuery({
+    queryKey: ['/api/timecard/users'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/timecard/users');
+      if (!response.ok) {
+        throw new Error(`Erro ${response.status}: ${response.statusText}`);
+      }
+      return response.json();
+    }
+  });
+
   const currentReport = reportType === 'attendance' ? attendanceReport : 
                        reportType === 'overtime' ? overtimeReport : 
                        complianceReport;
 
   const isLoading = attendanceLoading || overtimeLoading || complianceLoading;
-  const currentError = attendanceError || overtimeError;
+  const currentError = attendanceError || overtimeError || complianceError;
 
   // Debug logging for data rendering
   console.log('[TIMECARD-REPORTS-DEBUG] Current state:', {
@@ -234,8 +282,12 @@ export default function TimecardReports() {
                   <SelectValue placeholder="Selecionar funcionário" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="todos">Todos os Funcionários</SelectItem>
-                  <SelectItem value="550e8400-e29b-41d4-a716-446655440001">Alex Silva</SelectItem>
+                  <SelectItem value="todos">Usuário Atual</SelectItem>
+                  {usersData?.users?.map((user: any) => (
+                    <SelectItem key={user.id} value={user.id}>
+                      {user.firstName} {user.lastName}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -349,7 +401,11 @@ export default function TimecardReports() {
               <div>Erro ao carregar dados: {currentError.message}</div>
               <div className="text-sm mt-2">Verifique sua conexão e tente novamente</div>
             </div>
-          ) : currentReport?.success && currentReport?.data && Array.isArray(currentReport.data) && currentReport.data.length > 0 ? (
+          ) : currentReport?.success && (
+            (reportType === 'attendance' && currentReport?.records && Array.isArray(currentReport.records) && currentReport.records.length > 0) ||
+            (reportType === 'overtime' && currentReport?.data && Array.isArray(currentReport.data) && currentReport.data.length > 0) ||
+            (reportType === 'compliance' && currentReport?.data && Array.isArray(currentReport.data))
+          ) ? (
             <div className="overflow-x-auto">
               <table className="w-full border-collapse border-2 border-black text-xs">
                 <thead>
@@ -365,9 +421,9 @@ export default function TimecardReports() {
                   </tr>
                 </thead>
                 <tbody>
-                  {currentReport.data
-                    .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime())
-                    .map((record: any, index: number) => (
+                  {(reportType === 'attendance' ? currentReport.records : currentReport.data)
+                    ?.sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime())
+                    ?.map((record: any, index: number) => (
                       <tr key={index} className={`${!record.isConsistent ? 'bg-red-50 border-red-200' : 'hover:bg-gray-50'} h-14`}>
                         <td className="border-2 border-black px-2 py-3 text-center font-bold text-sm">
                           {record.date}
@@ -414,49 +470,115 @@ export default function TimecardReports() {
               </table>
 
               {/* RESUMO MENSAL OBRIGATÓRIO - PORTARIA MTE 671/2021 */}
+              {/* Resumo baseado no tipo de relatório */}
               <div className="mt-6 p-4 bg-green-50 border-2 border-green-300 rounded-lg">
                 <h4 className="text-sm font-bold text-green-900 mb-4 flex items-center gap-2">
-                  📊 RESUMO MENSAL OBRIGATÓRIO - CLT
-                  <span className="text-xs bg-green-200 px-2 py-1 rounded">Portaria MTE 671/2021</span>
+                  📊 {reportType === 'attendance' ? 'RESUMO MENSAL OBRIGATÓRIO - CLT' : 
+                      reportType === 'overtime' ? 'RESUMO DE HORAS EXTRAS' : 
+                      'RESUMO DE COMPLIANCE'}
+                  <span className="text-xs bg-green-200 px-2 py-1 rounded">
+                    {reportType === 'attendance' ? 'Portaria MTE 671/2021' : 
+                     reportType === 'overtime' ? 'Análise de Sobrejornada' : 
+                     'Análise de Conformidade'}
+                  </span>
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6 text-sm">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-700">
-                      {currentReport.data ? 
-                        currentReport.data.reduce((total, record) => total + parseFloat(record.totalHours || '0'), 0).toFixed(2) 
-                        : '0.00'}h
-                    </div>
-                    <div className="font-semibold text-green-800">Total de Horas</div>
-                    <div className="text-xs text-gray-600 mt-1">Soma do período</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-700">
-                      {currentReport.data ? 
-                        [...new Set(currentReport.data.map(r => r.date))].length 
-                        : 0}
-                    </div>
-                    <div className="font-semibold text-blue-800">Dias Trabalhados</div>
-                    <div className="text-xs text-gray-600 mt-1">Quantidade de dias</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-orange-700">
-                      {currentReport.data ? 
-                        currentReport.data.reduce((total, record) => total + parseFloat(record.overtimeHours || '0'), 0).toFixed(2) 
-                        : '0.00'}h
-                    </div>
-                    <div className="font-semibold text-orange-800">Horas Extras</div>
-                    <div className="text-xs text-gray-600 mt-1">Total de sobrejornada</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-purple-700">
-                      {currentReport.data && currentReport.data.length > 0 ? 
-                        (currentReport.data.reduce((total, record) => total + parseFloat(record.totalHours || '0'), 0) / 
-                         [...new Set(currentReport.data.map(r => r.date))].length).toFixed(2) 
-                        : '0.00'}h
-                    </div>
-                    <div className="font-semibold text-purple-800">Média Diária</div>
-                    <div className="text-xs text-gray-600 mt-1">Horas por dia trabalhado</div>
-                  </div>
+                  {reportType === 'attendance' && (
+                    <>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-700">
+                          {currentReport.summary?.totalHours || '0.0'}h
+                        </div>
+                        <div className="font-semibold text-green-800">Total de Horas</div>
+                        <div className="text-xs text-gray-600 mt-1">Soma do período</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-blue-700">
+                          {currentReport.summary?.workingDays || 0}
+                        </div>
+                        <div className="font-semibold text-blue-800">Dias Trabalhados</div>
+                        <div className="text-xs text-gray-600 mt-1">Quantidade de dias</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-orange-700">
+                          {currentReport.summary?.overtimeHours || '0.0'}h
+                        </div>
+                        <div className="font-semibold text-orange-800">Horas Extras</div>
+                        <div className="text-xs text-gray-600 mt-1">Total de sobrejornada</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-purple-700">
+                          {currentReport.summary?.averageHoursPerDay || '0.0'}h
+                        </div>
+                        <div className="font-semibold text-purple-800">Média Diária</div>
+                        <div className="text-xs text-gray-600 mt-1">Horas por dia trabalhado</div>
+                      </div>
+                    </>
+                  )}
+                  {reportType === 'overtime' && (
+                    <>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-orange-700">
+                          {currentReport.summary?.totalOvertimeHours || '0.0'}h
+                        </div>
+                        <div className="font-semibold text-orange-800">Total Horas Extras</div>
+                        <div className="text-xs text-gray-600 mt-1">Período selecionado</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-700">
+                          R$ {currentReport.summary?.totalOvertimeValue || '0.00'}
+                        </div>
+                        <div className="font-semibold text-green-800">Valor Total</div>
+                        <div className="text-xs text-gray-600 mt-1">R$ {currentReport.summary?.hourlyRate || '25.50'}/hora</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-blue-700">
+                          {currentReport.summary?.overtimeDaysCount || 0}
+                        </div>
+                        <div className="font-semibold text-blue-800">Dias com Extras</div>
+                        <div className="text-xs text-gray-600 mt-1">Dias trabalhados</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-purple-700">
+                          {currentReport.summary?.averageOvertimePerDay || '0.0'}h
+                        </div>
+                        <div className="font-semibold text-purple-800">Média Diária</div>
+                        <div className="text-xs text-gray-600 mt-1">Horas extras/dia</div>
+                      </div>
+                    </>
+                  )}
+                  {reportType === 'compliance' && (
+                    <>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-700">
+                          {currentReport.summary?.complianceRate || '0%'}
+                        </div>
+                        <div className="font-semibold text-green-800">Taxa de Conformidade</div>
+                        <div className="text-xs text-gray-600 mt-1">Registros corretos</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-red-700">
+                          {currentReport.summary?.issuesFound || 0}
+                        </div>
+                        <div className="font-semibold text-red-800">Problemas Encontrados</div>
+                        <div className="text-xs text-gray-600 mt-1">Total de inconsistências</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-orange-700">
+                          {currentReport.summary?.highSeverityIssues || 0}
+                        </div>
+                        <div className="font-semibold text-orange-800">Críticos</div>
+                        <div className="text-xs text-gray-600 mt-1">Alta severidade</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-blue-700">
+                          {currentReport.summary?.totalRecords || 0}
+                        </div>
+                        <div className="font-semibold text-blue-800">Total Registros</div>
+                        <div className="text-xs text-gray-600 mt-1">Analisados</div>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
 
