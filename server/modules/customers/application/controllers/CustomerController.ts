@@ -1,5 +1,7 @@
 // Using interface-based approach instead of direct Express dependency
 
+// Defining interfaces for HttpRequest and HttpResponse, assuming they are compatible with Express types
+// For a real Express application, you would use Request and Response directly from 'express'
 interface HttpRequest {
   body: any;
   params: any;
@@ -7,7 +9,7 @@ interface HttpRequest {
   headers: {
     'x-tenant-id'?: string;
     'x-user-id'?: string;
-  }
+  };
 }
 
 interface HttpResponse {
@@ -15,12 +17,20 @@ interface HttpResponse {
   json(data: any): void;
 }
 
-import { CustomerApplicationService } from '../services/CustomerApplicationService';
+import type { Request, Response } from 'express';
+import { CreateCustomerUseCase } from '../use-cases/CreateCustomerUseCase';
+import { GetCustomersUseCase } from '../use-cases/GetCustomersUseCase';
+import { UpdateCustomerUseCase } from '../usecases/UpdateCustomerUseCase';
+import { DeleteCustomerUseCase } from '../usecases/DeleteCustomerUseCase';
 import { transformToCustomerDTO } from '../dto/CustomerResponseDTO';
 
 export class CustomerController {
   constructor(
-    private customerApplicationService: CustomerApplicationService
+    private customerApplicationService: any, // Placeholder, as the original code uses this and the changes introduce use cases
+    private createCustomerUseCase: CreateCustomerUseCase,
+    private getCustomersUseCase: GetCustomersUseCase,
+    private updateCustomerUseCase: UpdateCustomerUseCase,
+    private deleteCustomerUseCase: DeleteCustomerUseCase
   ) {}
 
   async createCustomer(req: HttpRequest, res: HttpResponse): Promise<void> {

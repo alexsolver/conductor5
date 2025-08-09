@@ -1,4 +1,4 @@
-// Domain entities should not depend on ORM - removed drizzle import
+// Domain entities should not depend on ORM libraries
 
 export class KnowledgeBaseEntry {
   constructor(

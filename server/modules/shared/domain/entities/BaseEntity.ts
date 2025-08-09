@@ -1,4 +1,4 @@
-// Domain entities should be ORM-agnostic - removed drizzle dependencies
+// Domain entities should not depend on ORM libraries
 
 export abstract class BaseEntity {
   public readonly id: string;
