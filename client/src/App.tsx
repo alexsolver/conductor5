@@ -88,7 +88,7 @@ import TimecardApprovals from './pages/TimecardApprovals';
 
 // import { GlobalGeolocation } from "./components/GlobalGeolocation"; // Temporarily disabled due to TypeScript syntax issue
 import Customers from "./pages/Customers";
-
+import People from "./pages/People";
 
 // Components
 import { AppShell } from "./components/layout/AppShell";
@@ -209,6 +209,7 @@ function AppRouter() {
         <Route path="/custom-fields-admin" component={CustomFieldsAdministrator} />
         <Route path="/drag-drop-demo" component={DragDropDemo} />
         <Route path="/productivity-reports" component={ProductivityReports} />
+        <Route path="/people" element={<People />} />
 
         <Route path="/companies" component={Companies} />
         <Route component={NotFound} />

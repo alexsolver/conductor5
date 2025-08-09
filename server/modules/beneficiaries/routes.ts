@@ -21,12 +21,11 @@ const beneficiaryService = new BeneficiaryApplicationService(beneficiaryReposito
 
 // Initialize use cases
 import { CreateBeneficiaryUseCase } from './application/use-cases/CreateBeneficiaryUseCase';
+import { GetBeneficiariesUseCase } from './application/use-cases/GetBeneficiariesUseCase';
 import { BeneficiaryDomainService } from './domain/services/BeneficiaryDomainService';
 
 const createBeneficiaryUseCase = new CreateBeneficiaryUseCase(beneficiaryRepository, new BeneficiaryDomainService());
-const getBeneficiariesUseCase = new (require('./application/use-cases/GetBeneficiariesUseCase').GetBeneficiariesUseCase)(beneficiaryRepository);
-const updateBeneficiaryUseCase = new (require('./application/use-cases/UpdateBeneficiaryUseCase').UpdateBeneficiaryUseCase)(beneficiaryRepository);
-const deleteBeneficiaryUseCase = new (require('./application/use-cases/DeleteBeneficiaryUseCase').DeleteBeneficiaryUseCase)(beneficiaryRepository);
+const getBeneficiariesUseCase = new GetBeneficiariesUseCase(beneficiaryRepository);
 
 const beneficiaryController = new BeneficiaryController(
   createBeneficiaryUseCase,
