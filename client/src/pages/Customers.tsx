@@ -354,12 +354,28 @@ export default function Customers() {
                     })()}
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center text-gray-600 dark:text-gray-400">
-                      <Building className="h-3 w-3 mr-1 flex-shrink-0" />
-                      <span className="text-sm truncate">
-                        {formatCompanyDisplay(customer.associated_companies)}
-                      </span>
-                    </div>
+                    {(() => {
+                      const companies = customer.associated_companies || customer.associatedCompanies;
+                      if (!companies || companies === 'null' || companies === 'undefined') {
+                        return <span className="text-gray-400">-</span>;
+                      }
+
+                      let displayText = companies;
+                      if (Array.isArray(companies)) {
+                        displayText = companies.filter(Boolean).join(', ');
+                      } else if (typeof companies === 'string') {
+                        displayText = companies;
+                      }
+
+                      return (
+                        <div className="flex items-center text-gray-600 dark:text-gray-400">
+                          <Building className="h-3 w-3 mr-1 flex-shrink-0" />
+                          <span className="text-sm truncate" title={String(displayText)}>
+                            {displayText || '-'}
+                          </span>
+                        </div>
+                      );
+                    })()}
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">

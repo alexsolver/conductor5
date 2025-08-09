@@ -156,10 +156,10 @@ customersRouter.get('/', jwtAuth, validateGetCustomers, async (req: Authenticate
             SELECT DISTINCT c.name, c.display_name
             FROM "${schemaName}".companies_relationships cr
             JOIN "${schemaName}".companies c ON cr.company_id = c.id
-            WHERE cr.customer_id = $1 AND cr.tenant_id = $2 AND c.is_active = true
+            WHERE cr.customer_id = $1 AND c.is_active = true
             ORDER BY c.display_name, c.name
             LIMIT 3
-          `, [customer.id, req.user.tenantId]);
+          `, [customer.id]);
 
           console.log(`[GET-CUSTOMERS] Found ${companiesResult.rows.length} companies for customer ${customer.id}:`, 
             companiesResult.rows.map(r => r.name || r.display_name));
@@ -176,10 +176,10 @@ customersRouter.get('/', jwtAuth, validateGetCustomers, async (req: Authenticate
                 SELECT DISTINCT c.name, c.display_name
                 FROM "${schemaName}".company_memberships cm
                 JOIN "${schemaName}".companies c ON cm.company_id = c.id
-                WHERE cm.customer_id = $1 AND cm.tenant_id = $2 AND c.is_active = true
+                WHERE cm.customer_id = $1 AND c.is_active = true
                 ORDER BY c.display_name, c.name
                 LIMIT 3
-              `, [customer.id, req.user.tenantId]);
+              `, [customer.id]);
             }
           }
 
@@ -231,8 +231,18 @@ customersRouter.get('/', jwtAuth, validateGetCustomers, async (req: Authenticate
           status: customer.status === 'active' ? 'Ativo' : 
                   customer.status === 'inactive' ? 'Inativo' : 
                   customer.status || 'Ativo',
+          // Ensure associated_companies is always included
+          associated_companies: customer.associated_companies || null
       };
-      return transformToCustomerDTO(normalizedCustomer);
+      
+      const dto = transformToCustomerDTO(normalizedCustomer);
+      
+      // Add associated_companies to the final response object
+      return {
+        ...dto,
+        associated_companies: customer.associated_companies || null,
+        associatedCompanies: dto.associatedCompanies || []
+      };
     });
 
     const response: CustomerListResponseDTO = {

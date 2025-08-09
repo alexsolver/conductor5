@@ -76,7 +76,11 @@ export const transformToCustomerDTO = (rawCustomer: any): CustomerResponseDTO =>
     tags: rawCustomer.tags || [],
     metadata: rawCustomer.metadata || {},
     associatedCompanies: rawCustomer.associated_companies ? 
-      rawCustomer.associated_companies.split(', ') : [],
+      (typeof rawCustomer.associated_companies === 'string' ? 
+        rawCustomer.associated_companies.split(', ').filter(Boolean) : 
+        Array.isArray(rawCustomer.associated_companies) ? 
+          rawCustomer.associated_companies.filter(Boolean) : 
+          []) : [],
     tenantId: rawCustomer.tenant_id || rawCustomer.tenantId,
     createdAt: rawCustomer.created_at || rawCustomer.createdAt,
     updatedAt: rawCustomer.updated_at || rawCustomer.updatedAt,
