@@ -2080,9 +2080,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ success: false, error: 'Erro ao gerar relatório de espelho de ponto' });
     }
   });
-
-      if (result.rows.length === 0) {
-        return res.json({
           success: true,
           period: period,
           data: [],
