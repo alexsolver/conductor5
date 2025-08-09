@@ -54,15 +54,26 @@ timecardRouter.get('/reports/attendance/:period', jwtAuth, async (req, res) => {
   try {
     console.log('[TIMECARD-ROUTES] Processing attendance report request for period:', req.params.period);
     res.setHeader('Content-Type', 'application/json');
+    
+    // Check if response was already sent
+    if (res.headersSent) {
+      console.log('[TIMECARD-ROUTES] Response already sent, skipping');
+      return;
+    }
+    
     await timecardController.getAttendanceReport(req, res);
   } catch (error) {
     console.error('[TIMECARD-ROUTES] Error in attendance report:', error);
-    res.setHeader('Content-Type', 'application/json');
-    res.status(500).json({
-      success: false,
-      error: 'Erro ao gerar relatório de frequência',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    });
+    
+    // Only send error if response wasn't sent yet
+    if (!res.headersSent) {
+      res.setHeader('Content-Type', 'application/json');
+      res.status(500).json({
+        success: false,
+        error: 'Erro ao gerar relatório de frequência',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
   }
 });
 

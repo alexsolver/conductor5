@@ -123,12 +123,26 @@ export default function Timecard() {
   
   const { data: mirrorData, isLoading: mirrorLoading, error: mirrorError } = useQuery({
     queryKey: ['/api/timecard/reports/attendance', currentPeriod],
-    enabled: !!currentStatus,
+    queryFn: async () => {
+      console.log('[TIMECARD-MIRROR] Fetching report for:', currentPeriod);
+      try {
+        const response = await apiRequest('GET', `/api/timecard/reports/attendance/${currentPeriod}`);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        const data = await response.json();
+        console.log('[TIMECARD-MIRROR] Report data received:', data);
+        console.log('[TIMECARD-MIRROR] Records count:', data?.records?.length || 0);
+        return data;
+      } catch (error) {
+        console.error('[TIMECARD-MIRROR] Error fetching report:', error);
+        throw error;
+      }
+    },
+    enabled: true,
+    retry: 1,
+    refetchOnWindowFocus: false,
   });
-
-  console.log('[TIMECARD-MIRROR] Fetching report for:', currentPeriod);
-  console.log('[TIMECARD-MIRROR] Report data received:', mirrorData);
-  console.log('[TIMECARD-MIRROR] Records count:', mirrorData?.data?.length || 0);
 
   // Query para obter status atual
   const { data: statusData, isLoading: statusLoading, error: statusError } = useQuery({
@@ -330,40 +344,10 @@ export default function Timecard() {
 
   // Componente do Espelho de Ponto Completo - Conforme CLT
   const TimecardMirror = () => {
-    const currentMonth = format(new Date(), 'yyyy-MM');
-    const { data: monthlyReport, isLoading: monthlyLoading, error: monthlyError } = useQuery({
-      queryKey: ['/api/timecard/reports/attendance', currentMonth],
-      queryFn: async () => {
-        console.log('[TIMECARD-MIRROR] Fetching report for:', currentMonth);
-        try {
-          const response = await apiRequest('GET', `/api/timecard/reports/attendance/${currentMonth}`);
-          if (!response.ok) {
-            console.error('[TIMECARD-MIRROR] HTTP Error:', response.status, response.statusText);
-            if (response.status === 401) {
-              console.log('[TIMECARD-MIRROR] Authentication required, will retry with token refresh');
-            }
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-          }
-          const data = await response.json();
-          console.log('[TIMECARD-MIRROR] Report data received:', data);
-          console.log('[TIMECARD-MIRROR] Records count:', data.records?.length || 0);
-          
-          // Validar se temos dados válidos
-          if (!data || (!data.records && !data.summary)) {
-            console.warn('[TIMECARD-MIRROR] No valid data received, returning empty structure');
-            return { records: [], summary: { totalHours: '0.0', workingDays: 0, overtimeHours: '0.0' } };
-          }
-          
-          return data;
-        } catch (error) {
-          console.error('[TIMECARD-MIRROR] Complete error details:', error);
-          // Return empty data structure instead of throwing to prevent UI breaks
-          return { records: [], summary: { totalHours: '0.0', workingDays: 0, overtimeHours: '0.0' } };
-        }
-      },
-      enabled: true,
-      retry: false, // Disable retry to prevent multiple error logs
-    });
+    // Usar os dados já carregados pela query principal
+    const monthlyReport = mirrorData;
+    const monthlyLoading = mirrorLoading;
+    const monthlyError = mirrorError;
 
     const { data: userInfo } = useQuery({
       queryKey: ['/api/auth/user'],
@@ -766,7 +750,7 @@ export default function Timecard() {
             Espelho de Ponto Eletrônico
           </CardTitle>
           <div className="text-sm text-gray-600">
-            AGOSTO 2025 - Portaria MTE 671/2021 Sistema CLT Compliant
+            {format(new Date(), 'MMMM yyyy', { locale: ptBR }).toUpperCase()} - Portaria MTE 671/2021 Sistema CLT Compliant
           </div>
         </CardHeader>
         <CardContent>
@@ -780,8 +764,9 @@ export default function Timecard() {
                 <AlertTriangle className="h-4 w-4" />
                 Erro ao carregar espelho de ponto
               </div>
+              <div className="text-sm mt-2">Tente recarregar a página</div>
             </div>
-          ) : mirrorData?.data && mirrorData.data.length > 0 ? (
+          ) : mirrorData?.records && mirrorData.records.length > 0 ? (
             <div className="space-y-4">
               {/* Cabeçalho do Relatório */}
               <div className="bg-gray-50 p-4 rounded-lg">
@@ -815,31 +800,33 @@ export default function Timecard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {mirrorData.data
-                      .sort((a: MirrorRecord, b: MirrorRecord) => {
+                    {mirrorData.records
+                      .sort((a: any, b: any) => {
                         const dateA = new Date(a.date.split('/').reverse().join('-'));
                         const dateB = new Date(b.date.split('/').reverse().join('-'));
                         return dateA.getTime() - dateB.getTime();
                       })
-                      .map((record: MirrorRecord, index: number) => (
+                      .map((record: any, index: number) => (
                         <tr key={index} className={`hover:bg-gray-50 ${!record.isConsistent ? 'bg-red-50' : ''}`}>
                           <td className="border border-gray-300 px-2 py-2 font-medium">{record.date}</td>
                           <td className="border border-gray-300 px-2 py-2 text-center">{record.dayOfWeek}</td>
-                          <td className="border border-gray-300 px-2 py-2 text-center font-mono">{record.firstEntry}</td>
-                          <td className="border border-gray-300 px-2 py-2 text-center font-mono">{record.firstExit}</td>
-                          <td className="border border-gray-300 px-2 py-2 text-center font-mono">{record.secondEntry}</td>
-                          <td className="border border-gray-300 px-2 py-2 text-center font-mono">{record.secondExit}</td>
-                          <td className="border border-gray-300 px-2 py-2 text-center font-mono font-semibold">{record.totalHours}h</td>
+                          <td className="border border-gray-300 px-2 py-2 text-center font-mono">{record.firstEntry || '--:--'}</td>
+                          <td className="border border-gray-300 px-2 py-2 text-center font-mono">{record.firstExit || '--:--'}</td>
+                          <td className="border border-gray-300 px-2 py-2 text-center font-mono">{record.secondEntry || '--:--'}</td>
+                          <td className="border border-gray-300 px-2 py-2 text-center font-mono">{record.secondExit || '--:--'}</td>
+                          <td className="border border-gray-300 px-2 py-2 text-center font-mono font-semibold">{record.totalHours}</td>
                           <td className="border border-gray-300 px-2 py-2 text-center">
                             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                              record.status === 'approved' ? 'bg-green-100 text-green-800' :
-                              record.status === 'inconsistent' ? 'bg-red-100 text-red-800' :
-                              record.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                              record.status === 'Aprovado' ? 'bg-green-100 text-green-800' :
+                              record.status === 'Inconsistente' ? 'bg-red-100 text-red-800' :
+                              record.status === 'Pendente' ? 'bg-yellow-100 text-yellow-800' :
+                              record.status === 'Em andamento' ? 'bg-blue-100 text-blue-800' :
                               'bg-gray-100 text-gray-800'
                             }`}>
-                              {record.status === 'approved' ? 'OK' :
-                               record.status === 'inconsistent' ? 'INC' :
-                               record.status === 'pending' ? 'PEN' : 'N/A'}
+                              {record.status === 'Aprovado' ? 'OK' :
+                               record.status === 'Inconsistente' ? 'INC' :
+                               record.status === 'Pendente' ? 'PEN' : 
+                               record.status === 'Em andamento' ? 'AND' : 'N/A'}
                             </span>
                           </td>
                         </tr>
@@ -852,19 +839,19 @@ export default function Timecard() {
               {mirrorData.summary && (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-blue-50 rounded-lg text-sm">
                   <div className="text-center">
-                    <div className="text-xl font-bold text-blue-600">{mirrorData.summary.totalHours}h</div>
+                    <div className="text-xl font-bold text-blue-600">{mirrorData.summary.totalHours || '0.0'}h</div>
                     <div className="text-gray-600">Total de Horas</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-xl font-bold text-green-600">{mirrorData.summary.workingDays}</div>
+                    <div className="text-xl font-bold text-green-600">{mirrorData.summary.workingDays || 0}</div>
                     <div className="text-gray-600">Dias Trabalhados</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-xl font-bold text-orange-600">{mirrorData.summary.overtimeHours}h</div>
+                    <div className="text-xl font-bold text-orange-600">{mirrorData.summary.overtimeHours || '0.0'}h</div>
                     <div className="text-gray-600">Horas Extras</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-xl font-bold text-purple-600">{mirrorData.summary.averageHoursPerDay}h</div>
+                    <div className="text-xl font-bold text-purple-600">{mirrorData.summary.averageHoursPerDay || '0.0'}h</div>
                     <div className="text-gray-600">Média Diária</div>
                   </div>
                 </div>
