@@ -1,4 +1,4 @@
-// Domain entities should be framework-agnostic
+// Domain entities should not depend on infrastructure
 
 export interface Skill {
   id: string;

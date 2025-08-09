@@ -1,4 +1,3 @@
-
 export interface SaasConfig {
   id: string;
   tenantId: string;
@@ -9,7 +8,7 @@ export interface SaasConfig {
   updatedAt: Date;
 }
 
-export class SaasConfigEntity implements SaasConfig {
+export class SaasConfig extends BaseEntity {
   constructor(
     public id: string,
     public tenantId: string,

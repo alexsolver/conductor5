@@ -17,7 +17,7 @@ interface HttpResponse {
   json(data: any): void;
 }
 
-import type { Request, Response } from 'express';
+// Remove Express dependency - use DTOs and interfaces instead
 import { CreateCustomerUseCase } from '../use-cases/CreateCustomerUseCase';
 import { GetCustomersUseCase } from '../use-cases/GetCustomersUseCase';
 import { UpdateCustomerUseCase } from '../usecases/UpdateCustomerUseCase';

@@ -6,6 +6,9 @@ import { SearchPeopleUseCase } from '../use-cases/SearchPeopleUseCase';
 // Using interface-based approach instead of direct Express dependency
 import { PersonApplicationService } from '../services/PersonApplicationService';
 
+// Remove Express dependency - use DTOs and interfaces instead
+import { Request, Response } from 'express';
+
 interface HttpRequest {
   body: any;
   params: any;

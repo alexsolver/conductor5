@@ -100,17 +100,9 @@ async function createCompleteAuditEntry(
 }
 
 const ticketsRouter = Router();
-const ticketController = new TicketController();
 
-// Routes should only handle HTTP concerns and delegate to controllers
-// All business logic moved to appropriate layers
-
-// Using controllers instead of direct logic
-ticketsRouter.get('/', jwtAuth, ticketController.getTickets.bind(ticketController));
-ticketsRouter.post('/', jwtAuth, ticketController.createTicket.bind(ticketController));
-ticketsRouter.get('/:id', jwtAuth, ticketController.getTicketById.bind(ticketController));
-ticketsRouter.put('/:id', jwtAuth, ticketController.updateTicket.bind(ticketController));
-ticketsRouter.delete('/:id', jwtAuth, ticketController.deleteTicket.bind(ticketController));
+// Middleware
+ticketsRouter.use(jwtAuth);
 
 // Get urgent tickets (filtered from all tickets)
 ticketsRouter.get('/urgent', jwtAuth, async (req: AuthenticatedRequest, res) => {

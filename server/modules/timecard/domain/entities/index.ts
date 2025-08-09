@@ -71,3 +71,4 @@ export interface NewWeeklySchedule {
 
 export * from './Timecard';
 export * from './WorkSchedule';
+export * from './TimecardEntry';
