@@ -4,7 +4,7 @@ import { Request, Response } from 'express';
 import { z } from 'zod';
 import { db } from '../../../../db';
 import { timecardEntries, workSchedules } from '@shared/schema';
-import { 
+import {
   createTimecardEntrySchema,
   createAbsenceRequestSchema,
   createScheduleTemplateSchema,
@@ -56,17 +56,17 @@ export class TimecardController {
       if (todayRecords.length > 0) {
         // Filtrar apenas registros válidos com checkIn ou checkOut
         const validRecords = todayRecords.filter(record => record.checkIn || record.checkOut);
-        
+
         if (validRecords.length > 0) {
           // Ordenar por data de criação
-          const sortedRecords = validRecords.sort((a, b) => 
+          const sortedRecords = validRecords.sort((a, b) =>
             new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime()
           );
           lastRecord = sortedRecords[0];
 
           // Verificar se há entrada ativa (sem saída correspondente)
           const hasActiveEntry = validRecords.some(record => record.checkIn && !record.checkOut);
-          
+
           if (hasActiveEntry) {
             status = 'working';
           } else {
@@ -95,9 +95,9 @@ export class TimecardController {
   private calculateTotalHoursFromRecords(records: any[]) {
     // Filtrar apenas registros completos (com entrada E saída)
     const completeRecords = records.filter(record => record.checkIn && record.checkOut);
-    
+
     let totalMinutes = 0;
-    
+
     completeRecords.forEach(record => {
       const start = new Date(record.checkIn);
       const end = new Date(record.checkOut);
@@ -112,19 +112,19 @@ export class TimecardController {
   createTimecardEntry = async (req: Request, res: Response) => {
     try {
       console.log('[TIMECARD-CREATE] Starting timecard entry creation...');
-      
+
       // Validate authentication
       if (!req.user) {
         console.log('[TIMECARD-CREATE] No user found in request');
-        return res.status(401).json({ 
+        return res.status(401).json({
           message: 'Usuário não autenticado',
-          error: 'UNAUTHORIZED' 
+          error: 'UNAUTHORIZED'
         });
       }
 
       const tenantId = (req as any).user?.tenantId;
       const userId = (req as any).user?.id;
-      
+
       console.log('[TIMECARD-CREATE] User info:', {
         userId: userId?.slice(-8),
         tenantId: tenantId?.slice(-8),
@@ -133,25 +133,25 @@ export class TimecardController {
 
       if (!tenantId || !userId) {
         console.log('[TIMECARD-CREATE] Missing tenant or user ID');
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: 'Dados de autenticação incompletos',
-          error: 'MISSING_AUTH_DATA' 
+          error: 'MISSING_AUTH_DATA'
         });
       }
 
       // Clean and validate request body
       console.log('[TIMECARD-CREATE] Raw request body:', req.body);
-      
+
       const cleanBody = Object.fromEntries(
         Object.entries(req.body || {}).filter(([_, value]) => value !== undefined && value !== null)
       );
-      
+
       console.log('[TIMECARD-CREATE] Cleaned body:', cleanBody);
-      
+
       if (Object.keys(cleanBody).length === 0) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: 'Dados do registro de ponto são obrigatórios',
-          error: 'EMPTY_BODY' 
+          error: 'EMPTY_BODY'
         });
       }
 
@@ -161,7 +161,7 @@ export class TimecardController {
         console.log('[TIMECARD-CREATE] Validation successful:', validatedData);
       } catch (validationError) {
         console.log('[TIMECARD-CREATE] Validation error:', validationError);
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: 'Dados inválidos para registro de ponto',
           error: 'VALIDATION_ERROR',
           details: validationError instanceof Error ? validationError.message : 'Unknown validation error'
@@ -177,18 +177,18 @@ export class TimecardController {
       if (validatedData.checkOut && !validatedData.checkIn) {
         const activeCheckIn = todayRecords.find(record => record.checkIn && !record.checkOut);
         if (!activeCheckIn) {
-          return res.status(400).json({ 
-            message: 'Não é possível registrar saída sem uma entrada ativa' 
+          return res.status(400).json({
+            message: 'Não é possível registrar saída sem uma entrada ativa'
           });
         }
-        
+
         // Update the existing check-in record with check-out time
         const updatedEntry = await this.timecardRepository.updateTimecardEntry(
           activeCheckIn.id,
           tenantId,
           { checkOut: new Date(validatedData.checkOut) }
         );
-        
+
         return res.status(201).json(updatedEntry);
       }
 
@@ -204,9 +204,9 @@ export class TimecardController {
       };
 
       console.log('[TIMECARD-CREATE] Creating entry with data:', entryData);
-      
+
       const entry = await this.timecardRepository.createTimecardEntry(entryData);
-      
+
       console.log('[TIMECARD-CREATE] Entry created successfully:', entry?.id);
 
       res.status(201).json({
@@ -216,34 +216,34 @@ export class TimecardController {
       });
     } catch (error: any) {
       console.error('[TIMECARD-CREATE] Error creating timecard entry:', error);
-      
+
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           success: false,
-          message: 'Dados inválidos para registro de ponto', 
+          message: 'Dados inválidos para registro de ponto',
           error: 'VALIDATION_ERROR',
-          details: error.errors 
+          details: error.errors
         });
       }
-      
+
       // Handle database errors
       if (error?.code === '23505') {
-        return res.status(409).json({ 
+        return res.status(409).json({
           success: false,
           message: 'Registro duplicado detectado',
           error: 'DUPLICATE_ENTRY'
         });
       }
-      
+
       if (error?.code === '23503') {
-        return res.status(400).json({ 
+        return res.status(400).json({
           success: false,
           message: 'Referência inválida nos dados',
           error: 'FOREIGN_KEY_ERROR'
         });
       }
-      
-      return res.status(500).json({ 
+
+      return res.status(500).json({
         success: false,
         message: 'Erro interno do servidor ao registrar ponto',
         error: 'INTERNAL_ERROR',
@@ -322,9 +322,9 @@ export class TimecardController {
       res.json(schedules); // Direct array response
     } catch (error: any) {
       console.error('[CONTROLLER-QA] Error getting work schedules:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         error: 'Failed to retrieve work schedules',
-        details: error.message 
+        details: error.message
       });
     }
   };
@@ -343,9 +343,9 @@ export class TimecardController {
       res.status(201).json(schedule);
     } catch (error: any) {
       console.error('[CONTROLLER-QA] Error creating work schedule:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         error: 'Failed to create work schedule',
-        details: error.message 
+        details: error.message
       });
     }
   };
@@ -365,9 +365,9 @@ export class TimecardController {
       res.json(schedule);
     } catch (error: any) {
       console.error('[CONTROLLER-QA] Error updating work schedule:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         error: 'Failed to update work schedule',
-        details: error.message 
+        details: error.message
       });
     }
   };
@@ -384,10 +384,10 @@ export class TimecardController {
       console.log('[BULK-QA] Processing bulk assignment for', userIds.length, 'users');
 
       const schedules = await this.timecardRepository.createBulkWorkSchedules(userIds, scheduleData, tenantId);
-      
-      res.status(201).json({ 
+
+      res.status(201).json({
         message: `${schedules.length} escalas criadas com sucesso`,
-        schedules 
+        schedules
       });
     } catch (error) {
       console.error('Error creating bulk work schedules:', error);
@@ -405,9 +405,9 @@ export class TimecardController {
       res.status(204).send();
     } catch (error: any) {
       console.error('[CONTROLLER-QA] Error deleting work schedule:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         error: 'Failed to delete work schedule',
-        details: error.message 
+        details: error.message
       });
     }
   };
@@ -494,19 +494,19 @@ export class TimecardController {
   createScheduleTemplate = async (req: Request, res: Response) => {
     try {
       const { tenantId, id: createdBy } = (req as any).user;
-      
+
       console.log('[TEMPLATE-CREATE] Raw request body:', req.body);
-      
+
       // Ensure category is set to 'custom' if not provided
       const templateData = {
         ...req.body,
         category: req.body.category || 'custom'
       };
-      
+
       console.log('[TEMPLATE-CREATE] Processing template data:', templateData);
-      
+
       const validatedData = createScheduleTemplateSchema.parse(templateData);
-      
+
       console.log('[TEMPLATE-CREATE] Validated data:', validatedData);
 
       const template = await this.timecardRepository.createScheduleTemplate({
@@ -520,8 +520,8 @@ export class TimecardController {
     } catch (error) {
       if (error instanceof z.ZodError) {
         console.error('[TEMPLATE-CREATE] Validation error:', error.errors);
-        return res.status(400).json({ 
-          message: 'Dados inválidos', 
+        return res.status(400).json({
+          message: 'Dados inválidos',
           errors: error.errors.map(e => ({
             field: e.path.join('.'),
             message: e.message,
@@ -603,45 +603,68 @@ export class TimecardController {
   // Assign template to users
   assignTemplateToUsers = async (req: Request, res: Response) => {
     try {
-      const { tenantId } = (req as any).user;
       const { templateId } = req.params;
-      const { userIds } = req.body;
+      const { userId, userIds } = req.body;
+      const tenantId = req.user?.tenantId; // Corrigido para tenantId
 
-      if (!Array.isArray(userIds) || userIds.length === 0) {
-        return res.status(400).json({ message: 'Lista de usuários é obrigatória' });
+      if (!tenantId || (!userId && !userIds) || !templateId) {
+        return res.status(400).json({ success: false, error: 'Missing required parameters' });
       }
 
       // Get template details
       const templates = await this.timecardRepository.getScheduleTemplates(tenantId);
       const template = templates.find(t => t.id === templateId);
-      
+
       if (!template) {
-        return res.status(404).json({ message: 'Template não encontrado' });
+        return res.status(404).json({ success: false, error: 'Template not found' });
       }
 
-      console.log('[TEMPLATE-ASSIGN] Assigning template to users:', { templateId, userIds: userIds.length });
+      const targetUsers = userIds || [userId];
+      const results = [];
 
-      // Create work schedules for each user based on template
-      const schedules = await this.timecardRepository.createBulkWorkSchedules(userIds, {
-        scheduleType: template.scheduleType,
-        scheduleName: template.name,
-        workDays: template.workDays,
-        startTime: template.startTime,
-        endTime: template.endTime,
-        breakStart: template.breakStart,
-        breakEnd: template.breakEnd,
-        useWeeklySchedule: template.useWeeklySchedule || false,
-        weeklySchedule: template.weeklySchedule,
-        isActive: true
-      }, tenantId);
-      
-      res.status(201).json({ 
-        message: `Template "${template.name}" atribuído a ${schedules.length} usuários`,
-        schedules 
+      for (const targetUserId of targetUsers) {
+        try {
+          // Create work schedule from template
+          const scheduleData = {
+            userId: targetUserId,
+            scheduleType: template.scheduleType,
+            startDate: new Date().toISOString().split('T')[0], // Today
+            // Ensure workDays is an array, handle potential JSON parsing errors
+            workDays: Array.isArray(template.workDays) ? template.workDays : JSON.parse(template.workDays || '[]'),
+            startTime: template.startTime,
+            endTime: template.endTime,
+            breakDurationMinutes: template.breakDurationMinutes || 60,
+            useWeeklySchedule: template.useWeeklySchedule || false,
+            weeklySchedule: template.weeklySchedule || {},
+            isActive: true,
+            tenantId
+          };
+
+          const workSchedule = await this.timecardRepository.createWorkSchedule(scheduleData);
+          results.push({ userId: targetUserId, success: true, schedule: workSchedule });
+        } catch (error: any) {
+          console.error(`Error creating schedule for user ${targetUserId}:`, error);
+          results.push({ userId: targetUserId, success: false, error: error.message });
+        }
+      }
+
+      const successCount = results.filter(r => r.success).length;
+      const errorCount = results.filter(r => !r.success).length;
+
+      res.json({
+        success: true,
+        data: {
+          results,
+          summary: {
+            total: targetUsers.length,
+            success: successCount,
+            errors: errorCount
+          }
+        }
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error assigning template to users:', error);
-      res.status(500).json({ message: 'Erro interno do servidor' });
+      res.status(500).json({ success: false, error: error.message });
     }
   };
 
@@ -674,9 +697,9 @@ export class TimecardController {
       const userId = req.user?.id;
 
       if (!tenantId || !userId) {
-        return res.status(400).json({ 
-          success: false, 
-          error: 'User ID é obrigatório' 
+        return res.status(400).json({
+          success: false,
+          error: 'User ID é obrigatório'
         });
       }
 
@@ -703,20 +726,20 @@ export class TimecardController {
         if (entry.checkIn && entry.checkOut) {
           const date = new Date(entry.checkIn).toISOString().split('T')[0];
           workingDays.add(date);
-          
+
           const start = new Date(entry.checkIn);
           const end = new Date(entry.checkOut);
           const hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
-          
+
           totalHoursWorked += hours;
         }
       });
 
       // 8 horas por dia útil trabalhado
       totalExpectedHours = workingDays.size * 8;
-      
+
       const balance = totalHoursWorked - totalExpectedHours;
-      
+
       const summary = {
         currentBalance: balance.toFixed(2),
         totalHoursWorked: totalHoursWorked.toFixed(2),
@@ -734,10 +757,10 @@ export class TimecardController {
       });
     } catch (error: any) {
       console.error('[HOUR-BANK] Error getting summary:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         success: false,
         error: 'Erro ao calcular banco de horas',
-        details: error.message 
+        details: error.message
       });
     }
   };
@@ -776,7 +799,7 @@ export class TimecardController {
     }
   };
 
-  // Notifications for users  
+  // Notifications for users
   getUserNotifications = async (req: Request, res: Response) => {
     try {
       const { tenantId, id: userId } = (req as any).user;
@@ -802,7 +825,7 @@ export class TimecardController {
         }
       ];
 
-      const filteredNotifications = unreadOnly === 'true' 
+      const filteredNotifications = unreadOnly === 'true'
         ? notifications.filter(n => !n.read)
         : notifications;
 
@@ -862,12 +885,12 @@ export class TimecardController {
 
   async getAttendanceReport(req: AuthenticatedRequest, res: Response) {
     console.log('[ATTENDANCE-REPORT] Route hit - starting...');
-    
+
     try {
       // Force JSON response headers early
       res.setHeader('Content-Type', 'application/json');
       res.setHeader('Cache-Control', 'no-cache');
-      
+
       const { period } = req.params;
       const { startDate: filterStartDate, endDate: filterEndDate, employeeId } = req.query;
       const tenantId = req.user?.tenantId;
@@ -883,19 +906,19 @@ export class TimecardController {
 
       if (!tenantId || !userId) {
         console.log('[ATTENDANCE-REPORT] Missing auth data');
-        return res.status(400).json({ 
-          success: false, 
+        return res.status(400).json({
+          success: false,
           error: 'Dados de autenticação obrigatórios',
-          message: 'Tenant ID e User ID são obrigatórios' 
+          message: 'Tenant ID e User ID são obrigatórios'
         });
       }
 
       if (!period || !/^\d{4}-\d{2}$/.test(period)) {
         console.log('[ATTENDANCE-REPORT] Invalid period format:', period);
-        return res.status(400).json({ 
-          success: false, 
+        return res.status(400).json({
+          success: false,
           error: 'Formato de período inválido',
-          message: 'Use o formato YYYY-MM' 
+          message: 'Use o formato YYYY-MM'
         });
       }
 
@@ -927,7 +950,7 @@ export class TimecardController {
       console.log('[ATTENDANCE-REPORT] User:', userId, 'Tenant:', tenantId);
 
       // Use static imports already available at module level
-      
+
       // Teste direto com SQL raw para debug
       console.log('[ATTENDANCE-REPORT] Query params:', {
         userId,
@@ -939,7 +962,7 @@ export class TimecardController {
 
       // Buscar todos os registros do período (pending e approved)
       console.log('[ATTENDANCE-REPORT] Executing query for target user:', targetUserId, 'tenant:', tenantId);
-      
+
       const records = await db
         .select()
         .from(timecardEntries)
@@ -949,7 +972,7 @@ export class TimecardController {
           inArray(timecardEntries.status, ['pending', 'approved']),
           sql`(
             (${timecardEntries.checkIn} IS NOT NULL AND DATE(${timecardEntries.checkIn}) >= ${startDate.toISOString().split('T')[0]} AND DATE(${timecardEntries.checkIn}) <= ${endDate.toISOString().split('T')[0]})
-            OR 
+            OR
             (${timecardEntries.checkIn} IS NULL AND DATE(${timecardEntries.createdAt}) >= ${startDate.toISOString().split('T')[0]} AND DATE(${timecardEntries.createdAt}) <= ${endDate.toISOString().split('T')[0]})
           )`
         ))
@@ -962,7 +985,7 @@ export class TimecardController {
         startDateStr: startDate.toISOString().split('T')[0],
         endDateStr: endDate.toISOString().split('T')[0]
       });
-      
+
       // Log detalhado dos primeiros registros encontrados
       if (records.length > 0) {
         console.log('[ATTENDANCE-REPORT] First 5 records found:', records.slice(0, 5).map(r => ({
@@ -981,7 +1004,7 @@ export class TimecardController {
           status: 'approved'
         });
       }
-      
+
       // Log first few records for debugging
       if (records.length > 0) {
         console.log('[ATTENDANCE-REPORT] Sample records:', records.slice(0, 3).map(r => ({
@@ -995,17 +1018,17 @@ export class TimecardController {
 
       // Filtrar registros que têm pelo menos check_in (podem não ter check_out se ainda estão trabalhando)
       const validRecords = records.filter(record => record.checkIn);
-      
+
       console.log('[ATTENDANCE-REPORT] Valid records (with check_in):', validRecords.length);
       console.log('[ATTENDANCE-REPORT] Records with checkOut:', records.filter(r => r.checkIn && r.checkOut).length);
       console.log('[ATTENDANCE-REPORT] Records with only checkIn:', records.filter(r => r.checkIn && !r.checkOut).length);
-      
+
       // Agrupar registros válidos por data
       const recordsByDate = new Map();
-      
+
       validRecords.forEach(record => {
         const date = new Date(record.checkIn).toISOString().split('T')[0];
-        
+
         if (!recordsByDate.has(date)) {
           recordsByDate.set(date, []);
         }
@@ -1014,21 +1037,21 @@ export class TimecardController {
 
       // Processar cada dia para criar registros consolidados
       const processedRecords = [];
-      
+
       for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
         const dateStr = d.toISOString().split('T')[0];
         const dayRecords = recordsByDate.get(dateStr) || [];
-        
+
         if (dayRecords.length > 0) {
           // Pegar primeiro registro do dia (normalmente deve ser único)
           const record = dayRecords[0];
-          
+
           // Data para análise
           const workDate = new Date(record.checkIn);
-          
+
           // Mapear para formato CLT brasileiro
           const cltRecord = await this.formatToCLTStandard(record, workDate);
-          
+
           processedRecords.push(cltRecord);
         }
       }
@@ -1037,11 +1060,11 @@ export class TimecardController {
       console.log('[ATTENDANCE-REPORT] Sample processed records:', processedRecords.slice(0, 3));
 
       // Calcular totais
-      const totalHours = processedRecords.reduce((sum, record) => 
+      const totalHours = processedRecords.reduce((sum, record) =>
         sum + parseFloat(record.totalHours || '0'), 0
       );
-      
-      const workingDays = processedRecords.filter(r => 
+
+      const workingDays = processedRecords.filter(r =>
         parseFloat(r.totalHours || '0') > 0
       ).length;
 
@@ -1071,8 +1094,8 @@ export class TimecardController {
     } catch (error: any) {
       console.error('[TIMECARD-CONTROLLER] Error generating attendance report:', error);
       res.setHeader('Content-Type', 'application/json');
-      res.status(500).json({ 
-        success: false, 
+      res.status(500).json({
+        success: false,
         error: 'Erro ao gerar relatório',
         details: error?.message || 'Unknown error'
       });
@@ -1084,9 +1107,9 @@ export class TimecardController {
       const tenantId = req.user?.tenantId;
 
       if (!tenantId) {
-        return res.status(400).json({ 
-          success: false, 
-          error: 'Tenant ID é obrigatório' 
+        return res.status(400).json({
+          success: false,
+          error: 'Tenant ID é obrigatório'
         });
       }
 
@@ -1098,10 +1121,10 @@ export class TimecardController {
       });
     } catch (error: any) {
       console.error('[TIMECARD-CONTROLLER] Error fetching users:', error);
-      res.status(500).json({ 
-        success: false, 
+      res.status(500).json({
+        success: false,
         error: 'Erro ao buscar usuários',
-        details: error.message 
+        details: error.message
       });
     }
   }
@@ -1111,9 +1134,9 @@ export class TimecardController {
       const tenantId = req.user?.tenantId;
 
       if (!tenantId) {
-        return res.status(400).json({ 
-          success: false, 
-          error: 'Tenant ID é obrigatório' 
+        return res.status(400).json({
+          success: false,
+          error: 'Tenant ID é obrigatório'
         });
       }
 
@@ -1131,10 +1154,10 @@ export class TimecardController {
       res.json(summary);
     } catch (error: any) {
       console.error('[TIMECARD-CONTROLLER] Error fetching hour bank summary:', error);
-      res.status(500).json({ 
-        success: false, 
+      res.status(500).json({
+        success: false,
         error: 'Erro ao buscar resumo do banco de horas',
-        details: error.message 
+        details: error.message
       });
     }
   }
@@ -1145,9 +1168,9 @@ export class TimecardController {
       const tenantId = req.user?.tenantId;
 
       if (!tenantId || !userId || !month) {
-        return res.status(400).json({ 
-          success: false, 
-          error: 'Parâmetros obrigatórios: tenantId, userId, month' 
+        return res.status(400).json({
+          success: false,
+          error: 'Parâmetros obrigatórios: tenantId, userId, month'
         });
       }
 
@@ -1179,10 +1202,10 @@ export class TimecardController {
       });
     } catch (error: any) {
       console.error('[TIMECARD-CONTROLLER] Error fetching hour bank movements:', error);
-      res.status(500).json({ 
-        success: false, 
+      res.status(500).json({
+        success: false,
         error: 'Erro ao buscar movimentações do banco de horas',
-        details: error.message 
+        details: error.message
       });
     }
   }
@@ -1195,9 +1218,9 @@ export class TimecardController {
       const userId = req.user?.id;
 
       if (!tenantId || !userId) {
-        return res.status(400).json({ 
-          success: false, 
-          error: 'Tenant ID e User ID são obrigatórios' 
+        return res.status(400).json({
+          success: false,
+          error: 'Tenant ID e User ID são obrigatórios'
         });
       }
 
@@ -1232,7 +1255,7 @@ export class TimecardController {
       console.log('[OVERTIME-REPORT] Date range:', startDate.toISOString(), 'to', endDate.toISOString());
 
       // Use static imports already available at module level
-      
+
       const records = await db
         .select()
         .from(timecardEntries)
@@ -1253,7 +1276,7 @@ export class TimecardController {
           const checkInTime = new Date(record.checkIn);
           const checkOutTime = new Date(record.checkOut);
           const hoursWorked = (checkOutTime.getTime() - checkInTime.getTime()) / (1000 * 60 * 60);
-          
+
           if (hoursWorked > 8) {
             const overtime = hoursWorked - 8;
             totalOvertimeHours += overtime;
@@ -1288,10 +1311,10 @@ export class TimecardController {
       });
     } catch (error: any) {
       console.error('[TIMECARD-CONTROLLER] Error generating overtime report:', error);
-      res.status(500).json({ 
-        success: false, 
+      res.status(500).json({
+        success: false,
         error: 'Erro ao gerar relatório de horas extras',
-        details: error.message 
+        details: error.message
       });
     }
   }
@@ -1302,67 +1325,67 @@ export class TimecardController {
   private async formatToCLTStandard(record: any, workDate: Date) {
     // Dias da semana em português
     const daysOfWeek = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-    
+
     // Formatações de data e hora brasileiras
     const dateStr = workDate.toLocaleDateString('pt-BR');
     const dayOfWeek = daysOfWeek[workDate.getDay()];
-    
+
     // CÁLCULO AUTOMÁTICO DE PAUSAS
     // Se jornada > 6h, calcular automaticamente pausa de almoço (1h no meio)
     const checkIn = record.checkIn ? new Date(record.checkIn).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : null;
     const checkOut = record.checkOut ? new Date(record.checkOut).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : null;
-    
+
     let breakStart = null;
     let breakEnd = null;
-    
+
     // Se há entrada e saída, calcular pausa automaticamente
     if (record.checkIn && record.checkOut) {
       const workStart = new Date(record.checkIn);
       const workEnd = new Date(record.checkOut);
       const workMinutes = (workEnd.getTime() - workStart.getTime()) / (1000 * 60);
-      
+
       // Se jornada > 6h, presumir pausa de almoço
       if (workMinutes > 360) { // 6 horas
         // Calcular meio do expediente para a pausa
         const midTime = new Date(workStart.getTime() + (workEnd.getTime() - workStart.getTime()) / 2);
         const pauseStart = new Date(midTime.getTime() - 30 * 60 * 1000); // 30min antes do meio
         const pauseEnd = new Date(midTime.getTime() + 30 * 60 * 1000);   // 30min depois do meio
-        
+
         breakStart = pauseStart.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
         breakEnd = pauseEnd.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
       }
     }
-    
+
     // Calcular horas trabalhadas e validar consistência
     let totalHours = '0:00';
     let overtimeHours = '0:00';
     let isConsistent = true;
     let inconsistencyReasons = [];
-    
+
     if (record.checkIn) {
       const workStart = new Date(record.checkIn);
       const workEnd = record.checkOut ? new Date(record.checkOut) : new Date(); // Se não tem checkOut, usar agora
       let workMinutes = (workEnd.getTime() - workStart.getTime()) / (1000 * 60);
-      
+
       // Se não tem checkOut, marcar como em andamento
       if (!record.checkOut) {
         inconsistencyReasons.push('Registro em andamento - sem horário de saída');
       }
-      
+
       // Validações de consistência
-      
+
       // 1. Verificar se entrada é anterior à saída (mesmo dia)
       if (workStart.toDateString() === workEnd.toDateString() && workStart >= workEnd) {
         isConsistent = false;
         inconsistencyReasons.push('Entrada posterior à saída');
       }
-      
+
       // 2. Verificar jornada muito longa (>16h) ou muito curta (<5min)
       if (workMinutes < 0) {
         // Turno noturno que cruza a meia-noite
         workMinutes += 24 * 60;
       }
-      
+
       if (workMinutes > 960) { // >16h
         isConsistent = false;
         inconsistencyReasons.push('Jornada excessivamente longa (>16h)');
@@ -1370,14 +1393,14 @@ export class TimecardController {
         isConsistent = false;
         inconsistencyReasons.push('Jornada muito curta (<5min)');
       }
-      
+
       // 3. Validar horários de pausa
       let breakMinutes = 0;
       if (record.breakStart && record.breakEnd) {
         const pauseStart = new Date(record.breakStart);
         const pauseEnd = new Date(record.breakEnd);
         breakMinutes = (pauseEnd.getTime() - pauseStart.getTime()) / (1000 * 60);
-        
+
         // Verificar se pausa está dentro do horário de trabalho
         if (pauseStart < workStart) {
           isConsistent = false;
@@ -1396,18 +1419,18 @@ export class TimecardController {
           inconsistencyReasons.push('Pausa excessivamente longa (>4h)');
         }
       }
-      
+
       // 4. Validar se há pausa em jornadas longas (CLT exige pausa >6h)
       if (workMinutes > 360 && breakMinutes === 0) { // >6h sem pausa
         isConsistent = false;
         inconsistencyReasons.push('Jornada >6h sem pausa obrigatória');
       }
-      
+
       const totalWorkMinutes = Math.max(0, workMinutes - breakMinutes);
       const hours = Math.floor(totalWorkMinutes / 60);
       const minutes = Math.floor(totalWorkMinutes % 60);
       totalHours = `${hours}:${minutes.toString().padStart(2, '0')}`;
-      
+
       // Calcular horas extras (acima de 8h)
       if (totalWorkMinutes > 480) { // 8 horas = 480 minutos
         const overtimeMinutes = totalWorkMinutes - 480;
@@ -1420,7 +1443,7 @@ export class TimecardController {
       isConsistent = false;
       inconsistencyReasons.push('Sem horário de entrada');
     }
-    
+
     // Status com base na consistência e situação do registro
     let status;
     if (!record.checkIn) {
@@ -1433,7 +1456,7 @@ export class TimecardController {
       status = record.status === 'approved' ? 'Aprovado' :
                record.status === 'pending' ? 'Pendente' : 'Rejeitado';
     }
-    
+
     // Buscar tipo de escala do usuário (implementar depois)
     const scheduleType = await this.getScheduleTypeForUser(record.userId, record.tenantId);
 
@@ -1443,17 +1466,17 @@ export class TimecardController {
       dayOfWeek,                       // Seg, Ter, Qua, etc.
       firstEntry: checkIn,             // 1ª Entrada (HH:MM)
       firstExit: breakStart,           // 1ª Saída - almoço/pausa (HH:MM)
-      secondEntry: breakEnd,           // 2ª Entrada - retorno (HH:MM)  
+      secondEntry: breakEnd,           // 2ª Entrada - retorno (HH:MM)
       secondExit: checkOut,            // 2ª Saída - fim da jornada (HH:MM)
       totalHours,                      // Horas trabalhadas
       status,                          // Status de aprovação
-      
+
       // Informações complementares
       observations: !isConsistent ? inconsistencyReasons.join('; ') : '',
       overtimeHours,                   // Horas extras
       scheduleType: scheduleType || 'Não definido',    // Tipo de escala
       isConsistent,                    // Flag para frontend
-      
+
       // Dados originais para debug
       originalRecord: {
         checkIn: record.checkIn,
@@ -1470,12 +1493,12 @@ export class TimecardController {
   private async getScheduleTypeForUser(userId: string, tenantId: string): Promise<string | null> {
     try {
       // Use static imports already available at module level
-      
+
       console.log(`[SCHEDULE-TYPE] Buscando escala para usuário ${userId} no tenant ${tenantId}`);
-      
+
       const scheduleResult = await db
-        .select({ 
-          scheduleName: workSchedules.scheduleName 
+        .select({
+          scheduleName: workSchedules.scheduleName
         })
         .from(workSchedules)
         .where(and(
@@ -1484,7 +1507,7 @@ export class TimecardController {
           eq(workSchedules.isActive, true)
         ))
         .limit(1);
-        
+
       console.log(`[SCHEDULE-TYPE] Resultado da busca:`, scheduleResult);
       return scheduleResult[0]?.scheduleName || null;
     } catch (error) {

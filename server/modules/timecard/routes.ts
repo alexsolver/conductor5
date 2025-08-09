@@ -26,7 +26,7 @@ timecardRouter.put('/schedule-templates/:id', jwtAuth, timecardController.update
 timecardRouter.delete('/schedule-templates/:id', jwtAuth, timecardController.deleteScheduleTemplate.bind(timecardController));
 
 // Template Assignment routes
-timecardRouter.post('/schedule-templates/:templateId/assign', jwtAuth, timecardController.assignTemplateToUsers.bind(timecardController));
+timecardRouter.post('/work-schedules/assign-template/:templateId', jwtAuth, timecardController.assignTemplateToUsers.bind(timecardController));
 
 // Users route for dropdowns
 timecardRouter.get('/users', jwtAuth, timecardController.getUsers.bind(timecardController));

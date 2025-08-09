@@ -548,7 +548,9 @@ function WorkSchedulesContent() {
 
   // Filter custom templates (excluding default ones like 5x2, 6x1, 12x36)
   const customTemplates = Array.isArray(scheduleTemplatesData?.templates)
-    ? scheduleTemplatesData.templates.filter((t: ScheduleTemplate) => t.category === 'custom')
+    ? scheduleTemplatesData.templates.filter((t: ScheduleTemplate) => 
+        !['5x2', '6x1', '12x36', '4x3', 'flexible', 'part-time'].includes(t.id)
+      )
     : [];
 
   const users = Array.isArray(usersData) ? usersData : (usersData?.users || usersData?.members || []);
@@ -819,12 +821,22 @@ function WorkSchedulesContent() {
       return;
     }
 
+    if (!formData.startDate) {
+      toast({
+        title: 'Erro',
+        description: 'Data de início é obrigatória.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     const bulkScheduleData = {
       scheduleType: formData.scheduleType,
       startDate: formData.startDate,
       endDate: formData.endDate || null,
       workDays: formData.workDays,
       useWeeklySchedule: formData.useWeeklySchedule,
+      isActive: true,
       ...(formData.useWeeklySchedule
         ? { weeklySchedule: formData.weeklySchedule }
         : {
@@ -835,44 +847,63 @@ function WorkSchedulesContent() {
     };
 
     try {
-      await apiRequest('POST', '/api/timecard/work-schedules/bulk-assign', {
+      const response = await apiRequest('POST', '/api/timecard/work-schedules/bulk-assign', {
         userIds: selectedUsers,
         scheduleData: bulkScheduleData
       });
 
-      queryClient.invalidateQueries({ queryKey: ['/api/timecard/work-schedules'] });
-      setBulkAssignOpen(false);
-      setSelectedUsers([]);
+      if (response.ok) {
+        await queryClient.invalidateQueries({ queryKey: ['/api/timecard/work-schedules'] });
+        setBulkAssignOpen(false);
+        setSelectedUsers([]);
+        resetForm();
 
-      toast({
-        title: 'Sucesso!',
-        description: `Escalas atribuídas para ${selectedUsers.length} funcionários.`,
-      });
+        toast({
+          title: 'Sucesso!',
+          description: `Escalas atribuídas para ${selectedUsers.length} funcionários.`,
+        });
+      } else {
+        throw new Error('Falha na atribuição em massa');
+      }
     } catch (error: any) {
+      console.error('[BULK-ASSIGN-ERROR]:', error);
       toast({
         title: 'Erro na atribuição em lote',
-        description: error?.message || 'Erro interno',
+        description: error?.message || 'Erro interno do servidor',
         variant: 'destructive',
       });
     }
   };
 
-  const handleAssignTemplate = () => {
+  const handleAssignTemplate = async () => {
     if (!selectedTemplate || selectedUsers.length === 0) {
       toast({ title: 'Erro', description: 'Selecione um template e pelo menos um funcionário.', variant: 'destructive' });
       return;
     }
 
-    // Here we need to map selectedUsers to the assignTemplateMutation
-    // Assuming assignTemplateMutation can handle an array of userIds or we loop
-    selectedUsers.forEach(userId => {
-      assignTemplateMutation.mutate({ userId, templateId: selectedTemplate.id });
-    });
+    try {
+      // Process each user assignment
+      for (const userId of selectedUsers) {
+        await assignTemplateMutation.mutateAsync({ userId, templateId: selectedTemplate.id });
+      }
 
-    // Close dialogs and reset selections
-    setIsAssignDialogOpen(false);
-    setSelectedUsers([]);
-    setSelectedTemplate(null);
+      // Close dialogs and reset selections
+      setIsAssignDialogOpen(false);
+      setSelectedUsers([]);
+      setSelectedTemplate(null);
+
+      toast({
+        title: 'Templates atribuídos!',
+        description: `Template "${selectedTemplate.name}" atribuído para ${selectedUsers.length} funcionários.`,
+      });
+    } catch (error: any) {
+      console.error('[TEMPLATE-ASSIGN-ERROR]:', error);
+      toast({
+        title: 'Erro ao atribuir template',
+        description: error?.message || 'Erro interno do servidor',
+        variant: 'destructive',
+      });
+    }
   };
 
 
@@ -1002,11 +1033,18 @@ function WorkSchedulesContent() {
                           size="sm"
                           variant="outline"
                           onClick={() => {
-                            handleEditTemplate(template); // Use handleEditTemplate to populate form
+                            setSelectedTemplate(template);
                             setIsAssignDialogOpen(true);
                           }}
                         >
                           Atribuir
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleEditTemplate(template)}
+                        >
+                          <Edit className="h-3 w-3" />
                         </Button>
                         <Button
                           size="sm"
@@ -1179,6 +1217,106 @@ function WorkSchedulesContent() {
                 disabled={createTemplateMutation.isPending || updateTemplateMutation.isPending}
               >
                 {(createTemplateMutation.isPending || updateTemplateMutation.isPending) ? 'Salvando...' : 'Salvar Template'}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog for bulk assignment */}
+      <Dialog open={bulkAssignOpen} onOpenChange={setBulkAssignOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Atribuição em Massa</DialogTitle>
+            <DialogDescription>
+              Configure uma escala e atribua para múltiplos funcionários de uma vez.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={(e) => { e.preventDefault(); handleBulkAssign(); }} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="bulk-scheduleType">Tipo de Escala</Label>
+                <Select
+                  value={formData.scheduleType}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, scheduleType: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {scheduleTypeOptions.map(option => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="bulk-startDate">Data de Início</Label>
+                <Input
+                  id="bulk-startDate"
+                  type="date"
+                  value={formData.startDate}
+                  onChange={(e) => setFormData(prev => ({ ...prev, startDate: e.target.value }))}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="bulk-startTime">Horário de Entrada</Label>
+                <Input
+                  id="bulk-startTime"
+                  type="time"
+                  value={formData.startTime}
+                  onChange={(e) => setFormData(prev => ({ ...prev, startTime: e.target.value }))}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="bulk-endTime">Horário de Saída</Label>
+                <Input
+                  id="bulk-endTime"
+                  type="time"
+                  value={formData.endTime}
+                  onChange={(e) => setFormData(prev => ({ ...prev, endTime: e.target.value }))}
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label>Funcionários</Label>
+              <div className="border rounded-md p-3 max-h-48 overflow-y-auto">
+                {users.map((user: User) => (
+                  <div key={user.id} className="flex items-center space-x-2 py-1">
+                    <Checkbox
+                      id={`bulk-${user.id}`}
+                      checked={selectedUsers.includes(user.id)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setSelectedUsers([...selectedUsers, user.id]);
+                        } else {
+                          setSelectedUsers(selectedUsers.filter(id => id !== user.id));
+                        }
+                      }}
+                    />
+                    <Label htmlFor={`bulk-${user.id}`} className="cursor-pointer">
+                      {user.firstName} {user.lastName} ({user.role || 'Funcionário'})
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-2">
+              <Button type="button" variant="outline" onClick={() => setBulkAssignOpen(false)}>
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={selectedUsers.length === 0}>
+                Atribuir para {selectedUsers.length} funcionários
               </Button>
             </div>
           </form>
