@@ -39,6 +39,7 @@ import holidayRoutes from './routes/HolidayController';
 import { timecardRoutes } from './routes/timecardRoutes';
 import { cltComplianceController } from './controllers/CLTComplianceController';
 import { TimecardApprovalController } from './modules/timecard/application/controllers/TimecardApprovalController';
+import { TimecardController } from './modules/timecard/application/controllers/TimecardController';
 import scheduleRoutes from './modules/schedule-management/infrastructure/routes/scheduleRoutes';
 import { userProfileRoutes } from './routes/userProfileRoutes';
 import { teamManagementRoutes } from './routes/teamManagementRoutes';
@@ -2068,40 +2069,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log('[ATTENDANCE-REPORT] Fetching real timecard data for user:', userId, 'period:', period);
 
-      // Query ONLY real data from timecard_entries table
-      const query = sql`
-        SELECT 
-          te.id,
-          TO_CHAR(te.check_in AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo', 'DD/MM/YYYY') as date,
-          TO_CHAR(te.check_in AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo', 'Dy') as day_of_week,
-          TO_CHAR(te.check_in AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo', 'HH24:MI') as check_in,
-          CASE 
-            WHEN te.break_start IS NOT NULL THEN TO_CHAR(te.break_start AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo', 'HH24:MI')
-            ELSE NULL
-          END as break_start,
-          CASE 
-            WHEN te.break_end IS NOT NULL THEN TO_CHAR(te.break_end AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo', 'HH24:MI')
-            ELSE NULL
-          END as break_end,
-          CASE 
-            WHEN te.check_out IS NOT NULL THEN TO_CHAR(te.check_out AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo', 'HH24:MI')
-            ELSE NULL
-          END as check_out,
-          te.total_hours,
-          te.status,
-          te.notes,
-          COALESCE(ws.schedule_type, 'Não definido') as work_schedule_type
-        FROM timecard_entries te
-        LEFT JOIN work_schedules ws ON ws.user_id = te.user_id AND ws.tenant_id = te.tenant_id AND ws.is_active = true
-        WHERE te.tenant_id = ${tenantId} 
-          AND te.user_id = ${userId}
-          AND TO_CHAR(te.check_in AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo', 'YYYY-MM') = ${period}
-          AND te.is_deleted = false
-        ORDER BY te.check_in ASC
-      `;
-
-      const result = await db.execute(query);
-      console.log('[ATTENDANCE-REPORT] Found', result.rows.length, 'real timecard entries');
+      // Usar o TimecardController que já tem acesso ao db correto
+      const timecardController = new TimecardController();
+      
+      // Redirecionar para o método correto do controller
+      req.params = { period };
+      return await timecardController.getAttendanceReport(req, res);
+    } catch (error) {
+      console.error('[ATTENDANCE-REPORT] Error:', error);
+      res.status(500).json({ success: false, error: 'Erro ao gerar relatório de espelho de ponto' });
+    }
+  });
 
       if (result.rows.length === 0) {
         return res.json({
