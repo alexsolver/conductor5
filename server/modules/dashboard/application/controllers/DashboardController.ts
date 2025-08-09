@@ -3,12 +3,20 @@ import { createSuccessResponse, createErrorResponse } from '../../../../utils/st
 import { GetDashboardMetricsUseCase } from '../use-cases/GetDashboardMetricsUseCase';
 import { DashboardApplicationService } from '../services/DashboardApplicationService';
 
-class DashboardController {
+interface AuthenticatedRequest extends Request {
+  user?: {
+    tenantId: string;
+    id: string;
+    role: string;
+  };
+}
+
+export class DashboardController {
   constructor(
     private readonly getDashboardMetricsUseCase: GetDashboardMetricsUseCase
   ) {}
 
-  async getMetrics(req: Request, res: Response): Promise<void> {
+  async getMetrics(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const tenantId = req.user?.tenantId;
       if (!tenantId) {
@@ -16,7 +24,7 @@ class DashboardController {
         return;
       }
 
-      const metrics = await this.getDashboardMetricsUseCase.execute({ tenantId });
+      const metrics = await this.getDashboardMetricsUseCase.execute(tenantId);
       res.status(200).json(createSuccessResponse(metrics, 'Métricas obtidas com sucesso'));
     } catch (error) {
       console.error('Erro ao obter métricas do dashboard:', error);
@@ -24,7 +32,7 @@ class DashboardController {
     }
   }
 
-  async getOverview(req: Request, res: Response): Promise<void> {
+  async getOverview(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const tenantId = req.user?.tenantId;
       if (!tenantId) {
@@ -40,17 +48,3 @@ class DashboardController {
     }
   }
 }
-
-class DashboardController {
-  constructor(private dashboardService: DashboardApplicationService) {}
-
-  async getStats(tenantId: string): Promise<any> {
-    return await this.dashboardService.getDashboardStats(tenantId);
-  }
-
-  async getActivity(tenantId: string): Promise<any> {
-    return await this.dashboardService.getActivityFeed(tenantId);
-  }
-}
-
-export default DashboardController;
