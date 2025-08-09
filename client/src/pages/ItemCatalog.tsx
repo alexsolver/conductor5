@@ -1231,10 +1231,8 @@ export default function ItemCatalog() {
                             try {
                               console.log(`🔗 [FRONTEND] Vinculando empresa ${companyId} ao item ${selectedItem.id}`);
 
-                              const response = await fetch(`/api/materials-services/items/${selectedItem.id}/link-customer`, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ customerId: companyId })
+                              const response = await apiRequest('POST', `/api/materials-services/items/${selectedItem.id}/link-customer`, {
+                                customerId: companyId
                               });
 
                               if (response.ok) {
@@ -1317,9 +1315,7 @@ export default function ItemCatalog() {
                               try {
                                 console.log(`🗑️ [FRONTEND] Desvinculando empresa ${company.id} do item ${selectedItem.id}`);
 
-                                const response = await fetch(`/api/materials-services/items/${selectedItem.id}/unlink-customer/${company.id}`, {
-                                  method: 'DELETE'
-                                });
+                                const response = await apiRequest('DELETE', `/api/materials-services/items/${selectedItem.id}/unlink-customer/${company.id}`);
 
                                 if (response.ok) {
                                   toast({
@@ -1371,10 +1367,8 @@ export default function ItemCatalog() {
                           if (!selectedItem?.id || !supplierId || supplierId === "select-supplier") return;
 
                           try {
-                            const response = await fetch(`/api/materials-services/items/${selectedItem.id}/link-supplier`, {
-                              method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({ supplierId })
+                            const response = await apiRequest('POST', `/api/materials-services/items/${selectedItem.id}/link-supplier`, {
+                              supplierId
                             });
 
                             if (response.ok) {
@@ -1432,9 +1426,7 @@ export default function ItemCatalog() {
                               if (!selectedItem?.id) return;
 
                               try {
-                                const response = await fetch(`/api/materials-services/items/${selectedItem.id}/unlink-supplier/${supplier.id}`, {
-                                  method: 'DELETE'
-                                });
+                                const response = await apiRequest('DELETE', `/api/materials-services/items/${selectedItem.id}/unlink-supplier/${supplier.id}`);
 
                                 if (response.ok) {
                                   toast({
