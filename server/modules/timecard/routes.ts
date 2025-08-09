@@ -50,92 +50,11 @@ timecardRouter.get('/hour-bank/movements/:userId/:month', jwtAuth, timecardContr
 timecardRouter.get('/absence-requests/pending', jwtAuth, timecardController.getPendingAbsenceRequests.bind(timecardController));
 
 // Reports routes with error handling wrapper
-timecardRouter.get('/reports/attendance/:period', jwtAuth, async (req, res) => {
-  try {
-    console.log('[TIMECARD-ROUTES] Processing attendance report request for period:', req.params.period);
-    res.setHeader('Content-Type', 'application/json');
-    
-    // Check if response was already sent
-    if (res.headersSent) {
-      console.log('[TIMECARD-ROUTES] Response already sent, skipping');
-      return;
-    }
-    
-    await timecardController.getAttendanceReport(req, res);
-  } catch (error) {
-    console.error('[TIMECARD-ROUTES] Error in attendance report:', error);
-    
-    // Only send error if response wasn't sent yet
-    if (!res.headersSent) {
-      res.setHeader('Content-Type', 'application/json');
-      res.status(500).json({
-        success: false,
-        error: 'Erro ao gerar relatório de frequência',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      });
-    }
-  }
-});
+timecardRouter.get('/reports/attendance/:period', jwtAuth, timecardController.getAttendanceReport.bind(timecardController)););
 
-timecardRouter.get('/reports/overtime/:period', jwtAuth, async (req, res) => {
-  try {
-    console.log('[TIMECARD-ROUTES] Processing overtime report request for period:', req.params.period);
-    
-    // Set headers early and ensure JSON response
-    res.setHeader('Content-Type', 'application/json; charset=utf-8');
-    res.setHeader('Cache-Control', 'no-cache');
-    
-    // Check if response was already sent
-    if (res.headersSent) {
-      console.log('[TIMECARD-ROUTES] Response already sent, skipping');
-      return;
-    }
-    
-    await timecardController.getOvertimeReport(req, res);
-  } catch (error) {
-    console.error('[TIMECARD-ROUTES] Error in overtime report:', error);
-    
-    // Only send error if response wasn't sent yet
-    if (!res.headersSent) {
-      res.setHeader('Content-Type', 'application/json; charset=utf-8');
-      res.status(500).json({
-        success: false,
-        error: 'Erro ao gerar relatório de horas extras',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      });
-    }
-  }
-});
+timecardRouter.get('/reports/overtime/:period', jwtAuth, timecardController.getOvertimeReport.bind(timecardController));
 
-timecardRouter.get('/reports/compliance/:period', jwtAuth, async (req, res) => {
-  try {
-    console.log('[TIMECARD-ROUTES] Processing compliance report request for period:', req.params.period);
-    
-    // Set headers early and ensure JSON response
-    res.setHeader('Content-Type', 'application/json; charset=utf-8');
-    res.setHeader('Cache-Control', 'no-cache');
-    
-    // Check if response was already sent
-    if (res.headersSent) {
-      console.log('[TIMECARD-ROUTES] Response already sent, skipping');
-      return;
-    }
-    
-    await timecardController.getComplianceReport(req, res);
-  } catch (error) {
-    console.error('[TIMECARD-ROUTES] Error in compliance report:', error);
-    
-    // Only send error if response wasn't sent yet
-    if (!res.headersSent) {
-      res.setHeader('Content-Type', 'application/json; charset=utf-8');
-      res.status(500).json({
-        success: false,
-        error: 'Erro ao gerar relatório de compliance',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      });
-    }
-  }
-});
+timecardRouter.get('/reports/compliance/:period', jwtAuth, timecardController.getComplianceReport.bind(timecardController));
 
 // Current status route
 timecardRouter.get('/current-status', jwtAuth, timecardController.getCurrentStatus.bind(timecardController));
