@@ -1,6 +1,5 @@
-
 // Using DTOs and interfaces instead of framework dependencies
-import { BaseController } from './BaseController';
+import type { Request, Response } from 'express';
 
 export class SharedController extends BaseController {
   async handleSharedRequest(req: Request, res: Response): Promise<void> {

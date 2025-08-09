@@ -1,4 +1,4 @@
-// Removed invalid dependency to DTO from domain layer
+// Domain entities should not depend on DTOs
 
 export class Beneficiary {
   constructor(

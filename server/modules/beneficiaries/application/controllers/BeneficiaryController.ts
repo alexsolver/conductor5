@@ -1,9 +1,9 @@
-
 import { CreateBeneficiaryUseCase } from '../use-cases/CreateBeneficiaryUseCase';
 import { GetBeneficiariesUseCase } from '../use-cases/GetBeneficiariesUseCase';
 import { UpdateBeneficiaryUseCase } from '../use-cases/UpdateBeneficiaryUseCase';
 import { DeleteBeneficiaryUseCase } from '../use-cases/DeleteBeneficiaryUseCase';
 import { CreateBeneficiaryDTO } from '../dto/CreateBeneficiaryDTO';
+import type { Request, Response } from 'express';
 
 export interface GetBeneficiariesRequest {
   tenantId: string;
@@ -89,5 +89,44 @@ export class BeneficiaryController {
   async updateBeneficiaryLocationPrimary(tenantId: string, beneficiaryId: string, locationId: string, isPrimary: boolean) {
     // Implementation for updating location primary status
     return false;
+  }
+
+  // Added methods for Express request/response handling with error handling
+  async getBeneficiaries(req: Request, res: Response): Promise<void> {
+    try {
+      const useCase = new GetBeneficiariesUseCase();
+      const beneficiaries = await useCase.execute();
+
+      res.json({
+        success: true,
+        data: beneficiaries,
+        message: 'Beneficiaries retrieved successfully'
+      });
+    } catch (error) {
+      console.error('Error in getBeneficiaries:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error retrieving beneficiaries'
+      });
+    }
+  }
+
+  async createBeneficiary(req: Request, res: Response): Promise<void> {
+    try {
+      const useCase = new CreateBeneficiaryUseCase();
+      const beneficiary = await useCase.execute(req.body);
+
+      res.status(201).json({
+        success: true,
+        data: beneficiary,
+        message: 'Beneficiary created successfully'
+      });
+    } catch (error) {
+      console.error('Error in createBeneficiary:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error creating beneficiary'
+      });
+    }
   }
 }
