@@ -996,14 +996,14 @@ export default function ItemCatalog() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Item Pai (Opcional)</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value || ""}>
+                    <Select onValueChange={(value) => field.onChange(value === "none" ? undefined : value)} value={field.value || "none"}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Selecione um item pai" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">Nenhum (item independente)</SelectItem>
+                        <SelectItem value="none">Nenhum (item independente)</SelectItem>
                         {items.filter(item => item.id !== selectedItem?.id && !item.parentId).map((item) => (
                           <SelectItem key={item.id} value={item.id}>
                             {item.name} ({item.type})
