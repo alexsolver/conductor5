@@ -8,9 +8,9 @@
 
 - 🔥 **Críticos:** 0
 - ⚠️ **Altos:** 113
-- 📋 **Médios:** 109
+- 📋 **Médios:** 105
 - 💡 **Baixos:** 4
-- **Total:** 226
+- **Total:** 222
 
 ## Principais Problemas por Módulo
 
@@ -174,14 +174,6 @@
   - Camada application ausente no módulo tenant-admin
   - Camada infrastructure ausente no módulo tenant-admin
 
-### ⚠️ ticket-history
-- **Total de problemas:** 6
-- **Críticos:** 0 | **Altos:** 1
-- **Principais problemas:**
-  - Estrutura events ausente na camada domain
-  - Estrutura services ausente na camada domain
-  - Estrutura dto ausente na camada application
-
 ### ⚠️ ticket-templates
 - **Total de problemas:** 4
 - **Críticos:** 0 | **Altos:** 3
@@ -205,6 +197,13 @@
   - Camada domain ausente no módulo timecard
   - Estrutura use-cases ausente na camada application
   - Estrutura dto ausente na camada application
+
+### ⚠️ ticket-history
+- **Total de problemas:** 2
+- **Críticos:** 0 | **Altos:** 1
+- **Principais problemas:**
+  - Application Layer violando dependência: express
+  - Nome da classe TicketHistoryEntity não corresponde ao arquivo TicketHistory
 
 
 ## Plano de Correção
@@ -460,18 +459,6 @@
 3. **create_directory:** Criar estrutura da camada infrastructure
 4. **create_directory:** Criar controllers na camada Application e usar nas rotas
 
-### ⚠️ ticket-history
-- **Prioridade:** high
-- **Tempo estimado:** 2h
-- **Ações:** 6
-
-1. **create_directory:** Criar diretório/arquivo events na camada domain
-2. **create_directory:** Criar diretório/arquivo services na camada domain
-3. **create_directory:** Criar diretório/arquivo dto na camada application
-4. **create_directory:** Criar diretório/arquivo services na camada application
-5. **refactor_code:** Refatorar dependência inválida na camada application
-6. **rename_file:** Padronizar nomenclatura: Nome da classe TicketHistoryEntity não corresponde ao arquivo TicketHistory
-
 ### ⚠️ ticket-templates
 - **Prioridade:** high
 - **Tempo estimado:** 1h
@@ -509,6 +496,14 @@
 7. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
 8. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 9. **create_file:** Criar Repository com interface
+
+### ⚠️ ticket-history
+- **Prioridade:** high
+- **Tempo estimado:** 2h
+- **Ações:** 2
+
+1. **refactor_code:** Refatorar dependência inválida na camada application
+2. **rename_file:** Padronizar nomenclatura: Nome da classe TicketHistoryEntity não corresponde ao arquivo TicketHistory
 
 ### 📋 auth
 - **Prioridade:** medium
@@ -566,10 +561,10 @@ Nenhuma ação imediata necessária
 - **template-hierarchy:** 4 ações (1h)
 - **template-versions:** 4 ações (1h)
 - **tenant-admin:** 4 ações (40min)
-- **ticket-history:** 6 ações (2h)
 - **ticket-templates:** 4 ações (1h)
 - **tickets:** 7 ações (3h)
 - **timecard:** 9 ações (5h)
+- **ticket-history:** 2 ações (2h)
 
 ## Comandos para Correção
 
