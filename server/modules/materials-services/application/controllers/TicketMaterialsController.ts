@@ -312,6 +312,52 @@ export class TicketMaterialsController {
     }
   }
 
+  // Delete planned item
+  async deletePlannedItem(req: AuthenticatedRequest, res: Response) {
+    try {
+      const { ticketId, itemId } = req.params;
+      const tenantId = req.user?.tenantId;
+
+      if (!tenantId) {
+        return res.status(400).json({ success: false, error: 'Tenant ID é obrigatório' });
+      }
+
+      console.log('🗑️ [DELETE-PLANNED-ITEM] Deleting item:', itemId, 'for ticket:', ticketId, 'tenant:', tenantId);
+
+      // Import pool for direct deletion
+      const { pool } = await import('../../../../db');
+      
+      // Use direct SQL deletion to avoid Drizzle issues
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      const deleteQuery = `
+        DELETE FROM "${schemaName}".ticket_planned_items 
+        WHERE id = $1 AND ticket_id = $2 AND tenant_id = $3
+      `;
+
+      const result = await pool.query(deleteQuery, [itemId, ticketId, tenantId]);
+
+      if (result.rowCount === 0) {
+        return res.status(404).json({
+          success: false,
+          error: 'Item planejado não encontrado'
+        });
+      }
+
+      console.log('✅ [DELETE-PLANNED-ITEM] Successfully deleted item:', itemId);
+
+      return res.json({
+        success: true,
+        message: 'Item planejado excluído com sucesso'
+      });
+    } catch (error) {
+      console.error('❌ Delete planned item error:', error);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to delete planned item'
+      });
+    }
+  }
+
   // Add consumed item
   async addConsumedItem(req: AuthenticatedRequest, res: Response) {
     try {

@@ -405,6 +405,18 @@ router.post('/tickets/:ticketId/planned-items', async (req: AuthenticatedRequest
   }
 });
 
+router.delete('/tickets/:ticketId/planned-items/:itemId', async (req: AuthenticatedRequest, res) => {
+  try {
+    console.log('🚀 DELETE /tickets/:ticketId/planned-items/:itemId called');
+    if (!req.user?.tenantId) return res.status(401).json({ message: 'Tenant ID required' });
+    const { ticketMaterialsController } = await getControllers(req.user.tenantId);
+    return ticketMaterialsController.deletePlannedItem(req, res);
+  } catch (error) {
+    console.error('❌ Delete planned item route error:', error);
+    res.status(500).json({ success: false, error: 'Failed to delete planned item' });
+  }
+});
+
 router.get('/tickets/:ticketId/consumed-items', async (req: AuthenticatedRequest, res) => {
   if (!req.user?.tenantId) return res.status(401).json({ message: 'Tenant ID required' });
   const { ticketMaterialsController } = await getControllers(req.user.tenantId);
