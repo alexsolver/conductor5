@@ -186,9 +186,22 @@ const itemLinkSchema = z.object({
 const bulkLinkSchema = z.object({
   sourceItemIds: z.array(z.string()).min(1, "Selecione pelo menos um item de origem"),
   targetItemIds: z.array(z.string()).min(1, "Selecione pelo menos um item de destino"),
-  relationship: z.enum(["kit", "substitute", "compatible", "accessory", "group"]),
+  relationship: z.enum(["one_to_many", "many_to_one"]),
   groupName: z.string().optional(),
   groupDescription: z.string().optional(),
+}).refine((data) => {
+  // Validação para 1-para-many: 1 origem, múltiplos destinos
+  if (data.relationship === 'one_to_many') {
+    return data.sourceItemIds.length === 1 && data.targetItemIds.length >= 1;
+  }
+  // Validação para many-para-1: múltiplas origens, 1 destino
+  if (data.relationship === 'many_to_one') {
+    return data.sourceItemIds.length >= 1 && data.targetItemIds.length === 1;
+  }
+  return true;
+}, {
+  message: "Configuração de vínculos inválida para o tipo selecionado",
+  path: ["relationship"]
 });
 
 const bulkCompanyLinkSchema = z.object({
@@ -320,7 +333,7 @@ export default function ItemCatalog() {
     defaultValues: {
       sourceItemIds: [],
       targetItemIds: [],
-      relationship: 'group',
+      relationship: 'one_to_many',
       groupName: '',
       groupDescription: '',
     }
@@ -3154,128 +3167,175 @@ export default function ItemCatalog() {
 
           <Form {...bulkLinkForm}>
             <form onSubmit={bulkLinkForm.handleSubmit(onSubmitBulkLinks)} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <FormField
-                    control={bulkLinkForm.control}
-                    name="sourceItemIds"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Itens de Origem *</FormLabel>
+              <div className="space-y-4">
+                {/* Seletor de Tipo de Vínculo */}
+                <FormField
+                  control={bulkLinkForm.control}
+                  name="relationship"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Tipo de Relacionamento *</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
-                          <div className="border rounded-lg p-4 max-h-48 overflow-y-auto">
-                            {paginatedItems.map((item) => (
-                              <div key={item.id} className="flex items-center space-x-2 mb-2">
-                                <Checkbox
-                                  checked={field.value.includes(item.id)}
-                                  onCheckedChange={(checked) => {
-                                    if (checked) {
-                                      field.onChange([...field.value, item.id]);
-                                    } else {
-                                      field.onChange(field.value.filter(id => id !== item.id));
-                                    }
-                                  }}
-                                />
-                                <span className="text-sm">{item.name}</span>
-                              </div>
-                            ))}
-                          </div>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione o tipo" />
+                          </SelectTrigger>
                         </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+                        <SelectContent>
+                          <SelectItem value="one_to_many">1 para Muitos (1 origem → N destinos)</SelectItem>
+                          <SelectItem value="many_to_one">Muitos para 1 (N origens → 1 destino)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-                <div>
-                  <FormField
-                    control={bulkLinkForm.control}
-                    name="targetItemIds"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Itens de Destino *</FormLabel>
-                        <FormControl>
-                          <div className="border rounded-lg p-4 max-h-48 overflow-y-auto">
-                            {paginatedItems.map((item) => (
-                              <div key={item.id} className="flex items-center space-x-2 mb-2">
-                                <Checkbox
-                                  checked={field.value.includes(item.id)}
-                                  onCheckedChange={(checked) => {
-                                    if (checked) {
-                                      field.onChange([...field.value, item.id]);
-                                    } else {
-                                      field.onChange(field.value.filter(id => id !== item.id));
-                                    }
-                                  }}
-                                />
-                                <span className="text-sm">{item.name}</span>
+                {/* Condicional baseada no tipo de relacionamento */}
+                {bulkLinkForm.watch('relationship') === 'one_to_many' && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <FormField
+                        control={bulkLinkForm.control}
+                        name="sourceItemIds"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Item de Origem (selecione apenas 1) *</FormLabel>
+                            <FormControl>
+                              <div className="border rounded-lg p-4 max-h-48 overflow-y-auto">
+                                {paginatedItems.map((item) => (
+                                  <div key={item.id} className="flex items-center space-x-2 mb-2">
+                                    <Checkbox
+                                      checked={field.value.includes(item.id)}
+                                      onCheckedChange={(checked) => {
+                                        if (checked) {
+                                          // Para 1-para-many, só permite 1 item de origem
+                                          field.onChange([item.id]);
+                                        } else {
+                                          field.onChange([]);
+                                        }
+                                      }}
+                                    />
+                                    <span className="text-sm">{item.name}</span>
+                                  </div>
+                                ))}
                               </div>
-                            ))}
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <div>
+                      <FormField
+                        control={bulkLinkForm.control}
+                        name="targetItemIds"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Itens de Destino (selecione vários) *</FormLabel>
+                            <FormControl>
+                              <div className="border rounded-lg p-4 max-h-48 overflow-y-auto">
+                                {paginatedItems
+                                  .filter(item => !bulkLinkForm.watch('sourceItemIds').includes(item.id))
+                                  .map((item) => (
+                                  <div key={item.id} className="flex items-center space-x-2 mb-2">
+                                    <Checkbox
+                                      checked={field.value.includes(item.id)}
+                                      onCheckedChange={(checked) => {
+                                        if (checked) {
+                                          field.onChange([...field.value, item.id]);
+                                        } else {
+                                          field.onChange(field.value.filter(id => id !== item.id));
+                                        }
+                                      }}
+                                    />
+                                    <span className="text-sm">{item.name}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {bulkLinkForm.watch('relationship') === 'many_to_one' && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <FormField
+                        control={bulkLinkForm.control}
+                        name="sourceItemIds"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Itens de Origem (selecione vários) *</FormLabel>
+                            <FormControl>
+                              <div className="border rounded-lg p-4 max-h-48 overflow-y-auto">
+                                {paginatedItems
+                                  .filter(item => !bulkLinkForm.watch('targetItemIds').includes(item.id))
+                                  .map((item) => (
+                                  <div key={item.id} className="flex items-center space-x-2 mb-2">
+                                    <Checkbox
+                                      checked={field.value.includes(item.id)}
+                                      onCheckedChange={(checked) => {
+                                        if (checked) {
+                                          field.onChange([...field.value, item.id]);
+                                        } else {
+                                          field.onChange(field.value.filter(id => id !== item.id));
+                                        }
+                                      }}
+                                    />
+                                    <span className="text-sm">{item.name}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <div>
+                      <FormField
+                        control={bulkLinkForm.control}
+                        name="targetItemIds"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Item de Destino (selecione apenas 1) *</FormLabel>
+                            <FormControl>
+                              <div className="border rounded-lg p-4 max-h-48 overflow-y-auto">
+                                {paginatedItems.map((item) => (
+                                  <div key={item.id} className="flex items-center space-x-2 mb-2">
+                                    <Checkbox
+                                      checked={field.value.includes(item.id)}
+                                      onCheckedChange={(checked) => {
+                                        if (checked) {
+                                          // Para many-para-1, só permite 1 item de destino
+                                          field.onChange([item.id]);
+                                        } else {
+                                          field.onChange([]);
+                                        }
+                                      }}
+                                    />
+                                    <span className="text-sm">{item.name}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
 
-              <FormField
-                control={bulkLinkForm.control}
-                name="relationship"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Tipo de Relacionamento *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione o tipo" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="kit">Kit/Conjunto</SelectItem>
-                        <SelectItem value="substitute">Substituto</SelectItem>
-                        <SelectItem value="compatible">Compatível</SelectItem>
-                        <SelectItem value="accessory">Acessório</SelectItem>
-                        <SelectItem value="group">Grupo</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {bulkLinkForm.watch('relationship') === 'group' && (
-                <>
-                  <FormField
-                    control={bulkLinkForm.control}
-                    name="groupName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Nome do Grupo *</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Ex: Ferramentas Básicas" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={bulkLinkForm.control}
-                    name="groupDescription"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Descrição do Grupo</FormLabel>
-                        <FormControl>
-                          <Textarea placeholder="Descrição opcional do grupo" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </>
-              )}
+              {/* Campos de grupo removidos pois não se aplicam aos tipos 1-para-many e many-para-1 */}
 
               <div className="flex justify-end space-x-2 pt-4">
                 <Button 

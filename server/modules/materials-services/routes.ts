@@ -19,6 +19,31 @@ import { systemSettings } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 import { Response } from 'express'; // Import Response type
 import crypto from 'crypto'; // Import crypto for UUID generation
+import { Pool } from 'pg'; // Import Pool for database operations
+
+// Assume pool is initialized elsewhere and available in this scope
+// For demonstration, we'll create a mock pool if it's not defined.
+let pool: Pool;
+if (typeof Pool !== 'undefined') {
+  // This part is for demonstration if pool is not globally available
+  // In a real application, pool should be properly configured and imported
+  pool = new Pool({
+    // Configuration options for your PostgreSQL connection
+    // e.g., user: 'dbuser', host: 'localhost', database: 'dbname', password: 'dbpassword', port: 5432
+  });
+} else {
+  // Mock Pool if not available (e.g., in a testing environment)
+  console.warn("PostgreSQL Pool not available, using mock pool.");
+  pool = {
+    query: async (queryText: string, params?: any[]) => {
+      console.log("Mock Pool Query:", queryText, params);
+      // Simulate returning a result structure similar to pg.Pool.query
+      return { rows: [] };
+    },
+    // Add other methods if your code relies on them (e.g., connect, end)
+  } as any;
+}
+
 
 // Create router
 const router = Router();
@@ -542,6 +567,125 @@ router.get('/supplier-links/overview', async (req: AuthenticatedRequest, res) =>
 router.use('/personalization', personalizationSimpleRoutes);
 
 // 🔗 VÍNCULOS EM LOTE - Sistema de Vinculação em Massa
+router.post('/items/bulk-links', jwtAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { itemIds: sourceItemIds, linkedItemIds: targetItemIds, relationship, groupName, groupDescription } = req.body;
+    const tenantId = req.user?.tenantId;
+
+    if (!tenantId) {
+      return res.status(401).json({ success: false, message: 'Tenant ID required' });
+    }
+
+    if (!Array.isArray(sourceItemIds) || !Array.isArray(targetItemIds) || !relationship) {
+      return res.status(400).json({
+        success: false,
+        message: 'sourceItemIds, targetItemIds e relationship são obrigatórios e devem ser arrays (para itemIds/linkedItemIds)'
+      });
+    }
+
+    // Validação do tipo de relacionamento
+    if (!['one_to_many', 'many_to_one'].includes(relationship)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Tipo de relacionamento deve ser "one_to_many" ou "many_to_one"'
+      });
+    }
+
+    // Validação dos relacionamentos 1-para-many e many-para-1
+    if (relationship === 'one_to_many') {
+      if (sourceItemIds.length !== 1) {
+        return res.status(400).json({
+          success: false,
+          message: 'Para relacionamento "1 para muitos", deve haver exatamente 1 item de origem'
+        });
+      }
+      if (targetItemIds.length < 1) {
+        return res.status(400).json({
+          success: false,
+          message: 'Para relacionamento "1 para muitos", deve haver pelo menos 1 item de destino'
+        });
+      }
+    }
+
+    if (relationship === 'many_to_one') {
+      if (sourceItemIds.length < 1) {
+        return res.status(400).json({
+          success: false,
+          message: 'Para relacionamento "muitos para 1", deve haver pelo menos 1 item de origem'
+        });
+      }
+      if (targetItemIds.length !== 1) {
+        return res.status(400).json({
+          success: false,
+          message: 'Para relacionamento "muitos para 1", deve haver exatamente 1 item de destino'
+        });
+      }
+    }
+
+    // Criar vínculos baseados no tipo de relacionamento
+    const linkPromises = [];
+    const tenantSchema = `tenant_${tenantId}`; // Assuming schema name format
+
+    if (relationship === 'one_to_many') {
+      // 1 origem para múltiplos destinos
+      const sourceId = sourceItemIds[0];
+      for (const targetId of targetItemIds) {
+        if (sourceId !== targetId) {
+          const linkQuery = `
+            INSERT INTO ${tenantSchema}.item_links 
+            (tenant_id, item_id, linked_item_id, relationship, created_by, link_type)
+            VALUES ($1, $2, $3, $4, $5, 'one_to_many')
+            RETURNING *
+          `;
+          linkPromises.push(
+            pool.query(linkQuery, [
+              tenantId, sourceId, targetId, 'one_to_many', req.user?.id
+            ])
+          );
+        }
+      }
+    } else if (relationship === 'many_to_one') {
+      // Múltiplas origens para 1 destino
+      const targetId = targetItemIds[0];
+      for (const sourceId of sourceItemIds) {
+        if (sourceId !== targetId) {
+          const linkQuery = `
+            INSERT INTO ${tenantSchema}.item_links 
+            (tenant_id, item_id, linked_item_id, relationship, created_by, link_type)
+            VALUES ($1, $2, $3, $4, $5, 'many_to_one')
+            RETURNING *
+          `;
+          linkPromises.push(
+            pool.query(linkQuery, [
+              tenantId, sourceId, targetId, 'many_to_one', req.user?.id
+            ])
+          );
+        }
+      }
+    }
+
+    const results = await Promise.all(linkPromises);
+
+    res.status(201).json({
+      success: true,
+      data: {
+        linksCreated: results.length,
+        links: results.map(r => r.rows[0]),
+        relationshipType: relationship
+      },
+      message: `Vínculos ${relationship === 'one_to_many' ? '1-para-muitos' : 'muitos-para-1'} criados com sucesso`
+    });
+
+  } catch (error) {
+    console.error('Erro ao criar vínculos em lote para empresas:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Erro interno do servidor' 
+    });
+  }
+});
+
+
 router.post('/items/bulk-company-links', jwtAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { itemIds, companyIds } = req.body;
@@ -1048,7 +1192,7 @@ router.post('/compliance/alerts/:alertId/acknowledge', async (req, res) => {
   try {
     const { alertId } = req.params;
     const tenantId = req.user?.tenantId;
-    
+
     if (!tenantId) {
       return res.status(400).json({ error: 'Tenant ID required' });
     }
