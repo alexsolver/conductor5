@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -31,7 +32,8 @@ import {
   FileText,
   ShoppingCart,
   Tag,
-  Calendar
+  Calendar,
+  X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -144,7 +146,7 @@ const measurementUnits = [
 
 export default function ItemCatalog() {
   // Estados principais
-  const [currentView, setCurrentView] = useState<'catalog' | 'item-details'>('catalog');
+  const [currentView, setCurrentView] = useState<'catalog' | 'item-details' | 'item-edit'>('catalog');
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
 
   // Estados de filtros e busca
@@ -153,7 +155,7 @@ export default function ItemCatalog() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [hierarchyFilter, setHierarchyFilter] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(50); // Aumentado para lidar com alto volume
+  const [itemsPerPage] = useState(50);
 
   // Estados para operações em lote
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
@@ -202,6 +204,23 @@ export default function ItemCatalog() {
     queryKey: ["/api/materials-services/suppliers"]
   });
 
+  // Query para vínculos do item específico quando estiver editando
+  const { data: itemLinksData, refetch: refetchItemLinks } = useQuery({
+    queryKey: ['/api/materials-services/items', selectedItem?.id, 'links'],
+    queryFn: async () => {
+      if (!selectedItem?.id) return { customers: [], suppliers: [] };
+      try {
+        const response = await apiRequest('GET', `/api/materials-services/items/${selectedItem.id}/links`);
+        const data = await response.json();
+        return data || { customers: [], suppliers: [] };
+      } catch (error) {
+        console.error('Erro ao carregar vínculos do item:', error);
+        return { customers: [], suppliers: [] };
+      }
+    },
+    enabled: !!selectedItem?.id && (currentView === 'item-details' || currentView === 'item-edit')
+  });
+
   // Mutations
   const createItemMutation = useMutation({
     mutationFn: async (data: z.infer<typeof itemSchema>) => {
@@ -213,7 +232,6 @@ export default function ItemCatalog() {
       return response.json();
     },
     onSuccess: () => {
-      // Invalidate all item-related queries
       queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items"] });
       queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items/stats"] });
       toast({
@@ -238,15 +256,13 @@ export default function ItemCatalog() {
       return response.json();
     },
     onSuccess: () => {
-      // Invalidate all item-related queries
       queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items"] });
       queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items/stats"] });
       toast({
         title: "Item atualizado com sucesso",
         description: "As alterações foram salvas.",
       });
-      setIsEditModalOpen(false);
-      setSelectedItem(null);
+      setCurrentView('item-details');
     },
     onError: () => {
       toast({
@@ -328,11 +344,11 @@ export default function ItemCatalog() {
       active: item.active !== undefined ? item.active : true,
       parentId: item.parentId || undefined,
     });
-    setIsEditModalOpen(true);
+    setCurrentView('item-edit');
   };
 
   const onSubmitItem = async (data: z.infer<typeof itemSchema>) => {
-    if (selectedItem && isEditModalOpen) {
+    if (selectedItem && currentView === 'item-edit') {
       updateItemMutation.mutate({ id: selectedItem.id, data });
     } else {
       createItemMutation.mutate(data);
@@ -380,11 +396,10 @@ export default function ItemCatalog() {
         </div>
       </div>
 
-      {/* Controles de busca e filtros - SEMPRE VISÍVEIS */}
+      {/* Controles de busca e filtros */}
       <Card>
         <CardContent className="p-4">
           <div className="flex flex-col lg:flex-row gap-4">
-            {/* Busca */}
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
@@ -395,7 +410,6 @@ export default function ItemCatalog() {
               />
             </div>
 
-            {/* Filtros */}
             <div className="flex gap-2">
               <Select value={typeFilter} onValueChange={setTypeFilter}>
                 <SelectTrigger className="w-32">
@@ -431,7 +445,6 @@ export default function ItemCatalog() {
                 </SelectContent>
               </Select>
 
-              {/* Operações em lote */}
               <Button 
                 variant={isBulkMode ? "default" : "outline"}
                 onClick={() => setIsBulkMode(!isBulkMode)}
@@ -439,29 +452,12 @@ export default function ItemCatalog() {
                 <Checkbox className="h-4 w-4 mr-2" />
                 Lote ({selectedItems.size})
               </Button>
-
-              {isBulkMode && selectedItems.size > 0 && (
-                <>
-                  <Button variant="outline" size="sm">
-                    <Building className="h-4 w-4 mr-1" />
-                    Empresas
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <Truck className="h-4 w-4 mr-1" />
-                    Fornecedores
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <Link className="h-4 w-4 mr-1" />
-                    Vincular
-                  </Button>
-                </>
-              )}
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Lista principal - TABELA EFICIENTE */}
+      {/* Lista principal */}
       <Card>
         <CardContent className="p-0">
           {isLoadingItems ? (
@@ -576,12 +572,6 @@ export default function ItemCatalog() {
                           <div className="flex items-center gap-1">
                             <Building className="h-3 w-3 text-blue-600" />
                             <span className="text-sm">{item.companiesCount}</span>
-                            {item.linkedCompanies && item.linkedCompanies.length > 0 && (
-                              <div className="text-xs text-gray-500">
-                                {item.linkedCompanies[0].name}
-                                {item.linkedCompanies.length > 1 && ` +${item.linkedCompanies.length - 1}`}
-                              </div>
-                            )}
                           </div>
                         ) : (
                           <span className="text-xs text-gray-400">-</span>
@@ -593,12 +583,6 @@ export default function ItemCatalog() {
                           <div className="flex items-center gap-1">
                             <Truck className="h-3 w-3 text-amber-600" />
                             <span className="text-sm">{item.suppliersCount}</span>
-                            {item.linkedSuppliers && item.linkedSuppliers.length > 0 && (
-                              <div className="text-xs text-gray-500">
-                                {item.linkedSuppliers[0].name}
-                                {item.linkedSuppliers.length > 1 && ` +${item.linkedSuppliers.length - 1}`}
-                              </div>
-                            )}
                           </div>
                         ) : (
                           <span className="text-xs text-gray-400">-</span>
@@ -669,7 +653,7 @@ export default function ItemCatalog() {
                 </TableBody>
               </Table>
 
-              {/* Paginação eficiente */}
+              {/* Paginação */}
               {totalPages > 1 && (
                 <div className="flex items-center justify-between p-4 border-t">
                   <div className="text-sm text-gray-500">
@@ -705,7 +689,7 @@ export default function ItemCatalog() {
     </div>
   );
 
-  // Renderizar detalhes do item
+  // Renderizar detalhes do item (visualização apenas)
   const renderItemDetailsView = () => {
     if (!selectedItem) return null;
 
@@ -760,9 +744,8 @@ export default function ItemCatalog() {
           </div>
         </div>
 
-        {/* Informações básicas em cards */}
+        {/* Informações básicas */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Informações principais */}
           <div className="lg:col-span-2">
             <Card>
               <CardHeader>
@@ -807,7 +790,6 @@ export default function ItemCatalog() {
             </Card>
           </div>
 
-          {/* Resumo de vínculos */}
           <div>
             <Card>
               <CardHeader>
@@ -844,7 +826,7 @@ export default function ItemCatalog() {
           </div>
         </div>
 
-        {/* Abas de vínculos detalhados */}
+        {/* Abas de vínculos */}
         <Card>
           <CardContent className="p-6">
             <Tabs defaultValue="hierarchy" className="w-full">
@@ -881,6 +863,297 @@ export default function ItemCatalog() {
     );
   };
 
+  // Renderizar edição completa do item
+  const renderItemEditView = () => {
+    if (!selectedItem) return null;
+
+    const itemLinks = itemLinksData || { customers: [], suppliers: [] };
+
+    return (
+      <div className="space-y-6">
+        {/* Header da edição */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => setCurrentView('item-details')}
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Cancelar Edição
+            </Button>
+            <div className="h-6 w-px bg-gray-300" />
+            <div className="flex items-center gap-3">
+              <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
+                selectedItem.type === 'material' ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'
+              }`}>
+                {selectedItem.type === 'material' ? <Package className="h-6 w-6" /> : <Wrench className="h-6 w-6" />}
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold">Editar: {selectedItem.name}</h1>
+                <p className="text-gray-600">Modificar informações e gerenciar vínculos</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Formulário de edição */}
+        <Form {...itemForm}>
+          <form onSubmit={itemForm.handleSubmit(onSubmitItem)} className="space-y-6">
+            {/* Informações básicas */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Informações Básicas</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={itemForm.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nome do Item *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Nome do item" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={itemForm.control}
+                    name="type"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Tipo *</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione o tipo" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="material">Material</SelectItem>
+                            <SelectItem value="service">Serviço</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={itemForm.control}
+                    name="integrationCode"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Código</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Código de integração" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={itemForm.control}
+                    name="measurementUnit"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Unidade *</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Unidade" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {measurementUnits.map((unit) => (
+                              <SelectItem key={unit.value} value={unit.value}>{unit.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <FormField
+                  control={itemForm.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Descrição</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="Descrição do item" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={itemForm.control}
+                  name="active"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">Status Ativo</FormLabel>
+                        <FormDescription>
+                          Item disponível para uso
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                <div className="flex justify-end gap-2">
+                  <Button type="submit" disabled={updateItemMutation.isPending}>
+                    {updateItemMutation.isPending ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                        Salvando...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="h-4 w-4 mr-2" />
+                        Salvar Alterações
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </form>
+        </Form>
+
+        {/* Abas de vínculos - editáveis */}
+        <Card>
+          <CardContent className="p-6">
+            <Tabs defaultValue="hierarchy" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="hierarchy">Hierarquia Pai-Filho</TabsTrigger>
+                <TabsTrigger value="companies">Empresas Vinculadas</TabsTrigger>
+                <TabsTrigger value="suppliers">Fornecedores</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="hierarchy" className="space-y-4 mt-6">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-semibold">Vínculos Hierárquicos</h3>
+                  <Button size="sm">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Adicionar Vínculo
+                  </Button>
+                </div>
+                
+                {/* Campo para item pai */}
+                <FormField
+                  control={itemForm.control}
+                  name="parentId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Item Pai (Opcional)</FormLabel>
+                      <Select onValueChange={(value) => field.onChange(value === "none" ? undefined : value)} value={field.value || "none"}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione um item pai" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="none">Nenhum (item independente)</SelectItem>
+                          {items.filter(item => item.id !== selectedItem?.id && !item.parentId).map((item) => (
+                            <SelectItem key={item.id} value={item.id}>
+                              {item.name} ({item.type})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        Defina se este item é filho de outro item
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </TabsContent>
+
+              <TabsContent value="companies" className="space-y-4 mt-6">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-semibold">Empresas Vinculadas ({itemLinks.customers?.length || 0})</h3>
+                  <Button size="sm">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Vincular Empresa
+                  </Button>
+                </div>
+
+                {itemLinks.customers && itemLinks.customers.length > 0 ? (
+                  <div className="space-y-2">
+                    {itemLinks.customers.map((customer: any) => (
+                      <div key={customer.id} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <Building className="h-4 w-4 text-blue-600" />
+                          <span className="font-medium">{customer.name}</span>
+                        </div>
+                        <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <Building className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-500">Nenhuma empresa vinculada</p>
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="suppliers" className="space-y-4 mt-6">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-semibold">Fornecedores Vinculados ({itemLinks.suppliers?.length || 0})</h3>
+                  <Button size="sm">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Vincular Fornecedor
+                  </Button>
+                </div>
+
+                {itemLinks.suppliers && itemLinks.suppliers.length > 0 ? (
+                  <div className="space-y-2">
+                    {itemLinks.suppliers.map((supplier: any) => (
+                      <div key={supplier.id} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <Truck className="h-4 w-4 text-amber-600" />
+                          <span className="font-medium">{supplier.name}</span>
+                        </div>
+                        <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <Truck className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-500">Nenhum fornecedor vinculado</p>
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  };
+
   return (
     <div className="container mx-auto p-6 space-y-6">
       {/* Breadcrumb */}
@@ -888,7 +1161,7 @@ export default function ItemCatalog() {
         <span>Gestão</span>
         <ChevronRight className="h-4 w-4" />
         <span className="font-medium text-gray-900">Catálogo de Itens</span>
-        {currentView === 'item-details' && selectedItem && (
+        {selectedItem && (
           <>
             <ChevronRight className="h-4 w-4" />
             <span className="font-medium text-gray-900">{selectedItem.name}</span>
@@ -899,26 +1172,20 @@ export default function ItemCatalog() {
       {/* Renderizar view baseada no estado atual */}
       {currentView === 'catalog' && renderCatalogView()}
       {currentView === 'item-details' && renderItemDetailsView()}
+      {currentView === 'item-edit' && renderItemEditView()}
 
-      {/* Modal de Criação/Edição de Item */}
-      <Dialog open={isCreateModalOpen || isEditModalOpen} onOpenChange={(open) => {
+      {/* Modal de Criação de Item */}
+      <Dialog open={isCreateModalOpen} onOpenChange={(open) => {
         setIsCreateModalOpen(open);
-        setIsEditModalOpen(open);
         if (!open) {
-          setSelectedItem(null);
           itemForm.reset();
         }
       }}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>
-              {isEditModalOpen ? 'Editar Item' : 'Criar Novo Item'}
-            </DialogTitle>
+            <DialogTitle>Criar Novo Item</DialogTitle>
             <DialogDescription>
-              {isEditModalOpen 
-                ? 'Modifique as informações do item selecionado'
-                : 'Preencha as informações essenciais para criar um novo item'
-              }
+              Preencha as informações essenciais para criar um novo item
             </DialogDescription>
           </DialogHeader>
 
@@ -999,36 +1266,6 @@ export default function ItemCatalog() {
                 />
               </div>
 
-              {/* Campo para item pai */}
-              <FormField
-                control={itemForm.control}
-                name="parentId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Item Pai (Opcional)</FormLabel>
-                    <Select onValueChange={(value) => field.onChange(value === "none" ? undefined : value)} value={field.value || "none"}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione um item pai" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="none">Nenhum (item independente)</SelectItem>
-                        {items.filter(item => item.id !== selectedItem?.id && !item.parentId).map((item) => (
-                          <SelectItem key={item.id} value={item.id}>
-                            {item.name} ({item.type})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormDescription>
-                      Defina se este item é filho de outro item
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
               <FormField
                 control={itemForm.control}
                 name="description"
@@ -1070,8 +1307,6 @@ export default function ItemCatalog() {
                   variant="outline" 
                   onClick={() => {
                     setIsCreateModalOpen(false);
-                    setIsEditModalOpen(false);
-                    setSelectedItem(null);
                     itemForm.reset();
                   }}
                 >
@@ -1079,17 +1314,17 @@ export default function ItemCatalog() {
                 </Button>
                 <Button 
                   type="submit"
-                  disabled={createItemMutation.isPending || updateItemMutation.isPending}
+                  disabled={createItemMutation.isPending}
                 >
-                  {createItemMutation.isPending || updateItemMutation.isPending ? (
+                  {createItemMutation.isPending ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                      {isEditModalOpen ? 'Salvando...' : 'Criando...'}
+                      Criando...
                     </>
                   ) : (
                     <>
                       <Save className="h-4 w-4 mr-2" />
-                      {isEditModalOpen ? 'Salvar' : 'Criar Item'}
+                      Criar Item
                     </>
                   )}
                 </Button>
