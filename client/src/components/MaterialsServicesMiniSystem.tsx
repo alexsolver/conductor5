@@ -584,17 +584,38 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                             rawItem: item,
                             itemData: item.item || item.items || item,
                             itemId: item.itemId,
-                            detectedName: (item.item || item.items || item).itemName || 
-                                         (item.item || item.items || item).name ||
-                                         item.itemName || item.name || 'not found',
-                            allKeys: Object.keys(item)
+                            detectedName: itemName,
+                            allKeys: Object.keys(item),
+                            itemDataKeys: item.item ? Object.keys(item.item) : 'no item nested',
+                            itemsDataKeys: item.items ? Object.keys(item.items) : 'no items nested',
+                            possibleNames: {
+                              'itemData.itemName': itemData.itemName,
+                              'itemData.name': itemData.name,
+                              'item.itemName': item.itemName,
+                              'item.name': item.name,
+                              'itemData.display_name': itemData.display_name,
+                              'item.display_name': item.display_name
+                            }
                           });
                           
                           // Handle different data structures - try nested object first
                           const itemData = item.item || item.items || item;
-                          const itemName = itemData.itemName || itemData.name || itemData.display_name || itemData.title || 
-                                          item.itemName || item.name || item.display_name || item.title || 
-                                          `Item ${item.itemId}`;
+                          
+                          // Try to get the item name from various possible locations in the data structure
+                          let itemName = null;
+                          
+                          // Priority 1: Direct name fields
+                          if (itemData.itemName) itemName = itemData.itemName;
+                          else if (itemData.name) itemName = itemData.name;
+                          else if (item.itemName) itemName = item.itemName;
+                          else if (item.name) itemName = item.name;
+                          // Priority 2: Display/title fields
+                          else if (itemData.display_name) itemName = itemData.display_name;
+                          else if (itemData.title) itemName = itemData.title;
+                          else if (item.display_name) itemName = item.display_name;
+                          else if (item.title) itemName = item.title;
+                          // Fallback: Use a descriptive fallback instead of UUID
+                          else itemName = `Material ${item.itemId ? item.itemId.substring(0, 8) : 'Não identificado'}`;
                           
                           const itemType = itemData.itemType || itemData.type || item.itemType || item.type || 'Material';
                           const itemDescription = itemData.itemDescription || itemData.description || itemData.display_description || 
