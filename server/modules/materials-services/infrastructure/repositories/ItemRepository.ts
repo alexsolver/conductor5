@@ -594,9 +594,13 @@ export class ItemRepository {
       const schemaName = `tenant_${this.tenantId.replace(/-/g, '_')}`;
       console.log(`🔗 [LINK-CUSTOMER] Schema: ${schemaName}`);
 
+      // Use direct pool query instead of drizzle execute for better parameter handling
+      const { pool } = await import('../../../../db.js');
+
       // Verify item exists
-      const itemExists = await this.db.execute(
-        sql.raw(`SELECT id, name FROM "${schemaName}".items WHERE id = $1 AND tenant_id = $2`, [itemId, this.tenantId])
+      const itemExists = await pool.query(
+        `SELECT id, name FROM "${schemaName}".items WHERE id = $1 AND tenant_id = $2`,
+        [itemId, this.tenantId]
       );
 
       if (itemExists.rows.length === 0) {
@@ -606,8 +610,9 @@ export class ItemRepository {
       console.log(`✅ [LINK-CUSTOMER] Item encontrado: ${itemExists.rows[0].name}`);
 
       // Verify customer exists
-      const customerExists = await this.db.execute(
-        sql.raw(`SELECT id, name FROM "${schemaName}".companies WHERE id = $1 AND tenant_id = $2`, [customerId, this.tenantId])
+      const customerExists = await pool.query(
+        `SELECT id, name FROM "${schemaName}".companies WHERE id = $1 AND tenant_id = $2`,
+        [customerId, this.tenantId]
       );
 
       if (customerExists.rows.length === 0) {
@@ -620,18 +625,26 @@ export class ItemRepository {
       const linkId = crypto.randomUUID();
       console.log(`🔗 [LINK-CUSTOMER] Inserindo em customer_item_mappings com ID: ${linkId}`);
 
-      // Insert into customer_item_mappings (the table that actually exists)
-      const result = await this.db.execute(
-        sql.raw(`
-          INSERT INTO "${schemaName}".customer_item_mappings (
-            id, tenant_id, item_id, customer_id, created_by, is_active, created_at, updated_at
-          ) VALUES ($1, $2, $3, $4, $5, true, NOW(), NOW())
-          ON CONFLICT (tenant_id, item_id, customer_id) DO UPDATE SET
-            is_active = true,
-            updated_at = NOW()
-          RETURNING id
-        `, [linkId, this.tenantId, itemId, customerId, userId])
+      // Check if link already exists
+      const existingLink = await pool.query(
+        `SELECT id FROM "${schemaName}".customer_item_mappings WHERE tenant_id = $1 AND item_id = $2 AND customer_id = $3`,
+        [this.tenantId, itemId, customerId]
       );
+
+      let result;
+      if (existingLink.rows.length > 0) {
+        // Update existing link
+        result = await pool.query(
+          `UPDATE "${schemaName}".customer_item_mappings SET is_active = true, updated_at = NOW() WHERE id = $1 RETURNING id`,
+          [existingLink.rows[0].id]
+        );
+      } else {
+        // Insert new link
+        result = await pool.query(
+          `INSERT INTO "${schemaName}".customer_item_mappings (id, tenant_id, item_id, customer_id, created_by, is_active, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, true, NOW(), NOW()) RETURNING id`,
+          [linkId, this.tenantId, itemId, customerId, userId]
+        );
+      }
 
       if (result.rows.length > 0) {
         console.log(`✅ [LINK-CUSTOMER] Vínculo criado/atualizado com sucesso: ${result.rows[0].id}`);
@@ -705,15 +718,6 @@ export class ItemRepository {
       const hasLeadTime = columns.includes('lead_time');
       const hasMinimumOrder = columns.includes('minimum_order');
 
-      // Query simplificada sem colunas problemáticas
-      const insertQuery = `
-        INSERT INTO "${schemaName}".item_supplier_links 
-        (id, tenant_id, item_id, supplier_id, is_active, created_at)
-        VALUES ($1, $2, $3, $4, true, NOW())
-        ON CONFLICT (item_id, supplier_id) 
-        DO UPDATE SET is_active = true
-      `;
-
       // Verificar se já existe vínculo
       const existingCheck = await pool.query(`
         SELECT id FROM "${schemaName}".item_supplier_links 
@@ -724,11 +728,16 @@ export class ItemRepository {
         // Atualizar existente
         await pool.query(`
           UPDATE "${schemaName}".item_supplier_links 
-          SET is_active = true
+          SET is_active = true, updated_at = NOW()
           WHERE item_id = $1 AND supplier_id = $2 AND tenant_id = $3
         `, [itemId, supplierId, tenantId]);
       } else {
-        // Inserir novo
+        // Inserir novo sem ON CONFLICT
+        const insertQuery = `
+          INSERT INTO "${schemaName}".item_supplier_links 
+          (id, tenant_id, item_id, supplier_id, is_active, created_at, updated_at)
+          VALUES ($1, $2, $3, $4, true, NOW(), NOW())
+        `;
         const params = [crypto.randomUUID(), tenantId, itemId, supplierId];
         await pool.query(insertQuery, params);
       }
