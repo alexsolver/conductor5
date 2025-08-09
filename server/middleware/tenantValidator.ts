@@ -157,3 +157,6 @@ export function crossTenantValidator() {
     }
   };
 }
+
+// Export alias for backward compatibility
+export const tenantValidator = enhancedTenantValidator;
