@@ -269,7 +269,7 @@ export class TicketMaterialsController {
 
       // Import pool for direct insertion
       const { pool } = await import('../../../../db');
-      
+
       // Use direct SQL insertion to avoid Drizzle issues
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       const insertQuery = `
@@ -326,7 +326,7 @@ export class TicketMaterialsController {
 
       // Import pool for direct deletion
       const { pool } = await import('../../../../db');
-      
+
       // Use direct SQL deletion to avoid Drizzle issues
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       const deleteQuery = `
@@ -400,7 +400,7 @@ export class TicketMaterialsController {
 
       // Import pool for direct SQL queries
       const { pool } = await import('../../../../db');
-      
+
       // Use raw SQL to get planned items with item details
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       const query = `
