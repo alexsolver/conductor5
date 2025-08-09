@@ -28,6 +28,18 @@
         ]
       },
       {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "server/modules/beneficiaries/application/controllers/BeneficiaryController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
         "type": "move_code",
         "description": "Resolver acoplamento: Entity misturada com DTOs - violação de responsabilidade",
         "target": "server/modules/beneficiaries/domain/entities/Beneficiary.ts",
@@ -51,7 +63,7 @@
         ]
       }
     ],
-    "estimatedTime": "3h"
+    "estimatedTime": "4h"
   },
   {
     "priority": "immediate",
@@ -827,6 +839,18 @@
         ]
       },
       {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "server/modules/shared/application/controllers/SharedController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
         "type": "rename_file",
         "description": "Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'",
         "target": "server/modules/shared/application/use-cases/index.ts",
@@ -857,7 +881,7 @@
         ]
       }
     ],
-    "estimatedTime": "3h"
+    "estimatedTime": "4h"
   },
   {
     "priority": "immediate",

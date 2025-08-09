@@ -7,16 +7,16 @@
 ## Resumo de Problemas
 
 - 🔥 **Críticos:** 18
-- ⚠️ **Altos:** 66
+- ⚠️ **Altos:** 68
 - 📋 **Médios:** 36
 - 💡 **Baixos:** 4
-- **Total:** 124
+- **Total:** 126
 
 ## Principais Problemas por Módulo
 
 ### 🔥 beneficiaries
-- **Total de problemas:** 5
-- **Críticos:** 2 | **Altos:** 2
+- **Total de problemas:** 6
+- **Críticos:** 2 | **Altos:** 3
 - **Principais problemas:**
   - Routes contém lógica de negócio ou acesso a dados
   - Domain Layer violando dependência: ../../application/dto/CreateBeneficiaryDTO
@@ -84,12 +84,12 @@
   - Repository contém possível lógica de negócio
 
 ### 🔥 shared
-- **Total de problemas:** 5
-- **Críticos:** 2 | **Altos:** 0
+- **Total de problemas:** 6
+- **Críticos:** 2 | **Altos:** 1
 - **Principais problemas:**
   - Domain Layer violando dependência: drizzle-orm/neon-http
   - Domain Layer violando dependência: drizzle-orm/neon-http
-  - Use Case index deve terminar com 'UseCase'
+  - Application Layer violando dependência: express
 
 ### 🔥 timecard
 - **Total de problemas:** 11
@@ -134,13 +134,14 @@
 
 ### 🔥 beneficiaries
 - **Prioridade:** immediate
-- **Tempo estimado:** 3h
-- **Ações:** 4
+- **Tempo estimado:** 4h
+- **Ações:** 5
 
 1. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
 2. **refactor_code:** Refatorar dependência inválida na camada domain
-3. **move_code:** Resolver acoplamento: Entity misturada com DTOs - violação de responsabilidade
-4. **rename_file:** Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'
+3. **refactor_code:** Refatorar dependência inválida na camada application
+4. **move_code:** Resolver acoplamento: Entity misturada com DTOs - violação de responsabilidade
+5. **rename_file:** Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'
 
 ### 🔥 knowledge-base
 - **Prioridade:** immediate
@@ -237,14 +238,15 @@
 
 ### 🔥 shared
 - **Prioridade:** immediate
-- **Tempo estimado:** 3h
-- **Ações:** 5
+- **Tempo estimado:** 4h
+- **Ações:** 6
 
 1. **refactor_code:** Refatorar dependência inválida na camada domain
 2. **refactor_code:** Refatorar dependência inválida na camada domain
-3. **rename_file:** Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'
-4. **rename_file:** Padronizar nomenclatura: Repository index deve terminar com 'Repository'
-5. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
+3. **refactor_code:** Refatorar dependência inválida na camada application
+4. **rename_file:** Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'
+5. **rename_file:** Padronizar nomenclatura: Repository index deve terminar com 'Repository'
+6. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 
 ### 🔥 timecard
 - **Prioridade:** immediate
@@ -323,13 +325,13 @@
 ## Recomendações
 
 ### Prioridade Imediata 🔥
-- **beneficiaries:** 4 ações (3h)
+- **beneficiaries:** 5 ações (4h)
 - **knowledge-base:** 10 ações (8h)
 - **materials-services:** 37 ações (30h)
 - **saas-admin:** 8 ações (5h)
 - **technical-skills:** 6 ações (5h)
 - **schedule-management:** 2 ações (2h)
-- **shared:** 5 ações (3h)
+- **shared:** 6 ações (4h)
 - **timecard:** 7 ações (5h)
 
 ### Prioridade Alta ⚠️
