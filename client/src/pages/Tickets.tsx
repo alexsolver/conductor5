@@ -392,48 +392,9 @@ export default function Tickets() {
     );
   }
 
-  // Parse consistente dos dados de tickets com tipagem robusta
-  let ticketsList: any[] = [];
-  
-  try {
-    const ticketsData = tickets as any;
-    
-    if (ticketsData) {
-      // Caso 1: { success: true, data: [...] }
-      if (ticketsData.success === true && Array.isArray(ticketsData.data)) {
-        ticketsList = ticketsData.data;
-      }
-      // Caso 2: { data: [...] }
-      else if (Array.isArray(ticketsData.data)) {
-        ticketsList = ticketsData.data;
-      }
-      // Caso 3: Array direto
-      else if (Array.isArray(ticketsData)) {
-        ticketsList = ticketsData;
-      }
-    }
-  } catch (parseError) {
-    console.error('Error parsing tickets data:', parseError);
-    ticketsList = [];
-  }
-  
-  const ticketsCount = ticketsList.length;
-  
-  // Debug detalhado
-  console.log('🎫 TICKETS DEBUG:', {
-    hasError: !!error,
-    isLoading,
-    ticketsCount,
-    hasTickets: ticketsList.length > 0,
-    firstTicketId: ticketsList[0]?.id || 'N/A',
-    rawDataStructure: {
-      type: typeof tickets,
-      hasData: !!(tickets as any)?.data,
-      hasSuccess: !!(tickets as any)?.success,
-      dataIsArray: Array.isArray((tickets as any)?.data),
-      dataLength: Array.isArray((tickets as any)?.data) ? (tickets as any).data.length : 'N/A'
-    }
-  });
+  // Parse consistente dos dados de tickets
+  const ticketsList = (tickets as any)?.data?.tickets || [];
+  const ticketsCount = Array.isArray(ticketsList) ? ticketsList.length : 0;
 
   return (
     <div className="p-4 space-y-6">
