@@ -247,6 +247,14 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                          Array.isArray(availableItemsData) ? availableItemsData : [];
   const plannedMaterials = plannedData?.data?.plannedItems || [];
 
+  // Debug log for available items structure
+  console.log('🔍 [CONSUMPTION-DEBUG] Available items data:', {
+    rawData: availableItemsData,
+    processedItems: availableItems,
+    itemCount: availableItems.length,
+    sampleItem: availableItems[0] || 'No items'
+  });
+
   // Process consumed materials data
   const consumedMaterials = useMemo(() => {
     if (!consumedData?.data?.consumedItems) return [];
@@ -570,26 +578,41 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                         <SelectValue placeholder="Selecione um item planejado" />
                       </SelectTrigger>
                       <SelectContent>
-                        {availableItems.map((item: any, index: number) => (
-                          <SelectItem key={`available-${item.itemId}-${index}`} value={item.itemId}>
-                            <div className="flex flex-col text-left w-full">
-                              <div className="flex items-center gap-2">
-                                <span className="font-medium">{item.itemName}</span>
-                                <Badge variant="secondary" className="text-xs">{item.itemType}</Badge>
-                              </div>
-                              {item.itemDescription && (
-                                <div className="text-xs text-gray-600 mb-1 line-clamp-1">
-                                  {item.itemDescription}
+                        {availableItems.map((item: any, index: number) => {
+                          // Debug log to see item structure
+                          console.log('🔍 [CONSUMPTION-SELECT] Available item:', item);
+                          
+                          // Handle different data structures
+                          const itemName = item.itemName || item.name || item.display_name || item.title || 'Item sem nome';
+                          const itemType = item.itemType || item.type || 'Material';
+                          const itemDescription = item.itemDescription || item.description || item.display_description || '';
+                          const itemSku = item.itemSku || item.sku || item.integrationCode || item.integration_code || item.display_sku || '';
+                          const remainingQty = item.remainingQuantity || item.plannedQuantity || '0';
+                          const unitPrice = parseFloat(item.unitPriceAtPlanning || item.unitPrice || item.price || item.unit_cost || 0);
+                          
+                          return (
+                            <SelectItem key={`available-${item.itemId}-${index}`} value={item.itemId}>
+                              <div className="flex flex-col text-left w-full">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium">{itemName}</span>
+                                  <Badge variant="secondary" className="text-xs">{itemType}</Badge>
                                 </div>
-                              )}
-                              <div className="flex items-center gap-3 text-xs text-gray-500">
-                                {item.itemSku && <span>SKU: {item.itemSku}</span>}
-                                <span>Disponível: {item.remainingQuantity}</span>
-                                <span className="font-medium text-green-600">R$ {parseFloat(item.unitPriceAtPlanning || 0).toFixed(2)}</span>
+                                {itemDescription && (
+                                  <div className="text-xs text-gray-600 mb-1 line-clamp-1">
+                                    {itemDescription}
+                                  </div>
+                                )}
+                                <div className="flex items-center gap-3 text-xs text-gray-500">
+                                  {itemSku && <span>SKU: {itemSku}</span>}
+                                  <span>Disponível: {remainingQty}</span>
+                                  {unitPrice > 0 && (
+                                    <span className="font-medium text-green-600">R$ {unitPrice.toFixed(2)}</span>
+                                  )}
+                                </div>
                               </div>
-                            </div>
-                          </SelectItem>
-                        ))}
+                            </SelectItem>
+                          );
+                        })}
                       </SelectContent>
                     </Select>
                   )}
