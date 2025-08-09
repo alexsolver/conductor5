@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { CreatePersonUseCase } from '../use-cases/CreatePersonUseCase';
 import { UpdatePersonUseCase } from '../use-cases/UpdatePersonUseCase';
 import { SearchPeopleUseCase } from '../use-cases/SearchPeopleUseCase';

@@ -287,4 +287,10 @@ router.post('/users', requirePermission(Permission.PLATFORM_MANAGE_USERS), async
   }
 });
 
+// Use controller for business logic
+import { SaasAdminController } from './application/controllers/SaasAdminController';
+
+const saasAdminController = new SaasAdminController();
+router.post('/config', jwtAuth, saasAdminController.createConfig.bind(saasAdminController));
+
 export default router;

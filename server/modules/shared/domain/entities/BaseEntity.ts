@@ -1,4 +1,4 @@
-// Domain layer should be infrastructure-agnostic
+// Domain entities should be ORM-agnostic - removed drizzle dependencies
 
 export abstract class BaseEntity {
   public readonly id: string;

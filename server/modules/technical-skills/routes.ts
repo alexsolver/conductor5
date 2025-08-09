@@ -25,7 +25,7 @@ router.use((req, res, next) => {
 // ===================
 
 // GET /api/technical-skills/skills - Listar habilidades
-router.get('/skills', skillController.getSkills.bind(skillController));
+router.get('/skills', jwtAuth, skillController.getSkills.bind(skillController));
 
 // GET /api/technical-skills/skills/categories - Listar categorias
 router.get('/skills/categories', skillController.getCategories.bind(skillController));
