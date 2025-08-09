@@ -28,7 +28,7 @@ import { BeneficiaryDomainService } from './domain/services/BeneficiaryDomainSer
 
 const createBeneficiaryUseCase = new CreateBeneficiaryUseCase(beneficiaryRepository, new BeneficiaryDomainService());
 const getBeneficiariesUseCase = new GetBeneficiariesUseCase(beneficiaryRepository);
-const updateBeneficiaryUseCase = new UpdateBeneficiaryUseCase(beneficiaryRepository);
+const updateBeneficiaryUseCase = new UpdateBeneficiaryUseCase(beneficiaryRepository, new BeneficiaryDomainService());
 const deleteBeneficiaryUseCase = new DeleteBeneficiaryUseCase(beneficiaryRepository);
 
 const beneficiaryController = new BeneficiaryController(

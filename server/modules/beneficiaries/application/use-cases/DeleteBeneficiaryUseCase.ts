@@ -33,19 +33,3 @@ export class DeleteBeneficiaryUseCase {
     // Publish event logic would go here
   }
 }
-import { IBeneficiaryRepository } from '../../domain/repositories/IBeneficiaryRepository';
-
-export class DeleteBeneficiaryUseCase {
-  constructor(
-    private readonly beneficiaryRepository: IBeneficiaryRepository
-  ) {}
-
-  async execute(id: string): Promise<boolean> {
-    const existingBeneficiary = await this.beneficiaryRepository.findById(id);
-    if (!existingBeneficiary) {
-      return false;
-    }
-
-    return await this.beneficiaryRepository.delete(id);
-  }
-}
