@@ -649,7 +649,7 @@ export class ItemRepository {
   async unlinkCustomerFromItem(itemId: string, customerId: string, tenantId: string): Promise<void> {
     try {
       const { pool } = await import('../../../../db.js');
-      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`);
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
       // Tentar desvincular da tabela customer_item_mappings
       try {
@@ -690,7 +690,7 @@ export class ItemRepository {
       }
 
       const { pool } = await import('../../../../db.js');
-      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`);
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
       // Primeiro, verificar se as colunas existem na tabela
       const columnCheck = await pool.query(`
@@ -742,7 +742,7 @@ export class ItemRepository {
   async unlinkSupplierFromItem(itemId: string, supplierId: string, tenantId: string): Promise<void> {
     try {
       const { pool } = await import('../../../../db.js');
-      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`);
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
       await pool.query(`
         UPDATE "${schemaName}".item_supplier_links
