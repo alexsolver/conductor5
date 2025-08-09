@@ -1,7 +1,7 @@
 
 import { Request, Response } from 'express';
 import { CreateSaasConfigUseCase } from '../use-cases/CreateSaasConfigUseCase';
-import { standardResponse } from '../../../utils/standardResponse';
+import { sendSuccess, sendError } from '../../../../utils/standardResponse';
 
 export class SaasAdminController {
   constructor(
@@ -12,15 +12,14 @@ export class SaasAdminController {
     try {
       const tenantId = req.user?.tenantId;
       if (!tenantId) {
-        res.status(400).json(standardResponse(false, 'Tenant ID é obrigatório'));
-        return;
+        return sendError(res, 'Tenant ID é obrigatório', 'Tenant ID é obrigatório', 400);
       }
       
       const result = await this.createSaasConfigUseCase.execute(req.body);
-      res.status(201).json(standardResponse(true, 'Configuração criada com sucesso', result));
+      return sendSuccess(res, result, 'Configuração criada com sucesso');
     } catch (error) {
       console.error('Erro ao criar configuração SaaS:', error);
-      res.status(500).json(standardResponse(false, 'Erro interno do servidor'));
+      return sendError(res, error, 'Erro interno do servidor', 500);
     }
   }
 }

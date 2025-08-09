@@ -6,7 +6,7 @@ import { insertTicketSchema, insertTicketMessageSchema } from '@shared/schema';
 import { sendSuccess, sendError, sendValidationError } from "../../utils/standardResponse";
 import { mapFrontendToBackend } from "../../utils/fieldMapping";
 import { z } from "zod";
-import { trackTicketView, trackTicketEdit, trackNoteView, trackNoteCreate } from '../../middleware/activityTrackingMiddleware';
+import { trackTicketView, trackTicketEdit, trackNoteView, trackNoteCreate, trackTicketCreate } from '../../middleware/activityTrackingMiddleware';
 import { TicketController } from './application/controllers/TicketController';
 
 // Generate unique action number for internal actions
@@ -105,7 +105,7 @@ const ticketsRouter = Router();
 ticketsRouter.use(jwtAuth);
 
 // Get urgent tickets (filtered from all tickets)
-ticketsRouter.get('/urgent', jwtAuth, async (req: AuthenticatedRequest, res) => {
+ticketsRouter.get('/urgent', async (req: AuthenticatedRequest, res) => {
   try {
     if (!req.user?.tenantId) {
       return sendError(res, "User not associated with a tenant", "User not associated with a tenant", 400);
@@ -125,7 +125,7 @@ ticketsRouter.get('/urgent', jwtAuth, async (req: AuthenticatedRequest, res) => 
 });
 
 // Create new ticket
-ticketsRouter.post('/', jwtAuth, trackTicketCreate, async (req: AuthenticatedRequest, res) => {
+ticketsRouter.post('/', trackTicketCreate, async (req: AuthenticatedRequest, res) => {
   try {
     if (!req.user?.tenantId) {
       return res.status(400).json({ message: "User not associated with a tenant" });

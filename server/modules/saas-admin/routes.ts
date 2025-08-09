@@ -3,7 +3,7 @@ import { jwtAuth } from '../../middleware/jwtAuth';
 import { requireSaasAdmin, requirePermission, AuthorizedRequest } from '../../middleware/authorizationMiddleware';
 import { Permission } from '../../domain/authorization/RolePermissions';
 import { DependencyContainer } from '../../application/services/DependencyContainer';
-import { SaasAdminController } from '../controllers/SaasAdminController'; // Corrigido o caminho para o controller
+import { SaasAdminController } from './application/controllers/SaasAdminController';
 
 const router = Router();
 const saasAdminController = new SaasAdminController();
@@ -287,10 +287,6 @@ router.post('/users', requirePermission(Permission.PLATFORM_MANAGE_USERS), async
   }
 });
 
-// Use controller for business logic
-import { SaasAdminController } from './application/controllers/SaasAdminController';
-
-const saasAdminController = new SaasAdminController();
-router.post('/config', jwtAuth, saasAdminController.createConfig.bind(saasAdminController));
+// Additional routes handled by existing controller at top of file
 
 export default router;

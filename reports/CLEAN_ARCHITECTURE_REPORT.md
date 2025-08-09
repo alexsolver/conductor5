@@ -1,7 +1,7 @@
 # Clean Architecture Validation Report
 
 **Data:** 2025-08-09  
-**Score:** 30/100  
+**Score:** 29/100  
 **Status:** ❌ REPROVADO
 
 ## Resumo de Problemas
@@ -9,8 +9,8 @@
 - 🔥 **Críticos:** 20
 - ⚠️ **Altos:** 69
 - 📋 **Médios:** 31
-- 💡 **Baixos:** 6
-- **Total:** 126
+- 💡 **Baixos:** 5
+- **Total:** 125
 
 ## Principais Problemas por Módulo
 
@@ -23,11 +23,10 @@
   - Domain Layer violando dependência: ../../application/dto/CreateBeneficiaryDTO
 
 ### ⚠️ customers
-- **Total de problemas:** 3
-- **Críticos:** 0 | **Altos:** 3
+- **Total de problemas:** 2
+- **Críticos:** 0 | **Altos:** 2
 - **Principais problemas:**
   - Routes contém lógica de negócio ou acesso a dados
-  - Application Layer violando dependência: express
   - Application Layer violando dependência: express
 
 ### 🔥 knowledge-base
@@ -47,7 +46,7 @@
   - Domain Layer violando dependência: drizzle-orm/neon-http
 
 ### 🔥 saas-admin
-- **Total de problemas:** 8
+- **Total de problemas:** 7
 - **Críticos:** 1 | **Altos:** 2
 - **Principais problemas:**
   - Routes contém lógica de negócio ou acesso a dados
@@ -68,6 +67,13 @@
 - **Principais problemas:**
   - Routes contém lógica de negócio ou acesso a dados
   - Repository contém possível lógica de negócio
+
+### ⚠️ people
+- **Total de problemas:** 2
+- **Críticos:** 0 | **Altos:** 1
+- **Principais problemas:**
+  - Application Layer violando dependência: express
+  - Use Case index deve terminar com 'UseCase'
 
 ### 🔥 schedule-management
 - **Total de problemas:** 6
@@ -106,12 +112,6 @@
   - Repository contém possível lógica de negócio
 
 ### 📋 custom-fields
-- **Total de problemas:** 1
-- **Críticos:** 0 | **Altos:** 0
-- **Principais problemas:**
-  - Use Case index deve terminar com 'UseCase'
-
-### 📋 people
 - **Total de problemas:** 1
 - **Críticos:** 0 | **Altos:** 0
 - **Principais problemas:**
@@ -193,15 +193,14 @@
 ### 🔥 saas-admin
 - **Prioridade:** immediate
 - **Tempo estimado:** 4h
-- **Ações:** 7
+- **Ações:** 6
 
 1. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
 2. **refactor_code:** Refatorar dependência inválida na camada domain
 3. **refactor_code:** Refatorar dependência inválida na camada application
-4. **rename_file:** Padronizar nomenclatura: Nome da classe SaasConfigEntity não corresponde ao arquivo SaasConfig
-5. **rename_file:** Padronizar nomenclatura: Entity index não segue padrão PascalCase
-6. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
-7. **create_file:** Criar Repository com interface
+4. **rename_file:** Padronizar nomenclatura: Entity index não segue padrão PascalCase
+5. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
+6. **create_file:** Criar Repository com interface
 
 ### 🔥 technical-skills
 - **Prioridade:** immediate
@@ -252,12 +251,11 @@
 
 ### ⚠️ customers
 - **Prioridade:** high
-- **Tempo estimado:** 3h
-- **Ações:** 3
+- **Tempo estimado:** 2h
+- **Ações:** 2
 
 1. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
 2. **refactor_code:** Refatorar dependência inválida na camada application
-3. **refactor_code:** Refatorar dependência inválida na camada application
 
 ### ⚠️ tickets
 - **Prioridade:** high
@@ -266,6 +264,14 @@
 
 1. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
 2. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
+
+### ⚠️ people
+- **Prioridade:** high
+- **Tempo estimado:** 2h
+- **Ações:** 2
+
+1. **refactor_code:** Refatorar dependência inválida na camada application
+2. **rename_file:** Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'
 
 ### 💡 auth
 - **Prioridade:** low
@@ -288,13 +294,6 @@
 
 1. **rename_file:** Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'
 
-### 💡 people
-- **Prioridade:** low
-- **Tempo estimado:** 15min
-- **Ações:** 1
-
-1. **rename_file:** Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'
-
 
 ## Recomendações
 
@@ -302,15 +301,16 @@
 - **beneficiaries:** 5 ações (4h)
 - **knowledge-base:** 10 ações (8h)
 - **materials-services:** 37 ações (30h)
-- **saas-admin:** 7 ações (4h)
+- **saas-admin:** 6 ações (4h)
 - **technical-skills:** 5 ações (5h)
 - **schedule-management:** 5 ações (4h)
 - **shared:** 6 ações (4h)
 - **timecard:** 7 ações (5h)
 
 ### Prioridade Alta ⚠️
-- **customers:** 3 ações (3h)
+- **customers:** 2 ações (2h)
 - **tickets:** 2 ações (2h)
+- **people:** 2 ações (2h)
 
 ## Comandos para Correção
 
