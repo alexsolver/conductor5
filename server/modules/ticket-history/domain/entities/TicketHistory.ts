@@ -8,7 +8,7 @@ export interface TicketHistory {
   metadata?: Record<string, any>;
 }
 
-export class TicketHistoryEntity implements TicketHistory {
+export class TicketHistory {
   constructor(
     public readonly id: string,
     public readonly ticketId: string,

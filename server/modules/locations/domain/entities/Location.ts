@@ -1,4 +1,3 @@
-
 export interface Location {
   id: string;
   tenantId: string;
@@ -16,7 +15,7 @@ export interface Location {
   updatedAt: Date;
 }
 
-export class LocationEntity implements Location {
+export class Location implements Location {
   constructor(
     public id: string,
     public tenantId: string,
