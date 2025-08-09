@@ -1,17 +1,13 @@
+import { CreateFieldLayoutUseCase, GetFieldLayoutsUseCase } from '../use-cases';
 
-import { CreateFieldLayoutUseCase } from '../use-cases/CreateFieldLayoutUseCase';
-import { GetFieldLayoutsUseCase } from '../use-cases/GetFieldLayoutsUseCase';
-
-export interface CreateFieldLayoutRequest {
+interface CreateFieldLayoutRequest {
   name: string;
-  configuration: any;
+  fields: any[];
   tenantId: string;
 }
 
-export interface FieldLayoutResponse {
-  success: boolean;
-  data: any;
-  message?: string;
+interface GetFieldLayoutsRequest {
+  tenantId: string;
 }
 
 export class FieldLayoutController {
@@ -20,29 +16,11 @@ export class FieldLayoutController {
     private readonly getFieldLayoutsUseCase: GetFieldLayoutsUseCase
   ) {}
 
-  async create(request: CreateFieldLayoutRequest): Promise<FieldLayoutResponse> {
-    try {
-      const result = await this.createFieldLayoutUseCase.execute(request);
-      
-      return {
-        success: true,
-        data: result
-      };
-    } catch (error) {
-      throw new Error(`Failed to create field layout: ${error}`);
-    }
+  async create(request: CreateFieldLayoutRequest) {
+    return await this.createFieldLayoutUseCase.execute(request);
   }
 
-  async getAll(tenantId: string): Promise<FieldLayoutResponse> {
-    try {
-      const result = await this.getFieldLayoutsUseCase.execute({ tenantId });
-      
-      return {
-        success: true,
-        data: result
-      };
-    } catch (error) {
-      throw new Error(`Failed to get field layouts: ${error}`);
-    }
+  async getAll(request: GetFieldLayoutsRequest) {
+    return await this.getFieldLayoutsUseCase.execute(request);
   }
 }

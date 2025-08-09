@@ -1,41 +1,38 @@
 
-export interface FieldLayout {
-  id: string;
-  tenantId: string;
-  name: string;
-  description?: string;
-  layout: Record<string, any>;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-  createdBy: string;
-}
-
-export class FieldLayout implements FieldLayout {
+export class FieldLayout {
   constructor(
-    public id: string,
-    public tenantId: string,
-    public name: string,
-    public layout: Record<string, any>,
-    public isActive: boolean,
-    public createdBy: string,
-    public description?: string,
-    public createdAt: Date = new Date(),
-    public updatedAt: Date = new Date()
+    public readonly id: string,
+    public readonly name: string,
+    public readonly fields: any[],
+    public readonly tenantId: string,
+    public readonly isActive: boolean = true,
+    public readonly createdAt: Date = new Date(),
+    public readonly updatedAt: Date = new Date()
   ) {}
 
-  update(data: Partial<FieldLayout>): void {
-    Object.assign(this, data);
-    this.updatedAt = new Date();
+  static create(data: {
+    id: string;
+    name: string;
+    fields: any[];
+    tenantId: string;
+  }): FieldLayout {
+    return new FieldLayout(
+      data.id,
+      data.name,
+      data.fields,
+      data.tenantId
+    );
   }
 
-  activate(): void {
-    this.isActive = true;
-    this.updatedAt = new Date();
-  }
-
-  deactivate(): void {
-    this.isActive = false;
-    this.updatedAt = new Date();
+  update(data: { name?: string; fields?: any[] }): FieldLayout {
+    return new FieldLayout(
+      this.id,
+      data.name ?? this.name,
+      data.fields ?? this.fields,
+      this.tenantId,
+      this.isActive,
+      this.createdAt,
+      new Date()
+    );
   }
 }

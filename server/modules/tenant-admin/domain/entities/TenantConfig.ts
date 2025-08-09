@@ -1,41 +1,34 @@
 
-export interface TenantConfig {
-  id: string;
-  tenantId: string;
-  configKey: string;
-  configValue: any;
-  description?: string;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-  createdBy: string;
-}
-
-export class TenantConfig implements TenantConfig {
+export class TenantConfig {
   constructor(
-    public id: string,
-    public tenantId: string,
-    public configKey: string,
-    public configValue: any,
-    public createdBy: string,
-    public isActive: boolean = true,
-    public description?: string,
-    public createdAt: Date = new Date(),
-    public updatedAt: Date = new Date()
+    public readonly id: string,
+    public readonly tenantId: string,
+    public readonly config: Record<string, any>,
+    public readonly isActive: boolean = true,
+    public readonly createdAt: Date = new Date(),
+    public readonly updatedAt: Date = new Date()
   ) {}
 
-  update(data: Partial<TenantConfig>): void {
-    Object.assign(this, data);
-    this.updatedAt = new Date();
+  static create(data: {
+    id: string;
+    tenantId: string;
+    config: Record<string, any>;
+  }): TenantConfig {
+    return new TenantConfig(
+      data.id,
+      data.tenantId,
+      data.config
+    );
   }
 
-  activate(): void {
-    this.isActive = true;
-    this.updatedAt = new Date();
-  }
-
-  deactivate(): void {
-    this.isActive = false;
-    this.updatedAt = new Date();
+  update(config: Record<string, any>): TenantConfig {
+    return new TenantConfig(
+      this.id,
+      this.tenantId,
+      { ...this.config, ...config },
+      this.isActive,
+      this.createdAt,
+      new Date()
+    );
   }
 }
