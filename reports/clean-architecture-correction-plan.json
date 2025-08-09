@@ -587,75 +587,6 @@
   },
   {
     "priority": "immediate",
-    "module": "shared",
-    "actions": [
-      {
-        "type": "create_directory",
-        "description": "Criar controllers na camada Application e usar nas rotas",
-        "target": "server/modules/shared/routes.ts",
-        "steps": [
-          "Criar controllers na camada Application e usar nas rotas"
-        ]
-      },
-      {
-        "type": "refactor_code",
-        "description": "Refatorar dependência inválida na camada domain",
-        "target": "server/modules/shared/domain/ports/Iindex.ts",
-        "steps": [
-          "Identificar a dependência problemática",
-          "Criar interface/port na camada Domain",
-          "Implementar interface na camada Infrastructure",
-          "Usar injeção de dependência",
-          "Remover import direto da dependência externa"
-        ]
-      },
-      {
-        "type": "rename_file",
-        "description": "Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'",
-        "target": "server/modules/shared/application/use-cases/index.ts",
-        "steps": [
-          "Renomear arquivo seguindo padrão",
-          "Atualizar imports em outros arquivos",
-          "Atualizar nome da classe/interface",
-          "Verificar consistência com padrões do projeto"
-        ]
-      },
-      {
-        "type": "rename_file",
-        "description": "Padronizar nomenclatura: Repository index deve terminar com 'Repository'",
-        "target": "server/modules/shared/infrastructure/repositories/index.ts",
-        "steps": [
-          "Renomear arquivo seguindo padrão",
-          "Atualizar imports em outros arquivos",
-          "Atualizar nome da classe/interface",
-          "Verificar consistência com padrões do projeto"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar interface I[Entity]Repository no domain e implementar",
-        "target": "server/modules/shared/infrastructure/repositories/index.ts",
-        "steps": [
-          "Criar interface I[Entity]Repository no domain e implementar"
-        ]
-      },
-      {
-        "type": "create_file",
-        "description": "Criar Repository com interface",
-        "target": "server/modules/shared/domain/ports/IBaseEntityRepository.ts",
-        "code": "import { IBaseEntity } from '../../domain/entities/IBaseEntity';\nimport { IIBaseEntityRepository } from '../../domain/ports/IIBaseEntityRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleIBaseEntityRepository implements IIBaseEntityRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<IBaseEntity | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<IBaseEntity[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: IBaseEntity): Promise<IBaseEntity> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<IBaseEntity>, tenantId: string): Promise<IBaseEntity | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
-        "steps": [
-          "Criar interface do Repository na camada Domain",
-          "Implementar Repository na camada Infrastructure",
-          "Adicionar injeção de dependência",
-          "Integrar com Use Cases"
-        ]
-      }
-    ],
-    "estimatedTime": "3h"
-  },
-  {
-    "priority": "immediate",
     "module": "technical-skills",
     "actions": [
       {
@@ -850,18 +781,6 @@
         ]
       },
       {
-        "type": "refactor_code",
-        "description": "Refatorar dependência inválida na camada application",
-        "target": "server/modules/schedule-management/application/controllers/ScheduleController.ts",
-        "steps": [
-          "Identificar a dependência problemática",
-          "Criar interface/port na camada Domain",
-          "Implementar interface na camada Infrastructure",
-          "Usar injeção de dependência",
-          "Remover import direto da dependência externa"
-        ]
-      },
-      {
         "type": "move_code",
         "description": "Resolver acoplamento: Repository contém possível lógica de negócio",
         "target": "server/modules/schedule-management/infrastructure/repositories/DrizzleScheduleRepository.ts",
@@ -874,24 +793,16 @@
         ]
       }
     ],
-    "estimatedTime": "3h"
+    "estimatedTime": "2h"
   },
   {
-    "priority": "high",
-    "module": "auth",
+    "priority": "immediate",
+    "module": "shared",
     "actions": [
       {
-        "type": "create_directory",
-        "description": "Criar controllers na camada Application e usar nas rotas",
-        "target": "server/modules/auth/routes.ts",
-        "steps": [
-          "Criar controllers na camada Application e usar nas rotas"
-        ]
-      },
-      {
         "type": "refactor_code",
-        "description": "Refatorar dependência inválida na camada application",
-        "target": "server/modules/auth/application/controllers/AuthController.ts",
+        "description": "Refatorar dependência inválida na camada domain",
+        "target": "server/modules/shared/domain/ports/Iindex.ts",
         "steps": [
           "Identificar a dependência problemática",
           "Criar interface/port na camada Domain",
@@ -901,19 +812,49 @@
         ]
       },
       {
-        "type": "move_code",
-        "description": "Resolver acoplamento: Repository contém possível lógica de negócio",
-        "target": "server/modules/auth/infrastructure/repositories/DrizzleUserRepository.ts",
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'",
+        "target": "server/modules/shared/application/use-cases/index.ts",
         "steps": [
-          "Identificar código acoplado",
-          "Determinar camada correta para o código",
-          "Mover código para camada apropriada",
-          "Criar interfaces para comunicação entre camadas",
-          "Atualizar dependências"
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Repository index deve terminar com 'Repository'",
+        "target": "server/modules/shared/infrastructure/repositories/index.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Criar interface I[Entity]Repository no domain e implementar",
+        "target": "server/modules/shared/infrastructure/repositories/index.ts",
+        "steps": [
+          "Criar interface I[Entity]Repository no domain e implementar"
+        ]
+      },
+      {
+        "type": "create_file",
+        "description": "Criar Repository com interface",
+        "target": "server/modules/shared/domain/ports/IBaseEntityRepository.ts",
+        "code": "import { IBaseEntity } from '../../domain/entities/IBaseEntity';\nimport { IIBaseEntityRepository } from '../../domain/ports/IIBaseEntityRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleIBaseEntityRepository implements IIBaseEntityRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<IBaseEntity | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<IBaseEntity[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: IBaseEntity): Promise<IBaseEntity> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<IBaseEntity>, tenantId: string): Promise<IBaseEntity | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
+        "steps": [
+          "Criar interface do Repository na camada Domain",
+          "Implementar Repository na camada Infrastructure",
+          "Adicionar injeção de dependência",
+          "Integrar com Use Cases"
         ]
       }
     ],
-    "estimatedTime": "2h"
+    "estimatedTime": "3h"
   },
   {
     "priority": "high",
@@ -1084,15 +1025,50 @@
     "estimatedTime": "2h"
   },
   {
-    "priority": "low",
+    "priority": "high",
+    "module": "auth",
+    "actions": [
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "server/modules/auth/application/controllers/AuthController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Repository contém possível lógica de negócio",
+        "target": "server/modules/auth/infrastructure/repositories/DrizzleUserRepository.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      }
+    ],
+    "estimatedTime": "2h"
+  },
+  {
+    "priority": "high",
     "module": "people",
     "actions": [
       {
-        "type": "create_directory",
-        "description": "Criar controllers na camada Application e usar nas rotas",
-        "target": "server/modules/people/routes.ts",
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "server/modules/people/application/controllers/PersonController.ts",
         "steps": [
-          "Criar controllers na camada Application e usar nas rotas"
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
         ]
       },
       {
@@ -1107,7 +1083,7 @@
         ]
       }
     ],
-    "estimatedTime": "25min"
+    "estimatedTime": "2h"
   },
   {
     "priority": "low",

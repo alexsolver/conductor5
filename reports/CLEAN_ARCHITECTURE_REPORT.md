@@ -1,26 +1,18 @@
 # Clean Architecture Validation Report
 
 **Data:** 2025-08-09  
-**Score:** 33/100  
+**Score:** 32/100  
 **Status:** ❌ REPROVADO
 
 ## Resumo de Problemas
 
 - 🔥 **Críticos:** 14
-- ⚠️ **Altos:** 68
-- 📋 **Médios:** 46
+- ⚠️ **Altos:** 67
+- 📋 **Médios:** 43
 - 💡 **Baixos:** 4
-- **Total:** 132
+- **Total:** 128
 
 ## Principais Problemas por Módulo
-
-### ⚠️ auth
-- **Total de problemas:** 3
-- **Críticos:** 0 | **Altos:** 1
-- **Principais problemas:**
-  - Routes não utiliza controllers - lógica direta nas rotas
-  - Application Layer violando dependência: express
-  - Repository contém possível lógica de negócio
 
 ### 🔥 beneficiaries
 - **Total de problemas:** 4
@@ -53,13 +45,6 @@
   - Domain Layer violando dependência: drizzle-orm/neon-http
   - Domain Layer violando dependência: drizzle-orm/neon-http
 
-### 📋 people
-- **Total de problemas:** 2
-- **Críticos:** 0 | **Altos:** 0
-- **Principais problemas:**
-  - Routes não utiliza controllers - lógica direta nas rotas
-  - Use Case index deve terminar com 'UseCase'
-
 ### ⚠️ saas-admin
 - **Total de problemas:** 10
 - **Críticos:** 0 | **Altos:** 2
@@ -67,14 +52,6 @@
   - Estrutura services ausente na camada domain
   - Estrutura use-cases ausente na camada application
   - Estrutura controllers ausente na camada application
-
-### 🔥 shared
-- **Total de problemas:** 6
-- **Críticos:** 1 | **Altos:** 0
-- **Principais problemas:**
-  - Routes não utiliza controllers - lógica direta nas rotas
-  - Domain Layer violando dependência: drizzle-orm/neon-http
-  - Use Case index deve terminar com 'UseCase'
 
 ### 🔥 technical-skills
 - **Total de problemas:** 10
@@ -100,13 +77,34 @@
   - Estrutura services ausente na camada domain
   - Domain Layer violando dependência: drizzle-orm/neon-http
 
+### ⚠️ auth
+- **Total de problemas:** 2
+- **Críticos:** 0 | **Altos:** 1
+- **Principais problemas:**
+  - Application Layer violando dependência: express
+  - Repository contém possível lógica de negócio
+
+### ⚠️ people
+- **Total de problemas:** 2
+- **Críticos:** 0 | **Altos:** 1
+- **Principais problemas:**
+  - Application Layer violando dependência: express
+  - Use Case index deve terminar com 'UseCase'
+
 ### 🔥 schedule-management
-- **Total de problemas:** 4
-- **Críticos:** 1 | **Altos:** 2
+- **Total de problemas:** 2
+- **Críticos:** 1 | **Altos:** 0
 - **Principais problemas:**
   - Domain Layer violando dependência: drizzle-orm/neon-http
-  - Application Layer violando dependência: ../../infrastructure/repositories/DrizzleScheduleRepository
-  - Application Layer violando dependência: ../../infrastructure/repositories/DrizzleScheduleRepository
+  - Repository contém possível lógica de negócio
+
+### 🔥 shared
+- **Total de problemas:** 5
+- **Críticos:** 1 | **Altos:** 0
+- **Principais problemas:**
+  - Domain Layer violando dependência: drizzle-orm/neon-http
+  - Use Case index deve terminar com 'UseCase'
+  - Repository index deve terminar com 'Repository'
 
 ### 📋 dashboard
 - **Total de problemas:** 1
@@ -203,18 +201,6 @@
 36. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 37. **create_file:** Criar Repository com interface
 
-### 🔥 shared
-- **Prioridade:** immediate
-- **Tempo estimado:** 3h
-- **Ações:** 6
-
-1. **create_directory:** Criar controllers na camada Application e usar nas rotas
-2. **refactor_code:** Refatorar dependência inválida na camada domain
-3. **rename_file:** Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'
-4. **rename_file:** Padronizar nomenclatura: Repository index deve terminar com 'Repository'
-5. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
-6. **create_file:** Criar Repository com interface
-
 ### 🔥 technical-skills
 - **Prioridade:** immediate
 - **Tempo estimado:** 5h
@@ -244,21 +230,22 @@
 
 ### 🔥 schedule-management
 - **Prioridade:** immediate
-- **Tempo estimado:** 3h
-- **Ações:** 3
+- **Tempo estimado:** 2h
+- **Ações:** 2
 
 1. **refactor_code:** Refatorar dependência inválida na camada domain
-2. **refactor_code:** Refatorar dependência inválida na camada application
-3. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
+2. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
 
-### ⚠️ auth
-- **Prioridade:** high
-- **Tempo estimado:** 2h
-- **Ações:** 3
+### 🔥 shared
+- **Prioridade:** immediate
+- **Tempo estimado:** 3h
+- **Ações:** 5
 
-1. **create_directory:** Criar controllers na camada Application e usar nas rotas
-2. **refactor_code:** Refatorar dependência inválida na camada application
-3. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
+1. **refactor_code:** Refatorar dependência inválida na camada domain
+2. **rename_file:** Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'
+3. **rename_file:** Padronizar nomenclatura: Repository index deve terminar com 'Repository'
+4. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
+5. **create_file:** Criar Repository com interface
 
 ### ⚠️ customers
 - **Prioridade:** high
@@ -293,12 +280,20 @@
 2. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
 3. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
 
-### 💡 people
-- **Prioridade:** low
-- **Tempo estimado:** 25min
+### ⚠️ auth
+- **Prioridade:** high
+- **Tempo estimado:** 2h
 - **Ações:** 2
 
-1. **create_directory:** Criar controllers na camada Application e usar nas rotas
+1. **refactor_code:** Refatorar dependência inválida na camada application
+2. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
+
+### ⚠️ people
+- **Prioridade:** high
+- **Tempo estimado:** 2h
+- **Ações:** 2
+
+1. **refactor_code:** Refatorar dependência inválida na camada application
 2. **rename_file:** Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'
 
 ### 💡 dashboard
@@ -336,16 +331,17 @@
 - **beneficiaries:** 3 ações (2h)
 - **knowledge-base:** 10 ações (8h)
 - **materials-services:** 37 ações (29h)
-- **shared:** 6 ações (3h)
 - **technical-skills:** 6 ações (5h)
 - **timecard:** 9 ações (5h)
-- **schedule-management:** 3 ações (3h)
+- **schedule-management:** 2 ações (2h)
+- **shared:** 5 ações (3h)
 
 ### Prioridade Alta ⚠️
-- **auth:** 3 ações (2h)
 - **customers:** 2 ações (2h)
 - **saas-admin:** 10 ações (3h)
 - **tickets:** 3 ações (2h)
+- **auth:** 2 ações (2h)
+- **people:** 2 ações (2h)
 
 ## Comandos para Correção
 
