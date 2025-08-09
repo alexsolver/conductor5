@@ -1,3 +1,3 @@
 
-export * from './CreatePersonUseCase';
-export * from './UpdatePersonUseCase';
+export { CreatePersonUseCase } from './CreatePersonUseCase';
+export { UpdatePersonUseCase } from './UpdatePersonUseCase';

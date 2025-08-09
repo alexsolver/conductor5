@@ -1,8 +1,9 @@
 import { Request, Response } from 'express';
 import { createSuccessResponse, createErrorResponse } from '../../../../utils/standardResponse';
 import { GetDashboardMetricsUseCase } from '../use-cases/GetDashboardMetricsUseCase';
+import { DashboardApplicationService } from '../services/DashboardApplicationService';
 
-export class DashboardController {
+class DashboardController {
   constructor(
     private readonly getDashboardMetricsUseCase: GetDashboardMetricsUseCase
   ) {}
@@ -39,9 +40,8 @@ export class DashboardController {
     }
   }
 }
-import { DashboardApplicationService } from '../services/DashboardApplicationService';
 
-export class DashboardController {
+class DashboardController {
   constructor(private dashboardService: DashboardApplicationService) {}
 
   async getStats(tenantId: string): Promise<any> {
@@ -52,3 +52,5 @@ export class DashboardController {
     return await this.dashboardService.getActivityFeed(tenantId);
   }
 }
+
+export default DashboardController;

@@ -1,4 +1,4 @@
 
-export * from './CreateTenantConfigUseCase';
-export * from './GetTenantConfigUseCase';
-export * from './UpdateTenantConfigUseCase';
+export { CreateTenantConfigUseCase } from './CreateTenantConfigUseCase';
+export { UpdateTenantConfigUseCase } from './UpdateTenantConfigUseCase';
+export { GetTenantConfigUseCase } from './GetTenantConfigUseCase';

@@ -1,18 +1,29 @@
 
 import { Router } from 'express';
-import { jwtAuth } from '../../middleware/jwtAuth';
+import { FieldLayoutController } from './application/controllers/FieldLayoutController';
+import { CreateFieldLayoutUseCase } from './application/use-cases/CreateFieldLayoutUseCase';
+import { GetFieldLayoutsUseCase } from './application/use-cases/GetFieldLayoutsUseCase';
+import { DrizzleFieldLayoutRepository } from './infrastructure/repositories/DrizzleFieldLayoutRepository';
+import { FieldLayoutDomainService } from './domain/services/FieldLayoutDomainService';
+import { jwtAuth, AuthenticatedRequest } from '../../middleware/jwtAuth';
 
-const fieldLayoutRouter = Router();
+const router = Router();
 
-// Field layout endpoints
-fieldLayoutRouter.get('/', jwtAuth, async (req, res) => {
-  // Controller logic here
-  res.json({ message: 'Field layouts endpoint' });
+// Dependency injection
+const repository = new DrizzleFieldLayoutRepository();
+const domainService = new FieldLayoutDomainService();
+const createUseCase = new CreateFieldLayoutUseCase(repository, domainService);
+const getUseCase = new GetFieldLayoutsUseCase(repository);
+const controller = new FieldLayoutController(createUseCase, getUseCase);
+
+// Routes
+router.post('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  req.body.tenantId = req.user?.tenantId;
+  await controller.create(req, res);
 });
 
-fieldLayoutRouter.post('/', jwtAuth, async (req, res) => {
-  // Controller logic here
-  res.json({ message: 'Create field layout endpoint' });
+router.get('/tenant/:tenantId', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  await controller.getByTenant(req, res);
 });
 
-export { fieldLayoutRouter };
+export default router;

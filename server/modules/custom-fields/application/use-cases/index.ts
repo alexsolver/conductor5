@@ -1,3 +1,3 @@
 
-export * from './CreateCustomFieldUseCase';
-export * from './UpdateCustomFieldUseCase';
+export { CreateCustomFieldUseCase } from './CreateCustomFieldUseCase';
+export { UpdateCustomFieldUseCase } from './UpdateCustomFieldUseCase';
