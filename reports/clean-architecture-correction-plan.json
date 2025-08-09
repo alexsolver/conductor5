@@ -769,6 +769,18 @@
       {
         "type": "refactor_code",
         "description": "Refatorar dependência inválida na camada domain",
+        "target": "server/modules/schedule-management/domain/entities/Schedule.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada domain",
         "target": "server/modules/schedule-management/domain/ports/IScheduleRepository.ts",
         "steps": [
           "Identificar a dependência problemática",
@@ -791,6 +803,17 @@
         ]
       },
       {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Nome da classe CustomerModule não corresponde ao arquivo Schedule",
+        "target": "server/modules/schedule-management/domain/entities/Schedule.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
         "type": "create_file",
         "description": "Criar Repository com interface",
         "target": "server/modules/schedule-management/infrastructure/repositories/ScheduleEntityRepository.ts",
@@ -803,7 +826,7 @@
         ]
       }
     ],
-    "estimatedTime": "3h"
+    "estimatedTime": "4h"
   },
   {
     "priority": "immediate",
@@ -1015,25 +1038,6 @@
       }
     ],
     "estimatedTime": "2h"
-  },
-  {
-    "priority": "high",
-    "module": "people",
-    "actions": [
-      {
-        "type": "refactor_code",
-        "description": "Refatorar dependência inválida na camada application",
-        "target": "server/modules/people/application/controllers/PersonController.ts",
-        "steps": [
-          "Identificar a dependência problemática",
-          "Criar interface/port na camada Domain",
-          "Implementar interface na camada Infrastructure",
-          "Usar injeção de dependência",
-          "Remover import direto da dependência externa"
-        ]
-      }
-    ],
-    "estimatedTime": "1h"
   },
   {
     "priority": "low",

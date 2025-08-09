@@ -6,11 +6,11 @@
 
 ## Resumo de Problemas
 
-- 🔥 **Críticos:** 18
-- ⚠️ **Altos:** 70
+- 🔥 **Críticos:** 20
+- ⚠️ **Altos:** 69
 - 📋 **Médios:** 27
-- 💡 **Baixos:** 4
-- **Total:** 119
+- 💡 **Baixos:** 6
+- **Total:** 122
 
 ## Principais Problemas por Módulo
 
@@ -47,7 +47,7 @@
   - Domain Layer violando dependência: drizzle-orm/neon-http
 
 ### 🔥 saas-admin
-- **Total de problemas:** 7
+- **Total de problemas:** 8
 - **Críticos:** 1 | **Altos:** 2
 - **Principais problemas:**
   - Routes contém lógica de negócio ou acesso a dados
@@ -69,19 +69,13 @@
   - Routes contém lógica de negócio ou acesso a dados
   - Repository contém possível lógica de negócio
 
-### ⚠️ people
-- **Total de problemas:** 1
-- **Críticos:** 0 | **Altos:** 1
-- **Principais problemas:**
-  - Application Layer violando dependência: express
-
 ### 🔥 schedule-management
-- **Total de problemas:** 3
-- **Críticos:** 1 | **Altos:** 1
+- **Total de problemas:** 6
+- **Críticos:** 3 | **Altos:** 1
 - **Principais problemas:**
+  - Domain Layer violando dependência: ../infrastructure/repositories/drizzle/drizzle-customer.repository
+  - Domain Layer violando dependência: ../infrastructure/repositories/drizzle/drizzle-customer.repository
   - Domain Layer violando dependência: drizzle-orm/neon-http
-  - Repository contém possível lógica de negócio
-  - Entity ScheduleEntity não possui Repository correspondente
 
 ### 🔥 shared
 - **Total de problemas:** 4
@@ -210,12 +204,14 @@
 
 ### 🔥 schedule-management
 - **Prioridade:** immediate
-- **Tempo estimado:** 3h
-- **Ações:** 3
+- **Tempo estimado:** 4h
+- **Ações:** 5
 
 1. **refactor_code:** Refatorar dependência inválida na camada domain
-2. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
-3. **create_file:** Criar Repository com interface
+2. **refactor_code:** Refatorar dependência inválida na camada domain
+3. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
+4. **rename_file:** Padronizar nomenclatura: Nome da classe CustomerModule não corresponde ao arquivo Schedule
+5. **create_file:** Criar Repository com interface
 
 ### 🔥 shared
 - **Prioridade:** immediate
@@ -257,13 +253,6 @@
 1. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
 2. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
 
-### ⚠️ people
-- **Prioridade:** high
-- **Tempo estimado:** 1h
-- **Ações:** 1
-
-1. **refactor_code:** Refatorar dependência inválida na camada application
-
 ### 💡 auth
 - **Prioridade:** low
 - **Tempo estimado:** 45min
@@ -287,14 +276,13 @@
 - **materials-services:** 37 ações (30h)
 - **saas-admin:** 7 ações (4h)
 - **technical-skills:** 5 ações (5h)
-- **schedule-management:** 3 ações (3h)
+- **schedule-management:** 5 ações (4h)
 - **shared:** 4 ações (3h)
 - **timecard:** 7 ações (5h)
 
 ### Prioridade Alta ⚠️
 - **customers:** 3 ações (3h)
 - **tickets:** 2 ações (2h)
-- **people:** 1 ações (1h)
 
 ## Comandos para Correção
 
