@@ -17,12 +17,12 @@ import { ImportController } from './application/controllers/ImportController';
 import { AuditController } from './application/controllers/AuditController';
 import { systemSettings } from '@shared/schema';
 import { eq } from 'drizzle-orm';
-import { Response } from 'express'; // Import Response type
-import crypto from 'crypto'; // Import crypto for UUID generation
-import { drizzle } from 'drizzle-orm/node-postgres'; // Import drizzle for Drizzle ORM integration
+import { Response } from 'express';
+import crypto from 'crypto';
+import { drizzle } from 'drizzle-orm/node-postgres';
 
-// Use the existing pool and db from db.ts instead of creating new ones
-import { pool, db as drizzleDb } from '../../db';
+// Use the existing database connection from db.ts
+import { db as drizzleDb } from '../../db';
 
 
 // Create router
@@ -245,7 +245,8 @@ router.post('/items/:id/link-customer', async (req, res) => {
       return res.status(400).json({ error: 'Customer ID é obrigatório' });
     }
 
-    const itemRepository = new ItemRepository(drizzleDb, tenantId);
+    const { db } = await schemaManager.getTenantDb(tenantId);
+    const itemRepository = new ItemRepository(db);
     await itemRepository.linkCustomerToItem(id, customerId);
 
     res.json({ success: true, message: 'Cliente vinculado ao item com sucesso' });
@@ -268,7 +269,8 @@ router.delete('/items/:id/unlink-customer/:customerId', async (req, res) => {
       return res.status(400).json({ error: 'Tenant ID é obrigatório' });
     }
 
-    const itemRepository = new ItemRepository(drizzleDb, tenantId);
+    const { db } = await schemaManager.getTenantDb(tenantId);
+    const itemRepository = new ItemRepository(db);
     await itemRepository.unlinkCustomerFromItem(id, customerId);
 
     res.json({ success: true, message: 'Cliente desvinculado do item com sucesso' });
@@ -296,7 +298,8 @@ router.post('/items/:id/link-supplier', async (req, res) => {
       return res.status(400).json({ error: 'Supplier ID é obrigatório' });
     }
 
-    const itemRepository = new ItemRepository(drizzleDb, tenantId);
+    const { db } = await schemaManager.getTenantDb(tenantId);
+    const itemRepository = new ItemRepository(db);
     await itemRepository.linkSupplierToItem(id, supplierId);
 
     res.json({ success: true, message: 'Fornecedor vinculado ao item com sucesso' });
@@ -319,7 +322,8 @@ router.delete('/items/:id/unlink-supplier/:supplierId', async (req, res) => {
       return res.status(400).json({ error: 'Tenant ID é obrigatório' });
     }
 
-    const itemRepository = new ItemRepository(drizzleDb, tenantId);
+    const { db } = await schemaManager.getTenantDb(tenantId);
+    const itemRepository = new ItemRepository(db);
     await itemRepository.unlinkSupplierFromItem(id, supplierId);
 
     res.json({ success: true, message: 'Fornecedor desvinculado do item com sucesso' });
