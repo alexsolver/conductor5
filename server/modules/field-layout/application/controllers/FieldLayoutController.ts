@@ -1,40 +1,48 @@
 
-import { Request, Response } from 'express';
 import { CreateFieldLayoutUseCase } from '../use-cases/CreateFieldLayoutUseCase';
 import { GetFieldLayoutsUseCase } from '../use-cases/GetFieldLayoutsUseCase';
-import { sendSuccess, sendError } from '../../../../utils/standardResponse';
+
+export interface CreateFieldLayoutRequest {
+  name: string;
+  configuration: any;
+  tenantId: string;
+}
+
+export interface FieldLayoutResponse {
+  success: boolean;
+  data: any;
+  message?: string;
+}
 
 export class FieldLayoutController {
   constructor(
-    private createFieldLayoutUseCase: CreateFieldLayoutUseCase,
-    private getFieldLayoutsUseCase: GetFieldLayoutsUseCase
+    private readonly createFieldLayoutUseCase: CreateFieldLayoutUseCase,
+    private readonly getFieldLayoutsUseCase: GetFieldLayoutsUseCase
   ) {}
 
-  async create(req: Request, res: Response): Promise<void> {
+  async create(request: CreateFieldLayoutRequest): Promise<FieldLayoutResponse> {
     try {
-      const { tenantId, name, layout } = req.body;
+      const result = await this.createFieldLayoutUseCase.execute(request);
       
-      const result = await this.createFieldLayoutUseCase.execute({
-        tenantId,
-        name,
-        layout
-      });
-
-      sendSuccess(res, result, 'Field layout created successfully');
+      return {
+        success: true,
+        data: result
+      };
     } catch (error) {
-      sendError(res, error, 'Failed to create field layout', 500);
+      throw new Error(`Failed to create field layout: ${error}`);
     }
   }
 
-  async getByTenant(req: Request, res: Response): Promise<void> {
+  async getAll(tenantId: string): Promise<FieldLayoutResponse> {
     try {
-      const { tenantId } = req.params;
-      
       const result = await this.getFieldLayoutsUseCase.execute({ tenantId });
-
-      sendSuccess(res, result, 'Field layouts retrieved successfully');
+      
+      return {
+        success: true,
+        data: result
+      };
     } catch (error) {
-      sendError(res, error, 'Failed to get field layouts', 500);
+      throw new Error(`Failed to get field layouts: ${error}`);
     }
   }
 }

@@ -1,4 +1,6 @@
-export { CreateBeneficiaryUseCase } from './CreateBeneficiaryUseCase';
-export { UpdateBeneficiaryUseCase } from './UpdateBeneficiaryUseCase';
-export { DeleteBeneficiaryUseCase } from './DeleteBeneficiaryUseCase';
-export { GetBeneficiariesUseCase } from './GetBeneficiariesUseCase';
+
+// Beneficiaries Use Cases
+export * from './CreateBeneficiaryUseCase';
+export * from './DeleteBeneficiaryUseCase';
+export * from './GetBeneficiariesUseCase';
+export * from './UpdateBeneficiaryUseCase';

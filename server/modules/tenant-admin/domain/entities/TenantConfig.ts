@@ -11,7 +11,7 @@ export interface TenantConfig {
   createdBy: string;
 }
 
-export class TenantConfigEntity implements TenantConfig {
+export class TenantConfig implements TenantConfig {
   constructor(
     public id: string,
     public tenantId: string,

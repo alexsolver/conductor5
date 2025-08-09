@@ -1,48 +1,35 @@
+import { GetDashboardMetricsUseCase, GetDashboardMetricsRequest } from '../use-cases/GetDashboardMetricsUseCase';
 
-import { Request, Response } from 'express';
-import { createSuccessResponse, createErrorResponse } from '../../../../utils/standardResponse';
-import { GetDashboardMetricsUseCase } from '../use-cases/GetDashboardMetricsUseCase';
+export interface DashboardControllerRequest {
+  tenantId: string;
+}
+
+export interface DashboardControllerResponse {
+  success: boolean;
+  data: any;
+  timestamp: string;
+}
 
 export class DashboardController {
   constructor(
     private readonly getDashboardMetricsUseCase: GetDashboardMetricsUseCase
   ) {}
 
-  async getMetrics(req: Request, res: Response): Promise<void> {
+  async getMetrics(request: DashboardControllerRequest): Promise<DashboardControllerResponse> {
     try {
-      const tenantId = req.user?.tenantId;
-      if (!tenantId) {
-        res.status(400).json(createErrorResponse('Tenant ID é obrigatório'));
-        return;
-      }
-
-      const metrics = await this.getDashboardMetricsUseCase.execute({ tenantId });
-      res.status(200).json(createSuccessResponse(metrics, 'Métricas obtidas com sucesso'));
-    } catch (error) {
-      console.error('Erro ao obter métricas do dashboard:', error);
-      res.status(500).json(createErrorResponse('Erro interno do servidor'));
-    }
-  }
-
-  async getOverview(req: Request, res: Response): Promise<void> {
-    try {
-      const tenantId = req.user?.tenantId;
-      if (!tenantId) {
-        res.status(400).json(createErrorResponse('Tenant ID é obrigatório'));
-        return;
-      }
-
-      // Implementar lógica usando Use Case
-      const metrics = await this.getDashboardMetricsUseCase.execute({ tenantId });
-      const overview = {
-        totalTickets: metrics.find(m => m.metricType === 'total_tickets')?.value || '0',
-        openTickets: metrics.find(m => m.metricType === 'open_tickets')?.value || '0'
+      const useCaseRequest: GetDashboardMetricsRequest = {
+        tenantId: request.tenantId
       };
 
-      res.status(200).json(createSuccessResponse(overview, 'Overview obtido com sucesso'));
+      const result = await this.getDashboardMetricsUseCase.execute(useCaseRequest);
+
+      return {
+        success: true,
+        data: result.metrics,
+        timestamp: new Date().toISOString()
+      };
     } catch (error) {
-      console.error('Erro ao obter overview:', error);
-      res.status(500).json(createErrorResponse('Erro interno do servidor'));
+      throw new Error(`Dashboard metrics retrieval failed: ${error}`);
     }
   }
 }

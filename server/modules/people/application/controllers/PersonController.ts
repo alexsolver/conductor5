@@ -1,87 +1,60 @@
+import { CreatePersonUseCase } from '../use-cases/CreatePersonUseCase';
+import { UpdatePersonUseCase } from '../use-cases/UpdatePersonUseCase';
 
-import { Request, Response } from 'express';
-import { sendSuccess, sendError } from '../../../../utils/standardResponse';
+export interface PersonControllerRequest {
+  name?: string;
+  email?: string;
+  phone?: string;
+  tenantId: string;
+  id?: string;
+}
+
+export interface PersonControllerResponse {
+  success: boolean;
+  data: any;
+  message?: string;
+}
 
 export class PersonController {
-  
-  async getAll(req: Request, res: Response): Promise<void> {
-    try {
-      const tenantId = req.user?.tenantId;
-      if (!tenantId) {
-        return sendError(res, 'Tenant ID é obrigatório', 'Tenant ID é obrigatório', 400);
-      }
+  constructor(
+    private readonly createPersonUseCase: CreatePersonUseCase,
+    private readonly updatePersonUseCase: UpdatePersonUseCase
+  ) {}
 
-      // Implementar lógica usando Use Case
-      sendSuccess(res, [], 'Pessoas obtidas com sucesso', 200);
+  async create(request: PersonControllerRequest): Promise<PersonControllerResponse> {
+    try {
+      const result = await this.createPersonUseCase.execute({
+        name: request.name!,
+        email: request.email!,
+        phone: request.phone,
+        tenantId: request.tenantId
+      });
+
+      return {
+        success: true,
+        data: result
+      };
     } catch (error) {
-      console.error('Erro ao obter pessoas:', error);
-      sendError(res, error, 'Erro interno do servidor', 500);
+      throw new Error(`Failed to create person: ${error}`);
     }
   }
 
-  async getById(req: Request, res: Response): Promise<void> {
+  async update(request: PersonControllerRequest): Promise<PersonControllerResponse> {
     try {
-      const { id } = req.params;
-      const tenantId = req.user?.tenantId;
+      const result = await this.updatePersonUseCase.execute({
+        id: request.id!,
+        name: request.name,
+        email: request.email,
+        phone: request.phone,
+        tenantId: request.tenantId
+      });
 
-      if (!tenantId) {
-        return sendError(res, 'Tenant ID é obrigatório', 'Tenant ID é obrigatório', 400);
-      }
-
-      // Implementar lógica usando Use Case
-      sendSuccess(res, {}, 'Pessoa encontrada', 200);
+      return {
+        success: true,
+        data: result
+      };
     } catch (error) {
-      console.error('Erro ao obter pessoa:', error);
-      sendError(res, error, 'Erro interno do servidor', 500);
-    }
-  }
-
-  async create(req: Request, res: Response): Promise<void> {
-    try {
-      const tenantId = req.user?.tenantId;
-      if (!tenantId) {
-        return sendError(res, 'Tenant ID é obrigatório', 'Tenant ID é obrigatório', 400);
-      }
-
-      // Implementar lógica usando Use Case
-      sendSuccess(res, {}, 'Pessoa criada com sucesso', 201);
-    } catch (error) {
-      console.error('Erro ao criar pessoa:', error);
-      sendError(res, error, 'Erro interno do servidor', 500);
-    }
-  }
-
-  async update(req: Request, res: Response): Promise<void> {
-    try {
-      const { id } = req.params;
-      const tenantId = req.user?.tenantId;
-
-      if (!tenantId) {
-        return sendError(res, 'Tenant ID é obrigatório', 'Tenant ID é obrigatório', 400);
-      }
-
-      // Implementar lógica usando Use Case
-      sendSuccess(res, {}, 'Pessoa atualizada com sucesso', 200);
-    } catch (error) {
-      console.error('Erro ao atualizar pessoa:', error);
-      sendError(res, error, 'Erro interno do servidor', 500);
-    }
-  }
-
-  async delete(req: Request, res: Response): Promise<void> {
-    try {
-      const { id } = req.params;
-      const tenantId = req.user?.tenantId;
-
-      if (!tenantId) {
-        return sendError(res, 'Tenant ID é obrigatório', 'Tenant ID é obrigatório', 400);
-      }
-
-      // Implementar lógica usando Use Case
-      sendSuccess(res, null, 'Pessoa excluída com sucesso', 200);
-    } catch (error) {
-      console.error('Erro ao excluir pessoa:', error);
-      sendError(res, error, 'Erro interno do servidor', 500);
+      throw new Error(`Failed to update person: ${error}`);
     }
   }
 }

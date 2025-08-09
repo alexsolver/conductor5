@@ -1,87 +1,72 @@
+import { CreateFieldLayoutUseCase } from '../use-cases/CreateFieldLayoutUseCase';
+import { GetFieldLayoutsUseCase } from '../use-cases/GetFieldLayoutsUseCase';
+import { UpdateFieldLayoutUseCase } from '../use-cases/UpdateFieldLayoutUseCase';
 
-import { Request, Response } from 'express';
-import { sendSuccess, sendError } from '../../../../utils/standardResponse';
+export interface FieldLayoutControllerRequest {
+  name?: string;
+  configuration?: any;
+  tenantId: string;
+  id?: string;
+}
+
+export interface FieldLayoutControllerResponse {
+  success: boolean;
+  data: any;
+  message?: string;
+}
 
 export class FieldLayoutController {
-  
-  async getAll(req: Request, res: Response): Promise<void> {
-    try {
-      const tenantId = req.user?.tenantId;
-      if (!tenantId) {
-        return sendError(res, 'Tenant ID é obrigatório', 'Tenant ID é obrigatório', 400);
-      }
+  constructor(
+    private readonly createFieldLayoutUseCase: CreateFieldLayoutUseCase,
+    private readonly getFieldLayoutsUseCase: GetFieldLayoutsUseCase,
+    private readonly updateFieldLayoutUseCase: UpdateFieldLayoutUseCase
+  ) {}
 
-      // Implementar lógica usando Use Case
-      sendSuccess(res, [], 'Layouts obtidos com sucesso');
+  async create(request: FieldLayoutControllerRequest): Promise<FieldLayoutControllerResponse> {
+    try {
+      const result = await this.createFieldLayoutUseCase.execute({
+        name: request.name!,
+        configuration: request.configuration!,
+        tenantId: request.tenantId
+      });
+
+      return {
+        success: true,
+        data: result
+      };
     } catch (error) {
-      console.error('Erro ao obter layouts:', error);
-      sendError(res, error, 'Erro interno do servidor');
+      throw new Error(`Failed to create field layout: ${error}`);
     }
   }
 
-  async getById(req: Request, res: Response): Promise<void> {
+  async getAll(tenantId: string): Promise<FieldLayoutControllerResponse> {
     try {
-      const { id } = req.params;
-      const tenantId = req.user?.tenantId;
+      const result = await this.getFieldLayoutsUseCase.execute({ tenantId });
 
-      if (!tenantId) {
-        return sendError(res, 'Tenant ID é obrigatório', 'Tenant ID é obrigatório', 400);
-      }
-
-      // Implementar lógica usando Use Case
-      sendSuccess(res, {}, 'Layout encontrado');
+      return {
+        success: true,
+        data: result
+      };
     } catch (error) {
-      console.error('Erro ao obter layout:', error);
-      sendError(res, error, 'Erro interno do servidor');
+      throw new Error(`Failed to get field layouts: ${error}`);
     }
   }
 
-  async create(req: Request, res: Response): Promise<void> {
+  async update(request: FieldLayoutControllerRequest): Promise<FieldLayoutControllerResponse> {
     try {
-      const tenantId = req.user?.tenantId;
-      if (!tenantId) {
-        return sendError(res, 'Tenant ID é obrigatório', 'Tenant ID é obrigatório', 400);
-      }
+      const result = await this.updateFieldLayoutUseCase.execute({
+        id: request.id!,
+        name: request.name,
+        configuration: request.configuration,
+        tenantId: request.tenantId
+      });
 
-      // Implementar lógica usando Use Case
-      sendSuccess(res, {}, 'Layout criado com sucesso', 201);
+      return {
+        success: true,
+        data: result
+      };
     } catch (error) {
-      console.error('Erro ao criar layout:', error);
-      sendError(res, error, 'Erro interno do servidor');
-    }
-  }
-
-  async update(req: Request, res: Response): Promise<void> {
-    try {
-      const { id } = req.params;
-      const tenantId = req.user?.tenantId;
-
-      if (!tenantId) {
-        return sendError(res, 'Tenant ID é obrigatório', 'Tenant ID é obrigatório', 400);
-      }
-
-      // Implementar lógica usando Use Case
-      sendSuccess(res, {}, 'Layout atualizado com sucesso');
-    } catch (error) {
-      console.error('Erro ao atualizar layout:', error);
-      sendError(res, error, 'Erro interno do servidor');
-    }
-  }
-
-  async delete(req: Request, res: Response): Promise<void> {
-    try {
-      const { id } = req.params;
-      const tenantId = req.user?.tenantId;
-
-      if (!tenantId) {
-        return sendError(res, 'Tenant ID é obrigatório', 'Tenant ID é obrigatório', 400);
-      }
-
-      // Implementar lógica usando Use Case
-      sendSuccess(res, null, 'Layout excluído com sucesso');
-    } catch (error) {
-      console.error('Erro ao excluir layout:', error);
-      sendError(res, error, 'Erro interno do servidor');
+      throw new Error(`Failed to update field layout: ${error}`);
     }
   }
 }

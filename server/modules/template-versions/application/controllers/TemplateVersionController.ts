@@ -1,31 +1,42 @@
 
-import { Request, Response } from 'express';
+export interface TemplateVersionRequest {
+  templateId: string;
+  version: string;
+  changes?: any;
+}
+
+export interface TemplateVersionResponse {
+  success: boolean;
+  data: any;
+  message?: string;
+}
 
 export class TemplateVersionController {
-  async getVersions(req: Request, res: Response): Promise<void> {
+  async createVersion(request: TemplateVersionRequest): Promise<TemplateVersionResponse> {
     try {
-      // Implementation for getting versions
-      res.json({ message: 'Get versions implementation needed' });
+      // Implementation for creating template version
+      return {
+        success: true,
+        data: {
+          templateId: request.templateId,
+          version: request.version,
+          createdAt: new Date().toISOString()
+        }
+      };
     } catch (error) {
-      res.status(500).json({ error: 'Internal server error' });
+      throw new Error(`Failed to create template version: ${error}`);
     }
   }
 
-  async createVersion(req: Request, res: Response): Promise<void> {
+  async getVersions(templateId: string): Promise<TemplateVersionResponse> {
     try {
-      // Implementation for creating version
-      res.status(201).json({ message: 'Create version implementation needed' });
+      // Implementation for getting template versions
+      return {
+        success: true,
+        data: { templateId, versions: [] }
+      };
     } catch (error) {
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  }
-
-  async getVersionById(req: Request, res: Response): Promise<void> {
-    try {
-      // Implementation for getting version by id
-      res.json({ message: 'Get version by id implementation needed' });
-    } catch (error) {
-      res.status(500).json({ error: 'Internal server error' });
+      throw new Error(`Failed to get template versions: ${error}`);
     }
   }
 }

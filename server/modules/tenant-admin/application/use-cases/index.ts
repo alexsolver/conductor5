@@ -1,3 +1,5 @@
-export { CreateTenantConfigUseCase } from './CreateTenantConfigUseCase';
-export { UpdateTenantConfigUseCase } from './UpdateTenantConfigUseCase';
-export { GetTenantConfigUseCase } from './GetTenantConfigUseCase';
+
+// Tenant Admin Use Cases
+export * from './CreateTenantConfigUseCase';
+export * from './GetTenantConfigUseCase';
+export * from './UpdateTenantConfigUseCase';

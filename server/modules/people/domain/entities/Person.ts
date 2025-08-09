@@ -13,7 +13,7 @@ export interface Person {
   createdBy: string;
 }
 
-export class PersonEntity implements Person {
+export class Person implements Person {
   constructor(
     public id: string,
     public tenantId: string,

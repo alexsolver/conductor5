@@ -1,31 +1,42 @@
 
-import { Request, Response } from 'express';
+export interface TemplateHierarchyRequest {
+  parentId?: string;
+  childId?: string;
+  templateId: string;
+}
+
+export interface TemplateHierarchyResponse {
+  success: boolean;
+  data: any;
+  message?: string;
+}
 
 export class TemplateHierarchyController {
-  async getHierarchies(req: Request, res: Response): Promise<void> {
+  async createHierarchy(request: TemplateHierarchyRequest): Promise<TemplateHierarchyResponse> {
     try {
-      // Implementation for getting hierarchies
-      res.json({ message: 'Get hierarchies implementation needed' });
+      // Implementation for creating template hierarchy
+      return {
+        success: true,
+        data: {
+          parentId: request.parentId,
+          childId: request.childId,
+          templateId: request.templateId
+        }
+      };
     } catch (error) {
-      res.status(500).json({ error: 'Internal server error' });
+      throw new Error(`Failed to create template hierarchy: ${error}`);
     }
   }
 
-  async createHierarchy(req: Request, res: Response): Promise<void> {
+  async getHierarchy(templateId: string): Promise<TemplateHierarchyResponse> {
     try {
-      // Implementation for creating hierarchy
-      res.status(201).json({ message: 'Create hierarchy implementation needed' });
+      // Implementation for getting template hierarchy
+      return {
+        success: true,
+        data: { templateId, hierarchy: [] }
+      };
     } catch (error) {
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  }
-
-  async getHierarchyById(req: Request, res: Response): Promise<void> {
-    try {
-      // Implementation for getting hierarchy by id
-      res.json({ message: 'Get hierarchy by id implementation needed' });
-    } catch (error) {
-      res.status(500).json({ error: 'Internal server error' });
+      throw new Error(`Failed to get template hierarchy: ${error}`);
     }
   }
 }

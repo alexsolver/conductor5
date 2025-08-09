@@ -11,7 +11,7 @@ export interface FieldLayout {
   createdBy: string;
 }
 
-export class FieldLayoutEntity implements FieldLayout {
+export class FieldLayout implements FieldLayout {
   constructor(
     public id: string,
     public tenantId: string,

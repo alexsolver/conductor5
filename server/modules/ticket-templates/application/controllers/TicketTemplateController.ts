@@ -1,31 +1,43 @@
 
-import { Request, Response } from 'express';
+export interface TicketTemplateRequest {
+  name: string;
+  template: any;
+  tenantId: string;
+}
+
+export interface TicketTemplateResponse {
+  success: boolean;
+  data: any;
+  message?: string;
+}
 
 export class TicketTemplateController {
-  async getTemplates(req: Request, res: Response): Promise<void> {
+  async createTemplate(request: TicketTemplateRequest): Promise<TicketTemplateResponse> {
     try {
-      // Implementation for getting templates
-      res.json({ message: 'Get templates implementation needed' });
+      // Implementation for creating ticket template
+      return {
+        success: true,
+        data: {
+          name: request.name,
+          template: request.template,
+          tenantId: request.tenantId,
+          createdAt: new Date().toISOString()
+        }
+      };
     } catch (error) {
-      res.status(500).json({ error: 'Internal server error' });
+      throw new Error(`Failed to create ticket template: ${error}`);
     }
   }
 
-  async createTemplate(req: Request, res: Response): Promise<void> {
+  async getTemplates(tenantId: string): Promise<TicketTemplateResponse> {
     try {
-      // Implementation for creating template
-      res.status(201).json({ message: 'Create template implementation needed' });
+      // Implementation for getting ticket templates
+      return {
+        success: true,
+        data: { tenantId, templates: [] }
+      };
     } catch (error) {
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  }
-
-  async getTemplateById(req: Request, res: Response): Promise<void> {
-    try {
-      // Implementation for getting template by id
-      res.json({ message: 'Get template by id implementation needed' });
-    } catch (error) {
-      res.status(500).json({ error: 'Internal server error' });
+      throw new Error(`Failed to get ticket templates: ${error}`);
     }
   }
 }

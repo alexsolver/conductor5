@@ -1,91 +1,73 @@
-import { Request, Response } from 'express';
-import { createSuccessResponse, createErrorResponse } from '../../../../utils/standardResponse';
+
+import { CreateTenantConfigUseCase } from '../use-cases/CreateTenantConfigUseCase';
+import { GetTenantConfigUseCase } from '../use-cases/GetTenantConfigUseCase';
+import { UpdateTenantConfigUseCase } from '../use-cases/UpdateTenantConfigUseCase';
+
+export interface TenantAdminControllerRequest {
+  tenantId: string;
+  configKey?: string;
+  configValue?: any;
+  id?: string;
+}
+
+export interface TenantAdminControllerResponse {
+  success: boolean;
+  data: any;
+  message?: string;
+}
 
 export class TenantAdminController {
+  constructor(
+    private readonly createTenantConfigUseCase: CreateTenantConfigUseCase,
+    private readonly getTenantConfigUseCase: GetTenantConfigUseCase,
+    private readonly updateTenantConfigUseCase: UpdateTenantConfigUseCase
+  ) {}
 
-  async getConfigs(req: Request, res: Response): Promise<void> {
+  async createConfig(request: TenantAdminControllerRequest): Promise<TenantAdminControllerResponse> {
     try {
-      const tenantId = req.user?.tenantId;
-      if (!tenantId) {
-        res.status(400).json(createErrorResponse('Tenant ID é obrigatório'));
-        return;
-      }
-
-      // Implementar lógica usando Use Case
-      res.status(200).json(createSuccessResponse('Configurações obtidas com sucesso', []));
+      const result = await this.createTenantConfigUseCase.execute({
+        tenantId: request.tenantId,
+        configKey: request.configKey!,
+        configValue: request.configValue!
+      });
+      
+      return {
+        success: true,
+        data: result
+      };
     } catch (error) {
-      console.error('Erro ao obter configurações:', error);
-      res.status(500).json(createErrorResponse('Erro interno do servidor'));
+      throw new Error(`Failed to create tenant config: ${error}`);
     }
   }
 
-  async getConfig(req: Request, res: Response): Promise<void> {
+  async getConfig(tenantId: string): Promise<TenantAdminControllerResponse> {
     try {
-      const { key } = req.params;
-      const tenantId = req.user?.tenantId;
-
-      if (!tenantId) {
-        res.status(400).json(createErrorResponse('Tenant ID é obrigatório'));
-        return;
-      }
-
-      // Implementar lógica usando Use Case
-      res.status(200).json(createSuccessResponse('Configuração encontrada', {}));
+      const result = await this.getTenantConfigUseCase.execute({ tenantId });
+      
+      return {
+        success: true,
+        data: result
+      };
     } catch (error) {
-      console.error('Erro ao obter configuração:', error);
-      res.status(500).json(createErrorResponse('Erro interno do servidor'));
+      throw new Error(`Failed to get tenant config: ${error}`);
     }
   }
 
-  async createConfig(req: Request, res: Response): Promise<void> {
+  async updateConfig(request: TenantAdminControllerRequest): Promise<TenantAdminControllerResponse> {
     try {
-      const tenantId = req.user?.tenantId;
-      if (!tenantId) {
-        res.status(400).json(createErrorResponse('Tenant ID é obrigatório'));
-        return;
-      }
-
-      // Implementar lógica usando Use Case
-      res.status(201).json(createSuccessResponse('Configuração criada com sucesso', {}));
+      const result = await this.updateTenantConfigUseCase.execute({
+        id: request.id!,
+        tenantId: request.tenantId,
+        configKey: request.configKey,
+        configValue: request.configValue
+      });
+      
+      return {
+        success: true,
+        data: result
+      };
     } catch (error) {
-      console.error('Erro ao criar configuração:', error);
-      res.status(500).json(createErrorResponse('Erro interno do servidor'));
-    }
-  }
-
-  async updateConfig(req: Request, res: Response): Promise<void> {
-    try {
-      const { id } = req.params;
-      const tenantId = req.user?.tenantId;
-
-      if (!tenantId) {
-        res.status(400).json(createErrorResponse('Tenant ID é obrigatório'));
-        return;
-      }
-
-      // Implementar lógica usando Use Case
-      res.status(200).json(createSuccessResponse('Configuração atualizada com sucesso', {}));
-    } catch (error) {
-      console.error('Erro ao atualizar configuração:', error);
-      res.status(500).json(createErrorResponse('Erro interno do servidor'));
-    }
-  }
-
-  async deleteConfig(req: Request, res: Response): Promise<void> {
-    try {
-      const { id } = req.params;
-      const tenantId = req.user?.tenantId;
-
-      if (!tenantId) {
-        res.status(400).json(createErrorResponse('Tenant ID é obrigatório'));
-        return;
-      }
-
-      // Implementar lógica usando Use Case
-      res.status(200).json(createSuccessResponse('Configuração excluída com sucesso'));
-    } catch (error) {
-      console.error('Erro ao excluir configuração:', error);
-      res.status(500).json(createErrorResponse('Erro interno do servidor'));
+      throw new Error(`Failed to update tenant config: ${error}`);
     }
   }
 }
