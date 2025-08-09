@@ -227,9 +227,9 @@ export class TicketMaterialsController {
             finalUnitPrice = parseFloat(priceRow.special_price || priceRow.unit_price || 0);
             console.log('💰 [BACKEND-PRICE-LOOKUP] Found LPU price:', finalUnitPrice);
           } else {
-            // Fallback to item catalog price
+            // Fallback to item catalog price using correct column names
             const itemQuery = await this.db.execute(sql`
-              SELECT cost_price, unit_price
+              SELECT unit_cost, price
               FROM items
               WHERE id = ${itemId} AND tenant_id = ${tenantId}
               LIMIT 1
@@ -237,7 +237,7 @@ export class TicketMaterialsController {
 
             if (itemQuery.rows && itemQuery.rows.length > 0) {
               const itemRow = itemQuery.rows[0];
-              finalUnitPrice = parseFloat(itemRow.cost_price || itemRow.unit_price || 0);
+              finalUnitPrice = parseFloat(itemRow.unit_cost || itemRow.price || 0);
               console.log('💰 [BACKEND-PRICE-LOOKUP] Found item catalog price:', finalUnitPrice);
             }
           }
@@ -267,7 +267,36 @@ export class TicketMaterialsController {
         plannedById: req.user?.id
       };
 
-      await this.db.insert(ticketPlannedItems).values(newPlannedItem);
+      // Import pool for direct insertion
+      const { pool } = await import('../../../../db');
+      
+      // Use direct SQL insertion to avoid Drizzle issues
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      const insertQuery = `
+        INSERT INTO "${schemaName}".ticket_planned_items (
+          id, tenant_id, ticket_id, item_id, planned_quantity, lpu_id,
+          unit_price_at_planning, estimated_cost, status, priority, notes,
+          is_active, created_at, updated_at, planned_by_id
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+      `;
+
+      await pool.query(insertQuery, [
+        newPlannedItem.id,
+        newPlannedItem.tenantId,
+        newPlannedItem.ticketId,
+        newPlannedItem.itemId,
+        newPlannedItem.plannedQuantity,
+        newPlannedItem.lpuId,
+        newPlannedItem.unitPriceAtPlanning,
+        newPlannedItem.estimatedCost,
+        newPlannedItem.status,
+        newPlannedItem.priority,
+        newPlannedItem.notes,
+        newPlannedItem.isActive,
+        newPlannedItem.createdAt,
+        newPlannedItem.updatedAt,
+        newPlannedItem.plannedById
+      ]);
 
       return res.json({
         success: true,
@@ -323,6 +352,9 @@ export class TicketMaterialsController {
 
       console.log('🔍 [GET-PLANNED-ITEMS] Fetching for ticket:', ticketId, 'tenant:', tenantId);
 
+      // Import pool for direct SQL queries
+      const { pool } = await import('../../../../db');
+      
       // Use raw SQL to get planned items with item details
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       const query = `
@@ -338,10 +370,7 @@ export class TicketMaterialsController {
         ORDER BY tpi.created_at DESC
       `;
 
-      const result = await this.db.execute({
-        sql: query,
-        args: [ticketId, tenantId]
-      });
+      const result = await pool.query(query, [ticketId, tenantId]);
 
       const plannedItems = result.rows.map((row: any) => ({
         id: row.id,
