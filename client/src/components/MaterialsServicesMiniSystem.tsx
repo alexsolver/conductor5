@@ -251,38 +251,63 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
   const consumedMaterials = useMemo(() => {
     if (!consumedData?.data?.consumedItems) return [];
 
+    console.log('🔍 [CONSUMED-PROCESSING] Raw consumed data:', consumedData.data.consumedItems);
+
     return consumedData.data.consumedItems.map((item: any, index: number) => {
-      // Handle both nested and flat data structures
-      const consumedItem = item.ticket_consumed_items || item;
-      const itemData = item.items || item.item || {};
+      // Handle multiple data structure patterns
+      let consumedItem, itemData, itemId, itemName, itemType;
 
-      // Extract ID with multiple fallback options
-      const itemId = consumedItem.id || item.id || consumedItem.consumedItemId;
+      // Pattern 1: Direct structure
+      if (item.id && item.itemName) {
+        consumedItem = item;
+        itemData = item;
+        itemId = item.id;
+        itemName = item.itemName;
+        itemType = item.itemType || 'Material';
+      }
+      // Pattern 2: Nested ticket_consumed_items
+      else if (item.ticket_consumed_items) {
+        consumedItem = item.ticket_consumed_items;
+        itemData = item.items || item.item || {};
+        itemId = consumedItem.id;
+        itemName = itemData.name || consumedItem.itemName || 'Item não encontrado';
+        itemType = itemData.type || consumedItem.itemType || 'Material';
+      }
+      // Pattern 3: Other nested structures
+      else {
+        consumedItem = item;
+        itemData = item.items || item.item || item;
+        itemId = item.id || consumedItem.id;
+        itemName = itemData.name || itemData.itemName || item.itemName || 'Item não encontrado';
+        itemType = itemData.type || itemData.itemType || item.itemType || 'Material';
+      }
 
-      console.log('🔍 [CONSUMED-MAPPING] Processing item:', {
-        index,
-        itemId,
-        consumedItem: { id: consumedItem.id },
-        item: { id: item.id },
-        rawItem: item
-      });
-
-      return {
-        id: itemId,
-        consumedItemId: itemId, // Explicit consumed item ID
-        itemName: itemData.name || consumedItem.itemName || 'Item não encontrado',
-        itemType: itemData.type || consumedItem.itemType || 'Material',
-        quantityUsed: consumedItem.actualQuantity || consumedItem.quantityUsed || '0',
-        actualQuantity: consumedItem.actualQuantity || '0',
-        totalCost: consumedItem.totalCost || consumedItem.actualCost || '0',
-        actualCost: consumedItem.totalCost || '0',
-        createdAt: consumedItem.createdAt || consumedItem.consumedAt || new Date().toISOString(),
-        consumedAt: consumedItem.consumedAt || consumedItem.createdAt || new Date().toISOString(),
+      const processedItem = {
+        id: itemId || `consumed-${index}`,
+        consumedItemId: itemId || `consumed-${index}`,
+        itemName: itemName,
+        itemType: itemType,
+        quantityUsed: consumedItem.actualQuantity || consumedItem.quantityUsed || item.actualQuantity || '0',
+        actualQuantity: consumedItem.actualQuantity || item.actualQuantity || '0',
+        totalCost: consumedItem.totalCost || consumedItem.actualCost || item.totalCost || '0',
+        actualCost: consumedItem.totalCost || item.actualCost || '0',
+        createdAt: consumedItem.createdAt || consumedItem.consumedAt || item.createdAt || new Date().toISOString(),
+        consumedAt: consumedItem.consumedAt || consumedItem.createdAt || item.consumedAt || new Date().toISOString(),
+        unitPrice: consumedItem.unitPriceAtConsumption || item.unitPriceAtConsumption || '0',
         // Preserve original data for debugging
         originalItem: item,
         consumedItem,
         itemData
       };
+
+      console.log('🔍 [CONSUMED-MAPPING] Processed item:', {
+        index,
+        itemId,
+        itemName,
+        processedItem
+      });
+
+      return processedItem;
     });
   }, [consumedData]);
 
@@ -596,49 +621,73 @@ export function MaterialsServicesMiniSystem({ ticketId, ticket }: MaterialsServi
                 <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
                   <Calculator className="h-5 w-5 text-green-600" />
                   Itens Consumidos
+                  <Badge variant="outline" className="text-xs">
+                    {consumedMaterials.length} itens
+                  </Badge>
                 </h3>
                 {consumedLoading ? (
-                  <div className="text-center py-4">Carregando...</div>
+                  <div className="text-center py-4">
+                    <Clock className="w-6 h-6 animate-spin mx-auto mb-2" />
+                    <p className="text-sm text-gray-500">Carregando itens consumidos...</p>
+                  </div>
                 ) : consumedMaterials.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
                     <Calculator className="h-8 w-8 mx-auto mb-2 opacity-50" />
                     <p>Nenhum consumo registrado</p>
+                    {consumedData?.data && (
+                      <p className="text-xs mt-2">
+                        Dados brutos disponíveis: {JSON.stringify(consumedData.data).length} caracteres
+                      </p>
+                    )}
                   </div>
                 ) : (
                   <div className="space-y-3">
                     {consumedMaterials.map((material: any, index: number) => (
-                      <div key={`consumed-${material.consumedItemId}-${index}`} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div key={`consumed-${material.consumedItemId || material.id}-${index}`} className="flex items-center justify-between p-4 border border-green-200 rounded-lg bg-green-50">
                         <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <p className="font-medium">{material.itemName}</p>
-                            <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
-                              {material.itemType || 'Material'}
-                            </span>
+                          <div className="flex items-center gap-2 mb-2">
+                            <p className="font-medium text-green-900">{material.itemName}</p>
+                            <Badge variant="secondary" className="text-xs bg-green-200 text-green-800">
+                              {material.itemType}
+                            </Badge>
                           </div>
-                          <div className="flex items-center gap-4 text-sm">
-                            <span className="text-gray-600">Qtd Usada: {material.quantityUsed || material.actualQuantity}</span>
-                            <span className="text-green-600 font-medium">R$ {parseFloat(material.totalCost || material.actualCost || 0).toFixed(2)}</span>
+                          <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div className="space-y-1">
+                              <span className="text-gray-600">Quantidade Usada: <span className="font-medium text-green-700">{material.quantityUsed || material.actualQuantity}</span></span>
+                              {material.unitPrice && parseFloat(material.unitPrice) > 0 && (
+                                <div className="text-xs text-gray-500">
+                                  Preço Unitário: R$ {parseFloat(material.unitPrice).toFixed(2)}
+                                </div>
+                              )}
+                            </div>
+                            <div className="space-y-1">
+                              <span className="text-green-600 font-medium">
+                                Custo Total: R$ {parseFloat(material.totalCost || material.actualCost || 0).toFixed(2)}
+                              </span>
+                              <div className="text-xs text-gray-500">
+                                Consumido em: {format(new Date(material.createdAt || material.consumedAt), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                              </div>
+                            </div>
                           </div>
-                          <p className="text-xs text-gray-500 mt-1">
-                            {new Date(material.createdAt || material.consumedAt).toLocaleDateString('pt-BR')}
-                          </p>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            const itemId = material.consumedItemId;
-                            console.log('🗑️ Deleting consumed item:', itemId);
-                            deleteConsumedMutation.mutate(itemId);
-                          }}
-                          disabled={deleteConsumedMutation.isPending}
-                          className={`${deleteConsumedMutation.isPending ? 'opacity-50 cursor-not-allowed' : ''}`}
-                          style={{ isolation: 'isolate' }}
-                        >
-                          <Trash2 className="h-4 w-4 text-red-500" />
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              const itemId = material.consumedItemId || material.id;
+                              console.log('🗑️ Deleting consumed item:', itemId);
+                              deleteConsumedMutation.mutate(itemId);
+                            }}
+                            disabled={deleteConsumedMutation.isPending}
+                            className={`h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 ${deleteConsumedMutation.isPending ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            style={{ isolation: 'isolate' }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                     ))}
                   </div>
