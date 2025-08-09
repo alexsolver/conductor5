@@ -281,7 +281,7 @@ export class ItemRepository {
 
   async getItemLinks(itemId: string, tenantId?: string): Promise<{ customers: any[], suppliers: any[] }> {
     try {
-      const { pool } = await import('../../../../db.js');
+      const { pool } = await import('../../../../db');
 
       if (!tenantId) {
         console.warn('⚠️  Tenant ID não fornecido para getItemLinks');
@@ -595,7 +595,7 @@ export class ItemRepository {
       console.log(`🔗 [LINK-CUSTOMER] Schema: ${schemaName}`);
 
       // Use direct pool query instead of drizzle execute for better parameter handling
-      const { pool } = await import('../../../../db.js');
+      const { pool } = await import('../../../../db');
 
       // Verify item exists
       const itemExists = await pool.query(
@@ -662,7 +662,7 @@ export class ItemRepository {
 
   async unlinkCustomerFromItem(itemId: string, customerId: string, tenantId: string): Promise<void> {
     try {
-      const { pool } = await import('../../../../db.js');
+      const { pool } = await import('../../../../db');
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
       // Tentar desvincular da tabela customer_item_mappings
@@ -703,7 +703,7 @@ export class ItemRepository {
         throw new Error('itemId, supplierId e tenantId são obrigatórios');
       }
 
-      const { pool } = await import('../../../../db.js');
+      const { pool } = await import('../../../../db');
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
       // Primeiro, verificar se as colunas existem na tabela
@@ -751,7 +751,7 @@ export class ItemRepository {
 
   async unlinkSupplierFromItem(itemId: string, supplierId: string, tenantId: string): Promise<void> {
     try {
-      const { pool } = await import('../../../../db.js');
+      const { pool } = await import('../../../../db');
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
       await pool.query(`
