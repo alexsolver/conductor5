@@ -18,7 +18,19 @@ beneficiariesRouter.use(enhancedTenantValidator());
 // Inicializar dependências
 const beneficiaryRepository = new DrizzleBeneficiaryRepository(db);
 const beneficiaryService = new BeneficiaryApplicationService(beneficiaryRepository);
-const beneficiaryController = new BeneficiaryController(beneficiaryService);
+
+// Initialize use cases
+const createBeneficiaryUseCase = new (require('./application/use-cases/CreateBeneficiaryUseCase').CreateBeneficiaryUseCase)(beneficiaryRepository, new (require('./domain/services/BeneficiaryDomainService').BeneficiaryDomainService)());
+const getBeneficiariesUseCase = new (require('./application/use-cases/GetBeneficiariesUseCase').GetBeneficiariesUseCase)(beneficiaryRepository);
+const updateBeneficiaryUseCase = new (require('./application/use-cases/UpdateBeneficiaryUseCase').UpdateBeneficiaryUseCase)(beneficiaryRepository);
+const deleteBeneficiaryUseCase = new (require('./application/use-cases/DeleteBeneficiaryUseCase').DeleteBeneficiaryUseCase)(beneficiaryRepository);
+
+const beneficiaryController = new BeneficiaryController(
+  createBeneficiaryUseCase,
+  getBeneficiariesUseCase,
+  updateBeneficiaryUseCase,
+  deleteBeneficiaryUseCase
+);
 
 // Validation schemas
 const getBeneficiariesSchema = z.object({
@@ -55,7 +67,7 @@ beneficiariesRouter.get('/', async (req: AuthenticatedRequest, res: Response) =>
     const limit = parseInt(req.query.limit as string || '20');
     const search = req.query.search as string | undefined;
 
-    const beneficiaries = await beneficiaryController.getBeneficiaries(tenantId, { page, limit, search });
+    const beneficiaries = await beneficiaryController.getAll({ tenantId, page, limit, search });
     return sendSuccess(res, beneficiaries, 'Beneficiaries retrieved successfully');
   } catch (error: any) {
     console.error("Error fetching beneficiaries:", error);
@@ -68,7 +80,7 @@ beneficiariesRouter.get("/:id", async (req: AuthenticatedRequest, res: Response)
   try {
     const tenantId = req.tenantId!;
     const { id } = beneficiaryIdSchema.parse(req.params);
-    const beneficiary = await beneficiaryController.getBeneficiary(tenantId, id);
+    const beneficiary = await beneficiaryRepository.findById(id, tenantId);
 
     if (!beneficiary) {
       return sendError(res, "Beneficiary not found", 404);
@@ -90,7 +102,7 @@ beneficiariesRouter.post("/", async (req: AuthenticatedRequest, res: Response) =
     const tenantId = req.tenantId!;
     const beneficiaryData = beneficiarySchema.parse({ ...req.body, tenantId });
 
-    const beneficiary = await beneficiaryController.createBeneficiary(beneficiaryData);
+    const beneficiary = await beneficiaryController.create({ ...beneficiaryData, tenantId });
     return sendSuccess(res, { beneficiary }, "Beneficiary created successfully", 201);
   } catch (error: any) {
     console.error("Error creating beneficiary:", error);
@@ -108,7 +120,7 @@ beneficiariesRouter.put("/:id", async (req: AuthenticatedRequest, res: Response)
     const { id } = beneficiaryIdSchema.parse(req.params);
     const beneficiaryData = beneficiarySchema.parse(req.body);
 
-    const beneficiary = await beneficiaryController.updateBeneficiary(tenantId, id, beneficiaryData);
+    const beneficiary = await beneficiaryController.update({ id, tenantId, ...beneficiaryData });
 
     if (!beneficiary) {
       return sendError(res, "Beneficiary not found", 404);
@@ -130,7 +142,7 @@ beneficiariesRouter.delete("/:id", async (req: AuthenticatedRequest, res: Respon
     const tenantId = req.tenantId!;
     const { id } = beneficiaryIdSchema.parse(req.params);
 
-    const deleted = await beneficiaryController.deleteBeneficiary(tenantId, id);
+    const deleted = await beneficiaryController.delete({ id, tenantId });
 
     if (!deleted) {
       return sendError(res, "Beneficiary not found", 404);
@@ -192,7 +204,7 @@ beneficiariesRouter.delete('/:id/customers/:customerId', async (req: Authenticat
       return sendValidationError(res, ['Customer ID is required']);
     }
 
-    const success = await beneficiaryController.removeBeneficiaryCustomer(tenantId, id, custId);
+    const success = await beneficiaryController.removeBeneficiaryCustomer(tenantId, id, customerIdToUse);
 
     if (success) {
       return sendSuccess(res, null, 'Customer removed from beneficiary successfully');

@@ -1,20 +1,26 @@
 
-import { Beneficiary } from '../entities/Beneficiary';
+import { CreateBeneficiaryDTO } from '../../application/dto/CreateBeneficiaryDTO';
 
 export class BeneficiaryDomainService {
-  static validateBeneficiaryData(data: Partial<Beneficiary>): boolean {
-    if (!data.name || data.name.trim().length === 0) {
-      return false;
+  async validateBeneficiaryData(data: CreateBeneficiaryDTO): Promise<void> {
+    if (!data.firstName || data.firstName.trim().length === 0) {
+      throw new Error('First name is required');
     }
-    
+
+    if (!data.lastName || data.lastName.trim().length === 0) {
+      throw new Error('Last name is required');
+    }
+
     if (!data.email || !this.isValidEmail(data.email)) {
-      return false;
+      throw new Error('Valid email is required');
     }
-    
-    return true;
+
+    if (!data.tenantId) {
+      throw new Error('Tenant ID is required');
+    }
   }
-  
-  private static isValidEmail(email: string): boolean {
+
+  private isValidEmail(email: string): boolean {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   }

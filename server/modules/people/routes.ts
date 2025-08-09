@@ -13,7 +13,6 @@ peopleRouter.use(enhancedTenantValidator());
 
 // Inicializar dependências
 const personRepository = new DrizzlePersonRepository(db);
-const personController = new PersonController();
 // Basic CRUD endpoints
 peopleRouter.get('/', async (req: AuthenticatedRequest, res) => {
   try {
@@ -21,7 +20,7 @@ peopleRouter.get('/', async (req: AuthenticatedRequest, res) => {
     if (!tenantId) {
       return res.status(400).json({ message: "User not associated with a tenant" });
     }
-    
+
     const people = await personRepository.findByTenant(tenantId);
     res.json(people);
   } catch (error) {

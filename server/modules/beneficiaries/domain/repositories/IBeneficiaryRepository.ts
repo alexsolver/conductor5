@@ -1,11 +1,17 @@
 
 import { Beneficiary } from '../entities/Beneficiary';
 
+export interface FindOptions {
+  page?: number;
+  limit?: number;
+  search?: string;
+}
+
 export interface IBeneficiaryRepository {
+  create(beneficiary: Beneficiary): Promise<Beneficiary>;
   findById(id: string, tenantId: string): Promise<Beneficiary | null>;
-  findAll(tenantId: string): Promise<Beneficiary[]>;
-  findByCustomerId(customerId: string, tenantId: string): Promise<Beneficiary[]>;
-  save(beneficiary: Beneficiary): Promise<void>;
-  update(beneficiary: Beneficiary): Promise<void>;
-  delete(id: string, tenantId: string): Promise<void>;
+  findByTenant(tenantId: string, options?: FindOptions): Promise<Beneficiary[]>;
+  countByTenant(tenantId: string, search?: string): Promise<number>;
+  update(beneficiary: Beneficiary): Promise<Beneficiary>;
+  delete(id: string, tenantId: string): Promise<boolean>;
 }
