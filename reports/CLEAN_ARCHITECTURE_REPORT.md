@@ -7,10 +7,10 @@
 ## Resumo de Problemas
 
 - 🔥 **Críticos:** 12
-- ⚠️ **Altos:** 67
-- 📋 **Médios:** 52
-- 💡 **Baixos:** 2
-- **Total:** 133
+- ⚠️ **Altos:** 70
+- 📋 **Médios:** 46
+- 💡 **Baixos:** 4
+- **Total:** 132
 
 ## Principais Problemas por Módulo
 
@@ -53,28 +53,20 @@
   - Domain Layer violando dependência: drizzle-orm/neon-http
 
 ### ⚠️ saas-admin
-- **Total de problemas:** 11
-- **Críticos:** 0 | **Altos:** 1
+- **Total de problemas:** 10
+- **Críticos:** 0 | **Altos:** 2
 - **Principais problemas:**
-  - Estrutura entities ausente na camada domain
-  - Estrutura repositories ausente na camada domain
-  - Estrutura events ausente na camada domain
-
-### 🔥 schedule-management
-- **Total de problemas:** 6
-- **Críticos:** 1 | **Altos:** 3
-- **Principais problemas:**
-  - Arquivo routes.ts ausente no módulo schedule-management
-  - Domain Layer violando dependência: drizzle-orm/neon-http
-  - Application Layer violando dependência: express
+  - Estrutura services ausente na camada domain
+  - Estrutura use-cases ausente na camada application
+  - Estrutura controllers ausente na camada application
 
 ### 🔥 shared
-- **Total de problemas:** 6
-- **Críticos:** 1 | **Altos:** 0
+- **Total de problemas:** 7
+- **Críticos:** 1 | **Altos:** 1
 - **Principais problemas:**
   - Routes não utiliza controllers - lógica direta nas rotas
   - Domain Layer violando dependência: drizzle-orm/neon-http
-  - Use Case index deve terminar com 'UseCase'
+  - Application Layer violando dependência: express
 
 ### 🔥 technical-skills
 - **Total de problemas:** 10
@@ -94,11 +86,19 @@
 
 ### 🔥 timecard
 - **Total de problemas:** 13
-- **Críticos:** 1 | **Altos:** 6
+- **Críticos:** 1 | **Altos:** 7
 - **Principais problemas:**
-  - Estrutura entities ausente na camada domain
-  - Estrutura repositories ausente na camada domain
   - Estrutura events ausente na camada domain
+  - Estrutura services ausente na camada domain
+  - Domain Layer violando dependência: drizzle-orm/neon-http
+
+### 🔥 schedule-management
+- **Total de problemas:** 5
+- **Críticos:** 1 | **Altos:** 3
+- **Principais problemas:**
+  - Domain Layer violando dependência: drizzle-orm/neon-http
+  - Application Layer violando dependência: express
+  - Application Layer violando dependência: ../../infrastructure/repositories/DrizzleScheduleRepository
 
 ### 📋 dashboard
 - **Total de problemas:** 1
@@ -193,27 +193,18 @@
 37. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 38. **create_file:** Criar Repository com interface
 
-### 🔥 schedule-management
-- **Prioridade:** immediate
-- **Tempo estimado:** 4h
-- **Ações:** 4
-
-1. **create_file:** Criar arquivo routes.ts para definir endpoints da API
-2. **refactor_code:** Refatorar dependência inválida na camada domain
-3. **refactor_code:** Refatorar dependência inválida na camada application
-4. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
-
 ### 🔥 shared
 - **Prioridade:** immediate
-- **Tempo estimado:** 3h
-- **Ações:** 6
+- **Tempo estimado:** 4h
+- **Ações:** 7
 
 1. **create_directory:** Criar controllers na camada Application e usar nas rotas
 2. **refactor_code:** Refatorar dependência inválida na camada domain
-3. **rename_file:** Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'
-4. **rename_file:** Padronizar nomenclatura: Repository index deve terminar com 'Repository'
-5. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
-6. **create_file:** Criar Repository com interface
+3. **refactor_code:** Refatorar dependência inválida na camada application
+4. **rename_file:** Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'
+5. **rename_file:** Padronizar nomenclatura: Repository index deve terminar com 'Repository'
+6. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
+7. **create_file:** Criar Repository com interface
 
 ### 🔥 technical-skills
 - **Prioridade:** immediate
@@ -232,15 +223,24 @@
 - **Tempo estimado:** 5h
 - **Ações:** 9
 
-1. **create_directory:** Criar diretório/arquivo entities na camada domain
-2. **create_directory:** Criar diretório/arquivo repositories na camada domain
-3. **create_directory:** Criar diretório/arquivo events na camada domain
-4. **create_directory:** Criar diretório/arquivo services na camada domain
-5. **refactor_code:** Refatorar dependência inválida na camada domain
-6. **refactor_code:** Refatorar dependência inválida na camada application
-7. **refactor_code:** Refatorar dependência inválida na camada application
-8. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
-9. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
+1. **create_directory:** Criar diretório/arquivo events na camada domain
+2. **create_directory:** Criar diretório/arquivo services na camada domain
+3. **refactor_code:** Refatorar dependência inválida na camada domain
+4. **refactor_code:** Refatorar dependência inválida na camada application
+5. **refactor_code:** Refatorar dependência inválida na camada application
+6. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
+7. **rename_file:** Padronizar nomenclatura: Entity index não segue padrão PascalCase
+8. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
+9. **create_file:** Criar Repository com interface
+
+### 🔥 schedule-management
+- **Prioridade:** immediate
+- **Tempo estimado:** 3h
+- **Ações:** 3
+
+1. **refactor_code:** Refatorar dependência inválida na camada domain
+2. **refactor_code:** Refatorar dependência inválida na camada application
+3. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
 
 ### ⚠️ auth
 - **Prioridade:** high
@@ -270,19 +270,18 @@
 ### ⚠️ saas-admin
 - **Prioridade:** high
 - **Tempo estimado:** 3h
-- **Ações:** 11
+- **Ações:** 10
 
-1. **create_directory:** Criar diretório/arquivo entities na camada domain
-2. **create_directory:** Criar diretório/arquivo repositories na camada domain
-3. **create_directory:** Criar diretório/arquivo events na camada domain
-4. **create_directory:** Criar diretório/arquivo services na camada domain
-5. **create_directory:** Criar diretório/arquivo use-cases na camada application
-6. **create_directory:** Criar diretório/arquivo controllers na camada application
-7. **create_directory:** Criar diretório/arquivo dto na camada application
-8. **create_directory:** Criar diretório/arquivo services na camada application
-9. **create_directory:** Criar diretório/arquivo repositories na camada infrastructure
-10. **create_directory:** Criar controllers na camada Application e usar nas rotas
-11. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
+1. **create_directory:** Criar diretório/arquivo services na camada domain
+2. **create_directory:** Criar diretório/arquivo use-cases na camada application
+3. **create_directory:** Criar diretório/arquivo controllers na camada application
+4. **create_directory:** Criar diretório/arquivo dto na camada application
+5. **create_directory:** Criar diretório/arquivo services na camada application
+6. **create_directory:** Criar diretório/arquivo repositories na camada infrastructure
+7. **create_directory:** Criar controllers na camada Application e usar nas rotas
+8. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
+9. **rename_file:** Padronizar nomenclatura: Entity index não segue padrão PascalCase
+10. **create_file:** Criar Repository com interface
 
 ### ⚠️ tickets
 - **Prioridade:** high
@@ -334,16 +333,16 @@
 ### Prioridade Imediata 🔥
 - **knowledge-base:** 10 ações (8h)
 - **materials-services:** 38 ações (29h)
-- **schedule-management:** 4 ações (4h)
-- **shared:** 6 ações (3h)
+- **shared:** 7 ações (4h)
 - **technical-skills:** 6 ações (5h)
 - **timecard:** 9 ações (5h)
+- **schedule-management:** 3 ações (3h)
 
 ### Prioridade Alta ⚠️
 - **auth:** 3 ações (2h)
 - **beneficiaries:** 2 ações (1h)
 - **customers:** 2 ações (2h)
-- **saas-admin:** 11 ações (3h)
+- **saas-admin:** 10 ações (3h)
 - **tickets:** 3 ações (2h)
 
 ## Comandos para Correção

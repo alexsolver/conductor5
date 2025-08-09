@@ -553,57 +553,6 @@
   },
   {
     "priority": "immediate",
-    "module": "schedule-management",
-    "actions": [
-      {
-        "type": "create_file",
-        "description": "Criar arquivo routes.ts para definir endpoints da API",
-        "target": "server/modules/schedule-management/routes.ts",
-        "steps": [
-          "Criar arquivo routes.ts para definir endpoints da API"
-        ]
-      },
-      {
-        "type": "refactor_code",
-        "description": "Refatorar dependência inválida na camada domain",
-        "target": "server/modules/schedule-management/domain/ports/IScheduleRepository.ts",
-        "steps": [
-          "Identificar a dependência problemática",
-          "Criar interface/port na camada Domain",
-          "Implementar interface na camada Infrastructure",
-          "Usar injeção de dependência",
-          "Remover import direto da dependência externa"
-        ]
-      },
-      {
-        "type": "refactor_code",
-        "description": "Refatorar dependência inválida na camada application",
-        "target": "server/modules/schedule-management/application/controllers/ScheduleController.ts",
-        "steps": [
-          "Identificar a dependência problemática",
-          "Criar interface/port na camada Domain",
-          "Implementar interface na camada Infrastructure",
-          "Usar injeção de dependência",
-          "Remover import direto da dependência externa"
-        ]
-      },
-      {
-        "type": "move_code",
-        "description": "Resolver acoplamento: Repository contém possível lógica de negócio",
-        "target": "server/modules/schedule-management/infrastructure/repositories/DrizzleScheduleRepository.ts",
-        "steps": [
-          "Identificar código acoplado",
-          "Determinar camada correta para o código",
-          "Mover código para camada apropriada",
-          "Criar interfaces para comunicação entre camadas",
-          "Atualizar dependências"
-        ]
-      }
-    ],
-    "estimatedTime": "4h"
-  },
-  {
-    "priority": "immediate",
     "module": "shared",
     "actions": [
       {
@@ -618,6 +567,18 @@
         "type": "refactor_code",
         "description": "Refatorar dependência inválida na camada domain",
         "target": "server/modules/shared/domain/ports/Iindex.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "server/modules/shared/application/controllers/SharedController.ts",
         "steps": [
           "Identificar a dependência problemática",
           "Criar interface/port na camada Domain",
@@ -669,7 +630,7 @@
         ]
       }
     ],
-    "estimatedTime": "3h"
+    "estimatedTime": "4h"
   },
   {
     "priority": "immediate",
@@ -754,22 +715,6 @@
     "actions": [
       {
         "type": "create_directory",
-        "description": "Criar diretório/arquivo entities na camada domain",
-        "target": "server/modules/timecard/domain/entities",
-        "steps": [
-          "Criar diretório/arquivo entities na camada domain"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo repositories na camada domain",
-        "target": "server/modules/timecard/domain/repositories",
-        "steps": [
-          "Criar diretório/arquivo repositories na camada domain"
-        ]
-      },
-      {
-        "type": "create_directory",
         "description": "Criar diretório/arquivo events na camada domain",
         "target": "server/modules/timecard/domain/events",
         "steps": [
@@ -833,15 +778,81 @@
         ]
       },
       {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Entity index não segue padrão PascalCase",
+        "target": "server/modules/timecard/domain/entities/index.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
         "type": "create_directory",
         "description": "Criar interface I[Entity]Repository no domain e implementar",
         "target": "server/modules/timecard/infrastructure/repositories/DrizzleTimecardRepository.ts",
         "steps": [
           "Criar interface I[Entity]Repository no domain e implementar"
         ]
+      },
+      {
+        "type": "create_file",
+        "description": "Criar Repository com interface",
+        "target": "server/modules/timecard/infrastructure/repositories/indexRepository.ts",
+        "code": "import { index } from '../../domain/entities/index';\nimport { IindexRepository } from '../../domain/ports/IindexRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleindexRepository implements IindexRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<index | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<index[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: index): Promise<index> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<index>, tenantId: string): Promise<index | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
+        "steps": [
+          "Criar interface do Repository na camada Domain",
+          "Implementar Repository na camada Infrastructure",
+          "Adicionar injeção de dependência",
+          "Integrar com Use Cases"
+        ]
       }
     ],
     "estimatedTime": "5h"
+  },
+  {
+    "priority": "immediate",
+    "module": "schedule-management",
+    "actions": [
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada domain",
+        "target": "server/modules/schedule-management/domain/ports/IScheduleRepository.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "server/modules/schedule-management/application/controllers/ScheduleController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Repository contém possível lógica de negócio",
+        "target": "server/modules/schedule-management/infrastructure/repositories/DrizzleScheduleRepository.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      }
+    ],
+    "estimatedTime": "3h"
   },
   {
     "priority": "high",
@@ -949,30 +960,6 @@
     "actions": [
       {
         "type": "create_directory",
-        "description": "Criar diretório/arquivo entities na camada domain",
-        "target": "server/modules/saas-admin/domain/entities",
-        "steps": [
-          "Criar diretório/arquivo entities na camada domain"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo repositories na camada domain",
-        "target": "server/modules/saas-admin/domain/repositories",
-        "steps": [
-          "Criar diretório/arquivo repositories na camada domain"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo events na camada domain",
-        "target": "server/modules/saas-admin/domain/events",
-        "steps": [
-          "Criar diretório/arquivo events na camada domain"
-        ]
-      },
-      {
-        "type": "create_directory",
         "description": "Criar diretório/arquivo services na camada domain",
         "target": "server/modules/saas-admin/domain/services",
         "steps": [
@@ -1037,6 +1024,29 @@
           "Mover código para camada apropriada",
           "Criar interfaces para comunicação entre camadas",
           "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Entity index não segue padrão PascalCase",
+        "target": "server/modules/saas-admin/domain/entities/index.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "create_file",
+        "description": "Criar Repository com interface",
+        "target": "server/modules/saas-admin/infrastructure/repositories/indexRepository.ts",
+        "code": "import { index } from '../../domain/entities/index';\nimport { IindexRepository } from '../../domain/ports/IindexRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleindexRepository implements IindexRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<index | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<index[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: index): Promise<index> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<index>, tenantId: string): Promise<index | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
+        "steps": [
+          "Criar interface do Repository na camada Domain",
+          "Implementar Repository na camada Infrastructure",
+          "Adicionar injeção de dependência",
+          "Integrar com Use Cases"
         ]
       }
     ],

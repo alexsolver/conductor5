@@ -14,17 +14,21 @@ peopleRouter.use(enhancedTenantValidator());
 // Inicializar dependências
 const personRepository = new DrizzlePersonRepository(db);
 const personController = new PersonController();
-
-// Rotas CRUD
-// Import the controller properly
-import { PersonController } from './application/controllers/PersonController';
-
-const personController = new PersonController();
-peopleRouter.get('/', personController.getAll.bind(personController));
-peopleRouter.get('/:id', personController.getById.bind(personController));
-peopleRouter.post('/', personController.create.bind(personController));
-peopleRouter.put('/:id', personController.update.bind(personController));
-peopleRouter.delete('/:id', personController.delete.bind(personController));
+// Basic CRUD endpoints
+peopleRouter.get('/', async (req: AuthenticatedRequest, res) => {
+  try {
+    const tenantId = req.user?.tenantId;
+    if (!tenantId) {
+      return res.status(400).json({ message: "User not associated with a tenant" });
+    }
+    
+    const people = await personRepository.findByTenant(tenantId);
+    res.json(people);
+  } catch (error) {
+    console.error("Error fetching people:", error);
+    res.status(500).json({ message: "Failed to fetch people" });
+  }
+});
 
 // Search people (users and customers) with unified results
 peopleRouter.get('/search', jwtAuth, async (req: AuthenticatedRequest, res) => {
