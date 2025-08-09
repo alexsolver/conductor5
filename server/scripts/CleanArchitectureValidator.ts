@@ -1,4 +1,3 @@
-
 /**
  * CLEAN ARCHITECTURE VALIDATOR
  * 
@@ -10,7 +9,7 @@
  * - Padrões de implementação
  */
 
-import { readFileSync, existsSync, readdirSync, statSync } from 'fs';
+import { readFileSync, existsSync, readdirSync, statSync, writeFileSync, mkdirSync } from 'fs';
 import { join, extname } from 'path';
 
 interface ArchitectureIssue {
@@ -69,7 +68,7 @@ class CleanArchitectureValidator {
 
   private discoverModules(): void {
     console.log('🔍 Descobrindo módulos do sistema...');
-    
+
     const modulesDir = 'server/modules';
     if (!existsSync(modulesDir)) {
       this.addIssue({
@@ -114,7 +113,7 @@ class CleanArchitectureValidator {
       if (existsSync(layerPath)) {
         presentLayers.push(layer);
         console.log(`  ✅ Camada ${layer}: Presente`);
-        
+
         // Validar estrutura interna da camada
         await this.validateLayerInternalStructure(layerPath, layer, moduleName);
       } else {
@@ -162,7 +161,7 @@ class CleanArchitectureValidator {
     };
 
     const expected = expectedStructures[layer as keyof typeof expectedStructures] || [];
-    
+
     for (const structure of expected) {
       const structurePath = join(layerPath, structure);
       if (!existsSync(structurePath)) {
@@ -207,7 +206,7 @@ class CleanArchitectureValidator {
     if (!existsSync(domainPath)) return;
 
     const files = this.getAllTSFiles(domainPath);
-    
+
     for (const file of files) {
       const content = readFileSync(file, 'utf-8');
       const violations = this.findDependencyViolations(content, 'domain');
@@ -233,7 +232,7 @@ class CleanArchitectureValidator {
     if (!existsSync(appPath)) return;
 
     const files = this.getAllTSFiles(appPath);
-    
+
     for (const file of files) {
       const content = readFileSync(file, 'utf-8');
       const violations = this.findDependencyViolations(content, 'application');
@@ -259,7 +258,7 @@ class CleanArchitectureValidator {
     if (!existsSync(infraPath)) return;
 
     const files = this.getAllTSFiles(infraPath);
-    
+
     for (const file of files) {
       const content = readFileSync(file, 'utf-8');
       const violations = this.findDependencyViolations(content, 'infrastructure');
@@ -304,7 +303,7 @@ class CleanArchitectureValidator {
       const importMatch = line.match(/import.*from\s+['"]([^'"]+)['"]/);
       if (importMatch) {
         const importPath = importMatch[1];
-        
+
         for (const forbiddenPattern of forbidden) {
           if (importPath.includes(forbiddenPattern)) {
             violations.push({
@@ -375,10 +374,10 @@ class CleanArchitectureValidator {
     if (!existsSync(entitiesPath)) return;
 
     const files = this.getAllTSFiles(entitiesPath);
-    
+
     for (const file of files) {
       const content = readFileSync(file, 'utf-8');
-      
+
       // Verificar se entity tem lógica de infraestrutura
       if (content.includes('SELECT') || content.includes('INSERT') || content.includes('UPDATE')) {
         this.addIssue({
@@ -420,10 +419,10 @@ class CleanArchitectureValidator {
       existsSync(join(modulePath, 'application', 'usecases')) ? 
       this.getAllTSFiles(join(modulePath, 'application', 'usecases')) : []
     );
-    
+
     for (const file of files) {
       const content = readFileSync(file, 'utf-8');
-      
+
       // Verificar se use case tem lógica de banco
       if (content.includes('drizzle') || content.includes('SELECT') || content.includes('db.')) {
         this.addIssue({
@@ -445,10 +444,10 @@ class CleanArchitectureValidator {
     if (!existsSync(repoPath)) return;
 
     const files = this.getAllTSFiles(repoPath);
-    
+
     for (const file of files) {
       const content = readFileSync(file, 'utf-8');
-      
+
       // Verificar se repository tem regras de negócio
       const businessLogicIndicators = [
         'validate', 'calculate', 'process', 'transform',
@@ -501,10 +500,10 @@ class CleanArchitectureValidator {
     if (!existsSync(entitiesPath)) return;
 
     const files = this.getAllTSFiles(entitiesPath);
-    
+
     for (const file of files) {
       const fileName = file.split('/').pop()!.replace('.ts', '');
-      
+
       // Entity deve terminar com nome singular e PascalCase
       if (!fileName.match(/^[A-Z][a-zA-Z]*$/)) {
         this.addIssue({
@@ -547,10 +546,10 @@ class CleanArchitectureValidator {
       if (!existsSync(useCasesPath)) continue;
 
       const files = this.getAllTSFiles(useCasesPath);
-      
+
       for (const file of files) {
         const fileName = file.split('/').pop()!.replace('.ts', '');
-        
+
         // Use Case deve terminar com "UseCase"
         if (!fileName.endsWith('UseCase')) {
           this.addIssue({
@@ -573,10 +572,10 @@ class CleanArchitectureValidator {
     if (!existsSync(repoPath)) return;
 
     const files = this.getAllTSFiles(repoPath);
-    
+
     for (const file of files) {
       const fileName = file.split('/').pop()!.replace('.ts', '');
-      
+
       // Repository deve terminar com "Repository"
       if (!fileName.endsWith('Repository')) {
         this.addIssue({
@@ -633,7 +632,7 @@ class CleanArchitectureValidator {
   private async validateEntityRepositoryPairs(modulePath: string, moduleName: string): Promise<void> {
     const entitiesPath = join(modulePath, 'domain', 'entities');
     const repoPath = join(modulePath, 'infrastructure', 'repositories');
-    
+
     if (!existsSync(entitiesPath)) return;
 
     const entities = this.getAllTSFiles(entitiesPath).map(f => 
@@ -643,7 +642,7 @@ class CleanArchitectureValidator {
     for (const entity of entities) {
       const expectedRepoFile = join(repoPath, `${entity}Repository.ts`);
       const altRepoFile = join(repoPath, `Drizzle${entity}Repository.ts`);
-      
+
       if (!existsSync(expectedRepoFile) && !existsSync(altRepoFile)) {
         this.addIssue({
           id: `COMP-${moduleName.toUpperCase()}-ENTITY-REPO-${entity}`,
@@ -694,7 +693,7 @@ class CleanArchitectureValidator {
     const repoPath = join(modulePath, 'infrastructure', 'repositories');
     const portsPath = join(modulePath, 'domain', 'ports');
     const repoInterfacePath = join(modulePath, 'domain', 'repositories');
-    
+
     if (!existsSync(repoPath)) return;
 
     const repositories = this.getAllTSFiles(repoPath).map(f => 
@@ -705,7 +704,7 @@ class CleanArchitectureValidator {
       const interfaceName = `I${repo.replace('Drizzle', '')}`;
       const expectedInterfaceFile1 = join(portsPath, `${interfaceName}.ts`);
       const expectedInterfaceFile2 = join(repoInterfacePath, `${interfaceName}.ts`);
-      
+
       if (!existsSync(expectedInterfaceFile1) && !existsSync(expectedInterfaceFile2)) {
         this.addIssue({
           id: `COMP-${moduleName.toUpperCase()}-REPO-INTERFACE-${repo}`,
@@ -723,7 +722,7 @@ class CleanArchitectureValidator {
 
   private async validateRoutesFile(routesPath: string, moduleName: string): Promise<void> {
     const content = readFileSync(routesPath, 'utf-8');
-    
+
     // Verificar se usa controllers
     if (!content.includes('Controller') && !content.includes('controller')) {
       this.addIssue({
@@ -759,21 +758,21 @@ class CleanArchitectureValidator {
 
   private getAllTSFiles(dir: string): string[] {
     const files: string[] = [];
-    
+
     if (!existsSync(dir)) return files;
 
     const entries = readdirSync(dir, { withFileTypes: true });
-    
+
     for (const entry of entries) {
       const fullPath = join(dir, entry.name);
-      
+
       if (entry.isDirectory()) {
         files.push(...this.getAllTSFiles(fullPath));
       } else if (entry.isFile() && extname(entry.name) === '.ts') {
         files.push(fullPath);
       }
     }
-    
+
     return files;
   }
 
@@ -827,14 +826,14 @@ class CleanArchitectureValidator {
     // Problemas por Módulo
     const moduleIssues = this.groupIssuesByModule(result.issues);
     console.log(`\n🏗️ PROBLEMAS POR MÓDULO:`);
-    
+
     for (const [module, issues] of Object.entries(moduleIssues)) {
       const criticalCount = issues.filter(i => i.severity === 'critical').length;
       const highCount = issues.filter(i => i.severity === 'high').length;
-      
+
       const moduleStatus = criticalCount > 0 ? '🔥' : highCount > 0 ? '⚠️' : '📋';
       console.log(`${moduleStatus} ${module}: ${issues.length} problemas`);
-      
+
       if (issues.length <= 5) {
         issues.forEach(issue => {
           const severity = {
@@ -851,26 +850,26 @@ class CleanArchitectureValidator {
     // Problemas por Camada
     console.log(`\n🏛️ PROBLEMAS POR CAMADA:`);
     const layerIssues = this.groupIssuesByLayer(result.issues);
-    
+
     for (const [layer, issues] of Object.entries(layerIssues)) {
       console.log(`📁 ${layer.toUpperCase()}: ${issues.length} problemas`);
     }
 
     // Recomendações de Prioridade
     console.log(`\n🎯 RECOMENDAÇÕES DE PRIORIDADE:`);
-    
+
     if (result.summary.critical > 0) {
       console.log(`1. 🔥 URGENTE: Corrigir ${result.summary.critical} problemas críticos`);
       console.log(`   - Violações de dependência no Domain Layer`);
       console.log(`   - Estruturas obrigatórias ausentes`);
     }
-    
+
     if (result.summary.high > 0) {
       console.log(`2. ⚠️  ALTA: Corrigir ${result.summary.high} problemas altos`);
       console.log(`   - Violações de dependência no Application Layer`);
       console.log(`   - Componentes ausentes importantes`);
     }
-    
+
     if (result.summary.medium > 0) {
       console.log(`3. 📋 MÉDIA: Corrigir ${result.summary.medium} problemas médios`);
       console.log(`   - Padrões de nomenclatura`);
@@ -880,7 +879,7 @@ class CleanArchitectureValidator {
     // Score de Maturidade por Aspecto
     console.log(`\n📈 MATURIDADE POR ASPECTO:`);
     const aspects = this.calculateMaturityByAspect(result.issues);
-    
+
     for (const [aspect, score] of Object.entries(aspects)) {
       const bar = '█'.repeat(Math.floor(score / 10)) + '░'.repeat(10 - Math.floor(score / 10));
       console.log(`${aspect}: ${score}/100 [${bar}]`);
@@ -946,21 +945,93 @@ class CleanArchitectureValidator {
 
     return aspects;
   }
+
+  private saveReports(validationResult: any, correctionPlans: any[]): void {
+    // Criar diretório reports se não existir
+    if (!existsSync('reports')) {
+      mkdirSync('reports', { recursive: true });
+    }
+
+    // Salvar resultado da validação
+    writeFileSync(
+      'reports/clean-architecture-validation-result.json',
+      JSON.stringify(validationResult, null, 2)
+    );
+
+    // Salvar planos de correção
+    writeFileSync(
+      'reports/clean-architecture-correction-plans.json',
+      JSON.stringify(correctionPlans, null, 2)
+    );
+
+    // Salvar relatório markdown
+    const markdownReport = this.generateMarkdownReport(validationResult, correctionPlans);
+    writeFileSync(
+      'reports/clean-architecture-report.md',
+      markdownReport
+    );
+  }
+
+  private generateMarkdownReport(validationResult: ValidationResult, correctionPlans: any[]): string {
+    let report = `# Relatório de Validação de Clean Architecture\n\n`;
+    report += `**Status Geral:** ${validationResult.passed ? '✅ Aprovado' : '❌ Reprovado'}\n`;
+    report += `**Score:** ${validationResult.score}/100\n\n`;
+
+    report += `## Resumo\n`;
+    report += `- Total de Problemas: ${validationResult.summary.total}\n`;
+    report += `- Críticos: ${validationResult.summary.critical}\n`;
+    report += `- Altos: ${validationResult.summary.high}\n`;
+    report += `- Médios: ${validationResult.summary.medium}\n`;
+    report += `- Baixos: ${validationResult.summary.low}\n\n`;
+
+    report += `## Detalhes dos Problemas\n`;
+    if (validationResult.issues.length === 0) {
+      report += `Nenhum problema encontrado!\n`;
+    } else {
+      validationResult.issues.forEach(issue => {
+        const severity = {
+          critical: '🔥 Crítico',
+          high: '⚠️ Alto',
+          medium: '📋 Médio',
+          low: '💡 Baixo'
+        }[issue.severity];
+        report += `\n### ${severity} - ${issue.id}\n`;
+        report += `- **Módulo:** ${issue.module}\n`;
+        report += `- **Camada:** ${issue.layer}\n`;
+        report += `- **Tipo:** ${issue.type}\n`;
+        report += `- **Descrição:** ${issue.description}\n`;
+        report += `- **Arquivo:** ${issue.file}${issue.line ? ` (Linha ${issue.line})` : ''}\n`;
+        report += `- **Sugestão de Correção:** ${issue.suggestedFix}\n`;
+      });
+    }
+
+    if (correctionPlans && correctionPlans.length > 0) {
+      report += `\n## Planos de Correção\n`;
+      correctionPlans.forEach(plan => {
+        report += `\n### ${plan.id}\n`;
+        report += `- **Ação:** ${plan.action}\n`;
+        report += `- **Responsável:** ${plan.responsible}\n`;
+        report += `- **Prazo:** ${plan.deadline}\n`;
+        report += `- **Status:** ${plan.status}\n`;
+      });
+    }
+
+    return report;
+  }
 }
 
 // Executar validação
 async function runCleanArchitectureValidation() {
   const validator = new CleanArchitectureValidator();
-  
+
   try {
     const result = await validator.validateCompleteArchitecture();
     validator.generateDetailedReport(result);
-    
+
     // Salvar resultado em arquivo JSON para referência
-    const fs = require('fs');
-    fs.writeFileSync('clean-architecture-validation-report.json', JSON.stringify(result, null, 2));
+    writeFileSync('clean-architecture-validation-report.json', JSON.stringify(result, null, 2));
     console.log('\n📄 Relatório detalhado salvo em: clean-architecture-validation-report.json');
-    
+
     process.exit(result.passed ? 0 : 1);
   } catch (error) {
     console.error('❌ Erro durante validação:', error);
