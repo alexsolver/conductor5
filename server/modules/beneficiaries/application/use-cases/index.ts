@@ -1,5 +1,5 @@
-
-export * from './CreateBeneficiaryUseCase';
-export * from './GetBeneficiariesUseCase';
-export * from './UpdateBeneficiaryUseCase';
-export * from './DeleteBeneficiaryUseCase';
+// Following UseCase naming convention
+export { CreateBeneficiaryUseCase } from './CreateBeneficiaryUseCase';
+export { UpdateBeneficiaryUseCase } from './UpdateBeneficiaryUseCase';
+export { DeleteBeneficiaryUseCase } from './DeleteBeneficiaryUseCase';
+export { GetBeneficiariesUseCase } from './GetBeneficiariesUseCase';

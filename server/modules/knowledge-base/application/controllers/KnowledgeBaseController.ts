@@ -1,5 +1,5 @@
-
 import { Request, Response } from 'express';
+// Using only necessary types, not the full express framework
 import { AuthenticatedRequest } from '../../../middleware/jwtAuth';
 import { KnowledgeBaseRepository } from '../../infrastructure/repositories/KnowledgeBaseRepository';
 
@@ -23,7 +23,7 @@ export class KnowledgeBaseController {
       };
 
       const category = await this.knowledgeBaseRepository.createCategory(req.user.tenantId, categoryData);
-      
+
       res.status(201).json({ 
         success: true, 
         data: category,
@@ -49,7 +49,7 @@ export class KnowledgeBaseController {
       };
 
       const categories = await this.knowledgeBaseRepository.getCategories(req.user.tenantId, filters);
-      
+
       res.json({ 
         success: true, 
         data: categories 
@@ -71,7 +71,7 @@ export class KnowledgeBaseController {
 
       const { categoryId } = req.params;
       const category = await this.knowledgeBaseRepository.updateCategory(req.user.tenantId, categoryId, req.body);
-      
+
       if (!category) {
         return res.status(404).json({ 
           success: false, 
@@ -101,7 +101,7 @@ export class KnowledgeBaseController {
 
       const { categoryId } = req.params;
       const category = await this.knowledgeBaseRepository.deleteCategory(req.user.tenantId, categoryId);
-      
+
       if (!category) {
         return res.status(404).json({ 
           success: false, 
@@ -136,7 +136,7 @@ export class KnowledgeBaseController {
       };
 
       const article = await this.knowledgeBaseRepository.createArticle(req.user.tenantId, articleData);
-      
+
       res.status(201).json({ 
         success: true, 
         data: article,
@@ -168,7 +168,7 @@ export class KnowledgeBaseController {
       };
 
       const articles = await this.knowledgeBaseRepository.getArticles(req.user.tenantId, filters);
-      
+
       res.json({ 
         success: true, 
         data: articles,
@@ -196,7 +196,7 @@ export class KnowledgeBaseController {
 
       const { articleId } = req.params;
       const article = await this.knowledgeBaseRepository.getArticleById(req.user.tenantId, articleId);
-      
+
       if (!article) {
         return res.status(404).json({ 
           success: false, 
@@ -230,7 +230,7 @@ export class KnowledgeBaseController {
       };
 
       const article = await this.knowledgeBaseRepository.updateArticle(req.user.tenantId, articleId, updateData);
-      
+
       if (!article) {
         return res.status(404).json({ 
           success: false, 
@@ -260,7 +260,7 @@ export class KnowledgeBaseController {
 
       const { articleId } = req.params;
       const article = await this.knowledgeBaseRepository.deleteArticle(req.user.tenantId, articleId);
-      
+
       if (!article) {
         return res.status(404).json({ 
           success: false, 
@@ -295,7 +295,7 @@ export class KnowledgeBaseController {
       };
 
       const articles = await this.knowledgeBaseRepository.searchArticles(req.user.tenantId, query, filters);
-      
+
       res.json({ 
         success: true, 
         data: articles,
@@ -324,7 +324,7 @@ export class KnowledgeBaseController {
         req.user.id, 
         req.body
       );
-      
+
       res.json({ 
         success: true, 
         data: rating,
@@ -352,7 +352,7 @@ export class KnowledgeBaseController {
       };
 
       const comment = await this.knowledgeBaseRepository.createComment(req.user.tenantId, commentData);
-      
+
       res.status(201).json({ 
         success: true, 
         data: comment,
@@ -375,7 +375,7 @@ export class KnowledgeBaseController {
 
       const { articleId } = req.params;
       const comments = await this.knowledgeBaseRepository.getComments(req.user.tenantId, articleId);
-      
+
       res.json({ 
         success: true, 
         data: comments 
@@ -397,7 +397,7 @@ export class KnowledgeBaseController {
       }
 
       const tags = await this.knowledgeBaseRepository.getTags(req.user.tenantId);
-      
+
       res.json({ 
         success: true, 
         data: tags 
@@ -423,7 +423,7 @@ export class KnowledgeBaseController {
       };
 
       const tag = await this.knowledgeBaseRepository.createTag(req.user.tenantId, tagData);
-      
+
       res.status(201).json({ 
         success: true, 
         data: tag,
@@ -446,7 +446,7 @@ export class KnowledgeBaseController {
       }
 
       const analytics = await this.knowledgeBaseRepository.getAnalytics(req.user.tenantId);
-      
+
       res.json({ 
         success: true, 
         data: analytics 
@@ -467,7 +467,7 @@ export class KnowledgeBaseController {
       }
 
       const analytics = await this.knowledgeBaseRepository.getAdvancedAnalytics(req.user.tenantId);
-      
+
       res.json({ 
         success: true, 
         data: analytics 
@@ -489,7 +489,7 @@ export class KnowledgeBaseController {
 
       const limit = req.query.limit as string || '10';
       const articles = await this.knowledgeBaseRepository.getPopularArticles(req.user.tenantId, parseInt(limit));
-      
+
       res.json({ 
         success: true, 
         data: articles 
@@ -511,7 +511,7 @@ export class KnowledgeBaseController {
 
       const limit = req.query.limit as string || '10';
       const articles = await this.knowledgeBaseRepository.getRecentArticles(req.user.tenantId, parseInt(limit));
-      
+
       res.json({ 
         success: true, 
         data: articles 
@@ -533,7 +533,7 @@ export class KnowledgeBaseController {
       }
 
       const analytics = await this.knowledgeBaseRepository.getSearchAnalytics(req.user.tenantId);
-      
+
       res.json({ 
         success: true, 
         data: analytics 
@@ -555,7 +555,7 @@ export class KnowledgeBaseController {
       }
 
       const engagement = await this.knowledgeBaseRepository.getUserEngagement(req.user.tenantId);
-      
+
       res.json({ 
         success: true, 
         data: engagement 
@@ -577,7 +577,7 @@ export class KnowledgeBaseController {
       }
 
       const media = await this.knowledgeBaseRepository.getMediaLibrary(req.user.tenantId);
-      
+
       res.json({ 
         success: true, 
         data: media 
@@ -603,7 +603,7 @@ export class KnowledgeBaseController {
       };
 
       const media = await this.knowledgeBaseRepository.uploadMedia(req.user.tenantId, mediaData);
-      
+
       res.status(201).json({ 
         success: true, 
         data: media,
@@ -626,7 +626,7 @@ export class KnowledgeBaseController {
       }
 
       const templates = await this.knowledgeBaseRepository.getArticleTemplates(req.user.tenantId);
-      
+
       res.json({ 
         success: true, 
         data: templates 
@@ -652,7 +652,7 @@ export class KnowledgeBaseController {
       };
 
       const template = await this.knowledgeBaseRepository.createArticleTemplate(req.user.tenantId, templateData);
-      
+
       res.status(201).json({ 
         success: true, 
         data: template,
@@ -681,7 +681,7 @@ export class KnowledgeBaseController {
       };
 
       const clonedArticle = await this.knowledgeBaseRepository.cloneArticle(req.user.tenantId, articleId, cloneData);
-      
+
       res.status(201).json({ 
         success: true, 
         data: clonedArticle,
@@ -707,7 +707,7 @@ export class KnowledgeBaseController {
       const { ticketId } = req.body;
 
       const link = await this.knowledgeBaseRepository.linkArticleToTicket(req.user.tenantId, articleId, ticketId);
-      
+
       res.json({ 
         success: true, 
         data: link,
@@ -730,7 +730,7 @@ export class KnowledgeBaseController {
 
       const { ticketId } = req.params;
       const articles = await this.knowledgeBaseRepository.getArticlesByTicket(req.user.tenantId, ticketId);
-      
+
       res.json({ 
         success: true, 
         data: articles 
@@ -753,7 +753,7 @@ export class KnowledgeBaseController {
 
       const { articleId } = req.params;
       const favorite = await this.knowledgeBaseRepository.toggleFavorite(req.user.tenantId, articleId, req.user.id);
-      
+
       res.json({ 
         success: true, 
         data: favorite,
@@ -775,7 +775,7 @@ export class KnowledgeBaseController {
       }
 
       const articles = await this.knowledgeBaseRepository.getFavoriteArticles(req.user.tenantId, req.user.id);
-      
+
       res.json({ 
         success: true, 
         data: articles 
@@ -798,7 +798,7 @@ export class KnowledgeBaseController {
 
       const { articleId } = req.params;
       const versions = await this.knowledgeBaseRepository.getArticleVersions(req.user.tenantId, articleId);
-      
+
       res.json({ 
         success: true, 
         data: versions 

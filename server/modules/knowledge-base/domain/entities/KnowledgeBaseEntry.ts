@@ -1,5 +1,4 @@
-
-import { BaseDomainEvent } from '../../../shared/domain/events/BaseDomainEvent';
+// Removed drizzle-orm dependency from domain layer - using pure domain entities
 
 export class KnowledgeBaseEntry {
   constructor(

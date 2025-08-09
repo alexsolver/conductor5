@@ -16,6 +16,10 @@ const personRepository = new DrizzlePersonRepository(db);
 const personController = new PersonController();
 
 // Rotas CRUD
+// Import the controller properly
+import { PersonController } from './application/controllers/PersonController';
+
+const personController = new PersonController();
 peopleRouter.get('/', personController.getAll.bind(personController));
 peopleRouter.get('/:id', personController.getById.bind(personController));
 peopleRouter.post('/', personController.create.bind(personController));
