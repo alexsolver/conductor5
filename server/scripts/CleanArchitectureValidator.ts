@@ -1040,7 +1040,7 @@ async function runCleanArchitectureValidation() {
 }
 
 // Executar se chamado diretamente
-if (require.main === module) {
+if (typeof require !== 'undefined' && require.main === module) {
   runCleanArchitectureValidation();
 }
 
