@@ -6,15 +6,16 @@ import { CreateCustomerUseCase } from './application/usecases/CreateCustomerUseC
 import { GetCustomersUseCase } from './application/usecases/GetCustomersUseCase';
 import { UpdateCustomerUseCase } from './application/usecases/UpdateCustomerUseCase';
 import { DeleteCustomerUseCase } from './application/usecases/DeleteCustomerUseCase';
-import { CustomerRepository } from '../../infrastructure/repositories/CustomerRepository';
+import { DrizzleCustomerRepository } from './infrastructure/repositories/CustomerRepository';
 import { CustomerListResponseDTO } from './application/dto/CustomerResponseDTO';
 import { validateCreateCustomer, validateUpdateCustomer } from './middleware/customerValidation';
 import { z } from 'zod';
 
 const customersRouter = Router();
 
-// Initialize customer controller with dependency injection
-const customerRepository = new CustomerRepository();
+// Initialize customer controller with dependency injection  
+import { db } from '../../db';
+const customerRepository = new DrizzleCustomerRepository(db);
 const createCustomerUseCase = new CreateCustomerUseCase(customerRepository);
 const getCustomersUseCase = new GetCustomersUseCase(customerRepository);
 const updateCustomerUseCase = new UpdateCustomerUseCase(customerRepository);

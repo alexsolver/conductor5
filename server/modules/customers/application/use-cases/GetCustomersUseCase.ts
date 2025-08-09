@@ -1,6 +1,6 @@
 // Application Layer - Use Case
 import { Customer } from "../../domain/entities/Customer";
-import { ICustomerRepository } from "../../domain/repositories/ICustomerRepository";
+import { ICustomerRepository } from "../../domain/ports/ICustomerRepository";
 
 export interface GetCustomersRequest {
   tenantId: string;
@@ -26,17 +26,20 @@ export class GetCustomersUseCase {
     const offset = request.offset || 0;
 
     // Get customers with filters
-    const customers = await this.customerRepository.findAll(request.tenantId, {
+    const customers = await this.customerRepository.findMany({
+      tenantId: request.tenantId,
       limit: limit + 1, // Get one extra to check if there are more
       offset,
       verified: request.verified,
       active: request.active,
-      company: request.company,
-      tags: request.tags,
     });
 
     // Get total count
-    const total = await this.customerRepository.countTotal(request.tenantId);
+    const total = await this.customerRepository.count({
+      tenantId: request.tenantId,
+      verified: request.verified,
+      active: request.active,
+    });
 
     // Check if there are more results
     const hasMore = customers.length > limit;

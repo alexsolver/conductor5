@@ -9,7 +9,7 @@ import { GetCustomersUseCase, GetCustomersInput, GetCustomersOutput } from '../u
 import { UpdateCustomerUseCase, UpdateCustomerInput, UpdateCustomerOutput } from '../usecases/UpdateCustomerUseCase';
 import { DeleteCustomerUseCase, DeleteCustomerInput, DeleteCustomerOutput } from '../usecases/DeleteCustomerUseCase';
 // Assuming logError is imported from a logging utility
-import { logError } from '../utils/logger'; // Placeholder import
+import { logError } from '../../../../utils/logger';
 
 // Assuming CustomerRepository and its methods are defined elsewhere and injected
 // For the sake of this example, we'll assume it has a countByTenant method

@@ -30,4 +30,24 @@ export class DrizzleCustomerRepository implements ICustomerRepository {
     // Implementar exclusão
     throw new Error('Method not implemented.');
   }
+
+  async findMany(filter: { tenantId: string; search?: string; active?: boolean; verified?: boolean; limit?: number; offset?: number; }): Promise<Customer[]> {
+    // Implementar busca de múltiplos clientes
+    return this.findAll(filter.tenantId);
+  }
+
+  async findByEmail(email: string, tenantId: string): Promise<Customer | null> {
+    // Implementar busca por email
+    throw new Error('Method not implemented.');
+  }
+
+  async save(customer: Customer): Promise<Customer> {
+    // Implementar salvamento
+    return this.create(customer);
+  }
+
+  async count(filter: { tenantId: string; search?: string; active?: boolean; verified?: boolean; }): Promise<number> {
+    // Implementar contagem
+    throw new Error('Method not implemented.');
+  }
 }
