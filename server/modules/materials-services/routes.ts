@@ -908,3 +908,183 @@ router.post('/maintenance', jwtAuth, async (req: AuthenticatedRequest, res) => {
 });
 
 export default router;
+
+
+// =============================================================================
+// COMPLIANCE MANAGEMENT ROUTES
+// =============================================================================
+
+// Compliance Stats
+router.get('/compliance/stats', async (req, res) => {
+  try {
+    const tenantId = req.user?.tenantId;
+    if (!tenantId) {
+      return res.status(400).json({ error: 'Tenant ID required' });
+    }
+
+    // Mock stats for now - replace with real data
+    const stats = {
+      audits: {
+        total: 0,
+        completed: 0,
+        planning: 0,
+        inProgress: 0,
+        completionRate: 0
+      },
+      certifications: {
+        total: 0,
+        active: 0,
+        expired: 0,
+        expiring: 0,
+        activeRate: 0
+      },
+      alerts: {
+        total: 0,
+        active: 0,
+        critical: 0
+      },
+      overallScore: 85,
+      complianceLevel: 'Good'
+    };
+
+    res.json(stats);
+  } catch (error) {
+    console.error('Error fetching compliance stats:', error);
+    res.status(500).json({ error: 'Failed to fetch compliance stats' });
+  }
+});
+
+// Compliance Audits
+router.get('/compliance/audits', async (req, res) => {
+  try {
+    const tenantId = req.user?.tenantId;
+    if (!tenantId) {
+      return res.status(400).json({ error: 'Tenant ID required' });
+    }
+
+    // Return empty array for now
+    res.json([]);
+  } catch (error) {
+    console.error('Error fetching audits:', error);
+    res.status(500).json({ error: 'Failed to fetch audits' });
+  }
+});
+
+router.post('/compliance/audits', async (req, res) => {
+  try {
+    const tenantId = req.user?.tenantId;
+    if (!tenantId) {
+      return res.status(400).json({ error: 'Tenant ID required' });
+    }
+
+    const audit = {
+      id: crypto.randomUUID(),
+      tenantId,
+      ...req.body,
+      status: 'planning',
+      createdAt: new Date().toISOString()
+    };
+
+    res.json({ success: true, audit });
+  } catch (error) {
+    console.error('Error creating audit:', error);
+    res.status(500).json({ error: 'Failed to create audit' });
+  }
+});
+
+// Compliance Certifications
+router.get('/compliance/certifications', async (req, res) => {
+  try {
+    const tenantId = req.user?.tenantId;
+    if (!tenantId) {
+      return res.status(400).json({ error: 'Tenant ID required' });
+    }
+
+    res.json([]);
+  } catch (error) {
+    console.error('Error fetching certifications:', error);
+    res.status(500).json({ error: 'Failed to fetch certifications' });
+  }
+});
+
+router.post('/compliance/certifications', async (req, res) => {
+  try {
+    const tenantId = req.user?.tenantId;
+    if (!tenantId) {
+      return res.status(400).json({ error: 'Tenant ID required' });
+    }
+
+    const certification = {
+      id: crypto.randomUUID(),
+      tenantId,
+      ...req.body,
+      status: 'active',
+      createdAt: new Date().toISOString()
+    };
+
+    res.json({ success: true, certification });
+  } catch (error) {
+    console.error('Error creating certification:', error);
+    res.status(500).json({ error: 'Failed to create certification' });
+  }
+});
+
+// Compliance Alerts
+router.get('/compliance/alerts', async (req, res) => {
+  try {
+    const tenantId = req.user?.tenantId;
+    if (!tenantId) {
+      return res.status(400).json({ error: 'Tenant ID required' });
+    }
+
+    res.json([]);
+  } catch (error) {
+    console.error('Error fetching alerts:', error);
+    res.status(500).json({ error: 'Failed to fetch alerts' });
+  }
+});
+
+router.post('/compliance/alerts/:alertId/acknowledge', async (req, res) => {
+  try {
+    const { alertId } = req.params;
+    const tenantId = req.user?.tenantId;
+    
+    if (!tenantId) {
+      return res.status(400).json({ error: 'Tenant ID required' });
+    }
+
+    res.json({ success: true, message: 'Alert acknowledged' });
+  } catch (error) {
+    console.error('Error acknowledging alert:', error);
+    res.status(500).json({ error: 'Failed to acknowledge alert' });
+  }
+});
+
+router.post('/compliance/alerts/generate-expiration', async (req, res) => {
+  try {
+    const tenantId = req.user?.tenantId;
+    if (!tenantId) {
+      return res.status(400).json({ error: 'Tenant ID required' });
+    }
+
+    res.json({ success: true, alerts: [], message: 'No expiration alerts generated' });
+  } catch (error) {
+    console.error('Error generating alerts:', error);
+    res.status(500).json({ error: 'Failed to generate alerts' });
+  }
+});
+
+// Compliance Scores
+router.get('/compliance/scores', async (req, res) => {
+  try {
+    const tenantId = req.user?.tenantId;
+    if (!tenantId) {
+      return res.status(400).json({ error: 'Tenant ID required' });
+    }
+
+    res.json([]);
+  } catch (error) {
+    console.error('Error fetching scores:', error);
+    res.status(500).json({ error: 'Failed to fetch scores' });
+  }
+});

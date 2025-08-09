@@ -122,28 +122,36 @@ export default function ComplianceManagement() {
   });
 
   // Fetch audits
-  const { data: audits = [], isLoading: auditsLoading } = useQuery<ComplianceAudit[]>({
+  const { data: auditsResponse, isLoading: auditsLoading } = useQuery({
     queryKey: ['/api/materials-services/compliance/audits'],
     queryFn: () => apiRequest('GET', '/api/materials-services/compliance/audits')
   });
 
+  const audits = auditsResponse?.data || auditsResponse || [];
+
   // Fetch certifications
-  const { data: certifications = [] } = useQuery<ComplianceCertification[]>({
+  const { data: certificationsResponse } = useQuery({
     queryKey: ['/api/materials-services/compliance/certifications'],
     queryFn: () => apiRequest('GET', '/api/materials-services/compliance/certifications')
   });
 
+  const certifications = certificationsResponse?.data || certificationsResponse || [];
+
   // Fetch alerts
-  const { data: alerts = [] } = useQuery<ComplianceAlert[]>({
+  const { data: alertsResponse } = useQuery({
     queryKey: ['/api/materials-services/compliance/alerts'],
     queryFn: () => apiRequest('GET', '/api/materials-services/compliance/alerts')
   });
 
+  const alerts = alertsResponse?.data || alertsResponse || [];
+
   // Fetch compliance scores
-  const { data: scores = [] } = useQuery<ComplianceScore[]>({
+  const { data: scoresResponse } = useQuery({
     queryKey: ['/api/materials-services/compliance/scores'],
     queryFn: () => apiRequest('GET', '/api/materials-services/compliance/scores')
   });
+
+  const scores = scoresResponse?.data || scoresResponse || [];
 
   // Create audit mutation
   const createAuditMutation = useMutation({
@@ -560,12 +568,12 @@ export default function ComplianceManagement() {
 
         <TabsContent value="certifications" className="space-y-4">
           <div className="grid gap-4">
-            {(certifications?.data || []).length === 0 ? (
+            {certifications.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 Nenhuma certificação encontrada
               </div>
             ) : (
-              (certifications?.data || []).map((cert) => (
+              certifications.map((cert) => (
                 <Card key={cert.id}>
                   <CardContent className="p-6">
                     <div className="flex justify-between items-start">
