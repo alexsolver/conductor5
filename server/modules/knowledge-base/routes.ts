@@ -9,9 +9,11 @@ import { db } from '../../db';
 // Tabelas do Knowledge Base agora ativas
 import { knowledgeBaseArticles, knowledgeBaseCategories, knowledgeBaseFiles } from '../../../shared/schema-master';
 import { eq, and, like, desc, sql } from 'drizzle-orm';
+import { KnowledgeBaseController } from './application/controllers/KnowledgeBaseController';
 
 const router = express.Router();
 const mediaController = new MediaController();
+const knowledgeBaseController = new KnowledgeBaseController();
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -24,7 +26,7 @@ const storage = multer.diskStorage({
   }
 });
 
-const upload = multer({ 
+const upload = multer({
   storage: storage,
   limits: {
     fileSize: 200 * 1024 * 1024, // 200MB limit
@@ -95,27 +97,27 @@ router.get('/knowledge-base/articles', jwtAuth, async (req: AuthenticatedRequest
     if (!tenantId) {
       return res.status(401).json({ error: 'Tenant context required' });
     }
-    
+
     const { search, categoryId, status } = req.query;
-    
+
     let conditions = [eq(knowledgeBaseArticles.tenantId, tenantId)];
-    
+
     if (search) {
       conditions.push(like(knowledgeBaseArticles.title, `%${search}%`));
     }
-    
+
     if (categoryId) {
       conditions.push(eq(knowledgeBaseArticles.categoryId, categoryId as string));
     }
-    
+
     if (status) {
       conditions.push(eq(knowledgeBaseArticles.status, status as string));
     }
-    
+
     const articles = await db.select().from(knowledgeBaseArticles)
       .where(and(...conditions))
       .orderBy(desc(knowledgeBaseArticles.createdAt));
-      
+
     res.json(articles);
   } catch (error) {
     console.error('Error fetching articles:', error);
@@ -128,13 +130,13 @@ router.post('/knowledge-base/articles', jwtAuth, async (req: AuthenticatedReques
   try {
     const tenantId = req.user?.tenantId;
     const userId = req.user?.id;
-    
+
     if (!tenantId || !userId) {
       return res.status(401).json({ error: 'Authentication required' });
     }
-    
+
     const validatedData = createArticleSchema.parse(req.body);
-    
+
     const [article] = await db.insert(knowledgeBaseArticles).values({
       title: validatedData.title,
       content: validatedData.content || '',
@@ -149,7 +151,7 @@ router.post('/knowledge-base/articles', jwtAuth, async (req: AuthenticatedReques
       createdAt: new Date(),
       updatedAt: new Date()
     }).returning();
-    
+
     res.status(201).json(article);
   } catch (error) {
     console.error('Error creating article:', error);
@@ -164,14 +166,14 @@ router.get('/knowledge-base/categories', jwtAuth, async (req: AuthenticatedReque
     if (!tenantId) {
       return res.status(401).json({ error: 'Tenant context required' });
     }
-    
+
     const categories = await db.select().from(knowledgeBaseCategories)
       .where(and(
         eq(knowledgeBaseCategories.tenantId, tenantId),
         eq(knowledgeBaseCategories.isActive, true)
       ))
       .orderBy(knowledgeBaseCategories.name);
-    
+
     res.json(categories);
   } catch (error) {
     console.error('Error fetching categories:', error);
@@ -186,9 +188,9 @@ router.post('/knowledge-base/categories', jwtAuth, async (req: AuthenticatedRequ
     if (!tenantId) {
       return res.status(401).json({ error: 'Tenant context required' });
     }
-    
+
     const validatedData = createCategorySchema.parse(req.body);
-    
+
     const [category] = await db.insert(knowledgeBaseCategories).values({
       name: validatedData.name,
       description: validatedData.description || null,
@@ -199,7 +201,7 @@ router.post('/knowledge-base/categories', jwtAuth, async (req: AuthenticatedRequ
       createdAt: new Date(),
       updatedAt: new Date()
     }).returning();
-    
+
     res.status(201).json(category);
   } catch (error) {
     console.error('Error creating category:', error);
@@ -214,27 +216,27 @@ router.get('/knowledge-base/articles/:id', jwtAuth, async (req: AuthenticatedReq
     if (!tenantId) {
       return res.status(401).json({ error: 'Tenant context required' });
     }
-    
+
     const { id } = req.params;
-    
+
     const [article] = await db.select().from(knowledgeBaseArticles)
       .where(and(
         eq(knowledgeBaseArticles.id, id),
         eq(knowledgeBaseArticles.tenantId, tenantId)
       ));
-    
+
     if (!article) {
       return res.status(404).json({ error: 'Article not found' });
     }
-    
+
     // Incrementar contador de visualizações
     await db.update(knowledgeBaseArticles)
-      .set({ 
+      .set({
         viewCount: sql`${knowledgeBaseArticles.viewCount} + 1`,
         updatedAt: new Date()
       })
       .where(eq(knowledgeBaseArticles.id, id));
-    
+
     res.json({
       ...article,
       viewCount: (article.viewCount || 0) + 1
@@ -244,5 +246,16 @@ router.get('/knowledge-base/articles/:id', jwtAuth, async (req: AuthenticatedReq
     res.status(500).json({ error: 'Failed to fetch article' });
   }
 });
+
+// Example route that was previously in the router but should now be handled by a controller
+// router.get('/entries', async (req, res) => {
+//   const db = drizzle(process.env.DATABASE_URL);
+//   const entries = await db.select().from(knowledgeBaseEntries);
+//   res.json(entries);
+// });
+
+// Using controllers following Clean Architecture
+router.get('/entries', jwtAuth, knowledgeBaseController.getEntries.bind(knowledgeBaseController));
+
 
 export default router;

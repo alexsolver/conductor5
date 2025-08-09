@@ -1,4 +1,4 @@
-// Removed invalid drizzle-orm dependency from domain layer
+// Domain layer should be infrastructure-agnostic
 
 export abstract class BaseEntity {
   public readonly id: string;

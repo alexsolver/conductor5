@@ -1,4 +1,4 @@
-// Removed drizzle-orm dependency from domain layer - using pure domain entities
+// Domain entities should not depend on ORM frameworks
 
 export class KnowledgeBaseEntry {
   constructor(

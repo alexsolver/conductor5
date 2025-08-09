@@ -1,4 +1,3 @@
-
 // Domain entities for SaaS Admin module
 export interface SaasAdminEntity {
   id: string;
@@ -12,3 +11,5 @@ export interface SaasConfiguration extends SaasAdminEntity {
   configValue: string;
   description?: string;
 }
+
+// Domain entities should be framework-agnostic
