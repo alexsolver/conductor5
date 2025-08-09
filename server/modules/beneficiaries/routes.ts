@@ -55,7 +55,7 @@ router.get("/", async (req: AuthenticatedRequest, res: ExpressResponse) => {
     }
 
     const { page, limit, search } = getBeneficiariesSchema.parse(req.query);
-    
+
     const offset = (page - 1) * limit;
     const beneficiaries = await storage.getBeneficiaries(user.tenantId, {
       limit,
@@ -94,9 +94,9 @@ router.get("/:id", async (req: AuthenticatedRequest, res: ExpressResponse) => {
     }
 
     const { id } = beneficiaryIdSchema.parse(req.params);
-    
+
     const beneficiary = await storage.getBeneficiary(id, user.tenantId);
-    
+
     if (!beneficiary) {
       return sendError(res as any, "Beneficiary not found", "Beneficiary not found", 404);
     }
@@ -117,9 +117,9 @@ router.post("/", async (req: AuthenticatedRequest, res: ExpressResponse) => {
     }
 
     const beneficiaryData = beneficiarySchema.parse(req.body);
-    
+
     const beneficiary = await storage.createBeneficiary(user.tenantId, beneficiaryData);
-    
+
     return sendSuccess(res as any, { beneficiary }, "Beneficiary created successfully", 201);
   } catch (error) {
     console.error("Error creating beneficiary:", error);
@@ -140,13 +140,13 @@ router.put("/:id", async (req: AuthenticatedRequest, res: ExpressResponse) => {
 
     const { id } = beneficiaryIdSchema.parse(req.params);
     const beneficiaryData = beneficiarySchema.parse(req.body);
-    
+
     const beneficiary = await storage.updateBeneficiary(user.tenantId, id, beneficiaryData);
-    
+
     if (!beneficiary) {
       return sendError(res as any, "Beneficiary not found", "Beneficiary not found", 404);
     }
-    
+
     return sendSuccess(res as any, { beneficiary }, "Beneficiary updated successfully");
   } catch (error) {
     console.error("Error updating beneficiary:", error);
@@ -164,11 +164,11 @@ router.delete("/:id", async (req: AuthenticatedRequest, res: ExpressResponse) =>
     if (!user) {
       return sendError(res as any, "Authentication required", "Authentication required", 401);
     }
-    
+
     const { id } = beneficiaryIdSchema.parse(req.params);
-    
+
     const deleted = await storage.deleteBeneficiary(user.tenantId, id);
-    
+
     if (!deleted) {
       return sendError(res as any, "Beneficiary not found", "Beneficiary not found", 404);
     }

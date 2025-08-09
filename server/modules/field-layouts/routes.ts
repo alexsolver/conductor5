@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { jwtAuth } from '../../middleware/jwtAuth';
-import { tenantValidator } from '../../middleware/tenantValidator';
+import tenantValidator from '../../middleware/tenantValidator';
 import { FieldLayoutController } from './application/controllers/FieldLayoutController';
 import { DrizzleFieldLayoutRepository } from './infrastructure/repositories/DrizzleFieldLayoutRepository';
 import { db } from '../../db';
