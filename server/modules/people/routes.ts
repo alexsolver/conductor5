@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { jwtAuth, AuthenticatedRequest } from "../../middleware/jwtAuth";
-import { tenantValidator } from "../../middleware/tenantValidator";
+import { enhancedTenantValidator } from "../../middleware/tenantValidator";
 import { PersonController } from "./application/controllers/PersonController";
 import { DrizzlePersonRepository } from "./infrastructure/repositories/DrizzlePersonRepository";
 import { db } from "../../db";
@@ -9,7 +9,7 @@ const peopleRouter = Router();
 
 // Middleware de autenticação para todas as rotas
 peopleRouter.use(jwtAuth);
-peopleRouter.use(tenantValidator);
+peopleRouter.use(enhancedTenantValidator());
 
 // Inicializar dependências
 const personRepository = new DrizzlePersonRepository(db);
