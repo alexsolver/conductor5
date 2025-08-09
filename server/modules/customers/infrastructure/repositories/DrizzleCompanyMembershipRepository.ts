@@ -27,3 +27,26 @@ export class DrizzleCompanyMembershipRepository implements ICompanyMembershipRep
     throw new Error('Method not implemented.');
   }
 }
+import { CompanyMembership } from '../../domain/entities/CompanyMembership';
+import { ICompanyMembershipRepository } from '../../domain/repositories/ICompanyMembershipRepository';
+
+export class DrizzleCompanyMembershipRepository implements ICompanyMembershipRepository {
+  async findByCompanyId(companyId: string): Promise<CompanyMembership[]> {
+    // Implementar com Drizzle
+    return [];
+  }
+
+  async save(membership: CompanyMembership): Promise<CompanyMembership> {
+    // Implementar com Drizzle
+    return membership;
+  }
+
+  async findById(id: string): Promise<CompanyMembership | null> {
+    // Implementar com Drizzle
+    return null;
+  }
+
+  async delete(id: string): Promise<void> {
+    // Implementar com Drizzle
+  }
+}

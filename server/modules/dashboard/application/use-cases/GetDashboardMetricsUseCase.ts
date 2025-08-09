@@ -12,3 +12,21 @@ export class GetDashboardMetricsUseCase {
     return await this.dashboardRepository.findAll();
   }
 }
+export class GetDashboardMetricsUseCase {
+  async execute(tenantId: string): Promise<any> {
+    try {
+      // Implementar lógica de busca de métricas
+      return {
+        totalTickets: 0,
+        openTickets: 0,
+        closedTickets: 0,
+        pendingTickets: 0,
+        customerSatisfaction: 0,
+        responseTime: 0
+      };
+    } catch (error) {
+      console.error('Erro no GetDashboardMetricsUseCase:', error);
+      throw error;
+    }
+  }
+}

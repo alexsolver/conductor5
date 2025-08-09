@@ -1,26 +1,26 @@
 // Dashboard Microservice Routes - JWT Authentication
-import { Router } from "express";
+import { Router, Response } from "express";
 import { jwtAuth, AuthenticatedRequest } from "../../middleware/jwtAuth";
 import { unifiedStorage } from "../../storage-master";
-import { sendSuccess, sendError } from "../../utils/standardResponse";
+import { sendSuccess, sendError, createErrorResponse, createSuccessResponse } from "../../utils/standardResponse";
 import { DashboardController } from './application/controllers/DashboardController';
 
 const dashboardRouter = Router();
 const dashboardController = new DashboardController();
 
 // Dashboard statistics endpoint
-dashboardRouter.get('/stats', jwtAuth, async (req: AuthenticatedRequest, res) => {
+dashboardRouter.get('/stats', jwtAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
-    if (!req.user?.tenantId) {
-      return sendError(res, "User not associated with a tenant", "User not associated with a tenant", 400);
+    const tenantId = req.user?.tenantId;
+    if (!tenantId) {
+      return res.status(400).json(createErrorResponse('Tenant ID é obrigatório'));
     }
 
-    const stats = await dashboardController.getStats(req.user.tenantId);
-    return sendSuccess(res, stats, "Dashboard stats retrieved successfully");
+    const stats = await dashboardController.getStats(tenantId);
+    res.json(createSuccessResponse(stats, 'Dashboard stats retrieved successfully'));
   } catch (error) {
-    const { logError } = await import('../../utils/logger');
-    logError("Error fetching dashboard stats", error as any);
-    return sendError(res, error as any, "Failed to fetch dashboard stats", 500);
+    console.error('Error fetching dashboard stats', { error });
+    res.status(500).json(createErrorResponse('Failed to fetch dashboard stats'));
   }
 });
 
