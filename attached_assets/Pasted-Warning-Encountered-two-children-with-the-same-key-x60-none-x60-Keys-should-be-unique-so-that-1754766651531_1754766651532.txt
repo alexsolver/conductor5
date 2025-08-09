@@ -1,0 +1,42 @@
+Warning: Encountered two children with the same key, &#x60;none&#x60;. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.
+    at select
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-2K77HOHX.js?v=5d071a28:79:13
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-2K77HOHX.js?v=5d071a28:56:13
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-MXOQBWZD.js?v=5d071a28:42:13
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RL24GSHZ.js?v=5d071a28:37:20
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-select.js?v=a72c8597:1129:13
+    at Provider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=5d071a28:38:15)
+    at Provider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=5d071a28:38:15)
+    at Popper (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-I32CPLVM.js?v=5d071a28:1921:11)
+    at Select (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-select.js?v=a72c8597:86:5)
+    at div
+    at div
+    at div
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-MXOQBWZD.js?v=5d071a28:42:13
+    at Presence (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-7QZBBLXT.js?v=5d071a28:24:11)
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tabs.js?v=2a95ab31:175:13
+    at _c5 (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/components/ui/tabs.tsx:72:12)
+    at div
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-MXOQBWZD.js?v=5d071a28:42:13
+    at Provider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=5d071a28:38:15)
+    at https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tabs.js?v=2a95ab31:53:7
+    at div
+    at _c9 (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/components/ui/card.tsx:114:12)
+    at div
+    at _c (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/components/ui/card.tsx:20:11)
+    at form
+    at FormProvider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-Z4Z5NBTV.js?v=5d071a28:101:11)
+    at div
+    at div
+    at ItemCatalog (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/pages/ItemCatalog.tsx:120:41)
+    at Route (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=8b564679:191:16)
+    at Switch (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=8b564679:247:17)
+    at main
+    at div
+    at div
+    at AppShell (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/components/layout/AppShell.tsx:21:28)
+    at AppRouter (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/App.tsx?v=y67FCedG9ghePY4-bpHHL:93:42)
+    at Provider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=5d071a28:38:15)
+    at TooltipProvider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=71bd43bc:63:5)
+    at SimpleTimerProvider (https://7ea6e061-c6a5-4340-bf0b-f2ee0570c7ff-00-106w6tfu9u7gg.kirk.replit.dev/src/contexts/SimpleTimerContext.tsx:20:39)
+    at AuthProvider…
