@@ -1,6 +1,6 @@
 
 import { Request, Response } from 'express';
-import { standardResponse } from '../../../utils/standardResponse';
+import { sendSuccess, sendError } from '../../../utils/standardResponse';
 import { GetDashboardMetricsUseCase } from '../use-cases/GetDashboardMetricsUseCase';
 
 export class DashboardController {

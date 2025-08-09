@@ -1,6 +1,6 @@
 
 // Removendo dependência direta do Express para seguir Clean Architecture
-import { standardResponse } from '../../../utils/standardResponse';
+import { sendSuccess, sendError } from '../../../utils/standardResponse';
 import { CreateLocationUseCase } from '../use-cases/CreateLocationUseCase';
 
 export class LocationController {

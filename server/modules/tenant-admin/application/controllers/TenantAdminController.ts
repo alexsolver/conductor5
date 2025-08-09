@@ -1,6 +1,6 @@
 
 import { Request, Response } from 'express';
-import { standardResponse } from '../../../utils/standardResponse';
+import { sendSuccess, sendError } from '../../../utils/standardResponse';
 
 export class TenantAdminController {
   

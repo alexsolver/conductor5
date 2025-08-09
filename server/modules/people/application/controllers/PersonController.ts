@@ -1,6 +1,6 @@
 
 import { Request, Response } from 'express';
-import { standardResponse } from '../../../../utils/standardResponse';
+import { sendSuccess, sendError } from '../../../../utils/standardResponse';
 
 export class PersonController {
   
@@ -8,15 +8,14 @@ export class PersonController {
     try {
       const tenantId = req.user?.tenantId;
       if (!tenantId) {
-        res.status(400).json(standardResponse(false, 'Tenant ID é obrigatório'));
-        return;
+        return sendError(res, 'Tenant ID é obrigatório', 'Tenant ID é obrigatório', 400);
       }
 
       // Implementar lógica usando Use Case
-      res.status(200).json(standardResponse(true, 'Pessoas obtidas com sucesso', []));
+      sendSuccess(res, [], 'Pessoas obtidas com sucesso', 200);
     } catch (error) {
       console.error('Erro ao obter pessoas:', error);
-      res.status(500).json(standardResponse(false, 'Erro interno do servidor'));
+      sendError(res, error, 'Erro interno do servidor', 500);
     }
   }
 
@@ -26,15 +25,14 @@ export class PersonController {
       const tenantId = req.user?.tenantId;
 
       if (!tenantId) {
-        res.status(400).json(standardResponse(false, 'Tenant ID é obrigatório'));
-        return;
+        return sendError(res, 'Tenant ID é obrigatório', 'Tenant ID é obrigatório', 400);
       }
 
       // Implementar lógica usando Use Case
-      res.status(200).json(standardResponse(true, 'Pessoa encontrada', {}));
+      sendSuccess(res, {}, 'Pessoa encontrada', 200);
     } catch (error) {
       console.error('Erro ao obter pessoa:', error);
-      res.status(500).json(standardResponse(false, 'Erro interno do servidor'));
+      sendError(res, error, 'Erro interno do servidor', 500);
     }
   }
 
@@ -42,15 +40,14 @@ export class PersonController {
     try {
       const tenantId = req.user?.tenantId;
       if (!tenantId) {
-        res.status(400).json(standardResponse(false, 'Tenant ID é obrigatório'));
-        return;
+        return sendError(res, 'Tenant ID é obrigatório', 'Tenant ID é obrigatório', 400);
       }
 
       // Implementar lógica usando Use Case
-      res.status(201).json(standardResponse(true, 'Pessoa criada com sucesso', {}));
+      sendSuccess(res, {}, 'Pessoa criada com sucesso', 201);
     } catch (error) {
       console.error('Erro ao criar pessoa:', error);
-      res.status(500).json(standardResponse(false, 'Erro interno do servidor'));
+      sendError(res, error, 'Erro interno do servidor', 500);
     }
   }
 
@@ -60,15 +57,14 @@ export class PersonController {
       const tenantId = req.user?.tenantId;
 
       if (!tenantId) {
-        res.status(400).json(standardResponse(false, 'Tenant ID é obrigatório'));
-        return;
+        return sendError(res, 'Tenant ID é obrigatório', 'Tenant ID é obrigatório', 400);
       }
 
       // Implementar lógica usando Use Case
-      res.status(200).json(standardResponse(true, 'Pessoa atualizada com sucesso', {}));
+      sendSuccess(res, {}, 'Pessoa atualizada com sucesso', 200);
     } catch (error) {
       console.error('Erro ao atualizar pessoa:', error);
-      res.status(500).json(standardResponse(false, 'Erro interno do servidor'));
+      sendError(res, error, 'Erro interno do servidor', 500);
     }
   }
 
@@ -78,15 +74,14 @@ export class PersonController {
       const tenantId = req.user?.tenantId;
 
       if (!tenantId) {
-        res.status(400).json(standardResponse(false, 'Tenant ID é obrigatório'));
-        return;
+        return sendError(res, 'Tenant ID é obrigatório', 'Tenant ID é obrigatório', 400);
       }
 
       // Implementar lógica usando Use Case
-      res.status(200).json(standardResponse(true, 'Pessoa excluída com sucesso'));
+      sendSuccess(res, null, 'Pessoa excluída com sucesso', 200);
     } catch (error) {
       console.error('Erro ao excluir pessoa:', error);
-      res.status(500).json(standardResponse(false, 'Erro interno do servidor'));
+      sendError(res, error, 'Erro interno do servidor', 500);
     }
   }
 }
