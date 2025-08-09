@@ -392,37 +392,47 @@ export default function Tickets() {
     );
   }
 
-  // Parse consistente dos dados de tickets
-  // A API retorna { success: true, message: "...", data: [...] }
+  // Parse consistente dos dados de tickets com tipagem robusta
   let ticketsList: any[] = [];
   
-  if (tickets && typeof tickets === 'object') {
-    // Se tickets tem uma propriedade 'data'
-    if (tickets.data && Array.isArray(tickets.data)) {
-      ticketsList = tickets.data;
+  try {
+    const ticketsData = tickets as any;
+    
+    if (ticketsData) {
+      // Caso 1: { success: true, data: [...] }
+      if (ticketsData.success === true && Array.isArray(ticketsData.data)) {
+        ticketsList = ticketsData.data;
+      }
+      // Caso 2: { data: [...] }
+      else if (Array.isArray(ticketsData.data)) {
+        ticketsList = ticketsData.data;
+      }
+      // Caso 3: Array direto
+      else if (Array.isArray(ticketsData)) {
+        ticketsList = ticketsData;
+      }
     }
-    // Se tickets é diretamente um array
-    else if (Array.isArray(tickets)) {
-      ticketsList = tickets;
-    }
-    // Se tickets tem success e data
-    else if (tickets.success && tickets.data && Array.isArray(tickets.data)) {
-      ticketsList = tickets.data;
-    }
+  } catch (parseError) {
+    console.error('Error parsing tickets data:', parseError);
+    ticketsList = [];
   }
   
   const ticketsCount = ticketsList.length;
   
-  // Debug para verificar estrutura dos dados
-  console.log('TicketsTable - Detailed Data Analysis:', {
-    ticketsError: error,
+  // Debug detalhado
+  console.log('🎫 TICKETS DEBUG:', {
+    hasError: !!error,
     isLoading,
     ticketsCount,
-    ticketsListLength: ticketsList.length,
-    ticketsListType: typeof ticketsList,
-    isArray: Array.isArray(ticketsList),
-    rawTicketsData: tickets,
-    firstTicket: ticketsList[0]
+    hasTickets: ticketsList.length > 0,
+    firstTicketId: ticketsList[0]?.id || 'N/A',
+    rawDataStructure: {
+      type: typeof tickets,
+      hasData: !!(tickets as any)?.data,
+      hasSuccess: !!(tickets as any)?.success,
+      dataIsArray: Array.isArray((tickets as any)?.data),
+      dataLength: Array.isArray((tickets as any)?.data) ? (tickets as any).data.length : 'N/A'
+    }
   });
 
   return (
