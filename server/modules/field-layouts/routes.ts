@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { jwtAuth } from '../../middleware/jwtAuth';
-import tenantValidator from '../../middleware/tenantValidator';
+import { enhancedTenantValidator } from '../../middleware/tenantValidator';
 import { FieldLayoutController } from './application/controllers/FieldLayoutController';
 import { DrizzleFieldLayoutRepository } from './infrastructure/repositories/DrizzleFieldLayoutRepository';
 import { db } from '../../db';
@@ -9,7 +9,7 @@ const router = Router();
 
 // Middleware de autenticação para todas as rotas
 router.use(jwtAuth);
-router.use(tenantValidator);
+router.use(enhancedTenantValidator());
 
 // Inicializar dependências
 const fieldLayoutRepository = new DrizzleFieldLayoutRepository(db);
