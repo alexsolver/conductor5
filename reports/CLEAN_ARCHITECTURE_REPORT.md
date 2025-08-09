@@ -1,16 +1,16 @@
 # Clean Architecture Validation Report
 
 **Data:** 2025-08-09  
-**Score:** 38/100  
+**Score:** 37/100  
 **Status:** ❌ REPROVADO
 
 ## Resumo de Problemas
 
 - 🔥 **Críticos:** 0
-- ⚠️ **Altos:** 113
-- 📋 **Médios:** 105
-- 💡 **Baixos:** 4
-- **Total:** 222
+- ⚠️ **Altos:** 110
+- 📋 **Médios:** 101
+- 💡 **Baixos:** 2
+- **Total:** 213
 
 ## Principais Problemas por Módulo
 
@@ -47,12 +47,12 @@
   - Application Layer violando dependência: express
 
 ### ⚠️ dashboard
-- **Total de problemas:** 4
-- **Críticos:** 0 | **Altos:** 3
+- **Total de problemas:** 6
+- **Críticos:** 0 | **Altos:** 1
 - **Principais problemas:**
-  - Camada domain ausente no módulo dashboard
-  - Camada application ausente no módulo dashboard
-  - Camada infrastructure ausente no módulo dashboard
+  - Estrutura events ausente na camada domain
+  - Estrutura services ausente na camada domain
+  - Estrutura dto ausente na camada application
 
 ### ⚠️ field-layout
 - **Total de problemas:** 4
@@ -79,12 +79,11 @@
   - Estrutura dto ausente na camada application
 
 ### ⚠️ locations
-- **Total de problemas:** 7
+- **Total de problemas:** 2
 - **Críticos:** 0 | **Altos:** 1
 - **Principais problemas:**
   - Estrutura repositories ausente na camada domain
-  - Estrutura events ausente na camada domain
-  - Estrutura services ausente na camada domain
+  - Application Layer violando dependência: express
 
 ### ⚠️ materials-services
 - **Total de problemas:** 62
@@ -95,12 +94,12 @@
   - Estrutura services ausente na camada domain
 
 ### ⚠️ notifications
-- **Total de problemas:** 7
+- **Total de problemas:** 3
 - **Críticos:** 0 | **Altos:** 2
 - **Principais problemas:**
   - Estrutura repositories ausente na camada domain
-  - Estrutura events ausente na camada domain
-  - Estrutura services ausente na camada domain
+  - Application Layer violando dependência: express
+  - Application Layer violando dependência: express
 
 ### ⚠️ people
 - **Total de problemas:** 4
@@ -198,13 +197,6 @@
   - Estrutura use-cases ausente na camada application
   - Estrutura dto ausente na camada application
 
-### ⚠️ ticket-history
-- **Total de problemas:** 2
-- **Críticos:** 0 | **Altos:** 1
-- **Principais problemas:**
-  - Application Layer violando dependência: express
-  - Nome da classe TicketHistoryEntity não corresponde ao arquivo TicketHistory
-
 
 ## Plano de Correção
 
@@ -243,13 +235,15 @@
 
 ### ⚠️ dashboard
 - **Prioridade:** high
-- **Tempo estimado:** 40min
-- **Ações:** 4
+- **Tempo estimado:** 2h
+- **Ações:** 6
 
-1. **create_directory:** Criar estrutura da camada domain
-2. **create_directory:** Criar estrutura da camada application
-3. **create_directory:** Criar estrutura da camada infrastructure
-4. **create_directory:** Criar controllers na camada Application e usar nas rotas
+1. **create_directory:** Criar diretório/arquivo events na camada domain
+2. **create_directory:** Criar diretório/arquivo services na camada domain
+3. **create_directory:** Criar diretório/arquivo dto na camada application
+4. **create_directory:** Criar diretório/arquivo services na camada application
+5. **create_directory:** Criar controllers na camada Application e usar nas rotas
+6. **create_file:** Criar Repository com interface
 
 ### ⚠️ field-layout
 - **Prioridade:** high
@@ -292,16 +286,11 @@
 
 ### ⚠️ locations
 - **Prioridade:** high
-- **Tempo estimado:** 3h
-- **Ações:** 7
+- **Tempo estimado:** 2h
+- **Ações:** 2
 
 1. **create_directory:** Criar diretório/arquivo repositories na camada domain
-2. **create_directory:** Criar diretório/arquivo events na camada domain
-3. **create_directory:** Criar diretório/arquivo services na camada domain
-4. **create_directory:** Criar diretório/arquivo dto na camada application
-5. **create_directory:** Criar diretório/arquivo services na camada application
-6. **refactor_code:** Refatorar dependência inválida na camada application
-7. **rename_file:** Padronizar nomenclatura: Nome da classe LocationEntity não corresponde ao arquivo Location
+2. **refactor_code:** Refatorar dependência inválida na camada application
 
 ### ⚠️ materials-services
 - **Prioridade:** high
@@ -355,15 +344,11 @@
 ### ⚠️ notifications
 - **Prioridade:** high
 - **Tempo estimado:** 3h
-- **Ações:** 7
+- **Ações:** 3
 
 1. **create_directory:** Criar diretório/arquivo repositories na camada domain
-2. **create_directory:** Criar diretório/arquivo events na camada domain
-3. **create_directory:** Criar diretório/arquivo services na camada domain
-4. **create_directory:** Criar diretório/arquivo dto na camada application
-5. **create_directory:** Criar diretório/arquivo services na camada application
-6. **refactor_code:** Refatorar dependência inválida na camada application
-7. **refactor_code:** Refatorar dependência inválida na camada application
+2. **refactor_code:** Refatorar dependência inválida na camada application
+3. **refactor_code:** Refatorar dependência inválida na camada application
 
 ### ⚠️ people
 - **Prioridade:** high
@@ -497,14 +482,6 @@
 8. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 9. **create_file:** Criar Repository com interface
 
-### ⚠️ ticket-history
-- **Prioridade:** high
-- **Tempo estimado:** 2h
-- **Ações:** 2
-
-1. **refactor_code:** Refatorar dependência inválida na camada application
-2. **rename_file:** Padronizar nomenclatura: Nome da classe TicketHistoryEntity não corresponde ao arquivo TicketHistory
-
 ### 📋 auth
 - **Prioridade:** medium
 - **Tempo estimado:** 3h
@@ -546,13 +523,13 @@ Nenhuma ação imediata necessária
 - **beneficiaries:** 5 ações (2h)
 - **custom-fields:** 4 ações (2h)
 - **customers:** 6 ações (4h)
-- **dashboard:** 4 ações (40min)
+- **dashboard:** 6 ações (2h)
 - **field-layout:** 4 ações (1h)
 - **field-layouts:** 4 ações (40min)
 - **knowledge-base:** 13 ações (8h)
-- **locations:** 7 ações (3h)
+- **locations:** 2 ações (2h)
 - **materials-services:** 43 ações (27h)
-- **notifications:** 7 ações (3h)
+- **notifications:** 3 ações (3h)
 - **people:** 4 ações (40min)
 - **saas-admin:** 5 ações (2h)
 - **schedule-management:** 10 ações (4h)
@@ -564,7 +541,6 @@ Nenhuma ação imediata necessária
 - **ticket-templates:** 4 ações (1h)
 - **tickets:** 7 ações (3h)
 - **timecard:** 9 ações (5h)
-- **ticket-history:** 2 ações (2h)
 
 ## Comandos para Correção
 
