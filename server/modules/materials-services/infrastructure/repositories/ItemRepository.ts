@@ -313,7 +313,7 @@ export class ItemRepository {
             const customerLinksResult = await pool.query(`
               SELECT 
                 cim.customer_id as id, 
-                COALESCE(c.name, c.company, 'Empresa sem nome') as name,
+                COALESCE(c.name, 'Empresa sem nome') as name,
                 cim.created_at as linked_at,
                 cim.is_active
               FROM "${schemaName}".customer_item_mappings cim
@@ -336,7 +336,7 @@ export class ItemRepository {
             const fallbackResult = await pool.query(`
               SELECT 
                 c.id, 
-                COALESCE(c.name, c.company, 'Empresa sem nome') as name,
+                COALESCE(c.name, 'Empresa sem nome') as name,
                 icl.created_at as linked_at,
                 icl.is_active
               FROM "${schemaName}".item_customer_links icl
@@ -360,7 +360,7 @@ export class ItemRepository {
             const fallback2Result = await pool.query(`
               SELECT 
                 c.id, 
-                COALESCE(c.name, c.company, 'Empresa sem nome') as name,
+                COALESCE(c.name, 'Empresa sem nome') as name,
                 icl.created_at as linked_at,
                 icl.is_active
               FROM "${schemaName}".item_customer_links icl
