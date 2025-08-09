@@ -2080,20 +2080,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ success: false, error: 'Erro ao gerar relatório de espelho de ponto' });
     }
   });
-          success: true,
-          period: period,
-          data: [],
-          summary: {
-            totalDays: 0,
-            workingDays: 0,
-            totalHours: '0.00',
-            overtimeHours: '0.00',
-            averageHoursPerDay: '0.00'
-          }
-        });
-      }
-
-      // Transform ONLY real data to CLT standard format
+          // Transform ONLY real data to CLT standard format
       const formatToCLTStandard = (record: any) => {
         const totalHours = record.total_hours ? parseFloat(record.total_hours) : 0;
         const overtimeHours = Math.max(0, totalHours - 8); // Standard 8h workday
