@@ -547,33 +547,63 @@ export class ItemRepository {
       const { pool } = await import('../../../../db.js');
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
+      console.log(`🔗 [LINK-CUSTOMER] Iniciando vinculação: item=${itemId}, customer=${customerId}, tenant=${tenantId}`);
+      console.log(`🔗 [LINK-CUSTOMER] Schema: ${schemaName}`);
+
+      // Primeiro, verificar se o item e a empresa existem
+      const itemExists = await pool.query(`
+        SELECT id, name FROM "${schemaName}".items WHERE id = $1
+      `, [itemId]);
+      
+      const companyExists = await pool.query(`
+        SELECT id, name FROM "${schemaName}".companies WHERE id = $1
+      `, [customerId]);
+
+      if (itemExists.rows.length === 0) {
+        throw new Error(`Item ${itemId} não encontrado`);
+      }
+      
+      if (companyExists.rows.length === 0) {
+        throw new Error(`Empresa ${customerId} não encontrada`);
+      }
+
+      console.log(`✅ [LINK-CUSTOMER] Item encontrado: ${itemExists.rows[0].name}`);
+      console.log(`✅ [LINK-CUSTOMER] Empresa encontrada: ${companyExists.rows[0].name}`);
+
       // Verificar se a tabela customer_item_mappings existe, senão usar estrutura alternativa
       try {
+        const linkId = crypto.randomUUID();
+        console.log(`🔗 [LINK-CUSTOMER] Tentando inserir em customer_item_mappings com ID: ${linkId}`);
+        
         await pool.query(`
           INSERT INTO "${schemaName}".customer_item_mappings 
           (id, tenant_id, item_id, customer_id, is_active, created_at, updated_at)
           VALUES ($1, $2, $3, $4, true, NOW(), NOW())
           ON CONFLICT (customer_id, item_id) 
           DO UPDATE SET is_active = true, updated_at = NOW()
-        `, [crypto.randomUUID(), tenantId, itemId, customerId]);
+        `, [linkId, tenantId, itemId, customerId]);
 
-        console.log(`✅ Empresa ${customerId} vinculada ao item ${itemId}`);
+        console.log(`✅ [LINK-CUSTOMER] Empresa ${customerId} (${companyExists.rows[0].name}) vinculada ao item ${itemId} (${itemExists.rows[0].name})`);
       } catch (error) {
-        console.log('Tabela customer_item_mappings não encontrada, tentando estrutura alternativa...');
+        console.log(`⚠️ [LINK-CUSTOMER] Tabela customer_item_mappings não encontrada, tentando estrutura alternativa...`);
+        console.log(`⚠️ [LINK-CUSTOMER] Erro original:`, error.message);
 
         // Fallback para item_customer_links
+        const linkId = crypto.randomUUID();
+        console.log(`🔗 [LINK-CUSTOMER] Tentando inserir em item_customer_links com ID: ${linkId}`);
+        
         await pool.query(`
           INSERT INTO "${schemaName}".item_customer_links 
           (id, tenant_id, item_id, company_id, is_active, created_at)
           VALUES ($1, $2, $3, $4, true, NOW())
           ON CONFLICT (item_id, company_id) 
           DO UPDATE SET is_active = true
-        `, [crypto.randomUUID(), tenantId, itemId, customerId]);
+        `, [linkId, tenantId, itemId, customerId]);
 
-        console.log(`✅ Empresa ${customerId} vinculada ao item ${itemId} (estrutura alternativa)`);
+        console.log(`✅ [LINK-CUSTOMER] Empresa ${customerId} (${companyExists.rows[0].name}) vinculada ao item ${itemId} (${itemExists.rows[0].name}) via estrutura alternativa`);
       }
     } catch (error) {
-      console.error('Erro ao vincular cliente ao item:', error);
+      console.error(`❌ [LINK-CUSTOMER] Erro ao vincular cliente ao item:`, error);
       throw error;
     }
   }

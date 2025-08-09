@@ -1156,56 +1156,83 @@ export default function ItemCatalog() {
                   <TabsContent value="companies" className="space-y-4 mt-6">
                     <div className="flex items-center justify-between">
                       <h3 className="text-lg font-medium">Empresas Vinculadas</h3>
-                      <Select
-                        onValueChange={async (companyId) => {
-                          if (!selectedItem?.id || !companyId || companyId === "none") return;
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="text-xs">
+                          {itemLinks?.customers?.length || 0} vínculos
+                        </Badge>
+                        <Select
+                          onValueChange={async (companyId) => {
+                            if (!selectedItem?.id || !companyId || companyId === "none") return;
 
-                          try {
-                            const response = await fetch(`/api/materials-services/items/${selectedItem.id}/link-customer`, {
-                              method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({ customerId: companyId })
-                            });
-
-                            if (response.ok) {
-                              toast({
-                                title: "Sucesso",
-                                description: "Empresa vinculada com sucesso"
+                            try {
+                              console.log(`🔗 [FRONTEND] Vinculando empresa ${companyId} ao item ${selectedItem.id}`);
+                              
+                              const response = await fetch(`/api/materials-services/items/${selectedItem.id}/link-customer`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ customerId: companyId })
                               });
-                              refetchItemLinks();
-                            } else {
-                              throw new Error('Falha ao vincular empresa');
+
+                              if (response.ok) {
+                                toast({
+                                  title: "✅ Sucesso",
+                                  description: "Empresa vinculada com sucesso"
+                                });
+                                refetchItemLinks();
+                              } else {
+                                const errorData = await response.json();
+                                throw new Error(errorData.message || 'Falha ao vincular empresa');
+                              }
+                            } catch (error) {
+                              console.error('❌ [FRONTEND] Erro ao vincular empresa:', error);
+                              toast({
+                                title: "❌ Erro",
+                                description: error instanceof Error ? error.message : "Erro ao vincular empresa",
+                                variant: "destructive"
+                              });
                             }
-                          } catch (error) {
-                            toast({
-                              title: "Erro",
-                              description: "Erro ao vincular empresa",
-                              variant: "destructive"
-                            });
-                          }
-                        }}
-                        value="" // Always reset to allow multiple selections
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Vincular Empresa" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="none">Selecione uma empresa...</SelectItem>
-                          {companies.filter(company => 
-                            !itemLinks?.customers?.some((linked: any) => linked.id === company.id)
-                          ).map((company) => (
-                            <SelectItem key={company.id} value={company.id}>
-                              {company.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                          }}
+                          value="" // Always reset to allow multiple selections
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="+ Vincular Empresa" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">Selecione uma empresa...</SelectItem>
+                            {companies.filter(company => 
+                              !itemLinks?.customers?.some((linked: any) => linked.id === company.id)
+                            ).map((company) => (
+                              <SelectItem key={company.id} value={company.id}>
+                                <div className="flex items-center gap-2">
+                                  <Building className="h-4 w-4 text-blue-600" />
+                                  {company.name}
+                                </div>
+                              </SelectItem>
+                            ))}
+                            {companies.filter(company => 
+                              !itemLinks?.customers?.some((linked: any) => linked.id === company.id)
+                            ).length === 0 && (
+                              <SelectItem value="none" disabled>
+                                Todas as empresas já estão vinculadas
+                              </SelectItem>
+                            )}
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
 
                     <div className="space-y-2">
                       {itemLinks?.customers?.map((company: any) => (
-                        <div key={company.id} className="flex items-center justify-between bg-gray-50 p-3 rounded">
-                          <span>{company.name}</span>
+                        <div key={company.id} className="flex items-center justify-between bg-blue-50 border border-blue-200 p-3 rounded-lg">
+                          <div className="flex items-center gap-2">
+                            <Building className="h-4 w-4 text-blue-600" />
+                            <span className="font-medium">{company.name}</span>
+                            {company.linked_at && (
+                              <Badge variant="outline" className="text-xs">
+                                Vinculado em {new Date(company.linked_at).toLocaleDateString()}
+                              </Badge>
+                            )}
+                          </div>
                           <Button
                             variant="outline" 
                             size="sm"
@@ -1213,36 +1240,49 @@ export default function ItemCatalog() {
                               if (!selectedItem?.id) return;
 
                               try {
+                                console.log(`🗑️ [FRONTEND] Desvinculando empresa ${company.id} do item ${selectedItem.id}`);
+                                
                                 const response = await fetch(`/api/materials-services/items/${selectedItem.id}/unlink-customer/${company.id}`, {
                                   method: 'DELETE'
                                 });
 
                                 if (response.ok) {
                                   toast({
-                                    title: "Sucesso",
+                                    title: "✅ Sucesso",
                                     description: "Empresa desvinculada com sucesso"
                                   });
                                   refetchItemLinks();
                                 } else {
-                                  throw new Error('Falha ao desvincular empresa');
+                                  const errorData = await response.json();
+                                  throw new Error(errorData.message || 'Falha ao desvincular empresa');
                                 }
                               } catch (error) {
+                                console.error('❌ [FRONTEND] Erro ao desvincular empresa:', error);
                                 toast({
-                                  title: "Erro",
-                                  description: "Erro ao desvincular empresa",
+                                  title: "❌ Erro",
+                                  description: error instanceof Error ? error.message : "Erro ao desvincular empresa",
                                   variant: "destructive"
                                 });
                               }
                             }}
+                            className="hover:bg-red-50 hover:border-red-200"
                           >
+                            <X className="h-4 w-4 mr-1" />
                             Desvincular
                           </Button>
                         </div>
                       ))}
 
                       {(!itemLinks?.customers || itemLinks.customers.length === 0) && (
-                        <div className="text-center py-8 text-gray-500">
-                          Nenhuma empresa vinculada
+                        <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                          <Building className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                          <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhuma empresa vinculada</h3>
+                          <p className="text-gray-500 mb-4">
+                            Vincule empresas a este item para controlar o acesso e personalização
+                          </p>
+                          <div className="text-sm text-gray-400">
+                            Use o seletor acima para adicionar vínculos
+                          </div>
                         </div>
                       )}
                     </div>

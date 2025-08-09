@@ -222,30 +222,66 @@ router.get('/items/:id/links', jwtAuth, async (req: AuthenticatedRequest, res: R
 });
 
 // Link customer to item
-router.post('/items/:id/link-customer', async (req, res) => {
+router.post('/items/:itemId/link-customer', jwtAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { id } = req.params;
+    const { itemId } = req.params;
     const { customerId } = req.body;
     const tenantId = req.user?.tenantId;
+    const userId = req.user?.id;
+
+    console.log(`🔗 [API-LINK-CUSTOMER] Recebida requisição de vinculação:`);
+    console.log(`   - itemId: ${itemId}`);
+    console.log(`   - customerId: ${customerId}`);
+    console.log(`   - tenantId: ${tenantId}`);
+    console.log(`   - userId: ${userId}`);
 
     if (!tenantId) {
-      return res.status(400).json({ error: 'Tenant ID é obrigatório' });
+      console.error(`❌ [API-LINK-CUSTOMER] Tenant ID não fornecido`);
+      return res.status(401).json({ 
+        success: false,
+        error: 'Tenant ID é obrigatório' 
+      });
     }
 
     if (!customerId) {
-      return res.status(400).json({ error: 'Customer ID é obrigatório' });
+      console.error(`❌ [API-LINK-CUSTOMER] Customer ID não fornecido`);
+      return res.status(400).json({ 
+        success: false,
+        error: 'Customer ID é obrigatório' 
+      });
     }
 
+    if (!itemId) {
+      console.error(`❌ [API-LINK-CUSTOMER] Item ID não fornecido`);
+      return res.status(400).json({ 
+        success: false,
+        error: 'Item ID é obrigatório' 
+      });
+    }
+
+    console.log(`🏗️ [API-LINK-CUSTOMER] Obtendo conexão com banco para tenant: ${tenantId}`);
     const { db } = await schemaManager.getTenantDb(tenantId);
     const itemRepository = new ItemRepository(db);
-    await itemRepository.linkCustomerToItem(id, customerId);
 
-    res.json({ success: true, message: 'Cliente vinculado ao item com sucesso' });
+    console.log(`🔗 [API-LINK-CUSTOMER] Executando vinculação via repository...`);
+    await itemRepository.linkCustomerToItem(itemId, customerId, tenantId);
+
+    console.log(`✅ [API-LINK-CUSTOMER] Vinculação realizada com sucesso`);
+    res.json({
+      success: true,
+      message: 'Empresa vinculada com sucesso',
+      data: {
+        itemId,
+        customerId,
+        linkedAt: new Date().toISOString()
+      }
+    });
   } catch (error) {
-    console.error('Erro ao vincular cliente ao item:', error);
+    console.error(`❌ [API-LINK-CUSTOMER] Erro ao vincular empresa:`, error);
     res.status(500).json({ 
-      error: 'Erro interno do servidor',
-      details: error instanceof Error ? error.message : 'Erro desconhecido'
+      success: false,
+      error: error instanceof Error ? error.message : 'Erro interno do servidor',
+      details: error instanceof Error ? error.stack : undefined
     });
   }
 });
