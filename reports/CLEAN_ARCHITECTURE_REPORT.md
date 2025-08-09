@@ -1,16 +1,16 @@
 # Clean Architecture Validation Report
 
 **Data:** 2025-08-09  
-**Score:** 37/100  
+**Score:** 38/100  
 **Status:** ❌ REPROVADO
 
 ## Resumo de Problemas
 
 - 🔥 **Críticos:** 0
-- ⚠️ **Altos:** 115
-- 📋 **Médios:** 105
-- 💡 **Baixos:** 3
-- **Total:** 223
+- ⚠️ **Altos:** 113
+- 📋 **Médios:** 109
+- 💡 **Baixos:** 4
+- **Total:** 226
 
 ## Principais Problemas por Módulo
 
@@ -175,12 +175,12 @@
   - Camada infrastructure ausente no módulo tenant-admin
 
 ### ⚠️ ticket-history
-- **Total de problemas:** 3
-- **Críticos:** 0 | **Altos:** 3
+- **Total de problemas:** 6
+- **Críticos:** 0 | **Altos:** 1
 - **Principais problemas:**
-  - Camada domain ausente no módulo ticket-history
-  - Camada application ausente no módulo ticket-history
-  - Camada infrastructure ausente no módulo ticket-history
+  - Estrutura events ausente na camada domain
+  - Estrutura services ausente na camada domain
+  - Estrutura dto ausente na camada application
 
 ### ⚠️ ticket-templates
 - **Total de problemas:** 4
@@ -462,12 +462,15 @@
 
 ### ⚠️ ticket-history
 - **Prioridade:** high
-- **Tempo estimado:** 30min
-- **Ações:** 3
+- **Tempo estimado:** 2h
+- **Ações:** 6
 
-1. **create_directory:** Criar estrutura da camada domain
-2. **create_directory:** Criar estrutura da camada application
-3. **create_directory:** Criar estrutura da camada infrastructure
+1. **create_directory:** Criar diretório/arquivo events na camada domain
+2. **create_directory:** Criar diretório/arquivo services na camada domain
+3. **create_directory:** Criar diretório/arquivo dto na camada application
+4. **create_directory:** Criar diretório/arquivo services na camada application
+5. **refactor_code:** Refatorar dependência inválida na camada application
+6. **rename_file:** Padronizar nomenclatura: Nome da classe TicketHistoryEntity não corresponde ao arquivo TicketHistory
 
 ### ⚠️ ticket-templates
 - **Prioridade:** high
@@ -563,7 +566,7 @@ Nenhuma ação imediata necessária
 - **template-hierarchy:** 4 ações (1h)
 - **template-versions:** 4 ações (1h)
 - **tenant-admin:** 4 ações (40min)
-- **ticket-history:** 3 ações (30min)
+- **ticket-history:** 6 ações (2h)
 - **ticket-templates:** 4 ações (1h)
 - **tickets:** 7 ações (3h)
 - **timecard:** 9 ações (5h)
