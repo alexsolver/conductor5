@@ -19,31 +19,7 @@ import { systemSettings } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 import { Response } from 'express'; // Import Response type
 import crypto from 'crypto'; // Import crypto for UUID generation
-import pkg from 'pg';
-const { Pool } = pkg;
-
-// Assume pool is initialized elsewhere and available in this scope
-// For demonstration, we'll create a mock pool if it's not defined.
-let pool: Pool;
-if (typeof Pool !== 'undefined') {
-  // This part is for demonstration if pool is not globally available
-  // In a real application, pool should be properly configured and imported
-  pool = new Pool({
-    // Configuration options for your PostgreSQL connection
-    // e.g., user: 'dbuser', host: 'localhost', database: 'dbname', password: 'dbpassword', port: 5432
-  });
-} else {
-  // Mock Pool if not available (e.g., in a testing environment)
-  console.warn("PostgreSQL Pool not available, using mock pool.");
-  pool = {
-    query: async (queryText: string, params?: any[]) => {
-      console.log("Mock Pool Query:", queryText, params);
-      // Simulate returning a result structure similar to pg.Pool.query
-      return { rows: [] };
-    },
-    // Add other methods if your code relies on them (e.g., connect, end)
-  } as any;
-}
+// Note: Pool configuration removed as we're using Drizzle ORM through schemaManager
 
 
 // Create router
@@ -142,9 +118,17 @@ router.delete('/items/:id', async (req: AuthenticatedRequest, res) => {
 
 // Vínculos em lote e grupos
 router.post('/items/bulk-links', async (req: AuthenticatedRequest, res) => {
-  if (!req.user?.tenantId) return res.status(401).json({ message: 'Tenant ID required' });
-  const { itemController } = await getControllers(req.user.tenantId);
-  return itemController.createBulkLinks(req, res);
+  try {
+    if (!req.user?.tenantId) return res.status(401).json({ message: 'Tenant ID required' });
+    const { itemController } = await getControllers(req.user.tenantId);
+    return itemController.createBulkLinks(req, res);
+  } catch (error) {
+    console.error('Error in bulk links route:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erro interno do servidor ao criar vínculos em lote'
+    });
+  }
 });
 
 router.get('/items/groups', async (req: AuthenticatedRequest, res) => {
