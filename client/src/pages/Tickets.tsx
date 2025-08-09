@@ -393,8 +393,17 @@ export default function Tickets() {
   }
 
   // Parse consistente dos dados de tickets
-  const ticketsList = (tickets as any)?.data?.tickets || [];
+  // A API retorna { success: true, message: "...", data: [...] }
+  const ticketsList = (tickets as any)?.data || [];
   const ticketsCount = Array.isArray(ticketsList) ? ticketsList.length : 0;
+  
+  // Debug para verificar estrutura dos dados
+  console.log('TicketsTable - Data:', {
+    ticketsError: error,
+    isLoading,
+    ticketsCount,
+    rawTicketsData: tickets
+  });
 
   return (
     <div className="p-4 space-y-6">
