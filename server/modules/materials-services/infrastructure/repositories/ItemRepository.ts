@@ -312,17 +312,18 @@ export class ItemRepository {
           try {
             const customerLinksResult = await pool.query(`
               SELECT 
-                cim.customer_id as id, 
-                COALESCE(c.name, 'Empresa sem nome') as name,
+                c.id,
+                c.name,
+                c.display_name,
+                COALESCE(c.display_name, c.name, 'Empresa sem nome') as name,
                 cim.created_at as linked_at,
-                cim.is_active
+                cim.is_active,
+                'customer_item_mappings' as source_table
               FROM "${schemaName}".customer_item_mappings cim
-              INNER JOIN "${schemaName}".companies c ON cim.customer_id = c.id
-              WHERE cim.item_id = $1 
-                AND cim.tenant_id = $2 
-                AND cim.is_active = true
-              LIMIT 50
-            `, [itemId, tenantId]);
+              JOIN "${schemaName}".companies c ON cim.customer_id = c.id
+              WHERE cim.item_id = $1 AND cim.is_active = true AND c.is_active = true
+              ORDER BY COALESCE(c.display_name, c.name)
+            `, [itemId]);
             customerLinks = customerLinksResult.rows;
             console.log(`✅ [CUSTOMER-LINKS] Found ${customerLinks.length} companies via customer_item_mappings`);
           } catch (error) {
@@ -336,17 +337,17 @@ export class ItemRepository {
             const fallbackResult = await pool.query(`
               SELECT 
                 c.id, 
-                COALESCE(c.name, 'Empresa sem nome') as name,
+                c.name,
+                c.display_name,
+                COALESCE(c.display_name, c.name, 'Empresa sem nome') as name,
                 icl.created_at as linked_at,
-                icl.is_active
+                icl.is_active,
+                'item_customer_links' as source_table
               FROM "${schemaName}".item_customer_links icl
-              INNER JOIN "${schemaName}".companies c ON icl.company_id = c.id
-              WHERE icl.item_id = $1 
-                AND icl.tenant_id = $2 
-                AND icl.is_active = true
-                AND (c.status = 'active' OR c.status IS NULL)
-              LIMIT 50
-            `, [itemId, tenantId]);
+              JOIN "${schemaName}".companies c ON icl.customer_id = c.id
+              WHERE icl.item_id = $1 AND icl.is_active = true AND c.is_active = true
+              ORDER BY COALESCE(c.display_name, c.name)
+            `, [itemId]);
             customerLinks = fallbackResult.rows;
             console.log(`✅ [CUSTOMER-LINKS] Found ${customerLinks.length} companies via item_customer_links + companies`);
           } catch (fallbackError) {
@@ -360,16 +361,17 @@ export class ItemRepository {
             const fallback2Result = await pool.query(`
               SELECT 
                 c.id, 
-                COALESCE(c.name, 'Empresa sem nome') as name,
+                c.name,
+                c.display_name,
+                COALESCE(c.display_name, c.name, 'Empresa sem nome') as name,
                 icl.created_at as linked_at,
-                icl.is_active
+                icl.is_active,
+                'item_customer_links_alt' as source_table
               FROM "${schemaName}".item_customer_links icl
-              INNER JOIN "${schemaName}".customers c ON icl.customer_id = c.id
-              WHERE icl.item_id = $1 
-                AND icl.tenant_id = $2 
-                AND icl.is_active = true
-              LIMIT 50
-            `, [itemId, tenantId]);
+              JOIN "${schemaName}".companies c ON icl.customer_company_id = c.id
+              WHERE icl.item_id = $1 AND icl.is_active = true AND c.is_active = true
+              ORDER BY COALESCE(c.display_name, c.name)
+            `, [itemId]);
             customerLinks = fallback2Result.rows;
             console.log(`✅ [CUSTOMER-LINKS] Found ${customerLinks.length} companies via item_customer_links + customers`);
           } catch (fallback2Error) {

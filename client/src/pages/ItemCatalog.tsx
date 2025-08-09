@@ -224,10 +224,20 @@ export default function ItemCatalog() {
         const result = await response.json();
         console.log('🔗 [FRONTEND] Links carregados:', result);
 
-        // Validação da estrutura de dados
+        // Validação da estrutura de dados com mapeamento correto
         const validatedData = {
-          customers: Array.isArray(result?.data?.customers) ? result.data.customers : [],
-          suppliers: Array.isArray(result?.data?.suppliers) ? result.data.suppliers : []
+          customers: Array.isArray(result?.data?.customers) ? result.data.customers.map((customer: any) => ({
+            id: customer.id || customer.customer_id,
+            name: customer.name || customer.company_name || `Empresa ${customer.id}`,
+            linked_at: customer.linked_at || customer.created_at,
+            is_active: customer.is_active !== undefined ? customer.is_active : true
+          })) : [],
+          suppliers: Array.isArray(result?.data?.suppliers) ? result.data.suppliers.map((supplier: any) => ({
+            id: supplier.id || supplier.supplier_id,
+            name: supplier.name || supplier.supplier_name || `Fornecedor ${supplier.id}`,
+            linked_at: supplier.linked_at || supplier.created_at,
+            is_active: supplier.is_active !== undefined ? supplier.is_active : true
+          })) : []
         };
 
         console.log(`✅ [FRONTEND] Dados validados: ${validatedData.customers.length} empresas, ${validatedData.suppliers.length} fornecedores`);
@@ -328,10 +338,34 @@ export default function ItemCatalog() {
     },
   });
 
-  // Processar dados
+  // Processar dados com mapeamento correto
   const items: Item[] = (itemsResponse as any)?.data || [];
-  const companies = (availableCustomers as any)?.data || [];
-  const suppliers = (availableSuppliers as any)?.data || [];
+  
+  // Processar empresas com estrutura consistente
+  const rawCompanies = (availableCustomers as any)?.data || availableCustomers || [];
+  const companies = Array.isArray(rawCompanies) ? rawCompanies.map((company: any) => ({
+    id: company.id,
+    name: company.name || company.company_name || company.displayName || `Empresa ${company.id}`,
+    displayName: company.displayName || company.display_name || company.name,
+    status: company.status || 'active',
+    is_active: company.is_active !== undefined ? company.is_active : true
+  })).filter((company: any) => company.is_active !== false) : [];
+  
+  // Processar fornecedores
+  const rawSuppliers = (availableSuppliers as any)?.data || availableSuppliers || [];
+  const suppliers = Array.isArray(rawSuppliers) ? rawSuppliers.map((supplier: any) => ({
+    id: supplier.id,
+    name: supplier.name || supplier.supplier_name || `Fornecedor ${supplier.id}`,
+    status: supplier.status || 'active'
+  })).filter((supplier: any) => supplier.status !== 'inactive') : [];
+
+  console.log('📊 [FRONTEND] Dados processados:', {
+    items: items.length,
+    companies: companies.length,
+    suppliers: suppliers.length,
+    rawCompanies: rawCompanies.length,
+    rawSuppliers: rawSuppliers.length
+  });
 
   const filteredItems = items.filter((item: Item) => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -1229,20 +1263,34 @@ export default function ItemCatalog() {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="select-company">Selecione uma empresa</SelectItem>
-                            {companies.filter((company: any) => 
-                              !itemLinks?.customers?.some((linked: any) => linked.id === company.id)
-                            ).map((company: any) => (
-                              <SelectItem key={company.id} value={company.id}>
-                                {company.name}
-                              </SelectItem>
-                            ))}
-                            {companies.filter((company: any) => 
-                              !itemLinks?.customers?.some((linked: any) => linked.id === company.id)
-                            ).length === 0 && (
-                              <SelectItem value="select-company" disabled>
-                                Todas as empresas já estão vinculadas
-                              </SelectItem>
-                            )}
+                            {(() => {
+                              console.log('🏢 [DROPDOWN] Processando empresas:', {
+                                totalCompanies: companies.length,
+                                linkedCustomers: itemLinks?.customers?.length || 0,
+                                companies: companies.map(c => ({ id: c.id, name: c.name })),
+                                linkedIds: itemLinks?.customers?.map(c => c.id) || []
+                              });
+
+                              const availableCompanies = companies.filter((company: any) => 
+                                !itemLinks?.customers?.some((linked: any) => linked.id === company.id)
+                              );
+
+                              console.log('🔍 [DROPDOWN] Empresas disponíveis:', availableCompanies.length);
+
+                              if (availableCompanies.length === 0) {
+                                return (
+                                  <SelectItem value="no-companies" disabled>
+                                    {companies.length === 0 ? 'Nenhuma empresa encontrada no sistema' : 'Todas as empresas já estão vinculadas'}
+                                  </SelectItem>
+                                );
+                              }
+
+                              return availableCompanies.map((company: any) => (
+                                <SelectItem key={`company-${company.id}`} value={company.id}>
+                                  {company.name || company.displayName || `Empresa ${company.id}`}
+                                </SelectItem>
+                              ));
+                            })()}
                           </SelectContent>
                         </Select>
                       </div>
