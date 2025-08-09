@@ -1,5 +1,4 @@
-// Removendo dependência direta do Express para seguir Clean Architecture
-import { Response } from 'express'; // Mantendo a importação de Response para type checking, mas a dependência direta será removida em outras partes do código
+// Removido import do express - Application layer não deve depender de frameworks específicos
 import { AuthenticatedRequest } from '../../../middleware/jwtAuth';
 import { CustomerApplicationService } from '../services/CustomerApplicationService';
 import { transformToCustomerDTO } from '../dto/CustomerResponseDTO';
@@ -9,12 +8,9 @@ export class CustomerController {
     private customerApplicationService: CustomerApplicationService
   ) {}
 
-  async createCustomer(req: AuthenticatedRequest, res: Response): Promise<void> {
+  async createCustomer(customerData: any, tenantId?: string, userId?: string): Promise<any> {
     try {
       const { logInfo, logError } = await import('../../../../utils/logger');
-      const customerData = req.body;
-      const tenantId = req.user?.tenantId;
-      const userId = req.user?.id;
 
       // Log operation start
       logInfo('Customer creation started', {
@@ -29,12 +25,11 @@ export class CustomerController {
           userId,
           operation: 'CREATE_CUSTOMER'
         });
-        res.status(403).json({
+        return {
           success: false,
           error: 'Tenant access required',
           code: 'MISSING_TENANT_ACCESS'
-        });
-        return;
+        };
       }
 
       const result = await this.customerApplicationService.createCustomer({
@@ -46,160 +41,147 @@ export class CustomerController {
       logInfo('Customer created successfully', {
         tenantId,
         userId,
-        customerId: result.customer.id, // Assuming result.customer exists and has an id
-        customerType: result.customer.customerType, // Assuming result.customer exists and has customerType
+        customerId: result.customer.id,
+        customerType: result.customer.customerType,
         operation: 'CREATE_CUSTOMER'
       });
 
-      res.status(201).json({
+      return {
         success: true,
-        data: transformToCustomerDTO(result.customer), // Use the DTO transformer
+        data: transformToCustomerDTO(result.customer),
         message: 'Customer created successfully'
-      });
+      };
     } catch (error) {
       const { logError } = await import('../../../../utils/logger');
       logError('Customer creation failed', error, {
         operation: 'CREATE_CUSTOMER',
-        tenantId: req.user?.tenantId,
-        userId: req.user?.id
+        tenantId,
+        userId
       });
 
-      res.status(500).json({
+      return {
         success: false,
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error'
-      });
+      };
     }
   }
 
-  async updateCustomer(req: AuthenticatedRequest, res: Response): Promise<void> {
+  async updateCustomer(customerId: string, updateData: any, tenantId?: string, userId?: string): Promise<any> {
     try {
-      if (!req.user?.tenantId) {
-        res.status(403).json({
+      if (!tenantId) {
+        return {
           success: false,
           error: 'Tenant access required',
           code: 'MISSING_TENANT_ACCESS'
-        });
-        return;
+        };
       }
-
-      const customerId = req.params.id;
-      const updateData = {
-        ...req.body,
-        tenantId: req.user.tenantId
-      };
 
       const result = await this.customerApplicationService.updateCustomer({
         id: customerId,
-        ...updateData
+        ...updateData,
+        tenantId
       });
 
       if (result.success) {
-        res.json({
+        return {
           success: true,
           data: transformToCustomerDTO(result.customer),
           message: 'Customer updated successfully'
-        });
+        };
       } else {
-        res.status(400).json({
+        return {
           success: false,
           error: result.error,
           code: 'UPDATE_FAILED'
-        });
+        };
       }
     } catch (error) {
       console.error('[CONTROLLER] Update customer error:', error);
-      res.status(500).json({
+      return {
         success: false,
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error'
-      });
+      };
     }
   }
 
-  async deleteCustomer(req: AuthenticatedRequest, res: Response): Promise<void> {
+  async deleteCustomer(customerId: string, tenantId?: string, userId?: string): Promise<any> {
     try {
-      if (!req.user?.tenantId) {
-        res.status(403).json({
+      if (!tenantId) {
+        return {
           success: false,
           error: 'Tenant access required',
           code: 'MISSING_TENANT_ACCESS'
-        });
-        return;
+        };
       }
-
-      const customerId = req.params.id;
 
       const result = await this.customerApplicationService.deleteCustomer({
         id: customerId,
-        tenantId: req.user.tenantId
+        tenantId
       });
 
       if (result.success) {
-        res.json({
+        return {
           success: true,
           message: 'Customer deleted successfully'
-        });
+        };
       } else {
-        res.status(400).json({
+        return {
           success: false,
           error: result.error,
           code: 'DELETE_FAILED'
-        });
+        };
       }
     } catch (error) {
       console.error('[CONTROLLER] Delete customer error:', error);
-      res.status(500).json({
+      return {
         success: false,
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error'
-      });
+      };
     }
   }
 
-  async getCustomers(req: AuthenticatedRequest, res: Response): Promise<void> {
+  async getCustomers(tenantId?: string, page: number = 1, limit: number = 50): Promise<any> {
     try {
-      if (!req.user?.tenantId) {
-        res.status(403).json({
+      if (!tenantId) {
+        return {
           success: false,
           error: 'Tenant access required',
           code: 'MISSING_TENANT_ACCESS'
-        });
-        return;
+        };
       }
 
-      const page = parseInt(req.query.page as string) || 1;
-      const limit = parseInt(req.query.limit as string) || 50;
-
       const result = await this.customerApplicationService.getCustomers({
-        tenantId: req.user.tenantId,
+        tenantId,
         page,
         limit
       });
 
       if (result.success) {
-        res.json({
+        return {
           success: true,
           customers: result.customers?.map(transformToCustomerDTO) || [],
           total: result.total || 0,
           page,
           limit,
           totalPages: Math.ceil((result.total || 0) / limit)
-        });
+        };
       } else {
-        res.status(500).json({
+        return {
           success: false,
           error: result.error,
           code: 'FETCH_FAILED'
-        });
+        };
       }
     } catch (error) {
       console.error('[CONTROLLER] Get customers error:', error);
-      res.status(500).json({
+      return {
         success: false,
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error'
-      });
+      };
     }
   }
 }

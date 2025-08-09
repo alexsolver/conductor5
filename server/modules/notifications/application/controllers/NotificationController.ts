@@ -17,35 +17,12 @@ export class NotificationController {
     private notificationRepository: INotificationRepository
   ) {}
 
-  async create(req: Request, res: Response): Promise<void> {
+  async createNotification(notificationData: any) {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string;
-      const userId = req.user?.id;
-
-      if (!tenantId) {
-        res.status(400).json({ error: 'Tenant ID is required' });
-        return;
-      }
-
-      const notificationData = {
-        ...req.body,
-        tenantId,
-        userId: req.body.userId || userId
-      };
-
-      const notificationId = await this.createNotificationUseCase.execute(notificationData);
-
-      res.status(201).json({
-        success: true,
-        notificationId,
-        message: 'Notification created successfully'
-      });
+      const notification = await this.createNotificationUseCase.execute(notificationData);
+      return { success: true, data: notification };
     } catch (error) {
-      console.error('Error creating notification:', error);
-      res.status(500).json({
-        error: 'Failed to create notification',
-        details: (error as Error).message
-      });
+      return { success: false, error: 'Failed to create notification' };
     }
   }
 
