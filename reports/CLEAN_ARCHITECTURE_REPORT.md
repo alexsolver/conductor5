@@ -7,10 +7,10 @@
 ## Resumo de Problemas
 
 - 🔥 **Críticos:** 0
-- ⚠️ **Altos:** 103
-- 📋 **Médios:** 106
+- ⚠️ **Altos:** 101
+- 📋 **Médios:** 110
 - 💡 **Baixos:** 5
-- **Total:** 214
+- **Total:** 216
 
 ## Principais Problemas por Módulo
 
@@ -23,12 +23,12 @@
   - Estrutura use-cases ausente na camada application
 
 ### ⚠️ beneficiaries
-- **Total de problemas:** 5
-- **Críticos:** 0 | **Altos:** 4
+- **Total de problemas:** 7
+- **Críticos:** 0 | **Altos:** 2
 - **Principais problemas:**
-  - Camada domain ausente no módulo beneficiaries
-  - Camada application ausente no módulo beneficiaries
-  - Camada infrastructure ausente no módulo beneficiaries
+  - Estrutura events ausente na camada domain
+  - Estrutura services ausente na camada domain
+  - Estrutura dto ausente na camada application
 
 ### ⚠️ custom-fields
 - **Total de problemas:** 4
@@ -194,14 +194,16 @@
 
 ### ⚠️ beneficiaries
 - **Prioridade:** high
-- **Tempo estimado:** 2h
-- **Ações:** 5
+- **Tempo estimado:** 3h
+- **Ações:** 7
 
-1. **create_directory:** Criar estrutura da camada domain
-2. **create_directory:** Criar estrutura da camada application
-3. **create_directory:** Criar estrutura da camada infrastructure
-4. **create_directory:** Criar controllers na camada Application e usar nas rotas
-5. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
+1. **create_directory:** Criar diretório/arquivo events na camada domain
+2. **create_directory:** Criar diretório/arquivo services na camada domain
+3. **create_directory:** Criar diretório/arquivo dto na camada application
+4. **create_directory:** Criar diretório/arquivo services na camada application
+5. **create_directory:** Criar controllers na camada Application e usar nas rotas
+6. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
+7. **refactor_code:** Refatorar dependência inválida na camada application
 
 ### ⚠️ custom-fields
 - **Prioridade:** high
@@ -507,7 +509,7 @@
 Nenhuma ação imediata necessária
 
 ### Prioridade Alta ⚠️
-- **beneficiaries:** 5 ações (2h)
+- **beneficiaries:** 7 ações (3h)
 - **custom-fields:** 4 ações (2h)
 - **customers:** 4 ações (3h)
 - **dashboard:** 3 ações (2h)
