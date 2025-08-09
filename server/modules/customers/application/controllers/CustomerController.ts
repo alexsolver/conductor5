@@ -36,9 +36,9 @@ export class CustomerController {
   async createCustomer(req: HttpRequest, res: HttpResponse): Promise<void> {
     try {
       const { logInfo, logError } = await import('../../../../utils/logger');
-      const { body, headers } = req;
-      const tenantId = headers['x-tenant-id'] as string | undefined;
-      const userId = headers['x-user-id'] as string | undefined;
+      const { body, user } = req as any;
+      const tenantId = user?.tenantId;
+      const userId = user?.id;
 
       // Log operation start
       logInfo('Customer creation started', {
@@ -98,8 +98,9 @@ export class CustomerController {
 
   async getCustomers(req: HttpRequest, res: HttpResponse): Promise<void> {
     try {
-      const tenantId = req.headers['x-tenant-id'];
-      const userId = req.headers['x-user-id'];
+      const user = (req as any).user;
+      const tenantId = user?.tenantId;
+      const userId = user?.id;
 
       if (!tenantId) {
         res.status(400).json({
@@ -131,7 +132,8 @@ export class CustomerController {
   async updateCustomer(req: HttpRequest, res: HttpResponse): Promise<void> {
     try {
       const { id } = req.params;
-      const tenantId = req.headers['x-tenant-id'];
+      const user = (req as any).user;
+      const tenantId = user?.tenantId;
 
       if (!tenantId) {
         res.status(400).json({
@@ -164,7 +166,8 @@ export class CustomerController {
   async deleteCustomer(req: HttpRequest, res: HttpResponse): Promise<void> {
     try {
       const { id } = req.params;
-      const tenantId = req.headers['x-tenant-id'];
+      const user = (req as any).user;
+      const tenantId = user?.tenantId;
 
       if (!tenantId) {
         res.status(400).json({
@@ -193,7 +196,8 @@ export class CustomerController {
 
   async getAllCustomers(req: HttpRequest, res: HttpResponse): Promise<void> {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string | undefined;
+      const user = (req as any).user;
+      const tenantId = user?.tenantId;
       const page = parseInt(req.query.page as string, 10) || 1;
       const limit = parseInt(req.query.limit as string, 10) || 50;
 

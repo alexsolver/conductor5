@@ -138,6 +138,13 @@ export const optionalJwtAuth = async (req: AuthenticatedRequest, res: Response, 
           permissions: [],
           attributes: {}
         };
+        // Debug logging
+        console.log('🔍 [JWT-AUTH] User authenticated:', {
+          userId: req.user.id,
+          tenantId: req.user.tenantId,
+          email: req.user.email,
+          path: req.path
+        });
       }
     }
 

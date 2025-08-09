@@ -7,12 +7,19 @@ import { useAuth } from './useAuth';
 export function useTenantId(): string | null {
   const { user, isAuthenticated } = useAuth();
   
+  console.log('🔍 [USE-TENANT-ID] Hook called:', { 
+    isAuthenticated, 
+    user: user ? { id: user.id, tenantId: user.tenantId } : null 
+  });
+  
   if (!isAuthenticated || !user) {
+    console.log('❌ [USE-TENANT-ID] Not authenticated or no user');
     return null;
   }
 
   // Primary: get from authenticated user object
   if (user.tenantId) {
+    console.log('✅ [USE-TENANT-ID] Found tenantId:', user.tenantId);
     return user.tenantId;
   }
 

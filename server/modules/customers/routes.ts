@@ -60,7 +60,41 @@ const validateGetCustomers = (req: Request, res: Response, next: NextFunction) =
 };
 
 // GET /api/customers - Get all customers with proper validation
-customersRouter.get('/', jwtAuth, validateGetCustomers, customerController.getCustomers.bind(customerController));
+customersRouter.get('/', jwtAuth, validateGetCustomers, async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.user?.tenantId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Tenant ID is required'
+      });
+    }
+    
+    const result = await customerApplicationService.getCustomers({
+      tenantId: req.user.tenantId,
+      page: parseInt(req.query.page as string, 10) || 1,
+      limit: parseInt(req.query.limit as string, 10) || 50
+    });
+
+    if (result.success) {
+      res.status(200).json({
+        success: true,
+        customers: result.customers || [],
+        total: result.total || 0
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        error: result.error
+      });
+    }
+  } catch (error) {
+    console.error('[GET-CUSTOMERS] Error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch customers'
+    });
+  }
+});
 
 // POST /api/customers - Create new customer
 customersRouter.post('/', jwtAuth, validateCreateCustomer, async (req: AuthenticatedRequest, res) => {
