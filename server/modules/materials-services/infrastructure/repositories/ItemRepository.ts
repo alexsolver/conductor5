@@ -313,7 +313,7 @@ export class ItemRepository {
           and(
             eq(itemSupplierLinks.itemId, itemId),
             eq(itemSupplierLinks.tenantId, tenantId),
-            eq(supplierTable.active, true) // Corrigido para usar 'active' que é o nome correto da coluna em suppliers
+            eq(supplierTable.isActive, true) // Corrigido para usar 'is_active' que é o nome correto da coluna em suppliers
           )
         )
         .limit(50);

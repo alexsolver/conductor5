@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -128,6 +127,7 @@ const itemSchema = z.object({
   defaultChecklist: z.string().max(255, "Checklist muito longo").optional(),
   active: z.boolean().default(true),
   parentId: z.string().optional(),
+  childrenIds: z.array(z.string()).optional(), // Para vincular filhos
 });
 
 const measurementUnits = [
@@ -181,6 +181,7 @@ export default function ItemCatalog() {
       defaultChecklist: '',
       active: true,
       parentId: undefined,
+      childrenIds: [],
     }
   });
 
@@ -196,12 +197,14 @@ export default function ItemCatalog() {
     enabled: true
   });
 
-  const { data: availableCustomers } = useQuery({
-    queryKey: ["/api/customers/companies"]
+  const { data: availableCustomers, isLoading: isLoadingCustomers } = useQuery({
+    queryKey: ["/api/customers/companies"],
+    queryFn: () => apiRequest('GET', '/api/customers/companies').then(res => res.json()),
   });
 
-  const { data: availableSuppliers } = useQuery({
-    queryKey: ["/api/materials-services/suppliers"]
+  const { data: availableSuppliers, isLoading: isLoadingSuppliers } = useQuery({
+    queryKey: ["/api/materials-services/suppliers"],
+    queryFn: () => apiRequest('GET', '/api/materials-services/suppliers').then(res => res.json()),
   });
 
   // Query para vínculos do item específico quando estiver editando
@@ -296,6 +299,8 @@ export default function ItemCatalog() {
 
   // Processar dados
   const items: Item[] = (itemsResponse as any)?.data || [];
+  const companies = (availableCustomers as any)?.data || [];
+  const suppliers = (availableSuppliers as any)?.data || [];
 
   const filteredItems = items.filter((item: Item) => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -325,7 +330,6 @@ export default function ItemCatalog() {
     setCurrentPage(1);
   }, [searchTerm, typeFilter, statusFilter, hierarchyFilter]);
 
-  // Handlers
   const handleItemClick = (item: Item) => {
     setSelectedItem(item);
     setCurrentView('item-details');
@@ -343,13 +347,27 @@ export default function ItemCatalog() {
       defaultChecklist: item.defaultChecklist || '',
       active: item.active !== undefined ? item.active : true,
       parentId: item.parentId || undefined,
+      childrenIds: item.linkedChildren?.map(child => child.id) || [], // Assuming linkedChildren is available or fetched
     });
     setCurrentView('item-edit');
   };
 
   const onSubmitItem = async (data: z.infer<typeof itemSchema>) => {
     if (selectedItem && currentView === 'item-edit') {
-      updateItemMutation.mutate({ id: selectedItem.id, data });
+      // Logic to update item and its hierarchical links
+      try {
+        const updateResponse = await apiRequest('PUT', `/api/materials-services/items/${selectedItem.id}`, {
+          ...data,
+          childrenIds: data.childrenIds, // Ensure childrenIds are sent
+        });
+        if (!updateResponse.ok) throw new Error('Failed to update item');
+        
+        toast({ title: "Item atualizado", description: "Informações e vínculos salvos." });
+        queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items"] });
+        setCurrentView('item-details');
+      } catch (error) {
+        toast({ title: "Erro ao atualizar", description: "Tente novamente.", variant: "destructive" });
+      }
     } else {
       createItemMutation.mutate(data);
     }
@@ -373,10 +391,8 @@ export default function ItemCatalog() {
     setSelectedItems(newSelected);
   };
 
-  // Renderizar página principal de catálogo
   const renderCatalogView = () => (
     <div className="space-y-6">
-      {/* Header com métricas resumidas */}
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Catálogo de Itens</h1>
@@ -396,7 +412,6 @@ export default function ItemCatalog() {
         </div>
       </div>
 
-      {/* Controles de busca e filtros */}
       <Card>
         <CardContent className="p-4">
           <div className="flex flex-col lg:flex-row gap-4">
@@ -457,7 +472,6 @@ export default function ItemCatalog() {
         </CardContent>
       </Card>
 
-      {/* Lista principal */}
       <Card>
         <CardContent className="p-0">
           {isLoadingItems ? (
@@ -653,7 +667,6 @@ export default function ItemCatalog() {
                 </TableBody>
               </Table>
 
-              {/* Paginação */}
               {totalPages > 1 && (
                 <div className="flex items-center justify-between p-4 border-t">
                   <div className="text-sm text-gray-500">
@@ -689,13 +702,11 @@ export default function ItemCatalog() {
     </div>
   );
 
-  // Renderizar detalhes do item (visualização apenas)
   const renderItemDetailsView = () => {
     if (!selectedItem) return null;
 
     return (
       <div className="space-y-6">
-        {/* Header do item */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button 
@@ -744,7 +755,6 @@ export default function ItemCatalog() {
           </div>
         </div>
 
-        {/* Informações básicas */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
             <Card>
@@ -826,7 +836,6 @@ export default function ItemCatalog() {
           </div>
         </div>
 
-        {/* Abas de vínculos */}
         <Card>
           <CardContent className="p-6">
             <Tabs defaultValue="hierarchy" className="w-full">
@@ -863,7 +872,6 @@ export default function ItemCatalog() {
     );
   };
 
-  // Renderizar edição completa do item
   const renderItemEditView = () => {
     if (!selectedItem) return null;
 
@@ -871,7 +879,6 @@ export default function ItemCatalog() {
 
     return (
       <div className="space-y-6">
-        {/* Header da edição */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button 
@@ -897,10 +904,8 @@ export default function ItemCatalog() {
           </div>
         </div>
 
-        {/* Formulário de edição */}
         <Form {...itemForm}>
           <form onSubmit={itemForm.handleSubmit(onSubmitItem)} className="space-y-6">
-            {/* Informações básicas */}
             <Card>
               <CardHeader>
                 <CardTitle>Informações Básicas</CardTitle>
@@ -1033,282 +1038,288 @@ export default function ItemCatalog() {
                 </div>
               </CardContent>
             </Card>
-          </form>
-        </Form>
 
-        {/* Abas de vínculos - editáveis */}
-        <Card>
-          <CardContent className="p-6">
-            <Tabs defaultValue="hierarchy" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="hierarchy">Hierarquia Pai-Filho</TabsTrigger>
-                <TabsTrigger value="companies">Empresas Vinculadas</TabsTrigger>
-                <TabsTrigger value="suppliers">Fornecedores</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="hierarchy" className="space-y-4 mt-6">
-                <div className="flex justify-between items-center">
-                  <h3 className="text-lg font-semibold">Vínculos Hierárquicos</h3>
-                </div>
-                
-                {/* Seção para adicionar itens filhos */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Vínculos Hierárquicos</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Campos para itens filhos com seleção múltipla */}
                 <div className="space-y-4">
                   <div>
-                    <label className="text-sm font-medium">Adicionar Itens Filhos</label>
-                    <p className="text-sm text-muted-foreground mb-2">
+                    <label className="text-sm font-medium">Itens Filhos</label>
+                    <Select 
+                      onValueChange={(value) => {
+                        if (value && value !== "none") {
+                          const currentChildren = itemForm.watch("childrenIds") || [];
+                          if (!currentChildren.includes(value)) {
+                            itemForm.setValue("childrenIds", [...currentChildren, value]);
+                          }
+                        }
+                      }}
+                      value="" // Always reset to empty to allow multiple selections
+                    >
+                      <SelectTrigger className="mt-2">
+                        <SelectValue placeholder="Selecione itens filhos" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Selecionar item...</SelectItem>
+                        {items.filter(item => 
+                          item.id !== selectedItem?.id && 
+                          !item.parentId && 
+                          !(itemForm.watch("childrenIds") || []).includes(item.id)
+                        ).map((item) => (
+                          <SelectItem key={item.id} value={item.id}>
+                            {item.name} ({item.type})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    {/* Lista dos itens filhos selecionados */}
+                    <div className="mt-2">
+                      {(itemForm.watch("childrenIds") || []).map((childId) => {
+                        const child = items.find(item => item.id === childId);
+                        if (!child) return null;
+
+                        return (
+                          <div key={childId} className="flex items-center justify-between bg-gray-100 p-2 rounded mt-1">
+                            <span className="text-sm">{child.name} ({child.type})</span>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                const currentChildren = itemForm.watch("childrenIds") || [];
+                                itemForm.setValue("childrenIds", currentChildren.filter(id => id !== childId));
+                              }}
+                            >
+                              ×
+                            </Button>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <p className="text-sm text-muted-foreground mt-2">
                       Selecione itens que serão filhos deste item
                     </p>
-                    <div className="grid grid-cols-1 gap-2 max-h-64 overflow-y-auto border rounded-lg p-3">
-                      {items.filter(item => 
-                        item.id !== selectedItem?.id && 
-                        !item.parentId && 
-                        !item.isParent
-                      ).map((item) => (
-                        <div key={item.id} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`child-${item.id}`}
-                            checked={false} // TODO: Implementar estado dos filhos selecionados
-                            onCheckedChange={(checked) => {
-                              // TODO: Implementar lógica de seleção múltipla
-                              console.log(`${checked ? 'Selecionado' : 'Desmarcado'}: ${item.name}`);
-                            }}
-                          />
-                          <label 
-                            htmlFor={`child-${item.id}`}
-                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex-1"
-                          >
-                            <div className="flex items-center gap-2">
-                              {item.type === 'material' ? 
-                                <Package className="h-3 w-3 text-blue-600" /> : 
-                                <Wrench className="h-3 w-3 text-green-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          
+            <Card>
+              <CardHeader>
+                <CardTitle>Vínculos com Empresas e Fornecedores</CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                <Tabs defaultValue="companies" className="w-full">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="companies">Empresas Vinculadas</TabsTrigger>
+                    <TabsTrigger value="suppliers">Fornecedores</TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="companies" className="space-y-4 mt-6">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-medium">Empresas Vinculadas</h3>
+                      <Select
+                        onValueChange={async (companyId) => {
+                          if (!selectedItem?.id || !companyId || companyId === "none") return;
+
+                          try {
+                            const response = await fetch(`/api/materials-services/items/${selectedItem.id}/link-customer`, {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ customerId: companyId })
+                            });
+
+                            if (response.ok) {
+                              toast({
+                                title: "Sucesso",
+                                description: "Empresa vinculada com sucesso"
+                              });
+                              refetchItemLinks();
+                            } else {
+                              throw new Error('Falha ao vincular empresa');
+                            }
+                          } catch (error) {
+                            toast({
+                              title: "Erro",
+                              description: "Erro ao vincular empresa",
+                              variant: "destructive"
+                            });
+                          }
+                        }}
+                        value="" // Always reset to allow multiple selections
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Vincular Empresa" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">Selecione uma empresa...</SelectItem>
+                          {companies.filter(company => 
+                            !itemLinks?.customers?.some((linked: any) => linked.id === company.id)
+                          ).map((company) => (
+                            <SelectItem key={company.id} value={company.id}>
+                              {company.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      {itemLinks?.customers?.map((company: any) => (
+                        <div key={company.id} className="flex items-center justify-between bg-gray-50 p-3 rounded">
+                          <span>{company.name}</span>
+                          <Button
+                            variant="outline" 
+                            size="sm"
+                            onClick={async () => {
+                              if (!selectedItem?.id) return;
+
+                              try {
+                                const response = await fetch(`/api/materials-services/items/${selectedItem.id}/unlink-customer/${company.id}`, {
+                                  method: 'DELETE'
+                                });
+
+                                if (response.ok) {
+                                  toast({
+                                    title: "Sucesso",
+                                    description: "Empresa desvinculada com sucesso"
+                                  });
+                                  refetchItemLinks();
+                                } else {
+                                  throw new Error('Falha ao desvincular empresa');
+                                }
+                              } catch (error) {
+                                toast({
+                                  title: "Erro",
+                                  description: "Erro ao desvincular empresa",
+                                  variant: "destructive"
+                                });
                               }
-                              <span>{item.name}</span>
-                              <Badge variant="outline" className="text-xs">
-                                {item.type === 'material' ? 'Material' : 'Serviço'}
-                              </Badge>
-                            </div>
-                          </label>
+                            }}
+                          >
+                            Desvincular
+                          </Button>
                         </div>
                       ))}
-                    </div>
-                    
-                    {/* Botão para aplicar vínculos hierárquicos */}
-                    <div className="flex justify-end mt-4">
-                      <Button size="sm" onClick={() => {
-                        // TODO: Implementar lógica para salvar vínculos hierárquicos
-                        toast({
-                          title: "Vínculos hierárquicos atualizados",
-                          description: "Os vínculos pai-filho foram aplicados com sucesso.",
-                        });
-                      }}>
-                        <Link className="h-4 w-4 mr-2" />
-                        Aplicar Vínculos
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </TabsContent>
 
-              <TabsContent value="companies" className="space-y-4 mt-6">
-                <div className="flex justify-between items-center">
-                  <h3 className="text-lg font-semibold">Empresas Vinculadas ({itemLinks.customers?.length || 0})</h3>
-                  <Button 
-                    size="sm"
-                    onClick={() => {
-                      // Implementar modal de seleção de empresas
-                      if (availableCustomers && Array.isArray(availableCustomers)) {
-                        // Criar um modal de seleção
-                        const selectedCompanies: string[] = [];
-                        
-                        // Simulação de seleção (em produção seria um modal)
-                        const companyName = prompt("Digite o nome da empresa para vincular:");
-                        if (companyName) {
-                          // Buscar empresa por nome
-                          const company = availableCustomers.find((c: any) => 
-                            c.name?.toLowerCase().includes(companyName.toLowerCase())
-                          );
-                          
-                          if (company && selectedItem) {
-                            // Fazer a requisição para vincular
-                            apiRequest('POST', `/api/materials-services/items/${selectedItem.id}/link-customer`, {
-                              customerId: company.id
-                            }).then(() => {
+                      {(!itemLinks?.customers || itemLinks.customers.length === 0) && (
+                        <div className="text-center py-8 text-gray-500">
+                          Nenhuma empresa vinculada
+                        </div>
+                      )}
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="suppliers" className="space-y-4 mt-6">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-medium">Fornecedores Vinculados</h3>
+                      <Select
+                        onValueChange={async (supplierId) => {
+                          if (!selectedItem?.id || !supplierId || supplierId === "none") return;
+
+                          try {
+                            const response = await fetch(`/api/materials-services/items/${selectedItem.id}/link-supplier`, {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ supplierId })
+                            });
+
+                            if (response.ok) {
                               toast({
-                                title: "Empresa vinculada",
-                                description: `A empresa ${company.name} foi vinculada ao item.`,
+                                title: "Sucesso",
+                                description: "Fornecedor vinculado com sucesso"
                               });
                               refetchItemLinks();
-                            }).catch((error) => {
-                              toast({
-                                title: "Erro ao vincular empresa",
-                                description: "Tente novamente mais tarde.",
-                                variant: "destructive",
-                              });
-                            });
-                          } else {
+                            } else {
+                              throw new Error('Falha ao vincular fornecedor');
+                            }
+                          } catch (error) {
                             toast({
-                              title: "Empresa não encontrada",
-                              description: "Verifique o nome e tente novamente.",
-                              variant: "destructive",
+                              title: "Erro",
+                              description: "Erro ao vincular fornecedor",
+                              variant: "destructive"
                             });
                           }
-                        }
-                      }
-                    }}
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Vincular Empresa
-                  </Button>
-                </div>
+                        }}
+                        value="" // Always reset to allow multiple selections
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Vincular Fornecedor" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">Selecione um fornecedor...</SelectItem>
+                          {suppliers.filter(supplier => 
+                            !itemLinks?.suppliers?.some((linked: any) => linked.id === supplier.id)
+                          ).map((supplier) => (
+                            <SelectItem key={supplier.id} value={supplier.id}>
+                              {supplier.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                {itemLinks.customers && itemLinks.customers.length > 0 ? (
-                  <div className="space-y-2">
-                    {itemLinks.customers.map((customer: any) => (
-                      <div key={customer.id} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <Building className="h-4 w-4 text-blue-600" />
-                          <span className="font-medium">{customer.name}</span>
-                        </div>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="text-red-600 hover:text-red-700"
-                          onClick={() => {
-                            if (selectedItem && confirm(`Desvincular a empresa ${customer.name}?`)) {
-                              apiRequest('DELETE', `/api/materials-services/items/${selectedItem.id}/unlink-customer/${customer.id}`)
-                                .then(() => {
+                    <div className="space-y-2">
+                      {itemLinks?.suppliers?.map((supplier: any) => (
+                        <div key={supplier.id} className="flex items-center justify-between bg-gray-50 p-3 rounded">
+                          <span>{supplier.name}</span>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={async () => {
+                              if (!selectedItem?.id) return;
+
+                              try {
+                                const response = await fetch(`/api/materials-services/items/${selectedItem.id}/unlink-supplier/${supplier.id}`, {
+                                  method: 'DELETE'
+                                });
+
+                                if (response.ok) {
                                   toast({
-                                    title: "Empresa desvinculada",
-                                    description: `A empresa ${customer.name} foi desvinculada do item.`,
+                                    title: "Sucesso",
+                                    description: "Fornecedor desvinculado com sucesso"
                                   });
                                   refetchItemLinks();
-                                })
-                                .catch((error) => {
-                                  toast({
-                                    title: "Erro ao desvincular empresa",
-                                    description: "Tente novamente mais tarde.",
-                                    variant: "destructive",
-                                  });
+                                } else {
+                                  throw new Error('Falha ao desvincular fornecedor');
+                                }
+                              } catch (error) {
+                                toast({
+                                  title: "Erro",
+                                  description: "Erro ao desvincular fornecedor",
+                                  variant: "destructive"
                                 });
-                            }
-                          }}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <Building className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500">Nenhuma empresa vinculada</p>
-                  </div>
-                )}
-              </TabsContent>
-
-              <TabsContent value="suppliers" className="space-y-4 mt-6">
-                <div className="flex justify-between items-center">
-                  <h3 className="text-lg font-semibold">Fornecedores Vinculados ({itemLinks.suppliers?.length || 0})</h3>
-                  <Button 
-                    size="sm"
-                    onClick={() => {
-                      // Implementar modal de seleção de fornecedores
-                      if (availableSuppliers && Array.isArray(availableSuppliers.data)) {
-                        // Simulação de seleção (em produção seria um modal)
-                        const supplierName = prompt("Digite o nome do fornecedor para vincular:");
-                        if (supplierName) {
-                          // Buscar fornecedor por nome
-                          const supplier = availableSuppliers.data.find((s: any) => 
-                            s.name?.toLowerCase().includes(supplierName.toLowerCase())
-                          );
-                          
-                          if (supplier && selectedItem) {
-                            // Fazer a requisição para vincular
-                            apiRequest('POST', `/api/materials-services/items/${selectedItem.id}/link-supplier`, {
-                              supplierId: supplier.id
-                            }).then(() => {
-                              toast({
-                                title: "Fornecedor vinculado",
-                                description: `O fornecedor ${supplier.name} foi vinculado ao item.`,
-                              });
-                              refetchItemLinks();
-                            }).catch((error) => {
-                              toast({
-                                title: "Erro ao vincular fornecedor",
-                                description: "Tente novamente mais tarde.",
-                                variant: "destructive",
-                              });
-                            });
-                          } else {
-                            toast({
-                              title: "Fornecedor não encontrado",
-                              description: "Verifique o nome e tente novamente.",
-                              variant: "destructive",
-                            });
-                          }
-                        }
-                      }
-                    }}
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Vincular Fornecedor
-                  </Button>
-                </div>
-
-                {itemLinks.suppliers && itemLinks.suppliers.length > 0 ? (
-                  <div className="space-y-2">
-                    {itemLinks.suppliers.map((supplier: any) => (
-                      <div key={supplier.id} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <Truck className="h-4 w-4 text-amber-600" />
-                          <span className="font-medium">{supplier.name}</span>
+                              }
+                            }}
+                          >
+                            Desvincular
+                          </Button>
                         </div>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="text-red-600 hover:text-red-700"
-                          onClick={() => {
-                            if (selectedItem && confirm(`Desvincular o fornecedor ${supplier.name}?`)) {
-                              apiRequest('DELETE', `/api/materials-services/items/${selectedItem.id}/unlink-supplier/${supplier.id}`)
-                                .then(() => {
-                                  toast({
-                                    title: "Fornecedor desvinculado",
-                                    description: `O fornecedor ${supplier.name} foi desvinculado do item.`,
-                                  });
-                                  refetchItemLinks();
-                                })
-                                .catch((error) => {
-                                  toast({
-                                    title: "Erro ao desvincular fornecedor",
-                                    description: "Tente novamente mais tarde.",
-                                    variant: "destructive",
-                                  });
-                                });
-                            }
-                          }}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <Truck className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500">Nenhum fornecedor vinculado</p>
-                  </div>
-                )}
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
+                      ))}
+
+                      {(!itemLinks?.suppliers || itemLinks.suppliers.length === 0) && (
+                        <div className="text-center py-8 text-gray-500">
+                          Nenhum fornecedor vinculado
+                        </div>
+                      )}
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              </CardContent>
+            </Card>
+          </form>
+        </Form>
       </div>
     );
   };
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      {/* Breadcrumb */}
       <div className="flex items-center space-x-2 text-sm text-gray-500">
         <span>Gestão</span>
         <ChevronRight className="h-4 w-4" />
@@ -1321,12 +1332,10 @@ export default function ItemCatalog() {
         )}
       </div>
 
-      {/* Renderizar view baseada no estado atual */}
       {currentView === 'catalog' && renderCatalogView()}
       {currentView === 'item-details' && renderItemDetailsView()}
       {currentView === 'item-edit' && renderItemEditView()}
 
-      {/* Modal de Criação de Item */}
       <Dialog open={isCreateModalOpen} onOpenChange={(open) => {
         setIsCreateModalOpen(open);
         if (!open) {
