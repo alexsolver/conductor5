@@ -19,17 +19,10 @@ import { systemSettings } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 import { Response } from 'express'; // Import Response type
 import crypto from 'crypto'; // Import crypto for UUID generation
-// Remove the problematic pg import - use existing pool from db.js
-// import pkg from 'pg';
-// const { Pool } = pkg;
 import { drizzle } from 'drizzle-orm/node-postgres'; // Import drizzle for Drizzle ORM integration
 
-// Mocking drizzleDb and pool as they are not defined in the original context
-// In a real application, these would be properly initialized.
-const pool = new Pool({
-  connectionString: 'postgresql://user:password@host:port/database',
-});
-const drizzleDb = drizzle(pool);
+// Use the existing pool and db from db.ts instead of creating new ones
+import { pool, db as drizzleDb } from '../../db';
 
 
 // Create router
