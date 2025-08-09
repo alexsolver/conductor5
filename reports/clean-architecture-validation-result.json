@@ -1,6 +1,6 @@
 {
   "passed": false,
-  "score": 32,
+  "score": 30,
   "issues": [
     {
       "id": "ROUTES-BENEFICIARIES-BUSINESS-LOGIC",
@@ -41,36 +41,6 @@
       "description": "Routes contém lógica de negócio ou acesso a dados",
       "file": "server/modules/materials-services/routes.ts",
       "suggestedFix": "Mover lógica para Use Cases na camada Application"
-    },
-    {
-      "id": "ARCH-SAAS-ADMIN-APPLICATION-DTO",
-      "layer": "application",
-      "module": "saas-admin",
-      "severity": "medium",
-      "type": "structure_violation",
-      "description": "Estrutura dto ausente na camada application",
-      "file": "server/modules/saas-admin/application/dto",
-      "suggestedFix": "Criar diretório/arquivo dto na camada application"
-    },
-    {
-      "id": "ARCH-SAAS-ADMIN-APPLICATION-SERVICES",
-      "layer": "application",
-      "module": "saas-admin",
-      "severity": "medium",
-      "type": "structure_violation",
-      "description": "Estrutura services ausente na camada application",
-      "file": "server/modules/saas-admin/application/services",
-      "suggestedFix": "Criar diretório/arquivo services na camada application"
-    },
-    {
-      "id": "ARCH-SAAS-ADMIN-INFRASTRUCTURE-REPOSITORIES",
-      "layer": "infrastructure",
-      "module": "saas-admin",
-      "severity": "medium",
-      "type": "structure_violation",
-      "description": "Estrutura repositories ausente na camada infrastructure",
-      "file": "server/modules/saas-admin/infrastructure/repositories",
-      "suggestedFix": "Criar diretório/arquivo repositories na camada infrastructure"
     },
     {
       "id": "ROUTES-SAAS-ADMIN-CONTROLLER",
@@ -123,38 +93,7 @@
       "suggestedFix": "Mover lógica para Use Cases na camada Application"
     },
     {
-      "id": "ARCH-TIMECARD-DOMAIN-EVENTS",
-      "layer": "domain",
-      "module": "timecard",
-      "severity": "medium",
-      "type": "structure_violation",
-      "description": "Estrutura events ausente na camada domain",
-      "file": "server/modules/timecard/domain/events",
-      "suggestedFix": "Criar diretório/arquivo events na camada domain"
-    },
-    {
-      "id": "ARCH-TIMECARD-DOMAIN-SERVICES",
-      "layer": "domain",
-      "module": "timecard",
-      "severity": "medium",
-      "type": "structure_violation",
-      "description": "Estrutura services ausente na camada domain",
-      "file": "server/modules/timecard/domain/services",
-      "suggestedFix": "Criar diretório/arquivo services na camada domain"
-    },
-    {
-      "id": "DEP-AUTH-APP-1754776500635",
-      "layer": "application",
-      "module": "auth",
-      "severity": "high",
-      "type": "dependency_violation",
-      "description": "Application Layer violando dependência: express",
-      "file": "server/modules/auth/application/controllers/AuthController.ts",
-      "line": 1,
-      "suggestedFix": "Application não deve importar framework diretamente. Use controllers."
-    },
-    {
-      "id": "DEP-BENEFICIARIES-DOMAIN-1754776500640",
+      "id": "DEP-BENEFICIARIES-DOMAIN-1754776764703",
       "layer": "domain",
       "module": "beneficiaries",
       "severity": "critical",
@@ -165,7 +104,7 @@
       "suggestedFix": "Domain não deve importar Application. Inverta a dependência."
     },
     {
-      "id": "DEP-BENEFICIARIES-DOMAIN-1754776500640",
+      "id": "DEP-BENEFICIARIES-DOMAIN-1754776764703",
       "layer": "domain",
       "module": "beneficiaries",
       "severity": "critical",
@@ -176,7 +115,7 @@
       "suggestedFix": "Domain não deve importar Application. Inverta a dependência."
     },
     {
-      "id": "DEP-CUSTOMERS-APP-1754776500658",
+      "id": "DEP-CUSTOMERS-APP-1754776764707",
       "layer": "application",
       "module": "customers",
       "severity": "high",
@@ -187,7 +126,18 @@
       "suggestedFix": "Application não deve importar framework diretamente. Use controllers."
     },
     {
-      "id": "DEP-KNOWLEDGE-BASE-DOMAIN-1754776500678",
+      "id": "DEP-KNOWLEDGE-BASE-DOMAIN-1754776764710",
+      "layer": "domain",
+      "module": "knowledge-base",
+      "severity": "critical",
+      "type": "dependency_violation",
+      "description": "Domain Layer violando dependência: drizzle-orm/neon-http",
+      "file": "server/modules/knowledge-base/domain/ports/IKnowledgeBaseEntryRepository.ts",
+      "line": 3,
+      "suggestedFix": "Domain não deve importar ORM. Defina interface de repositório."
+    },
+    {
+      "id": "DEP-KNOWLEDGE-BASE-DOMAIN-1754776764711",
       "layer": "domain",
       "module": "knowledge-base",
       "severity": "critical",
@@ -198,7 +148,7 @@
       "suggestedFix": "Domain não deve importar ORM. Defina interface de repositório."
     },
     {
-      "id": "DEP-KNOWLEDGE-BASE-APP-1754776500679",
+      "id": "DEP-KNOWLEDGE-BASE-APP-1754776764712",
       "layer": "application",
       "module": "knowledge-base",
       "severity": "high",
@@ -209,7 +159,7 @@
       "suggestedFix": "Application não deve importar framework diretamente. Use controllers."
     },
     {
-      "id": "DEP-KNOWLEDGE-BASE-APP-1754776500679",
+      "id": "DEP-KNOWLEDGE-BASE-APP-1754776764712",
       "layer": "application",
       "module": "knowledge-base",
       "severity": "high",
@@ -220,7 +170,7 @@
       "suggestedFix": "Application não deve importar Infrastructure. Use dependency injection."
     },
     {
-      "id": "DEP-KNOWLEDGE-BASE-APP-1754776500679",
+      "id": "DEP-KNOWLEDGE-BASE-APP-1754776764712",
       "layer": "application",
       "module": "knowledge-base",
       "severity": "high",
@@ -231,7 +181,7 @@
       "suggestedFix": "Application não deve importar Infrastructure. Use dependency injection."
     },
     {
-      "id": "DEP-KNOWLEDGE-BASE-APP-1754776500680",
+      "id": "DEP-KNOWLEDGE-BASE-APP-1754776764712",
       "layer": "application",
       "module": "knowledge-base",
       "severity": "high",
@@ -242,7 +192,7 @@
       "suggestedFix": "Application não deve importar framework diretamente. Use controllers."
     },
     {
-      "id": "DEP-KNOWLEDGE-BASE-APP-1754776500680",
+      "id": "DEP-KNOWLEDGE-BASE-APP-1754776764712",
       "layer": "application",
       "module": "knowledge-base",
       "severity": "high",
@@ -253,7 +203,7 @@
       "suggestedFix": "Application não deve importar Infrastructure. Use dependency injection."
     },
     {
-      "id": "DEP-KNOWLEDGE-BASE-APP-1754776500680",
+      "id": "DEP-KNOWLEDGE-BASE-APP-1754776764712",
       "layer": "application",
       "module": "knowledge-base",
       "severity": "high",
@@ -264,7 +214,7 @@
       "suggestedFix": "Application não deve importar Infrastructure. Use dependency injection."
     },
     {
-      "id": "DEP-KNOWLEDGE-BASE-APP-1754776500680",
+      "id": "DEP-KNOWLEDGE-BASE-APP-1754776764712",
       "layer": "application",
       "module": "knowledge-base",
       "severity": "high",
@@ -275,7 +225,7 @@
       "suggestedFix": "Application não deve importar Infrastructure. Use dependency injection."
     },
     {
-      "id": "DEP-KNOWLEDGE-BASE-APP-1754776500680",
+      "id": "DEP-KNOWLEDGE-BASE-APP-1754776764712",
       "layer": "application",
       "module": "knowledge-base",
       "severity": "high",
@@ -286,7 +236,7 @@
       "suggestedFix": "Application não deve importar Infrastructure. Use dependency injection."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-DOMAIN-1754776500694",
+      "id": "DEP-MATERIALS-SERVICES-DOMAIN-1754776764713",
       "layer": "domain",
       "module": "materials-services",
       "severity": "critical",
@@ -297,7 +247,7 @@
       "suggestedFix": "Domain não deve importar ORM. Defina interface de repositório."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-DOMAIN-1754776500694",
+      "id": "DEP-MATERIALS-SERVICES-DOMAIN-1754776764713",
       "layer": "domain",
       "module": "materials-services",
       "severity": "critical",
@@ -308,7 +258,7 @@
       "suggestedFix": "Domain não deve importar ORM. Defina interface de repositório."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-DOMAIN-1754776500694",
+      "id": "DEP-MATERIALS-SERVICES-DOMAIN-1754776764713",
       "layer": "domain",
       "module": "materials-services",
       "severity": "critical",
@@ -319,7 +269,7 @@
       "suggestedFix": "Domain não deve importar ORM. Defina interface de repositório."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-DOMAIN-1754776500694",
+      "id": "DEP-MATERIALS-SERVICES-DOMAIN-1754776764714",
       "layer": "domain",
       "module": "materials-services",
       "severity": "critical",
@@ -330,7 +280,7 @@
       "suggestedFix": "Domain não deve importar ORM. Defina interface de repositório."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-DOMAIN-1754776500694",
+      "id": "DEP-MATERIALS-SERVICES-DOMAIN-1754776764714",
       "layer": "domain",
       "module": "materials-services",
       "severity": "critical",
@@ -341,7 +291,7 @@
       "suggestedFix": "Domain não deve importar ORM. Defina interface de repositório."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-DOMAIN-1754776500695",
+      "id": "DEP-MATERIALS-SERVICES-DOMAIN-1754776764714",
       "layer": "domain",
       "module": "materials-services",
       "severity": "critical",
@@ -352,7 +302,7 @@
       "suggestedFix": "Domain não deve importar ORM. Defina interface de repositório."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-DOMAIN-1754776500695",
+      "id": "DEP-MATERIALS-SERVICES-DOMAIN-1754776764714",
       "layer": "domain",
       "module": "materials-services",
       "severity": "critical",
@@ -363,7 +313,18 @@
       "suggestedFix": "Domain não deve importar ORM. Defina interface de repositório."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754776500697",
+      "id": "DEP-MATERIALS-SERVICES-DOMAIN-1754776764714",
+      "layer": "domain",
+      "module": "materials-services",
+      "severity": "critical",
+      "type": "dependency_violation",
+      "description": "Domain Layer violando dependência: drizzle-orm/neon-http",
+      "file": "server/modules/materials-services/domain/ports/IindexRepository.ts",
+      "line": 3,
+      "suggestedFix": "Domain não deve importar ORM. Defina interface de repositório."
+    },
+    {
+      "id": "DEP-MATERIALS-SERVICES-APP-1754776764714",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -374,7 +335,7 @@
       "suggestedFix": "Application não deve importar framework diretamente. Use controllers."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754776500697",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754776764714",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -385,7 +346,7 @@
       "suggestedFix": "Application não deve importar Infrastructure. Use dependency injection."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754776500697",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754776764714",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -396,7 +357,7 @@
       "suggestedFix": "Application não deve importar Infrastructure. Use dependency injection."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754776500697",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754776764714",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -407,7 +368,7 @@
       "suggestedFix": "Application não deve importar framework diretamente. Use controllers."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754776500697",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754776764714",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -418,7 +379,7 @@
       "suggestedFix": "Application não deve importar framework diretamente. Use controllers."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754776500697",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754776764714",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -429,7 +390,7 @@
       "suggestedFix": "Application não deve importar Infrastructure. Use dependency injection."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754776500697",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754776764714",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -440,7 +401,7 @@
       "suggestedFix": "Application não deve importar Infrastructure. Use dependency injection."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754776500698",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754776764715",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -451,7 +412,7 @@
       "suggestedFix": "Application não deve importar framework diretamente. Use controllers."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754776500698",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754776764715",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -462,7 +423,7 @@
       "suggestedFix": "Application não deve importar framework diretamente. Use controllers."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754776500698",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754776764715",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -473,7 +434,7 @@
       "suggestedFix": "Application não deve importar framework diretamente. Use controllers."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754776500699",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754776764715",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -484,7 +445,7 @@
       "suggestedFix": "Application não deve importar framework diretamente. Use controllers."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754776500699",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754776764715",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -495,7 +456,7 @@
       "suggestedFix": "Application não deve importar ORM. Use interfaces de repositório."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754776500699",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754776764715",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -506,7 +467,7 @@
       "suggestedFix": "Application não deve importar ORM. Use interfaces de repositório."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754776500699",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754776764715",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -517,18 +478,7 @@
       "suggestedFix": "Application não deve importar framework diretamente. Use controllers."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754776500699",
-      "layer": "application",
-      "module": "materials-services",
-      "severity": "high",
-      "type": "dependency_violation",
-      "description": "Application Layer violando dependência: ../../infrastructure/repositories/ItemRepository",
-      "file": "server/modules/materials-services/application/controllers/ImportController.ts",
-      "line": 7,
-      "suggestedFix": "Application não deve importar Infrastructure. Use dependency injection."
-    },
-    {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754776500699",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754776764715",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -539,7 +489,18 @@
       "suggestedFix": "Application não deve importar Infrastructure. Use dependency injection."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754776500699",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754776764715",
+      "layer": "application",
+      "module": "materials-services",
+      "severity": "high",
+      "type": "dependency_violation",
+      "description": "Application Layer violando dependência: ../../infrastructure/repositories/ItemRepository",
+      "file": "server/modules/materials-services/application/controllers/ImportController.ts",
+      "line": 7,
+      "suggestedFix": "Application não deve importar Infrastructure. Use dependency injection."
+    },
+    {
+      "id": "DEP-MATERIALS-SERVICES-APP-1754776764715",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -550,7 +511,7 @@
       "suggestedFix": "Application não deve importar framework diretamente. Use controllers."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754776500699",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754776764715",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -561,7 +522,7 @@
       "suggestedFix": "Application não deve importar Infrastructure. Use dependency injection."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754776500699",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754776764715",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -572,7 +533,7 @@
       "suggestedFix": "Application não deve importar Infrastructure. Use dependency injection."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754776500700",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754776764716",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -583,7 +544,7 @@
       "suggestedFix": "Application não deve importar framework diretamente. Use controllers."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754776500700",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754776764716",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -594,7 +555,7 @@
       "suggestedFix": "Application não deve importar Infrastructure. Use dependency injection."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754776500700",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754776764716",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -605,7 +566,7 @@
       "suggestedFix": "Application não deve importar Infrastructure. Use dependency injection."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754776500700",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754776764716",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -616,7 +577,7 @@
       "suggestedFix": "Application não deve importar framework diretamente. Use controllers."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754776500700",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754776764716",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -627,7 +588,7 @@
       "suggestedFix": "Application não deve importar framework diretamente. Use controllers."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754776500700",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754776764716",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -638,7 +599,7 @@
       "suggestedFix": "Application não deve importar Infrastructure. Use dependency injection."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754776500700",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754776764716",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -649,7 +610,7 @@
       "suggestedFix": "Application não deve importar Infrastructure. Use dependency injection."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754776500700",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754776764716",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -660,7 +621,7 @@
       "suggestedFix": "Application não deve importar framework diretamente. Use controllers."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754776500700",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754776764716",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -671,7 +632,7 @@
       "suggestedFix": "Application não deve importar Infrastructure. Use dependency injection."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754776500700",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754776764716",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -682,7 +643,7 @@
       "suggestedFix": "Application não deve importar Infrastructure. Use dependency injection."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754776500700",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754776764716",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -693,7 +654,7 @@
       "suggestedFix": "Application não deve importar framework diretamente. Use controllers."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754776500700",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754776764716",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -704,7 +665,7 @@
       "suggestedFix": "Application não deve importar ORM. Use interfaces de repositório."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754776500701",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754776764717",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -715,7 +676,7 @@
       "suggestedFix": "Application não deve importar ORM. Use interfaces de repositório."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754776500701",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754776764717",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -726,7 +687,7 @@
       "suggestedFix": "Application não deve importar framework diretamente. Use controllers."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754776500701",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754776764717",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -737,7 +698,7 @@
       "suggestedFix": "Application não deve importar Infrastructure. Use dependency injection."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754776500701",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754776764717",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -748,7 +709,7 @@
       "suggestedFix": "Application não deve importar Infrastructure. Use dependency injection."
     },
     {
-      "id": "DEP-PEOPLE-APP-1754776500721",
+      "id": "DEP-PEOPLE-APP-1754776764720",
       "layer": "application",
       "module": "people",
       "severity": "high",
@@ -759,7 +720,18 @@
       "suggestedFix": "Application não deve importar framework diretamente. Use controllers."
     },
     {
-      "id": "DEP-SAAS-ADMIN-APP-1754776500726",
+      "id": "DEP-SAAS-ADMIN-DOMAIN-1754776764720",
+      "layer": "domain",
+      "module": "saas-admin",
+      "severity": "critical",
+      "type": "dependency_violation",
+      "description": "Domain Layer violando dependência: drizzle-orm/neon-http",
+      "file": "server/modules/saas-admin/domain/ports/Iindex.ts",
+      "line": 3,
+      "suggestedFix": "Domain não deve importar ORM. Defina interface de repositório."
+    },
+    {
+      "id": "DEP-SAAS-ADMIN-APP-1754776764720",
       "layer": "application",
       "module": "saas-admin",
       "severity": "high",
@@ -770,7 +742,7 @@
       "suggestedFix": "Application não deve importar framework diretamente. Use controllers."
     },
     {
-      "id": "DEP-SCHEDULE-MANAGEMENT-DOMAIN-1754776500728",
+      "id": "DEP-SCHEDULE-MANAGEMENT-DOMAIN-1754776764721",
       "layer": "domain",
       "module": "schedule-management",
       "severity": "critical",
@@ -781,7 +753,18 @@
       "suggestedFix": "Domain não deve importar ORM. Defina interface de repositório."
     },
     {
-      "id": "DEP-SHARED-DOMAIN-1754776500733",
+      "id": "DEP-SHARED-DOMAIN-1754776764722",
+      "layer": "domain",
+      "module": "shared",
+      "severity": "critical",
+      "type": "dependency_violation",
+      "description": "Domain Layer violando dependência: drizzle-orm/neon-http",
+      "file": "server/modules/shared/domain/ports/IBaseEntityRepository.ts",
+      "line": 3,
+      "suggestedFix": "Domain não deve importar ORM. Defina interface de repositório."
+    },
+    {
+      "id": "DEP-SHARED-DOMAIN-1754776764722",
       "layer": "domain",
       "module": "shared",
       "severity": "critical",
@@ -792,7 +775,7 @@
       "suggestedFix": "Domain não deve importar ORM. Defina interface de repositório."
     },
     {
-      "id": "DEP-TECHNICAL-SKILLS-DOMAIN-1754776500745",
+      "id": "DEP-TECHNICAL-SKILLS-DOMAIN-1754776764723",
       "layer": "domain",
       "module": "technical-skills",
       "severity": "critical",
@@ -803,7 +786,7 @@
       "suggestedFix": "Domain não deve importar ORM. Defina interface de repositório."
     },
     {
-      "id": "DEP-TECHNICAL-SKILLS-APP-1754776500746",
+      "id": "DEP-TECHNICAL-SKILLS-APP-1754776764723",
       "layer": "application",
       "module": "technical-skills",
       "severity": "high",
@@ -814,7 +797,7 @@
       "suggestedFix": "Application não deve importar framework diretamente. Use controllers."
     },
     {
-      "id": "DEP-TECHNICAL-SKILLS-APP-1754776500746",
+      "id": "DEP-TECHNICAL-SKILLS-APP-1754776764723",
       "layer": "application",
       "module": "technical-skills",
       "severity": "high",
@@ -825,7 +808,7 @@
       "suggestedFix": "Application não deve importar Infrastructure. Use dependency injection."
     },
     {
-      "id": "DEP-TECHNICAL-SKILLS-APP-1754776500746",
+      "id": "DEP-TECHNICAL-SKILLS-APP-1754776764723",
       "layer": "application",
       "module": "technical-skills",
       "severity": "high",
@@ -836,7 +819,7 @@
       "suggestedFix": "Application não deve importar Infrastructure. Use dependency injection."
     },
     {
-      "id": "DEP-TECHNICAL-SKILLS-APP-1754776500746",
+      "id": "DEP-TECHNICAL-SKILLS-APP-1754776764723",
       "layer": "application",
       "module": "technical-skills",
       "severity": "high",
@@ -847,7 +830,7 @@
       "suggestedFix": "Application não deve importar framework diretamente. Use controllers."
     },
     {
-      "id": "DEP-TECHNICAL-SKILLS-APP-1754776500746",
+      "id": "DEP-TECHNICAL-SKILLS-APP-1754776764723",
       "layer": "application",
       "module": "technical-skills",
       "severity": "high",
@@ -858,7 +841,7 @@
       "suggestedFix": "Application não deve importar Infrastructure. Use dependency injection."
     },
     {
-      "id": "DEP-TECHNICAL-SKILLS-APP-1754776500746",
+      "id": "DEP-TECHNICAL-SKILLS-APP-1754776764723",
       "layer": "application",
       "module": "technical-skills",
       "severity": "high",
@@ -869,7 +852,7 @@
       "suggestedFix": "Application não deve importar Infrastructure. Use dependency injection."
     },
     {
-      "id": "DEP-TIMECARD-DOMAIN-1754776500782",
+      "id": "DEP-TIMECARD-DOMAIN-1754776764728",
       "layer": "domain",
       "module": "timecard",
       "severity": "critical",
@@ -880,7 +863,7 @@
       "suggestedFix": "Domain não deve importar ORM. Defina interface de repositório."
     },
     {
-      "id": "DEP-TIMECARD-APP-1754776500785",
+      "id": "DEP-TIMECARD-APP-1754776764728",
       "layer": "application",
       "module": "timecard",
       "severity": "high",
@@ -891,7 +874,7 @@
       "suggestedFix": "Application não deve importar framework diretamente. Use controllers."
     },
     {
-      "id": "DEP-TIMECARD-APP-1754776500785",
+      "id": "DEP-TIMECARD-APP-1754776764728",
       "layer": "application",
       "module": "timecard",
       "severity": "high",
@@ -902,7 +885,7 @@
       "suggestedFix": "Application não deve importar ORM. Use interfaces de repositório."
     },
     {
-      "id": "DEP-TIMECARD-APP-1754776500791",
+      "id": "DEP-TIMECARD-APP-1754776764728",
       "layer": "application",
       "module": "timecard",
       "severity": "high",
@@ -913,7 +896,7 @@
       "suggestedFix": "Application não deve importar ORM. Use interfaces de repositório."
     },
     {
-      "id": "DEP-TIMECARD-APP-1754776500791",
+      "id": "DEP-TIMECARD-APP-1754776764728",
       "layer": "application",
       "module": "timecard",
       "severity": "high",
@@ -924,7 +907,7 @@
       "suggestedFix": "Application não deve importar Infrastructure. Use dependency injection."
     },
     {
-      "id": "DEP-TIMECARD-APP-1754776500791",
+      "id": "DEP-TIMECARD-APP-1754776764728",
       "layer": "application",
       "module": "timecard",
       "severity": "high",
@@ -935,7 +918,7 @@
       "suggestedFix": "Application não deve importar Infrastructure. Use dependency injection."
     },
     {
-      "id": "DEP-TIMECARD-APP-1754776500791",
+      "id": "DEP-TIMECARD-APP-1754776764728",
       "layer": "application",
       "module": "timecard",
       "severity": "high",
@@ -954,6 +937,16 @@
       "description": "Repository contém possível lógica de negócio",
       "file": "server/modules/auth/infrastructure/repositories/DrizzleUserRepository.ts",
       "suggestedFix": "Mover lógica de negócio para Domain layer (Entity ou Service)"
+    },
+    {
+      "id": "SOC-BENEFICIARIES-ENTITY-DTO",
+      "layer": "domain",
+      "module": "beneficiaries",
+      "severity": "high",
+      "type": "coupling_issue",
+      "description": "Entity misturada com DTOs - violação de responsabilidade",
+      "file": "server/modules/beneficiaries/domain/entities/Beneficiary.ts",
+      "suggestedFix": "Separar Entity de DTOs, mover DTOs para Application layer"
     },
     {
       "id": "SOC-DASHBOARD-REPO-BUSINESS",
@@ -1206,6 +1199,26 @@
       "suggestedFix": "Renomear para PascalCase (ex: CustomerEntity -> Customer)"
     },
     {
+      "id": "NAMING-SAAS-ADMIN-REPO-index",
+      "layer": "infrastructure",
+      "module": "saas-admin",
+      "severity": "medium",
+      "type": "naming_inconsistency",
+      "description": "Repository index deve terminar com 'Repository'",
+      "file": "server/modules/saas-admin/infrastructure/repositories/index.ts",
+      "suggestedFix": "Renomear para [Entity]Repository (ex: CustomerRepository)"
+    },
+    {
+      "id": "IMPL-SAAS-ADMIN-REPO-index",
+      "layer": "infrastructure",
+      "module": "saas-admin",
+      "severity": "medium",
+      "type": "structure_violation",
+      "description": "Repository index deve implementar interface",
+      "file": "server/modules/saas-admin/infrastructure/repositories/index.ts",
+      "suggestedFix": "Criar interface I[Entity]Repository no domain e implementar"
+    },
+    {
       "id": "NAMING-SHARED-USECASE-index",
       "layer": "application",
       "module": "shared",
@@ -1286,61 +1299,31 @@
       "suggestedFix": "Criar interface I[Entity]Repository no domain e implementar"
     },
     {
-      "id": "COMP-KNOWLEDGE-BASE-REPO-INTERFACE-KnowledgeBaseEntryRepository",
+      "id": "COMP-SAAS-ADMIN-REPO-INTERFACE-indexRepository",
       "layer": "domain",
-      "module": "knowledge-base",
-      "severity": "medium",
-      "type": "missing_component",
-      "description": "Repository KnowledgeBaseEntryRepository não possui interface no Domain",
-      "file": "server/modules/knowledge-base/domain/ports/IKnowledgeBaseEntryRepository.ts",
-      "suggestedFix": "Criar interface IKnowledgeBaseEntryRepository no domain/ports ou domain/repositories"
-    },
-    {
-      "id": "COMP-MATERIALS-SERVICES-REPO-INTERFACE-indexRepository",
-      "layer": "domain",
-      "module": "materials-services",
+      "module": "saas-admin",
       "severity": "medium",
       "type": "missing_component",
       "description": "Repository indexRepository não possui interface no Domain",
-      "file": "server/modules/materials-services/domain/ports/IindexRepository.ts",
+      "file": "server/modules/saas-admin/domain/ports/IindexRepository.ts",
       "suggestedFix": "Criar interface IindexRepository no domain/ports ou domain/repositories"
     },
     {
-      "id": "COMP-SAAS-ADMIN-ENTITY-REPO-index",
-      "layer": "infrastructure",
-      "module": "saas-admin",
-      "severity": "high",
-      "type": "missing_component",
-      "description": "Entity index não possui Repository correspondente",
-      "file": "server/modules/saas-admin/infrastructure/repositories/indexRepository.ts",
-      "suggestedFix": "Criar indexRepository.ts na camada Infrastructure"
-    },
-    {
-      "id": "COMP-SHARED-REPO-INTERFACE-BaseEntityRepository",
+      "id": "COMP-TIMECARD-REPO-INTERFACE-indexRepository",
       "layer": "domain",
-      "module": "shared",
+      "module": "timecard",
       "severity": "medium",
       "type": "missing_component",
-      "description": "Repository BaseEntityRepository não possui interface no Domain",
-      "file": "server/modules/shared/domain/ports/IBaseEntityRepository.ts",
-      "suggestedFix": "Criar interface IBaseEntityRepository no domain/ports ou domain/repositories"
-    },
-    {
-      "id": "COMP-TIMECARD-ENTITY-REPO-index",
-      "layer": "infrastructure",
-      "module": "timecard",
-      "severity": "high",
-      "type": "missing_component",
-      "description": "Entity index não possui Repository correspondente",
-      "file": "server/modules/timecard/infrastructure/repositories/indexRepository.ts",
-      "suggestedFix": "Criar indexRepository.ts na camada Infrastructure"
+      "description": "Repository indexRepository não possui interface no Domain",
+      "file": "server/modules/timecard/domain/ports/IindexRepository.ts",
+      "suggestedFix": "Criar interface IindexRepository no domain/ports ou domain/repositories"
     }
   ],
   "summary": {
-    "total": 126,
-    "critical": 14,
-    "high": 68,
-    "medium": 40,
+    "total": 124,
+    "critical": 18,
+    "high": 66,
+    "medium": 36,
     "low": 4
   }
 }
