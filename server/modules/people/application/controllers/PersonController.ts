@@ -1,60 +1,57 @@
+import { Request, Response } from 'express';
 import { CreatePersonUseCase } from '../use-cases/CreatePersonUseCase';
 import { UpdatePersonUseCase } from '../use-cases/UpdatePersonUseCase';
-
-export interface PersonControllerRequest {
-  name?: string;
-  email?: string;
-  phone?: string;
-  tenantId: string;
-  id?: string;
-}
-
-export interface PersonControllerResponse {
-  success: boolean;
-  data: any;
-  message?: string;
-}
+import { SearchPeopleUseCase } from '../use-cases/SearchPeopleUseCase';
 
 export class PersonController {
   constructor(
-    private readonly createPersonUseCase: CreatePersonUseCase,
-    private readonly updatePersonUseCase: UpdatePersonUseCase
+    private createPersonUseCase: CreatePersonUseCase,
+    private updatePersonUseCase: UpdatePersonUseCase,
+    private searchPeopleUseCase?: SearchPeopleUseCase
   ) {}
 
-  async create(request: PersonControllerRequest): Promise<PersonControllerResponse> {
+  async create(req: Request, res: Response): Promise<void> {
     try {
-      const result = await this.createPersonUseCase.execute({
-        name: request.name!,
-        email: request.email!,
-        phone: request.phone,
-        tenantId: request.tenantId
-      });
-
-      return {
-        success: true,
-        data: result
-      };
+      const person = await this.createPersonUseCase.execute(req.body);
+      res.status(201).json(person);
     } catch (error) {
-      throw new Error(`Failed to create person: ${error}`);
+      res.status(400).json({ error: (error as Error).message });
     }
   }
 
-  async update(request: PersonControllerRequest): Promise<PersonControllerResponse> {
+  async update(req: Request, res: Response): Promise<void> {
     try {
-      const result = await this.updatePersonUseCase.execute({
-        id: request.id!,
-        name: request.name,
-        email: request.email,
-        phone: request.phone,
-        tenantId: request.tenantId
+      const person = await this.updatePersonUseCase.execute(req.params.id, req.body);
+      if (!person) {
+        res.status(404).json({ error: 'Person not found' });
+        return;
+      }
+      res.json(person);
+    } catch (error) {
+      res.status(400).json({ error: (error as Error).message });
+    }
+  }
+
+  async search(req: Request, res: Response): Promise<void> {
+    try {
+      if (!this.searchPeopleUseCase) {
+        res.status(500).json({ error: 'Search use case not configured' });
+        return;
+      }
+
+      const { companyId, types, query, limit } = req.query;
+
+      const result = await this.searchPeopleUseCase.execute({
+        companyId: companyId as string,
+        types: types ? (types as string).split(',') as ('user' | 'customer' | 'beneficiary')[] : undefined,
+        query: query as string,
+        limit: limit ? parseInt(limit as string, 10) : undefined
       });
 
-      return {
-        success: true,
-        data: result
-      };
+      res.json(result);
     } catch (error) {
-      throw new Error(`Failed to update person: ${error}`);
+      console.error('Error searching people:', error);
+      res.status(500).json({ error: 'Internal server error' });
     }
   }
 }

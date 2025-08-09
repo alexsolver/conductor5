@@ -25,7 +25,7 @@ async function generateActionNumber(pool: any, tenantId: string, ticketId: strin
 
     // Get next sequence number
     const sequenceQuery = `
-      SELECT COALESCE(MAX(CAST(SUBSTRING(action_number FROM '${ticketNumber}AI(\\d+)') AS INTEGER)), 0) + 1 as next_seq
+      SELECT COALESCE(MAX(CAST(SUBSTRING(action_number FROM '${ticketNumber}AI\\d+)') AS INTEGER)), 0) + 1 as next_seq
       FROM "${schemaName}".ticket_internal_actions 
       WHERE ticket_id = $1 AND tenant_id = $2 
       AND action_number ~ '^${ticketNumber}AI\\d+$'
@@ -117,7 +117,7 @@ ticketsRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
     const assignedTo = req.query.assignedTo as string;
 
     const offset = (page - 1) * limit;
-    
+
     // CORREÇÃO: Query otimizada com nomenclatura padronizada companies
     let query = `
       SELECT 
@@ -838,7 +838,7 @@ const upload = multer({
       'video/mp4', 'video/avi', 'video/quicktime',
       'audio/mpeg', 'audio/wav', 'audio/mp3'
     ];
-    
+
     if (allowedMimeTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
@@ -852,7 +852,7 @@ ticketsRouter.post('/:id/attachments', jwtAuth, upload.array('attachments', 5), 
   console.log('🔍 Request params:', req.params);
   console.log('🔍 Request body:', req.body);
   console.log('🔍 Files received:', req.files ? req.files.length : 0);
-  
+
   try {
     if (!req.user?.tenantId) {
       return res.status(400).json({ message: "User not associated with a tenant" });
@@ -876,7 +876,7 @@ ticketsRouter.post('/:id/attachments', jwtAuth, upload.array('attachments', 5), 
     // Verify ticket exists
     const ticketQuery = `SELECT id FROM "${schemaName}".tickets WHERE id = $1 AND tenant_id = $2`;
     const ticketResult = await pool.query(ticketQuery, [ticketId, tenantId]);
-    
+
     if (ticketResult.rows.length === 0) {
       return res.status(404).json({ success: false, message: 'Ticket not found' });
     }
@@ -902,7 +902,7 @@ ticketsRouter.post('/:id/attachments', jwtAuth, upload.array('attachments', 5), 
 
         // Save attachment record to database
         console.log(`🗃️ Inserting attachment record for: ${file.originalname}`);
-        
+
         const insertQuery = `
           INSERT INTO "${schemaName}".ticket_attachments 
           (id, tenant_id, ticket_id, file_name, file_size, file_type, file_path, content_type, description, is_active, created_by, created_at, updated_at)

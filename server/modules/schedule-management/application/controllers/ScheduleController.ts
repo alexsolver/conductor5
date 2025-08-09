@@ -1,7 +1,7 @@
 // Schedule Controller - Application Layer
 // Using DTOs instead of express types in application layer
 import { z } from 'zod';
-import { DrizzleScheduleRepository } from '../../infrastructure/repositories/DrizzleScheduleRepository';
+import { IScheduleRepository } from '../../domain/ports/IScheduleRepository';
 
 // Validation schemas
 const createScheduleSchema = z.object({
@@ -51,11 +51,9 @@ const createAvailabilitySchema = z.object({
 });
 
 export class ScheduleController {
-  private scheduleRepository: DrizzleScheduleRepository;
-
-  constructor() {
-    this.scheduleRepository = new DrizzleScheduleRepository();
-  }
+  constructor(
+    private scheduleRepository: IScheduleRepository
+  ) {}
 
   // Schedule endpoints
   createSchedule = async (req: Request, res: Response) => {

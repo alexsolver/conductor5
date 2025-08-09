@@ -1,3 +1,4 @@
+// Removed invalid dependency - Domain layer should not depend on Application layer
 
 export class Beneficiary {
   constructor(

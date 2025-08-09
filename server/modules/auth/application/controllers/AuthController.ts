@@ -1,4 +1,3 @@
-
 import { Request, Response } from 'express';
 import { LoginUseCase } from '../use-cases/LoginUseCase';
 import { sendSuccess, sendError } from '../../../../utils/standardResponse';
@@ -6,15 +5,12 @@ import { sendSuccess, sendError } from '../../../../utils/standardResponse';
 export class AuthController {
   constructor(private loginUseCase: LoginUseCase) {}
 
-  async login(req: Request, res: Response): Promise<void> {
+  async login(loginData: { email: string; password: string }): Promise<any> {
     try {
-      const { email, password } = req.body;
-      
-      const result = await this.loginUseCase.execute({ email, password });
-      
-      sendSuccess(res, result, 'Login successful');
+      const result = await this.loginUseCase.execute(loginData);
+      return result;
     } catch (error) {
-      sendError(res, error, 'Login failed', 401);
+      throw error;
     }
   }
 

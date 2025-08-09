@@ -1,21 +1,11 @@
-
 import { Router } from 'express';
+import { SharedController } from './application/controllers/SharedController';
 
 const router = Router();
+const sharedController = new SharedController();
 
-// Shared routes for common functionality
-router.get('/health', (req, res) => {
-  res.json({ status: 'healthy', module: 'shared' });
-});
-
-export { router as sharedRoutes };
-import { Router } from 'express';
-
-const router = Router();
-
-// Shared routes for common functionality
-router.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
-});
+// Use controller methods instead of direct route logic
+router.get('/health', sharedController.health.bind(sharedController));
+router.get('/status', sharedController.status.bind(sharedController));
 
 export default router;

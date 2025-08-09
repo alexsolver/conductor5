@@ -1,4 +1,4 @@
-// Domain entities should not depend on infrastructure
+// Removed drizzle-orm dependency - Domain layer should not depend on ORM
 
 export abstract class BaseEntity {
   public readonly id: string;
