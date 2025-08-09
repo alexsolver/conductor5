@@ -4,9 +4,15 @@ import { jwtAuth, AuthenticatedRequest } from "../../middleware/jwtAuth";
 import { unifiedStorage } from "../../storage-master";
 import { sendSuccess, sendError, createErrorResponse, createSuccessResponse } from "../../utils/standardResponse";
 import { DashboardController } from './application/controllers/DashboardController';
+import { GetDashboardMetricsUseCase } from './application/use-cases/GetDashboardMetricsUseCase';
+import { DrizzleDashboardRepository } from './infrastructure/repositories/DrizzleDashboardRepository';
 
 const dashboardRouter = Router();
-const dashboardController = new DashboardController();
+
+// Injeção de dependências
+const dashboardRepository = new DrizzleDashboardRepository();
+const getDashboardMetricsUseCase = new GetDashboardMetricsUseCase(dashboardRepository);
+const dashboardController = new DashboardController(getDashboardMetricsUseCase);
 
 // Dashboard statistics endpoint
 dashboardRouter.get('/stats', jwtAuth, async (req: AuthenticatedRequest, res: Response) => {
@@ -41,7 +47,9 @@ dashboardRouter.get('/activity', jwtAuth, async (req: AuthenticatedRequest, res)
   }
 });
 
-// Dashboard metrics endpoint
-dashboardRouter.get('/metrics', jwtAuth, dashboardController.getMetrics);
+// Dashboard metrics endpoint - Usar controller ao invés de lógica direta
+dashboardRouter.get('/metrics', (req, res) => dashboardController.getMetrics(req, res));
+dashboardRouter.get('/overview', (req, res) => dashboardController.getOverview(req, res));
+
 
 export { dashboardRouter };

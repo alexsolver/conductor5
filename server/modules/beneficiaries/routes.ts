@@ -181,8 +181,16 @@ beneficiariesRouter.post('/:id/customers', async (req: AuthenticatedRequest, res
 beneficiariesRouter.delete('/:id/customers/:customerId', async (req: AuthenticatedRequest, res: Response) => {
   try {
     const tenantId = req.tenantId!;
-    const { id, customerId } = beneficiaryIdSchema.parse(req.params); // beneficiaryIdSchema is used for beneficiary id
-    const { customerId: custId } = req.params; // customerId from route params
+    const { id, customerId: paramCustomerId } = beneficiaryIdSchema.parse(req.params); // beneficiaryIdSchema is used for beneficiary id
+    const { customerId: bodyCustomerId } = req.body; // Assuming customerId might also be in the body, though params is more RESTful
+
+    // Determine which customerId to use. Prefer route parameter if available and valid.
+    // If not, fall back to body if it exists.
+    const customerIdToUse = paramCustomerId || bodyCustomerId;
+
+    if (!customerIdToUse) {
+      return sendValidationError(res, ['Customer ID is required']);
+    }
 
     const success = await beneficiaryController.removeBeneficiaryCustomer(tenantId, id, custId);
 
@@ -193,6 +201,9 @@ beneficiariesRouter.delete('/:id/customers/:customerId', async (req: Authenticat
     }
   } catch (error: any) {
     console.error('Error removing customer from beneficiary:', error);
+    if (error instanceof z.ZodError) {
+      return sendValidationError(res, error.errors.map(e => e.message));
+    }
     return sendError(res, error.message, 500);
   }
 });
