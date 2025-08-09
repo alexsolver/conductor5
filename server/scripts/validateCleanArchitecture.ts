@@ -11,6 +11,7 @@
 
 import { CleanArchitectureValidator } from './CleanArchitectureValidator';
 import { CleanArchitectureCorrector } from './CleanArchitectureCorrector';
+import { writeFileSync, mkdirSync, existsSync } from 'fs';
 
 class CleanArchitectureOrchestrator {
 
@@ -87,23 +88,26 @@ class CleanArchitectureOrchestrator {
   }
 
   private saveReports(validationResult: any, correctionPlans: any[]): void {
-    const fs = require('fs');
+    // Ensure reports directory exists
+    if (!existsSync('reports')) {
+      mkdirSync('reports', { recursive: true });
+    }
 
     // Salvar resultado da validação
-    fs.writeFileSync(
+    writeFileSync(
       'reports/clean-architecture-validation-result.json',
       JSON.stringify(validationResult, null, 2)
     );
 
     // Salvar plano de correção
-    fs.writeFileSync(
+    writeFileSync(
       'reports/clean-architecture-correction-plan.json',
       JSON.stringify(correctionPlans, null, 2)
     );
 
     // Criar relatório resumido em markdown
     const markdownReport = this.generateMarkdownReport(validationResult, correctionPlans);
-    fs.writeFileSync('reports/CLEAN_ARCHITECTURE_REPORT.md', markdownReport);
+    writeFileSync('reports/CLEAN_ARCHITECTURE_REPORT.md', markdownReport);
 
     console.log('\n📄 Relatórios salvos em:');
     console.log('   - reports/clean-architecture-validation-result.json');
