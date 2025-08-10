@@ -1,5 +1,6 @@
 // REMOVED: Redis dependency
 import { Request, Response, NextFunction } from 'express';
+import rateLimit, { MemoryStore } from 'express-rate-limit';
 
 export interface RateLimitConfig {
   windowMs: number;
@@ -8,6 +9,8 @@ export interface RateLimitConfig {
   skipSuccessfulRequests?: boolean;
   skipFailedRequests?: boolean;
   onLimitReached?: (req: Request, res: Response) => void;
+  message?: string; // Added for express-rate-limit compatibility
+  maxAttempts?: number; // Added for express-rate-limit compatibility
 }
 
 export interface RateLimitInfo {
@@ -50,18 +53,18 @@ export class RedisRateLimitService {
     const windowStart = Math.floor(Date.now() / config.windowMs) * config.windowMs;
     const key = this.getKey(identifier, windowStart);
     const now = Date.now();
-    
+
     // Memory-based rate limiting
     const existing = this.memoryStore.get(key);
     let totalHits = 1;
-    
+
     if (existing && existing.resetTime > now) {
       totalHits = existing.count + 1;
       this.memoryStore.set(key, { count: totalHits, resetTime: existing.resetTime });
     } else {
       this.memoryStore.set(key, { count: 1, resetTime: windowStart + config.windowMs });
     }
-    
+
     const remainingRequests = Math.max(0, config.maxRequests - totalHits);
     const resetTime = new Date(windowStart + config.windowMs);
     const isLimited = totalHits > config.maxRequests;
@@ -78,7 +81,7 @@ export class RedisRateLimitService {
     try {
       const pattern = `rate_limit:${identifier}:*`;
       const keys = await this.redis.keys(pattern);
-      
+
       if (keys.length > 0) {
         await this.redis.del(...keys);
       }
@@ -90,11 +93,11 @@ export class RedisRateLimitService {
   async getRateLimitStatus(identifier: string, windowMs: number): Promise<RateLimitInfo | null> {
     const windowStart = Math.floor(Date.now() / windowMs) * windowMs;
     const key = this.getKey(identifier, windowStart);
-    
+
     try {
       const totalHits = await this.redis.get(key);
       const ttl = await this.redis.ttl(key);
-      
+
       if (totalHits === null) {
         return null;
       }
@@ -116,13 +119,13 @@ export class RedisRateLimitService {
     const now = Date.now();
     const windowStart = now - config.windowMs;
     const key = `sliding_rate_limit:${identifier}`;
-    
+
     try {
       // Clean old entries and add current request
       await this.redis.zremrangebyscore(key, 0, windowStart);
       await this.redis.zadd(key, now, now);
       await this.redis.expire(key, Math.ceil(config.windowMs / 1000));
-      
+
       const totalHits = await this.redis.zcard(key);
       const remainingRequests = Math.max(0, config.maxRequests - totalHits);
       const isLimited = totalHits > config.maxRequests;
@@ -160,43 +163,27 @@ export const redisRateLimitService = RedisRateLimitService.getInstance();
 
 // Memory-based rate limiting middleware factory
 export function createMemoryRateLimitMiddleware(config: RateLimitConfig) {
-  const service = redisRateLimitService;
-  
-  return async (req: Request, res: Response, next: NextFunction) => {
-    const identifier = config.keyGenerator ? config.keyGenerator(req) : 
-      req.ip || req.connection.remoteAddress || 'unknown';
-    
-    try {
-      const rateLimitInfo = await service.checkRateLimit(identifier, config);
-      
-      // Set rate limit headers
-      res.set({
-        'X-RateLimit-Limit': config.maxRequests.toString(),
-        'X-RateLimit-Remaining': rateLimitInfo.remainingRequests.toString(),
-        'X-RateLimit-Reset': rateLimitInfo.resetTime.toISOString(),
-        'X-RateLimit-Window': config.windowMs.toString()
-      });
-
-      if (rateLimitInfo.isLimited) {
-        // Call custom handler if provided
-        if (config.onLimitReached) {
-          config.onLimitReached(req, res);
-          return;
-        }
-
-        return res.status(429).json({
-          error: 'Rate limit exceeded',
-          message: `Too many requests. Try again after ${rateLimitInfo.resetTime.toISOString()}`,
-          retryAfter: Math.ceil((rateLimitInfo.resetTime.getTime() - Date.now()) / 1000)
-        });
+  try {
+    return rateLimit({
+      windowMs: config.windowMs,
+      max: config.maxAttempts,
+      message: config.message,
+      standardHeaders: true,
+      legacyHeaders: false,
+      store: new MemoryStore(),
+      skip: (req) => {
+        // Skip rate limiting for health checks and static assets
+        return req.path.includes('/health') ||
+               req.path.includes('/favicon') ||
+               req.path.includes('/@vite/') ||
+               req.path.includes('/__vite_ping');
       }
-
-      next();
-    } catch (error) {
-      console.error('Rate limit middleware error:', error);
-      next(); // Continue on error
-    }
-  };
+    });
+  } catch (error) {
+    console.warn('Rate limit middleware creation failed, returning passthrough middleware:', error.message);
+    // Return a passthrough middleware that does nothing
+    return (req: any, res: any, next: any) => next();
+  }
 }
 
 // Predefined rate limit configurations
@@ -205,56 +192,68 @@ export const RATE_LIMIT_CONFIGS = {
   LOGIN: {
     windowMs: 15 * 60 * 1000, // 15 minutes
     maxRequests: 5,
-    keyGenerator: (req: Request) => `login:${req.ip}:${req.body?.email || 'unknown'}`
+    keyGenerator: (req: Request) => `login:${req.ip}:${req.body?.email || 'unknown'}`,
+    message: 'Too many login attempts, please try again later.',
+    maxAttempts: 5
   },
 
   // API endpoints
   API_GENERAL: {
     windowMs: 15 * 60 * 1000, // 15 minutes
     maxRequests: 100,
-    keyGenerator: (req: Request) => `api:${req.ip}`
+    keyGenerator: (req: Request) => `api:${req.ip}`,
+    message: 'Too many requests, please try again later.',
+    maxAttempts: 100
   },
 
   // File upload endpoints
   UPLOAD: {
     windowMs: 60 * 1000, // 1 minute
     maxRequests: 10,
-    keyGenerator: (req: Request) => `upload:${req.ip}`
+    keyGenerator: (req: Request) => `upload:${req.ip}`,
+    message: 'Too many uploads, please try again later.',
+    maxAttempts: 10
   },
 
   // Search endpoints
   SEARCH: {
     windowMs: 60 * 1000, // 1 minute
     maxRequests: 30,
-    keyGenerator: (req: Request) => `search:${req.ip}`
+    keyGenerator: (req: Request) => `search:${req.ip}`,
+    message: 'Too many search requests, please try again later.',
+    maxAttempts: 30
   },
 
   // Password reset
   PASSWORD_RESET: {
     windowMs: 60 * 60 * 1000, // 1 hour
     maxRequests: 3,
-    keyGenerator: (req: Request) => `password_reset:${req.ip}:${req.body?.email || 'unknown'}`
+    keyGenerator: (req: Request) => `password_reset:${req.ip}:${req.body?.email || 'unknown'}`,
+    message: 'Too many password reset attempts, please try again later.',
+    maxAttempts: 3
   },
 
   // Registration
   REGISTRATION: {
     windowMs: 60 * 60 * 1000, // 1 hour
     maxRequests: 5,
-    keyGenerator: (req: Request) => `registration:${req.ip}`
+    keyGenerator: (req: Request) => `registration:${req.ip}`,
+    message: 'Too many registration attempts, please try again later.',
+    maxAttempts: 5
   }
 };
 
 // Sliding window rate limiting middleware
 export function createSlidingWindowRateLimitMiddleware(config: RateLimitConfig) {
   const service = redisRateLimitService;
-  
+
   return async (req: Request, res: Response, next: NextFunction) => {
-    const identifier = config.keyGenerator ? config.keyGenerator(req) : 
+    const identifier = config.keyGenerator ? config.keyGenerator(req) :
       req.ip || req.connection.remoteAddress || 'unknown';
-    
+
     try {
       const rateLimitInfo = await service.checkSlidingWindowRateLimit(identifier, config);
-      
+
       res.set({
         'X-RateLimit-Limit': config.maxRequests.toString(),
         'X-RateLimit-Remaining': rateLimitInfo.remainingRequests.toString(),

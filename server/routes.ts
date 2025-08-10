@@ -67,11 +67,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       environment: process.env.NODE_ENV === 'production' ? 'production' : 'development',
       nonce: true
     });
-    if (cspMiddleware) {
+    if (cspMiddleware && typeof cspMiddleware === 'function') {
       app.use(cspMiddleware);
     }
   } catch (error) {
-    console.warn('CSP middleware not available, skipping...');
+    console.warn('CSP middleware not available, skipping...', error.message);
   }
 
 
@@ -82,11 +82,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const registerRateLimit = createMemoryRateLimitMiddleware(RATE_LIMIT_CONFIGS.REGISTRATION);
     const passwordResetRateLimit = createMemoryRateLimitMiddleware(RATE_LIMIT_CONFIGS.PASSWORD_RESET);
     
-    if (loginRateLimit) app.use('/api/auth/login', loginRateLimit);
-    if (registerRateLimit) app.use('/api/auth/register', registerRateLimit);
-    if (passwordResetRateLimit) app.use('/api/auth/password-reset', passwordResetRateLimit);
+    if (loginRateLimit && typeof loginRateLimit === 'function') {
+      app.use('/api/auth/login', loginRateLimit);
+    }
+    if (registerRateLimit && typeof registerRateLimit === 'function') {
+      app.use('/api/auth/register', registerRateLimit);
+    }
+    if (passwordResetRateLimit && typeof passwordResetRateLimit === 'function') {
+      app.use('/api/auth/password-reset', passwordResetRateLimit);
+    }
   } catch (error) {
-    console.warn('Rate limiting middleware not available, skipping...');
+    console.warn('Rate limiting middleware not available, skipping...', error.message);
   }
 
   // Exempt ticket-config/field-options from rate limiting to avoid UI errors
@@ -96,7 +102,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     try {
       const generalRateLimit = createMemoryRateLimitMiddleware(RATE_LIMIT_CONFIGS.API_GENERAL);
-      if (generalRateLimit) {
+      if (generalRateLimit && typeof generalRateLimit === 'function') {
         return generalRateLimit(req, res, next);
       }
     } catch (error) {
@@ -108,11 +114,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Apply feature flag middleware with safety check
   try {
     const featureFlagMiddleware = createFeatureFlagMiddleware();
-    if (featureFlagMiddleware) {
+    if (featureFlagMiddleware && typeof featureFlagMiddleware === 'function') {
       app.use(featureFlagMiddleware);
     }
   } catch (error) {
-    console.warn('Feature flag middleware not available, skipping...');
+    console.warn('Feature flag middleware not available, skipping...', error.message);
   }
 
   // CSP reporting endpoint
