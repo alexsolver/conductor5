@@ -69,8 +69,8 @@ export interface IScheduleRepository {
   create(schedule: Schedule): Promise<Schedule>;
   update(id: string, schedule: Partial<Schedule>, tenantId: string): Promise<Schedule | null>;
   delete(id: string, tenantId: string): Promise<boolean>;
-  findByUser(userId: string, tenantId: string): Promise<Schedule[]>;
   findByDateRange(startDate: Date, endDate: Date, tenantId: string): Promise<Schedule[]>;
+  findByUser(userId: string, tenantId: string): Promise<Schedule[]>;
 }
 import { Schedule } from '../entities/Schedule';
 

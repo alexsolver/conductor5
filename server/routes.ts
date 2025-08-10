@@ -1222,12 +1222,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/templates', templateRoutes.default);
 
   // Import and mount admin routes
-  const saasAdminRoutes = await import('./modules/saas-admin/routes');
-  const tenantAdminRoutes = await import('./modules/tenant-admin/routes');
+  // const saasAdminRoutes = await import('./modules/saas-admin/routes'); // Imported at top
+  // const tenantAdminRoutes = await import('./modules/tenant-admin/routes'); // Imported at top
   // const saasAdminIntegrationsRoutes = await import('./routes/saasAdminIntegrations'); // Temporarily removed
   const tenantIntegrationsRoutes = await import('./routes/tenantIntegrations');
-  app.use('/api/saas-admin', saasAdminRoutes.default);
-  app.use('/api/tenant-admin', tenantAdminRoutes.default);
+  app.use('/api/saas-admin', saasAdminRoutes);
+  app.use('/api/tenant-admin', tenantAdminRoutes);
   // Removed: journey API routes - functionality eliminated from system
   app.use('/api/schedule', scheduleRoutes);
 
@@ -3236,13 +3236,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           SELECT id, tenant_id, is_active FROM "${schemaName}".customers 
           WHERE id = $1
         `, [customerId]);
-        
+
         console.error('[CUSTOMER-COMPANY-ASSOCIATION] Customer not found:', {
           customerId,
           tenantId,
           debugResults: debugCheck.rows
         });
-        
+
         return res.status(404).json({ 
           success: false, 
           message: 'Cliente não encontrado' 

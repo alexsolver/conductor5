@@ -1,4 +1,4 @@
-// Express dependency removed - using dependency injection instead
+// Express dependency removed - using domain interfaces instead
 
 export class MaterialController {
   constructor(private createMaterialUseCase: CreateMaterialUseCase) {}
@@ -25,12 +25,24 @@ export class MaterialController {
   }
 }
 
-// Express dependency removed - using dependency injection instead
+// Express dependencies removed - using domain interfaces instead
+
+interface CreateMaterialRequest {
+  body: {
+    name: string;
+    description?: string;
+    price: number;
+    tenant_id: string;
+  };
+}
+
+interface HttpResponse {
+  status: (code: number) => HttpResponse;
+  json: (data: any) => void;
+}
 
 export class MaterialController {
-  constructor(private materialService: MaterialApplicationService) {}
-
-  async createMaterial(req: any, res: any): Promise<void> {
+  async createMaterial(req: CreateMaterialRequest, res: HttpResponse) {
     try {
       const material = await this.materialService.createMaterial(req.body);
       res.status(201).json({ success: true, data: material });

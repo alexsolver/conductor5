@@ -15,7 +15,7 @@ import { IScheduleRepository } from '../../domain/ports/IScheduleRepository';
 export class GetSchedulesUseCase {
   constructor(private scheduleRepository: IScheduleRepository) {}
 
-  async execute(): Promise<any[]> {
-    return await this.scheduleRepository.findAll();
+  async execute(tenantId: string): Promise<any[]> {
+    return await this.scheduleRepository.findAll(tenantId);
   }
 }

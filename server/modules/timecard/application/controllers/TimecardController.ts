@@ -8,9 +8,8 @@ import {
   createScheduleTemplateSchema,
   createFlexibleWorkArrangementSchema
 } from '../../../../../shared/timecard-validation';
-import { AuthenticatedRequest } from '../../middleware/isAuthenticated';
+// Express dependencies removed for clean architecture compliance
 
-// Express dependency removed - using dependency injection instead
 // Using interface instead of express types to maintain clean architecture
 interface ControllerRequest {
   body: any;
@@ -703,7 +702,7 @@ export class TimecardController {
     }
   };
 
-  getHourBankSummary = async (req: AuthenticatedRequest, res: ControllerResponse) => {
+  getHourBankSummary = async (req: ControllerRequest, res: ControllerResponse) => {
     try {
       const tenantId = req.user?.tenantId;
       const userId = req.user?.id;
@@ -895,7 +894,7 @@ export class TimecardController {
     }
   };
 
-  async getAttendanceReport(req: AuthenticatedRequest, res: ControllerResponse) {
+  async getAttendanceReport(req: ControllerRequest, res: ControllerResponse) {
     console.log('[ATTENDANCE-REPORT] Route hit - starting...');
 
     try {
@@ -1114,7 +1113,7 @@ export class TimecardController {
     }
   }
 
-  async getUsers(req: AuthenticatedRequest, res: ControllerResponse) {
+  async getUsers(req: ControllerRequest, res: ControllerResponse) {
     try {
       const tenantId = req.user?.tenantId;
 
@@ -1141,7 +1140,7 @@ export class TimecardController {
     }
   }
 
-  async getHourBankSummary(req: AuthenticatedRequest, res: ControllerResponse) {
+  async getHourBankSummary(req: ControllerRequest, res: ControllerResponse) {
     try {
       const tenantId = req.user?.tenantId;
 
@@ -1174,7 +1173,7 @@ export class TimecardController {
     }
   }
 
-  async getHourBankMovements(req: AuthenticatedRequest, res: ControllerResponse) {
+  async getHourBankMovements(req: ControllerRequest, res: ControllerResponse) {
     try {
       const { userId, month } = req.params;
       const tenantId = req.user?.tenantId;
@@ -1222,7 +1221,7 @@ export class TimecardController {
     }
   }
 
-  async getOvertimeReport(req: AuthenticatedRequest, res: ControllerResponse) {
+  async getOvertimeReport(req: ControllerRequest, res: ControllerResponse) {
     console.log('[OVERTIME-REPORT] Route hit - starting...');
 
     try {
@@ -1367,7 +1366,7 @@ export class TimecardController {
     }
   }
 
-  async getComplianceReport(req: AuthenticatedRequest, res: ControllerResponse) {
+  async getComplianceReport(req: ControllerRequest, res: ControllerResponse) {
     console.log('[COMPLIANCE-REPORT] Route hit - starting...');
 
     try {

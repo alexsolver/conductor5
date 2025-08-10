@@ -136,3 +136,10 @@ export interface IServiceRepository {
   update(id: string, service: Partial<Service>): Promise<Service>;
   delete(id: string): Promise<void>;
 }
+export interface IServiceRepository {
+  create(service: any): Promise<any>;
+  findById(id: string): Promise<any | null>;
+  findAll(tenantId: string): Promise<any[]>;
+  update(id: string, data: any): Promise<any>;
+  delete(id: string): Promise<void>;
+}

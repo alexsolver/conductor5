@@ -28,7 +28,7 @@ export class CreateScheduleUseCase {
     if (!scheduleData.startTime || !scheduleData.endTime) {
       throw new Error('Start time and end time are required');
     }
-    
+
     return await this.scheduleRepository.create(scheduleData);
   }
 }

@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+// Base controller without framework dependencies
 
 export interface BaseRequest {
   params: Record<string, any>;
