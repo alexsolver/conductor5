@@ -1,4 +1,3 @@
-
 export interface MaterialCreatedEvent {
   id: string;
   name: string;
@@ -12,3 +11,6 @@ export interface ServiceCreatedEvent {
   createdAt: Date;
   tenantId: string;
 }
+
+export { MaterialCreatedEvent } from './MaterialCreatedEvent';
+export { ServiceCreatedEvent } from './ServiceCreatedEvent';

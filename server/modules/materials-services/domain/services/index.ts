@@ -1,4 +1,3 @@
-
 export class MaterialsServicesDomainService {
   static validateMaterial(material: any): boolean {
     return !!(material.name && material.code && material.price);
@@ -8,3 +7,5 @@ export class MaterialsServicesDomainService {
     return items.reduce((total, item) => total + (item.price * item.quantity), 0);
   }
 }
+
+export { MaterialValidationService } from './MaterialValidationService';

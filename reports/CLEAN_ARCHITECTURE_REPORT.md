@@ -8,9 +8,9 @@
 
 - 🔥 **Críticos:** 16
 - ⚠️ **Altos:** 73
-- 📋 **Médios:** 63
+- 📋 **Médios:** 61
 - 💡 **Baixos:** 5
-- **Total:** 157
+- **Total:** 155
 
 ## Principais Problemas por Módulo
 
@@ -77,12 +77,11 @@
   - Estrutura use-cases ausente na camada application
 
 ### 📋 template-audit
-- **Total de problemas:** 4
+- **Total de problemas:** 2
 - **Críticos:** 0 | **Altos:** 0
 - **Principais problemas:**
-  - Estrutura events ausente na camada domain
-  - Estrutura services ausente na camada domain
   - Estrutura services ausente na camada application
+  - Repository DrizzleTemplateAuditRepository deve implementar interface
 
 ### ⚠️ template-hierarchy
 - **Total de problemas:** 5
@@ -360,13 +359,11 @@
 
 ### 💡 template-audit
 - **Prioridade:** low
-- **Tempo estimado:** 40min
-- **Ações:** 4
+- **Tempo estimado:** 20min
+- **Ações:** 2
 
-1. **create_directory:** Criar diretório/arquivo events na camada domain
-2. **create_directory:** Criar diretório/arquivo services na camada domain
-3. **create_directory:** Criar diretório/arquivo services na camada application
-4. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
+1. **create_directory:** Criar diretório/arquivo services na camada application
+2. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 
 ### 💡 auth
 - **Prioridade:** low

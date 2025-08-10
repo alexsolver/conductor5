@@ -1,4 +1,2 @@
-
-export * from './BeneficiaryDomainService';
-export * from './BeneficiaryDomainService';
-export * from './BeneficiaryDomainService';
+export { BeneficiaryDomainService } from './BeneficiaryDomainService';
+export { BeneficiaryValidationService } from './BeneficiaryValidationService';

@@ -1,4 +1,3 @@
-
 export interface ISaasAdminRepository {
   createConfig(config: any): Promise<any>;
   getConfig(tenantId: string): Promise<any>;

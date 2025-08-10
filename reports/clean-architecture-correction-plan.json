@@ -1305,22 +1305,6 @@
     "actions": [
       {
         "type": "create_directory",
-        "description": "Criar diretório/arquivo events na camada domain",
-        "target": "server/modules/template-audit/domain/events",
-        "steps": [
-          "Criar diretório/arquivo events na camada domain"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo services na camada domain",
-        "target": "server/modules/template-audit/domain/services",
-        "steps": [
-          "Criar diretório/arquivo services na camada domain"
-        ]
-      },
-      {
-        "type": "create_directory",
         "description": "Criar diretório/arquivo services na camada application",
         "target": "server/modules/template-audit/application/services",
         "steps": [
@@ -1336,7 +1320,7 @@
         ]
       }
     ],
-    "estimatedTime": "40min"
+    "estimatedTime": "20min"
   },
   {
     "priority": "low",
