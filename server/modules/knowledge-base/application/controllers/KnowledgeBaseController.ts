@@ -7,11 +7,21 @@ import { KnowledgeBaseApplicationService } from '../services/KnowledgeBaseApplic
 import { IKnowledgeBaseRepository } from '../../domain/repositories/IKnowledgeBaseRepository';
 import { IMediaRepository } from '../../domain/repositories/IMediaRepository';
 
-// Use domain interfaces instead of infrastructure dependencies
+// Use abstracted interfaces instead of direct imports
+interface IRequest {
+  params: any;
+  body: any;
+  user?: any;
+  query: any;
+  files?: any;
+}
 
-// Proper type definitions
-// HttpRequest and HttpResponse interfaces are removed as they are express-specific.
-// AuthenticatedRequest interface is also removed.
+interface IResponse {
+  status(code: number): IResponse;
+  json(data: any): void;
+}
+
+// Inject repository through dependency injection instead of direct import
 
 export class KnowledgeBaseController {
   private knowledgeBaseService: KnowledgeBaseApplicationService;

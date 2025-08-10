@@ -1,4 +1,4 @@
-// Domain entities should not import infrastructure dependencies
+// Removed drizzle-orm dependency - domain layer should not import infrastructure
 export class Material {
   constructor(
     public readonly id: string,

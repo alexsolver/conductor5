@@ -51,3 +51,13 @@ export interface IScheduleRepository {
   delete(id: string, tenantId: string): Promise<boolean>;
   findByUserId(userId: string, tenantId: string): Promise<ScheduleEntity[]>;
 }
+import { Schedule } from '../entities/Schedule';
+
+export interface IScheduleRepository {
+  findById(id: string, tenantId: string): Promise<Schedule | null>;
+  findAll(tenantId: string): Promise<Schedule[]>;
+  create(schedule: Schedule): Promise<Schedule>;
+  update(id: string, schedule: Partial<Schedule>, tenantId: string): Promise<Schedule | null>;
+  delete(id: string, tenantId: string): Promise<boolean>;
+  findByUser(userId: string, tenantId: string): Promise<Schedule[]>;
+}

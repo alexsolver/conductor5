@@ -98,18 +98,7 @@ customersRouter.get('/', jwtAuth, validateGetCustomers, async (req: Authenticate
 });
 
 // POST /api/customers - Create new customer
-customersRouter.post('/', jwtAuth, validateCreateCustomer, async (req: AuthenticatedRequest, res) => {
-  try {
-    await customerController.createCustomer(req, res);
-  } catch (error) {
-    console.error('[CREATE-CUSTOMER] Error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to create customer',
-      message: error instanceof Error ? error.message : 'Unknown error'
-    });
-  }
-});
+customersRouter.post('/', jwtAuth, validateCreateCustomer, customerController.create.bind(customerController));
 
 // PUT /api/customers/:id - Update customer
 customersRouter.put('/:id', jwtAuth, validateUpdateCustomer, async (req: AuthenticatedRequest, res) => {

@@ -1,26 +1,14 @@
-import { CustomerApplicationService } from '../services/CustomerApplicationService';
-import { transformToCustomerDTO } from '../dto/CustomerResponseDTO';
-
 // Clean interfaces for HTTP abstraction
-interface AuthenticatedRequest extends Request {
-  user?: {
-    id: string;
-    tenantId: string;
-    role?: string;
-    email?: string;
-  };
-}
-
 // Removed express dependency - controllers should use dependency injection
-export interface IHttpRequest {
+interface IHttpRequest {
   params: any;
-  query: any;
   body: any;
   user?: any;
+  query: any;
 }
 
-export interface IHttpResponse {
-  status(code: number): this;
+interface IHttpResponse {
+  status(code: number): IHttpResponse;
   json(data: any): void;
 }
 
