@@ -206,17 +206,36 @@ const TicketDetails = React.memo(() => {
     queryKey: ["/api/tickets", id],
     queryFn: async () => {
       try {
+        console.log('🎫 Fetching ticket:', id);
         const response = await apiRequest("GET", `/api/tickets/${id}`);
+        
         if (!response.ok) {
+          console.error('🎫 Response not ok:', response.status, response.statusText);
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
+
+        // Check content type before parsing
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          console.error('🎫 Invalid content type:', contentType);
+          const text = await response.text();
+          console.error('🎫 Response text:', text.substring(0, 200));
+          throw new Error('Server returned invalid response format');
+        }
+
         const data = await response.json();
+        console.log('🎫 Ticket data received:', data);
+        
         if (!data.success && !data.data) {
           throw new Error(data.message || 'Ticket não encontrado');
         }
         return data;
       } catch (error) {
         console.error('❌ Error fetching ticket:', error);
+        // If it's a JSON parsing error, provide more context
+        if (error.message?.includes('Unexpected token')) {
+          throw new Error('Erro de comunicação com o servidor. Tente recarregar a página.');
+        }
         throw error;
       }
     },
@@ -226,8 +245,11 @@ const TicketDetails = React.memo(() => {
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     retry: (failureCount, error) => {
-      // Don't retry on 404 or 403 errors
-      if (error?.message?.includes('404') || error?.message?.includes('403')) {
+      // Don't retry on 404, 403 errors or JSON parsing errors
+      if (error?.message?.includes('404') || 
+          error?.message?.includes('403') || 
+          error?.message?.includes('Unexpected token') ||
+          error?.message?.includes('invalid response format')) {
         return false;
       }
       return failureCount < 2;

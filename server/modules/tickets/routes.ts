@@ -530,6 +530,78 @@ ticketsRouter.put('/:id', jwtAuth, trackTicketEdit, async (req: AuthenticatedReq
   }
 });
 
+// Get single ticket by ID
+ticketsRouter.get('/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    // Ensure JSON content type
+    res.setHeader('Content-Type', 'application/json');
+
+    if (!req.user?.tenantId) {
+      return res.status(400).json({
+        success: false,
+        error: 'User not associated with a tenant',
+        data: null
+      });
+    }
+
+    const { id } = req.params;
+    const tenantId = req.user.tenantId;
+
+    console.log(`🎫 [TICKETS-ROUTES] Fetching ticket ${id} for tenant ${tenantId}`);
+
+    // Validate ticket ID format
+    if (!id || typeof id !== 'string' || id.trim() === '') {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid ticket ID format',
+        data: null
+      });
+    }
+
+    const ticket = await storageSimple.getTicketById(tenantId, id);
+
+    if (!ticket) {
+      console.log(`🎫 [TICKETS-ROUTES] Ticket ${id} not found`);
+      return res.status(404).json({
+        success: false,
+        error: 'Ticket not found',
+        data: null
+      });
+    }
+
+    console.log(`🎫 [TICKETS-ROUTES] Ticket ${id} found:`, {
+      subject: ticket.subject,
+      status: ticket.status,
+      priority: ticket.priority
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: ticket,
+      message: 'Ticket retrieved successfully'
+    });
+
+  } catch (error: any) {
+    console.error(`❌ [TICKETS-ROUTES] Error fetching ticket ${req.params.id}:`, error);
+
+    // Ensure JSON response even on error
+    res.setHeader('Content-Type', 'application/json');
+
+    const { logError } = await import('../../utils/logger');
+    logError('Error fetching ticket', error, { 
+      ticketId: req.params.id, 
+      tenantId: req.user?.tenantId 
+    });
+
+    return res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to fetch ticket',
+      data: null,
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
+});
+
 // Add message to ticket - CORREÇÃO PROBLEMA 5: Padronização de middleware jwtAuth
 ticketsRouter.post('/:id/messages', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {

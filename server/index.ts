@@ -155,12 +155,26 @@ app.use((req, res, next) => {
     }
   });
 
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
+  // Error handling middleware (should be last)
+  app.use((error: any, req: Request, res: Response, next: NextFunction) => {
+    console.error('❌ Unhandled error:', error);
 
-    res.status(status).json({ message });
-    throw err;
+    // Ensure JSON response for API routes
+    if (req.path.startsWith('/api/')) {
+      res.setHeader('Content-Type', 'application/json');
+      return res.status(500).json({ 
+        success: false,
+        error: 'Internal server error',
+        message: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
+      });
+    }
+
+    // For non-API routes, return HTML error page
+    res.status(500).json({ 
+      success: false,
+      error: 'Internal server error',
+      message: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
+    });
   });
 
   // importantly only setup vite in development and after
