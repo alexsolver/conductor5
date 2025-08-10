@@ -7,10 +7,10 @@
 ## Resumo de Problemas
 
 - 🔥 **Críticos:** 12
-- ⚠️ **Altos:** 67
+- ⚠️ **Altos:** 66
 - 📋 **Médios:** 35
 - 💡 **Baixos:** 5
-- **Total:** 119
+- **Total:** 118
 
 ## Principais Problemas por Módulo
 
@@ -69,12 +69,12 @@
   - Repository contém possível lógica de negócio
 
 ### ⚠️ knowledge-base
-- **Total de problemas:** 11
-- **Críticos:** 0 | **Altos:** 7
+- **Total de problemas:** 10
+- **Críticos:** 0 | **Altos:** 6
 - **Principais problemas:**
   - Application Layer violando dependência: express
   - Application Layer violando dependência: express
-  - Application Layer violando dependência: express
+  - Application Layer violando dependência: ../../infrastructure/repositories/MediaRepository
 
 ### 🔥 schedule-management
 - **Total de problemas:** 6

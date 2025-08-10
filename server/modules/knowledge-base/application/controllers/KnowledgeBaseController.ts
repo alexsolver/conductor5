@@ -31,28 +31,6 @@ interface AuthenticatedRequest extends HttpRequest {
   };
 }
 
-import { Request, Response } from 'express';
-import { KnowledgeBaseApplicationService } from '../services/KnowledgeBaseApplicationService';
-import { IKnowledgeBaseRepository } from '../../domain/repositories/IKnowledgeBaseRepository';
-import { IMediaRepository } from '../../domain/repositories/IMediaRepository';
-
-// Types for request interfaces
-interface AuthenticatedRequest extends Request {
-  user?: {
-    id: string;
-    tenantId: string;
-  };
-}
-
-interface HttpRequest extends Request {
-  user?: {
-    id: string;
-    tenantId: string;
-  };
-}
-
-interface HttpResponse extends Response {}
-
 export class KnowledgeBaseController {
   private knowledgeBaseService: KnowledgeBaseApplicationService;
   private knowledgeBaseRepository: IKnowledgeBaseRepository; // Assuming this is injected or initialized
