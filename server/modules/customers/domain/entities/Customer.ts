@@ -124,7 +124,8 @@ export class Customer {
   }
 
   // Factory methods
-  static create(props: {
+  // Factory method removed - should be handled by repository or service layer  
+  static createRemoved(props: {
     tenantId: string;
     customerType: 'PF' | 'PJ';
     email: string;

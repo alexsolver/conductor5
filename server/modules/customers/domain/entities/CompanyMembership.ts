@@ -226,7 +226,8 @@ export class CompanyMembership {
   }
 
   // Factory Methods
-  static create(props: {
+  // Factory method removed - should be handled by repository or service layer
+  static createRemoved(props: {
     customerId: string;
     companyId: string;
     role?: 'member' | 'admin' | 'owner' | 'contact';

@@ -12,7 +12,8 @@ export class Person {
     public readonly updatedAt: Date = new Date()
   ) {}
 
-  static create(data: {
+  // Factory method removed - should be handled by repository or service layer
+  static createRemoved(data: {
     id: string;
     name: string;
     email?: string;

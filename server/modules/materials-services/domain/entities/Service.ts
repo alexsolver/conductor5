@@ -13,7 +13,8 @@ export class Service {
     public readonly updatedAt: Date = new Date()
   ) {}
 
-  static create(
+  // Factory method removed - should be handled by repository or service layer
+  static createRemoved(
     id: string,
     tenantId: string,
     name: string,

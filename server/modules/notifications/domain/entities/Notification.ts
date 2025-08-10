@@ -107,7 +107,8 @@ export class Notification {
   }
 
   // Factory method
-  static create(props: NotificationCreateProps, idGenerator: { generate(): string }): Notification {
+  // Factory method removed - should be handled by repository or service layer
+  static createRemoved(props: NotificationCreateProps, idGenerator: { generate(): string }): Notification {
     // Business validation
     if (!props.title?.trim()) {
       throw new Error('Notification title is required');

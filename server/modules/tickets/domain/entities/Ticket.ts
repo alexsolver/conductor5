@@ -109,72 +109,8 @@ export class Ticket {
     return this.priority.getValue() === 'urgent' && !this.assignedToId;
   }
 
-  // Factory method
-  static create(props: TicketCreateProps, ticketNumber: string, idGenerator: { generate(): string }): Ticket {
-    // Business validation
-    if (!props.subject?.trim()) {
-      throw new Error('Ticket subject is required');
-    }
-
-    if (!props.description?.trim()) {
-      throw new Error('Ticket description is required');
-    }
-
-    if (!props.tenantId) {
-      throw new Error('Ticket must belong to a tenant');
-    }
-
-    if (!props.customerId) {
-      throw new Error('Ticket must have a customer');
-    }
-
-    if (!props.callerId) {
-      throw new Error('Ticket must have a caller');
-    }
-
-    const now = new Date();
-
-    return new Ticket(
-      idGenerator.generate(),
-      props.tenantId,
-      props.customerId,
-      props.callerId,
-      props.callerType,
-      props.subject.trim(),
-      props.description.trim(),
-      ticketNumber,
-      props.shortDescription?.trim() || props.subject.trim(),
-      props.category || 'general',
-      props.subcategory || '',
-      new TicketPriority(props.priority || 'medium'),
-      props.impact || 'medium',
-      props.urgency || 'medium',
-      new TicketStatus(props.state || 'open'),
-      props.status || 'open',
-      props.assignedToId || null,
-      props.beneficiaryId || null,
-      props.beneficiaryType || null,
-      props.assignmentGroup || null,
-      props.location || null,
-      props.contactType || 'email',
-      props.businessImpact || null,
-      props.symptoms || null,
-      props.workaround || null,
-      props.configurationItem || null,
-      props.businessService || null,
-      props.resolutionCode || null,
-      props.resolutionNotes || null,
-      props.workNotes || null,
-      props.closeNotes || null,
-      props.notify || true,
-      props.rootCause || null,
-      now, // openedAt
-      null, // resolvedAt
-      null, // closedAt
-      now, // createdAt
-      now  // updatedAt
-    );
-  }
+  // Factory method removed - should be handled by repository or service layer
+  // Domain entities should focus on business logic, not object construction with external dependencies
 
   // Update methods (immutable)
   assign(assignedToId: string, assignmentGroup?: string): Ticket {

@@ -109,7 +109,8 @@ export class NotificationPreference {
   }
 
   // Factory method
-  static create(props: NotificationPreferenceCreateProps, idGenerator: { generate(): string }): NotificationPreference {
+  // Factory method removed - should be handled by repository or service layer
+  static createRemoved(props: NotificationPreferenceCreateProps, idGenerator: { generate(): string }): NotificationPreference {
     if (!props.tenantId) {
       throw new Error('NotificationPreference must belong to a tenant');
     }

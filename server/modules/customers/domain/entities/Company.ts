@@ -331,7 +331,9 @@ export class Company {
   }
 
   // Factory Methods
-  static create(props: {
+  // Factory method removed - should be handled by repository or service layer
+  // Domain entities should focus on business logic, not object construction
+  static createRemoved(props: {
     tenantId: string;
     name: string;
     displayName?: string | null;

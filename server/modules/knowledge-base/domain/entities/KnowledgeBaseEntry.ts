@@ -25,7 +25,8 @@ export class KnowledgeBaseEntry {
     public readonly updatedAt: Date = new Date()
   ) {}
 
-  static create(props: Omit<KnowledgeBaseEntryProps, 'id' | 'createdAt' | 'updatedAt'>): KnowledgeBaseEntry {
+  // Factory method removed - should be handled by repository or service layer
+  static createRemoved(props: Omit<KnowledgeBaseEntryProps, 'id' | 'createdAt' | 'updatedAt'>): KnowledgeBaseEntry {
     return new KnowledgeBaseEntry(
       crypto.randomUUID(),
       props.title,

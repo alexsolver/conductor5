@@ -142,47 +142,8 @@ export class User {
     return this.role !== 'saas_admin';
   }
 
-  // Factory method
-  static create(props: UserCreateProps, passwordHash: string, idGenerator: { generate(): string }): User {
-    // Business validation
-    if (!props.email?.trim()) {
-      throw new Error('User email is required');
-    }
-    
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(props.email)) {
-      throw new Error('Invalid email format');
-    }
-
-    if (!passwordHash) {
-      throw new Error('Password hash is required');
-    }
-
-    if (props.role !== 'saas_admin' && !props.tenantId) {
-      throw new Error('Non-admin users must belong to a tenant');
-    }
-
-    if (props.role === 'saas_admin' && props.tenantId) {
-      throw new Error('SaaS admins should not belong to a specific tenant');
-    }
-
-    const now = new Date();
-    
-    return new User(
-      idGenerator.generate(),
-      props.email.toLowerCase().trim(),
-      passwordHash,
-      props.firstName?.trim() || null,
-      props.lastName?.trim() || null,
-      props.role,
-      props.tenantId || null,
-      props.active !== false, // Default to true
-      props.verified !== false, // Default to true
-      null, // lastLogin
-      now, // createdAt
-      now  // updatedAt
-    );
-  }
+  // Factory method removed - should be handled by repository or service layer
+  // Domain entities should focus on business logic, not object construction with external dependencies
 
   // Update methods (immutable)
   updateProfile(changes: {

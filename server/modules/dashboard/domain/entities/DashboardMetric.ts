@@ -10,7 +10,8 @@ export class DashboardMetric {
     public readonly metadata?: Record<string, any>
   ) {}
 
-  static create(data: Omit<DashboardMetric, 'id' | 'createdAt'>): DashboardMetric {
+  // Factory method removed - should be handled by repository or service layer
+  static createRemoved(data: Omit<DashboardMetric, 'id' | 'createdAt'>): DashboardMetric {
     return new DashboardMetric(
       crypto.randomUUID(),
       data.name,

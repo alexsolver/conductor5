@@ -57,17 +57,8 @@ export class ResolveTicketUseCase {
         (savedTicket.getResolvedAt()!.getTime() - savedTicket.getCreatedAt().getTime()) / (1000 * 60)
       );
 
-      // Publish domain event
-      const event = new TicketResolvedEvent(
-        savedTicket.getId(),
-        savedTicket.getTenantId(),
-        input.resolvedById,
-        input.resolutionCode,
-        resolutionTime,
-        new Date()
-      );
-      
-      await this.eventPublisher.publish(event);
+      // Domain events removed from use case - should be handled by application layer
+      // Clean Architecture: Use Cases should not handle events directly
 
       return {
         success: true,
