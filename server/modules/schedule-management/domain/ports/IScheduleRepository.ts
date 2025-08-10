@@ -31,6 +31,17 @@ export class DrizzleIScheduleRepository implements IIScheduleRepository {
     throw new Error('Method not implemented.');
   }
 }
+import { ScheduleEntity } from '../entities/ScheduleEntity';
+
+export interface IScheduleRepository {
+  create(schedule: ScheduleEntity): Promise<ScheduleEntity>;
+  findById(id: string): Promise<ScheduleEntity | null>;
+  findByTenant(tenantId: string): Promise<ScheduleEntity[]>;
+  findByUser(userId: string): Promise<ScheduleEntity[]>;
+  update(id: string, data: Partial<ScheduleEntity>): Promise<ScheduleEntity>;
+  delete(id: string): Promise<void>;
+  findAll(): Promise<ScheduleEntity[]>;
+}
 import { Schedule } from '../entities/Schedule';
 
 export interface IScheduleRepository {
@@ -82,22 +93,11 @@ export interface IScheduleRepository {
   update(id: string, schedule: Partial<Schedule>, tenantId: string): Promise<Schedule | null>;
   delete(id: string, tenantId: string): Promise<boolean>;
 }
-import { Schedule } from '../entities/ScheduleEntity';
-
-export interface IScheduleRepository {
-  findById(id: string, tenantId: string): Promise<Schedule | null>;
-  findAll(tenantId: string): Promise<Schedule[]>;
-  create(schedule: Schedule): Promise<Schedule>;
-  update(id: string, schedule: Partial<Schedule>, tenantId: string): Promise<Schedule | null>;
-  delete(id: string, tenantId: string): Promise<boolean>;
-  findByDateRange(startDate: Date, endDate: Date, tenantId: string): Promise<Schedule[]>;
-  findByUser(userId: string, tenantId: string): Promise<Schedule[]>;
-}
 import { ScheduleEntity } from '../entities/ScheduleEntity';
 
 export interface IScheduleRepository {
   findById(id: string, tenantId: string): Promise<ScheduleEntity | null>;
-  findAll(tenantId: string, filters?: any): Promise<ScheduleEntity[]>;
+  findAll(tenantId: string): Promise<ScheduleEntity[]>;
   create(schedule: ScheduleEntity): Promise<ScheduleEntity>;
   update(id: string, schedule: Partial<ScheduleEntity>, tenantId: string): Promise<ScheduleEntity | null>;
   delete(id: string, tenantId: string): Promise<boolean>;

@@ -103,11 +103,14 @@ export function sendValidationError(
   return res.status(400).json(response);
 }
 
-export const standardResponse = (success: boolean, message: string, data?: any) => {
-  return {
-    success,
-    message,
-    data: data || null,
-    timestamp: new Date().toISOString()
-  };
+// Standard response utility following Clean Architecture
+export interface ApiResponse<T = any> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  message?: string;
+  statusCode: number;
+}
+
+export const standardResponse = {
 };

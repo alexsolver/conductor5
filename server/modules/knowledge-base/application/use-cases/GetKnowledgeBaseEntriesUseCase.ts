@@ -1,4 +1,3 @@
-
 import { IKnowledgeBaseEntryRepository } from '../../domain/ports/IKnowledgeBaseEntryRepository';
 import { KnowledgeBaseEntry } from '../../domain/entities/KnowledgeBaseEntry';
 

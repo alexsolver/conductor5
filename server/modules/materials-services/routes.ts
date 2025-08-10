@@ -27,13 +27,10 @@ import { pool } from '../../db';
 
 import { MaterialController } from './application/controllers/MaterialController';
 
-// Routes should only handle routing, delegate to controllers
+// Routes should only handle HTTP concerns and delegate to controllers
 
 // Create router
 const router = Router();
-
-// Temporarily disable auth for testing
-// router.use(jwtAuth);
 
 // Add temporary middleware to mock authenticated user
 router.use((req: any, res: any, next: any) => {

@@ -28,6 +28,7 @@ export interface RateLimitInfo {
   isLimited: boolean;
 }
 
+// This service should be in infrastructure layer and implement a domain interface
 export class RedisRateLimitService {
   private static instance: RedisRateLimitService;
 

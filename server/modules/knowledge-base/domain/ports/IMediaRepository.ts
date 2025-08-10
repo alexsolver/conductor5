@@ -39,3 +39,22 @@ interface MediaEntity {
   createdAt: Date;
   updatedAt: Date;
 }
+export interface MediaFile {
+  id: string;
+  filename: string;
+  originalName: string;
+  mimeType: string;
+  size: number;
+  path: string;
+  tenantId: string;
+  uploadedBy: string;
+  createdAt: Date;
+}
+
+export interface IMediaRepository {
+  upload(file: MediaFile): Promise<MediaFile>;
+  findById(id: string): Promise<MediaFile | null>;
+  findByTenant(tenantId: string): Promise<MediaFile[]>;
+  delete(id: string): Promise<void>;
+  findByType(mimeType: string): Promise<MediaFile[]>;
+}

@@ -1,10 +1,19 @@
 // Domain entities should not import DTOs from application layer
 
-export interface BeneficiaryProps {
+// Removed application layer import - domain should not depend on application
+
+interface BeneficiaryProps {
+  id?: string;
   name: string;
   email: string;
   document: string;
+  phone?: string;
+  address?: string;
   tenantId: string;
+  companyId?: string;
+  status?: 'active' | 'inactive';
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface BeneficiaryCreateData {
@@ -29,7 +38,7 @@ export interface BeneficiaryData {
 }
 
 export class Beneficiary {
-  constructor(data: BeneficiaryData) {
+  constructor(data: BeneficiaryProps) {
     this.id = data.id || crypto.randomUUID();
     this.name = data.name;
     this.email = data.email;

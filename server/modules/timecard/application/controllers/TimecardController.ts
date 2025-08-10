@@ -2,17 +2,7 @@
 import { z } from 'zod';
 import { db } from '../../../../db';
 import { timecardEntries, workSchedules, users } from '@shared/schema';
-import { DrizzleTimecardRepository } from '../../infrastructure/repositories/DrizzleTimecardRepository';
-import { ITimecardRepository } from '../../domain/repositories/ITimecardRepository'; // Assuming this interface exists
-import {
-  createTimecardEntrySchema,
-  createAbsenceRequestSchema,
-  createScheduleTemplateSchema,
-  createFlexibleWorkArrangementSchema
-} from '../../../../../shared/timecard-validation';
-import { and, eq, inArray, sql } from 'drizzle-orm'; // Import necessary Drizzle functions
-
-// Usar DTOs ao invés de Request/Response direto
+import { ITimecardRepository } from '../../domain/ports/ITimecardRepository'; // Assuming this interface exists
 
 // Use abstracted HTTP types instead of Express directly
 interface HttpRequest {

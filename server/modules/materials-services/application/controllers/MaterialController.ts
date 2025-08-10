@@ -3,13 +3,12 @@ interface HttpRequest {
   params: any;
   query: any;
   user?: any;
-  headers: any;
 }
 
 interface HttpResponse {
-  status(code: number): HttpResponse;
-  json(data: any): void;
-  send(data: any): void;
+  status: (code: number) => HttpResponse;
+  json: (data: any) => void;
+  send: (data: any) => void;
 }
 
 // Use abstracted HTTP types instead of Express directly

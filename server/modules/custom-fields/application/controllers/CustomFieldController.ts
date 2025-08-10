@@ -1,3 +1,13 @@
+interface HttpRequest {
+  body: any;
+  params: any;
+  query: any;
+}
+
+interface HttpResponse {
+  status: (code: number) => HttpResponse;
+  json: (data: any) => void;
+}
 
 import { ICustomFieldRepository } from '../../domain/repositories/ICustomFieldRepository';
 import { CustomField } from '../../domain/entities/CustomField';

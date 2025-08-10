@@ -4,6 +4,20 @@ import { ISkillRepository } from '../../domain/ports/ISkillRepository';
 import crypto from 'crypto';
 import { IUserSkillRepository } from '../../domain/ports/IUserSkillRepository';
 
+// Express and infrastructure dependencies removed from application layer
+interface HttpRequest {
+  body: any;
+  params: any;
+  query: any;
+  headers: any;
+  user?: any;
+}
+
+interface HttpResponse {
+  status: (code: number) => HttpResponse;
+  json: (data: any) => void;
+}
+
 export class SkillController {
   private skillService: SkillApplicationService;
 
@@ -11,10 +25,10 @@ export class SkillController {
     this.skillService = new SkillApplicationService(skillRepository);
   }
 
-  async createSkill(req: any, res: any): Promise<void> {
+  async createSkill(req: HttpRequest, res: HttpResponse): Promise<void> {
     try {
       const { name, category, description } = req.body;
-      const user = (req as any).user;
+      const user = req.user;
       const tenantId = req.headers['x-tenant-id'] as string || user?.tenantId;
       const userId = user?.id;
 
@@ -66,7 +80,7 @@ export class SkillController {
     }
   }
 
-  async getSkills(req: any, res: any): Promise<void> {
+  async getSkills(req: HttpRequest, res: HttpResponse): Promise<void> {
     try {
       const tenantId = req.headers['x-tenant-id'] as string;
 
@@ -96,7 +110,7 @@ export class SkillController {
     } catch (error) {
       console.error('Error fetching skills:', {
         error: error instanceof Error ? error.message : 'Unknown error',
-        userId: (req as any).user?.id,
+        userId: req.user?.id,
         tenantId: req.headers['x-tenant-id']
       });
 
@@ -108,7 +122,7 @@ export class SkillController {
     }
   }
 
-  async getSkillById(req: any, res: any): Promise<void> {
+  async getSkillById(req: HttpRequest, res: HttpResponse): Promise<void> {
     try {
       const { id } = req.params;
       const skill = await this.skillService.getSkillById(id);
@@ -135,12 +149,12 @@ export class SkillController {
     }
   }
 
-  async updateSkill(req: any, res: any): Promise<void> {
+  async updateSkill(req: HttpRequest, res: HttpResponse): Promise<void> {
     try {
       const { id } = req.params;
       const { name, category, description, suggestedCertification, certificationValidityMonths, observations, scaleOptions } = req.body;
       const tenantId = req.headers['x-tenant-id'] as string;
-      const userId = (req as any).user?.id;
+      const userId = req.user?.id;
 
       const updateData = {
         id,
@@ -172,7 +186,7 @@ export class SkillController {
     }
   }
 
-  async deleteSkill(req: any, res: any): Promise<void> {
+  async deleteSkill(req: HttpRequest, res: HttpResponse): Promise<void> {
     try {
       const { id } = req.params;
 
@@ -192,7 +206,7 @@ export class SkillController {
     }
   }
 
-  async getCategories(req: any, res: any): Promise<void> {
+  async getCategories(req: HttpRequest, res: HttpResponse): Promise<void> {
     try {
       const categories = await this.skillService.getCategories();
 
@@ -210,7 +224,7 @@ export class SkillController {
     }
   }
 
-  async getStatistics(req: any, res: any): Promise<void> {
+  async getStatistics(req: HttpRequest, res: HttpResponse): Promise<void> {
     try {
       const tenantId = req.headers['x-tenant-id'] as string;
 
