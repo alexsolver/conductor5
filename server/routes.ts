@@ -3105,49 +3105,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: 'Tenant required' });
       }
 
-      const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
+      const { schemaManager } = await import('./db');
+      const pool = schemaManager.getPool();
       const schemaName = schemaManager.getSchemaName(tenantId);
 
       console.log(`[CUSTOMER-COMPANIES] Using schema: ${schemaName}`);
 
-      // Get companies associated with this specific customer through the customer_companies relationship table
-      const companies = await tenantDb.execute(sql`
-        SELECT 
-          c.id as company_id,
-          c.name as company_name,
-          c.display_name,
-          c.cnpj,
-          c.industry,
-          c.website,
-          c.phone,
-          c.email,
-          c.status,
-          c.subscription_tier,
-          c.created_at,
-          c.updated_at,
-          cr.relationship_type as role,
-          cr.start_date,
-          cr.end_date,
-          cr.is_primary
-        FROM ${sql.identifier(schemaName)}.companies_relationships cr
-        INNER JOIN ${sql.identifier(schemaName)}.companies c ON cr.company_id = c.id
-        WHERE cr.customer_id = ${customerId} 
+      // First verify customer exists
+      const customerCheck = await pool.query(`
+        SELECT id FROM "${schemaName}"."customers" 
+        WHERE id = $1 AND tenant_id = $2
+      `, [customerId, tenantId]);
+
+      if (customerCheck.rows.length === 0) {
+        console.log(`[CUSTOMER-COMPANIES] Customer ${customerId} not found in tenant ${tenantId}`);
+        return res.status(404).json({ 
+          success: false, 
+          message: 'Customer not found',
+          customerId,
+          tenantId
+        });
+      }
+
+      // Get companies associated with this customer
+      const result = await pool.query(`
+        SELECT DISTINCT 
+          c.id, c.name, c.display_name, c.cnpj, c.email, c.phone, c.address,
+          c.size, c.subscription_tier, c.status, c.is_active,
+          cr.relationship_type, cr.is_primary, cr.is_active as relationship_active,
+          cr.created_at as associated_at
+        FROM "${schemaName}"."companies" c
+        INNER JOIN "${schemaName}"."companies_relationships" cr 
+          ON c.id = cr.company_id
+        WHERE cr.customer_id = $1 
+          AND cr.tenant_id = $2 
           AND cr.is_active = true
           AND c.is_active = true
-        ORDER BY c.name
-      `);
+        ORDER BY cr.is_primary DESC, c.name
+      `, [customerId, tenantId]);
 
-      console.log(`[CUSTOMER-COMPANIES] Found ${companies.rows.length} companies for customer ${customerId}:`, companies.rows);
+      console.log(`[CUSTOMER-COMPANIES] Found ${result.rows.length} companies for customer ${customerId}:`, 
+        result.rows.map(r => ({ id: r.id, name: r.name, relationship_type: r.relationship_type })));
+
+      const companies = result.rows.map(row => ({
+        id: row.id,
+        name: row.name,
+        displayName: row.display_name,
+        cnpj: row.cnpj,
+        email: row.email,
+        phone: row.phone,
+        address: row.address,
+        size: row.size,
+        subscriptionTier: row.subscription_tier,
+        status: row.status,
+        isActive: row.is_active,
+        relationshipType: row.relationship_type,
+        isPrimary: row.is_primary,
+        relationshipActive: row.relationship_active,
+        associatedAt: row.associated_at
+      }));
 
       res.json({
         success: true,
-        data: companies.rows
+        companies,
+        total: companies.length
       });
     } catch (error) {
       console.error('Error fetching customer companies:', error);
       res.status(500).json({ 
         success: false, 
-        message: 'Failed to fetch customer companies' 
+        message: 'Failed to fetch customer companies',
+        error: error.message 
       });
     }
   });
@@ -3209,9 +3237,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('[CUSTOMER-COMPANY-ASSOCIATION] Using schema:', schemaName);
 
       // First, verify that both customer and company exist
+      console.log('[CUSTOMER-COMPANY-ASSOCIATION] Checking customer existence:', {
+        customerId,
+        tenantId,
+        schemaName
+      });
+
+      // Check for customer with more robust query
       const customerCheck = await pool.query(`
-        SELECT id FROM "${schemaName}".customers 
-        WHERE id = $1 AND tenant_id = $2 AND is_active = true
+        SELECT id, first_name, last_name, email, tenant_id, is_active 
+        FROM "${schemaName}"."customers" 
+        WHERE id = $1 AND tenant_id = $2
       `, [customerId, tenantId]);
 
       console.log('[CUSTOMER-COMPANY-ASSOCIATION] Customer check result:', {
@@ -3222,21 +3258,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       if (customerCheck.rows.length === 0) {
-        // Try to find the customer without tenant restriction to debug
+        // Try alternative query to debug
         const debugCheck = await pool.query(`
-          SELECT id, tenant_id, is_active FROM "${schemaName}".customers 
+          SELECT id, first_name, last_name, tenant_id 
+          FROM "${schemaName}"."customers" 
           WHERE id = $1
         `, [customerId]);
-        
-        console.error('[CUSTOMER-COMPANY-ASSOCIATION] Customer not found:', {
+
+        console.log('[CUSTOMER-COMPANY-ASSOCIATION] Debug check (customer exists but different tenant?):', {
           customerId,
-          tenantId,
+          requestedTenantId: tenantId,
           debugResults: debugCheck.rows
         });
-        
+
         return res.status(404).json({ 
           success: false, 
-          message: 'Cliente não encontrado' 
+          message: 'Customer not found',
+          debug: {
+            customerId,
+            tenantId,
+            customerFoundWithDifferentTenant: debugCheck.rows.length > 0
+          }
         });
       }
 
