@@ -4,15 +4,15 @@ import { UpdateMaterialUseCase } from '../use-cases/UpdateMaterialUseCase';
 import { standardResponse } from '../../../utils/standardResponse';
 
 interface HttpRequest {
-  body: any;
-  params: any;
   query: any;
+  params: any;
+  body: any;
   user?: any;
 }
 
 interface HttpResponse {
-  status: (code: number) => HttpResponse;
-  json: (data: any) => void;
+  status(code: number): HttpResponse;
+  json(data: any): void;
 }
 
 export class MaterialController {
@@ -40,7 +40,7 @@ export class MaterialController {
     }
   }
 
-  async getMaterial(req: HttpRequest, res: HttpResponse): Promise<void> {
+  async getMaterialById(req: HttpRequest, res: HttpResponse): Promise<void> {
     try {
       const { id } = req.params;
       const material = await this.getMaterialsUseCase.executeById(id);

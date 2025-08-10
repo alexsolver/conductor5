@@ -11,16 +11,17 @@ interface HttpResponse {
 
 import { ICustomFieldRepository } from '../../domain/repositories/ICustomFieldRepository';
 import { CustomField } from '../../domain/entities/CustomField';
+
 interface HttpRequest {
-  body: any;
-  params: any;
   query: any;
+  params: any;
+  body: any;
   user?: any;
 }
 
 interface HttpResponse {
-  status: (code: number) => HttpResponse;
-  json: (data: any) => void;
+  status(code: number): HttpResponse;
+  json(data: any): void;
 }
 
 

@@ -3,10 +3,13 @@ import { SkillApplicationService } from '../services/SkillApplicationService';
 import { ISkillRepository } from '../../domain/ports/ISkillRepository';
 import crypto from 'crypto';
 import { IUserSkillRepository } from '../../domain/ports/IUserSkillRepository';
+
+// Define HttpRequest and HttpResponse interfaces to remove Express dependency
 interface HttpRequest {
   body: any;
   params: any;
   query: any;
+  headers?: any;
   user?: any;
 }
 
@@ -14,24 +17,11 @@ interface HttpResponse {
   status: (code: number) => HttpResponse;
   json: (data: any) => void;
 }
+
 import { CreateSkillUseCase } from '../use-cases/CreateSkillUseCase';
 import { GetSkillsUseCase } from '../use-cases/GetSkillsUseCase';
 import { UpdateSkillUseCase } from '../use-cases/UpdateSkillUseCase';
 import { standardResponse } from '../../../utils/standardResponse';
-
-// Express and infrastructure dependencies removed from application layer
-interface HttpRequest {
-  body: any;
-  params: any;
-  query: any;
-  headers: any;
-  user?: any;
-}
-
-interface HttpResponse {
-  status: (code: number) => HttpResponse;
-  json: (data: any) => void;
-}
 
 export class SkillController {
   private skillService: SkillApplicationService;
@@ -51,7 +41,7 @@ export class SkillController {
     try {
       const { name, category, description } = req.body;
       const user = req.user;
-      const tenantId = req.headers['x-tenant-id'] as string || user?.tenantId;
+      const tenantId = req.headers && req.headers['x-tenant-id'] ? req.headers['x-tenant-id'] as string : user?.tenantId;
       const userId = user?.id;
 
       console.log('Creating skill with tenantId:', tenantId, 'user:', user);
@@ -102,9 +92,9 @@ export class SkillController {
     }
   }
 
-  async getSkills(req: Request, res: Response): Promise<void> {
+  async getSkills(req: HttpRequest, res: HttpResponse): Promise<void> {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string;
+      const tenantId = req.headers && req.headers['x-tenant-id'] ? req.headers['x-tenant-id'] as string : req.user?.tenantId;
 
       console.log('Getting skills for tenant:', tenantId);
 
@@ -133,7 +123,7 @@ export class SkillController {
       console.error('Error fetching skills:', {
         error: error instanceof Error ? error.message : 'Unknown error',
         userId: req.user?.id,
-        tenantId: req.headers['x-tenant-id']
+        tenantId: req.headers && req.headers['x-tenant-id'] ? req.headers['x-tenant-id'] : req.user?.tenantId
       });
 
       res.status(500).json({
@@ -171,11 +161,11 @@ export class SkillController {
     }
   }
 
-  async updateSkill(req: Request, res: Response): Promise<void> {
+  async updateSkill(req: HttpRequest, res: HttpResponse): Promise<void> {
     try {
       const { id } = req.params;
       const { name, category, description, suggestedCertification, certificationValidityMonths, observations, scaleOptions } = req.body;
-      const tenantId = req.headers['x-tenant-id'] as string;
+      const tenantId = req.headers && req.headers['x-tenant-id'] ? req.headers['x-tenant-id'] as string : req.user?.tenantId;
       const userId = req.user?.id;
 
       const updateData = {
@@ -248,7 +238,7 @@ export class SkillController {
 
   async getStatistics(req: HttpRequest, res: HttpResponse): Promise<void> {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string;
+      const tenantId = req.headers && req.headers['x-tenant-id'] ? req.headers['x-tenant-id'] as string : req.user?.tenantId;
 
       const statistics = await this.skillService.getStatistics(tenantId);
 

@@ -294,7 +294,7 @@ export class TimecardController {
     }
   };
 
-  getTimecardEntriesByUser = async (req: HttpRequest, res:HttpResponse) => {
+  getTimecardEntriesByUser = async (req: HttpRequest, res: HttpResponse) => {
     try {
       const { tenantId } = req.user;
       const { userId } = req.params;

@@ -1,6 +1,6 @@
 // Domain entities should not import DTOs from application layer
 
-// Removed dependency violation - Domain should not depend on Application layer
+// Removed application layer dependency - domain should not import from application
 
 export interface BeneficiaryProps {
   id: string;

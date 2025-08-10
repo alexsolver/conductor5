@@ -1,5 +1,15 @@
 
-import { Request, Response } from 'express';
+interface HttpRequest {
+  query: any;
+  params: any;
+  body: any;
+  user?: any;
+}
+
+interface HttpResponse {
+  status(code: number): HttpResponse;
+  json(data: any): void;
+}
 import { GetTicketsUseCase } from '../use-cases/GetTicketsUseCase';
 import { standardResponse } from '../../../utils/standardResponse';
 
@@ -8,7 +18,7 @@ export class TicketController {
     private getTicketsUseCase: GetTicketsUseCase = new GetTicketsUseCase()
   ) {}
 
-  async getTickets(req: Request, res: Response): Promise<void> {
+  async getTickets(req: HttpRequest, res: HttpResponse): Promise<void> {
     try {
       const tickets = await this.getTicketsUseCase.execute();
       standardResponse(res, 200, 'Tickets retrieved successfully', tickets);

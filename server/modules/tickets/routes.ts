@@ -29,8 +29,8 @@ async function generateActionNumber(pool: any, tenantId: string, ticketId: strin
     // Get next sequence number
     const sequenceQuery = `
       SELECT COALESCE(MAX(CAST(SUBSTRING(action_number FROM '${ticketNumber}AI\\d+)') AS INTEGER)), 0) + 1 as next_seq
-      FROM "${schemaName}".ticket_internal_actions 
-      WHERE ticket_id = $1 AND tenant_id = $2 
+      FROM "${schemaName}".ticket_internal_actions
+      WHERE ticket_id = $1 AND tenant_id = $2
       AND action_number ~ '^${ticketNumber}AI\\d+$'
     `;
 
@@ -74,7 +74,7 @@ async function createCompleteAuditEntry(
     const userName = userResult.rows[0]?.full_name || req.user?.email || 'Unknown User';
 
     const insertQuery = `
-      INSERT INTO "${schemaName}".ticket_history 
+      INSERT INTO "${schemaName}".ticket_history
       (tenant_id, ticket_id, performed_by, performed_by_name, action_type, description, field_name, old_value, new_value, ip_address, user_agent, session_id, created_at, metadata)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW(), $13)
       RETURNING *
@@ -249,8 +249,8 @@ ticketsRouter.put('/:id', jwtAuth, trackTicketEdit, async (req: AuthenticatedReq
     });
 
     const { logError } = await import('../../utils/logger');
-    logError('Error updating ticket', err, { 
-      ticketId: req.params.id, 
+    logError('Error updating ticket', err, {
+      ticketId: req.params.id,
       tenantId: req.user?.tenantId,
       updateFields: Object.keys(req.body),
       errorType: err.constructor.name
@@ -289,9 +289,9 @@ ticketsRouter.get('/:id', jwtAuth, async (req: AuthenticatedRequest, res) => {
     res.setHeader('Content-Type', 'application/json');
 
     const { logError } = await import('../../utils/logger');
-    logError('Error fetching ticket', error, { 
-      ticketId: req.params.id, 
-      tenantId: req.user?.tenantId 
+    logError('Error fetching ticket', error, {
+      ticketId: req.params.id,
+      tenantId: req.user?.tenantId
     });
 
     return res.status(500).json({
@@ -411,7 +411,7 @@ ticketsRouter.post('/:id/attachments', jwtAuth, upload.array('attachments', 5), 
     await ticketController.uploadTicketAttachment(req, res);
   } catch (error) {
     console.error("Error uploading attachment:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
       message: "Failed to upload attachment",
       error: error.message
@@ -462,9 +462,9 @@ ticketsRouter.get('/:ticketId/actions/:actionId', jwtAuth, async (req: Authentic
     await ticketController.getInternalActionById(req, res);
   } catch (error) {
     console.error("Error fetching internal action for edit:", error);
-    res.status(500).json({ 
-      success: false, 
-      message: "Failed to fetch internal action" 
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch internal action"
     });
   }
 });
@@ -479,7 +479,7 @@ ticketsRouter.post('/:id/actions', jwtAuth, async (req: AuthenticatedRequest, re
     await ticketController.createInternalAction(req, res);
   } catch (error) {
     console.error("❌ Erro ao criar ação interna:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
       message: "Falha ao criar ação interna",
       error: error instanceof Error ? error.message : "Erro desconhecido"
@@ -600,7 +600,7 @@ ticketsRouter.put('/:id/notes/:noteId', jwtAuth, async (req: AuthenticatedReques
     await ticketController.updateTicketNote(req, res);
   } catch (error) {
     console.error("Error updating note:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
       message: "Failed to update note",
       error: error instanceof Error ? error.message : "Unknown error"
@@ -636,7 +636,7 @@ ticketsRouter.post('/:id/notes', jwtAuth, trackNoteCreate, async (req: Authentic
     await ticketController.createTicketNote(req, res);
   } catch (error) {
     console.error("❌ Error creating note:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
       message: "Failed to create note",
       error: error instanceof Error ? error.message : "Unknown error"
@@ -654,9 +654,9 @@ ticketsRouter.get('/:id/history', jwtAuth, async (req: AuthenticatedRequest, res
     await ticketController.getTicketHistory(req, res);
   } catch (error) {
     console.error("Error fetching ticket history:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
-      message: "Failed to fetch ticket history" 
+      message: "Failed to fetch ticket history"
     });
   }
 });
@@ -751,9 +751,9 @@ ticketsRouter.patch('/:ticketId/actions/:actionId', jwtAuth, async (req: Authent
     await ticketController.patchInternalAction(req, res);
   } catch (error) {
     console.error("Error updating internal action:", error);
-    res.status(500).json({ 
-      success: false, 
-      message: "Failed to update internal action" 
+    res.status(500).json({
+      success: false,
+      message: "Failed to update internal action"
     });
   }
 });
