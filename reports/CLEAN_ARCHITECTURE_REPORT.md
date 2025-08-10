@@ -7,16 +7,16 @@
 ## Resumo de Problemas
 
 - 🔥 **Críticos:** 10
-- ⚠️ **Altos:** 60
+- ⚠️ **Altos:** 62
 - 📋 **Médios:** 30
 - 💡 **Baixos:** 4
-- **Total:** 104
+- **Total:** 106
 
 ## Principais Problemas por Módulo
 
 ### 🔥 materials-services
-- **Total de problemas:** 50
-- **Críticos:** 2 | **Altos:** 37
+- **Total de problemas:** 51
+- **Críticos:** 2 | **Altos:** 38
 - **Principais problemas:**
   - Routes contém lógica de negócio ou acesso a dados
   - Domain Layer violando dependência: drizzle-orm/neon-http
@@ -84,8 +84,8 @@
   - Repository contém possível lógica de negócio
 
 ### 🔥 timecard
-- **Total de problemas:** 8
-- **Críticos:** 1 | **Altos:** 3
+- **Total de problemas:** 9
+- **Críticos:** 1 | **Altos:** 4
 - **Principais problemas:**
   - Domain Layer violando dependência: drizzle-orm/neon-http
   - Application Layer violando dependência: express
@@ -108,8 +108,8 @@
 
 ### 🔥 materials-services
 - **Prioridade:** immediate
-- **Tempo estimado:** 25h
-- **Ações:** 32
+- **Tempo estimado:** 26h
+- **Ações:** 33
 
 1. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
 2. **refactor_code:** Refatorar dependência inválida na camada domain
@@ -130,19 +130,20 @@
 17. **refactor_code:** Refatorar dependência inválida na camada application
 18. **refactor_code:** Refatorar dependência inválida na camada application
 19. **refactor_code:** Refatorar dependência inválida na camada application
-20. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
+20. **refactor_code:** Refatorar dependência inválida na camada application
 21. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
 22. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
 23. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
-24. **rename_file:** Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'
-25. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
+24. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
+25. **rename_file:** Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'
 26. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 27. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 28. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 29. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
-30. **create_file:** Criar Repository com interface
+30. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 31. **create_file:** Criar Repository com interface
 32. **create_file:** Criar Repository com interface
+33. **create_file:** Criar Repository com interface
 
 ### 🔥 saas-admin
 - **Prioridade:** immediate
@@ -258,7 +259,7 @@
 ## Recomendações
 
 ### Prioridade Imediata 🔥
-- **materials-services:** 32 ações (25h)
+- **materials-services:** 33 ações (26h)
 - **saas-admin:** 6 ações (4h)
 - **technical-skills:** 6 ações (5h)
 - **beneficiaries:** 3 ações (3h)

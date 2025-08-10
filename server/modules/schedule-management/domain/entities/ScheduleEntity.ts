@@ -34,7 +34,7 @@ export interface Customer {
 
 // Domain entities should not import infrastructure dependencies
 
-export class ScheduleEntity {
+export class Schedule {
   constructor(
     public readonly id: string,
     public readonly userId: string,

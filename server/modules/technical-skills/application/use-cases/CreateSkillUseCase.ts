@@ -1,26 +1,19 @@
 
 import { ISkillRepository } from '../../domain/repositories/ISkillRepository';
 import { Skill } from '../../domain/entities/Skill';
-import { SkillValidationService } from '../../domain/services/SkillValidationService';
 
 export class CreateSkillUseCase {
-  constructor(
-    private skillRepository: ISkillRepository,
-    private validationService: SkillValidationService
-  ) {}
+  constructor(private skillRepository: ISkillRepository) {}
 
-  async execute(name: string, category: string, description?: string): Promise<Skill> {
-    this.validationService.validateSkillName(name);
-    
-    const skill = new Skill({
-      id: crypto.randomUUID(),
-      name,
-      category,
-      description,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    });
+  async execute(skillData: any, tenantId: string): Promise<Skill> {
+    const skill = new Skill(
+      skillData.id,
+      skillData.name,
+      skillData.description,
+      skillData.category,
+      tenantId
+    );
 
-    return await this.skillRepository.save(skill);
+    return await this.skillRepository.create(skill);
   }
 }
