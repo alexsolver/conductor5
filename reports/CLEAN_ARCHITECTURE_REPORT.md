@@ -1,16 +1,16 @@
 # Clean Architecture Validation Report
 
 **Data:** 2025-08-10  
-**Score:** 32/100  
+**Score:** 33/100  
 **Status:** ❌ REPROVADO
 
 ## Resumo de Problemas
 
 - 🔥 **Críticos:** 2
-- ⚠️ **Altos:** 50
+- ⚠️ **Altos:** 47
 - 📋 **Médios:** 25
 - 💡 **Baixos:** 0
-- **Total:** 77
+- **Total:** 74
 
 ## Principais Problemas por Módulo
 
@@ -68,12 +68,12 @@
   - Repository contém possível lógica de negócio
 
 ### ⚠️ timecard
-- **Total de problemas:** 9
-- **Críticos:** 0 | **Altos:** 6
+- **Total de problemas:** 6
+- **Críticos:** 0 | **Altos:** 3
 - **Principais problemas:**
   - Application Layer violando dependência: express
   - Application Layer violando dependência: express
-  - Application Layer violando dependência: ../../infrastructure/repositories/DrizzleTimecardRepository
+  - Repository contém possível lógica de negócio
 
 ### 📋 auth
 - **Total de problemas:** 1
