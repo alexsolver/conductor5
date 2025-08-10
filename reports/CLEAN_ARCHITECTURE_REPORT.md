@@ -8,9 +8,9 @@
 
 - 🔥 **Críticos:** 16
 - ⚠️ **Altos:** 73
-- 📋 **Médios:** 55
+- 📋 **Médios:** 54
 - 💡 **Baixos:** 5
-- **Total:** 149
+- **Total:** 148
 
 ## Principais Problemas por Módulo
 
@@ -75,13 +75,6 @@
   - Estrutura dto ausente na camada application
   - Estrutura services ausente na camada application
   - Routes contém lógica de negócio ou acesso a dados
-
-### 📋 template-audit
-- **Total de problemas:** 2
-- **Críticos:** 0 | **Altos:** 0
-- **Principais problemas:**
-  - Estrutura services ausente na camada application
-  - Repository DrizzleTemplateAuditRepository deve implementar interface
 
 ### ⚠️ template-hierarchy
 - **Total de problemas:** 5
@@ -154,6 +147,12 @@
 - **Críticos:** 0 | **Altos:** 0
 - **Principais problemas:**
   - Use Case index deve terminar com 'UseCase'
+
+### 📋 template-audit
+- **Total de problemas:** 1
+- **Críticos:** 0 | **Altos:** 0
+- **Principais problemas:**
+  - Repository DrizzleTemplateAuditRepository deve implementar interface
 
 
 ## Plano de Correção
@@ -351,14 +350,6 @@
 1. **create_directory:** Criar diretório/arquivo dto na camada application
 2. **create_directory:** Criar diretório/arquivo services na camada application
 
-### 💡 template-audit
-- **Prioridade:** low
-- **Tempo estimado:** 20min
-- **Ações:** 2
-
-1. **create_directory:** Criar diretório/arquivo services na camada application
-2. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
-
 ### 💡 auth
 - **Prioridade:** low
 - **Tempo estimado:** 45min
@@ -386,6 +377,13 @@
 - **Ações:** 1
 
 1. **rename_file:** Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'
+
+### 💡 template-audit
+- **Prioridade:** low
+- **Tempo estimado:** 10min
+- **Ações:** 1
+
+1. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 
 
 ## Recomendações
