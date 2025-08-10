@@ -90,7 +90,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const loginRateLimit = createMemoryRateLimitMiddleware(RATE_LIMIT_CONFIGS.LOGIN);
     const registerRateLimit = createMemoryRateLimitMiddleware(RATE_LIMIT_CONFIGS.REGISTRATION);
     const passwordResetRateLimit = createMemoryRateLimitMiddleware(RATE_LIMIT_CONFIGS.PASSWORD_RESET);
-    
+
     if (loginRateLimit && typeof loginRateLimit === 'function') {
       app.use('/api/auth/login', loginRateLimit);
     }
@@ -256,13 +256,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   } else {
     console.warn('Dashboard router is invalid, skipping...');
   }
-  
+
   if (customersRouter && typeof customersRouter === 'function') {
     app.use('/api/customers', customersRouter);
   } else {
     console.warn('Customers router is invalid, skipping...');
   }
-  
+
   // Mount beneficiaries routes with safety check
   console.log('[ROUTES] Mounting beneficiaries routes on /api/beneficiaries');
   if (beneficiariesRoutes && typeof beneficiariesRoutes === 'function') {
@@ -270,7 +270,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   } else {
     console.warn('Beneficiaries routes are invalid, skipping...');
   }
-  
+
   if (ticketsRouter && typeof ticketsRouter === 'function') {
     app.use('/api/tickets', ticketsRouter);
   } else {
@@ -2224,39 +2224,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
   // Status dos backups
-  if (cltComplianceController && typeof cltComplianceController.getBackupStatus === 'function') {
-    app.get('/api/timecard/compliance/backups', jwtAuth, cltComplianceController.getBackupStatus.bind(cltComplianceController));
-  } else {
-    app.get('/api/timecard/compliance/backups', jwtAuth, (req, res) => {
-      res.status(501).json({ message: 'Status de backup não implementado' });
-    });
-  }
+  app.get('/api/timecard/compliance/backups', jwtAuth, async (req, res) => {
+    try {
+      if (cltComplianceController && typeof cltComplianceController.getBackupStatus === 'function') {
+        return await cltComplianceController.getBackupStatus(req, res);
+      } else {
+        res.status(501).json({ message: 'Status de backup não implementado' });
+      }
+    } catch (error) {
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+  });
 
-  if (cltComplianceController && typeof cltComplianceController.verifyBackup === 'function') {
-    app.post('/api/timecard/compliance/verify-backup', jwtAuth, cltComplianceController.verifyBackup.bind(cltComplianceController));
-  } else {
-    app.post('/api/timecard/compliance/verify-backup', jwtAuth, (req, res) => {
-      res.status(501).json({ message: 'Verificação de backup não implementada' });
-    });
-  }
+  app.post('/api/timecard/compliance/verify-backup', jwtAuth, async (req, res) => {
+    try {
+      if (cltComplianceController && typeof cltComplianceController.verifyBackup === 'function') {
+        return await cltComplianceController.verifyBackup(req, res);
+      } else {
+        res.status(501).json({ message: 'Verificação de backup não implementada' });
+      }
+    } catch (error) {
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+  });
 
   // Status das chaves de assinatura digital
-  if (cltComplianceController && typeof cltComplianceController.getDigitalKeys === 'function') {
-    app.get('/api/timecard/compliance/keys', jwtAuth, cltComplianceController.getDigitalKeys.bind(cltComplianceController));
-  } else {
-    app.get('/api/timecard/compliance/keys', jwtAuth, (req, res) => {
-      res.status(501).json({ message: 'Gestão de chaves digitais não implementada' });
-    });
-  }
+  app.get('/api/timecard/compliance/keys', jwtAuth, async (req, res) => {
+    try {
+      if (cltComplianceController && typeof cltComplianceController.getDigitalKeys === 'function') {
+        return await cltComplianceController.getDigitalKeys(req, res);
+      } else {
+        res.status(501).json({ message: 'Gestão de chaves digitais não implementada' });
+      }
+    } catch (error) {
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+  });
 
   // Reconstituição da cadeia de integridade
-  if (cltComplianceController && typeof cltComplianceController.rebuildIntegrityChain === 'function') {
-    app.post('/api/timecard/compliance/rebuild-integrity', jwtAuth, cltComplianceController.rebuildIntegrityChain.bind(cltComplianceController));
-  } else {
-    app.post('/api/timecard/compliance/rebuild-integrity', jwtAuth, (req, res) => {
-      res.status(501).json({ message: 'Reconstituição de integridade não implementada' });
-    });
-  }
+  app.post('/api/timecard/compliance/rebuild-integrity', jwtAuth, async (req, res) => {
+    try {
+      if (cltComplianceController && typeof cltComplianceController.rebuildIntegrityChain === 'function') {
+        return await cltComplianceController.rebuildIntegrityChain(req, res);
+      } else {
+        res.status(501).json({ message: 'Reconstituição de integridade não implementada' });
+      }
+    } catch (error) {
+      res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+  });
 
   // Contract Management routes - Gestão de Contratos
   app.use('/api/contracts', contractRoutes);
