@@ -1,4 +1,5 @@
 // Domain layer não deve importar ORM diretamente
+// Removed drizzle-orm dependency - Domain Layer should not depend on infrastructure
 export class Timecard {
   constructor(
     public readonly id: string,

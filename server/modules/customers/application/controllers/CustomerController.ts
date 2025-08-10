@@ -1,14 +1,14 @@
 // Clean interfaces for HTTP abstraction
 // Using interfaces instead of direct express dependency
-interface RequestContext {
-  user?: { tenantId?: string; userId?: string };
-  params: Record<string, string>;
+interface IRequest {
+  user?: any;
+  params: any;
   body: any;
   query: any;
 }
 
-interface ResponseContext {
-  status: (code: number) => ResponseContext;
+interface IResponse {
+  status: (code: number) => IResponse;
   json: (data: any) => void;
 }
 
@@ -17,7 +17,7 @@ export class CustomerController {
     private customerApplicationService: CustomerApplicationService
   ) {}
 
-  async createCustomer(req: RequestContext, res: ResponseContext): Promise<void> {
+  async createCustomer(req: IRequest, res: IResponse): Promise<void> {
     try {
       const { body, user } = req;
       const tenantId = user?.tenantId;
@@ -51,7 +51,7 @@ export class CustomerController {
     }
   }
 
-  async getCustomers(req: RequestContext, res: ResponseContext): Promise<void> {
+  async getCustomers(req: IRequest, res: IResponse): Promise<void> {
     try {
       const user = req.user;
       const tenantId = user?.tenantId;
@@ -90,7 +90,7 @@ export class CustomerController {
     }
   }
 
-  async updateCustomer(req: RequestContext, res: ResponseContext): Promise<void> {
+  async updateCustomer(req: IRequest, res: IResponse): Promise<void> {
     try {
       const { id } = req.params;
       const user = req.user;
@@ -129,7 +129,7 @@ export class CustomerController {
     }
   }
 
-  async deleteCustomer(req: RequestContext, res: ResponseContext): Promise<void> {
+  async deleteCustomer(req: IRequest, res: IResponse): Promise<void> {
     try {
       const { id } = req.params;
       const user = req.user;
@@ -167,7 +167,7 @@ export class CustomerController {
     }
   }
 
-  async getAllCustomers(req: RequestContext, res: ResponseContext): Promise<void> {
+  async getAllCustomers(req: IRequest, res: IResponse): Promise<void> {
     try {
       const user = req.user;
       const tenantId = user?.tenantId;

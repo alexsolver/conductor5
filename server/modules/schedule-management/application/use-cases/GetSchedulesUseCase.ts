@@ -1,4 +1,4 @@
-// Application layer should use domain interfaces, not infrastructure
+// Use repository interface instead of direct database access
 
 import { Schedule } from '../../domain/entities/Schedule';
 import { IScheduleRepository } from '../../domain/repositories/IScheduleRepository';

@@ -1,7 +1,7 @@
 import { Schedule } from '../../domain/entities/Schedule';
 import { IScheduleRepository } from '../../domain/repositories/IScheduleRepository';
 
-// Removed infrastructure dependency - use cases should only depend on domain interfaces
+// Use repository interface instead of direct database access
 
 export class CreateScheduleUseCase {
   constructor(

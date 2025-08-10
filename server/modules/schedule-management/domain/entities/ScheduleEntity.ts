@@ -1,5 +1,5 @@
 
-export class Schedule {
+export class ScheduleEntity {
   constructor(
     public readonly id: string,
     public readonly tenantId: string,

@@ -13,7 +13,7 @@ export class Beneficiary {
     public readonly updatedAt: Date = new Date()
   ) {}
 
-  // Removido import de DTO - domínio não deve depender de application layer
+  // Removed invalid domain dependency - DTOs should not be imported in Domain Layer
   static fromData(data: {
     firstName: string;
     lastName: string;

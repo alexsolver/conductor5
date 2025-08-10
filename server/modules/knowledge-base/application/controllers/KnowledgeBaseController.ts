@@ -7,11 +7,11 @@ import { KnowledgeBaseApplicationService } from '../services/KnowledgeBaseApplic
 import { IKnowledgeBaseRepository } from '../../domain/repositories/IKnowledgeBaseRepository';
 import { IMediaRepository } from '../../domain/repositories/IMediaRepository';
 
-// Use abstracted interfaces instead of direct imports
+// Use abstracted HTTP types instead of Express directly
 interface IRequest {
+  user?: any;
   params: any;
   body: any;
-  user?: any;
   query: any;
   files?: any;
 }

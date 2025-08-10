@@ -5,6 +5,19 @@ import { UpdateSkillUseCase } from '../use-cases/UpdateSkillUseCase';
 import { CreateSkillDTO, UpdateSkillDTO, SkillResponseDTO } from '../dto/CreateSkillDTO';
 import { ISkillRepository } from '../../domain/repositories/ISkillRepository';
 
+// Use abstracted HTTP types instead of Express directly
+interface IRequest {
+  user?: any;
+  params: any;
+  body: any;
+  query: any;
+}
+
+interface IResponse {
+  status: (code: number) => IResponse;
+  json: (data: any) => void;
+}
+
 export class SkillApplicationService {
   constructor(
     private readonly createSkillUseCase: CreateSkillUseCase,
