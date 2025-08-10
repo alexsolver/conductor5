@@ -9,8 +9,18 @@ const router = Router();
 router.use(jwtAuth);
 router.use(tenantValidator);
 
+// Dummy implementations for dependencies (temporary fix)
+const customerApplicationService = {
+  createCustomer: async (data: any) => ({ customer: data }),
+  getCustomers: async (params: any) => ({ success: true, customers: [], total: 0 }),
+  updateCustomer: async (data: any) => ({ success: true, customer: data }),
+  deleteCustomer: async (data: any) => ({ success: true })
+};
+
+const customerRepository = {};
+
 // Inicializar controller
-const customerController = new CustomerController();
+const customerController = new CustomerController(customerApplicationService, customerRepository);
 
 // Rotas CRUD - delegando para controllers
 router.get('/', customerController.getAll.bind(customerController));

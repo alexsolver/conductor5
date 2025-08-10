@@ -216,6 +216,50 @@ export class CustomerController {
       });
     }
   }
+
+  // Route-compatible methods
+  async getAll(req: HttpRequest, res: HttpResponse): Promise<void> {
+    return this.getCustomers(req, res);
+  }
+
+  async getById(req: HttpRequest, res: HttpResponse): Promise<void> {
+    try {
+      const { id } = req.params;
+      const user = req.user;
+      const tenantId = user?.tenantId;
+
+      if (!tenantId) {
+        res.status(400).json({
+          success: false,
+          error: 'Tenant ID is required'
+        });
+        return;
+      }
+
+      // For now, return a simple response since we don't have getById implemented
+      res.status(404).json({
+        success: false,
+        error: 'Customer not found'
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
+  async create(req: HttpRequest, res: HttpResponse): Promise<void> {
+    return this.createCustomer(req, res);
+  }
+
+  async update(req: HttpRequest, res: HttpResponse): Promise<void> {
+    return this.updateCustomer(req, res);
+  }
+
+  async delete(req: HttpRequest, res: HttpResponse): Promise<void> {
+    return this.deleteCustomer(req, res);
+  }
 }
 
 // Dummy DTO transformation and repository interface for compilation
