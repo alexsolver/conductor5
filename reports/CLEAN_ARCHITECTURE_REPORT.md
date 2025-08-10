@@ -1,107 +1,210 @@
 # Clean Architecture Validation Report
 
 **Data:** 2025-08-10  
-**Score:** 32/100  
+**Score:** 0/100  
 **Status:** ❌ REPROVADO
 
 ## Resumo de Problemas
 
-- 🔥 **Críticos:** 2
-- ⚠️ **Altos:** 49
-- 📋 **Médios:** 22
-- 💡 **Baixos:** 0
-- **Total:** 73
+- 🔥 **Críticos:** 30
+- ⚠️ **Altos:** 94
+- 📋 **Médios:** 62
+- 💡 **Baixos:** 183
+- **Total:** 369
 
 ## Principais Problemas por Módulo
 
-### ⚠️ materials-services
-- **Total de problemas:** 36
-- **Críticos:** 0 | **Altos:** 30
+### 🔥 auth
+- **Total de problemas:** 15
+- **Críticos:** 1 | **Altos:** 3
 - **Principais problemas:**
-  - Routes contém lógica de negócio ou acesso a dados
-  - Application Layer violando dependência: express
-  - Application Layer violando dependência: express
-
-### ⚠️ saas-admin
-- **Total de problemas:** 3
-- **Críticos:** 0 | **Altos:** 2
-- **Principais problemas:**
-  - Routes contém lógica de negócio ou acesso a dados
-  - Entity SaasConfigEntity não possui Repository correspondente
-  - Repository indexRepository não possui interface no Domain
-
-### ⚠️ technical-skills
-- **Total de problemas:** 5
-- **Críticos:** 0 | **Altos:** 5
-- **Principais problemas:**
-  - Routes contém lógica de negócio ou acesso a dados
-  - Application Layer violando dependência: express
-  - Application Layer violando dependência: ../../infrastructure/repositories/DrizzleUserSkillRepository
-
-### ⚠️ tickets
-- **Total de problemas:** 3
-- **Críticos:** 0 | **Altos:** 2
-- **Principais problemas:**
-  - Routes contém lógica de negócio ou acesso a dados
-  - Application Layer violando dependência: express
-  - Repository contém possível lógica de negócio
+  - Estrutura esperada 'value-objects' ausente na camada 'domain'
+  - Estrutura esperada 'repositories' ausente na camada 'application'
+  - Estrutura esperada 'clients' ausente na camada 'infrastructure'
 
 ### 🔥 beneficiaries
-- **Total de problemas:** 4
+- **Total de problemas:** 20
+- **Críticos:** 1 | **Altos:** 6
+- **Principais problemas:**
+  - Estrutura esperada 'value-objects' ausente na camada 'domain'
+  - Estrutura esperada 'repositories' ausente na camada 'application'
+  - Estrutura esperada 'clients' ausente na camada 'infrastructure'
+
+### 🔥 custom-fields
+- **Total de problemas:** 17
+- **Críticos:** 1 | **Altos:** 4
+- **Principais problemas:**
+  - Estrutura esperada 'value-objects' ausente na camada 'domain'
+  - Estrutura esperada 'repositories' ausente na camada 'application'
+  - Estrutura esperada 'clients' ausente na camada 'infrastructure'
+
+### 🔥 customers
+- **Total de problemas:** 23
+- **Críticos:** 3 | **Altos:** 9
+- **Principais problemas:**
+  - Estrutura esperada 'value-objects' ausente na camada 'domain'
+  - Estrutura esperada 'repositories' ausente na camada 'application'
+  - Estrutura esperada 'clients' ausente na camada 'infrastructure'
+
+### ⚠️ dashboard
+- **Total de problemas:** 10
+- **Críticos:** 0 | **Altos:** 1
+- **Principais problemas:**
+  - Estrutura esperada 'value-objects' ausente na camada 'domain'
+  - Estrutura esperada 'repositories' ausente na camada 'application'
+  - Estrutura esperada 'clients' ausente na camada 'infrastructure'
+
+### 🔥 field-layout
+- **Total de problemas:** 8
+- **Críticos:** 1 | **Altos:** 0
+- **Principais problemas:**
+  - Estrutura esperada 'value-objects' ausente na camada 'domain'
+  - Estrutura esperada 'repositories' ausente na camada 'application'
+  - Estrutura esperada 'clients' ausente na camada 'infrastructure'
+
+### 🔥 field-layouts
+- **Total de problemas:** 12
+- **Críticos:** 1 | **Altos:** 1
+- **Principais problemas:**
+  - Estrutura esperada 'value-objects' ausente na camada 'domain'
+  - Estrutura esperada 'repositories' ausente na camada 'application'
+  - Estrutura esperada 'clients' ausente na camada 'infrastructure'
+
+### 🔥 knowledge-base
+- **Total de problemas:** 14
+- **Críticos:** 1 | **Altos:** 3
+- **Principais problemas:**
+  - Estrutura esperada 'value-objects' ausente na camada 'domain'
+  - Estrutura esperada 'repositories' ausente na camada 'application'
+  - Estrutura esperada 'clients' ausente na camada 'infrastructure'
+
+### 🔥 locations
+- **Total de problemas:** 10
+- **Críticos:** 1 | **Altos:** 2
+- **Principais problemas:**
+  - Estrutura esperada 'value-objects' ausente na camada 'domain'
+  - Estrutura esperada 'repositories' ausente na camada 'application'
+  - Estrutura esperada 'clients' ausente na camada 'infrastructure'
+
+### 🔥 materials-services
+- **Total de problemas:** 60
+- **Críticos:** 2 | **Altos:** 32
+- **Principais problemas:**
+  - Estrutura esperada 'value-objects' ausente na camada 'domain'
+  - Estrutura esperada 'repositories' ausente na camada 'application'
+  - Estrutura esperada 'clients' ausente na camada 'infrastructure'
+
+### 🔥 notifications
+- **Total de problemas:** 12
 - **Críticos:** 2 | **Altos:** 2
 - **Principais problemas:**
-  - Domain Layer violando dependência: ../../application/dto/CreateBeneficiaryDTO
-  - Domain Layer violando dependência: ../../application/dto/CreateBeneficiaryDTO
-  - Application Layer violando dependência: express
+  - Estrutura esperada 'value-objects' ausente na camada 'domain'
+  - Estrutura esperada 'repositories' ausente na camada 'application'
+  - Estrutura esperada 'clients' ausente na camada 'infrastructure'
 
-### ⚠️ custom-fields
-- **Total de problemas:** 1
-- **Críticos:** 0 | **Altos:** 1
+### 🔥 people
+- **Total de problemas:** 14
+- **Críticos:** 1 | **Altos:** 2
 - **Principais problemas:**
-  - Application Layer violando dependência: express
+  - Estrutura esperada 'value-objects' ausente na camada 'domain'
+  - Estrutura esperada 'repositories' ausente na camada 'application'
+  - Estrutura esperada 'clients' ausente na camada 'infrastructure'
 
-### ⚠️ knowledge-base
-- **Total de problemas:** 6
+### 🔥 saas-admin
+- **Total de problemas:** 13
+- **Críticos:** 2 | **Altos:** 2
+- **Principais problemas:**
+  - Estrutura esperada 'value-objects' ausente na camada 'domain'
+  - Estrutura esperada 'repositories' ausente na camada 'application'
+  - Estrutura esperada 'clients' ausente na camada 'infrastructure'
+
+### 🔥 schedule-management
+- **Total de problemas:** 14
+- **Críticos:** 1 | **Altos:** 5
+- **Principais problemas:**
+  - Estrutura esperada 'value-objects' ausente na camada 'domain'
+  - Estrutura esperada 'clients' ausente na camada 'infrastructure'
+  - Estrutura esperada 'config' ausente na camada 'infrastructure'
+
+### 🔥 shared
+- **Total de problemas:** 18
+- **Críticos:** 1 | **Altos:** 1
+- **Principais problemas:**
+  - Estrutura esperada 'value-objects' ausente na camada 'domain'
+  - Estrutura esperada 'repositories' ausente na camada 'application'
+  - Estrutura esperada 'clients' ausente na camada 'infrastructure'
+
+### 🔥 technical-skills
+- **Total de problemas:** 21
+- **Críticos:** 3 | **Altos:** 7
+- **Principais problemas:**
+  - Estrutura esperada 'value-objects' ausente na camada 'domain'
+  - Estrutura esperada 'repositories' ausente na camada 'application'
+  - Estrutura esperada 'clients' ausente na camada 'infrastructure'
+
+### 🔥 template-audit
+- **Total de problemas:** 10
+- **Críticos:** 1 | **Altos:** 0
+- **Principais problemas:**
+  - Estrutura esperada 'value-objects' ausente na camada 'domain'
+  - Estrutura esperada 'repositories' ausente na camada 'application'
+  - Estrutura esperada 'clients' ausente na camada 'infrastructure'
+
+### 🔥 template-hierarchy
+- **Total de problemas:** 7
+- **Críticos:** 1 | **Altos:** 0
+- **Principais problemas:**
+  - Estrutura esperada 'value-objects' ausente na camada 'domain'
+  - Estrutura esperada 'repositories' ausente na camada 'application'
+  - Estrutura esperada 'clients' ausente na camada 'infrastructure'
+
+### 🔥 template-versions
+- **Total de problemas:** 7
+- **Críticos:** 1 | **Altos:** 0
+- **Principais problemas:**
+  - Estrutura esperada 'value-objects' ausente na camada 'domain'
+  - Estrutura esperada 'repositories' ausente na camada 'application'
+  - Estrutura esperada 'clients' ausente na camada 'infrastructure'
+
+### 🔥 tenant-admin
+- **Total de problemas:** 12
+- **Críticos:** 1 | **Altos:** 1
+- **Principais problemas:**
+  - Estrutura esperada 'value-objects' ausente na camada 'domain'
+  - Estrutura esperada 'repositories' ausente na camada 'application'
+  - Estrutura esperada 'clients' ausente na camada 'infrastructure'
+
+### ⚠️ ticket-history
+- **Total de problemas:** 9
 - **Críticos:** 0 | **Altos:** 2
 - **Principais problemas:**
-  - Application Layer violando dependência: ../../infrastructure/repositories/MediaRepository
-  - Application Layer violando dependência: ../../infrastructure/repositories/MediaRepository
-  - Repository contém possível lógica de negócio
+  - Estrutura esperada 'value-objects' ausente na camada 'domain'
+  - Estrutura esperada 'repositories' ausente na camada 'application'
+  - Estrutura esperada 'clients' ausente na camada 'infrastructure'
 
-### ⚠️ timecard
+### 🔥 ticket-templates
 - **Total de problemas:** 7
-- **Críticos:** 0 | **Altos:** 4
+- **Críticos:** 1 | **Altos:** 0
 - **Principais problemas:**
-  - Application Layer violando dependência: express
-  - Application Layer violando dependência: express
-  - Application Layer violando dependência: drizzle-orm
+  - Estrutura esperada 'value-objects' ausente na camada 'domain'
+  - Estrutura esperada 'repositories' ausente na camada 'application'
+  - Estrutura esperada 'clients' ausente na camada 'infrastructure'
 
-### 📋 auth
-- **Total de problemas:** 1
-- **Críticos:** 0 | **Altos:** 0
+### 🔥 tickets
+- **Total de problemas:** 13
+- **Críticos:** 1 | **Altos:** 5
 - **Principais problemas:**
-  - Repository contém possível lógica de negócio
+  - Estrutura esperada 'value-objects' ausente na camada 'domain'
+  - Estrutura esperada 'repositories' ausente na camada 'application'
+  - Estrutura esperada 'clients' ausente na camada 'infrastructure'
 
-### 📋 dashboard
-- **Total de problemas:** 1
-- **Críticos:** 0 | **Altos:** 0
+### 🔥 timecard
+- **Total de problemas:** 23
+- **Críticos:** 2 | **Altos:** 6
 - **Principais problemas:**
-  - Repository contém possível lógica de negócio
-
-### ⚠️ schedule-management
-- **Total de problemas:** 2
-- **Críticos:** 0 | **Altos:** 1
-- **Principais problemas:**
-  - Repository contém possível lógica de negócio
-  - Entity ScheduleEntity não possui Repository correspondente
-
-### 📋 shared
-- **Total de problemas:** 4
-- **Críticos:** 0 | **Altos:** 0
-- **Principais problemas:**
-  - Repository contém possível lógica de negócio
-  - Repository index deve terminar com 'Repository'
-  - Repository index deve implementar interface
+  - Estrutura esperada 'value-objects' ausente na camada 'domain'
+  - Estrutura esperada 'repositories' ausente na camada 'application'
+  - Estrutura esperada 'clients' ausente na camada 'infrastructure'
 
 
 ## Plano de Correção
