@@ -179,7 +179,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
     // Parse available companies and filter Default if inactive
     const rawCompanies = Array.isArray(availableCompaniesData) ? availableCompaniesData : [];
     const { filteredCompanies } = useCompanyFilter(rawCompanies);
-    
+
     // Sort filtered companies to put Default first (if it's active)
     const availableCompanies = filteredCompanies.sort((a: any, b: any) => {
       const aIsDefault = a.name?.toLowerCase().includes('default') || a.displayName?.toLowerCase().includes('default');
@@ -365,37 +365,12 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
       return;
     }
 
-    try {
-      console.log('Adding company:', { 
-        customerId: customer.id, 
-        companyId: selectedCompanyId,
-        currentAssociations: companies?.length || 0
-      });
-
-      const response = await apiRequest('POST', `/api/customers/${customer.id}/companies`, {
-        companyId: selectedCompanyId,
-        role: 'member',
-        isPrimary: Array.isArray(companies) ? companies.length === 0 : true
-      });
-
-      // Limpar seleção antes de atualizar dados
-      setSelectedCompanyId('');
-
-      // Atualizar dados
-      await refetchCompanies();
-
-      toast({
-        title: "Sucesso",
-        description: "Empresa associada com sucesso!",
-      });
-    } catch (error: any) {
-      console.error('Error adding company:', error);
-      toast({
-        title: "Erro",
-        description: error?.message || "Erro ao associar empresa",
-        variant: "destructive"
-      });
-    }
+    // Use the mutation hook
+    addCompanyMutation.mutate({
+      customerId: customer.id,
+      companyId: selectedCompanyId,
+      isPrimary: Array.isArray(companies) ? companies.length === 0 : true
+    });
   };
 
   const handleRemoveCompany = async (companyId: string) => {
@@ -754,7 +729,7 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                     />
                   </div>
 
-                  
+
                 </TabsContent>
 
                 <TabsContent value="hierarquia" className="space-y-4">
@@ -1079,10 +1054,10 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
                               type="button"
                               size="sm"
                               onClick={handleAddCompany}
-                              disabled={!selectedCompanyId || selectedCompanyId === 'no-companies' || selectedCompanyId === 'all-associated'}
-                              title={!selectedCompanyId ? "Selecione uma empresa primeiro" : "Associar empresa"}
+                              disabled={!selectedCompanyId || selectedCompanyId === 'no-companies' || selectedCompanyId === 'all-associated' || addCompanyMutation.isPending}
+                              title={!selectedCompanyId ? "Selecione uma empresa primeiro" : addCompanyMutation.isPending ? "Associando..." : "Associar empresa"}
                             >
-                              <Plus className="h-4 w-4" />
+                              {addCompanyMutation.isPending ? 'Associando...' : <Plus className="h-4 w-4" />}
                               Associar
                             </Button>
                           </div>
