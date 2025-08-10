@@ -559,17 +559,6 @@
         ]
       },
       {
-        "type": "rename_file",
-        "description": "Padronizar nomenclatura: Nome da classe Schedule não corresponde ao arquivo ScheduleEntity",
-        "target": "/home/runner/workspace/server/modules/schedule-management/domain/entities/ScheduleEntity.ts",
-        "steps": [
-          "Renomear arquivo seguindo padrão",
-          "Atualizar imports em outros arquivos",
-          "Atualizar nome da classe/interface",
-          "Verificar consistência com padrões do projeto"
-        ]
-      },
-      {
         "type": "create_file",
         "description": "Criar Repository com interface",
         "target": "/home/runner/workspace/server/modules/schedule-management/infrastructure/repositories/ScheduleEntityRepository.ts",

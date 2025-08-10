@@ -9,8 +9,8 @@
 - 🔥 **Críticos:** 10
 - ⚠️ **Altos:** 60
 - 📋 **Médios:** 28
-- 💡 **Baixos:** 4
-- **Total:** 102
+- 💡 **Baixos:** 3
+- **Total:** 101
 
 ## Principais Problemas por Módulo
 
@@ -68,12 +68,12 @@
   - Application Layer violando dependência: ../../infrastructure/repositories/MediaRepository
 
 ### 🔥 schedule-management
-- **Total de problemas:** 4
+- **Total de problemas:** 3
 - **Críticos:** 1 | **Altos:** 1
 - **Principais problemas:**
   - Domain Layer violando dependência: drizzle-orm/neon-http
   - Repository contém possível lógica de negócio
-  - Nome da classe Schedule não corresponde ao arquivo ScheduleEntity
+  - Entity ScheduleEntity não possui Repository correspondente
 
 ### 🔥 shared
 - **Total de problemas:** 7
@@ -177,12 +177,11 @@
 ### 🔥 schedule-management
 - **Prioridade:** immediate
 - **Tempo estimado:** 3h
-- **Ações:** 4
+- **Ações:** 3
 
 1. **refactor_code:** Refatorar dependência inválida na camada domain
 2. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
-3. **rename_file:** Padronizar nomenclatura: Nome da classe Schedule não corresponde ao arquivo ScheduleEntity
-4. **create_file:** Criar Repository com interface
+3. **create_file:** Criar Repository com interface
 
 ### 🔥 shared
 - **Prioridade:** immediate
@@ -259,7 +258,7 @@
 - **saas-admin:** 6 ações (4h)
 - **technical-skills:** 5 ações (5h)
 - **beneficiaries:** 3 ações (3h)
-- **schedule-management:** 4 ações (3h)
+- **schedule-management:** 3 ações (3h)
 - **shared:** 7 ações (4h)
 - **timecard:** 7 ações (5h)
 
