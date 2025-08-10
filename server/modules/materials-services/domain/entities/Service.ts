@@ -1,3 +1,5 @@
+// Removed drizzle dependency - Domain entities should not import infrastructure
+
 export class Service {
   constructor(
     public readonly id: string,

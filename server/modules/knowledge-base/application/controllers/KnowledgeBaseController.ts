@@ -8,6 +8,8 @@ import { KnowledgeBaseApplicationService } from '../services/KnowledgeBaseApplic
 import { IKnowledgeBaseRepository } from '../../domain/repositories/IKnowledgeBaseRepository';
 import { IMediaRepository } from '../../domain/repositories/IMediaRepository';
 
+// Use domain interfaces instead of infrastructure dependencies
+
 // Proper type definitions
 interface HttpRequest {
   user?: {

@@ -31,6 +31,7 @@ const getBeneficiariesUseCase = new GetBeneficiariesUseCase(beneficiaryRepositor
 const updateBeneficiaryUseCase = new UpdateBeneficiaryUseCase(beneficiaryRepository, new BeneficiaryDomainService());
 const deleteBeneficiaryUseCase = new DeleteBeneficiaryUseCase(beneficiaryRepository);
 
+// Initialize controller with use cases
 const beneficiaryController = new BeneficiaryController(
   createBeneficiaryUseCase,
   getBeneficiariesUseCase,

@@ -1,3 +1,4 @@
+// Removed drizzle dependency - Domain entities should not import infrastructure
 export class Material {
   constructor(
     public readonly id: string,

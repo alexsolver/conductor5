@@ -1027,20 +1027,5 @@
       }
     ],
     "estimatedTime": "15min"
-  },
-  {
-    "priority": "low",
-    "module": "template-audit",
-    "actions": [
-      {
-        "type": "create_directory",
-        "description": "Criar interface I[Entity]Repository no domain e implementar",
-        "target": "/home/runner/workspace/server/modules/template-audit/infrastructure/repositories/DrizzleTemplateAuditRepository.ts",
-        "steps": [
-          "Criar interface I[Entity]Repository no domain e implementar"
-        ]
-      }
-    ],
-    "estimatedTime": "10min"
   }
 ]

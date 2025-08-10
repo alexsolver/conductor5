@@ -1,5 +1,7 @@
 
-export class DrizzleTemplateAuditRepository {
+import { ITemplateAuditRepository } from '../../domain/repositories/ITemplateAuditRepository';
+
+export class DrizzleTemplateAuditRepository implements ITemplateAuditRepository {
   constructor(private db: any) {}
 
   async create(audit: any): Promise<any> {

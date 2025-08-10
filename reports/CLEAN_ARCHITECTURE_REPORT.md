@@ -7,10 +7,10 @@
 ## Resumo de Problemas
 
 - 🔥 **Críticos:** 10
-- ⚠️ **Altos:** 66
-- 📋 **Médios:** 33
+- ⚠️ **Altos:** 64
+- 📋 **Médios:** 32
 - 💡 **Baixos:** 5
-- **Total:** 114
+- **Total:** 111
 
 ## Principais Problemas por Módulo
 
@@ -85,8 +85,8 @@
   - Repository contém possível lógica de negócio
 
 ### 🔥 timecard
-- **Total de problemas:** 11
-- **Críticos:** 1 | **Altos:** 6
+- **Total de problemas:** 9
+- **Críticos:** 1 | **Altos:** 4
 - **Principais problemas:**
   - Domain Layer violando dependência: drizzle-orm/neon-http
   - Application Layer violando dependência: express
@@ -115,12 +115,6 @@
 - **Críticos:** 0 | **Altos:** 0
 - **Principais problemas:**
   - Use Case index deve terminar com 'UseCase'
-
-### 📋 template-audit
-- **Total de problemas:** 1
-- **Críticos:** 0 | **Altos:** 0
-- **Principais problemas:**
-  - Repository DrizzleTemplateAuditRepository deve implementar interface
 
 
 ## Plano de Correção
@@ -290,13 +284,6 @@
 - **Ações:** 1
 
 1. **rename_file:** Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'
-
-### 💡 template-audit
-- **Prioridade:** low
-- **Tempo estimado:** 10min
-- **Ações:** 1
-
-1. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 
 
 ## Recomendações

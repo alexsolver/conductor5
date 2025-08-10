@@ -1,5 +1,5 @@
 import { eq, and, gte, lte, desc, asc, sql, inArray, isNotNull } from 'drizzle-orm';
-import { DrizzleTimecardRepository } from '../../infrastructure/repositories/DrizzleTimecardRepository';
+// Removed framework and ORM dependencies - use interfaces instead
 import { Request, Response } from 'express';
 import { z } from 'zod';
 import { db } from '../../../../db';
@@ -691,9 +691,9 @@ export class TimecardController {
     }
   };
 
-  getHourBankSummary = async (req: Request, res: Response) => {
+  getHourBankSummary = async (req: AuthenticatedRequest, res: Response) => {
     try {
-      const { tenantId } = (req as any).user;
+      const tenantId = req.user?.tenantId;
       const userId = req.user?.id;
 
       if (!tenantId || !userId) {
@@ -1345,7 +1345,7 @@ export class TimecardController {
       });
     } catch (error: any) {
       console.error('[TIMECARD-CONTROLLER] Error generating overtime report:', error);
-      
+
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
       return res.status(500).json({
         success: false,
@@ -1516,7 +1516,7 @@ export class TimecardController {
       });
     } catch (error: any) {
       console.error('[TIMECARD-CONTROLLER] Error generating compliance report:', error);
-      
+
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
       return res.status(500).json({
         success: false,

@@ -11,3 +11,11 @@ export interface IMediaRepository {
   getInteractiveDiagrams(tenantId: string): Promise<any[]>;
   getVideoStreaming(tenantId: string, videoId?: string): Promise<any>;
 }
+export interface IMediaRepository {
+  findById(id: string, tenantId: string): Promise<any | null>;
+  findAll(tenantId: string): Promise<any[]>;
+  create(media: any): Promise<any>;
+  update(id: string, media: any, tenantId: string): Promise<any | null>;
+  delete(id: string, tenantId: string): Promise<boolean>;
+  findByType(type: string, tenantId: string): Promise<any[]>;
+}
