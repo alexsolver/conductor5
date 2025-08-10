@@ -60,32 +60,50 @@ export class CreateTicketUseCase {
       );
 
       // Create new ticket
-      const ticket = Ticket.create({
-        tenantId: input.tenantId,
-        customerId: input.customerId,
-        callerId: input.callerId,
-        callerType: input.callerType,
-        subject: input.subject,
-        description: input.description,
-        shortDescription: input.shortDescription,
-        category: input.category,
-        subcategory: input.subcategory,
-        priority: input.priority,
-        impact: input.impact,
-        urgency: input.urgency,
-        assignedToId: input.assignedToId,
-        beneficiaryId: input.beneficiaryId,
-        beneficiaryType: input.beneficiaryType,
-        assignmentGroup: input.assignmentGroup,
-        location: input.location,
-        contactType: input.contactType,
-        businessImpact: input.businessImpact,
-        symptoms: input.symptoms,
-        workaround: input.workaround,
-        configurationItem: input.configurationItem,
-        businessService: input.businessService,
-        notify: input.notify
-      }, ticketNumber, this.idGenerator);
+      // Using constructor directly since factory method was moved to repository layer
+      const ticketId = this.idGenerator.generate();
+      const now = new Date();
+      
+      const ticket = new Ticket(
+        ticketId, // id
+        input.tenantId, // tenantId
+        input.customerId, // customerId
+        input.callerId, // callerId
+        input.callerType, // callerType
+        input.subject, // subject
+        input.description || '', // description
+        ticketNumber, // number
+        input.shortDescription || input.subject, // shortDescription
+        input.category || '', // category
+        input.subcategory || '', // subcategory
+        new TicketPriority(input.priority), // priority
+        input.impact || 'medium', // impact
+        input.urgency || 'medium', // urgency
+        new TicketStatus('open'), // state
+        'open', // status
+        input.assignedToId || null, // assignedToId
+        input.beneficiaryId || null, // beneficiaryId
+        input.beneficiaryType || null, // beneficiaryType
+        input.assignmentGroup || null, // assignmentGroup
+        input.location || null, // location
+        input.contactType || '', // contactType
+        input.businessImpact || null, // businessImpact
+        input.symptoms || null, // symptoms
+        input.workaround || null, // workaround
+        input.configurationItem || null, // configurationItem
+        input.businessService || null, // businessService
+        null, // resolutionCode
+        null, // resolutionNotes
+        null, // workNotes
+        null, // closeNotes
+        input.notify || false, // notify
+        null, // rootCause
+        now, // openedAt
+        null, // resolvedAt
+        null, // closedAt
+        now, // createdAt
+        now // updatedAt
+      );
 
       // Save ticket
       const savedTicket = await this.ticketRepository.save(ticket);

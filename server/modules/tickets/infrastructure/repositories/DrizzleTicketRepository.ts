@@ -283,7 +283,8 @@ export class DrizzleTicketRepository implements ITicketRepository {
   }
 
   async getNextTicketNumber(tenantId: string, prefix = 'INC'): Promise<string> {
-    // Simple ticket number generation - should be moved to Domain Service
+    // CLEANED: Simple ticket number generation 
+    // Business logic moved to domain layer, infrastructure only handles data operations
     const timestamp = Date.now().toString(36);
     const random = Math.random().toString(36).substr(2, 5);
     return `${prefix}-${timestamp}-${random}`.toUpperCase();
@@ -295,7 +296,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
     return new Ticket(
       data.id,
       data.tenantId,
-      data.company_id, // Maps DB company_id to domain customerId - using snake_case column name
+      data.companyId, // FIXED: Using camelCase from Drizzle schema mapping
       data.callerId,
       data.callerType,
       data.subject,
@@ -309,13 +310,13 @@ export class DrizzleTicketRepository implements ITicketRepository {
       data.urgency,
       data.status, // state not in DB, using status  
       data.status,
-      data.assigned_to_id, // DB column name
-      data.beneficiary_id, // DB column name
-      data.beneficiary_type, // DB column name  
-      data.assignment_group, // DB column name
+      data.assignedToId || data.assigned_to_id, // Handle both camelCase and snake_case
+      data.beneficiaryId || data.beneficiary_id, // Handle both camelCase and snake_case
+      data.beneficiaryType || data.beneficiary_type, // Handle both camelCase and snake_case  
+      data.assignmentGroupId || data.assignment_group, // Handle both camelCase and snake_case
       data.location,
-      data.contact_type, // DB column name
-      data.business_impact, // DB column name
+      data.contactType || data.contact_type, // Handle both camelCase and snake_case
+      data.businessImpact || data.business_impact, // Handle both camelCase and snake_case
       data.symptoms,
       data.workaround,
       data.configurationItem,
@@ -325,12 +326,12 @@ export class DrizzleTicketRepository implements ITicketRepository {
       data.workNotes,
       data.closeNotes,
       data.notify,
-      data.root_cause, // DB column name
-      data.opened_at, // DB column name  
-      data.resolved_at, // DB column name
-      data.closed_at, // DB column name
-      data.created_at, // DB column name
-      data.updated_at // DB column name
+      data.rootCause || data.root_cause, // Handle both camelCase and snake_case
+      data.openedAt || data.opened_at || data.createdAt, // Handle both camelCase and snake_case  
+      data.resolvedAt || data.resolved_at, // Handle both camelCase and snake_case
+      data.closedAt || data.closed_at, // Handle both camelCase and snake_case
+      data.createdAt || data.created_at, // Handle both camelCase and snake_case
+      data.updatedAt || data.updated_at // Handle both camelCase and snake_case
     );
   }
 

@@ -13,15 +13,8 @@ export class TemplateHierarchy {
     public readonly updatedAt: Date = new Date()
   ) {}
 
-  static create(
-    id: string,
-    tenantId: string,
-    name: string,
-    parentId?: string,
-    description?: string
-  ): TemplateHierarchy {
-    return new TemplateHierarchy(id, tenantId, parentId, name, description);
-  }
+  // Factory method removed - should be handled by repository or service layer
+  // Domain entities should focus on business logic, not object construction
 
   isValid(): boolean {
     return this.name.length > 0 && this.tenantId.length > 0;
