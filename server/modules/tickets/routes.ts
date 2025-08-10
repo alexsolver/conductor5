@@ -121,7 +121,7 @@ ticketsRouter.use((req: any, res, next) => {
 ticketsRouter.get('/', async (req: AuthenticatedRequest, res) => {
   try {
     console.log('🎫 [TICKETS-ROUTES] GET / called');
-    
+
     if (!req.user?.tenantId) {
       console.error('❌ [TICKETS-ROUTES] No tenantId found');
       return res.status(400).json({
@@ -154,7 +154,7 @@ ticketsRouter.get('/', async (req: AuthenticatedRequest, res) => {
     console.log('🎫 [TICKETS-ROUTES] Fetching tickets with options:', options);
 
     const tickets = await storageSimple.getTickets(req.user.tenantId, options);
-    
+
     console.log('🎫 [TICKETS-ROUTES] Retrieved tickets:', {
       count: tickets.length,
       sample: tickets.slice(0, 2).map(t => ({ id: t.id, subject: t.subject }))
@@ -175,7 +175,7 @@ ticketsRouter.get('/', async (req: AuthenticatedRequest, res) => {
     console.error('❌ [TICKETS-ROUTES] Error in GET /:', error);
     const { logError } = await import('../../utils/logger');
     logError('Error fetching tickets', error, { tenantId: req.user?.tenantId });
-    
+
     return res.status(500).json({
       success: false,
       error: error.message || 'Failed to fetch tickets',

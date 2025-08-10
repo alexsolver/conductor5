@@ -504,10 +504,29 @@ export class DatabaseStorage implements IStorage {
 
   async getTicketById(tenantId: string, ticketId: string): Promise<any | undefined> {
     try {
+      console.log(`🎫 [STORAGE-SIMPLE] Getting ticket by ID: ${ticketId} for tenant: ${tenantId}`);
+      
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
+      console.log(`🎫 [STORAGE-SIMPLE] Using schema: ${schemaName}`);
+
+      // First check if the ticket exists at all
+      const ticketCheck = await tenantDb.execute(sql`
+        SELECT COUNT(*) as count
+        FROM ${sql.identifier(schemaName)}.tickets
+        WHERE id = ${ticketId}
+      `);
+
+      console.log(`🎫 [STORAGE-SIMPLE] Ticket exists check:`, ticketCheck.rows?.[0]);
+
+      if (!ticketCheck.rows?.[0]?.count || parseInt(ticketCheck.rows[0].count) === 0) {
+        console.log(`🎫 [STORAGE-SIMPLE] Ticket ${ticketId} does not exist`);
+        return undefined;
+      }
+
+      // Now get the full ticket data
       const result = await tenantDb.execute(sql`
         SELECT 
           tickets.*,
@@ -526,8 +545,19 @@ export class DatabaseStorage implements IStorage {
         LIMIT 1
       `);
 
+      console.log(`🎫 [STORAGE-SIMPLE] Ticket query result:`, {
+        rowCount: result.rows?.length || 0,
+        ticketFound: !!result.rows?.[0],
+        ticketData: result.rows?.[0] ? {
+          id: result.rows[0].id,
+          subject: result.rows[0].subject,
+          status: result.rows[0].status
+        } : null
+      });
+
       return result.rows?.[0] || undefined;
     } catch (error) {
+      console.error(`🎫 [STORAGE-SIMPLE] Error fetching ticket ${ticketId}:`, error);
       logError('Error fetching ticket', error, { tenantId, ticketId });
       throw error;
     }
