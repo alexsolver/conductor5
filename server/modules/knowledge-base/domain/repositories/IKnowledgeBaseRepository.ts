@@ -1,3 +1,4 @@
+// Removed drizzle import - Domain should not depend on infrastructure
 import { KnowledgeBaseEntry } from '../entities/KnowledgeBaseEntry';
 
 // Interface limpa - sem dependências de infrastructure

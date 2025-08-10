@@ -1,4 +1,3 @@
-
 export class TemplateAuditApplicationService {
   constructor(
     private createAuditLogUseCase: CreateAuditLogUseCase
@@ -9,6 +8,11 @@ export class TemplateAuditApplicationService {
   }
 
   async getAuditLogs(templateId: string): Promise<TemplateAudit[]> {
+    // Implementation here
+    return [];
+  }
+
+  async getAuditHistory(templateId: string, limit = 50): Promise<TemplateAudit[]> {
     // Implementation here
     return [];
   }

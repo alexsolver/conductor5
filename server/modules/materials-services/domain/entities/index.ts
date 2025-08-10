@@ -1,7 +1,5 @@
 // Domain layer should not import infrastructure dependencies
-export * from './Item';
-export * from './Supplier';
-export * from './Stock';
+export * from './Material';
 export * from './Service';
 
 // Entities do módulo materials-services

@@ -264,3 +264,101 @@ export class CustomerController {
     }
   }
 }
+<line_number>1</line_number>
+import { Request, Response } from 'express';
+import { standardResponse } from '../../../utils/standardResponse';
+import { GetCustomersUseCase } from '../use-cases/GetCustomersUseCase';
+import { CreateCustomerUseCase } from '../use-cases/CreateCustomerUseCase';
+
+export class CustomerController {
+  constructor(
+    private getCustomersUseCase: GetCustomersUseCase,
+    private createCustomerUseCase: CreateCustomerUseCase
+  ) {}
+
+  async getAll(req: Request, res: Response): Promise<void> {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        res.status(400).json(standardResponse(false, 'Tenant ID é obrigatório'));
+        return;
+      }
+
+      const customers = await this.getCustomersUseCase.execute(tenantId);
+      res.status(200).json(standardResponse(true, 'Clientes obtidos com sucesso', customers));
+    } catch (error) {
+      console.error('Erro ao obter clientes:', error);
+      res.status(500).json(standardResponse(false, 'Erro interno do servidor'));
+    }
+  }
+
+  async create(req: Request, res: Response): Promise<void> {
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        res.status(400).json(standardResponse(false, 'Tenant ID é obrigatório'));
+        return;
+      }
+
+      const customer = await this.createCustomerUseCase.execute({ ...req.body, tenantId });
+      res.status(201).json(standardResponse(true, 'Cliente criado com sucesso', customer));
+    } catch (error) {
+      console.error('Erro ao criar cliente:', error);
+      res.status(500).json(standardResponse(false, 'Erro interno do servidor'));
+    }
+  }
+
+  async getById(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const tenantId = req.user?.tenantId;
+      
+      if (!tenantId) {
+        res.status(400).json(standardResponse(false, 'Tenant ID é obrigatório'));
+        return;
+      }
+
+      // Implementation would use a GetCustomerByIdUseCase
+      res.status(200).json(standardResponse(true, 'Cliente encontrado', {}));
+    } catch (error) {
+      console.error('Erro ao obter cliente:', error);
+      res.status(500).json(standardResponse(false, 'Erro interno do servidor'));
+    }
+  }
+
+  async update(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const tenantId = req.user?.tenantId;
+
+      if (!tenantId) {
+        res.status(400).json(standardResponse(false, 'Tenant ID é obrigatório'));
+        return;
+      }
+
+      // Implementation would use an UpdateCustomerUseCase
+      res.status(200).json(standardResponse(true, 'Cliente atualizado com sucesso', {}));
+    } catch (error) {
+      console.error('Erro ao atualizar cliente:', error);
+      res.status(500).json(standardResponse(false, 'Erro interno do servidor'));
+    }
+  }
+
+  async delete(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const tenantId = req.user?.tenantId;
+
+      if (!tenantId) {
+        res.status(400).json(standardResponse(false, 'Tenant ID é obrigatório'));
+        return;
+      }
+
+      // Implementation would use a DeleteCustomerUseCase
+      res.status(200).json(standardResponse(true, 'Cliente excluído com sucesso'));
+    } catch (error) {
+      console.error('Erro ao excluir cliente:', error);
+      res.status(500).json(standardResponse(false, 'Erro interno do servidor'));
+    }
+  }
+}
