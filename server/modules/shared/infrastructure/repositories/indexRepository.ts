@@ -2,7 +2,7 @@ export class BaseEntityRepository {
   // Implementation here
 }
 
-export class IndexRepository {
+export class SharedRepository {
   async save(data: any): Promise<any> {
     // Pure data access logic only
     return data;

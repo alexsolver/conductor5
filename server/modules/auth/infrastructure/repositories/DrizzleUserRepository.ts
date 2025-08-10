@@ -1,4 +1,3 @@
-
 /**
  * Drizzle User Repository Implementation
  * Clean Architecture - Infrastructure Layer
@@ -22,7 +21,7 @@ interface UserFilter {
 }
 
 export class DrizzleUserRepository implements IUserRepository {
-  
+
   async findById(id: string): Promise<User | null> {
     const result = await db
       .select()
@@ -228,7 +227,7 @@ export class DrizzleUserRepository implements IUserRepository {
   async findAll(options?: { page?: number; limit?: number }): Promise<User[]> {
     const limit = options?.limit || 50;
     const offset = options?.page ? (options.page - 1) * limit : 0;
-    
+
     const results = await db
       .select()
       .from(users)
@@ -240,22 +239,10 @@ export class DrizzleUserRepository implements IUserRepository {
   }
 
   async create(userData: { email: string; passwordHash: string; firstName?: string; lastName?: string; role: string; tenantId?: string }): Promise<User> {
-    const user = User.fromPersistence({
-      id: crypto.randomUUID(),
-      email: userData.email,
-      password: userData.passwordHash,
-      firstName: userData.firstName,
-      lastName: userData.lastName,
-      role: userData.role,
-      tenantId: userData.tenantId,
-      active: true,
-      verified: false,
-      lastLogin: undefined,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    });
-
-    return await this.save(user);
+    // Removed validation logic - should be handled by Domain Service
+    // Repository should only handle data persistence
+    const result = await this.db.insert(users).values(userData).returning();
+    return this.toDomainEntity(result[0]);
   }
 
   async countByTenant(tenantId: string): Promise<number> {
@@ -263,7 +250,7 @@ export class DrizzleUserRepository implements IUserRepository {
       .select({ count: count() })
       .from(users)
       .where(eq(users.tenantId, tenantId));
-    
+
     return result[0]?.count || 0;
   }
 

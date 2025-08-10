@@ -172,3 +172,13 @@ export interface IScheduleRepository {
   update(id: string, tenantId: string, data: Partial<any>): Promise<any | null>;
   delete(id: string, tenantId: string): Promise<boolean>;
 }
+import { ScheduleEntity } from '../entities/ScheduleEntity';
+
+export interface IScheduleRepository {
+  findById(id: string, tenantId: string): Promise<ScheduleEntity | null>;
+  findAll(tenantId: string): Promise<ScheduleEntity[]>;
+  create(entity: ScheduleEntity): Promise<ScheduleEntity>;
+  update(id: string, entity: Partial<ScheduleEntity>, tenantId: string): Promise<ScheduleEntity | null>;
+  delete(id: string, tenantId: string): Promise<boolean>;
+  findByDateRange(startDate: Date, endDate: Date, tenantId: string): Promise<ScheduleEntity[]>;
+}

@@ -16,16 +16,28 @@ export interface BeneficiaryCreateData {
   active?: boolean;
 }
 
+export interface BeneficiaryData {
+  id?: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  tenantId: string;
+  customerId?: string;
+  status?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
 export class Beneficiary {
-  constructor(
-    public readonly id: string,
-    public name: string,
-    public email: string,
-    public document: string,
-    public readonly tenantId: string,
-    public readonly createdAt: Date = new Date(),
-    public updatedAt: Date = new Date()
-  ) {}
+  constructor(data: BeneficiaryData) {
+    this.id = data.id || crypto.randomUUID();
+    this.name = data.name;
+    this.email = data.email;
+    this.document = data.document;
+    this.tenantId = data.tenantId;
+    this.createdAt = data.createdAt || new Date();
+    this.updatedAt = data.updatedAt || new Date();
+  }
 
   static create(data: {
     name: string;
@@ -36,13 +48,12 @@ export class Beneficiary {
     tenantId: string;
     createdBy?: string;
   }): Beneficiary {
-    return new Beneficiary(
-      crypto.randomUUID(),
-      data.name,
-      data.email,
-      data.document,
-      data.tenantId
-    );
+    return new Beneficiary({
+      name: data.name,
+      email: data.email,
+      document: data.document,
+      tenantId: data.tenantId,
+    });
   }
 
   update(props: Partial<BeneficiaryProps>): void {

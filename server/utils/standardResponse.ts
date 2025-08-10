@@ -15,7 +15,7 @@ export interface StandardAPIResponse<T = any> {
 }
 
 export function createSuccessResponse<T = any>(
-  data: T, 
+  data: T,
   message?: string
 ): StandardAPIResponse<T> {
   return {
@@ -102,3 +102,12 @@ export function sendValidationError(
   console.error('[Validation Error]:', response);
   return res.status(400).json(response);
 }
+
+export const standardResponse = (success: boolean, message: string, data?: any) => {
+  return {
+    success,
+    message,
+    data: data || null,
+    timestamp: new Date().toISOString()
+  };
+};

@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { SkillApplicationService } from '../services/SkillApplicationService';
 import { ISkillRepository } from '../../domain/ports/ISkillRepository';
 import crypto from 'crypto';
+import { IUserSkillRepository } from '../../domain/ports/IUserSkillRepository';
 
 export class SkillController {
   private skillService: SkillApplicationService;

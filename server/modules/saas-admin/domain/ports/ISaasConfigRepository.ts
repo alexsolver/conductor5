@@ -98,3 +98,12 @@ export interface ISaasConfigRepository {
   update(id: string, tenantId: string, data: Partial<any>): Promise<any | null>;
   delete(id: string, tenantId: string): Promise<boolean>;
 }
+import { SaasConfigEntity } from '../entities/SaasConfigEntity';
+
+export interface ISaasConfigRepository {
+  findById(id: string, tenantId: string): Promise<SaasConfigEntity | null>;
+  findAll(tenantId: string): Promise<SaasConfigEntity[]>;
+  create(entity: SaasConfigEntity): Promise<SaasConfigEntity>;
+  update(id: string, entity: Partial<SaasConfigEntity>, tenantId: string): Promise<SaasConfigEntity | null>;
+  delete(id: string, tenantId: string): Promise<boolean>;
+}

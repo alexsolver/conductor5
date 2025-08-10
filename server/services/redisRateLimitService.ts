@@ -189,7 +189,10 @@ const defaultRateLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: (req: Request) => {
-    return req.ip || req.connection.remoteAddress || 'unknown';
+    const ip = req.ip || req.socket.remoteAddress || 'unknown';
+    // Use ipKeyGenerator helper for IPv6 compatibility
+    const normalizedIp = ip.includes('::ffff:') ? ip.replace('::ffff:', '') : ip;
+    return `${normalizedIp}:${req.user?.id || 'anonymous'}`;
   },
   store: new MemoryStore(), // Use MemoryStore for express-rate-limit
   skip: (req) => {
@@ -244,7 +247,7 @@ export const RATE_LIMIT_CONFIGS = {
     windowMs: 15 * 60 * 1000, // 15 minutes
     maxRequests: 100,
     keyGenerator: (req: Request) => `api:${req.ip}`,
-    message: 'Too many requests, please try again later.',
+    message: 'Too many requests, please again later.',
     maxAttempts: 100
   },
 

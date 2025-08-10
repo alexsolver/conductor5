@@ -121,7 +121,7 @@ ticketsRouter.use((req: any, res, next) => {
 });
 
 // Get all tickets (main endpoint)
-ticketsRouter.get('/', async (req: AuthenticatedRequest, res) => {
+ticketsRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     console.log('🎫 [TICKETS-ROUTES] GET / called');
 
@@ -193,7 +193,7 @@ ticketsRouter.get('/', async (req: AuthenticatedRequest, res) => {
 });
 
 // Get urgent tickets (filtered from all tickets)
-ticketsRouter.get('/urgent', async (req: AuthenticatedRequest, res) => {
+ticketsRouter.get('/urgent', jwtAuth, async (req: AuthenticatedRequest, res) => {
   try {
     if (!req.user?.tenantId) {
       return sendError(res, "User not associated with a tenant", "User not associated with a tenant", 400);
@@ -208,7 +208,7 @@ ticketsRouter.get('/urgent', async (req: AuthenticatedRequest, res) => {
 });
 
 // Create new ticket
-ticketsRouter.post('/', trackTicketCreate, async (req: AuthenticatedRequest, res) => {
+ticketsRouter.post('/', jwtAuth, trackTicketCreate, async (req: AuthenticatedRequest, res) => {
   try {
     if (!req.user?.tenantId) {
       return res.status(400).json({ message: "User not associated with a tenant" });

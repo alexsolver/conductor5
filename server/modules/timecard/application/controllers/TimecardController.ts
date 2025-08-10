@@ -3,12 +3,15 @@ import { z } from 'zod';
 import { db } from '../../../../db';
 import { timecardEntries, workSchedules, users } from '@shared/schema';
 import { DrizzleTimecardRepository } from '../../infrastructure/repositories/DrizzleTimecardRepository';
+import { ITimecardRepository } from '../../domain/repositories/ITimecardRepository'; // Assuming this interface exists
 import {
   createTimecardEntrySchema,
   createAbsenceRequestSchema,
   createScheduleTemplateSchema,
   createFlexibleWorkArrangementSchema
 } from '../../../../../shared/timecard-validation';
+import { and, eq, inArray, sql } from 'drizzle-orm'; // Import necessary Drizzle functions
+
 // Usar DTOs ao invés de Request/Response direto
 
 // Use abstracted HTTP types instead of Express directly
@@ -42,11 +45,16 @@ const createWorkScheduleSchema = z.object({
 
 
 export class TimecardController {
-  private timecardRepository: DrizzleTimecardRepository;
+  // private timecardRepository: DrizzleTimecardRepository; // Original line
 
-  constructor() {
-    this.timecardRepository = new DrizzleTimecardRepository();
-  }
+  // constructor() { // Original constructor
+  //   this.timecardRepository = new DrizzleTimecardRepository();
+  // }
+
+  // Updated constructor with dependency injection
+  constructor(
+    private readonly timecardRepository: ITimecardRepository
+  ) {}
 
   // Get current status for user
   getCurrentStatus = async (req: HttpRequest, res: HttpResponse) => {
@@ -123,7 +131,7 @@ export class TimecardController {
   }
 
   // Timecard Entries
-  createTimecardEntry = async (req: HttpRequest, res: HttpResponse) => {
+  createTimecardEntry = async (req: HttpRequest, res:HttpResponse) => {
     try {
       console.log('[TIMECARD-CREATE] Starting timecard entry creation...');
 
@@ -266,7 +274,7 @@ export class TimecardController {
     }
   };
 
-  getTimecardEntriesByUser = async (req: HttpRequest, res: HttpResponse) => {
+  getTimecardEntriesByUser = async (req: HttpRequest, res:HttpResponse) => {
     try {
       const { tenantId } = req.user;
       const { userId } = req.params;
