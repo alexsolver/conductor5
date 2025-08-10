@@ -31,7 +31,7 @@ interface AuthenticatedRequest extends HttpRequest {
   };
 }
 
-export import { Request, Response } from 'express';
+import { Request, Response } from 'express';
 import { KnowledgeBaseApplicationService } from '../services/KnowledgeBaseApplicationService';
 import { IKnowledgeBaseRepository } from '../../domain/repositories/IKnowledgeBaseRepository';
 import { IMediaRepository } from '../../domain/repositories/IMediaRepository';

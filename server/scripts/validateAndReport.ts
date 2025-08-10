@@ -1,26 +1,25 @@
-
-import { CleanArchitectureValidator } from './CleanArchitectureValidator';
+import { CleanArchitectureValidator } from './CleanArchitectureValidator.js';
 import { CleanArchitectureCorrector } from './CleanArchitectureCorrector';
 import { writeFileSync } from 'fs';
 
 async function validateAndReport(): Promise<void> {
   console.log('🔍 Executando validação pós-correções...');
-  
+
   const validator = new CleanArchitectureValidator();
   const result = await validator.validateCompleteArchitecture();
-  
+
   console.log(`📊 Score atual: ${result.score}/100`);
   console.log(`📋 Problemas restantes: ${result.issues.length}`);
-  
+
   if (result.issues.length > 0) {
     console.log('\n🔧 Problemas pendentes:');
     result.issues.forEach((issue, index) => {
       console.log(`${index + 1}. [${issue.severity.toUpperCase()}] ${issue.description}`);
     });
   }
-  
+
   validator.generateDetailedReport(result);
-  
+
   // Salvar novo relatório
   const reportContent = `# Clean Architecture Validation Report - Updated
 
