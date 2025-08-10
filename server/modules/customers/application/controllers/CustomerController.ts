@@ -1,4 +1,3 @@
-import { Request, Response } from 'express';
 import { CustomerApplicationService } from '../services/CustomerApplicationService';
 import { transformToCustomerDTO } from '../dto/CustomerResponseDTO';
 
@@ -12,12 +11,25 @@ interface AuthenticatedRequest extends Request {
   };
 }
 
+// Removed express dependency - controllers should use dependency injection
+export interface IHttpRequest {
+  params: any;
+  query: any;
+  body: any;
+  user?: any;
+}
+
+export interface IHttpResponse {
+  status(code: number): this;
+  json(data: any): void;
+}
+
 export class CustomerController {
   constructor(
     private customerApplicationService: CustomerApplicationService
   ) {}
 
-  async createCustomer(req: AuthenticatedRequest, res: Response): Promise<void> {
+  async createCustomer(req: IHttpRequest, res: IHttpResponse): Promise<void> {
     try {
       const { body, user } = req;
       const tenantId = user?.tenantId;
@@ -51,7 +63,7 @@ export class CustomerController {
     }
   }
 
-  async getCustomers(req: AuthenticatedRequest, res: Response): Promise<void> {
+  async getCustomers(req: IHttpRequest, res: IHttpResponse): Promise<void> {
     try {
       const user = req.user;
       const tenantId = user?.tenantId;
@@ -90,7 +102,7 @@ export class CustomerController {
     }
   }
 
-  async updateCustomer(req: AuthenticatedRequest, res: Response): Promise<void> {
+  async updateCustomer(req: IHttpRequest, res: IHttpResponse): Promise<void> {
     try {
       const { id } = req.params;
       const user = req.user;
@@ -129,7 +141,7 @@ export class CustomerController {
     }
   }
 
-  async deleteCustomer(req: AuthenticatedRequest, res: Response): Promise<void> {
+  async deleteCustomer(req: IHttpRequest, res: IHttpResponse): Promise<void> {
     try {
       const { id } = req.params;
       const user = req.user;
@@ -167,7 +179,7 @@ export class CustomerController {
     }
   }
 
-  async getAllCustomers(req: AuthenticatedRequest, res: Response): Promise<void> {
+  async getAllCustomers(req: IHttpRequest, res: IHttpResponse): Promise<void> {
     try {
       const user = req.user;
       const tenantId = user?.tenantId;

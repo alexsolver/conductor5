@@ -1,5 +1,4 @@
-// Domain entity - clean from infrastructure dependencies
-
+// Removed drizzle-orm dependency - domain entities should not import infrastructure
 export class Material {
   constructor(
     public readonly id: string,

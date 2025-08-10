@@ -31,3 +31,13 @@ export class DrizzleITimecardRepository implements IITimecardRepository {
     throw new Error('Method not implemented.');
   }
 }
+import { Timecard } from '../entities/Timecard';
+
+export interface ITimecardRepository {
+  findById(id: string, tenantId: string): Promise<Timecard | null>;
+  findAll(tenantId: string): Promise<Timecard[]>;
+  findByUserId(userId: string, tenantId: string): Promise<Timecard[]>;
+  create(timecard: Timecard): Promise<Timecard>;
+  update(id: string, timecard: Partial<Timecard>, tenantId: string): Promise<Timecard | null>;
+  delete(id: string, tenantId: string): Promise<boolean>;
+}

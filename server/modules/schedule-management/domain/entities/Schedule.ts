@@ -57,7 +57,7 @@ export interface Customer {
 
 // src/domain/entities/schedule.entity.ts
 
-// Domain entities should be framework-agnostic
+// Removed drizzle-orm dependency - domain entities should not import infrastructure
 
 export interface ScheduleProps {
   id: string;

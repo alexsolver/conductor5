@@ -1,4 +1,4 @@
-// Domain interface - no infrastructure dependencies allowed
+// Domain interface should not import infrastructure dependencies
 export interface IBaseRepository<T> {
   findById(id: string): Promise<T | null>;
   save(entity: T): Promise<T>;

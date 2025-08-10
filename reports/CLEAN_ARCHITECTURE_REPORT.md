@@ -1,16 +1,16 @@
 # Clean Architecture Validation Report
 
 **Data:** 2025-08-10  
-**Score:** 33/100  
+**Score:** 32/100  
 **Status:** ❌ REPROVADO
 
 ## Resumo de Problemas
 
 - 🔥 **Críticos:** 10
-- ⚠️ **Altos:** 66
-- 📋 **Médios:** 35
+- ⚠️ **Altos:** 65
+- 📋 **Médios:** 32
 - 💡 **Baixos:** 5
-- **Total:** 116
+- **Total:** 112
 
 ## Principais Problemas por Módulo
 
@@ -23,15 +23,14 @@
   - Domain Layer violando dependência: ../../application/dto/CreateBeneficiaryDTO
 
 ### ⚠️ customers
-- **Total de problemas:** 3
-- **Críticos:** 0 | **Altos:** 3
+- **Total de problemas:** 2
+- **Críticos:** 0 | **Altos:** 2
 - **Principais problemas:**
   - Routes contém lógica de negócio ou acesso a dados
   - Application Layer violando dependência: express
-  - Application Layer violando dependência: express
 
 ### 🔥 materials-services
-- **Total de problemas:** 52
+- **Total de problemas:** 51
 - **Críticos:** 2 | **Altos:** 37
 - **Principais problemas:**
   - Routes contém lógica de negócio ou acesso a dados
@@ -53,13 +52,6 @@
   - Routes contém lógica de negócio ou acesso a dados
   - Domain Layer violando dependência: drizzle-orm/neon-http
   - Application Layer violando dependência: express
-
-### 📋 ticket-templates
-- **Total de problemas:** 2
-- **Críticos:** 0 | **Altos:** 0
-- **Principais problemas:**
-  - Estrutura events ausente na camada domain
-  - Estrutura services ausente na camada domain
 
 ### ⚠️ tickets
 - **Total de problemas:** 2
@@ -145,7 +137,7 @@
 ### 🔥 materials-services
 - **Prioridade:** immediate
 - **Tempo estimado:** 25h
-- **Ações:** 34
+- **Ações:** 33
 
 1. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
 2. **refactor_code:** Refatorar dependência inválida na camada domain
@@ -177,10 +169,9 @@
 28. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 29. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 30. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
-31. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
+31. **create_file:** Criar Repository com interface
 32. **create_file:** Criar Repository com interface
 33. **create_file:** Criar Repository com interface
-34. **create_file:** Criar Repository com interface
 
 ### 🔥 saas-admin
 - **Prioridade:** immediate
@@ -243,12 +234,11 @@
 
 ### ⚠️ customers
 - **Prioridade:** high
-- **Tempo estimado:** 3h
-- **Ações:** 3
+- **Tempo estimado:** 2h
+- **Ações:** 2
 
 1. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
 2. **refactor_code:** Refatorar dependência inválida na camada application
-3. **refactor_code:** Refatorar dependência inválida na camada application
 
 ### ⚠️ tickets
 - **Prioridade:** high
@@ -270,14 +260,6 @@
 5. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
 6. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 7. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
-
-### 💡 ticket-templates
-- **Prioridade:** low
-- **Tempo estimado:** 20min
-- **Ações:** 2
-
-1. **create_directory:** Criar diretório/arquivo events na camada domain
-2. **create_directory:** Criar diretório/arquivo services na camada domain
 
 ### 💡 auth
 - **Prioridade:** low
@@ -319,7 +301,7 @@
 
 ### Prioridade Imediata 🔥
 - **beneficiaries:** 3 ações (3h)
-- **materials-services:** 34 ações (25h)
+- **materials-services:** 33 ações (25h)
 - **saas-admin:** 6 ações (4h)
 - **technical-skills:** 6 ações (5h)
 - **schedule-management:** 4 ações (3h)
@@ -327,7 +309,7 @@
 - **timecard:** 7 ações (5h)
 
 ### Prioridade Alta ⚠️
-- **customers:** 3 ações (3h)
+- **customers:** 2 ações (2h)
 - **tickets:** 2 ações (2h)
 - **knowledge-base:** 7 ações (5h)
 

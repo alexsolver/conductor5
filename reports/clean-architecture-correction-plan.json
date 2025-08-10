@@ -363,14 +363,6 @@
       {
         "type": "create_directory",
         "description": "Criar interface I[Entity]Repository no domain e implementar",
-        "target": "/home/runner/workspace/server/modules/materials-services/infrastructure/repositories/ItemRepository.ts",
-        "steps": [
-          "Criar interface I[Entity]Repository no domain e implementar"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar interface I[Entity]Repository no domain e implementar",
         "target": "/home/runner/workspace/server/modules/materials-services/infrastructure/repositories/LPURepository.ts",
         "steps": [
           "Criar interface I[Entity]Repository no domain e implementar"
@@ -820,21 +812,9 @@
           "Usar injeção de dependência",
           "Remover import direto da dependência externa"
         ]
-      },
-      {
-        "type": "refactor_code",
-        "description": "Refatorar dependência inválida na camada application",
-        "target": "/home/runner/workspace/server/modules/customers/application/controllers/CustomerController.ts",
-        "steps": [
-          "Identificar a dependência problemática",
-          "Criar interface/port na camada Domain",
-          "Implementar interface na camada Infrastructure",
-          "Usar injeção de dependência",
-          "Remover import direto da dependência externa"
-        ]
       }
     ],
-    "estimatedTime": "3h"
+    "estimatedTime": "2h"
   },
   {
     "priority": "high",
@@ -949,29 +929,6 @@
       }
     ],
     "estimatedTime": "5h"
-  },
-  {
-    "priority": "low",
-    "module": "ticket-templates",
-    "actions": [
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo events na camada domain",
-        "target": "/home/runner/workspace/server/modules/ticket-templates/domain/events",
-        "steps": [
-          "Criar diretório/arquivo events na camada domain"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo services na camada domain",
-        "target": "/home/runner/workspace/server/modules/ticket-templates/domain/services",
-        "steps": [
-          "Criar diretório/arquivo services na camada domain"
-        ]
-      }
-    ],
-    "estimatedTime": "20min"
   },
   {
     "priority": "low",

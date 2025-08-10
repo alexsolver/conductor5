@@ -18,3 +18,15 @@ export class CreateSaasConfigUseCase {
     return {};
   }
 }
+import { SaasConfig } from '../../domain/entities/SaasConfig';
+import { ISaasConfigRepository } from '../../domain/ports/ISaasConfigRepository';
+
+export class CreateSaasConfigUseCase {
+  constructor(private saasConfigRepository: ISaasConfigRepository) {}
+
+  async execute(configData: any): Promise<SaasConfig> {
+    const config = new SaasConfig(configData);
+    
+    return await this.saasConfigRepository.create(config);
+  }
+}
