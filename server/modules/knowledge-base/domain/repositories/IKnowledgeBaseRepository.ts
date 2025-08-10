@@ -1,5 +1,6 @@
 import { KnowledgeBaseEntry } from '../entities/KnowledgeBaseEntry';
 
+// Interface limpa - sem dependências de infrastructure
 export interface IKnowledgeBaseRepository {
   create(entry: KnowledgeBaseEntry): Promise<KnowledgeBaseEntry>;
   findById(id: string): Promise<KnowledgeBaseEntry | null>;

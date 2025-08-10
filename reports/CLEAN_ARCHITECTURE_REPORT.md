@@ -7,10 +7,10 @@
 ## Resumo de Problemas
 
 - 🔥 **Críticos:** 16
-- ⚠️ **Altos:** 73
-- 📋 **Médios:** 55
+- ⚠️ **Altos:** 75
+- 📋 **Médios:** 57
 - 💡 **Baixos:** 6
-- **Total:** 150
+- **Total:** 154
 
 ## Principais Problemas por Módulo
 
@@ -45,8 +45,8 @@
   - Application Layer violando dependência: express
 
 ### 🔥 materials-services
-- **Total de problemas:** 53
-- **Críticos:** 5 | **Altos:** 35
+- **Total de problemas:** 55
+- **Críticos:** 5 | **Altos:** 37
 - **Principais problemas:**
   - Routes contém lógica de negócio ou acesso a dados
   - Domain Layer violando dependência: drizzle-orm/neon-http
@@ -61,36 +61,36 @@
   - Application Layer violando dependência: express
 
 ### 🔥 schedule-management
-- **Total de problemas:** 9
+- **Total de problemas:** 8
 - **Críticos:** 3 | **Altos:** 1
 - **Principais problemas:**
-  - Estrutura use-cases ausente na camada application
   - Estrutura dto ausente na camada application
   - Estrutura services ausente na camada application
+  - Domain Layer violando dependência: ../infrastructure/repositories/drizzle/drizzle-customer.repository
 
 ### 🔥 technical-skills
-- **Total de problemas:** 12
+- **Total de problemas:** 10
 - **Críticos:** 1 | **Altos:** 8
 - **Principais problemas:**
-  - Estrutura dto ausente na camada application
-  - Estrutura services ausente na camada application
   - Routes contém lógica de negócio ou acesso a dados
+  - Domain Layer violando dependência: drizzle-orm/neon-http
+  - Application Layer violando dependência: express
 
 ### ⚠️ template-hierarchy
-- **Total de problemas:** 5
+- **Total de problemas:** 8
 - **Críticos:** 0 | **Altos:** 2
 - **Principais problemas:**
-  - Camada domain ausente no módulo template-hierarchy
-  - Estrutura use-cases ausente na camada application
-  - Estrutura dto ausente na camada application
+  - Estrutura repositories ausente na camada domain
+  - Estrutura events ausente na camada domain
+  - Estrutura services ausente na camada domain
 
 ### ⚠️ template-versions
-- **Total de problemas:** 5
+- **Total de problemas:** 8
 - **Críticos:** 0 | **Altos:** 2
 - **Principais problemas:**
-  - Camada domain ausente no módulo template-versions
-  - Estrutura use-cases ausente na camada application
-  - Estrutura dto ausente na camada application
+  - Estrutura repositories ausente na camada domain
+  - Estrutura events ausente na camada domain
+  - Estrutura services ausente na camada domain
 
 ### ⚠️ ticket-templates
 - **Total de problemas:** 5
@@ -109,12 +109,12 @@
   - Routes contém lógica de negócio ou acesso a dados
 
 ### 🔥 timecard
-- **Total de problemas:** 14
+- **Total de problemas:** 13
 - **Críticos:** 1 | **Altos:** 6
 - **Principais problemas:**
-  - Estrutura use-cases ausente na camada application
   - Estrutura dto ausente na camada application
   - Estrutura services ausente na camada application
+  - Domain Layer violando dependência: drizzle-orm/neon-http
 
 ### 🔥 shared
 - **Total de problemas:** 7
@@ -184,8 +184,8 @@
 
 ### 🔥 materials-services
 - **Prioridade:** immediate
-- **Tempo estimado:** 27h
-- **Ações:** 35
+- **Tempo estimado:** 28h
+- **Ações:** 37
 
 1. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
 2. **refactor_code:** Refatorar dependência inválida na camada domain
@@ -222,6 +222,8 @@
 33. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 34. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 35. **create_file:** Criar Repository com interface
+36. **create_file:** Criar Repository com interface
+37. **create_file:** Criar Repository com interface
 
 ### 🔥 saas-admin
 - **Prioridade:** immediate
@@ -239,46 +241,42 @@
 ### 🔥 schedule-management
 - **Prioridade:** immediate
 - **Tempo estimado:** 4h
-- **Ações:** 8
+- **Ações:** 7
 
-1. **create_directory:** Criar diretório/arquivo use-cases na camada application
-2. **create_directory:** Criar diretório/arquivo dto na camada application
-3. **create_directory:** Criar diretório/arquivo services na camada application
+1. **create_directory:** Criar diretório/arquivo dto na camada application
+2. **create_directory:** Criar diretório/arquivo services na camada application
+3. **refactor_code:** Refatorar dependência inválida na camada domain
 4. **refactor_code:** Refatorar dependência inválida na camada domain
-5. **refactor_code:** Refatorar dependência inválida na camada domain
-6. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
-7. **rename_file:** Padronizar nomenclatura: Nome da classe CustomerModule não corresponde ao arquivo Schedule
-8. **create_file:** Criar Repository com interface
+5. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
+6. **rename_file:** Padronizar nomenclatura: Nome da classe CustomerModule não corresponde ao arquivo Schedule
+7. **create_file:** Criar Repository com interface
 
 ### 🔥 technical-skills
 - **Prioridade:** immediate
 - **Tempo estimado:** 5h
-- **Ações:** 8
+- **Ações:** 6
 
-1. **create_directory:** Criar diretório/arquivo dto na camada application
-2. **create_directory:** Criar diretório/arquivo services na camada application
-3. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
-4. **refactor_code:** Refatorar dependência inválida na camada domain
-5. **refactor_code:** Refatorar dependência inválida na camada application
-6. **refactor_code:** Refatorar dependência inválida na camada application
-7. **rename_file:** Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'
-8. **create_file:** Criar Repository com interface
+1. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
+2. **refactor_code:** Refatorar dependência inválida na camada domain
+3. **refactor_code:** Refatorar dependência inválida na camada application
+4. **refactor_code:** Refatorar dependência inválida na camada application
+5. **rename_file:** Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'
+6. **create_file:** Criar Repository com interface
 
 ### 🔥 timecard
 - **Prioridade:** immediate
-- **Tempo estimado:** 6h
-- **Ações:** 10
+- **Tempo estimado:** 5h
+- **Ações:** 9
 
-1. **create_directory:** Criar diretório/arquivo use-cases na camada application
-2. **create_directory:** Criar diretório/arquivo dto na camada application
-3. **create_directory:** Criar diretório/arquivo services na camada application
-4. **refactor_code:** Refatorar dependência inválida na camada domain
+1. **create_directory:** Criar diretório/arquivo dto na camada application
+2. **create_directory:** Criar diretório/arquivo services na camada application
+3. **refactor_code:** Refatorar dependência inválida na camada domain
+4. **refactor_code:** Refatorar dependência inválida na camada application
 5. **refactor_code:** Refatorar dependência inválida na camada application
-6. **refactor_code:** Refatorar dependência inválida na camada application
-7. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
-8. **rename_file:** Padronizar nomenclatura: Entity index não segue padrão PascalCase
-9. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
-10. **create_file:** Criar Repository com interface
+6. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
+7. **rename_file:** Padronizar nomenclatura: Entity index não segue padrão PascalCase
+8. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
+9. **create_file:** Criar Repository com interface
 
 ### 🔥 shared
 - **Prioridade:** immediate
@@ -303,25 +301,31 @@
 
 ### ⚠️ template-hierarchy
 - **Prioridade:** high
-- **Tempo estimado:** 50min
-- **Ações:** 5
+- **Tempo estimado:** 2h
+- **Ações:** 8
 
-1. **create_directory:** Criar estrutura da camada domain
-2. **create_directory:** Criar diretório/arquivo use-cases na camada application
-3. **create_directory:** Criar diretório/arquivo dto na camada application
-4. **create_directory:** Criar diretório/arquivo services na camada application
-5. **create_directory:** Criar estrutura da camada infrastructure
+1. **create_directory:** Criar diretório/arquivo repositories na camada domain
+2. **create_directory:** Criar diretório/arquivo events na camada domain
+3. **create_directory:** Criar diretório/arquivo services na camada domain
+4. **create_directory:** Criar diretório/arquivo use-cases na camada application
+5. **create_directory:** Criar diretório/arquivo dto na camada application
+6. **create_directory:** Criar diretório/arquivo services na camada application
+7. **create_directory:** Criar estrutura da camada infrastructure
+8. **create_file:** Criar Repository com interface
 
 ### ⚠️ template-versions
 - **Prioridade:** high
-- **Tempo estimado:** 50min
-- **Ações:** 5
+- **Tempo estimado:** 2h
+- **Ações:** 8
 
-1. **create_directory:** Criar estrutura da camada domain
-2. **create_directory:** Criar diretório/arquivo use-cases na camada application
-3. **create_directory:** Criar diretório/arquivo dto na camada application
-4. **create_directory:** Criar diretório/arquivo services na camada application
-5. **create_directory:** Criar estrutura da camada infrastructure
+1. **create_directory:** Criar diretório/arquivo repositories na camada domain
+2. **create_directory:** Criar diretório/arquivo events na camada domain
+3. **create_directory:** Criar diretório/arquivo services na camada domain
+4. **create_directory:** Criar diretório/arquivo use-cases na camada application
+5. **create_directory:** Criar diretório/arquivo dto na camada application
+6. **create_directory:** Criar diretório/arquivo services na camada application
+7. **create_directory:** Criar estrutura da camada infrastructure
+8. **create_file:** Criar Repository com interface
 
 ### ⚠️ ticket-templates
 - **Prioridade:** high
@@ -393,17 +397,17 @@
 ### Prioridade Imediata 🔥
 - **beneficiaries:** 4 ações (4h)
 - **knowledge-base:** 9 ações (7h)
-- **materials-services:** 35 ações (27h)
+- **materials-services:** 37 ações (28h)
 - **saas-admin:** 7 ações (4h)
-- **schedule-management:** 8 ações (4h)
-- **technical-skills:** 8 ações (5h)
-- **timecard:** 10 ações (6h)
+- **schedule-management:** 7 ações (4h)
+- **technical-skills:** 6 ações (5h)
+- **timecard:** 9 ações (5h)
 - **shared:** 7 ações (4h)
 
 ### Prioridade Alta ⚠️
 - **customers:** 2 ações (2h)
-- **template-hierarchy:** 5 ações (50min)
-- **template-versions:** 5 ações (50min)
+- **template-hierarchy:** 8 ações (2h)
+- **template-versions:** 8 ações (2h)
 - **ticket-templates:** 5 ações (50min)
 - **tickets:** 4 ações (2h)
 

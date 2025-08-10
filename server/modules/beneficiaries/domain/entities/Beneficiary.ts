@@ -13,48 +13,28 @@ export interface BeneficiaryProps {
 // Domain puro - sem dependências externas
 export class Beneficiary {
   constructor(
-    public id: string,
-    public name: string,
-    public email: string,
-    public tenantId: string
+    public readonly id: string,
+    public readonly tenantId: string,
+    public readonly name: string,
+    public readonly email: string,
+    public readonly phone?: string,
+    public readonly createdAt: Date = new Date(),
+    public readonly updatedAt: Date = new Date()
   ) {}
 
-  // Factory method usando primitivos
+  // Domain com factory method puro
   static create(
     id: string,
+    tenantId: string,
     name: string,
     email: string,
-    tenantId: string
+    phone?: string
   ): Beneficiary {
-    return new Beneficiary(id, name, email, tenantId);
+    return new Beneficiary(id, tenantId, name, email, phone);
   }
 
-  // Validação no domain
-  validate(): boolean {
-    return !!(this.name && this.email && this.tenantId);
-  }
-
-  static reconstruct(props: BeneficiaryProps): Beneficiary {
-    return new Beneficiary(
-      props.id,
-      props.name,
-      props.email,
-      props.tenantId, // Assuming tenantId would be part of BeneficiaryProps in a real scenario
-      props.phone,
-      props.createdAt,
-      props.updatedAt
-    );
-  }
-
-  update(props: Partial<Pick<BeneficiaryProps, 'name' | 'email' | 'phone' | 'address'>>): Beneficiary {
-    return new Beneficiary(
-      this.id,
-      props.name ?? this.name,
-      props.email ?? this.email,
-      this.tenantId, // Keep tenantId
-      props.phone ?? this.phone,
-      this.createdAt,
-      new Date()
-    );
+  // Domain validation
+  isValid(): boolean {
+    return this.name.length > 0 && this.email.includes('@');
   }
 }

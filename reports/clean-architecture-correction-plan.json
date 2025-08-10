@@ -550,6 +550,30 @@
       {
         "type": "create_file",
         "description": "Criar Repository com interface",
+        "target": "server/modules/materials-services/infrastructure/repositories/MaterialRepository.ts",
+        "code": "import { Material } from '../../domain/entities/Material';\nimport { IMaterialRepository } from '../../domain/ports/IMaterialRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleMaterialRepository implements IMaterialRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<Material | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<Material[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: Material): Promise<Material> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<Material>, tenantId: string): Promise<Material | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
+        "steps": [
+          "Criar interface do Repository na camada Domain",
+          "Implementar Repository na camada Infrastructure",
+          "Adicionar injeção de dependência",
+          "Integrar com Use Cases"
+        ]
+      },
+      {
+        "type": "create_file",
+        "description": "Criar Repository com interface",
+        "target": "server/modules/materials-services/infrastructure/repositories/ServiceRepository.ts",
+        "code": "import { Service } from '../../domain/entities/Service';\nimport { IServiceRepository } from '../../domain/ports/IServiceRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleServiceRepository implements IServiceRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<Service | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<Service[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: Service): Promise<Service> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<Service>, tenantId: string): Promise<Service | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
+        "steps": [
+          "Criar interface do Repository na camada Domain",
+          "Implementar Repository na camada Infrastructure",
+          "Adicionar injeção de dependência",
+          "Integrar com Use Cases"
+        ]
+      },
+      {
+        "type": "create_file",
+        "description": "Criar Repository com interface",
         "target": "server/modules/materials-services/domain/ports/ILPUCacheWarmerRepository.ts",
         "code": "import { ILPUCacheWarmer } from '../../domain/entities/ILPUCacheWarmer';\nimport { IILPUCacheWarmerRepository } from '../../domain/ports/IILPUCacheWarmerRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleILPUCacheWarmerRepository implements IILPUCacheWarmerRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<ILPUCacheWarmer | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<ILPUCacheWarmer[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: ILPUCacheWarmer): Promise<ILPUCacheWarmer> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<ILPUCacheWarmer>, tenantId: string): Promise<ILPUCacheWarmer | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
         "steps": [
@@ -560,7 +584,7 @@
         ]
       }
     ],
-    "estimatedTime": "27h"
+    "estimatedTime": "28h"
   },
   {
     "priority": "immediate",
@@ -653,14 +677,6 @@
     "actions": [
       {
         "type": "create_directory",
-        "description": "Criar diretório/arquivo use-cases na camada application",
-        "target": "server/modules/schedule-management/application/use-cases",
-        "steps": [
-          "Criar diretório/arquivo use-cases na camada application"
-        ]
-      },
-      {
-        "type": "create_directory",
         "description": "Criar diretório/arquivo dto na camada application",
         "target": "server/modules/schedule-management/application/dto",
         "steps": [
@@ -742,22 +758,6 @@
     "module": "technical-skills",
     "actions": [
       {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo dto na camada application",
-        "target": "server/modules/technical-skills/application/dto",
-        "steps": [
-          "Criar diretório/arquivo dto na camada application"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo services na camada application",
-        "target": "server/modules/technical-skills/application/services",
-        "steps": [
-          "Criar diretório/arquivo services na camada application"
-        ]
-      },
-      {
         "type": "move_code",
         "description": "Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados",
         "target": "server/modules/technical-skills/routes.ts",
@@ -835,14 +835,6 @@
     "priority": "immediate",
     "module": "timecard",
     "actions": [
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo use-cases na camada application",
-        "target": "server/modules/timecard/application/use-cases",
-        "steps": [
-          "Criar diretório/arquivo use-cases na camada application"
-        ]
-      },
       {
         "type": "create_directory",
         "description": "Criar diretório/arquivo dto na camada application",
@@ -939,7 +931,7 @@
         ]
       }
     ],
-    "estimatedTime": "6h"
+    "estimatedTime": "5h"
   },
   {
     "priority": "immediate",
@@ -1056,12 +1048,26 @@
     "actions": [
       {
         "type": "create_directory",
-        "description": "Criar estrutura da camada domain",
-        "target": "server/modules/template-hierarchy/domain",
+        "description": "Criar diretório/arquivo repositories na camada domain",
+        "target": "server/modules/template-hierarchy/domain/repositories",
         "steps": [
-          "Criar diretório: server/modules/template-hierarchy/domain",
-          "Adicionar arquivo README.md explicando responsabilidades da camada",
-          "Criar subdiretórios conforme padrão Clean Architecture"
+          "Criar diretório/arquivo repositories na camada domain"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Criar diretório/arquivo events na camada domain",
+        "target": "server/modules/template-hierarchy/domain/events",
+        "steps": [
+          "Criar diretório/arquivo events na camada domain"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Criar diretório/arquivo services na camada domain",
+        "target": "server/modules/template-hierarchy/domain/services",
+        "steps": [
+          "Criar diretório/arquivo services na camada domain"
         ]
       },
       {
@@ -1097,9 +1103,21 @@
           "Adicionar arquivo README.md explicando responsabilidades da camada",
           "Criar subdiretórios conforme padrão Clean Architecture"
         ]
+      },
+      {
+        "type": "create_file",
+        "description": "Criar Repository com interface",
+        "target": "server/modules/template-hierarchy/infrastructure/repositories/TemplateHierarchyRepository.ts",
+        "code": "import { TemplateHierarchy } from '../../domain/entities/TemplateHierarchy';\nimport { ITemplateHierarchyRepository } from '../../domain/ports/ITemplateHierarchyRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleTemplateHierarchyRepository implements ITemplateHierarchyRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<TemplateHierarchy | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<TemplateHierarchy[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: TemplateHierarchy): Promise<TemplateHierarchy> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<TemplateHierarchy>, tenantId: string): Promise<TemplateHierarchy | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
+        "steps": [
+          "Criar interface do Repository na camada Domain",
+          "Implementar Repository na camada Infrastructure",
+          "Adicionar injeção de dependência",
+          "Integrar com Use Cases"
+        ]
       }
     ],
-    "estimatedTime": "50min"
+    "estimatedTime": "2h"
   },
   {
     "priority": "high",
@@ -1107,12 +1125,26 @@
     "actions": [
       {
         "type": "create_directory",
-        "description": "Criar estrutura da camada domain",
-        "target": "server/modules/template-versions/domain",
+        "description": "Criar diretório/arquivo repositories na camada domain",
+        "target": "server/modules/template-versions/domain/repositories",
         "steps": [
-          "Criar diretório: server/modules/template-versions/domain",
-          "Adicionar arquivo README.md explicando responsabilidades da camada",
-          "Criar subdiretórios conforme padrão Clean Architecture"
+          "Criar diretório/arquivo repositories na camada domain"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Criar diretório/arquivo events na camada domain",
+        "target": "server/modules/template-versions/domain/events",
+        "steps": [
+          "Criar diretório/arquivo events na camada domain"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Criar diretório/arquivo services na camada domain",
+        "target": "server/modules/template-versions/domain/services",
+        "steps": [
+          "Criar diretório/arquivo services na camada domain"
         ]
       },
       {
@@ -1148,9 +1180,21 @@
           "Adicionar arquivo README.md explicando responsabilidades da camada",
           "Criar subdiretórios conforme padrão Clean Architecture"
         ]
+      },
+      {
+        "type": "create_file",
+        "description": "Criar Repository com interface",
+        "target": "server/modules/template-versions/infrastructure/repositories/TemplateVersionRepository.ts",
+        "code": "import { TemplateVersion } from '../../domain/entities/TemplateVersion';\nimport { ITemplateVersionRepository } from '../../domain/ports/ITemplateVersionRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleTemplateVersionRepository implements ITemplateVersionRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<TemplateVersion | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<TemplateVersion[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: TemplateVersion): Promise<TemplateVersion> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<TemplateVersion>, tenantId: string): Promise<TemplateVersion | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
+        "steps": [
+          "Criar interface do Repository na camada Domain",
+          "Implementar Repository na camada Infrastructure",
+          "Adicionar injeção de dependência",
+          "Integrar com Use Cases"
+        ]
       }
     ],
-    "estimatedTime": "50min"
+    "estimatedTime": "2h"
   },
   {
     "priority": "high",

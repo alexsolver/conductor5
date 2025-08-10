@@ -247,22 +247,15 @@ router.get('/knowledge-base/articles/:id', jwtAuth, async (req: AuthenticatedReq
   }
 });
 
-// Example route that was previously in the router but should now be handled by a controller
-// router.get('/entries', async (req, res) => {
-//   const db = drizzle(process.env.DATABASE_URL);
-//   const entries = await db.select().from(knowledgeBaseEntries);
-//   res.json(entries);
-// });
+// Routes limpas - usando controllers
+import { KnowledgeBaseController } from './application/controllers/KnowledgeBaseController';
 
-// Routes limpas - delegando para Use Cases
-router.get('/entries', jwtAuth, async (req, res) => {
-  try {
-    // Implementação temporária até o controller ser corrigido
-    res.json({ success: true, data: [], message: 'Knowledge base entries retrieved' });
-  } catch (error) {
-    res.status(500).json({ success: false, message: 'Error retrieving entries' });
-  }
-});
+const knowledgeBaseController = new KnowledgeBaseController();
 
+router.get('/entries', jwtAuth, knowledgeBaseController.getEntries.bind(knowledgeBaseController));
+router.get('/entries/:id', jwtAuth, knowledgeBaseController.getEntry.bind(knowledgeBaseController));
+router.post('/entries', jwtAuth, knowledgeBaseController.createEntry.bind(knowledgeBaseController));
+router.put('/entries/:id', jwtAuth, knowledgeBaseController.updateEntry.bind(knowledgeBaseController));
+router.delete('/entries/:id', jwtAuth, knowledgeBaseController.deleteEntry.bind(knowledgeBaseController));
 
 export default router;
