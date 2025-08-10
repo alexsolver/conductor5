@@ -15,7 +15,7 @@ interface AuthenticatedRequest extends Request {
   };
 }
 
-export export class UserSkillController {
+export class UserSkillController {
   private userSkillRepository = new DrizzleUserSkillRepository();
 
   async getUserSkills(req: AuthenticatedRequest, res: Response) {
