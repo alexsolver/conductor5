@@ -11,16 +11,18 @@ import {
 // Express dependencies removed for clean architecture compliance
 
 // Using interface instead of express types to maintain clean architecture
-interface ControllerRequest {
+interface HttpRequest {
   body: any;
   params: any;
   query: any;
   user?: any;
+  headers: any;
 }
 
-interface ControllerResponse {
-  status: (code: number) => ControllerResponse;
-  json: (data: any) => void;
+interface HttpResponse {
+  status(code: number): HttpResponse;
+  json(data: any): void;
+  send(data: any): void;
 }
 
 // Validation schemas
@@ -46,7 +48,7 @@ export class TimecardController {
   }
 
   // Get current status for user
-  getCurrentStatus = async (req: ControllerRequest, res: ControllerResponse) => {
+  getCurrentStatus = async (req: HttpRequest, res: HttpResponse) => {
     try {
       const tenantId = req.user?.tenantId;
       const userId = req.user?.id;
@@ -120,7 +122,7 @@ export class TimecardController {
   }
 
   // Timecard Entries
-  createTimecardEntry = async (req: ControllerRequest, res: ControllerResponse) => {
+  createTimecardEntry = async (req: HttpRequest, res: HttpResponse) => {
     try {
       console.log('[TIMECARD-CREATE] Starting timecard entry creation...');
 
@@ -263,7 +265,7 @@ export class TimecardController {
     }
   };
 
-  getTimecardEntriesByUser = async (req: ControllerRequest, res: ControllerResponse) => {
+  getTimecardEntriesByUser = async (req: HttpRequest, res: HttpResponse) => {
     try {
       const { tenantId } = req.user;
       const { userId } = req.params;
@@ -283,7 +285,7 @@ export class TimecardController {
     }
   };
 
-  updateTimecardEntry = async (req: ControllerRequest, res: ControllerResponse) => {
+  updateTimecardEntry = async (req: HttpRequest, res: HttpResponse) => {
     try {
       const { tenantId } = req.user;
       const { id } = req.params;
@@ -296,7 +298,7 @@ export class TimecardController {
     }
   };
 
-  deleteTimecardEntry = async (req: ControllerRequest, res: ControllerResponse) => {
+  deleteTimecardEntry = async (req: HttpRequest, res: HttpResponse) => {
     try {
       const { tenantId } = req.user;
       const { id } = req.params;
@@ -309,7 +311,7 @@ export class TimecardController {
     }
   };
 
-  getWorkSchedulesByUser = async (req: ControllerRequest, res: ControllerResponse) => {
+  getWorkSchedulesByUser = async (req: HttpRequest, res: HttpResponse) => {
     try {
       const { userId } = req.params;
       const { tenantId } = req.user;
@@ -323,7 +325,7 @@ export class TimecardController {
     }
   };
 
-  getAllWorkSchedules = async (req: ControllerRequest, res: ControllerResponse) => {
+  getAllWorkSchedules = async (req: HttpRequest, res: HttpResponse) => {
     try {
       console.log('[CONTROLLER-QA] Getting work schedules for tenant:', req.user.tenantId);
       const { tenantId } = req.user;
@@ -340,7 +342,7 @@ export class TimecardController {
     }
   };
 
-  createWorkSchedule = async (req: ControllerRequest, res: ControllerResponse) => {
+  createWorkSchedule = async (req: HttpRequest, res: HttpResponse) => {
     try {
       const { tenantId } = req.user;
 
@@ -361,7 +363,7 @@ export class TimecardController {
     }
   };
 
-  updateWorkSchedule = async (req: ControllerRequest, res: ControllerResponse) => {
+  updateWorkSchedule = async (req: HttpRequest, res: HttpResponse) => {
     try {
       const { tenantId, id: currentUserId } = req.user;
       const { id } = req.params;
@@ -383,7 +385,7 @@ export class TimecardController {
     }
   };
 
-  createBulkWorkSchedules = async (req: ControllerRequest, res: ControllerResponse) => {
+  createBulkWorkSchedules = async (req: HttpRequest, res: HttpResponse) => {
     try {
       const { tenantId } = req.user;
       const { userIds, scheduleData } = req.body;
@@ -406,7 +408,7 @@ export class TimecardController {
     }
   };
 
-  deleteWorkSchedule = async (req: ControllerRequest, res: ControllerResponse) => {
+  deleteWorkSchedule = async (req: HttpRequest, res: HttpResponse) => {
     try {
       const { tenantId } = req.user;
       const { id } = req.params;
@@ -424,7 +426,7 @@ export class TimecardController {
   };
 
   // Absence Requests
-  createAbsenceRequest = async (req: ControllerRequest, res: ControllerResponse) => {
+  createAbsenceRequest = async (req: HttpRequest, res: HttpResponse) => {
     try {
       const { tenantId } = req.user;
       const validatedData = createAbsenceRequestSchema.parse(req.body);
@@ -445,7 +447,7 @@ export class TimecardController {
     }
   };
 
-  getAbsenceRequestsByUser = async (req: ControllerRequest, res: ControllerResponse) => {
+  getAbsenceRequestsByUser = async (req: HttpRequest, res: HttpResponse) => {
     try {
       const { tenantId } = req.user;
       const { userId } = req.params;
@@ -458,7 +460,7 @@ export class TimecardController {
     }
   };
 
-  getPendingAbsenceRequests = async (req: ControllerRequest, res: ControllerResponse) => {
+  getPendingAbsenceRequests = async (req: HttpRequest, res: HttpResponse) => {
     try {
       const { tenantId } = req.user;
 
@@ -470,7 +472,7 @@ export class TimecardController {
     }
   };
 
-  approveAbsenceRequest = async (req: ControllerRequest, res: ControllerResponse) => {
+  approveAbsenceRequest = async (req: HttpRequest, res: HttpResponse) => {
     try {
       const { tenantId, id: approvedBy } = req.user;
       const { id } = req.params;
@@ -483,7 +485,7 @@ export class TimecardController {
     }
   };
 
-  rejectAbsenceRequest = async (req: ControllerRequest, res: ControllerResponse) => {
+  rejectAbsenceRequest = async (req: HttpRequest, res: HttpResponse) => {
     try {
       const { tenantId, id: approvedBy } = req.user;
       const { id } = req.params;
@@ -502,7 +504,7 @@ export class TimecardController {
   };
 
   // Schedule Templates
-  createScheduleTemplate = async (req: ControllerRequest, res: ControllerResponse) => {
+  createScheduleTemplate = async (req: HttpRequest, res: HttpResponse) => {
     try {
       const { tenantId, id: createdBy } = req.user;
 
@@ -545,7 +547,7 @@ export class TimecardController {
     }
   };
 
-  getScheduleTemplates = async (req: ControllerRequest, res: ControllerResponse) => {
+  getScheduleTemplates = async (req: HttpRequest, res: HttpResponse) => {
     try {
       const { tenantId } = req.user;
 
@@ -558,7 +560,7 @@ export class TimecardController {
   };
 
   // Novo endpoint que retorna templates customizados + tipos padrão
-  getAllScheduleOptions = async (req: ControllerRequest, res: ControllerResponse) => {
+  getAllScheduleOptions = async (req: HttpRequest, res: HttpResponse) => {
     try {
       const { tenantId } = req.user;
 
@@ -585,7 +587,7 @@ export class TimecardController {
     }
   };
 
-  updateScheduleTemplate = async (req: ControllerRequest, res: ControllerResponse) => {
+  updateScheduleTemplate = async (req: HttpRequest, res: HttpResponse) => {
     try {
       const { tenantId } = req.user;
       const { id } = req.params;
@@ -598,7 +600,7 @@ export class TimecardController {
     }
   };
 
-  deleteScheduleTemplate = async (req: ControllerRequest, res: ControllerResponse) => {
+  deleteScheduleTemplate = async (req: HttpRequest, res: HttpResponse) => {
     try {
       const { tenantId } = req.user;
       const { id } = req.params;
@@ -612,7 +614,7 @@ export class TimecardController {
   };
 
   // Assign template to users
-  assignTemplateToUsers = async (req: ControllerRequest, res: ControllerResponse) => {
+  assignTemplateToUsers = async (req: HttpRequest, res: HttpResponse) => {
     try {
       const { templateId } = req.params;
       const { userId, userIds } = req.body;
@@ -680,7 +682,7 @@ export class TimecardController {
   };
 
   // Hour Bank
-  getHourBankByUser = async (req: ControllerRequest, res: ControllerResponse) => {
+  getHourBankByUser = async (req: HttpRequest, res: HttpResponse) => {
     try {
       const { tenantId } = req.user;
       const { userId } = req.params;
@@ -702,7 +704,7 @@ export class TimecardController {
     }
   };
 
-  getHourBankSummary = async (req: ControllerRequest, res: ControllerResponse) => {
+  getHourBankSummary = async (req: HttpRequest, res: HttpResponse) => {
     try {
       const tenantId = req.user?.tenantId;
       const userId = req.user?.id;
@@ -777,7 +779,7 @@ export class TimecardController {
   };
 
   // Flexible Work Arrangements
-  createFlexibleWorkArrangement = async (req: ControllerRequest, res: ControllerResponse) => {
+  createFlexibleWorkArrangement = async (req: HttpRequest, res: HttpResponse) => {
     try {
       const { tenantId } = req.user;
       const validatedData = createFlexibleWorkArrangementSchema.parse(req.body);
@@ -798,7 +800,7 @@ export class TimecardController {
     }
   };
 
-  getFlexibleWorkArrangements = async (req: ControllerRequest, res: ControllerResponse) => {
+  getFlexibleWorkArrangements = async (req: HttpRequest, res: HttpResponse) => {
     try {
       const { tenantId } = req.user;
 
@@ -811,7 +813,7 @@ export class TimecardController {
   };
 
   // Notifications for users
-  getUserNotifications = async (req: ControllerRequest, res: ControllerResponse) => {
+  getUserNotifications = async (req: HttpRequest, res: HttpResponse) => {
     try {
       const { tenantId, id: userId } = req.user;
       const { unreadOnly } = req.query;
@@ -847,7 +849,7 @@ export class TimecardController {
     }
   };
 
-  markNotificationAsRead = async (req: ControllerRequest, res: ControllerResponse) => {
+  markNotificationAsRead = async (req: HttpRequest, res: HttpResponse) => {
     try {
       const { id } = req.params;
 
@@ -860,7 +862,7 @@ export class TimecardController {
   };
 
   // Shift Swap Requests
-  createShiftSwapRequest = async (req: ControllerRequest, res: ControllerResponse) => {
+  createShiftSwapRequest = async (req: HttpRequest, res: HttpResponse) => {
     try {
       const { tenantId, id: requesterId } = req.user;
       const { targetUserId, originalShiftDate, proposedShiftDate, reason } = req.body;
@@ -882,7 +884,7 @@ export class TimecardController {
     }
   };
 
-  getShiftSwapRequests = async (req: ControllerRequest, res: ControllerResponse) => {
+  getShiftSwapRequests = async (req: HttpRequest, res: HttpResponse) => {
     try {
       const { tenantId } = req.user;
 
@@ -894,7 +896,7 @@ export class TimecardController {
     }
   };
 
-  async getAttendanceReport(req: ControllerRequest, res: ControllerResponse) {
+  async getAttendanceReport(req: HttpRequest, res: HttpResponse) {
     console.log('[ATTENDANCE-REPORT] Route hit - starting...');
 
     try {
@@ -1113,7 +1115,7 @@ export class TimecardController {
     }
   }
 
-  async getUsers(req: ControllerRequest, res: ControllerResponse) {
+  async getUsers(req: HttpRequest, res: HttpResponse) {
     try {
       const tenantId = req.user?.tenantId;
 
@@ -1140,7 +1142,7 @@ export class TimecardController {
     }
   }
 
-  async getHourBankSummary(req: ControllerRequest, res: ControllerResponse) {
+  async getHourBankSummary(req: HttpRequest, res: HttpResponse) {
     try {
       const tenantId = req.user?.tenantId;
 
@@ -1173,7 +1175,7 @@ export class TimecardController {
     }
   }
 
-  async getHourBankMovements(req: ControllerRequest, res: ControllerResponse) {
+  async getHourBankMovements(req: HttpRequest, res: HttpResponse) {
     try {
       const { userId, month } = req.params;
       const tenantId = req.user?.tenantId;
@@ -1221,7 +1223,7 @@ export class TimecardController {
     }
   }
 
-  async getOvertimeReport(req: ControllerRequest, res: ControllerResponse) {
+  async getOvertimeReport(req: HttpRequest, res: HttpResponse) {
     console.log('[OVERTIME-REPORT] Route hit - starting...');
 
     try {
@@ -1366,7 +1368,7 @@ export class TimecardController {
     }
   }
 
-  async getComplianceReport(req: ControllerRequest, res: ControllerResponse) {
+  async getComplianceReport(req: HttpRequest, res: HttpResponse) {
     console.log('[COMPLIANCE-REPORT] Route hit - starting...');
 
     try {

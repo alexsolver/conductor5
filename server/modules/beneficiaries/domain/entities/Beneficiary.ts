@@ -1,53 +1,41 @@
 // Removed DTO dependency from domain layer - violates Clean Architecture
 
+export interface BeneficiaryProps {
+  name: string;
+  email: string;
+  document: string;
+  tenantId: string;
+}
+
 export class Beneficiary {
-  public readonly id: string;
-  public readonly name: string;
-  public readonly email: string;
-  public readonly tenantId: string;
-  public readonly createdAt: Date;
-  public readonly updatedAt: Date;
-
   constructor(
-    id: string,
-    name: string,
-    email: string,
-    tenantId: string,
-    createdAt?: Date,
-    updatedAt?: Date
-  ) {
-    this.id = id;
-    this.name = name;
-    this.email = email;
-    this.tenantId = tenantId;
-    this.createdAt = createdAt || new Date();
-    this.updatedAt = updatedAt || new Date();
-  }
+    public readonly id: string,
+    public name: string,
+    public email: string,
+    public document: string,
+    public readonly tenantId: string,
+    public readonly createdAt: Date = new Date(),
+    public updatedAt: Date = new Date()
+  ) {}
 
-  // Removed invalid domain dependency - DTOs should not be imported in Domain Layer
-  static fromData(data: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    cpf?: string;
-    phone?: string;
-    birthDate?: Date;
-    isActive?: boolean;
-    tenantId: string;
-  }): Beneficiary {
+  static create(props: BeneficiaryProps, id: string): Beneficiary {
     return new Beneficiary(
-      data.firstName,
-      data.lastName,
-      data.email,
-      data.cpf,
-      data.phone,
-      data.birthDate,
-      data.isActive,
-      data.tenantId
+      id,
+      props.name,
+      props.email,
+      props.document,
+      props.tenantId
     );
   }
 
+  update(props: Partial<BeneficiaryProps>): void {
+    if (props.name !== undefined) this.name = props.name;
+    if (props.email !== undefined) this.email = props.email;
+    if (props.document !== undefined) this.document = props.document;
+    this.updatedAt = new Date();
+  }
+
   validate(): boolean {
-    return !!(this.name && this.email && this.tenantId);
+    return !!(this.name && this.email && this.document && this.tenantId);
   }
 }

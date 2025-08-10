@@ -1,8 +1,8 @@
+import { ISkillRepository } from '../../domain/ports/ISkillRepository';
 import { CreateSkillUseCase } from '../use-cases/CreateSkillUseCase';
 import { GetSkillsUseCase } from '../use-cases/GetSkillsUseCase';
 import { UpdateSkillUseCase } from '../use-cases/UpdateSkillUseCase';
 import { CreateSkillDTO, UpdateSkillDTO, SkillResponseDTO } from '../dto/CreateSkillDTO';
-import { ISkillRepository } from '../../domain/ports/ISkillRepository';
 import { ValidationDomainService } from '../../../shared/domain/services/ValidationDomainService';
 
 // Use abstracted HTTP types instead of Express directly
@@ -19,12 +19,17 @@ interface IResponse {
 }
 
 export class SkillApplicationService {
+  private createSkillUseCase: CreateSkillUseCase;
+  private getSkillsUseCase: GetSkillsUseCase;
+  private updateSkillUseCase: UpdateSkillUseCase;
+
   constructor(
-    private readonly createSkillUseCase: CreateSkillUseCase,
-    private readonly getSkillsUseCase: GetSkillsUseCase,
-    private readonly updateSkillUseCase: UpdateSkillUseCase,
-    private readonly skillRepository: ISkillRepository // Adicionado skillRepository para uso direto
-  ) {}
+    private readonly skillRepository: ISkillRepository
+  ) {
+    this.createSkillUseCase = new CreateSkillUseCase(skillRepository);
+    this.getSkillsUseCase = new GetSkillsUseCase(skillRepository);
+    this.updateSkillUseCase = new UpdateSkillUseCase(skillRepository);
+  }
 
   async createSkill(tenantId: string, data: CreateSkillDTO): Promise<SkillResponseDTO> {
     ValidationDomainService.validateRequired(data.name, 'Skill name');
@@ -39,17 +44,24 @@ export class SkillApplicationService {
     return skills.map(skill => this.mapToResponseDTO(skill));
   }
 
-  async updateSkill(id: string, tenantId: string, data: UpdateSkillDTO): Promise<SkillResponseDTO> {
+  async getSkillById(id: string, tenantId: string): Promise<SkillResponseDTO | null> {
     ValidationDomainService.validateRequired(id, 'Skill ID');
     ValidationDomainService.validateRequired(tenantId, 'Tenant ID');
-    const skill = await this.updateSkillUseCase.execute(id, tenantId, data);
+    const skill = await this.skillRepository.findByIdAndTenantId(id, tenantId);
+    return skill ? this.mapToResponseDTO(skill) : null;
+  }
+
+  async updateSkill(id: string, tenantId: string, updates: UpdateSkillDTO): Promise<SkillResponseDTO> {
+    ValidationDomainService.validateRequired(id, 'Skill ID');
+    ValidationDomainService.validateRequired(tenantId, 'Tenant ID');
+    const skill = await this.updateSkillUseCase.execute(id, tenantId, updates);
     return this.mapToResponseDTO(skill);
   }
 
-  // Método para obter skills diretamente do repository (se necessário em outros use cases ou serviços)
-  async getAllSkillsFromRepository(tenantId: string): Promise<any[]> {
+  async deleteSkill(id: string, tenantId: string): Promise<void> {
+    ValidationDomainService.validateRequired(id, 'Skill ID');
     ValidationDomainService.validateRequired(tenantId, 'Tenant ID');
-    return await this.skillRepository.findByTenant(tenantId);
+    await this.skillRepository.delete(id, tenantId);
   }
 
   private mapToResponseDTO(skill: any): SkillResponseDTO {

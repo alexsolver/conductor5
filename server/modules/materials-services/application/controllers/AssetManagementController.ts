@@ -1,4 +1,16 @@
-import { Request, Response } from 'express';
+interface HttpRequest {
+  body: any;
+  params: any;
+  query: any;
+  user?: any;
+  headers: any;
+}
+
+interface HttpResponse {
+  status(code: number): HttpResponse;
+  json(data: any): void;
+  send(data: any): void;
+}
 import { IAssetManagementRepository } from '../../domain/ports/IAssetManagementRepository';
 import { IAssetManagementRepository } from '../../domain/interfaces/IAssetManagementRepository';
 

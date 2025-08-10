@@ -1,4 +1,16 @@
-import { Request, Response } from 'express';
+interface HttpRequest {
+  body: any;
+  params: any;
+  query: any;
+  user?: any;
+  headers: any;
+}
+
+interface HttpResponse {
+  status(code: number): HttpResponse;
+  json(data: any): void;
+  send(data: any): void;
+}
 import { MediaService } from '../services/MediaService';
 import { IMediaRepository } from '../../domain/ports/IMediaRepository';
 import { AuthenticatedRequest } from '../../../../middleware/jwtAuth';

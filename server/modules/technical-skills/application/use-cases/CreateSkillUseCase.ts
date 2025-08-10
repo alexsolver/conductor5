@@ -1,9 +1,26 @@
 import { ISkillRepository } from '../../domain/ports/ISkillRepository';
 
-export class CreateSkillUseCase {
-  constructor(private skillRepository: ISkillRepository) {}
+interface CreateSkillRequest {
+  name: string;
+  description?: string;
+  category: string;
+  level: number;
+  tenantId: string;
+}
 
-  async execute(skillData: any): Promise<any> {
-    return await this.skillRepository.create(skillData);
+export class CreateSkillUseCase {
+  constructor(
+    private readonly skillRepository: ISkillRepository
+  ) {}
+
+  async execute(request: CreateSkillRequest): Promise<any> {
+    const skill = {
+      id: crypto.randomUUID(),
+      ...request,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    return await this.skillRepository.create(skill);
   }
 }

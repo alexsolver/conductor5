@@ -145,3 +145,11 @@ export interface IMaterialRepository {
   update(id: string, data: any): Promise<any>;
   delete(id: string): Promise<void>;
 }
+export interface IMaterialRepository {
+  create(material: any): Promise<any>;
+  findById(id: string): Promise<any | null>;
+  findAll(tenantId: string): Promise<any[]>;
+  update(id: string, material: any): Promise<any>;
+  delete(id: string): Promise<void>;
+  findByTenantId(tenantId: string): Promise<any[]>;
+}

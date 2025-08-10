@@ -1,9 +1,11 @@
 import { ISaasConfigRepository } from '../../domain/ports/ISaasConfigRepository';
 
 export class GetConfigsUseCase {
-  constructor(private configRepository: ISaasConfigRepository) {}
+  constructor(
+    private readonly configRepository: ISaasConfigRepository
+  ) {}
 
-  async execute(): Promise<any[]> {
-    return await this.configRepository.getAllConfigs();
+  async execute(tenantId: string): Promise<any[]> {
+    return await this.configRepository.findByTenantId(tenantId);
   }
 }

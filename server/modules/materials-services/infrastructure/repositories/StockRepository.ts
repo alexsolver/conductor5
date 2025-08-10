@@ -3,6 +3,8 @@ import { eq, and, like, desc, sql } from 'drizzle-orm';
 // Note: Using mock data for now as schema is being implemented
 // import { stockItems, stockMovements, warehouses, items } from '@shared/schema';
 
+import { IStockRepository } from '../../domain/ports/IStockRepository';
+
 export interface StockItem {
   id: string;
   itemId: string;
@@ -36,8 +38,32 @@ export interface StockMovement {
   createdAt: string;
 }
 
-export class StockRepository {
+export class StockRepository implements IStockRepository {
   constructor(private db: ReturnType<typeof drizzle>) {}
+
+  async save(stock: any): Promise<any> {
+    return stock;
+  }
+
+  async findById(id: string): Promise<any | null> {
+    return null;
+  }
+
+  async findAll(tenantId: string): Promise<any[]> {
+    return [];
+  }
+
+  async update(id: string, stock: any): Promise<any> {
+    return stock;
+  }
+
+  async delete(id: string): Promise<void> {
+    // Delete implementation
+  }
+
+  async findByTenantId(tenantId: string): Promise<any[]> {
+    return [];
+  }
 
   async getStockItems(tenantId: string, options?: {
     limit?: number;

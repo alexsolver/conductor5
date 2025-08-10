@@ -76,15 +76,34 @@ router.get('/analytics', requirePermission(Permission.PLATFORM_VIEW_ANALYTICS), 
  * GET /api/saas-admin/configs
  * Lista todas as configurações da plataforma
  */
-router.get('/configs', async (req: AuthorizedRequest, res) => {
-  try {
-    const getConfigsUseCase = new GetConfigsUseCase(configRepository);
-    const configs = await getConfigsUseCase.execute();
-    res.json(configs);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+router.get('/configs', (req, res, next) => {
+  saasAdminController.getConfigs(req, res).catch(next);
 });
+
+/**
+ * POST /api/saas-admin/configs
+ * Criar nova configuração da plataforma
+ */
+router.post('/configs', (req, res, next) => {
+  saasAdminController.createConfig(req, res).catch(next);
+});
+
+/**
+ * PUT /api/saas-admin/configs/:id
+ * Atualizar configuração da plataforma
+ */
+router.put('/configs/:id', (req, res, next) => {
+  saasAdminController.updateConfig(req, res).catch(next);
+});
+
+/**
+ * DELETE /api/saas-admin/configs/:id
+ * Remover configuração da plataforma
+ */
+router.delete('/configs/:id', (req, res, next) => {
+  saasAdminController.deleteConfig(req, res).catch(next);
+});
+
 
 /**
  * GET /api/saas-admin/users

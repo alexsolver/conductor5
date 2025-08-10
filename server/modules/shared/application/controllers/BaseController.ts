@@ -1,6 +1,6 @@
 // Base controller without framework dependencies
 
-export interface BaseRequest {
+interface BaseRequest {
   params: Record<string, any>;
   query: Record<string, any>;
   body: any;
@@ -13,7 +13,7 @@ export interface BaseRequest {
   headers: Record<string, string>;
 }
 
-export interface BaseResponse {
+interface BaseResponse {
   status(code: number): BaseResponse;
   json(data: any): BaseResponse;
   send(data: any): BaseResponse;
@@ -59,15 +59,30 @@ export abstract class BaseController {
     });
   }
 }
+
 import { standardResponse } from '../../../utils/standardResponse';
 
+interface HttpRequest {
+  body: any;
+  params: any;
+  query: any;
+  user?: any;
+  headers: any;
+}
+
+interface HttpResponse {
+  status(code: number): HttpResponse;
+  json(data: any): void;
+  send(data: any): void;
+}
+
 export abstract class BaseController {
-  protected handleError(error: any, res: Response, message: string = 'Erro interno do servidor'): void {
+  protected handleError(error: any, res: HttpResponse, message: string = 'Erro interno do servidor'): void {
     console.error('Controller Error:', error);
     res.status(500).json(standardResponse(false, message));
   }
 
-  protected validateTenant(req: Request, res: Response): string | null {
+  protected validateTenant(req: HttpRequest, res: HttpResponse): string | null {
     const tenantId = req.user?.tenantId;
     if (!tenantId) {
       res.status(400).json(standardResponse(false, 'Tenant ID é obrigatório'));
@@ -76,7 +91,7 @@ export abstract class BaseController {
     return tenantId;
   }
 
-  protected validateId(id: string, res: Response): boolean {
+  protected validateId(id: string, res: HttpResponse): boolean {
     if (!id || id.trim() === '') {
       res.status(400).json(standardResponse(false, 'ID é obrigatório'));
       return false;
@@ -84,7 +99,7 @@ export abstract class BaseController {
     return true;
   }
 
-  protected successResponse(res: Response, message: string, data?: any, status: number = 200): void {
+  protected successResponse(res: HttpResponse, message: string, data?: any, status: number = 200): void {
     res.status(status).json(standardResponse(true, message, data));
   }
 }

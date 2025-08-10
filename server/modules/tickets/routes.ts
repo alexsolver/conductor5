@@ -772,14 +772,39 @@ router.use(tenantValidator);
 const ticketController = new TicketController();
 
 // Rotas CRUD
-router.get('/', ticketController.getAll.bind(ticketController));
-router.get('/:id', ticketController.getById.bind(ticketController));
-router.post('/', ticketController.create.bind(ticketController));
-router.put('/:id', ticketController.update.bind(ticketController));
-router.delete('/:id', ticketController.delete.bind(ticketController));
+router.get('/tickets', (req: AuthenticatedRequest, res, next) => {
+  ticketController.getAll(req, res).catch(next);
+});
+
+router.get('/tickets/:id', (req: AuthenticatedRequest, res, next) => {
+  ticketController.getById(req, res).catch(next);
+});
+
+router.post('/tickets', (req: AuthenticatedRequest, res, next) => {
+  ticketController.create(req, res).catch(next);
+});
+
+router.put('/tickets/:id', (req: AuthenticatedRequest, res, next) => {
+  ticketController.update(req, res).catch(next);
+});
+
+router.delete('/tickets/:id', (req: AuthenticatedRequest, res, next) => {
+  ticketController.delete(req, res).catch(next);
+});
 
 // Rotas específicas de tickets
-router.post('/:id/assign', ticketController.assign.bind(ticketController));
-router.post('/:id/resolve', ticketController.resolve.bind(ticketController));
-router.get('/:id/history', ticketController.getHistory.bind(ticketController));
-router.post('/:id/attachments', ticketController.addAttachment.bind(ticketController));
+router.post('/tickets/:id/assign', (req: AuthenticatedRequest, res, next) => {
+  ticketController.assign(req, res).catch(next);
+});
+
+router.post('/tickets/:id/resolve', (req: AuthenticatedRequest, res, next) => {
+  ticketController.resolve(req, res).catch(next);
+});
+
+router.get('/tickets/:id/history', (req: AuthenticatedRequest, res, next) => {
+  ticketController.getHistory(req, res).catch(next);
+});
+
+router.post('/tickets/:id/attachments', (req: AuthenticatedRequest, res, next) => {
+  ticketController.addAttachment(req, res).catch(next);
+});
