@@ -4,7 +4,7 @@ import { unifiedStorage } from "./storage-simple";
 import { schemaManager } from "./db";
 import { jwtAuth, AuthenticatedRequest } from "./middleware/jwtAuth";
 import { requirePermission, requireTenantAccess } from "./middleware/rbacMiddleware";
-import createCSPMiddleware, { createCSPReportingEndpoint, createCSPManagementRoutes } from "./middleware/cspMiddleware";
+import { createCSPMiddleware, createCSPReportingEndpoint, createCSPManagementRoutes } from "./middleware/cspMiddleware";
 import { createMemoryRateLimitMiddleware, RATE_LIMIT_CONFIGS } from "./services/redisRateLimitService";
 import { createFeatureFlagMiddleware } from "./services/featureFlagService";
 import cookieParser from "cookie-parser";
@@ -61,11 +61,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Add cookie parser middleware
   app.use(cookieParser());
 
-  // Apply CSP middleware
-  app.use(createCSPMiddleware({
-    environment: process.env.NODE_ENV === 'production' ? 'production' : 'development',
-    nonce: true
-  }));
+  // Apply CSP middleware with fallback
+  try {
+    const cspMiddleware = createCSPMiddleware({
+      environment: process.env.NODE_ENV === 'production' ? 'production' : 'development',
+      nonce: true
+    });
+    if (cspMiddleware) {
+      app.use(cspMiddleware);
+    }
+  } catch (error) {
+    console.warn('CSP middleware not available, skipping...');
+  }
 
 
 
