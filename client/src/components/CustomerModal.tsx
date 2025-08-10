@@ -373,6 +373,46 @@ export function CustomerModal({ isOpen, onClose, customer, onLocationModalOpen }
     });
   };
 
+  // Mutation para adicionar empresa
+  const addCompanyMutation = useMutation({
+    mutationFn: async ({ customerId, companyId, isPrimary }: { customerId: string; companyId: string; isPrimary: boolean }) => {
+      console.log('Adding company:', { customerId, companyId, currentAssociations: companies.length });
+      return apiRequest('POST', `/api/customers/${customerId}/companies`, { 
+        companyId, 
+        relationshipType: 'client',
+        isPrimary 
+      });
+    },
+    onSuccess: async () => {
+      // Invalidar cache e fazer refetch
+      queryClient.invalidateQueries({ queryKey: [`/api/customers/${customer?.id}/companies`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/companies'] });
+
+      // Aguardar um pouco para o backend processar
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Refetch para atualizar dados
+      await refetchCompanies();
+      await refetchAvailableCompanies();
+
+      // Limpar seleção
+      setSelectedCompanyId('');
+
+      toast({
+        title: "Sucesso",
+        description: "Empresa associada com sucesso!",
+      });
+    },
+    onError: (error: any) => {
+      console.error('Error adding company:', error);
+      toast({
+        title: "Erro",
+        description: error?.message || "Erro ao associar empresa",
+        variant: "destructive"
+      });
+    }
+  });
+
   const handleRemoveCompany = async (companyId: string) => {
     if (!customer?.id) {
       toast({
