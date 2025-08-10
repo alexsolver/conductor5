@@ -1,6 +1,6 @@
 /**
  * Domain Event Publisher Interface
- * Clean Architecture - Domain Layer
+ * Clean Architecture - Shared Domain Port
  */
 
 import { BaseDomainEvent } from './events/BaseDomainEvent';

@@ -1,6 +1,6 @@
 import { eq, and } from 'drizzle-orm';
 import { Ticket } from '../../domain/entities/Ticket';
-import { ITicketRepository } from '../../domain/ports/ITicketRepository'; // Corrected import path
+import { ITicketRepository, TicketFilter } from '../../domain/ports/ITicketRepository';
 import { tickets } from '@shared/schema'; // Corrected import path
 import { db } from '../../../../db'; // Assuming db is still used internally
 
@@ -21,6 +21,20 @@ export class DrizzleTicketRepository implements ITicketRepository {
     } catch (error) {
       console.error('❌ Error finding ticket by id:', error);
       // Re-throw or handle as appropriate for the application's error handling strategy
+      throw error;
+    }
+  }
+
+  async findAll(tenantId: string): Promise<Ticket[]> {
+    try {
+      const results = await this.dbConnection
+        .select()
+        .from(tickets)
+        .where(eq(tickets.tenantId, tenantId));
+
+      return results.map(result => this.toDomainEntity(result));
+    } catch (error) {
+      console.error('❌ Error finding all tickets:', error);
       throw error;
     }
   }
@@ -276,46 +290,47 @@ export class DrizzleTicketRepository implements ITicketRepository {
 
 
   private toDomainEntity(data: any): Ticket {
-    return Ticket.fromPersistence({
-      id: data.id,
-      tenantId: data.tenantId,
-      customerId: data.customerId,
-      callerId: data.callerId,
-      callerType: data.callerType,
-      subject: data.subject,
-      description: data.description,
-      number: data.number,
-      shortDescription: data.shortDescription,
-      category: data.category,
-      subcategory: data.subcategory,
-      priority: data.priority,
-      impact: data.impact,
-      urgency: data.urgency,
-      state: data.state,
-      status: data.status,
-      assignedToId: data.assignedToId,
-      beneficiaryId: data.beneficiaryId,
-      beneficiaryType: data.beneficiaryType,
-      assignmentGroup: data.assignmentGroup,
-      location: data.location,
-      contactType: data.contactType,
-      businessImpact: data.businessImpact,
-      symptoms: data.symptoms,
-      workaround: data.workaround,
-      configurationItem: data.configurationItem,
-      businessService: data.businessService,
-      resolutionCode: data.resolutionCode,
-      resolutionNotes: data.resolutionNotes,
-      workNotes: data.workNotes,
-      closeNotes: data.closeNotes,
-      notify: data.notify,
-      rootCause: data.rootCause,
-      openedAt: data.openedAt,
-      resolvedAt: data.resolvedAt,
-      closedAt: data.closedAt,
-      createdAt: data.createdAt,
-      updatedAt: data.updatedAt
-    });
+    // Infrastructure mapping - domain entity reconstruction from persistence layer
+    return new Ticket(
+      data.id,
+      data.tenantId,
+      data.customerId,
+      data.callerId,
+      data.callerType,
+      data.subject,
+      data.description,
+      data.number,
+      data.shortDescription,
+      data.category,
+      data.subcategory,
+      data.priority,
+      data.impact,
+      data.urgency,
+      data.state,
+      data.status,
+      data.assignedToId,
+      data.beneficiaryId,
+      data.beneficiaryType,
+      data.assignmentGroup,
+      data.location,
+      data.contactType,
+      data.businessImpact,
+      data.symptoms,
+      data.workaround,
+      data.configurationItem,
+      data.businessService,
+      data.resolutionCode,
+      data.resolutionNotes,
+      data.workNotes,
+      data.closeNotes,
+      data.notify,
+      data.rootCause,
+      data.openedAt,
+      data.resolvedAt,
+      data.closedAt,
+      data.createdAt,
+      data.updatedAt
+    );
   }
 
   private toPersistenceData(ticket: Ticket): any {
@@ -331,10 +346,10 @@ export class DrizzleTicketRepository implements ITicketRepository {
       shortDescription: ticket.getShortDescription(),
       category: ticket.getCategory(),
       subcategory: ticket.getSubcategory(),
-      priority: ticket.getPriority(),
+      priority: ticket.getPriority().getValue(), // Convert TicketPriority to string
       impact: ticket.getImpact(),
       urgency: ticket.getUrgency(),
-      state: ticket.getState(),
+      state: ticket.getState().getValue(), // Convert TicketStatus to string
       status: ticket.getStatus(),
       assignedToId: ticket.getAssignedToId(),
       beneficiaryId: ticket.getBeneficiaryId(),

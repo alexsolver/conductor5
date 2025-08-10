@@ -96,7 +96,7 @@ export class CreateTicketUseCase {
         savedTicket.getTenantId(),
         savedTicket.getCustomerId(),
         savedTicket.getCallerId(),
-        savedTicket.getPriority(),
+        savedTicket.getPriority().getValue(), // Convert TicketPriority to string
         savedTicket.getSubject(),
         new Date()
       );

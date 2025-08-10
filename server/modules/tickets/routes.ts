@@ -21,7 +21,7 @@ import { ResolveTicketUseCase } from './application/usecases/ResolveTicketUseCas
 import { DrizzleTicketRepository } from './infrastructure/repositories/DrizzleTicketRepository';
 
 // Database connection
-import { getDb } from '../../db';
+import { db, schemaManager } from '../../db';
 
 
 // Generate unique action number for internal actions
@@ -115,7 +115,7 @@ async function createCompleteAuditEntry(
 }
 
 const ticketsRouter = Router();
-const db = getDb();
+// Use direct import of db connection from '../../db'
 const ticketRepository = new DrizzleTicketRepository(db);
 
 // Initialize controller with dependencies

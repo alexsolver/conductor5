@@ -323,46 +323,5 @@ export class Ticket {
   }
 
   // Factory method for reconstruction from persistence
-  static fromPersistence(data: any): Ticket {
-    return new Ticket(
-      data.id,
-      data.tenantId,
-      data.customerId,
-      data.callerId,
-      data.callerType,
-      data.subject,
-      data.description,
-      data.number,
-      data.shortDescription,
-      data.category,
-      data.subcategory,
-      new TicketPriority(data.priority), // Use value object
-      data.impact,
-      data.urgency,
-      new TicketStatus(data.state), // Use value object
-      data.status,
-      data.assignedToId,
-      data.beneficiaryId,
-      data.beneficiaryType,
-      data.assignmentGroup,
-      data.location,
-      data.contactType,
-      data.businessImpact,
-      data.symptoms,
-      data.workaround,
-      data.configurationItem,
-      data.businessService,
-      data.resolutionCode,
-      data.resolutionNotes,
-      data.workNotes,
-      data.closeNotes,
-      data.notify,
-      data.rootCause,
-      data.openedAt,
-      data.resolvedAt,
-      data.closedAt,
-      data.createdAt,
-      data.updatedAt
-    );
-  }
+  // Infrastructure mapping removed - this logic moved to DrizzleTicketRepository
 }
