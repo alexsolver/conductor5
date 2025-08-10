@@ -1,16 +1,16 @@
 # Clean Architecture Validation Report
 
 **Data:** 2025-08-10  
-**Score:** 33/100  
+**Score:** 34/100  
 **Status:** ❌ REPROVADO
 
 ## Resumo de Problemas
 
 - 🔥 **Críticos:** 16
 - ⚠️ **Altos:** 73
-- 📋 **Médios:** 54
-- 💡 **Baixos:** 5
-- **Total:** 148
+- 📋 **Médios:** 55
+- 💡 **Baixos:** 6
+- **Total:** 150
 
 ## Principais Problemas por Módulo
 
@@ -53,7 +53,7 @@
   - Domain Layer violando dependência: drizzle-orm/neon-http
 
 ### 🔥 saas-admin
-- **Total de problemas:** 7
+- **Total de problemas:** 8
 - **Críticos:** 1 | **Altos:** 2
 - **Principais problemas:**
   - Routes contém lógica de negócio ou acesso a dados
@@ -117,12 +117,12 @@
   - Estrutura services ausente na camada application
 
 ### 🔥 shared
-- **Total de problemas:** 6
+- **Total de problemas:** 7
 - **Críticos:** 2 | **Altos:** 0
 - **Principais problemas:**
   - Domain Layer violando dependência: drizzle-orm/neon-http
   - Domain Layer violando dependência: drizzle-orm/neon-http
-  - Repository index deve terminar com 'Repository'
+  - Repository BaseRepository deve implementar interface
 
 ### 📋 auth
 - **Total de problemas:** 1
@@ -226,14 +226,15 @@
 ### 🔥 saas-admin
 - **Prioridade:** immediate
 - **Tempo estimado:** 4h
-- **Ações:** 6
+- **Ações:** 7
 
 1. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
 2. **refactor_code:** Refatorar dependência inválida na camada domain
 3. **refactor_code:** Refatorar dependência inválida na camada application
-4. **rename_file:** Padronizar nomenclatura: Entity index não segue padrão PascalCase
-5. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
-6. **create_file:** Criar Repository com interface
+4. **rename_file:** Padronizar nomenclatura: Nome da classe SaasConfigEntity não corresponde ao arquivo SaasConfig
+5. **rename_file:** Padronizar nomenclatura: Entity index não segue padrão PascalCase
+6. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
+7. **create_file:** Criar Repository com interface
 
 ### 🔥 schedule-management
 - **Prioridade:** immediate
@@ -282,14 +283,15 @@
 ### 🔥 shared
 - **Prioridade:** immediate
 - **Tempo estimado:** 4h
-- **Ações:** 6
+- **Ações:** 7
 
 1. **refactor_code:** Refatorar dependência inválida na camada domain
 2. **refactor_code:** Refatorar dependência inválida na camada domain
-3. **rename_file:** Padronizar nomenclatura: Repository index deve terminar com 'Repository'
-4. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
+3. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
+4. **rename_file:** Padronizar nomenclatura: Repository index deve terminar com 'Repository'
 5. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
-6. **create_file:** Criar Repository com interface
+6. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
+7. **create_file:** Criar Repository com interface
 
 ### ⚠️ customers
 - **Prioridade:** high
@@ -392,11 +394,11 @@
 - **beneficiaries:** 4 ações (4h)
 - **knowledge-base:** 9 ações (7h)
 - **materials-services:** 35 ações (27h)
-- **saas-admin:** 6 ações (4h)
+- **saas-admin:** 7 ações (4h)
 - **schedule-management:** 8 ações (4h)
 - **technical-skills:** 8 ações (5h)
 - **timecard:** 10 ações (6h)
-- **shared:** 6 ações (4h)
+- **shared:** 7 ações (4h)
 
 ### Prioridade Alta ⚠️
 - **customers:** 2 ações (2h)

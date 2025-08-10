@@ -604,6 +604,17 @@
       },
       {
         "type": "rename_file",
+        "description": "Padronizar nomenclatura: Nome da classe SaasConfigEntity não corresponde ao arquivo SaasConfig",
+        "target": "server/modules/saas-admin/domain/entities/SaasConfig.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "rename_file",
         "description": "Padronizar nomenclatura: Entity index não segue padrão PascalCase",
         "target": "server/modules/saas-admin/domain/entities/index.ts",
         "steps": [
@@ -956,6 +967,14 @@
           "Implementar interface na camada Infrastructure",
           "Usar injeção de dependência",
           "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Criar interface I[Entity]Repository no domain e implementar",
+        "target": "server/modules/shared/infrastructure/repositories/BaseRepository.ts",
+        "steps": [
+          "Criar interface I[Entity]Repository no domain e implementar"
         ]
       },
       {
