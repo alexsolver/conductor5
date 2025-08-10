@@ -10,25 +10,28 @@ export interface BeneficiaryProps {
   updatedAt?: Date;
 }
 
+// Domain puro - sem dependências externas
 export class Beneficiary {
-  private constructor(
-    public readonly id: string,
-    public readonly name: string,
-    public readonly email: string,
-    public readonly phone?: string,
-    public readonly address?: string,
-    public readonly createdAt: Date = new Date(),
-    public readonly updatedAt: Date = new Date()
+  constructor(
+    public id: string,
+    public name: string,
+    public email: string,
+    public tenantId: string
   ) {}
 
-  static create(props: Omit<BeneficiaryProps, 'id' | 'createdAt' | 'updatedAt'>): Beneficiary {
-    return new Beneficiary(
-      crypto.randomUUID(),
-      props.name,
-      props.email,
-      props.phone,
-      props.address
-    );
+  // Factory method usando primitivos
+  static create(
+    id: string,
+    name: string,
+    email: string,
+    tenantId: string
+  ): Beneficiary {
+    return new Beneficiary(id, name, email, tenantId);
+  }
+
+  // Validação no domain
+  validate(): boolean {
+    return !!(this.name && this.email && this.tenantId);
   }
 
   static reconstruct(props: BeneficiaryProps): Beneficiary {
@@ -36,8 +39,8 @@ export class Beneficiary {
       props.id,
       props.name,
       props.email,
+      props.tenantId, // Assuming tenantId would be part of BeneficiaryProps in a real scenario
       props.phone,
-      props.address,
       props.createdAt,
       props.updatedAt
     );
@@ -48,8 +51,8 @@ export class Beneficiary {
       this.id,
       props.name ?? this.name,
       props.email ?? this.email,
+      this.tenantId, // Keep tenantId
       props.phone ?? this.phone,
-      props.address ?? this.address,
       this.createdAt,
       new Date()
     );

@@ -1,14 +1,22 @@
-import { IBaseRepository } from '../../domain/repositories/IBaseRepository';
+import { Pool } from 'pg';
 
-export abstract class BaseRepository<T> implements IBaseRepository<T> {
-  protected db: any;
+export abstract class BaseRepository {
+  protected pool: Pool;
 
-  constructor(database: any) {
-    this.db = database;
+  constructor(pool: Pool) {
+    this.pool = pool;
   }
 
-  abstract findById(id: string): Promise<T | null>;
-  abstract save(entity: T): Promise<T>;
-  abstract delete(id: string): Promise<void>;
-  abstract findAll(): Promise<T[]>;
+  protected async query(text: string, params?: any[]): Promise<any> {
+    try {
+      return await this.pool.query(text, params);
+    } catch (error) {
+      console.error('Database query error:', error);
+      throw error;
+    }
+  }
+
+  protected getSchemaName(tenantId: string): string {
+    return `tenant_${tenantId.replace(/-/g, '_')}`;
+  }
 }

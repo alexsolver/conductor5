@@ -1,15 +1,9 @@
 import { KnowledgeBaseEntry } from '../entities/KnowledgeBaseEntry';
 
 export interface IKnowledgeBaseRepository {
+  create(entry: KnowledgeBaseEntry): Promise<KnowledgeBaseEntry>;
   findById(id: string): Promise<KnowledgeBaseEntry | null>;
   findByTenant(tenantId: string): Promise<KnowledgeBaseEntry[]>;
-  save(entry: KnowledgeBaseEntry): Promise<KnowledgeBaseEntry>;
-  delete(id: string): Promise<void>;
-}
-export interface IKnowledgeBaseRepository {
-  create(entry: any): Promise<any>;
-  findById(id: string): Promise<any>;
-  findByTenant(tenantId: string): Promise<any[]>;
-  update(id: string, data: any): Promise<any>;
+  update(id: string, entry: Partial<KnowledgeBaseEntry>): Promise<KnowledgeBaseEntry>;
   delete(id: string): Promise<void>;
 }
