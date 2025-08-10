@@ -188,3 +188,31 @@ export class DrizzleSkillRepository implements ISkillRepository {
     };
   }
 }
+import { ISkillRepository } from '../../domain/repositories/ISkillRepository';
+
+export class DrizzleSkillRepository implements ISkillRepository {
+  // Repository implementation
+  async create(skill: any): Promise<any> {
+    // Implementation
+    return skill;
+  }
+  
+  async findById(id: string): Promise<any> {
+    // Implementation
+    return null;
+  }
+  
+  async findAll(tenantId: string): Promise<any[]> {
+    // Implementation
+    return [];
+  }
+  
+  async update(id: string, skill: any): Promise<any> {
+    // Implementation
+    return skill;
+  }
+  
+  async delete(id: string): Promise<void> {
+    // Implementation
+  }
+}

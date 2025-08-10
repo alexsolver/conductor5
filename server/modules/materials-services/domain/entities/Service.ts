@@ -1,4 +1,4 @@
-// Domain entities should not import infrastructure dependencies
+// Removed drizzle-orm dependency from domain layer
 export class Service {
   constructor(
     public readonly id: string,

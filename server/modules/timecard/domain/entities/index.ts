@@ -1,5 +1,7 @@
 // Domain entities should not depend on ORM libraries
 
+export { Timecard } from './Timecard';
+
 export interface Timecard {
   id: string;
   tenantId: string;

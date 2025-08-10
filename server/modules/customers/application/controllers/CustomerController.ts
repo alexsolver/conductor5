@@ -1,14 +1,14 @@
 // Clean interfaces for HTTP abstraction
 // Using interfaces instead of direct express dependency
-interface IRequest {
+interface ControllerRequest {
   user?: any;
   params: any;
   body: any;
   query: any;
 }
 
-interface IResponse {
-  status: (code: number) => IResponse;
+interface ControllerResponse {
+  status: (code: number) => ControllerResponse;
   json: (data: any) => void;
 }
 
@@ -17,7 +17,7 @@ export class CustomerController {
     private customerApplicationService: CustomerApplicationService
   ) {}
 
-  async createCustomer(req: IRequest, res: IResponse): Promise<void> {
+  async createCustomer(req: ControllerRequest, res: ControllerResponse): Promise<void> {
     try {
       const { body, user } = req;
       const tenantId = user?.tenantId;
@@ -51,7 +51,7 @@ export class CustomerController {
     }
   }
 
-  async getCustomers(req: IRequest, res: IResponse): Promise<void> {
+  async getCustomers(req: ControllerRequest, res: ControllerResponse): Promise<void> {
     try {
       const user = req.user;
       const tenantId = user?.tenantId;
@@ -90,7 +90,7 @@ export class CustomerController {
     }
   }
 
-  async updateCustomer(req: IRequest, res: IResponse): Promise<void> {
+  async updateCustomer(req: ControllerRequest, res: ControllerResponse): Promise<void> {
     try {
       const { id } = req.params;
       const user = req.user;
@@ -129,7 +129,7 @@ export class CustomerController {
     }
   }
 
-  async deleteCustomer(req: IRequest, res: IResponse): Promise<void> {
+  async deleteCustomer(req: ControllerRequest, res: ControllerResponse): Promise<void> {
     try {
       const { id } = req.params;
       const user = req.user;
@@ -167,7 +167,7 @@ export class CustomerController {
     }
   }
 
-  async getAllCustomers(req: IRequest, res: IResponse): Promise<void> {
+  async getAllCustomers(req: ControllerRequest, res: ControllerResponse): Promise<void> {
     try {
       const user = req.user;
       const tenantId = user?.tenantId;

@@ -1,5 +1,7 @@
 // Domain layer não deve depender de Application layer
 
+// Removed DTO dependency from domain layer
+
 export class Beneficiary {
   constructor(
     public readonly id: string,

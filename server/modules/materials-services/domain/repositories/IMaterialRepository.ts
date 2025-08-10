@@ -10,3 +10,10 @@ export interface IMaterialRepository {
   findByCategory(category: string, tenantId: string): Promise<Material[]>;
   findByStatus(status: string, tenantId: string): Promise<Material[]>;
 }
+export interface IMaterialRepository {
+  create(material: Material): Promise<Material>;
+  findById(id: string): Promise<Material | null>;
+  findAll(tenantId: string): Promise<Material[]>;
+  update(id: string, material: Partial<Material>): Promise<Material>;
+  delete(id: string): Promise<void>;
+}

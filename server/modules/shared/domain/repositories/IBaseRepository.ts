@@ -1,4 +1,5 @@
 // Domain layer não deve importar ORM diretamente
+// Removed drizzle-orm dependency from domain layer
 export interface IBaseRepository<T> {
   findById(id: string, tenantId: string): Promise<T | null>;
   findAll(tenantId: string): Promise<T[]>;

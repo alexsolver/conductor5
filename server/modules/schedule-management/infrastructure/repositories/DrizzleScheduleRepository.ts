@@ -542,3 +542,19 @@ export class DrizzleScheduleRepository implements IScheduleRepository {
     return Math.max(0, (overlapEnd.getTime() - overlapStart.getTime()) / (1000 * 60));
   }
 }
+import { IScheduleRepository } from '../../domain/repositories/IScheduleRepository';
+
+export class DrizzleScheduleRepository implements IScheduleRepository {
+  async create(schedule: any): Promise<any> {
+    // Implementation
+    return schedule;
+  }
+  
+  async findById(id: string): Promise<any> {
+    return null;
+  }
+  
+  async findAll(tenantId: string): Promise<any[]> {
+    return [];
+  }
+}
