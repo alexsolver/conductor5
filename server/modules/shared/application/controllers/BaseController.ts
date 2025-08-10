@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+// Removida dependência Express
 
 export interface BaseRequest {
   params: Record<string, any>;

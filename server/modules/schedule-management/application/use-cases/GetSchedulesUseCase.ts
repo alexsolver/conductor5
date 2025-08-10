@@ -16,6 +16,6 @@ export class GetSchedulesUseCase {
   constructor(private scheduleRepository: IScheduleRepository) {}
 
   async execute(): Promise<any[]> {
-    return await this.scheduleRepository.findAll();
+    return await this.scheduleDomainService.getAllSchedules();
   }
 }
