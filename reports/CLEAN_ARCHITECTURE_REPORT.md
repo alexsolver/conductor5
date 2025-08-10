@@ -7,16 +7,16 @@
 ## Resumo de Problemas
 
 - 🔥 **Críticos:** 2
-- ⚠️ **Altos:** 51
+- ⚠️ **Altos:** 50
 - 📋 **Médios:** 28
 - 💡 **Baixos:** 0
-- **Total:** 81
+- **Total:** 80
 
 ## Principais Problemas por Módulo
 
 ### ⚠️ materials-services
-- **Total de problemas:** 46
-- **Críticos:** 0 | **Altos:** 36
+- **Total de problemas:** 45
+- **Críticos:** 0 | **Altos:** 35
 - **Principais problemas:**
   - Routes contém lógica de negócio ou acesso a dados
   - Application Layer violando dependência: express
@@ -108,8 +108,8 @@
 
 ### ⚠️ materials-services
 - **Prioridade:** high
-- **Tempo estimado:** 23h
-- **Ações:** 28
+- **Tempo estimado:** 22h
+- **Ações:** 27
 
 1. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
 2. **refactor_code:** Refatorar dependência inválida na camada application
@@ -128,17 +128,16 @@
 15. **refactor_code:** Refatorar dependência inválida na camada application
 16. **refactor_code:** Refatorar dependência inválida na camada application
 17. **refactor_code:** Refatorar dependência inválida na camada application
-18. **refactor_code:** Refatorar dependência inválida na camada application
+18. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
 19. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
 20. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
 21. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
-22. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
+22. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 23. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 24. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 25. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 26. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
-27. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
-28. **create_file:** Criar Repository com interface
+27. **create_file:** Criar Repository com interface
 
 ### ⚠️ saas-admin
 - **Prioridade:** high
@@ -230,7 +229,7 @@
 - **beneficiaries:** 2 ações (2h)
 
 ### Prioridade Alta ⚠️
-- **materials-services:** 28 ações (23h)
+- **materials-services:** 27 ações (22h)
 - **saas-admin:** 5 ações (3h)
 - **technical-skills:** 2 ações (2h)
 - **tickets:** 2 ações (2h)

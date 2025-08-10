@@ -9,7 +9,7 @@
       "severity": "critical",
       "type": "structure_violation",
       "description": "Diretório de módulos não encontrado",
-      "file": "server/modules",
+      "file": "/home/runner/workspace/server/server/modules",
       "suggestedFix": "Criar estrutura de módulos seguindo padrão Clean Architecture"
     }
   ],

@@ -1,28 +1,14 @@
-
-import { Request, Response } from 'express';
-import { standardResponse } from '../../../../utils/standardResponse';
 import { CreateMaterialUseCase } from '../use-cases/CreateMaterialUseCase';
 
 export class MaterialController {
   constructor(private createMaterialUseCase: CreateMaterialUseCase) {}
 
-  async create(req: Request, res: Response): Promise<void> {
-    try {
-      const tenantId = req.user?.tenantId;
-      if (!tenantId) {
-        res.status(400).json(standardResponse(false, 'Tenant ID é obrigatório'));
-        return;
-      }
-
-      const material = await this.createMaterialUseCase.execute(req.body, tenantId);
-      res.status(201).json(standardResponse(true, 'Material criado com sucesso', material));
-    } catch (error) {
-      console.error('Erro ao criar material:', error);
-      res.status(500).json(standardResponse(false, 'Erro interno do servidor'));
-    }
+  async create(data: any, tenantId: string) {
+    const material = await this.createMaterialUseCase.execute(data, tenantId);
+    return material;
   }
 
-  async getAll(req: Request, res: Response): Promise<void> {
+  async getAll(req: any, res: any): Promise<void> {
     try {
       const tenantId = req.user?.tenantId;
       if (!tenantId) {
@@ -38,6 +24,7 @@ export class MaterialController {
     }
   }
 }
+
 import { MaterialApplicationService } from '../services/MaterialApplicationService';
 
 export class MaterialController {

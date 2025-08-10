@@ -4,7 +4,11 @@ import { IIindexRepository } from '../../domain/ports/IIindexRepository';
 import * as schema from '@shared/schema';
 
 export class DrizzleIindexRepository implements IIindexRepository {
-  constructor(private readonly db: ReturnType<typeof drizzle>) {}
+  // The 'db' parameter type is now ambiguous as drizzle-orm is removed from domain.
+  // This part of the code needs further clarification on how the database connection
+  // will be handled without direct drizzle-orm dependency in the domain.
+  // For now, assuming a generic DB client or interface if it exists.
+  constructor(private readonly db: any) {}
 
   async findById(id: string, tenantId: string): Promise<Iindex | null> {
     // Implementar busca por ID

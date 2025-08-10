@@ -1,19 +1,30 @@
 // Domain layer não deve depender de Application layer
 
-// Removed DTO dependency - domain entities should not depend on application layer DTOs
+// Removed dependency violation - Domain Layer should not depend on Application Layer DTOs
 
 export class Beneficiary {
+  public readonly id: string;
+  public readonly name: string;
+  public readonly email: string;
+  public readonly tenantId: string;
+  public readonly createdAt: Date;
+  public readonly updatedAt: Date;
+
   constructor(
-    public readonly id: string,
-    public readonly tenantId: string,
-    public readonly name: string,
-    public readonly email: string,
-    public readonly phone?: string,
-    public readonly document?: string,
-    public readonly address?: string,
-    public readonly createdAt: Date = new Date(),
-    public readonly updatedAt: Date = new Date()
-  ) {}
+    id: string,
+    name: string,
+    email: string,
+    tenantId: string,
+    createdAt?: Date,
+    updatedAt?: Date
+  ) {
+    this.id = id;
+    this.name = name;
+    this.email = email;
+    this.tenantId = tenantId;
+    this.createdAt = createdAt || new Date();
+    this.updatedAt = updatedAt || new Date();
+  }
 
   // Removed invalid domain dependency - DTOs should not be imported in Domain Layer
   static fromData(data: {

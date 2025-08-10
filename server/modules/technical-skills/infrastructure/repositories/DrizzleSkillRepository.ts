@@ -1,7 +1,7 @@
 import { eq, and, like, desc } from 'drizzle-orm';
 import { db } from '../../../../db';
 import { skills } from '@shared/schema';
-import type { ISkillRepository } from '../../domain/repositories/ISkillRepository';
+import type { ISkillRepository } from '../../domain/ports/ISkillRepository';
 import { Skill, SkillEntity } from '../../domain/entities/Skill';
 
 export class DrizzleSkillRepository implements ISkillRepository {

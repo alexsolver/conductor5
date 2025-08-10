@@ -1,7 +1,7 @@
 import { IUserSkill } from '../../domain/entities/IUserSkill';
 import { IIUserSkillRepository } from '../../domain/ports/IIUserSkillRepository';
 // Removed drizzle-orm dependency - domain layer should not depend on infrastructure
-import * as schema from '@shared/schema';
+// Removed drizzle-orm dependency from domain layer
 
 export class DrizzleIUserSkillRepository implements IIUserSkillRepository {
   constructor(private readonly db: ReturnType<typeof drizzle>) {}

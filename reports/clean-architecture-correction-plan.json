@@ -169,18 +169,6 @@
       {
         "type": "refactor_code",
         "description": "Refatorar dependência inválida na camada application",
-        "target": "/home/runner/workspace/server/modules/materials-services/application/controllers/MaterialController.ts",
-        "steps": [
-          "Identificar a dependência problemática",
-          "Criar interface/port na camada Domain",
-          "Implementar interface na camada Infrastructure",
-          "Usar injeção de dependência",
-          "Remover import direto da dependência externa"
-        ]
-      },
-      {
-        "type": "refactor_code",
-        "description": "Refatorar dependência inválida na camada application",
         "target": "/home/runner/workspace/server/modules/materials-services/application/controllers/PersonalizationController.ts",
         "steps": [
           "Identificar a dependência problemática",
@@ -351,7 +339,7 @@
         ]
       }
     ],
-    "estimatedTime": "23h"
+    "estimatedTime": "22h"
   },
   {
     "priority": "high",

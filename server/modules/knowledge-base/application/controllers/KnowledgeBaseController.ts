@@ -8,6 +8,7 @@ import { IKnowledgeBaseRepository } from '../../domain/ports/IKnowledgeBaseRepos
 import { IMediaRepository } from '../../domain/ports/IMediaRepository';
 
 // Using interface abstractions instead of direct express dependency
+
 interface IRequest {
   user?: any;
   params: Record<string, any>;

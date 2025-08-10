@@ -6,7 +6,7 @@
       {
         "type": "create_directory",
         "description": "Criar estrutura de módulos seguindo padrão Clean Architecture",
-        "target": "server/modules",
+        "target": "/home/runner/workspace/server/server/modules",
         "steps": [
           "Criar estrutura de módulos seguindo padrão Clean Architecture"
         ]

@@ -1,4 +1,3 @@
-
 export { BaseRepository } from './BaseRepository';
 export { BaseEntityRepository } from './BaseEntityRepository';
 
