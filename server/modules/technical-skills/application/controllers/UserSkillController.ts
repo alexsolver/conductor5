@@ -1,7 +1,10 @@
 import { z } from 'zod';
+import { Request, Response } from 'express';
+import { nanoid } from 'nanoid';
 import { IUserSkillRepository } from '../../domain/repositories/IUserSkillRepository';
 import { UserSkill } from '../../domain/entities/UserSkill';
 import { insertUserSkillSchema } from '@shared/schema';
+import { DrizzleUserSkillRepository } from '../../infrastructure/repositories/DrizzleUserSkillRepository';
 // Logger temporariamente removido para simplificação
 
 interface AuthenticatedRequest extends Request {
@@ -12,7 +15,7 @@ interface AuthenticatedRequest extends Request {
   };
 }
 
-export class UserSkillController {
+export export class UserSkillController {
   private userSkillRepository = new DrizzleUserSkillRepository();
 
   async getUserSkills(req: AuthenticatedRequest, res: Response) {
