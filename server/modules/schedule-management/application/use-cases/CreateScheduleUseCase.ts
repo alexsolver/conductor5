@@ -19,3 +19,16 @@ export class CreateScheduleUseCase {
     });
   }
 }
+import { IScheduleRepository } from '../../domain/ports/IScheduleRepository';
+
+export class CreateScheduleUseCase {
+  constructor(private scheduleRepository: IScheduleRepository) {}
+
+  async execute(scheduleData: any): Promise<any> {
+    if (!scheduleData.startTime || !scheduleData.endTime) {
+      throw new Error('Start time and end time are required');
+    }
+    
+    return await this.scheduleRepository.create(scheduleData);
+  }
+}

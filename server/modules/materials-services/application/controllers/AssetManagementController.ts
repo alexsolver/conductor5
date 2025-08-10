@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { AssetManagementRepository } from '../../infrastructure/repositories/AssetManagementRepository';
+import { IAssetManagementRepository } from '../../domain/ports/IAssetManagementRepository';
 import { IAssetManagementRepository } from '../../domain/interfaces/IAssetManagementRepository';
 
 export class AssetManagementController {

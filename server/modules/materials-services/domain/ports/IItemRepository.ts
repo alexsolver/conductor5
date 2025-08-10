@@ -38,3 +38,11 @@ export interface IItemRepository {
   delete(id: string, tenantId: string): Promise<boolean>;
   findByCategory(category: string, tenantId: string): Promise<any[]>;
 }
+export interface IItemRepository {
+  findById(id: string): Promise<any>;
+  findAll(): Promise<any[]>;
+  create(item: any): Promise<any>;
+  update(id: string, item: any): Promise<any>;
+  delete(id: string): Promise<boolean>;
+  findByTenantId(tenantId: string): Promise<any[]>;
+}

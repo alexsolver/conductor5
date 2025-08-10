@@ -140,7 +140,7 @@ export class StockRepository {
 
       if (options?.search) {
         const searchLower = options.search.toLowerCase();
-        filteredItems = filteredItems.filter(item => 
+        filteredItems = filteredItems.filter(item =>
           item.itemName.toLowerCase().includes(searchLower) ||
           item.itemCode.toLowerCase().includes(searchLower)
         );
@@ -285,7 +285,7 @@ export class StockRepository {
         filteredMovements = filteredMovements.slice(0, options.limit);
       }
 
-      return filteredMovements.sort((a, b) => 
+      return filteredMovements.sort((a, b) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
     } catch (error) {

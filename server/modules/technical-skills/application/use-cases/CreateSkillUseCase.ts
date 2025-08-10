@@ -17,3 +17,16 @@ export class CreateSkillUseCase {
     return await this.skillRepository.create(skill);
   }
 }
+import { ISkillRepository } from '../../domain/ports/ISkillRepository';
+
+export class CreateSkillUseCase {
+  constructor(private skillRepository: ISkillRepository) {}
+
+  async execute(skillData: any): Promise<any> {
+    if (!skillData.name) {
+      throw new Error('Skill name is required');
+    }
+    
+    return await this.skillRepository.create(skillData);
+  }
+}

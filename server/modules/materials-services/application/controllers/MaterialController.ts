@@ -1,4 +1,4 @@
-// Removido express - application layer não deve depender de framework web
+// Express dependency removed - using dependency injection instead
 
 export class MaterialController {
   constructor(private createMaterialUseCase: CreateMaterialUseCase) {}
@@ -25,7 +25,7 @@ export class MaterialController {
   }
 }
 
-// Removido express - application layer não deve depender de framework web
+// Express dependency removed - using dependency injection instead
 
 export class MaterialController {
   constructor(private materialService: MaterialApplicationService) {}

@@ -783,5 +783,3 @@ router.post('/:id/assign', ticketController.assign.bind(ticketController));
 router.post('/:id/resolve', ticketController.resolve.bind(ticketController));
 router.get('/:id/history', ticketController.getHistory.bind(ticketController));
 router.post('/:id/attachments', ticketController.addAttachment.bind(ticketController));
-
-export default router;

@@ -67,3 +67,14 @@ export class SkillApplicationService {
     };
   }
 }
+import { ISkillRepository } from '../../domain/ports/ISkillRepository';
+import { CreateSkillUseCase } from '../use-cases/CreateSkillUseCase';
+
+export class SkillApplicationService {
+  constructor(private skillRepository: ISkillRepository) {}
+
+  async createSkill(skillData: any): Promise<any> {
+    const createSkillUseCase = new CreateSkillUseCase(this.skillRepository);
+    return await createSkillUseCase.execute(skillData);
+  }
+}

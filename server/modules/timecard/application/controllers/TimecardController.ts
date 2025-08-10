@@ -10,6 +10,7 @@ import {
 } from '../../../../../shared/timecard-validation';
 import { AuthenticatedRequest } from '../../middleware/isAuthenticated';
 
+// Express dependency removed - using dependency injection instead
 // Using interface instead of express types to maintain clean architecture
 interface ControllerRequest {
   body: any;

@@ -4,6 +4,8 @@ import { requireSaasAdmin, requirePermission, AuthorizedRequest } from '../../mi
 import { Permission } from '../../domain/authorization/RolePermissions';
 import { DependencyContainer } from '../../application/services/DependencyContainer';
 import { SaasAdminController } from './application/controllers/SaasAdminController';
+import { GetConfigsUseCase } from '../../application/use-cases/GetConfigsUseCase'; // Assuming this is the correct path
+import { configRepository } from '../../infrastructure/repositories/ConfigRepository'; // Assuming this is the correct path
 
 const router = Router();
 const saasAdminController = new SaasAdminController();
@@ -68,6 +70,20 @@ router.delete('/tenants/:tenantId', requirePermission(Permission.PLATFORM_MANAGE
  */
 router.get('/analytics', requirePermission(Permission.PLATFORM_VIEW_ANALYTICS), async (req: AuthorizedRequest, res) => {
   await saasAdminController.getPlatformAnalytics(req, res);
+});
+
+/**
+ * GET /api/saas-admin/configs
+ * Lista todas as configurações da plataforma
+ */
+router.get('/configs', async (req: AuthorizedRequest, res) => {
+  try {
+    const getConfigsUseCase = new GetConfigsUseCase(configRepository);
+    const configs = await getConfigsUseCase.execute();
+    res.json(configs);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 /**

@@ -138,3 +138,11 @@ export interface IScheduleRepository {
   update(id: string, schedule: Partial<ScheduleEntity>): Promise<ScheduleEntity>;
   delete(id: string): Promise<void>;
 }
+export interface IScheduleRepository {
+  findById(id: string): Promise<any>;
+  findAll(): Promise<any[]>;
+  create(schedule: any): Promise<any>;
+  update(id: string, schedule: any): Promise<any>;
+  delete(id: string): Promise<boolean>;
+  findByTenantId(tenantId: string): Promise<any[]>;
+}

@@ -83,3 +83,11 @@ export interface ISkillRepository {
   update(id: string, skill: Partial<SkillEntity>): Promise<SkillEntity>;
   delete(id: string): Promise<void>;
 }
+export interface ISkillRepository {
+  findById(id: string): Promise<any>;
+  findAll(): Promise<any[]>;
+  create(skill: any): Promise<any>;
+  update(id: string, skill: any): Promise<any>;
+  delete(id: string): Promise<boolean>;
+  findByTenantId(tenantId: string): Promise<any[]>;
+}
