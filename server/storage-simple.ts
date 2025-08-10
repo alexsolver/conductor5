@@ -417,7 +417,7 @@ export class DatabaseStorage implements IStorage {
         SELECT 
           t.id,
           COALESCE(t.number, CONCAT('T-', SUBSTRING(t.id::text, 1, 8))) as number,
-          COALESCE(t.subject, t.short_description) as subject,
+          COALESCE(t.subject, 'Sem título') as subject,
           t.description,
           COALESCE(t.status, t.state, 'open') as status,
           COALESCE(t.priority, 'medium') as priority,
@@ -441,7 +441,7 @@ export class DatabaseStorage implements IStorage {
       // Apply filters
       if (search) {
         baseQuery = sql`${baseQuery} AND (
-          COALESCE(t.subject, t.short_description) ILIKE ${'%' + search + '%'} OR 
+          t.subject ILIKE ${'%' + search + '%'} OR 
           t.description ILIKE ${'%' + search + '%'} OR
           COALESCE(t.number, CONCAT('T-', SUBSTRING(t.id::text, 1, 8))) ILIKE ${'%' + search + '%'}
         )`;
@@ -486,7 +486,7 @@ export class DatabaseStorage implements IStorage {
       const tickets = (result.rows || []).map((ticket: any) => ({
         ...ticket,
         // Ensure consistent field naming
-        subject: ticket.subject || ticket.short_description || 'Sem título',
+        subject: ticket.subject || 'Sem título',
         status: ticket.status || ticket.state || 'open',
         priority: ticket.priority || 'medium',
         number: ticket.number || `T-${ticket.id.substring(0, 8)}`,
