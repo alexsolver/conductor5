@@ -3,7 +3,7 @@ import { CustomerController } from './customer.controller';
 import { CreateCustomerUseCase } from '../domain/usecases/customer/create-customer.usecase';
 import { FindAllCustomersUseCase } from '../domain/usecases/customer/find-all-customers.usecase';
 import { CustomerRepository } from '../domain/repositories/customer.repository';
-// Removed repository dependency - domain entities should not import infrastructure
+// Domain layer não deve importar ORM diretamente
 
 @Module({
   controllers: [CustomerController],
