@@ -1,6 +1,6 @@
 
-import { eq, and, like, count } from 'drizzle-orm';
-import { db } from '../../../../db';
+import { eq, and, like, count, sql } from 'drizzle-orm';
+import { schemaManager } from '../../../../db';
 import { beneficiaries } from '../../../../shared/schema';
 import { IBeneficiaryRepository, FindOptions } from '../../domain/repositories/IBeneficiaryRepository';
 import { Beneficiary } from '../../domain/entities/Beneficiary';
@@ -112,59 +112,72 @@ export class DrizzleBeneficiaryRepository implements IBeneficiaryRepository {
   }
 
   async findByTenant(tenantId: string, options?: FindOptions): Promise<Beneficiary[]> {
-    let query = db
-      .select()
-      .from(beneficiaries)
-      .where(eq(beneficiaries.tenantId, tenantId));
-
+    const pool = schemaManager.getPool();
+    const schemaName = schemaManager.getSchemaName(tenantId);
+    
+    let whereClause = 'WHERE tenant_id = $1';
+    let params: any[] = [tenantId];
+    
     if (options?.search) {
-      query = query.where(
-        and(
-          eq(beneficiaries.tenantId, tenantId),
-          sql`(${beneficiaries.first_name} || ' ' || ${beneficiaries.last_name}) ILIKE ${'%' + options.search + '%'}`
-        )
-      );
+      whereClause += ' AND (first_name || \' \' || last_name) ILIKE $2';
+      params.push(`%${options.search}%`);
     }
-
+    
+    let limitClause = '';
     if (options?.limit) {
-      query = query.limit(options.limit);
+      limitClause += ` LIMIT $${params.length + 1}`;
+      params.push(options.limit);
     }
-
+    
     if (options?.page && options?.limit) {
       const offset = (options.page - 1) * options.limit;
-      query = query.offset(offset);
+      limitClause += ` OFFSET $${params.length + 1}`;
+      params.push(offset);
     }
-
-    const results = await query;
-
-    return results.map(beneficiary => new Beneficiary(
-      beneficiary.id,
-      `${beneficiary.first_name} ${beneficiary.last_name}`,
-      beneficiary.email,
-      beneficiary.tenantId,
-      beneficiary.customerId || undefined,
-      beneficiary.isActive,
-      beneficiary.createdAt,
-      beneficiary.updatedAt
+    
+    const query = `
+      SELECT id, first_name, last_name, email, tenant_id as "tenantId", 
+             customer_id as "customerId", is_active as "isActive", 
+             created_at as "createdAt", updated_at as "updatedAt"
+      FROM "${schemaName}"."beneficiaries" 
+      ${whereClause}
+      ORDER BY first_name ASC, last_name ASC
+      ${limitClause}
+    `;
+    
+    const result = await pool.query(query, params);
+    
+    return result.rows.map((row: any) => new Beneficiary(
+      row.id,
+      `${row.first_name} ${row.last_name}`,
+      row.email,
+      row.tenantId,
+      row.customerId || undefined,
+      row.isActive,
+      row.createdAt,
+      row.updatedAt
     ));
   }
 
   async countByTenant(tenantId: string, search?: string): Promise<number> {
-    let query = db
-      .select({ count: count() })
-      .from(beneficiaries)
-      .where(eq(beneficiaries.tenantId, tenantId));
-
+    const pool = schemaManager.getPool();
+    const schemaName = schemaManager.getSchemaName(tenantId);
+    
+    let whereClause = 'WHERE tenant_id = $1';
+    let params: any[] = [tenantId];
+    
     if (search) {
-      query = query.where(
-        and(
-          eq(beneficiaries.tenantId, tenantId),
-          sql`(${beneficiaries.first_name} || ' ' || ${beneficiaries.last_name}) ILIKE ${'%' + search + '%'}`
-        )
-      );
+      whereClause += ' AND (first_name || \' \' || last_name) ILIKE $2';
+      params.push(`%${search}%`);
     }
-
-    const result = await query;
-    return result[0]?.count || 0;
+    
+    const query = `
+      SELECT COUNT(*) as count
+      FROM "${schemaName}"."beneficiaries" 
+      ${whereClause}
+    `;
+    
+    const result = await pool.query(query, params);
+    return parseInt(result.rows[0].count);
   }
 }
