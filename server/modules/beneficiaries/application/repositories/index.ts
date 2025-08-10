@@ -1,0 +1,2 @@
+
+export { IBeneficiaryApplicationRepository } from './IBeneficiaryApplicationRepository';

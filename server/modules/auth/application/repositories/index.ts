@@ -1,0 +1,2 @@
+
+export { IAuthApplicationRepository } from './IAuthApplicationRepository';
