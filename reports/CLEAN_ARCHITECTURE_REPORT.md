@@ -1,34 +1,34 @@
 # Clean Architecture Validation Report
 
 **Data:** 2025-08-10  
-**Score:** 33/100  
+**Score:** 32/100  
 **Status:** ❌ REPROVADO
 
 ## Resumo de Problemas
 
 - 🔥 **Críticos:** 2
-- ⚠️ **Altos:** 47
-- 📋 **Médios:** 25
+- ⚠️ **Altos:** 48
+- 📋 **Médios:** 23
 - 💡 **Baixos:** 0
-- **Total:** 74
+- **Total:** 73
 
 ## Principais Problemas por Módulo
 
 ### ⚠️ materials-services
-- **Total de problemas:** 36
-- **Críticos:** 0 | **Altos:** 30
+- **Total de problemas:** 37
+- **Críticos:** 0 | **Altos:** 31
 - **Principais problemas:**
   - Routes contém lógica de negócio ou acesso a dados
   - Application Layer violando dependência: express
   - Application Layer violando dependência: express
 
 ### ⚠️ saas-admin
-- **Total de problemas:** 4
+- **Total de problemas:** 3
 - **Críticos:** 0 | **Altos:** 2
 - **Principais problemas:**
   - Routes contém lógica de negócio ou acesso a dados
-  - Repository indexRepository deve implementar interface
   - Entity SaasConfigEntity não possui Repository correspondente
+  - Repository indexRepository não possui interface no Domain
 
 ### ⚠️ technical-skills
 - **Total de problemas:** 5
@@ -95,12 +95,12 @@
   - Entity ScheduleEntity não possui Repository correspondente
 
 ### 📋 shared
-- **Total de problemas:** 6
+- **Total de problemas:** 5
 - **Críticos:** 0 | **Altos:** 0
 - **Principais problemas:**
   - Repository contém possível lógica de negócio
-  - Repository contém possível lógica de negócio
   - Repository index deve terminar com 'Repository'
+  - Repository index deve implementar interface
 
 
 ## Plano de Correção
