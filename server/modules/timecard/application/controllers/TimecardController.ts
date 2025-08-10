@@ -2,6 +2,7 @@
 import { z } from 'zod';
 import { db } from '../../../../db';
 import { timecardEntries, workSchedules, users } from '@shared/schema';
+import { DrizzleTimecardRepository } from '../../infrastructure/repositories/DrizzleTimecardRepository';
 import {
   createTimecardEntrySchema,
   createAbsenceRequestSchema,
