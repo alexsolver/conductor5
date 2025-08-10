@@ -1,4 +1,3 @@
-
 import { IBaseRepository } from '../../domain/repositories/IBaseRepository';
 
 export abstract class BaseRepository<T> implements IBaseRepository<T> {

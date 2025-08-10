@@ -1,3 +1,4 @@
+// Removida dependência de drizzle-orm - Domain layer deve ser independente de infraestrutura
 export interface SaasConfig {
   id: string;
   tenantId: string;
