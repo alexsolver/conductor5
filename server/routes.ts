@@ -2027,117 +2027,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Timecard Routes - Essential for CLT compliance
   app.use('/api/timecard', timecardRoutes);
 
-  // OmniBridge Auto-Start Routes - Simplified without requireTenantAccess
-  app.post('/api/omnibridge/start-monitoring', jwtAuth, async (req: AuthenticatedRequest, res) => {
-    try {
-      const { omniBridgeAutoStart } = await import('./services/OmniBridgeAutoStart');
-      const tenantId = req.user?.tenantId;
-
-      if (!tenantId) {
-        return res.status(400).json({ message: "Tenant ID required" });
-      }
-
-      console.log(`🚀 Starting OmniBridge monitoring for tenant: ${tenantId}`);
-      await omniBridgeAutoStart.detectAndStartCommunicationChannels(tenantId);
-
-      res.json({ 
-        message: "OmniBridge monitoring started successfully",
-        activeMonitoring: omniBridgeAutoStart.getActiveMonitoring(),
-        isActive: true
-      });
-    } catch (error) {
-      console.error('Error starting OmniBridge monitoring:', error);
-      res.status(500).json({ message: "Failed to start monitoring" });
-    }
-  });
-
-  app.post('/api/omnibridge/stop-monitoring', jwtAuth, async (req: AuthenticatedRequest, res) => {
-    try {
-      const { omniBridgeAutoStart } = await import('./services/OmniBridgeAutoStart');
-      const tenantId = req.user?.tenantId;
-
-      if (!tenantId) {
-        return res.status(400).json({ message: "Tenant ID required" });
-      }
-
-      console.log(`🛑 Stopping OmniBridge monitoring for tenant: ${tenantId}`);
-      await omniBridgeAutoStart.stopAllMonitoring(tenantId);
-
-      res.json({ 
-        message: "OmniBridge monitoring stopped successfully",
-        isActive: false
-      });
-    } catch (error) {
-      console.error('Error stopping OmniBridge monitoring:', error);
-      res.status(500).json({ message: "Failed to stop monitoring" });
-    }
-  });
-
-  app.get('/api/omnibridge/monitoring-status', jwtAuth, async (req: AuthenticatedRequest, res) => {
-    try {
-      const { omniBridgeAutoStart } = await import('./services/OmniBridgeAutoStart');
-
-      const activeMonitoring = omniBridgeAutoStart.getActiveMonitoring();
-      res.json({ 
-        activeMonitoring,
-        isActive: activeMonitoring.length > 0
-      });
-    } catch (error) {
-      console.error('Error getting monitoring status:', error);
-      res.status(500).json({ message: "Failed to get status" });
-    }
-  });
-
-  // Timecard routes - Registro de Ponto  
-  app.use('/api/timecard', jwtAuth, timecardRoutes);
-
-  // Timecard Approval Routes
-  const timecardApprovalController = new TimecardApprovalController();
-
-  // Approval Groups
-  app.get('/api/timecard/approval/groups', jwtAuth, timecardApprovalController.getApprovalGroups);
-  app.post('/api/timecard/approval/groups', jwtAuth, timecardApprovalController.createApprovalGroup);
-  app.put('/api/timecard/approval/groups/:id', jwtAuth, timecardApprovalController.updateApprovalGroup);
-  app.delete('/api/timecard/approval/groups/:id', jwtAuth, timecardApprovalController.deleteApprovalGroup);
-
-  // Group Members
-  app.get('/api/timecard/approval/groups/:groupId/members', jwtAuth, timecardApprovalController.getGroupMembers);
-  app.put('/api/timecard/approval/groups/:groupId/members', jwtAuth, timecardApprovalController.addGroupMember);
-  app.delete('/api/timecard/approval/groups/:groupId/members/:memberId', jwtAuth, timecardApprovalController.removeGroupMember);
-
-  // Approval Settings
-  app.get('/api/timecard/approval/settings', jwtAuth, timecardApprovalController.getApprovalSettings);
-  app.put('/api/timecard/approval/settings', jwtAuth, timecardApprovalController.updateApprovalSettings);
-
-  // Approval Actions
-  app.get('/api/timecard/approval/pending', jwtAuth, timecardApprovalController.getPendingApprovals);
-  app.post('/api/timecard/approval/approve/:entryId', jwtAuth, timecardApprovalController.approveTimecard);
-  app.post('/api/timecard/approval/reject/:entryId', jwtAuth, timecardApprovalController.rejectTimecard);
-  app.post('/api/timecard/approval/bulk-approve', jwtAuth, timecardApprovalController.bulkApproveTimecards);
-
-  // Utility Routes
-  app.get('/api/timecard/approval/users', jwtAuth, timecardApprovalController.getAvailableUsers);
-
   // 🔴 CLT COMPLIANCE ROUTES - OBRIGATÓRIAS POR LEI
-  // Add comprehensive safety checks for all CLT compliance routes
-  const cltHandler = (methodName: string, defaultMessage: string) => {
+  // Enhanced CLT handler with comprehensive safety checks
+  const safeCltHandler = (methodName: string, defaultMessage: string) => {
     return async (req: any, res: any) => {
-      if (cltComplianceController && 
-          typeof cltComplianceController === 'object' && 
-          typeof cltComplianceController[methodName] === 'function') {
-        try {
+      try {
+        if (cltComplianceController && 
+            typeof cltComplianceController === 'object' && 
+            typeof cltComplianceController[methodName] === 'function') {
           return await cltComplianceController[methodName](req, res);
-        } catch (error) {
-          console.error(`[CLT-${methodName}] Error:`, error);
-          return res.status(500).json({ 
-            message: 'Erro interno do servidor CLT',
-            error: error.message 
+        } else {
+          console.warn(`[CLT-${methodName}] Method not available, returning fallback response`);
+          return res.status(501).json({ 
+            message: defaultMessage,
+            status: 'not_implemented',
+            method: methodName
           });
         }
-      } else {
-        return res.status(501).json({ 
-          message: defaultMessage,
-          status: 'not_implemented' 
+      } catch (error) {
+        console.error(`[CLT-${methodName}] Error:`, error);
+        return res.status(500).json({ 
+          message: 'Erro interno do sistema CLT',
+          error: error.message,
+          method: methodName
         });
       }
     };
@@ -2145,21 +2057,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Verificação de integridade da cadeia CLT
   app.get('/api/timecard/compliance/integrity-check', jwtAuth, 
-    cltHandler('checkIntegrity', 'Verificação de integridade CLT não disponível'));
+    safeCltHandler('checkIntegrity', 'Verificação de integridade CLT não disponível'));
 
   // Trilha de auditoria completa
   app.get('/api/timecard/compliance/audit-log', jwtAuth, 
-    cltHandler('getAuditLog', 'Log de auditoria CLT não disponível'));
+    safeCltHandler('getAuditLog', 'Log de auditoria CLT não disponível'));
 
   // Relatórios de compliance para fiscalização
   app.post('/api/timecard/compliance/generate-report', jwtAuth, 
-    cltHandler('generateComplianceReport', 'Geração de relatórios CLT não disponível'));
+    safeCltHandler('generateComplianceReport', 'Geração de relatórios CLT não disponível'));
 
   app.get('/api/timecard/compliance/reports', jwtAuth, 
-    cltHandler('listComplianceReports', 'Listagem de relatórios CLT não disponível'));
+    safeCltHandler('listComplianceReports', 'Listagem de relatórios CLT não disponível'));
 
   app.get('/api/timecard/compliance/reports/:reportId', jwtAuth, 
-    cltHandler('downloadComplianceReport', 'Download de relatórios CLT não disponível'));
+    safeCltHandler('downloadComplianceReport', 'Download de relatórios CLT não disponível'));
 
   // Additional CLT compliance routes with comprehensive safety checks
   app.get('/api/timecard/compliance/backups', jwtAuth, async (req, res) => {
