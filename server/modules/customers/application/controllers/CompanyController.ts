@@ -4,7 +4,18 @@
  * Handles HTTP requests for customer company operations
  */
 
-import { Request, Response } from 'express';
+// Express dependencies moved to presentation layer
+interface IRequest {
+  body: any;
+  params: any;
+  query: any;
+  user?: any;
+}
+
+interface IResponse {
+  status(code: number): IResponse;
+  json(data: any): IResponse;
+}
 import { z } from 'zod';
 import { CreateCompanyUseCase } from '../use-cases/CreateCompanyUseCase';
 import { GetCompaniesUseCase } from '../use-cases/GetCompaniesUseCase';
@@ -83,7 +94,7 @@ const queryParamsSchema = z.object({
   limit: z.string().transform(Number).pipe(z.number().min(1).max(100)).optional(),
 });
 
-interface AuthenticatedRequest extends Request {
+interface AuthenticatedRequest extends IRequest {
   user?: {
     id: string;
     tenantId: string;
@@ -99,7 +110,7 @@ export class CompanyController {
     private readonly manageMembershipUseCase: ManageCompanyMembershipUseCase
   ) {}
 
-  async createCompany(req: AuthenticatedRequest, res: Response): Promise<void> {
+  async createCompany(req: AuthenticatedRequest, res: IResponse): Promise<void> {
     try {
       if (!req.user?.tenantId) {
         res.status(401).json({ message: 'Tenant context required' });
@@ -167,7 +178,7 @@ export class CompanyController {
     }
   }
 
-  async getCompanies(req: AuthenticatedRequest, res: Response): Promise<void> {
+  async getCompanies(req: AuthenticatedRequest, res: IResponse): Promise<void> {
     try {
       if (!req.user?.tenantId) {
         res.status(401).json({ message: 'Tenant context required' });
@@ -231,7 +242,7 @@ export class CompanyController {
     }
   }
 
-  async getCompanyById(req: AuthenticatedRequest, res: Response): Promise<void> {
+  async getCompanyById(req: AuthenticatedRequest, res: IResponse): Promise<void> {
     try {
       if (!req.user?.tenantId) {
         res.status(401).json({ message: 'Tenant context required' });
@@ -303,7 +314,7 @@ export class CompanyController {
     }
   }
 
-  async updateCompany(req: AuthenticatedRequest, res: Response): Promise<void> {
+  async updateCompany(req: AuthenticatedRequest, res: IResponse): Promise<void> {
     try {
       if (!req.user?.tenantId) {
         res.status(401).json({ message: 'Tenant context required' });
@@ -374,7 +385,7 @@ export class CompanyController {
     }
   }
 
-  async deleteCompany(req: AuthenticatedRequest, res: Response): Promise<void> {
+  async deleteCompany(req: AuthenticatedRequest, res: IResponse): Promise<void> {
     try {
       if (!req.user?.tenantId) {
         res.status(401).json({ message: 'Tenant context required' });
@@ -419,7 +430,7 @@ export class CompanyController {
   }
 
   // Membership Management Endpoints
-  async addMembership(req: AuthenticatedRequest, res: Response): Promise<void> {
+  async addMembership(req: AuthenticatedRequest, res: IResponse): Promise<void> {
     try {
       if (!req.user?.tenantId) {
         res.status(401).json({ message: 'Tenant context required' });
@@ -481,7 +492,7 @@ export class CompanyController {
     }
   }
 
-  async updateMembership(req: AuthenticatedRequest, res: Response): Promise<void> {
+  async updateMembership(req: AuthenticatedRequest, res: IResponse): Promise<void> {
     try {
       if (!req.user?.tenantId) {
         res.status(401).json({ message: 'Tenant context required' });
@@ -543,7 +554,7 @@ export class CompanyController {
     }
   }
 
-  async getCustomerMemberships(req: AuthenticatedRequest, res: Response): Promise<void> {
+  async getCustomerMemberships(req: AuthenticatedRequest, res: IResponse): Promise<void> {
     try {
       if (!req.user?.tenantId) {
         res.status(401).json({ message: 'Tenant context required' });
@@ -590,7 +601,7 @@ export class CompanyController {
     }
   }
 
-  async getCompanyMemberships(req: AuthenticatedRequest, res: Response): Promise<void> {
+  async getCompanyMemberships(req: AuthenticatedRequest, res: IResponse): Promise<void> {
     try {
       if (!req.user?.tenantId) {
         res.status(401).json({ message: 'Tenant context required' });

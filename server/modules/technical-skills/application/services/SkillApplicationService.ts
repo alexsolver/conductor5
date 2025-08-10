@@ -3,7 +3,7 @@ import { CreateSkillUseCase } from '../use-cases/CreateSkillUseCase';
 import { GetSkillsUseCase } from '../use-cases/GetSkillsUseCase';
 import { UpdateSkillUseCase } from '../use-cases/UpdateSkillUseCase';
 import { CreateSkillDTO, UpdateSkillDTO, SkillResponseDTO } from '../dto/CreateSkillDTO';
-import { ISkillRepository } from '../../domain/repositories/ISkillRepository';
+import { ISkillRepository } from '../../domain/ports/ISkillRepository';
 
 // Use abstracted HTTP types instead of Express directly
 interface IRequest {

@@ -1,6 +1,6 @@
 // Domain layer não deve depender de Application layer
 
-// Removed DTO dependency - Domain entities should not depend on application DTOs
+// Removed DTO import - Domain entities should not depend on application DTOs
 
 export class Beneficiary {
   constructor(

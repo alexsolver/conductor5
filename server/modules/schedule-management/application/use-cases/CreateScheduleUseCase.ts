@@ -1,5 +1,5 @@
 import { Schedule } from '../../domain/entities/Schedule';
-import { IScheduleRepository } from '../../domain/repositories/IScheduleRepository';
+import { IScheduleRepository } from '../../domain/ports/IScheduleRepository';
 
 // Use repository interface instead of direct database access
 

@@ -1,7 +1,7 @@
 // Use repository interface instead of direct database access
 
 import { Schedule } from '../../domain/entities/Schedule';
-import { IScheduleRepository } from '../../domain/repositories/IScheduleRepository';
+import { IScheduleRepository } from '../../domain/ports/IScheduleRepository';
 
 export class GetSchedulesUseCase {
   constructor(

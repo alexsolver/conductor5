@@ -1,26 +1,26 @@
 # Clean Architecture Validation Report
 
 **Data:** 2025-08-10  
-**Score:** 31/100  
+**Score:** 32/100  
 **Status:** ❌ REPROVADO
 
 ## Resumo de Problemas
 
-- 🔥 **Críticos:** 10
-- ⚠️ **Altos:** 58
+- 🔥 **Críticos:** 7
+- ⚠️ **Altos:** 57
 - 📋 **Médios:** 28
 - 💡 **Baixos:** 3
-- **Total:** 99
+- **Total:** 95
 
 ## Principais Problemas por Módulo
 
 ### 🔥 materials-services
-- **Total de problemas:** 48
-- **Críticos:** 2 | **Altos:** 36
+- **Total de problemas:** 47
+- **Críticos:** 1 | **Altos:** 36
 - **Principais problemas:**
   - Routes contém lógica de negócio ou acesso a dados
   - Domain Layer violando dependência: drizzle-orm/neon-http
-  - Domain Layer violando dependência: drizzle-orm/neon-http
+  - Application Layer violando dependência: express
 
 ### 🔥 saas-admin
 - **Total de problemas:** 7
@@ -53,12 +53,6 @@
   - Domain Layer violando dependência: ../../application/dto/CreateBeneficiaryDTO
   - Entity misturada com DTOs - violação de responsabilidade
 
-### ⚠️ customers
-- **Total de problemas:** 1
-- **Críticos:** 0 | **Altos:** 1
-- **Principais problemas:**
-  - Application Layer violando dependência: express
-
 ### ⚠️ knowledge-base
 - **Total de problemas:** 9
 - **Críticos:** 0 | **Altos:** 5
@@ -66,14 +60,6 @@
   - Application Layer violando dependência: express
   - Application Layer violando dependência: ../../infrastructure/repositories/MediaRepository
   - Application Layer violando dependência: ../../infrastructure/repositories/MediaRepository
-
-### 🔥 schedule-management
-- **Total de problemas:** 3
-- **Críticos:** 1 | **Altos:** 1
-- **Principais problemas:**
-  - Domain Layer violando dependência: drizzle-orm/neon-http
-  - Repository contém possível lógica de negócio
-  - Entity ScheduleEntity não possui Repository correspondente
 
 ### 🔥 shared
 - **Total de problemas:** 7
@@ -83,12 +69,12 @@
   - Domain Layer violando dependência: drizzle-orm/neon-http
   - Repository contém possível lógica de negócio
 
-### 🔥 timecard
-- **Total de problemas:** 8
-- **Críticos:** 1 | **Altos:** 3
+### ⚠️ timecard
+- **Total de problemas:** 7
+- **Críticos:** 0 | **Altos:** 3
 - **Principais problemas:**
-  - Domain Layer violando dependência: drizzle-orm/neon-http
   - Application Layer violando dependência: express
+  - Application Layer violando dependência: drizzle-orm
   - Application Layer violando dependência: drizzle-orm
 
 ### 📋 auth
@@ -103,17 +89,24 @@
 - **Principais problemas:**
   - Repository contém possível lógica de negócio
 
+### ⚠️ schedule-management
+- **Total de problemas:** 2
+- **Críticos:** 0 | **Altos:** 1
+- **Principais problemas:**
+  - Repository contém possível lógica de negócio
+  - Entity ScheduleEntity não possui Repository correspondente
+
 
 ## Plano de Correção
 
 ### 🔥 materials-services
 - **Prioridade:** immediate
-- **Tempo estimado:** 25h
-- **Ações:** 30
+- **Tempo estimado:** 24h
+- **Ações:** 29
 
 1. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
 2. **refactor_code:** Refatorar dependência inválida na camada domain
-3. **refactor_code:** Refatorar dependência inválida na camada domain
+3. **refactor_code:** Refatorar dependência inválida na camada application
 4. **refactor_code:** Refatorar dependência inválida na camada application
 5. **refactor_code:** Refatorar dependência inválida na camada application
 6. **refactor_code:** Refatorar dependência inválida na camada application
@@ -130,17 +123,16 @@
 17. **refactor_code:** Refatorar dependência inválida na camada application
 18. **refactor_code:** Refatorar dependência inválida na camada application
 19. **refactor_code:** Refatorar dependência inválida na camada application
-20. **refactor_code:** Refatorar dependência inválida na camada application
+20. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
 21. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
 22. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
 23. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
-24. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
+24. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 25. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 26. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 27. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 28. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
-29. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
-30. **create_file:** Criar Repository com interface
+29. **create_file:** Criar Repository com interface
 
 ### 🔥 saas-admin
 - **Prioridade:** immediate
@@ -173,15 +165,6 @@
 1. **refactor_code:** Refatorar dependência inválida na camada domain
 2. **move_code:** Resolver acoplamento: Entity misturada com DTOs - violação de responsabilidade
 
-### 🔥 schedule-management
-- **Prioridade:** immediate
-- **Tempo estimado:** 3h
-- **Ações:** 3
-
-1. **refactor_code:** Refatorar dependência inválida na camada domain
-2. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
-3. **create_file:** Criar Repository com interface
-
 ### 🔥 shared
 - **Prioridade:** immediate
 - **Tempo estimado:** 4h
@@ -195,19 +178,6 @@
 6. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 7. **create_file:** Criar Repository com interface
 
-### 🔥 timecard
-- **Prioridade:** immediate
-- **Tempo estimado:** 5h
-- **Ações:** 7
-
-1. **refactor_code:** Refatorar dependência inválida na camada domain
-2. **refactor_code:** Refatorar dependência inválida na camada application
-3. **refactor_code:** Refatorar dependência inválida na camada application
-4. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
-5. **rename_file:** Padronizar nomenclatura: Entity index não segue padrão PascalCase
-6. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
-7. **create_file:** Criar Repository com interface
-
 ### ⚠️ tickets
 - **Prioridade:** high
 - **Tempo estimado:** 2h
@@ -215,13 +185,6 @@
 
 1. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
 2. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
-
-### ⚠️ customers
-- **Prioridade:** high
-- **Tempo estimado:** 1h
-- **Ações:** 1
-
-1. **refactor_code:** Refatorar dependência inválida na camada application
 
 ### ⚠️ knowledge-base
 - **Prioridade:** high
@@ -234,6 +197,26 @@
 4. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
 5. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 6. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
+
+### ⚠️ timecard
+- **Prioridade:** high
+- **Tempo estimado:** 4h
+- **Ações:** 6
+
+1. **refactor_code:** Refatorar dependência inválida na camada application
+2. **refactor_code:** Refatorar dependência inválida na camada application
+3. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
+4. **rename_file:** Padronizar nomenclatura: Entity index não segue padrão PascalCase
+5. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
+6. **create_file:** Criar Repository com interface
+
+### ⚠️ schedule-management
+- **Prioridade:** high
+- **Tempo estimado:** 2h
+- **Ações:** 2
+
+1. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
+2. **create_file:** Criar Repository com interface
 
 ### 💡 auth
 - **Prioridade:** low
@@ -253,18 +236,17 @@
 ## Recomendações
 
 ### Prioridade Imediata 🔥
-- **materials-services:** 30 ações (25h)
+- **materials-services:** 29 ações (24h)
 - **saas-admin:** 6 ações (4h)
 - **technical-skills:** 5 ações (5h)
 - **beneficiaries:** 2 ações (2h)
-- **schedule-management:** 3 ações (3h)
 - **shared:** 7 ações (4h)
-- **timecard:** 7 ações (5h)
 
 ### Prioridade Alta ⚠️
 - **tickets:** 2 ações (2h)
-- **customers:** 1 ações (1h)
 - **knowledge-base:** 6 ações (4h)
+- **timecard:** 6 ações (4h)
+- **schedule-management:** 2 ações (2h)
 
 ## Comandos para Correção
 

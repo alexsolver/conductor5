@@ -1,6 +1,6 @@
 import { ISchedule } from '../../domain/entities/ISchedule';
 import { IIScheduleRepository } from '../../domain/ports/IIScheduleRepository';
-import { drizzle } from 'drizzle-orm/neon-http';
+// Removed drizzle import - Domain layer should not depend on ORM
 import * as schema from '@shared/schema';
 
 export class DrizzleIScheduleRepository implements IIScheduleRepository {

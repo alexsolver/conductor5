@@ -1,6 +1,6 @@
 import { ILPU } from '../../domain/entities/ILPU';
 import { IILPURepository } from '../../domain/ports/IILPURepository';
-import { drizzle } from 'drizzle-orm/neon-http';
+// Removed drizzle import - Domain layer should not depend on ORM
 import * as schema from '@shared/schema';
 
 export class DrizzleILPURepository implements IILPURepository {

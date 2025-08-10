@@ -1,6 +1,6 @@
 import { ITimecard } from '../../domain/entities/ITimecard';
 import { IITimecardRepository } from '../../domain/ports/IITimecardRepository';
-import { drizzle } from 'drizzle-orm/neon-http';
+// Removed drizzle import - Domain layer should not depend on ORM
 import * as schema from '@shared/schema';
 
 export class DrizzleITimecardRepository implements IITimecardRepository {
