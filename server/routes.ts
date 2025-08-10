@@ -95,15 +95,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // CSP reporting endpoint
   app.post('/api/csp-report', createCSPReportingEndpoint());
 
-  // CSP management routes (admin only)
-  try {
-    const cspManagementRoutes = createCSPManagementRoutes();
-    if (cspManagementRoutes) {
-      app.use('/api/csp', requirePermission('platform', 'manage_security'), cspManagementRoutes);
-    }
-  } catch (error) {
-    console.warn('CSP management routes not available, skipping...');
-  }
+  // CSP management routes (admin only) - temporarily disabled due to undefined middleware
+  // TODO: Re-enable when CSP management routes are properly implemented
+  console.log('CSP management routes temporarily disabled');
 
   // Feature flags routes
   app.get('/api/feature-flags', jwtAuth, async (req: AuthenticatedRequest, res) => {
