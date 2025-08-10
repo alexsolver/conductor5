@@ -757,3 +757,31 @@ ticketsRouter.delete('/:ticketId/actions/:actionId', jwtAuth, async (req: Authen
 });
 
 export { ticketsRouter };
+import { Router } from 'express';
+import { jwtAuth } from '../../middleware/jwtAuth';
+import { tenantValidator } from '../../middleware/tenantValidator';
+import { TicketController } from './application/controllers/TicketController';
+
+const router = Router();
+
+// Middleware de autenticação para todas as rotas
+router.use(jwtAuth);
+router.use(tenantValidator);
+
+// Inicializar controller
+const ticketController = new TicketController();
+
+// Rotas CRUD
+router.get('/', ticketController.getAll.bind(ticketController));
+router.get('/:id', ticketController.getById.bind(ticketController));
+router.post('/', ticketController.create.bind(ticketController));
+router.put('/:id', ticketController.update.bind(ticketController));
+router.delete('/:id', ticketController.delete.bind(ticketController));
+
+// Rotas específicas de tickets
+router.post('/:id/assign', ticketController.assign.bind(ticketController));
+router.post('/:id/resolve', ticketController.resolve.bind(ticketController));
+router.get('/:id/history', ticketController.getHistory.bind(ticketController));
+router.post('/:id/attachments', ticketController.addAttachment.bind(ticketController));
+
+export default router;

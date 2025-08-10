@@ -1,6 +1,37 @@
 [
   {
     "priority": "immediate",
+    "module": "beneficiaries",
+    "actions": [
+      {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada domain",
+        "target": "/home/runner/workspace/server/modules/beneficiaries/domain/services/BeneficiaryDomainService.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Entity misturada com DTOs - violação de responsabilidade",
+        "target": "/home/runner/workspace/server/modules/beneficiaries/domain/entities/Beneficiary.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      }
+    ],
+    "estimatedTime": "2h"
+  },
+  {
+    "priority": "high",
     "module": "materials-services",
     "actions": [
       {
@@ -13,18 +44,6 @@
           "Mover código para camada apropriada",
           "Criar interfaces para comunicação entre camadas",
           "Atualizar dependências"
-        ]
-      },
-      {
-        "type": "refactor_code",
-        "description": "Refatorar dependência inválida na camada domain",
-        "target": "/home/runner/workspace/server/modules/materials-services/domain/ports/IindexRepository.ts",
-        "steps": [
-          "Identificar a dependência problemática",
-          "Criar interface/port na camada Domain",
-          "Implementar interface na camada Infrastructure",
-          "Usar injeção de dependência",
-          "Remover import direto da dependência externa"
         ]
       },
       {
@@ -332,10 +351,10 @@
         ]
       }
     ],
-    "estimatedTime": "24h"
+    "estimatedTime": "23h"
   },
   {
-    "priority": "immediate",
+    "priority": "high",
     "module": "saas-admin",
     "actions": [
       {
@@ -352,18 +371,6 @@
       },
       {
         "type": "refactor_code",
-        "description": "Refatorar dependência inválida na camada domain",
-        "target": "/home/runner/workspace/server/modules/saas-admin/domain/ports/Iindex.ts",
-        "steps": [
-          "Identificar a dependência problemática",
-          "Criar interface/port na camada Domain",
-          "Implementar interface na camada Infrastructure",
-          "Usar injeção de dependência",
-          "Remover import direto da dependência externa"
-        ]
-      },
-      {
-        "type": "refactor_code",
         "description": "Refatorar dependência inválida na camada application",
         "target": "/home/runner/workspace/server/modules/saas-admin/application/controllers/SaasAdminController.ts",
         "steps": [
@@ -375,22 +382,23 @@
         ]
       },
       {
-        "type": "rename_file",
-        "description": "Padronizar nomenclatura: Entity index não segue padrão PascalCase",
-        "target": "/home/runner/workspace/server/modules/saas-admin/domain/entities/index.ts",
-        "steps": [
-          "Renomear arquivo seguindo padrão",
-          "Atualizar imports em outros arquivos",
-          "Atualizar nome da classe/interface",
-          "Verificar consistência com padrões do projeto"
-        ]
-      },
-      {
         "type": "create_directory",
         "description": "Criar interface I[Entity]Repository no domain e implementar",
         "target": "/home/runner/workspace/server/modules/saas-admin/infrastructure/repositories/indexRepository.ts",
         "steps": [
           "Criar interface I[Entity]Repository no domain e implementar"
+        ]
+      },
+      {
+        "type": "create_file",
+        "description": "Criar Repository com interface",
+        "target": "/home/runner/workspace/server/modules/saas-admin/infrastructure/repositories/SaasConfigEntityRepository.ts",
+        "code": "import { SaasConfigEntity } from '../../domain/entities/SaasConfigEntity';\nimport { ISaasConfigEntityRepository } from '../../domain/ports/ISaasConfigEntityRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleSaasConfigEntityRepository implements ISaasConfigEntityRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<SaasConfigEntity | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<SaasConfigEntity[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: SaasConfigEntity): Promise<SaasConfigEntity> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<SaasConfigEntity>, tenantId: string): Promise<SaasConfigEntity | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
+        "steps": [
+          "Criar interface do Repository na camada Domain",
+          "Implementar Repository na camada Infrastructure",
+          "Adicionar injeção de dependência",
+          "Integrar com Use Cases"
         ]
       },
       {
@@ -406,10 +414,10 @@
         ]
       }
     ],
-    "estimatedTime": "4h"
+    "estimatedTime": "3h"
   },
   {
-    "priority": "immediate",
+    "priority": "high",
     "module": "technical-skills",
     "actions": [
       {
@@ -425,18 +433,6 @@
         ]
       },
       {
-        "type": "refactor_code",
-        "description": "Refatorar dependência inválida na camada domain",
-        "target": "/home/runner/workspace/server/modules/technical-skills/domain/ports/IUserSkillRepository_FIXED.ts",
-        "steps": [
-          "Identificar a dependência problemática",
-          "Criar interface/port na camada Domain",
-          "Implementar interface na camada Infrastructure",
-          "Usar injeção de dependência",
-          "Remover import direto da dependência externa"
-        ]
-      },
-      {
         "type": "create_file",
         "description": "Criar Repository com interface",
         "target": "/home/runner/workspace/server/modules/technical-skills/infrastructure/repositories/SkillEntityRepository.ts",
@@ -449,120 +445,7 @@
         ]
       }
     ],
-    "estimatedTime": "3h"
-  },
-  {
-    "priority": "immediate",
-    "module": "beneficiaries",
-    "actions": [
-      {
-        "type": "refactor_code",
-        "description": "Refatorar dependência inválida na camada domain",
-        "target": "/home/runner/workspace/server/modules/beneficiaries/domain/services/BeneficiaryDomainService.ts",
-        "steps": [
-          "Identificar a dependência problemática",
-          "Criar interface/port na camada Domain",
-          "Implementar interface na camada Infrastructure",
-          "Usar injeção de dependência",
-          "Remover import direto da dependência externa"
-        ]
-      },
-      {
-        "type": "move_code",
-        "description": "Resolver acoplamento: Entity misturada com DTOs - violação de responsabilidade",
-        "target": "/home/runner/workspace/server/modules/beneficiaries/domain/entities/Beneficiary.ts",
-        "steps": [
-          "Identificar código acoplado",
-          "Determinar camada correta para o código",
-          "Mover código para camada apropriada",
-          "Criar interfaces para comunicação entre camadas",
-          "Atualizar dependências"
-        ]
-      }
-    ],
     "estimatedTime": "2h"
-  },
-  {
-    "priority": "immediate",
-    "module": "shared",
-    "actions": [
-      {
-        "type": "refactor_code",
-        "description": "Refatorar dependência inválida na camada domain",
-        "target": "/home/runner/workspace/server/modules/shared/domain/ports/IBaseEntityRepository.ts",
-        "steps": [
-          "Identificar a dependência problemática",
-          "Criar interface/port na camada Domain",
-          "Implementar interface na camada Infrastructure",
-          "Usar injeção de dependência",
-          "Remover import direto da dependência externa"
-        ]
-      },
-      {
-        "type": "refactor_code",
-        "description": "Refatorar dependência inválida na camada domain",
-        "target": "/home/runner/workspace/server/modules/shared/domain/ports/Iindex.ts",
-        "steps": [
-          "Identificar a dependência problemática",
-          "Criar interface/port na camada Domain",
-          "Implementar interface na camada Infrastructure",
-          "Usar injeção de dependência",
-          "Remover import direto da dependência externa"
-        ]
-      },
-      {
-        "type": "move_code",
-        "description": "Resolver acoplamento: Repository contém possível lógica de negócio",
-        "target": "/home/runner/workspace/server/modules/shared/infrastructure/repositories/BaseRepository.ts",
-        "steps": [
-          "Identificar código acoplado",
-          "Determinar camada correta para o código",
-          "Mover código para camada apropriada",
-          "Criar interfaces para comunicação entre camadas",
-          "Atualizar dependências"
-        ]
-      },
-      {
-        "type": "rename_file",
-        "description": "Padronizar nomenclatura: Repository index deve terminar com 'Repository'",
-        "target": "/home/runner/workspace/server/modules/shared/infrastructure/repositories/index.ts",
-        "steps": [
-          "Renomear arquivo seguindo padrão",
-          "Atualizar imports em outros arquivos",
-          "Atualizar nome da classe/interface",
-          "Verificar consistência com padrões do projeto"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar interface I[Entity]Repository no domain e implementar",
-        "target": "/home/runner/workspace/server/modules/shared/infrastructure/repositories/index.ts",
-        "steps": [
-          "Criar interface I[Entity]Repository no domain e implementar"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar interface I[Entity]Repository no domain e implementar",
-        "target": "/home/runner/workspace/server/modules/shared/infrastructure/repositories/indexRepository.ts",
-        "steps": [
-          "Criar interface I[Entity]Repository no domain e implementar"
-        ]
-      },
-      {
-        "type": "create_file",
-        "description": "Criar Repository com interface",
-        "target": "/home/runner/workspace/server/modules/shared/domain/ports/IindexRepository.ts",
-        "code": "import { Iindex } from '../../domain/entities/Iindex';\nimport { IIindexRepository } from '../../domain/ports/IIindexRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleIindexRepository implements IIindexRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<Iindex | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<Iindex[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: Iindex): Promise<Iindex> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<Iindex>, tenantId: string): Promise<Iindex | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
-        "steps": [
-          "Criar interface do Repository na camada Domain",
-          "Implementar Repository na camada Infrastructure",
-          "Adicionar injeção de dependência",
-          "Integrar com Use Cases"
-        ]
-      }
-    ],
-    "estimatedTime": "4h"
   },
   {
     "priority": "high",
@@ -695,22 +578,23 @@
         ]
       },
       {
-        "type": "rename_file",
-        "description": "Padronizar nomenclatura: Entity index não segue padrão PascalCase",
-        "target": "/home/runner/workspace/server/modules/timecard/domain/entities/index.ts",
-        "steps": [
-          "Renomear arquivo seguindo padrão",
-          "Atualizar imports em outros arquivos",
-          "Atualizar nome da classe/interface",
-          "Verificar consistência com padrões do projeto"
-        ]
-      },
-      {
         "type": "create_directory",
         "description": "Criar interface I[Entity]Repository no domain e implementar",
         "target": "/home/runner/workspace/server/modules/timecard/infrastructure/repositories/DrizzleTimecardRepository.ts",
         "steps": [
           "Criar interface I[Entity]Repository no domain e implementar"
+        ]
+      },
+      {
+        "type": "create_file",
+        "description": "Criar Repository com interface",
+        "target": "/home/runner/workspace/server/modules/timecard/infrastructure/repositories/TimecardEntityRepository.ts",
+        "code": "import { TimecardEntity } from '../../domain/entities/TimecardEntity';\nimport { ITimecardEntityRepository } from '../../domain/ports/ITimecardEntityRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleTimecardEntityRepository implements ITimecardEntityRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<TimecardEntity | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<TimecardEntity[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: TimecardEntity): Promise<TimecardEntity> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<TimecardEntity>, tenantId: string): Promise<TimecardEntity | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
+        "steps": [
+          "Criar interface do Repository na camada Domain",
+          "Implementar Repository na camada Infrastructure",
+          "Adicionar injeção de dependência",
+          "Integrar com Use Cases"
         ]
       },
       {
@@ -796,5 +680,63 @@
       }
     ],
     "estimatedTime": "45min"
+  },
+  {
+    "priority": "low",
+    "module": "shared",
+    "actions": [
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Repository contém possível lógica de negócio",
+        "target": "/home/runner/workspace/server/modules/shared/infrastructure/repositories/BaseRepository.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Repository index deve terminar com 'Repository'",
+        "target": "/home/runner/workspace/server/modules/shared/infrastructure/repositories/index.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Criar interface I[Entity]Repository no domain e implementar",
+        "target": "/home/runner/workspace/server/modules/shared/infrastructure/repositories/index.ts",
+        "steps": [
+          "Criar interface I[Entity]Repository no domain e implementar"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Criar interface I[Entity]Repository no domain e implementar",
+        "target": "/home/runner/workspace/server/modules/shared/infrastructure/repositories/indexRepository.ts",
+        "steps": [
+          "Criar interface I[Entity]Repository no domain e implementar"
+        ]
+      },
+      {
+        "type": "create_file",
+        "description": "Criar Repository com interface",
+        "target": "/home/runner/workspace/server/modules/shared/domain/ports/IindexRepository.ts",
+        "code": "import { Iindex } from '../../domain/entities/Iindex';\nimport { IIindexRepository } from '../../domain/ports/IIindexRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleIindexRepository implements IIindexRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<Iindex | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<Iindex[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: Iindex): Promise<Iindex> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<Iindex>, tenantId: string): Promise<Iindex | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
+        "steps": [
+          "Criar interface do Repository na camada Domain",
+          "Implementar Repository na camada Infrastructure",
+          "Adicionar injeção de dependência",
+          "Integrar com Use Cases"
+        ]
+      }
+    ],
+    "estimatedTime": "2h"
   }
 ]

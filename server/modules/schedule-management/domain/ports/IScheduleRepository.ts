@@ -113,3 +113,14 @@ export interface IScheduleRepository {
   findByTenantId(tenantId: string): Promise<any[]>;
   findByUserId(userId: string): Promise<any[]>;
 }
+import { ScheduleEntity } from '../entities/ScheduleEntity';
+
+export interface IScheduleRepository {
+  findById(id: string, tenantId: string): Promise<ScheduleEntity | null>;
+  findAll(tenantId: string): Promise<ScheduleEntity[]>;
+  create(schedule: ScheduleEntity): Promise<ScheduleEntity>;
+  update(id: string, schedule: Partial<ScheduleEntity>, tenantId: string): Promise<ScheduleEntity | null>;
+  delete(id: string, tenantId: string): Promise<boolean>;
+  findByDateRange(startDate: Date, endDate: Date, tenantId: string): Promise<ScheduleEntity[]>;
+  findByTechnician(technicianId: string, tenantId: string): Promise<ScheduleEntity[]>;
+}

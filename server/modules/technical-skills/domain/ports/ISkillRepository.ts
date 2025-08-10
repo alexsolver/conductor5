@@ -58,3 +58,14 @@ export interface ISkillRepository {
   findByCategory(category: string): Promise<any[]>;
   findByName(name: string): Promise<any | null>;
 }
+import { SkillEntity } from '../entities/SkillEntity';
+
+export interface ISkillRepository {
+  findById(id: string, tenantId: string): Promise<SkillEntity | null>;
+  findAll(tenantId: string): Promise<SkillEntity[]>;
+  create(skill: SkillEntity): Promise<SkillEntity>;
+  update(id: string, skill: Partial<SkillEntity>, tenantId: string): Promise<SkillEntity | null>;
+  delete(id: string, tenantId: string): Promise<boolean>;
+  findByCategory(category: string, tenantId: string): Promise<SkillEntity[]>;
+  search(query: string, tenantId: string): Promise<SkillEntity[]>;
+}

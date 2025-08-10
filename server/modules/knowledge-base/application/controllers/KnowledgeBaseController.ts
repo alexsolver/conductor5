@@ -7,17 +7,17 @@ import { KnowledgeBaseApplicationService } from '../services/KnowledgeBaseApplic
 import { IKnowledgeBaseRepository } from '../../domain/ports/IKnowledgeBaseRepository';
 import { IMediaRepository } from '../../domain/ports/IMediaRepository';
 
-// Using interface instead of express types to maintain clean architecture
-interface ControllerRequest {
-  body: any;
-  params: any;
-  query: any;
+// Using interface abstractions instead of direct express dependency
+interface IRequest {
   user?: any;
+  params: Record<string, any>;
+  body: any;
+  query: Record<string, any>;
 }
 
-interface ControllerResponse {
-  status: (code: number) => ControllerResponse;
-  json: (data: any) => void;
+interface IResponse {
+  status(code: number): IResponse;
+  json(data: any): void;
 }
 
 // Inject repository through dependency injection instead of direct import

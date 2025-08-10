@@ -8,69 +8,59 @@ export interface Timecard {
   userId: string;
   date: Date;
   startTime: string;
-  endTime?: string;
-  totalHours?: number;
-  status: string;
-  notes?: string;
+  endTime: string;
+  breakDuration: number;
+  status: 'pending' | 'approved' | 'rejected';
+  description?: string;
   location?: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
-export interface NewTimecard {
-  tenantId: string;
-  userId: string;
-  date: Date;
-  startTime: string;
-  endTime?: string;
-  totalHours?: number;
-  status: string;
-  notes?: string;
-  location?: string;
-}
+export class TimecardEntity implements Timecard {
+  public readonly id: string;
+  public readonly tenantId: string;
+  public readonly userId: string;
+  public readonly date: Date;
+  public readonly startTime: string;
+  public readonly endTime: string;
+  public readonly breakDuration: number;
+  public readonly status: 'pending' | 'approved' | 'rejected';
+  public readonly description?: string;
+  public readonly location?: string;
+  public readonly createdAt: Date;
+  public readonly updatedAt: Date;
 
-export interface TimecardApproval {
-  id: string;
-  tenantId: string;
-  timecardId: string;
-  approverId: string;
-  status: string;
-  approvedAt?: Date;
-  notes?: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+  constructor(timecard: Timecard) {
+    this.id = timecard.id;
+    this.tenantId = timecard.tenantId;
+    this.userId = timecard.userId;
+    this.date = timecard.date;
+    this.startTime = timecard.startTime;
+    this.endTime = timecard.endTime;
+    this.breakDuration = timecard.breakDuration;
+    this.status = timecard.status;
+    this.description = timecard.description;
+    this.location = timecard.location;
+    this.createdAt = timecard.createdAt;
+    this.updatedAt = timecard.updatedAt;
+  }
 
-export interface NewTimecardApproval {
-  tenantId: string;
-  timecardId: string;
-  approverId: string;
-  status: string;
-  approvedAt?: Date;
-  notes?: string;
-}
+  public getTotalHours(): number {
+    const start = new Date(`1970-01-01T${this.startTime}`);
+    const end = new Date(`1970-01-01T${this.endTime}`);
+    const diffMs = end.getTime() - start.getTime();
+    const diffHours = diffMs / (1000 * 60 * 60);
+    return Math.max(0, diffHours - (this.breakDuration / 60));
+  }
 
-export interface WeeklySchedule {
-  id: string;
-  tenantId: string;
-  userId: string;
-  weekStartDate: Date;
-  scheduleData: string;
-  totalHours: number;
-  status: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+  public isValidTimeRange(): boolean {
+    const start = new Date(`1970-01-01T${this.startTime}`);
+    const end = new Date(`1970-01-01T${this.endTime}`);
+    return start < end;
+  }
 
-export interface NewWeeklySchedule {
-  tenantId: string;
-  userId: string;
-  weekStartDate: Date;
-  scheduleData: string;
-  totalHours: number;
-  status: string;
+  public canBeApproved(): boolean {
+    return this.status === 'pending' && this.isValidTimeRange();
+  }
 }
-
-export * from './Timecard';
-export * from './WorkSchedule';
-export * from './TimecardEntry';

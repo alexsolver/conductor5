@@ -58,3 +58,32 @@ export abstract class BaseController {
     });
   }
 }
+import { standardResponse } from '../../../utils/standardResponse';
+
+export abstract class BaseController {
+  protected handleError(error: any, res: any, message: string = 'Erro interno do servidor'): void {
+    console.error('Controller Error:', error);
+    res.status(500).json(standardResponse(false, message));
+  }
+
+  protected validateTenant(req: any, res: any): string | null {
+    const tenantId = req.user?.tenantId;
+    if (!tenantId) {
+      res.status(400).json(standardResponse(false, 'Tenant ID é obrigatório'));
+      return null;
+    }
+    return tenantId;
+  }
+
+  protected validateId(id: string, res: any): boolean {
+    if (!id || id.trim() === '') {
+      res.status(400).json(standardResponse(false, 'ID é obrigatório'));
+      return false;
+    }
+    return true;
+  }
+
+  protected successResponse(res: any, message: string, data?: any, status: number = 200): void {
+    res.status(status).json(standardResponse(true, message, data));
+  }
+}

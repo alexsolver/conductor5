@@ -2,6 +2,7 @@ import { Material } from '../../domain/entities/Material';
 import { IMaterialRepository } from '../../domain/ports/IMaterialRepository';
 import { drizzle } from 'drizzle-orm/neon-http';
 import * as schema from '@shared/schema';
+import { eq } from 'drizzle-orm';
 
 export class DrizzleMaterialRepository implements IMaterialRepository {
   constructor(private readonly db: ReturnType<typeof drizzle>) {}

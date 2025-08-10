@@ -232,3 +232,12 @@ interface CustomerApplicationService {
   updateCustomer(data: any): Promise<{ success: boolean; customer?: any; error?: string }>;
   deleteCustomer(data: { id: string; tenantId: string }): Promise<{ success: boolean; error?: string }>;
 }
+
+// Dummy interface for ICustomerRepository for compilation
+interface ICustomerRepository {
+  // Define methods here that would be used by the application service
+  // For example:
+  // findById(id: string, tenantId: string): Promise<any | null>;
+  // save(customerData: any, tenantId: string): Promise<any>;
+  // deleteById(id: string, tenantId: string): Promise<boolean>;
+}
