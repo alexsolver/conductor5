@@ -69,15 +69,32 @@ class CleanArchitectureValidator {
   private discoverModules(): void {
     console.log('🔍 Descobrindo módulos do sistema...');
 
-    // Determine correct base path - sempre usar o caminho absoluto correto
+    // Try multiple possible paths for modules directory
     const cwd = process.cwd();
-    const modulesPath = join(cwd, 'server', 'modules');
+    const possiblePaths = [
+      join(cwd, 'server', 'modules'),
+      join(__dirname, '..', 'modules'),
+      join(process.cwd(), 'server', 'modules')
+    ];
     
-    console.log(`🔍 Current working directory: ${cwd}`);
-    console.log(`🔍 Checking modules path: ${modulesPath}`);
+    let modulesPath = '';
+    for (const path of possiblePaths) {
+      console.log(`🔍 Checking path: ${path}`);
+      if (existsSync(path)) {
+        modulesPath = path;
+        console.log(`✅ Found modules directory at: ${path}`);
+        break;
+      }
+    }
     
-    if (!existsSync(modulesPath)) {
-      console.log(`❌ Modules directory not found at: ${modulesPath}`);
+    if (!modulesPath || !existsSync(modulesPath)) {
+      console.log(`❌ Modules directory not found in any of the following paths:`);
+      possiblePaths.forEach(path => console.log(`   - ${path}`));
+      
+      // Check if we're running from a different directory
+      console.log(`🔍 Current working directory: ${cwd}`);
+      console.log(`🔍 Script directory: ${__dirname}`);
+      
       this.addIssue({
         id: 'ARCH-001',
         layer: 'infrastructure',
@@ -85,8 +102,8 @@ class CleanArchitectureValidator {
         severity: 'critical',
         type: 'structure_violation',
         description: 'Diretório de módulos não encontrado',
-        file: modulesPath,
-        suggestedFix: 'Criar estrutura de módulos seguindo padrão Clean Architecture'
+        file: possiblePaths[0],
+        suggestedFix: 'Verificar estrutura de diretórios e executar script do diretório raiz do projeto'
       });
       return;
     }

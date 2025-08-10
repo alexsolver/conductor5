@@ -3,7 +3,7 @@ import { Router } from "express";
 import { jwtAuth, AuthenticatedRequest } from "../../middleware/jwtAuth";
 // import { storageSimple } from "../../storage-simple"; // TODO: Remove storage dependency from routes
 import { insertTicketSchema, insertTicketMessageSchema } from '@shared/schema';
-import { sendSuccess, sendError, sendValidationError } from "../../utils/standardResponse";
+import { sendSuccess, sendError, sendValidationError, standardResponse } from "../../utils/standardResponse";
 import { mapFrontendToBackend } from "../../utils/fieldMapping";
 import { z } from "zod";
 import { trackTicketView, trackTicketEdit, trackNoteView, trackNoteCreate, trackTicketCreate } from '../../middleware/activityTrackingMiddleware';
@@ -156,8 +156,28 @@ ticketsRouter.get('/', async (req: AuthenticatedRequest, res) => {
 
     console.log('🎫 [TICKETS-ROUTES] Fetching tickets with options:', options);
 
-    // Delegate to controller
-    await ticketController.getAllTickets(req, res);
+    // Check if ticketController and method exist
+    if (!ticketController || typeof ticketController.getAllTickets !== 'function') {
+      console.error('❌ [TICKETS-ROUTES] ticketController.getAllTickets is not available');
+      res.status(500).json(
+        standardResponse(false, 'Tickets service not available')
+      );
+      return;
+    }
+
+    const result = await ticketController.getAllTickets({
+      tenantId: req.user.tenantId,
+      userId: req.user.id,
+      page: options.page,
+      limit: options.limit,
+      search: options.search,
+      status: options.status,
+      priority: options.priority,
+      assignedToId: options.assignedToId,
+      companyId: options.companyId
+    });
+
+    sendSuccess(res, result.data, 'Tickets retrieved successfully', result.count);
 
   } catch (error: any) {
     console.error('❌ [TICKETS-ROUTES] Error in GET /:', error);

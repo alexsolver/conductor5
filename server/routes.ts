@@ -39,12 +39,70 @@ import holidayRoutes from './routes/HolidayController';
 import { timecardRoutes } from './routes/timecardRoutes';
 // Import CLT Compliance Controller with safety check
 let cltComplianceController: any = null;
-try {
-  const cltModule = require('./controllers/CLTComplianceController');
-  cltComplianceController = cltModule.cltComplianceController || null;
-} catch (error) {
-  console.warn('CLT Compliance Controller not available:', error.message);
+
+async function initializeCLTController() {
+  try {
+    const cltModule = await import('./controllers/CLTComplianceController');
+    cltComplianceController = cltModule.cltComplianceController || cltModule.default || null;
+
+    if (cltComplianceController && typeof cltComplianceController === 'object') {
+      // Ensure all methods exist with fallbacks
+      const requiredMethods = ['getAll', 'getById', 'create', 'update', 'delete'];
+      requiredMethods.forEach(method => {
+        if (typeof cltComplianceController[method] !== 'function') {
+          cltComplianceController[method] = async (req: any, res: any) => {
+            res.status(501).json({
+              success: false,
+              error: `CLT Compliance ${method} method not implemented`
+            });
+          };
+        }
+      });
+    }
+  } catch (error) {
+    console.warn('CLT Compliance Controller not available:', error.message);
+    cltComplianceController = createFallbackController();
+  }
 }
+
+// Create fallback controller for CLT compliance routes
+function createFallbackController() {
+  return {
+    getAll: async (req: any, res: any) => {
+      res.status(501).json({
+        success: false,
+        error: 'CLT Compliance module not available'
+      });
+    },
+    getById: async (req: any, res: any) => {
+      res.status(501).json({
+        success: false,
+        error: 'CLT Compliance module not available'
+      });
+    },
+    create: async (req: any, res: any) => {
+      res.status(501).json({
+        success: false,
+        error: 'CLT Compliance module not available'
+      });
+    },
+    update: async (req: any, res: any) => {
+      res.status(501).json({
+        success: false,
+        error: 'CLT Compliance module not available'
+      });
+    },
+    delete: async (req: any, res: any) => {
+      res.status(501).json({
+        success: false,
+        error: 'CLT Compliance module not available'
+      });
+    }
+  };
+}
+
+// Initialize controller on startup
+initializeCLTController();
 import { TimecardApprovalController } from './modules/timecard/application/controllers/TimecardApprovalController';
 import { TimecardController } from './modules/timecard/application/controllers/TimecardController';
 import scheduleRoutes from './modules/schedule-management/infrastructure/routes/scheduleRoutes';
@@ -3908,6 +3966,123 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error creating user group:', error);
       res.status(500).json({ success: false, message: 'Failed to create user group' });
+    }
+  });
+
+  // CLT Compliance routes with proper controller handling
+  app.get('/api/clt-compliance', async (req: Request, res: Response) => {
+    try {
+      // Ensure controller is initialized
+      if (!cltComplianceController) {
+        await initializeCLTController();
+      }
+
+      if (cltComplianceController && typeof cltComplianceController.getAll === 'function') {
+        await cltComplianceController.getAll(req, res);
+      } else {
+        res.status(501).json({
+          success: false,
+          error: 'CLT Compliance service not available'
+        });
+      }
+    } catch (error) {
+      console.error('Error in CLT compliance getAll:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error'
+      });
+    }
+  });
+
+  app.get('/api/clt-compliance/:id', async (req: Request, res: Response) => {
+    try {
+      if (!cltComplianceController) {
+        await initializeCLTController();
+      }
+
+      if (cltComplianceController && typeof cltComplianceController.getById === 'function') {
+        await cltComplianceController.getById(req, res);
+      } else {
+        res.status(501).json({
+          success: false,
+          error: 'CLT Compliance service not available'
+        });
+      }
+    } catch (error) {
+      console.error('Error in CLT compliance getById:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error'
+      });
+    }
+  });
+
+  app.post('/api/clt-compliance', async (req: Request, res: Response) => {
+    try {
+      if (!cltComplianceController) {
+        await initializeCLTController();
+      }
+
+      if (cltComplianceController && typeof cltComplianceController.create === 'function') {
+        await cltComplianceController.create(req, res);
+      } else {
+        res.status(501).json({
+          success: false,
+          error: 'CLT Compliance service not available'
+        });
+      }
+    } catch (error) {
+      console.error('Error in CLT compliance create:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error'
+      });
+    }
+  });
+
+  app.put('/api/clt-compliance/:id', async (req: Request, res: Response) => {
+    try {
+      if (!cltComplianceController) {
+        await initializeCLTController();
+      }
+
+      if (cltComplianceController && typeof cltComplianceController.update === 'function') {
+        await cltComplianceController.update(req, res);
+      } else {
+        res.status(501).json({
+          success: false,
+          error: 'CLT Compliance service not available'
+        });
+      }
+    } catch (error) {
+      console.error('Error in CLT compliance update:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error'
+      });
+    }
+  });
+
+  app.delete('/api/clt-compliance/:id', async (req: Request, res: Response) => {
+    try {
+      if (!cltComplianceController) {
+        await initializeCLTController();
+      }
+
+      if (cltComplianceController && typeof cltComplianceController.delete === 'function') {
+        await cltComplianceController.delete(req, res);
+      } else {
+        res.status(501).json({
+          success: false,
+          error: 'CLT Compliance service not available'
+        });
+      }
+    } catch (error) {
+      console.error('Error in CLT compliance delete:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error'
+      });
     }
   });
 

@@ -20,6 +20,9 @@ import userManagementRoutes from './routes/userManagementRoutes';
 
 const app = express();
 
+// Trust proxy for proper IP detection in rate limiting
+app.set('trust proxy', true);
+
 // CRITICAL VITE STABILITY: Apply enhanced WebSocket stability middleware first
 app.use(enhancedWebsocketStability);
 app.use(viteStabilityMiddleware);
