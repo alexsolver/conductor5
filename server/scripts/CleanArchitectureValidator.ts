@@ -10,7 +10,8 @@
  */
 
 import { readFileSync, existsSync, readdirSync, statSync, writeFileSync, mkdirSync } from 'fs';
-import { join, extname } from 'path';
+import { join, extname, dirname } from 'path';
+import { fileURLToPath } from 'url';
 
 interface ArchitectureIssue {
   id: string;
@@ -71,9 +72,10 @@ class CleanArchitectureValidator {
 
     // Try multiple possible paths for modules directory
     const cwd = process.cwd();
+    const scriptDir = dirname(fileURLToPath(import.meta.url));
     const possiblePaths = [
       join(cwd, 'server', 'modules'),
-      join(__dirname, '..', 'modules'),
+      join(scriptDir, '..', 'modules'),
       join(process.cwd(), 'server', 'modules')
     ];
     
@@ -93,7 +95,7 @@ class CleanArchitectureValidator {
       
       // Check if we're running from a different directory
       console.log(`🔍 Current working directory: ${cwd}`);
-      console.log(`🔍 Script directory: ${__dirname}`);
+      console.log(`🔍 Script directory: ${scriptDir}`);
       
       this.addIssue({
         id: 'ARCH-001',
