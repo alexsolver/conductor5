@@ -66,7 +66,44 @@ const beneficiarySchema = z.object({
 });
 
 // GET /api/beneficiaries - Get all beneficiaries with pagination and search
-beneficiariesRouter.get('/', beneficiaryController.getAll.bind(beneficiaryController));
+beneficiariesRouter.get('/', async (req: AuthenticatedRequest, res: any) => {
+  try {
+    const tenantId = req.user?.tenantId!;
+    const { page, limit, search } = getBeneficiariesSchema.parse(req.query);
+    
+    const beneficiaries = await beneficiaryRepository.findByTenant(tenantId, {
+      page,
+      limit,
+      search
+    });
+    
+    const total = await beneficiaryRepository.countByTenant(tenantId, search);
+    
+    return res.json({
+      success: true,
+      data: {
+        beneficiaries,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit)
+        }
+      },
+      message: "Beneficiaries retrieved successfully"
+    });
+  } catch (error: any) {
+    console.error("Error fetching beneficiaries:", error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Validation error", 
+        errors: error.errors.map(e => e.message) 
+      });
+    }
+    return res.status(500).json({ success: false, message: error.message });
+  }
+});
 
 // GET /api/beneficiaries/:id - Get a specific beneficiary
 beneficiariesRouter.get("/:id", async (req: AuthenticatedRequest, res: any) => {

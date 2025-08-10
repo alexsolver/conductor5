@@ -70,8 +70,8 @@ export class DrizzleBeneficiaryRepository implements IBeneficiaryRepository {
     
     await db.insert(beneficiaries).values({
       id: beneficiary.id,
-      firstName: firstName,
-      lastName: lastName,
+      first_name: firstName,
+      last_name: lastName,
       email: beneficiary.email,
       tenantId: beneficiary.tenantId,
       customerId: beneficiary.customerId,
@@ -88,8 +88,8 @@ export class DrizzleBeneficiaryRepository implements IBeneficiaryRepository {
     await db
       .update(beneficiaries)
       .set({
-        firstName: firstName,
-        lastName: lastName,
+        first_name: firstName,
+        last_name: lastName,
         email: beneficiary.email,
         isActive: beneficiary.isActive,
         updatedAt: beneficiary.updatedAt
@@ -121,7 +121,7 @@ export class DrizzleBeneficiaryRepository implements IBeneficiaryRepository {
       query = query.where(
         and(
           eq(beneficiaries.tenantId, tenantId),
-          like(beneficiaries.name, `%${options.search}%`)
+          sql`(${beneficiaries.first_name} || ' ' || ${beneficiaries.last_name}) ILIKE ${'%' + options.search + '%'}`
         )
       );
     }
@@ -159,7 +159,7 @@ export class DrizzleBeneficiaryRepository implements IBeneficiaryRepository {
       query = query.where(
         and(
           eq(beneficiaries.tenantId, tenantId),
-          like(beneficiaries.name, `%${search}%`)
+          sql`(${beneficiaries.first_name} || ' ' || ${beneficiaries.last_name}) ILIKE ${'%' + search + '%'}`
         )
       );
     }
