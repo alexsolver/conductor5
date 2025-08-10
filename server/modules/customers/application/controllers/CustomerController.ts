@@ -213,49 +213,6 @@ export class CustomerController {
       });
     }
   }
-
-  // Alias methods for route compatibility
-  getAll = this.getCustomers;
-  getById = this.getCustomerById;
-  create = this.createCustomer;
-  update = this.updateCustomer;
-  delete = this.deleteCustomer;
-
-  async getCustomerById(req: ControllerRequest, res: ControllerResponse): Promise<void> {
-    try {
-      const { id } = req.params;
-      const user = req.user;
-      const tenantId = user?.tenantId;
-
-      if (!tenantId) {
-        res.status(400).json({
-          success: false,
-          error: 'Tenant ID is required'
-        });
-        return;
-      }
-
-      // Use repository directly for single customer lookup
-      const customer = await this.customerRepository.findById(id, tenantId);
-      
-      if (customer) {
-        res.json({
-          success: true,
-          data: transformToCustomerDTO(customer)
-        });
-      } else {
-        res.status(404).json({
-          success: false,
-          error: 'Customer not found'
-        });
-      }
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
-    }
-  }
 }
 
 // Dummy DTO transformation and repository interface for compilation

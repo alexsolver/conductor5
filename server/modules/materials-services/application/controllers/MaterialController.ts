@@ -25,17 +25,17 @@ export class MaterialController {
   }
 }
 
-// Removida dependência Express - Application não deve conhecer framework web
+// Express dependency removed - using dependency injection instead
 
 export class MaterialController {
   constructor(private materialService: MaterialApplicationService) {}
 
-  async createMaterial(request: any, response: any): Promise<void> {
+  async createMaterial(req: any, res: any): Promise<void> {
     try {
-      const material = await this.materialService.createMaterial(request.body);
-      response.status(201).json({ success: true, data: material });
+      const material = await this.materialService.createMaterial(req.body);
+      res.status(201).json({ success: true, data: material });
     } catch (error: any) {
-      response.status(500).json({ success: false, error: error.message });
+      res.status(500).json({ success: false, error: error.message });
     }
   }
 

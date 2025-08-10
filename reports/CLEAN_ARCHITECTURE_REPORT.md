@@ -7,10 +7,10 @@
 ## Resumo de Problemas
 
 - 🔥 **Críticos:** 2
-- ⚠️ **Altos:** 44
+- ⚠️ **Altos:** 45
 - 📋 **Médios:** 25
 - 💡 **Baixos:** 0
-- **Total:** 71
+- **Total:** 72
 
 ## Principais Problemas por Módulo
 
@@ -60,6 +60,14 @@
   - Application Layer violando dependência: ../../infrastructure/repositories/MediaRepository
   - Application Layer violando dependência: ../../infrastructure/repositories/MediaRepository
 
+### ⚠️ shared
+- **Total de problemas:** 6
+- **Críticos:** 0 | **Altos:** 1
+- **Principais problemas:**
+  - Application Layer violando dependência: express
+  - Repository contém possível lógica de negócio
+  - Repository index deve terminar com 'Repository'
+
 ### ⚠️ timecard
 - **Total de problemas:** 6
 - **Críticos:** 0 | **Altos:** 3
@@ -86,14 +94,6 @@
 - **Principais problemas:**
   - Repository contém possível lógica de negócio
   - Entity ScheduleEntity não possui Repository correspondente
-
-### 📋 shared
-- **Total de problemas:** 5
-- **Críticos:** 0 | **Altos:** 0
-- **Principais problemas:**
-  - Repository contém possível lógica de negócio
-  - Repository index deve terminar com 'Repository'
-  - Repository index deve implementar interface
 
 
 ## Plano de Correção
@@ -174,6 +174,18 @@
 5. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 6. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 
+### ⚠️ shared
+- **Prioridade:** high
+- **Tempo estimado:** 3h
+- **Ações:** 6
+
+1. **refactor_code:** Refatorar dependência inválida na camada application
+2. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
+3. **rename_file:** Padronizar nomenclatura: Repository index deve terminar com 'Repository'
+4. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
+5. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
+6. **create_file:** Criar Repository com interface
+
 ### ⚠️ timecard
 - **Prioridade:** high
 - **Tempo estimado:** 3h
@@ -207,17 +219,6 @@
 
 1. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
 
-### 💡 shared
-- **Prioridade:** low
-- **Tempo estimado:** 2h
-- **Ações:** 5
-
-1. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
-2. **rename_file:** Padronizar nomenclatura: Repository index deve terminar com 'Repository'
-3. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
-4. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
-5. **create_file:** Criar Repository com interface
-
 
 ## Recomendações
 
@@ -230,6 +231,7 @@
 - **technical-skills:** 2 ações (2h)
 - **tickets:** 2 ações (2h)
 - **knowledge-base:** 6 ações (4h)
+- **shared:** 6 ações (3h)
 - **timecard:** 5 ações (3h)
 - **schedule-management:** 2 ações (2h)
 

@@ -1,4 +1,4 @@
-// Removida dependência Express
+import { Request, Response } from 'express';
 
 export interface BaseRequest {
   params: Record<string, any>;
