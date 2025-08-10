@@ -1,6 +1,6 @@
 // Clean Architecture Domain Layer - Repository Port Interface
-export interface IItemRepository {
-  // Interface for Item repository following repository pattern
+export interface IDrizzleTicketRepository {
+  // Interface for Ticket repository following repository pattern
   // This interface will be implemented by infrastructure layer repositories
   
   // Basic CRUD operations
@@ -12,6 +12,8 @@ export interface IItemRepository {
   
   // Domain-specific queries
   findByTenantId(tenantId: string): Promise<any[]>;
-  findByCategory(category: string): Promise<any[]>;
+  findByCustomerId(customerId: string): Promise<any[]>;
   findByStatus(status: string): Promise<any[]>;
+  findByPriority(priority: string): Promise<any[]>;
+  findByAssignee(assigneeId: string): Promise<any[]>;
 }

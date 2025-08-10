@@ -1,6 +1,6 @@
 // Clean Architecture Domain Layer - Repository Port Interface
-export interface IItemRepository {
-  // Interface for Item repository following repository pattern
+export interface IDrizzleTemplateVersionRepository {
+  // Interface for Template Version repository following repository pattern
   // This interface will be implemented by infrastructure layer repositories
   
   // Basic CRUD operations
@@ -11,7 +11,8 @@ export interface IItemRepository {
   delete(id: string): Promise<boolean>;
   
   // Domain-specific queries
+  findByTemplateId(templateId: string): Promise<any[]>;
   findByTenantId(tenantId: string): Promise<any[]>;
-  findByCategory(category: string): Promise<any[]>;
-  findByStatus(status: string): Promise<any[]>;
+  findLatestVersion(templateId: string): Promise<any | null>;
+  findByVersionNumber(templateId: string, version: number): Promise<any | null>;
 }

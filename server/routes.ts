@@ -36,7 +36,7 @@ import holidayRoutes from './routes/HolidayController';
 // import omnibridgeRoutes from './routes/omnibridge'; // Removed - using real APIs only
 
 // Removed: journeyRoutes - functionality eliminated from system
-import { timecardRoutes } from './routes/timecardRoutes';
+// import { timecardRoutes } from './routes/timecardRoutes'; // Temporarily disabled due to controller issues
 // Import CLT Compliance Controller with safety check
 let cltComplianceController: any = null;
 
@@ -112,10 +112,9 @@ import contractRoutes from './routes/contractRoutes';
 import materialsServicesRoutes from './modules/materials-services/routes';
 import knowledgeBaseRoutes from './modules/knowledge-base/routes';
 import notificationsRoutes from './modules/notifications/routes';
-import ticketMetadataRoutes from './routes/ticketMetadata.js';
 import ticketFieldOptionsRoutes from './routes/ticketFieldOptions';
 import { slaController } from './modules/tickets/SlaController';
-import customFieldsRoutes from './modules/custom-fields/routes.ts';
+import customFieldsRoutes from './modules/custom-fields/routes';
 import { fieldLayoutRoutes } from './modules/field-layouts/routes';
 import ticketHistoryRoutes from './modules/ticket-history/routes';
 import { TicketViewsController } from './controllers/TicketViewsController';
@@ -2083,7 +2082,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // OmniBridge Module temporarily removed
 
   // Timecard Routes - Essential for CLT compliance
-  app.use('/api/timecard', timecardRoutes);
+  // app.use('/api/timecard', timecardRoutes); // Temporarily disabled due to controller issues
 
   // 🔴 CLT COMPLIANCE ROUTES - OBRIGATÓRIAS POR LEI
   // Enhanced CLT handler with comprehensive safety checks
@@ -3688,7 +3687,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/technical-skills', technicalSkillsRoutes);
   app.use('/api/schedule', scheduleRoutes);
   app.use('/api/notifications', notificationsRoutes);
-  app.use('/api/ticket-metadata', ticketMetadataRoutes);
+  // app.use('/api/ticket-metadata', ticketMetadataRoutes); // Ticket metadata routes handled inline above
   app.use('/api/field-layouts', fieldLayoutRoutes);
 
   // ========================================
@@ -3792,7 +3791,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/technical-skills', technicalSkillsRoutes);
   app.use('/api/schedule', scheduleRoutes);
   app.use('/api/notifications', notificationsRoutes);
-  app.use('/api/ticket-metadata', ticketMetadataRoutes);
+  // app.use('/api/ticket-metadata', ticketMetadataRoutes); // Ticket metadata routes handled inline above
   app.use('/api/field-layouts', fieldLayoutRoutes);
   app.use('/api/ticket-history', ticketHistoryRoutes);
   app.use('/api/ticket-field-options', ticketFieldOptionsRoutes);
