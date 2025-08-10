@@ -16,7 +16,7 @@ beneficiariesRouter.use(jwtAuth);
 beneficiariesRouter.use(enhancedTenantValidator());
 
 // Inicializar dependências
-const beneficiaryRepository = new DrizzleBeneficiaryRepository(db);
+const beneficiaryRepository = new DrizzleBeneficiaryRepository();
 const beneficiaryService = new BeneficiaryApplicationService(beneficiaryRepository);
 
 // Initialize use cases
@@ -69,23 +69,23 @@ const beneficiarySchema = z.object({
 beneficiariesRouter.get('/', beneficiaryController.getAll.bind(beneficiaryController));
 
 // GET /api/beneficiaries/:id - Get a specific beneficiary
-beneficiariesRouter.get("/:id", async (req: AuthenticatedRequest, res: Response) => {
+beneficiariesRouter.get("/:id", async (req: AuthenticatedRequest, res: any) => {
   try {
-    const tenantId = req.tenantId!;
+    const tenantId = req.user?.tenantId!;
     const { id } = beneficiaryIdSchema.parse(req.params);
     const beneficiary = await beneficiaryRepository.findById(id, tenantId);
 
     if (!beneficiary) {
-      return sendError(res, "Beneficiary not found", 404);
+      return res.status(404).json({ success: false, message: "Beneficiary not found" });
     }
 
-    return sendSuccess(res, { beneficiary }, "Beneficiary retrieved successfully");
+    return res.json({ success: true, data: { beneficiary }, message: "Beneficiary retrieved successfully" });
   } catch (error: any) {
     console.error("Error fetching beneficiary:", error);
     if (error instanceof z.ZodError) {
-      return sendValidationError(res, error.errors.map(e => e.message));
+      return res.status(400).json({ success: false, message: "Validation error", errors: error.errors.map(e => e.message) });
     }
-    return sendError(res, error.message, 500);
+    return res.status(500).json({ success: false, message: error.message });
   }
 });
 
