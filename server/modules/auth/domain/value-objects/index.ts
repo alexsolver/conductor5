@@ -1,3 +1,7 @@
+/**
+ * Auth Value Objects Export
+ * Clean Architecture - Domain Layer
+ * Centralized exports for auth domain value objects
+ */
 
-export { Email } from './Email';
-export { Password } from './Password';
+export { Role } from './Role';

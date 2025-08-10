@@ -55,15 +55,6 @@ export class Beneficiary {
   get createdAt(): Date { return this._createdAt; }
   get updatedAt(): Date { return this._updatedAt; }
 
-  toJSON() {
-    return {
-      id: this._id,
-      name: this._name,
-      email: this._email,
-      phone: this._phone,
-      address: this._address,
-      createdAt: this._createdAt,
-      updatedAt: this._updatedAt
-    };
-  }
+  // CLEANED: Serialization methods removed from domain entities
+  // Presentation concerns should be handled by DTOs in application layer
 }

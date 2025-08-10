@@ -108,53 +108,6 @@ export class Notification {
 
   // Factory method
   // Factory method removed - should be handled by repository or service layer
-  static createRemoved(props: NotificationCreateProps, idGenerator: { generate(): string }): Notification {
-    // Business validation
-    if (!props.title?.trim()) {
-      throw new Error('Notification title is required');
-    }
-    
-    if (!props.message?.trim()) {
-      throw new Error('Notification message is required');
-    }
-    
-    if (!props.tenantId) {
-      throw new Error('Notification must belong to a tenant');
-    }
-
-    if (!props.userId) {
-      throw new Error('Notification must have a user');
-    }
-
-    if (!props.channels || props.channels.length === 0) {
-      throw new Error('At least one notification channel is required');
-    }
-
-    const now = new Date();
-    const scheduledAt = props.scheduledAt || now;
-    
-    return new Notification(
-      idGenerator.generate(),
-      props.tenantId,
-      props.userId,
-      props.type,
-      props.severity,
-      props.title.trim(),
-      props.message.trim(),
-      props.metadata || {},
-      props.channels,
-      'pending',
-      scheduledAt,
-      props.expiresAt || null,
-      null, // sentAt
-      null, // deliveredAt
-      null, // failedAt
-      props.relatedEntityType || null,
-      props.relatedEntityId || null,
-      now, // createdAt
-      now  // updatedAt
-    );
-  }
 
   // Update methods
   markAsSent(): Notification {

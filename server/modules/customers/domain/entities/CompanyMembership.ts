@@ -227,16 +227,6 @@ export class CompanyMembership {
 
   // Factory Methods
   // Factory method removed - should be handled by repository or service layer
-  static createRemoved(props: {
-    customerId: string;
-    companyId: string;
-    role?: 'member' | 'admin' | 'owner' | 'contact';
-    title?: string | null;
-    department?: string | null;
-    permissions?: any;
-    isPrimary?: boolean;
-    addedBy: string;
-  }): CompanyMembership {
     return new CompanyMembership(
       crypto.randomUUID(),
       props.customerId,

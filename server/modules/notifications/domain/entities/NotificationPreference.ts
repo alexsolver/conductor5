@@ -110,34 +110,6 @@ export class NotificationPreference {
 
   // Factory method
   // Factory method removed - should be handled by repository or service layer
-  static createRemoved(props: NotificationPreferenceCreateProps, idGenerator: { generate(): string }): NotificationPreference {
-    if (!props.tenantId) {
-      throw new Error('NotificationPreference must belong to a tenant');
-    }
-
-    if (!props.userId) {
-      throw new Error('NotificationPreference must have a user');
-    }
-
-    if (!props.notificationType) {
-      throw new Error('NotificationPreference must have a notification type');
-    }
-
-    const now = new Date();
-    
-    return new NotificationPreference(
-      idGenerator.generate(),
-      props.tenantId,
-      props.userId,
-      props.notificationType,
-      props.channels || ['in_app'],
-      props.enabled,
-      props.scheduleSettings || {},
-      props.filters || {},
-      now,
-      now
-    );
-  }
 
   // Update methods
   updateChannels(channels: NotificationChannel[]): NotificationPreference {

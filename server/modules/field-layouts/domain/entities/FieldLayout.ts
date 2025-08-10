@@ -11,12 +11,6 @@ export class FieldLayout {
   ) {}
 
   // Factory method removed - should be handled by repository or service layer
-  static createRemoved(data: {
-    id: string;
-    name: string;
-    fields: any[];
-    tenantId: string;
-  }): FieldLayout {
     return new FieldLayout(
       data.id,
       data.name,

@@ -13,26 +13,7 @@ export class Service {
     public readonly updatedAt: Date = new Date()
   ) {}
 
-  // Factory method removed - should be handled by repository or service layer
-  static createRemoved(
-    id: string,
-    tenantId: string,
-    name: string,
-    description?: string,
-    price?: number,
-    category?: string,
-    duration?: number
-  ): Service {
-    return new Service(
-      id,
-      tenantId,
-      name,
-      description,
-      price,
-      category,
-      duration
-    );
-  }
+  // CLEANED: Factory methods removed - handled by repository layer
 
   validate(): boolean {
     return !!(this.name && this.tenantId && this.price !== undefined && this.price >= 0);

@@ -125,34 +125,6 @@ export class Customer {
 
   // Factory methods
   // Factory method removed - should be handled by repository or service layer  
-  static createRemoved(props: {
-    tenantId: string;
-    customerType: 'PF' | 'PJ';
-    email: string;
-    firstName?: string | null;
-    lastName?: string | null;
-    cpf?: string | null;
-    companyName?: string | null;
-    cnpj?: string | null;
-    description?: string | null;
-    internalCode?: string | null;
-    contactPerson?: string | null;
-    responsible?: string | null;
-    phone?: string | null;
-    mobilePhone?: string | null;
-    position?: string | null;
-    supervisor?: string | null;
-    coordinator?: string | null;
-    manager?: string | null;
-    status?: 'Ativo' | 'Inativo';
-    tags?: string[];
-    metadata?: Record<string, any>;
-    verified?: boolean;
-    timezone?: string;
-    locale?: string;
-    language?: string;
-    role?: string;
-  }): Customer {
     // Business validation
     if (!props.email) {
       throw new Error('Customer email is required');

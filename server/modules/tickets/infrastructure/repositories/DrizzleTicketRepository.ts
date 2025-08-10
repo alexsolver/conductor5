@@ -283,8 +283,8 @@ export class DrizzleTicketRepository implements ITicketRepository {
   }
 
   async getNextTicketNumber(tenantId: string, prefix = 'INC'): Promise<string> {
-    // CLEANED: Simple ticket number generation 
-    // Business logic moved to domain layer, infrastructure only handles data operations
+    // CLEANED: Infrastructure layer - purely data generation without business rules
+    // Ticket numbering strategy can be injected via domain service if needed
     const timestamp = Date.now().toString(36);
     const random = Math.random().toString(36).substr(2, 5);
     return `${prefix}-${timestamp}-${random}`.toUpperCase();
@@ -296,7 +296,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
     return new Ticket(
       data.id,
       data.tenantId,
-      data.companyId, // FIXED: Using camelCase from Drizzle schema mapping
+      data.customerId || data.customer_id, // FIXED: Database has customer_id, not companyId
       data.callerId,
       data.callerType,
       data.subject,
@@ -339,26 +339,27 @@ export class DrizzleTicketRepository implements ITicketRepository {
     return {
       id: ticket.getId(),
       tenantId: ticket.getTenantId(),
-      companyId: ticket.getCustomerId(), // Maps domain customerId to DB companyId
+      customerId: ticket.getCustomerId(), // FIXED: Database field is customer_id, not company_id
       callerId: ticket.getCallerId(),
       callerType: ticket.getCallerType(),
       subject: ticket.getSubject(),
       description: ticket.getDescription(),
       number: ticket.getNumber(),
-      shortDescription: ticket.getShortDescription(),
       category: ticket.getCategory(),
       subcategory: ticket.getSubcategory(),
       priority: ticket.getPriority().getValue(), // Convert TicketPriority to string
       impact: ticket.getImpact(),
       urgency: ticket.getUrgency(),
-      state: ticket.getState().getValue(), // Convert TicketStatus to string
-      status: ticket.getStatus(),
+      status: ticket.getStatus(), // FIXED: Using status field from schema
       assignedToId: ticket.getAssignedToId(),
       beneficiaryId: ticket.getBeneficiaryId(),
       beneficiaryType: ticket.getBeneficiaryType(),
-      openedAt: ticket.getOpenedAt(),
-      resolvedAt: ticket.getResolvedAt(),
-      closedAt: ticket.getClosedAt(),
+      contactType: ticket.getContactType(),
+      businessImpact: ticket.getBusinessImpact(),
+      symptoms: ticket.getSymptoms(),
+      workaround: ticket.getWorkaround(),
+      resolutionCode: ticket.getResolutionCode(),
+      resolutionNotes: ticket.getResolutionNotes(),
       createdAt: ticket.getCreatedAt(),
       updatedAt: ticket.getUpdatedAt()
     };

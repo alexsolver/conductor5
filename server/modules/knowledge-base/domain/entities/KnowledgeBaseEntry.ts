@@ -25,18 +25,8 @@ export class KnowledgeBaseEntry {
     public readonly updatedAt: Date = new Date()
   ) {}
 
-  // Factory method removed - should be handled by repository or service layer
-  static createRemoved(props: Omit<KnowledgeBaseEntryProps, 'id' | 'createdAt' | 'updatedAt'>): KnowledgeBaseEntry {
-    return new KnowledgeBaseEntry(
-      crypto.randomUUID(),
-      props.title,
-      props.content,
-      props.category,
-      props.tags,
-      props.authorId,
-      props.isPublished ?? false
-    );
-  }
+  // CLEANED: Factory methods removed - handled by repository layer
+  // Domain entities focus purely on business logic
 
   static reconstruct(props: KnowledgeBaseEntryProps): KnowledgeBaseEntry {
     return new KnowledgeBaseEntry(

@@ -10,16 +10,6 @@ export class DashboardMetric {
     public readonly metadata?: Record<string, any>
   ) {}
 
-  // Factory method removed - should be handled by repository or service layer
-  static createRemoved(data: Omit<DashboardMetric, 'id' | 'createdAt'>): DashboardMetric {
-    return new DashboardMetric(
-      crypto.randomUUID(),
-      data.name,
-      data.value,
-      data.unit,
-      data.category,
-      new Date(),
-      data.metadata
-    );
-  }
+  // CLEANED: Factory methods removed - handled by repository layer
+  // Domain entities focus purely on business logic
 }

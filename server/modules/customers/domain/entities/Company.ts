@@ -330,53 +330,7 @@ export class Company {
     );
   }
 
-  // Factory Methods
-  // Factory method removed - should be handled by repository or service layer
-  // Domain entities should focus on business logic, not object construction
-  static createRemoved(props: {
-    tenantId: string;
-    name: string;
-    displayName?: string | null;
-    description?: string | null;
-    industry?: string | null;
-    size?: 'small' | 'medium' | 'large' | 'enterprise' | null;
-    email?: string | null;
-    phone?: string | null;
-    website?: string | null;
-    address?: Record<string, string>;
-    subscriptionTier?: 'basic' | 'premium' | 'enterprise';
-    createdBy: string;
-  }): Company {
-    return new Company(
-      crypto.randomUUID(),
-      props.tenantId,
-      props.name,
-      props.displayName || null,
-      props.description || null,
-      props.industry || null,
-      props.size || null,
-      props.email || null,
-      props.phone || null,
-      props.website || null,
-      props.address || {},
-      null, // taxId
-      null, // registrationNumber
-      props.subscriptionTier || 'basic',
-      null, // contractType
-      null, // maxUsers
-      null, // maxTickets
-      {}, // settings
-      [], // tags
-      {}, // metadata
-      'active', // status
-      true, // isActive
-      false, // isPrimary
-      new Date(),
-      new Date(),
-      props.createdBy,
-      null
-    );
-  }
+  // CLEANED: Factory methods removed - handled by repository layer
 
   static fromPersistence(data: Record<string, unknown>): Company {
     return new Company(
