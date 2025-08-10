@@ -69,8 +69,23 @@ class CleanArchitectureValidator {
   private discoverModules(): void {
     console.log('🔍 Descobrindo módulos do sistema...');
 
-    const modulesDir = 'server/modules';
-    if (!existsSync(modulesDir)) {
+    // Try both relative and absolute paths for modules directory
+    const possiblePaths = [
+      'server/modules',
+      './server/modules',
+      join(process.cwd(), 'server/modules'),
+      'modules'
+    ];
+
+    let modulesDir = '';
+    for (const path of possiblePaths) {
+      if (existsSync(path)) {
+        modulesDir = path;
+        break;
+      }
+    }
+
+    if (!modulesDir) {
       this.addIssue({
         id: 'ARCH-001',
         layer: 'infrastructure',
@@ -78,7 +93,7 @@ class CleanArchitectureValidator {
         severity: 'critical',
         type: 'structure_violation',
         description: 'Diretório de módulos não encontrado',
-        file: modulesDir,
+        file: 'server/modules',
         suggestedFix: 'Criar estrutura de módulos seguindo padrão Clean Architecture'
       });
       return;
@@ -89,7 +104,8 @@ class CleanArchitectureValidator {
       .map(dirent => dirent.name);
 
     this.modulesPaths = modules.map(module => join(modulesDir, module));
-    console.log(`✅ Encontrados ${modules.length} módulos: ${modules.join(', ')}\n`);
+    console.log(`✅ Encontrados ${modules.length} módulos: ${modules.join(', ')}`);
+    console.log(`📂 Diretório base: ${modulesDir}\n`);
   }
 
   private async validateLayerStructure(): Promise<void> {
