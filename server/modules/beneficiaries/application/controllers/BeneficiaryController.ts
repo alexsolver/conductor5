@@ -47,6 +47,11 @@ export class BeneficiaryController {
     return await this.getBeneficiariesUseCase.execute(request);
   }
 
+  async getById(id: string, tenantId: string) {
+    // Implementation for getting beneficiary by ID
+    return null;
+  }
+
   async update(request: UpdateBeneficiaryRequest) {
     return await this.updateBeneficiaryUseCase.execute(request);
   }

@@ -9,8 +9,24 @@ const router = Router();
 router.use(jwtAuth);
 router.use(tenantValidator);
 
-// Inicializar controller
-const beneficiaryController = new BeneficiaryController();
+// Import required use cases
+import { CreateBeneficiaryUseCase } from './application/use-cases/CreateBeneficiaryUseCase';
+import { GetBeneficiariesUseCase } from './application/use-cases/GetBeneficiariesUseCase';
+import { UpdateBeneficiaryUseCase } from './application/use-cases/UpdateBeneficiaryUseCase';
+import { DeleteBeneficiaryUseCase } from './application/use-cases/DeleteBeneficiaryUseCase';
+
+// Inicializar controller with dependencies
+const createBeneficiaryUseCase = new CreateBeneficiaryUseCase();
+const getBeneficiariesUseCase = new GetBeneficiariesUseCase();
+const updateBeneficiaryUseCase = new UpdateBeneficiaryUseCase();
+const deleteBeneficiaryUseCase = new DeleteBeneficiaryUseCase();
+
+const beneficiaryController = new BeneficiaryController(
+  createBeneficiaryUseCase,
+  getBeneficiariesUseCase,
+  updateBeneficiaryUseCase,
+  deleteBeneficiaryUseCase
+);
 
 // Rotas CRUD - delegando para controllers
 router.get('/', beneficiaryController.getAll.bind(beneficiaryController));
