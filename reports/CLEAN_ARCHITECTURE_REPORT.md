@@ -7,10 +7,10 @@
 ## Resumo de Problemas
 
 - 🔥 **Críticos:** 2
-- ⚠️ **Altos:** 48
+- ⚠️ **Altos:** 49
 - 📋 **Médios:** 25
 - 💡 **Baixos:** 0
-- **Total:** 75
+- **Total:** 76
 
 ## Principais Problemas por Módulo
 
@@ -61,12 +61,12 @@
   - Application Layer violando dependência: ../../infrastructure/repositories/MediaRepository
 
 ### ⚠️ timecard
-- **Total de problemas:** 5
-- **Críticos:** 0 | **Altos:** 2
+- **Total de problemas:** 6
+- **Críticos:** 0 | **Altos:** 3
 - **Principais problemas:**
   - Application Layer violando dependência: express
+  - Application Layer violando dependência: express
   - Repository contém possível lógica de negócio
-  - Repository DrizzleTimecardRepository deve implementar interface
 
 ### 📋 auth
 - **Total de problemas:** 1
