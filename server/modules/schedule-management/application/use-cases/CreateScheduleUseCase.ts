@@ -1,33 +1,21 @@
 import { ScheduleEntity } from '../../domain/entities/ScheduleEntity';
 import { IScheduleRepository } from '../../domain/ports/IScheduleRepository';
+import { ValidationDomainService } from '../../../shared/domain/services/ValidationDomainService';
 
 export class CreateScheduleUseCase {
-  constructor(
-    private readonly scheduleRepository: IScheduleRepository
-  ) {}
+  constructor(private scheduleRepository: IScheduleRepository) {}
 
-  async execute(data: {
-    tenantId: string;
-    userId: string;
-    startTime: Date;
-    endTime: Date;
-    title: string;
-    description?: string;
-  }): Promise<ScheduleEntity> {
-    const schedule = ScheduleEntity.create(
-      crypto.randomUUID(),
-      data.tenantId,
-      data.userId,
-      data.startTime,
-      data.endTime,
-      data.title,
-      data.description
-    );
+  async execute(scheduleData: any, tenantId: string): Promise<any> {
+    // Validações de domínio
+    ValidationDomainService.validateRequired(scheduleData.title, 'Schedule title');
+    ValidationDomainService.validateRequired(tenantId, 'Tenant ID');
 
-    if (!schedule.isValid()) {
-      throw new Error('Invalid schedule data');
-    }
-
-    return await this.scheduleRepository.create(schedule);
+    // Delegar para repository
+    return await this.scheduleRepository.create({
+      ...scheduleData,
+      tenantId,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
   }
 }

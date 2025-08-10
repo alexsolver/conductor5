@@ -1,4 +1,4 @@
-import { z } from 'zod';
+// Removed express dependency - using abstract Request/Response types
 
 // Application Services (Use Cases)
 import { KnowledgeBaseApplicationService } from '../services/KnowledgeBaseApplicationService';

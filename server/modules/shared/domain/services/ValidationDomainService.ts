@@ -33,3 +33,37 @@ export class ValidationDomainService {
     return uuidRegex.test(uuid);
   }
 }
+export class ValidationDomainService {
+  static validateEmail(email: string): boolean {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  }
+  
+  static validatePhoneNumber(phone: string): boolean {
+    const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
+    return phoneRegex.test(phone.replace(/\s/g, ''));
+  }
+  
+  static validateCPF(cpf: string): boolean {
+    // Implementação de validação de CPF
+    const cleanCPF = cpf.replace(/[^\d]/g, '');
+    if (cleanCPF.length !== 11) return false;
+    
+    // Validação básica
+    if (/^(\d)\1{10}$/.test(cleanCPF)) return false;
+    
+    return true; // Simplified validation
+  }
+  
+  static validateCNPJ(cnpj: string): boolean {
+    // Implementação de validação de CNPJ
+    const cleanCNPJ = cnpj.replace(/[^\d]/g, '');
+    return cleanCNPJ.length === 14;
+  }
+  
+  static validateRequired(value: any, fieldName: string): void {
+    if (!value || (typeof value === 'string' && value.trim() === '')) {
+      throw new Error(`${fieldName} is required`);
+    }
+  }
+}

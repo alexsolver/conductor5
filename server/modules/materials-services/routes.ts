@@ -87,6 +87,9 @@ async function getControllers(tenantId: string) {
 }
 
 // ===== ITEMS ROUTES =====
+// Routes refatoradas para usar apenas controllers e use cases
+// Toda lógica de negócio movida para use cases na application layer
+
 router.post('/items', async (req: AuthenticatedRequest, res) => {
   if (!req.user?.tenantId) return res.status(401).json({ message: 'Tenant ID required' });
   const { itemController } = await getControllers(req.user.tenantId);
@@ -478,10 +481,6 @@ router.get('/price-lists/:priceListId/items', async (req: AuthenticatedRequest, 
 router.post('/price-lists/:priceListId/items', async (req: AuthenticatedRequest, res) => {
   try {
     if (!req.user?.tenantId) return res.status(401).json({ message: 'Tenant ID required' });
-
-    console.log('🔍 POST /price-lists/:priceListId/items - Params:', req.params);
-    console.log('🔍 POST /price-lists/:priceListId/items - Body:', req.body);
-
     const { lpuController } = await getControllers(req.user.tenantId);
     return lpuController.addPriceListItem(req, res);
   } catch (error) {

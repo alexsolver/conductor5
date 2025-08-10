@@ -1,4 +1,3 @@
-
 import { IMaterialRepository } from '../../domain/ports/IMaterialRepository';
 
 export class MaterialApplicationService {

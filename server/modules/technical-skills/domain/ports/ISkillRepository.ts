@@ -69,3 +69,10 @@ export interface ISkillRepository {
   findByCategory(category: string, tenantId: string): Promise<SkillEntity[]>;
   search(query: string, tenantId: string): Promise<SkillEntity[]>;
 }
+export interface ISkillRepository {
+  create(skill: any): Promise<any>;
+  findById(id: string, tenantId: string): Promise<any | null>;
+  findByTenant(tenantId: string): Promise<any[]>;
+  update(id: string, tenantId: string, data: any): Promise<any | null>;
+  delete(id: string, tenantId: string): Promise<boolean>;
+}

@@ -124,3 +124,10 @@ export interface IScheduleRepository {
   findByDateRange(startDate: Date, endDate: Date, tenantId: string): Promise<ScheduleEntity[]>;
   findByTechnician(technicianId: string, tenantId: string): Promise<ScheduleEntity[]>;
 }
+export interface IScheduleRepository {
+  create(schedule: any): Promise<any>;
+  findById(id: string, tenantId: string): Promise<any | null>;
+  findByTenant(tenantId: string): Promise<any[]>;
+  update(id: string, tenantId: string, data: any): Promise<any | null>;
+  delete(id: string, tenantId: string): Promise<boolean>;
+}
