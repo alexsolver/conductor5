@@ -96,7 +96,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/csp-report', createCSPReportingEndpoint());
 
   // CSP management routes (admin only)
-  app.use('/api/csp', requirePermission('platform', 'manage_security'), createCSPManagementRoutes());
+  try {
+    const cspManagementRoutes = createCSPManagementRoutes();
+    if (cspManagementRoutes) {
+      app.use('/api/csp', requirePermission('platform', 'manage_security'), cspManagementRoutes);
+    }
+  } catch (error) {
+    console.warn('CSP management routes not available, skipping...');
+  }
 
   // Feature flags routes
   app.get('/api/feature-flags', jwtAuth, async (req: AuthenticatedRequest, res) => {
