@@ -15,7 +15,9 @@ import {
 import { eq, and, desc, asc, gte, lte, sql, inArray } from 'drizzle-orm';
 import { randomUUID } from 'crypto';
 
-export class LPURepository {
+import { ILPURepository } from '../../domain/ports/ILPURepository';
+
+export class LPURepository implements ILPURepository {
   private db: any;
   private tenantSchema: string = ''; // Added to store tenant schema
   private tenantId: string = ''; // Added to store tenant ID

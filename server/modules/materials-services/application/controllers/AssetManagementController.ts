@@ -1,11 +1,12 @@
 import { Request, Response } from 'express';
 import { AssetManagementRepository } from '../../infrastructure/repositories/AssetManagementRepository';
+import { IAssetManagementRepository } from '../../domain/interfaces/IAssetManagementRepository';
 
 export class AssetManagementController {
-  private repository: AssetManagementRepository;
+  private repository: IAssetManagementRepository;
 
-  constructor() {
-    this.repository = new AssetManagementRepository();
+  constructor(repository: IAssetManagementRepository) {
+    this.repository = repository;
   }
 
   // GESTÃO DE ATIVOS
@@ -28,7 +29,7 @@ export class AssetManagementController {
     try {
       const { id } = req.params;
       const tenantId = req.user?.tenantId;
-      
+
       if (!tenantId) {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
@@ -70,7 +71,7 @@ export class AssetManagementController {
     try {
       const { id } = req.params;
       const tenantId = req.user?.tenantId;
-      
+
       if (!tenantId) {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
@@ -96,7 +97,7 @@ export class AssetManagementController {
     try {
       const { id } = req.params;
       const tenantId = req.user?.tenantId;
-      
+
       if (!tenantId) {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
@@ -129,7 +130,7 @@ export class AssetManagementController {
     try {
       const { parentId } = req.params;
       const tenantId = req.user?.tenantId;
-      
+
       if (!tenantId) {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
@@ -147,7 +148,7 @@ export class AssetManagementController {
     try {
       const tenantId = req.user?.tenantId;
       const { assetId } = req.query;
-      
+
       if (!tenantId) {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
@@ -184,7 +185,7 @@ export class AssetManagementController {
     try {
       const { id } = req.params;
       const tenantId = req.user?.tenantId;
-      
+
       if (!tenantId) {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
@@ -206,7 +207,7 @@ export class AssetManagementController {
     try {
       const { assetId } = req.params;
       const tenantId = req.user?.tenantId;
-      
+
       if (!tenantId) {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
@@ -244,7 +245,7 @@ export class AssetManagementController {
     try {
       const { assetId } = req.params;
       const tenantId = req.user?.tenantId;
-      
+
       if (!tenantId) {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
@@ -266,7 +267,7 @@ export class AssetManagementController {
     try {
       const { assetId } = req.params;
       const tenantId = req.user?.tenantId;
-      
+
       if (!tenantId) {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
@@ -284,7 +285,7 @@ export class AssetManagementController {
     try {
       const { assetId } = req.params;
       const tenantId = req.user?.tenantId;
-      
+
       if (!tenantId) {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
@@ -301,7 +302,7 @@ export class AssetManagementController {
     try {
       const { qrCode } = req.params;
       const tenantId = req.user?.tenantId;
-      
+
       if (!tenantId) {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }

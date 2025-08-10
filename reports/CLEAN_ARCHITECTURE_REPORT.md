@@ -7,16 +7,16 @@
 ## Resumo de Problemas
 
 - 🔥 **Críticos:** 2
-- ⚠️ **Altos:** 50
-- 📋 **Médios:** 28
+- ⚠️ **Altos:** 48
+- 📋 **Médios:** 25
 - 💡 **Baixos:** 0
-- **Total:** 80
+- **Total:** 75
 
 ## Principais Problemas por Módulo
 
 ### ⚠️ materials-services
-- **Total de problemas:** 45
-- **Críticos:** 0 | **Altos:** 35
+- **Total de problemas:** 40
+- **Críticos:** 0 | **Altos:** 33
 - **Principais problemas:**
   - Routes contém lógica de negócio ou acesso a dados
   - Application Layer violando dependência: express
@@ -108,8 +108,8 @@
 
 ### ⚠️ materials-services
 - **Prioridade:** high
-- **Tempo estimado:** 22h
-- **Ações:** 27
+- **Tempo estimado:** 21h
+- **Ações:** 24
 
 1. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
 2. **refactor_code:** Refatorar dependência inválida na camada application
@@ -134,10 +134,7 @@
 21. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
 22. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 23. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
-24. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
-25. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
-26. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
-27. **create_file:** Criar Repository com interface
+24. **create_file:** Criar Repository com interface
 
 ### ⚠️ saas-admin
 - **Prioridade:** high
@@ -229,7 +226,7 @@
 - **beneficiaries:** 2 ações (2h)
 
 ### Prioridade Alta ⚠️
-- **materials-services:** 27 ações (22h)
+- **materials-services:** 24 ações (21h)
 - **saas-admin:** 5 ações (3h)
 - **technical-skills:** 2 ações (2h)
 - **tickets:** 2 ações (2h)

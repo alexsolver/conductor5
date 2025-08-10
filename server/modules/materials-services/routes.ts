@@ -68,13 +68,16 @@ async function getControllers(tenantId: string) {
     const ticketMaterialsController = new TicketMaterialsController(tenantDb);
     console.log('✅ getControllers: TicketMaterialsController created successfully');
 
+    const assetRepository = new (await import('./infrastructure/repositories/AssetManagementRepository')).AssetManagementRepository();
+    const complianceRepository = new (await import('./infrastructure/repositories/ComplianceRepository')).ComplianceRepository();
+
     return {
       itemController: new ItemController(itemRepository),
       supplierController: new SupplierController(supplierRepository),
       stockController: new StockController(stockRepository),
-      assetController: new AssetManagementController(),
+      assetController: new AssetManagementController(assetRepository),
       lpuController: lpuController,
-      complianceController: new ComplianceController(),
+      complianceController: new ComplianceController(complianceRepository),
       ticketMaterialsController: ticketMaterialsController
     };
   } catch (error) {

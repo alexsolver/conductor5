@@ -289,30 +289,6 @@
       {
         "type": "create_directory",
         "description": "Criar interface I[Entity]Repository no domain e implementar",
-        "target": "/home/runner/workspace/server/modules/materials-services/infrastructure/repositories/AssetManagementRepository.ts",
-        "steps": [
-          "Criar interface I[Entity]Repository no domain e implementar"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar interface I[Entity]Repository no domain e implementar",
-        "target": "/home/runner/workspace/server/modules/materials-services/infrastructure/repositories/ComplianceRepository.ts",
-        "steps": [
-          "Criar interface I[Entity]Repository no domain e implementar"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar interface I[Entity]Repository no domain e implementar",
-        "target": "/home/runner/workspace/server/modules/materials-services/infrastructure/repositories/LPURepository.ts",
-        "steps": [
-          "Criar interface I[Entity]Repository no domain e implementar"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar interface I[Entity]Repository no domain e implementar",
         "target": "/home/runner/workspace/server/modules/materials-services/infrastructure/repositories/StockRepository.ts",
         "steps": [
           "Criar interface I[Entity]Repository no domain e implementar"
@@ -339,7 +315,7 @@
         ]
       }
     ],
-    "estimatedTime": "22h"
+    "estimatedTime": "21h"
   },
   {
     "priority": "high",

@@ -30,3 +30,11 @@ export class DrizzleIComplianceRepository implements IIComplianceRepository {
     throw new Error('Method not implemented.');
   }
 }
+export interface IComplianceRepository {
+  findAll(): Promise<any[]>;
+  findById(id: string): Promise<any | null>;
+  create(data: any): Promise<any>;
+  update(id: string, data: any): Promise<any>;
+  delete(id: string): Promise<void>;
+  getStats(): Promise<any>;
+}

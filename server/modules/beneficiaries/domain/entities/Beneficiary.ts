@@ -1,6 +1,4 @@
-// Domain layer não deve depender de Application layer
-
-// Removed dependency violation - Domain Layer should not depend on Application Layer DTOs
+// Removed DTO dependency from domain layer - violates Clean Architecture
 
 export class Beneficiary {
   public readonly id: string;

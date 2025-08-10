@@ -31,3 +31,12 @@ export class DrizzleILPURepository implements IILPURepository {
     throw new Error('Method not implemented.');
   }
 }
+export interface ILPURepository {
+  findAll(): Promise<any[]>;
+  findById(id: string): Promise<any | null>;
+  create(data: any): Promise<any>;
+  update(id: string, data: any): Promise<any>;
+  delete(id: string): Promise<void>;
+  getPriceLists(): Promise<any[]>;
+  getPricingRules(): Promise<any[]>;
+}

@@ -1,23 +1,26 @@
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../../../../middleware/jwtAuth';
 import { db } from '../../../../db';
-import { LPURepository } from '../../infrastructure/repositories/LPURepository';
+import { ILPURepository } from '../../domain/ports/ILPURepository';
 import { PricingRulesEngine } from '../services/PricingRulesEngine';
 
 export class LPUController {
-  private repository: LPURepository;
+  private lpuRepository: ILPURepository;
   private pricingEngine: PricingRulesEngine;
   private db: any; // Add db property to the class
 
-  constructor(db: any) {
+  constructor(db: any, lpuRepository: ILPURepository) {
     console.log('🏗️ LPUController: Initializing...');
     try {
       if (!db) {
         throw new Error('Database connection is required');
       }
+      if (!lpuRepository) {
+        throw new Error('LPU Repository is required');
+      }
       this.db = db;
-      this.repository = new LPURepository(db);
-      this.pricingEngine = new PricingRulesEngine(this.repository);
+      this.lpuRepository = lpuRepository;
+      this.pricingEngine = new PricingRulesEngine(this.lpuRepository);
       console.log('✅ LPUController: Initialized successfully');
     } catch (error) {
       console.error('❌ LPUController: Initialization failed:', error);
@@ -33,30 +36,30 @@ export class LPUController {
       const tenantId = req.user?.tenantId;
       if (!tenantId) {
         console.log('❌ LPUController.getAllPriceLists: Missing tenant ID');
-        return res.status(400).json({ 
+        return res.status(400).json({
           error: 'Tenant ID é obrigatório',
           success: false
         });
       }
 
-      if (!this.repository) {
+      if (!this.lpuRepository) {
         console.log('❌ LPUController.getAllPriceLists: Repository not initialized');
-        return res.status(500).json({ 
+        return res.status(500).json({
           error: 'Repository não inicializado',
           success: false
         });
       }
 
       console.log('🔍 LPUController.getAllPriceLists: Calling repository for tenant:', tenantId);
-      const priceLists = await this.repository.getAllPriceLists(tenantId);
+      const priceLists = await this.lpuRepository.getAllPriceLists(tenantId);
 
       console.log('✅ LPUController.getAllPriceLists: Success, returning', priceLists.length, 'price lists');
       res.json(priceLists);
     } catch (error) {
       console.error('❌ LPUController.getAllPriceLists: Error:', error);
       console.error('❌ LPUController.getAllPriceLists: Stack:', error instanceof Error ? error.stack : 'No stack trace');
-      res.status(500).json({ 
-        error: 'Erro interno do servidor', 
+      res.status(500).json({
+        error: 'Erro interno do servidor',
         details: error instanceof Error ? error.message : 'Erro desconhecido',
         success: false
       });
@@ -72,7 +75,7 @@ export class LPUController {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
 
-      const priceList = await this.repository.getPriceListById(id, tenantId);
+      const priceList = await this.lpuRepository.getPriceListById(id, tenantId);
       if (!priceList) {
         return res.status(404).json({ error: 'Lista de preços não encontrada' });
       }
@@ -107,10 +110,10 @@ export class LPUController {
         validTo: req.body.validTo ? new Date(req.body.validTo) : null
       };
 
-      const priceList = await this.repository.createPriceList(priceListData);
+      const priceList = await this.lpuRepository.createPriceList(priceListData);
       // Invalidate relevant cache
-      await this.repository.invalidateCache(tenantId, 'price-lists');
-      await this.repository.invalidateCache(tenantId, 'stats');
+      await this.lpuRepository.invalidateCache(tenantId, 'price-lists');
+      await this.lpuRepository.invalidateCache(tenantId, 'stats');
       res.status(201).json(priceList);
     } catch (error) {
       console.error('Erro ao criar lista de preços:', error);
@@ -143,13 +146,13 @@ export class LPUController {
         }
       });
 
-      const priceList = await this.repository.updatePriceList(id, tenantId, updateData);
+      const priceList = await this.lpuRepository.updatePriceList(id, tenantId, updateData);
       if (!priceList) {
         return res.status(404).json({ error: 'Lista de preços não encontrada' });
       }
       // Invalidate relevant cache
-      await this.repository.invalidateCache(tenantId, 'price-lists');
-      await this.repository.invalidateCache(tenantId, 'stats');
+      await this.lpuRepository.invalidateCache(tenantId, 'price-lists');
+      await this.lpuRepository.invalidateCache(tenantId, 'stats');
       res.json(priceList);
     } catch (error) {
       console.error('Erro ao atualizar lista de preços:', error);
@@ -164,9 +167,9 @@ export class LPUController {
       const tenantId = req.user?.tenantId;
 
       if (!tenantId) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           success: false,
-          error: 'Tenant ID é obrigatório' 
+          error: 'Tenant ID é obrigatório'
         });
       }
 
@@ -179,7 +182,7 @@ export class LPUController {
         });
       }
 
-      const duplicatedList = await this.repository.duplicatePriceList(id, tenantId);
+      const duplicatedList = await this.lpuRepository.duplicatePriceList(id, tenantId);
 
       if (!duplicatedList) {
         return res.status(404).json({
@@ -205,8 +208,8 @@ export class LPUController {
         });
       }
 
-      res.status(500).json({ 
-        success: false, 
+      res.status(500).json({
+        success: false,
         error: 'Erro ao duplicar lista de preços',
         details: error instanceof Error ? error.message : 'Erro interno do servidor'
       });
@@ -222,10 +225,10 @@ export class LPUController {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
 
-      await this.repository.deletePriceList(id, tenantId);
+      await this.lpuRepository.deletePriceList(id, tenantId);
       // Invalidate relevant cache
-      await this.repository.invalidateCache(tenantId, 'price-lists');
-      await this.repository.invalidateCache(tenantId, 'stats');
+      await this.lpuRepository.invalidateCache(tenantId, 'price-lists');
+      await this.lpuRepository.invalidateCache(tenantId, 'stats');
       res.status(204).send();
     } catch (error) {
       console.error('Erro ao excluir lista de preços:', error);
@@ -243,7 +246,7 @@ export class LPUController {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
 
-      const versions = await this.repository.getPriceListVersions(priceListId, tenantId);
+      const versions = await this.lpuRepository.getPriceListVersions(priceListId, tenantId);
       res.json(versions);
     } catch (error) {
       console.error('Erro ao buscar versões:', error);
@@ -263,9 +266,9 @@ export class LPUController {
         tenantId
       };
 
-      const version = await this.repository.createPriceListVersion(versionData);
+      const version = await this.lpuRepository.createPriceListVersion(versionData);
       // Invalidate relevant cache
-      await this.repository.invalidateCache(tenantId, 'price-list-versions');
+      await this.lpuRepository.invalidateCache(tenantId, 'price-list-versions');
       res.status(201).json(version);
     } catch (error) {
       console.error('Erro ao criar versão:', error);
@@ -282,9 +285,9 @@ export class LPUController {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
 
-      const version = await this.repository.submitForApproval(versionId, tenantId, req.user?.id!);
+      const version = await this.lpuRepository.submitForApproval(versionId, tenantId, req.user?.id!);
       // Invalidate relevant cache
-      await this.repository.invalidateCache(tenantId, 'price-list-versions');
+      await this.lpuRepository.invalidateCache(tenantId, 'price-list-versions');
       res.json(version);
     } catch (error) {
       console.error('Erro ao submeter para aprovação:', error);
@@ -301,10 +304,10 @@ export class LPUController {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
 
-      const version = await this.repository.approvePriceList(versionId, tenantId, req.user?.id!);
+      const version = await this.lpuRepository.approvePriceList(versionId, tenantId, req.user?.id!);
       // Invalidate relevant cache
-      await this.repository.invalidateCache(tenantId, 'price-lists');
-      await this.repository.invalidateCache(tenantId, 'price-list-versions');
+      await this.lpuRepository.invalidateCache(tenantId, 'price-lists');
+      await this.lpuRepository.invalidateCache(tenantId, 'price-list-versions');
       res.json(version);
     } catch (error) {
       console.error('Erro ao aprovar lista de preços:', error);
@@ -326,9 +329,9 @@ export class LPUController {
         return res.status(400).json({ error: 'Motivo da rejeição é obrigatório' });
       }
 
-      const version = await this.repository.rejectPriceList(versionId, tenantId, req.user?.id!, reason);
+      const version = await this.lpuRepository.rejectPriceList(versionId, tenantId, req.user?.id!, reason);
       // Invalidate relevant cache
-      await this.repository.invalidateCache(tenantId, 'price-list-versions');
+      await this.lpuRepository.invalidateCache(tenantId, 'price-list-versions');
       res.json(version);
     } catch (error) {
       console.error('Erro ao rejeitar lista de preços:', error);
@@ -346,7 +349,7 @@ export class LPUController {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
 
-      const items = await this.repository.getPriceListItems(priceListId, tenantId);
+      const items = await this.lpuRepository.getPriceListItems(priceListId, tenantId);
       res.json(items);
     } catch (error) {
       console.error('Erro ao buscar itens da lista:', error);
@@ -375,10 +378,10 @@ export class LPUController {
 
       console.log('🔍 Adding item to price list:', { priceListId, tenantId, itemData });
 
-      const item = await this.repository.addPriceListItem(itemData);
+      const item = await this.lpuRepository.addPriceListItem(itemData);
       // Invalidate relevant cache
-      await this.repository.invalidateCache(tenantId, `price-list-items/${priceListId}`);
-      await this.repository.invalidateCache(tenantId, 'stats');
+      await this.lpuRepository.invalidateCache(tenantId, `price-list-items/${priceListId}`);
+      await this.lpuRepository.invalidateCache(tenantId, 'stats');
       res.status(201).json(item);
     } catch (error) {
       console.error('Erro ao adicionar item à lista:', error);
@@ -395,13 +398,13 @@ export class LPUController {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
 
-      const item = await this.repository.updatePriceListItem(id, tenantId, req.body);
+      const item = await this.lpuRepository.updatePriceListItem(id, tenantId, req.body);
       if (!item) {
         return res.status(404).json({ error: 'Item não encontrado' });
       }
       // Invalidate relevant cache
-      await this.repository.invalidateCache(tenantId, `price-list-items/${item.priceListId}`);
-      await this.repository.invalidateCache(tenantId, 'stats');
+      await this.lpuRepository.invalidateCache(tenantId, `price-list-items/${item.priceListId}`);
+      await this.lpuRepository.invalidateCache(tenantId, 'stats');
       res.json(item);
     } catch (error) {
       console.error('Erro ao atualizar item:', error);
@@ -418,7 +421,7 @@ export class LPUController {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
 
-      const deletedItem = await this.repository.deletePriceListItem(id, tenantId);
+      const deletedItem = await this.lpuRepository.deletePriceListItem(id, tenantId);
 
       if (!deletedItem) {
         return res.status(404).json({ error: 'Item não encontrado' });
@@ -426,10 +429,10 @@ export class LPUController {
 
       // Invalidate relevant cache (only if we have priceListId)
       if (deletedItem.priceListId) {
-        await this.repository.invalidateCache(tenantId, `price-list-items/${deletedItem.priceListId}`);
+        await this.lpuRepository.invalidateCache(tenantId, `price-list-items/${deletedItem.priceListId}`);
       }
-      await this.repository.invalidateCache(tenantId, 'stats');
-      await this.repository.invalidateCache(tenantId, 'price-list-items');
+      await this.lpuRepository.invalidateCache(tenantId, 'stats');
+      await this.lpuRepository.invalidateCache(tenantId, 'price-list-items');
 
       res.status(204).send();
     } catch (error) {
@@ -446,7 +449,7 @@ export class LPUController {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
 
-      const rules = await this.repository.getAllPricingRules(tenantId);
+      const rules = await this.lpuRepository.getAllPricingRules(tenantId);
       res.json(rules);
     } catch (error) {
       console.error('Erro ao buscar regras de precificação:', error);
@@ -466,9 +469,9 @@ export class LPUController {
         tenantId
       };
 
-      const rule = await this.repository.createPricingRule(ruleData);
+      const rule = await this.lpuRepository.createPricingRule(ruleData);
       // Invalidate relevant cache
-      await this.repository.invalidateCache(tenantId, 'pricing-rules');
+      await this.lpuRepository.invalidateCache(tenantId, 'pricing-rules');
       res.status(201).json(rule);
     } catch (error) {
       console.error('Erro ao criar regra de precificação:', error);
@@ -485,12 +488,12 @@ export class LPUController {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
 
-      const rule = await this.repository.updatePricingRule(id, tenantId, req.body);
+      const rule = await this.lpuRepository.updatePricingRule(id, tenantId, req.body);
       if (!rule) {
         return res.status(404).json({ error: 'Regra não encontrada' });
       }
       // Invalidate relevant cache
-      await this.repository.invalidateCache(tenantId, 'pricing-rules');
+      await this.lpuRepository.invalidateCache(tenantId, 'pricing-rules');
       res.json(rule);
     } catch (error) {
       console.error('Erro ao atualizar regra:', error);
@@ -507,9 +510,9 @@ export class LPUController {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
 
-      await this.repository.deletePricingRule(id, tenantId);
+      await this.lpuRepository.deletePricingRule(id, tenantId);
       // Invalidate relevant cache
-      await this.repository.invalidateCache(tenantId, 'pricing-rules');
+      await this.lpuRepository.invalidateCache(tenantId, 'pricing-rules');
       res.status(204).send();
     } catch (error) {
       console.error('Erro ao excluir regra:', error);
@@ -527,7 +530,7 @@ export class LPUController {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
 
-      const pricing = await this.repository.getDynamicPricing(priceListId, tenantId);
+      const pricing = await this.lpuRepository.getDynamicPricing(priceListId, tenantId);
       res.json(pricing);
     } catch (error) {
       console.error('Erro ao buscar precificação dinâmica:', error);
@@ -547,9 +550,9 @@ export class LPUController {
         tenantId
       };
 
-      const pricing = await this.repository.updateDynamicPricing(pricingData);
+      const pricing = await this.lpuRepository.updateDynamicPricing(pricingData);
       // Invalidate relevant cache
-      await this.repository.invalidateCache(tenantId, `dynamic-pricing/${pricingData.priceListId}`);
+      await this.lpuRepository.invalidateCache(tenantId, `dynamic-pricing/${pricingData.priceListId}`);
       res.json(pricing);
     } catch (error) {
       console.error('Erro ao atualizar precificação dinâmica:', error);
@@ -567,10 +570,10 @@ export class LPUController {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
 
-      const result = await this.repository.bulkUpdateMargins(priceListId, tenantId, req.body);
+      const result = await this.lpuRepository.bulkUpdateMargins(priceListId, tenantId, req.body);
       // Invalidate relevant cache
-      await this.repository.invalidateCache(tenantId, `price-list-items/${priceListId}`);
-      await this.repository.invalidateCache(tenantId, 'stats');
+      await this.lpuRepository.invalidateCache(tenantId, `price-list-items/${priceListId}`);
+      await this.lpuRepository.invalidateCache(tenantId, 'stats');
       res.json(result);
     } catch (error) {
       console.error('Erro ao atualizar margens:', error);
@@ -587,14 +590,14 @@ export class LPUController {
       const tenantId = req.user?.tenantId;
       if (!tenantId) {
         console.log('❌ LPUController.getLPUStats: Missing tenant ID');
-        return res.status(400).json({ 
+        return res.status(400).json({
           error: 'Tenant ID é obrigatório',
           success: false
         });
       }
 
       console.log('🔍 LPUController.getLPUStats: Calling repository for tenant:', tenantId);
-      const stats = await this.repository.getLPUStats(tenantId);
+      const stats = await this.lpuRepository.getLPUStats(tenantId);
 
       const totalTime = Date.now() - startTime;
       console.log(`⚡ LPUController.getLPUStats: Completed in ${totalTime}ms`);
@@ -609,8 +612,8 @@ export class LPUController {
     } catch (error) {
       const totalTime = Date.now() - startTime;
       console.error(`❌ LPUController.getLPUStats: Error after ${totalTime}ms:`, error);
-      res.status(500).json({ 
-        success: false, 
+      res.status(500).json({
+        success: false,
         error: 'Failed to get LPU stats',
         details: error instanceof Error ? error.message : 'Erro desconhecido'
       });
@@ -629,14 +632,14 @@ export class LPUController {
       }
 
       // Aplicar as regras aos itens da lista
-      const results = await this.repository.applyRulesToPriceList(priceListId, ruleIds, tenantId);
+      const results = await this.lpuRepository.applyRulesToPriceList(priceListId, ruleIds, tenantId);
       // Invalidate relevant cache
-      await this.repository.invalidateCache(tenantId, `price-list-items/${priceListId}`);
-      await this.repository.invalidateCache(tenantId, 'stats');
-      res.json({ 
-        success: true, 
+      await this.lpuRepository.invalidateCache(tenantId, `price-list-items/${priceListId}`);
+      await this.lpuRepository.invalidateCache(tenantId, 'stats');
+      res.json({
+        success: true,
         message: 'Regras aplicadas com sucesso',
-        affectedItems: results.length 
+        affectedItems: results.length
       });
     } catch (error) {
       console.error('Erro ao aplicar regras à lista:', error);
@@ -653,7 +656,7 @@ export class LPUController {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
 
-      const rules = await this.repository.getPriceListRules(priceListId, tenantId);
+      const rules = await this.lpuRepository.getPriceListRules(priceListId, tenantId);
       res.json(rules);
     } catch (error) {
       console.error('Erro ao buscar regras da lista:', error);
@@ -670,12 +673,12 @@ export class LPUController {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
 
-      await this.repository.associateRuleWithPriceList(priceListId, ruleId, tenantId);
+      await this.lpuRepository.associateRuleWithPriceList(priceListId, ruleId, tenantId);
       // Invalidate relevant cache
-      await this.repository.invalidateCache(tenantId, `price-list-rules/${priceListId}`);
-      res.json({ 
-        success: true, 
-        message: 'Regra associada com sucesso' 
+      await this.lpuRepository.invalidateCache(tenantId, `price-list-rules/${priceListId}`);
+      res.json({
+        success: true,
+        message: 'Regra associada com sucesso'
       });
     } catch (error) {
       console.error('Erro ao associar regra:', error);
@@ -692,12 +695,12 @@ export class LPUController {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
 
-      await this.repository.removeRuleFromPriceList(priceListId, ruleId, tenantId);
+      await this.lpuRepository.removeRuleFromPriceList(priceListId, ruleId, tenantId);
       // Invalidate relevant cache
-      await this.repository.invalidateCache(tenantId, `price-list-rules/${priceListId}`);
-      res.json({ 
-        success: true, 
-        message: 'Regra removida com sucesso' 
+      await this.lpuRepository.invalidateCache(tenantId, `price-list-rules/${priceListId}`);
+      res.json({
+        success: true,
+        message: 'Regra removida com sucesso'
       });
     } catch (error) {
       console.error('Erro ao remover regra:', error);
@@ -720,7 +723,7 @@ export class LPUController {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
 
-      const rule = await this.repository.getPricingRuleById(id, tenantId);
+      const rule = await this.lpuRepository.getPricingRuleById(id, tenantId);
       if (!rule) {
         return res.status(404).json({ error: 'Regra não encontrada' });
       }
