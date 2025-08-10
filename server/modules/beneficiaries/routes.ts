@@ -2,6 +2,10 @@ import { Router } from 'express';
 import { jwtAuth } from '../../middleware/jwtAuth';
 import { tenantValidator } from '../../middleware/tenantValidator';
 import { BeneficiaryController } from './application/controllers/BeneficiaryController';
+import { CreateBeneficiaryUseCase } from './application/use-cases/CreateBeneficiaryUseCase';
+import { GetBeneficiariesUseCase } from './application/use-cases/GetBeneficiariesUseCase';
+import { UpdateBeneficiaryUseCase } from './application/use-cases/UpdateBeneficiaryUseCase';
+import { DeleteBeneficiaryUseCase } from './application/use-cases/DeleteBeneficiaryUseCase';
 
 const router = Router();
 
@@ -9,8 +13,18 @@ const router = Router();
 router.use(jwtAuth);
 router.use(tenantValidator);
 
-// Inicializar controller
-const beneficiaryController = new BeneficiaryController();
+// Inicializar use cases e controller
+const createBeneficiaryUseCase = new CreateBeneficiaryUseCase();
+const getBeneficiariesUseCase = new GetBeneficiariesUseCase();
+const updateBeneficiaryUseCase = new UpdateBeneficiaryUseCase();
+const deleteBeneficiaryUseCase = new DeleteBeneficiaryUseCase();
+
+const beneficiaryController = new BeneficiaryController(
+  createBeneficiaryUseCase,
+  getBeneficiariesUseCase,
+  updateBeneficiaryUseCase,
+  deleteBeneficiaryUseCase
+);
 
 // Rotas CRUD - delegando para controllers
 router.get('/', beneficiaryController.getAll.bind(beneficiaryController));

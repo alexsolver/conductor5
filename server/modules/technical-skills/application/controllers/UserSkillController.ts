@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { IUserSkillRepository } from '../../domain/repositories/IUserSkillRepository';
 import { UserSkill } from '../../domain/entities/UserSkill';
 import { insertUserSkillSchema } from '@shared/schema';
+import { DrizzleUserSkillRepository } from '../../infrastructure/repositories/DrizzleUserSkillRepository';
 // Logger temporariamente removido para simplificação
 
 interface AuthenticatedRequest extends Request {

@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { MediaService } from '../services/MediaService';
 import { IMediaRepository } from '../../domain/ports/IMediaRepository';
+import { MediaRepository } from '../../infrastructure/repositories/MediaRepository';
 import { AuthenticatedRequest } from '../../../../middleware/jwtAuth';
 
 export class MediaController {

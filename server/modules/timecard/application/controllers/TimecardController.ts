@@ -9,6 +9,7 @@ import {
   createFlexibleWorkArrangementSchema
 } from '../../../../../shared/timecard-validation';
 import { AuthenticatedRequest } from '../../middleware/isAuthenticated';
+import { DrizzleTimecardRepository } from '../../infrastructure/repositories/DrizzleTimecardRepository';
 
 // Express dependency removed - using dependency injection instead
 // Using interface instead of express types to maintain clean architecture
