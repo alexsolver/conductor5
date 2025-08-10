@@ -174,13 +174,13 @@ customersRouter.get('/companies', jwtAuth, async (req: AuthenticatedRequest, res
     `, [req.user.tenantId]);
 
     console.log(`[COMPANIES-API] Found ${result.rows.length} companies`);
-    
+
     // Always return an array, even if empty
     const companies = result.rows || [];
     res.json(companies);
   } catch (error: any) {
     console.error('[COMPANIES-API] Error fetching companies:', error);
-    
+
     // Return empty array on error instead of error object
     res.json([]);
   }

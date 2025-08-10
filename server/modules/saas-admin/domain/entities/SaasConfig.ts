@@ -1,4 +1,4 @@
-// Removida dependência do drizzle-orm - violação de Clean Architecture
+// Removida dependência inválida - Domain não deve conhecer Infrastructure
 export interface SaasConfig {
   id: string;
   tenantId: string;

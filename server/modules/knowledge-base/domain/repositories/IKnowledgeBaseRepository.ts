@@ -1,4 +1,3 @@
-
 import { KnowledgeBaseEntry } from '../entities/KnowledgeBaseEntry';
 
 export interface IKnowledgeBaseRepository {

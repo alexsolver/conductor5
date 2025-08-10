@@ -254,7 +254,7 @@ router.get('/knowledge-base/articles/:id', jwtAuth, async (req: AuthenticatedReq
 //   res.json(entries);
 // });
 
-// Using controllers following Clean Architecture
+// Routes limpas - delegando para Use Cases
 router.get('/entries', jwtAuth, async (req, res) => {
   try {
     // Implementação temporária até o controller ser corrigido
