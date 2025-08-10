@@ -3,13 +3,17 @@
  * Clean Architecture - Domain Layer
  */
 
+import { Ticket } from '../entities/Ticket';
+
 export interface ITicketRepository {
-  create(ticket: any): Promise<any>;
-  findById(id: string): Promise<any | null>;
-  findAll(): Promise<any[]>;
-  update(id: string, ticket: any): Promise<any>;
+  create(ticket: Ticket): Promise<Ticket>;
+  findById(id: string, tenantId?: string): Promise<Ticket | null>;
+  findAll(): Promise<Ticket[]>;
+  update(id: string, ticket: Ticket): Promise<Ticket>;
   delete(id: string): Promise<void>;
-  findByStatus(status: string): Promise<any[]>;
-  findByAssignee(assigneeId: string): Promise<any[]>;
-  findByCustomer(customerId: string): Promise<any[]>;
+  save(ticket: Ticket): Promise<Ticket>;
+  getNextTicketNumber(tenantId: string, prefix: string): Promise<string>;
+  findByStatus(status: string): Promise<Ticket[]>;
+  findByAssignee(assigneeId: string): Promise<Ticket[]>;
+  findByCustomer(customerId: string): Promise<Ticket[]>;
 }

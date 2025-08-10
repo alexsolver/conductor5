@@ -1,4 +1,4 @@
-export interface TicketHistory {
+export interface ITicketHistory {
   id: string;
   ticketId: string;
   action: string;
@@ -19,7 +19,7 @@ export class TicketHistory {
     public readonly metadata?: Record<string, any>
   ) {}
 
-  static create(data: Omit<TicketHistory, 'id' | 'createdAt'>): TicketHistory {
+  static create(data: Omit<ITicketHistory, 'id' | 'createdAt'>): TicketHistory {
     return new TicketHistory(
       crypto.randomUUID(),
       data.ticketId,

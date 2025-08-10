@@ -1,5 +1,5 @@
 
-import { TicketHistoryEntity } from '../../domain/entities/TicketHistory';
+import { TicketHistory } from '../../domain/entities/TicketHistory';
 import { ITicketHistoryRepository } from '../../domain/repositories/ITicketHistoryRepository';
 
 export interface CreateTicketHistoryRequest {
@@ -13,8 +13,8 @@ export interface CreateTicketHistoryRequest {
 export class CreateTicketHistoryUseCase {
   constructor(private ticketHistoryRepository: ITicketHistoryRepository) {}
 
-  async execute(request: CreateTicketHistoryRequest): Promise<TicketHistoryEntity> {
-    const ticketHistory = TicketHistoryEntity.create({
+  async execute(request: CreateTicketHistoryRequest): Promise<TicketHistory> {
+    const ticketHistory = TicketHistory.create({
       ticketId: request.ticketId,
       action: request.action,
       description: request.description,
