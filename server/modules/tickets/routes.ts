@@ -11,6 +11,19 @@ import { trackTicketView, trackTicketEdit, trackNoteView, trackNoteCreate, track
 // Controllers - Business logic is now encapsulated here
 import { TicketController } from './application/controllers/TicketController';
 
+// Use Cases - Imported for controller instantiation
+import { GetTicketsUseCase } from './application/usecases/GetTicketsUseCase';
+import { CreateTicketUseCase } from './application/usecases/CreateTicketUseCase';
+import { AssignTicketUseCase } from './application/usecases/AssignTicketUseCase';
+import { ResolveTicketUseCase } from './application/usecases/ResolveTicketUseCase';
+
+// Repository - To be injected into Use Cases
+import { DrizzleTicketRepository } from './infrastructure/repositories/DrizzleTicketRepository';
+
+// Database connection
+import { getDb } from '../../db';
+
+
 // Generate unique action number for internal actions
 async function generateActionNumber(pool: any, tenantId: string, ticketId: string): Promise<string> {
   try {
@@ -102,7 +115,16 @@ async function createCompleteAuditEntry(
 }
 
 const ticketsRouter = Router();
-const ticketController = new TicketController();
+const db = getDb();
+const ticketRepository = new DrizzleTicketRepository(db);
+
+// Initialize controller with dependencies
+const ticketController = new TicketController(
+  new GetTicketsUseCase(ticketRepository),
+  new CreateTicketUseCase(ticketRepository),
+  new AssignTicketUseCase(ticketRepository),
+  new ResolveTicketUseCase(ticketRepository)
+);
 
 // Apply middleware
 ticketsRouter.use(jwtAuth);
@@ -121,75 +143,7 @@ ticketsRouter.use((req: any, res, next) => {
 });
 
 // Get all tickets (main endpoint)
-ticketsRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
-  console.log('🎫 [TICKETS-ROUTES] GET / called');
-
-  try {
-    const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 50;
-    const search = req.query.search as string;
-    const status = req.query.status as string;
-    const priority = req.query.priority as string;
-    const assignedToId = req.query.assignedToId as string;
-    const companyId = req.query.companyId as string;
-
-    console.log('🎫 [TICKETS-ROUTES] Fetching tickets with options:', {
-      page,
-      limit,
-      search,
-      status,
-      priority,
-      assignedToId,
-      companyId
-    });
-
-    // Verificar se o controller está disponível
-    if (!ticketController || typeof ticketController.getAllTickets !== 'function') {
-      console.log('❌ [TICKETS-ROUTES] ticketController.getAllTickets is not available');
-      return res.status(503).json(standardResponse(false, 'Service temporarily unavailable', null));
-    }
-
-    if (!req.user?.tenantId) {
-      console.error('❌ [TICKETS-ROUTES] No tenantId found');
-      return res.status(400).json(standardResponse(false, 'User not associated with a tenant', { tickets: [] }));
-    }
-
-    const options = {
-      page: page,
-      limit: limit,
-      search: search,
-      status: status,
-      priority: priority,
-      assignedToId: assignedToId,
-      companyId: companyId
-    };
-
-    const result = await ticketController.getAllTickets({
-      tenantId: req.user.tenantId,
-      userId: req.user.id,
-      page: options.page,
-      limit: options.limit,
-      search: options.search,
-      status: options.status,
-      priority: options.priority,
-      assignedToId: options.assignedToId,
-      companyId: options.companyId
-    });
-
-    res.status(200).json(standardResponse(true, 'Tickets retrieved successfully', result.data));
-
-  } catch (error: any) {
-    console.error('❌ [TICKETS-ROUTES] Error in GET /:', error);
-    const { logError } = await import('../../utils/logger');
-    logError('Error fetching tickets', error, { tenantId: req.user?.tenantId });
-
-    return res.status(500).json({
-      success: false,
-      error: error.message || 'Failed to fetch tickets',
-      data: { tickets: [] }
-    });
-  }
-});
+ticketsRouter.get('/', jwtAuth, ticketController.getAllTickets.bind(ticketController));
 
 // Get urgent tickets (filtered from all tickets)
 ticketsRouter.get('/urgent', jwtAuth, async (req: AuthenticatedRequest, res) => {

@@ -1,80 +1,89 @@
-/**
- * Get Tickets Use Case
- * Clean Architecture - Application Layer
- */
 
+import { ITicketRepository } from '../../domain/repositories/ITicketRepository';
 import { Ticket } from '../../domain/entities/Ticket';
-import { ITicketRepository, TicketFilter } from '../../domain/ports/ITicketRepository';
 
-export interface GetTicketsInput {
+export interface GetTicketsQuery {
   tenantId: string;
+  page?: number;
+  limit?: number;
   search?: string;
   status?: string;
   priority?: string;
   assignedToId?: string;
-  customerId?: string;
-  category?: string;
-  state?: string;
-  urgent?: boolean;
-  limit?: number;
-  offset?: number;
+  companyId?: string;
 }
 
-export interface GetTicketsOutput {
+export interface GetTicketsResult {
   tickets: Ticket[];
   total: number;
-  success: boolean;
-  error?: string;
+  page: number;
+  limit: number;
+  totalPages: number;
 }
 
 export class GetTicketsUseCase {
-  constructor(
-    private ticketRepository: ITicketRepository
-  ) {}
+  constructor(private ticketRepository: ITicketRepository) {}
 
-  async execute(input: GetTicketsInput): Promise<GetTicketsOutput> {
+  async execute(query: GetTicketsQuery): Promise<GetTicketsResult> {
+    const {
+      tenantId,
+      page = 1,
+      limit = 50,
+      search,
+      status,
+      priority,
+      assignedToId,
+      companyId
+    } = query;
+
     try {
-      const filter: TicketFilter = {
-        tenantId: input.tenantId,
-        search: input.search,
-        status: input.status,
-        priority: input.priority,
-        assignedToId: input.assignedToId,
-        customerId: input.customerId,
-        category: input.category,
-        state: input.state,
-        urgent: input.urgent,
-        limit: input.limit || 50,
-        offset: input.offset || 0
-      };
+      // Para esta implementação simplificada, vamos retornar uma estrutura básica
+      // que pode ser expandida quando o repositório for totalmente implementado
+      const tickets = await this.ticketRepository.findAll(tenantId);
+      
+      // Aplicar filtros se necessário
+      let filteredTickets = tickets;
+      
+      if (search) {
+        filteredTickets = filteredTickets.filter(ticket => 
+          ticket.title?.toLowerCase().includes(search.toLowerCase()) ||
+          ticket.description?.toLowerCase().includes(search.toLowerCase())
+        );
+      }
+      
+      if (status) {
+        filteredTickets = filteredTickets.filter(ticket => ticket.status === status);
+      }
+      
+      if (priority) {
+        filteredTickets = filteredTickets.filter(ticket => ticket.priority === priority);
+      }
+      
+      if (assignedToId) {
+        filteredTickets = filteredTickets.filter(ticket => ticket.assignedToId === assignedToId);
+      }
+      
+      if (companyId) {
+        filteredTickets = filteredTickets.filter(ticket => ticket.companyId === companyId);
+      }
 
-      const [tickets, total] = await Promise.all([
-        this.ticketRepository.findMany(filter),
-        this.ticketRepository.count({
-          tenantId: filter.tenantId,
-          search: filter.search,
-          status: filter.status,
-          priority: filter.priority,
-          assignedToId: filter.assignedToId,
-          customerId: filter.customerId,
-          category: filter.category,
-          state: filter.state,
-          urgent: filter.urgent
-        })
-      ]);
+      // Paginação
+      const total = filteredTickets.length;
+      const totalPages = Math.ceil(total / limit);
+      const startIndex = (page - 1) * limit;
+      const endIndex = startIndex + limit;
+      const paginatedTickets = filteredTickets.slice(startIndex, endIndex);
 
       return {
-        tickets,
+        tickets: paginatedTickets,
         total,
-        success: true
+        page,
+        limit,
+        totalPages
       };
     } catch (error) {
-      return {
-        tickets: [],
-        total: 0,
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error occurred'
-      };
+      console.error('❌ Error in GetTicketsUseCase:', error);
+      throw new Error('Failed to retrieve tickets');
     }
   }
 }

@@ -4,11 +4,13 @@
  * Contains business rules and invariants for tickets
  */
 
+import { TicketStatus, TicketPriority } from '../value-objects';
+
 export class Ticket {
   constructor(
     private readonly id: string,
     private readonly tenantId: string,
-    private readonly customerId: string,
+    private customerId: string,
     private readonly callerId: string,
     private readonly callerType: 'user' | 'customer',
     private subject: string,
@@ -17,10 +19,10 @@ export class Ticket {
     private shortDescription: string,
     private category: string,
     private subcategory: string,
-    private priority: 'low' | 'medium' | 'high' | 'urgent',
+    private priority: TicketPriority,
     private impact: 'low' | 'medium' | 'high' | 'critical',
     private urgency: 'low' | 'medium' | 'high',
-    private state: string,
+    private state: TicketStatus,
     private status: string,
     private assignedToId: string | null,
     private beneficiaryId: string | null,
@@ -58,10 +60,10 @@ export class Ticket {
   getShortDescription(): string { return this.shortDescription; }
   getCategory(): string { return this.category; }
   getSubcategory(): string { return this.subcategory; }
-  getPriority(): 'low' | 'medium' | 'high' | 'urgent' { return this.priority; }
+  getPriority(): TicketPriority { return this.priority; }
   getImpact(): 'low' | 'medium' | 'high' | 'critical' { return this.impact; }
   getUrgency(): 'low' | 'medium' | 'high' { return this.urgency; }
-  getState(): string { return this.state; }
+  getState(): TicketStatus { return this.state; }
   getStatus(): string { return this.status; }
   getAssignedToId(): string | null { return this.assignedToId; }
   getBeneficiaryId(): string | null { return this.beneficiaryId; }
@@ -74,22 +76,22 @@ export class Ticket {
 
   // Business rules
   canBeAssigned(): boolean {
-    return this.state !== 'closed' && this.state !== 'resolved';
+    return this.state.getValue() !== 'closed' && this.state.getValue() !== 'resolved';
   }
 
   canBeResolved(): boolean {
-    return this.state === 'in_progress' || this.state === 'open';
+    return this.state.getValue() === 'in_progress' || this.state.getValue() === 'open';
   }
 
   canBeClosed(): boolean {
-    return this.state === 'resolved' || this.state === 'in_progress';
+    return this.state.getValue() === 'resolved' || this.state.getValue() === 'in_progress';
   }
 
   isOverdue(): boolean {
-    if (this.state === 'closed' || this.state === 'resolved') {
+    if (this.state.getValue() === 'closed' || this.state.getValue() === 'resolved') {
       return false;
     }
-    
+
     // Business rule: High priority tickets are overdue after 4 hours
     // Medium priority after 24 hours, Low priority after 72 hours
     const hoursLimit = {
@@ -97,14 +99,14 @@ export class Ticket {
       high: 4,
       medium: 24,
       low: 72
-    }[this.priority];
+    }[this.priority.getValue()];
 
     const hoursSinceCreated = (Date.now() - this.createdAt.getTime()) / (1000 * 60 * 60);
     return hoursSinceCreated > hoursLimit;
   }
 
   requiresEscalation(): boolean {
-    return this.priority === 'urgent' && !this.assignedToId;
+    return this.priority.getValue() === 'urgent' && !this.assignedToId;
   }
 
   // Factory method
@@ -113,11 +115,11 @@ export class Ticket {
     if (!props.subject?.trim()) {
       throw new Error('Ticket subject is required');
     }
-    
+
     if (!props.description?.trim()) {
       throw new Error('Ticket description is required');
     }
-    
+
     if (!props.tenantId) {
       throw new Error('Ticket must belong to a tenant');
     }
@@ -131,7 +133,7 @@ export class Ticket {
     }
 
     const now = new Date();
-    
+
     return new Ticket(
       idGenerator.generate(),
       props.tenantId,
@@ -144,10 +146,10 @@ export class Ticket {
       props.shortDescription?.trim() || props.subject.trim(),
       props.category || 'general',
       props.subcategory || '',
-      props.priority,
+      new TicketPriority(props.priority || 'medium'),
       props.impact || 'medium',
       props.urgency || 'medium',
-      props.state || 'open',
+      new TicketStatus(props.state || 'open'),
       props.status || 'open',
       props.assignedToId || null,
       props.beneficiaryId || null,
@@ -192,10 +194,10 @@ export class Ticket {
       this.shortDescription,
       this.category,
       this.subcategory,
-      this.priority,
+      new TicketPriority(this.priority.getValue()), // Preserve existing priority
       this.impact,
       this.urgency,
-      'in_progress', // Change state to in_progress when assigned
+      new TicketStatus('in_progress'), // Change state to in_progress when assigned
       this.status,
       assignedToId,
       this.beneficiaryId,
@@ -228,7 +230,7 @@ export class Ticket {
     }
 
     const now = new Date();
-    
+
     return new Ticket(
       this.id,
       this.tenantId,
@@ -241,10 +243,10 @@ export class Ticket {
       this.shortDescription,
       this.category,
       this.subcategory,
-      this.priority,
+      this.priority, // Preserve existing priority
       this.impact,
       this.urgency,
-      'resolved',
+      new TicketStatus('resolved'),
       'resolved',
       this.assignedToId,
       this.beneficiaryId,
@@ -277,7 +279,7 @@ export class Ticket {
     }
 
     const now = new Date();
-    
+
     return new Ticket(
       this.id,
       this.tenantId,
@@ -290,10 +292,10 @@ export class Ticket {
       this.shortDescription,
       this.category,
       this.subcategory,
-      this.priority,
+      this.priority, // Preserve existing priority
       this.impact,
       this.urgency,
-      'closed',
+      new TicketStatus('closed'),
       'closed',
       this.assignedToId,
       this.beneficiaryId,
@@ -334,10 +336,10 @@ export class Ticket {
       data.shortDescription,
       data.category,
       data.subcategory,
-      data.priority,
+      new TicketPriority(data.priority), // Use value object
       data.impact,
       data.urgency,
-      data.state,
+      new TicketStatus(data.state), // Use value object
       data.status,
       data.assignedToId,
       data.beneficiaryId,

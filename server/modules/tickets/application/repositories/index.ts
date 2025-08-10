@@ -1,0 +1,2 @@
+
+export { ITicketApplicationRepository } from './ITicketApplicationRepository';
