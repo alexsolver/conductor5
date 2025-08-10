@@ -1,5 +1,4 @@
-// Domain entities should not import from application layer
-// Data structures will be passed as parameters instead
+// Remove infrastructure dependency - domain should be pure
 export class Beneficiary {
   constructor(
     public readonly id: string,

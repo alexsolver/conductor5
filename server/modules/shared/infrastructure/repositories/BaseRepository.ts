@@ -1,5 +1,5 @@
 import { Pool } from 'pg';
-// Infrastructure dependencies moved to implementation level
+// Remove direct infrastructure dependency - use dependency injection
 import { IBaseRepository } from '../../domain/repositories/IBaseRepository';
 
 export class BaseRepository<T> implements IBaseRepository<T> {
