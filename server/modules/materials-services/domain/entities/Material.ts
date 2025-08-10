@@ -1,15 +1,13 @@
-// Removed drizzle-orm dependency - domain entities should not import infrastructure
 export class Material {
   constructor(
     public readonly id: string,
     public readonly tenantId: string,
     public readonly name: string,
-    public readonly code: string,
     public readonly description?: string,
-    public readonly unitPrice?: number,
+    public readonly price?: number,
     public readonly category?: string,
-    public readonly supplier?: string,
-    public readonly active: boolean = true,
+    public readonly unit?: string,
+    public readonly isActive: boolean = true,
     public readonly createdAt: Date = new Date(),
     public readonly updatedAt: Date = new Date()
   ) {}
@@ -18,18 +16,27 @@ export class Material {
     id: string,
     tenantId: string,
     name: string,
-    code: string,
     description?: string,
-    unitPrice?: number
+    price?: number,
+    category?: string,
+    unit?: string
   ): Material {
-    return new Material(id, tenantId, name, code, description, unitPrice);
+    return new Material(
+      id,
+      tenantId,
+      name,
+      description,
+      price,
+      category,
+      unit
+    );
   }
 
-  isValid(): boolean {
-    return this.name.length > 0 && this.code.length > 0;
+  validate(): boolean {
+    return !!(this.name && this.tenantId && this.price !== undefined && this.price >= 0);
   }
 
   calculateTotalPrice(quantity: number): number {
-    return (this.unitPrice || 0) * quantity;
+    return (this.price || 0) * quantity;
   }
 }

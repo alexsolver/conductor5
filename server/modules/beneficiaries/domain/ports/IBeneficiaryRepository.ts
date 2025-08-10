@@ -10,3 +10,13 @@ export interface IBeneficiaryRepository {
   delete(id: string, tenantId: string): Promise<boolean>;
   findByCustomerId(customerId: string, tenantId: string): Promise<Beneficiary[]>;
 }
+import { Beneficiary } from '../entities/Beneficiary';
+
+export interface IBeneficiaryRepository {
+  findById(id: string, tenantId: string): Promise<Beneficiary | null>;
+  findAll(tenantId: string): Promise<Beneficiary[]>;
+  findByEmail(email: string, tenantId: string): Promise<Beneficiary | null>;
+  create(beneficiary: Beneficiary): Promise<Beneficiary>;
+  update(id: string, beneficiary: Partial<Beneficiary>, tenantId: string): Promise<Beneficiary | null>;
+  delete(id: string, tenantId: string): Promise<boolean>;
+}

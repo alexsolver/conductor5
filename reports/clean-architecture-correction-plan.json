@@ -38,9 +38,21 @@
           "Usar injeção de dependência",
           "Remover import direto da dependência externa"
         ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Entity misturada com DTOs - violação de responsabilidade",
+        "target": "/home/runner/workspace/server/modules/beneficiaries/domain/entities/Beneficiary.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
       }
     ],
-    "estimatedTime": "3h"
+    "estimatedTime": "4h"
   },
   {
     "priority": "immediate",
@@ -605,8 +617,8 @@
       },
       {
         "type": "rename_file",
-        "description": "Padronizar nomenclatura: Nome da classe CustomerModule não corresponde ao arquivo Schedule",
-        "target": "/home/runner/workspace/server/modules/schedule-management/domain/entities/Schedule.ts",
+        "description": "Padronizar nomenclatura: Nome da classe CustomerModule não corresponde ao arquivo ScheduleEntity",
+        "target": "/home/runner/workspace/server/modules/schedule-management/domain/entities/ScheduleEntity.ts",
         "steps": [
           "Renomear arquivo seguindo padrão",
           "Atualizar imports em outros arquivos",
@@ -655,6 +667,18 @@
           "Implementar interface na camada Infrastructure",
           "Usar injeção de dependência",
           "Remover import direto da dependência externa"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Repository contém possível lógica de negócio",
+        "target": "/home/runner/workspace/server/modules/shared/infrastructure/repositories/BaseRepository.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
         ]
       },
       {

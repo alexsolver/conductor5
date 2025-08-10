@@ -7,16 +7,16 @@
 ## Resumo de Problemas
 
 - 🔥 **Críticos:** 10
-- ⚠️ **Altos:** 65
-- 📋 **Médios:** 32
+- ⚠️ **Altos:** 66
+- 📋 **Médios:** 33
 - 💡 **Baixos:** 5
-- **Total:** 112
+- **Total:** 114
 
 ## Principais Problemas por Módulo
 
 ### 🔥 beneficiaries
-- **Total de problemas:** 4
-- **Críticos:** 2 | **Altos:** 2
+- **Total de problemas:** 5
+- **Críticos:** 2 | **Altos:** 3
 - **Principais problemas:**
   - Routes contém lógica de negócio ou acesso a dados
   - Domain Layer violando dependência: ../../application/dto/CreateBeneficiaryDTO
@@ -74,15 +74,15 @@
 - **Principais problemas:**
   - Domain Layer violando dependência: drizzle-orm/neon-http
   - Repository contém possível lógica de negócio
-  - Nome da classe CustomerModule não corresponde ao arquivo Schedule
+  - Nome da classe CustomerModule não corresponde ao arquivo ScheduleEntity
 
 ### 🔥 shared
-- **Total de problemas:** 6
+- **Total de problemas:** 7
 - **Críticos:** 2 | **Altos:** 0
 - **Principais problemas:**
   - Domain Layer violando dependência: drizzle-orm/neon-http
   - Domain Layer violando dependência: drizzle-orm/neon-http
-  - Repository index deve terminar com 'Repository'
+  - Repository contém possível lógica de negócio
 
 ### 🔥 timecard
 - **Total de problemas:** 11
@@ -127,12 +127,13 @@
 
 ### 🔥 beneficiaries
 - **Prioridade:** immediate
-- **Tempo estimado:** 3h
-- **Ações:** 3
+- **Tempo estimado:** 4h
+- **Ações:** 4
 
 1. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
 2. **refactor_code:** Refatorar dependência inválida na camada domain
 3. **refactor_code:** Refatorar dependência inválida na camada application
+4. **move_code:** Resolver acoplamento: Entity misturada com DTOs - violação de responsabilidade
 
 ### 🔥 materials-services
 - **Prioridade:** immediate
@@ -204,20 +205,21 @@
 
 1. **refactor_code:** Refatorar dependência inválida na camada domain
 2. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
-3. **rename_file:** Padronizar nomenclatura: Nome da classe CustomerModule não corresponde ao arquivo Schedule
+3. **rename_file:** Padronizar nomenclatura: Nome da classe CustomerModule não corresponde ao arquivo ScheduleEntity
 4. **create_file:** Criar Repository com interface
 
 ### 🔥 shared
 - **Prioridade:** immediate
 - **Tempo estimado:** 4h
-- **Ações:** 6
+- **Ações:** 7
 
 1. **refactor_code:** Refatorar dependência inválida na camada domain
 2. **refactor_code:** Refatorar dependência inválida na camada domain
-3. **rename_file:** Padronizar nomenclatura: Repository index deve terminar com 'Repository'
-4. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
+3. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
+4. **rename_file:** Padronizar nomenclatura: Repository index deve terminar com 'Repository'
 5. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
-6. **create_file:** Criar Repository com interface
+6. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
+7. **create_file:** Criar Repository com interface
 
 ### 🔥 timecard
 - **Prioridade:** immediate
@@ -300,12 +302,12 @@
 ## Recomendações
 
 ### Prioridade Imediata 🔥
-- **beneficiaries:** 3 ações (3h)
+- **beneficiaries:** 4 ações (4h)
 - **materials-services:** 33 ações (25h)
 - **saas-admin:** 6 ações (4h)
 - **technical-skills:** 6 ações (5h)
 - **schedule-management:** 4 ações (3h)
-- **shared:** 6 ações (4h)
+- **shared:** 7 ações (4h)
 - **timecard:** 7 ações (5h)
 
 ### Prioridade Alta ⚠️

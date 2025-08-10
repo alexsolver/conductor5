@@ -12,26 +12,37 @@ export interface SaasConfig {
 // Removed drizzle-orm dependency - domain entities should not import infrastructure
 export class SaasConfig {
   constructor(
-    public id: string,
-    public tenantId: string,
-    public configKey: string,
-    public configValue: string,
-    public active: boolean = true,
-    public createdAt: Date = new Date(),
-    public updatedAt: Date = new Date()
+    public readonly id: string,
+    public readonly tenantId: string,
+    public readonly configKey: string,
+    public readonly configValue: string,
+    public readonly description?: string,
+    public readonly isActive: boolean = true,
+    public readonly createdAt: Date = new Date(),
+    public readonly updatedAt: Date = new Date()
   ) {}
 
-  static create(tenantId: string, key: string, value: string): SaasConfig {
+  static create(
+    id: string,
+    tenantId: string,
+    configKey: string,
+    configValue: string,
+    description?: string
+  ): SaasConfig {
     return new SaasConfig(
-      crypto.randomUUID(),
+      id,
       tenantId,
-      key,
-      value
+      configKey,
+      configValue,
+      description
     );
   }
 
-  update(value: string): void {
-    this.configValue = value;
-    this.updatedAt = new Date();
+  validate(): boolean {
+    return !!(this.configKey && this.configValue && this.tenantId);
+  }
+
+  isFeatureEnabled(): boolean {
+    return this.configValue.toLowerCase() === 'true' && this.isActive;
   }
 }

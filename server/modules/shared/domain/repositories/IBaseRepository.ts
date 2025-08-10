@@ -1,9 +1,10 @@
 // Domain interface should not import infrastructure dependencies
 export interface IBaseRepository<T> {
-  findById(id: string): Promise<T | null>;
-  save(entity: T): Promise<T>;
-  delete(id: string): Promise<void>;
-  findAll(): Promise<T[]>;
+  findById(id: string, tenantId: string): Promise<T | null>;
+  findAll(tenantId: string): Promise<T[]>;
+  create(entity: T): Promise<T>;
+  update(id: string, entity: Partial<T>, tenantId: string): Promise<T | null>;
+  delete(id: string, tenantId: string): Promise<boolean>;
 }
 export interface IBaseRepository<T> {
   create(tenantId: string, data: Partial<T>): Promise<T>;

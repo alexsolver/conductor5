@@ -1,33 +1,38 @@
-// Remove infrastructure dependency - domain should be pure
-// Removed invalid dependency - domain layer should not import from application layer
 export class Beneficiary {
   constructor(
     public readonly id: string,
     public readonly tenantId: string,
     public readonly name: string,
-    public readonly email?: string,
+    public readonly email: string,
     public readonly phone?: string,
+    public readonly document?: string,
     public readonly address?: string,
-    public readonly status: 'active' | 'inactive' = 'active',
     public readonly createdAt: Date = new Date(),
     public readonly updatedAt: Date = new Date()
   ) {}
 
-  public isActive(): boolean {
-    return this.status === 'active';
+  // Domain entity should not know about DTOs - moved to application layer
+  static create(
+    id: string,
+    tenantId: string,
+    name: string,
+    email: string,
+    phone?: string,
+    document?: string,
+    address?: string
+  ): Beneficiary {
+    return new Beneficiary(
+      id,
+      tenantId,
+      name,
+      email,
+      phone,
+      document,
+      address
+    );
   }
 
-  public updateStatus(newStatus: 'active' | 'inactive'): Beneficiary {
-    return new Beneficiary(
-      this.id,
-      this.tenantId,
-      this.name,
-      this.email,
-      this.phone,
-      this.address,
-      newStatus,
-      this.createdAt,
-      new Date()
-    );
+  validate(): boolean {
+    return !!(this.name && this.email && this.tenantId);
   }
 }

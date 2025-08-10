@@ -1,15 +1,13 @@
-// Removed drizzle-orm dependency - domain entities should not import infrastructure
 export class Service {
   constructor(
     public readonly id: string,
     public readonly tenantId: string,
     public readonly name: string,
-    public readonly code: string,
     public readonly description?: string,
-    public readonly hourlyRate?: number,
+    public readonly price?: number,
     public readonly category?: string,
-    public readonly skillLevel?: string,
-    public readonly active: boolean = true,
+    public readonly duration?: number,
+    public readonly isActive: boolean = true,
     public readonly createdAt: Date = new Date(),
     public readonly updatedAt: Date = new Date()
   ) {}
@@ -18,18 +16,30 @@ export class Service {
     id: string,
     tenantId: string,
     name: string,
-    code: string,
     description?: string,
-    hourlyRate?: number
+    price?: number,
+    category?: string,
+    duration?: number
   ): Service {
-    return new Service(id, tenantId, name, code, description, hourlyRate);
+    return new Service(
+      id,
+      tenantId,
+      name,
+      description,
+      price,
+      category,
+      duration
+    );
   }
 
-  isValid(): boolean {
-    return this.name.length > 0 && this.code.length > 0;
+  validate(): boolean {
+    return !!(this.name && this.tenantId && this.price !== undefined && this.price >= 0);
   }
 
   calculateServiceCost(hours: number): number {
-    return (this.hourlyRate || 0) * hours;
+    if (this.duration) {
+      return (this.price || 0) * Math.ceil(hours / this.duration);
+    }
+    return (this.price || 0) * hours;
   }
 }

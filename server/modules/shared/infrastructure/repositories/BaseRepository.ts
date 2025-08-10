@@ -1,24 +1,24 @@
 import { Pool } from 'pg';
-// Remove direct infrastructure dependency - use dependency injection
 import { IBaseRepository } from '../../domain/repositories/IBaseRepository';
 
-export class BaseRepository<T> implements IBaseRepository<T> {
-  protected pool: Pool;
+export abstract class BaseRepository<T> implements IBaseRepository<T> {
+  constructor(protected readonly db: any) {} // Accept any database implementation
 
-  constructor(pool: Pool) {
-    this.pool = pool;
-  }
+  abstract findById(id: string, tenantId: string): Promise<T | null>;
+  abstract findAll(tenantId: string): Promise<T[]>;
+  abstract create(entity: T): Promise<T>;
+  abstract update(id: string, entity: Partial<T>, tenantId: string): Promise<T | null>;
+  abstract delete(id: string, tenantId: string): Promise<boolean>;
 
-  protected async query(text: string, params?: any[]): Promise<any> {
-    try {
-      return await this.pool.query(text, params);
-    } catch (error) {
-      console.error('Database query error:', error);
-      throw error;
+  protected validateTenantId(tenantId: string): void {
+    if (!tenantId) {
+      throw new Error('Tenant ID is required');
     }
   }
 
-  protected getSchemaName(tenantId: string): string {
-    return `tenant_${tenantId.replace(/-/g, '_')}`;
+  protected validateId(id: string): void {
+    if (!id) {
+      throw new Error('ID is required');
+    }
   }
 }
