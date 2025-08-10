@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+// Removed express dependency - using abstracted interfaces instead
 import { ItemRepository } from '../../infrastructure/repositories/ItemRepository';
 import crypto from 'crypto';
 

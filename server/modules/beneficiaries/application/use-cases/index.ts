@@ -1,5 +1,5 @@
-// Use Cases exports - following Clean Architecture patterns
-export * from './CreateBeneficiaryUseCase';
-export * from './GetBeneficiariesUseCase';
-export * from './UpdateBeneficiaryUseCase';
-export * from './DeleteBeneficiaryUseCase';
+
+export { CreateBeneficiaryUseCase } from './CreateBeneficiaryUseCase';
+export { UpdateBeneficiaryUseCase } from './UpdateBeneficiaryUseCase';
+export { DeleteBeneficiaryUseCase } from './DeleteBeneficiaryUseCase';
+export { GetBeneficiariesUseCase } from './GetBeneficiariesUseCase';

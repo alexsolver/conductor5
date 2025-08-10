@@ -1,2 +1,1 @@
-
-export { DrizzleSaasConfigRepository } from './DrizzleSaasConfigRepository';
+export { SaasConfigRepository } from './DrizzleSaasConfigRepository';

@@ -1,33 +1,32 @@
-import { IItem } from '../../domain/entities/IItem';
-import { IIItemRepository } from '../../domain/ports/IIItemRepository';
-import { drizzle } from 'drizzle-orm/neon-http';
-import * as schema from '@shared/schema';
 
-export class DrizzleIItemRepository implements IIItemRepository {
-  constructor(private readonly db: ReturnType<typeof drizzle>) {}
+export interface IItemRepository {
+  findById(id: string, tenantId: string): Promise<Item | null>;
+  findByTenantId(tenantId: string, options?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    categoryId?: string;
+  }): Promise<{
+    items: Item[];
+    total: number;
+  }>;
+  create(item: Omit<Item, 'id' | 'createdAt' | 'updatedAt'>): Promise<Item>;
+  update(id: string, tenantId: string, data: Partial<Item>): Promise<Item>;
+  delete(id: string, tenantId: string): Promise<void>;
+  findByCategory(categoryId: string, tenantId: string): Promise<Item[]>;
+  bulkCreate(items: Omit<Item, 'id' | 'createdAt' | 'updatedAt'>[]): Promise<Item[]>;
+}
 
-  async findById(id: string, tenantId: string): Promise<IItem | null> {
-    // Implementar busca por ID
-    throw new Error('Method not implemented.');
-  }
-
-  async findAll(tenantId: string): Promise<IItem[]> {
-    // Implementar busca de todos
-    throw new Error('Method not implemented.');
-  }
-
-  async create(entity: IItem): Promise<IItem> {
-    // Implementar criação
-    throw new Error('Method not implemented.');
-  }
-
-  async update(id: string, entity: Partial<IItem>, tenantId: string): Promise<IItem | null> {
-    // Implementar atualização
-    throw new Error('Method not implemented.');
-  }
-
-  async delete(id: string, tenantId: string): Promise<boolean> {
-    // Implementar exclusão
-    throw new Error('Method not implemented.');
-  }
+export interface Item {
+  id: string;
+  tenantId: string;
+  name: string;
+  description?: string;
+  code?: string;
+  categoryId?: string;
+  type: 'material' | 'service';
+  unitPrice?: number;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }

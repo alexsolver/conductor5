@@ -1,33 +1,31 @@
-import { IStock } from '../../domain/entities/IStock';
-import { IIStockRepository } from '../../domain/ports/IIStockRepository';
-import { drizzle } from 'drizzle-orm/neon-http';
-import * as schema from '@shared/schema';
 
-export class DrizzleIStockRepository implements IIStockRepository {
-  constructor(private readonly db: ReturnType<typeof drizzle>) {}
+export interface IStockRepository {
+  findById(id: string, tenantId: string): Promise<Stock | null>;
+  findByItemId(itemId: string, tenantId: string): Promise<Stock[]>;
+  findByTenantId(tenantId: string, options?: {
+    page?: number;
+    limit?: number;
+    warehouseId?: string;
+  }): Promise<{
+    stocks: Stock[];
+    total: number;
+  }>;
+  create(stock: Omit<Stock, 'id' | 'createdAt' | 'updatedAt'>): Promise<Stock>;
+  update(id: string, tenantId: string, data: Partial<Stock>): Promise<Stock>;
+  delete(id: string, tenantId: string): Promise<void>;
+  adjustQuantity(itemId: string, warehouseId: string, tenantId: string, adjustment: number): Promise<Stock>;
+}
 
-  async findById(id: string, tenantId: string): Promise<IStock | null> {
-    // Implementar busca por ID
-    throw new Error('Method not implemented.');
-  }
-
-  async findAll(tenantId: string): Promise<IStock[]> {
-    // Implementar busca de todos
-    throw new Error('Method not implemented.');
-  }
-
-  async create(entity: IStock): Promise<IStock> {
-    // Implementar criação
-    throw new Error('Method not implemented.');
-  }
-
-  async update(id: string, entity: Partial<IStock>, tenantId: string): Promise<IStock | null> {
-    // Implementar atualização
-    throw new Error('Method not implemented.');
-  }
-
-  async delete(id: string, tenantId: string): Promise<boolean> {
-    // Implementar exclusão
-    throw new Error('Method not implemented.');
-  }
+export interface Stock {
+  id: string;
+  tenantId: string;
+  itemId: string;
+  warehouseId?: string;
+  quantity: number;
+  reservedQuantity: number;
+  minQuantity: number;
+  maxQuantity?: number;
+  location?: string;
+  createdAt: Date;
+  updatedAt: Date;
 }

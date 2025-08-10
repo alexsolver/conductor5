@@ -1,4 +1,3 @@
-
 export interface CreateBeneficiaryDTO {
   name: string;
   email: string;
