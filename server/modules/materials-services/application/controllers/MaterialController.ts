@@ -12,7 +12,7 @@ interface HttpResponse {
   send(data: any): void;
 }
 
-// Removed Express dependency - using clean interfaces instead
+// Use abstracted HTTP types instead of Express directly
 
 // Assuming CreateMaterialUseCase and its dependencies are correctly defined elsewhere
 // and imported properly. For this example, we'll assume they exist.

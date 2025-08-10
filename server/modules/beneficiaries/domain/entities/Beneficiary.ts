@@ -1,10 +1,19 @@
-// Removed DTO import - Domain should not depend on Application layer
+// Domain entities should not import DTOs from application layer
 
 export interface BeneficiaryProps {
   name: string;
   email: string;
   document: string;
   tenantId: string;
+}
+
+export interface BeneficiaryCreateData {
+  id?: string;
+  tenantId: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  active?: boolean;
 }
 
 export class Beneficiary {

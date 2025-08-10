@@ -7,7 +7,7 @@ import { KnowledgeBaseApplicationService } from '../services/KnowledgeBaseApplic
 import { IKnowledgeBaseRepository } from '../../domain/ports/IKnowledgeBaseRepository';
 import { IMediaRepository } from '../../domain/ports/IMediaRepository';
 
-// Using interface abstractions instead of direct express dependency
+// Use abstracted HTTP types instead of Express directly
 
 interface HttpRequest {
   body: any;

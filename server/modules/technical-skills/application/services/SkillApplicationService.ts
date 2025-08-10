@@ -79,15 +79,3 @@ export class SkillApplicationService {
     };
   }
 }
-import { CreateSkillUseCase } from '../use-cases/CreateSkillUseCase';
-import { ISkillRepository } from '../../domain/ports/ISkillRepository';
-
-export class SkillApplicationService {
-  constructor(
-    private readonly createSkillUseCase: CreateSkillUseCase
-  ) {}
-
-  async createSkill(skillData: any, tenantId: string) {
-    return await this.createSkillUseCase.execute(skillData, tenantId);
-  }
-}

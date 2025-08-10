@@ -10,7 +10,7 @@ import { configRepository } from '../../infrastructure/repositories/ConfigReposi
 const router = Router();
 const saasAdminController = new SaasAdminController();
 
-// Routes should only handle HTTP concerns, business logic moved to application services
+// Routes should only handle routing, delegate to controllers
 
 // Aplicar middlewares de autenticação e autorização
 router.use(jwtAuth);

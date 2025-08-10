@@ -27,7 +27,7 @@ import { pool } from '../../db';
 
 import { MaterialController } from './application/controllers/MaterialController';
 
-// Usar controllers ao invés de lógica direta
+// Routes should only handle routing, delegate to controllers
 
 // Create router
 const router = Router();

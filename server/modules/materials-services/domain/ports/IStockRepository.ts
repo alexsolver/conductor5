@@ -29,3 +29,12 @@ export interface Stock {
   createdAt: Date;
   updatedAt: Date;
 }
+export interface IStockRepository {
+  findById(id: string, tenantId: string): Promise<any | null>;
+  findByTenantId(tenantId: string): Promise<any[]>;
+  create(data: any): Promise<any>;
+  update(id: string, tenantId: string, data: any): Promise<any>;
+  delete(id: string, tenantId: string): Promise<void>;
+  findByItemId(itemId: string, tenantId: string): Promise<any[]>;
+  updateStock(itemId: string, tenantId: string, quantity: number): Promise<any>;
+}

@@ -37,3 +37,12 @@ export interface IAssetManagementRepository {
   update(id: string, data: any): Promise<any>;
   delete(id: string): Promise<void>;
 }
+export interface IAssetManagementRepository {
+  findById(id: string, tenantId: string): Promise<any | null>;
+  findByTenantId(tenantId: string): Promise<any[]>;
+  create(data: any): Promise<any>;
+  update(id: string, tenantId: string, data: any): Promise<any>;
+  delete(id: string, tenantId: string): Promise<void>;
+  findByAssetType(assetType: string, tenantId: string): Promise<any[]>;
+  findByStatus(status: string, tenantId: string): Promise<any[]>;
+}

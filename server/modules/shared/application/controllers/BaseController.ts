@@ -17,6 +17,19 @@ interface CleanResponse {
   send: (data?: any) => void;
 }
 
+// Use abstracted HTTP types instead of Express directly
+interface IRequest {
+  user?: any;
+  params: any;
+  body: any;
+  query: any;
+}
+
+interface IResponse {
+  status: (code: number) => IResponse;
+  json: (data: any) => void;
+}
+
 export abstract class BaseController {
   protected success(res: CleanResponse, data: any, message?: string) {
     return res.status(200).json({
