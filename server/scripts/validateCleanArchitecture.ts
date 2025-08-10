@@ -10,7 +10,7 @@
  */
 
 import { CleanArchitectureValidator } from './CleanArchitectureValidator';
-// import { CleanArchitectureCorrector } from './CleanArchitectureCorrector'; // Commented out since this file doesn't exist yet
+import { CleanArchitectureCorrector } from './ImplementCleanArchitectureCorrections';
 import { writeFileSync, mkdirSync, existsSync } from 'fs';
 
 class CleanArchitectureOrchestrator {
@@ -34,13 +34,21 @@ class CleanArchitectureOrchestrator {
         validator.generateDetailedReport(validationResult);
       }
 
-      // 2. Se há problemas, gerar plano de correção
+      // 2. Se há problemas, executar correções automáticas
       if (validationResult.issues.length > 0) {
-        // Note: CleanArchitectureCorrector is not implemented yet
-        const correctionPlans: any[] = [];
         
         if (shouldFix) {
-          console.log('\n⚠️  Correção automática não implementada ainda');
+          console.log('\n🔧 Executando correções automáticas...');
+          const corrector = new CleanArchitectureCorrector();
+          await corrector.implementAllCorrections();
+          
+          // Re-executar validação após correções
+          console.log('\n🔍 Re-executando validação após correções...');
+          const newValidationResult = await validator.validateCompleteArchitecture();
+          
+          if (!quiet) {
+            validator.generateDetailedReport(newValidationResult);
+          }
         }
 
         // 4. Salvar relatórios

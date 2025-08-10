@@ -134,3 +134,48 @@ The Conductor platform is organized into independent microservices, each respons
 - Health check endpoints
 
 This microservice architecture provides a solid foundation for scaling the Conductor platform while maintaining clean separation of concerns and independent development workflows.
+# Clean Architecture Implementation
+
+## Estrutura dos Módulos
+
+Cada módulo segue a estrutura Clean Architecture com as seguintes camadas:
+
+### Domain Layer (`domain/`)
+- **entities/**: Entidades de negócio puras (sem dependências externas)
+- **repositories/**: Interfaces de repositórios (ports)
+- **services/**: Serviços de domínio com lógica de negócio
+- **events/**: Eventos de domínio
+- **value-objects/**: Objetos de valor
+
+### Application Layer (`application/`)
+- **use-cases/**: Casos de uso da aplicação
+- **controllers/**: Controllers HTTP
+- **dto/**: Data Transfer Objects
+- **services/**: Serviços de aplicação
+
+### Infrastructure Layer (`infrastructure/`)
+- **repositories/**: Implementações concretas dos repositórios
+- **clients/**: Clientes para APIs externas
+- **config/**: Configurações de infraestrutura
+
+### Presentation Layer
+- **routes.ts**: Definição das rotas HTTP na raiz do módulo
+
+## Regras de Dependência
+
+1. **Domain** não pode depender de nenhuma outra camada
+2. **Application** pode depender apenas do **Domain**
+3. **Infrastructure** pode depender do **Domain** e **Application** (apenas interfaces)
+4. **Presentation** pode depender da **Application**
+
+## Padrões de Nomenclatura
+
+- **Entities**: PascalCase singular (ex: `Customer`, `Ticket`)
+- **Use Cases**: `[Action]UseCase` (ex: `CreateCustomerUseCase`)
+- **Repositories**: `[Entity]Repository` (ex: `CustomerRepository`)
+- **Interfaces**: `I[Name]` (ex: `ICustomerRepository`)
+
+## Validação
+
+Execute `npm run validate:architecture` para validar a conformidade com Clean Architecture.
+Execute `npm run validate:architecture:fix` para aplicar correções automáticas.

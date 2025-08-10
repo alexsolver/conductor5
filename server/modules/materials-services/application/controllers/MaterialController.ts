@@ -1,7 +1,4 @@
-import { GetMaterialsUseCase } from '../use-cases/GetMaterialsUseCase';
-import { CreateMaterialUseCase } from '../use-cases/CreateMaterialUseCase';
-import { UpdateMaterialUseCase } from '../use-cases/UpdateMaterialUseCase';
-import { standardResponse } from '../../../utils/standardResponse';
+// Using dependency injection instead of direct ORM import
 
 interface HttpRequest {
   query: any;

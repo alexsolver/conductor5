@@ -11,7 +11,7 @@
 
 import { readFileSync, existsSync, readdirSync, statSync, writeFileSync, mkdirSync } from 'fs';
 import { join, extname, dirname } from 'path';
-import { fileURLToPath } from 'url';
+import path from 'path';
 
 interface ArchitectureIssue {
   id: string;
@@ -74,21 +74,19 @@ class CleanArchitectureValidator {
   }
 
   private discoverModules(): string[] {
-    const currentDir = dirname(fileURLToPath(import.meta.url));
-    // Tenta encontrar o diretório de módulos em vários locais possíveis
+    // Primeiro, verifica se estamos executando do diretório correto
     const possiblePaths = [
       join(process.cwd(), 'server', 'modules'), // Projetos com server/modules
-      join(currentDir, '..', 'modules'),       // Projetos com src/modules ou lib/modules
-      join(currentDir, 'modules'),             // Projetos com modules na raiz do script
-      join(process.cwd(), 'modules')           // Projetos com modules na raiz do projeto
+      join(__dirname, '..', 'modules'),         // Relative to scripts directory
+      join(process.cwd(), 'modules')            // Projetos com modules na raiz do projeto
     ];
 
     let modulesPath = '';
-    for (const path of possiblePaths) {
-      console.log(`🔍 Verificando caminho: ${path}`);
-      if (existsSync(path)) {
-        modulesPath = path;
-        console.log(`✅ Diretório de módulos encontrado em: ${path}`);
+    for (const pathToCheck of possiblePaths) {
+      console.log(`🔍 Verificando caminho: ${pathToCheck}`);
+      if (existsSync(pathToCheck)) {
+        modulesPath = pathToCheck;
+        console.log(`✅ Diretório de módulos encontrado em: ${pathToCheck}`);
         break;
       }
     }
