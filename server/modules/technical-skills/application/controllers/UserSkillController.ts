@@ -1,6 +1,5 @@
-import { Request, Response } from 'express';
 import { z } from 'zod';
-import { DrizzleUserSkillRepository } from '../../infrastructure/repositories/DrizzleUserSkillRepository';
+import { IUserSkillRepository } from '../../domain/repositories/IUserSkillRepository';
 import { UserSkill } from '../../domain/entities/UserSkill';
 import { insertUserSkillSchema } from '@shared/schema';
 // Logger temporariamente removido para simplificação

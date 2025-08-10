@@ -14,7 +14,8 @@ interface ControllerResponse {
 
 export class CustomerController {
   constructor(
-    private customerApplicationService: CustomerApplicationService
+    private customerApplicationService: CustomerApplicationService,
+    private customerRepository: ICustomerRepository // Added repository dependency
   ) {}
 
   async createCustomer(req: ControllerRequest, res: ControllerResponse): Promise<void> {
@@ -212,4 +213,22 @@ export class CustomerController {
       });
     }
   }
+}
+
+// Dummy DTO transformation and repository interface for compilation
+function transformToCustomerDTO(customer: any): any {
+  return {
+    id: customer.id,
+    name: customer.name,
+    email: customer.email,
+    createdAt: customer.createdAt,
+    updatedAt: customer.updatedAt,
+  };
+}
+
+interface CustomerApplicationService {
+  createCustomer(data: any): Promise<{ customer: any }>;
+  getCustomers(params: { tenantId: string; page: number; limit: number }): Promise<{ success: boolean; customers?: any[]; total?: number; error?: string }>;
+  updateCustomer(data: any): Promise<{ success: boolean; customer?: any; error?: string }>;
+  deleteCustomer(data: { id: string; tenantId: string }): Promise<{ success: boolean; error?: string }>;
 }

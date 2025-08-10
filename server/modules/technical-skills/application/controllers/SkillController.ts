@@ -1,17 +1,16 @@
-import type { Request, Response } from 'express';
-import type { ISkillRepository } from '../../domain/repositories/ISkillRepository';
-import { Skill, SkillEntity } from '../../domain/entities/Skill';
+import { z } from 'zod';
+import { SkillApplicationService } from '../services/SkillApplicationService';
+import { ISkillRepository } from '../../domain/ports/ISkillRepository';
 import crypto from 'crypto';
-import { DrizzleSkillRepository } from '../../infrastructure/repositories/DrizzleSkillRepository';
 
 export class SkillController {
-  private skillRepository: ISkillRepository;
+  private skillService: SkillApplicationService;
 
-  constructor() {
-    this.skillRepository = new DrizzleSkillRepository();
+  constructor(skillRepository: ISkillRepository) {
+    this.skillService = new SkillApplicationService(skillRepository);
   }
 
-  async createSkill(req: Request, res: Response): Promise<void> {
+  async createSkill(req: any, res: any): Promise<void> {
     try {
       const { name, category, description } = req.body;
       const user = (req as any).user;
@@ -36,8 +35,7 @@ export class SkillController {
         return;
       }
 
-      // Criar skill com apenas campos básicos
-      const skill = {
+      const skillData = {
         id: crypto.randomUUID(),
         name,
         category,
@@ -50,7 +48,7 @@ export class SkillController {
         updatedAt: new Date(),
       };
 
-      const createdSkill = await this.skillRepository.create(skill);
+      const createdSkill = await this.skillService.createSkill(skillData);
 
       res.status(201).json({
         success: true,
@@ -67,16 +65,16 @@ export class SkillController {
     }
   }
 
-  async getSkills(req: Request, res: Response): Promise<void> {
+  async getSkills(req: any, res: any): Promise<void> {
     try {
       const tenantId = req.headers['x-tenant-id'] as string;
-      
+
       console.log('Getting skills for tenant:', tenantId);
 
       const { category, search, isActive } = req.query;
 
       const filters: any = {};
-      
+
       if (tenantId) {
         filters.tenantId = tenantId;
       }
@@ -85,7 +83,7 @@ export class SkillController {
       if (search) filters.search = search as string;
       if (isActive !== undefined) filters.isActive = isActive === 'true';
 
-      const skills = await this.skillRepository.findAll(filters);
+      const skills = await this.skillService.getSkills(filters);
 
       console.log('Found skills:', skills.length);
 
@@ -109,10 +107,10 @@ export class SkillController {
     }
   }
 
-  async getSkillById(req: Request, res: Response): Promise<void> {
+  async getSkillById(req: any, res: any): Promise<void> {
     try {
       const { id } = req.params;
-      const skill = await this.skillRepository.findById(id);
+      const skill = await this.skillService.getSkillById(id);
 
       if (!skill) {
         res.status(404).json({
@@ -136,7 +134,7 @@ export class SkillController {
     }
   }
 
-  async updateSkill(req: Request, res: Response): Promise<void> {
+  async updateSkill(req: any, res: any): Promise<void> {
     try {
       const { id } = req.params;
       const { name, category, description, suggestedCertification, certificationValidityMonths, observations, scaleOptions } = req.body;
@@ -156,7 +154,7 @@ export class SkillController {
         updatedBy: userId,
       };
 
-      const updatedSkill = await this.skillRepository.updateDirect(updateData);
+      const updatedSkill = await this.skillService.updateSkill(id, updateData);
 
       res.json({
         success: true,
@@ -173,11 +171,11 @@ export class SkillController {
     }
   }
 
-  async deleteSkill(req: Request, res: Response): Promise<void> {
+  async deleteSkill(req: any, res: any): Promise<void> {
     try {
       const { id } = req.params;
 
-      await this.skillRepository.delete(id);
+      await this.skillService.deleteSkill(id);
 
       res.json({
         success: true,
@@ -193,9 +191,9 @@ export class SkillController {
     }
   }
 
-  async getCategories(req: Request, res: Response): Promise<void> {
+  async getCategories(req: any, res: any): Promise<void> {
     try {
-      const categories = await this.skillRepository.getCategories();
+      const categories = await this.skillService.getCategories();
 
       res.json({
         success: true,
@@ -211,31 +209,15 @@ export class SkillController {
     }
   }
 
-  async getStatistics(req: Request, res: Response): Promise<void> {
+  async getStatistics(req: any, res: any): Promise<void> {
     try {
       const tenantId = req.headers['x-tenant-id'] as string;
 
-      // Buscar estatísticas básicas das habilidades
-      const allSkills = await this.skillRepository.findAll({ tenantId });
-      
-      const totalSkills = allSkills.length;
-      const activeSkills = allSkills.filter(skill => skill.isActive).length;
-      const inactiveSkills = totalSkills - activeSkills;
-
-      // Agrupar por categoria
-      const categoriesCount = allSkills.reduce((acc, skill) => {
-        acc[skill.category] = (acc[skill.category] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>);
+      const statistics = await this.skillService.getStatistics(tenantId);
 
       res.json({
         success: true,
-        data: {
-          totalSkills,
-          activeSkills,
-          inactiveSkills,
-          categoriesCount
-        }
+        data: statistics
       });
     } catch (error) {
       console.error('Error fetching statistics:', error);

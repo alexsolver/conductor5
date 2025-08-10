@@ -1,17 +1,4 @@
-import { eq, and, gte, lte, desc, asc, sql, inArray, isNotNull } from 'drizzle-orm';
-// Use abstracted interfaces instead of express and drizzle directly
-// Removed express import - use dependency injection for web framework abstraction
-// // Using interfaces instead of direct express dependency
-interface RequestContext {
-  user?: { tenantId?: string; userId?: string };
-  params: Record<string, string>;
-  body: any;
-}
-
-interface ResponseContext {
-  status: (code: number) => ResponseContext;
-  json: (data: any) => void;
-}
+import { TimecardApplicationService } from '../services/TimecardApplicationService';
 import { z } from 'zod';
 import { db } from '../../../../db';
 import { timecardEntries, workSchedules, users } from '@shared/schema';

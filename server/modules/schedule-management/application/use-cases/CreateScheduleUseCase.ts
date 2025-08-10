@@ -1,7 +1,5 @@
-import { Schedule } from '../../domain/entities/Schedule';
+import { ScheduleEntity } from '../../domain/entities/ScheduleEntity';
 import { IScheduleRepository } from '../../domain/ports/IScheduleRepository';
-
-// Use repository interface instead of direct database access
 
 export class CreateScheduleUseCase {
   constructor(
@@ -15,8 +13,8 @@ export class CreateScheduleUseCase {
     endTime: Date;
     title: string;
     description?: string;
-  }): Promise<Schedule> {
-    const schedule = Schedule.create(
+  }): Promise<ScheduleEntity> {
+    const schedule = ScheduleEntity.create(
       crypto.randomUUID(),
       data.tenantId,
       data.userId,

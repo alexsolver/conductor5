@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { KnowledgeBaseApplicationService } from '../services/KnowledgeBaseApplicationService';
 
 // Domain interfaces properly imported (Clean Architecture compliance)
-import { IKnowledgeBaseRepository } from '../../domain/repositories/IKnowledgeBaseRepository';
+import { IKnowledgeBaseRepository } from '../../domain/ports/IKnowledgeBaseRepository';
 import { IMediaRepository } from '../../domain/ports/IMediaRepository';
 
 // Use abstracted HTTP types instead of Express directly

@@ -1,6 +1,6 @@
 // Use repository interface instead of direct database access
 
-import { Schedule } from '../../domain/entities/Schedule';
+import { ScheduleEntity } from '../../domain/entities/ScheduleEntity';
 import { IScheduleRepository } from '../../domain/ports/IScheduleRepository';
 
 export class GetSchedulesUseCase {
@@ -12,7 +12,7 @@ export class GetSchedulesUseCase {
     userId?: string;
     startDate?: Date;
     endDate?: Date;
-  }): Promise<Schedule[]> {
+  }): Promise<ScheduleEntity[]> {
     return await this.scheduleRepository.findByTenant(tenantId, filters);
   }
 }

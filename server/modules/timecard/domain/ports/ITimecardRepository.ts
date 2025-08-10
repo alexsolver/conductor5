@@ -126,3 +126,15 @@ export interface ITimecardRepository {
   findByUser(userId: string, tenantId: string): Promise<Timecard[]>;
   findByDateRange(startDate: Date, endDate: Date, tenantId: string): Promise<Timecard[]>;
 }
+import { Timecard } from '../entities/Timecard';
+
+export interface ITimecardRepository {
+  findById(id: string, tenantId: string): Promise<Timecard | null>;
+  findAll(tenantId: string, filters?: any): Promise<Timecard[]>;
+  create(timecard: Timecard): Promise<Timecard>;
+  update(id: string, timecard: Partial<Timecard>, tenantId: string): Promise<Timecard | null>;
+  delete(id: string, tenantId: string): Promise<boolean>;
+  findByUser(userId: string, tenantId: string): Promise<Timecard[]>;
+  findByDateRange(startDate: Date, endDate: Date, tenantId: string): Promise<Timecard[]>;
+  findPendingApprovals(tenantId: string): Promise<Timecard[]>;
+}
