@@ -1,4 +1,3 @@
-
 export class Beneficiary {
   constructor(
     public readonly id: string,

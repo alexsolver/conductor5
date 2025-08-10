@@ -1,4 +1,5 @@
 import { Pool } from 'pg';
+// Domain layer should not depend on infrastructure concerns
 import { IBaseRepository } from '../../domain/repositories/IBaseRepository';
 
 export class BaseRepository<T> implements IBaseRepository<T> {

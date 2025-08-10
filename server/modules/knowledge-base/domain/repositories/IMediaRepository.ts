@@ -13,3 +13,10 @@ export interface IMediaRepository {
   getInteractiveDiagrams(tenantId: string): Promise<any[]>;
   getVideoStreaming(tenantId: string, videoId?: string): Promise<any>;
 }
+export interface IMediaRepository {
+  uploadMedia(tenantId: string, mediaData: any): Promise<any>;
+  getMediaLibrary(tenantId: string): Promise<any[]>;
+  getMediaById(tenantId: string, mediaId: string): Promise<any>;
+  deleteMedia(tenantId: string, mediaId: string): Promise<boolean>;
+  updateMedia(tenantId: string, mediaId: string, data: any): Promise<any>;
+}

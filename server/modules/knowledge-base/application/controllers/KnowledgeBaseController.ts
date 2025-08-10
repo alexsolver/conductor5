@@ -12,6 +12,7 @@ interface AuthenticatedRequest extends Request {
 
 class KnowledgeBaseController {
   private knowledgeBaseService: KnowledgeBaseApplicationService;
+  private knowledgeBaseRepository: any; // Temporary fix - will be properly injected
 
   constructor(knowledgeBaseService: KnowledgeBaseApplicationService) {
     this.knowledgeBaseService = knowledgeBaseService;

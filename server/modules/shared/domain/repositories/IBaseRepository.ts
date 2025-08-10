@@ -12,3 +12,15 @@ export interface IBaseRepository<T> {
   update(tenantId: string, id: string, data: Partial<T>): Promise<T | null>;
   delete(tenantId: string, id: string): Promise<boolean>;
 }
+export interface IBaseRepository<T> {
+  findById(id: string): Promise<T | null>;
+  findAll(): Promise<T[]>;
+  create(entity: T): Promise<T>;
+  update(id: string, entity: Partial<T>): Promise<T | null>;
+  delete(id: string): Promise<boolean>;
+}
+
+export interface IRepository<T> extends IBaseRepository<T> {
+  findByTenantId(tenantId: string): Promise<T[]>;
+  findByTenantIdAndId(tenantId: string, id: string): Promise<T | null>;
+}

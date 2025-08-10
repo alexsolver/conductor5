@@ -1,8 +1,8 @@
-
 import { CreateSkillUseCase } from '../use-cases/CreateSkillUseCase';
 import { GetSkillsUseCase } from '../use-cases/GetSkillsUseCase';
 import { UpdateSkillUseCase } from '../use-cases/UpdateSkillUseCase';
 import { CreateSkillDTO, UpdateSkillDTO, SkillResponseDTO } from '../dto/CreateSkillDTO';
+import { ISkillRepository } from '../../domain/repositories/ISkillRepository';
 
 export class SkillApplicationService {
   constructor(
@@ -39,32 +39,5 @@ export class SkillApplicationService {
       createdAt: skill.createdAt,
       updatedAt: skill.updatedAt
     };
-  }
-}
-import { CreateSkillUseCase } from '../use-cases/CreateSkillUseCase';
-import { CreateSkillDTO } from '../dto/CreateSkillDTO';
-
-export class SkillApplicationService {
-  constructor(
-    private createSkillUseCase: CreateSkillUseCase
-  ) {}
-
-  async createSkill(tenantId: string, skillData: CreateSkillDTO): Promise<any> {
-    return await this.createSkillUseCase.execute(tenantId, skillData);
-  }
-
-  async getSkills(tenantId: string, filters?: any): Promise<any[]> {
-    // Implementar busca de skills
-    return [];
-  }
-
-  async updateSkill(tenantId: string, skillId: string, updateData: any): Promise<any> {
-    // Implementar atualização de skill
-    return null;
-  }
-
-  async deleteSkill(tenantId: string, skillId: string): Promise<boolean> {
-    // Implementar exclusão de skill
-    return true;
   }
 }

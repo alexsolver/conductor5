@@ -1,3 +1,4 @@
+// Domain entities should be infrastructure-agnostic
 
 export class Material {
   constructor(

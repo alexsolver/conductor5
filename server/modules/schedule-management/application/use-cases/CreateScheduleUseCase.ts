@@ -1,6 +1,7 @@
-
 import { Schedule } from '../../domain/entities/Schedule';
 import { IScheduleRepository } from '../../domain/repositories/IScheduleRepository';
+
+// Application layer should use domain interfaces, not infrastructure
 
 export class CreateScheduleUseCase {
   constructor(

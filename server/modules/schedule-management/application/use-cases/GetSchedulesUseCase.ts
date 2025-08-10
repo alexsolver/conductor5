@@ -1,3 +1,4 @@
+// Application layer should use domain interfaces, not infrastructure
 
 import { Schedule } from '../../domain/entities/Schedule';
 import { IScheduleRepository } from '../../domain/repositories/IScheduleRepository';
