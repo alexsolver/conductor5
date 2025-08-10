@@ -1,12 +1,13 @@
+#!/usr/bin/env node
 /**
  * SCRIPT PRINCIPAL - VALIDAÇÃO CLEAN ARCHITECTURE
  * 
  * Executa validação completa e gera plano de correção automático
  * 
  * Uso:
- *   npm run validate:architecture          # Apenas validação
- *   npm run validate:architecture --fix    # Validação + correções automáticas
- *   npm run validate:architecture --report # Relatório detalhado
+ *   npx tsx server/scripts/validateCleanArchitecture.ts          # Apenas validação
+ *   npx tsx server/scripts/validateCleanArchitecture.ts --fix    # Validação + correções automáticas
+ *   npx tsx server/scripts/validateCleanArchitecture.ts --report # Relatório detalhado
  */
 
 import { CleanArchitectureValidator } from './CleanArchitectureValidator';
