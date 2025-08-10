@@ -14,21 +14,9 @@
           "Usar injeção de dependência",
           "Remover import direto da dependência externa"
         ]
-      },
-      {
-        "type": "move_code",
-        "description": "Resolver acoplamento: Entity misturada com DTOs - violação de responsabilidade",
-        "target": "/home/runner/workspace/server/modules/beneficiaries/domain/entities/Beneficiary.ts",
-        "steps": [
-          "Identificar código acoplado",
-          "Determinar camada correta para o código",
-          "Mover código para camada apropriada",
-          "Criar interfaces para comunicação entre camadas",
-          "Atualizar dependências"
-        ]
       }
     ],
-    "estimatedTime": "2h"
+    "estimatedTime": "1h"
   },
   {
     "priority": "high",
@@ -44,18 +32,6 @@
           "Mover código para camada apropriada",
           "Criar interfaces para comunicação entre camadas",
           "Atualizar dependências"
-        ]
-      },
-      {
-        "type": "refactor_code",
-        "description": "Refatorar dependência inválida na camada application",
-        "target": "/home/runner/workspace/server/modules/materials-services/application/controllers/AssetManagementController.ts",
-        "steps": [
-          "Identificar a dependência problemática",
-          "Criar interface/port na camada Domain",
-          "Implementar interface na camada Infrastructure",
-          "Usar injeção de dependência",
-          "Remover import direto da dependência externa"
         ]
       },
       {
@@ -289,14 +265,6 @@
       {
         "type": "create_directory",
         "description": "Criar interface I[Entity]Repository no domain e implementar",
-        "target": "/home/runner/workspace/server/modules/materials-services/infrastructure/repositories/StockRepository.ts",
-        "steps": [
-          "Criar interface I[Entity]Repository no domain e implementar"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar interface I[Entity]Repository no domain e implementar",
         "target": "/home/runner/workspace/server/modules/materials-services/infrastructure/repositories/SupplierRepository.ts",
         "steps": [
           "Criar interface I[Entity]Repository no domain e implementar"
@@ -315,7 +283,7 @@
         ]
       }
     ],
-    "estimatedTime": "21h"
+    "estimatedTime": "20h"
   },
   {
     "priority": "high",
@@ -437,18 +405,6 @@
       {
         "type": "refactor_code",
         "description": "Refatorar dependência inválida na camada application",
-        "target": "/home/runner/workspace/server/modules/knowledge-base/application/controllers/MediaController.ts",
-        "steps": [
-          "Identificar a dependência problemática",
-          "Criar interface/port na camada Domain",
-          "Implementar interface na camada Infrastructure",
-          "Usar injeção de dependência",
-          "Remover import direto da dependência externa"
-        ]
-      },
-      {
-        "type": "refactor_code",
-        "description": "Refatorar dependência inválida na camada application",
         "target": "/home/runner/workspace/server/modules/knowledge-base/application/services/MediaService.ts",
         "steps": [
           "Identificar a dependência problemática",
@@ -499,7 +455,7 @@
         ]
       }
     ],
-    "estimatedTime": "4h"
+    "estimatedTime": "3h"
   },
   {
     "priority": "high",
@@ -527,6 +483,17 @@
           "Mover código para camada apropriada",
           "Criar interfaces para comunicação entre camadas",
           "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Nome da classe Timecard não corresponde ao arquivo TimecardEntity",
+        "target": "/home/runner/workspace/server/modules/timecard/domain/entities/TimecardEntity.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
         ]
       },
       {
@@ -562,7 +529,7 @@
         ]
       }
     ],
-    "estimatedTime": "3h"
+    "estimatedTime": "4h"
   },
   {
     "priority": "high",
@@ -596,51 +563,25 @@
     "estimatedTime": "2h"
   },
   {
-    "priority": "low",
-    "module": "auth",
-    "actions": [
-      {
-        "type": "move_code",
-        "description": "Resolver acoplamento: Repository contém possível lógica de negócio",
-        "target": "/home/runner/workspace/server/modules/auth/infrastructure/repositories/DrizzleUserRepository.ts",
-        "steps": [
-          "Identificar código acoplado",
-          "Determinar camada correta para o código",
-          "Mover código para camada apropriada",
-          "Criar interfaces para comunicação entre camadas",
-          "Atualizar dependências"
-        ]
-      }
-    ],
-    "estimatedTime": "45min"
-  },
-  {
-    "priority": "low",
-    "module": "dashboard",
-    "actions": [
-      {
-        "type": "move_code",
-        "description": "Resolver acoplamento: Repository contém possível lógica de negócio",
-        "target": "/home/runner/workspace/server/modules/dashboard/infrastructure/repositories/DrizzleDashboardRepository.ts",
-        "steps": [
-          "Identificar código acoplado",
-          "Determinar camada correta para o código",
-          "Mover código para camada apropriada",
-          "Criar interfaces para comunicação entre camadas",
-          "Atualizar dependências"
-        ]
-      }
-    ],
-    "estimatedTime": "45min"
-  },
-  {
-    "priority": "low",
+    "priority": "medium",
     "module": "shared",
     "actions": [
       {
         "type": "move_code",
         "description": "Resolver acoplamento: Repository contém possível lógica de negócio",
         "target": "/home/runner/workspace/server/modules/shared/infrastructure/repositories/BaseRepository.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Repository contém possível lógica de negócio",
+        "target": "/home/runner/workspace/server/modules/shared/infrastructure/repositories/indexRepository.ts",
         "steps": [
           "Identificar código acoplado",
           "Determinar camada correta para o código",
@@ -689,6 +630,44 @@
         ]
       }
     ],
-    "estimatedTime": "2h"
+    "estimatedTime": "3h"
+  },
+  {
+    "priority": "low",
+    "module": "auth",
+    "actions": [
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Repository contém possível lógica de negócio",
+        "target": "/home/runner/workspace/server/modules/auth/infrastructure/repositories/DrizzleUserRepository.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      }
+    ],
+    "estimatedTime": "45min"
+  },
+  {
+    "priority": "low",
+    "module": "dashboard",
+    "actions": [
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Repository contém possível lógica de negócio",
+        "target": "/home/runner/workspace/server/modules/dashboard/infrastructure/repositories/DrizzleDashboardRepository.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      }
+    ],
+    "estimatedTime": "45min"
   }
 ]

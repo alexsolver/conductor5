@@ -1,15 +1,15 @@
 // Drizzle Schedule Repository - Infrastructure Layer
 import { eq, and, gte, lte, desc, asc, inArray, like, sql } from 'drizzle-orm';
 import { db, pool } from '../../../../db';
-import { 
-  schedules, 
-  activityTypes, 
-  agentAvailability, 
+import {
+  schedules,
+  activityTypes,
+  agentAvailability,
   scheduleConflicts,
   users,
-  customers 
+  customers
 } from '@shared/schema';
-import { IScheduleRepository } from '../../application/repositories/IScheduleRepository';
+import { IScheduleRepository } from '../../domain/ports/IScheduleRepository'; // Corrected import path
 import { ScheduleEntity, ActivityTypeEntity, AgentAvailabilityEntity, ScheduleConflictEntity } from '../../domain/entities/Schedule';
 
 export class DrizzleScheduleRepository implements IScheduleRepository {
@@ -65,7 +65,7 @@ export class DrizzleScheduleRepository implements IScheduleRepository {
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
     const query = `
-      SELECT 
+      SELECT
         s.id, s.tenant_id, s.agent_id, s.customer_id, s.activity_type_id,
         s.title, s.description, s.start_datetime, s.end_datetime, s.duration,
         s.status, s.priority, s.location_address, s.coordinates,
@@ -82,8 +82,8 @@ export class DrizzleScheduleRepository implements IScheduleRepository {
       LEFT JOIN public.users u ON s.agent_id = u.id
       LEFT JOIN ${schemaName}.customers c ON s.customer_id = c.id
       LEFT JOIN ${schemaName}.activity_types at ON s.activity_type_id = at.id
-      WHERE s.tenant_id = $1 
-        AND s.start_datetime >= $2 
+      WHERE s.tenant_id = $1
+        AND s.start_datetime >= $2
         AND s.end_datetime <= $3
       ORDER BY s.start_datetime ASC
     `;
@@ -168,9 +168,9 @@ export class DrizzleScheduleRepository implements IScheduleRepository {
     const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
     const query = `
-      SELECT id, tenant_id, name, description, color, duration, category, is_active, created_at, updated_at 
-      FROM ${schemaName}.activity_types 
-      WHERE tenant_id = $1 AND is_active = true 
+      SELECT id, tenant_id, name, description, color, duration, category, is_active, created_at, updated_at
+      FROM ${schemaName}.activity_types
+      WHERE tenant_id = $1 AND is_active = true
       ORDER BY name ASC
     `;
 
@@ -541,20 +541,24 @@ export class DrizzleScheduleRepository implements IScheduleRepository {
 
     return Math.max(0, (overlapEnd.getTime() - overlapStart.getTime()) / (1000 * 60));
   }
-}
-import { IScheduleRepository } from '../../domain/repositories/IScheduleRepository';
 
-export class DrizzleScheduleRepository implements IScheduleRepository {
-  async create(schedule: any): Promise<any> {
-    // Implementation
-    return schedule;
+  // Placeholder methods for the IScheduleRepository interface (to be replaced with actual implementations)
+  async create(schedule: Omit<ScheduleEntity, 'id'>): Promise<ScheduleEntity> {
+    // This is a placeholder and should be implemented to create a schedule.
+    // For now, it calls the existing createSchedule method.
+    return this.createSchedule(schedule as Omit<ScheduleEntity, 'id' | 'createdAt' | 'updatedAt'>);
   }
-  
-  async findById(id: string): Promise<any> {
-    return null;
+
+  async findById(id: string, tenantId: string): Promise<ScheduleEntity | null> {
+    // This is a placeholder and should be implemented to find a schedule by ID.
+    // For now, it calls the existing getScheduleById method.
+    return this.getScheduleById(id, tenantId);
   }
-  
-  async findAll(tenantId: string): Promise<any[]> {
-    return [];
+
+  async findAll(tenantId: string): Promise<ScheduleEntity[]> {
+    // This is a placeholder and should be implemented to find all schedules for a tenant.
+    // For now, it calls a method to get schedules by date range with dummy dates.
+    const now = new Date();
+    return this.getSchedulesByDateRange(tenantId, new Date(0), now);
   }
 }

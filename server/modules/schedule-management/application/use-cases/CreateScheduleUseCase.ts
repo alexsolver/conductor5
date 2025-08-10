@@ -25,3 +25,16 @@ export class CreateScheduleUseCase {
     return await this.scheduleRepository.create(schedule);
   }
 }
+import { ScheduleEntity } from '../../domain/entities/ScheduleEntity';
+import { IScheduleRepository } from '../../domain/ports/IScheduleRepository';
+
+export class CreateScheduleUseCase {
+  constructor(
+    private readonly scheduleRepository: IScheduleRepository
+  ) {}
+
+  async execute(scheduleData: any, tenantId: string): Promise<ScheduleEntity> {
+    const schedule = new ScheduleEntity(scheduleData);
+    return await this.scheduleRepository.create(schedule);
+  }
+}

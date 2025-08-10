@@ -24,3 +24,19 @@ export class CreateMaterialUseCase {
     return await this.materialRepository.create(material);
   }
 }
+import { Material } from '../../domain/entities/Material';
+import { IMaterialRepository } from '../../domain/ports/IMaterialRepository';
+
+export class CreateMaterialUseCase {
+  constructor(
+    private readonly materialRepository: IMaterialRepository
+  ) {}
+
+  async execute(materialData: any, tenantId: string): Promise<Material> {
+    // Validações de negócio
+    const material = new Material(materialData);
+    
+    // Persistir via repositório
+    return await this.materialRepository.create(material);
+  }
+}

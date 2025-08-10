@@ -1,26 +1,20 @@
-// Base controller without framework dependencies
+// Controller base without framework dependencies
 
-interface BaseRequest {
-  params: Record<string, any>;
-  query: Record<string, any>;
+export interface RequestData {
   body: any;
-  user?: {
-    id: string;
-    tenantId: string;
-    email: string;
-    role: string;
-  };
-  headers: Record<string, string>;
+  params: any;
+  query: any;
+  user?: any;
 }
 
-interface BaseResponse {
-  status(code: number): BaseResponse;
-  json(data: any): BaseResponse;
-  send(data: any): BaseResponse;
+export interface ResponseData {
+  status: (code: number) => ResponseData;
+  json: (data: any) => void;
+  send: (data: any) => void;
 }
 
 export abstract class BaseController {
-  protected success(res: BaseResponse, data: any, message?: string) {
+  protected success(res: ResponseData, data: any, message?: string) {
     return res.status(200).json({
       success: true,
       data,
@@ -28,7 +22,7 @@ export abstract class BaseController {
     });
   }
 
-  protected created(res: BaseResponse, data: any, message?: string) {
+  protected created(res: ResponseData, data: any, message?: string) {
     return res.status(201).json({
       success: true,
       data,
@@ -36,7 +30,7 @@ export abstract class BaseController {
     });
   }
 
-  protected badRequest(res: BaseResponse, message: string, errors?: any) {
+  protected badRequest(res: ResponseData, message: string, errors?: any) {
     return res.status(400).json({
       success: false,
       message,
@@ -44,14 +38,14 @@ export abstract class BaseController {
     });
   }
 
-  protected notFound(res: BaseResponse, message: string) {
+  protected notFound(res: ResponseData, message: string) {
     return res.status(404).json({
       success: false,
       message
     });
   }
 
-  protected internalError(res: BaseResponse, message: string, error?: any) {
+  protected internalError(res: ResponseData, message: string, error?: any) {
     return res.status(500).json({
       success: false,
       message,
@@ -62,27 +56,13 @@ export abstract class BaseController {
 
 import { standardResponse } from '../../../utils/standardResponse';
 
-interface HttpRequest {
-  body: any;
-  params: any;
-  query: any;
-  user?: any;
-  headers: any;
-}
-
-interface HttpResponse {
-  status(code: number): HttpResponse;
-  json(data: any): void;
-  send(data: any): void;
-}
-
 export abstract class BaseController {
-  protected handleError(error: any, res: HttpResponse, message: string = 'Erro interno do servidor'): void {
+  protected handleError(error: any, res: ResponseData, message: string = 'Erro interno do servidor'): void {
     console.error('Controller Error:', error);
     res.status(500).json(standardResponse(false, message));
   }
 
-  protected validateTenant(req: HttpRequest, res: HttpResponse): string | null {
+  protected validateTenant(req: RequestData, res: ResponseData): string | null {
     const tenantId = req.user?.tenantId;
     if (!tenantId) {
       res.status(400).json(standardResponse(false, 'Tenant ID é obrigatório'));
@@ -91,7 +71,7 @@ export abstract class BaseController {
     return tenantId;
   }
 
-  protected validateId(id: string, res: HttpResponse): boolean {
+  protected validateId(id: string, res: ResponseData): boolean {
     if (!id || id.trim() === '') {
       res.status(400).json(standardResponse(false, 'ID é obrigatório'));
       return false;
@@ -99,7 +79,7 @@ export abstract class BaseController {
     return true;
   }
 
-  protected successResponse(res: HttpResponse, message: string, data?: any, status: number = 200): void {
+  protected successResponse(res: ResponseData, message: string, data?: any, status: number = 200): void {
     res.status(status).json(standardResponse(true, message, data));
   }
 }

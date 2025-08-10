@@ -8,7 +8,7 @@ import {
   createScheduleTemplateSchema,
   createFlexibleWorkArrangementSchema
 } from '../../../../../shared/timecard-validation';
-// Express dependencies removed for clean architecture compliance
+// Usar DTOs ao invés de Request/Response direto
 
 // Using interface instead of express types to maintain clean architecture
 interface HttpRequest {

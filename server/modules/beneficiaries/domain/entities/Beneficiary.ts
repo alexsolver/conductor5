@@ -1,4 +1,4 @@
-// Removed DTO dependency from domain layer - violates Clean Architecture
+// Removida dependência inválida da camada application
 
 export interface BeneficiaryProps {
   name: string;

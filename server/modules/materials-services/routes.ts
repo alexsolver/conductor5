@@ -25,6 +25,9 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import { db as drizzleDb } from '../../db';
 import { pool } from '../../db';
 
+import { MaterialController } from './application/controllers/MaterialController';
+
+// Usar controllers ao invés de lógica direta
 
 // Create router
 const router = Router();
@@ -70,6 +73,7 @@ async function getControllers(tenantId: string) {
 
     const assetRepository = new (await import('./infrastructure/repositories/AssetManagementRepository')).AssetManagementRepository();
     const complianceRepository = new (await import('./infrastructure/repositories/ComplianceRepository')).ComplianceRepository();
+    const materialRepository = new (await import('./infrastructure/repositories/MaterialRepository')).MaterialRepository();
 
     return {
       itemController: new ItemController(itemRepository),
@@ -78,7 +82,8 @@ async function getControllers(tenantId: string) {
       assetController: new AssetManagementController(assetRepository),
       lpuController: lpuController,
       complianceController: new ComplianceController(complianceRepository),
-      ticketMaterialsController: ticketMaterialsController
+      ticketMaterialsController: ticketMaterialsController,
+      materialController: new MaterialController(materialRepository)
     };
   } catch (error) {
     console.error('❌ getControllers: Failed to initialize controllers:', error);

@@ -24,3 +24,16 @@ export class CreateSkillUseCase {
     return await this.skillRepository.create(skill);
   }
 }
+import { Skill } from '../../domain/entities/Skill';
+import { ISkillRepository } from '../../domain/ports/ISkillRepository';
+
+export class CreateSkillUseCase {
+  constructor(
+    private readonly skillRepository: ISkillRepository
+  ) {}
+
+  async execute(skillData: any, tenantId: string): Promise<Skill> {
+    const skill = new Skill(skillData);
+    return await this.skillRepository.create(skill);
+  }
+}

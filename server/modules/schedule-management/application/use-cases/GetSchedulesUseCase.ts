@@ -21,3 +21,15 @@ export class GetSchedulesUseCase {
     return await this.scheduleRepository.findByTenantId(tenantId);
   }
 }
+import { ScheduleEntity } from '../../domain/entities/ScheduleEntity';
+import { IScheduleRepository } from '../../domain/ports/IScheduleRepository';
+
+export class GetSchedulesUseCase {
+  constructor(
+    private readonly scheduleRepository: IScheduleRepository
+  ) {}
+
+  async execute(tenantId: string): Promise<ScheduleEntity[]> {
+    return await this.scheduleRepository.findAll(tenantId);
+  }
+}

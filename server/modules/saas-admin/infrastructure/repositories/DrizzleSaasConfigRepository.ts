@@ -1,5 +1,4 @@
-
-import { ISaasConfigRepository } from '../../domain/repositories/ISaasConfigRepository';
+import { ISaasConfigRepository } from '../../domain/ports/ISaasConfigRepository';
 
 export class DrizzleSaasConfigRepository implements ISaasConfigRepository {
   async create(config: any): Promise<any> {

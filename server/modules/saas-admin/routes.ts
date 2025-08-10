@@ -4,7 +4,7 @@ import { requireSaasAdmin, requirePermission, AuthorizedRequest } from '../../mi
 import { Permission } from '../../domain/authorization/RolePermissions';
 import { DependencyContainer } from '../../application/services/DependencyContainer';
 import { SaasAdminController } from './application/controllers/SaasAdminController';
-import { GetConfigsUseCase } from '../../application/use-cases/GetConfigsUseCase'; // Assuming this is the correct path
+import { GetConfigsUseCase } from './application/use-cases/GetConfigsUseCase'; // Assuming this is the correct path
 import { configRepository } from '../../infrastructure/repositories/ConfigRepository'; // Assuming this is the correct path
 
 const router = Router();
