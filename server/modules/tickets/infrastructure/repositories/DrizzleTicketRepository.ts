@@ -296,7 +296,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
     return new Ticket(
       data.id,
       data.tenantId,
-      data.customerId || data.customer_id, // FIXED: Database has customer_id, not companyId
+      data.customerId, // FIXED: Consistent with schema customerId field
       data.callerId,
       data.callerType,
       data.subject,
@@ -339,7 +339,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
     return {
       id: ticket.getId(),
       tenantId: ticket.getTenantId(),
-      customerId: ticket.getCustomerId(), // FIXED: Database field is customer_id, not company_id
+      customerId: ticket.getCustomerId(), // FIXED: Consistent with schema customerId field
       callerId: ticket.getCallerId(),
       callerType: ticket.getCallerType(),
       subject: ticket.getSubject(),

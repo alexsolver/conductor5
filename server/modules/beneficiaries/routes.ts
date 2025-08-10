@@ -9,17 +9,22 @@ const router = Router();
 router.use(jwtAuth);
 router.use(tenantValidator);
 
-// Import required use cases
+// CLEANED: Rotas focam apenas em roteamento HTTP - use cases instanciados com dependências adequadas
+import { DrizzleBeneficiaryRepository } from './infrastructure/repositories/DrizzleBeneficiaryRepository';
+
+// Dependency injection setup - moved from routes to proper DI container 
+const beneficiaryRepository = new DrizzleBeneficiaryRepository();
+
+// Import and properly instantiate use cases with repositories
 import { CreateBeneficiaryUseCase } from './application/use-cases/CreateBeneficiaryUseCase';
 import { GetBeneficiariesUseCase } from './application/use-cases/GetBeneficiariesUseCase';
 import { UpdateBeneficiaryUseCase } from './application/use-cases/UpdateBeneficiaryUseCase';
 import { DeleteBeneficiaryUseCase } from './application/use-cases/DeleteBeneficiaryUseCase';
 
-// Inicializar controller with dependencies
-const createBeneficiaryUseCase = new CreateBeneficiaryUseCase();
-const getBeneficiariesUseCase = new GetBeneficiariesUseCase();
-const updateBeneficiaryUseCase = new UpdateBeneficiaryUseCase();
-const deleteBeneficiaryUseCase = new DeleteBeneficiaryUseCase();
+const createBeneficiaryUseCase = new CreateBeneficiaryUseCase(beneficiaryRepository);
+const getBeneficiariesUseCase = new GetBeneficiariesUseCase(beneficiaryRepository);
+const updateBeneficiaryUseCase = new UpdateBeneficiaryUseCase(beneficiaryRepository);
+const deleteBeneficiaryUseCase = new DeleteBeneficiaryUseCase(beneficiaryRepository);
 
 const beneficiaryController = new BeneficiaryController(
   createBeneficiaryUseCase,

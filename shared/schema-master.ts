@@ -261,7 +261,7 @@ export const tickets = pgTable("tickets", {
   businessImpact: text("business_impact"),
   callerId: uuid("caller_id").references(() => customers.id),
   callerType: varchar("caller_type", { length: 50 }).default("customer"),
-  companyId: uuid("company_id").references(() => companies.id), // CRITICAL: Company the ticket belongs to
+  customerId: uuid("customer_id").references(() => customers.id), // FIXED: Database has customer_id field
   beneficiaryId: uuid("beneficiary_id").references(() => beneficiaries.id),
   beneficiaryType: varchar("beneficiary_type", { length: 50 }).default("customer"),
   responsibleId: uuid("responsible_id").references(() => users.id),
@@ -297,7 +297,7 @@ export const tickets = pgTable("tickets", {
   index("tickets_tenant_status_priority_idx").on(table.tenantId, table.status, table.priority),
   index("tickets_tenant_assigned_idx").on(table.tenantId, table.responsibleId),
   index("tickets_tenant_customer_idx").on(table.tenantId, table.callerId),
-  index("tickets_tenant_company_idx").on(table.tenantId, table.companyId), // CRITICAL: Index for company filtering
+  index("tickets_tenant_customer_idx").on(table.tenantId, table.customerId), // FIXED: Index for customer filtering
   index("tickets_tenant_environment_idx").on(table.tenantId, table.environment),
   index("tickets_tenant_template_idx").on(table.tenantId, table.templateName),
 ]);
