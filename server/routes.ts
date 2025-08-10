@@ -3172,9 +3172,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       });
 
-      // Log the schema being used
-      console.log('[CUSTOMER-COMPANY-ASSOCIATION] Using schema:', schemaName);
-
       if (!tenantId) {
         return res.status(401).json({ message: 'Tenant required' });
       }
@@ -3207,6 +3204,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { schemaManager } = await import('./db');
       const pool = schemaManager.getPool();
       const schemaName = schemaManager.getSchemaName(tenantId);
+
+      // Log the schema being used
+      console.log('[CUSTOMER-COMPANY-ASSOCIATION] Using schema:', schemaName);
 
       // First, verify that both customer and company exist
       const customerCheck = await pool.query(`
