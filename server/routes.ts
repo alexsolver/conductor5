@@ -2113,15 +2113,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // 🔴 CLT COMPLIANCE ROUTES - OBRIGATÓRIAS POR LEI
   // Verificação de integridade da cadeia CLT
-  app.get('/api/timecard/compliance/integrity-check', jwtAuth, cltComplianceController.checkIntegrity.bind(cltComplianceController));
+  if (cltComplianceController && typeof cltComplianceController.checkIntegrity === 'function') {
+    app.get('/api/timecard/compliance/integrity-check', jwtAuth, cltComplianceController.checkIntegrity.bind(cltComplianceController));
+  }
 
   // Trilha de auditoria completa
-  app.get('/api/timecard/compliance/audit-log', jwtAuth, cltComplianceController.getAuditLog.bind(cltComplianceController));
+  if (cltComplianceController && typeof cltComplianceController.getAuditLog === 'function') {
+    app.get('/api/timecard/compliance/audit-log', jwtAuth, cltComplianceController.getAuditLog.bind(cltComplianceController));
+  }
 
   // Relatórios de compliance para fiscalização
-  app.post('/api/timecard/compliance/generate-report', jwtAuth, cltComplianceController.generateComplianceReport.bind(cltComplianceController));
-  app.get('/api/timecard/compliance/reports', jwtAuth, cltComplianceController.listComplianceReports.bind(cltComplianceController));
-  app.get('/api/timecard/compliance/reports/:reportId', jwtAuth, cltComplianceController.downloadComplianceReport.bind(cltComplianceController));
+  if (cltComplianceController && typeof cltComplianceController.generateComplianceReport === 'function') {
+    app.post('/api/timecard/compliance/generate-report', jwtAuth, cltComplianceController.generateComplianceReport.bind(cltComplianceController));
+  }
+  if (cltComplianceController && typeof cltComplianceController.listComplianceReports === 'function') {
+    app.get('/api/timecard/compliance/reports', jwtAuth, cltComplianceController.listComplianceReports.bind(cltComplianceController));
+  }
+  if (cltComplianceController && typeof cltComplianceController.downloadComplianceReport === 'function') {
+    app.get('/api/timecard/compliance/reports/:reportId', jwtAuth, cltComplianceController.downloadComplianceReport.bind(cltComplianceController));
+  }
 
   // Direct CLT Reports - Bypass routing conflicts
   app.get('/api/timecard/reports/attendance/:period', jwtAuth, async (req: AuthenticatedRequest, res) => {
@@ -2139,9 +2149,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Usar o TimecardController que já tem acesso ao db correto
       const timecardController = new TimecardController();
 
-      // Redirecionar para o método correto do controller
-      req.params = { period };
-      return await timecardController.getAttendanceReport(req, res);
+      // Check if the method exists before calling it
+      if (timecardController && typeof timecardController.getAttendanceReport === 'function') {
+        // Redirecionar para o método correto do controller
+        req.params = { period };
+        return await timecardController.getAttendanceReport(req, res);
+      } else {
+        // Fallback response if method doesn't exist
+        return res.status(501).json({ 
+          success: false, 
+          error: 'Relatório de espelho de ponto temporariamente indisponível' 
+        });
+      }
     } catch (error) {
       console.error('[ATTENDANCE-REPORT] Error:', error);
       res.status(500).json({ success: false, error: 'Erro ao gerar relatório de espelho de ponto' });
@@ -2151,14 +2170,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
   // Status dos backups
-  app.get('/api/timecard/compliance/backups', jwtAuth, cltComplianceController.getBackupStatus.bind(cltComplianceController));
-  app.post('/api/timecard/compliance/verify-backup', jwtAuth, cltComplianceController.verifyBackup.bind(cltComplianceController));
+  if (cltComplianceController && typeof cltComplianceController.getBackupStatus === 'function') {
+    app.get('/api/timecard/compliance/backups', jwtAuth, cltComplianceController.getBackupStatus.bind(cltComplianceController));
+  }
+  if (cltComplianceController && typeof cltComplianceController.verifyBackup === 'function') {
+    app.post('/api/timecard/compliance/verify-backup', jwtAuth, cltComplianceController.verifyBackup.bind(cltComplianceController));
+  }
 
   // Status das chaves de assinatura digital
-  app.get('/api/timecard/compliance/keys', jwtAuth, cltComplianceController.getDigitalKeys.bind(cltComplianceController));
+  if (cltComplianceController && typeof cltComplianceController.getDigitalKeys === 'function') {
+    app.get('/api/timecard/compliance/keys', jwtAuth, cltComplianceController.getDigitalKeys.bind(cltComplianceController));
+  }
 
   // Reconstituição da cadeia de integridade
-  app.post('/api/timecard/compliance/rebuild-integrity', jwtAuth, cltComplianceController.rebuildIntegrityChain.bind(cltComplianceController));
+  if (cltComplianceController && typeof cltComplianceController.rebuildIntegrityChain === 'function') {
+    app.post('/api/timecard/compliance/rebuild-integrity', jwtAuth, cltComplianceController.rebuildIntegrityChain.bind(cltComplianceController));
+  }
 
   // Contract Management routes - Gestão de Contratos
   app.use('/api/contracts', contractRoutes);
