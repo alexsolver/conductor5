@@ -1,15 +1,15 @@
 // Clean interfaces for HTTP abstraction
-// Removed express dependency - controllers should use dependency injection
-interface IHttpRequest {
-  params: any;
+// Using interfaces instead of direct express dependency
+interface RequestContext {
+  user?: { tenantId?: string; userId?: string };
+  params: Record<string, string>;
   body: any;
-  user?: any;
   query: any;
 }
 
-interface IHttpResponse {
-  status(code: number): IHttpResponse;
-  json(data: any): void;
+interface ResponseContext {
+  status: (code: number) => ResponseContext;
+  json: (data: any) => void;
 }
 
 export class CustomerController {
@@ -17,7 +17,7 @@ export class CustomerController {
     private customerApplicationService: CustomerApplicationService
   ) {}
 
-  async createCustomer(req: IHttpRequest, res: IHttpResponse): Promise<void> {
+  async createCustomer(req: RequestContext, res: ResponseContext): Promise<void> {
     try {
       const { body, user } = req;
       const tenantId = user?.tenantId;
@@ -51,7 +51,7 @@ export class CustomerController {
     }
   }
 
-  async getCustomers(req: IHttpRequest, res: IHttpResponse): Promise<void> {
+  async getCustomers(req: RequestContext, res: ResponseContext): Promise<void> {
     try {
       const user = req.user;
       const tenantId = user?.tenantId;
@@ -90,7 +90,7 @@ export class CustomerController {
     }
   }
 
-  async updateCustomer(req: IHttpRequest, res: IHttpResponse): Promise<void> {
+  async updateCustomer(req: RequestContext, res: ResponseContext): Promise<void> {
     try {
       const { id } = req.params;
       const user = req.user;
@@ -129,7 +129,7 @@ export class CustomerController {
     }
   }
 
-  async deleteCustomer(req: IHttpRequest, res: IHttpResponse): Promise<void> {
+  async deleteCustomer(req: RequestContext, res: ResponseContext): Promise<void> {
     try {
       const { id } = req.params;
       const user = req.user;
@@ -167,7 +167,7 @@ export class CustomerController {
     }
   }
 
-  async getAllCustomers(req: IHttpRequest, res: IHttpResponse): Promise<void> {
+  async getAllCustomers(req: RequestContext, res: ResponseContext): Promise<void> {
     try {
       const user = req.user;
       const tenantId = user?.tenantId;

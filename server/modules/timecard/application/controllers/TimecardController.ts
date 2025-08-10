@@ -13,7 +13,17 @@ interface IResponse {
 }
 
 // Use abstracted interfaces instead of express and drizzle directly
-// import { Request, Response } from 'express';
+// // Using interfaces instead of direct express dependency
+interface RequestContext {
+  user?: { tenantId?: string; userId?: string };
+  params: Record<string, string>;
+  body: any;
+}
+
+interface ResponseContext {
+  status: (code: number) => ResponseContext;
+  json: (data: any) => void;
+}
 import { z } from 'zod';
 import { db } from '../../../../db';
 import { timecardEntries, workSchedules, users } from '@shared/schema';

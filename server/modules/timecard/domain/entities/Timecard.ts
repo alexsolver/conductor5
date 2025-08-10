@@ -1,4 +1,4 @@
-// Removed drizzle-orm dependency - domain layer should be pure
+// Removed drizzle-orm dependency - domain layer should not depend on infrastructure
 export class Timecard {
   constructor(
     public readonly id: string,

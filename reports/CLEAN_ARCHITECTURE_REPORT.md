@@ -7,30 +7,15 @@
 ## Resumo de Problemas
 
 - 🔥 **Críticos:** 10
-- ⚠️ **Altos:** 63
-- 📋 **Médios:** 32
-- 💡 **Baixos:** 5
-- **Total:** 110
+- ⚠️ **Altos:** 60
+- 📋 **Médios:** 30
+- 💡 **Baixos:** 4
+- **Total:** 104
 
 ## Principais Problemas por Módulo
 
-### 🔥 beneficiaries
-- **Total de problemas:** 5
-- **Críticos:** 2 | **Altos:** 3
-- **Principais problemas:**
-  - Routes contém lógica de negócio ou acesso a dados
-  - Domain Layer violando dependência: ../../application/dto/CreateBeneficiaryDTO
-  - Domain Layer violando dependência: ../../application/dto/CreateBeneficiaryDTO
-
-### ⚠️ customers
-- **Total de problemas:** 2
-- **Críticos:** 0 | **Altos:** 2
-- **Principais problemas:**
-  - Routes contém lógica de negócio ou acesso a dados
-  - Application Layer violando dependência: express
-
 ### 🔥 materials-services
-- **Total de problemas:** 51
+- **Total de problemas:** 50
 - **Críticos:** 2 | **Altos:** 37
 - **Principais problemas:**
   - Routes contém lógica de negócio ou acesso a dados
@@ -60,6 +45,20 @@
   - Routes contém lógica de negócio ou acesso a dados
   - Repository contém possível lógica de negócio
 
+### 🔥 beneficiaries
+- **Total de problemas:** 4
+- **Críticos:** 2 | **Altos:** 2
+- **Principais problemas:**
+  - Domain Layer violando dependência: ../../application/dto/CreateBeneficiaryDTO
+  - Domain Layer violando dependência: ../../application/dto/CreateBeneficiaryDTO
+  - Application Layer violando dependência: express
+
+### ⚠️ customers
+- **Total de problemas:** 1
+- **Críticos:** 0 | **Altos:** 1
+- **Principais problemas:**
+  - Application Layer violando dependência: express
+
 ### ⚠️ knowledge-base
 - **Total de problemas:** 9
 - **Críticos:** 0 | **Altos:** 5
@@ -85,8 +84,8 @@
   - Repository contém possível lógica de negócio
 
 ### 🔥 timecard
-- **Total de problemas:** 9
-- **Críticos:** 1 | **Altos:** 4
+- **Total de problemas:** 8
+- **Críticos:** 1 | **Altos:** 3
 - **Principais problemas:**
   - Domain Layer violando dependência: drizzle-orm/neon-http
   - Application Layer violando dependência: express
@@ -104,35 +103,13 @@
 - **Principais problemas:**
   - Repository contém possível lógica de negócio
 
-### 📋 custom-fields
-- **Total de problemas:** 1
-- **Críticos:** 0 | **Altos:** 0
-- **Principais problemas:**
-  - Use Case index deve terminar com 'UseCase'
-
-### 📋 people
-- **Total de problemas:** 1
-- **Críticos:** 0 | **Altos:** 0
-- **Principais problemas:**
-  - Use Case index deve terminar com 'UseCase'
-
 
 ## Plano de Correção
-
-### 🔥 beneficiaries
-- **Prioridade:** immediate
-- **Tempo estimado:** 4h
-- **Ações:** 4
-
-1. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
-2. **refactor_code:** Refatorar dependência inválida na camada domain
-3. **refactor_code:** Refatorar dependência inválida na camada application
-4. **move_code:** Resolver acoplamento: Entity misturada com DTOs - violação de responsabilidade
 
 ### 🔥 materials-services
 - **Prioridade:** immediate
 - **Tempo estimado:** 25h
-- **Ações:** 33
+- **Ações:** 32
 
 1. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
 2. **refactor_code:** Refatorar dependência inválida na camada domain
@@ -157,16 +134,15 @@
 21. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
 22. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
 23. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
-24. **rename_file:** Padronizar nomenclatura: Entity index não segue padrão PascalCase
-25. **rename_file:** Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'
+24. **rename_file:** Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'
+25. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 26. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 27. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 28. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 29. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
-30. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
+30. **create_file:** Criar Repository com interface
 31. **create_file:** Criar Repository com interface
 32. **create_file:** Criar Repository com interface
-33. **create_file:** Criar Repository com interface
 
 ### 🔥 saas-admin
 - **Prioridade:** immediate
@@ -191,6 +167,15 @@
 4. **refactor_code:** Refatorar dependência inválida na camada application
 5. **rename_file:** Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'
 6. **create_file:** Criar Repository com interface
+
+### 🔥 beneficiaries
+- **Prioridade:** immediate
+- **Tempo estimado:** 3h
+- **Ações:** 3
+
+1. **refactor_code:** Refatorar dependência inválida na camada domain
+2. **refactor_code:** Refatorar dependência inválida na camada application
+3. **move_code:** Resolver acoplamento: Entity misturada com DTOs - violação de responsabilidade
 
 ### 🔥 schedule-management
 - **Prioridade:** immediate
@@ -228,14 +213,6 @@
 6. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 7. **create_file:** Criar Repository com interface
 
-### ⚠️ customers
-- **Prioridade:** high
-- **Tempo estimado:** 2h
-- **Ações:** 2
-
-1. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
-2. **refactor_code:** Refatorar dependência inválida na camada application
-
 ### ⚠️ tickets
 - **Prioridade:** high
 - **Tempo estimado:** 2h
@@ -243,6 +220,13 @@
 
 1. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
 2. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
+
+### ⚠️ customers
+- **Prioridade:** high
+- **Tempo estimado:** 1h
+- **Ações:** 1
+
+1. **refactor_code:** Refatorar dependência inválida na camada application
 
 ### ⚠️ knowledge-base
 - **Prioridade:** high
@@ -270,35 +254,21 @@
 
 1. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
 
-### 💡 custom-fields
-- **Prioridade:** low
-- **Tempo estimado:** 15min
-- **Ações:** 1
-
-1. **rename_file:** Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'
-
-### 💡 people
-- **Prioridade:** low
-- **Tempo estimado:** 15min
-- **Ações:** 1
-
-1. **rename_file:** Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'
-
 
 ## Recomendações
 
 ### Prioridade Imediata 🔥
-- **beneficiaries:** 4 ações (4h)
-- **materials-services:** 33 ações (25h)
+- **materials-services:** 32 ações (25h)
 - **saas-admin:** 6 ações (4h)
 - **technical-skills:** 6 ações (5h)
+- **beneficiaries:** 3 ações (3h)
 - **schedule-management:** 4 ações (3h)
 - **shared:** 7 ações (4h)
 - **timecard:** 7 ações (5h)
 
 ### Prioridade Alta ⚠️
-- **customers:** 2 ações (2h)
 - **tickets:** 2 ações (2h)
+- **customers:** 1 ações (1h)
 - **knowledge-base:** 6 ações (4h)
 
 ## Comandos para Correção

@@ -1,10 +1,8 @@
 import { Pool } from 'pg';
 import { IBaseRepository } from '../../domain/repositories/IBaseRepository';
-import { drizzle } from 'drizzle-orm/neon-http';
-import * as schema from '@shared/schema';
 
 export abstract class BaseRepository<T> implements IBaseRepository<T> {
-  constructor(protected readonly db: ReturnType<typeof drizzle>) {} // Accept any database implementation
+  // Repository should only handle data persistence, not business logic
 
   abstract findById(id: string, tenantId: string): Promise<T | null>;
   abstract findAll(tenantId: string): Promise<T[]>;
@@ -15,12 +13,6 @@ export abstract class BaseRepository<T> implements IBaseRepository<T> {
   protected validateTenantId(tenantId: string): void {
     if (!tenantId) {
       throw new Error('Tenant ID is required');
-    }
-  }
-
-  protected validateId(id: string): void {
-    if (!id) {
-      throw new Error('ID is required');
     }
   }
 }

@@ -1,5 +1,7 @@
 // Domain entities should not depend on infrastructure
 
+// Removed drizzle-orm dependency - domain layer should not depend on infrastructure
+
 export interface SkillProps {
   id: string;
   name: string;
