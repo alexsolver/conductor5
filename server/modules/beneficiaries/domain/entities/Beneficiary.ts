@@ -1,42 +1,55 @@
 // Domain entities should not depend on DTOs
 
+export interface BeneficiaryProps {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  address?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
 export class Beneficiary {
-  constructor(
+  private constructor(
     public readonly id: string,
     public readonly name: string,
     public readonly email: string,
-    public readonly tenantId: string,
-    public readonly customerId?: string,
-    public readonly isActive: boolean = true,
+    public readonly phone?: string,
+    public readonly address?: string,
     public readonly createdAt: Date = new Date(),
     public readonly updatedAt: Date = new Date()
   ) {}
 
-  static create(data: {
-    name: string;
-    email?: string;
-    phone?: string;
-    document?: string;
-    companyId: string;
-    tenantId: string;
-  }): Beneficiary {
+  static create(props: Omit<BeneficiaryProps, 'id' | 'createdAt' | 'updatedAt'>): Beneficiary {
     return new Beneficiary(
       crypto.randomUUID(),
-      data.name,
-      data.email,
-      data.tenantId,
-      data.companyId
+      props.name,
+      props.email,
+      props.phone,
+      props.address
     );
   }
 
-  update(data: Partial<Pick<Beneficiary, 'name' | 'email' | 'isActive'>>): Beneficiary {
+  static reconstruct(props: BeneficiaryProps): Beneficiary {
+    return new Beneficiary(
+      props.id,
+      props.name,
+      props.email,
+      props.phone,
+      props.address,
+      props.createdAt,
+      props.updatedAt
+    );
+  }
+
+  update(props: Partial<Pick<BeneficiaryProps, 'name' | 'email' | 'phone' | 'address'>>): Beneficiary {
     return new Beneficiary(
       this.id,
-      data.name ?? this.name,
-      data.email ?? this.email,
-      this.tenantId,
-      this.customerId,
-      data.isActive ?? this.isActive,
+      props.name ?? this.name,
+      props.email ?? this.email,
+      props.phone ?? this.phone,
+      props.address ?? this.address,
       this.createdAt,
       new Date()
     );

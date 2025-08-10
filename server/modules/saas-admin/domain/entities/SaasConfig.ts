@@ -34,45 +34,56 @@ export class SaasConfig extends BaseEntity {
     this.updatedAt = new Date();
   }
 }
+export interface SaasConfigProps {
+  id: string;
+  key: string;
+  value: string;
+  type: 'string' | 'number' | 'boolean' | 'json';
+  isActive?: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
 export class SaasConfig {
-  constructor(
+  private constructor(
     public readonly id: string,
-    public readonly tenantId: string,
-    public readonly configKey: string,
-    public readonly configValue: string,
+    public readonly key: string,
+    public readonly value: string,
+    public readonly type: 'string' | 'number' | 'boolean' | 'json',
     public readonly isActive: boolean = true,
     public readonly createdAt: Date = new Date(),
     public readonly updatedAt: Date = new Date()
   ) {}
 
-  static create(tenantId: string, configKey: string, configValue: string): SaasConfig {
+  static create(props: Omit<SaasConfigProps, 'id' | 'createdAt' | 'updatedAt'>): SaasConfig {
     return new SaasConfig(
       crypto.randomUUID(),
-      tenantId,
-      configKey,
-      configValue
+      props.key,
+      props.value,
+      props.type,
+      props.isActive ?? true
     );
   }
 
-  update(configValue: string): SaasConfig {
+  static reconstruct(props: SaasConfigProps): SaasConfig {
+    return new SaasConfig(
+      props.id,
+      props.key,
+      props.value,
+      props.type,
+      props.isActive ?? true,
+      props.createdAt,
+      props.updatedAt
+    );
+  }
+
+  updateValue(newValue: string): SaasConfig {
     return new SaasConfig(
       this.id,
-      this.tenantId,
-      this.configKey,
-      configValue,
+      this.key,
+      newValue,
+      this.type,
       this.isActive,
-      this.createdAt,
-      new Date()
-    );
-  }
-
-  deactivate(): SaasConfig {
-    return new SaasConfig(
-      this.id,
-      this.tenantId,
-      this.configKey,
-      this.configValue,
-      false,
       this.createdAt,
       new Date()
     );

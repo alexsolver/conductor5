@@ -66,122 +66,45 @@ const beneficiarySchema = z.object({
 });
 
 // GET /api/beneficiaries - Get all beneficiaries with pagination and search
-beneficiariesRouter.get('/', async (req: AuthenticatedRequest, res: any) => {
-  try {
-    const tenantId = req.user?.tenantId!;
-    const { page, limit, search } = getBeneficiariesSchema.parse(req.query);
-    
-    const beneficiaries = await beneficiaryRepository.findByTenant(tenantId, {
-      page,
-      limit,
-      search
-    });
-    
-    const total = await beneficiaryRepository.countByTenant(tenantId, search);
-    
-    return res.json({
-      success: true,
-      data: {
-        beneficiaries,
-        pagination: {
-          page,
-          limit,
-          total,
-          totalPages: Math.ceil(total / limit)
-        }
-      },
-      message: "Beneficiaries retrieved successfully"
-    });
-  } catch (error: any) {
-    console.error("Error fetching beneficiaries:", error);
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ 
-        success: false, 
-        message: "Validation error", 
-        errors: error.errors.map(e => e.message) 
-      });
-    }
-    return res.status(500).json({ success: false, message: error.message });
-  }
+beneficiariesRouter.get('/', (req: AuthenticatedRequest, res: any) => {
+  const tenantId = req.user?.tenantId!;
+  const queryParams = getBeneficiariesSchema.parse(req.query);
+  beneficiaryController.getAll(req, res, tenantId, queryParams);
 });
 
 // GET /api/beneficiaries/:id - Get a specific beneficiary
-beneficiariesRouter.get("/:id", async (req: AuthenticatedRequest, res: any) => {
-  try {
-    const tenantId = req.user?.tenantId!;
-    const { id } = beneficiaryIdSchema.parse(req.params);
-    const beneficiary = await beneficiaryRepository.findById(id, tenantId);
-
-    if (!beneficiary) {
-      return res.status(404).json({ success: false, message: "Beneficiary not found" });
-    }
-
-    return res.json({ success: true, data: { beneficiary }, message: "Beneficiary retrieved successfully" });
-  } catch (error: any) {
-    console.error("Error fetching beneficiary:", error);
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ success: false, message: "Validation error", errors: error.errors.map(e => e.message) });
-    }
-    return res.status(500).json({ success: false, message: error.message });
-  }
+beneficiariesRouter.get("/:id", (req: AuthenticatedRequest, res: any) => {
+  const tenantId = req.user?.tenantId!;
+  const { id } = beneficiaryIdSchema.parse(req.params);
+  beneficiaryController.getById(req, res, tenantId, id);
 });
 
 // POST /api/beneficiaries - Create a new beneficiary
-beneficiariesRouter.post("/", async (req: AuthenticatedRequest, res: any) => {
-  try {
-    const tenantId = req.user?.tenantId!;
-    const beneficiaryData = beneficiarySchema.parse(req.body);
-    
-    const beneficiary = await beneficiaryController.create({ tenantId, ...beneficiaryData });
-    
-    return res.status(201).json({
-      success: true,
-      data: { beneficiary },
-      message: "Beneficiary created successfully"
-    });
-  } catch (error: any) {
-    console.error("Error creating beneficiary:", error);
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ 
-        success: false, 
-        message: "Validation error", 
-        errors: error.errors.map(e => e.message) 
-      });
-    }
-    return res.status(500).json({ success: false, message: error.message });
-  }
+beneficiariesRouter.post("/", (req: AuthenticatedRequest, res: any) => {
+  const tenantId = req.user?.tenantId!;
+  const beneficiaryData = beneficiarySchema.parse(req.body);
+  beneficiaryController.create(req, res, tenantId, beneficiaryData);
 });
 
 // PUT /api/beneficiaries/:id - Update a beneficiary
-beneficiariesRouter.put("/:id", async (req: AuthenticatedRequest, res: any) => {
-  try {
-    const tenantId = req.user?.tenantId!;
-    const { id } = beneficiaryIdSchema.parse(req.params);
-    const beneficiaryData = beneficiarySchema.parse(req.body);
-
-    const beneficiary = await beneficiaryController.update({ id, tenantId, ...beneficiaryData });
-
-    if (!beneficiary) {
-      return res.status(404).json({ success: false, message: "Beneficiary not found" });
-    }
-
-    return res.json({ success: true, data: { beneficiary }, message: "Beneficiary updated successfully" });
-  } catch (error: any) {
-    console.error("Error updating beneficiary:", error);
-    if (error instanceof z.ZodError) {
-      return sendValidationError(res, error.errors.map(e => e.message));
-    }
-    return sendError(res, error.message, 500);
-  }
+beneficiariesRouter.put("/:id", (req: AuthenticatedRequest, res: any) => {
+  const tenantId = req.user?.tenantId!;
+  const { id } = beneficiaryIdSchema.parse(req.params);
+  const beneficiaryData = beneficiarySchema.parse(req.body);
+  beneficiaryController.update(req, res, tenantId, id, beneficiaryData);
 });
 
 // DELETE /api/beneficiaries/:id - Delete a beneficiary
-beneficiariesRouter.delete("/:id", beneficiaryController.delete.bind(beneficiaryController));
+beneficiariesRouter.delete("/:id", (req: AuthenticatedRequest, res: any) => {
+  const tenantId = req.user?.tenantId!;
+  const { id } = beneficiaryIdSchema.parse(req.params);
+  beneficiaryController.delete(req, res, tenantId, id);
+});
 
 // Get customers associated with a beneficiary
 beneficiariesRouter.get('/:id/customers', async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const tenantId = req.tenantId!;
+    const tenantId = req.user?.tenantId!; // Corrected to access tenantId from req.user
     const { id } = beneficiaryIdSchema.parse(req.params);
     const customers = await beneficiaryController.getBeneficiaryCustomers(tenantId, id);
 
@@ -195,7 +118,7 @@ beneficiariesRouter.get('/:id/customers', async (req: AuthenticatedRequest, res:
 // Add customer to beneficiary
 beneficiariesRouter.post('/:id/customers', async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const tenantId = req.tenantId!;
+    const tenantId = req.user?.tenantId!; // Corrected to access tenantId from req.user
     const { id } = beneficiaryIdSchema.parse(req.params);
     const { customerId } = req.body;
 
@@ -215,13 +138,11 @@ beneficiariesRouter.post('/:id/customers', async (req: AuthenticatedRequest, res
 // Remove customer from beneficiary
 beneficiariesRouter.delete('/:id/customers/:customerId', async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const tenantId = req.tenantId!;
-    const { id, customerId: paramCustomerId } = beneficiaryIdSchema.parse(req.params); // beneficiaryIdSchema is used for beneficiary id
-    const { customerId: bodyCustomerId } = req.body; // Assuming customerId might also be in the body, though params is more RESTful
+    const tenantId = req.user?.tenantId!; // Corrected to access tenantId from req.user
+    const { id } = beneficiaryIdSchema.parse(req.params); // beneficiaryIdSchema is used for beneficiary id
+    const { customerId: paramCustomerId } = req.params; // Get customerId from params
 
-    // Determine which customerId to use. Prefer route parameter if available and valid.
-    // If not, fall back to body if it exists.
-    const customerIdToUse = paramCustomerId || bodyCustomerId;
+    const customerIdToUse = paramCustomerId;
 
     if (!customerIdToUse) {
       return sendValidationError(res, ['Customer ID is required']);
@@ -246,7 +167,7 @@ beneficiariesRouter.delete('/:id/customers/:customerId', async (req: Authenticat
 // GET /api/beneficiaries/:id/locations - Get locations associated with a beneficiary
 beneficiariesRouter.get("/:id/locations", async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const tenantId = req.tenantId!;
+    const tenantId = req.user?.tenantId!; // Corrected to access tenantId from req.user
     const { id } = beneficiaryIdSchema.parse(req.params);
 
     const locations = await beneficiaryController.getBeneficiaryLocations(tenantId, id);
@@ -264,7 +185,7 @@ beneficiariesRouter.get("/:id/locations", async (req: AuthenticatedRequest, res:
 // POST /api/beneficiaries/:id/locations - Add location to beneficiary
 beneficiariesRouter.post("/:id/locations", async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const tenantId = req.tenantId!;
+    const tenantId = req.user?.tenantId!; // Corrected to access tenantId from req.user
     const { id } = beneficiaryIdSchema.parse(req.params);
 
     const addLocationSchema = z.object({
@@ -289,7 +210,7 @@ beneficiariesRouter.post("/:id/locations", async (req: AuthenticatedRequest, res
 // DELETE /api/beneficiaries/:id/locations/:locationId - Remove location from beneficiary
 beneficiariesRouter.delete("/:id/locations/:locationId", async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const tenantId = req.tenantId!;
+    const tenantId = req.user?.tenantId!; // Corrected to access tenantId from req.user
     const { id } = beneficiaryIdSchema.parse(req.params);
     const locationIdSchema = z.object({
       locationId: z.string().uuid("Invalid location ID format")
@@ -315,7 +236,7 @@ beneficiariesRouter.delete("/:id/locations/:locationId", async (req: Authenticat
 // PUT /api/beneficiaries/:id/locations/:locationId/primary - Update primary status
 beneficiariesRouter.put("/:id/locations/:locationId/primary", async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const tenantId = req.tenantId!;
+    const tenantId = req.user?.tenantId!; // Corrected to access tenantId from req.user
     const { id } = beneficiaryIdSchema.parse(req.params);
     const locationIdSchema = z.object({
       locationId: z.string().uuid("Invalid location ID format")

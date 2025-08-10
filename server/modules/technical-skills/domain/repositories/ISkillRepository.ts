@@ -30,3 +30,14 @@ export interface ISkillRepository {
   countByCategory(): Promise<{ category: string; count: number }[]>;
   getMostDemandedSkills(limit?: number): Promise<{ skill: Skill; demandCount: number }[]>;
 }
+import { Skill } from '../entities/Skill';
+
+export interface ISkillRepository {
+  save(skill: Skill): Promise<Skill>;
+  findById(id: string): Promise<Skill | null>;
+  findByCategory(category: string): Promise<Skill[]>;
+  findActive(): Promise<Skill[]>;
+  search(query: string): Promise<Skill[]>;
+  delete(id: string): Promise<void>;
+  update(skill: Skill): Promise<Skill>;
+}

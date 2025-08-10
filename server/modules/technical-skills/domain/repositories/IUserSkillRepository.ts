@@ -47,3 +47,14 @@ export interface IUserSkillRepository {
   // Operações de avaliação
   updateRating(userSkillId: string, newRating: number, totalEvaluations: number): Promise<void>;
 }
+import { UserSkill } from '../entities/Skill';
+
+export interface IUserSkillRepository {
+  save(userSkill: UserSkill): Promise<UserSkill>;
+  findById(id: string): Promise<UserSkill | null>;
+  findByUserId(userId: string): Promise<UserSkill[]>;
+  findBySkillId(skillId: string): Promise<UserSkill[]>;
+  findByUserAndSkill(userId: string, skillId: string): Promise<UserSkill | null>;
+  delete(id: string): Promise<void>;
+  update(userSkill: UserSkill): Promise<UserSkill>;
+}

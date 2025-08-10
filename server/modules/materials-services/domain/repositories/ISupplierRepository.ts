@@ -18,3 +18,14 @@ export interface ISupplierRepository {
   update(id: string, supplier: Partial<Supplier>, tenantId: string): Promise<Supplier | null>;
   delete(id: string, tenantId: string): Promise<boolean>;
 }
+import { Supplier } from '../entities';
+
+export interface ISupplierRepository {
+  save(supplier: Supplier): Promise<Supplier>;
+  findById(id: string): Promise<Supplier | null>;
+  findByEmail(email: string): Promise<Supplier | null>;
+  findActive(): Promise<Supplier[]>;
+  search(query: string): Promise<Supplier[]>;
+  delete(id: string): Promise<void>;
+  update(supplier: Supplier): Promise<Supplier>;
+}
