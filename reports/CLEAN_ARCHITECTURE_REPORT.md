@@ -7,16 +7,16 @@
 ## Resumo de Problemas
 
 - 🔥 **Críticos:** 2
-- ⚠️ **Altos:** 52
+- ⚠️ **Altos:** 49
 - 📋 **Médios:** 22
 - 💡 **Baixos:** 0
-- **Total:** 76
+- **Total:** 73
 
 ## Principais Problemas por Módulo
 
 ### ⚠️ materials-services
-- **Total de problemas:** 37
-- **Críticos:** 0 | **Altos:** 31
+- **Total de problemas:** 36
+- **Críticos:** 0 | **Altos:** 30
 - **Principais problemas:**
   - Routes contém lógica de negócio ou acesso a dados
   - Application Layer violando dependência: express
@@ -31,12 +31,12 @@
   - Repository indexRepository não possui interface no Domain
 
 ### ⚠️ technical-skills
-- **Total de problemas:** 6
-- **Críticos:** 0 | **Altos:** 6
+- **Total de problemas:** 5
+- **Críticos:** 0 | **Altos:** 5
 - **Principais problemas:**
   - Routes contém lógica de negócio ou acesso a dados
   - Application Layer violando dependência: express
-  - Application Layer violando dependência: express
+  - Application Layer violando dependência: ../../infrastructure/repositories/DrizzleUserSkillRepository
 
 ### ⚠️ tickets
 - **Total de problemas:** 3
@@ -55,10 +55,9 @@
   - Application Layer violando dependência: express
 
 ### ⚠️ custom-fields
-- **Total de problemas:** 2
-- **Críticos:** 0 | **Altos:** 2
+- **Total de problemas:** 1
+- **Críticos:** 0 | **Altos:** 1
 - **Principais problemas:**
-  - Application Layer violando dependência: express
   - Application Layer violando dependência: express
 
 ### ⚠️ knowledge-base

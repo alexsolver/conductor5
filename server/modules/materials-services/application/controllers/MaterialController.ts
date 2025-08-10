@@ -1,8 +1,19 @@
-import { Request, Response } from 'express';
 import { GetMaterialsUseCase } from '../use-cases/GetMaterialsUseCase';
 import { CreateMaterialUseCase } from '../use-cases/CreateMaterialUseCase';
 import { UpdateMaterialUseCase } from '../use-cases/UpdateMaterialUseCase';
 import { standardResponse } from '../../../utils/standardResponse';
+
+interface HttpRequest {
+  body: any;
+  params: any;
+  query: any;
+  user?: any;
+}
+
+interface HttpResponse {
+  status: (code: number) => HttpResponse;
+  json: (data: any) => void;
+}
 
 export class MaterialController {
   constructor(
@@ -11,7 +22,7 @@ export class MaterialController {
     private updateMaterialUseCase: UpdateMaterialUseCase = new UpdateMaterialUseCase()
   ) {}
 
-  async getAllMaterials(req: Request, res: Response): Promise<void> {
+  async getAllMaterials(req: HttpRequest, res: HttpResponse): Promise<void> {
     try {
       const materials = await this.getMaterialsUseCase.execute();
       standardResponse(res, 200, 'Materials retrieved successfully', materials);
@@ -20,7 +31,7 @@ export class MaterialController {
     }
   }
 
-  async createMaterial(req: Request, res: Response): Promise<void> {
+  async createMaterial(req: HttpRequest, res: HttpResponse): Promise<void> {
     try {
       const material = await this.createMaterialUseCase.execute(req.body);
       standardResponse(res, 201, 'Material created successfully', material);
@@ -29,7 +40,7 @@ export class MaterialController {
     }
   }
 
-  async getMaterial(req: Request, res: Response): Promise<void> {
+  async getMaterial(req: HttpRequest, res: HttpResponse): Promise<void> {
     try {
       const { id } = req.params;
       const material = await this.getMaterialsUseCase.executeById(id);
@@ -39,7 +50,7 @@ export class MaterialController {
     }
   }
 
-  async updateMaterial(req: Request, res: Response): Promise<void> {
+  async updateMaterial(req: HttpRequest, res: HttpResponse): Promise<void> {
     try {
       const { id } = req.params;
       const material = await this.updateMaterialUseCase.execute(id, req.body);
@@ -49,7 +60,7 @@ export class MaterialController {
     }
   }
 
-  async deleteMaterial(req: Request, res: Response): Promise<void> {
+  async deleteMaterial(req: HttpRequest, res: HttpResponse): Promise<void> {
     try {
       const { id } = req.params;
       await this.getMaterialsUseCase.executeDelete(id);

@@ -1,6 +1,6 @@
 // Domain entities should not import DTOs from application layer
 
-// Removed application layer import - domain should not depend on application
+// Removed dependency violation - Domain should not depend on Application layer
 
 export interface BeneficiaryProps {
   id: string;
@@ -44,15 +44,22 @@ export class Beneficiary {
     private readonly _updatedAt: Date = new Date()
   ) {}
 
-  static create(props: BeneficiaryProps): Beneficiary {
+  static create(data: {
+    name: string;
+    cpf: string;
+    email?: string;
+    phone?: string;
+    address?: string;
+    tenant_id: string;
+  }): Beneficiary {
     return new Beneficiary(
-      props.id,
-      props.name,
-      props.email,
-      props.phone,
-      props.address,
-      props.createdAt,
-      props.updatedAt
+      data.cpf, // Assuming 'cpf' from data maps to '_id' based on common patterns and the need for an ID
+      data.name,
+      data.email || '', // Providing a default empty string if email is undefined
+      data.phone,
+      data.address,
+      new Date(), // Setting createdAt to current date
+      new Date()  // Setting updatedAt to current date
     );
   }
 

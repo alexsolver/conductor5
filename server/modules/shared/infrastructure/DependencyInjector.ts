@@ -1,28 +1,27 @@
-
 export class DependencyInjector {
   private static instance: DependencyInjector;
-  private dependencies: Map<string, any> = new Map();
+  private container: Map<string, any> = new Map();
 
   static getInstance(): DependencyInjector {
-    if (!this.instance) {
-      this.instance = new DependencyInjector();
+    if (!DependencyInjector.instance) {
+      DependencyInjector.instance = new DependencyInjector();
     }
-    return this.instance;
+    return DependencyInjector.instance;
   }
 
-  register<T>(key: string, dependency: T): void {
-    this.dependencies.set(key, dependency);
+  register<T>(token: string, instance: T): void {
+    this.container.set(token, instance);
   }
 
-  resolve<T>(key: string): T {
-    const dependency = this.dependencies.get(key);
-    if (!dependency) {
-      throw new Error(`Dependency ${key} not found`);
+  resolve<T>(token: string): T {
+    const instance = this.container.get(token);
+    if (!instance) {
+      throw new Error(`No instance registered for token: ${token}`);
     }
-    return dependency;
+    return instance;
   }
 
   clear(): void {
-    this.dependencies.clear();
+    this.container.clear();
   }
 }

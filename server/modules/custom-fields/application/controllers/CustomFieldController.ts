@@ -11,7 +11,17 @@ interface HttpResponse {
 
 import { ICustomFieldRepository } from '../../domain/repositories/ICustomFieldRepository';
 import { CustomField } from '../../domain/entities/CustomField';
-import { Request, Response } from 'express';
+interface HttpRequest {
+  body: any;
+  params: any;
+  query: any;
+  user?: any;
+}
+
+interface HttpResponse {
+  status: (code: number) => HttpResponse;
+  json: (data: any) => void;
+}
 
 
 export interface CreateCustomFieldDTO {

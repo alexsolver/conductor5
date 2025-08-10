@@ -3,7 +3,17 @@ import { SkillApplicationService } from '../services/SkillApplicationService';
 import { ISkillRepository } from '../../domain/ports/ISkillRepository';
 import crypto from 'crypto';
 import { IUserSkillRepository } from '../../domain/ports/IUserSkillRepository';
-import { Request, Response } from 'express';
+interface HttpRequest {
+  body: any;
+  params: any;
+  query: any;
+  user?: any;
+}
+
+interface HttpResponse {
+  status: (code: number) => HttpResponse;
+  json: (data: any) => void;
+}
 import { CreateSkillUseCase } from '../use-cases/CreateSkillUseCase';
 import { GetSkillsUseCase } from '../use-cases/GetSkillsUseCase';
 import { UpdateSkillUseCase } from '../use-cases/UpdateSkillUseCase';
@@ -37,7 +47,7 @@ export class SkillController {
     this.updateSkillUseCase = new UpdateSkillUseCase();
   }
 
-  async createSkill(req: Request, res: Response): Promise<void> {
+  async createSkill(req: HttpRequest, res: HttpResponse): Promise<void> {
     try {
       const { name, category, description } = req.body;
       const user = req.user;
