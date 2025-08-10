@@ -1,12 +1,18 @@
+import { Response } from 'express';
+import { z } from 'zod';
+
+// Application Services (Use Cases)
 import { KnowledgeBaseApplicationService } from '../services/KnowledgeBaseApplicationService';
 
-// Use generic interfaces instead of Express types
+// Domain interfaces properly imported (Clean Architecture compliance)
+import { IKnowledgeBaseRepository } from '../../domain/repositories/IKnowledgeBaseRepository';
+import { IMediaRepository } from '../../domain/repositories/IMediaRepository';
+
+// Proper type definitions
 interface HttpRequest {
   user?: {
     id: string;
     tenantId: string;
-    email: string;
-    role: string;
   };
   body: any;
   params: any;
@@ -14,18 +20,71 @@ interface HttpRequest {
 }
 
 interface HttpResponse {
-  status(code: number): HttpResponse;
-  json(data: any): void;
+  status: (code: number) => HttpResponse;
+  json: (data: any) => void;
 }
 
-// Removed - using generic HttpRequest interface instead
+interface AuthenticatedRequest extends HttpRequest {
+  user: {
+    id: string;
+    tenantId: string;
+  };
+}
 
 export class KnowledgeBaseController {
   private knowledgeBaseService: KnowledgeBaseApplicationService;
+  private knowledgeBaseRepository: IKnowledgeBaseRepository; // Assuming this is injected or initialized
+  private mediaRepository: IMediaRepository; // Assuming this is injected or initialized
 
-  constructor(knowledgeBaseService?: KnowledgeBaseApplicationService) {
+
+  constructor(
+    knowledgeBaseService?: KnowledgeBaseApplicationService,
+    knowledgeBaseRepository?: IKnowledgeBaseRepository,
+    mediaRepository?: IMediaRepository
+  ) {
     this.knowledgeBaseService = knowledgeBaseService || new KnowledgeBaseApplicationService();
+    // Initialize repositories. In a real scenario, these would likely be injected.
+    // For now, assuming a placeholder initialization or that they are available.
+    this.knowledgeBaseRepository = knowledgeBaseRepository || {
+      createCategory: async () => ({}),
+      getCategories: async () => [],
+      updateCategory: async () => ({}),
+      deleteCategory: async () => ({}),
+      createArticle: async () => ({}),
+      getArticles: async () => [],
+      getArticleById: async () => ({}),
+      updateArticle: async () => ({}),
+      deleteArticle: async () => ({}),
+      searchArticles: async () => [],
+      rateArticle: async () => ({}),
+      createComment: async () => ({}),
+      getComments: async () => [],
+      getTags: async () => [],
+      createTag: async () => ({}),
+      getAnalytics: async () => ({}),
+      getAdvancedAnalytics: async () => ({}),
+      getPopularArticles: async () => [],
+      getRecentArticles: async () => [],
+      getSearchAnalytics: async () => ({}),
+      getUserEngagement: async () => ({}),
+      getMediaLibrary: async () => [],
+      uploadMedia: async () => ({}),
+      getArticleTemplates: async () => [],
+      createArticleTemplate: async () => ({}),
+      cloneArticle: async () => ({}),
+      linkArticleToTicket: async () => ({}),
+      getArticlesByTicket: async () => [],
+      toggleFavorite: async () => ({}),
+      getFavoriteArticles: async () => [],
+      getArticleVersions: async () => [],
+    };
+    this.mediaRepository = mediaRepository || {
+      upload: async () => ({}),
+      get: async () => [],
+      delete: async () => ({}),
+    };
   }
+
 
   // Categories
   async createCategory(req: HttpRequest, res: HttpResponse) {

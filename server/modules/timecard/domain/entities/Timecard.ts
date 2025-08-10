@@ -1,4 +1,4 @@
-// Domain entity - no external dependencies
+// Domain entity - no ORM dependencies
 export class Timecard {
   constructor(
     public readonly id: string,

@@ -1,4 +1,4 @@
-// Domain entity - no external dependencies
+// Domain entity - clean architecture compliance
 export interface SaasConfig {
   id: string;
   tenantId: string;

@@ -1,4 +1,4 @@
-// Domain entities should be infrastructure-agnostic
+// Domain entity - clean from infrastructure dependencies
 
 export class Service {
   constructor(
