@@ -2161,18 +2161,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/timecard/compliance/reports/:reportId', jwtAuth, 
     cltHandler('downloadComplianceReport', 'Download de relatórios CLT não disponível'));
 
-  // Additional CLT compliance routes with safety checks
-  app.get('/api/timecard/compliance/backups', jwtAuth, 
-    cltHandler('getBackupStatus', 'Status de backup CLT não disponível'));
+  // Additional CLT compliance routes with comprehensive safety checks
+  app.get('/api/timecard/compliance/backups', jwtAuth, async (req, res) => {
+    try {
+      if (cltComplianceController && 
+          typeof cltComplianceController === 'object' && 
+          typeof cltComplianceController.getBackupStatus === 'function') {
+        return await cltComplianceController.getBackupStatus(req, res);
+      } else {
+        res.status(501).json({ 
+          message: 'Status de backup CLT não disponível',
+          status: 'not_implemented' 
+        });
+      }
+    } catch (error) {
+      console.error('[CLT-BACKUP-STATUS] Error:', error);
+      res.status(500).json({ 
+        message: 'Erro interno no sistema CLT',
+        error: error.message 
+      });
+    }
+  });
 
-  app.post('/api/timecard/compliance/verify-backup', jwtAuth, 
-    cltHandler('verifyBackup', 'Verificação de backup CLT não disponível'));
+  app.post('/api/timecard/compliance/verify-backup', jwtAuth, async (req, res) => {
+    try {
+      if (cltComplianceController && 
+          typeof cltComplianceController === 'object' && 
+          typeof cltComplianceController.verifyBackup === 'function') {
+        return await cltComplianceController.verifyBackup(req, res);
+      } else {
+        res.status(501).json({ 
+          message: 'Verificação de backup CLT não disponível',
+          status: 'not_implemented' 
+        });
+      }
+    } catch (error) {
+      console.error('[CLT-VERIFY-BACKUP] Error:', error);
+      res.status(500).json({ 
+        message: 'Erro interno no sistema CLT',
+        error: error.message 
+      });
+    }
+  });
 
-  app.get('/api/timecard/compliance/keys', jwtAuth, 
-    cltHandler('getDigitalKeys', 'Gestão de chaves digitais CLT não disponível'));
+  app.get('/api/timecard/compliance/keys', jwtAuth, async (req, res) => {
+    try {
+      if (cltComplianceController && 
+          typeof cltComplianceController === 'object' && 
+          typeof cltComplianceController.getDigitalKeys === 'function') {
+        return await cltComplianceController.getDigitalKeys(req, res);
+      } else {
+        res.status(501).json({ 
+          message: 'Gestão de chaves digitais CLT não disponível',
+          status: 'not_implemented' 
+        });
+      }
+    } catch (error) {
+      console.error('[CLT-KEYS] Error:', error);
+      res.status(500).json({ 
+        message: 'Erro interno no sistema CLT',
+        error: error.message 
+      });
+    }
+  });
 
-  app.post('/api/timecard/compliance/rebuild-integrity', jwtAuth, 
-    cltHandler('rebuildIntegrityChain', 'Reconstituição de integridade CLT não disponível'));
+  app.post('/api/timecard/compliance/rebuild-integrity', jwtAuth, async (req, res) => {
+    try {
+      if (cltComplianceController && 
+          typeof cltComplianceController === 'object' && 
+          typeof cltComplianceController.rebuildIntegrityChain === 'function') {
+        return await cltComplianceController.rebuildIntegrityChain(req, res);
+      } else {
+        res.status(501).json({ 
+          message: 'Reconstituição de integridade CLT não disponível',
+          status: 'not_implemented' 
+        });
+      }
+    } catch (error) {
+      console.error('[CLT-REBUILD] Error:', error);
+      res.status(500).json({ 
+        message: 'Erro interno no sistema CLT',
+        error: error.message 
+      });
+    }
+  });
 
   // Direct CLT Reports - Bypass routing conflicts
   app.get('/api/timecard/reports/attendance/:period', jwtAuth, async (req: AuthenticatedRequest, res) => {
@@ -2215,56 +2287,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
 
-  // Status dos backups
-  app.get('/api/timecard/compliance/backups', jwtAuth, async (req, res) => {
-    try {
-      if (cltComplianceController && typeof cltComplianceController.getBackupStatus === 'function') {
-        return await cltComplianceController.getBackupStatus(req, res);
-      } else {
-        res.status(501).json({ message: 'Status de backup não implementado' });
-      }
-    } catch (error) {
-      res.status(500).json({ message: 'Erro interno do servidor' });
-    }
-  });
-
-  app.post('/api/timecard/compliance/verify-backup', jwtAuth, async (req, res) => {
-    try {
-      if (cltComplianceController && typeof cltComplianceController.verifyBackup === 'function') {
-        return await cltComplianceController.verifyBackup(req, res);
-      } else {
-        res.status(501).json({ message: 'Verificação de backup não implementada' });
-      }
-    } catch (error) {
-      res.status(500).json({ message: 'Erro interno do servidor' });
-    }
-  });
-
-  // Status das chaves de assinatura digital
-  app.get('/api/timecard/compliance/keys', jwtAuth, async (req, res) => {
-    try {
-      if (cltComplianceController && typeof cltComplianceController.getDigitalKeys === 'function') {
-        return await cltComplianceController.getDigitalKeys(req, res);
-      } else {
-        res.status(501).json({ message: 'Gestão de chaves digitais não implementada' });
-      }
-    } catch (error) {
-      res.status(500).json({ message: 'Erro interno do servidor' });
-    }
-  });
-
-  // Reconstituição da cadeia de integridade
-  app.post('/api/timecard/compliance/rebuild-integrity', jwtAuth, async (req, res) => {
-    try {
-      if (cltComplianceController && typeof cltComplianceController.rebuildIntegrityChain === 'function') {
-        return await cltComplianceController.rebuildIntegrityChain(req, res);
-      } else {
-        res.status(501).json({ message: 'Reconstituição de integridade não implementada' });
-      }
-    } catch (error) {
-      res.status(500).json({ message: 'Erro interno do servidor' });
-    }
-  });
+  // Duplicate CLT routes removed - handled above with comprehensive safety checks
 
   // Contract Management routes - Gestão de Contratos
   app.use('/api/contracts', contractRoutes);
