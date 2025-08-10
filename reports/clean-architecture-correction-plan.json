@@ -6,7 +6,7 @@
       {
         "type": "move_code",
         "description": "Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados",
-        "target": "server/modules/beneficiaries/routes.ts",
+        "target": "/home/runner/workspace/server/modules/beneficiaries/routes.ts",
         "steps": [
           "Identificar código acoplado",
           "Determinar camada correta para o código",
@@ -18,7 +18,7 @@
       {
         "type": "refactor_code",
         "description": "Refatorar dependência inválida na camada domain",
-        "target": "server/modules/beneficiaries/domain/services/BeneficiaryDomainService.ts",
+        "target": "/home/runner/workspace/server/modules/beneficiaries/domain/services/BeneficiaryDomainService.ts",
         "steps": [
           "Identificar a dependência problemática",
           "Criar interface/port na camada Domain",
@@ -30,7 +30,7 @@
       {
         "type": "refactor_code",
         "description": "Refatorar dependência inválida na camada application",
-        "target": "server/modules/beneficiaries/application/controllers/BeneficiaryController.ts",
+        "target": "/home/runner/workspace/server/modules/beneficiaries/application/controllers/BeneficiaryController.ts",
         "steps": [
           "Identificar a dependência problemática",
           "Criar interface/port na camada Domain",
@@ -49,7 +49,7 @@
       {
         "type": "move_code",
         "description": "Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados",
-        "target": "server/modules/materials-services/routes.ts",
+        "target": "/home/runner/workspace/server/modules/materials-services/routes.ts",
         "steps": [
           "Identificar código acoplado",
           "Determinar camada correta para o código",
@@ -61,7 +61,7 @@
       {
         "type": "refactor_code",
         "description": "Refatorar dependência inválida na camada domain",
-        "target": "server/modules/materials-services/domain/ports/ILPURepository.ts",
+        "target": "/home/runner/workspace/server/modules/materials-services/domain/ports/ILPURepository.ts",
         "steps": [
           "Identificar a dependência problemática",
           "Criar interface/port na camada Domain",
@@ -73,7 +73,7 @@
       {
         "type": "refactor_code",
         "description": "Refatorar dependência inválida na camada domain",
-        "target": "server/modules/materials-services/domain/ports/IindexRepository.ts",
+        "target": "/home/runner/workspace/server/modules/materials-services/domain/ports/IindexRepository.ts",
         "steps": [
           "Identificar a dependência problemática",
           "Criar interface/port na camada Domain",
@@ -85,7 +85,7 @@
       {
         "type": "refactor_code",
         "description": "Refatorar dependência inválida na camada application",
-        "target": "server/modules/materials-services/application/controllers/AssetManagementController.ts",
+        "target": "/home/runner/workspace/server/modules/materials-services/application/controllers/AssetManagementController.ts",
         "steps": [
           "Identificar a dependência problemática",
           "Criar interface/port na camada Domain",
@@ -97,7 +97,7 @@
       {
         "type": "refactor_code",
         "description": "Refatorar dependência inválida na camada application",
-        "target": "server/modules/materials-services/application/controllers/AuditController.ts",
+        "target": "/home/runner/workspace/server/modules/materials-services/application/controllers/AuditController.ts",
         "steps": [
           "Identificar a dependência problemática",
           "Criar interface/port na camada Domain",
@@ -109,7 +109,7 @@
       {
         "type": "refactor_code",
         "description": "Refatorar dependência inválida na camada application",
-        "target": "server/modules/materials-services/application/controllers/ComplianceController.ts",
+        "target": "/home/runner/workspace/server/modules/materials-services/application/controllers/ComplianceController.ts",
         "steps": [
           "Identificar a dependência problemática",
           "Criar interface/port na camada Domain",
@@ -121,7 +121,7 @@
       {
         "type": "refactor_code",
         "description": "Refatorar dependência inválida na camada application",
-        "target": "server/modules/materials-services/application/controllers/CustomerItemMappingController-fixed.ts",
+        "target": "/home/runner/workspace/server/modules/materials-services/application/controllers/CustomerItemMappingController-fixed.ts",
         "steps": [
           "Identificar a dependência problemática",
           "Criar interface/port na camada Domain",
@@ -133,7 +133,7 @@
       {
         "type": "refactor_code",
         "description": "Refatorar dependência inválida na camada application",
-        "target": "server/modules/materials-services/application/controllers/CustomerItemMappingController-v2.ts",
+        "target": "/home/runner/workspace/server/modules/materials-services/application/controllers/CustomerItemMappingController-v2.ts",
         "steps": [
           "Identificar a dependência problemática",
           "Criar interface/port na camada Domain",
@@ -145,7 +145,7 @@
       {
         "type": "refactor_code",
         "description": "Refatorar dependência inválida na camada application",
-        "target": "server/modules/materials-services/application/controllers/CustomerItemMappingController.ts",
+        "target": "/home/runner/workspace/server/modules/materials-services/application/controllers/CustomerItemMappingController.ts",
         "steps": [
           "Identificar a dependência problemática",
           "Criar interface/port na camada Domain",
@@ -157,7 +157,7 @@
       {
         "type": "refactor_code",
         "description": "Refatorar dependência inválida na camada application",
-        "target": "server/modules/materials-services/application/controllers/CustomerPersonalizationController.ts",
+        "target": "/home/runner/workspace/server/modules/materials-services/application/controllers/CustomerPersonalizationController.ts",
         "steps": [
           "Identificar a dependência problemática",
           "Criar interface/port na camada Domain",
@@ -169,7 +169,7 @@
       {
         "type": "refactor_code",
         "description": "Refatorar dependência inválida na camada application",
-        "target": "server/modules/materials-services/application/controllers/ImportController.ts",
+        "target": "/home/runner/workspace/server/modules/materials-services/application/controllers/ImportController.ts",
         "steps": [
           "Identificar a dependência problemática",
           "Criar interface/port na camada Domain",
@@ -181,7 +181,7 @@
       {
         "type": "refactor_code",
         "description": "Refatorar dependência inválida na camada application",
-        "target": "server/modules/materials-services/application/controllers/ItemController.ts",
+        "target": "/home/runner/workspace/server/modules/materials-services/application/controllers/ItemController.ts",
         "steps": [
           "Identificar a dependência problemática",
           "Criar interface/port na camada Domain",
@@ -193,7 +193,7 @@
       {
         "type": "refactor_code",
         "description": "Refatorar dependência inválida na camada application",
-        "target": "server/modules/materials-services/application/controllers/LPUController.ts",
+        "target": "/home/runner/workspace/server/modules/materials-services/application/controllers/LPUController.ts",
         "steps": [
           "Identificar a dependência problemática",
           "Criar interface/port na camada Domain",
@@ -205,7 +205,7 @@
       {
         "type": "refactor_code",
         "description": "Refatorar dependência inválida na camada application",
-        "target": "server/modules/materials-services/application/controllers/PersonalizationController.ts",
+        "target": "/home/runner/workspace/server/modules/materials-services/application/controllers/PersonalizationController.ts",
         "steps": [
           "Identificar a dependência problemática",
           "Criar interface/port na camada Domain",
@@ -217,7 +217,7 @@
       {
         "type": "refactor_code",
         "description": "Refatorar dependência inválida na camada application",
-        "target": "server/modules/materials-services/application/controllers/StockController.ts",
+        "target": "/home/runner/workspace/server/modules/materials-services/application/controllers/StockController.ts",
         "steps": [
           "Identificar a dependência problemática",
           "Criar interface/port na camada Domain",
@@ -229,7 +229,7 @@
       {
         "type": "refactor_code",
         "description": "Refatorar dependência inválida na camada application",
-        "target": "server/modules/materials-services/application/controllers/SupplierController.ts",
+        "target": "/home/runner/workspace/server/modules/materials-services/application/controllers/SupplierController.ts",
         "steps": [
           "Identificar a dependência problemática",
           "Criar interface/port na camada Domain",
@@ -241,7 +241,7 @@
       {
         "type": "refactor_code",
         "description": "Refatorar dependência inválida na camada application",
-        "target": "server/modules/materials-services/application/controllers/SupplierLinksController.ts",
+        "target": "/home/runner/workspace/server/modules/materials-services/application/controllers/SupplierLinksController.ts",
         "steps": [
           "Identificar a dependência problemática",
           "Criar interface/port na camada Domain",
@@ -253,7 +253,7 @@
       {
         "type": "refactor_code",
         "description": "Refatorar dependência inválida na camada application",
-        "target": "server/modules/materials-services/application/controllers/TicketMaterialsController.ts",
+        "target": "/home/runner/workspace/server/modules/materials-services/application/controllers/TicketMaterialsController.ts",
         "steps": [
           "Identificar a dependência problemática",
           "Criar interface/port na camada Domain",
@@ -265,7 +265,7 @@
       {
         "type": "refactor_code",
         "description": "Refatorar dependência inválida na camada application",
-        "target": "server/modules/materials-services/application/services/PricingRulesEngine.ts",
+        "target": "/home/runner/workspace/server/modules/materials-services/application/services/PricingRulesEngine.ts",
         "steps": [
           "Identificar a dependência problemática",
           "Criar interface/port na camada Domain",
@@ -277,7 +277,7 @@
       {
         "type": "move_code",
         "description": "Resolver acoplamento: Repository contém possível lógica de negócio",
-        "target": "server/modules/materials-services/infrastructure/repositories/ComplianceRepository.ts",
+        "target": "/home/runner/workspace/server/modules/materials-services/infrastructure/repositories/ComplianceRepository.ts",
         "steps": [
           "Identificar código acoplado",
           "Determinar camada correta para o código",
@@ -289,7 +289,7 @@
       {
         "type": "move_code",
         "description": "Resolver acoplamento: Repository contém possível lógica de negócio",
-        "target": "server/modules/materials-services/infrastructure/repositories/ItemRepository.ts",
+        "target": "/home/runner/workspace/server/modules/materials-services/infrastructure/repositories/ItemRepository.ts",
         "steps": [
           "Identificar código acoplado",
           "Determinar camada correta para o código",
@@ -301,7 +301,7 @@
       {
         "type": "move_code",
         "description": "Resolver acoplamento: Repository contém possível lógica de negócio",
-        "target": "server/modules/materials-services/infrastructure/repositories/LPUCacheWarmerRepository.ts",
+        "target": "/home/runner/workspace/server/modules/materials-services/infrastructure/repositories/LPUCacheWarmerRepository.ts",
         "steps": [
           "Identificar código acoplado",
           "Determinar camada correta para o código",
@@ -313,7 +313,7 @@
       {
         "type": "move_code",
         "description": "Resolver acoplamento: Repository contém possível lógica de negócio",
-        "target": "server/modules/materials-services/infrastructure/repositories/LPURepository.ts",
+        "target": "/home/runner/workspace/server/modules/materials-services/infrastructure/repositories/LPURepository.ts",
         "steps": [
           "Identificar código acoplado",
           "Determinar camada correta para o código",
@@ -325,7 +325,7 @@
       {
         "type": "rename_file",
         "description": "Padronizar nomenclatura: Entity index não segue padrão PascalCase",
-        "target": "server/modules/materials-services/domain/entities/index.ts",
+        "target": "/home/runner/workspace/server/modules/materials-services/domain/entities/index.ts",
         "steps": [
           "Renomear arquivo seguindo padrão",
           "Atualizar imports em outros arquivos",
@@ -336,7 +336,7 @@
       {
         "type": "rename_file",
         "description": "Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'",
-        "target": "server/modules/materials-services/application/use-cases/index.ts",
+        "target": "/home/runner/workspace/server/modules/materials-services/application/use-cases/index.ts",
         "steps": [
           "Renomear arquivo seguindo padrão",
           "Atualizar imports em outros arquivos",
@@ -347,7 +347,7 @@
       {
         "type": "create_directory",
         "description": "Criar interface I[Entity]Repository no domain e implementar",
-        "target": "server/modules/materials-services/infrastructure/repositories/AssetManagementRepository.ts",
+        "target": "/home/runner/workspace/server/modules/materials-services/infrastructure/repositories/AssetManagementRepository.ts",
         "steps": [
           "Criar interface I[Entity]Repository no domain e implementar"
         ]
@@ -355,7 +355,7 @@
       {
         "type": "create_directory",
         "description": "Criar interface I[Entity]Repository no domain e implementar",
-        "target": "server/modules/materials-services/infrastructure/repositories/ComplianceRepository.ts",
+        "target": "/home/runner/workspace/server/modules/materials-services/infrastructure/repositories/ComplianceRepository.ts",
         "steps": [
           "Criar interface I[Entity]Repository no domain e implementar"
         ]
@@ -363,7 +363,7 @@
       {
         "type": "create_directory",
         "description": "Criar interface I[Entity]Repository no domain e implementar",
-        "target": "server/modules/materials-services/infrastructure/repositories/ItemRepository.ts",
+        "target": "/home/runner/workspace/server/modules/materials-services/infrastructure/repositories/ItemRepository.ts",
         "steps": [
           "Criar interface I[Entity]Repository no domain e implementar"
         ]
@@ -371,7 +371,7 @@
       {
         "type": "create_directory",
         "description": "Criar interface I[Entity]Repository no domain e implementar",
-        "target": "server/modules/materials-services/infrastructure/repositories/LPURepository.ts",
+        "target": "/home/runner/workspace/server/modules/materials-services/infrastructure/repositories/LPURepository.ts",
         "steps": [
           "Criar interface I[Entity]Repository no domain e implementar"
         ]
@@ -379,7 +379,7 @@
       {
         "type": "create_directory",
         "description": "Criar interface I[Entity]Repository no domain e implementar",
-        "target": "server/modules/materials-services/infrastructure/repositories/StockRepository.ts",
+        "target": "/home/runner/workspace/server/modules/materials-services/infrastructure/repositories/StockRepository.ts",
         "steps": [
           "Criar interface I[Entity]Repository no domain e implementar"
         ]
@@ -387,7 +387,7 @@
       {
         "type": "create_directory",
         "description": "Criar interface I[Entity]Repository no domain e implementar",
-        "target": "server/modules/materials-services/infrastructure/repositories/SupplierRepository.ts",
+        "target": "/home/runner/workspace/server/modules/materials-services/infrastructure/repositories/SupplierRepository.ts",
         "steps": [
           "Criar interface I[Entity]Repository no domain e implementar"
         ]
@@ -395,7 +395,7 @@
       {
         "type": "create_file",
         "description": "Criar Repository com interface",
-        "target": "server/modules/materials-services/infrastructure/repositories/MaterialRepository.ts",
+        "target": "/home/runner/workspace/server/modules/materials-services/infrastructure/repositories/MaterialRepository.ts",
         "code": "import { Material } from '../../domain/entities/Material';\nimport { IMaterialRepository } from '../../domain/ports/IMaterialRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleMaterialRepository implements IMaterialRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<Material | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<Material[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: Material): Promise<Material> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<Material>, tenantId: string): Promise<Material | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
         "steps": [
           "Criar interface do Repository na camada Domain",
@@ -407,7 +407,7 @@
       {
         "type": "create_file",
         "description": "Criar Repository com interface",
-        "target": "server/modules/materials-services/infrastructure/repositories/ServiceRepository.ts",
+        "target": "/home/runner/workspace/server/modules/materials-services/infrastructure/repositories/ServiceRepository.ts",
         "code": "import { Service } from '../../domain/entities/Service';\nimport { IServiceRepository } from '../../domain/ports/IServiceRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleServiceRepository implements IServiceRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<Service | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<Service[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: Service): Promise<Service> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<Service>, tenantId: string): Promise<Service | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
         "steps": [
           "Criar interface do Repository na camada Domain",
@@ -419,7 +419,7 @@
       {
         "type": "create_file",
         "description": "Criar Repository com interface",
-        "target": "server/modules/materials-services/domain/ports/ILPUCacheWarmerRepository.ts",
+        "target": "/home/runner/workspace/server/modules/materials-services/domain/ports/ILPUCacheWarmerRepository.ts",
         "code": "import { ILPUCacheWarmer } from '../../domain/entities/ILPUCacheWarmer';\nimport { IILPUCacheWarmerRepository } from '../../domain/ports/IILPUCacheWarmerRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleILPUCacheWarmerRepository implements IILPUCacheWarmerRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<ILPUCacheWarmer | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<ILPUCacheWarmer[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: ILPUCacheWarmer): Promise<ILPUCacheWarmer> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<ILPUCacheWarmer>, tenantId: string): Promise<ILPUCacheWarmer | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
         "steps": [
           "Criar interface do Repository na camada Domain",
@@ -438,7 +438,7 @@
       {
         "type": "move_code",
         "description": "Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados",
-        "target": "server/modules/saas-admin/routes.ts",
+        "target": "/home/runner/workspace/server/modules/saas-admin/routes.ts",
         "steps": [
           "Identificar código acoplado",
           "Determinar camada correta para o código",
@@ -450,7 +450,7 @@
       {
         "type": "refactor_code",
         "description": "Refatorar dependência inválida na camada domain",
-        "target": "server/modules/saas-admin/domain/ports/Iindex.ts",
+        "target": "/home/runner/workspace/server/modules/saas-admin/domain/ports/Iindex.ts",
         "steps": [
           "Identificar a dependência problemática",
           "Criar interface/port na camada Domain",
@@ -462,7 +462,7 @@
       {
         "type": "refactor_code",
         "description": "Refatorar dependência inválida na camada application",
-        "target": "server/modules/saas-admin/application/controllers/SaasAdminController.ts",
+        "target": "/home/runner/workspace/server/modules/saas-admin/application/controllers/SaasAdminController.ts",
         "steps": [
           "Identificar a dependência problemática",
           "Criar interface/port na camada Domain",
@@ -474,7 +474,7 @@
       {
         "type": "rename_file",
         "description": "Padronizar nomenclatura: Entity index não segue padrão PascalCase",
-        "target": "server/modules/saas-admin/domain/entities/index.ts",
+        "target": "/home/runner/workspace/server/modules/saas-admin/domain/entities/index.ts",
         "steps": [
           "Renomear arquivo seguindo padrão",
           "Atualizar imports em outros arquivos",
@@ -485,7 +485,7 @@
       {
         "type": "create_directory",
         "description": "Criar interface I[Entity]Repository no domain e implementar",
-        "target": "server/modules/saas-admin/infrastructure/repositories/indexRepository.ts",
+        "target": "/home/runner/workspace/server/modules/saas-admin/infrastructure/repositories/indexRepository.ts",
         "steps": [
           "Criar interface I[Entity]Repository no domain e implementar"
         ]
@@ -493,7 +493,7 @@
       {
         "type": "create_file",
         "description": "Criar Repository com interface",
-        "target": "server/modules/saas-admin/domain/ports/IindexRepository.ts",
+        "target": "/home/runner/workspace/server/modules/saas-admin/domain/ports/IindexRepository.ts",
         "code": "import { Iindex } from '../../domain/entities/Iindex';\nimport { IIindexRepository } from '../../domain/ports/IIindexRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleIindexRepository implements IIindexRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<Iindex | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<Iindex[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: Iindex): Promise<Iindex> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<Iindex>, tenantId: string): Promise<Iindex | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
         "steps": [
           "Criar interface do Repository na camada Domain",
@@ -512,7 +512,7 @@
       {
         "type": "move_code",
         "description": "Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados",
-        "target": "server/modules/technical-skills/routes.ts",
+        "target": "/home/runner/workspace/server/modules/technical-skills/routes.ts",
         "steps": [
           "Identificar código acoplado",
           "Determinar camada correta para o código",
@@ -524,7 +524,7 @@
       {
         "type": "refactor_code",
         "description": "Refatorar dependência inválida na camada domain",
-        "target": "server/modules/technical-skills/domain/ports/IUserSkillRepository_FIXED.ts",
+        "target": "/home/runner/workspace/server/modules/technical-skills/domain/ports/IUserSkillRepository_FIXED.ts",
         "steps": [
           "Identificar a dependência problemática",
           "Criar interface/port na camada Domain",
@@ -536,7 +536,7 @@
       {
         "type": "refactor_code",
         "description": "Refatorar dependência inválida na camada application",
-        "target": "server/modules/technical-skills/application/controllers/SkillController.ts",
+        "target": "/home/runner/workspace/server/modules/technical-skills/application/controllers/SkillController.ts",
         "steps": [
           "Identificar a dependência problemática",
           "Criar interface/port na camada Domain",
@@ -548,7 +548,7 @@
       {
         "type": "refactor_code",
         "description": "Refatorar dependência inválida na camada application",
-        "target": "server/modules/technical-skills/application/controllers/UserSkillController.ts",
+        "target": "/home/runner/workspace/server/modules/technical-skills/application/controllers/UserSkillController.ts",
         "steps": [
           "Identificar a dependência problemática",
           "Criar interface/port na camada Domain",
@@ -560,7 +560,7 @@
       {
         "type": "rename_file",
         "description": "Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'",
-        "target": "server/modules/technical-skills/application/use-cases/index.ts",
+        "target": "/home/runner/workspace/server/modules/technical-skills/application/use-cases/index.ts",
         "steps": [
           "Renomear arquivo seguindo padrão",
           "Atualizar imports em outros arquivos",
@@ -571,7 +571,7 @@
       {
         "type": "create_file",
         "description": "Criar Repository com interface",
-        "target": "server/modules/technical-skills/infrastructure/repositories/SkillEntityRepository.ts",
+        "target": "/home/runner/workspace/server/modules/technical-skills/infrastructure/repositories/SkillEntityRepository.ts",
         "code": "import { SkillEntity } from '../../domain/entities/SkillEntity';\nimport { ISkillEntityRepository } from '../../domain/ports/ISkillEntityRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleSkillEntityRepository implements ISkillEntityRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<SkillEntity | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<SkillEntity[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: SkillEntity): Promise<SkillEntity> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<SkillEntity>, tenantId: string): Promise<SkillEntity | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
         "steps": [
           "Criar interface do Repository na camada Domain",
@@ -590,19 +590,7 @@
       {
         "type": "refactor_code",
         "description": "Refatorar dependência inválida na camada domain",
-        "target": "server/modules/schedule-management/domain/entities/Schedule.ts",
-        "steps": [
-          "Identificar a dependência problemática",
-          "Criar interface/port na camada Domain",
-          "Implementar interface na camada Infrastructure",
-          "Usar injeção de dependência",
-          "Remover import direto da dependência externa"
-        ]
-      },
-      {
-        "type": "refactor_code",
-        "description": "Refatorar dependência inválida na camada domain",
-        "target": "server/modules/schedule-management/domain/ports/IScheduleRepository.ts",
+        "target": "/home/runner/workspace/server/modules/schedule-management/domain/ports/IScheduleRepository.ts",
         "steps": [
           "Identificar a dependência problemática",
           "Criar interface/port na camada Domain",
@@ -614,7 +602,7 @@
       {
         "type": "move_code",
         "description": "Resolver acoplamento: Repository contém possível lógica de negócio",
-        "target": "server/modules/schedule-management/infrastructure/repositories/DrizzleScheduleRepository.ts",
+        "target": "/home/runner/workspace/server/modules/schedule-management/infrastructure/repositories/DrizzleScheduleRepository.ts",
         "steps": [
           "Identificar código acoplado",
           "Determinar camada correta para o código",
@@ -626,7 +614,7 @@
       {
         "type": "rename_file",
         "description": "Padronizar nomenclatura: Nome da classe CustomerModule não corresponde ao arquivo Schedule",
-        "target": "server/modules/schedule-management/domain/entities/Schedule.ts",
+        "target": "/home/runner/workspace/server/modules/schedule-management/domain/entities/Schedule.ts",
         "steps": [
           "Renomear arquivo seguindo padrão",
           "Atualizar imports em outros arquivos",
@@ -637,7 +625,7 @@
       {
         "type": "create_file",
         "description": "Criar Repository com interface",
-        "target": "server/modules/schedule-management/infrastructure/repositories/ScheduleEntityRepository.ts",
+        "target": "/home/runner/workspace/server/modules/schedule-management/infrastructure/repositories/ScheduleEntityRepository.ts",
         "code": "import { ScheduleEntity } from '../../domain/entities/ScheduleEntity';\nimport { IScheduleEntityRepository } from '../../domain/ports/IScheduleEntityRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleScheduleEntityRepository implements IScheduleEntityRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<ScheduleEntity | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<ScheduleEntity[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: ScheduleEntity): Promise<ScheduleEntity> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<ScheduleEntity>, tenantId: string): Promise<ScheduleEntity | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
         "steps": [
           "Criar interface do Repository na camada Domain",
@@ -647,7 +635,7 @@
         ]
       }
     ],
-    "estimatedTime": "4h"
+    "estimatedTime": "3h"
   },
   {
     "priority": "immediate",
@@ -656,7 +644,7 @@
       {
         "type": "refactor_code",
         "description": "Refatorar dependência inválida na camada domain",
-        "target": "server/modules/shared/domain/ports/IBaseEntityRepository.ts",
+        "target": "/home/runner/workspace/server/modules/shared/domain/ports/IBaseEntityRepository.ts",
         "steps": [
           "Identificar a dependência problemática",
           "Criar interface/port na camada Domain",
@@ -668,7 +656,7 @@
       {
         "type": "refactor_code",
         "description": "Refatorar dependência inválida na camada domain",
-        "target": "server/modules/shared/domain/ports/Iindex.ts",
+        "target": "/home/runner/workspace/server/modules/shared/domain/ports/Iindex.ts",
         "steps": [
           "Identificar a dependência problemática",
           "Criar interface/port na camada Domain",
@@ -680,7 +668,7 @@
       {
         "type": "rename_file",
         "description": "Padronizar nomenclatura: Repository index deve terminar com 'Repository'",
-        "target": "server/modules/shared/infrastructure/repositories/index.ts",
+        "target": "/home/runner/workspace/server/modules/shared/infrastructure/repositories/index.ts",
         "steps": [
           "Renomear arquivo seguindo padrão",
           "Atualizar imports em outros arquivos",
@@ -691,7 +679,7 @@
       {
         "type": "create_directory",
         "description": "Criar interface I[Entity]Repository no domain e implementar",
-        "target": "server/modules/shared/infrastructure/repositories/index.ts",
+        "target": "/home/runner/workspace/server/modules/shared/infrastructure/repositories/index.ts",
         "steps": [
           "Criar interface I[Entity]Repository no domain e implementar"
         ]
@@ -699,7 +687,7 @@
       {
         "type": "create_directory",
         "description": "Criar interface I[Entity]Repository no domain e implementar",
-        "target": "server/modules/shared/infrastructure/repositories/indexRepository.ts",
+        "target": "/home/runner/workspace/server/modules/shared/infrastructure/repositories/indexRepository.ts",
         "steps": [
           "Criar interface I[Entity]Repository no domain e implementar"
         ]
@@ -707,7 +695,7 @@
       {
         "type": "create_file",
         "description": "Criar Repository com interface",
-        "target": "server/modules/shared/domain/ports/IindexRepository.ts",
+        "target": "/home/runner/workspace/server/modules/shared/domain/ports/IindexRepository.ts",
         "code": "import { Iindex } from '../../domain/entities/Iindex';\nimport { IIindexRepository } from '../../domain/ports/IIindexRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleIindexRepository implements IIindexRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<Iindex | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<Iindex[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: Iindex): Promise<Iindex> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<Iindex>, tenantId: string): Promise<Iindex | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
         "steps": [
           "Criar interface do Repository na camada Domain",
@@ -726,7 +714,7 @@
       {
         "type": "refactor_code",
         "description": "Refatorar dependência inválida na camada domain",
-        "target": "server/modules/timecard/domain/ports/ITimecardRepository.ts",
+        "target": "/home/runner/workspace/server/modules/timecard/domain/ports/ITimecardRepository.ts",
         "steps": [
           "Identificar a dependência problemática",
           "Criar interface/port na camada Domain",
@@ -738,7 +726,7 @@
       {
         "type": "refactor_code",
         "description": "Refatorar dependência inválida na camada application",
-        "target": "server/modules/timecard/application/controllers/TimecardApprovalController.ts",
+        "target": "/home/runner/workspace/server/modules/timecard/application/controllers/TimecardApprovalController.ts",
         "steps": [
           "Identificar a dependência problemática",
           "Criar interface/port na camada Domain",
@@ -750,7 +738,7 @@
       {
         "type": "refactor_code",
         "description": "Refatorar dependência inválida na camada application",
-        "target": "server/modules/timecard/application/controllers/TimecardController.ts",
+        "target": "/home/runner/workspace/server/modules/timecard/application/controllers/TimecardController.ts",
         "steps": [
           "Identificar a dependência problemática",
           "Criar interface/port na camada Domain",
@@ -762,7 +750,7 @@
       {
         "type": "move_code",
         "description": "Resolver acoplamento: Repository contém possível lógica de negócio",
-        "target": "server/modules/timecard/infrastructure/repositories/DrizzleTimecardRepository.ts",
+        "target": "/home/runner/workspace/server/modules/timecard/infrastructure/repositories/DrizzleTimecardRepository.ts",
         "steps": [
           "Identificar código acoplado",
           "Determinar camada correta para o código",
@@ -774,7 +762,7 @@
       {
         "type": "rename_file",
         "description": "Padronizar nomenclatura: Entity index não segue padrão PascalCase",
-        "target": "server/modules/timecard/domain/entities/index.ts",
+        "target": "/home/runner/workspace/server/modules/timecard/domain/entities/index.ts",
         "steps": [
           "Renomear arquivo seguindo padrão",
           "Atualizar imports em outros arquivos",
@@ -785,7 +773,7 @@
       {
         "type": "create_directory",
         "description": "Criar interface I[Entity]Repository no domain e implementar",
-        "target": "server/modules/timecard/infrastructure/repositories/DrizzleTimecardRepository.ts",
+        "target": "/home/runner/workspace/server/modules/timecard/infrastructure/repositories/DrizzleTimecardRepository.ts",
         "steps": [
           "Criar interface I[Entity]Repository no domain e implementar"
         ]
@@ -793,7 +781,7 @@
       {
         "type": "create_file",
         "description": "Criar Repository com interface",
-        "target": "server/modules/timecard/domain/ports/IindexRepository.ts",
+        "target": "/home/runner/workspace/server/modules/timecard/domain/ports/IindexRepository.ts",
         "code": "import { Iindex } from '../../domain/entities/Iindex';\nimport { IIindexRepository } from '../../domain/ports/IIindexRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleIindexRepository implements IIindexRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<Iindex | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<Iindex[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: Iindex): Promise<Iindex> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<Iindex>, tenantId: string): Promise<Iindex | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
         "steps": [
           "Criar interface do Repository na camada Domain",
@@ -812,7 +800,7 @@
       {
         "type": "move_code",
         "description": "Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados",
-        "target": "server/modules/customers/routes.ts",
+        "target": "/home/runner/workspace/server/modules/customers/routes.ts",
         "steps": [
           "Identificar código acoplado",
           "Determinar camada correta para o código",
@@ -824,7 +812,7 @@
       {
         "type": "refactor_code",
         "description": "Refatorar dependência inválida na camada application",
-        "target": "server/modules/customers/application/controllers/CompanyController.ts",
+        "target": "/home/runner/workspace/server/modules/customers/application/controllers/CompanyController.ts",
         "steps": [
           "Identificar a dependência problemática",
           "Criar interface/port na camada Domain",
@@ -836,7 +824,7 @@
       {
         "type": "refactor_code",
         "description": "Refatorar dependência inválida na camada application",
-        "target": "server/modules/customers/application/controllers/CustomerController.ts",
+        "target": "/home/runner/workspace/server/modules/customers/application/controllers/CustomerController.ts",
         "steps": [
           "Identificar a dependência problemática",
           "Criar interface/port na camada Domain",
@@ -855,7 +843,7 @@
       {
         "type": "move_code",
         "description": "Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados",
-        "target": "server/modules/tickets/routes.ts",
+        "target": "/home/runner/workspace/server/modules/tickets/routes.ts",
         "steps": [
           "Identificar código acoplado",
           "Determinar camada correta para o código",
@@ -867,7 +855,7 @@
       {
         "type": "move_code",
         "description": "Resolver acoplamento: Repository contém possível lógica de negócio",
-        "target": "server/modules/tickets/infrastructure/repositories/DrizzleTicketRepository.ts",
+        "target": "/home/runner/workspace/server/modules/tickets/infrastructure/repositories/DrizzleTicketRepository.ts",
         "steps": [
           "Identificar código acoplado",
           "Determinar camada correta para o código",
@@ -886,7 +874,7 @@
       {
         "type": "refactor_code",
         "description": "Refatorar dependência inválida na camada application",
-        "target": "server/modules/knowledge-base/application/controllers/KnowledgeBaseController.ts",
+        "target": "/home/runner/workspace/server/modules/knowledge-base/application/controllers/KnowledgeBaseController.ts",
         "steps": [
           "Identificar a dependência problemática",
           "Criar interface/port na camada Domain",
@@ -898,7 +886,7 @@
       {
         "type": "refactor_code",
         "description": "Refatorar dependência inválida na camada application",
-        "target": "server/modules/knowledge-base/application/controllers/MediaController.ts",
+        "target": "/home/runner/workspace/server/modules/knowledge-base/application/controllers/MediaController.ts",
         "steps": [
           "Identificar a dependência problemática",
           "Criar interface/port na camada Domain",
@@ -910,7 +898,7 @@
       {
         "type": "refactor_code",
         "description": "Refatorar dependência inválida na camada application",
-        "target": "server/modules/knowledge-base/application/services/MediaService.ts",
+        "target": "/home/runner/workspace/server/modules/knowledge-base/application/services/MediaService.ts",
         "steps": [
           "Identificar a dependência problemática",
           "Criar interface/port na camada Domain",
@@ -922,7 +910,7 @@
       {
         "type": "move_code",
         "description": "Resolver acoplamento: Repository contém possível lógica de negócio",
-        "target": "server/modules/knowledge-base/infrastructure/repositories/KnowledgeBaseRepository.ts",
+        "target": "/home/runner/workspace/server/modules/knowledge-base/infrastructure/repositories/KnowledgeBaseRepository.ts",
         "steps": [
           "Identificar código acoplado",
           "Determinar camada correta para o código",
@@ -934,7 +922,7 @@
       {
         "type": "move_code",
         "description": "Resolver acoplamento: Repository contém possível lógica de negócio",
-        "target": "server/modules/knowledge-base/infrastructure/repositories/MediaRepository.ts",
+        "target": "/home/runner/workspace/server/modules/knowledge-base/infrastructure/repositories/MediaRepository.ts",
         "steps": [
           "Identificar código acoplado",
           "Determinar camada correta para o código",
@@ -946,7 +934,7 @@
       {
         "type": "create_directory",
         "description": "Criar interface I[Entity]Repository no domain e implementar",
-        "target": "server/modules/knowledge-base/infrastructure/repositories/KnowledgeBaseRepository.ts",
+        "target": "/home/runner/workspace/server/modules/knowledge-base/infrastructure/repositories/KnowledgeBaseRepository.ts",
         "steps": [
           "Criar interface I[Entity]Repository no domain e implementar"
         ]
@@ -954,7 +942,7 @@
       {
         "type": "create_directory",
         "description": "Criar interface I[Entity]Repository no domain e implementar",
-        "target": "server/modules/knowledge-base/infrastructure/repositories/MediaRepository.ts",
+        "target": "/home/runner/workspace/server/modules/knowledge-base/infrastructure/repositories/MediaRepository.ts",
         "steps": [
           "Criar interface I[Entity]Repository no domain e implementar"
         ]
@@ -969,7 +957,7 @@
       {
         "type": "create_directory",
         "description": "Criar diretório/arquivo events na camada domain",
-        "target": "server/modules/ticket-templates/domain/events",
+        "target": "/home/runner/workspace/server/modules/ticket-templates/domain/events",
         "steps": [
           "Criar diretório/arquivo events na camada domain"
         ]
@@ -977,7 +965,7 @@
       {
         "type": "create_directory",
         "description": "Criar diretório/arquivo services na camada domain",
-        "target": "server/modules/ticket-templates/domain/services",
+        "target": "/home/runner/workspace/server/modules/ticket-templates/domain/services",
         "steps": [
           "Criar diretório/arquivo services na camada domain"
         ]
@@ -992,7 +980,7 @@
       {
         "type": "move_code",
         "description": "Resolver acoplamento: Repository contém possível lógica de negócio",
-        "target": "server/modules/auth/infrastructure/repositories/DrizzleUserRepository.ts",
+        "target": "/home/runner/workspace/server/modules/auth/infrastructure/repositories/DrizzleUserRepository.ts",
         "steps": [
           "Identificar código acoplado",
           "Determinar camada correta para o código",
@@ -1011,7 +999,7 @@
       {
         "type": "move_code",
         "description": "Resolver acoplamento: Repository contém possível lógica de negócio",
-        "target": "server/modules/dashboard/infrastructure/repositories/DrizzleDashboardRepository.ts",
+        "target": "/home/runner/workspace/server/modules/dashboard/infrastructure/repositories/DrizzleDashboardRepository.ts",
         "steps": [
           "Identificar código acoplado",
           "Determinar camada correta para o código",
@@ -1030,7 +1018,7 @@
       {
         "type": "rename_file",
         "description": "Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'",
-        "target": "server/modules/custom-fields/application/use-cases/index.ts",
+        "target": "/home/runner/workspace/server/modules/custom-fields/application/use-cases/index.ts",
         "steps": [
           "Renomear arquivo seguindo padrão",
           "Atualizar imports em outros arquivos",
@@ -1048,7 +1036,7 @@
       {
         "type": "rename_file",
         "description": "Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'",
-        "target": "server/modules/people/application/use-cases/index.ts",
+        "target": "/home/runner/workspace/server/modules/people/application/use-cases/index.ts",
         "steps": [
           "Renomear arquivo seguindo padrão",
           "Atualizar imports em outros arquivos",
@@ -1066,7 +1054,7 @@
       {
         "type": "create_directory",
         "description": "Criar interface I[Entity]Repository no domain e implementar",
-        "target": "server/modules/template-audit/infrastructure/repositories/DrizzleTemplateAuditRepository.ts",
+        "target": "/home/runner/workspace/server/modules/template-audit/infrastructure/repositories/DrizzleTemplateAuditRepository.ts",
         "steps": [
           "Criar interface I[Entity]Repository no domain e implementar"
         ]

@@ -1,4 +1,5 @@
 // Remove infrastructure dependency - domain should be pure
+// Removed invalid dependency - domain layer should not import from application layer
 export class Beneficiary {
   constructor(
     public readonly id: string,

@@ -16,7 +16,7 @@ import { CustomerController } from './customer.controller';
 import { CreateCustomerUseCase } from '../domain/usecases/customer/create-customer.usecase';
 import { FindAllCustomersUseCase } from '../domain/usecases/customer/find-all-customers.usecase';
 import { CustomerRepository } from '../domain/repositories/customer.repository';
-import { DrizzleCustomerRepository } from '../infrastructure/repositories/drizzle/drizzle-customer.repository';
+// Removed repository dependency - domain entities should not import infrastructure
 
 @Module({
   controllers: [CustomerController],

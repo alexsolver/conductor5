@@ -1,6 +1,7 @@
 import { CleanArchitectureValidator } from './CleanArchitectureValidator.js';
 import { CleanArchitectureCorrector } from './CleanArchitectureCorrector';
-import { writeFileSync } from 'fs';
+import { writeFileSync, existsSync } from 'fs';
+import { join } from 'path';
 
 async function validateAndReport(): Promise<void> {
   console.log('🔍 Executando validação pós-correções...');

@@ -1,6 +1,6 @@
 {
   "passed": false,
-  "score": 32,
+  "score": 33,
   "issues": [
     {
       "id": "ROUTES-BENEFICIARIES-BUSINESS-LOGIC",
@@ -9,7 +9,7 @@
       "severity": "high",
       "type": "coupling_issue",
       "description": "Routes contém lógica de negócio ou acesso a dados",
-      "file": "server/modules/beneficiaries/routes.ts",
+      "file": "/home/runner/workspace/server/modules/beneficiaries/routes.ts",
       "suggestedFix": "Mover lógica para Use Cases na camada Application"
     },
     {
@@ -19,7 +19,7 @@
       "severity": "high",
       "type": "coupling_issue",
       "description": "Routes contém lógica de negócio ou acesso a dados",
-      "file": "server/modules/customers/routes.ts",
+      "file": "/home/runner/workspace/server/modules/customers/routes.ts",
       "suggestedFix": "Mover lógica para Use Cases na camada Application"
     },
     {
@@ -29,7 +29,7 @@
       "severity": "high",
       "type": "coupling_issue",
       "description": "Routes contém lógica de negócio ou acesso a dados",
-      "file": "server/modules/materials-services/routes.ts",
+      "file": "/home/runner/workspace/server/modules/materials-services/routes.ts",
       "suggestedFix": "Mover lógica para Use Cases na camada Application"
     },
     {
@@ -39,7 +39,7 @@
       "severity": "high",
       "type": "coupling_issue",
       "description": "Routes contém lógica de negócio ou acesso a dados",
-      "file": "server/modules/saas-admin/routes.ts",
+      "file": "/home/runner/workspace/server/modules/saas-admin/routes.ts",
       "suggestedFix": "Mover lógica para Use Cases na camada Application"
     },
     {
@@ -49,7 +49,7 @@
       "severity": "high",
       "type": "coupling_issue",
       "description": "Routes contém lógica de negócio ou acesso a dados",
-      "file": "server/modules/technical-skills/routes.ts",
+      "file": "/home/runner/workspace/server/modules/technical-skills/routes.ts",
       "suggestedFix": "Mover lógica para Use Cases na camada Application"
     },
     {
@@ -59,7 +59,7 @@
       "severity": "medium",
       "type": "structure_violation",
       "description": "Estrutura events ausente na camada domain",
-      "file": "server/modules/ticket-templates/domain/events",
+      "file": "/home/runner/workspace/server/modules/ticket-templates/domain/events",
       "suggestedFix": "Criar diretório/arquivo events na camada domain"
     },
     {
@@ -69,7 +69,7 @@
       "severity": "medium",
       "type": "structure_violation",
       "description": "Estrutura services ausente na camada domain",
-      "file": "server/modules/ticket-templates/domain/services",
+      "file": "/home/runner/workspace/server/modules/ticket-templates/domain/services",
       "suggestedFix": "Criar diretório/arquivo services na camada domain"
     },
     {
@@ -79,754 +79,732 @@
       "severity": "high",
       "type": "coupling_issue",
       "description": "Routes contém lógica de negócio ou acesso a dados",
-      "file": "server/modules/tickets/routes.ts",
+      "file": "/home/runner/workspace/server/modules/tickets/routes.ts",
       "suggestedFix": "Mover lógica para Use Cases na camada Application"
     },
     {
-      "id": "DEP-BENEFICIARIES-DOMAIN-1754791374933",
+      "id": "DEP-BENEFICIARIES-DOMAIN-1754791619547",
       "layer": "domain",
       "module": "beneficiaries",
       "severity": "critical",
       "type": "dependency_violation",
       "description": "Domain Layer violando dependência: ../../application/dto/CreateBeneficiaryDTO",
-      "file": "server/modules/beneficiaries/domain/services/BeneficiaryDomainService.ts",
+      "file": "/home/runner/workspace/server/modules/beneficiaries/domain/services/BeneficiaryDomainService.ts",
       "line": 2,
       "suggestedFix": "Domain não deve importar Application. Inverta a dependência."
     },
     {
-      "id": "DEP-BENEFICIARIES-DOMAIN-1754791374933",
+      "id": "DEP-BENEFICIARIES-DOMAIN-1754791619547",
       "layer": "domain",
       "module": "beneficiaries",
       "severity": "critical",
       "type": "dependency_violation",
       "description": "Domain Layer violando dependência: ../../application/dto/CreateBeneficiaryDTO",
-      "file": "server/modules/beneficiaries/domain/services/BeneficiaryDomainService.ts",
+      "file": "/home/runner/workspace/server/modules/beneficiaries/domain/services/BeneficiaryDomainService.ts",
       "line": 2,
       "suggestedFix": "Domain não deve importar Application. Inverta a dependência."
     },
     {
-      "id": "DEP-BENEFICIARIES-APP-1754791374935",
+      "id": "DEP-BENEFICIARIES-APP-1754791619547",
       "layer": "application",
       "module": "beneficiaries",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: express",
-      "file": "server/modules/beneficiaries/application/controllers/BeneficiaryController.ts",
+      "file": "/home/runner/workspace/server/modules/beneficiaries/application/controllers/BeneficiaryController.ts",
       "line": 6,
       "suggestedFix": "Application não deve importar framework diretamente. Use controllers."
     },
     {
-      "id": "DEP-CUSTOMERS-APP-1754791374953",
+      "id": "DEP-CUSTOMERS-APP-1754791619554",
       "layer": "application",
       "module": "customers",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: express",
-      "file": "server/modules/customers/application/controllers/CompanyController.ts",
+      "file": "/home/runner/workspace/server/modules/customers/application/controllers/CompanyController.ts",
       "line": 7,
       "suggestedFix": "Application não deve importar framework diretamente. Use controllers."
     },
     {
-      "id": "DEP-CUSTOMERS-APP-1754791374954",
+      "id": "DEP-CUSTOMERS-APP-1754791619554",
       "layer": "application",
       "module": "customers",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: express",
-      "file": "server/modules/customers/application/controllers/CustomerController.ts",
+      "file": "/home/runner/workspace/server/modules/customers/application/controllers/CustomerController.ts",
       "line": 1,
       "suggestedFix": "Application não deve importar framework diretamente. Use controllers."
     },
     {
-      "id": "DEP-KNOWLEDGE-BASE-APP-1754791374987",
+      "id": "DEP-KNOWLEDGE-BASE-APP-1754791619559",
       "layer": "application",
       "module": "knowledge-base",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: express",
-      "file": "server/modules/knowledge-base/application/controllers/KnowledgeBaseController.ts",
+      "file": "/home/runner/workspace/server/modules/knowledge-base/application/controllers/KnowledgeBaseController.ts",
       "line": 1,
       "suggestedFix": "Application não deve importar framework diretamente. Use controllers."
     },
     {
-      "id": "DEP-KNOWLEDGE-BASE-APP-1754791374987",
+      "id": "DEP-KNOWLEDGE-BASE-APP-1754791619560",
       "layer": "application",
       "module": "knowledge-base",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: express",
-      "file": "server/modules/knowledge-base/application/controllers/MediaController.ts",
+      "file": "/home/runner/workspace/server/modules/knowledge-base/application/controllers/MediaController.ts",
       "line": 1,
       "suggestedFix": "Application não deve importar framework diretamente. Use controllers."
     },
     {
-      "id": "DEP-KNOWLEDGE-BASE-APP-1754791374987",
+      "id": "DEP-KNOWLEDGE-BASE-APP-1754791619560",
       "layer": "application",
       "module": "knowledge-base",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: ../../infrastructure/repositories/MediaRepository",
-      "file": "server/modules/knowledge-base/application/controllers/MediaController.ts",
+      "file": "/home/runner/workspace/server/modules/knowledge-base/application/controllers/MediaController.ts",
       "line": 3,
       "suggestedFix": "Application não deve importar Infrastructure. Use dependency injection."
     },
     {
-      "id": "DEP-KNOWLEDGE-BASE-APP-1754791374987",
+      "id": "DEP-KNOWLEDGE-BASE-APP-1754791619560",
       "layer": "application",
       "module": "knowledge-base",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: ../../infrastructure/repositories/MediaRepository",
-      "file": "server/modules/knowledge-base/application/controllers/MediaController.ts",
+      "file": "/home/runner/workspace/server/modules/knowledge-base/application/controllers/MediaController.ts",
       "line": 3,
       "suggestedFix": "Application não deve importar Infrastructure. Use dependency injection."
     },
     {
-      "id": "DEP-KNOWLEDGE-BASE-APP-1754791374988",
+      "id": "DEP-KNOWLEDGE-BASE-APP-1754791619560",
       "layer": "application",
       "module": "knowledge-base",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: ../../infrastructure/repositories/MediaRepository",
-      "file": "server/modules/knowledge-base/application/services/MediaService.ts",
+      "file": "/home/runner/workspace/server/modules/knowledge-base/application/services/MediaService.ts",
       "line": 1,
       "suggestedFix": "Application não deve importar Infrastructure. Use dependency injection."
     },
     {
-      "id": "DEP-KNOWLEDGE-BASE-APP-1754791374988",
+      "id": "DEP-KNOWLEDGE-BASE-APP-1754791619560",
       "layer": "application",
       "module": "knowledge-base",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: ../../infrastructure/repositories/MediaRepository",
-      "file": "server/modules/knowledge-base/application/services/MediaService.ts",
+      "file": "/home/runner/workspace/server/modules/knowledge-base/application/services/MediaService.ts",
       "line": 1,
       "suggestedFix": "Application não deve importar Infrastructure. Use dependency injection."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-DOMAIN-1754791375001",
+      "id": "DEP-MATERIALS-SERVICES-DOMAIN-1754791619565",
       "layer": "domain",
       "module": "materials-services",
       "severity": "critical",
       "type": "dependency_violation",
       "description": "Domain Layer violando dependência: drizzle-orm/neon-http",
-      "file": "server/modules/materials-services/domain/ports/ILPURepository.ts",
+      "file": "/home/runner/workspace/server/modules/materials-services/domain/ports/ILPURepository.ts",
       "line": 3,
       "suggestedFix": "Domain não deve importar ORM. Defina interface de repositório."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-DOMAIN-1754791375001",
+      "id": "DEP-MATERIALS-SERVICES-DOMAIN-1754791619565",
       "layer": "domain",
       "module": "materials-services",
       "severity": "critical",
       "type": "dependency_violation",
       "description": "Domain Layer violando dependência: drizzle-orm/neon-http",
-      "file": "server/modules/materials-services/domain/ports/IindexRepository.ts",
+      "file": "/home/runner/workspace/server/modules/materials-services/domain/ports/IindexRepository.ts",
       "line": 3,
       "suggestedFix": "Domain não deve importar ORM. Defina interface de repositório."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754791375004",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754791619566",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: express",
-      "file": "server/modules/materials-services/application/controllers/AssetManagementController.ts",
+      "file": "/home/runner/workspace/server/modules/materials-services/application/controllers/AssetManagementController.ts",
       "line": 1,
       "suggestedFix": "Application não deve importar framework diretamente. Use controllers."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754791375004",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754791619566",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: ../../infrastructure/repositories/AssetManagementRepository",
-      "file": "server/modules/materials-services/application/controllers/AssetManagementController.ts",
+      "file": "/home/runner/workspace/server/modules/materials-services/application/controllers/AssetManagementController.ts",
       "line": 2,
       "suggestedFix": "Application não deve importar Infrastructure. Use dependency injection."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754791375004",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754791619566",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: ../../infrastructure/repositories/AssetManagementRepository",
-      "file": "server/modules/materials-services/application/controllers/AssetManagementController.ts",
+      "file": "/home/runner/workspace/server/modules/materials-services/application/controllers/AssetManagementController.ts",
       "line": 2,
       "suggestedFix": "Application não deve importar Infrastructure. Use dependency injection."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754791375005",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754791619566",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: express",
-      "file": "server/modules/materials-services/application/controllers/AuditController.ts",
+      "file": "/home/runner/workspace/server/modules/materials-services/application/controllers/AuditController.ts",
       "line": 2,
       "suggestedFix": "Application não deve importar framework diretamente. Use controllers."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754791375005",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754791619566",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: express",
-      "file": "server/modules/materials-services/application/controllers/ComplianceController.ts",
+      "file": "/home/runner/workspace/server/modules/materials-services/application/controllers/ComplianceController.ts",
       "line": 1,
       "suggestedFix": "Application não deve importar framework diretamente. Use controllers."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754791375005",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754791619566",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: ../../infrastructure/repositories/ComplianceRepository",
-      "file": "server/modules/materials-services/application/controllers/ComplianceController.ts",
+      "file": "/home/runner/workspace/server/modules/materials-services/application/controllers/ComplianceController.ts",
       "line": 2,
       "suggestedFix": "Application não deve importar Infrastructure. Use dependency injection."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754791375005",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754791619566",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: ../../infrastructure/repositories/ComplianceRepository",
-      "file": "server/modules/materials-services/application/controllers/ComplianceController.ts",
+      "file": "/home/runner/workspace/server/modules/materials-services/application/controllers/ComplianceController.ts",
       "line": 2,
       "suggestedFix": "Application não deve importar Infrastructure. Use dependency injection."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754791375005",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754791619566",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: express",
-      "file": "server/modules/materials-services/application/controllers/CustomerItemMappingController-fixed.ts",
+      "file": "/home/runner/workspace/server/modules/materials-services/application/controllers/CustomerItemMappingController-fixed.ts",
       "line": 2,
       "suggestedFix": "Application não deve importar framework diretamente. Use controllers."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754791375006",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754791619567",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: express",
-      "file": "server/modules/materials-services/application/controllers/CustomerItemMappingController-v2.ts",
+      "file": "/home/runner/workspace/server/modules/materials-services/application/controllers/CustomerItemMappingController-v2.ts",
       "line": 2,
       "suggestedFix": "Application não deve importar framework diretamente. Use controllers."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754791375006",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754791619567",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: express",
-      "file": "server/modules/materials-services/application/controllers/CustomerItemMappingController.ts",
+      "file": "/home/runner/workspace/server/modules/materials-services/application/controllers/CustomerItemMappingController.ts",
       "line": 4,
       "suggestedFix": "Application não deve importar framework diretamente. Use controllers."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754791375006",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754791619567",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: express",
-      "file": "server/modules/materials-services/application/controllers/CustomerPersonalizationController.ts",
+      "file": "/home/runner/workspace/server/modules/materials-services/application/controllers/CustomerPersonalizationController.ts",
       "line": 1,
       "suggestedFix": "Application não deve importar framework diretamente. Use controllers."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754791375006",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754791619567",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: drizzle-orm",
-      "file": "server/modules/materials-services/application/controllers/CustomerPersonalizationController.ts",
+      "file": "/home/runner/workspace/server/modules/materials-services/application/controllers/CustomerPersonalizationController.ts",
       "line": 13,
       "suggestedFix": "Application não deve importar ORM. Use interfaces de repositório."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754791375006",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754791619567",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: drizzle-orm/node-postgres",
-      "file": "server/modules/materials-services/application/controllers/CustomerPersonalizationController.ts",
+      "file": "/home/runner/workspace/server/modules/materials-services/application/controllers/CustomerPersonalizationController.ts",
       "line": 14,
       "suggestedFix": "Application não deve importar ORM. Use interfaces de repositório."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754791375007",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754791619567",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: express",
-      "file": "server/modules/materials-services/application/controllers/ImportController.ts",
+      "file": "/home/runner/workspace/server/modules/materials-services/application/controllers/ImportController.ts",
       "line": 2,
       "suggestedFix": "Application não deve importar framework diretamente. Use controllers."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754791375007",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754791619567",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: ../../infrastructure/repositories/ItemRepository",
-      "file": "server/modules/materials-services/application/controllers/ImportController.ts",
+      "file": "/home/runner/workspace/server/modules/materials-services/application/controllers/ImportController.ts",
       "line": 7,
       "suggestedFix": "Application não deve importar Infrastructure. Use dependency injection."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754791375007",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754791619567",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: ../../infrastructure/repositories/ItemRepository",
-      "file": "server/modules/materials-services/application/controllers/ImportController.ts",
+      "file": "/home/runner/workspace/server/modules/materials-services/application/controllers/ImportController.ts",
       "line": 7,
       "suggestedFix": "Application não deve importar Infrastructure. Use dependency injection."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754791375007",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754791619567",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: ../../infrastructure/repositories/ItemRepository",
-      "file": "server/modules/materials-services/application/controllers/ItemController.ts",
+      "file": "/home/runner/workspace/server/modules/materials-services/application/controllers/ItemController.ts",
       "line": 2,
       "suggestedFix": "Application não deve importar Infrastructure. Use dependency injection."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754791375007",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754791619567",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: ../../infrastructure/repositories/ItemRepository",
-      "file": "server/modules/materials-services/application/controllers/ItemController.ts",
+      "file": "/home/runner/workspace/server/modules/materials-services/application/controllers/ItemController.ts",
       "line": 2,
       "suggestedFix": "Application não deve importar Infrastructure. Use dependency injection."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754791375007",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754791619567",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: express",
-      "file": "server/modules/materials-services/application/controllers/LPUController.ts",
+      "file": "/home/runner/workspace/server/modules/materials-services/application/controllers/LPUController.ts",
       "line": 1,
       "suggestedFix": "Application não deve importar framework diretamente. Use controllers."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754791375007",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754791619567",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: ../../infrastructure/repositories/LPURepository",
-      "file": "server/modules/materials-services/application/controllers/LPUController.ts",
+      "file": "/home/runner/workspace/server/modules/materials-services/application/controllers/LPUController.ts",
       "line": 4,
       "suggestedFix": "Application não deve importar Infrastructure. Use dependency injection."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754791375007",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754791619567",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: ../../infrastructure/repositories/LPURepository",
-      "file": "server/modules/materials-services/application/controllers/LPUController.ts",
+      "file": "/home/runner/workspace/server/modules/materials-services/application/controllers/LPUController.ts",
       "line": 4,
       "suggestedFix": "Application não deve importar Infrastructure. Use dependency injection."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754791375008",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754791619568",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: express",
-      "file": "server/modules/materials-services/application/controllers/PersonalizationController.ts",
+      "file": "/home/runner/workspace/server/modules/materials-services/application/controllers/PersonalizationController.ts",
       "line": 2,
       "suggestedFix": "Application não deve importar framework diretamente. Use controllers."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754791375008",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754791619568",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: express",
-      "file": "server/modules/materials-services/application/controllers/StockController.ts",
+      "file": "/home/runner/workspace/server/modules/materials-services/application/controllers/StockController.ts",
       "line": 1,
       "suggestedFix": "Application não deve importar framework diretamente. Use controllers."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754791375008",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754791619568",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: ../../infrastructure/repositories/StockRepository",
-      "file": "server/modules/materials-services/application/controllers/StockController.ts",
+      "file": "/home/runner/workspace/server/modules/materials-services/application/controllers/StockController.ts",
       "line": 2,
       "suggestedFix": "Application não deve importar Infrastructure. Use dependency injection."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754791375008",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754791619568",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: ../../infrastructure/repositories/StockRepository",
-      "file": "server/modules/materials-services/application/controllers/StockController.ts",
+      "file": "/home/runner/workspace/server/modules/materials-services/application/controllers/StockController.ts",
       "line": 2,
       "suggestedFix": "Application não deve importar Infrastructure. Use dependency injection."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754791375008",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754791619568",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: express",
-      "file": "server/modules/materials-services/application/controllers/SupplierController.ts",
+      "file": "/home/runner/workspace/server/modules/materials-services/application/controllers/SupplierController.ts",
       "line": 1,
       "suggestedFix": "Application não deve importar framework diretamente. Use controllers."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754791375008",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754791619568",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: ../../infrastructure/repositories/SupplierRepository",
-      "file": "server/modules/materials-services/application/controllers/SupplierController.ts",
+      "file": "/home/runner/workspace/server/modules/materials-services/application/controllers/SupplierController.ts",
       "line": 2,
       "suggestedFix": "Application não deve importar Infrastructure. Use dependency injection."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754791375008",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754791619568",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: ../../infrastructure/repositories/SupplierRepository",
-      "file": "server/modules/materials-services/application/controllers/SupplierController.ts",
+      "file": "/home/runner/workspace/server/modules/materials-services/application/controllers/SupplierController.ts",
       "line": 2,
       "suggestedFix": "Application não deve importar Infrastructure. Use dependency injection."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754791375008",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754791619568",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: express",
-      "file": "server/modules/materials-services/application/controllers/SupplierLinksController.ts",
+      "file": "/home/runner/workspace/server/modules/materials-services/application/controllers/SupplierLinksController.ts",
       "line": 1,
       "suggestedFix": "Application não deve importar framework diretamente. Use controllers."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754791375008",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754791619568",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: drizzle-orm",
-      "file": "server/modules/materials-services/application/controllers/SupplierLinksController.ts",
+      "file": "/home/runner/workspace/server/modules/materials-services/application/controllers/SupplierLinksController.ts",
       "line": 13,
       "suggestedFix": "Application não deve importar ORM. Use interfaces de repositório."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754791375009",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754791619568",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: drizzle-orm",
-      "file": "server/modules/materials-services/application/controllers/TicketMaterialsController.ts",
+      "file": "/home/runner/workspace/server/modules/materials-services/application/controllers/TicketMaterialsController.ts",
       "line": 1,
       "suggestedFix": "Application não deve importar ORM. Use interfaces de repositório."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754791375009",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754791619568",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: express",
-      "file": "server/modules/materials-services/application/controllers/TicketMaterialsController.ts",
+      "file": "/home/runner/workspace/server/modules/materials-services/application/controllers/TicketMaterialsController.ts",
       "line": 2,
       "suggestedFix": "Application não deve importar framework diretamente. Use controllers."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754791375009",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754791619568",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: ../../infrastructure/repositories/LPURepository",
-      "file": "server/modules/materials-services/application/services/PricingRulesEngine.ts",
+      "file": "/home/runner/workspace/server/modules/materials-services/application/services/PricingRulesEngine.ts",
       "line": 4,
       "suggestedFix": "Application não deve importar Infrastructure. Use dependency injection."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754791375009",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754791619568",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: ../../infrastructure/repositories/LPURepository",
-      "file": "server/modules/materials-services/application/services/PricingRulesEngine.ts",
+      "file": "/home/runner/workspace/server/modules/materials-services/application/services/PricingRulesEngine.ts",
       "line": 4,
       "suggestedFix": "Application não deve importar Infrastructure. Use dependency injection."
     },
     {
-      "id": "DEP-SAAS-ADMIN-DOMAIN-1754791375029",
+      "id": "DEP-SAAS-ADMIN-DOMAIN-1754791619572",
       "layer": "domain",
       "module": "saas-admin",
       "severity": "critical",
       "type": "dependency_violation",
       "description": "Domain Layer violando dependência: drizzle-orm/neon-http",
-      "file": "server/modules/saas-admin/domain/ports/Iindex.ts",
+      "file": "/home/runner/workspace/server/modules/saas-admin/domain/ports/Iindex.ts",
       "line": 3,
       "suggestedFix": "Domain não deve importar ORM. Defina interface de repositório."
     },
     {
-      "id": "DEP-SAAS-ADMIN-APP-1754791375031",
+      "id": "DEP-SAAS-ADMIN-APP-1754791619573",
       "layer": "application",
       "module": "saas-admin",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: express",
-      "file": "server/modules/saas-admin/application/controllers/SaasAdminController.ts",
+      "file": "/home/runner/workspace/server/modules/saas-admin/application/controllers/SaasAdminController.ts",
       "line": 2,
       "suggestedFix": "Application não deve importar framework diretamente. Use controllers."
     },
     {
-      "id": "DEP-SCHEDULE-MANAGEMENT-DOMAIN-1754791375036",
-      "layer": "domain",
-      "module": "schedule-management",
-      "severity": "critical",
-      "type": "dependency_violation",
-      "description": "Domain Layer violando dependência: ../infrastructure/repositories/drizzle/drizzle-customer.repository",
-      "file": "server/modules/schedule-management/domain/entities/Schedule.ts",
-      "line": 19,
-      "suggestedFix": "Domain não deve importar Infrastructure. Use dependency injection."
-    },
-    {
-      "id": "DEP-SCHEDULE-MANAGEMENT-DOMAIN-1754791375036",
-      "layer": "domain",
-      "module": "schedule-management",
-      "severity": "critical",
-      "type": "dependency_violation",
-      "description": "Domain Layer violando dependência: ../infrastructure/repositories/drizzle/drizzle-customer.repository",
-      "file": "server/modules/schedule-management/domain/entities/Schedule.ts",
-      "line": 19,
-      "suggestedFix": "Domain não deve importar Infrastructure. Use dependency injection."
-    },
-    {
-      "id": "DEP-SCHEDULE-MANAGEMENT-DOMAIN-1754791375037",
+      "id": "DEP-SCHEDULE-MANAGEMENT-DOMAIN-1754791619573",
       "layer": "domain",
       "module": "schedule-management",
       "severity": "critical",
       "type": "dependency_violation",
       "description": "Domain Layer violando dependência: drizzle-orm/neon-http",
-      "file": "server/modules/schedule-management/domain/ports/IScheduleRepository.ts",
+      "file": "/home/runner/workspace/server/modules/schedule-management/domain/ports/IScheduleRepository.ts",
       "line": 3,
       "suggestedFix": "Domain não deve importar ORM. Defina interface de repositório."
     },
     {
-      "id": "DEP-SHARED-DOMAIN-1754791375045",
+      "id": "DEP-SHARED-DOMAIN-1754791619575",
       "layer": "domain",
       "module": "shared",
       "severity": "critical",
       "type": "dependency_violation",
       "description": "Domain Layer violando dependência: drizzle-orm/neon-http",
-      "file": "server/modules/shared/domain/ports/IBaseEntityRepository.ts",
+      "file": "/home/runner/workspace/server/modules/shared/domain/ports/IBaseEntityRepository.ts",
       "line": 3,
       "suggestedFix": "Domain não deve importar ORM. Defina interface de repositório."
     },
     {
-      "id": "DEP-SHARED-DOMAIN-1754791375045",
+      "id": "DEP-SHARED-DOMAIN-1754791619575",
       "layer": "domain",
       "module": "shared",
       "severity": "critical",
       "type": "dependency_violation",
       "description": "Domain Layer violando dependência: drizzle-orm/neon-http",
-      "file": "server/modules/shared/domain/ports/Iindex.ts",
+      "file": "/home/runner/workspace/server/modules/shared/domain/ports/Iindex.ts",
       "line": 3,
       "suggestedFix": "Domain não deve importar ORM. Defina interface de repositório."
     },
     {
-      "id": "DEP-TECHNICAL-SKILLS-DOMAIN-1754791375057",
+      "id": "DEP-TECHNICAL-SKILLS-DOMAIN-1754791619576",
       "layer": "domain",
       "module": "technical-skills",
       "severity": "critical",
       "type": "dependency_violation",
       "description": "Domain Layer violando dependência: drizzle-orm/neon-http",
-      "file": "server/modules/technical-skills/domain/ports/IUserSkillRepository_FIXED.ts",
+      "file": "/home/runner/workspace/server/modules/technical-skills/domain/ports/IUserSkillRepository_FIXED.ts",
       "line": 3,
       "suggestedFix": "Domain não deve importar ORM. Defina interface de repositório."
     },
     {
-      "id": "DEP-TECHNICAL-SKILLS-APP-1754791375060",
+      "id": "DEP-TECHNICAL-SKILLS-APP-1754791619577",
       "layer": "application",
       "module": "technical-skills",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: express",
-      "file": "server/modules/technical-skills/application/controllers/SkillController.ts",
+      "file": "/home/runner/workspace/server/modules/technical-skills/application/controllers/SkillController.ts",
       "line": 1,
       "suggestedFix": "Application não deve importar framework diretamente. Use controllers."
     },
     {
-      "id": "DEP-TECHNICAL-SKILLS-APP-1754791375060",
+      "id": "DEP-TECHNICAL-SKILLS-APP-1754791619577",
       "layer": "application",
       "module": "technical-skills",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: ../../infrastructure/repositories/DrizzleSkillRepository",
-      "file": "server/modules/technical-skills/application/controllers/SkillController.ts",
+      "file": "/home/runner/workspace/server/modules/technical-skills/application/controllers/SkillController.ts",
       "line": 5,
       "suggestedFix": "Application não deve importar Infrastructure. Use dependency injection."
     },
     {
-      "id": "DEP-TECHNICAL-SKILLS-APP-1754791375060",
+      "id": "DEP-TECHNICAL-SKILLS-APP-1754791619577",
       "layer": "application",
       "module": "technical-skills",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: ../../infrastructure/repositories/DrizzleSkillRepository",
-      "file": "server/modules/technical-skills/application/controllers/SkillController.ts",
+      "file": "/home/runner/workspace/server/modules/technical-skills/application/controllers/SkillController.ts",
       "line": 5,
       "suggestedFix": "Application não deve importar Infrastructure. Use dependency injection."
     },
     {
-      "id": "DEP-TECHNICAL-SKILLS-APP-1754791375060",
+      "id": "DEP-TECHNICAL-SKILLS-APP-1754791619577",
       "layer": "application",
       "module": "technical-skills",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: express",
-      "file": "server/modules/technical-skills/application/controllers/UserSkillController.ts",
+      "file": "/home/runner/workspace/server/modules/technical-skills/application/controllers/UserSkillController.ts",
       "line": 1,
       "suggestedFix": "Application não deve importar framework diretamente. Use controllers."
     },
     {
-      "id": "DEP-TECHNICAL-SKILLS-APP-1754791375060",
+      "id": "DEP-TECHNICAL-SKILLS-APP-1754791619577",
       "layer": "application",
       "module": "technical-skills",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: ../../infrastructure/repositories/DrizzleUserSkillRepository",
-      "file": "server/modules/technical-skills/application/controllers/UserSkillController.ts",
+      "file": "/home/runner/workspace/server/modules/technical-skills/application/controllers/UserSkillController.ts",
       "line": 3,
       "suggestedFix": "Application não deve importar Infrastructure. Use dependency injection."
     },
     {
-      "id": "DEP-TECHNICAL-SKILLS-APP-1754791375060",
+      "id": "DEP-TECHNICAL-SKILLS-APP-1754791619577",
       "layer": "application",
       "module": "technical-skills",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: ../../infrastructure/repositories/DrizzleUserSkillRepository",
-      "file": "server/modules/technical-skills/application/controllers/UserSkillController.ts",
+      "file": "/home/runner/workspace/server/modules/technical-skills/application/controllers/UserSkillController.ts",
       "line": 3,
       "suggestedFix": "Application não deve importar Infrastructure. Use dependency injection."
     },
     {
-      "id": "DEP-TIMECARD-DOMAIN-1754791375112",
+      "id": "DEP-TIMECARD-DOMAIN-1754791619585",
       "layer": "domain",
       "module": "timecard",
       "severity": "critical",
       "type": "dependency_violation",
       "description": "Domain Layer violando dependência: drizzle-orm/neon-http",
-      "file": "server/modules/timecard/domain/ports/ITimecardRepository.ts",
+      "file": "/home/runner/workspace/server/modules/timecard/domain/ports/ITimecardRepository.ts",
       "line": 3,
       "suggestedFix": "Domain não deve importar ORM. Defina interface de repositório."
     },
     {
-      "id": "DEP-TIMECARD-APP-1754791375115",
+      "id": "DEP-TIMECARD-APP-1754791619585",
       "layer": "application",
       "module": "timecard",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: express",
-      "file": "server/modules/timecard/application/controllers/TimecardApprovalController.ts",
+      "file": "/home/runner/workspace/server/modules/timecard/application/controllers/TimecardApprovalController.ts",
       "line": 1,
       "suggestedFix": "Application não deve importar framework diretamente. Use controllers."
     },
     {
-      "id": "DEP-TIMECARD-APP-1754791375115",
+      "id": "DEP-TIMECARD-APP-1754791619585",
       "layer": "application",
       "module": "timecard",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: drizzle-orm",
-      "file": "server/modules/timecard/application/controllers/TimecardApprovalController.ts",
+      "file": "/home/runner/workspace/server/modules/timecard/application/controllers/TimecardApprovalController.ts",
       "line": 11,
       "suggestedFix": "Application não deve importar ORM. Use interfaces de repositório."
     },
     {
-      "id": "DEP-TIMECARD-APP-1754791375116",
+      "id": "DEP-TIMECARD-APP-1754791619586",
       "layer": "application",
       "module": "timecard",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: drizzle-orm",
-      "file": "server/modules/timecard/application/controllers/TimecardController.ts",
+      "file": "/home/runner/workspace/server/modules/timecard/application/controllers/TimecardController.ts",
       "line": 1,
       "suggestedFix": "Application não deve importar ORM. Use interfaces de repositório."
     },
     {
-      "id": "DEP-TIMECARD-APP-1754791375116",
+      "id": "DEP-TIMECARD-APP-1754791619586",
       "layer": "application",
       "module": "timecard",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: ../../infrastructure/repositories/DrizzleTimecardRepository",
-      "file": "server/modules/timecard/application/controllers/TimecardController.ts",
+      "file": "/home/runner/workspace/server/modules/timecard/application/controllers/TimecardController.ts",
       "line": 2,
       "suggestedFix": "Application não deve importar Infrastructure. Use dependency injection."
     },
     {
-      "id": "DEP-TIMECARD-APP-1754791375116",
+      "id": "DEP-TIMECARD-APP-1754791619586",
       "layer": "application",
       "module": "timecard",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: ../../infrastructure/repositories/DrizzleTimecardRepository",
-      "file": "server/modules/timecard/application/controllers/TimecardController.ts",
+      "file": "/home/runner/workspace/server/modules/timecard/application/controllers/TimecardController.ts",
       "line": 2,
       "suggestedFix": "Application não deve importar Infrastructure. Use dependency injection."
     },
     {
-      "id": "DEP-TIMECARD-APP-1754791375116",
+      "id": "DEP-TIMECARD-APP-1754791619586",
       "layer": "application",
       "module": "timecard",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer violando dependência: express",
-      "file": "server/modules/timecard/application/controllers/TimecardController.ts",
+      "file": "/home/runner/workspace/server/modules/timecard/application/controllers/TimecardController.ts",
       "line": 3,
       "suggestedFix": "Application não deve importar framework diretamente. Use controllers."
     },
@@ -837,7 +815,7 @@
       "severity": "medium",
       "type": "coupling_issue",
       "description": "Repository contém possível lógica de negócio",
-      "file": "server/modules/auth/infrastructure/repositories/DrizzleUserRepository.ts",
+      "file": "/home/runner/workspace/server/modules/auth/infrastructure/repositories/DrizzleUserRepository.ts",
       "suggestedFix": "Mover lógica de negócio para Domain layer (Entity ou Service)"
     },
     {
@@ -847,7 +825,7 @@
       "severity": "medium",
       "type": "coupling_issue",
       "description": "Repository contém possível lógica de negócio",
-      "file": "server/modules/dashboard/infrastructure/repositories/DrizzleDashboardRepository.ts",
+      "file": "/home/runner/workspace/server/modules/dashboard/infrastructure/repositories/DrizzleDashboardRepository.ts",
       "suggestedFix": "Mover lógica de negócio para Domain layer (Entity ou Service)"
     },
     {
@@ -857,7 +835,7 @@
       "severity": "medium",
       "type": "coupling_issue",
       "description": "Repository contém possível lógica de negócio",
-      "file": "server/modules/knowledge-base/infrastructure/repositories/KnowledgeBaseRepository.ts",
+      "file": "/home/runner/workspace/server/modules/knowledge-base/infrastructure/repositories/KnowledgeBaseRepository.ts",
       "suggestedFix": "Mover lógica de negócio para Domain layer (Entity ou Service)"
     },
     {
@@ -867,7 +845,7 @@
       "severity": "medium",
       "type": "coupling_issue",
       "description": "Repository contém possível lógica de negócio",
-      "file": "server/modules/knowledge-base/infrastructure/repositories/MediaRepository.ts",
+      "file": "/home/runner/workspace/server/modules/knowledge-base/infrastructure/repositories/MediaRepository.ts",
       "suggestedFix": "Mover lógica de negócio para Domain layer (Entity ou Service)"
     },
     {
@@ -877,7 +855,7 @@
       "severity": "medium",
       "type": "coupling_issue",
       "description": "Repository contém possível lógica de negócio",
-      "file": "server/modules/materials-services/infrastructure/repositories/ComplianceRepository.ts",
+      "file": "/home/runner/workspace/server/modules/materials-services/infrastructure/repositories/ComplianceRepository.ts",
       "suggestedFix": "Mover lógica de negócio para Domain layer (Entity ou Service)"
     },
     {
@@ -887,7 +865,7 @@
       "severity": "medium",
       "type": "coupling_issue",
       "description": "Repository contém possível lógica de negócio",
-      "file": "server/modules/materials-services/infrastructure/repositories/ItemRepository.ts",
+      "file": "/home/runner/workspace/server/modules/materials-services/infrastructure/repositories/ItemRepository.ts",
       "suggestedFix": "Mover lógica de negócio para Domain layer (Entity ou Service)"
     },
     {
@@ -897,7 +875,7 @@
       "severity": "medium",
       "type": "coupling_issue",
       "description": "Repository contém possível lógica de negócio",
-      "file": "server/modules/materials-services/infrastructure/repositories/LPUCacheWarmerRepository.ts",
+      "file": "/home/runner/workspace/server/modules/materials-services/infrastructure/repositories/LPUCacheWarmerRepository.ts",
       "suggestedFix": "Mover lógica de negócio para Domain layer (Entity ou Service)"
     },
     {
@@ -907,7 +885,7 @@
       "severity": "medium",
       "type": "coupling_issue",
       "description": "Repository contém possível lógica de negócio",
-      "file": "server/modules/materials-services/infrastructure/repositories/LPURepository.ts",
+      "file": "/home/runner/workspace/server/modules/materials-services/infrastructure/repositories/LPURepository.ts",
       "suggestedFix": "Mover lógica de negócio para Domain layer (Entity ou Service)"
     },
     {
@@ -917,7 +895,7 @@
       "severity": "medium",
       "type": "coupling_issue",
       "description": "Repository contém possível lógica de negócio",
-      "file": "server/modules/schedule-management/infrastructure/repositories/DrizzleScheduleRepository.ts",
+      "file": "/home/runner/workspace/server/modules/schedule-management/infrastructure/repositories/DrizzleScheduleRepository.ts",
       "suggestedFix": "Mover lógica de negócio para Domain layer (Entity ou Service)"
     },
     {
@@ -927,7 +905,7 @@
       "severity": "medium",
       "type": "coupling_issue",
       "description": "Repository contém possível lógica de negócio",
-      "file": "server/modules/tickets/infrastructure/repositories/DrizzleTicketRepository.ts",
+      "file": "/home/runner/workspace/server/modules/tickets/infrastructure/repositories/DrizzleTicketRepository.ts",
       "suggestedFix": "Mover lógica de negócio para Domain layer (Entity ou Service)"
     },
     {
@@ -937,7 +915,7 @@
       "severity": "medium",
       "type": "coupling_issue",
       "description": "Repository contém possível lógica de negócio",
-      "file": "server/modules/timecard/infrastructure/repositories/DrizzleTimecardRepository.ts",
+      "file": "/home/runner/workspace/server/modules/timecard/infrastructure/repositories/DrizzleTimecardRepository.ts",
       "suggestedFix": "Mover lógica de negócio para Domain layer (Entity ou Service)"
     },
     {
@@ -947,7 +925,7 @@
       "severity": "medium",
       "type": "naming_inconsistency",
       "description": "Use Case index deve terminar com 'UseCase'",
-      "file": "server/modules/custom-fields/application/use-cases/index.ts",
+      "file": "/home/runner/workspace/server/modules/custom-fields/application/use-cases/index.ts",
       "suggestedFix": "Renomear para [Action]UseCase (ex: CreateCustomerUseCase)"
     },
     {
@@ -957,7 +935,7 @@
       "severity": "medium",
       "type": "structure_violation",
       "description": "Repository KnowledgeBaseRepository deve implementar interface",
-      "file": "server/modules/knowledge-base/infrastructure/repositories/KnowledgeBaseRepository.ts",
+      "file": "/home/runner/workspace/server/modules/knowledge-base/infrastructure/repositories/KnowledgeBaseRepository.ts",
       "suggestedFix": "Criar interface I[Entity]Repository no domain e implementar"
     },
     {
@@ -967,7 +945,7 @@
       "severity": "medium",
       "type": "structure_violation",
       "description": "Repository MediaRepository deve implementar interface",
-      "file": "server/modules/knowledge-base/infrastructure/repositories/MediaRepository.ts",
+      "file": "/home/runner/workspace/server/modules/knowledge-base/infrastructure/repositories/MediaRepository.ts",
       "suggestedFix": "Criar interface I[Entity]Repository no domain e implementar"
     },
     {
@@ -977,7 +955,7 @@
       "severity": "low",
       "type": "naming_inconsistency",
       "description": "Entity index não segue padrão PascalCase",
-      "file": "server/modules/materials-services/domain/entities/index.ts",
+      "file": "/home/runner/workspace/server/modules/materials-services/domain/entities/index.ts",
       "suggestedFix": "Renomear para PascalCase (ex: CustomerEntity -> Customer)"
     },
     {
@@ -987,7 +965,7 @@
       "severity": "medium",
       "type": "naming_inconsistency",
       "description": "Use Case index deve terminar com 'UseCase'",
-      "file": "server/modules/materials-services/application/use-cases/index.ts",
+      "file": "/home/runner/workspace/server/modules/materials-services/application/use-cases/index.ts",
       "suggestedFix": "Renomear para [Action]UseCase (ex: CreateCustomerUseCase)"
     },
     {
@@ -997,7 +975,7 @@
       "severity": "medium",
       "type": "structure_violation",
       "description": "Repository AssetManagementRepository deve implementar interface",
-      "file": "server/modules/materials-services/infrastructure/repositories/AssetManagementRepository.ts",
+      "file": "/home/runner/workspace/server/modules/materials-services/infrastructure/repositories/AssetManagementRepository.ts",
       "suggestedFix": "Criar interface I[Entity]Repository no domain e implementar"
     },
     {
@@ -1007,7 +985,7 @@
       "severity": "medium",
       "type": "structure_violation",
       "description": "Repository ComplianceRepository deve implementar interface",
-      "file": "server/modules/materials-services/infrastructure/repositories/ComplianceRepository.ts",
+      "file": "/home/runner/workspace/server/modules/materials-services/infrastructure/repositories/ComplianceRepository.ts",
       "suggestedFix": "Criar interface I[Entity]Repository no domain e implementar"
     },
     {
@@ -1017,7 +995,7 @@
       "severity": "medium",
       "type": "structure_violation",
       "description": "Repository ItemRepository deve implementar interface",
-      "file": "server/modules/materials-services/infrastructure/repositories/ItemRepository.ts",
+      "file": "/home/runner/workspace/server/modules/materials-services/infrastructure/repositories/ItemRepository.ts",
       "suggestedFix": "Criar interface I[Entity]Repository no domain e implementar"
     },
     {
@@ -1027,7 +1005,7 @@
       "severity": "medium",
       "type": "structure_violation",
       "description": "Repository LPURepository deve implementar interface",
-      "file": "server/modules/materials-services/infrastructure/repositories/LPURepository.ts",
+      "file": "/home/runner/workspace/server/modules/materials-services/infrastructure/repositories/LPURepository.ts",
       "suggestedFix": "Criar interface I[Entity]Repository no domain e implementar"
     },
     {
@@ -1037,7 +1015,7 @@
       "severity": "medium",
       "type": "structure_violation",
       "description": "Repository StockRepository deve implementar interface",
-      "file": "server/modules/materials-services/infrastructure/repositories/StockRepository.ts",
+      "file": "/home/runner/workspace/server/modules/materials-services/infrastructure/repositories/StockRepository.ts",
       "suggestedFix": "Criar interface I[Entity]Repository no domain e implementar"
     },
     {
@@ -1047,7 +1025,7 @@
       "severity": "medium",
       "type": "structure_violation",
       "description": "Repository SupplierRepository deve implementar interface",
-      "file": "server/modules/materials-services/infrastructure/repositories/SupplierRepository.ts",
+      "file": "/home/runner/workspace/server/modules/materials-services/infrastructure/repositories/SupplierRepository.ts",
       "suggestedFix": "Criar interface I[Entity]Repository no domain e implementar"
     },
     {
@@ -1057,7 +1035,7 @@
       "severity": "medium",
       "type": "naming_inconsistency",
       "description": "Use Case index deve terminar com 'UseCase'",
-      "file": "server/modules/people/application/use-cases/index.ts",
+      "file": "/home/runner/workspace/server/modules/people/application/use-cases/index.ts",
       "suggestedFix": "Renomear para [Action]UseCase (ex: CreateCustomerUseCase)"
     },
     {
@@ -1067,7 +1045,7 @@
       "severity": "low",
       "type": "naming_inconsistency",
       "description": "Entity index não segue padrão PascalCase",
-      "file": "server/modules/saas-admin/domain/entities/index.ts",
+      "file": "/home/runner/workspace/server/modules/saas-admin/domain/entities/index.ts",
       "suggestedFix": "Renomear para PascalCase (ex: CustomerEntity -> Customer)"
     },
     {
@@ -1077,7 +1055,7 @@
       "severity": "low",
       "type": "naming_inconsistency",
       "description": "Nome da classe SaasConfigEntity não corresponde ao arquivo index",
-      "file": "server/modules/saas-admin/domain/entities/index.ts",
+      "file": "/home/runner/workspace/server/modules/saas-admin/domain/entities/index.ts",
       "suggestedFix": "Alinhar nome da classe com nome do arquivo"
     },
     {
@@ -1087,7 +1065,7 @@
       "severity": "medium",
       "type": "structure_violation",
       "description": "Repository indexRepository deve implementar interface",
-      "file": "server/modules/saas-admin/infrastructure/repositories/indexRepository.ts",
+      "file": "/home/runner/workspace/server/modules/saas-admin/infrastructure/repositories/indexRepository.ts",
       "suggestedFix": "Criar interface I[Entity]Repository no domain e implementar"
     },
     {
@@ -1097,7 +1075,7 @@
       "severity": "low",
       "type": "naming_inconsistency",
       "description": "Nome da classe CustomerModule não corresponde ao arquivo Schedule",
-      "file": "server/modules/schedule-management/domain/entities/Schedule.ts",
+      "file": "/home/runner/workspace/server/modules/schedule-management/domain/entities/Schedule.ts",
       "suggestedFix": "Alinhar nome da classe com nome do arquivo"
     },
     {
@@ -1107,7 +1085,7 @@
       "severity": "medium",
       "type": "naming_inconsistency",
       "description": "Repository index deve terminar com 'Repository'",
-      "file": "server/modules/shared/infrastructure/repositories/index.ts",
+      "file": "/home/runner/workspace/server/modules/shared/infrastructure/repositories/index.ts",
       "suggestedFix": "Renomear para [Entity]Repository (ex: CustomerRepository)"
     },
     {
@@ -1117,7 +1095,7 @@
       "severity": "medium",
       "type": "structure_violation",
       "description": "Repository index deve implementar interface",
-      "file": "server/modules/shared/infrastructure/repositories/index.ts",
+      "file": "/home/runner/workspace/server/modules/shared/infrastructure/repositories/index.ts",
       "suggestedFix": "Criar interface I[Entity]Repository no domain e implementar"
     },
     {
@@ -1127,7 +1105,7 @@
       "severity": "medium",
       "type": "structure_violation",
       "description": "Repository indexRepository deve implementar interface",
-      "file": "server/modules/shared/infrastructure/repositories/indexRepository.ts",
+      "file": "/home/runner/workspace/server/modules/shared/infrastructure/repositories/indexRepository.ts",
       "suggestedFix": "Criar interface I[Entity]Repository no domain e implementar"
     },
     {
@@ -1137,7 +1115,7 @@
       "severity": "medium",
       "type": "naming_inconsistency",
       "description": "Use Case index deve terminar com 'UseCase'",
-      "file": "server/modules/technical-skills/application/use-cases/index.ts",
+      "file": "/home/runner/workspace/server/modules/technical-skills/application/use-cases/index.ts",
       "suggestedFix": "Renomear para [Action]UseCase (ex: CreateCustomerUseCase)"
     },
     {
@@ -1147,7 +1125,7 @@
       "severity": "medium",
       "type": "structure_violation",
       "description": "Repository DrizzleTemplateAuditRepository deve implementar interface",
-      "file": "server/modules/template-audit/infrastructure/repositories/DrizzleTemplateAuditRepository.ts",
+      "file": "/home/runner/workspace/server/modules/template-audit/infrastructure/repositories/DrizzleTemplateAuditRepository.ts",
       "suggestedFix": "Criar interface I[Entity]Repository no domain e implementar"
     },
     {
@@ -1157,7 +1135,7 @@
       "severity": "low",
       "type": "naming_inconsistency",
       "description": "Entity index não segue padrão PascalCase",
-      "file": "server/modules/timecard/domain/entities/index.ts",
+      "file": "/home/runner/workspace/server/modules/timecard/domain/entities/index.ts",
       "suggestedFix": "Renomear para PascalCase (ex: CustomerEntity -> Customer)"
     },
     {
@@ -1167,7 +1145,7 @@
       "severity": "medium",
       "type": "structure_violation",
       "description": "Repository DrizzleTimecardRepository deve implementar interface",
-      "file": "server/modules/timecard/infrastructure/repositories/DrizzleTimecardRepository.ts",
+      "file": "/home/runner/workspace/server/modules/timecard/infrastructure/repositories/DrizzleTimecardRepository.ts",
       "suggestedFix": "Criar interface I[Entity]Repository no domain e implementar"
     },
     {
@@ -1177,7 +1155,7 @@
       "severity": "high",
       "type": "missing_component",
       "description": "Entity Material não possui Repository correspondente",
-      "file": "server/modules/materials-services/infrastructure/repositories/MaterialRepository.ts",
+      "file": "/home/runner/workspace/server/modules/materials-services/infrastructure/repositories/MaterialRepository.ts",
       "suggestedFix": "Criar MaterialRepository.ts na camada Infrastructure"
     },
     {
@@ -1187,7 +1165,7 @@
       "severity": "high",
       "type": "missing_component",
       "description": "Entity Service não possui Repository correspondente",
-      "file": "server/modules/materials-services/infrastructure/repositories/ServiceRepository.ts",
+      "file": "/home/runner/workspace/server/modules/materials-services/infrastructure/repositories/ServiceRepository.ts",
       "suggestedFix": "Criar ServiceRepository.ts na camada Infrastructure"
     },
     {
@@ -1197,7 +1175,7 @@
       "severity": "medium",
       "type": "missing_component",
       "description": "Repository LPUCacheWarmerRepository não possui interface no Domain",
-      "file": "server/modules/materials-services/domain/ports/ILPUCacheWarmerRepository.ts",
+      "file": "/home/runner/workspace/server/modules/materials-services/domain/ports/ILPUCacheWarmerRepository.ts",
       "suggestedFix": "Criar interface ILPUCacheWarmerRepository no domain/ports ou domain/repositories"
     },
     {
@@ -1207,7 +1185,7 @@
       "severity": "medium",
       "type": "missing_component",
       "description": "Repository indexRepository não possui interface no Domain",
-      "file": "server/modules/saas-admin/domain/ports/IindexRepository.ts",
+      "file": "/home/runner/workspace/server/modules/saas-admin/domain/ports/IindexRepository.ts",
       "suggestedFix": "Criar interface IindexRepository no domain/ports ou domain/repositories"
     },
     {
@@ -1217,7 +1195,7 @@
       "severity": "high",
       "type": "missing_component",
       "description": "Entity ScheduleEntity não possui Repository correspondente",
-      "file": "server/modules/schedule-management/infrastructure/repositories/ScheduleEntityRepository.ts",
+      "file": "/home/runner/workspace/server/modules/schedule-management/infrastructure/repositories/ScheduleEntityRepository.ts",
       "suggestedFix": "Criar ScheduleEntityRepository.ts na camada Infrastructure"
     },
     {
@@ -1227,7 +1205,7 @@
       "severity": "medium",
       "type": "missing_component",
       "description": "Repository indexRepository não possui interface no Domain",
-      "file": "server/modules/shared/domain/ports/IindexRepository.ts",
+      "file": "/home/runner/workspace/server/modules/shared/domain/ports/IindexRepository.ts",
       "suggestedFix": "Criar interface IindexRepository no domain/ports ou domain/repositories"
     },
     {
@@ -1237,7 +1215,7 @@
       "severity": "high",
       "type": "missing_component",
       "description": "Entity SkillEntity não possui Repository correspondente",
-      "file": "server/modules/technical-skills/infrastructure/repositories/SkillEntityRepository.ts",
+      "file": "/home/runner/workspace/server/modules/technical-skills/infrastructure/repositories/SkillEntityRepository.ts",
       "suggestedFix": "Criar SkillEntityRepository.ts na camada Infrastructure"
     },
     {
@@ -1247,13 +1225,13 @@
       "severity": "medium",
       "type": "missing_component",
       "description": "Repository indexRepository não possui interface no Domain",
-      "file": "server/modules/timecard/domain/ports/IindexRepository.ts",
+      "file": "/home/runner/workspace/server/modules/timecard/domain/ports/IindexRepository.ts",
       "suggestedFix": "Criar interface IindexRepository no domain/ports ou domain/repositories"
     }
   ],
   "summary": {
-    "total": 118,
-    "critical": 12,
+    "total": 116,
+    "critical": 10,
     "high": 66,
     "medium": 35,
     "low": 5

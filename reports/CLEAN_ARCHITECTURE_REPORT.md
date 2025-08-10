@@ -1,16 +1,16 @@
 # Clean Architecture Validation Report
 
 **Data:** 2025-08-10  
-**Score:** 32/100  
+**Score:** 33/100  
 **Status:** ❌ REPROVADO
 
 ## Resumo de Problemas
 
-- 🔥 **Críticos:** 12
+- 🔥 **Críticos:** 10
 - ⚠️ **Altos:** 66
 - 📋 **Médios:** 35
 - 💡 **Baixos:** 5
-- **Total:** 118
+- **Total:** 116
 
 ## Principais Problemas por Módulo
 
@@ -77,12 +77,12 @@
   - Application Layer violando dependência: ../../infrastructure/repositories/MediaRepository
 
 ### 🔥 schedule-management
-- **Total de problemas:** 6
-- **Críticos:** 3 | **Altos:** 1
+- **Total de problemas:** 4
+- **Críticos:** 1 | **Altos:** 1
 - **Principais problemas:**
-  - Domain Layer violando dependência: ../infrastructure/repositories/drizzle/drizzle-customer.repository
-  - Domain Layer violando dependência: ../infrastructure/repositories/drizzle/drizzle-customer.repository
   - Domain Layer violando dependência: drizzle-orm/neon-http
+  - Repository contém possível lógica de negócio
+  - Nome da classe CustomerModule não corresponde ao arquivo Schedule
 
 ### 🔥 shared
 - **Total de problemas:** 6
@@ -208,14 +208,13 @@
 
 ### 🔥 schedule-management
 - **Prioridade:** immediate
-- **Tempo estimado:** 4h
-- **Ações:** 5
+- **Tempo estimado:** 3h
+- **Ações:** 4
 
 1. **refactor_code:** Refatorar dependência inválida na camada domain
-2. **refactor_code:** Refatorar dependência inválida na camada domain
-3. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
-4. **rename_file:** Padronizar nomenclatura: Nome da classe CustomerModule não corresponde ao arquivo Schedule
-5. **create_file:** Criar Repository com interface
+2. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
+3. **rename_file:** Padronizar nomenclatura: Nome da classe CustomerModule não corresponde ao arquivo Schedule
+4. **create_file:** Criar Repository com interface
 
 ### 🔥 shared
 - **Prioridade:** immediate
@@ -323,7 +322,7 @@
 - **materials-services:** 34 ações (25h)
 - **saas-admin:** 6 ações (4h)
 - **technical-skills:** 6 ações (5h)
-- **schedule-management:** 5 ações (4h)
+- **schedule-management:** 4 ações (3h)
 - **shared:** 6 ações (4h)
 - **timecard:** 7 ações (5h)
 

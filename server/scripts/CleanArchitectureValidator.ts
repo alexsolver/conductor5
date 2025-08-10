@@ -69,23 +69,30 @@ class CleanArchitectureValidator {
   private discoverModules(): void {
     console.log('🔍 Descobrindo módulos do sistema...');
 
-    // Try both relative and absolute paths for modules directory
+    // Determine correct base path
+    const cwd = process.cwd();
     const possiblePaths = [
+      join(cwd, 'server/modules'),
+      join(cwd, 'modules'),
       'server/modules',
       './server/modules',
-      join(process.cwd(), 'server/modules'),
       'modules'
     ];
 
     let modulesDir = '';
+    console.log(`🔍 Current working directory: ${cwd}`);
+    
     for (const path of possiblePaths) {
+      console.log(`🔍 Checking path: ${path}`);
       if (existsSync(path)) {
         modulesDir = path;
+        console.log(`✅ Found modules directory: ${path}`);
         break;
       }
     }
 
     if (!modulesDir) {
+      console.log(`❌ No modules directory found in any of the checked paths`);
       this.addIssue({
         id: 'ARCH-001',
         layer: 'infrastructure',
