@@ -79,25 +79,31 @@ export class TimecardController {
   // Get current status for user
   getCurrentStatus = async (req: HttpRequest, res: HttpResponse) => {
     try {
-      const tenantId = req.user?.tenantId;
       const userId = req.user?.id;
+      const tenantId = req.user?.tenantId;
 
-      if (!tenantId || !userId) {
-        return res.status(401).json({ error: 'Unauthorized' });
+      if (!userId || !tenantId) {
+        res.status(401).json({ error: 'Unauthorized' });
+        return;
       }
 
-      // Get today's records
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const todayRecords = await this.timecardRepository.getTimecardEntriesByUserAndDate(userId, today.toISOString(), tenantId);
+      // Verificar se o repositório foi inicializado
+      if (!this.timecardRepository || typeof this.timecardRepository.getTimecardEntriesByUserAndDate !== 'function') {
+        console.error('TimecardRepository not properly initialized');
+        res.status(500).json({ error: 'Service temporarily unavailable' });
+        return;
+      }
+
+      const today = new Date().toISOString().split('T')[0];
+      const entries = await this.timecardRepository.getTimecardEntriesByUserAndDate(userId, today, tenantId);
 
       // LÓGICA BINÁRIA SIMPLIFICADA - apenas entrada/saída
       let status = 'not_started';
       let lastRecord = null;
 
-      if (todayRecords.length > 0) {
+      if (entries.length > 0) {
         // Filtrar apenas registros válidos com checkIn ou checkOut
-        const validRecords = todayRecords.filter(record => record.checkIn || record.checkOut);
+        const validRecords = entries.filter(record => record.checkIn || record.checkOut);
 
         if (validRecords.length > 0) {
           // Ordenar por data de criação
@@ -119,10 +125,10 @@ export class TimecardController {
 
       const response = {
         status,
-        todayRecords,
+        entries,
         lastRecord,
         timesheet: {
-          totalHours: this.calculateTotalHoursFromRecords(todayRecords)
+          totalHours: this.calculateTotalHoursFromRecords(entries)
         }
       };
 

@@ -122,8 +122,32 @@ ticketsRouter.use((req: any, res, next) => {
 
 // Get all tickets (main endpoint)
 ticketsRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
+  console.log('🎫 [TICKETS-ROUTES] GET / called');
+
   try {
-    console.log('🎫 [TICKETS-ROUTES] GET / called');
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 50;
+    const search = req.query.search as string;
+    const status = req.query.status as string;
+    const priority = req.query.priority as string;
+    const assignedToId = req.query.assignedToId as string;
+    const companyId = req.query.companyId as string;
+
+    console.log('🎫 [TICKETS-ROUTES] Fetching tickets with options:', {
+      page,
+      limit,
+      search,
+      status,
+      priority,
+      assignedToId,
+      companyId
+    });
+
+    // Verificar se o controller está disponível
+    if (!ticketController || typeof ticketController.getAllTickets !== 'function') {
+      console.log('❌ [TICKETS-ROUTES] ticketController.getAllTickets is not available');
+      return standardResponse(res, false, 'Service temporarily unavailable', null, 503);
+    }
 
     if (!req.user?.tenantId) {
       console.error('❌ [TICKETS-ROUTES] No tenantId found');
@@ -134,36 +158,15 @@ ticketsRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
       });
     }
 
-    const {
-      page = '1',
-      limit = '50',
-      search,
-      status,
-      priority,
-      assignedToId,
-      companyId
-    } = req.query;
-
     const options = {
-      page: parseInt(page as string, 10),
-      limit: parseInt(limit as string, 10),
-      search: search as string,
-      status: status as string,
-      priority: priority as string,
-      assignedToId: assignedToId as string,
-      companyId: companyId as string
+      page: page,
+      limit: limit,
+      search: search,
+      status: status,
+      priority: priority,
+      assignedToId: assignedToId,
+      companyId: companyId
     };
-
-    console.log('🎫 [TICKETS-ROUTES] Fetching tickets with options:', options);
-
-    // Check if ticketController and method exist
-    if (!ticketController || typeof ticketController.getAllTickets !== 'function') {
-      console.error('❌ [TICKETS-ROUTES] ticketController.getAllTickets is not available');
-      res.status(500).json(
-        standardResponse(false, 'Tickets service not available')
-      );
-      return;
-    }
 
     const result = await ticketController.getAllTickets({
       tenantId: req.user.tenantId,

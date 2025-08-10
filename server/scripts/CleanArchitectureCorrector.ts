@@ -1,4 +1,3 @@
-
 /**
  * CLEAN ARCHITECTURE CORRECTOR
  * 
@@ -25,7 +24,7 @@ interface CorrectionAction {
 }
 
 class CleanArchitectureCorrector {
-  
+
   async generateCorrectionPlan(validationResult: ValidationResult): Promise<CorrectionPlan[]> {
     console.log('🔧 GERANDO PLANO DE CORREÇÃO AUTOMÁTICO...\n');
 
@@ -50,7 +49,7 @@ class CleanArchitectureCorrector {
 
   private async generateModuleCorrectionPlan(module: string, issues: ArchitectureIssue[]): Promise<CorrectionPlan> {
     const actions: CorrectionAction[] = [];
-    
+
     // Determinar prioridade baseada na severidade dos problemas
     const hasCritical = issues.some(i => i.severity === 'critical');
     const hasHigh = issues.some(i => i.severity === 'high');
@@ -79,19 +78,19 @@ class CleanArchitectureCorrector {
     switch (issue.type) {
       case 'structure_violation':
         return this.generateStructureViolationAction(issue);
-      
+
       case 'dependency_violation':
         return this.generateDependencyViolationAction(issue);
-      
+
       case 'missing_component':
         return this.generateMissingComponentAction(issue);
-      
+
       case 'naming_inconsistency':
         return this.generateNamingInconsistencyAction(issue);
-      
+
       case 'coupling_issue':
         return this.generateCouplingIssueAction(issue);
-      
+
       default:
         return null;
     }
@@ -300,7 +299,7 @@ export class Drizzle${entity}Repository implements I${entity}Repository {
 import { standardResponse } from '../../../utils/standardResponse';
 
 export class ${this.capitalizeFirst(module)}Controller {
-  
+
   async getAll(req: Request, res: Response): Promise<void> {
     try {
       const tenantId = req.user?.tenantId;
@@ -408,7 +407,7 @@ export interface I${entity}Repository {
     const match = issue.description.match(/Entity (\w+)/) || 
                   issue.file.match(/(\w+)Repository/) ||
                   issue.file.match(/(\w+)\.ts/);
-    
+
     return match ? match[1] : 'Entity';
   }
 
@@ -439,9 +438,9 @@ export interface I${entity}Repository {
       return total + (timeMap[action.type] || 30);
     }, 0);
 
-    if (totalMinutes < 60) return `${totalMinutes}min`;
+    if (totalMinutes < 60) return \`\${totalMinutes}min\`;
     const hours = Math.ceil(totalMinutes / 60);
-    return `${hours}h`;
+    return \`\${hours}h\`;
   }
 
   private groupIssuesByModule(issues: ArchitectureIssue[]): Record<string, ArchitectureIssue[]> {
@@ -468,20 +467,20 @@ export interface I${entity}Repository {
         low: '💡'
       }[plan.priority];
 
-      console.log(`\n${priorityEmoji} MÓDULO: ${plan.module.toUpperCase()}`);
-      console.log(`   Prioridade: ${plan.priority.toUpperCase()}`);
-      console.log(`   Tempo estimado: ${plan.estimatedTime}`);
-      console.log(`   Ações: ${plan.actions.length}`);
+      console.log(\`\n\${priorityEmoji} MÓDULO: \${plan.module.toUpperCase()}\`);
+      console.log(\`   Prioridade: \${plan.priority.toUpperCase()}\`);
+      console.log(\`   Tempo estimado: \${plan.estimatedTime}\`);
+      console.log(\`   Ações: \${plan.actions.length}\`);
 
       plan.actions.forEach((action, index) => {
-        console.log(`\n   ${index + 1}. ${action.description}`);
-        console.log(`      Tipo: ${action.type}`);
-        console.log(`      Alvo: ${action.target}`);
-        
+        console.log(\`\n   \${index + 1}. \${action.description}\`);
+        console.log(\`      Tipo: \${action.type}\`);
+        console.log(\`      Alvo: \${action.target}\`);
+
         if (action.steps.length > 0) {
-          console.log(`      Passos:`);
+          console.log(\`      Passos:\`);
           action.steps.forEach((step, stepIndex) => {
-            console.log(`         ${stepIndex + 1}. ${step}`);
+            console.log(\`         \${stepIndex + 1}. \${step}\`);
           });
         }
       });
@@ -493,9 +492,9 @@ export interface I${entity}Repository {
 
     console.log('\n' + '='.repeat(80));
     console.log('📊 RESUMO DO PLANO:');
-    console.log(`   Total de módulos: ${plans.length}`);
-    console.log(`   Total de ações: ${totalActions}`);
-    console.log(`   Tempo estimado total: ~${totalEstimatedTime > 60 ? Math.ceil(totalEstimatedTime / 60) + 'h' : totalEstimatedTime + 'min'}`);
+    console.log(\`   Total de módulos: \${plans.length}\`);
+    console.log(\`   Total de ações: \${totalActions}\`);
+    console.log(\`   Tempo estimado total: ~\${totalEstimatedTime > 60 ? Math.ceil(totalEstimatedTime / 60) + 'h' : totalEstimatedTime + 'min'}\`);
 
     console.log('\n🎯 ORDEM DE EXECUÇÃO RECOMENDADA:');
     const immediateModules = plans.filter(p => p.priority === 'immediate').map(p => p.module);
@@ -504,16 +503,16 @@ export interface I${entity}Repository {
     const lowModules = plans.filter(p => p.priority === 'low').map(p => p.module);
 
     if (immediateModules.length > 0) {
-      console.log(`   1. 🔥 IMEDIATO: ${immediateModules.join(', ')}`);
+      console.log(\`   1. 🔥 IMEDIATO: \${immediateModules.join(', ')}\`);
     }
     if (highModules.length > 0) {
-      console.log(`   2. ⚠️  ALTA: ${highModules.join(', ')}`);
+      console.log(\`   2. ⚠️  ALTA: \${highModules.join(', ')}\`);
     }
     if (mediumModules.length > 0) {
-      console.log(`   3. 📋 MÉDIA: ${mediumModules.join(', ')}`);
+      console.log(\`   3. 📋 MÉDIA: \${mediumModules.join(', ')}\`);
     }
     if (lowModules.length > 0) {
-      console.log(`   4. 💡 BAIXA: ${lowModules.join(', ')}`);
+      console.log(\`   4. 💡 BAIXA: \${lowModules.join(', ')}\`);
     }
 
     console.log('\n='.repeat(80));
@@ -535,14 +534,14 @@ export interface I${entity}Repository {
   }
 
   private async executePlanActions(plan: CorrectionPlan): Promise<void> {
-    console.log(`🔧 Executando correções para módulo: ${plan.module}`);
+    console.log(\`🔧 Executando correções para módulo: \${plan.module}\`);
 
     for (const action of plan.actions) {
       try {
         await this.executeAction(action);
-        console.log(`✅ ${action.description}`);
+        console.log(\`✅ \${action.description}\`);
       } catch (error) {
-        console.log(`❌ Falha: ${action.description} - ${error}`);
+        console.log(\`❌ Falha: \${action.description} - \${error}\`);
       }
     }
   }
@@ -569,7 +568,7 @@ export interface I${entity}Repository {
       case 'refactor_code':
       case 'move_code':
       case 'rename_file':
-        console.log(`⚠️  ${action.type} requer intervenção manual: ${action.target}`);
+        console.log(\`⚠️  \${action.type} requer intervenção manual: \${action.target}\`);
         break;
     }
   }
