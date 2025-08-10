@@ -10,7 +10,7 @@ import {
 } from '../../../../../shared/timecard-validation';
 // Usar DTOs ao invés de Request/Response direto
 
-// Using interface instead of express types to maintain clean architecture
+// Using generic HTTP types instead of Express-specific types
 interface HttpRequest {
   body: any;
   params: any;

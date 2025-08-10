@@ -1,16 +1,16 @@
 # Clean Architecture Validation Report
 
 **Data:** 2025-08-10  
-**Score:** 34/100  
+**Score:** 33/100  
 **Status:** ❌ REPROVADO
 
 ## Resumo de Problemas
 
 - 🔥 **Críticos:** 2
-- ⚠️ **Altos:** 41
+- ⚠️ **Altos:** 43
 - 📋 **Médios:** 25
-- 💡 **Baixos:** 1
-- **Total:** 69
+- 💡 **Baixos:** 0
+- **Total:** 70
 
 ## Principais Problemas por Módulo
 
@@ -45,22 +45,23 @@
   - Repository contém possível lógica de negócio
 
 ### 🔥 beneficiaries
-- **Total de problemas:** 2
-- **Críticos:** 2 | **Altos:** 0
+- **Total de problemas:** 3
+- **Críticos:** 2 | **Altos:** 1
 - **Principais problemas:**
   - Domain Layer violando dependência: ../../application/dto/CreateBeneficiaryDTO
   - Domain Layer violando dependência: ../../application/dto/CreateBeneficiaryDTO
+  - Entity misturada com DTOs - violação de responsabilidade
 
 ### ⚠️ knowledge-base
-- **Total de problemas:** 6
-- **Críticos:** 0 | **Altos:** 2
+- **Total de problemas:** 7
+- **Críticos:** 0 | **Altos:** 3
 - **Principais problemas:**
+  - Application Layer violando dependência: express
   - Application Layer violando dependência: ../../infrastructure/repositories/MediaRepository
   - Application Layer violando dependência: ../../infrastructure/repositories/MediaRepository
-  - Repository contém possível lógica de negócio
 
 ### ⚠️ timecard
-- **Total de problemas:** 7
+- **Total de problemas:** 6
 - **Críticos:** 0 | **Altos:** 3
 - **Principais problemas:**
   - Application Layer violando dependência: express
@@ -99,10 +100,11 @@
 
 ### 🔥 beneficiaries
 - **Prioridade:** immediate
-- **Tempo estimado:** 1h
-- **Ações:** 1
+- **Tempo estimado:** 2h
+- **Ações:** 2
 
 1. **refactor_code:** Refatorar dependência inválida na camada domain
+2. **move_code:** Resolver acoplamento: Entity misturada com DTOs - violação de responsabilidade
 
 ### ⚠️ materials-services
 - **Prioridade:** high
@@ -160,26 +162,26 @@
 
 ### ⚠️ knowledge-base
 - **Prioridade:** high
+- **Tempo estimado:** 4h
+- **Ações:** 6
+
+1. **refactor_code:** Refatorar dependência inválida na camada application
+2. **refactor_code:** Refatorar dependência inválida na camada application
+3. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
+4. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
+5. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
+6. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
+
+### ⚠️ timecard
+- **Prioridade:** high
 - **Tempo estimado:** 3h
 - **Ações:** 5
 
 1. **refactor_code:** Refatorar dependência inválida na camada application
 2. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
-3. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
-4. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
-5. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
-
-### ⚠️ timecard
-- **Prioridade:** high
-- **Tempo estimado:** 4h
-- **Ações:** 6
-
-1. **refactor_code:** Refatorar dependência inválida na camada application
-2. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
-3. **rename_file:** Padronizar nomenclatura: Nome da classe Timecard não corresponde ao arquivo TimecardEntity
-4. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
+3. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
+4. **create_file:** Criar Repository com interface
 5. **create_file:** Criar Repository com interface
-6. **create_file:** Criar Repository com interface
 
 ### ⚠️ schedule-management
 - **Prioridade:** high
@@ -219,15 +221,15 @@
 ## Recomendações
 
 ### Prioridade Imediata 🔥
-- **beneficiaries:** 1 ações (1h)
+- **beneficiaries:** 2 ações (2h)
 
 ### Prioridade Alta ⚠️
 - **materials-services:** 22 ações (20h)
 - **saas-admin:** 4 ações (2h)
 - **technical-skills:** 2 ações (2h)
 - **tickets:** 2 ações (2h)
-- **knowledge-base:** 5 ações (3h)
-- **timecard:** 6 ações (4h)
+- **knowledge-base:** 6 ações (4h)
+- **timecard:** 5 ações (3h)
 - **schedule-management:** 2 ações (2h)
 
 ## Comandos para Correção

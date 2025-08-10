@@ -109,3 +109,11 @@ export interface ISkillRepository {
   delete(id: string, tenantId: string): Promise<boolean>;
   findByCategory(category: string, tenantId: string): Promise<Skill[]>;
 }
+export interface ISkillRepository {
+  findById(id: string): Promise<any | null>;
+  findAll(): Promise<any[]>;
+  create(skill: any): Promise<any>;
+  update(id: string, skill: any): Promise<any>;
+  delete(id: string): Promise<void>;
+  findByCategory(category: string): Promise<any[]>;
+}

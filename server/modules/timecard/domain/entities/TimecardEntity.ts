@@ -27,7 +27,7 @@ export interface TimecardProps {
   tenantId: string;
 }
 
-export class Timecard {
+export class TimecardEntity {
   constructor(
     public readonly id: string,
     public readonly userId: string,

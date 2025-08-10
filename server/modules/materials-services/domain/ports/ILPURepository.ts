@@ -40,3 +40,11 @@ export interface ILPURepository {
   getPriceLists(): Promise<any[]>;
   getPricingRules(): Promise<any[]>;
 }
+export interface ILPURepository {
+  findById(id: string): Promise<any | null>;
+  findAll(): Promise<any[]>;
+  create(lpu: any): Promise<any>;
+  update(id: string, lpu: any): Promise<any>;
+  delete(id: string): Promise<void>;
+  findByCustomerId(customerId: string): Promise<any[]>;
+}

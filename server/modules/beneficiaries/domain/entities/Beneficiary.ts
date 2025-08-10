@@ -1,4 +1,4 @@
-// Removida dependência inválida da camada application
+// Removed DTO import - Domain should not depend on Application layer
 
 export interface BeneficiaryProps {
   name: string;

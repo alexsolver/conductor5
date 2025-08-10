@@ -156,3 +156,12 @@ export interface IScheduleRepository {
   delete(id: string, tenantId: string): Promise<boolean>;
   findByUserId(userId: string, tenantId: string): Promise<ScheduleEntity[]>;
 }
+export interface IScheduleRepository {
+  findById(id: string): Promise<any | null>;
+  findAll(): Promise<any[]>;
+  create(schedule: any): Promise<any>;
+  update(id: string, schedule: any): Promise<any>;
+  delete(id: string): Promise<void>;
+  findByUserId(userId: string): Promise<any[]>;
+  findByDateRange(startDate: Date, endDate: Date): Promise<any[]>;
+}

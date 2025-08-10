@@ -12,7 +12,7 @@ import { IMaterialRepository } from '../../domain/ports/IMaterialRepository';
 import { IItemRepository } from '../../domain/ports/IItemRepository';
 
 // Implement the interface and rename class to ItemRepository
-export export class ItemRepository implements IItemRepository {
+export class ItemRepository implements IItemRepository {
   private db: NodePgDatabase<any>;
   private tenantId: string; // Adicionado para uso nos métodos SQL brutos
 

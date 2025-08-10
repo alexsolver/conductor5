@@ -83,3 +83,11 @@ export interface ISaasConfigRepository {
   update(id: string, config: Partial<SaasConfig>, tenantId: string): Promise<SaasConfig | null>;
   delete(id: string, tenantId: string): Promise<boolean>;
 }
+export interface ISaasConfigRepository {
+  findById(id: string): Promise<any | null>;
+  findAll(): Promise<any[]>;
+  create(config: any): Promise<any>;
+  update(id: string, config: any): Promise<any>;
+  delete(id: string): Promise<void>;
+  findByTenantId(tenantId: string): Promise<any[]>;
+}
