@@ -3,6 +3,8 @@ import { z } from 'zod';
 import { db } from '../../../../db';
 import { timecardEntries, workSchedules, users } from '@shared/schema';
 import { ITimecardRepository } from '../../domain/ports/ITimecardRepository'; // Assuming this interface exists
+import { standardResponse } from '../../../utils/standardResponse'; // Import standardResponse
+import { and, eq, sql, inArray } from 'drizzle-orm'; // Import necessary Drizzle functions
 
 // Use abstracted HTTP types instead of Express directly
 interface HttpRequest {
@@ -32,7 +34,35 @@ const createWorkScheduleSchema = z.object({
   isActive: z.boolean().default(true),
 });
 
+const createTimecardEntrySchema = z.object({
+  checkIn: z.string().optional(),
+  checkOut: z.string().optional(),
+  breakStart: z.string().optional(),
+  breakEnd: z.string().optional(),
+  userId: z.string().uuid().optional(), // Optional because it's taken from req.user
+  tenantId: z.string().uuid().optional(), // Optional because it's taken from req.user
+});
 
+const createAbsenceRequestSchema = z.object({
+  userId: z.string().uuid(),
+  startDate: z.string(),
+  endDate: z.string(),
+  reason: z.string().min(5),
+  type: z.enum(['vacation', 'sick_leave', 'personal', 'other']),
+});
+
+const createScheduleTemplateSchema = z.object({
+  name: z.string().min(1),
+  scheduleType: z.enum(['5x2', '6x1', '12x36', 'shift', 'flexible', 'intermittent', 'part-time']),
+  workDaysPerWeek: z.number().min(0).max(7),
+  hoursPerDay: z.string(),
+  workDays: z.any(), // Should be validated more strictly if structure is known
+  startTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/),
+  endTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/),
+  breakDurationMinutes: z.number().min(0),
+  useWeeklySchedule: z.boolean().optional(),
+  weeklySchedule: z.any().optional(), // Should be validated more strictly if structure is known
+});
 
 export class TimecardController {
   // private timecardRepository: DrizzleTimecardRepository; // Original line
@@ -121,7 +151,7 @@ export class TimecardController {
   }
 
   // Timecard Entries
-  createTimecardEntry = async (req: HttpRequest, res:HttpResponse) => {
+  createTimecardEntry = async (req: HttpRequest, res: HttpResponse) => {
     try {
       console.log('[TIMECARD-CREATE] Starting timecard entry creation...');
 
@@ -703,80 +733,80 @@ export class TimecardController {
     }
   };
 
-  // Mock implementation for getHourBankSummary
-  async getHourBankSummary(req: HttpRequest, res: HttpResponse) {
-    try {
-      const tenantId = req.user?.tenantId;
-      const userId = req.user?.id;
+  // Mock implementation for getHourBankSummary - THIS IS A DUPLICATE METHOD
+  // async getHourBankSummary(req: HttpRequest, res: HttpResponse) {
+  //   try {
+  //     const tenantId = req.user?.tenantId;
+  //     const userId = req.user?.id;
 
-      if (!tenantId || !userId) {
-        return res.status(400).json({
-          success: false,
-          error: 'User ID é obrigatório'
-        });
-      }
+  //     if (!tenantId || !userId) {
+  //       return res.status(400).json({
+  //         success: false,
+  //         error: 'User ID é obrigatório'
+  //       });
+  //     }
 
-      console.log('[HOUR-BANK] Getting summary for user:', userId);
+  //     console.log('[HOUR-BANK] Getting summary for user:', userId);
 
-      // Buscar registros dos últimos 30 dias para calcular saldo
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  //     // Buscar registros dos últimos 30 dias para calcular saldo
+  //     const thirtyDaysAgo = new Date();
+  //     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-      const entries = await this.timecardRepository.getTimecardEntriesByUser(
-        userId,
-        tenantId,
-        thirtyDaysAgo,
-        new Date()
-      );
+  //     const entries = await this.timecardRepository.getTimecardEntriesByUser(
+  //       userId,
+  //       tenantId,
+  //       thirtyDaysAgo,
+  //       new Date()
+  //     );
 
-      // Calcular saldo do banco de horas
-      let totalHoursWorked = 0;
-      let totalExpectedHours = 0;
+  //     // Calcular saldo do banco de horas
+  //     let totalHoursWorked = 0;
+  //     let totalExpectedHours = 0;
 
-      const workingDays = new Set();
+  //     const workingDays = new Set();
 
-      entries.forEach(entry => {
-        if (entry.checkIn && entry.checkOut) {
-          const date = new Date(entry.checkIn).toISOString().split('T')[0];
-          workingDays.add(date);
+  //     entries.forEach(entry => {
+  //       if (entry.checkIn && entry.checkOut) {
+  //         const date = new Date(entry.checkIn).toISOString().split('T')[0];
+  //         workingDays.add(date);
 
-          const start = new Date(entry.checkIn);
-          const end = new Date(entry.checkOut);
-          const hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+  //         const start = new Date(entry.checkIn);
+  //         const end = new Date(entry.checkOut);
+  //         const hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
 
-          totalHoursWorked += hours;
-        }
-      });
+  //         totalHoursWorked += hours;
+  //       }
+  //     });
 
-      // 8 horas por dia útil trabalhado
-      totalExpectedHours = workingDays.size * 8;
+  //     // 8 horas por dia útil trabalhado
+  //     totalExpectedHours = workingDays.size * 8;
 
-      const balance = totalHoursWorked - totalExpectedHours;
+  //     const balance = totalHoursWorked - totalExpectedHours;
 
-      const summary = {
-        currentBalance: balance.toFixed(2),
-        totalHoursWorked: totalHoursWorked.toFixed(2),
-        expectedHours: totalExpectedHours.toFixed(2),
-        workingDays: workingDays.size,
-        status: balance >= 0 ? 'positive' : 'negative',
-        lastUpdated: new Date().toISOString()
-      };
+  //     const summary = {
+  //       currentBalance: balance.toFixed(2),
+  //       totalHoursWorked: totalHoursWorked.toFixed(2),
+  //       expectedHours: totalExpectedHours.toFixed(2),
+  //       workingDays: workingDays.size,
+  //       status: balance >= 0 ? 'positive' : 'negative',
+  //       lastUpdated: new Date().toISOString()
+  //     };
 
-      console.log('[HOUR-BANK] Summary calculated:', summary);
+  //     console.log('[HOUR-BANK] Summary calculated:', summary);
 
-      res.json({
-        success: true,
-        summary
-      });
-    } catch (error: any) {
-      console.error('[HOUR-BANK] Error getting summary:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Erro ao calcular banco de horas',
-        details: error.message
-      });
-    }
-  };
+  //     res.json({
+  //       success: true,
+  //       summary
+  //     });
+  //   } catch (error: any) {
+  //     console.error('[HOUR-BANK] Error getting summary:', error);
+  //     res.status(500).json({
+  //       success: false,
+  //       error: 'Erro ao calcular banco de horas',
+  //       details: error.message
+  //     });
+  //   }
+  // };
 
   // Flexible Work Arrangements
   createFlexibleWorkArrangement = async (req: HttpRequest, res: HttpResponse) => {

@@ -11,6 +11,8 @@ interface HttpResponse {
 
 import { ICustomFieldRepository } from '../../domain/repositories/ICustomFieldRepository';
 import { CustomField } from '../../domain/entities/CustomField';
+import { Request, Response } from 'express';
+
 
 export interface CreateCustomFieldDTO {
   name: string;

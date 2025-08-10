@@ -2,16 +2,12 @@
 
 // Removed application layer import - domain should not depend on application
 
-interface BeneficiaryProps {
-  id?: string;
+export interface BeneficiaryProps {
+  id: string;
   name: string;
   email: string;
-  document: string;
   phone?: string;
   address?: string;
-  tenantId: string;
-  companyId?: string;
-  status?: 'active' | 'inactive';
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -38,41 +34,45 @@ export interface BeneficiaryData {
 }
 
 export class Beneficiary {
-  constructor(data: BeneficiaryProps) {
-    this.id = data.id || crypto.randomUUID();
-    this.name = data.name;
-    this.email = data.email;
-    this.document = data.document;
-    this.tenantId = data.tenantId;
-    this.createdAt = data.createdAt || new Date();
-    this.updatedAt = data.updatedAt || new Date();
+  private constructor(
+    private readonly _id: string,
+    private readonly _name: string,
+    private readonly _email: string,
+    private readonly _phone?: string,
+    private readonly _address?: string,
+    private readonly _createdAt: Date = new Date(),
+    private readonly _updatedAt: Date = new Date()
+  ) {}
+
+  static create(props: BeneficiaryProps): Beneficiary {
+    return new Beneficiary(
+      props.id,
+      props.name,
+      props.email,
+      props.phone,
+      props.address,
+      props.createdAt,
+      props.updatedAt
+    );
   }
 
-  static create(data: {
-    name: string;
-    email?: string;
-    phone?: string;
-    document?: string;
-    address?: string;
-    tenantId: string;
-    createdBy?: string;
-  }): Beneficiary {
-    return new Beneficiary({
-      name: data.name,
-      email: data.email,
-      document: data.document,
-      tenantId: data.tenantId,
-    });
-  }
+  get id(): string { return this._id; }
+  get name(): string { return this._name; }
+  get email(): string { return this._email; }
+  get phone(): string | undefined { return this._phone; }
+  get address(): string | undefined { return this._address; }
+  get createdAt(): Date { return this._createdAt; }
+  get updatedAt(): Date { return this._updatedAt; }
 
-  update(props: Partial<BeneficiaryProps>): void {
-    if (props.name !== undefined) this.name = props.name;
-    if (props.email !== undefined) this.email = props.email;
-    if (props.document !== undefined) this.document = props.document;
-    this.updatedAt = new Date();
-  }
-
-  validate(): boolean {
-    return !!(this.name && this.email && this.document && this.tenantId);
+  toJSON() {
+    return {
+      id: this._id,
+      name: this._name,
+      email: this._email,
+      phone: this._phone,
+      address: this._address,
+      createdAt: this._createdAt,
+      updatedAt: this._updatedAt
+    };
   }
 }

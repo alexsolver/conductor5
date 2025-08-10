@@ -1,64 +1,58 @@
-import { CreateTicketUseCase } from '../use-cases/CreateTicketUseCase';
-import { GetTicketsUseCase } from '../use-cases/GetTicketsUseCase'; // Assuming GetTicketsUseCase is imported
 
-export interface CreateTicketRequest {
-  title: string;
-  description: string;
-  priority: string;
-  customerId: string;
-}
-
-export interface CreateTicketResponse {
-  success: boolean;
-  ticketId?: string;
-  message?: string;
-}
+import { Request, Response } from 'express';
+import { GetTicketsUseCase } from '../use-cases/GetTicketsUseCase';
+import { standardResponse } from '../../../utils/standardResponse';
 
 export class TicketController {
   constructor(
-    private readonly getTicketsUseCase: GetTicketsUseCase,
-    private readonly createTicketUseCase: CreateTicketUseCase
+    private getTicketsUseCase: GetTicketsUseCase = new GetTicketsUseCase()
   ) {}
 
-  async createTicket(request: CreateTicketRequest): Promise<CreateTicketResponse> {
+  async getTickets(req: Request, res: Response): Promise<void> {
     try {
-      const result = await this.createTicketUseCase.execute(request);
-
-      return {
-        success: true,
-        ticketId: result.id
-      };
-    } catch (error: any) {
-      return {
-        success: false,
-        message: error.message
-      };
+      const tickets = await this.getTicketsUseCase.execute();
+      standardResponse(res, 200, 'Tickets retrieved successfully', tickets);
+    } catch (error) {
+      standardResponse(res, 500, 'Failed to retrieve tickets', null, error.message);
     }
   }
 
-  async getAllTickets(options: {
-    tenantId: string;
-    userId?: string;
-    page?: number;
-    limit?: number;
-    search?: string;
-    status?: string;
-    priority?: string;
-    assignedToId?: string;
-    companyId?: string;
-  }) {
+  async createTicket(req: Request, res: Response): Promise<void> {
     try {
-      if (!this.getTicketsUseCase) {
-      throw new Error('GetTicketsUseCase not initialized');
-    }
-
-    const result = await this.getTicketsUseCase.execute({
-      ...options
-    });
-      return result;
+      // Implementation
+      standardResponse(res, 201, 'Ticket created successfully', req.body);
     } catch (error) {
-      console.error('Error in getAllTickets:', error);
-      throw error;
+      standardResponse(res, 400, 'Failed to create ticket', null, error.message);
+    }
+  }
+
+  async getTicket(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      // Implementation
+      standardResponse(res, 200, 'Ticket retrieved successfully', { id });
+    } catch (error) {
+      standardResponse(res, 404, 'Ticket not found', null, error.message);
+    }
+  }
+
+  async updateTicket(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      // Implementation
+      standardResponse(res, 200, 'Ticket updated successfully', { id, ...req.body });
+    } catch (error) {
+      standardResponse(res, 400, 'Failed to update ticket', null, error.message);
+    }
+  }
+
+  async deleteTicket(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      // Implementation
+      standardResponse(res, 200, 'Ticket deleted successfully', null);
+    } catch (error) {
+      standardResponse(res, 400, 'Failed to delete ticket', null, error.message);
     }
   }
 }

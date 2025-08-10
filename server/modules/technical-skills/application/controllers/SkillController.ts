@@ -3,6 +3,11 @@ import { SkillApplicationService } from '../services/SkillApplicationService';
 import { ISkillRepository } from '../../domain/ports/ISkillRepository';
 import crypto from 'crypto';
 import { IUserSkillRepository } from '../../domain/ports/IUserSkillRepository';
+import { Request, Response } from 'express';
+import { CreateSkillUseCase } from '../use-cases/CreateSkillUseCase';
+import { GetSkillsUseCase } from '../use-cases/GetSkillsUseCase';
+import { UpdateSkillUseCase } from '../use-cases/UpdateSkillUseCase';
+import { standardResponse } from '../../../utils/standardResponse';
 
 // Express and infrastructure dependencies removed from application layer
 interface HttpRequest {
@@ -20,12 +25,19 @@ interface HttpResponse {
 
 export class SkillController {
   private skillService: SkillApplicationService;
+  private createSkillUseCase: CreateSkillUseCase;
+  private getSkillsUseCase: GetSkillsUseCase;
+  private updateSkillUseCase: UpdateSkillUseCase;
+
 
   constructor(skillRepository: ISkillRepository) {
     this.skillService = new SkillApplicationService(skillRepository);
+    this.createSkillUseCase = new CreateSkillUseCase();
+    this.getSkillsUseCase = new GetSkillsUseCase();
+    this.updateSkillUseCase = new UpdateSkillUseCase();
   }
 
-  async createSkill(req: HttpRequest, res: HttpResponse): Promise<void> {
+  async createSkill(req: Request, res: Response): Promise<void> {
     try {
       const { name, category, description } = req.body;
       const user = req.user;
@@ -80,7 +92,7 @@ export class SkillController {
     }
   }
 
-  async getSkills(req: HttpRequest, res: HttpResponse): Promise<void> {
+  async getSkills(req: Request, res: Response): Promise<void> {
     try {
       const tenantId = req.headers['x-tenant-id'] as string;
 
@@ -149,7 +161,7 @@ export class SkillController {
     }
   }
 
-  async updateSkill(req: HttpRequest, res: HttpResponse): Promise<void> {
+  async updateSkill(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const { name, category, description, suggestedCertification, certificationValidityMonths, observations, scaleOptions } = req.body;

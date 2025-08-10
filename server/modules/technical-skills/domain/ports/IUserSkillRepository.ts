@@ -1,10 +1,12 @@
-import { UserSkill } from '../entities/UserSkill';
 
 export interface IUserSkillRepository {
-  create(userSkill: UserSkill): Promise<UserSkill>;
-  findById(id: string): Promise<UserSkill | null>;
-  findByUserId(userId: string): Promise<UserSkill[]>;
-  update(id: string, data: Partial<UserSkill>): Promise<UserSkill>;
+  create(userSkill: any): Promise<any>;
+  findById(id: string): Promise<any | null>;
+  findAll(): Promise<any[]>;
+  findByUserId(userId: string): Promise<any[]>;
+  findBySkillId(skillId: string): Promise<any[]>;
+  update(id: string, userSkill: any): Promise<any>;
   delete(id: string): Promise<void>;
-  findAll(): Promise<UserSkill[]>;
+  addSkillToUser(userId: string, skillId: string, level: number): Promise<any>;
+  removeSkillFromUser(userId: string, skillId: string): Promise<void>;
 }

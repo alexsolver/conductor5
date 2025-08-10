@@ -1,56 +1,25 @@
-
 import { ITicketRepository } from '../../domain/ports/ITicketRepository';
-import { Ticket } from '../../domain/entities/Ticket';
-
-export interface GetTicketsParams {
-  tenantId: string;
-  page?: number;
-  limit?: number;
-  search?: string;
-  status?: string;
-  priority?: string;
-  assignedToId?: string;
-  companyId?: string;
-}
 
 export class GetTicketsUseCase {
-  constructor(private readonly ticketRepository: ITicketRepository) {}
+  constructor(private ticketRepository: ITicketRepository) {}
 
-  async execute(params: GetTicketsParams): Promise<{
-    tickets: Ticket[];
-    total: number;
-    page: number;
-    limit: number;
-  }> {
-    const page = params.page || 1;
-    const limit = params.limit || 20;
-    const offset = (page - 1) * limit;
+  async execute(): Promise<any[]> {
+    try {
+      return await this.ticketRepository.findAll();
+    } catch (error) {
+      throw new Error(`Failed to get tickets: ${error.message}`);
+    }
+  }
 
-    const tickets = await this.ticketRepository.findMany({
-      tenantId: params.tenantId,
-      search: params.search,
-      status: params.status,
-      priority: params.priority,
-      assignedToId: params.assignedToId,
-      companyId: params.companyId,
-      limit,
-      offset
-    });
-
-    const total = await this.ticketRepository.count({
-      tenantId: params.tenantId,
-      search: params.search,
-      status: params.status,
-      priority: params.priority,
-      assignedToId: params.assignedToId,
-      companyId: params.companyId
-    });
-
-    return {
-      tickets,
-      total,
-      page,
-      limit
-    };
+  async executeById(id: string): Promise<any> {
+    try {
+      const ticket = await this.ticketRepository.findById(id);
+      if (!ticket) {
+        throw new Error('Ticket not found');
+      }
+      return ticket;
+    } catch (error) {
+      throw new Error(`Failed to get ticket: ${error.message}`);
+    }
   }
 }

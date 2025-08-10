@@ -1,124 +1,61 @@
 import { Request, Response } from 'express';
-
-interface HttpRequest {
-  body: any;
-  params: any;
-  query: any;
-  user?: any;
-}
-
-interface HttpResponse {
-  status: (code: number) => HttpResponse;
-  json: (data: any) => void;
-  send: (data: any) => void;
-}
-
-// Use abstracted HTTP types instead of Express directly
-
-// Assuming CreateMaterialUseCase and its dependencies are correctly defined elsewhere
-// and imported properly. For this example, we'll assume they exist.
-// Example placeholder for the Use Case:
-// interface CreateMaterialUseCase {
-//   execute(materialData: any, tenantId: string): Promise<any>;
-// }
+import { GetMaterialsUseCase } from '../use-cases/GetMaterialsUseCase';
+import { CreateMaterialUseCase } from '../use-cases/CreateMaterialUseCase';
+import { UpdateMaterialUseCase } from '../use-cases/UpdateMaterialUseCase';
+import { standardResponse } from '../../../utils/standardResponse';
 
 export class MaterialController {
-  constructor(private createMaterialUseCase: any) {} // Replace 'any' with the actual UseCase type
+  constructor(
+    private getMaterialsUseCase: GetMaterialsUseCase = new GetMaterialsUseCase(),
+    private createMaterialUseCase: CreateMaterialUseCase = new CreateMaterialUseCase(),
+    private updateMaterialUseCase: UpdateMaterialUseCase = new UpdateMaterialUseCase()
+  ) {}
 
-  async create(req: HttpRequest, res: HttpResponse) {
-    const material = await this.createMaterialUseCase.execute(req.body, req.user?.tenantId);
-    res.status(201).json(material);
-  }
-
-  async getAll(req: HttpRequest, res: HttpResponse): Promise<void> {
+  async getAllMaterials(req: Request, res: Response): Promise<void> {
     try {
-      const tenantId = req.user?.tenantId;
-      if (!tenantId) {
-        res.status(400).json({ success: false, message: 'Tenant ID é obrigatório' });
-        return;
-      }
-
-      // Assuming a use case for getting all materials exists and is injected
-      // For demonstration, this part remains as a placeholder or calls a hypothetical use case.
-      // Example: const getAllMaterialsUseCase = ...;
-      // const materials = await getAllMaterialsUseCase.execute(tenantId);
-      // res.status(200).json({ success: true, message: 'Lista de materiais obtida com sucesso', data: materials });
-
-      res.status(200).json({ success: true, message: 'Lista de materiais obtida com sucesso', data: [] });
+      const materials = await this.getMaterialsUseCase.execute();
+      standardResponse(res, 200, 'Materials retrieved successfully', materials);
     } catch (error) {
-      console.error('Erro ao obter materiais:', error);
-      res.status(500).json({ success: false, message: 'Erro interno do servidor' });
-    }
-  }
-}
-
-// The following section appears to be a duplicate or a different controller definition.
-// Based on the prompt to integrate changes and the intention to remove Express dependency,
-// this section is likely intended to be part of the same controller or refactored.
-// For clarity and to avoid duplication, I will integrate the methods conceptually
-// into the existing MaterialController structure, assuming a unified controller.
-// If a separate controller was intended, that would require further clarification.
-
-// Assuming a 'materialService' or similar injected dependency that encapsulates business logic.
-// For a Clean Architecture, this would typically be an ApplicationService or use cases.
-// Let's assume the 'createMaterialUseCase' can also handle other operations or
-// that other use cases would be injected.
-
-// Example of how other use cases might be handled if injected into the same controller:
-// constructor(
-//   private createMaterialUseCase: CreateMaterialUseCase,
-//   private getMaterialsUseCase: GetMaterialsUseCase,
-//   private updateMaterialUseCase: UpdateMaterialUseCase,
-//   private deleteMaterialUseCase: DeleteMaterialUseCase
-// ) {}
-
-
-// If the original intention was to have these methods within the same controller,
-// they would be added as methods to the existing MaterialController class.
-// For this example, I'll demonstrate how they *could* be integrated if they used use cases.
-
-// Hypothetical integration of other methods using use cases:
-
-/*
-  async createMaterial(req: Request, res: Response) {
-    try {
-      // Assuming createMaterialUseCase from constructor handles this
-      const material = await this.createMaterialUseCase.execute(req.body); // Simplified example
-      res.status(201).json({ success: true, data: material });
-    } catch (error: any) {
-      res.status(500).json({ success: false, error: error.message });
+      standardResponse(res, 500, 'Failed to retrieve materials', null, error.message);
     }
   }
 
-  async getMaterials(req: Request, res: Response): Promise<void> {
+  async createMaterial(req: Request, res: Response): Promise<void> {
     try {
-      // Assuming getMaterialsUseCase is injected
-      // const materials = await this.getMaterialsUseCase.execute(req.query);
-      // res.json({ success: true, data: materials });
-      res.json({ success: true, data: [] }); // Placeholder
-    } catch (error: any) {
-      res.status(500).json({ success: false, error: error.message });
+      const material = await this.createMaterialUseCase.execute(req.body);
+      standardResponse(res, 201, 'Material created successfully', material);
+    } catch (error) {
+      standardResponse(res, 400, 'Failed to create material', null, error.message);
+    }
+  }
+
+  async getMaterial(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const material = await this.getMaterialsUseCase.executeById(id);
+      standardResponse(res, 200, 'Material retrieved successfully', material);
+    } catch (error) {
+      standardResponse(res, 404, 'Material not found', null, error.message);
     }
   }
 
   async updateMaterial(req: Request, res: Response): Promise<void> {
     try {
-      // Assuming updateMaterialUseCase is injected
-      // const material = await this.updateMaterialUseCase.execute(req.params.id, req.body);
-      // res.json({ success: true, data: material });
-      res.json({ success: true, data: {} }); // Placeholder
-    } catch (error: any) {
-      res.status(500).json({ success: false, error: error.message });
+      const { id } = req.params;
+      const material = await this.updateMaterialUseCase.execute(id, req.body);
+      standardResponse(res, 200, 'Material updated successfully', material);
+    } catch (error) {
+      standardResponse(res, 400, 'Failed to update material', null, error.message);
     }
   }
 
   async deleteMaterial(req: Request, res: Response): Promise<void> {
     try {
-      // Assuming deleteMaterialUseCase is injected
-      // await this.deleteMaterialUseCase.execute(req.params.id);
-      // res.json({ success: true, message: 'Material deleted successfully' });
-    } catch (error: any) {
-      res.status(500).json({ success: false, error: error.message });
+      const { id } = req.params;
+      await this.getMaterialsUseCase.executeDelete(id);
+      standardResponse(res, 200, 'Material deleted successfully', null);
+    } catch (error) {
+      standardResponse(res, 400, 'Failed to delete material', null, error.message);
     }
   }
-*/
+}

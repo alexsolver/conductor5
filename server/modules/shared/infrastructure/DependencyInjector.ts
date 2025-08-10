@@ -1,38 +1,28 @@
 
-interface Container {
-  [key: string]: any;
-}
-
 export class DependencyInjector {
   private static instance: DependencyInjector;
-  private container: Container = {};
-
-  private constructor() {}
+  private dependencies: Map<string, any> = new Map();
 
   static getInstance(): DependencyInjector {
-    if (!DependencyInjector.instance) {
-      DependencyInjector.instance = new DependencyInjector();
+    if (!this.instance) {
+      this.instance = new DependencyInjector();
     }
-    return DependencyInjector.instance;
+    return this.instance;
   }
 
-  register<T>(name: string, implementation: T): void {
-    this.container[name] = implementation;
+  register<T>(key: string, dependency: T): void {
+    this.dependencies.set(key, dependency);
   }
 
-  resolve<T>(name: string): T {
-    const dependency = this.container[name];
+  resolve<T>(key: string): T {
+    const dependency = this.dependencies.get(key);
     if (!dependency) {
-      throw new Error(`Dependency ${name} not found`);
+      throw new Error(`Dependency ${key} not found`);
     }
-    return dependency as T;
+    return dependency;
   }
 
-  registerRepository<T>(repositoryInterface: string, implementation: T): void {
-    this.register(repositoryInterface, implementation);
-  }
-
-  registerUseCase<T>(useCaseName: string, implementation: T): void {
-    this.register(useCaseName, implementation);
+  clear(): void {
+    this.dependencies.clear();
   }
 }

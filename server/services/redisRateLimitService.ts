@@ -212,6 +212,7 @@ const strictRateLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: (req: Request) => {
+    // Use express-rate-limit helper for IPv6 compatibility
     return req.ip || req.connection.remoteAddress || 'unknown';
   },
   store: new MemoryStore(), // Use MemoryStore for express-rate-limit

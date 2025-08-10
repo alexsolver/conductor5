@@ -3,33 +3,13 @@
  * Clean Architecture - Domain Layer
  */
 
-import { Ticket } from '../entities/Ticket';
-
-export interface TicketFilter {
-  tenantId: string;
-  search?: string;
-  status?: string;
-  priority?: string;
-  assignedToId?: string;
-  customerId?: string;
-  category?: string;
-  state?: string;
-  urgent?: boolean;
-  limit?: number;
-  offset?: number;
-}
-
 export interface ITicketRepository {
-  create(ticket: Ticket): Promise<Ticket>;
-  findById(id: string, tenantId: string): Promise<Ticket | null>;
-  findByNumber(number: string, tenantId: string): Promise<Ticket | null>;
-  findMany(filter: TicketFilter): Promise<Ticket[]>;
-  save(ticket: Ticket): Promise<Ticket>;
-  delete(id: string, tenantId: string): Promise<boolean>;
-  count(filter: Omit<TicketFilter, 'limit' | 'offset'>): Promise<number>;
-  findUrgent(tenantId: string): Promise<Ticket[]>;
-  findOverdue(tenantId: string): Promise<Ticket[]>;
-  findUnassigned(tenantId: string): Promise<Ticket[]>;
-  getNextTicketNumber(tenantId: string, prefix?: string): Promise<string>;
-  update(id: string, ticket: Partial<Ticket>): Promise<Ticket | null>;
+  create(ticket: any): Promise<any>;
+  findById(id: string): Promise<any | null>;
+  findAll(): Promise<any[]>;
+  update(id: string, ticket: any): Promise<any>;
+  delete(id: string): Promise<void>;
+  findByStatus(status: string): Promise<any[]>;
+  findByAssignee(assigneeId: string): Promise<any[]>;
+  findByCustomer(customerId: string): Promise<any[]>;
 }
