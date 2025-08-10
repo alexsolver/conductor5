@@ -93,30 +93,43 @@ export class DrizzleCustomerRepository implements ICustomerRepository {
   }
 
   private toDomainEntity(row: any): Customer {
-    return {
-      id: row.id,
-      tenantId: row.tenantId,
-      firstName: row.firstName,
-      lastName: row.lastName,
-      email: row.email,
-      phone: row.phone,
-      customerType: row.customerType,
-      isActive: row.isActive,
-      createdAt: row.createdAt,
-      updatedAt: row.updatedAt,
-      // Adicionar outros campos conforme necessário
-      address: row.address,
-      addressNumber: row.addressNumber,
-      complement: row.complement,
-      neighborhood: row.neighborhood,
-      city: row.city,
-      state: row.state,
-      zipCode: row.zipCode,
-      mobilePhone: row.mobilePhone,
-      cpf: row.cpf,
-      cnpj: row.cnpj,
-      companyName: row.companyName,
-      contactPerson: row.contactPerson
-    };
+    return new Customer(
+      row.id,
+      row.tenantId,
+      row.customerType || 'PF',
+      row.isActive ? 'Ativo' : 'Inativo',
+      row.email,
+      null, // description
+      null, // internalCode
+      row.firstName,
+      row.lastName,
+      row.cpf,
+      row.companyName,
+      row.cnpj,
+      row.contactPerson,
+      null, // responsible
+      row.phone,
+      row.mobilePhone,
+      null, // position
+      null, // supervisor
+      null, // coordinator
+      null, // manager
+      [], // tags
+      {}, // metadata
+      false, // verified
+      row.isActive || true,
+      false, // suspended
+      null, // lastLogin
+      'UTC', // timezone
+      'pt-BR', // locale
+      'pt', // language
+      null, // externalId
+      'customer', // role
+      null, // notes
+      null, // avatar
+      null, // signature
+      new Date(row.createdAt),
+      new Date(row.updatedAt)
+    );
   }
 }
