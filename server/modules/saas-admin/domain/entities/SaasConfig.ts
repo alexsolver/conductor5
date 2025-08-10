@@ -1,4 +1,4 @@
-// Domain puro - sem dependências externas
+// Domain entity - no external dependencies
 export interface SaasConfig {
   id: string;
   tenantId: string;
@@ -9,7 +9,7 @@ export interface SaasConfig {
   updatedAt: Date;
 }
 
-export class SaasConfigEntity implements SaasConfig {
+export class SaasConfig {
   constructor(
     public id: string,
     public tenantId: string,
@@ -20,8 +20,8 @@ export class SaasConfigEntity implements SaasConfig {
     public updatedAt: Date = new Date()
   ) {}
 
-  static create(tenantId: string, key: string, value: string): SaasConfigEntity {
-    return new SaasConfigEntity(
+  static create(tenantId: string, key: string, value: string): SaasConfig {
+    return new SaasConfig(
       crypto.randomUUID(),
       tenantId,
       key,

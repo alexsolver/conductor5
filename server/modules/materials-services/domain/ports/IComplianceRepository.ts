@@ -1,7 +1,6 @@
 import { ICompliance } from '../../domain/entities/ICompliance';
 import { IIComplianceRepository } from '../../domain/ports/IIComplianceRepository';
-import { drizzle } from 'drizzle-orm/neon-http';
-import * as schema from '@shared/schema';
+// Domain layer interface - no external dependencies
 
 export class DrizzleIComplianceRepository implements IIComplianceRepository {
   constructor(private readonly db: ReturnType<typeof drizzle>) {}

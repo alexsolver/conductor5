@@ -1,4 +1,3 @@
-
 export interface IKnowledgeBaseRepository {
   // Categories
   createCategory(tenantId: string, categoryData: any): Promise<any>;

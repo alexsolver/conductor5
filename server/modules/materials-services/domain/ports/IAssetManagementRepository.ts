@@ -1,7 +1,6 @@
 import { IAssetManagement } from '../../domain/entities/IAssetManagement';
 import { IIAssetManagementRepository } from '../../domain/ports/IIAssetManagementRepository';
-import { drizzle } from 'drizzle-orm/neon-http';
-import * as schema from '@shared/schema';
+// Domain layer interface - no external dependencies
 
 export class DrizzleIAssetManagementRepository implements IIAssetManagementRepository {
   constructor(private readonly db: ReturnType<typeof drizzle>) {}

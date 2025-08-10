@@ -1,6 +1,7 @@
 import { Pool } from 'pg';
+import { IBaseRepository } from '../../domain/repositories/IBaseRepository';
 
-export abstract class BaseRepository {
+export class BaseRepository<T> implements IBaseRepository<T> {
   protected pool: Pool;
 
   constructor(pool: Pool) {

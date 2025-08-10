@@ -1,4 +1,4 @@
-
+// Domain entity - no external dependencies
 export class Timecard {
   constructor(
     public readonly id: string,
@@ -19,12 +19,12 @@ export class Timecard {
 
   public getTotalWorkedHours(): number {
     if (!this.clockIn || !this.clockOut) return 0;
-    
+
     const workTime = this.clockOut.getTime() - this.clockIn.getTime();
-    const breakTime = this.breakStart && this.breakEnd 
-      ? this.breakEnd.getTime() - this.breakStart.getTime() 
+    const breakTime = this.breakStart && this.breakEnd
+      ? this.breakEnd.getTime() - this.breakStart.getTime()
       : 0;
-    
+
     return (workTime - breakTime) / (1000 * 60 * 60); // Convert to hours
   }
 

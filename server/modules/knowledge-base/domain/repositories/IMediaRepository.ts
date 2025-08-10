@@ -1,3 +1,4 @@
+// Domain layer interface - no external dependencies
 
 export interface IMediaRepository {
   getMediaStats(tenantId: string): Promise<any>;

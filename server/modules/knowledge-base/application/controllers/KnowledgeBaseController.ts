@@ -1,9 +1,5 @@
 import { Request, Response } from 'express';
-// Using only necessary types, not the full express framework
-import { AuthenticatedRequest } from '../../../middleware/jwtAuth';
-import { KnowledgeBaseRepository } from '../../infrastructure/repositories/KnowledgeBaseRepository';
-
-export import { Request, Response } from 'express';
+import { KnowledgeBaseApplicationService } from '../services/KnowledgeBaseApplicationService';
 
 interface AuthenticatedRequest extends Request {
   user?: {
@@ -15,10 +11,10 @@ interface AuthenticatedRequest extends Request {
 }
 
 class KnowledgeBaseController {
-  private knowledgeBaseRepository: KnowledgeBaseRepository;
+  private knowledgeBaseService: KnowledgeBaseApplicationService;
 
-  constructor() {
-    this.knowledgeBaseRepository = new KnowledgeBaseRepository();
+  constructor(knowledgeBaseService: KnowledgeBaseApplicationService) {
+    this.knowledgeBaseService = knowledgeBaseService;
   }
 
   // Categories
@@ -33,7 +29,7 @@ class KnowledgeBaseController {
         createdBy: req.user.id
       };
 
-      const category = await this.knowledgeBaseRepository.createCategory(req.user.tenantId, categoryData);
+      const category = await this.knowledgeBaseService.createCategory(req.user.tenantId, categoryData);
 
       res.status(201).json({ 
         success: true, 
@@ -59,7 +55,7 @@ class KnowledgeBaseController {
         parentId: req.query.parentId as string,
       };
 
-      const categories = await this.knowledgeBaseRepository.getCategories(req.user.tenantId, filters);
+      const categories = await this.knowledgeBaseService.getCategories(req.user.tenantId, filters);
 
       res.json({ 
         success: true, 

@@ -1,5 +1,5 @@
 
-export interface ISaasAdminRepository {
+export interface ITicketTemplateRepository {
   create(tenantId: string, data: any): Promise<any>;
   findById(tenantId: string, id: string): Promise<any>;
   findAll(tenantId: string): Promise<any[]>;

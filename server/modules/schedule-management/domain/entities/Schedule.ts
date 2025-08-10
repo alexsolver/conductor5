@@ -45,7 +45,7 @@ export class CustomerModule {}
 ```typescript
 // src/domain/entities/customer.entity.ts
 
-// Domain entities should be framework-agnostic
+// Domain entity - no infrastructure dependencies
 
 export interface Customer {
   id: string;

@@ -1,4 +1,4 @@
-// Domain entities should not depend on ORM libraries
+// Domain entity - no external dependencies
 
 export interface Skill {
   id: string;
