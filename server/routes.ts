@@ -200,6 +200,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Mount microservice routes
   app.use('/api/dashboard', dashboardRouter);
   app.use('/api/customers', customersRouter);
+  // Mount beneficiaries routes  
+  console.log('[ROUTES] Mounting beneficiaries routes on /api/beneficiaries');
   app.use('/api/beneficiaries', beneficiariesRoutes);
   app.use('/api/tickets', ticketsRouter);
 

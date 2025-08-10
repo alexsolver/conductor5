@@ -175,7 +175,10 @@ export default function Beneficiaries() {
 
   // Update beneficiaryCustomers when data changes
   React.useEffect(() => {
-    if (beneficiaryCustomersData && 'data' in beneficiaryCustomersData && beneficiaryCustomersData.data) {
+    if (beneficiaryCustomersData && 
+        typeof beneficiaryCustomersData === 'object' && 
+        'data' in beneficiaryCustomersData && 
+        Array.isArray(beneficiaryCustomersData.data)) {
       setBeneficiaryCustomers(beneficiaryCustomersData.data);
     }
   }, [beneficiaryCustomersData]);
@@ -863,7 +866,10 @@ export default function Beneficiaries() {
                     )}
                   </TableCell>
                   <TableCell>
-                    {new Date(beneficiary.createdAt || beneficiary.created_at).toLocaleDateString('pt-BR')}
+                    {beneficiary.createdAt || beneficiary.created_at ? 
+                      new Date(beneficiary.createdAt || beneficiary.created_at!).toLocaleDateString('pt-BR') : 
+                      '-'
+                    }
                   </TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>

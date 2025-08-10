@@ -95,7 +95,19 @@ export default function Companies() {
     queryKey: ['/api/customers/companies'],
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/customers/companies');
-      return response;
+      console.log('Companies API Response:', response);
+      
+      // Adiciona log detalhado sobre o tipo de dados recebidos
+      if (response) {
+        console.log('Companies data type:', typeof response);
+        console.log('Companies is array:', Array.isArray(response));
+        console.log('Companies keys:', Object.keys(response));
+        if (Array.isArray(response)) {
+          console.log('Companies count:', response.length);
+        }
+      }
+      
+      return Array.isArray(response) ? response : [];
     }
   });
 
