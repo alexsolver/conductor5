@@ -3159,64 +3159,109 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { companyId, relationshipType = 'client', isPrimary = false } = req.body;
       const tenantId = req.user?.tenantId;
 
+      console.log('[CUSTOMER-COMPANY-ASSOCIATION] Request:', { 
+        customerId, 
+        companyId, 
+        relationshipType, 
+        isPrimary, 
+        tenantId 
+      });
+
       if (!tenantId) {
         return res.status(401).json({ message: 'Tenant required' });
       }
 
-      const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
+      if (!customerId || !companyId) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Customer ID and Company ID are required' 
+        });
+      }
+
+      const { schemaManager } = await import('./db');
+      const pool = schemaManager.getPool();
       const schemaName = schemaManager.getSchemaName(tenantId);
 
-      // Check if relationship already exists (including inactive ones)
-      const existing = await tenantDb.execute(sql`
-        SELECT id, is_active FROM ${sql.identifier(schemaName)}.companies_relationships
-        WHERE customer_id = ${customerId} AND company_id = ${companyId}
-      `);
+      // First, verify that both customer and company exist
+      const customerCheck = await pool.query(`
+        SELECT id FROM "${schemaName}".customers 
+        WHERE id = $1 AND tenant_id = $2
+      `, [customerId, tenantId]);
 
-      if (existing.rows.length > 0) {
-        const existingRelation = existing.rows[0];
+      if (customerCheck.rows.length === 0) {
+        console.error('[CUSTOMER-COMPANY-ASSOCIATION] Customer not found:', customerId);
+        return res.status(404).json({ 
+          success: false, 
+          message: 'Cliente não encontrado' 
+        });
+      }
 
-        if (existingRelation.is_active) {
+      const companyCheck = await pool.query(`
+        SELECT id FROM "${schemaName}".companies 
+        WHERE id = $1 AND tenant_id = $2
+      `, [companyId, tenantId]);
+
+      if (companyCheck.rows.length === 0) {
+        console.error('[CUSTOMER-COMPANY-ASSOCIATION] Company not found:', companyId);
+        return res.status(404).json({ 
+          success: false, 
+          message: 'Empresa não encontrada' 
+        });
+      }
+
+      // Check if relationship already exists in companies_relationships table
+      const existingCheck = await pool.query(`
+        SELECT id, is_active FROM "${schemaName}".companies_relationships
+        WHERE customer_id = $1 AND company_id = $2
+      `, [customerId, companyId]);
+
+      if (existingCheck.rows.length > 0) {
+        const existing = existingCheck.rows[0];
+        if (existing.is_active) {
           return res.status(400).json({ 
             success: false, 
             message: 'Cliente já está associado a esta empresa' 
           });
         } else {
           // Reactivate existing relationship
-          const reactivated = await tenantDb.execute(sql`
-            UPDATE ${sql.identifier(schemaName)}.companies_relationships
-            SET is_active = true, relationship_type = ${relationshipType}, 
-                is_primary = ${isPrimary}, start_date = CURRENT_DATE, 
-                updated_at = CURRENT_TIMESTAMP, end_date = NULL
-            WHERE id = ${existingRelation.id}
+          const reactivated = await pool.query(`
+            UPDATE "${schemaName}".companies_relationships
+            SET is_active = true, relationship_type = $1, is_primary = $2, 
+                start_date = CURRENT_DATE, updated_at = CURRENT_TIMESTAMP
+            WHERE id = $3
             RETURNING *
-          `);
+          `, [relationshipType, isPrimary, existing.id]);
 
-          return res.status(200).json({
+          console.log('[CUSTOMER-COMPANY-ASSOCIATION] Relationship reactivated');
+          return res.json({
             success: true,
-            message: 'Associação reativada com sucesso',
+            message: 'Relacionamento reativado com sucesso',
             data: reactivated.rows[0]
           });
         }
       }
 
-      // Create new customer-company relationship
-      const relationship = await tenantDb.execute(sql`
-        INSERT INTO ${sql.identifier(schemaName)}.companies_relationships 
+      // Create new relationship
+      const result = await pool.query(`
+        INSERT INTO "${schemaName}".companies_relationships 
         (customer_id, company_id, relationship_type, is_primary, is_active, start_date, created_at, updated_at)
-        VALUES (${customerId}, ${companyId}, ${relationshipType}, ${isPrimary}, true, CURRENT_DATE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        VALUES ($1, $2, $3, $4, true, CURRENT_DATE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
         RETURNING *
-      `);
+      `, [customerId, companyId, relationshipType, isPrimary]);
+
+      console.log('[CUSTOMER-COMPANY-ASSOCIATION] New relationship created:', result.rows[0]);
 
       res.status(201).json({
         success: true,
         message: 'Cliente associado à empresa com sucesso',
-        data: relationship.rows[0]
+        data: result.rows[0]
       });
     } catch (error) {
       console.error('Error adding customer to company:', error);
       res.status(500).json({ 
         success: false, 
-        message: 'Erro ao associar cliente à empresa' 
+        message: 'Erro ao associar cliente à empresa',
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   });
