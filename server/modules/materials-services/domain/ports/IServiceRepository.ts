@@ -129,3 +129,10 @@ export interface IServiceRepository {
   findByCategory(category: string, tenantId: string): Promise<Service[]>;
   search(query: string, tenantId: string): Promise<Service[]>;
 }
+export interface IServiceRepository {
+  findById(id: string): Promise<Service | null>;
+  findAll(): Promise<Service[]>;
+  save(service: Service): Promise<Service>;
+  update(id: string, service: Partial<Service>): Promise<Service>;
+  delete(id: string): Promise<void>;
+}

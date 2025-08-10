@@ -1,6 +1,6 @@
 // Removed express import - application layer should not depend directly on web framework
 
-import { Request, Response } from 'express';
+// Removido express dependency
 import { CreateSaasConfigUseCase } from '../use-cases/CreateSaasConfigUseCase';
 import { sendSuccess, sendError } from '../../../../utils/standardResponse';
 

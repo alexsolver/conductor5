@@ -1,4 +1,4 @@
-// Removed express dependency - using abstract Request/Response types
+// Removido express dependency
 import { z } from 'zod';
 import { db } from '../../../../db';
 import { timecardEntries, workSchedules, users } from '@shared/schema';

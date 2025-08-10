@@ -131,3 +131,10 @@ export interface IMaterialRepository {
   findByCategory(category: string, tenantId: string): Promise<Material[]>;
   search(query: string, tenantId: string): Promise<Material[]>;
 }
+export interface IMaterialRepository {
+  findById(id: string): Promise<Material | null>;
+  findAll(): Promise<Material[]>;
+  save(material: Material): Promise<Material>;
+  update(id: string, material: Partial<Material>): Promise<Material>;
+  delete(id: string): Promise<void>;
+}

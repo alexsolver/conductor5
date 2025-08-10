@@ -76,3 +76,10 @@ export interface ISkillRepository {
   update(id: string, tenantId: string, data: any): Promise<any | null>;
   delete(id: string, tenantId: string): Promise<boolean>;
 }
+export interface ISkillRepository {
+  findById(id: string): Promise<SkillEntity | null>;
+  findAll(): Promise<SkillEntity[]>;
+  save(skill: SkillEntity): Promise<SkillEntity>;
+  update(id: string, skill: Partial<SkillEntity>): Promise<SkillEntity>;
+  delete(id: string): Promise<void>;
+}

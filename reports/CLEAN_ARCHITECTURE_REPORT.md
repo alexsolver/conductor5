@@ -7,10 +7,10 @@
 ## Resumo de Problemas
 
 - 🔥 **Críticos:** 2
-- ⚠️ **Altos:** 49
+- ⚠️ **Altos:** 48
 - 📋 **Médios:** 25
 - 💡 **Baixos:** 0
-- **Total:** 76
+- **Total:** 75
 
 ## Principais Problemas por Módulo
 
@@ -23,12 +23,12 @@
   - Application Layer violando dependência: ../../infrastructure/repositories/AssetManagementRepository
 
 ### ⚠️ saas-admin
-- **Total de problemas:** 5
-- **Críticos:** 0 | **Altos:** 3
+- **Total de problemas:** 4
+- **Críticos:** 0 | **Altos:** 2
 - **Principais problemas:**
   - Routes contém lógica de negócio ou acesso a dados
-  - Application Layer violando dependência: express
   - Repository indexRepository deve implementar interface
+  - Entity SaasConfigEntity não possui Repository correspondente
 
 ### ⚠️ technical-skills
 - **Total de problemas:** 2
@@ -138,14 +138,13 @@
 
 ### ⚠️ saas-admin
 - **Prioridade:** high
-- **Tempo estimado:** 3h
-- **Ações:** 5
+- **Tempo estimado:** 2h
+- **Ações:** 4
 
 1. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
-2. **refactor_code:** Refatorar dependência inválida na camada application
-3. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
+2. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
+3. **create_file:** Criar Repository com interface
 4. **create_file:** Criar Repository com interface
-5. **create_file:** Criar Repository com interface
 
 ### ⚠️ technical-skills
 - **Prioridade:** high
@@ -227,7 +226,7 @@
 
 ### Prioridade Alta ⚠️
 - **materials-services:** 24 ações (21h)
-- **saas-admin:** 5 ações (3h)
+- **saas-admin:** 4 ações (2h)
 - **technical-skills:** 2 ações (2h)
 - **tickets:** 2 ações (2h)
 - **knowledge-base:** 6 ações (4h)

@@ -1,5 +1,4 @@
-import { CreateMaterialUseCase } from '../use-cases/CreateMaterialUseCase';
-// Removed express dependency - using abstract Request/Response types
+// Removido express - application layer não deve depender de framework web
 
 export class MaterialController {
   constructor(private createMaterialUseCase: CreateMaterialUseCase) {}
@@ -26,8 +25,7 @@ export class MaterialController {
   }
 }
 
-import { MaterialApplicationService } from '../services/MaterialApplicationService';
-// Removed express dependency - using abstract Request/Response types
+// Removido express - application layer não deve depender de framework web
 
 export class MaterialController {
   constructor(private materialService: MaterialApplicationService) {}
