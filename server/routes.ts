@@ -37,7 +37,14 @@ import holidayRoutes from './routes/HolidayController';
 
 // Removed: journeyRoutes - functionality eliminated from system
 import { timecardRoutes } from './routes/timecardRoutes';
-import { cltComplianceController } from './controllers/CLTComplianceController';
+// Import CLT Compliance Controller with safety check
+let cltComplianceController: any = null;
+try {
+  const cltModule = require('./controllers/CLTComplianceController');
+  cltComplianceController = cltModule.cltComplianceController || null;
+} catch (error) {
+  console.warn('CLT Compliance Controller not available:', error.message);
+}
 import { TimecardApprovalController } from './modules/timecard/application/controllers/TimecardApprovalController';
 import { TimecardController } from './modules/timecard/application/controllers/TimecardController';
 import scheduleRoutes from './modules/schedule-management/infrastructure/routes/scheduleRoutes';
@@ -2113,7 +2120,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // 🔴 CLT COMPLIANCE ROUTES - OBRIGATÓRIAS POR LEI
   // Check if controller exists and has methods before binding routes
-  if (cltComplianceController) {
+  if (cltComplianceController && typeof cltComplianceController === 'object') {
     // Verificação de integridade da cadeia CLT
     if (typeof cltComplianceController.checkIntegrity === 'function') {
       app.get('/api/timecard/compliance/integrity-check', jwtAuth, cltComplianceController.checkIntegrity.bind(cltComplianceController));
