@@ -27,4 +27,6 @@ export abstract class BaseEntityRepository<T> implements IBaseRepository<T> {
       throw new Error('Tenant ID is required');
     }
   }
+  // Removed business logic - repositories should only handle data persistence
+  // Validation logic moved to domain services
 }

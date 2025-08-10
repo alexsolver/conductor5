@@ -104,3 +104,12 @@ export interface IScheduleRepository {
   findByDateRange(startDate: Date, endDate: Date, tenantId: string): Promise<ScheduleEntity[]>;
   findByUser(userId: string, tenantId: string): Promise<ScheduleEntity[]>;
 }
+export interface IScheduleRepository {
+  create(schedule: any): Promise<any>;
+  findById(id: string): Promise<any | null>;
+  findAll(): Promise<any[]>;
+  update(id: string, data: any): Promise<any>;
+  delete(id: string): Promise<void>;
+  findByTenantId(tenantId: string): Promise<any[]>;
+  findByUserId(userId: string): Promise<any[]>;
+}

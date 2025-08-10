@@ -38,3 +38,44 @@ export class MaterialController {
     }
   }
 }
+import { MaterialApplicationService } from '../services/MaterialApplicationService';
+
+export class MaterialController {
+  constructor(private materialService: MaterialApplicationService) {}
+
+  async createMaterial(req: any, res: any): Promise<void> {
+    try {
+      const material = await this.materialService.createMaterial(req.body);
+      res.status(201).json({ success: true, data: material });
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  }
+
+  async getMaterials(req: any, res: any): Promise<void> {
+    try {
+      const materials = await this.materialService.getMaterials(req.query);
+      res.json({ success: true, data: materials });
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  }
+
+  async updateMaterial(req: any, res: any): Promise<void> {
+    try {
+      const material = await this.materialService.updateMaterial(req.params.id, req.body);
+      res.json({ success: true, data: material });
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  }
+
+  async deleteMaterial(req: any, res: any): Promise<void> {
+    try {
+      await this.materialService.deleteMaterial(req.params.id);
+      res.json({ success: true, message: 'Material deleted successfully' });
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  }
+}

@@ -49,3 +49,12 @@ export interface ISkillRepository {
   findByCategory(category: string, tenantId: string): Promise<Skill[]>;
   findByLevel(level: string, tenantId: string): Promise<Skill[]>;
 }
+export interface ISkillRepository {
+  create(skill: any): Promise<any>;
+  findById(id: string): Promise<any | null>;
+  findAll(): Promise<any[]>;
+  update(id: string, data: any): Promise<any>;
+  delete(id: string): Promise<void>;
+  findByCategory(category: string): Promise<any[]>;
+  findByName(name: string): Promise<any | null>;
+}

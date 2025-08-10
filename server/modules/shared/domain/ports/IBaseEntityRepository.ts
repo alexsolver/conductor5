@@ -1,6 +1,6 @@
 import { IBaseEntity } from '../../domain/entities/IBaseEntity';
 import { IIBaseEntityRepository } from '../../domain/ports/IIBaseEntityRepository';
-import { drizzle } from 'drizzle-orm/neon-http';
+// Removed drizzle-orm dependency - domain layer should not depend on infrastructure
 import * as schema from '@shared/schema';
 
 export class DrizzleIBaseEntityRepository implements IIBaseEntityRepository {

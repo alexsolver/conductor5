@@ -1,5 +1,5 @@
 import { IKnowledgeBaseRepository } from '../../domain/repositories/IKnowledgeBaseRepository';
-import { IMediaRepository } from '../../domain/repositories/IMediaRepository';
+import { IMediaRepository } from '../../domain/ports/IMediaRepository';
 
 export class KnowledgeBaseApplicationService {
   constructor(

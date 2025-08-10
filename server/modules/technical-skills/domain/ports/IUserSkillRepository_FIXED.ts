@@ -1,6 +1,6 @@
 import { IUserSkill } from '../../domain/entities/IUserSkill';
 import { IIUserSkillRepository } from '../../domain/ports/IIUserSkillRepository';
-import { drizzle } from 'drizzle-orm/neon-http';
+// Removed drizzle-orm dependency - domain layer should not depend on infrastructure
 import * as schema from '@shared/schema';
 
 export class DrizzleIUserSkillRepository implements IIUserSkillRepository {
