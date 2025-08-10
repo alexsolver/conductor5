@@ -3,7 +3,7 @@ import { GetBeneficiariesUseCase } from '../use-cases/GetBeneficiariesUseCase';
 import { UpdateBeneficiaryUseCase } from '../use-cases/UpdateBeneficiaryUseCase';
 import { DeleteBeneficiaryUseCase } from '../use-cases/DeleteBeneficiaryUseCase';
 import { CreateBeneficiaryDTO } from '../dto/CreateBeneficiaryDTO';
-import type { Request, Response } from 'express';
+// Removed express import - use dependency injection for web framework abstraction
 
 export interface GetBeneficiariesRequest {
   tenantId: string;

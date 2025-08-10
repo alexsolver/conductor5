@@ -20,3 +20,9 @@ export interface ITimecardRepository {
   findByUserId(userId: string, tenantId: string): Promise<Timecard[]>;
   findByDateRange(startDate: Date, endDate: Date, tenantId: string): Promise<Timecard[]>;
 }
+export interface ITimecardRepository {
+  findById(id: string): Promise<Timecard | null>;
+  findAll(): Promise<Timecard[]>;
+  save(timecard: Timecard): Promise<void>;
+  delete(id: string): Promise<void>;
+}

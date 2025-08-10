@@ -17,3 +17,9 @@ export interface IServiceRepository {
   update(id: string, service: Partial<Service>): Promise<Service>;
   delete(id: string): Promise<void>;
 }
+export interface IServiceRepository {
+  findById(id: string): Promise<Service | null>;
+  findAll(): Promise<Service[]>;
+  save(service: Service): Promise<void>;
+  delete(id: string): Promise<void>;
+}

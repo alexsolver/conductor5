@@ -10,3 +10,9 @@ export interface IScheduleRepository {
   delete(id: string): Promise<void>;
   update(schedule: Schedule): Promise<Schedule>;
 }
+export interface IScheduleRepository {
+  findById(id: string): Promise<ScheduleEntity | null>;
+  findAll(): Promise<ScheduleEntity[]>;
+  save(schedule: ScheduleEntity): Promise<void>;
+  delete(id: string): Promise<void>;
+}

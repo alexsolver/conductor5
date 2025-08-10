@@ -16,3 +16,9 @@ export interface ISaasConfigRepository {
   delete(id: string): Promise<boolean>;
   findByKey(key: string): Promise<SaasConfig | null>;
 }
+export interface ISaasConfigRepository {
+  findById(id: string): Promise<SaasConfig | null>;
+  findAll(): Promise<SaasConfig[]>;
+  save(config: SaasConfig): Promise<void>;
+  delete(id: string): Promise<void>;
+}

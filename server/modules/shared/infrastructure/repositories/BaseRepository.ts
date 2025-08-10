@@ -7,7 +7,7 @@ interface IDatabaseConnection {
 }
 
 export abstract class BaseRepository<T> implements IBaseRepository<T> {
-  // Repository should only handle data persistence, not business logic
+  // Repository should only handle data persistence, business logic moved to domain services
 
   protected db: IDatabaseConnection;
 

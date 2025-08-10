@@ -7,10 +7,10 @@
 ## Resumo de Problemas
 
 - 🔥 **Críticos:** 10
-- ⚠️ **Altos:** 60
+- ⚠️ **Altos:** 58
 - 📋 **Médios:** 28
 - 💡 **Baixos:** 3
-- **Total:** 101
+- **Total:** 99
 
 ## Principais Problemas por Módulo
 
@@ -46,12 +46,12 @@
   - Repository contém possível lógica de negócio
 
 ### 🔥 beneficiaries
-- **Total de problemas:** 4
-- **Críticos:** 2 | **Altos:** 2
+- **Total de problemas:** 3
+- **Críticos:** 2 | **Altos:** 1
 - **Principais problemas:**
   - Domain Layer violando dependência: ../../application/dto/CreateBeneficiaryDTO
   - Domain Layer violando dependência: ../../application/dto/CreateBeneficiaryDTO
-  - Application Layer violando dependência: express
+  - Entity misturada com DTOs - violação de responsabilidade
 
 ### ⚠️ customers
 - **Total de problemas:** 1
@@ -84,8 +84,8 @@
   - Repository contém possível lógica de negócio
 
 ### 🔥 timecard
-- **Total de problemas:** 9
-- **Críticos:** 1 | **Altos:** 4
+- **Total de problemas:** 8
+- **Críticos:** 1 | **Altos:** 3
 - **Principais problemas:**
   - Domain Layer violando dependência: drizzle-orm/neon-http
   - Application Layer violando dependência: express
@@ -167,12 +167,11 @@
 
 ### 🔥 beneficiaries
 - **Prioridade:** immediate
-- **Tempo estimado:** 3h
-- **Ações:** 3
+- **Tempo estimado:** 2h
+- **Ações:** 2
 
 1. **refactor_code:** Refatorar dependência inválida na camada domain
-2. **refactor_code:** Refatorar dependência inválida na camada application
-3. **move_code:** Resolver acoplamento: Entity misturada com DTOs - violação de responsabilidade
+2. **move_code:** Resolver acoplamento: Entity misturada com DTOs - violação de responsabilidade
 
 ### 🔥 schedule-management
 - **Prioridade:** immediate
@@ -257,7 +256,7 @@
 - **materials-services:** 30 ações (25h)
 - **saas-admin:** 6 ações (4h)
 - **technical-skills:** 5 ações (5h)
-- **beneficiaries:** 3 ações (3h)
+- **beneficiaries:** 2 ações (2h)
 - **schedule-management:** 3 ações (3h)
 - **shared:** 7 ações (4h)
 - **timecard:** 7 ações (5h)

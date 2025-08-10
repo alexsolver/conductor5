@@ -1,7 +1,6 @@
 import { eq, and, gte, lte, desc, asc, sql, inArray, isNotNull } from 'drizzle-orm';
 // Use abstracted interfaces instead of express and drizzle directly
-import { Request, Response } from 'express';
-// Use abstracted interfaces instead of express and drizzle directly
+// Removed express import - use dependency injection for web framework abstraction
 // // Using interfaces instead of direct express dependency
 interface RequestContext {
   user?: { tenantId?: string; userId?: string };

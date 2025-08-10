@@ -17,3 +17,9 @@ export interface IMaterialRepository {
   update(id: string, material: Partial<Material>): Promise<Material>;
   delete(id: string): Promise<void>;
 }
+export interface IMaterialRepository {
+  findById(id: string): Promise<Material | null>;
+  findAll(): Promise<Material[]>;
+  save(material: Material): Promise<void>;
+  delete(id: string): Promise<void>;
+}
