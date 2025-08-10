@@ -1,0 +1,1846 @@
+--- DETALHES DOS PROBLEMAS ---
+
+[ARCH-AUTH-DOMAIN-VALUE-OBJECTS-MISSING] 💡 Estrutura esperada 'value-objects' ausente na camada 'domain'
+   Módulo: auth | Camada: domain | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/auth/domain/value-objects
+   Sugestão: Criar diretório/arquivo 'value-objects' na camada 'domain' se necessário
+
+[ARCH-AUTH-APPLICATION-REPOSITORIES-MISSING] 💡 Estrutura esperada 'repositories' ausente na camada 'application'
+   Módulo: auth | Camada: application | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/auth/application/repositories
+   Sugestão: Criar diretório/arquivo 'repositories' na camada 'application' se necessário
+
+[ARCH-AUTH-INFRASTRUCTURE-CLIENTS-MISSING] 💡 Estrutura esperada 'clients' ausente na camada 'infrastructure'
+   Módulo: auth | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/auth/infrastructure/clients
+   Sugestão: Criar diretório/arquivo 'clients' na camada 'infrastructure' se necessário
+
+[ARCH-AUTH-INFRASTRUCTURE-CONFIG-MISSING] 💡 Estrutura esperada 'config' ausente na camada 'infrastructure'
+   Módulo: auth | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/auth/infrastructure/config
+   Sugestão: Criar diretório/arquivo 'config' na camada 'infrastructure' se necessário
+
+[ROUTES-AUTH-NO-LOGIC] 💡 Arquivo de rotas não parece conter controllers ou chamadas a Use Cases.
+   Módulo: auth | Camada: presentation | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/auth/routes.ts
+   Sugestão: Definir rotas que utilizem controllers da camada Application ou chamem Use Cases.
+
+[ROUTES-AUTH-BUSINESS-LOGIC] ⚠️ Rotas contêm lógica de negócio ou acesso direto a dados
+   Módulo: auth | Camada: presentation | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/auth/routes.ts
+   Sugestão: Mover lógica de negócio/dados para Use Cases na camada Application e/ou Controllers.
+
+[ARCH-BENEFICIARIES-DOMAIN-VALUE-OBJECTS-MISSING] 💡 Estrutura esperada 'value-objects' ausente na camada 'domain'
+   Módulo: beneficiaries | Camada: domain | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/beneficiaries/domain/value-objects
+   Sugestão: Criar diretório/arquivo 'value-objects' na camada 'domain' se necessário
+
+[ARCH-BENEFICIARIES-APPLICATION-REPOSITORIES-MISSING] 💡 Estrutura esperada 'repositories' ausente na camada 'application'
+   Módulo: beneficiaries | Camada: application | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/beneficiaries/application/repositories
+   Sugestão: Criar diretório/arquivo 'repositories' na camada 'application' se necessário
+
+[ARCH-BENEFICIARIES-INFRASTRUCTURE-CLIENTS-MISSING] 💡 Estrutura esperada 'clients' ausente na camada 'infrastructure'
+   Módulo: beneficiaries | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/beneficiaries/infrastructure/clients
+   Sugestão: Criar diretório/arquivo 'clients' na camada 'infrastructure' se necessário
+
+[ARCH-BENEFICIARIES-INFRASTRUCTURE-CONFIG-MISSING] 💡 Estrutura esperada 'config' ausente na camada 'infrastructure'
+   Módulo: beneficiaries | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/beneficiaries/infrastructure/config
+   Sugestão: Criar diretório/arquivo 'config' na camada 'infrastructure' se necessário
+
+[ROUTES-BENEFICIARIES-NO-LOGIC] 💡 Arquivo de rotas não parece conter controllers ou chamadas a Use Cases.
+   Módulo: beneficiaries | Camada: presentation | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/beneficiaries/routes.ts
+   Sugestão: Definir rotas que utilizem controllers da camada Application ou chamem Use Cases.
+
+[ROUTES-BENEFICIARIES-BUSINESS-LOGIC] ⚠️ Rotas contêm lógica de negócio ou acesso direto a dados
+   Módulo: beneficiaries | Camada: presentation | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/beneficiaries/routes.ts
+   Sugestão: Mover lógica de negócio/dados para Use Cases na camada Application e/ou Controllers.
+
+[ARCH-CUSTOM-FIELDS-DOMAIN-VALUE-OBJECTS-MISSING] 💡 Estrutura esperada 'value-objects' ausente na camada 'domain'
+   Módulo: custom-fields | Camada: domain | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/custom-fields/domain/value-objects
+   Sugestão: Criar diretório/arquivo 'value-objects' na camada 'domain' se necessário
+
+[ARCH-CUSTOM-FIELDS-APPLICATION-REPOSITORIES-MISSING] 💡 Estrutura esperada 'repositories' ausente na camada 'application'
+   Módulo: custom-fields | Camada: application | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/custom-fields/application/repositories
+   Sugestão: Criar diretório/arquivo 'repositories' na camada 'application' se necessário
+
+[ARCH-CUSTOM-FIELDS-INFRASTRUCTURE-CLIENTS-MISSING] 💡 Estrutura esperada 'clients' ausente na camada 'infrastructure'
+   Módulo: custom-fields | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/custom-fields/infrastructure/clients
+   Sugestão: Criar diretório/arquivo 'clients' na camada 'infrastructure' se necessário
+
+[ARCH-CUSTOM-FIELDS-INFRASTRUCTURE-CONFIG-MISSING] 💡 Estrutura esperada 'config' ausente na camada 'infrastructure'
+   Módulo: custom-fields | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/custom-fields/infrastructure/config
+   Sugestão: Criar diretório/arquivo 'config' na camada 'infrastructure' se necessário
+
+[ROUTES-CUSTOM-FIELDS-NO-LOGIC] 💡 Arquivo de rotas não parece conter controllers ou chamadas a Use Cases.
+   Módulo: custom-fields | Camada: presentation | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/custom-fields/routes.ts
+   Sugestão: Definir rotas que utilizem controllers da camada Application ou chamem Use Cases.
+
+[ROUTES-CUSTOM-FIELDS-BUSINESS-LOGIC] ⚠️ Rotas contêm lógica de negócio ou acesso direto a dados
+   Módulo: custom-fields | Camada: presentation | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/custom-fields/routes.ts
+   Sugestão: Mover lógica de negócio/dados para Use Cases na camada Application e/ou Controllers.
+
+[ARCH-CUSTOMERS-DOMAIN-VALUE-OBJECTS-MISSING] 💡 Estrutura esperada 'value-objects' ausente na camada 'domain'
+   Módulo: customers | Camada: domain | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/customers/domain/value-objects
+   Sugestão: Criar diretório/arquivo 'value-objects' na camada 'domain' se necessário
+
+[ARCH-CUSTOMERS-APPLICATION-REPOSITORIES-MISSING] 💡 Estrutura esperada 'repositories' ausente na camada 'application'
+   Módulo: customers | Camada: application | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/customers/application/repositories
+   Sugestão: Criar diretório/arquivo 'repositories' na camada 'application' se necessário
+
+[ARCH-CUSTOMERS-INFRASTRUCTURE-CLIENTS-MISSING] 💡 Estrutura esperada 'clients' ausente na camada 'infrastructure'
+   Módulo: customers | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/customers/infrastructure/clients
+   Sugestão: Criar diretório/arquivo 'clients' na camada 'infrastructure' se necessário
+
+[ARCH-CUSTOMERS-INFRASTRUCTURE-CONFIG-MISSING] 💡 Estrutura esperada 'config' ausente na camada 'infrastructure'
+   Módulo: customers | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/customers/infrastructure/config
+   Sugestão: Criar diretório/arquivo 'config' na camada 'infrastructure' se necessário
+
+[ROUTES-CUSTOMERS-NO-LOGIC] 💡 Arquivo de rotas não parece conter controllers ou chamadas a Use Cases.
+   Módulo: customers | Camada: presentation | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/customers/routes.ts
+   Sugestão: Definir rotas que utilizem controllers da camada Application ou chamem Use Cases.
+
+[ROUTES-CUSTOMERS-BUSINESS-LOGIC] ⚠️ Rotas contêm lógica de negócio ou acesso direto a dados
+   Módulo: customers | Camada: presentation | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/customers/routes.ts
+   Sugestão: Mover lógica de negócio/dados para Use Cases na camada Application e/ou Controllers.
+
+[ARCH-DASHBOARD-DOMAIN-VALUE-OBJECTS-MISSING] 💡 Estrutura esperada 'value-objects' ausente na camada 'domain'
+   Módulo: dashboard | Camada: domain | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/dashboard/domain/value-objects
+   Sugestão: Criar diretório/arquivo 'value-objects' na camada 'domain' se necessário
+
+[ARCH-DASHBOARD-APPLICATION-REPOSITORIES-MISSING] 💡 Estrutura esperada 'repositories' ausente na camada 'application'
+   Módulo: dashboard | Camada: application | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/dashboard/application/repositories
+   Sugestão: Criar diretório/arquivo 'repositories' na camada 'application' se necessário
+
+[ARCH-DASHBOARD-INFRASTRUCTURE-CLIENTS-MISSING] 💡 Estrutura esperada 'clients' ausente na camada 'infrastructure'
+   Módulo: dashboard | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/dashboard/infrastructure/clients
+   Sugestão: Criar diretório/arquivo 'clients' na camada 'infrastructure' se necessário
+
+[ARCH-DASHBOARD-INFRASTRUCTURE-CONFIG-MISSING] 💡 Estrutura esperada 'config' ausente na camada 'infrastructure'
+   Módulo: dashboard | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/dashboard/infrastructure/config
+   Sugestão: Criar diretório/arquivo 'config' na camada 'infrastructure' se necessário
+
+[ROUTES-DASHBOARD-NO-LOGIC] 💡 Arquivo de rotas não parece conter controllers ou chamadas a Use Cases.
+   Módulo: dashboard | Camada: presentation | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/dashboard/routes.ts
+   Sugestão: Definir rotas que utilizem controllers da camada Application ou chamem Use Cases.
+
+[ARCH-FIELD-LAYOUT-DOMAIN-VALUE-OBJECTS-MISSING] 💡 Estrutura esperada 'value-objects' ausente na camada 'domain'
+   Módulo: field-layout | Camada: domain | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/field-layout/domain/value-objects
+   Sugestão: Criar diretório/arquivo 'value-objects' na camada 'domain' se necessário
+
+[ARCH-FIELD-LAYOUT-APPLICATION-REPOSITORIES-MISSING] 💡 Estrutura esperada 'repositories' ausente na camada 'application'
+   Módulo: field-layout | Camada: application | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/field-layout/application/repositories
+   Sugestão: Criar diretório/arquivo 'repositories' na camada 'application' se necessário
+
+[ARCH-FIELD-LAYOUT-INFRASTRUCTURE-CLIENTS-MISSING] 💡 Estrutura esperada 'clients' ausente na camada 'infrastructure'
+   Módulo: field-layout | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/field-layout/infrastructure/clients
+   Sugestão: Criar diretório/arquivo 'clients' na camada 'infrastructure' se necessário
+
+[ARCH-FIELD-LAYOUT-INFRASTRUCTURE-CONFIG-MISSING] 💡 Estrutura esperada 'config' ausente na camada 'infrastructure'
+   Módulo: field-layout | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/field-layout/infrastructure/config
+   Sugestão: Criar diretório/arquivo 'config' na camada 'infrastructure' se necessário
+
+[ROUTES-FIELD-LAYOUT-NO-LOGIC] 💡 Arquivo de rotas não parece conter controllers ou chamadas a Use Cases.
+   Módulo: field-layout | Camada: presentation | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/field-layout/routes.ts
+   Sugestão: Definir rotas que utilizem controllers da camada Application ou chamem Use Cases.
+
+[ARCH-FIELD-LAYOUTS-DOMAIN-VALUE-OBJECTS-MISSING] 💡 Estrutura esperada 'value-objects' ausente na camada 'domain'
+   Módulo: field-layouts | Camada: domain | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/field-layouts/domain/value-objects
+   Sugestão: Criar diretório/arquivo 'value-objects' na camada 'domain' se necessário
+
+[ARCH-FIELD-LAYOUTS-APPLICATION-REPOSITORIES-MISSING] 💡 Estrutura esperada 'repositories' ausente na camada 'application'
+   Módulo: field-layouts | Camada: application | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/field-layouts/application/repositories
+   Sugestão: Criar diretório/arquivo 'repositories' na camada 'application' se necessário
+
+[ARCH-FIELD-LAYOUTS-INFRASTRUCTURE-CLIENTS-MISSING] 💡 Estrutura esperada 'clients' ausente na camada 'infrastructure'
+   Módulo: field-layouts | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/field-layouts/infrastructure/clients
+   Sugestão: Criar diretório/arquivo 'clients' na camada 'infrastructure' se necessário
+
+[ARCH-FIELD-LAYOUTS-INFRASTRUCTURE-CONFIG-MISSING] 💡 Estrutura esperada 'config' ausente na camada 'infrastructure'
+   Módulo: field-layouts | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/field-layouts/infrastructure/config
+   Sugestão: Criar diretório/arquivo 'config' na camada 'infrastructure' se necessário
+
+[ROUTES-FIELD-LAYOUTS-BUSINESS-LOGIC] ⚠️ Rotas contêm lógica de negócio ou acesso direto a dados
+   Módulo: field-layouts | Camada: presentation | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/field-layouts/routes.ts
+   Sugestão: Mover lógica de negócio/dados para Use Cases na camada Application e/ou Controllers.
+
+[ARCH-KNOWLEDGE-BASE-DOMAIN-VALUE-OBJECTS-MISSING] 💡 Estrutura esperada 'value-objects' ausente na camada 'domain'
+   Módulo: knowledge-base | Camada: domain | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/knowledge-base/domain/value-objects
+   Sugestão: Criar diretório/arquivo 'value-objects' na camada 'domain' se necessário
+
+[ARCH-KNOWLEDGE-BASE-APPLICATION-REPOSITORIES-MISSING] 💡 Estrutura esperada 'repositories' ausente na camada 'application'
+   Módulo: knowledge-base | Camada: application | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/knowledge-base/application/repositories
+   Sugestão: Criar diretório/arquivo 'repositories' na camada 'application' se necessário
+
+[ARCH-KNOWLEDGE-BASE-INFRASTRUCTURE-CLIENTS-MISSING] 💡 Estrutura esperada 'clients' ausente na camada 'infrastructure'
+   Módulo: knowledge-base | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/knowledge-base/infrastructure/clients
+   Sugestão: Criar diretório/arquivo 'clients' na camada 'infrastructure' se necessário
+
+[ARCH-KNOWLEDGE-BASE-INFRASTRUCTURE-CONFIG-MISSING] 💡 Estrutura esperada 'config' ausente na camada 'infrastructure'
+   Módulo: knowledge-base | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/knowledge-base/infrastructure/config
+   Sugestão: Criar diretório/arquivo 'config' na camada 'infrastructure' se necessário
+
+[ROUTES-KNOWLEDGE-BASE-BUSINESS-LOGIC] ⚠️ Rotas contêm lógica de negócio ou acesso direto a dados
+   Módulo: knowledge-base | Camada: presentation | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/knowledge-base/routes.ts
+   Sugestão: Mover lógica de negócio/dados para Use Cases na camada Application e/ou Controllers.
+
+[ARCH-LOCATIONS-DOMAIN-VALUE-OBJECTS-MISSING] 💡 Estrutura esperada 'value-objects' ausente na camada 'domain'
+   Módulo: locations | Camada: domain | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/locations/domain/value-objects
+   Sugestão: Criar diretório/arquivo 'value-objects' na camada 'domain' se necessário
+
+[ARCH-LOCATIONS-APPLICATION-REPOSITORIES-MISSING] 💡 Estrutura esperada 'repositories' ausente na camada 'application'
+   Módulo: locations | Camada: application | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/locations/application/repositories
+   Sugestão: Criar diretório/arquivo 'repositories' na camada 'application' se necessário
+
+[ARCH-LOCATIONS-INFRASTRUCTURE-CLIENTS-MISSING] 💡 Estrutura esperada 'clients' ausente na camada 'infrastructure'
+   Módulo: locations | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/locations/infrastructure/clients
+   Sugestão: Criar diretório/arquivo 'clients' na camada 'infrastructure' se necessário
+
+[ARCH-LOCATIONS-INFRASTRUCTURE-CONFIG-MISSING] 💡 Estrutura esperada 'config' ausente na camada 'infrastructure'
+   Módulo: locations | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/locations/infrastructure/config
+   Sugestão: Criar diretório/arquivo 'config' na camada 'infrastructure' se necessário
+
+[ROUTES-LOCATIONS-BUSINESS-LOGIC] ⚠️ Rotas contêm lógica de negócio ou acesso direto a dados
+   Módulo: locations | Camada: presentation | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/locations/routes.ts
+   Sugestão: Mover lógica de negócio/dados para Use Cases na camada Application e/ou Controllers.
+
+[ARCH-MATERIALS-SERVICES-DOMAIN-VALUE-OBJECTS-MISSING] 💡 Estrutura esperada 'value-objects' ausente na camada 'domain'
+   Módulo: materials-services | Camada: domain | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/materials-services/domain/value-objects
+   Sugestão: Criar diretório/arquivo 'value-objects' na camada 'domain' se necessário
+
+[ARCH-MATERIALS-SERVICES-APPLICATION-REPOSITORIES-MISSING] 💡 Estrutura esperada 'repositories' ausente na camada 'application'
+   Módulo: materials-services | Camada: application | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/materials-services/application/repositories
+   Sugestão: Criar diretório/arquivo 'repositories' na camada 'application' se necessário
+
+[ARCH-MATERIALS-SERVICES-INFRASTRUCTURE-CLIENTS-MISSING] 💡 Estrutura esperada 'clients' ausente na camada 'infrastructure'
+   Módulo: materials-services | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/materials-services/infrastructure/clients
+   Sugestão: Criar diretório/arquivo 'clients' na camada 'infrastructure' se necessário
+
+[ARCH-MATERIALS-SERVICES-INFRASTRUCTURE-CONFIG-MISSING] 💡 Estrutura esperada 'config' ausente na camada 'infrastructure'
+   Módulo: materials-services | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/materials-services/infrastructure/config
+   Sugestão: Criar diretório/arquivo 'config' na camada 'infrastructure' se necessário
+
+[ROUTES-MATERIALS-SERVICES-NO-LOGIC] 💡 Arquivo de rotas não parece conter controllers ou chamadas a Use Cases.
+   Módulo: materials-services | Camada: presentation | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/materials-services/routes.ts
+   Sugestão: Definir rotas que utilizem controllers da camada Application ou chamem Use Cases.
+
+[ROUTES-MATERIALS-SERVICES-BUSINESS-LOGIC] ⚠️ Rotas contêm lógica de negócio ou acesso direto a dados
+   Módulo: materials-services | Camada: presentation | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/materials-services/routes.ts
+   Sugestão: Mover lógica de negócio/dados para Use Cases na camada Application e/ou Controllers.
+
+[ARCH-NOTIFICATIONS-DOMAIN-VALUE-OBJECTS-MISSING] 💡 Estrutura esperada 'value-objects' ausente na camada 'domain'
+   Módulo: notifications | Camada: domain | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/notifications/domain/value-objects
+   Sugestão: Criar diretório/arquivo 'value-objects' na camada 'domain' se necessário
+
+[ARCH-NOTIFICATIONS-APPLICATION-REPOSITORIES-MISSING] 💡 Estrutura esperada 'repositories' ausente na camada 'application'
+   Módulo: notifications | Camada: application | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/notifications/application/repositories
+   Sugestão: Criar diretório/arquivo 'repositories' na camada 'application' se necessário
+
+[ARCH-NOTIFICATIONS-INFRASTRUCTURE-CLIENTS-MISSING] 💡 Estrutura esperada 'clients' ausente na camada 'infrastructure'
+   Módulo: notifications | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/notifications/infrastructure/clients
+   Sugestão: Criar diretório/arquivo 'clients' na camada 'infrastructure' se necessário
+
+[ARCH-NOTIFICATIONS-INFRASTRUCTURE-CONFIG-MISSING] 💡 Estrutura esperada 'config' ausente na camada 'infrastructure'
+   Módulo: notifications | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/notifications/infrastructure/config
+   Sugestão: Criar diretório/arquivo 'config' na camada 'infrastructure' se necessário
+
+[ROUTES-NOTIFICATIONS-NO-LOGIC] 💡 Arquivo de rotas não parece conter controllers ou chamadas a Use Cases.
+   Módulo: notifications | Camada: presentation | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/notifications/routes.ts
+   Sugestão: Definir rotas que utilizem controllers da camada Application ou chamem Use Cases.
+
+[ROUTES-NOTIFICATIONS-BUSINESS-LOGIC] ⚠️ Rotas contêm lógica de negócio ou acesso direto a dados
+   Módulo: notifications | Camada: presentation | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/notifications/routes.ts
+   Sugestão: Mover lógica de negócio/dados para Use Cases na camada Application e/ou Controllers.
+
+[ARCH-PEOPLE-DOMAIN-VALUE-OBJECTS-MISSING] 💡 Estrutura esperada 'value-objects' ausente na camada 'domain'
+   Módulo: people | Camada: domain | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/people/domain/value-objects
+   Sugestão: Criar diretório/arquivo 'value-objects' na camada 'domain' se necessário
+
+[ARCH-PEOPLE-APPLICATION-REPOSITORIES-MISSING] 💡 Estrutura esperada 'repositories' ausente na camada 'application'
+   Módulo: people | Camada: application | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/people/application/repositories
+   Sugestão: Criar diretório/arquivo 'repositories' na camada 'application' se necessário
+
+[ARCH-PEOPLE-INFRASTRUCTURE-CLIENTS-MISSING] 💡 Estrutura esperada 'clients' ausente na camada 'infrastructure'
+   Módulo: people | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/people/infrastructure/clients
+   Sugestão: Criar diretório/arquivo 'clients' na camada 'infrastructure' se necessário
+
+[ARCH-PEOPLE-INFRASTRUCTURE-CONFIG-MISSING] 💡 Estrutura esperada 'config' ausente na camada 'infrastructure'
+   Módulo: people | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/people/infrastructure/config
+   Sugestão: Criar diretório/arquivo 'config' na camada 'infrastructure' se necessário
+
+[ROUTES-PEOPLE-NO-LOGIC] 💡 Arquivo de rotas não parece conter controllers ou chamadas a Use Cases.
+   Módulo: people | Camada: presentation | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/people/routes.ts
+   Sugestão: Definir rotas que utilizem controllers da camada Application ou chamem Use Cases.
+
+[ARCH-SAAS-ADMIN-DOMAIN-VALUE-OBJECTS-MISSING] 💡 Estrutura esperada 'value-objects' ausente na camada 'domain'
+   Módulo: saas-admin | Camada: domain | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/saas-admin/domain/value-objects
+   Sugestão: Criar diretório/arquivo 'value-objects' na camada 'domain' se necessário
+
+[ARCH-SAAS-ADMIN-APPLICATION-REPOSITORIES-MISSING] 💡 Estrutura esperada 'repositories' ausente na camada 'application'
+   Módulo: saas-admin | Camada: application | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/saas-admin/application/repositories
+   Sugestão: Criar diretório/arquivo 'repositories' na camada 'application' se necessário
+
+[ARCH-SAAS-ADMIN-INFRASTRUCTURE-CLIENTS-MISSING] 💡 Estrutura esperada 'clients' ausente na camada 'infrastructure'
+   Módulo: saas-admin | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/saas-admin/infrastructure/clients
+   Sugestão: Criar diretório/arquivo 'clients' na camada 'infrastructure' se necessário
+
+[ARCH-SAAS-ADMIN-INFRASTRUCTURE-CONFIG-MISSING] 💡 Estrutura esperada 'config' ausente na camada 'infrastructure'
+   Módulo: saas-admin | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/saas-admin/infrastructure/config
+   Sugestão: Criar diretório/arquivo 'config' na camada 'infrastructure' se necessário
+
+[ROUTES-SAAS-ADMIN-BUSINESS-LOGIC] ⚠️ Rotas contêm lógica de negócio ou acesso direto a dados
+   Módulo: saas-admin | Camada: presentation | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/saas-admin/routes.ts
+   Sugestão: Mover lógica de negócio/dados para Use Cases na camada Application e/ou Controllers.
+
+[ARCH-SCHEDULE-MANAGEMENT-DOMAIN-VALUE-OBJECTS-MISSING] 💡 Estrutura esperada 'value-objects' ausente na camada 'domain'
+   Módulo: schedule-management | Camada: domain | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/schedule-management/domain/value-objects
+   Sugestão: Criar diretório/arquivo 'value-objects' na camada 'domain' se necessário
+
+[ARCH-SCHEDULE-MANAGEMENT-INFRASTRUCTURE-CLIENTS-MISSING] 💡 Estrutura esperada 'clients' ausente na camada 'infrastructure'
+   Módulo: schedule-management | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/schedule-management/infrastructure/clients
+   Sugestão: Criar diretório/arquivo 'clients' na camada 'infrastructure' se necessário
+
+[ARCH-SCHEDULE-MANAGEMENT-INFRASTRUCTURE-CONFIG-MISSING] 💡 Estrutura esperada 'config' ausente na camada 'infrastructure'
+   Módulo: schedule-management | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/schedule-management/infrastructure/config
+   Sugestão: Criar diretório/arquivo 'config' na camada 'infrastructure' se necessário
+
+[ROUTES-SCHEDULE-MANAGEMENT-BUSINESS-LOGIC] ⚠️ Rotas contêm lógica de negócio ou acesso direto a dados
+   Módulo: schedule-management | Camada: presentation | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/schedule-management/routes.ts
+   Sugestão: Mover lógica de negócio/dados para Use Cases na camada Application e/ou Controllers.
+
+[ARCH-SHARED-DOMAIN-VALUE-OBJECTS-MISSING] 💡 Estrutura esperada 'value-objects' ausente na camada 'domain'
+   Módulo: shared | Camada: domain | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/shared/domain/value-objects
+   Sugestão: Criar diretório/arquivo 'value-objects' na camada 'domain' se necessário
+
+[ARCH-SHARED-APPLICATION-REPOSITORIES-MISSING] 💡 Estrutura esperada 'repositories' ausente na camada 'application'
+   Módulo: shared | Camada: application | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/shared/application/repositories
+   Sugestão: Criar diretório/arquivo 'repositories' na camada 'application' se necessário
+
+[ARCH-SHARED-INFRASTRUCTURE-CLIENTS-MISSING] 💡 Estrutura esperada 'clients' ausente na camada 'infrastructure'
+   Módulo: shared | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/shared/infrastructure/clients
+   Sugestão: Criar diretório/arquivo 'clients' na camada 'infrastructure' se necessário
+
+[ARCH-SHARED-INFRASTRUCTURE-CONFIG-MISSING] 💡 Estrutura esperada 'config' ausente na camada 'infrastructure'
+   Módulo: shared | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/shared/infrastructure/config
+   Sugestão: Criar diretório/arquivo 'config' na camada 'infrastructure' se necessário
+
+[ARCH-TECHNICAL-SKILLS-DOMAIN-VALUE-OBJECTS-MISSING] 💡 Estrutura esperada 'value-objects' ausente na camada 'domain'
+   Módulo: technical-skills | Camada: domain | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/technical-skills/domain/value-objects
+   Sugestão: Criar diretório/arquivo 'value-objects' na camada 'domain' se necessário
+
+[ARCH-TECHNICAL-SKILLS-APPLICATION-REPOSITORIES-MISSING] 💡 Estrutura esperada 'repositories' ausente na camada 'application'
+   Módulo: technical-skills | Camada: application | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/technical-skills/application/repositories
+   Sugestão: Criar diretório/arquivo 'repositories' na camada 'application' se necessário
+
+[ARCH-TECHNICAL-SKILLS-INFRASTRUCTURE-CLIENTS-MISSING] 💡 Estrutura esperada 'clients' ausente na camada 'infrastructure'
+   Módulo: technical-skills | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/technical-skills/infrastructure/clients
+   Sugestão: Criar diretório/arquivo 'clients' na camada 'infrastructure' se necessário
+
+[ARCH-TECHNICAL-SKILLS-INFRASTRUCTURE-CONFIG-MISSING] 💡 Estrutura esperada 'config' ausente na camada 'infrastructure'
+   Módulo: technical-skills | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/technical-skills/infrastructure/config
+   Sugestão: Criar diretório/arquivo 'config' na camada 'infrastructure' se necessário
+
+[ROUTES-TECHNICAL-SKILLS-BUSINESS-LOGIC] ⚠️ Rotas contêm lógica de negócio ou acesso direto a dados
+   Módulo: technical-skills | Camada: presentation | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/technical-skills/routes.ts
+   Sugestão: Mover lógica de negócio/dados para Use Cases na camada Application e/ou Controllers.
+
+[ARCH-TEMPLATE-AUDIT-DOMAIN-VALUE-OBJECTS-MISSING] 💡 Estrutura esperada 'value-objects' ausente na camada 'domain'
+   Módulo: template-audit | Camada: domain | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/template-audit/domain/value-objects
+   Sugestão: Criar diretório/arquivo 'value-objects' na camada 'domain' se necessário
+
+[ARCH-TEMPLATE-AUDIT-APPLICATION-REPOSITORIES-MISSING] 💡 Estrutura esperada 'repositories' ausente na camada 'application'
+   Módulo: template-audit | Camada: application | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/template-audit/application/repositories
+   Sugestão: Criar diretório/arquivo 'repositories' na camada 'application' se necessário
+
+[ARCH-TEMPLATE-AUDIT-INFRASTRUCTURE-CLIENTS-MISSING] 💡 Estrutura esperada 'clients' ausente na camada 'infrastructure'
+   Módulo: template-audit | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/template-audit/infrastructure/clients
+   Sugestão: Criar diretório/arquivo 'clients' na camada 'infrastructure' se necessário
+
+[ARCH-TEMPLATE-AUDIT-INFRASTRUCTURE-CONFIG-MISSING] 💡 Estrutura esperada 'config' ausente na camada 'infrastructure'
+   Módulo: template-audit | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/template-audit/infrastructure/config
+   Sugestão: Criar diretório/arquivo 'config' na camada 'infrastructure' se necessário
+
+[ARCH-TEMPLATE-HIERARCHY-DOMAIN-VALUE-OBJECTS-MISSING] 💡 Estrutura esperada 'value-objects' ausente na camada 'domain'
+   Módulo: template-hierarchy | Camada: domain | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/template-hierarchy/domain/value-objects
+   Sugestão: Criar diretório/arquivo 'value-objects' na camada 'domain' se necessário
+
+[ARCH-TEMPLATE-HIERARCHY-APPLICATION-REPOSITORIES-MISSING] 💡 Estrutura esperada 'repositories' ausente na camada 'application'
+   Módulo: template-hierarchy | Camada: application | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/template-hierarchy/application/repositories
+   Sugestão: Criar diretório/arquivo 'repositories' na camada 'application' se necessário
+
+[ARCH-TEMPLATE-HIERARCHY-INFRASTRUCTURE-CLIENTS-MISSING] 💡 Estrutura esperada 'clients' ausente na camada 'infrastructure'
+   Módulo: template-hierarchy | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/template-hierarchy/infrastructure/clients
+   Sugestão: Criar diretório/arquivo 'clients' na camada 'infrastructure' se necessário
+
+[ARCH-TEMPLATE-HIERARCHY-INFRASTRUCTURE-CONFIG-MISSING] 💡 Estrutura esperada 'config' ausente na camada 'infrastructure'
+   Módulo: template-hierarchy | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/template-hierarchy/infrastructure/config
+   Sugestão: Criar diretório/arquivo 'config' na camada 'infrastructure' se necessário
+
+[ARCH-TEMPLATE-VERSIONS-DOMAIN-VALUE-OBJECTS-MISSING] 💡 Estrutura esperada 'value-objects' ausente na camada 'domain'
+   Módulo: template-versions | Camada: domain | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/template-versions/domain/value-objects
+   Sugestão: Criar diretório/arquivo 'value-objects' na camada 'domain' se necessário
+
+[ARCH-TEMPLATE-VERSIONS-APPLICATION-REPOSITORIES-MISSING] 💡 Estrutura esperada 'repositories' ausente na camada 'application'
+   Módulo: template-versions | Camada: application | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/template-versions/application/repositories
+   Sugestão: Criar diretório/arquivo 'repositories' na camada 'application' se necessário
+
+[ARCH-TEMPLATE-VERSIONS-INFRASTRUCTURE-CLIENTS-MISSING] 💡 Estrutura esperada 'clients' ausente na camada 'infrastructure'
+   Módulo: template-versions | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/template-versions/infrastructure/clients
+   Sugestão: Criar diretório/arquivo 'clients' na camada 'infrastructure' se necessário
+
+[ARCH-TEMPLATE-VERSIONS-INFRASTRUCTURE-CONFIG-MISSING] 💡 Estrutura esperada 'config' ausente na camada 'infrastructure'
+   Módulo: template-versions | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/template-versions/infrastructure/config
+   Sugestão: Criar diretório/arquivo 'config' na camada 'infrastructure' se necessário
+
+[ARCH-TENANT-ADMIN-DOMAIN-VALUE-OBJECTS-MISSING] 💡 Estrutura esperada 'value-objects' ausente na camada 'domain'
+   Módulo: tenant-admin | Camada: domain | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/tenant-admin/domain/value-objects
+   Sugestão: Criar diretório/arquivo 'value-objects' na camada 'domain' se necessário
+
+[ARCH-TENANT-ADMIN-APPLICATION-REPOSITORIES-MISSING] 💡 Estrutura esperada 'repositories' ausente na camada 'application'
+   Módulo: tenant-admin | Camada: application | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/tenant-admin/application/repositories
+   Sugestão: Criar diretório/arquivo 'repositories' na camada 'application' se necessário
+
+[ARCH-TENANT-ADMIN-INFRASTRUCTURE-CLIENTS-MISSING] 💡 Estrutura esperada 'clients' ausente na camada 'infrastructure'
+   Módulo: tenant-admin | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/tenant-admin/infrastructure/clients
+   Sugestão: Criar diretório/arquivo 'clients' na camada 'infrastructure' se necessário
+
+[ARCH-TENANT-ADMIN-INFRASTRUCTURE-CONFIG-MISSING] 💡 Estrutura esperada 'config' ausente na camada 'infrastructure'
+   Módulo: tenant-admin | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/tenant-admin/infrastructure/config
+   Sugestão: Criar diretório/arquivo 'config' na camada 'infrastructure' se necessário
+
+[ROUTES-TENANT-ADMIN-BUSINESS-LOGIC] ⚠️ Rotas contêm lógica de negócio ou acesso direto a dados
+   Módulo: tenant-admin | Camada: presentation | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/tenant-admin/routes.ts
+   Sugestão: Mover lógica de negócio/dados para Use Cases na camada Application e/ou Controllers.
+
+[ARCH-TICKET-HISTORY-DOMAIN-VALUE-OBJECTS-MISSING] 💡 Estrutura esperada 'value-objects' ausente na camada 'domain'
+   Módulo: ticket-history | Camada: domain | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/ticket-history/domain/value-objects
+   Sugestão: Criar diretório/arquivo 'value-objects' na camada 'domain' se necessário
+
+[ARCH-TICKET-HISTORY-APPLICATION-REPOSITORIES-MISSING] 💡 Estrutura esperada 'repositories' ausente na camada 'application'
+   Módulo: ticket-history | Camada: application | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/ticket-history/application/repositories
+   Sugestão: Criar diretório/arquivo 'repositories' na camada 'application' se necessário
+
+[ARCH-TICKET-HISTORY-INFRASTRUCTURE-CLIENTS-MISSING] 💡 Estrutura esperada 'clients' ausente na camada 'infrastructure'
+   Módulo: ticket-history | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/ticket-history/infrastructure/clients
+   Sugestão: Criar diretório/arquivo 'clients' na camada 'infrastructure' se necessário
+
+[ARCH-TICKET-HISTORY-INFRASTRUCTURE-CONFIG-MISSING] 💡 Estrutura esperada 'config' ausente na camada 'infrastructure'
+   Módulo: ticket-history | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/ticket-history/infrastructure/config
+   Sugestão: Criar diretório/arquivo 'config' na camada 'infrastructure' se necessário
+
+[ROUTES-TICKET-HISTORY-NO-LOGIC] 💡 Arquivo de rotas não parece conter controllers ou chamadas a Use Cases.
+   Módulo: ticket-history | Camada: presentation | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/ticket-history/routes.ts
+   Sugestão: Definir rotas que utilizem controllers da camada Application ou chamem Use Cases.
+
+[ARCH-TICKET-TEMPLATES-DOMAIN-VALUE-OBJECTS-MISSING] 💡 Estrutura esperada 'value-objects' ausente na camada 'domain'
+   Módulo: ticket-templates | Camada: domain | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/ticket-templates/domain/value-objects
+   Sugestão: Criar diretório/arquivo 'value-objects' na camada 'domain' se necessário
+
+[ARCH-TICKET-TEMPLATES-APPLICATION-REPOSITORIES-MISSING] 💡 Estrutura esperada 'repositories' ausente na camada 'application'
+   Módulo: ticket-templates | Camada: application | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/ticket-templates/application/repositories
+   Sugestão: Criar diretório/arquivo 'repositories' na camada 'application' se necessário
+
+[ARCH-TICKET-TEMPLATES-INFRASTRUCTURE-CLIENTS-MISSING] 💡 Estrutura esperada 'clients' ausente na camada 'infrastructure'
+   Módulo: ticket-templates | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/ticket-templates/infrastructure/clients
+   Sugestão: Criar diretório/arquivo 'clients' na camada 'infrastructure' se necessário
+
+[ARCH-TICKET-TEMPLATES-INFRASTRUCTURE-CONFIG-MISSING] 💡 Estrutura esperada 'config' ausente na camada 'infrastructure'
+   Módulo: ticket-templates | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/ticket-templates/infrastructure/config
+   Sugestão: Criar diretório/arquivo 'config' na camada 'infrastructure' se necessário
+
+[ARCH-TICKETS-DOMAIN-VALUE-OBJECTS-MISSING] 💡 Estrutura esperada 'value-objects' ausente na camada 'domain'
+   Módulo: tickets | Camada: domain | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/tickets/domain/value-objects
+   Sugestão: Criar diretório/arquivo 'value-objects' na camada 'domain' se necessário
+
+[ARCH-TICKETS-APPLICATION-REPOSITORIES-MISSING] 💡 Estrutura esperada 'repositories' ausente na camada 'application'
+   Módulo: tickets | Camada: application | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/tickets/application/repositories
+   Sugestão: Criar diretório/arquivo 'repositories' na camada 'application' se necessário
+
+[ARCH-TICKETS-INFRASTRUCTURE-CLIENTS-MISSING] 💡 Estrutura esperada 'clients' ausente na camada 'infrastructure'
+   Módulo: tickets | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/tickets/infrastructure/clients
+   Sugestão: Criar diretório/arquivo 'clients' na camada 'infrastructure' se necessário
+
+[ARCH-TICKETS-INFRASTRUCTURE-CONFIG-MISSING] 💡 Estrutura esperada 'config' ausente na camada 'infrastructure'
+   Módulo: tickets | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/tickets/infrastructure/config
+   Sugestão: Criar diretório/arquivo 'config' na camada 'infrastructure' se necessário
+
+[ROUTES-TICKETS-BUSINESS-LOGIC] ⚠️ Rotas contêm lógica de negócio ou acesso direto a dados
+   Módulo: tickets | Camada: presentation | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/tickets/routes.ts
+   Sugestão: Mover lógica de negócio/dados para Use Cases na camada Application e/ou Controllers.
+
+[ARCH-TIMECARD-DOMAIN-VALUE-OBJECTS-MISSING] 💡 Estrutura esperada 'value-objects' ausente na camada 'domain'
+   Módulo: timecard | Camada: domain | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/timecard/domain/value-objects
+   Sugestão: Criar diretório/arquivo 'value-objects' na camada 'domain' se necessário
+
+[ARCH-TIMECARD-APPLICATION-REPOSITORIES-MISSING] 💡 Estrutura esperada 'repositories' ausente na camada 'application'
+   Módulo: timecard | Camada: application | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/timecard/application/repositories
+   Sugestão: Criar diretório/arquivo 'repositories' na camada 'application' se necessário
+
+[ARCH-TIMECARD-INFRASTRUCTURE-CLIENTS-MISSING] 💡 Estrutura esperada 'clients' ausente na camada 'infrastructure'
+   Módulo: timecard | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/timecard/infrastructure/clients
+   Sugestão: Criar diretório/arquivo 'clients' na camada 'infrastructure' se necessário
+
+[ARCH-TIMECARD-INFRASTRUCTURE-CONFIG-MISSING] 💡 Estrutura esperada 'config' ausente na camada 'infrastructure'
+   Módulo: timecard | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/timecard/infrastructure/config
+   Sugestão: Criar diretório/arquivo 'config' na camada 'infrastructure' se necessário
+
+[ROUTES-TIMECARD-BUSINESS-LOGIC] ⚠️ Rotas contêm lógica de negócio ou acesso direto a dados
+   Módulo: timecard | Camada: presentation | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/timecard/routes.ts
+   Sugestão: Mover lógica de negócio/dados para Use Cases na camada Application e/ou Controllers.
+
+[DEP-BENEFICIARIES-APP-1754858003832-express] ⚠️ Application Layer: Dependência proibida encontrada -> express
+   Módulo: beneficiaries | Camada: application | Tipo: dependency_violation
+   Arquivo: /home/runner/workspace/server/modules/beneficiaries/application/controllers/BeneficiariesController.ts (Linha 1)
+   Sugestão: Application não deve importar Express diretamente. Use controllers ou DTOs.
+
+[DEP-CUSTOM-FIELDS-APP-1754858003833-express] ⚠️ Application Layer: Dependência proibida encontrada -> express
+   Módulo: custom-fields | Camada: application | Tipo: dependency_violation
+   Arquivo: /home/runner/workspace/server/modules/custom-fields/application/controllers/CustomfieldsController.ts (Linha 1)
+   Sugestão: Application não deve importar Express diretamente. Use controllers ou DTOs.
+
+[DEP-MATERIALS-SERVICES-APP-1754858003847-express] ⚠️ Application Layer: Dependência proibida encontrada -> express
+   Módulo: materials-services | Camada: application | Tipo: dependency_violation
+   Arquivo: /home/runner/workspace/server/modules/materials-services/application/controllers/AuditController.ts (Linha 2)
+   Sugestão: Application não deve importar Express diretamente. Use controllers ou DTOs.
+
+[DEP-MATERIALS-SERVICES-APP-1754858003847-express] ⚠️ Application Layer: Dependência proibida encontrada -> express
+   Módulo: materials-services | Camada: application | Tipo: dependency_violation
+   Arquivo: /home/runner/workspace/server/modules/materials-services/application/controllers/ComplianceController.ts (Linha 1)
+   Sugestão: Application não deve importar Express diretamente. Use controllers ou DTOs.
+
+[DEP-MATERIALS-SERVICES-APP-1754858003848-express] ⚠️ Application Layer: Dependência proibida encontrada -> express
+   Módulo: materials-services | Camada: application | Tipo: dependency_violation
+   Arquivo: /home/runner/workspace/server/modules/materials-services/application/controllers/CustomerItemMappingController-fixed.ts (Linha 2)
+   Sugestão: Application não deve importar Express diretamente. Use controllers ou DTOs.
+
+[DEP-MATERIALS-SERVICES-APP-1754858003848-express] ⚠️ Application Layer: Dependência proibida encontrada -> express
+   Módulo: materials-services | Camada: application | Tipo: dependency_violation
+   Arquivo: /home/runner/workspace/server/modules/materials-services/application/controllers/CustomerItemMappingController-v2.ts (Linha 2)
+   Sugestão: Application não deve importar Express diretamente. Use controllers ou DTOs.
+
+[DEP-MATERIALS-SERVICES-APP-1754858003848-express] ⚠️ Application Layer: Dependência proibida encontrada -> express
+   Módulo: materials-services | Camada: application | Tipo: dependency_violation
+   Arquivo: /home/runner/workspace/server/modules/materials-services/application/controllers/CustomerItemMappingController.ts (Linha 4)
+   Sugestão: Application não deve importar Express diretamente. Use controllers ou DTOs.
+
+[DEP-MATERIALS-SERVICES-APP-1754858003848-express] ⚠️ Application Layer: Dependência proibida encontrada -> express
+   Módulo: materials-services | Camada: application | Tipo: dependency_violation
+   Arquivo: /home/runner/workspace/server/modules/materials-services/application/controllers/CustomerPersonalizationController.ts (Linha 1)
+   Sugestão: Application não deve importar Express diretamente. Use controllers ou DTOs.
+
+[DEP-MATERIALS-SERVICES-APP-1754858003848-drizzleorm] ⚠️ Application Layer: Dependência proibida encontrada -> drizzle-orm
+   Módulo: materials-services | Camada: application | Tipo: dependency_violation
+   Arquivo: /home/runner/workspace/server/modules/materials-services/application/controllers/CustomerPersonalizationController.ts (Linha 13)
+   Sugestão: Application não deve importar ORM diretamente. Use interfaces de repositório do Domain.
+
+[DEP-MATERIALS-SERVICES-APP-1754858003848-drizzleormnodepostgres] ⚠️ Application Layer: Dependência proibida encontrada -> drizzle-orm/node-postgres
+   Módulo: materials-services | Camada: application | Tipo: dependency_violation
+   Arquivo: /home/runner/workspace/server/modules/materials-services/application/controllers/CustomerPersonalizationController.ts (Linha 14)
+   Sugestão: Application não deve importar ORM diretamente. Use interfaces de repositório do Domain.
+
+[DEP-MATERIALS-SERVICES-APP-1754858003848-express] ⚠️ Application Layer: Dependência proibida encontrada -> express
+   Módulo: materials-services | Camada: application | Tipo: dependency_violation
+   Arquivo: /home/runner/workspace/server/modules/materials-services/application/controllers/ImportController.ts (Linha 2)
+   Sugestão: Application não deve importar Express diretamente. Use controllers ou DTOs.
+
+[DEP-MATERIALS-SERVICES-APP-1754858003849-express] ⚠️ Application Layer: Dependência proibida encontrada -> express
+   Módulo: materials-services | Camada: application | Tipo: dependency_violation
+   Arquivo: /home/runner/workspace/server/modules/materials-services/application/controllers/LPUController.ts (Linha 1)
+   Sugestão: Application não deve importar Express diretamente. Use controllers ou DTOs.
+
+[DEP-MATERIALS-SERVICES-APP-1754858003849-express] ⚠️ Application Layer: Dependência proibida encontrada -> express
+   Módulo: materials-services | Camada: application | Tipo: dependency_violation
+   Arquivo: /home/runner/workspace/server/modules/materials-services/application/controllers/PersonalizationController.ts (Linha 2)
+   Sugestão: Application não deve importar Express diretamente. Use controllers ou DTOs.
+
+[DEP-MATERIALS-SERVICES-APP-1754858003849-express] ⚠️ Application Layer: Dependência proibida encontrada -> express
+   Módulo: materials-services | Camada: application | Tipo: dependency_violation
+   Arquivo: /home/runner/workspace/server/modules/materials-services/application/controllers/StockController.ts (Linha 1)
+   Sugestão: Application não deve importar Express diretamente. Use controllers ou DTOs.
+
+[DEP-MATERIALS-SERVICES-APP-1754858003849-express] ⚠️ Application Layer: Dependência proibida encontrada -> express
+   Módulo: materials-services | Camada: application | Tipo: dependency_violation
+   Arquivo: /home/runner/workspace/server/modules/materials-services/application/controllers/SupplierController.ts (Linha 1)
+   Sugestão: Application não deve importar Express diretamente. Use controllers ou DTOs.
+
+[DEP-MATERIALS-SERVICES-APP-1754858003849-express] ⚠️ Application Layer: Dependência proibida encontrada -> express
+   Módulo: materials-services | Camada: application | Tipo: dependency_violation
+   Arquivo: /home/runner/workspace/server/modules/materials-services/application/controllers/SupplierLinksController.ts (Linha 1)
+   Sugestão: Application não deve importar Express diretamente. Use controllers ou DTOs.
+
+[DEP-MATERIALS-SERVICES-APP-1754858003849-drizzleorm] ⚠️ Application Layer: Dependência proibida encontrada -> drizzle-orm
+   Módulo: materials-services | Camada: application | Tipo: dependency_violation
+   Arquivo: /home/runner/workspace/server/modules/materials-services/application/controllers/SupplierLinksController.ts (Linha 13)
+   Sugestão: Application não deve importar ORM diretamente. Use interfaces de repositório do Domain.
+
+[DEP-MATERIALS-SERVICES-APP-1754858003849-drizzleorm] ⚠️ Application Layer: Dependência proibida encontrada -> drizzle-orm
+   Módulo: materials-services | Camada: application | Tipo: dependency_violation
+   Arquivo: /home/runner/workspace/server/modules/materials-services/application/controllers/TicketMaterialsController.ts (Linha 1)
+   Sugestão: Application não deve importar ORM diretamente. Use interfaces de repositório do Domain.
+
+[DEP-MATERIALS-SERVICES-APP-1754858003849-express] ⚠️ Application Layer: Dependência proibida encontrada -> express
+   Módulo: materials-services | Camada: application | Tipo: dependency_violation
+   Arquivo: /home/runner/workspace/server/modules/materials-services/application/controllers/TicketMaterialsController.ts (Linha 2)
+   Sugestão: Application não deve importar Express diretamente. Use controllers ou DTOs.
+
+[DEP-TECHNICAL-SKILLS-APP-1754858004140-express] ⚠️ Application Layer: Dependência proibida encontrada -> express
+   Módulo: technical-skills | Camada: application | Tipo: dependency_violation
+   Arquivo: /home/runner/workspace/server/modules/technical-skills/application/controllers/UserSkillController.ts (Linha 2)
+   Sugestão: Application não deve importar Express diretamente. Use controllers ou DTOs.
+
+[DEP-TIMECARD-APP-1754858004146-express] ⚠️ Application Layer: Dependência proibida encontrada -> express
+   Módulo: timecard | Camada: application | Tipo: dependency_violation
+   Arquivo: /home/runner/workspace/server/modules/timecard/application/controllers/TimecardApprovalController.ts (Linha 1)
+   Sugestão: Application não deve importar Express diretamente. Use controllers ou DTOs.
+
+[DEP-TIMECARD-APP-1754858004146-express] ⚠️ Application Layer: Dependência proibida encontrada -> express
+   Módulo: timecard | Camada: application | Tipo: dependency_violation
+   Arquivo: /home/runner/workspace/server/modules/timecard/application/controllers/TimecardApprovalController.ts (Linha 3)
+   Sugestão: Application não deve importar Express diretamente. Use controllers ou DTOs.
+
+[DEP-TIMECARD-APP-1754858011296-drizzleorm] ⚠️ Application Layer: Dependência proibida encontrada -> drizzle-orm
+   Módulo: timecard | Camada: application | Tipo: dependency_violation
+   Arquivo: /home/runner/workspace/server/modules/timecard/application/controllers/TimecardController.ts (Linha 7)
+   Sugestão: Application não deve importar ORM diretamente. Use interfaces de repositório do Domain.
+
+[SOC-AUTH-ENTITY-INFRA] 🔥 Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade
+   Módulo: auth | Camada: domain | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/auth/domain/entities/User.ts
+   Sugestão: Mover lógica de infraestrutura para Repository na camada Infrastructure
+
+[SOC-AUTH-ENTITY-PRESENTATION] ⚠️ Entity misturada com conceitos de Presentation layer (DTOs, Request/Response) - violação de responsabilidade
+   Módulo: auth | Camada: domain | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/auth/domain/entities/User.ts
+   Sugestão: Separar Entity de DTOs/Requests/Responses, movendo-os para Application layer (ou Presentation)
+
+[SOC-AUTH-USECASE-PRESENTATION] ⚠️ Use Case contém lógica de Presentation layer (acesso a request/response, express)
+   Módulo: auth | Camada: application | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/auth/application/use-cases/LoginUseCase.ts
+   Sugestão: Mover lógica de Presentation para Controllers na camada Application
+
+[SOC-AUTH-REPO-BUSINESS] 📋 Repository contém possível lógica de negócio ou validação complexa
+   Módulo: auth | Camada: infrastructure | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/auth/infrastructure/repositories/DrizzleUserRepository.ts
+   Sugestão: Mover lógica de negócio para Domain layer (Entity ou Service). Repository deve focar em persistência e mapeamento.
+
+[SOC-BENEFICIARIES-ENTITY-INFRA] 🔥 Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade
+   Módulo: beneficiaries | Camada: domain | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/beneficiaries/domain/entities/Beneficiary.ts
+   Sugestão: Mover lógica de infraestrutura para Repository na camada Infrastructure
+
+[SOC-BENEFICIARIES-ENTITY-PRESENTATION] ⚠️ Entity misturada com conceitos de Presentation layer (DTOs, Request/Response) - violação de responsabilidade
+   Módulo: beneficiaries | Camada: domain | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/beneficiaries/domain/entities/Beneficiary.ts
+   Sugestão: Separar Entity de DTOs/Requests/Responses, movendo-os para Application layer (ou Presentation)
+
+[SOC-BENEFICIARIES-USECASE-PRESENTATION] ⚠️ Use Case contém lógica de Presentation layer (acesso a request/response, express)
+   Módulo: beneficiaries | Camada: application | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/beneficiaries/application/use-cases/DeleteBeneficiaryUseCase.ts
+   Sugestão: Mover lógica de Presentation para Controllers na camada Application
+
+[SOC-BENEFICIARIES-USECASE-PRESENTATION] ⚠️ Use Case contém lógica de Presentation layer (acesso a request/response, express)
+   Módulo: beneficiaries | Camada: application | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/beneficiaries/application/use-cases/GetBeneficiariesUseCase.ts
+   Sugestão: Mover lógica de Presentation para Controllers na camada Application
+
+[SOC-BENEFICIARIES-USECASE-PRESENTATION] ⚠️ Use Case contém lógica de Presentation layer (acesso a request/response, express)
+   Módulo: beneficiaries | Camada: application | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/beneficiaries/application/use-cases/UpdateBeneficiaryUseCase.ts
+   Sugestão: Mover lógica de Presentation para Controllers na camada Application
+
+[SOC-CUSTOM-FIELDS-ENTITY-INFRA] 🔥 Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade
+   Módulo: custom-fields | Camada: domain | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/custom-fields/domain/entities/CustomField.ts
+   Sugestão: Mover lógica de infraestrutura para Repository na camada Infrastructure
+
+[SOC-CUSTOM-FIELDS-USECASE-PRESENTATION] ⚠️ Use Case contém lógica de Presentation layer (acesso a request/response, express)
+   Módulo: custom-fields | Camada: application | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/custom-fields/application/use-cases/UpdateCustomFieldUseCase.ts
+   Sugestão: Mover lógica de Presentation para Controllers na camada Application
+
+[SOC-CUSTOM-FIELDS-CONTROLLER-BUSINESS] ⚠️ Controller contém lógica de negócio ou acesso direto a dados
+   Módulo: custom-fields | Camada: application | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/custom-fields/application/controllers/CustomFieldController.ts
+   Sugestão: Controllers devem apenas receber requisições, validar DTOs, chamar Use Cases e retornar respostas.
+
+[SOC-CUSTOMERS-ENTITY-INFRA] 🔥 Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade
+   Módulo: customers | Camada: domain | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/customers/domain/entities/Company.ts
+   Sugestão: Mover lógica de infraestrutura para Repository na camada Infrastructure
+
+[SOC-CUSTOMERS-ENTITY-INFRA] 🔥 Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade
+   Módulo: customers | Camada: domain | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/customers/domain/entities/CompanyMembership.ts
+   Sugestão: Mover lógica de infraestrutura para Repository na camada Infrastructure
+
+[SOC-CUSTOMERS-ENTITY-PRESENTATION] ⚠️ Entity misturada com conceitos de Presentation layer (DTOs, Request/Response) - violação de responsabilidade
+   Módulo: customers | Camada: domain | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/customers/domain/entities/CompanyMembership.ts
+   Sugestão: Separar Entity de DTOs/Requests/Responses, movendo-os para Application layer (ou Presentation)
+
+[SOC-CUSTOMERS-ENTITY-INFRA] 🔥 Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade
+   Módulo: customers | Camada: domain | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/customers/domain/entities/Customer.ts
+   Sugestão: Mover lógica de infraestrutura para Repository na camada Infrastructure
+
+[SOC-CUSTOMERS-USECASE-PRESENTATION] ⚠️ Use Case contém lógica de Presentation layer (acesso a request/response, express)
+   Módulo: customers | Camada: application | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/customers/application/use-cases/CreateCompanyUseCase.ts
+   Sugestão: Mover lógica de Presentation para Controllers na camada Application
+
+[SOC-CUSTOMERS-USECASE-PRESENTATION] ⚠️ Use Case contém lógica de Presentation layer (acesso a request/response, express)
+   Módulo: customers | Camada: application | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/customers/application/use-cases/CreateCustomerUseCase.ts
+   Sugestão: Mover lógica de Presentation para Controllers na camada Application
+
+[SOC-CUSTOMERS-USECASE-PRESENTATION] ⚠️ Use Case contém lógica de Presentation layer (acesso a request/response, express)
+   Módulo: customers | Camada: application | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/customers/application/use-cases/GetCompaniesUseCase.ts
+   Sugestão: Mover lógica de Presentation para Controllers na camada Application
+
+[SOC-CUSTOMERS-USECASE-PRESENTATION] ⚠️ Use Case contém lógica de Presentation layer (acesso a request/response, express)
+   Módulo: customers | Camada: application | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/customers/application/use-cases/GetCustomersUseCase.ts
+   Sugestão: Mover lógica de Presentation para Controllers na camada Application
+
+[SOC-CUSTOMERS-USECASE-PRESENTATION] ⚠️ Use Case contém lógica de Presentation layer (acesso a request/response, express)
+   Módulo: customers | Camada: application | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/customers/application/use-cases/ManageCompanyMembershipUseCase.ts
+   Sugestão: Mover lógica de Presentation para Controllers na camada Application
+
+[SOC-CUSTOMERS-USECASE-PRESENTATION] ⚠️ Use Case contém lógica de Presentation layer (acesso a request/response, express)
+   Módulo: customers | Camada: application | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/customers/application/use-cases/UpdateCompanyUseCase.ts
+   Sugestão: Mover lógica de Presentation para Controllers na camada Application
+
+[SOC-CUSTOMERS-REPO-BUSINESS] 📋 Repository contém possível lógica de negócio ou validação complexa
+   Módulo: customers | Camada: infrastructure | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/customers/infrastructure/repositories/CustomerRepository.ts
+   Sugestão: Mover lógica de negócio para Domain layer (Entity ou Service). Repository deve focar em persistência e mapeamento.
+
+[SOC-CUSTOMERS-REPO-BUSINESS] 📋 Repository contém possível lógica de negócio ou validação complexa
+   Módulo: customers | Camada: infrastructure | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/customers/infrastructure/repositories/DrizzleCompanyRepository.ts
+   Sugestão: Mover lógica de negócio para Domain layer (Entity ou Service). Repository deve focar em persistência e mapeamento.
+
+[SOC-CUSTOMERS-CONTROLLER-BUSINESS] ⚠️ Controller contém lógica de negócio ou acesso direto a dados
+   Módulo: customers | Camada: application | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/customers/application/controllers/CustomerController.ts
+   Sugestão: Controllers devem apenas receber requisições, validar DTOs, chamar Use Cases e retornar respostas.
+
+[SOC-DASHBOARD-USECASE-PRESENTATION] ⚠️ Use Case contém lógica de Presentation layer (acesso a request/response, express)
+   Módulo: dashboard | Camada: application | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/dashboard/application/use-cases/GetDashboardMetricsUseCase.ts
+   Sugestão: Mover lógica de Presentation para Controllers na camada Application
+
+[SOC-DASHBOARD-REPO-BUSINESS] 📋 Repository contém possível lógica de negócio ou validação complexa
+   Módulo: dashboard | Camada: infrastructure | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/dashboard/infrastructure/repositories/DrizzleDashboardRepository.ts
+   Sugestão: Mover lógica de negócio para Domain layer (Entity ou Service). Repository deve focar em persistência e mapeamento.
+
+[SOC-FIELD-LAYOUT-ENTITY-INFRA] 🔥 Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade
+   Módulo: field-layout | Camada: domain | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/field-layout/domain/entities/FieldLayout.ts
+   Sugestão: Mover lógica de infraestrutura para Repository na camada Infrastructure
+
+[SOC-FIELD-LAYOUTS-ENTITY-INFRA] 🔥 Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade
+   Módulo: field-layouts | Camada: domain | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/field-layouts/domain/entities/FieldLayout.ts
+   Sugestão: Mover lógica de infraestrutura para Repository na camada Infrastructure
+
+[SOC-KNOWLEDGE-BASE-ENTITY-INFRA] 🔥 Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade
+   Módulo: knowledge-base | Camada: domain | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/knowledge-base/domain/entities/KnowledgeBaseEntry.ts
+   Sugestão: Mover lógica de infraestrutura para Repository na camada Infrastructure
+
+[SOC-KNOWLEDGE-BASE-REPO-BUSINESS] 📋 Repository contém possível lógica de negócio ou validação complexa
+   Módulo: knowledge-base | Camada: infrastructure | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/knowledge-base/infrastructure/repositories/MediaRepository.ts
+   Sugestão: Mover lógica de negócio para Domain layer (Entity ou Service). Repository deve focar em persistência e mapeamento.
+
+[SOC-KNOWLEDGE-BASE-CONTROLLER-BUSINESS] ⚠️ Controller contém lógica de negócio ou acesso direto a dados
+   Módulo: knowledge-base | Camada: application | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/knowledge-base/application/controllers/KnowledgeBaseController.ts
+   Sugestão: Controllers devem apenas receber requisições, validar DTOs, chamar Use Cases e retornar respostas.
+
+[SOC-KNOWLEDGE-BASE-CONTROLLER-BUSINESS] ⚠️ Controller contém lógica de negócio ou acesso direto a dados
+   Módulo: knowledge-base | Camada: application | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/knowledge-base/application/controllers/MediaController.ts
+   Sugestão: Controllers devem apenas receber requisições, validar DTOs, chamar Use Cases e retornar respostas.
+
+[SOC-LOCATIONS-ENTITY-INFRA] 🔥 Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade
+   Módulo: locations | Camada: domain | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/locations/domain/entities/Location.ts
+   Sugestão: Mover lógica de infraestrutura para Repository na camada Infrastructure
+
+[SOC-LOCATIONS-USECASE-PRESENTATION] ⚠️ Use Case contém lógica de Presentation layer (acesso a request/response, express)
+   Módulo: locations | Camada: application | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/locations/application/use-cases/CreateLocationUseCase.ts
+   Sugestão: Mover lógica de Presentation para Controllers na camada Application
+
+[SOC-MATERIALS-SERVICES-ENTITY-INFRA] 🔥 Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade
+   Módulo: materials-services | Camada: domain | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/materials-services/domain/entities/Material.ts
+   Sugestão: Mover lógica de infraestrutura para Repository na camada Infrastructure
+
+[SOC-MATERIALS-SERVICES-ENTITY-INFRA] 🔥 Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade
+   Módulo: materials-services | Camada: domain | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/materials-services/domain/entities/Service.ts
+   Sugestão: Mover lógica de infraestrutura para Repository na camada Infrastructure
+
+[SOC-MATERIALS-SERVICES-USECASE-PRESENTATION] ⚠️ Use Case contém lógica de Presentation layer (acesso a request/response, express)
+   Módulo: materials-services | Camada: application | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/materials-services/application/use-cases/CreateMaterialUseCase.ts
+   Sugestão: Mover lógica de Presentation para Controllers na camada Application
+
+[SOC-MATERIALS-SERVICES-USECASE-PRESENTATION] ⚠️ Use Case contém lógica de Presentation layer (acesso a request/response, express)
+   Módulo: materials-services | Camada: application | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/materials-services/application/use-cases/IndexUseCase.ts
+   Sugestão: Mover lógica de Presentation para Controllers na camada Application
+
+[SOC-MATERIALS-SERVICES-REPO-BUSINESS] 📋 Repository contém possível lógica de negócio ou validação complexa
+   Módulo: materials-services | Camada: infrastructure | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/materials-services/infrastructure/repositories/AssetManagementRepository.ts
+   Sugestão: Mover lógica de negócio para Domain layer (Entity ou Service). Repository deve focar em persistência e mapeamento.
+
+[SOC-MATERIALS-SERVICES-REPO-BUSINESS] 📋 Repository contém possível lógica de negócio ou validação complexa
+   Módulo: materials-services | Camada: infrastructure | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/materials-services/infrastructure/repositories/ComplianceRepository.ts
+   Sugestão: Mover lógica de negócio para Domain layer (Entity ou Service). Repository deve focar em persistência e mapeamento.
+
+[SOC-MATERIALS-SERVICES-REPO-BUSINESS] 📋 Repository contém possível lógica de negócio ou validação complexa
+   Módulo: materials-services | Camada: infrastructure | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/materials-services/infrastructure/repositories/ItemRepository.ts
+   Sugestão: Mover lógica de negócio para Domain layer (Entity ou Service). Repository deve focar em persistência e mapeamento.
+
+[SOC-MATERIALS-SERVICES-REPO-BUSINESS] 📋 Repository contém possível lógica de negócio ou validação complexa
+   Módulo: materials-services | Camada: infrastructure | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/materials-services/infrastructure/repositories/LPURepository.ts
+   Sugestão: Mover lógica de negócio para Domain layer (Entity ou Service). Repository deve focar em persistência e mapeamento.
+
+[SOC-MATERIALS-SERVICES-REPO-BUSINESS] 📋 Repository contém possível lógica de negócio ou validação complexa
+   Módulo: materials-services | Camada: infrastructure | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/materials-services/infrastructure/repositories/StockRepository.ts
+   Sugestão: Mover lógica de negócio para Domain layer (Entity ou Service). Repository deve focar em persistência e mapeamento.
+
+[SOC-MATERIALS-SERVICES-REPO-BUSINESS] 📋 Repository contém possível lógica de negócio ou validação complexa
+   Módulo: materials-services | Camada: infrastructure | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/materials-services/infrastructure/repositories/SupplierRepository.ts
+   Sugestão: Mover lógica de negócio para Domain layer (Entity ou Service). Repository deve focar em persistência e mapeamento.
+
+[SOC-MATERIALS-SERVICES-CONTROLLER-BUSINESS] ⚠️ Controller contém lógica de negócio ou acesso direto a dados
+   Módulo: materials-services | Camada: application | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/materials-services/application/controllers/AssetManagementController.ts
+   Sugestão: Controllers devem apenas receber requisições, validar DTOs, chamar Use Cases e retornar respostas.
+
+[SOC-MATERIALS-SERVICES-CONTROLLER-BUSINESS] ⚠️ Controller contém lógica de negócio ou acesso direto a dados
+   Módulo: materials-services | Camada: application | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/materials-services/application/controllers/AuditController.ts
+   Sugestão: Controllers devem apenas receber requisições, validar DTOs, chamar Use Cases e retornar respostas.
+
+[SOC-MATERIALS-SERVICES-CONTROLLER-BUSINESS] ⚠️ Controller contém lógica de negócio ou acesso direto a dados
+   Módulo: materials-services | Camada: application | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/materials-services/application/controllers/ComplianceController.ts
+   Sugestão: Controllers devem apenas receber requisições, validar DTOs, chamar Use Cases e retornar respostas.
+
+[SOC-MATERIALS-SERVICES-CONTROLLER-BUSINESS] ⚠️ Controller contém lógica de negócio ou acesso direto a dados
+   Módulo: materials-services | Camada: application | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/materials-services/application/controllers/CustomerPersonalizationController.ts
+   Sugestão: Controllers devem apenas receber requisições, validar DTOs, chamar Use Cases e retornar respostas.
+
+[SOC-MATERIALS-SERVICES-CONTROLLER-BUSINESS] ⚠️ Controller contém lógica de negócio ou acesso direto a dados
+   Módulo: materials-services | Camada: application | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/materials-services/application/controllers/ImportController.ts
+   Sugestão: Controllers devem apenas receber requisições, validar DTOs, chamar Use Cases e retornar respostas.
+
+[SOC-MATERIALS-SERVICES-CONTROLLER-BUSINESS] ⚠️ Controller contém lógica de negócio ou acesso direto a dados
+   Módulo: materials-services | Camada: application | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/materials-services/application/controllers/ItemController.ts
+   Sugestão: Controllers devem apenas receber requisições, validar DTOs, chamar Use Cases e retornar respostas.
+
+[SOC-MATERIALS-SERVICES-CONTROLLER-BUSINESS] ⚠️ Controller contém lógica de negócio ou acesso direto a dados
+   Módulo: materials-services | Camada: application | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/materials-services/application/controllers/LPUController.ts
+   Sugestão: Controllers devem apenas receber requisições, validar DTOs, chamar Use Cases e retornar respostas.
+
+[SOC-MATERIALS-SERVICES-CONTROLLER-BUSINESS] ⚠️ Controller contém lógica de negócio ou acesso direto a dados
+   Módulo: materials-services | Camada: application | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/materials-services/application/controllers/PersonalizationController.ts
+   Sugestão: Controllers devem apenas receber requisições, validar DTOs, chamar Use Cases e retornar respostas.
+
+[SOC-MATERIALS-SERVICES-CONTROLLER-BUSINESS] ⚠️ Controller contém lógica de negócio ou acesso direto a dados
+   Módulo: materials-services | Camada: application | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/materials-services/application/controllers/StockController.ts
+   Sugestão: Controllers devem apenas receber requisições, validar DTOs, chamar Use Cases e retornar respostas.
+
+[SOC-MATERIALS-SERVICES-CONTROLLER-BUSINESS] ⚠️ Controller contém lógica de negócio ou acesso direto a dados
+   Módulo: materials-services | Camada: application | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/materials-services/application/controllers/SupplierController.ts
+   Sugestão: Controllers devem apenas receber requisições, validar DTOs, chamar Use Cases e retornar respostas.
+
+[SOC-MATERIALS-SERVICES-CONTROLLER-BUSINESS] ⚠️ Controller contém lógica de negócio ou acesso direto a dados
+   Módulo: materials-services | Camada: application | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/materials-services/application/controllers/SupplierLinksController.ts
+   Sugestão: Controllers devem apenas receber requisições, validar DTOs, chamar Use Cases e retornar respostas.
+
+[SOC-MATERIALS-SERVICES-CONTROLLER-BUSINESS] ⚠️ Controller contém lógica de negócio ou acesso direto a dados
+   Módulo: materials-services | Camada: application | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/materials-services/application/controllers/TicketMaterialsController.ts
+   Sugestão: Controllers devem apenas receber requisições, validar DTOs, chamar Use Cases e retornar respostas.
+
+[SOC-NOTIFICATIONS-ENTITY-INFRA] 🔥 Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade
+   Módulo: notifications | Camada: domain | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/notifications/domain/entities/Notification.ts
+   Sugestão: Mover lógica de infraestrutura para Repository na camada Infrastructure
+
+[SOC-NOTIFICATIONS-ENTITY-INFRA] 🔥 Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade
+   Módulo: notifications | Camada: domain | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/notifications/domain/entities/NotificationPreference.ts
+   Sugestão: Mover lógica de infraestrutura para Repository na camada Infrastructure
+
+[SOC-NOTIFICATIONS-USECASE-PRESENTATION] ⚠️ Use Case contém lógica de Presentation layer (acesso a request/response, express)
+   Módulo: notifications | Camada: application | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/notifications/application/use-cases/GetNotificationsUseCase.ts
+   Sugestão: Mover lógica de Presentation para Controllers na camada Application
+
+[SOC-PEOPLE-ENTITY-INFRA] 🔥 Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade
+   Módulo: people | Camada: domain | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/people/domain/entities/Person.ts
+   Sugestão: Mover lógica de infraestrutura para Repository na camada Infrastructure
+
+[SOC-PEOPLE-USECASE-PRESENTATION] ⚠️ Use Case contém lógica de Presentation layer (acesso a request/response, express)
+   Módulo: people | Camada: application | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/people/application/use-cases/SearchPeopleUseCase.ts
+   Sugestão: Mover lógica de Presentation para Controllers na camada Application
+
+[SOC-PEOPLE-USECASE-PRESENTATION] ⚠️ Use Case contém lógica de Presentation layer (acesso a request/response, express)
+   Módulo: people | Camada: application | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/people/application/use-cases/UpdatePersonUseCase.ts
+   Sugestão: Mover lógica de Presentation para Controllers na camada Application
+
+[SOC-SAAS-ADMIN-ENTITY-INFRA] 🔥 Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade
+   Módulo: saas-admin | Camada: domain | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/saas-admin/domain/entities/SaasConfig.ts
+   Sugestão: Mover lógica de infraestrutura para Repository na camada Infrastructure
+
+[SOC-SAAS-ADMIN-ENTITY-INFRA] 🔥 Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade
+   Módulo: saas-admin | Camada: domain | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/saas-admin/domain/entities/SaasConfigEntity.ts
+   Sugestão: Mover lógica de infraestrutura para Repository na camada Infrastructure
+
+[SOC-SCHEDULE-MANAGEMENT-ENTITY-INFRA] 🔥 Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade
+   Módulo: schedule-management | Camada: domain | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/schedule-management/domain/entities/ScheduleEntity.ts
+   Sugestão: Mover lógica de infraestrutura para Repository na camada Infrastructure
+
+[SOC-SCHEDULE-MANAGEMENT-USECASE-PRESENTATION] ⚠️ Use Case contém lógica de Presentation layer (acesso a request/response, express)
+   Módulo: schedule-management | Camada: application | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/schedule-management/application/use-cases/CreateScheduleUseCase.ts
+   Sugestão: Mover lógica de Presentation para Controllers na camada Application
+
+[SOC-SCHEDULE-MANAGEMENT-USECASE-PRESENTATION] ⚠️ Use Case contém lógica de Presentation layer (acesso a request/response, express)
+   Módulo: schedule-management | Camada: application | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/schedule-management/application/use-cases/GetSchedulesUseCase.ts
+   Sugestão: Mover lógica de Presentation para Controllers na camada Application
+
+[SOC-SCHEDULE-MANAGEMENT-REPO-BUSINESS] 📋 Repository contém possível lógica de negócio ou validação complexa
+   Módulo: schedule-management | Camada: infrastructure | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/schedule-management/infrastructure/repositories/DrizzleScheduleRepository.ts
+   Sugestão: Mover lógica de negócio para Domain layer (Entity ou Service). Repository deve focar em persistência e mapeamento.
+
+[SOC-SCHEDULE-MANAGEMENT-CONTROLLER-BUSINESS] ⚠️ Controller contém lógica de negócio ou acesso direto a dados
+   Módulo: schedule-management | Camada: application | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/schedule-management/application/controllers/ScheduleController.ts
+   Sugestão: Controllers devem apenas receber requisições, validar DTOs, chamar Use Cases e retornar respostas.
+
+[SOC-SHARED-ENTITY-INFRA] 🔥 Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade
+   Módulo: shared | Camada: domain | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/shared/domain/entities/BaseEntity.ts
+   Sugestão: Mover lógica de infraestrutura para Repository na camada Infrastructure
+
+[SOC-SHARED-USECASE-PRESENTATION] ⚠️ Use Case contém lógica de Presentation layer (acesso a request/response, express)
+   Módulo: shared | Camada: application | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/shared/application/use-cases/BaseUseCase.ts
+   Sugestão: Mover lógica de Presentation para Controllers na camada Application
+
+[SOC-SHARED-REPO-BUSINESS] 📋 Repository contém possível lógica de negócio ou validação complexa
+   Módulo: shared | Camada: infrastructure | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/shared/infrastructure/repositories/BaseRepository.ts
+   Sugestão: Mover lógica de negócio para Domain layer (Entity ou Service). Repository deve focar em persistência e mapeamento.
+
+[SOC-TECHNICAL-SKILLS-ENTITY-INFRA] 🔥 Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade
+   Módulo: technical-skills | Camada: domain | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/technical-skills/domain/entities/Skill.ts
+   Sugestão: Mover lógica de infraestrutura para Repository na camada Infrastructure
+
+[SOC-TECHNICAL-SKILLS-ENTITY-INFRA] 🔥 Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade
+   Módulo: technical-skills | Camada: domain | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/technical-skills/domain/entities/SkillEntity.ts
+   Sugestão: Mover lógica de infraestrutura para Repository na camada Infrastructure
+
+[SOC-TECHNICAL-SKILLS-ENTITY-INFRA] 🔥 Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade
+   Módulo: technical-skills | Camada: domain | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/technical-skills/domain/entities/UserSkill.ts
+   Sugestão: Mover lógica de infraestrutura para Repository na camada Infrastructure
+
+[SOC-TECHNICAL-SKILLS-ENTITY-PRESENTATION] ⚠️ Entity misturada com conceitos de Presentation layer (DTOs, Request/Response) - violação de responsabilidade
+   Módulo: technical-skills | Camada: domain | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/technical-skills/domain/entities/UserSkill.ts
+   Sugestão: Separar Entity de DTOs/Requests/Responses, movendo-os para Application layer (ou Presentation)
+
+[SOC-TECHNICAL-SKILLS-USECASE-PRESENTATION] ⚠️ Use Case contém lógica de Presentation layer (acesso a request/response, express)
+   Módulo: technical-skills | Camada: application | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/technical-skills/application/use-cases/CreateSkillUseCase.ts
+   Sugestão: Mover lógica de Presentation para Controllers na camada Application
+
+[SOC-TECHNICAL-SKILLS-REPO-BUSINESS] 📋 Repository contém possível lógica de negócio ou validação complexa
+   Módulo: technical-skills | Camada: infrastructure | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/technical-skills/infrastructure/repositories/DrizzleSkillRepository.ts
+   Sugestão: Mover lógica de negócio para Domain layer (Entity ou Service). Repository deve focar em persistência e mapeamento.
+
+[SOC-TECHNICAL-SKILLS-REPO-BUSINESS] 📋 Repository contém possível lógica de negócio ou validação complexa
+   Módulo: technical-skills | Camada: infrastructure | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/technical-skills/infrastructure/repositories/DrizzleUserSkillRepository.ts
+   Sugestão: Mover lógica de negócio para Domain layer (Entity ou Service). Repository deve focar em persistência e mapeamento.
+
+[SOC-TECHNICAL-SKILLS-CONTROLLER-BUSINESS] ⚠️ Controller contém lógica de negócio ou acesso direto a dados
+   Módulo: technical-skills | Camada: application | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/technical-skills/application/controllers/SkillController.ts
+   Sugestão: Controllers devem apenas receber requisições, validar DTOs, chamar Use Cases e retornar respostas.
+
+[SOC-TECHNICAL-SKILLS-CONTROLLER-BUSINESS] ⚠️ Controller contém lógica de negócio ou acesso direto a dados
+   Módulo: technical-skills | Camada: application | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/technical-skills/application/controllers/UserSkillController.ts
+   Sugestão: Controllers devem apenas receber requisições, validar DTOs, chamar Use Cases e retornar respostas.
+
+[SOC-TEMPLATE-AUDIT-ENTITY-INFRA] 🔥 Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade
+   Módulo: template-audit | Camada: domain | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/template-audit/domain/entities/TemplateAudit.ts
+   Sugestão: Mover lógica de infraestrutura para Repository na camada Infrastructure
+
+[SOC-TEMPLATE-HIERARCHY-ENTITY-INFRA] 🔥 Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade
+   Módulo: template-hierarchy | Camada: domain | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/template-hierarchy/domain/entities/TemplateHierarchy.ts
+   Sugestão: Mover lógica de infraestrutura para Repository na camada Infrastructure
+
+[SOC-TEMPLATE-VERSIONS-ENTITY-INFRA] 🔥 Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade
+   Módulo: template-versions | Camada: domain | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/template-versions/domain/entities/TemplateVersion.ts
+   Sugestão: Mover lógica de infraestrutura para Repository na camada Infrastructure
+
+[SOC-TENANT-ADMIN-ENTITY-INFRA] 🔥 Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade
+   Módulo: tenant-admin | Camada: domain | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/tenant-admin/domain/entities/TenantConfig.ts
+   Sugestão: Mover lógica de infraestrutura para Repository na camada Infrastructure
+
+[SOC-TICKET-HISTORY-USECASE-PRESENTATION] ⚠️ Use Case contém lógica de Presentation layer (acesso a request/response, express)
+   Módulo: ticket-history | Camada: application | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/ticket-history/application/use-cases/CreateTicketHistoryUseCase.ts
+   Sugestão: Mover lógica de Presentation para Controllers na camada Application
+
+[SOC-TICKET-HISTORY-CONTROLLER-BUSINESS] ⚠️ Controller contém lógica de negócio ou acesso direto a dados
+   Módulo: ticket-history | Camada: application | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/ticket-history/application/controllers/TicketHistoryController.ts
+   Sugestão: Controllers devem apenas receber requisições, validar DTOs, chamar Use Cases e retornar respostas.
+
+[SOC-TICKET-TEMPLATES-ENTITY-INFRA] 🔥 Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade
+   Módulo: ticket-templates | Camada: domain | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/ticket-templates/domain/entities/TicketTemplate.ts
+   Sugestão: Mover lógica de infraestrutura para Repository na camada Infrastructure
+
+[SOC-TICKETS-ENTITY-INFRA] 🔥 Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade
+   Módulo: tickets | Camada: domain | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/tickets/domain/entities/Ticket.ts
+   Sugestão: Mover lógica de infraestrutura para Repository na camada Infrastructure
+
+[SOC-TICKETS-ENTITY-PRESENTATION] ⚠️ Entity misturada com conceitos de Presentation layer (DTOs, Request/Response) - violação de responsabilidade
+   Módulo: tickets | Camada: domain | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/tickets/domain/entities/Ticket.ts
+   Sugestão: Separar Entity de DTOs/Requests/Responses, movendo-os para Application layer (ou Presentation)
+
+[SOC-TICKETS-USECASE-PRESENTATION] ⚠️ Use Case contém lógica de Presentation layer (acesso a request/response, express)
+   Módulo: tickets | Camada: application | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/tickets/application/use-cases/CreateTicketUseCase.ts
+   Sugestão: Mover lógica de Presentation para Controllers na camada Application
+
+[SOC-TICKETS-USECASE-PRESENTATION] ⚠️ Use Case contém lógica de Presentation layer (acesso a request/response, express)
+   Módulo: tickets | Camada: application | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/tickets/application/usecases/CreateTicketUseCase.ts
+   Sugestão: Mover lógica de Presentation para Controllers na camada Application
+
+[SOC-TICKETS-USECASE-PRESENTATION] ⚠️ Use Case contém lógica de Presentation layer (acesso a request/response, express)
+   Módulo: tickets | Camada: application | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/tickets/application/usecases/ResolveTicketUseCase.ts
+   Sugestão: Mover lógica de Presentation para Controllers na camada Application
+
+[SOC-TICKETS-REPO-BUSINESS] 📋 Repository contém possível lógica de negócio ou validação complexa
+   Módulo: tickets | Camada: infrastructure | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/tickets/infrastructure/repositories/DrizzleTicketRepository.ts
+   Sugestão: Mover lógica de negócio para Domain layer (Entity ou Service). Repository deve focar em persistência e mapeamento.
+
+[SOC-TIMECARD-ENTITY-INFRA] 🔥 Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade
+   Módulo: timecard | Camada: domain | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/timecard/domain/entities/Timecard.ts
+   Sugestão: Mover lógica de infraestrutura para Repository na camada Infrastructure
+
+[SOC-TIMECARD-ENTITY-INFRA] 🔥 Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade
+   Módulo: timecard | Camada: domain | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/timecard/domain/entities/TimecardEntity.ts
+   Sugestão: Mover lógica de infraestrutura para Repository na camada Infrastructure
+
+[SOC-TIMECARD-REPO-BUSINESS] 📋 Repository contém possível lógica de negócio ou validação complexa
+   Módulo: timecard | Camada: infrastructure | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/timecard/infrastructure/repositories/DrizzleTimecardRepository.ts
+   Sugestão: Mover lógica de negócio para Domain layer (Entity ou Service). Repository deve focar em persistência e mapeamento.
+
+[SOC-TIMECARD-CONTROLLER-BUSINESS] ⚠️ Controller contém lógica de negócio ou acesso direto a dados
+   Módulo: timecard | Camada: application | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/timecard/application/controllers/TimecardController.ts
+   Sugestão: Controllers devem apenas receber requisições, validar DTOs, chamar Use Cases e retornar respostas.
+
+[NAMING-AUTH-DOMAINSERVICE-AuthDomainService-SUFFIX] 💡 Domain Service 'AuthDomainService' não precisa necessariamente terminar com 'Service'
+   Módulo: auth | Camada: domain | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/auth/domain/services/AuthDomainService.ts
+   Sugestão: Considerar remover o sufixo "Service" se for um Domain Service puro (ex: UserDomainService -> User)
+
+[NAMING-AUTH-SERVICE-index-CASE] 💡 Service 'index' não segue o padrão PascalCase
+   Módulo: auth | Camada: application | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/auth/application/services/index.ts
+   Sugestão: Renomear para seguir o padrão PascalCase (ex: AuthService, NotificationService)
+
+[NAMING-BENEFICIARIES-USECASE-indexUseCase-FORMAT] 📋 Use Case 'indexUseCase' não segue o padrão '[Action]UseCase' (ex: CreateCustomerUseCase)
+   Módulo: beneficiaries | Camada: application | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/beneficiaries/application/use-cases/indexUseCase.ts
+   Sugestão: Renomear para seguir o padrão [Verbo]UseCase
+
+[NAMING-BENEFICIARIES-DOMAINSERVICE-BeneficiaryDomainService-SUFFIX] 💡 Domain Service 'BeneficiaryDomainService' não precisa necessariamente terminar com 'Service'
+   Módulo: beneficiaries | Camada: domain | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/beneficiaries/domain/services/BeneficiaryDomainService.ts
+   Sugestão: Considerar remover o sufixo "Service" se for um Domain Service puro (ex: UserDomainService -> User)
+
+[NAMING-BENEFICIARIES-DOMAINSERVICE-BeneficiaryValidationService-SUFFIX] 💡 Domain Service 'BeneficiaryValidationService' não precisa necessariamente terminar com 'Service'
+   Módulo: beneficiaries | Camada: domain | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/beneficiaries/domain/services/BeneficiaryValidationService.ts
+   Sugestão: Considerar remover o sufixo "Service" se for um Domain Service puro (ex: UserDomainService -> User)
+
+[NAMING-BENEFICIARIES-SERVICE-index-CASE] 💡 Service 'index' não segue o padrão PascalCase
+   Módulo: beneficiaries | Camada: domain | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/beneficiaries/domain/services/index.ts
+   Sugestão: Renomear para seguir o padrão PascalCase (ex: AuthService, NotificationService)
+
+[NAMING-BENEFICIARIES-SERVICE-index-CASE] 💡 Service 'index' não segue o padrão PascalCase
+   Módulo: beneficiaries | Camada: application | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/beneficiaries/application/services/index.ts
+   Sugestão: Renomear para seguir o padrão PascalCase (ex: AuthService, NotificationService)
+
+[NAMING-CUSTOM-FIELDS-USECASE-indexUseCase-FORMAT] 📋 Use Case 'indexUseCase' não segue o padrão '[Action]UseCase' (ex: CreateCustomerUseCase)
+   Módulo: custom-fields | Camada: application | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/custom-fields/application/use-cases/indexUseCase.ts
+   Sugestão: Renomear para seguir o padrão [Verbo]UseCase
+
+[NAMING-CUSTOM-FIELDS-DOMAINSERVICE-CustomFieldDomainService-SUFFIX] 💡 Domain Service 'CustomFieldDomainService' não precisa necessariamente terminar com 'Service'
+   Módulo: custom-fields | Camada: domain | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/custom-fields/domain/services/CustomFieldDomainService.ts
+   Sugestão: Considerar remover o sufixo "Service" se for um Domain Service puro (ex: UserDomainService -> User)
+
+[NAMING-CUSTOM-FIELDS-SERVICE-index-CASE] 💡 Service 'index' não segue o padrão PascalCase
+   Módulo: custom-fields | Camada: domain | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/custom-fields/domain/services/index.ts
+   Sugestão: Renomear para seguir o padrão PascalCase (ex: AuthService, NotificationService)
+
+[NAMING-CUSTOM-FIELDS-SERVICE-index-CASE] 💡 Service 'index' não segue o padrão PascalCase
+   Módulo: custom-fields | Camada: application | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/custom-fields/application/services/index.ts
+   Sugestão: Renomear para seguir o padrão PascalCase (ex: AuthService, NotificationService)
+
+[NAMING-CUSTOMERS-DOMAINSERVICE-CustomerDomainService-SUFFIX] 💡 Domain Service 'CustomerDomainService' não precisa necessariamente terminar com 'Service'
+   Módulo: customers | Camada: domain | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/customers/domain/services/CustomerDomainService.ts
+   Sugestão: Considerar remover o sufixo "Service" se for um Domain Service puro (ex: UserDomainService -> User)
+
+[NAMING-DASHBOARD-DOMAINSERVICE-DashboardDomainService-SUFFIX] 💡 Domain Service 'DashboardDomainService' não precisa necessariamente terminar com 'Service'
+   Módulo: dashboard | Camada: domain | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/dashboard/domain/services/DashboardDomainService.ts
+   Sugestão: Considerar remover o sufixo "Service" se for um Domain Service puro (ex: UserDomainService -> User)
+
+[NAMING-FIELD-LAYOUT-DOMAINSERVICE-FieldLayoutDomainService-SUFFIX] 💡 Domain Service 'FieldLayoutDomainService' não precisa necessariamente terminar com 'Service'
+   Módulo: field-layout | Camada: domain | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/field-layout/domain/services/FieldLayoutDomainService.ts
+   Sugestão: Considerar remover o sufixo "Service" se for um Domain Service puro (ex: UserDomainService -> User)
+
+[NAMING-FIELD-LAYOUTS-USECASE-indexUseCase-FORMAT] 📋 Use Case 'indexUseCase' não segue o padrão '[Action]UseCase' (ex: CreateCustomerUseCase)
+   Módulo: field-layouts | Camada: application | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/field-layouts/application/use-cases/indexUseCase.ts
+   Sugestão: Renomear para seguir o padrão [Verbo]UseCase
+
+[NAMING-FIELD-LAYOUTS-DOMAINSERVICE-FieldLayoutDomainService-SUFFIX] 💡 Domain Service 'FieldLayoutDomainService' não precisa necessariamente terminar com 'Service'
+   Módulo: field-layouts | Camada: domain | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/field-layouts/domain/services/FieldLayoutDomainService.ts
+   Sugestão: Considerar remover o sufixo "Service" se for um Domain Service puro (ex: UserDomainService -> User)
+
+[NAMING-FIELD-LAYOUTS-SERVICE-index-CASE] 💡 Service 'index' não segue o padrão PascalCase
+   Módulo: field-layouts | Camada: domain | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/field-layouts/domain/services/index.ts
+   Sugestão: Renomear para seguir o padrão PascalCase (ex: AuthService, NotificationService)
+
+[NAMING-FIELD-LAYOUTS-SERVICE-index-CASE] 💡 Service 'index' não segue o padrão PascalCase
+   Módulo: field-layouts | Camada: application | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/field-layouts/application/services/index.ts
+   Sugestão: Renomear para seguir o padrão PascalCase (ex: AuthService, NotificationService)
+
+[IMPL-KNOWLEDGE-BASE-REPO-KnowledgeBaseRepository-INTERFACE] 💡 Repository 'KnowledgeBaseRepository' idealmente deveria implementar uma interface de repositório
+   Módulo: knowledge-base | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/knowledge-base/infrastructure/repositories/KnowledgeBaseRepository.ts
+   Sugestão: Criar uma interface de repositório no Domain layer (ex: IDomainRepository) e implementar aqui.
+
+[IMPL-KNOWLEDGE-BASE-REPO-MediaRepository-INTERFACE] 💡 Repository 'MediaRepository' idealmente deveria implementar uma interface de repositório
+   Módulo: knowledge-base | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/knowledge-base/infrastructure/repositories/MediaRepository.ts
+   Sugestão: Criar uma interface de repositório no Domain layer (ex: IDomainRepository) e implementar aqui.
+
+[NAMING-KNOWLEDGE-BASE-DOMAINSERVICE-KnowledgeBaseSearchService-SUFFIX] 💡 Domain Service 'KnowledgeBaseSearchService' não precisa necessariamente terminar com 'Service'
+   Módulo: knowledge-base | Camada: domain | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/knowledge-base/domain/services/KnowledgeBaseSearchService.ts
+   Sugestão: Considerar remover o sufixo "Service" se for um Domain Service puro (ex: UserDomainService -> User)
+
+[NAMING-KNOWLEDGE-BASE-SERVICE-index-CASE] 💡 Service 'index' não segue o padrão PascalCase
+   Módulo: knowledge-base | Camada: domain | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/knowledge-base/domain/services/index.ts
+   Sugestão: Renomear para seguir o padrão PascalCase (ex: AuthService, NotificationService)
+
+[NAMING-LOCATIONS-DOMAINSERVICE-LocationDomainService-SUFFIX] 💡 Domain Service 'LocationDomainService' não precisa necessariamente terminar com 'Service'
+   Módulo: locations | Camada: domain | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/locations/domain/services/LocationDomainService.ts
+   Sugestão: Considerar remover o sufixo "Service" se for um Domain Service puro (ex: UserDomainService -> User)
+
+[IMPL-MATERIALS-SERVICES-REPO-LPUCacheWarmerRepository-INTERFACE] 💡 Repository 'LPUCacheWarmerRepository' idealmente deveria implementar uma interface de repositório
+   Módulo: materials-services | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/materials-services/infrastructure/repositories/LPUCacheWarmerRepository.ts
+   Sugestão: Criar uma interface de repositório no Domain layer (ex: IDomainRepository) e implementar aqui.
+
+[IMPL-MATERIALS-SERVICES-REPO-SupplierRepository-INTERFACE] 💡 Repository 'SupplierRepository' idealmente deveria implementar uma interface de repositório
+   Módulo: materials-services | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/materials-services/infrastructure/repositories/SupplierRepository.ts
+   Sugestão: Criar uma interface de repositório no Domain layer (ex: IDomainRepository) e implementar aqui.
+
+[NAMING-MATERIALS-SERVICES-REPO-indexRepository-FORMAT] 📋 Repository 'indexRepository' não segue o padrão '[Entity]Repository' (ex: CustomerRepository)
+   Módulo: materials-services | Camada: infrastructure | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/materials-services/infrastructure/repositories/indexRepository.ts
+   Sugestão: Renomear para seguir o padrão [NomeDaEntidade]Repository
+
+[IMPL-MATERIALS-SERVICES-REPO-indexRepository-INTERFACE] 💡 Repository 'indexRepository' idealmente deveria implementar uma interface de repositório
+   Módulo: materials-services | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/materials-services/infrastructure/repositories/indexRepository.ts
+   Sugestão: Criar uma interface de repositório no Domain layer (ex: IDomainRepository) e implementar aqui.
+
+[NAMING-MATERIALS-SERVICES-DOMAINSERVICE-MaterialValidationService-SUFFIX] 💡 Domain Service 'MaterialValidationService' não precisa necessariamente terminar com 'Service'
+   Módulo: materials-services | Camada: domain | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/materials-services/domain/services/MaterialValidationService.ts
+   Sugestão: Considerar remover o sufixo "Service" se for um Domain Service puro (ex: UserDomainService -> User)
+
+[NAMING-MATERIALS-SERVICES-SERVICE-index-CASE] 💡 Service 'index' não segue o padrão PascalCase
+   Módulo: materials-services | Camada: domain | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/materials-services/domain/services/index.ts
+   Sugestão: Renomear para seguir o padrão PascalCase (ex: AuthService, NotificationService)
+
+[NAMING-NOTIFICATIONS-DOMAINSERVICE-NotificationDomainService-SUFFIX] 💡 Domain Service 'NotificationDomainService' não precisa necessariamente terminar com 'Service'
+   Módulo: notifications | Camada: domain | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/notifications/domain/services/NotificationDomainService.ts
+   Sugestão: Considerar remover o sufixo "Service" se for um Domain Service puro (ex: UserDomainService -> User)
+
+[NAMING-PEOPLE-USECASE-indexUseCase-FORMAT] 📋 Use Case 'indexUseCase' não segue o padrão '[Action]UseCase' (ex: CreateCustomerUseCase)
+   Módulo: people | Camada: application | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/people/application/use-cases/indexUseCase.ts
+   Sugestão: Renomear para seguir o padrão [Verbo]UseCase
+
+[NAMING-PEOPLE-DOMAINSERVICE-PersonDomainService-SUFFIX] 💡 Domain Service 'PersonDomainService' não precisa necessariamente terminar com 'Service'
+   Módulo: people | Camada: domain | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/people/domain/services/PersonDomainService.ts
+   Sugestão: Considerar remover o sufixo "Service" se for um Domain Service puro (ex: UserDomainService -> User)
+
+[NAMING-PEOPLE-SERVICE-index-CASE] 💡 Service 'index' não segue o padrão PascalCase
+   Módulo: people | Camada: domain | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/people/domain/services/index.ts
+   Sugestão: Renomear para seguir o padrão PascalCase (ex: AuthService, NotificationService)
+
+[NAMING-PEOPLE-SERVICE-index-CASE] 💡 Service 'index' não segue o padrão PascalCase
+   Módulo: people | Camada: application | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/people/application/services/index.ts
+   Sugestão: Renomear para seguir o padrão PascalCase (ex: AuthService, NotificationService)
+
+[NAMING-SAAS-ADMIN-REPO-indexRepository-FORMAT] 📋 Repository 'indexRepository' não segue o padrão '[Entity]Repository' (ex: CustomerRepository)
+   Módulo: saas-admin | Camada: infrastructure | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/saas-admin/infrastructure/repositories/indexRepository.ts
+   Sugestão: Renomear para seguir o padrão [NomeDaEntidade]Repository
+
+[NAMING-SAAS-ADMIN-DOMAINSERVICE-SaasAdminDomainService-SUFFIX] 💡 Domain Service 'SaasAdminDomainService' não precisa necessariamente terminar com 'Service'
+   Módulo: saas-admin | Camada: domain | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/saas-admin/domain/services/SaasAdminDomainService.ts
+   Sugestão: Considerar remover o sufixo "Service" se for um Domain Service puro (ex: UserDomainService -> User)
+
+[NAMING-SAAS-ADMIN-SERVICE-index-CASE] 💡 Service 'index' não segue o padrão PascalCase
+   Módulo: saas-admin | Camada: application | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/saas-admin/application/services/index.ts
+   Sugestão: Renomear para seguir o padrão PascalCase (ex: AuthService, NotificationService)
+
+[NAMING-SCHEDULE-MANAGEMENT-DOMAINSERVICE-ScheduleDomainService-SUFFIX] 💡 Domain Service 'ScheduleDomainService' não precisa necessariamente terminar com 'Service'
+   Módulo: schedule-management | Camada: domain | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/schedule-management/domain/services/ScheduleDomainService.ts
+   Sugestão: Considerar remover o sufixo "Service" se for um Domain Service puro (ex: UserDomainService -> User)
+
+[NAMING-SCHEDULE-MANAGEMENT-SERVICE-index-CASE] 💡 Service 'index' não segue o padrão PascalCase
+   Módulo: schedule-management | Camada: domain | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/schedule-management/domain/services/index.ts
+   Sugestão: Renomear para seguir o padrão PascalCase (ex: AuthService, NotificationService)
+
+[NAMING-SHARED-USECASE-indexUseCase-FORMAT] 📋 Use Case 'indexUseCase' não segue o padrão '[Action]UseCase' (ex: CreateCustomerUseCase)
+   Módulo: shared | Camada: application | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/shared/application/use-cases/indexUseCase.ts
+   Sugestão: Renomear para seguir o padrão [Verbo]UseCase
+
+[NAMING-SHARED-REPO-index-FORMAT] 📋 Repository 'index' não segue o padrão '[Entity]Repository' (ex: CustomerRepository)
+   Módulo: shared | Camada: infrastructure | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/shared/infrastructure/repositories/index.ts
+   Sugestão: Renomear para seguir o padrão [NomeDaEntidade]Repository
+
+[IMPL-SHARED-REPO-index-INTERFACE] 💡 Repository 'index' idealmente deveria implementar uma interface de repositório
+   Módulo: shared | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/shared/infrastructure/repositories/index.ts
+   Sugestão: Criar uma interface de repositório no Domain layer (ex: IDomainRepository) e implementar aqui.
+
+[NAMING-SHARED-REPO-indexRepository-FORMAT] 📋 Repository 'indexRepository' não segue o padrão '[Entity]Repository' (ex: CustomerRepository)
+   Módulo: shared | Camada: infrastructure | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/shared/infrastructure/repositories/indexRepository.ts
+   Sugestão: Renomear para seguir o padrão [NomeDaEntidade]Repository
+
+[NAMING-SHARED-DOMAINSERVICE-BaseDomainService-SUFFIX] 💡 Domain Service 'BaseDomainService' não precisa necessariamente terminar com 'Service'
+   Módulo: shared | Camada: domain | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/shared/domain/services/BaseDomainService.ts
+   Sugestão: Considerar remover o sufixo "Service" se for um Domain Service puro (ex: UserDomainService -> User)
+
+[NAMING-SHARED-DOMAINSERVICE-ValidationDomainService-SUFFIX] 💡 Domain Service 'ValidationDomainService' não precisa necessariamente terminar com 'Service'
+   Módulo: shared | Camada: domain | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/shared/domain/services/ValidationDomainService.ts
+   Sugestão: Considerar remover o sufixo "Service" se for um Domain Service puro (ex: UserDomainService -> User)
+
+[NAMING-SHARED-SERVICE-index-CASE] 💡 Service 'index' não segue o padrão PascalCase
+   Módulo: shared | Camada: application | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/shared/application/services/index.ts
+   Sugestão: Renomear para seguir o padrão PascalCase (ex: AuthService, NotificationService)
+
+[NAMING-TECHNICAL-SKILLS-DOMAINSERVICE-SkillValidationService-SUFFIX] 💡 Domain Service 'SkillValidationService' não precisa necessariamente terminar com 'Service'
+   Módulo: technical-skills | Camada: domain | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/technical-skills/domain/services/SkillValidationService.ts
+   Sugestão: Considerar remover o sufixo "Service" se for um Domain Service puro (ex: UserDomainService -> User)
+
+[NAMING-TECHNICAL-SKILLS-SERVICE-index-CASE] 💡 Service 'index' não segue o padrão PascalCase
+   Módulo: technical-skills | Camada: domain | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/technical-skills/domain/services/index.ts
+   Sugestão: Renomear para seguir o padrão PascalCase (ex: AuthService, NotificationService)
+
+[NAMING-TEMPLATE-AUDIT-DOMAINSERVICE-AuditValidationService-SUFFIX] 💡 Domain Service 'AuditValidationService' não precisa necessariamente terminar com 'Service'
+   Módulo: template-audit | Camada: domain | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/template-audit/domain/services/AuditValidationService.ts
+   Sugestão: Considerar remover o sufixo "Service" se for um Domain Service puro (ex: UserDomainService -> User)
+
+[NAMING-TEMPLATE-AUDIT-SERVICE-index-CASE] 💡 Service 'index' não segue o padrão PascalCase
+   Módulo: template-audit | Camada: domain | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/template-audit/domain/services/index.ts
+   Sugestão: Renomear para seguir o padrão PascalCase (ex: AuthService, NotificationService)
+
+[NAMING-TEMPLATE-AUDIT-SERVICE-index-CASE] 💡 Service 'index' não segue o padrão PascalCase
+   Módulo: template-audit | Camada: application | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/template-audit/application/services/index.ts
+   Sugestão: Renomear para seguir o padrão PascalCase (ex: AuthService, NotificationService)
+
+[NAMING-TEMPLATE-HIERARCHY-DOMAINSERVICE-TemplateHierarchyDomainService-SUFFIX] 💡 Domain Service 'TemplateHierarchyDomainService' não precisa necessariamente terminar com 'Service'
+   Módulo: template-hierarchy | Camada: domain | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/template-hierarchy/domain/services/TemplateHierarchyDomainService.ts
+   Sugestão: Considerar remover o sufixo "Service" se for um Domain Service puro (ex: UserDomainService -> User)
+
+[NAMING-TEMPLATE-VERSIONS-DOMAINSERVICE-TemplateVersionDomainService-SUFFIX] 💡 Domain Service 'TemplateVersionDomainService' não precisa necessariamente terminar com 'Service'
+   Módulo: template-versions | Camada: domain | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/template-versions/domain/services/TemplateVersionDomainService.ts
+   Sugestão: Considerar remover o sufixo "Service" se for um Domain Service puro (ex: UserDomainService -> User)
+
+[NAMING-TENANT-ADMIN-USECASE-indexUseCase-FORMAT] 📋 Use Case 'indexUseCase' não segue o padrão '[Action]UseCase' (ex: CreateCustomerUseCase)
+   Módulo: tenant-admin | Camada: application | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/tenant-admin/application/use-cases/indexUseCase.ts
+   Sugestão: Renomear para seguir o padrão [Verbo]UseCase
+
+[NAMING-TENANT-ADMIN-DOMAINSERVICE-TenantConfigDomainService-SUFFIX] 💡 Domain Service 'TenantConfigDomainService' não precisa necessariamente terminar com 'Service'
+   Módulo: tenant-admin | Camada: domain | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/tenant-admin/domain/services/TenantConfigDomainService.ts
+   Sugestão: Considerar remover o sufixo "Service" se for um Domain Service puro (ex: UserDomainService -> User)
+
+[NAMING-TENANT-ADMIN-SERVICE-index-CASE] 💡 Service 'index' não segue o padrão PascalCase
+   Módulo: tenant-admin | Camada: domain | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/tenant-admin/domain/services/index.ts
+   Sugestão: Renomear para seguir o padrão PascalCase (ex: AuthService, NotificationService)
+
+[NAMING-TENANT-ADMIN-SERVICE-index-CASE] 💡 Service 'index' não segue o padrão PascalCase
+   Módulo: tenant-admin | Camada: application | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/tenant-admin/application/services/index.ts
+   Sugestão: Renomear para seguir o padrão PascalCase (ex: AuthService, NotificationService)
+
+[NAMING-TICKET-HISTORY-DOMAINSERVICE-TicketHistoryDomainService-SUFFIX] 💡 Domain Service 'TicketHistoryDomainService' não precisa necessariamente terminar com 'Service'
+   Módulo: ticket-history | Camada: domain | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/ticket-history/domain/services/TicketHistoryDomainService.ts
+   Sugestão: Considerar remover o sufixo "Service" se for um Domain Service puro (ex: UserDomainService -> User)
+
+[NAMING-TICKET-TEMPLATES-DOMAINSERVICE-TemplateValidationService-SUFFIX] 💡 Domain Service 'TemplateValidationService' não precisa necessariamente terminar com 'Service'
+   Módulo: ticket-templates | Camada: domain | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/ticket-templates/domain/services/TemplateValidationService.ts
+   Sugestão: Considerar remover o sufixo "Service" se for um Domain Service puro (ex: UserDomainService -> User)
+
+[NAMING-TICKETS-DOMAINSERVICE-TicketDomainService-SUFFIX] 💡 Domain Service 'TicketDomainService' não precisa necessariamente terminar com 'Service'
+   Módulo: tickets | Camada: domain | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/tickets/domain/services/TicketDomainService.ts
+   Sugestão: Considerar remover o sufixo "Service" se for um Domain Service puro (ex: UserDomainService -> User)
+
+[IMPL-TIMECARD-REPO-DrizzleTimecardRepository-INTERFACE] 💡 Repository 'DrizzleTimecardRepository' idealmente deveria implementar uma interface de repositório
+   Módulo: timecard | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/timecard/infrastructure/repositories/DrizzleTimecardRepository.ts
+   Sugestão: Criar uma interface de repositório no Domain layer (ex: IDomainRepository) e implementar aqui.
+
+[NAMING-TIMECARD-REPO-indexRepository-FORMAT] 📋 Repository 'indexRepository' não segue o padrão '[Entity]Repository' (ex: CustomerRepository)
+   Módulo: timecard | Camada: infrastructure | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/timecard/infrastructure/repositories/indexRepository.ts
+   Sugestão: Renomear para seguir o padrão [NomeDaEntidade]Repository
+
+[IMPL-TIMECARD-REPO-indexRepository-INTERFACE] 💡 Repository 'indexRepository' idealmente deveria implementar uma interface de repositório
+   Módulo: timecard | Camada: infrastructure | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/timecard/infrastructure/repositories/indexRepository.ts
+   Sugestão: Criar uma interface de repositório no Domain layer (ex: IDomainRepository) e implementar aqui.
+
+[NAMING-TIMECARD-DOMAINSERVICE-TimecardValidationService-SUFFIX] 💡 Domain Service 'TimecardValidationService' não precisa necessariamente terminar com 'Service'
+   Módulo: timecard | Camada: domain | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/timecard/domain/services/TimecardValidationService.ts
+   Sugestão: Considerar remover o sufixo "Service" se for um Domain Service puro (ex: UserDomainService -> User)
+
+[NAMING-TIMECARD-SERVICE-index-CASE] 💡 Service 'index' não segue o padrão PascalCase
+   Módulo: timecard | Camada: domain | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/timecard/domain/services/index.ts
+   Sugestão: Renomear para seguir o padrão PascalCase (ex: AuthService, NotificationService)
+
+[NAMING-TIMECARD-SERVICE-index-CASE] 💡 Service 'index' não segue o padrão PascalCase
+   Módulo: timecard | Camada: application | Tipo: naming_inconsistency
+   Arquivo: /home/runner/workspace/server/modules/timecard/application/services/index.ts
+   Sugestão: Renomear para seguir o padrão PascalCase (ex: AuthService, NotificationService)
+
+[COMP-AUTH-ROUTE-CONTROLLER-MISMATCH-AuthControllerFixed] 💡 Controller 'AuthControllerFixed' não parece ser referenciado nas rotas do módulo
+   Módulo: auth | Camada: presentation | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/auth/routes.ts
+   Sugestão: Garantir que as rotas do módulo utilizem os controllers definidos
+
+[COMP-AUTH-ROUTE-CONTROLLER-MISMATCH-index] 💡 Controller 'index' não parece ser referenciado nas rotas do módulo
+   Módulo: auth | Camada: presentation | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/auth/routes.ts
+   Sugestão: Garantir que as rotas do módulo utilizem os controllers definidos
+
+[COMP-AUTH-REPO-INTERFACE-DrizzleUserRepository-MISSING] 📋 Repository 'DrizzleUserRepository' implementa uma interface que não foi encontrada no Domain layer
+   Módulo: auth | Camada: domain | Tipo: missing_component
+   Arquivo: /home/runner/workspace/server/modules/auth/domain
+   Sugestão: Criar a interface 'IDrizzleUserRepository' no Domain layer (ex: domain/repositories ou domain/ports)
+
+[COMP-BENEFICIARIES-ROUTE-CONTROLLER-MISMATCH-BeneficiariesController] 💡 Controller 'BeneficiariesController' não parece ser referenciado nas rotas do módulo
+   Módulo: beneficiaries | Camada: presentation | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/beneficiaries/routes.ts
+   Sugestão: Garantir que as rotas do módulo utilizem os controllers definidos
+
+[COMP-BENEFICIARIES-REPO-INTERFACE-DrizzleBeneficiaryRepository-MISSING] 📋 Repository 'DrizzleBeneficiaryRepository' implementa uma interface que não foi encontrada no Domain layer
+   Módulo: beneficiaries | Camada: domain | Tipo: missing_component
+   Arquivo: /home/runner/workspace/server/modules/beneficiaries/domain
+   Sugestão: Criar a interface 'IDrizzleBeneficiaryRepository' no Domain layer (ex: domain/repositories ou domain/ports)
+
+[COMP-BENEFICIARIES-DOMAIN-SERVICE-UNUSED-index.ts] 💡 Domain Service 'index.ts' parece não ter métodos exportados ou estar isolado.
+   Módulo: beneficiaries | Camada: domain | Tipo: missing_component
+   Arquivo: /home/runner/workspace/server/modules/beneficiaries/domain/services/index.ts
+   Sugestão: Verificar se o serviço é realmente necessário e se está sendo utilizado pelos Use Cases.
+
+[COMP-CUSTOM-FIELDS-ROUTE-CONTROLLER-MISMATCH-CustomfieldsController] 💡 Controller 'CustomfieldsController' não parece ser referenciado nas rotas do módulo
+   Módulo: custom-fields | Camada: presentation | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/custom-fields/routes.ts
+   Sugestão: Garantir que as rotas do módulo utilizem os controllers definidos
+
+[COMP-CUSTOM-FIELDS-REPO-INTERFACE-DrizzleCustomFieldRepository-MISSING] 📋 Repository 'DrizzleCustomFieldRepository' implementa uma interface que não foi encontrada no Domain layer
+   Módulo: custom-fields | Camada: domain | Tipo: missing_component
+   Arquivo: /home/runner/workspace/server/modules/custom-fields/domain
+   Sugestão: Criar a interface 'IDrizzleCustomFieldRepository' no Domain layer (ex: domain/repositories ou domain/ports)
+
+[COMP-CUSTOM-FIELDS-DOMAIN-SERVICE-UNUSED-index.ts] 💡 Domain Service 'index.ts' parece não ter métodos exportados ou estar isolado.
+   Módulo: custom-fields | Camada: domain | Tipo: missing_component
+   Arquivo: /home/runner/workspace/server/modules/custom-fields/domain/services/index.ts
+   Sugestão: Verificar se o serviço é realmente necessário e se está sendo utilizado pelos Use Cases.
+
+[COMP-CUSTOMERS-ROUTE-CONTROLLER-MISMATCH-CompanyController] 💡 Controller 'CompanyController' não parece ser referenciado nas rotas do módulo
+   Módulo: customers | Camada: presentation | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/customers/routes.ts
+   Sugestão: Garantir que as rotas do módulo utilizem os controllers definidos
+
+[COMP-CUSTOMERS-REPO-INTERFACE-DrizzleCompanyMembershipRepository-MISSING] 📋 Repository 'DrizzleCompanyMembershipRepository' implementa uma interface que não foi encontrada no Domain layer
+   Módulo: customers | Camada: domain | Tipo: missing_component
+   Arquivo: /home/runner/workspace/server/modules/customers/domain
+   Sugestão: Criar a interface 'IDrizzleCompanyMembershipRepository' no Domain layer (ex: domain/repositories ou domain/ports)
+
+[COMP-CUSTOMERS-REPO-INTERFACE-DrizzleCompanyRepository-MISSING] 📋 Repository 'DrizzleCompanyRepository' implementa uma interface que não foi encontrada no Domain layer
+   Módulo: customers | Camada: domain | Tipo: missing_component
+   Arquivo: /home/runner/workspace/server/modules/customers/domain
+   Sugestão: Criar a interface 'IDrizzleCompanyRepository' no Domain layer (ex: domain/repositories ou domain/ports)
+
+[COMP-DASHBOARD-REPO-INTERFACE-DrizzleDashboardMetricRepository-MISSING] 📋 Repository 'DrizzleDashboardMetricRepository' implementa uma interface que não foi encontrada no Domain layer
+   Módulo: dashboard | Camada: domain | Tipo: missing_component
+   Arquivo: /home/runner/workspace/server/modules/dashboard/domain
+   Sugestão: Criar a interface 'IDrizzleDashboardMetricRepository' no Domain layer (ex: domain/repositories ou domain/ports)
+
+[COMP-DASHBOARD-REPO-INTERFACE-DrizzleDashboardRepository-MISSING] 📋 Repository 'DrizzleDashboardRepository' implementa uma interface que não foi encontrada no Domain layer
+   Módulo: dashboard | Camada: domain | Tipo: missing_component
+   Arquivo: /home/runner/workspace/server/modules/dashboard/domain
+   Sugestão: Criar a interface 'IDrizzleDashboardRepository' no Domain layer (ex: domain/repositories ou domain/ports)
+
+[COMP-FIELD-LAYOUT-REPO-INTERFACE-DrizzleFieldLayoutRepository-MISSING] 📋 Repository 'DrizzleFieldLayoutRepository' implementa uma interface que não foi encontrada no Domain layer
+   Módulo: field-layout | Camada: domain | Tipo: missing_component
+   Arquivo: /home/runner/workspace/server/modules/field-layout/domain
+   Sugestão: Criar a interface 'IDrizzleFieldLayoutRepository' no Domain layer (ex: domain/repositories ou domain/ports)
+
+[COMP-FIELD-LAYOUTS-REPO-INTERFACE-DrizzleFieldLayoutRepository-MISSING] 📋 Repository 'DrizzleFieldLayoutRepository' implementa uma interface que não foi encontrada no Domain layer
+   Módulo: field-layouts | Camada: domain | Tipo: missing_component
+   Arquivo: /home/runner/workspace/server/modules/field-layouts/domain
+   Sugestão: Criar a interface 'IDrizzleFieldLayoutRepository' no Domain layer (ex: domain/repositories ou domain/ports)
+
+[COMP-FIELD-LAYOUTS-DOMAIN-SERVICE-UNUSED-index.ts] 💡 Domain Service 'index.ts' parece não ter métodos exportados ou estar isolado.
+   Módulo: field-layouts | Camada: domain | Tipo: missing_component
+   Arquivo: /home/runner/workspace/server/modules/field-layouts/domain/services/index.ts
+   Sugestão: Verificar se o serviço é realmente necessário e se está sendo utilizado pelos Use Cases.
+
+[COMP-KNOWLEDGE-BASE-APP-SERVICE-BUSINESS-MediaService.ts] 📋 Application Service 'MediaService.ts' contém lógica de negócio que deveria estar no Domain Layer.
+   Módulo: knowledge-base | Camada: application | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/knowledge-base/application/services/MediaService.ts
+   Sugestão: Mover lógica de negócio para Domain Layer (Entity ou Service).
+
+[COMP-LOCATIONS-ROUTE-CONTROLLER-MISMATCH-LocationController] 💡 Controller 'LocationController' não parece ser referenciado nas rotas do módulo
+   Módulo: locations | Camada: presentation | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/locations/routes.ts
+   Sugestão: Garantir que as rotas do módulo utilizem os controllers definidos
+
+[COMP-LOCATIONS-REPO-INTERFACE-DrizzleLocationRepository-MISSING] 📋 Repository 'DrizzleLocationRepository' implementa uma interface que não foi encontrada no Domain layer
+   Módulo: locations | Camada: domain | Tipo: missing_component
+   Arquivo: /home/runner/workspace/server/modules/locations/domain
+   Sugestão: Criar a interface 'IDrizzleLocationRepository' no Domain layer (ex: domain/repositories ou domain/ports)
+
+[COMP-MATERIALS-SERVICES-ROUTE-CONTROLLER-MISMATCH-CustomerItemMappingController-fixed] 💡 Controller 'CustomerItemMappingController-fixed' não parece ser referenciado nas rotas do módulo
+   Módulo: materials-services | Camada: presentation | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/materials-services/routes.ts
+   Sugestão: Garantir que as rotas do módulo utilizem os controllers definidos
+
+[COMP-MATERIALS-SERVICES-ROUTE-CONTROLLER-MISMATCH-CustomerPersonalizationController] 💡 Controller 'CustomerPersonalizationController' não parece ser referenciado nas rotas do módulo
+   Módulo: materials-services | Camada: presentation | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/materials-services/routes.ts
+   Sugestão: Garantir que as rotas do módulo utilizem os controllers definidos
+
+[COMP-MATERIALS-SERVICES-ROUTE-CONTROLLER-MISMATCH-PersonalizationController] 💡 Controller 'PersonalizationController' não parece ser referenciado nas rotas do módulo
+   Módulo: materials-services | Camada: presentation | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/materials-services/routes.ts
+   Sugestão: Garantir que as rotas do módulo utilizem os controllers definidos
+
+[COMP-MATERIALS-SERVICES-ROUTE-CONTROLLER-MISMATCH-SupplierLinksController] 💡 Controller 'SupplierLinksController' não parece ser referenciado nas rotas do módulo
+   Módulo: materials-services | Camada: presentation | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/materials-services/routes.ts
+   Sugestão: Garantir que as rotas do módulo utilizem os controllers definidos
+
+[COMP-MATERIALS-SERVICES-REPO-INTERFACE-DrizzleMaterialRepository-MISSING] 📋 Repository 'DrizzleMaterialRepository' implementa uma interface que não foi encontrada no Domain layer
+   Módulo: materials-services | Camada: domain | Tipo: missing_component
+   Arquivo: /home/runner/workspace/server/modules/materials-services/domain
+   Sugestão: Criar a interface 'IDrizzleMaterialRepository' no Domain layer (ex: domain/repositories ou domain/ports)
+
+[COMP-MATERIALS-SERVICES-REPO-INTERFACE-DrizzleServiceRepository-MISSING] 📋 Repository 'DrizzleServiceRepository' implementa uma interface que não foi encontrada no Domain layer
+   Módulo: materials-services | Camada: domain | Tipo: missing_component
+   Arquivo: /home/runner/workspace/server/modules/materials-services/domain
+   Sugestão: Criar a interface 'IDrizzleServiceRepository' no Domain layer (ex: domain/repositories ou domain/ports)
+
+[COMP-MATERIALS-SERVICES-REPO-INTERFACE-LPUCacheWarmerRepository-MISSING] 📋 Repository 'LPUCacheWarmerRepository' implementa uma interface que não foi encontrada no Domain layer
+   Módulo: materials-services | Camada: domain | Tipo: missing_component
+   Arquivo: /home/runner/workspace/server/modules/materials-services/domain
+   Sugestão: Criar a interface 'ILPUCacheWarmerRepository' no Domain layer (ex: domain/repositories ou domain/ports)
+
+[COMP-MATERIALS-SERVICES-APP-SERVICE-BUSINESS-MaterialApplicationService.ts] 📋 Application Service 'MaterialApplicationService.ts' contém lógica de negócio que deveria estar no Domain Layer.
+   Módulo: materials-services | Camada: application | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/materials-services/application/services/MaterialApplicationService.ts
+   Sugestão: Mover lógica de negócio para Domain Layer (Entity ou Service).
+
+[COMP-MATERIALS-SERVICES-APP-SERVICE-BUSINESS-PricingRulesEngine.ts] 📋 Application Service 'PricingRulesEngine.ts' contém lógica de negócio que deveria estar no Domain Layer.
+   Módulo: materials-services | Camada: application | Tipo: coupling_issue
+   Arquivo: /home/runner/workspace/server/modules/materials-services/application/services/PricingRulesEngine.ts
+   Sugestão: Mover lógica de negócio para Domain Layer (Entity ou Service).
+
+[COMP-NOTIFICATIONS-REPO-INTERFACE-DrizzleNotificationPreferenceRepository-MISSING] 📋 Repository 'DrizzleNotificationPreferenceRepository' implementa uma interface que não foi encontrada no Domain layer
+   Módulo: notifications | Camada: domain | Tipo: missing_component
+   Arquivo: /home/runner/workspace/server/modules/notifications/domain
+   Sugestão: Criar a interface 'IDrizzleNotificationPreferenceRepository' no Domain layer (ex: domain/repositories ou domain/ports)
+
+[COMP-NOTIFICATIONS-REPO-INTERFACE-DrizzleNotificationRepository-MISSING] 📋 Repository 'DrizzleNotificationRepository' implementa uma interface que não foi encontrada no Domain layer
+   Módulo: notifications | Camada: domain | Tipo: missing_component
+   Arquivo: /home/runner/workspace/server/modules/notifications/domain
+   Sugestão: Criar a interface 'IDrizzleNotificationRepository' no Domain layer (ex: domain/repositories ou domain/ports)
+
+[COMP-PEOPLE-REPO-INTERFACE-DrizzlePersonRepository-MISSING] 📋 Repository 'DrizzlePersonRepository' implementa uma interface que não foi encontrada no Domain layer
+   Módulo: people | Camada: domain | Tipo: missing_component
+   Arquivo: /home/runner/workspace/server/modules/people/domain
+   Sugestão: Criar a interface 'IDrizzlePersonRepository' no Domain layer (ex: domain/repositories ou domain/ports)
+
+[COMP-PEOPLE-DOMAIN-SERVICE-UNUSED-index.ts] 💡 Domain Service 'index.ts' parece não ter métodos exportados ou estar isolado.
+   Módulo: people | Camada: domain | Tipo: missing_component
+   Arquivo: /home/runner/workspace/server/modules/people/domain/services/index.ts
+   Sugestão: Verificar se o serviço é realmente necessário e se está sendo utilizado pelos Use Cases.
+
+[COMP-SAAS-ADMIN-ENTITY-REPO-SaasConfigEntity-MISSING] ⚠️ Entity 'SaasConfigEntity' não possui um Repository correspondente na camada Infrastructure
+   Módulo: saas-admin | Camada: infrastructure | Tipo: missing_component
+   Arquivo: /home/runner/workspace/server/modules/saas-admin/infrastructure/repositories
+   Sugestão: Criar um arquivo como 'SaasConfigEntityRepository.ts' ou 'DrizzleSaasConfigEntityRepository.ts' na camada Infrastructure
+
+[COMP-SAAS-ADMIN-REPO-INTERFACE-DrizzleSaasConfigRepository-MISSING] 📋 Repository 'DrizzleSaasConfigRepository' implementa uma interface que não foi encontrada no Domain layer
+   Módulo: saas-admin | Camada: domain | Tipo: missing_component
+   Arquivo: /home/runner/workspace/server/modules/saas-admin/domain
+   Sugestão: Criar a interface 'IDrizzleSaasConfigRepository' no Domain layer (ex: domain/repositories ou domain/ports)
+
+[COMP-SAAS-ADMIN-REPO-INTERFACE-indexRepository-MISSING] 📋 Repository 'indexRepository' implementa uma interface que não foi encontrada no Domain layer
+   Módulo: saas-admin | Camada: domain | Tipo: missing_component
+   Arquivo: /home/runner/workspace/server/modules/saas-admin/domain
+   Sugestão: Criar a interface 'IindexRepository' no Domain layer (ex: domain/repositories ou domain/ports)
+
+[COMP-SCHEDULE-MANAGEMENT-ENTITY-REPO-ScheduleEntity-MISSING] ⚠️ Entity 'ScheduleEntity' não possui um Repository correspondente na camada Infrastructure
+   Módulo: schedule-management | Camada: infrastructure | Tipo: missing_component
+   Arquivo: /home/runner/workspace/server/modules/schedule-management/infrastructure/repositories
+   Sugestão: Criar um arquivo como 'ScheduleEntityRepository.ts' ou 'DrizzleScheduleEntityRepository.ts' na camada Infrastructure
+
+[COMP-SCHEDULE-MANAGEMENT-REPO-INTERFACE-DrizzleScheduleRepository-MISSING] 📋 Repository 'DrizzleScheduleRepository' implementa uma interface que não foi encontrada no Domain layer
+   Módulo: schedule-management | Camada: domain | Tipo: missing_component
+   Arquivo: /home/runner/workspace/server/modules/schedule-management/domain
+   Sugestão: Criar a interface 'IDrizzleScheduleRepository' no Domain layer (ex: domain/repositories ou domain/ports)
+
+[COMP-SCHEDULE-MANAGEMENT-DOMAIN-SERVICE-UNUSED-index.ts] 💡 Domain Service 'index.ts' parece não ter métodos exportados ou estar isolado.
+   Módulo: schedule-management | Camada: domain | Tipo: missing_component
+   Arquivo: /home/runner/workspace/server/modules/schedule-management/domain/services/index.ts
+   Sugestão: Verificar se o serviço é realmente necessário e se está sendo utilizado pelos Use Cases.
+
+[COMP-SHARED-ROUTE-CONTROLLER-MISMATCH-BaseController] 💡 Controller 'BaseController' não parece ser referenciado nas rotas do módulo
+   Módulo: shared | Camada: presentation | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/shared/routes.ts
+   Sugestão: Garantir que as rotas do módulo utilizem os controllers definidos
+
+[COMP-SHARED-ROUTE-CONTROLLER-MISMATCH-index] 💡 Controller 'index' não parece ser referenciado nas rotas do módulo
+   Módulo: shared | Camada: presentation | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/shared/routes.ts
+   Sugestão: Garantir que as rotas do módulo utilizem os controllers definidos
+
+[COMP-SHARED-REPO-INTERFACE-indexRepository-MISSING] 📋 Repository 'indexRepository' implementa uma interface que não foi encontrada no Domain layer
+   Módulo: shared | Camada: domain | Tipo: missing_component
+   Arquivo: /home/runner/workspace/server/modules/shared/domain
+   Sugestão: Criar a interface 'IindexRepository' no Domain layer (ex: domain/repositories ou domain/ports)
+
+[COMP-SHARED-DOMAIN-SERVICE-UNUSED-BaseDomainService.ts] 💡 Domain Service 'BaseDomainService.ts' parece não ter métodos exportados ou estar isolado.
+   Módulo: shared | Camada: domain | Tipo: missing_component
+   Arquivo: /home/runner/workspace/server/modules/shared/domain/services/BaseDomainService.ts
+   Sugestão: Verificar se o serviço é realmente necessário e se está sendo utilizado pelos Use Cases.
+
+[COMP-TECHNICAL-SKILLS-ENTITY-REPO-SkillEntity-MISSING] ⚠️ Entity 'SkillEntity' não possui um Repository correspondente na camada Infrastructure
+   Módulo: technical-skills | Camada: infrastructure | Tipo: missing_component
+   Arquivo: /home/runner/workspace/server/modules/technical-skills/infrastructure/repositories
+   Sugestão: Criar um arquivo como 'SkillEntityRepository.ts' ou 'DrizzleSkillEntityRepository.ts' na camada Infrastructure
+
+[COMP-TECHNICAL-SKILLS-REPO-INTERFACE-DrizzleSkillRepository-MISSING] 📋 Repository 'DrizzleSkillRepository' implementa uma interface que não foi encontrada no Domain layer
+   Módulo: technical-skills | Camada: domain | Tipo: missing_component
+   Arquivo: /home/runner/workspace/server/modules/technical-skills/domain
+   Sugestão: Criar a interface 'IDrizzleSkillRepository' no Domain layer (ex: domain/repositories ou domain/ports)
+
+[COMP-TECHNICAL-SKILLS-REPO-INTERFACE-DrizzleUserSkillRepository-MISSING] 📋 Repository 'DrizzleUserSkillRepository' implementa uma interface que não foi encontrada no Domain layer
+   Módulo: technical-skills | Camada: domain | Tipo: missing_component
+   Arquivo: /home/runner/workspace/server/modules/technical-skills/domain
+   Sugestão: Criar a interface 'IDrizzleUserSkillRepository' no Domain layer (ex: domain/repositories ou domain/ports)
+
+[COMP-TECHNICAL-SKILLS-DOMAIN-SERVICE-UNUSED-index.ts] 💡 Domain Service 'index.ts' parece não ter métodos exportados ou estar isolado.
+   Módulo: technical-skills | Camada: domain | Tipo: missing_component
+   Arquivo: /home/runner/workspace/server/modules/technical-skills/domain/services/index.ts
+   Sugestão: Verificar se o serviço é realmente necessário e se está sendo utilizado pelos Use Cases.
+
+[COMP-TEMPLATE-AUDIT-REPO-INTERFACE-DrizzleTemplateAuditRepository-MISSING] 📋 Repository 'DrizzleTemplateAuditRepository' implementa uma interface que não foi encontrada no Domain layer
+   Módulo: template-audit | Camada: domain | Tipo: missing_component
+   Arquivo: /home/runner/workspace/server/modules/template-audit/domain
+   Sugestão: Criar a interface 'IDrizzleTemplateAuditRepository' no Domain layer (ex: domain/repositories ou domain/ports)
+
+[COMP-TEMPLATE-AUDIT-DOMAIN-SERVICE-UNUSED-index.ts] 💡 Domain Service 'index.ts' parece não ter métodos exportados ou estar isolado.
+   Módulo: template-audit | Camada: domain | Tipo: missing_component
+   Arquivo: /home/runner/workspace/server/modules/template-audit/domain/services/index.ts
+   Sugestão: Verificar se o serviço é realmente necessário e se está sendo utilizado pelos Use Cases.
+
+[COMP-TEMPLATE-HIERARCHY-REPO-INTERFACE-DrizzleTemplateHierarchyRepository-MISSING] 📋 Repository 'DrizzleTemplateHierarchyRepository' implementa uma interface que não foi encontrada no Domain layer
+   Módulo: template-hierarchy | Camada: domain | Tipo: missing_component
+   Arquivo: /home/runner/workspace/server/modules/template-hierarchy/domain
+   Sugestão: Criar a interface 'IDrizzleTemplateHierarchyRepository' no Domain layer (ex: domain/repositories ou domain/ports)
+
+[COMP-TEMPLATE-VERSIONS-REPO-INTERFACE-DrizzleTemplateVersionRepository-MISSING] 📋 Repository 'DrizzleTemplateVersionRepository' implementa uma interface que não foi encontrada no Domain layer
+   Módulo: template-versions | Camada: domain | Tipo: missing_component
+   Arquivo: /home/runner/workspace/server/modules/template-versions/domain
+   Sugestão: Criar a interface 'IDrizzleTemplateVersionRepository' no Domain layer (ex: domain/repositories ou domain/ports)
+
+[COMP-TENANT-ADMIN-REPO-INTERFACE-DrizzleTenantConfigRepository-MISSING] 📋 Repository 'DrizzleTenantConfigRepository' implementa uma interface que não foi encontrada no Domain layer
+   Módulo: tenant-admin | Camada: domain | Tipo: missing_component
+   Arquivo: /home/runner/workspace/server/modules/tenant-admin/domain
+   Sugestão: Criar a interface 'IDrizzleTenantConfigRepository' no Domain layer (ex: domain/repositories ou domain/ports)
+
+[COMP-TENANT-ADMIN-DOMAIN-SERVICE-UNUSED-index.ts] 💡 Domain Service 'index.ts' parece não ter métodos exportados ou estar isolado.
+   Módulo: tenant-admin | Camada: domain | Tipo: missing_component
+   Arquivo: /home/runner/workspace/server/modules/tenant-admin/domain/services/index.ts
+   Sugestão: Verificar se o serviço é realmente necessário e se está sendo utilizado pelos Use Cases.
+
+[COMP-TICKET-HISTORY-REPO-INTERFACE-DrizzleTicketHistoryRepository-MISSING] 📋 Repository 'DrizzleTicketHistoryRepository' implementa uma interface que não foi encontrada no Domain layer
+   Módulo: ticket-history | Camada: domain | Tipo: missing_component
+   Arquivo: /home/runner/workspace/server/modules/ticket-history/domain
+   Sugestão: Criar a interface 'IDrizzleTicketHistoryRepository' no Domain layer (ex: domain/repositories ou domain/ports)
+
+[COMP-TICKET-TEMPLATES-REPO-INTERFACE-DrizzleTicketTemplateRepository-MISSING] 📋 Repository 'DrizzleTicketTemplateRepository' implementa uma interface que não foi encontrada no Domain layer
+   Módulo: ticket-templates | Camada: domain | Tipo: missing_component
+   Arquivo: /home/runner/workspace/server/modules/ticket-templates/domain
+   Sugestão: Criar a interface 'IDrizzleTicketTemplateRepository' no Domain layer (ex: domain/repositories ou domain/ports)
+
+[COMP-TICKETS-REPO-INTERFACE-DrizzleTicketRepository-MISSING] 📋 Repository 'DrizzleTicketRepository' implementa uma interface que não foi encontrada no Domain layer
+   Módulo: tickets | Camada: domain | Tipo: missing_component
+   Arquivo: /home/runner/workspace/server/modules/tickets/domain
+   Sugestão: Criar a interface 'IDrizzleTicketRepository' no Domain layer (ex: domain/repositories ou domain/ports)
+
+[COMP-TIMECARD-ENTITY-REPO-TimecardEntity-MISSING] ⚠️ Entity 'TimecardEntity' não possui um Repository correspondente na camada Infrastructure
+   Módulo: timecard | Camada: infrastructure | Tipo: missing_component
+   Arquivo: /home/runner/workspace/server/modules/timecard/infrastructure/repositories
+   Sugestão: Criar um arquivo como 'TimecardEntityRepository.ts' ou 'DrizzleTimecardEntityRepository.ts' na camada Infrastructure
+
+[COMP-TIMECARD-ROUTE-CONTROLLER-MISMATCH-TimecardApprovalController] 💡 Controller 'TimecardApprovalController' não parece ser referenciado nas rotas do módulo
+   Módulo: timecard | Camada: presentation | Tipo: structure_violation
+   Arquivo: /home/runner/workspace/server/modules/timecard/routes.ts
+   Sugestão: Garantir que as rotas do módulo utilizem os controllers definidos
+
+[COMP-TIMECARD-REPO-INTERFACE-DrizzleTimecardRepository-MISSING] 📋 Repository 'DrizzleTimecardRepository' implementa uma interface que não foi encontrada no Domain layer
+   Módulo: timecard | Camada: domain | Tipo: missing_component
+   Arquivo: /home/runner/workspace/server/modules/timecard/domain
+   Sugestão: Criar a interface 'IDrizzleTimecardRepository' no Domain layer (ex: domain/repositories ou domain/ports)
+
+[COMP-TIMECARD-REPO-INTERFACE-indexRepository-MISSING] 📋 Repository 'indexRepository' implementa uma interface que não foi encontrada no Domain layer
+   Módulo: timecard | Camada: domain | Tipo: missing_component
+   Arquivo: /home/runner/workspace/server/modules/timecard/domain
+   Sugestão: Criar a interface 'IindexRepository' no Domain layer (ex: domain/repositories ou domain/ports)
+
+[COMP-TIMECARD-DOMAIN-SERVICE-UNUSED-index.ts] 💡 Domain Service 'index.ts' parece não ter métodos exportados ou estar isolado.
+   Módulo: timecard | Camada: domain | Tipo: missing_component
+   Arquivo: /home/runner/workspace/server/modules/timecard/domain/services/index.ts
+   Sugestão: Verificar se o serviço é realmente necessário e se está sendo utilizado pelos Use Cases.
