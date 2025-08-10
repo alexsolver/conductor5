@@ -31,6 +31,28 @@ interface AuthenticatedRequest extends HttpRequest {
   };
 }
 
+export import { Request, Response } from 'express';
+import { KnowledgeBaseApplicationService } from '../services/KnowledgeBaseApplicationService';
+import { IKnowledgeBaseRepository } from '../../domain/repositories/IKnowledgeBaseRepository';
+import { IMediaRepository } from '../../domain/repositories/IMediaRepository';
+
+// Types for request interfaces
+interface AuthenticatedRequest extends Request {
+  user?: {
+    id: string;
+    tenantId: string;
+  };
+}
+
+interface HttpRequest extends Request {
+  user?: {
+    id: string;
+    tenantId: string;
+  };
+}
+
+interface HttpResponse extends Response {}
+
 export class KnowledgeBaseController {
   private knowledgeBaseService: KnowledgeBaseApplicationService;
   private knowledgeBaseRepository: IKnowledgeBaseRepository; // Assuming this is injected or initialized
@@ -886,5 +908,26 @@ export class KnowledgeBaseController {
         message: 'Failed to fetch versions' 
       });
     }
+  }
+
+  // Entry methods for backward compatibility
+  async getEntries(req: AuthenticatedRequest, res: Response) {
+    return this.getArticles(req, res);
+  }
+
+  async getEntry(req: AuthenticatedRequest, res: Response) {
+    return this.getArticleById(req, res);
+  }
+
+  async createEntry(req: AuthenticatedRequest, res: Response) {
+    return this.createArticle(req, res);
+  }
+
+  async updateEntry(req: AuthenticatedRequest, res: Response) {
+    return this.updateArticle(req, res);
+  }
+
+  async deleteEntry(req: AuthenticatedRequest, res: Response) {
+    return this.deleteArticle(req, res);
   }
 }

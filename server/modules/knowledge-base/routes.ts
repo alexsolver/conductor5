@@ -102,12 +102,21 @@ router.post('/knowledge-base/categories', jwtAuth, knowledgeBaseController.creat
 // GET /api/knowledge-base/articles/:id - Buscar artigo específico
 router.get('/knowledge-base/articles/:id', jwtAuth, knowledgeBaseController.getArticleById.bind(knowledgeBaseController));
 
-// Routes limpas - usando controllers já instanciado acima
-
-router.get('/entries', jwtAuth, knowledgeBaseController.getEntries.bind(knowledgeBaseController));
-router.get('/entries/:id', jwtAuth, knowledgeBaseController.getEntry.bind(knowledgeBaseController));
-router.post('/entries', jwtAuth, knowledgeBaseController.createEntry.bind(knowledgeBaseController));
-router.put('/entries/:id', jwtAuth, knowledgeBaseController.updateEntry.bind(knowledgeBaseController));
-router.delete('/entries/:id', jwtAuth, knowledgeBaseController.deleteEntry.bind(knowledgeBaseController));
+// Knowledge Base Entry Routes with proper method checking
+if (typeof knowledgeBaseController.getEntries === 'function') {
+  router.get('/entries', jwtAuth, knowledgeBaseController.getEntries.bind(knowledgeBaseController));
+}
+if (typeof knowledgeBaseController.getEntry === 'function') {
+  router.get('/entries/:id', jwtAuth, knowledgeBaseController.getEntry.bind(knowledgeBaseController));
+}
+if (typeof knowledgeBaseController.createEntry === 'function') {
+  router.post('/entries', jwtAuth, knowledgeBaseController.createEntry.bind(knowledgeBaseController));
+}
+if (typeof knowledgeBaseController.updateEntry === 'function') {
+  router.put('/entries/:id', jwtAuth, knowledgeBaseController.updateEntry.bind(knowledgeBaseController));
+}
+if (typeof knowledgeBaseController.deleteEntry === 'function') {
+  router.delete('/entries/:id', jwtAuth, knowledgeBaseController.deleteEntry.bind(knowledgeBaseController));
+}
 
 export default router;

@@ -1,6 +1,7 @@
 
 import { CleanArchitectureValidator } from './CleanArchitectureValidator';
 import { CleanArchitectureCorrector } from './CleanArchitectureCorrector';
+import { writeFileSync } from 'fs';
 
 async function validateAndReport(): Promise<void> {
   console.log('🔍 Executando validação pós-correções...');
@@ -21,7 +22,6 @@ async function validateAndReport(): Promise<void> {
   validator.generateDetailedReport(result);
   
   // Salvar novo relatório
-  const fs = require('fs');
   const reportContent = `# Clean Architecture Validation Report - Updated
 
 **Score:** ${result.score}/100  
@@ -37,7 +37,7 @@ async function validateAndReport(): Promise<void> {
 ${result.issues.length > 0 ? '## Problemas Pendentes\n' + result.issues.map(i => `- ${i.description}`).join('\n') : '## ✅ Todos os problemas foram corrigidos!'}
 `;
 
-  fs.writeFileSync('reports/CLEAN_ARCHITECTURE_REPORT_UPDATED.md', reportContent);
+  writeFileSync('reports/CLEAN_ARCHITECTURE_REPORT_UPDATED.md', reportContent);
   console.log('\n📄 Relatório atualizado salvo em: reports/CLEAN_ARCHITECTURE_REPORT_UPDATED.md');
 }
 
