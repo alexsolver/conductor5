@@ -1,4 +1,3 @@
-
 interface HttpRequest {
   query: any;
   params: any;
@@ -11,7 +10,7 @@ interface HttpResponse {
   json(data: any): void;
 }
 import { GetTicketsUseCase } from '../use-cases/GetTicketsUseCase';
-import { standardResponse } from '../../../utils/standardResponse';
+import { standardResponse } from '../../../../utils/standardResponse';
 
 export class TicketController {
   constructor(
