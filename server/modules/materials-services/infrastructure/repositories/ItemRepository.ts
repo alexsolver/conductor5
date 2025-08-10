@@ -7,11 +7,8 @@ import type { ExtractTablesWithRelations } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as crypto from 'crypto';
 
-import { IMaterialRepository } from '../../domain/ports/IMaterialRepository';
-// Import the interface
 import { IItemRepository } from '../../domain/ports/IItemRepository';
 
-// Implement the interface and rename class to ItemRepository
 export class ItemRepository implements IItemRepository {
   private db: NodePgDatabase<any>;
   private tenantId: string; // Adicionado para uso nos métodos SQL brutos

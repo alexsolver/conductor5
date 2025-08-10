@@ -8,22 +8,21 @@
  * - Presentation: Controllers, rotas
  */
 
-// Clean Architecture compliant module exports
-export * from './auth/routes';
-export * from './beneficiaries/routes';
-export * from './customers/routes';
-export * from './dashboard/routes';
-export * from './field-layouts/routes';
-export * from './knowledge-base/routes';
-export * from './locations/routes';
-export * from './materials-services/routes';
-export * from './notifications/routes';
-export * from './people/routes';
-export * from './saas-admin/routes';
-export * from './schedule-management/routes';
-export * from './technical-skills/routes';
-export * from './tickets/routes';
-export * from './timecard/routes';
+// Clean Architecture Module Exports
+export * from './auth';
+export * from './beneficiaries';
+export * from './customers';
+export * from './dashboard';
+export * from './knowledge-base';
+export * from './materials-services';
+export * from './notifications';
+export * from './people';
+export * from './saas-admin';
+export * from './schedule-management';
+export * from './shared';
+export * from './technical-skills';
+export * from './timecard';
+export * from './tickets';
 
 // Shared infrastructure
 export * from './shared/infrastructure/repositories/indexRepository';

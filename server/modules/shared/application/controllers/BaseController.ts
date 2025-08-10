@@ -1,20 +1,24 @@
-// Controller base without framework dependencies
+// Clean architecture base controller without framework dependencies
 
-export interface RequestData {
-  body: any;
-  params: any;
-  query: any;
+interface CleanRequest {
+  body?: any;
+  query?: any;
+  params?: any;
   user?: any;
+  headers?: any;
 }
 
-export interface ResponseData {
-  status: (code: number) => ResponseData;
+interface CleanResponse {
+  status: (code: number) => {
+    json: (data: any) => void;
+    send: (data?: any) => void;
+  };
   json: (data: any) => void;
-  send: (data: any) => void;
+  send: (data?: any) => void;
 }
 
 export abstract class BaseController {
-  protected success(res: ResponseData, data: any, message?: string) {
+  protected success(res: CleanResponse, data: any, message?: string) {
     return res.status(200).json({
       success: true,
       data,
@@ -22,7 +26,7 @@ export abstract class BaseController {
     });
   }
 
-  protected created(res: ResponseData, data: any, message?: string) {
+  protected created(res: CleanResponse, data: any, message?: string) {
     return res.status(201).json({
       success: true,
       data,
@@ -30,7 +34,7 @@ export abstract class BaseController {
     });
   }
 
-  protected badRequest(res: ResponseData, message: string, errors?: any) {
+  protected badRequest(res: CleanResponse, message: string, errors?: any) {
     return res.status(400).json({
       success: false,
       message,
@@ -38,14 +42,14 @@ export abstract class BaseController {
     });
   }
 
-  protected notFound(res: ResponseData, message: string) {
+  protected notFound(res: CleanResponse, message: string) {
     return res.status(404).json({
       success: false,
       message
     });
   }
 
-  protected internalError(res: ResponseData, message: string, error?: any) {
+  protected internalError(res: CleanResponse, message: string, error?: any) {
     return res.status(500).json({
       success: false,
       message,
@@ -57,12 +61,12 @@ export abstract class BaseController {
 import { standardResponse } from '../../../utils/standardResponse';
 
 export abstract class BaseController {
-  protected handleError(error: any, res: ResponseData, message: string = 'Erro interno do servidor'): void {
+  protected handleError(error: any, res: CleanResponse, message: string = 'Erro interno do servidor'): void {
     console.error('Controller Error:', error);
     res.status(500).json(standardResponse(false, message));
   }
 
-  protected validateTenant(req: RequestData, res: ResponseData): string | null {
+  protected validateTenant(req: CleanRequest, res: CleanResponse): string | null {
     const tenantId = req.user?.tenantId;
     if (!tenantId) {
       res.status(400).json(standardResponse(false, 'Tenant ID é obrigatório'));
@@ -71,7 +75,7 @@ export abstract class BaseController {
     return tenantId;
   }
 
-  protected validateId(id: string, res: ResponseData): boolean {
+  protected validateId(id: string, res: CleanResponse): boolean {
     if (!id || id.trim() === '') {
       res.status(400).json(standardResponse(false, 'ID é obrigatório'));
       return false;
@@ -79,7 +83,7 @@ export abstract class BaseController {
     return true;
   }
 
-  protected successResponse(res: ResponseData, message: string, data?: any, status: number = 200): void {
+  protected successResponse(res: CleanResponse, message: string, data?: any, status: number = 200): void {
     res.status(status).json(standardResponse(true, message, data));
   }
 }

@@ -7,10 +7,10 @@
 ## Resumo de Problemas
 
 - 🔥 **Críticos:** 2
-- ⚠️ **Altos:** 43
+- ⚠️ **Altos:** 42
 - 📋 **Médios:** 25
 - 💡 **Baixos:** 0
-- **Total:** 70
+- **Total:** 69
 
 ## Principais Problemas por Módulo
 
@@ -53,12 +53,12 @@
   - Entity misturada com DTOs - violação de responsabilidade
 
 ### ⚠️ knowledge-base
-- **Total de problemas:** 7
-- **Críticos:** 0 | **Altos:** 3
+- **Total de problemas:** 6
+- **Críticos:** 0 | **Altos:** 2
 - **Principais problemas:**
-  - Application Layer violando dependência: express
   - Application Layer violando dependência: ../../infrastructure/repositories/MediaRepository
   - Application Layer violando dependência: ../../infrastructure/repositories/MediaRepository
+  - Repository contém possível lógica de negócio
 
 ### ⚠️ timecard
 - **Total de problemas:** 6
@@ -162,15 +162,14 @@
 
 ### ⚠️ knowledge-base
 - **Prioridade:** high
-- **Tempo estimado:** 4h
-- **Ações:** 6
+- **Tempo estimado:** 3h
+- **Ações:** 5
 
 1. **refactor_code:** Refatorar dependência inválida na camada application
-2. **refactor_code:** Refatorar dependência inválida na camada application
+2. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
 3. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
-4. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
+4. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 5. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
-6. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 
 ### ⚠️ timecard
 - **Prioridade:** high
@@ -228,7 +227,7 @@
 - **saas-admin:** 4 ações (2h)
 - **technical-skills:** 2 ações (2h)
 - **tickets:** 2 ações (2h)
-- **knowledge-base:** 6 ações (4h)
+- **knowledge-base:** 5 ações (3h)
 - **timecard:** 5 ações (3h)
 - **schedule-management:** 2 ações (2h)
 

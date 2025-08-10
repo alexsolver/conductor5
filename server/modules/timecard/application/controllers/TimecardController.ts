@@ -1,4 +1,4 @@
-// Removido express dependency
+// Removed Express dependency for clean architecture
 import { z } from 'zod';
 import { db } from '../../../../db';
 import { timecardEntries, workSchedules, users } from '@shared/schema';
@@ -704,7 +704,8 @@ export class TimecardController {
     }
   };
 
-  getHourBankSummary = async (req: HttpRequest, res: HttpResponse) => {
+  // Mock implementation for getHourBankSummary
+  async getHourBankSummary(req: HttpRequest, res: HttpResponse) {
     try {
       const tenantId = req.user?.tenantId;
       const userId = req.user?.id;

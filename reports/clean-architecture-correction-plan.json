@@ -417,18 +417,6 @@
       {
         "type": "refactor_code",
         "description": "Refatorar dependência inválida na camada application",
-        "target": "/home/runner/workspace/server/modules/knowledge-base/application/controllers/MediaController.ts",
-        "steps": [
-          "Identificar a dependência problemática",
-          "Criar interface/port na camada Domain",
-          "Implementar interface na camada Infrastructure",
-          "Usar injeção de dependência",
-          "Remover import direto da dependência externa"
-        ]
-      },
-      {
-        "type": "refactor_code",
-        "description": "Refatorar dependência inválida na camada application",
         "target": "/home/runner/workspace/server/modules/knowledge-base/application/services/MediaService.ts",
         "steps": [
           "Identificar a dependência problemática",
@@ -479,7 +467,7 @@
         ]
       }
     ],
-    "estimatedTime": "4h"
+    "estimatedTime": "3h"
   },
   {
     "priority": "high",

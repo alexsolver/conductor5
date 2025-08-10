@@ -14,7 +14,7 @@ interface HttpResponse {
 import { MediaService } from '../services/MediaService';
 import { IMediaRepository } from '../../domain/ports/IMediaRepository';
 import { AuthenticatedRequest } from '../../../../middleware/jwtAuth';
-import { Response } from 'express'; // Import Response from express
+// Removed Express dependency for clean architecture
 
 export class MediaController {
   private mediaService: MediaService;

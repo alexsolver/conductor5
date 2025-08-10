@@ -165,3 +165,10 @@ export interface IScheduleRepository {
   findByUserId(userId: string): Promise<any[]>;
   findByDateRange(startDate: Date, endDate: Date): Promise<any[]>;
 }
+export interface IScheduleRepository {
+  create(schedule: any): Promise<any>;
+  findById(id: string, tenantId: string): Promise<any | null>;
+  findByTenant(tenantId: string): Promise<any[]>;
+  update(id: string, tenantId: string, data: Partial<any>): Promise<any | null>;
+  delete(id: string, tenantId: string): Promise<boolean>;
+}

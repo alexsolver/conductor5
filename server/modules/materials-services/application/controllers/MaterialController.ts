@@ -12,7 +12,7 @@ interface HttpResponse {
   send(data: any): void;
 }
 
-// Removida dependência direta do Express - usar interfaces/DTOs
+// Removed Express dependency - using clean interfaces instead
 
 // Assuming CreateMaterialUseCase and its dependencies are correctly defined elsewhere
 // and imported properly. For this example, we'll assume they exist.
@@ -79,7 +79,7 @@ export class MaterialController {
 // Hypothetical integration of other methods using use cases:
 
 /*
-  async createMaterial(req: HttpRequest, res: HttpResponse) {
+  async createMaterial(req: Request, res: Response) {
     try {
       // Assuming createMaterialUseCase from constructor handles this
       const material = await this.createMaterialUseCase.execute(req.body); // Simplified example
@@ -89,7 +89,7 @@ export class MaterialController {
     }
   }
 
-  async getMaterials(req: HttpRequest, res: HttpResponse): Promise<void> {
+  async getMaterials(req: Request, res: Response): Promise<void> {
     try {
       // Assuming getMaterialsUseCase is injected
       // const materials = await this.getMaterialsUseCase.execute(req.query);
@@ -100,7 +100,7 @@ export class MaterialController {
     }
   }
 
-  async updateMaterial(req: HttpRequest, res: HttpResponse): Promise<void> {
+  async updateMaterial(req: Request, res: Response): Promise<void> {
     try {
       // Assuming updateMaterialUseCase is injected
       // const material = await this.updateMaterialUseCase.execute(req.params.id, req.body);
@@ -111,7 +111,7 @@ export class MaterialController {
     }
   }
 
-  async deleteMaterial(req: HttpRequest, res: HttpResponse): Promise<void> {
+  async deleteMaterial(req: Request, res: Response): Promise<void> {
     try {
       // Assuming deleteMaterialUseCase is injected
       // await this.deleteMaterialUseCase.execute(req.params.id);

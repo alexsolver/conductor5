@@ -18,13 +18,21 @@ export class Beneficiary {
     public updatedAt: Date = new Date()
   ) {}
 
-  static create(props: BeneficiaryProps, id: string): Beneficiary {
+  static create(data: {
+    name: string;
+    email?: string;
+    phone?: string;
+    document?: string;
+    address?: string;
+    tenantId: string;
+    createdBy?: string;
+  }): Beneficiary {
     return new Beneficiary(
-      id,
-      props.name,
-      props.email,
-      props.document,
-      props.tenantId
+      crypto.randomUUID(),
+      data.name,
+      data.email,
+      data.document,
+      data.tenantId
     );
   }
 
