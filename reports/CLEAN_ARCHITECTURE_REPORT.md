@@ -6,17 +6,17 @@
 
 ## Resumo de Problemas
 
-- 🔥 **Críticos:** 16
-- ⚠️ **Altos:** 76
-- 📋 **Médios:** 51
+- 🔥 **Críticos:** 15
+- ⚠️ **Altos:** 75
+- 📋 **Médios:** 50
 - 💡 **Baixos:** 6
-- **Total:** 149
+- **Total:** 146
 
 ## Principais Problemas por Módulo
 
 ### 🔥 beneficiaries
-- **Total de problemas:** 5
-- **Críticos:** 2 | **Altos:** 3
+- **Total de problemas:** 4
+- **Críticos:** 2 | **Altos:** 2
 - **Principais problemas:**
   - Routes contém lógica de negócio ou acesso a dados
   - Domain Layer violando dependência: ../../application/dto/CreateBeneficiaryDTO
@@ -36,14 +36,6 @@
 - **Principais problemas:**
   - Estrutura dto ausente na camada application
   - Estrutura services ausente na camada application
-
-### 🔥 knowledge-base
-- **Total de problemas:** 14
-- **Críticos:** 1 | **Altos:** 9
-- **Principais problemas:**
-  - Routes contém lógica de negócio ou acesso a dados
-  - Domain Layer violando dependência: drizzle-orm/neon-http
-  - Application Layer violando dependência: express
 
 ### 🔥 materials-services
 - **Total de problemas:** 55
@@ -101,13 +93,13 @@
   - Estrutura dto ausente na camada application
   - Routes contém lógica de negócio ou acesso a dados
 
-### 🔥 timecard
-- **Total de problemas:** 12
-- **Críticos:** 1 | **Altos:** 6
+### ⚠️ knowledge-base
+- **Total de problemas:** 13
+- **Críticos:** 0 | **Altos:** 9
 - **Principais problemas:**
-  - Estrutura services ausente na camada application
-  - Domain Layer violando dependência: drizzle-orm/neon-http
   - Application Layer violando dependência: express
+  - Application Layer violando dependência: ../../infrastructure/repositories/KnowledgeBaseRepository
+  - Application Layer violando dependência: ../../infrastructure/repositories/KnowledgeBaseRepository
 
 ### 🔥 schedule-management
 - **Total de problemas:** 6
@@ -124,6 +116,14 @@
   - Domain Layer violando dependência: drizzle-orm/neon-http
   - Domain Layer violando dependência: drizzle-orm/neon-http
   - Repository BaseRepository deve implementar interface
+
+### 🔥 timecard
+- **Total de problemas:** 11
+- **Críticos:** 1 | **Altos:** 6
+- **Principais problemas:**
+  - Domain Layer violando dependência: drizzle-orm/neon-http
+  - Application Layer violando dependência: express
+  - Application Layer violando dependência: drizzle-orm
 
 ### 📋 auth
 - **Total de problemas:** 1
@@ -160,28 +160,12 @@
 
 ### 🔥 beneficiaries
 - **Prioridade:** immediate
-- **Tempo estimado:** 4h
-- **Ações:** 4
+- **Tempo estimado:** 3h
+- **Ações:** 3
 
 1. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
 2. **refactor_code:** Refatorar dependência inválida na camada domain
 3. **refactor_code:** Refatorar dependência inválida na camada application
-4. **move_code:** Resolver acoplamento: Entity misturada com DTOs - violação de responsabilidade
-
-### 🔥 knowledge-base
-- **Prioridade:** immediate
-- **Tempo estimado:** 7h
-- **Ações:** 9
-
-1. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
-2. **refactor_code:** Refatorar dependência inválida na camada domain
-3. **refactor_code:** Refatorar dependência inválida na camada application
-4. **refactor_code:** Refatorar dependência inválida na camada application
-5. **refactor_code:** Refatorar dependência inválida na camada application
-6. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
-7. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
-8. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
-9. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 
 ### 🔥 materials-services
 - **Prioridade:** immediate
@@ -251,20 +235,6 @@
 5. **rename_file:** Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'
 6. **create_file:** Criar Repository com interface
 
-### 🔥 timecard
-- **Prioridade:** immediate
-- **Tempo estimado:** 5h
-- **Ações:** 8
-
-1. **create_directory:** Criar diretório/arquivo services na camada application
-2. **refactor_code:** Refatorar dependência inválida na camada domain
-3. **refactor_code:** Refatorar dependência inválida na camada application
-4. **refactor_code:** Refatorar dependência inválida na camada application
-5. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
-6. **rename_file:** Padronizar nomenclatura: Entity index não segue padrão PascalCase
-7. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
-8. **create_file:** Criar Repository com interface
-
 ### 🔥 schedule-management
 - **Prioridade:** immediate
 - **Tempo estimado:** 4h
@@ -286,6 +256,19 @@
 3. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 4. **rename_file:** Padronizar nomenclatura: Repository index deve terminar com 'Repository'
 5. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
+6. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
+7. **create_file:** Criar Repository com interface
+
+### 🔥 timecard
+- **Prioridade:** immediate
+- **Tempo estimado:** 5h
+- **Ações:** 7
+
+1. **refactor_code:** Refatorar dependência inválida na camada domain
+2. **refactor_code:** Refatorar dependência inválida na camada application
+3. **refactor_code:** Refatorar dependência inválida na camada application
+4. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
+5. **rename_file:** Padronizar nomenclatura: Entity index não segue padrão PascalCase
 6. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 7. **create_file:** Criar Repository com interface
 
@@ -344,6 +327,19 @@
 3. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
 4. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
 
+### ⚠️ knowledge-base
+- **Prioridade:** high
+- **Tempo estimado:** 5h
+- **Ações:** 7
+
+1. **refactor_code:** Refatorar dependência inválida na camada application
+2. **refactor_code:** Refatorar dependência inválida na camada application
+3. **refactor_code:** Refatorar dependência inválida na camada application
+4. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
+5. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
+6. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
+7. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
+
 ### 💡 field-layout
 - **Prioridade:** low
 - **Tempo estimado:** 20min
@@ -391,14 +387,13 @@
 ## Recomendações
 
 ### Prioridade Imediata 🔥
-- **beneficiaries:** 4 ações (4h)
-- **knowledge-base:** 9 ações (7h)
+- **beneficiaries:** 3 ações (3h)
 - **materials-services:** 37 ações (28h)
 - **saas-admin:** 7 ações (4h)
 - **technical-skills:** 6 ações (5h)
-- **timecard:** 8 ações (5h)
 - **schedule-management:** 5 ações (4h)
 - **shared:** 7 ações (4h)
+- **timecard:** 7 ações (5h)
 
 ### Prioridade Alta ⚠️
 - **customers:** 3 ações (3h)
@@ -406,6 +401,7 @@
 - **template-versions:** 8 ações (2h)
 - **ticket-templates:** 5 ações (50min)
 - **tickets:** 4 ações (2h)
+- **knowledge-base:** 7 ações (5h)
 
 ## Comandos para Correção
 
