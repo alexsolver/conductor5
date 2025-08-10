@@ -35,13 +35,14 @@ class CleanArchitectureOrchestrator {
         validator.generateDetailedReport(validationResult);
       }
 
-      // 2. Se há problemas, executar correções automáticas
+      // 2. Se há problemas, gerar plano de correção
       if (validationResult.issues.length > 0) {
+        const corrector = new CleanArchitectureCorrector();
+        const correctionPlans = await corrector.generateCorrectionPlan(validationResult);
         
         if (shouldFix) {
           console.log('\n🔧 Executando correções automáticas...');
-          const corrector = new CleanArchitectureCorrector();
-          await corrector.implementAllCorrections();
+          await corrector.executeCorrectionPlan(correctionPlans, true);
           
           // Re-executar validação após correções
           console.log('\n🔍 Re-executando validação após correções...');
