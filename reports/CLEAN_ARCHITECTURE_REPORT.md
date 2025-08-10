@@ -7,10 +7,10 @@
 ## Resumo de Problemas
 
 - 🔥 **Críticos:** 2
-- ⚠️ **Altos:** 42
+- ⚠️ **Altos:** 47
 - 📋 **Médios:** 25
 - 💡 **Baixos:** 0
-- **Total:** 69
+- **Total:** 74
 
 ## Principais Problemas por Módulo
 
@@ -31,11 +31,12 @@
   - Entity SaasConfigEntity não possui Repository correspondente
 
 ### ⚠️ technical-skills
-- **Total de problemas:** 2
-- **Críticos:** 0 | **Altos:** 2
+- **Total de problemas:** 5
+- **Críticos:** 0 | **Altos:** 5
 - **Principais problemas:**
   - Routes contém lógica de negócio ou acesso a dados
-  - Entity SkillEntity não possui Repository correspondente
+  - Application Layer violando dependência: express
+  - Application Layer violando dependência: ../../infrastructure/repositories/DrizzleUserSkillRepository
 
 ### ⚠️ tickets
 - **Total de problemas:** 2
@@ -61,12 +62,12 @@
   - Repository contém possível lógica de negócio
 
 ### ⚠️ timecard
-- **Total de problemas:** 6
-- **Críticos:** 0 | **Altos:** 3
+- **Total de problemas:** 8
+- **Críticos:** 0 | **Altos:** 5
 - **Principais problemas:**
   - Application Layer violando dependência: express
   - Application Layer violando dependência: express
-  - Repository contém possível lógica de negócio
+  - Application Layer violando dependência: ../../infrastructure/repositories/DrizzleTimecardRepository
 
 ### 📋 auth
 - **Total de problemas:** 1
@@ -146,11 +147,12 @@
 
 ### ⚠️ technical-skills
 - **Prioridade:** high
-- **Tempo estimado:** 2h
-- **Ações:** 2
+- **Tempo estimado:** 3h
+- **Ações:** 3
 
 1. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
-2. **create_file:** Criar Repository com interface
+2. **refactor_code:** Refatorar dependência inválida na camada application
+3. **create_file:** Criar Repository com interface
 
 ### ⚠️ tickets
 - **Prioridade:** high
@@ -173,14 +175,15 @@
 
 ### ⚠️ timecard
 - **Prioridade:** high
-- **Tempo estimado:** 3h
-- **Ações:** 5
+- **Tempo estimado:** 4h
+- **Ações:** 6
 
 1. **refactor_code:** Refatorar dependência inválida na camada application
-2. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
-3. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
-4. **create_file:** Criar Repository com interface
+2. **refactor_code:** Refatorar dependência inválida na camada application
+3. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
+4. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 5. **create_file:** Criar Repository com interface
+6. **create_file:** Criar Repository com interface
 
 ### ⚠️ schedule-management
 - **Prioridade:** high
@@ -225,10 +228,10 @@
 ### Prioridade Alta ⚠️
 - **materials-services:** 22 ações (20h)
 - **saas-admin:** 4 ações (2h)
-- **technical-skills:** 2 ações (2h)
+- **technical-skills:** 3 ações (3h)
 - **tickets:** 2 ações (2h)
 - **knowledge-base:** 5 ações (3h)
-- **timecard:** 5 ações (3h)
+- **timecard:** 6 ações (4h)
 - **schedule-management:** 2 ações (2h)
 
 ## Comandos para Correção

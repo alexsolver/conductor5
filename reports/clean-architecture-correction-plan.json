@@ -365,6 +365,18 @@
         ]
       },
       {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "/home/runner/workspace/server/modules/technical-skills/application/controllers/UserSkillController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
         "type": "create_file",
         "description": "Criar Repository com interface",
         "target": "/home/runner/workspace/server/modules/technical-skills/infrastructure/repositories/SkillEntityRepository.ts",
@@ -377,7 +389,7 @@
         ]
       }
     ],
-    "estimatedTime": "2h"
+    "estimatedTime": "3h"
   },
   {
     "priority": "high",
@@ -486,6 +498,18 @@
         ]
       },
       {
+        "type": "refactor_code",
+        "description": "Refatorar dependência inválida na camada application",
+        "target": "/home/runner/workspace/server/modules/timecard/application/controllers/TimecardController.ts",
+        "steps": [
+          "Identificar a dependência problemática",
+          "Criar interface/port na camada Domain",
+          "Implementar interface na camada Infrastructure",
+          "Usar injeção de dependência",
+          "Remover import direto da dependência externa"
+        ]
+      },
+      {
         "type": "move_code",
         "description": "Resolver acoplamento: Repository contém possível lógica de negócio",
         "target": "/home/runner/workspace/server/modules/timecard/infrastructure/repositories/DrizzleTimecardRepository.ts",
@@ -530,7 +554,7 @@
         ]
       }
     ],
-    "estimatedTime": "3h"
+    "estimatedTime": "4h"
   },
   {
     "priority": "high",
