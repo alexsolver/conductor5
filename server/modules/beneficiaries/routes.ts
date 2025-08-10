@@ -127,22 +127,45 @@ beneficiariesRouter.get("/:id", async (req: AuthenticatedRequest, res: any) => {
 });
 
 // POST /api/beneficiaries - Create a new beneficiary
-beneficiariesRouter.post("/", beneficiaryController.create.bind(beneficiaryController));
+beneficiariesRouter.post("/", async (req: AuthenticatedRequest, res: any) => {
+  try {
+    const tenantId = req.user?.tenantId!;
+    const beneficiaryData = beneficiarySchema.parse(req.body);
+    
+    const beneficiary = await beneficiaryController.create({ tenantId, ...beneficiaryData });
+    
+    return res.status(201).json({
+      success: true,
+      data: { beneficiary },
+      message: "Beneficiary created successfully"
+    });
+  } catch (error: any) {
+    console.error("Error creating beneficiary:", error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Validation error", 
+        errors: error.errors.map(e => e.message) 
+      });
+    }
+    return res.status(500).json({ success: false, message: error.message });
+  }
+});
 
 // PUT /api/beneficiaries/:id - Update a beneficiary
-beneficiariesRouter.put("/:id", async (req: AuthenticatedRequest, res: Response) => {
+beneficiariesRouter.put("/:id", async (req: AuthenticatedRequest, res: any) => {
   try {
-    const tenantId = req.tenantId!;
+    const tenantId = req.user?.tenantId!;
     const { id } = beneficiaryIdSchema.parse(req.params);
     const beneficiaryData = beneficiarySchema.parse(req.body);
 
     const beneficiary = await beneficiaryController.update({ id, tenantId, ...beneficiaryData });
 
     if (!beneficiary) {
-      return sendError(res, "Beneficiary not found", 404);
+      return res.status(404).json({ success: false, message: "Beneficiary not found" });
     }
 
-    return sendSuccess(res, { beneficiary }, "Beneficiary updated successfully");
+    return res.json({ success: true, data: { beneficiary }, message: "Beneficiary updated successfully" });
   } catch (error: any) {
     console.error("Error updating beneficiary:", error);
     if (error instanceof z.ZodError) {
