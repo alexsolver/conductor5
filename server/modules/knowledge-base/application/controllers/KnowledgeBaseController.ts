@@ -5,7 +5,7 @@ import { KnowledgeBaseApplicationService } from '../services/KnowledgeBaseApplic
 
 // Domain interfaces properly imported (Clean Architecture compliance)
 import { IKnowledgeBaseRepository } from '../../domain/repositories/IKnowledgeBaseRepository';
-import { IMediaRepository } from '../../domain/repositories/IMediaRepository';
+import { IMediaRepository } from '../../domain/ports/IMediaRepository';
 
 // Use abstracted HTTP types instead of Express directly
 interface IRequest {

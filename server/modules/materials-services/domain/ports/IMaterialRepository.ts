@@ -100,3 +100,14 @@ export interface IMaterialRepository {
   findByCategory(category: string, tenantId: string): Promise<Material[]>;
   findBySupplier(supplierId: string, tenantId: string): Promise<Material[]>;
 }
+import { Material } from '../entities/Material';
+
+export interface IMaterialRepository {
+  findById(id: string, tenantId: string): Promise<Material | null>;
+  findAll(tenantId: string): Promise<Material[]>;
+  create(entity: Material): Promise<Material>;
+  update(id: string, entity: Partial<Material>, tenantId: string): Promise<Material | null>;
+  delete(id: string, tenantId: string): Promise<boolean>;
+  findByCategory(category: string, tenantId: string): Promise<Material[]>;
+  findBySupplier(supplierId: string, tenantId: string): Promise<Material[]>;
+}

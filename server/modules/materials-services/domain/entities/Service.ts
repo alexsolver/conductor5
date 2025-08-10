@@ -1,4 +1,4 @@
-// Removed drizzle import - domain layer should not depend on infrastructure
+// Removed drizzle dependency - Domain layer should not depend on infrastructure
 export class Service {
   constructor(
     public readonly id: string,

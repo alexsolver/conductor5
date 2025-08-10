@@ -1,4 +1,4 @@
-// Removed drizzle-orm dependency from domain layer
+// Removed drizzle dependency - Domain layer should not depend on infrastructure
 
 export class ScheduleEntity {
   constructor(

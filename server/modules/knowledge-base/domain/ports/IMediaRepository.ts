@@ -19,3 +19,23 @@ export interface IMediaRepository {
   delete(id: string, tenantId: string): Promise<boolean>;
   findByType(type: string, tenantId: string): Promise<any[]>;
 }
+export interface IMediaRepository {
+  findById(id: string, tenantId: string): Promise<MediaEntity | null>;
+  findAll(tenantId: string): Promise<MediaEntity[]>;
+  create(entity: MediaEntity): Promise<MediaEntity>;
+  update(id: string, entity: Partial<MediaEntity>, tenantId: string): Promise<MediaEntity | null>;
+  delete(id: string, tenantId: string): Promise<boolean>;
+  findByType(type: string, tenantId: string): Promise<MediaEntity[]>;
+  getStats(tenantId: string): Promise<any>;
+}
+
+interface MediaEntity {
+  id: string;
+  tenantId: string;
+  type: string;
+  url: string;
+  name: string;
+  size?: number;
+  createdAt: Date;
+  updatedAt: Date;
+}

@@ -6,7 +6,7 @@ interface IDatabaseConnection {
   // Interface abstrata para conexão com banco
 }
 
-export abstract class BaseRepository<T> implements IBaseRepository<T> {
+export abstract class BaseEntityRepository<T> implements IBaseRepository<T> {
   // Repository should only handle data persistence, business logic moved to domain services
 
   protected db: IDatabaseConnection;

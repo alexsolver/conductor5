@@ -4,3 +4,4 @@
 // Removido import do Drizzle - domínio não deve depender de infraestrutura
 // Removed drizzle-orm dependency from domain layer
 // Removed drizzle import - domain layer should not depend on infrastructure
+// Removed drizzle dependency - Domain layer should not depend on infrastructure
