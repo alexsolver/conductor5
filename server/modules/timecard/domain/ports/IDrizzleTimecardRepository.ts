@@ -1,7 +1,7 @@
-// Clean Architecture Domain Layer - Repository Port Interface
+// Domain Layer - Repository Port Interface for Timecard
 export interface IDrizzleTimecardRepository {
-  // Interface for Timecard repository following repository pattern
-  // This interface will be implemented by infrastructure layer repositories
+  // Repository interface for Timecard following Clean Architecture patterns
+  // This interface will be implemented by infrastructure layer
   
   // Basic CRUD operations
   findById(id: string): Promise<any | null>;
@@ -10,9 +10,15 @@ export interface IDrizzleTimecardRepository {
   update(id: string, data: any): Promise<any>;
   delete(id: string): Promise<boolean>;
   
-  // Domain-specific queries
-  findByUserId(userId: string): Promise<any[]>;
+  // Domain-specific operations for timecard management
   findByTenantId(tenantId: string): Promise<any[]>;
+  findByUserId(userId: string): Promise<any[]>;
   findByDateRange(startDate: Date, endDate: Date): Promise<any[]>;
-  findCurrentStatus(userId: string): Promise<any | null>;
+  findByStatus(status: string): Promise<any[]>;
+  findByUserAndDateRange(userId: string, startDate: Date, endDate: Date): Promise<any[]>;
+  
+  // Timecard-specific queries
+  findPendingApprovals(tenantId: string): Promise<any[]>;
+  findTimecardsByWeek(userId: string, weekStart: Date): Promise<any[]>;
+  calculateTotalHours(userId: string, startDate: Date, endDate: Date): Promise<number>;
 }

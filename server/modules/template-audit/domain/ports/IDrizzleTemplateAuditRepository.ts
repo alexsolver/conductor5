@@ -1,7 +1,7 @@
-// Clean Architecture Domain Layer - Repository Port Interface
+// Domain Layer - Repository Port Interface for Template Audit
 export interface IDrizzleTemplateAuditRepository {
-  // Interface for Template Audit repository following repository pattern
-  // This interface will be implemented by infrastructure layer repositories
+  // Repository interface for Template Audit following Clean Architecture patterns
+  // This interface will be implemented by infrastructure layer
   
   // Basic CRUD operations
   findById(id: string): Promise<any | null>;
@@ -10,9 +10,14 @@ export interface IDrizzleTemplateAuditRepository {
   update(id: string, data: any): Promise<any>;
   delete(id: string): Promise<boolean>;
   
-  // Domain-specific queries
-  findByTemplateId(templateId: string): Promise<any[]>;
+  // Domain-specific operations for audit tracking
   findByTenantId(tenantId: string): Promise<any[]>;
+  findByTemplateId(templateId: string): Promise<any[]>;
   findByActionType(actionType: string): Promise<any[]>;
-  findByDateRange(startDate: Date, endDate: Date): Promise<any[]>;
+  findByTimeRange(startDate: Date, endDate: Date): Promise<any[]>;
+  findByUserId(userId: string): Promise<any[]>;
+  
+  // Audit-specific queries
+  findRecentAudits(limit?: number): Promise<any[]>;
+  findAuditsByStatus(status: string): Promise<any[]>;
 }

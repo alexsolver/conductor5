@@ -1,9 +1,11 @@
 import { Router } from 'express';
 import { jwtAuth } from '../../middleware/jwtAuth';
 import { TimecardController } from './application/controllers/TimecardController';
+import { TimecardApprovalController } from './application/controllers/TimecardApprovalController';
 
 const timecardRouter = Router();
 const timecardController = new TimecardController();
+const timecardApprovalController = new TimecardApprovalController();
 
 // Work Schedules routes - usando TimecardController unificado
 timecardRouter.get('/work-schedules', jwtAuth, timecardController.getAllWorkSchedules.bind(timecardController));
@@ -50,7 +52,7 @@ timecardRouter.get('/hour-bank/movements/:userId/:month', jwtAuth, timecardContr
 timecardRouter.get('/absence-requests/pending', jwtAuth, timecardController.getPendingAbsenceRequests.bind(timecardController));
 
 // Reports routes with error handling wrapper
-timecardRouter.get('/reports/attendance/:period', jwtAuth, timecardController.getAttendanceReport.bind(timecardController)););
+timecardRouter.get('/reports/attendance/:period', jwtAuth, timecardController.getAttendanceReport.bind(timecardController));
 
 timecardRouter.get('/reports/overtime/:period', jwtAuth, timecardController.getOvertimeReport.bind(timecardController));
 
@@ -58,5 +60,10 @@ timecardRouter.get('/reports/compliance/:period', jwtAuth, timecardController.ge
 
 // Current status route
 timecardRouter.get('/current-status', jwtAuth, timecardController.getCurrentStatus.bind(timecardController));
+
+// Approval routes
+timecardRouter.post('/approve/:id', jwtAuth, timecardApprovalController.approveTimecard.bind(timecardApprovalController));
+timecardRouter.post('/reject/:id', jwtAuth, timecardApprovalController.rejectTimecard.bind(timecardApprovalController));
+timecardRouter.get('/pending-approvals', jwtAuth, timecardApprovalController.getPendingApprovals.bind(timecardApprovalController));
 
 export { timecardRouter };

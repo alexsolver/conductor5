@@ -1,7 +1,7 @@
 // Infrastructure Layer - Repository Implementation
-import { IDrizzleSkillRepository } from '../../domain/ports/IDrizzleSkillRepository';
+import { IDrizzleSkillEntityRepository } from '../../domain/ports/IDrizzleSkillEntityRepository';
 
-export class DrizzleSkillEntityRepository implements IDrizzleSkillRepository {
+export class DrizzleSkillEntityRepository implements IDrizzleSkillEntityRepository {
   constructor(
     private db: any,
     private tenantId: string
@@ -79,6 +79,16 @@ export class DrizzleSkillEntityRepository implements IDrizzleSkillRepository {
 
   async findBySkillLevel(level: string): Promise<any[]> {
     // Implementation for finding skills by level
+    try {
+      // Repository implementation would go here
+      return [];
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async findActiveSkills(tenantId: string): Promise<any[]> {
+    // Implementation for finding active skills by tenant
     try {
       // Repository implementation would go here
       return [];

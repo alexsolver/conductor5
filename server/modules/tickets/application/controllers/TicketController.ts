@@ -9,7 +9,7 @@ interface HttpResponse {
   status(code: number): HttpResponse;
   json(data: any): void;
 }
-import { GetTicketsUseCase } from '../use-cases/GetTicketsUseCase';
+import { GetTicketsUseCase } from '../usecases/GetTicketsUseCase';
 import { standardResponse } from '../../../../utils/standardResponse';
 
 export class TicketController {
