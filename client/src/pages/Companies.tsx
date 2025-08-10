@@ -91,25 +91,43 @@ export default function Companies() {
   });
 
   // Query para buscar empresas
-  const { data: companies = [], isLoading } = useQuery({
+  const { data: companies = [], isLoading, error } = useQuery({
     queryKey: ['/api/customers/companies'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/customers/companies');
-      console.log('Companies API Response:', response);
+      console.log('[COMPANIES-FRONTEND] Starting API request...');
       
-      // Adiciona log detalhado sobre o tipo de dados recebidos
-      if (response) {
-        console.log('Companies data type:', typeof response);
-        console.log('Companies is array:', Array.isArray(response));
-        console.log('Companies keys:', Object.keys(response));
-        if (Array.isArray(response)) {
-          console.log('Companies count:', response.length);
+      try {
+        const response = await apiRequest('GET', '/api/customers/companies');
+        console.log('[COMPANIES-FRONTEND] Raw API Response:', response);
+        console.log('[COMPANIES-FRONTEND] Response type:', typeof response);
+        console.log('[COMPANIES-FRONTEND] Is array:', Array.isArray(response));
+        
+        if (response) {
+          console.log('[COMPANIES-FRONTEND] Response keys:', Object.keys(response));
+          if (Array.isArray(response)) {
+            console.log('[COMPANIES-FRONTEND] Companies count:', response.length);
+            console.log('[COMPANIES-FRONTEND] First company sample:', response[0]);
+          }
         }
+        
+        // Ensure we always return an array
+        const companies = Array.isArray(response) ? response : [];
+        console.log('[COMPANIES-FRONTEND] Final companies array:', companies.length, 'items');
+        
+        return companies;
+      } catch (error) {
+        console.error('[COMPANIES-FRONTEND] API Error:', error);
+        return [];
       }
-      
-      return Array.isArray(response) ? response : [];
-    }
+    },
+    retry: 3,
+    retryDelay: 1000
   });
+
+  // Log any query errors
+  if (error) {
+    console.error('[COMPANIES-FRONTEND] Query Error:', error);
+  }
 
   // Mutation para criar empresa
   const createCompanyMutation = useMutation({

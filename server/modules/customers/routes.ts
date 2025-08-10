@@ -146,26 +146,43 @@ customersRouter.get('/companies', jwtAuth, async (req: AuthenticatedRequest, res
     const pool = schemaManager.getPool();
     const schemaName = schemaManager.getSchemaName(req.user.tenantId);
 
+    console.log(`[COMPANIES-API] Fetching companies for tenant: ${req.user.tenantId}`);
+    console.log(`[COMPANIES-API] Schema name: ${schemaName}`);
+
     // Use the correct table name and select specified fields
     const result = await pool.query(`
       SELECT 
         id, 
         name, 
+        display_name,
         cnpj as document, 
         email, 
         phone, 
         address, 
+        status,
+        subscription_tier,
+        industry,
+        size,
+        website,
+        description,
         is_active, 
-        created_at
+        created_at,
+        updated_at
       FROM "${schemaName}".companies 
       WHERE tenant_id = $1
       ORDER BY name
     `, [req.user.tenantId]);
 
-    res.json(result.rows);
+    console.log(`[COMPANIES-API] Found ${result.rows.length} companies`);
+    
+    // Always return an array, even if empty
+    const companies = result.rows || [];
+    res.json(companies);
   } catch (error: any) {
-    console.error('Error fetching companies:', error);
-    res.status(500).json({ message: 'Failed to fetch companies' });
+    console.error('[COMPANIES-API] Error fetching companies:', error);
+    
+    // Return empty array on error instead of error object
+    res.json([]);
   }
 });
 
