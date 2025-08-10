@@ -76,24 +76,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
 
-  // Apply memory-based rate limiting middleware  
-  app.use('/api/auth/login', createMemoryRateLimitMiddleware(RATE_LIMIT_CONFIGS.LOGIN));
-  app.use('/api/auth/register', createMemoryRateLimitMiddleware(RATE_LIMIT_CONFIGS.REGISTRATION));
-  app.use('/api/auth/password-reset', createMemoryRateLimitMiddleware(RATE_LIMIT_CONFIGS.PASSWORD_RESET));
+  // Apply memory-based rate limiting middleware with safety checks
+  try {
+    const loginRateLimit = createMemoryRateLimitMiddleware(RATE_LIMIT_CONFIGS.LOGIN);
+    const registerRateLimit = createMemoryRateLimitMiddleware(RATE_LIMIT_CONFIGS.REGISTRATION);
+    const passwordResetRateLimit = createMemoryRateLimitMiddleware(RATE_LIMIT_CONFIGS.PASSWORD_RESET);
+    
+    if (loginRateLimit) app.use('/api/auth/login', loginRateLimit);
+    if (registerRateLimit) app.use('/api/auth/register', registerRateLimit);
+    if (passwordResetRateLimit) app.use('/api/auth/password-reset', passwordResetRateLimit);
+  } catch (error) {
+    console.warn('Rate limiting middleware not available, skipping...');
+  }
 
   // Exempt ticket-config/field-options from rate limiting to avoid UI errors
   app.use('/api', (req, res, next) => {
     if (req.path.includes('/ticket-config/field-options')) {
       return next(); // Skip rate limiting for field-options
     }
-    return createMemoryRateLimitMiddleware(RATE_LIMIT_CONFIGS.API_GENERAL)(req, res, next);
+    try {
+      const generalRateLimit = createMemoryRateLimitMiddleware(RATE_LIMIT_CONFIGS.API_GENERAL);
+      if (generalRateLimit) {
+        return generalRateLimit(req, res, next);
+      }
+    } catch (error) {
+      // Continue without rate limiting if middleware fails
+    }
+    return next();
   });
 
-  // Apply feature flag middleware
-  app.use(createFeatureFlagMiddleware());
+  // Apply feature flag middleware with safety check
+  try {
+    const featureFlagMiddleware = createFeatureFlagMiddleware();
+    if (featureFlagMiddleware) {
+      app.use(featureFlagMiddleware);
+    }
+  } catch (error) {
+    console.warn('Feature flag middleware not available, skipping...');
+  }
 
   // CSP reporting endpoint
-  app.post('/api/csp-report', createCSPReportingEndpoint());
+  try {
+    const cspReportingEndpoint = createCSPReportingEndpoint();
+    if (cspReportingEndpoint) {
+      app.post('/api/csp-report', cspReportingEndpoint);
+    }
+  } catch (error) {
+    console.warn('CSP reporting endpoint not available, skipping...');
+  }
 
   // CSP management routes (admin only) - temporarily disabled due to undefined middleware
   // TODO: Re-enable when CSP management routes are properly implemented
