@@ -1,3 +1,4 @@
+// Removed express dependency - application layer should not depend on web framework
 import { CreateSkillUseCase } from '../use-cases/CreateSkillUseCase';
 import { GetSkillsUseCase } from '../use-cases/GetSkillsUseCase';
 import { UpdateSkillUseCase } from '../use-cases/UpdateSkillUseCase';
