@@ -69,31 +69,15 @@ class CleanArchitectureValidator {
   private discoverModules(): void {
     console.log('🔍 Descobrindo módulos do sistema...');
 
-    // Determine correct base path
+    // Determine correct base path - sempre usar o caminho absoluto correto
     const cwd = process.cwd();
-    const possiblePaths = [
-      join(cwd, 'server/modules'),
-      join(cwd, 'modules'),
-      join(process.cwd(), 'server/modules'),
-      './server/modules',
-      'server/modules',
-      'modules'
-    ];
-
-    let modulesDir = '';
-    console.log(`🔍 Current working directory: ${cwd}`);
+    const modulesPath = join(cwd, 'server', 'modules');
     
-    for (const path of possiblePaths) {
-      console.log(`🔍 Checking path: ${path}`);
-      if (existsSync(path)) {
-        modulesDir = path;
-        console.log(`✅ Found modules directory: ${path}`);
-        break;
-      }
-    }
-
-    if (!modulesDir) {
-      console.log(`❌ No modules directory found in any of the checked paths`);
+    console.log(`🔍 Current working directory: ${cwd}`);
+    console.log(`🔍 Checking modules path: ${modulesPath}`);
+    
+    if (!existsSync(modulesPath)) {
+      console.log(`❌ Modules directory not found at: ${modulesPath}`);
       this.addIssue({
         id: 'ARCH-001',
         layer: 'infrastructure',
@@ -101,11 +85,13 @@ class CleanArchitectureValidator {
         severity: 'critical',
         type: 'structure_violation',
         description: 'Diretório de módulos não encontrado',
-        file: 'server/modules',
+        file: modulesPath,
         suggestedFix: 'Criar estrutura de módulos seguindo padrão Clean Architecture'
       });
       return;
     }
+
+    const modulesDir = modulesPath;
 
     const modules = readdirSync(modulesDir, { withFileTypes: true })
       .filter(dirent => dirent.isDirectory())

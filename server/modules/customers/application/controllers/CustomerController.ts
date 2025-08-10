@@ -21,7 +21,7 @@ export class CustomerController {
     try {
       const { body, user } = req;
       const tenantId = user?.tenantId;
-      const userId = user?.id;
+      const userId = user?.userId;
 
       if (!tenantId) {
         res.status(400).json({

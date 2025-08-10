@@ -1,22 +1,22 @@
 # Clean Architecture Validation Report
 
 **Data:** 2025-08-10  
-**Score:** 32/100  
+**Score:** 31/100  
 **Status:** ❌ REPROVADO
 
 ## Resumo de Problemas
 
 - 🔥 **Críticos:** 10
-- ⚠️ **Altos:** 62
-- 📋 **Médios:** 30
+- ⚠️ **Altos:** 60
+- 📋 **Médios:** 28
 - 💡 **Baixos:** 4
-- **Total:** 106
+- **Total:** 102
 
 ## Principais Problemas por Módulo
 
 ### 🔥 materials-services
-- **Total de problemas:** 51
-- **Críticos:** 2 | **Altos:** 38
+- **Total de problemas:** 48
+- **Críticos:** 2 | **Altos:** 36
 - **Principais problemas:**
   - Routes contém lógica de negócio ou acesso a dados
   - Domain Layer violando dependência: drizzle-orm/neon-http
@@ -31,7 +31,7 @@
   - Application Layer violando dependência: express
 
 ### 🔥 technical-skills
-- **Total de problemas:** 10
+- **Total de problemas:** 9
 - **Críticos:** 1 | **Altos:** 8
 - **Principais problemas:**
   - Routes contém lógica de negócio ou acesso a dados
@@ -108,8 +108,8 @@
 
 ### 🔥 materials-services
 - **Prioridade:** immediate
-- **Tempo estimado:** 26h
-- **Ações:** 33
+- **Tempo estimado:** 25h
+- **Ações:** 30
 
 1. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
 2. **refactor_code:** Refatorar dependência inválida na camada domain
@@ -135,15 +135,12 @@
 22. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
 23. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
 24. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
-25. **rename_file:** Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'
+25. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 26. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 27. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 28. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 29. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
-30. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
-31. **create_file:** Criar Repository com interface
-32. **create_file:** Criar Repository com interface
-33. **create_file:** Criar Repository com interface
+30. **create_file:** Criar Repository com interface
 
 ### 🔥 saas-admin
 - **Prioridade:** immediate
@@ -160,14 +157,13 @@
 ### 🔥 technical-skills
 - **Prioridade:** immediate
 - **Tempo estimado:** 5h
-- **Ações:** 6
+- **Ações:** 5
 
 1. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
 2. **refactor_code:** Refatorar dependência inválida na camada domain
 3. **refactor_code:** Refatorar dependência inválida na camada application
 4. **refactor_code:** Refatorar dependência inválida na camada application
-5. **rename_file:** Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'
-6. **create_file:** Criar Repository com interface
+5. **create_file:** Criar Repository com interface
 
 ### 🔥 beneficiaries
 - **Prioridade:** immediate
@@ -259,9 +255,9 @@
 ## Recomendações
 
 ### Prioridade Imediata 🔥
-- **materials-services:** 33 ações (26h)
+- **materials-services:** 30 ações (25h)
 - **saas-admin:** 6 ações (4h)
-- **technical-skills:** 6 ações (5h)
+- **technical-skills:** 5 ações (5h)
 - **beneficiaries:** 3 ações (3h)
 - **schedule-management:** 4 ações (3h)
 - **shared:** 7 ações (4h)

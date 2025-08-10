@@ -1,5 +1,4 @@
-
-import { Schedule } from '../entities/Schedule';
+import { Schedule } from '../entities/ScheduleEntity';
 
 export interface IScheduleRepository {
   save(schedule: Schedule): Promise<Schedule>;

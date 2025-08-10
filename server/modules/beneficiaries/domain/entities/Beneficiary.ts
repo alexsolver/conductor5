@@ -13,24 +13,26 @@ export class Beneficiary {
     public readonly updatedAt: Date = new Date()
   ) {}
 
-  // Domain entity should not know about DTOs - moved to application layer
-  static create(
-    id: string,
-    tenantId: string,
-    name: string,
-    email: string,
-    phone?: string,
-    document?: string,
-    address?: string
-  ): Beneficiary {
+  // Removido import de DTO - domínio não deve depender de application layer
+  static fromData(data: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    cpf?: string;
+    phone?: string;
+    birthDate?: Date;
+    isActive?: boolean;
+    tenantId: string;
+  }): Beneficiary {
     return new Beneficiary(
-      id,
-      tenantId,
-      name,
-      email,
-      phone,
-      document,
-      address
+      data.firstName,
+      data.lastName,
+      data.email,
+      data.cpf,
+      data.phone,
+      data.birthDate,
+      data.isActive,
+      data.tenantId
     );
   }
 

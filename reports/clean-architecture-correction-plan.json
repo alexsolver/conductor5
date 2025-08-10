@@ -292,17 +292,6 @@
         ]
       },
       {
-        "type": "rename_file",
-        "description": "Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'",
-        "target": "/home/runner/workspace/server/modules/materials-services/application/use-cases/index.ts",
-        "steps": [
-          "Renomear arquivo seguindo padrão",
-          "Atualizar imports em outros arquivos",
-          "Atualizar nome da classe/interface",
-          "Verificar consistência com padrões do projeto"
-        ]
-      },
-      {
         "type": "create_directory",
         "description": "Criar interface I[Entity]Repository no domain e implementar",
         "target": "/home/runner/workspace/server/modules/materials-services/infrastructure/repositories/AssetManagementRepository.ts",
@@ -345,30 +334,6 @@
       {
         "type": "create_file",
         "description": "Criar Repository com interface",
-        "target": "/home/runner/workspace/server/modules/materials-services/infrastructure/repositories/MaterialRepository.ts",
-        "code": "import { Material } from '../../domain/entities/Material';\nimport { IMaterialRepository } from '../../domain/ports/IMaterialRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleMaterialRepository implements IMaterialRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<Material | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<Material[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: Material): Promise<Material> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<Material>, tenantId: string): Promise<Material | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
-        "steps": [
-          "Criar interface do Repository na camada Domain",
-          "Implementar Repository na camada Infrastructure",
-          "Adicionar injeção de dependência",
-          "Integrar com Use Cases"
-        ]
-      },
-      {
-        "type": "create_file",
-        "description": "Criar Repository com interface",
-        "target": "/home/runner/workspace/server/modules/materials-services/infrastructure/repositories/ServiceRepository.ts",
-        "code": "import { Service } from '../../domain/entities/Service';\nimport { IServiceRepository } from '../../domain/ports/IServiceRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleServiceRepository implements IServiceRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<Service | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<Service[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: Service): Promise<Service> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<Service>, tenantId: string): Promise<Service | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
-        "steps": [
-          "Criar interface do Repository na camada Domain",
-          "Implementar Repository na camada Infrastructure",
-          "Adicionar injeção de dependência",
-          "Integrar com Use Cases"
-        ]
-      },
-      {
-        "type": "create_file",
-        "description": "Criar Repository com interface",
         "target": "/home/runner/workspace/server/modules/materials-services/domain/ports/ILPUCacheWarmerRepository.ts",
         "code": "import { ILPUCacheWarmer } from '../../domain/entities/ILPUCacheWarmer';\nimport { IILPUCacheWarmerRepository } from '../../domain/ports/IILPUCacheWarmerRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleILPUCacheWarmerRepository implements IILPUCacheWarmerRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<ILPUCacheWarmer | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<ILPUCacheWarmer[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: ILPUCacheWarmer): Promise<ILPUCacheWarmer> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<ILPUCacheWarmer>, tenantId: string): Promise<ILPUCacheWarmer | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
         "steps": [
@@ -379,7 +344,7 @@
         ]
       }
     ],
-    "estimatedTime": "26h"
+    "estimatedTime": "25h"
   },
   {
     "priority": "immediate",
@@ -505,17 +470,6 @@
           "Implementar interface na camada Infrastructure",
           "Usar injeção de dependência",
           "Remover import direto da dependência externa"
-        ]
-      },
-      {
-        "type": "rename_file",
-        "description": "Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'",
-        "target": "/home/runner/workspace/server/modules/technical-skills/application/use-cases/index.ts",
-        "steps": [
-          "Renomear arquivo seguindo padrão",
-          "Atualizar imports em outros arquivos",
-          "Atualizar nome da classe/interface",
-          "Verificar consistência com padrões do projeto"
         ]
       },
       {

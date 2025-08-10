@@ -1,6 +1,5 @@
-
 import { Material } from '../../domain/entities/Material';
-import { IMaterialRepository } from '../../domain/ports/IMaterialRepository';
+import { IMaterialRepository } from '../../domain/repositories/IMaterialRepository';
 import { drizzle } from 'drizzle-orm/neon-http';
 import * as schema from '@shared/schema';
 

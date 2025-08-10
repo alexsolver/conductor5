@@ -1,8 +1,19 @@
 import { Pool } from 'pg';
 import { IBaseRepository } from '../../domain/repositories/IBaseRepository';
 
+// Interface abstrata para conexão com banco
+interface IDatabaseConnection {
+  // Interface abstrata para conexão com banco
+}
+
 export abstract class BaseRepository<T> implements IBaseRepository<T> {
   // Repository should only handle data persistence, not business logic
+
+  protected db: IDatabaseConnection;
+
+  constructor(db: IDatabaseConnection) {
+    this.db = db;
+  }
 
   abstract findById(id: string, tenantId: string): Promise<T | null>;
   abstract findAll(tenantId: string): Promise<T[]>;

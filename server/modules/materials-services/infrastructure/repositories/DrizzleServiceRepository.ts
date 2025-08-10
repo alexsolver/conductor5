@@ -1,6 +1,5 @@
-
 import { Service } from '../../domain/entities/Service';
-import { IServiceRepository } from '../../domain/ports/IServiceRepository';
+import { IServiceRepository } from '../../domain/repositories/IServiceRepository';
 import { drizzle } from 'drizzle-orm/neon-http';
 import * as schema from '@shared/schema';
 
