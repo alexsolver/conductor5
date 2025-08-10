@@ -64,3 +64,28 @@ export function sendValidationError(
 ): void {
   standardResponse(res, 400, message, undefined, errors);
 }
+
+// Legacy function names for backward compatibility
+export function createSuccessResponse<T = any>(
+  data?: T,
+  message: string = 'Success'
+): StandardApiResponse<T> {
+  return {
+    success: true,
+    message,
+    data,
+    timestamp: new Date().toISOString()
+  };
+}
+
+export function createErrorResponse(
+  message: string = 'An error occurred',
+  error?: string
+): StandardApiResponse {
+  return {
+    success: false,
+    message,
+    error,
+    timestamp: new Date().toISOString()
+  };
+}
