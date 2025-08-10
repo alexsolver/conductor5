@@ -1,22 +1,5 @@
 // Domain entities should not depend on ORM libraries
 
-export { Timecard } from './Timecard';
-
-export interface Timecard {
-  id: string;
-  tenantId: string;
-  userId: string;
-  date: Date;
-  startTime: string;
-  endTime: string;
-  breakDuration: number;
-  status: 'pending' | 'approved' | 'rejected';
-  description?: string;
-  location?: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
 export interface TimecardProps {
   userId: string;
   date: Date;
