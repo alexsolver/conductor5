@@ -3164,8 +3164,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         companyId, 
         relationshipType, 
         isPrimary, 
-        tenantId 
+        tenantId,
+        requestBody: req.body,
+        userContext: {
+          userId: req.user?.id,
+          userTenantId: req.user?.tenantId
+        }
       });
+
+      // Log the schema being used
+      console.log('[CUSTOMER-COMPANY-ASSOCIATION] Using schema:', schemaName);
 
       if (!tenantId) {
         return res.status(401).json({ message: 'Tenant required' });
@@ -3178,6 +3186,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      // Validate UUID format
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(customerId)) {
+        console.error('[CUSTOMER-COMPANY-ASSOCIATION] Invalid customer UUID format:', customerId);
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Invalid customer ID format' 
+        });
+      }
+
+      if (!uuidRegex.test(companyId)) {
+        console.error('[CUSTOMER-COMPANY-ASSOCIATION] Invalid company UUID format:', companyId);
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Invalid company ID format' 
+        });
+      }
+
       const { schemaManager } = await import('./db');
       const pool = schemaManager.getPool();
       const schemaName = schemaManager.getSchemaName(tenantId);
@@ -3185,11 +3211,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // First, verify that both customer and company exist
       const customerCheck = await pool.query(`
         SELECT id FROM "${schemaName}".customers 
-        WHERE id = $1 AND tenant_id = $2
+        WHERE id = $1 AND tenant_id = $2 AND is_active = true
       `, [customerId, tenantId]);
 
+      console.log('[CUSTOMER-COMPANY-ASSOCIATION] Customer check result:', {
+        customerId,
+        tenantId,
+        rowsFound: customerCheck.rows.length,
+        rows: customerCheck.rows
+      });
+
       if (customerCheck.rows.length === 0) {
-        console.error('[CUSTOMER-COMPANY-ASSOCIATION] Customer not found:', customerId);
+        // Try to find the customer without tenant restriction to debug
+        const debugCheck = await pool.query(`
+          SELECT id, tenant_id, is_active FROM "${schemaName}".customers 
+          WHERE id = $1
+        `, [customerId]);
+        
+        console.error('[CUSTOMER-COMPANY-ASSOCIATION] Customer not found:', {
+          customerId,
+          tenantId,
+          debugResults: debugCheck.rows
+        });
+        
         return res.status(404).json({ 
           success: false, 
           message: 'Cliente não encontrado' 
