@@ -38,14 +38,14 @@ export function CustomerItemMappings() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCustomer, setSelectedCustomer] = useState("");
+  const [selectedCompany, setSelectedCompany] = useState("");
   const [selectedType, setSelectedType] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingMapping, setEditingMapping] = useState<CustomerItemMapping | null>(null);
   
   // Form state
   const [formData, setFormData] = useState({
-    customer_id: "",
+    customer_id: "", // Mantemos o nome do campo para compatibilidade com backend
     item_id: "",
     custom_sku: "",
     custom_name: "",
@@ -75,7 +75,7 @@ export function CustomerItemMappings() {
       const params = new URLSearchParams({
         tenantId,
         ...(searchTerm && { search: searchTerm }),
-        ...(selectedCustomer && selectedCustomer !== "all-customers" && { customerId: selectedCustomer })
+        ...(selectedCompany && selectedCompany !== "all-companies" && { companyId: selectedCompany })
       });
       
       const response = await apiRequest('GET', `/api/materials-services/customer-item-mappings?${params}`);
@@ -213,9 +213,9 @@ export function CustomerItemMappings() {
       <div className="flex flex-col space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Personalização de Itens por Cliente</h1>
+            <h1 className="text-3xl font-bold">Personalização de Itens por Empresa</h1>
             <p className="text-muted-foreground">
-              Gerencie SKUs e configurações personalizadas para cada cliente
+              Gerencie SKUs e configurações personalizadas para cada empresa
             </p>
           </div>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -234,7 +234,7 @@ export function CustomerItemMappings() {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="customer_id">Empresa Cliente</Label>
+                    <Label htmlFor="customer_id">Empresa</Label>
                     <Select 
                       value={formData.customer_id} 
                       onValueChange={(value) => setFormData(prev => ({ ...prev, customer_id: value }))}
@@ -246,7 +246,7 @@ export function CustomerItemMappings() {
                       <SelectContent>
                         {customerCompaniesData?.map((company: any) => (
                           <SelectItem key={company.id} value={company.id}>
-                            {company.name} {company.tradeName && `(${company.tradeName})`}
+                            {company.display_name || company.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -365,16 +365,16 @@ export function CustomerItemMappings() {
                 </div>
               </div>
               <div>
-                <Label htmlFor="customer-filter">Empresa Cliente</Label>
-                <Select value={selectedCustomer} onValueChange={setSelectedCustomer}>
+                <Label htmlFor="company-filter">Empresa</Label>
+                <Select value={selectedCompany} onValueChange={setSelectedCompany}>
                   <SelectTrigger>
                     <SelectValue placeholder="Todas as empresas" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all-customers">Todas as empresas</SelectItem>
+                    <SelectItem value="all-companies">Todas as empresas</SelectItem>
                     {customerCompaniesData?.map((company: any) => (
                       <SelectItem key={company.id} value={company.id}>
-                        {company.name} {company.tradeName && `(${company.tradeName})`}
+                        {company.display_name || company.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -416,7 +416,7 @@ export function CustomerItemMappings() {
               <div className="flex items-center space-x-2">
                 <User className="h-4 w-4 text-green-500" />
                 <div>
-                  <p className="text-sm font-medium">Clientes Ativos</p>
+                  <p className="text-sm font-medium">Empresas Ativas</p>
                   <p className="text-2xl font-bold">
                     {new Set(mappings.map((m: CustomerItemMapping) => m.customer_id)).size}
                   </p>
@@ -444,7 +444,7 @@ export function CustomerItemMappings() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Cliente</TableHead>
+                  <TableHead>Empresa</TableHead>
                   <TableHead>Item Original</TableHead>
                   <TableHead>SKU Personalizado</TableHead>
                   <TableHead>Nome Personalizado</TableHead>
@@ -458,10 +458,10 @@ export function CustomerItemMappings() {
                     <TableCell>
                       <div>
                         <div className="font-medium">
-                          {mapping.customer_first_name} {mapping.customer_last_name}
+                          {mapping.company_display_name || mapping.company_name}
                         </div>
                         <div className="text-sm text-muted-foreground">
-                          {mapping.customer_email}
+                          {mapping.company_email}
                         </div>
                       </div>
                     </TableCell>
