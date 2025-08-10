@@ -408,17 +408,19 @@ export class DatabaseStorage implements IStorage {
 
       if (!tableCheck.rows[0]?.exists) {
         console.log('❌ [STORAGE-SIMPLE] Tickets table does not exist in schema:', schemaName);
+        // Initialize schema if it doesn't exist
+        await schemaManager.createTenantSchema(validatedTenantId);
         return [];
       }
 
       let baseQuery = sql`
         SELECT 
           t.id,
-          t.number,
-          t.subject,
+          COALESCE(t.number, CONCAT('T-', SUBSTRING(t.id::text, 1, 8))) as number,
+          COALESCE(t.subject, t.short_description) as subject,
           t.description,
-          t.status,
-          t.priority,
+          COALESCE(t.status, t.state, 'open') as status,
+          COALESCE(t.priority, 'medium') as priority,
           t.impact,
           t.urgency,
           t.category,
@@ -433,29 +435,31 @@ export class DatabaseStorage implements IStorage {
         FROM ${sql.identifier(schemaName)}.tickets t
         LEFT JOIN ${sql.identifier(schemaName)}.customers c ON t.caller_id = c.id
         WHERE t.tenant_id = ${validatedTenantId}
+          AND (t.status IS NULL OR t.status != 'deleted')
       `;
 
       // Apply filters
       if (search) {
         baseQuery = sql`${baseQuery} AND (
-          t.subject ILIKE ${'%' + search + '%'} OR 
-          t.description ILIKE ${'%' + search + '%'}
+          COALESCE(t.subject, t.short_description) ILIKE ${'%' + search + '%'} OR 
+          t.description ILIKE ${'%' + search + '%'} OR
+          COALESCE(t.number, CONCAT('T-', SUBSTRING(t.id::text, 1, 8))) ILIKE ${'%' + search + '%'}
         )`;
       }
 
-      if (status) {
-        baseQuery = sql`${baseQuery} AND t.status = ${status}`;
+      if (status && status !== '') {
+        baseQuery = sql`${baseQuery} AND COALESCE(t.status, t.state, 'open') = ${status}`;
       }
 
-      if (priority) {
-        baseQuery = sql`${baseQuery} AND t.priority = ${priority}`;
+      if (priority && priority !== '') {
+        baseQuery = sql`${baseQuery} AND COALESCE(t.priority, 'medium') = ${priority}`;
       }
 
-      if (assignedToId) {
+      if (assignedToId && assignedToId !== '') {
         baseQuery = sql`${baseQuery} AND t.assigned_to_id = ${assignedToId}`;
       }
 
-      if (companyId) {
+      if (companyId && companyId !== '') {
         baseQuery = sql`${baseQuery} AND t.company_id = ${companyId}`;
       }
 
@@ -470,10 +474,27 @@ export class DatabaseStorage implements IStorage {
       console.log('🎫 [STORAGE-SIMPLE] Query result:', {
         rowCount: result.rows?.length || 0,
         tenantId: validatedTenantId,
-        schemaName
+        schemaName,
+        sampleTicket: result.rows?.[0] ? {
+          id: result.rows[0].id,
+          subject: result.rows[0].subject,
+          status: result.rows[0].status
+        } : null
       });
 
-      return result.rows || [];
+      // Transform data for frontend compatibility
+      const tickets = (result.rows || []).map((ticket: any) => ({
+        ...ticket,
+        // Ensure consistent field naming
+        subject: ticket.subject || ticket.short_description || 'Sem título',
+        status: ticket.status || ticket.state || 'open',
+        priority: ticket.priority || 'medium',
+        number: ticket.number || `T-${ticket.id.substring(0, 8)}`,
+        created_at: ticket.created_at || ticket.opened_at,
+        updated_at: ticket.updated_at || ticket.created_at
+      }));
+
+      return tickets;
     } catch (error) {
       console.error('❌ [STORAGE-SIMPLE] Error getting tickets:', error);
       logError('Error getting tickets', error, { tenantId, options });

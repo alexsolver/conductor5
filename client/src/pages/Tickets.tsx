@@ -93,9 +93,11 @@ export default function Tickets() {
   // Token management handled by auth hook
   // Remove debug code for production
 
-  const { data: tickets, isLoading, error } = useQuery({
+  const { data: ticketsResponse, isLoading, error } = useQuery({
     queryKey: ["/api/tickets"],
-    retry: false,
+    retry: 1,
+    refetchOnWindowFocus: false,
+    staleTime: 30000, // 30 seconds
   });
 
   // Fetch customers for the dropdown
@@ -415,7 +417,73 @@ export default function Tickets() {
     );
   }
 
-  const ticketsList = (tickets as any)?.data?.tickets || [];
+  // Handle API errors
+  if (error) {
+    return (
+      <div className="p-4 space-y-6">
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+            Tickets de Suporte
+          </h1>
+        </div>
+        <Card>
+          <CardContent className="p-6 text-center">
+            <div className="text-red-500 mb-4">
+              <FileText className="h-12 w-12 mx-auto mb-2" />
+              <h3 className="text-lg font-semibold">Erro ao carregar tickets</h3>
+              <p className="text-sm text-gray-600 mt-2">
+                {error?.message || 'Falha na comunicação com o servidor'}
+              </p>
+              <Button 
+                onClick={() => window.location.reload()} 
+                className="mt-4"
+                variant="outline"
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Tentar novamente
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Extract tickets with better error handling
+  const ticketsList = React.useMemo(() => {
+    if (!ticketsResponse) return [];
+    
+    // Handle different response structures
+    if (ticketsResponse.data?.tickets) {
+      return ticketsResponse.data.tickets;
+    }
+    
+    if (Array.isArray(ticketsResponse.data)) {
+      return ticketsResponse.data;
+    }
+    
+    if (Array.isArray(ticketsResponse)) {
+      return ticketsResponse;
+    }
+    
+    console.warn('🎫 Unexpected tickets response structure:', ticketsResponse);
+    return [];
+  }, [ticketsResponse]);
+
+  // Debug log for tickets data
+  React.useEffect(() => {
+    console.log('🎫 Tickets data update:', {
+      isLoading,
+      error: error?.message,
+      responseStructure: ticketsResponse ? Object.keys(ticketsResponse) : null,
+      ticketsCount: ticketsList.length,
+      sampleTicket: ticketsList[0] ? {
+        id: ticketsList[0].id,
+        subject: ticketsList[0].subject,
+        status: ticketsList[0].status
+      } : null
+    });
+  }, [isLoading, error, ticketsResponse, ticketsList]);
 
   return (
     <div className="p-4 space-y-6">

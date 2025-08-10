@@ -117,6 +117,73 @@ ticketsRouter.use((req: any, res, next) => {
   next();
 });
 
+// Get all tickets (main endpoint)
+ticketsRouter.get('/', async (req: AuthenticatedRequest, res) => {
+  try {
+    console.log('🎫 [TICKETS-ROUTES] GET / called');
+    
+    if (!req.user?.tenantId) {
+      console.error('❌ [TICKETS-ROUTES] No tenantId found');
+      return res.status(400).json({
+        success: false,
+        error: 'User not associated with a tenant',
+        data: { tickets: [] }
+      });
+    }
+
+    const {
+      page = '1',
+      limit = '50',
+      search,
+      status,
+      priority,
+      assignedToId,
+      companyId
+    } = req.query;
+
+    const options = {
+      page: parseInt(page as string, 10),
+      limit: parseInt(limit as string, 10),
+      search: search as string,
+      status: status as string,
+      priority: priority as string,
+      assignedToId: assignedToId as string,
+      companyId: companyId as string
+    };
+
+    console.log('🎫 [TICKETS-ROUTES] Fetching tickets with options:', options);
+
+    const tickets = await storageSimple.getTickets(req.user.tenantId, options);
+    
+    console.log('🎫 [TICKETS-ROUTES] Retrieved tickets:', {
+      count: tickets.length,
+      sample: tickets.slice(0, 2).map(t => ({ id: t.id, subject: t.subject }))
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: { 
+        tickets,
+        total: tickets.length,
+        page: options.page,
+        limit: options.limit
+      },
+      message: `Retrieved ${tickets.length} tickets successfully`
+    });
+
+  } catch (error: any) {
+    console.error('❌ [TICKETS-ROUTES] Error in GET /:', error);
+    const { logError } = await import('../../utils/logger');
+    logError('Error fetching tickets', error, { tenantId: req.user?.tenantId });
+    
+    return res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to fetch tickets',
+      data: { tickets: [] }
+    });
+  }
+});
+
 // Get urgent tickets (filtered from all tickets)
 ticketsRouter.get('/urgent', async (req: AuthenticatedRequest, res) => {
   try {
