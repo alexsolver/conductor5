@@ -1,16 +1,16 @@
 # Clean Architecture Validation Report
 
 **Data:** 2025-08-10  
-**Score:** 34/100  
+**Score:** 33/100  
 **Status:** ❌ REPROVADO
 
 ## Resumo de Problemas
 
 - 🔥 **Críticos:** 16
 - ⚠️ **Altos:** 73
-- 📋 **Médios:** 61
+- 📋 **Médios:** 55
 - 💡 **Baixos:** 5
-- **Total:** 155
+- **Total:** 149
 
 ## Principais Problemas por Módulo
 
@@ -61,20 +61,20 @@
   - Application Layer violando dependência: express
 
 ### 🔥 schedule-management
-- **Total de problemas:** 11
+- **Total de problemas:** 9
 - **Críticos:** 3 | **Altos:** 1
 - **Principais problemas:**
-  - Estrutura events ausente na camada domain
-  - Estrutura services ausente na camada domain
   - Estrutura use-cases ausente na camada application
+  - Estrutura dto ausente na camada application
+  - Estrutura services ausente na camada application
 
 ### 🔥 technical-skills
-- **Total de problemas:** 14
+- **Total de problemas:** 12
 - **Críticos:** 1 | **Altos:** 8
 - **Principais problemas:**
-  - Estrutura events ausente na camada domain
-  - Estrutura services ausente na camada domain
-  - Estrutura use-cases ausente na camada application
+  - Estrutura dto ausente na camada application
+  - Estrutura services ausente na camada application
+  - Routes contém lógica de negócio ou acesso a dados
 
 ### 📋 template-audit
 - **Total de problemas:** 2
@@ -116,12 +116,12 @@
   - Routes contém lógica de negócio ou acesso a dados
 
 ### 🔥 timecard
-- **Total de problemas:** 16
+- **Total de problemas:** 14
 - **Críticos:** 1 | **Altos:** 6
 - **Principais problemas:**
-  - Estrutura events ausente na camada domain
-  - Estrutura services ausente na camada domain
   - Estrutura use-cases ausente na camada application
+  - Estrutura dto ausente na camada application
+  - Estrutura services ausente na camada application
 
 ### 🔥 shared
 - **Total de problemas:** 6
@@ -238,53 +238,47 @@
 
 ### 🔥 schedule-management
 - **Prioridade:** immediate
-- **Tempo estimado:** 5h
-- **Ações:** 10
+- **Tempo estimado:** 4h
+- **Ações:** 8
 
-1. **create_directory:** Criar diretório/arquivo events na camada domain
-2. **create_directory:** Criar diretório/arquivo services na camada domain
-3. **create_directory:** Criar diretório/arquivo use-cases na camada application
-4. **create_directory:** Criar diretório/arquivo dto na camada application
-5. **create_directory:** Criar diretório/arquivo services na camada application
-6. **refactor_code:** Refatorar dependência inválida na camada domain
-7. **refactor_code:** Refatorar dependência inválida na camada domain
-8. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
-9. **rename_file:** Padronizar nomenclatura: Nome da classe CustomerModule não corresponde ao arquivo Schedule
-10. **create_file:** Criar Repository com interface
+1. **create_directory:** Criar diretório/arquivo use-cases na camada application
+2. **create_directory:** Criar diretório/arquivo dto na camada application
+3. **create_directory:** Criar diretório/arquivo services na camada application
+4. **refactor_code:** Refatorar dependência inválida na camada domain
+5. **refactor_code:** Refatorar dependência inválida na camada domain
+6. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
+7. **rename_file:** Padronizar nomenclatura: Nome da classe CustomerModule não corresponde ao arquivo Schedule
+8. **create_file:** Criar Repository com interface
 
 ### 🔥 technical-skills
 - **Prioridade:** immediate
-- **Tempo estimado:** 6h
-- **Ações:** 10
+- **Tempo estimado:** 5h
+- **Ações:** 8
 
-1. **create_directory:** Criar diretório/arquivo events na camada domain
-2. **create_directory:** Criar diretório/arquivo services na camada domain
-3. **create_directory:** Criar diretório/arquivo use-cases na camada application
-4. **create_directory:** Criar diretório/arquivo dto na camada application
-5. **create_directory:** Criar diretório/arquivo services na camada application
-6. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
-7. **refactor_code:** Refatorar dependência inválida na camada domain
-8. **refactor_code:** Refatorar dependência inválida na camada application
-9. **refactor_code:** Refatorar dependência inválida na camada application
-10. **create_file:** Criar Repository com interface
+1. **create_directory:** Criar diretório/arquivo dto na camada application
+2. **create_directory:** Criar diretório/arquivo services na camada application
+3. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
+4. **refactor_code:** Refatorar dependência inválida na camada domain
+5. **refactor_code:** Refatorar dependência inválida na camada application
+6. **refactor_code:** Refatorar dependência inválida na camada application
+7. **rename_file:** Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'
+8. **create_file:** Criar Repository com interface
 
 ### 🔥 timecard
 - **Prioridade:** immediate
 - **Tempo estimado:** 6h
-- **Ações:** 12
+- **Ações:** 10
 
-1. **create_directory:** Criar diretório/arquivo events na camada domain
-2. **create_directory:** Criar diretório/arquivo services na camada domain
-3. **create_directory:** Criar diretório/arquivo use-cases na camada application
-4. **create_directory:** Criar diretório/arquivo dto na camada application
-5. **create_directory:** Criar diretório/arquivo services na camada application
-6. **refactor_code:** Refatorar dependência inválida na camada domain
-7. **refactor_code:** Refatorar dependência inválida na camada application
-8. **refactor_code:** Refatorar dependência inválida na camada application
-9. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
-10. **rename_file:** Padronizar nomenclatura: Entity index não segue padrão PascalCase
-11. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
-12. **create_file:** Criar Repository com interface
+1. **create_directory:** Criar diretório/arquivo use-cases na camada application
+2. **create_directory:** Criar diretório/arquivo dto na camada application
+3. **create_directory:** Criar diretório/arquivo services na camada application
+4. **refactor_code:** Refatorar dependência inválida na camada domain
+5. **refactor_code:** Refatorar dependência inválida na camada application
+6. **refactor_code:** Refatorar dependência inválida na camada application
+7. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
+8. **rename_file:** Padronizar nomenclatura: Entity index não segue padrão PascalCase
+9. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
+10. **create_file:** Criar Repository com interface
 
 ### 🔥 shared
 - **Prioridade:** immediate
@@ -401,9 +395,9 @@
 - **knowledge-base:** 9 ações (7h)
 - **materials-services:** 35 ações (27h)
 - **saas-admin:** 6 ações (4h)
-- **schedule-management:** 10 ações (5h)
-- **technical-skills:** 10 ações (6h)
-- **timecard:** 12 ações (6h)
+- **schedule-management:** 8 ações (4h)
+- **technical-skills:** 8 ações (5h)
+- **timecard:** 10 ações (6h)
 - **shared:** 6 ações (4h)
 
 ### Prioridade Alta ⚠️

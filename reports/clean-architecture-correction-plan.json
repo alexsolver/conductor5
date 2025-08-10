@@ -642,22 +642,6 @@
     "actions": [
       {
         "type": "create_directory",
-        "description": "Criar diretório/arquivo events na camada domain",
-        "target": "server/modules/schedule-management/domain/events",
-        "steps": [
-          "Criar diretório/arquivo events na camada domain"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo services na camada domain",
-        "target": "server/modules/schedule-management/domain/services",
-        "steps": [
-          "Criar diretório/arquivo services na camada domain"
-        ]
-      },
-      {
-        "type": "create_directory",
         "description": "Criar diretório/arquivo use-cases na camada application",
         "target": "server/modules/schedule-management/application/use-cases",
         "steps": [
@@ -740,36 +724,12 @@
         ]
       }
     ],
-    "estimatedTime": "5h"
+    "estimatedTime": "4h"
   },
   {
     "priority": "immediate",
     "module": "technical-skills",
     "actions": [
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo events na camada domain",
-        "target": "server/modules/technical-skills/domain/events",
-        "steps": [
-          "Criar diretório/arquivo events na camada domain"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo services na camada domain",
-        "target": "server/modules/technical-skills/domain/services",
-        "steps": [
-          "Criar diretório/arquivo services na camada domain"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo use-cases na camada application",
-        "target": "server/modules/technical-skills/application/use-cases",
-        "steps": [
-          "Criar diretório/arquivo use-cases na camada application"
-        ]
-      },
       {
         "type": "create_directory",
         "description": "Criar diretório/arquivo dto na camada application",
@@ -835,6 +795,17 @@
         ]
       },
       {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'",
+        "target": "server/modules/technical-skills/application/use-cases/index.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
         "type": "create_file",
         "description": "Criar Repository com interface",
         "target": "server/modules/technical-skills/infrastructure/repositories/SkillEntityRepository.ts",
@@ -847,28 +818,12 @@
         ]
       }
     ],
-    "estimatedTime": "6h"
+    "estimatedTime": "5h"
   },
   {
     "priority": "immediate",
     "module": "timecard",
     "actions": [
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo events na camada domain",
-        "target": "server/modules/timecard/domain/events",
-        "steps": [
-          "Criar diretório/arquivo events na camada domain"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo services na camada domain",
-        "target": "server/modules/timecard/domain/services",
-        "steps": [
-          "Criar diretório/arquivo services na camada domain"
-        ]
-      },
       {
         "type": "create_directory",
         "description": "Criar diretório/arquivo use-cases na camada application",
