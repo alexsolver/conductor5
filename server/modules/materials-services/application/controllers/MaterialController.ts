@@ -1,3 +1,5 @@
+import { Request, Response } from 'express';
+
 interface HttpRequest {
   body: any;
   params: any;

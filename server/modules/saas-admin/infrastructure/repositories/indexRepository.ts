@@ -1,1 +1,5 @@
-export { SaasConfigRepository as DrizzleSaasConfigRepository } from './DrizzleSaasConfigRepository';
+import { ISaasConfigRepository } from '../../domain/ports/ISaasConfigRepository';
+import { SaasConfig } from '../../domain/entities/SaasConfig';
+
+export class SaasConfigRepository implements ISaasConfigRepository {
+}

@@ -48,7 +48,14 @@ export class TicketController {
     companyId?: string;
   }) {
     try {
-      return await this.getTicketsUseCase.execute(options);
+      if (!this.getTicketsUseCase) {
+      throw new Error('GetTicketsUseCase not initialized');
+    }
+
+    const result = await this.getTicketsUseCase.execute({
+      ...options
+    });
+      return result;
     } catch (error) {
       console.error('Error in getAllTickets:', error);
       throw error;

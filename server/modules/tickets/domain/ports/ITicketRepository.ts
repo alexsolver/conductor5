@@ -20,6 +20,7 @@ export interface TicketFilter {
 }
 
 export interface ITicketRepository {
+  create(ticket: Ticket): Promise<Ticket>;
   findById(id: string, tenantId: string): Promise<Ticket | null>;
   findByNumber(number: string, tenantId: string): Promise<Ticket | null>;
   findMany(filter: TicketFilter): Promise<Ticket[]>;
@@ -30,4 +31,5 @@ export interface ITicketRepository {
   findOverdue(tenantId: string): Promise<Ticket[]>;
   findUnassigned(tenantId: string): Promise<Ticket[]>;
   getNextTicketNumber(tenantId: string, prefix?: string): Promise<string>;
+  update(id: string, ticket: Partial<Ticket>): Promise<Ticket | null>;
 }

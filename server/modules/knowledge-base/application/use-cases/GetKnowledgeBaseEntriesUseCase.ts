@@ -1,5 +1,6 @@
 import { IKnowledgeBaseEntryRepository } from '../../domain/ports/IKnowledgeBaseEntryRepository';
 import { KnowledgeBaseEntry } from '../../domain/entities/KnowledgeBaseEntry';
+import { IMediaRepository } from '../../domain/ports/IMediaRepository';
 
 export class GetKnowledgeBaseEntriesUseCase {
   constructor(
