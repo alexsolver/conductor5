@@ -9,7 +9,7 @@ export interface SaasConfig {
   updatedAt: Date;
 }
 
-// Removed drizzle dependency - Domain entities should not import infrastructure
+// Domain entities should not import infrastructure dependencies
 export class SaasConfig {
   constructor(
     public readonly id: string,

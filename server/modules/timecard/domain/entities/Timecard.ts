@@ -1,4 +1,4 @@
-// Domain entity - no ORM dependencies
+// Domain entities should not import infrastructure dependencies
 export class Timecard {
   constructor(
     public readonly id: string,

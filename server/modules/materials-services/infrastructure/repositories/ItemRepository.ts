@@ -10,7 +10,7 @@ import * as crypto from 'crypto';
 import { IMaterialRepository } from '../../domain/ports/IMaterialRepository';
 import { Material } from '../../domain/entities/Material';
 
-export class ItemRepository implements IMaterialRepository {
+export class DrizzleMaterialRepository implements IMaterialRepository {
   private db: NodePgDatabase<any>;
   private tenantId: string; // Adicionado para uso nos métodos SQL brutos
 

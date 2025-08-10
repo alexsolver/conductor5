@@ -1,3 +1,4 @@
-export { SearchPeopleUseCase } from './SearchPeopleUseCase';
-export { CreatePersonUseCase } from './CreatePersonUseCase';
-export { UpdatePersonUseCase } from './UpdatePersonUseCase';
+// IndexUseCase.ts - Following UseCase naming pattern
+export * from './CreatePersonUseCase';
+export * from './SearchPeopleUseCase';
+export * from './UpdatePersonUseCase';

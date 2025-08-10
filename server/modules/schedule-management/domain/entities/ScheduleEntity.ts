@@ -57,24 +57,10 @@ export interface Customer {
 
 // src/domain/entities/schedule.entity.ts
 
-// Removed drizzle-orm dependency - domain entities should not import infrastructure
+// Domain entities should not import infrastructure dependencies
 
-export interface ScheduleProps {
-  id: string;
-  userId: string;
-  customerId?: string;
-  startTime: Date;
-  endTime: Date;
-  title: string;
-  description?: string;
-  status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
-  location?: string;
-  createdAt?: Date;
-  updatedAt?: Date;
-}
-
-export class Schedule {
-  private constructor(
+export class ScheduleEntity {
+  constructor(
     public readonly id: string,
     public readonly userId: string,
     public readonly customerId: string | undefined,
@@ -88,12 +74,12 @@ export class Schedule {
     public readonly updatedAt: Date = new Date()
   ) {}
 
-  static create(props: Omit<ScheduleProps, 'id' | 'createdAt' | 'updatedAt'>): Schedule {
+  static create(props: Omit<ScheduleProps, 'id' | 'createdAt' | 'updatedAt'>): ScheduleEntity {
     if (props.endTime <= props.startTime) {
       throw new Error('End time must be after start time');
     }
 
-    return new Schedule(
+    return new ScheduleEntity(
       crypto.randomUUID(),
       props.userId,
       props.customerId,
@@ -106,8 +92,8 @@ export class Schedule {
     );
   }
 
-  static reconstruct(props: ScheduleProps): Schedule {
-    return new Schedule(
+  static reconstruct(props: ScheduleProps): ScheduleEntity {
+    return new ScheduleEntity(
       props.id,
       props.userId,
       props.customerId,
@@ -122,12 +108,12 @@ export class Schedule {
     );
   }
 
-  start(): Schedule {
+  start(): ScheduleEntity {
     if (this.status !== 'scheduled') {
       throw new Error('Only scheduled appointments can be started');
     }
 
-    return new Schedule(
+    return new ScheduleEntity(
       this.id,
       this.userId,
       this.customerId,
@@ -142,12 +128,12 @@ export class Schedule {
     );
   }
 
-  complete(): Schedule {
+  complete(): ScheduleEntity {
     if (this.status !== 'in_progress') {
       throw new Error('Only in-progress appointments can be completed');
     }
 
-    return new Schedule(
+    return new ScheduleEntity(
       this.id,
       this.userId,
       this.customerId,
@@ -162,12 +148,12 @@ export class Schedule {
     );
   }
 
-  cancel(): Schedule {
+  cancel(): ScheduleEntity {
     if (this.status === 'completed') {
       throw new Error('Completed appointments cannot be cancelled');
     }
 
-    return new Schedule(
+    return new ScheduleEntity(
       this.id,
       this.userId,
       this.customerId,
@@ -181,6 +167,22 @@ export class Schedule {
       new Date()
     );
   }
+}
+
+// src/domain/entities/schedule.entity.ts
+
+export interface ScheduleProps {
+  id: string;
+  userId: string;
+  customerId?: string;
+  startTime: Date;
+  endTime: Date;
+  title: string;
+  description?: string;
+  status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
+  location?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 // src/domain/entities/appointment.entity.ts

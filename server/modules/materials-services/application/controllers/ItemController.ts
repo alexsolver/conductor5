@@ -1,6 +1,6 @@
 // Removed express dependency - using abstracted interfaces instead
-import { ItemRepository } from '../../infrastructure/repositories/ItemRepository';
 import crypto from 'crypto';
+import { ItemRepository } from '../../infrastructure/repositories/ItemRepository';
 
 interface AuthenticatedRequest extends Request {
   user?: {

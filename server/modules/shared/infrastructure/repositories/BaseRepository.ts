@@ -1,8 +1,10 @@
 import { Pool } from 'pg';
 import { IBaseRepository } from '../../domain/repositories/IBaseRepository';
+import { drizzle } from 'drizzle-orm/neon-http';
+import * as schema from '@shared/schema';
 
 export abstract class BaseRepository<T> implements IBaseRepository<T> {
-  constructor(protected readonly db: any) {} // Accept any database implementation
+  constructor(protected readonly db: ReturnType<typeof drizzle>) {} // Accept any database implementation
 
   abstract findById(id: string, tenantId: string): Promise<T | null>;
   abstract findAll(tenantId: string): Promise<T[]>;
