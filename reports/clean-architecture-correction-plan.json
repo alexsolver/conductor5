@@ -594,7 +594,7 @@
       },
       {
         "type": "rename_file",
-        "description": "Padronizar nomenclatura: Nome da classe CustomerModule não corresponde ao arquivo ScheduleEntity",
+        "description": "Padronizar nomenclatura: Nome da classe Schedule não corresponde ao arquivo ScheduleEntity",
         "target": "/home/runner/workspace/server/modules/schedule-management/domain/entities/ScheduleEntity.ts",
         "steps": [
           "Renomear arquivo seguindo padrão",

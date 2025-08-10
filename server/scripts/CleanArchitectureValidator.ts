@@ -74,8 +74,9 @@ class CleanArchitectureValidator {
     const possiblePaths = [
       join(cwd, 'server/modules'),
       join(cwd, 'modules'),
-      'server/modules',
+      join(process.cwd(), 'server/modules'),
       './server/modules',
+      'server/modules',
       'modules'
     ];
 

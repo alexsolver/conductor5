@@ -16,7 +16,7 @@ import { CustomerRepository } from '../domain/repositories/customer.repository';
     },
   ],
 })
-export class CustomerModule {}
+export class Schedule {}
 
 // src/domain/entities/customer.entity.ts
 

@@ -73,7 +73,7 @@
 - **Principais problemas:**
   - Domain Layer violando dependência: drizzle-orm/neon-http
   - Repository contém possível lógica de negócio
-  - Nome da classe CustomerModule não corresponde ao arquivo ScheduleEntity
+  - Nome da classe Schedule não corresponde ao arquivo ScheduleEntity
 
 ### 🔥 shared
 - **Total de problemas:** 7
@@ -184,7 +184,7 @@
 
 1. **refactor_code:** Refatorar dependência inválida na camada domain
 2. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
-3. **rename_file:** Padronizar nomenclatura: Nome da classe CustomerModule não corresponde ao arquivo ScheduleEntity
+3. **rename_file:** Padronizar nomenclatura: Nome da classe Schedule não corresponde ao arquivo ScheduleEntity
 4. **create_file:** Criar Repository com interface
 
 ### 🔥 shared

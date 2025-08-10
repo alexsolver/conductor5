@@ -1,3 +1,5 @@
+// Removed DTO dependency - domain entities should not depend on application DTOs
+
 export class Beneficiary {
   constructor(
     public readonly id: string,
