@@ -36,3 +36,31 @@ export function standardResponse<T = any>(
 
   res.status(statusCode).json(response);
 }
+
+// Helper functions for common response patterns
+export function sendSuccess<T = any>(
+  res: Response,
+  data?: T,
+  message: string = 'Success',
+  statusCode: number = 200
+): void {
+  standardResponse(res, statusCode, message, data);
+}
+
+export function sendError(
+  res: Response,
+  error: any,
+  message: string = 'An error occurred',
+  statusCode: number = 500
+): void {
+  const errorMessage = typeof error === 'string' ? error : error?.message || 'Unknown error';
+  standardResponse(res, statusCode, message, undefined, errorMessage);
+}
+
+export function sendValidationError(
+  res: Response,
+  message: string = 'Validation failed',
+  errors?: any
+): void {
+  standardResponse(res, 400, message, undefined, errors);
+}
