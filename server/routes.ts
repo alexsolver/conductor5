@@ -2112,25 +2112,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/timecard/approval/users', jwtAuth, timecardApprovalController.getAvailableUsers);
 
   // 🔴 CLT COMPLIANCE ROUTES - OBRIGATÓRIAS POR LEI
-  // Verificação de integridade da cadeia CLT
-  if (cltComplianceController && typeof cltComplianceController.checkIntegrity === 'function') {
-    app.get('/api/timecard/compliance/integrity-check', jwtAuth, cltComplianceController.checkIntegrity.bind(cltComplianceController));
-  }
+  // Check if controller exists and has methods before binding routes
+  if (cltComplianceController) {
+    // Verificação de integridade da cadeia CLT
+    if (typeof cltComplianceController.checkIntegrity === 'function') {
+      app.get('/api/timecard/compliance/integrity-check', jwtAuth, cltComplianceController.checkIntegrity.bind(cltComplianceController));
+    } else {
+      app.get('/api/timecard/compliance/integrity-check', jwtAuth, (req, res) => {
+        res.status(501).json({ message: 'Verificação de integridade não implementada' });
+      });
+    }
 
-  // Trilha de auditoria completa
-  if (cltComplianceController && typeof cltComplianceController.getAuditLog === 'function') {
-    app.get('/api/timecard/compliance/audit-log', jwtAuth, cltComplianceController.getAuditLog.bind(cltComplianceController));
-  }
+    // Trilha de auditoria completa
+    if (typeof cltComplianceController.getAuditLog === 'function') {
+      app.get('/api/timecard/compliance/audit-log', jwtAuth, cltComplianceController.getAuditLog.bind(cltComplianceController));
+    } else {
+      app.get('/api/timecard/compliance/audit-log', jwtAuth, (req, res) => {
+        res.status(501).json({ message: 'Log de auditoria não implementado' });
+      });
+    }
 
-  // Relatórios de compliance para fiscalização
-  if (cltComplianceController && typeof cltComplianceController.generateComplianceReport === 'function') {
-    app.post('/api/timecard/compliance/generate-report', jwtAuth, cltComplianceController.generateComplianceReport.bind(cltComplianceController));
-  }
-  if (cltComplianceController && typeof cltComplianceController.listComplianceReports === 'function') {
-    app.get('/api/timecard/compliance/reports', jwtAuth, cltComplianceController.listComplianceReports.bind(cltComplianceController));
-  }
-  if (cltComplianceController && typeof cltComplianceController.downloadComplianceReport === 'function') {
-    app.get('/api/timecard/compliance/reports/:reportId', jwtAuth, cltComplianceController.downloadComplianceReport.bind(cltComplianceController));
+    // Relatórios de compliance para fiscalização
+    if (typeof cltComplianceController.generateComplianceReport === 'function') {
+      app.post('/api/timecard/compliance/generate-report', jwtAuth, cltComplianceController.generateComplianceReport.bind(cltComplianceController));
+    } else {
+      app.post('/api/timecard/compliance/generate-report', jwtAuth, (req, res) => {
+        res.status(501).json({ message: 'Geração de relatórios não implementada' });
+      });
+    }
+
+    if (typeof cltComplianceController.listComplianceReports === 'function') {
+      app.get('/api/timecard/compliance/reports', jwtAuth, cltComplianceController.listComplianceReports.bind(cltComplianceController));
+    } else {
+      app.get('/api/timecard/compliance/reports', jwtAuth, (req, res) => {
+        res.status(501).json({ message: 'Listagem de relatórios não implementada' });
+      });
+    }
+
+    if (typeof cltComplianceController.downloadComplianceReport === 'function') {
+      app.get('/api/timecard/compliance/reports/:reportId', jwtAuth, cltComplianceController.downloadComplianceReport.bind(cltComplianceController));
+    } else {
+      app.get('/api/timecard/compliance/reports/:reportId', jwtAuth, (req, res) => {
+        res.status(501).json({ message: 'Download de relatórios não implementado' });
+      });
+    }
+  } else {
+    console.warn('CLT Compliance Controller not available - using mock endpoints');
+    app.get('/api/timecard/compliance/integrity-check', jwtAuth, (req, res) => {
+      res.status(501).json({ message: 'Controller CLT não disponível' });
+    });
+    app.get('/api/timecard/compliance/audit-log', jwtAuth, (req, res) => {
+      res.status(501).json({ message: 'Controller CLT não disponível' });
+    });
+    app.post('/api/timecard/compliance/generate-report', jwtAuth, (req, res) => {
+      res.status(501).json({ message: 'Controller CLT não disponível' });
+    });
+    app.get('/api/timecard/compliance/reports', jwtAuth, (req, res) => {
+      res.status(501).json({ message: 'Controller CLT não disponível' });
+    });
+    app.get('/api/timecard/compliance/reports/:reportId', jwtAuth, (req, res) => {
+      res.status(501).json({ message: 'Controller CLT não disponível' });
+    });
   }
 
   // Direct CLT Reports - Bypass routing conflicts
@@ -2177,19 +2219,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Status dos backups
   if (cltComplianceController && typeof cltComplianceController.getBackupStatus === 'function') {
     app.get('/api/timecard/compliance/backups', jwtAuth, cltComplianceController.getBackupStatus.bind(cltComplianceController));
+  } else {
+    app.get('/api/timecard/compliance/backups', jwtAuth, (req, res) => {
+      res.status(501).json({ message: 'Status de backup não implementado' });
+    });
   }
+
   if (cltComplianceController && typeof cltComplianceController.verifyBackup === 'function') {
     app.post('/api/timecard/compliance/verify-backup', jwtAuth, cltComplianceController.verifyBackup.bind(cltComplianceController));
+  } else {
+    app.post('/api/timecard/compliance/verify-backup', jwtAuth, (req, res) => {
+      res.status(501).json({ message: 'Verificação de backup não implementada' });
+    });
   }
 
   // Status das chaves de assinatura digital
   if (cltComplianceController && typeof cltComplianceController.getDigitalKeys === 'function') {
     app.get('/api/timecard/compliance/keys', jwtAuth, cltComplianceController.getDigitalKeys.bind(cltComplianceController));
+  } else {
+    app.get('/api/timecard/compliance/keys', jwtAuth, (req, res) => {
+      res.status(501).json({ message: 'Gestão de chaves digitais não implementada' });
+    });
   }
 
   // Reconstituição da cadeia de integridade
   if (cltComplianceController && typeof cltComplianceController.rebuildIntegrityChain === 'function') {
     app.post('/api/timecard/compliance/rebuild-integrity', jwtAuth, cltComplianceController.rebuildIntegrityChain.bind(cltComplianceController));
+  } else {
+    app.post('/api/timecard/compliance/rebuild-integrity', jwtAuth, (req, res) => {
+      res.status(501).json({ message: 'Reconstituição de integridade não implementada' });
+    });
   }
 
   // Contract Management routes - Gestão de Contratos
