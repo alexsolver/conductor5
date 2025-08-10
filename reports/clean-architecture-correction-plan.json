@@ -59,22 +59,6 @@
     "module": "knowledge-base",
     "actions": [
       {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo events na camada domain",
-        "target": "server/modules/knowledge-base/domain/events",
-        "steps": [
-          "Criar diretório/arquivo events na camada domain"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo services na camada domain",
-        "target": "server/modules/knowledge-base/domain/services",
-        "steps": [
-          "Criar diretório/arquivo services na camada domain"
-        ]
-      },
-      {
         "type": "move_code",
         "description": "Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados",
         "target": "server/modules/knowledge-base/routes.ts",
@@ -181,38 +165,6 @@
     "priority": "immediate",
     "module": "materials-services",
     "actions": [
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo events na camada domain",
-        "target": "server/modules/materials-services/domain/events",
-        "steps": [
-          "Criar diretório/arquivo events na camada domain"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo services na camada domain",
-        "target": "server/modules/materials-services/domain/services",
-        "steps": [
-          "Criar diretório/arquivo services na camada domain"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo use-cases na camada application",
-        "target": "server/modules/materials-services/application/use-cases",
-        "steps": [
-          "Criar diretório/arquivo use-cases na camada application"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo dto na camada application",
-        "target": "server/modules/materials-services/application/dto",
-        "steps": [
-          "Criar diretório/arquivo dto na camada application"
-        ]
-      },
       {
         "type": "move_code",
         "description": "Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados",
@@ -537,6 +489,17 @@
         ]
       },
       {
+        "type": "rename_file",
+        "description": "Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'",
+        "target": "server/modules/materials-services/application/use-cases/index.ts",
+        "steps": [
+          "Renomear arquivo seguindo padrão",
+          "Atualizar imports em outros arquivos",
+          "Atualizar nome da classe/interface",
+          "Verificar consistência com padrões do projeto"
+        ]
+      },
+      {
         "type": "create_directory",
         "description": "Criar interface I[Entity]Repository no domain e implementar",
         "target": "server/modules/materials-services/infrastructure/repositories/AssetManagementRepository.ts",
@@ -597,7 +560,7 @@
         ]
       }
     ],
-    "estimatedTime": "28h"
+    "estimatedTime": "27h"
   },
   {
     "priority": "immediate",
@@ -1115,57 +1078,6 @@
   },
   {
     "priority": "high",
-    "module": "template-audit",
-    "actions": [
-      {
-        "type": "create_directory",
-        "description": "Criar estrutura da camada domain",
-        "target": "server/modules/template-audit/domain",
-        "steps": [
-          "Criar diretório: server/modules/template-audit/domain",
-          "Adicionar arquivo README.md explicando responsabilidades da camada",
-          "Criar subdiretórios conforme padrão Clean Architecture"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo use-cases na camada application",
-        "target": "server/modules/template-audit/application/use-cases",
-        "steps": [
-          "Criar diretório/arquivo use-cases na camada application"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo dto na camada application",
-        "target": "server/modules/template-audit/application/dto",
-        "steps": [
-          "Criar diretório/arquivo dto na camada application"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo services na camada application",
-        "target": "server/modules/template-audit/application/services",
-        "steps": [
-          "Criar diretório/arquivo services na camada application"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar estrutura da camada infrastructure",
-        "target": "server/modules/template-audit/infrastructure",
-        "steps": [
-          "Criar diretório: server/modules/template-audit/infrastructure",
-          "Adicionar arquivo README.md explicando responsabilidades da camada",
-          "Criar subdiretórios conforme padrão Clean Architecture"
-        ]
-      }
-    ],
-    "estimatedTime": "50min"
-  },
-  {
-    "priority": "high",
     "module": "template-hierarchy",
     "actions": [
       {
@@ -1386,6 +1298,45 @@
       }
     ],
     "estimatedTime": "20min"
+  },
+  {
+    "priority": "low",
+    "module": "template-audit",
+    "actions": [
+      {
+        "type": "create_directory",
+        "description": "Criar diretório/arquivo events na camada domain",
+        "target": "server/modules/template-audit/domain/events",
+        "steps": [
+          "Criar diretório/arquivo events na camada domain"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Criar diretório/arquivo services na camada domain",
+        "target": "server/modules/template-audit/domain/services",
+        "steps": [
+          "Criar diretório/arquivo services na camada domain"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Criar diretório/arquivo services na camada application",
+        "target": "server/modules/template-audit/application/services",
+        "steps": [
+          "Criar diretório/arquivo services na camada application"
+        ]
+      },
+      {
+        "type": "create_directory",
+        "description": "Criar interface I[Entity]Repository no domain e implementar",
+        "target": "server/modules/template-audit/infrastructure/repositories/DrizzleTemplateAuditRepository.ts",
+        "steps": [
+          "Criar interface I[Entity]Repository no domain e implementar"
+        ]
+      }
+    ],
+    "estimatedTime": "40min"
   },
   {
     "priority": "low",
