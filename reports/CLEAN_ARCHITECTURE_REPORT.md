@@ -7,10 +7,10 @@
 ## Resumo de Problemas
 
 - 🔥 **Críticos:** 2
-- ⚠️ **Altos:** 48
-- 📋 **Médios:** 23
+- ⚠️ **Altos:** 52
+- 📋 **Médios:** 22
 - 💡 **Baixos:** 0
-- **Total:** 73
+- **Total:** 76
 
 ## Principais Problemas por Módulo
 
@@ -31,18 +31,19 @@
   - Repository indexRepository não possui interface no Domain
 
 ### ⚠️ technical-skills
-- **Total de problemas:** 5
-- **Críticos:** 0 | **Altos:** 5
+- **Total de problemas:** 6
+- **Críticos:** 0 | **Altos:** 6
 - **Principais problemas:**
   - Routes contém lógica de negócio ou acesso a dados
   - Application Layer violando dependência: express
-  - Application Layer violando dependência: ../../infrastructure/repositories/DrizzleUserSkillRepository
+  - Application Layer violando dependência: express
 
 ### ⚠️ tickets
-- **Total de problemas:** 2
-- **Críticos:** 0 | **Altos:** 1
+- **Total de problemas:** 3
+- **Críticos:** 0 | **Altos:** 2
 - **Principais problemas:**
   - Routes contém lógica de negócio ou acesso a dados
+  - Application Layer violando dependência: express
   - Repository contém possível lógica de negócio
 
 ### 🔥 beneficiaries
@@ -54,9 +55,10 @@
   - Application Layer violando dependência: express
 
 ### ⚠️ custom-fields
-- **Total de problemas:** 1
-- **Críticos:** 0 | **Altos:** 1
+- **Total de problemas:** 2
+- **Críticos:** 0 | **Altos:** 2
 - **Principais problemas:**
+  - Application Layer violando dependência: express
   - Application Layer violando dependência: express
 
 ### ⚠️ knowledge-base
@@ -68,12 +70,12 @@
   - Repository contém possível lógica de negócio
 
 ### ⚠️ timecard
-- **Total de problemas:** 6
-- **Críticos:** 0 | **Altos:** 3
+- **Total de problemas:** 7
+- **Críticos:** 0 | **Altos:** 4
 - **Principais problemas:**
   - Application Layer violando dependência: express
   - Application Layer violando dependência: express
-  - Repository contém possível lógica de negócio
+  - Application Layer violando dependência: drizzle-orm
 
 ### 📋 auth
 - **Total de problemas:** 1
@@ -95,7 +97,7 @@
   - Entity ScheduleEntity não possui Repository correspondente
 
 ### 📋 shared
-- **Total de problemas:** 5
+- **Total de problemas:** 4
 - **Críticos:** 0 | **Altos:** 0
 - **Principais problemas:**
   - Repository contém possível lógica de negócio
