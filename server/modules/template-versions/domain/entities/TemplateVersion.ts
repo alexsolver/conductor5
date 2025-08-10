@@ -14,16 +14,8 @@ export class TemplateVersion {
     public readonly updatedAt: Date = new Date()
   ) {}
 
-  static create(
-    id: string,
-    tenantId: string,
-    templateId: string,
-    version: string,
-    name: string,
-    description?: string
-  ): TemplateVersion {
-    return new TemplateVersion(id, tenantId, templateId, version, name, description);
-  }
+  // Factory method moved to repository or service layer to maintain clean domain entities
+  // Infrastructure concerns should not be in domain entities
 
   isValid(): boolean {
     return this.name.length > 0 && this.version.length > 0;

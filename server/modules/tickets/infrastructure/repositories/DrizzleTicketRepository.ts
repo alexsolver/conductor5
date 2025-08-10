@@ -87,7 +87,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
     }
 
     if (filter.customerId) {
-      conditions.push(eq(tickets.customerId, filter.customerId));
+      conditions.push(eq(tickets.companyId, filter.customerId));
     }
 
     if (filter.category) {
@@ -208,7 +208,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
     }
 
     if (filter.customerId) {
-      conditions.push(eq(tickets.customerId, filter.customerId));
+      conditions.push(eq(tickets.companyId, filter.customerId));
     }
 
     if (filter.category) {
@@ -294,7 +294,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
     return new Ticket(
       data.id,
       data.tenantId,
-      data.customerId,
+      data.companyId, // Maps DB companyId to domain customerId
       data.callerId,
       data.callerType,
       data.subject,
@@ -337,7 +337,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
     return {
       id: ticket.getId(),
       tenantId: ticket.getTenantId(),
-      customerId: ticket.getCustomerId(),
+      companyId: ticket.getCustomerId(), // Maps domain customerId to DB companyId
       callerId: ticket.getCallerId(),
       callerType: ticket.getCallerType(),
       subject: ticket.getSubject(),

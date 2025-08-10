@@ -46,25 +46,25 @@ export class GetTicketsUseCase {
       
       if (search) {
         filteredTickets = filteredTickets.filter(ticket => 
-          ticket.title?.toLowerCase().includes(search.toLowerCase()) ||
-          ticket.description?.toLowerCase().includes(search.toLowerCase())
+          ticket.getSubject()?.toLowerCase().includes(search.toLowerCase()) ||
+          ticket.getDescription()?.toLowerCase().includes(search.toLowerCase())
         );
       }
       
       if (status) {
-        filteredTickets = filteredTickets.filter(ticket => ticket.status === status);
+        filteredTickets = filteredTickets.filter(ticket => ticket.getStatus() === status);
       }
       
       if (priority) {
-        filteredTickets = filteredTickets.filter(ticket => ticket.priority === priority);
+        filteredTickets = filteredTickets.filter(ticket => ticket.getPriority().getValue() === priority);
       }
       
       if (assignedToId) {
-        filteredTickets = filteredTickets.filter(ticket => ticket.assignedToId === assignedToId);
+        filteredTickets = filteredTickets.filter(ticket => ticket.getAssignedToId() === assignedToId);
       }
       
       if (companyId) {
-        filteredTickets = filteredTickets.filter(ticket => ticket.companyId === companyId);
+        filteredTickets = filteredTickets.filter(ticket => ticket.getCustomerId() === companyId);
       }
 
       // Paginação

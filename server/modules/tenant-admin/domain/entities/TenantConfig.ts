@@ -9,26 +9,16 @@ export class TenantConfig {
     public readonly updatedAt: Date = new Date()
   ) {}
 
-  static create(data: {
-    id: string;
-    tenantId: string;
-    config: Record<string, any>;
-  }): TenantConfig {
-    return new TenantConfig(
-      data.id,
-      data.tenantId,
-      data.config
-    );
+  // Factory method moved to repository or service layer for clean domain separation
+  // Domain entities should focus on business logic, not object construction
+
+  // Business rule for configuration updates
+  mergeConfig(newConfig: Record<string, any>): Record<string, any> {
+    return { ...this.config, ...newConfig };
   }
 
-  update(config: Record<string, any>): TenantConfig {
-    return new TenantConfig(
-      this.id,
-      this.tenantId,
-      { ...this.config, ...config },
-      this.isActive,
-      this.createdAt,
-      new Date()
-    );
+  // Validation rules
+  isValidConfig(config: Record<string, any>): boolean {
+    return config !== null && typeof config === 'object';
   }
 }
