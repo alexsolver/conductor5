@@ -91,166 +91,21 @@ const createCategorySchema = z.object({
 });
 
 // GET /api/knowledge-base/articles - Buscar artigos
-router.get('/knowledge-base/articles', jwtAuth, async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const tenantId = req.user?.tenantId;
-    if (!tenantId) {
-      return res.status(401).json({ error: 'Tenant context required' });
-    }
-
-    const { search, categoryId, status } = req.query;
-
-    let conditions = [eq(knowledgeBaseArticles.tenantId, tenantId)];
-
-    if (search) {
-      conditions.push(like(knowledgeBaseArticles.title, `%${search}%`));
-    }
-
-    if (categoryId) {
-      conditions.push(eq(knowledgeBaseArticles.categoryId, categoryId as string));
-    }
-
-    if (status) {
-      conditions.push(eq(knowledgeBaseArticles.status, status as string));
-    }
-
-    const articles = await db.select().from(knowledgeBaseArticles)
-      .where(and(...conditions))
-      .orderBy(desc(knowledgeBaseArticles.createdAt));
-
-    res.json(articles);
-  } catch (error) {
-    console.error('Error fetching articles:', error);
-    res.status(500).json({ error: 'Failed to fetch articles' });
-  }
-});
+router.get('/knowledge-base/articles', jwtAuth, knowledgeBaseController.getArticles.bind(knowledgeBaseController));
 
 // POST /api/knowledge-base/articles - Criar novo artigo
-router.post('/knowledge-base/articles', jwtAuth, async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const tenantId = req.user?.tenantId;
-    const userId = req.user?.id;
-
-    if (!tenantId || !userId) {
-      return res.status(401).json({ error: 'Authentication required' });
-    }
-
-    const validatedData = createArticleSchema.parse(req.body);
-
-    const [article] = await db.insert(knowledgeBaseArticles).values({
-      title: validatedData.title,
-      content: validatedData.content || '',
-      categoryId: validatedData.categoryId || null,
-      status: validatedData.status || 'draft',
-      tags: validatedData.tags || [],
-      isPublic: validatedData.isPublic || false,
-      richContent: validatedData.richContent || null,
-      searchKeywords: validatedData.searchKeywords || null,
-      tenantId,
-      authorId: userId,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }).returning();
-
-    res.status(201).json(article);
-  } catch (error) {
-    console.error('Error creating article:', error);
-    res.status(500).json({ error: 'Failed to create article' });
-  }
-});
+router.post('/knowledge-base/articles', jwtAuth, knowledgeBaseController.createArticle.bind(knowledgeBaseController));
 
 // GET /api/knowledge-base/categories - Buscar categorias
-router.get('/knowledge-base/categories', jwtAuth, async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const tenantId = req.user?.tenantId;
-    if (!tenantId) {
-      return res.status(401).json({ error: 'Tenant context required' });
-    }
-
-    const categories = await db.select().from(knowledgeBaseCategories)
-      .where(and(
-        eq(knowledgeBaseCategories.tenantId, tenantId),
-        eq(knowledgeBaseCategories.isActive, true)
-      ))
-      .orderBy(knowledgeBaseCategories.name);
-
-    res.json(categories);
-  } catch (error) {
-    console.error('Error fetching categories:', error);
-    res.status(500).json({ error: 'Failed to fetch categories' });
-  }
-});
+router.get('/knowledge-base/categories', jwtAuth, knowledgeBaseController.getCategories.bind(knowledgeBaseController));
 
 // POST /api/knowledge-base/categories - Criar nova categoria
-router.post('/knowledge-base/categories', jwtAuth, async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const tenantId = req.user?.tenantId;
-    if (!tenantId) {
-      return res.status(401).json({ error: 'Tenant context required' });
-    }
-
-    const validatedData = createCategorySchema.parse(req.body);
-
-    const [category] = await db.insert(knowledgeBaseCategories).values({
-      name: validatedData.name,
-      description: validatedData.description || null,
-      parentId: validatedData.parentId || null,
-      icon: validatedData.icon || null,
-      color: validatedData.color || '#3b82f6',
-      tenantId,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }).returning();
-
-    res.status(201).json(category);
-  } catch (error) {
-    console.error('Error creating category:', error);
-    res.status(500).json({ error: 'Failed to create category' });
-  }
-});
+router.post('/knowledge-base/categories', jwtAuth, knowledgeBaseController.createCategory.bind(knowledgeBaseController));
 
 // GET /api/knowledge-base/articles/:id - Buscar artigo específico
-router.get('/knowledge-base/articles/:id', jwtAuth, async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const tenantId = req.user?.tenantId;
-    if (!tenantId) {
-      return res.status(401).json({ error: 'Tenant context required' });
-    }
+router.get('/knowledge-base/articles/:id', jwtAuth, knowledgeBaseController.getArticleById.bind(knowledgeBaseController));
 
-    const { id } = req.params;
-
-    const [article] = await db.select().from(knowledgeBaseArticles)
-      .where(and(
-        eq(knowledgeBaseArticles.id, id),
-        eq(knowledgeBaseArticles.tenantId, tenantId)
-      ));
-
-    if (!article) {
-      return res.status(404).json({ error: 'Article not found' });
-    }
-
-    // Incrementar contador de visualizações
-    await db.update(knowledgeBaseArticles)
-      .set({
-        viewCount: sql`${knowledgeBaseArticles.viewCount} + 1`,
-        updatedAt: new Date()
-      })
-      .where(eq(knowledgeBaseArticles.id, id));
-
-    res.json({
-      ...article,
-      viewCount: (article.viewCount || 0) + 1
-    });
-  } catch (error) {
-    console.error('Error fetching article:', error);
-    res.status(500).json({ error: 'Failed to fetch article' });
-  }
-});
-
-// Routes limpas - usando controllers
-import { KnowledgeBaseController } from './application/controllers/KnowledgeBaseController';
-
-const knowledgeBaseController = new KnowledgeBaseController();
+// Routes limpas - usando controllers já instanciado acima
 
 router.get('/entries', jwtAuth, knowledgeBaseController.getEntries.bind(knowledgeBaseController));
 router.get('/entries/:id', jwtAuth, knowledgeBaseController.getEntry.bind(knowledgeBaseController));

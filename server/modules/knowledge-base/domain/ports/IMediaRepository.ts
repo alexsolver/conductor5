@@ -1,33 +1,13 @@
-import { IMedia } from '../../domain/entities/IMedia';
-import { IIMediaRepository } from '../../domain/ports/IIMediaRepository';
-import { drizzle } from 'drizzle-orm/neon-http';
-import * as schema from '@shared/schema';
-
-export class DrizzleIMediaRepository implements IIMediaRepository {
-  constructor(private readonly db: ReturnType<typeof drizzle>) {}
-
-  async findById(id: string, tenantId: string): Promise<IMedia | null> {
-    // Implementar busca por ID
-    throw new Error('Method not implemented.');
-  }
-
-  async findAll(tenantId: string): Promise<IMedia[]> {
-    // Implementar busca de todos
-    throw new Error('Method not implemented.');
-  }
-
-  async create(entity: IMedia): Promise<IMedia> {
-    // Implementar criação
-    throw new Error('Method not implemented.');
-  }
-
-  async update(id: string, entity: Partial<IMedia>, tenantId: string): Promise<IMedia | null> {
-    // Implementar atualização
-    throw new Error('Method not implemented.');
-  }
-
-  async delete(id: string, tenantId: string): Promise<boolean> {
-    // Implementar exclusão
-    throw new Error('Method not implemented.');
-  }
+export interface IMediaRepository {
+  getMediaStats(tenantId: string): Promise<any>;
+  getMediaFiles(tenantId: string, filters?: any): Promise<any[]>;
+  getMediaFolders(tenantId: string): Promise<any[]>;
+  uploadMediaFiles(tenantId: string, files: any[]): Promise<any[]>;
+  createMediaFolder(tenantId: string, folderData: any): Promise<any>;
+  deleteMediaFile(tenantId: string, fileId: string): Promise<boolean>;
+  updateMediaFile(tenantId: string, fileId: string, updateData: any): Promise<any>;
+  generateThumbnail(tenantId: string, fileId: string): Promise<any>;
+  get3DModels(tenantId: string): Promise<any[]>;
+  getInteractiveDiagrams(tenantId: string): Promise<any[]>;
+  getVideoStreaming(tenantId: string, videoId?: string): Promise<any>;
 }

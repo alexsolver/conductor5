@@ -41,3 +41,30 @@ export class SkillApplicationService {
     };
   }
 }
+import { CreateSkillUseCase } from '../use-cases/CreateSkillUseCase';
+import { CreateSkillDTO } from '../dto/CreateSkillDTO';
+
+export class SkillApplicationService {
+  constructor(
+    private createSkillUseCase: CreateSkillUseCase
+  ) {}
+
+  async createSkill(tenantId: string, skillData: CreateSkillDTO): Promise<any> {
+    return await this.createSkillUseCase.execute(tenantId, skillData);
+  }
+
+  async getSkills(tenantId: string, filters?: any): Promise<any[]> {
+    // Implementar busca de skills
+    return [];
+  }
+
+  async updateSkill(tenantId: string, skillId: string, updateData: any): Promise<any> {
+    // Implementar atualização de skill
+    return null;
+  }
+
+  async deleteSkill(tenantId: string, skillId: string): Promise<boolean> {
+    // Implementar exclusão de skill
+    return true;
+  }
+}

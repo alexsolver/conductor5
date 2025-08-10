@@ -3,7 +3,18 @@ import { Request, Response } from 'express';
 import { AuthenticatedRequest } from '../../../middleware/jwtAuth';
 import { KnowledgeBaseRepository } from '../../infrastructure/repositories/KnowledgeBaseRepository';
 
-export class KnowledgeBaseController {
+export import { Request, Response } from 'express';
+
+interface AuthenticatedRequest extends Request {
+  user?: {
+    id: string;
+    tenantId: string;
+    email: string;
+    role: string;
+  };
+}
+
+class KnowledgeBaseController {
   private knowledgeBaseRepository: KnowledgeBaseRepository;
 
   constructor() {
