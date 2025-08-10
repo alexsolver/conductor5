@@ -146,16 +146,12 @@ ticketsRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
     // Verificar se o controller está disponível
     if (!ticketController || typeof ticketController.getAllTickets !== 'function') {
       console.log('❌ [TICKETS-ROUTES] ticketController.getAllTickets is not available');
-      return standardResponse(res, false, 'Service temporarily unavailable', null, 503);
+      return res.status(503).json(standardResponse(false, 'Service temporarily unavailable', null));
     }
 
     if (!req.user?.tenantId) {
       console.error('❌ [TICKETS-ROUTES] No tenantId found');
-      return res.status(400).json({
-        success: false,
-        error: 'User not associated with a tenant',
-        data: { tickets: [] }
-      });
+      return res.status(400).json(standardResponse(false, 'User not associated with a tenant', { tickets: [] }));
     }
 
     const options = {
@@ -180,7 +176,7 @@ ticketsRouter.get('/', jwtAuth, async (req: AuthenticatedRequest, res) => {
       companyId: options.companyId
     });
 
-    sendSuccess(res, result.data, 'Tickets retrieved successfully', result.count);
+    res.status(200).json(standardResponse(true, 'Tickets retrieved successfully', result.data));
 
   } catch (error: any) {
     console.error('❌ [TICKETS-ROUTES] Error in GET /:', error);

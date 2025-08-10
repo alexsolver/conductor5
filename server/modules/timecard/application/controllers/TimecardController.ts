@@ -1,24 +1,31 @@
-// Removed Express dependency for clean architecture
+// Clean Architecture Application Layer - No framework dependencies
 import { z } from 'zod';
-import { db } from '../../../../db';
-import { timecardEntries, workSchedules, users } from '@shared/schema';
-import { ITimecardRepository } from '../../domain/ports/ITimecardRepository'; // Assuming this interface exists
-import { standardResponse } from '../../../utils/standardResponse'; // Import standardResponse
-import { and, eq, sql, inArray } from 'drizzle-orm'; // Import necessary Drizzle functions
+import { ITimecardRepository } from '../../domain/ports/ITimecardRepository';
 
-// Use abstracted HTTP types instead of Express directly
-interface HttpRequest {
-  body: any;
-  params: any;
-  query: any;
-  user?: any;
-  headers: any;
+// Application layer DTOs - no framework coupling
+interface CreateTimecardEntryDTO {
+  checkIn?: string;
+  checkOut?: string;
+  breakStart?: string;
+  breakEnd?: string;
+  userId?: string;
+  tenantId?: string;
 }
 
-interface HttpResponse {
-  status(code: number): HttpResponse;
-  json(data: any): void;
-  send(data: any): void;
+interface TimecardQueryDTO {
+  userId: string;
+  tenantId: string;
+  page?: number;
+  limit?: number;
+  startDate?: string;
+  endDate?: string;
+}
+
+interface TimecardResponseDTO {
+  success: boolean;
+  data?: any;
+  message?: string;
+  error?: string;
 }
 
 // Validation schemas
@@ -65,33 +72,28 @@ const createScheduleTemplateSchema = z.object({
 });
 
 export class TimecardController {
-  // private timecardRepository: DrizzleTimecardRepository; // Original line
-
-  // constructor() { // Original constructor
-  //   this.timecardRepository = new DrizzleTimecardRepository();
-  // }
-
-  // Updated constructor with dependency injection
   constructor(
     private readonly timecardRepository: ITimecardRepository
   ) {}
 
-  // Get current status for user
-  getCurrentStatus = async (req: HttpRequest, res: HttpResponse) => {
+  // Application layer methods - no HTTP coupling
+  async getCurrentStatusUseCase(query: TimecardQueryDTO): Promise<TimecardResponseDTO> {
     try {
-      const userId = req.user?.id;
-      const tenantId = req.user?.tenantId;
+      const { userId, tenantId } = query;
 
       if (!userId || !tenantId) {
-        res.status(401).json({ error: 'Unauthorized' });
-        return;
+        return {
+          success: false,
+          error: 'User ID and Tenant ID are required'
+        };
       }
 
       // Verificar se o repositório foi inicializado
       if (!this.timecardRepository || typeof this.timecardRepository.getTimecardEntriesByUserAndDate !== 'function') {
-        console.error('TimecardRepository not properly initialized');
-        res.status(500).json({ error: 'Service temporarily unavailable' });
-        return;
+        return {
+          success: false,
+          error: 'Timecard repository not available'
+        };
       }
 
       const today = new Date().toISOString().split('T')[0];
@@ -123,21 +125,25 @@ export class TimecardController {
         }
       }
 
-      const response = {
-        status,
-        entries,
-        lastRecord,
-        timesheet: {
-          totalHours: this.calculateTotalHoursFromRecords(entries)
+      return {
+        success: true,
+        data: {
+          status,
+          entries,
+          lastRecord,
+          timesheet: {
+            totalHours: this.calculateTotalHoursFromRecords(entries)
+          }
         }
       };
-
-      res.json(response);
     } catch (error) {
       console.error('Error getting current status:', error);
-      res.status(500).json({ error: 'Internal server error' });
+      return {
+        success: false,
+        error: 'Internal server error'
+      };
     }
-  };
+  }
 
   // Método auxiliar para calcular horas totais e pausas automaticamente
   private calculateTotalHoursFromRecords(records: any[]) {

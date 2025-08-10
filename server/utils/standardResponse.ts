@@ -14,14 +14,13 @@ export interface StandardApiResponse<T = any> {
 }
 
 export function standardResponse<T = any>(
-  res: Response,
-  statusCode: number,
+  success: boolean,
   message: string,
   data?: T,
   error?: string
-): void {
+): StandardApiResponse<T> {
   const response: StandardApiResponse<T> = {
-    success: statusCode >= 200 && statusCode < 300,
+    success,
     message,
     timestamp: new Date().toISOString()
   };
@@ -34,6 +33,19 @@ export function standardResponse<T = any>(
     response.error = error;
   }
 
+  return response;
+}
+
+// Express-specific helper functions
+export function sendStandardResponse<T = any>(
+  res: Response,
+  statusCode: number,
+  success: boolean,
+  message: string,
+  data?: T,
+  error?: string
+): void {
+  const response = standardResponse(success, message, data, error);
   res.status(statusCode).json(response);
 }
 
