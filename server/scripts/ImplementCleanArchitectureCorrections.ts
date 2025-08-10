@@ -1,6 +1,4 @@
 
-#!/usr/bin/env node
-
 /**
  * IMPLEMENTADOR AUTOMÁTICO DE CORREÇÕES CLEAN ARCHITECTURE
  * 
