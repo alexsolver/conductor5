@@ -1,6 +1,6 @@
 // REMOVED: Redis dependency
 import { Request, Response, NextFunction } from 'express';
-import rateLimit, { MemoryStore } from 'express-rate-limit';
+import rateLimit, { MemoryStore, ipKeyGenerator } from 'express-rate-limit';
 
 // Define RateLimitOptions interface for clarity
 interface RateLimitOptions {
@@ -190,10 +190,8 @@ const defaultRateLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: (req: Request) => {
-    const ip = req.ip || req.socket.remoteAddress || 'unknown';
-    // Use ipKeyGenerator helper for IPv6 compatibility
-    const normalizedIp = ip.includes('::ffff:') ? ip.replace('::ffff:', '') : ip;
-    return `${normalizedIp}:${req.user?.id || 'anonymous'}`;
+    const ip = ipKeyGenerator(req);
+    return `${ip}:${req.user?.id || 'anonymous'}`;
   },
   store: new MemoryStore(), // Use MemoryStore for express-rate-limit
   skip: (req) => {
@@ -211,10 +209,7 @@ const strictRateLimiter = rateLimit({
   message: 'Too many requests from this IP, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req: Request) => {
-    // Use express-rate-limit helper for IPv6 compatibility
-    return req.ip || req.connection.remoteAddress || 'unknown';
-  },
+  keyGenerator: ipKeyGenerator,
   store: new MemoryStore(), // Use MemoryStore for express-rate-limit
   skip: (req) => {
     // Skip rate limiting for health checks and static assets
@@ -239,7 +234,7 @@ export const RATE_LIMIT_CONFIGS = {
   LOGIN: {
     windowMs: 15 * 60 * 1000, // 15 minutes
     maxRequests: 5,
-    keyGenerator: (req: Request) => `login:${req.ip}:${req.body?.email || 'unknown'}`,
+    keyGenerator: (req: Request) => `login:${ipKeyGenerator(req)}:${req.body?.email || 'unknown'}`,
     message: 'Too many login attempts, please try again later.',
     maxAttempts: 5
   },
@@ -248,7 +243,7 @@ export const RATE_LIMIT_CONFIGS = {
   API_GENERAL: {
     windowMs: 15 * 60 * 1000, // 15 minutes
     maxRequests: 100,
-    keyGenerator: (req: Request) => `api:${req.ip}`,
+    keyGenerator: (req: Request) => `api:${ipKeyGenerator(req)}`,
     message: 'Too many requests, please again later.',
     maxAttempts: 100
   },
@@ -257,7 +252,7 @@ export const RATE_LIMIT_CONFIGS = {
   UPLOAD: {
     windowMs: 60 * 1000, // 1 minute
     maxRequests: 10,
-    keyGenerator: (req: Request) => `upload:${req.ip}`,
+    keyGenerator: (req: Request) => `upload:${ipKeyGenerator(req)}`,
     message: 'Too many uploads, please try again later.',
     maxAttempts: 10
   },
@@ -266,7 +261,7 @@ export const RATE_LIMIT_CONFIGS = {
   SEARCH: {
     windowMs: 60 * 1000, // 1 minute
     maxRequests: 30,
-    keyGenerator: (req: Request) => `search:${req.ip}`,
+    keyGenerator: (req: Request) => `search:${ipKeyGenerator(req)}`,
     message: 'Too many search requests, please try again later.',
     maxAttempts: 30
   },
@@ -275,7 +270,7 @@ export const RATE_LIMIT_CONFIGS = {
   PASSWORD_RESET: {
     windowMs: 60 * 60 * 1000, // 1 hour
     maxRequests: 3,
-    keyGenerator: (req: Request) => `password_reset:${req.ip}:${req.body?.email || 'unknown'}`,
+    keyGenerator: (req: Request) => `password_reset:${ipKeyGenerator(req)}:${req.body?.email || 'unknown'}`,
     message: 'Too many password reset attempts, please try again later.',
     maxAttempts: 3
   },
@@ -284,7 +279,7 @@ export const RATE_LIMIT_CONFIGS = {
   REGISTRATION: {
     windowMs: 60 * 60 * 1000, // 1 hour
     maxRequests: 5,
-    keyGenerator: (req: Request) => `registration:${req.ip}`,
+    keyGenerator: (req: Request) => `registration:${ipKeyGenerator(req)}`,
     message: 'Too many registration attempts, please try again later.',
     maxAttempts: 5
   }
