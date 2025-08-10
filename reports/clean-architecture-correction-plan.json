@@ -61,30 +61,6 @@
       {
         "type": "refactor_code",
         "description": "Refatorar dependência inválida na camada domain",
-        "target": "server/modules/materials-services/domain/ports/IAssetManagementRepository.ts",
-        "steps": [
-          "Identificar a dependência problemática",
-          "Criar interface/port na camada Domain",
-          "Implementar interface na camada Infrastructure",
-          "Usar injeção de dependência",
-          "Remover import direto da dependência externa"
-        ]
-      },
-      {
-        "type": "refactor_code",
-        "description": "Refatorar dependência inválida na camada domain",
-        "target": "server/modules/materials-services/domain/ports/IComplianceRepository.ts",
-        "steps": [
-          "Identificar a dependência problemática",
-          "Criar interface/port na camada Domain",
-          "Implementar interface na camada Infrastructure",
-          "Usar injeção de dependência",
-          "Remover import direto da dependência externa"
-        ]
-      },
-      {
-        "type": "refactor_code",
-        "description": "Refatorar dependência inválida na camada domain",
         "target": "server/modules/materials-services/domain/ports/ILPUCacheWarmer.ts",
         "steps": [
           "Identificar a dependência problemática",
@@ -465,7 +441,7 @@
         ]
       }
     ],
-    "estimatedTime": "28h"
+    "estimatedTime": "26h"
   },
   {
     "priority": "immediate",
@@ -505,17 +481,6 @@
           "Implementar interface na camada Infrastructure",
           "Usar injeção de dependência",
           "Remover import direto da dependência externa"
-        ]
-      },
-      {
-        "type": "rename_file",
-        "description": "Padronizar nomenclatura: Nome da classe SaasConfigEntity não corresponde ao arquivo SaasConfig",
-        "target": "server/modules/saas-admin/domain/entities/SaasConfig.ts",
-        "steps": [
-          "Renomear arquivo seguindo padrão",
-          "Atualizar imports em outros arquivos",
-          "Atualizar nome da classe/interface",
-          "Verificar consistência com padrões do projeto"
         ]
       },
       {
@@ -725,14 +690,6 @@
         ]
       },
       {
-        "type": "create_directory",
-        "description": "Criar interface I[Entity]Repository no domain e implementar",
-        "target": "server/modules/shared/infrastructure/repositories/BaseRepository.ts",
-        "steps": [
-          "Criar interface I[Entity]Repository no domain e implementar"
-        ]
-      },
-      {
         "type": "rename_file",
         "description": "Padronizar nomenclatura: Repository index deve terminar com 'Repository'",
         "target": "server/modules/shared/infrastructure/repositories/index.ts",
@@ -905,205 +862,8 @@
   },
   {
     "priority": "high",
-    "module": "template-hierarchy",
-    "actions": [
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo use-cases na camada application",
-        "target": "server/modules/template-hierarchy/application/use-cases",
-        "steps": [
-          "Criar diretório/arquivo use-cases na camada application"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo dto na camada application",
-        "target": "server/modules/template-hierarchy/application/dto",
-        "steps": [
-          "Criar diretório/arquivo dto na camada application"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo services na camada application",
-        "target": "server/modules/template-hierarchy/application/services",
-        "steps": [
-          "Criar diretório/arquivo services na camada application"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar estrutura da camada infrastructure",
-        "target": "server/modules/template-hierarchy/infrastructure",
-        "steps": [
-          "Criar diretório: server/modules/template-hierarchy/infrastructure",
-          "Adicionar arquivo README.md explicando responsabilidades da camada",
-          "Criar subdiretórios conforme padrão Clean Architecture"
-        ]
-      },
-      {
-        "type": "create_file",
-        "description": "Criar Repository com interface",
-        "target": "server/modules/template-hierarchy/infrastructure/repositories/TemplateHierarchyRepository.ts",
-        "code": "import { TemplateHierarchy } from '../../domain/entities/TemplateHierarchy';\nimport { ITemplateHierarchyRepository } from '../../domain/ports/ITemplateHierarchyRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleTemplateHierarchyRepository implements ITemplateHierarchyRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<TemplateHierarchy | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<TemplateHierarchy[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: TemplateHierarchy): Promise<TemplateHierarchy> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<TemplateHierarchy>, tenantId: string): Promise<TemplateHierarchy | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
-        "steps": [
-          "Criar interface do Repository na camada Domain",
-          "Implementar Repository na camada Infrastructure",
-          "Adicionar injeção de dependência",
-          "Integrar com Use Cases"
-        ]
-      }
-    ],
-    "estimatedTime": "2h"
-  },
-  {
-    "priority": "high",
-    "module": "template-versions",
-    "actions": [
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo repositories na camada domain",
-        "target": "server/modules/template-versions/domain/repositories",
-        "steps": [
-          "Criar diretório/arquivo repositories na camada domain"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo events na camada domain",
-        "target": "server/modules/template-versions/domain/events",
-        "steps": [
-          "Criar diretório/arquivo events na camada domain"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo services na camada domain",
-        "target": "server/modules/template-versions/domain/services",
-        "steps": [
-          "Criar diretório/arquivo services na camada domain"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo use-cases na camada application",
-        "target": "server/modules/template-versions/application/use-cases",
-        "steps": [
-          "Criar diretório/arquivo use-cases na camada application"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo dto na camada application",
-        "target": "server/modules/template-versions/application/dto",
-        "steps": [
-          "Criar diretório/arquivo dto na camada application"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo services na camada application",
-        "target": "server/modules/template-versions/application/services",
-        "steps": [
-          "Criar diretório/arquivo services na camada application"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar estrutura da camada infrastructure",
-        "target": "server/modules/template-versions/infrastructure",
-        "steps": [
-          "Criar diretório: server/modules/template-versions/infrastructure",
-          "Adicionar arquivo README.md explicando responsabilidades da camada",
-          "Criar subdiretórios conforme padrão Clean Architecture"
-        ]
-      },
-      {
-        "type": "create_file",
-        "description": "Criar Repository com interface",
-        "target": "server/modules/template-versions/infrastructure/repositories/TemplateVersionRepository.ts",
-        "code": "import { TemplateVersion } from '../../domain/entities/TemplateVersion';\nimport { ITemplateVersionRepository } from '../../domain/ports/ITemplateVersionRepository';\nimport { drizzle } from 'drizzle-orm/neon-http';\nimport * as schema from '@shared/schema';\n\nexport class DrizzleTemplateVersionRepository implements ITemplateVersionRepository {\n  constructor(private readonly db: ReturnType<typeof drizzle>) {}\n\n  async findById(id: string, tenantId: string): Promise<TemplateVersion | null> {\n    // Implementar busca por ID\n    throw new Error('Method not implemented.');\n  }\n\n  async findAll(tenantId: string): Promise<TemplateVersion[]> {\n    // Implementar busca de todos\n    throw new Error('Method not implemented.');\n  }\n\n  async create(entity: TemplateVersion): Promise<TemplateVersion> {\n    // Implementar criação\n    throw new Error('Method not implemented.');\n  }\n\n  async update(id: string, entity: Partial<TemplateVersion>, tenantId: string): Promise<TemplateVersion | null> {\n    // Implementar atualização\n    throw new Error('Method not implemented.');\n  }\n\n  async delete(id: string, tenantId: string): Promise<boolean> {\n    // Implementar exclusão\n    throw new Error('Method not implemented.');\n  }\n}\n",
-        "steps": [
-          "Criar interface do Repository na camada Domain",
-          "Implementar Repository na camada Infrastructure",
-          "Adicionar injeção de dependência",
-          "Integrar com Use Cases"
-        ]
-      }
-    ],
-    "estimatedTime": "2h"
-  },
-  {
-    "priority": "high",
-    "module": "ticket-templates",
-    "actions": [
-      {
-        "type": "create_directory",
-        "description": "Criar estrutura da camada domain",
-        "target": "server/modules/ticket-templates/domain",
-        "steps": [
-          "Criar diretório: server/modules/ticket-templates/domain",
-          "Adicionar arquivo README.md explicando responsabilidades da camada",
-          "Criar subdiretórios conforme padrão Clean Architecture"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo use-cases na camada application",
-        "target": "server/modules/ticket-templates/application/use-cases",
-        "steps": [
-          "Criar diretório/arquivo use-cases na camada application"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo dto na camada application",
-        "target": "server/modules/ticket-templates/application/dto",
-        "steps": [
-          "Criar diretório/arquivo dto na camada application"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo services na camada application",
-        "target": "server/modules/ticket-templates/application/services",
-        "steps": [
-          "Criar diretório/arquivo services na camada application"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar estrutura da camada infrastructure",
-        "target": "server/modules/ticket-templates/infrastructure",
-        "steps": [
-          "Criar diretório: server/modules/ticket-templates/infrastructure",
-          "Adicionar arquivo README.md explicando responsabilidades da camada",
-          "Criar subdiretórios conforme padrão Clean Architecture"
-        ]
-      }
-    ],
-    "estimatedTime": "50min"
-  },
-  {
-    "priority": "high",
     "module": "tickets",
     "actions": [
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo services na camada domain",
-        "target": "server/modules/tickets/domain/services",
-        "steps": [
-          "Criar diretório/arquivo services na camada domain"
-        ]
-      },
-      {
-        "type": "create_directory",
-        "description": "Criar diretório/arquivo dto na camada application",
-        "target": "server/modules/tickets/application/dto",
-        "steps": [
-          "Criar diretório/arquivo dto na camada application"
-        ]
-      },
       {
         "type": "move_code",
         "description": "Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados",
@@ -1216,22 +976,22 @@
   },
   {
     "priority": "low",
-    "module": "field-layout",
+    "module": "ticket-templates",
     "actions": [
       {
         "type": "create_directory",
-        "description": "Criar diretório/arquivo dto na camada application",
-        "target": "server/modules/field-layout/application/dto",
+        "description": "Criar diretório/arquivo events na camada domain",
+        "target": "server/modules/ticket-templates/domain/events",
         "steps": [
-          "Criar diretório/arquivo dto na camada application"
+          "Criar diretório/arquivo events na camada domain"
         ]
       },
       {
         "type": "create_directory",
-        "description": "Criar diretório/arquivo services na camada application",
-        "target": "server/modules/field-layout/application/services",
+        "description": "Criar diretório/arquivo services na camada domain",
+        "target": "server/modules/ticket-templates/domain/services",
         "steps": [
-          "Criar diretório/arquivo services na camada application"
+          "Criar diretório/arquivo services na camada domain"
         ]
       }
     ],

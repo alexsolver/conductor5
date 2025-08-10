@@ -1,16 +1,16 @@
 # Clean Architecture Validation Report
 
 **Data:** 2025-08-10  
-**Score:** 33/100  
+**Score:** 32/100  
 **Status:** ❌ REPROVADO
 
 ## Resumo de Problemas
 
-- 🔥 **Críticos:** 15
-- ⚠️ **Altos:** 75
-- 📋 **Médios:** 50
-- 💡 **Baixos:** 6
-- **Total:** 146
+- 🔥 **Críticos:** 13
+- ⚠️ **Altos:** 66
+- 📋 **Médios:** 35
+- 💡 **Baixos:** 5
+- **Total:** 119
 
 ## Principais Problemas por Módulo
 
@@ -30,23 +30,16 @@
   - Application Layer violando dependência: express
   - Application Layer violando dependência: express
 
-### 📋 field-layout
-- **Total de problemas:** 2
-- **Críticos:** 0 | **Altos:** 0
-- **Principais problemas:**
-  - Estrutura dto ausente na camada application
-  - Estrutura services ausente na camada application
-
 ### 🔥 materials-services
-- **Total de problemas:** 55
-- **Críticos:** 5 | **Altos:** 37
+- **Total de problemas:** 53
+- **Críticos:** 3 | **Altos:** 37
 - **Principais problemas:**
   - Routes contém lógica de negócio ou acesso a dados
   - Domain Layer violando dependência: drizzle-orm/neon-http
   - Domain Layer violando dependência: drizzle-orm/neon-http
 
 ### 🔥 saas-admin
-- **Total de problemas:** 8
+- **Total de problemas:** 7
 - **Críticos:** 1 | **Altos:** 2
 - **Principais problemas:**
   - Routes contém lógica de negócio ou acesso a dados
@@ -61,45 +54,27 @@
   - Domain Layer violando dependência: drizzle-orm/neon-http
   - Application Layer violando dependência: express
 
-### ⚠️ template-hierarchy
-- **Total de problemas:** 5
-- **Críticos:** 0 | **Altos:** 2
+### 📋 ticket-templates
+- **Total de problemas:** 2
+- **Críticos:** 0 | **Altos:** 0
 - **Principais problemas:**
-  - Estrutura use-cases ausente na camada application
-  - Estrutura dto ausente na camada application
-  - Estrutura services ausente na camada application
-
-### ⚠️ template-versions
-- **Total de problemas:** 8
-- **Críticos:** 0 | **Altos:** 2
-- **Principais problemas:**
-  - Estrutura repositories ausente na camada domain
   - Estrutura events ausente na camada domain
   - Estrutura services ausente na camada domain
 
-### ⚠️ ticket-templates
-- **Total de problemas:** 5
-- **Críticos:** 0 | **Altos:** 2
-- **Principais problemas:**
-  - Camada domain ausente no módulo ticket-templates
-  - Estrutura use-cases ausente na camada application
-  - Estrutura dto ausente na camada application
-
 ### ⚠️ tickets
-- **Total de problemas:** 4
+- **Total de problemas:** 2
 - **Críticos:** 0 | **Altos:** 1
 - **Principais problemas:**
-  - Estrutura services ausente na camada domain
-  - Estrutura dto ausente na camada application
   - Routes contém lógica de negócio ou acesso a dados
+  - Repository contém possível lógica de negócio
 
 ### ⚠️ knowledge-base
-- **Total de problemas:** 13
-- **Críticos:** 0 | **Altos:** 9
+- **Total de problemas:** 10
+- **Críticos:** 0 | **Altos:** 6
 - **Principais problemas:**
   - Application Layer violando dependência: express
-  - Application Layer violando dependência: ../../infrastructure/repositories/KnowledgeBaseRepository
-  - Application Layer violando dependência: ../../infrastructure/repositories/KnowledgeBaseRepository
+  - Application Layer violando dependência: express
+  - Application Layer violando dependência: ../../infrastructure/repositories/MediaRepository
 
 ### 🔥 schedule-management
 - **Total de problemas:** 6
@@ -110,12 +85,12 @@
   - Domain Layer violando dependência: drizzle-orm/neon-http
 
 ### 🔥 shared
-- **Total de problemas:** 7
+- **Total de problemas:** 6
 - **Críticos:** 2 | **Altos:** 0
 - **Principais problemas:**
   - Domain Layer violando dependência: drizzle-orm/neon-http
   - Domain Layer violando dependência: drizzle-orm/neon-http
-  - Repository BaseRepository deve implementar interface
+  - Repository index deve terminar com 'Repository'
 
 ### 🔥 timecard
 - **Total de problemas:** 11
@@ -169,15 +144,15 @@
 
 ### 🔥 materials-services
 - **Prioridade:** immediate
-- **Tempo estimado:** 28h
-- **Ações:** 37
+- **Tempo estimado:** 26h
+- **Ações:** 35
 
 1. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
 2. **refactor_code:** Refatorar dependência inválida na camada domain
 3. **refactor_code:** Refatorar dependência inválida na camada domain
 4. **refactor_code:** Refatorar dependência inválida na camada domain
-5. **refactor_code:** Refatorar dependência inválida na camada domain
-6. **refactor_code:** Refatorar dependência inválida na camada domain
+5. **refactor_code:** Refatorar dependência inválida na camada application
+6. **refactor_code:** Refatorar dependência inválida na camada application
 7. **refactor_code:** Refatorar dependência inválida na camada application
 8. **refactor_code:** Refatorar dependência inválida na camada application
 9. **refactor_code:** Refatorar dependência inválida na camada application
@@ -192,36 +167,33 @@
 18. **refactor_code:** Refatorar dependência inválida na camada application
 19. **refactor_code:** Refatorar dependência inválida na camada application
 20. **refactor_code:** Refatorar dependência inválida na camada application
-21. **refactor_code:** Refatorar dependência inválida na camada application
-22. **refactor_code:** Refatorar dependência inválida na camada application
+21. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
+22. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
 23. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
 24. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
-25. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
-26. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
-27. **rename_file:** Padronizar nomenclatura: Entity index não segue padrão PascalCase
-28. **rename_file:** Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'
+25. **rename_file:** Padronizar nomenclatura: Entity index não segue padrão PascalCase
+26. **rename_file:** Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'
+27. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
+28. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 29. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 30. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 31. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 32. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
-33. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
-34. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
+33. **create_file:** Criar Repository com interface
+34. **create_file:** Criar Repository com interface
 35. **create_file:** Criar Repository com interface
-36. **create_file:** Criar Repository com interface
-37. **create_file:** Criar Repository com interface
 
 ### 🔥 saas-admin
 - **Prioridade:** immediate
 - **Tempo estimado:** 4h
-- **Ações:** 7
+- **Ações:** 6
 
 1. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
 2. **refactor_code:** Refatorar dependência inválida na camada domain
 3. **refactor_code:** Refatorar dependência inválida na camada application
-4. **rename_file:** Padronizar nomenclatura: Nome da classe SaasConfigEntity não corresponde ao arquivo SaasConfig
-5. **rename_file:** Padronizar nomenclatura: Entity index não segue padrão PascalCase
-6. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
-7. **create_file:** Criar Repository com interface
+4. **rename_file:** Padronizar nomenclatura: Entity index não segue padrão PascalCase
+5. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
+6. **create_file:** Criar Repository com interface
 
 ### 🔥 technical-skills
 - **Prioridade:** immediate
@@ -249,15 +221,14 @@
 ### 🔥 shared
 - **Prioridade:** immediate
 - **Tempo estimado:** 4h
-- **Ações:** 7
+- **Ações:** 6
 
 1. **refactor_code:** Refatorar dependência inválida na camada domain
 2. **refactor_code:** Refatorar dependência inválida na camada domain
-3. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
-4. **rename_file:** Padronizar nomenclatura: Repository index deve terminar com 'Repository'
+3. **rename_file:** Padronizar nomenclatura: Repository index deve terminar com 'Repository'
+4. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 5. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
-6. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
-7. **create_file:** Criar Repository com interface
+6. **create_file:** Criar Repository com interface
 
 ### 🔥 timecard
 - **Prioridade:** immediate
@@ -281,51 +252,13 @@
 2. **refactor_code:** Refatorar dependência inválida na camada application
 3. **refactor_code:** Refatorar dependência inválida na camada application
 
-### ⚠️ template-hierarchy
-- **Prioridade:** high
-- **Tempo estimado:** 2h
-- **Ações:** 5
-
-1. **create_directory:** Criar diretório/arquivo use-cases na camada application
-2. **create_directory:** Criar diretório/arquivo dto na camada application
-3. **create_directory:** Criar diretório/arquivo services na camada application
-4. **create_directory:** Criar estrutura da camada infrastructure
-5. **create_file:** Criar Repository com interface
-
-### ⚠️ template-versions
-- **Prioridade:** high
-- **Tempo estimado:** 2h
-- **Ações:** 8
-
-1. **create_directory:** Criar diretório/arquivo repositories na camada domain
-2. **create_directory:** Criar diretório/arquivo events na camada domain
-3. **create_directory:** Criar diretório/arquivo services na camada domain
-4. **create_directory:** Criar diretório/arquivo use-cases na camada application
-5. **create_directory:** Criar diretório/arquivo dto na camada application
-6. **create_directory:** Criar diretório/arquivo services na camada application
-7. **create_directory:** Criar estrutura da camada infrastructure
-8. **create_file:** Criar Repository com interface
-
-### ⚠️ ticket-templates
-- **Prioridade:** high
-- **Tempo estimado:** 50min
-- **Ações:** 5
-
-1. **create_directory:** Criar estrutura da camada domain
-2. **create_directory:** Criar diretório/arquivo use-cases na camada application
-3. **create_directory:** Criar diretório/arquivo dto na camada application
-4. **create_directory:** Criar diretório/arquivo services na camada application
-5. **create_directory:** Criar estrutura da camada infrastructure
-
 ### ⚠️ tickets
 - **Prioridade:** high
 - **Tempo estimado:** 2h
-- **Ações:** 4
+- **Ações:** 2
 
-1. **create_directory:** Criar diretório/arquivo services na camada domain
-2. **create_directory:** Criar diretório/arquivo dto na camada application
-3. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
-4. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
+1. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
+2. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
 
 ### ⚠️ knowledge-base
 - **Prioridade:** high
@@ -340,13 +273,13 @@
 6. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 7. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 
-### 💡 field-layout
+### 💡 ticket-templates
 - **Prioridade:** low
 - **Tempo estimado:** 20min
 - **Ações:** 2
 
-1. **create_directory:** Criar diretório/arquivo dto na camada application
-2. **create_directory:** Criar diretório/arquivo services na camada application
+1. **create_directory:** Criar diretório/arquivo events na camada domain
+2. **create_directory:** Criar diretório/arquivo services na camada domain
 
 ### 💡 auth
 - **Prioridade:** low
@@ -388,19 +321,16 @@
 
 ### Prioridade Imediata 🔥
 - **beneficiaries:** 3 ações (3h)
-- **materials-services:** 37 ações (28h)
-- **saas-admin:** 7 ações (4h)
+- **materials-services:** 35 ações (26h)
+- **saas-admin:** 6 ações (4h)
 - **technical-skills:** 6 ações (5h)
 - **schedule-management:** 5 ações (4h)
-- **shared:** 7 ações (4h)
+- **shared:** 6 ações (4h)
 - **timecard:** 7 ações (5h)
 
 ### Prioridade Alta ⚠️
 - **customers:** 3 ações (3h)
-- **template-hierarchy:** 5 ações (2h)
-- **template-versions:** 8 ações (2h)
-- **ticket-templates:** 5 ações (50min)
-- **tickets:** 4 ações (2h)
+- **tickets:** 2 ações (2h)
 - **knowledge-base:** 7 ações (5h)
 
 ## Comandos para Correção
