@@ -192,11 +192,11 @@ export default function Companies() {
   };
 
   // Filtrar empresas com base no termo de busca
-  const filteredCompanies = companies.filter((company: Company) =>
+  const filteredCompanies = Array.isArray(companies) ? companies.filter((company: Company) =>
     company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (company.displayName?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
     (company.industry?.toLowerCase() || "").includes(searchTerm.toLowerCase())
-  );
+  ) : [];
 
   if (isLoading) {
     return (
