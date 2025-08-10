@@ -69,9 +69,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
     if (cspMiddleware && typeof cspMiddleware === 'function') {
       app.use(cspMiddleware);
+    } else {
+      console.warn('CSP middleware returned invalid function, skipping...');
     }
   } catch (error) {
-    console.warn('CSP middleware not available, skipping...', error.message);
+    console.warn('CSP middleware not available, skipping...', error?.message || error);
   }
 
 
@@ -118,22 +120,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       app.use(featureFlagMiddleware);
     }
   } catch (error) {
-    console.warn('Feature flag middleware not available, skipping...', error.message);
+    console.warn('Feature flag middleware not available, skipping...', error?.message || error);
   }
 
   // CSP reporting endpoint
   try {
     const cspReportingEndpoint = createCSPReportingEndpoint();
-    if (cspReportingEndpoint) {
+    if (cspReportingEndpoint && typeof cspReportingEndpoint === 'function') {
       app.post('/api/csp-report', cspReportingEndpoint);
     }
   } catch (error) {
-    console.warn('CSP reporting endpoint not available, skipping...');
+    console.warn('CSP reporting endpoint not available, skipping...', error?.message || error);
   }
 
-  // CSP management routes (admin only) - temporarily disabled due to undefined middleware
-  // TODO: Re-enable when CSP management routes are properly implemented
-  console.log('CSP management routes temporarily disabled');
+  // CSP management routes (admin only) - disabled
+  // Note: CSP management routes are disabled to prevent middleware errors
+  console.log('CSP management routes disabled');
 
   // Feature flags routes
   app.get('/api/feature-flags', jwtAuth, async (req: AuthenticatedRequest, res) => {
@@ -241,13 +243,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Mount microservice routes
-  app.use('/api/dashboard', dashboardRouter);
-  app.use('/api/customers', customersRouter);
-  // Mount beneficiaries routes  
+  // Mount microservice routes with safety checks
+  if (dashboardRouter && typeof dashboardRouter === 'function') {
+    app.use('/api/dashboard', dashboardRouter);
+  } else {
+    console.warn('Dashboard router is invalid, skipping...');
+  }
+  
+  if (customersRouter && typeof customersRouter === 'function') {
+    app.use('/api/customers', customersRouter);
+  } else {
+    console.warn('Customers router is invalid, skipping...');
+  }
+  
+  // Mount beneficiaries routes with safety check
   console.log('[ROUTES] Mounting beneficiaries routes on /api/beneficiaries');
-  app.use('/api/beneficiaries', beneficiariesRoutes);
-  app.use('/api/tickets', ticketsRouter);
+  if (beneficiariesRoutes && typeof beneficiariesRoutes === 'function') {
+    app.use('/api/beneficiaries', beneficiariesRoutes);
+  } else {
+    console.warn('Beneficiaries routes are invalid, skipping...');
+  }
+  
+  if (ticketsRouter && typeof ticketsRouter === 'function') {
+    app.use('/api/tickets', ticketsRouter);
+  } else {
+    console.warn('Tickets router is invalid, skipping...');
+  }
 
   // Import and mount ticket relationships routes
   const ticketRelationshipsRouter = await import('./routes/ticketRelationships');
