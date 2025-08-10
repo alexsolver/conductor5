@@ -1,25 +1,34 @@
-import { Request, Response } from 'express';
 import { KnowledgeBaseApplicationService } from '../services/KnowledgeBaseApplicationService';
 
-interface AuthenticatedRequest extends Request {
+// Use generic interfaces instead of Express types
+interface HttpRequest {
   user?: {
     id: string;
     tenantId: string;
     email: string;
     role: string;
   };
+  body: any;
+  params: any;
+  query: any;
 }
 
-class KnowledgeBaseController {
-  private knowledgeBaseService: KnowledgeBaseApplicationService;
-  private knowledgeBaseRepository: any; // Temporary fix - will be properly injected
+interface HttpResponse {
+  status(code: number): HttpResponse;
+  json(data: any): void;
+}
 
-  constructor(knowledgeBaseService: KnowledgeBaseApplicationService) {
-    this.knowledgeBaseService = knowledgeBaseService;
+// Removed - using generic HttpRequest interface instead
+
+export class KnowledgeBaseController {
+  private knowledgeBaseService: KnowledgeBaseApplicationService;
+
+  constructor(knowledgeBaseService?: KnowledgeBaseApplicationService) {
+    this.knowledgeBaseService = knowledgeBaseService || new KnowledgeBaseApplicationService();
   }
 
   // Categories
-  async createCategory(req: AuthenticatedRequest, res: Response) {
+  async createCategory(req: HttpRequest, res: HttpResponse) {
     try {
       if (!req.user?.tenantId) {
         return res.status(400).json({ success: false, message: "User not associated with a tenant" });
@@ -78,7 +87,7 @@ class KnowledgeBaseController {
       }
 
       const { categoryId } = req.params;
-      const category = await this.knowledgeBaseRepository.updateCategory(req.user.tenantId, categoryId, req.body);
+      const category = await this.knowledgeBaseService.updateCategory(req.user.tenantId, categoryId, req.body);
 
       if (!category) {
         return res.status(404).json({ 

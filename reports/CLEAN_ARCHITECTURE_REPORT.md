@@ -6,11 +6,11 @@
 
 ## Resumo de Problemas
 
-- 🔥 **Críticos:** 13
-- ⚠️ **Altos:** 66
+- 🔥 **Críticos:** 12
+- ⚠️ **Altos:** 65
 - 📋 **Médios:** 35
 - 💡 **Baixos:** 5
-- **Total:** 119
+- **Total:** 117
 
 ## Principais Problemas por Módulo
 
@@ -31,8 +31,8 @@
   - Application Layer violando dependência: express
 
 ### 🔥 materials-services
-- **Total de problemas:** 53
-- **Críticos:** 3 | **Altos:** 37
+- **Total de problemas:** 52
+- **Críticos:** 2 | **Altos:** 37
 - **Principais problemas:**
   - Routes contém lógica de negócio ou acesso a dados
   - Domain Layer violando dependência: drizzle-orm/neon-http
@@ -69,11 +69,11 @@
   - Repository contém possível lógica de negócio
 
 ### ⚠️ knowledge-base
-- **Total de problemas:** 10
-- **Críticos:** 0 | **Altos:** 6
+- **Total de problemas:** 9
+- **Críticos:** 0 | **Altos:** 5
 - **Principais problemas:**
   - Application Layer violando dependência: express
-  - Application Layer violando dependência: express
+  - Application Layer violando dependência: ../../infrastructure/repositories/MediaRepository
   - Application Layer violando dependência: ../../infrastructure/repositories/MediaRepository
 
 ### 🔥 schedule-management
@@ -144,13 +144,13 @@
 
 ### 🔥 materials-services
 - **Prioridade:** immediate
-- **Tempo estimado:** 26h
-- **Ações:** 35
+- **Tempo estimado:** 25h
+- **Ações:** 34
 
 1. **move_code:** Resolver acoplamento: Routes contém lógica de negócio ou acesso a dados
 2. **refactor_code:** Refatorar dependência inválida na camada domain
 3. **refactor_code:** Refatorar dependência inválida na camada domain
-4. **refactor_code:** Refatorar dependência inválida na camada domain
+4. **refactor_code:** Refatorar dependência inválida na camada application
 5. **refactor_code:** Refatorar dependência inválida na camada application
 6. **refactor_code:** Refatorar dependência inválida na camada application
 7. **refactor_code:** Refatorar dependência inválida na camada application
@@ -166,22 +166,21 @@
 17. **refactor_code:** Refatorar dependência inválida na camada application
 18. **refactor_code:** Refatorar dependência inválida na camada application
 19. **refactor_code:** Refatorar dependência inválida na camada application
-20. **refactor_code:** Refatorar dependência inválida na camada application
+20. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
 21. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
 22. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
 23. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
-24. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
-25. **rename_file:** Padronizar nomenclatura: Entity index não segue padrão PascalCase
-26. **rename_file:** Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'
+24. **rename_file:** Padronizar nomenclatura: Entity index não segue padrão PascalCase
+25. **rename_file:** Padronizar nomenclatura: Use Case index deve terminar com 'UseCase'
+26. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 27. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 28. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 29. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 30. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 31. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
-32. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
+32. **create_file:** Criar Repository com interface
 33. **create_file:** Criar Repository com interface
 34. **create_file:** Criar Repository com interface
-35. **create_file:** Criar Repository com interface
 
 ### 🔥 saas-admin
 - **Prioridade:** immediate
@@ -262,16 +261,15 @@
 
 ### ⚠️ knowledge-base
 - **Prioridade:** high
-- **Tempo estimado:** 5h
-- **Ações:** 7
+- **Tempo estimado:** 4h
+- **Ações:** 6
 
 1. **refactor_code:** Refatorar dependência inválida na camada application
 2. **refactor_code:** Refatorar dependência inválida na camada application
-3. **refactor_code:** Refatorar dependência inválida na camada application
+3. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
 4. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
-5. **move_code:** Resolver acoplamento: Repository contém possível lógica de negócio
+5. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 6. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
-7. **create_directory:** Criar interface I[Entity]Repository no domain e implementar
 
 ### 💡 ticket-templates
 - **Prioridade:** low
@@ -321,7 +319,7 @@
 
 ### Prioridade Imediata 🔥
 - **beneficiaries:** 3 ações (3h)
-- **materials-services:** 35 ações (26h)
+- **materials-services:** 34 ações (25h)
 - **saas-admin:** 6 ações (4h)
 - **technical-skills:** 6 ações (5h)
 - **schedule-management:** 5 ações (4h)
@@ -331,7 +329,7 @@
 ### Prioridade Alta ⚠️
 - **customers:** 3 ações (3h)
 - **tickets:** 2 ações (2h)
-- **knowledge-base:** 7 ações (5h)
+- **knowledge-base:** 6 ações (4h)
 
 ## Comandos para Correção
 

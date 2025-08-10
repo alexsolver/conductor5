@@ -1,9 +1,10 @@
-
 import { IKnowledgeBaseRepository } from '../../domain/repositories/IKnowledgeBaseRepository';
+import { IMediaRepository } from '../../domain/repositories/IMediaRepository';
 
 export class KnowledgeBaseApplicationService {
   constructor(
-    private knowledgeBaseRepository: IKnowledgeBaseRepository
+    private knowledgeBaseRepository: IKnowledgeBaseRepository,
+    private mediaRepository: IMediaRepository // Added IMediaRepository
   ) {}
 
   async createCategory(tenantId: string, categoryData: any) {
@@ -91,11 +92,11 @@ export class KnowledgeBaseApplicationService {
   }
 
   async getMediaLibrary(tenantId: string) {
-    return this.knowledgeBaseRepository.getMediaLibrary(tenantId);
+    return this.mediaRepository.getMediaLibrary(tenantId);
   }
 
   async uploadMedia(tenantId: string, mediaData: any) {
-    return this.knowledgeBaseRepository.uploadMedia(tenantId, mediaData);
+    return this.mediaRepository.uploadMedia(tenantId, mediaData);
   }
 
   async getArticleTemplates(tenantId: string) {

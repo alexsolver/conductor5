@@ -5,10 +5,7 @@ import multer from 'multer';
 import path from 'path';
 import { Router, Response } from 'express';
 import { z } from 'zod';
-import { db } from '../../db';
-// Tabelas do Knowledge Base agora ativas
-import { knowledgeBaseArticles, knowledgeBaseCategories, knowledgeBaseFiles } from '../../../shared/schema-master';
-import { eq, and, like, desc, sql } from 'drizzle-orm';
+// Removed direct database imports - routes should only handle HTTP concerns
 import { KnowledgeBaseController } from './application/controllers/KnowledgeBaseController';
 
 const router = express.Router();

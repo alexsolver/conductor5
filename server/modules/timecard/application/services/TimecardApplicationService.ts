@@ -1,6 +1,7 @@
-
 import { CreateTimecardUseCase } from '../use-cases/CreateTimecardUseCase';
 import { CreateTimecardDTO } from '../dto/CreateTimecardDTO';
+
+// Use generic interfaces instead of framework-specific types
 
 export class TimecardApplicationService {
   constructor(

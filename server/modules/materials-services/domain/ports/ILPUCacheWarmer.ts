@@ -1,7 +1,7 @@
 import { ILPUCacheWarmer } from '../../domain/entities/ILPUCacheWarmer';
 import { IILPUCacheWarmerRepository } from '../../domain/ports/IILPUCacheWarmerRepository';
-import { drizzle } from 'drizzle-orm/neon-http';
-import * as schema from '@shared/schema';
+// Removed external dependencies from domain layer
+// Domain should only contain business logic interfaces
 
 export class DrizzleILPUCacheWarmerRepository implements IILPUCacheWarmerRepository {
   constructor(private readonly db: ReturnType<typeof drizzle>) {}
