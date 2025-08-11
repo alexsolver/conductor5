@@ -368,8 +368,17 @@ export class DrizzleTicketRepository implements ITicketRepository {
         ) RETURNING *
       `);
 
-      console.log('🎫 [DrizzleTicketRepository] Ticket created:', result[0]);
-      return result[0];
+      console.log('🎫 [DrizzleTicketRepository] Raw result:', result);
+      
+      // Extract the first row from the result
+      const ticketRow = Array.isArray(result) ? result[0] : result.rows?.[0];
+      
+      if (!ticketRow) {
+        throw new Error('Failed to create ticket - no result returned');
+      }
+      
+      console.log('🎫 [DrizzleTicketRepository] Ticket created:', ticketRow);
+      return ticketRow;
 
     } catch (error) {
       console.error('🎫 [DrizzleTicketRepository] Error creating ticket:', error);

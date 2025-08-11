@@ -15,8 +15,8 @@ export class BeneficiariesController {
       
       console.log('👥 [BeneficiariesController] Getting beneficiaries for tenant:', tenantId);
       
-      // Use correct database connection following AGENT_CODING_STANDARDS.md
-      const { db } = await import('../../../db');
+      // Import from absolute path
+      const { db } = await import('../../../../db');
       const { sql } = await import('drizzle-orm');
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       
