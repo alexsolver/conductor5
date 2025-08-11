@@ -1,5 +1,5 @@
 
-#!/usr/bin/env node
+#!/usr/bin/env tsx
 
 import { execSync } from 'child_process';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
