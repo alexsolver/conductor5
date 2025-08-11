@@ -1,15 +1,4 @@
 // Domain entity - clean architecture compliance
-export interface SaasConfig {
-  id: string;
-  tenantId: string;
-  configKey: string;
-  configValue: string;
-  active: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-// Domain entities should not import infrastructure dependencies
 export class SaasConfig {
   constructor(
     public readonly id: string,

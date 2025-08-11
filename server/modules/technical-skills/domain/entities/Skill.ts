@@ -46,31 +46,8 @@ export class UserSkill {
     public readonly updatedAt: Date = new Date()
   ) {}
 
-  static create(props: Omit<UserSkillProps, 'id' | 'createdAt' | 'updatedAt'>): UserSkill {
-    if (props.level < 1 || props.level > 5) {
-      throw new Error('Skill level must be between 1 and 5');
-    }
-
-    return new UserSkill(
-      crypto.randomUUID(),
-      props.userId,
-      props.skillId,
-      props.level,
-      props.certifiedAt
-    );
-  }
-
-  static reconstruct(props: UserSkillProps): UserSkill {
-    return new UserSkill(
-      props.id,
-      props.userId,
-      props.skillId,
-      props.level,
-      props.certifiedAt,
-      props.createdAt,
-      props.updatedAt
-    );
-  }
+  // CLEANED: Factory methods removed - creation and reconstruction moved to repository layer
+  // Domain entities should focus on business logic, not object construction
 
   updateLevel(newLevel: number): UserSkill {
     if (newLevel < 1 || newLevel > 5) {

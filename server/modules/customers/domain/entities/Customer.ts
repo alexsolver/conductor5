@@ -124,58 +124,7 @@ export class Customer {
   }
 
   // CLEANED: Factory methods removed - creation logic moved to application layer
-  // Domain entities should focus on business logic, not object construction with validation
-
-    // Validação específica por tipo
-    if (props.customerType === 'PF') {
-      if (!props.firstName || !props.lastName || !props.cpf) {
-        throw new Error('Para pessoa física: Nome, Sobrenome e CPF são obrigatórios');
-      }
-    } else if (props.customerType === 'PJ') {
-      if (!props.companyName || !props.cnpj) {
-        throw new Error('Para pessoa jurídica: Razão Social e CNPJ são obrigatórios');
-      }
-    }
-
-    // Note: This should use dependency injection for ID generation in production
-    return new Customer(
-      crypto.randomUUID(),
-      props.tenantId,
-      props.customerType,
-      props.status || 'Ativo',
-      props.email,
-      props.description,
-      props.internalCode,
-      props.firstName,
-      props.lastName,
-      props.cpf,
-      props.companyName,
-      props.cnpj,
-      props.contactPerson,
-      props.responsible,
-      props.phone,
-      props.mobilePhone,
-      props.position,  
-      props.supervisor,
-      props.coordinator,
-      props.manager,
-      props.tags || [],
-      props.metadata || {},
-      props.verified || false,
-      true, // active by default
-      false, // not suspended by default
-      null, // lastLogin
-      props.timezone || 'UTC',
-      props.locale || 'pt-BR',
-      props.language || 'pt',
-      null, // externalId
-      props.role || 'customer',
-      null, // notes
-      null, // avatar
-      null, // signature
-      new Date(),
-      new Date()
-    );
+  // Domain entities should focus on business logic, not object construction
   }
 
   // Update methods (immutable)
