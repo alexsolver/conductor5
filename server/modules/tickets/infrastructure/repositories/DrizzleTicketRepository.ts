@@ -1,352 +1,250 @@
-import { eq, and, or, ilike, count } from 'drizzle-orm';
-import { Ticket } from '../../domain/entities/Ticket';
-import { ITicketRepository, TicketFilter } from '../../domain/ports/ITicketRepository';
-import { tickets } from '@shared/schema';
-import { db } from '../../../../db';
+import { eq, and, sql, desc } from 'drizzle-orm';
+import { PgDatabase } from 'drizzle-orm/pg-core';
+import { ITicketRepository } from '../../domain/repositories/ITicketRepository';
 
 export class DrizzleTicketRepository implements ITicketRepository {
-  private dbConnection = db;
+  constructor(private db: PgDatabase<any>) {}
 
-  async findById(id: string, tenantId: string): Promise<Ticket | null> {
+  async findByTenant(tenantId: string, filters: any = {}): Promise<any[]> {
     try {
-      const result = await this.dbConnection
-        .select()
-        .from(tickets)
-        .where(and(eq(tickets.id, id), eq(tickets.tenantId, tenantId)))
-        .limit(1);
+      console.log('🎫 [DrizzleTicketRepository] Finding tickets for tenant:', tenantId);
 
-      return result.length > 0 ? this.toDomainEntity(result[0]) : null;
-    } catch (error) {
-      console.error('❌ Error finding ticket by id:', error);
-      throw error;
-    }
-  }
+      // Get schema name
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-  async findAll(tenantId: string): Promise<Ticket[]> {
-    try {
-      const results = await this.dbConnection
-        .select()
-        .from(tickets)
-        .where(eq(tickets.tenantId, tenantId));
+      // Build raw SQL query to avoid schema/column issues
+      let query = `
+        SELECT 
+          t.id,
+          t.number,
+          t.subject,
+          t.description,
+          t.status,
+          t.priority,
+          t.urgency,
+          t.category,
+          t.subcategory,
+          t.action,
+          t.caller_id,
+          t.beneficiary_id,
+          t.assigned_to_id,
+          t.customer_company_id,
+          t.location,
+          t.symptoms,
+          t.business_impact,
+          t.workaround,
+          t.created_at,
+          t.updated_at,
+          t.resolved_at,
+          t.closed_at,
+          c.first_name as customer_first_name,
+          c.last_name as customer_last_name,
+          c.email as customer_email,
+          u.first_name as assigned_first_name,
+          u.last_name as assigned_last_name
+        FROM "${schemaName}".tickets t
+        LEFT JOIN "${schemaName}".customers c ON c.id = t.caller_id
+        LEFT JOIN public.users u ON u.id = t.assigned_to_id
+        WHERE 1=1
+      `;
 
-      return results.map(result => this.toDomainEntity(result));
-    } catch (error) {
-      console.error('❌ Error finding all tickets:', error);
-      return []; // Return empty array to maintain system stability
-    }
-  }
+      const params: any[] = [];
+      let paramIndex = 1;
 
-  async findByNumber(number: string, tenantId: string): Promise<Ticket | null> {
-    try {
-      const result = await this.dbConnection
-        .select()
-        .from(tickets)
-        .where(and(eq(tickets.number, number), eq(tickets.tenantId, tenantId)))
-        .limit(1);
-
-      return result.length > 0 ? this.toDomainEntity(result[0]) : null;
-    } catch (error) {
-      console.error('❌ Error finding ticket by number:', error);
-      throw error;
-    }
-  }
-
-  async findMany(filter: any): Promise<Ticket[]> {
-    const conditions = [eq(tickets.tenantId, filter.tenantId)];
-
-    if (filter.search) {
-      const searchPattern = `%${filter.search.replace(/[%_]/g, '\\$&')}%`;
-      conditions.push(
-        or(
-          ilike(tickets.subject, searchPattern),
-          ilike(tickets.description, searchPattern),
-          ilike(tickets.number, searchPattern)
-        )!
-      );
-    }
-
-    if (filter.status) {
-      conditions.push(eq(tickets.status, filter.status));
-    }
-
-    if (filter.priority) {
-      conditions.push(eq(tickets.priority, filter.priority));
-    }
-
-    if (filter.assignedToId) {
-      conditions.push(eq(tickets.assignedToId, filter.assignedToId));
-    }
-
-    if (filter.customerId) {
-      conditions.push(eq(tickets.customerId, filter.customerId));
-    }
-
-    if (filter.category) {
-      conditions.push(eq(tickets.category, filter.category));
-    }
-
-    if (filter.urgent) {
-      conditions.push(eq(tickets.priority, 'urgent'));
-    }
-
-    let query = this.dbConnection
-      .select()
-      .from(tickets)
-      .where(and(...conditions));
-
-    if (filter.limit !== undefined) {
-      query = query.limit(filter.limit);
-    }
-
-    if (filter.offset !== undefined) {
-      query = query.offset(filter.offset);
-    }
-
-    try {
-      const results = await query;
-      return results.map(result => this.toDomainEntity(result));
-    } catch (error) {
-      console.error('❌ Error finding many tickets:', error);
-      return []; // Return empty array to maintain system stability
-    }
-  }
-
-  async save(ticket: Ticket): Promise<Ticket> {
-    const ticketData = this.toPersistenceData(ticket);
-    const existingTicket = await this.findById(ticket.getId(), ticket.getTenantId());
-
-    try {
-      if (existingTicket) {
-        const [updated] = await this.dbConnection
-          .update(tickets)
-          .set({
-            ...ticketData,
-            updatedAt: new Date()
-          })
-          .where(and(
-            eq(tickets.id, ticket.getId()),
-            eq(tickets.tenantId, ticket.getTenantId())
-          ))
-          .returning();
-
-        if (!updated) {
-          throw new Error('Ticket not found or update failed');
-        }
-        return this.toDomainEntity(updated);
-      } else {
-        const [inserted] = await this.dbConnection
-          .insert(tickets)
-          .values(ticketData)
-          .returning();
-
-        if (!inserted) {
-          throw new Error('Ticket insertion failed');
-        }
-        return this.toDomainEntity(inserted);
+      // Add filters
+      if (filters.status) {
+        query += ` AND t.status = $${paramIndex}`;
+        params.push(filters.status);
+        paramIndex++;
       }
+
+      if (filters.priority) {
+        query += ` AND t.priority = $${paramIndex}`;
+        params.push(filters.priority);
+        paramIndex++;
+      }
+
+      if (filters.assignedTo) {
+        query += ` AND t.assigned_to_id = $${paramIndex}`;
+        params.push(filters.assignedTo);
+        paramIndex++;
+      }
+
+      if (filters.customerId) {
+        query += ` AND t.caller_id = $${paramIndex}`;
+        params.push(filters.customerId);
+        paramIndex++;
+      }
+
+      if (filters.ticketId) {
+        query += ` AND t.id = $${paramIndex}`;
+        params.push(filters.ticketId);
+        paramIndex++;
+      }
+
+      // Add ordering
+      query += ` ORDER BY t.created_at DESC`;
+
+      // Add pagination
+      if (filters.limit) {
+        query += ` LIMIT $${paramIndex}`;
+        params.push(filters.limit);
+        paramIndex++;
+      }
+
+      if (filters.offset) {
+        query += ` OFFSET $${paramIndex}`;
+        params.push(filters.offset);
+        paramIndex++;
+      }
+
+      console.log('🎫 [DrizzleTicketRepository] Executing query:', query);
+      console.log('🎫 [DrizzleTicketRepository] With params:', params);
+
+      const result = await this.db.execute(sql.raw(query, params));
+
+      console.log('🎫 [DrizzleTicketRepository] Raw result:', result.length, 'tickets found');
+
+      // Map results to expected format
+      const tickets = result.map((row: any) => ({
+        id: row.id,
+        number: row.number,
+        subject: row.subject,
+        description: row.description,
+        status: row.status,
+        priority: row.priority,
+        urgency: row.urgency,
+        category: row.category,
+        subcategory: row.subcategory,
+        action: row.action,
+        caller_id: row.caller_id,
+        beneficiary_id: row.beneficiary_id,
+        assigned_to_id: row.assigned_to_id,
+        customer_company_id: row.customer_company_id,
+        location: row.location,
+        symptoms: row.symptoms,
+        business_impact: row.business_impact,
+        workaround: row.workaround,
+        created_at: row.created_at,
+        updated_at: row.updated_at,
+        resolved_at: row.resolved_at,
+        closed_at: row.closed_at,
+        // Joined data
+        customer_name: row.customer_first_name && row.customer_last_name 
+          ? `${row.customer_first_name} ${row.customer_last_name}`.trim()
+          : null,
+        customer_email: row.customer_email,
+        assigned_to_name: row.assigned_first_name && row.assigned_last_name
+          ? `${row.assigned_first_name} ${row.assigned_last_name}`.trim()
+          : null
+      }));
+
+      console.log('🎫 [DrizzleTicketRepository] Mapped tickets:', tickets.length);
+      return tickets;
+
     } catch (error) {
-      console.error('❌ Error saving ticket:', error);
+      console.error('🎫 [DrizzleTicketRepository] Error finding tickets:', error);
       throw error;
     }
   }
 
-  async delete(id: string, tenantId: string): Promise<boolean> {
-    try {
-      const result = await this.dbConnection
-        .delete(tickets)
-        .where(and(eq(tickets.id, id), eq(tickets.tenantId, tenantId)));
+  async findById(tenantId: string, ticketId: string): Promise<any | null> {
+    const tickets = await this.findByTenant(tenantId, { ticketId, limit: 1 });
+    return tickets[0] || null;
+  }
 
-      return result?.rowCount > 0;
+  async findMany(tenantId: string, filters: any = {}): Promise<any[]> {
+    return this.findByTenant(tenantId, filters);
+  }
+
+  async create(tenantId: string, ticketData: any): Promise<any> {
+    try {
+      console.log('🎫 [DrizzleTicketRepository] Creating ticket for tenant:', tenantId);
+
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+      // Generate ticket number
+      const ticketNumber = `TK-${Date.now().toString().slice(-6)}`;
+
+      const query = `
+        INSERT INTO "${schemaName}".tickets (
+          number, subject, description, status, priority, urgency,
+          category, subcategory, action, caller_id, beneficiary_id,
+          assigned_to_id, customer_company_id, location, symptoms,
+          business_impact, workaround, created_at, updated_at
+        ) VALUES (
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, NOW(), NOW()
+        ) RETURNING *
+      `;
+
+      const params = [
+        ticketNumber,
+        ticketData.subject || '',
+        ticketData.description || '',
+        ticketData.status || 'new',
+        ticketData.priority || 'medium',
+        ticketData.urgency || 'medium',
+        ticketData.category || null,
+        ticketData.subcategory || null,
+        ticketData.action || null,
+        ticketData.caller_id || null,
+        ticketData.beneficiary_id || null,
+        ticketData.assigned_to_id || null,
+        ticketData.customer_company_id || null,
+        ticketData.location || null,
+        ticketData.symptoms || null,
+        ticketData.business_impact || null,
+        ticketData.workaround || null
+      ];
+
+      const result = await this.db.execute(sql.raw(query, params));
+
+      console.log('🎫 [DrizzleTicketRepository] Ticket created:', result[0]);
+      return result[0];
+
     } catch (error) {
-      console.error('❌ Error deleting ticket:', error);
+      console.error('🎫 [DrizzleTicketRepository] Error creating ticket:', error);
       throw error;
     }
   }
 
-  async count(filter: Omit<any, 'limit' | 'offset'>): Promise<number> {
-    const conditions = [eq(tickets.tenantId, filter.tenantId)];
-
-    if (filter.search) {
-      const searchPattern = `%${filter.search.replace(/[%_]/g, '\\$&')}%`;
-      conditions.push(
-        or(
-          ilike(tickets.subject, searchPattern),
-          ilike(tickets.description, searchPattern),
-          ilike(tickets.number, searchPattern)
-        )!
-      );
-    }
-
-    if (filter.status) {
-      conditions.push(eq(tickets.status, filter.status));
-    }
-
-    if (filter.priority) {
-      conditions.push(eq(tickets.priority, filter.priority));
-    }
-
-    if (filter.assignedToId) {
-      conditions.push(eq(tickets.assignedToId, filter.assignedToId));
-    }
-
-    if (filter.customerId) {
-      conditions.push(eq(tickets.customerId, filter.customerId));
-    }
-
-    if (filter.category) {
-      conditions.push(eq(tickets.category, filter.category));
-    }
-
-    if (filter.urgent) {
-      conditions.push(eq(tickets.priority, 'urgent'));
-    }
-
+  async update(tenantId: string, ticketId: string, updates: any): Promise<any> {
     try {
-      const result = await this.dbConnection
-        .select({ count: count() })
-        .from(tickets)
-        .where(and(...conditions));
+      console.log('🎫 [DrizzleTicketRepository] Updating ticket:', ticketId);
 
-      return result[0]?.count || 0;
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+
+      // Build dynamic update query
+      const updateFields = Object.keys(updates).map((key, index) => `${key} = $${index + 2}`).join(', ');
+      const query = `
+        UPDATE "${schemaName}".tickets 
+        SET ${updateFields}, updated_at = NOW()
+        WHERE id = $1
+        RETURNING *
+      `;
+
+      const params = [ticketId, ...Object.values(updates)];
+
+      const result = await this.db.execute(sql.raw(query, params));
+      return result[0];
+
     } catch (error) {
-      console.error('❌ Error counting tickets:', error);
+      console.error('🎫 [DrizzleTicketRepository] Error updating ticket:', error);
       throw error;
     }
   }
 
-  async findUrgent(tenantId: string): Promise<Ticket[]> {
+  async delete(tenantId: string, ticketId: string): Promise<boolean> {
     try {
-      const results = await this.dbConnection
-        .select()
-        .from(tickets)
-        .where(and(
-          eq(tickets.tenantId, tenantId),
-          eq(tickets.priority, 'urgent'),
-          eq(tickets.status, 'open')
-        ));
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-      return results.map(result => this.toDomainEntity(result));
+      const query = `DELETE FROM "${schemaName}".tickets WHERE id = $1`;
+      await this.db.execute(sql.raw(query, [ticketId]));
+
+      return true;
     } catch (error) {
-      console.error('❌ Error finding urgent tickets:', error);
-      throw error;
+      console.error('🎫 [DrizzleTicketRepository] Error deleting ticket:', error);
+      return false;
     }
-  }
-
-  async findUnassigned(tenantId: string): Promise<Ticket[]> {
-    try {
-      const results = await this.dbConnection
-        .select()
-        .from(tickets)
-        .where(and(
-          eq(tickets.tenantId, tenantId),
-          or(
-            eq(tickets.status, 'open'),
-            eq(tickets.status, 'in_progress')
-          )!
-        ));
-
-      return results.map(result => this.toDomainEntity(result));
-    } catch (error) {
-      console.error('❌ Error finding unassigned tickets:', error);
-      throw error;
-    }
-  }
-
-  async findOverdue(tenantId: string): Promise<Ticket[]> {
-    try {
-      const today = new Date();
-      const results = await this.dbConnection
-        .select()
-        .from(tickets)
-        .where(and(
-          eq(tickets.tenantId, tenantId),
-          or(
-            eq(tickets.status, 'open'),
-            eq(tickets.status, 'in_progress')
-          )!
-        ));
-
-      return results.map(result => this.toDomainEntity(result));
-    } catch (error) {
-      console.error('❌ Error finding overdue tickets:', error);
-      return [];
-    }
-  }
-
-  async getNextTicketNumber(tenantId: string, prefix: string = 'TK'): Promise<string> {
-    try {
-      const today = new Date();
-      const dateStr = today.toISOString().slice(0, 10).replace(/-/g, '');
-      const result = await this.dbConnection
-        .select({ count: count() })
-        .from(tickets)
-        .where(eq(tickets.tenantId, tenantId));
-
-      const nextNumber = (result[0]?.count || 0) + 1;
-      return `${prefix}-${dateStr}-${nextNumber.toString().padStart(4, '0')}`;
-    } catch (error) {
-      console.error('❌ Error generating ticket number:', error);
-      return `${prefix}-${Date.now()}`;
-    }
-  }
-
-  private toDomainEntity(data: any): Ticket {
-    return new Ticket(
-      data.id,
-      data.tenantId,
-      data.customerId || null,
-      data.callerId || 'system',
-      'customer',
-      data.subject || data.title || 'Untitled',
-      data.description || '',
-      data.number || 'TK-' + Date.now(),
-      data.shortDescription || data.description || '',
-      data.category || 'General',
-      data.subcategory || 'General',
-      data.priority || 'medium',
-      data.impact || 'low',
-      data.urgency || 'low',
-      data.state || 'open',
-      data.status || 'open',
-      data.assignedToId || null,
-      data.beneficiaryId || null,
-      null,
-      null,
-      data.location || null,
-      'phone',
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-      false,
-      null,
-      data.openedAt || data.createdAt || new Date(),
-      data.resolvedAt || null,
-      data.closedAt || null,
-      data.createdAt || new Date(),
-      data.updatedAt || new Date()
-    );
-  }
-
-  private toPersistenceData(ticket: Ticket): any {
-    return {
-      id: ticket.getId(),
-      tenantId: ticket.getTenantId(),
-      subject: ticket.getSubject(),
-      description: ticket.getDescription(),
-      priority: ticket.getPriority(),
-      status: ticket.getStatus(),
-      callerId: ticket.getCallerId(),
-      customerId: ticket.getCustomerId(),
-      beneficiaryId: ticket.getBeneficiaryId(),
-      assignedToId: ticket.getAssignedToId(),
-      category: ticket.getCategory(),
-      subcategory: ticket.getSubcategory(),
-      updatedAt: new Date()
-    };
   }
 }
