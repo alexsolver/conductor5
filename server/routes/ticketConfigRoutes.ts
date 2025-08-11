@@ -830,13 +830,19 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => 
       success: true,
       data: result.rows
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     // If table doesn't exist, try to create it
-    if (error.code === '42P01' && error.message.includes('ticket_field_options')) {
+    const errorObj = error as any;
+    if (errorObj.code === '42P01' && errorObj.message.includes('ticket_field_options')) {
       try {
         console.log('🏗️ Creating missing ticket infrastructure tables...');
         const { createTicketInfrastructureTables } = await import('../scripts/createTicketInfrastructureTables');
-        await createTicketInfrastructureTables(tenantId);
+        await createTicketInfrastructureTables(req.user!.tenantId);
+        
+        // Get variables from scope
+        const retryTenantId = req.user!.tenantId;
+        const retrySchemaName = `tenant_${retryTenantId.replace(/-/g, '_')}`;
+        const retryCompanyId = companyId || '00000000-0000-0000-0000-000000000001';
         
         // Retry the request
         const retryResult = await db.execute(sql`
@@ -854,9 +860,9 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => 
             status_type,
             created_at,
             updated_at
-          FROM "${sql.raw(schemaName)}".ticket_field_options 
-          WHERE tenant_id = ${tenantId}
-          AND customer_id = ${companyId}
+          FROM "${sql.raw(retrySchemaName)}".ticket_field_options 
+          WHERE tenant_id = ${retryTenantId}
+          AND customer_id = ${retryCompanyId}
           AND is_active = true
           ${fieldName ? sql`AND field_name = ${fieldName}` : sql``}
           ORDER BY field_name, sort_order, label
