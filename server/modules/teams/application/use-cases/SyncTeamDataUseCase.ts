@@ -1,4 +1,6 @@
 
+import { DrizzleTeamRepository } from '../../infrastructure/repositories/DrizzleTeamRepository';
+
 export interface SyncTeamDataRequest {
   tenantId: string;
   userId: string;
@@ -7,44 +9,39 @@ export interface SyncTeamDataRequest {
 export interface SyncTeamDataResponse {
   success: boolean;
   message: string;
-  stats: {
-    totalUsers: number;
-    activeUsers: number;
-    userGroups: number;
-    lastSync?: string;
-  };
+  stats?: any;
 }
 
 export class SyncTeamDataUseCase {
-  
+  private teamRepository: DrizzleTeamRepository;
+
+  constructor() {
+    this.teamRepository = new DrizzleTeamRepository();
+  }
+
   async execute(request: SyncTeamDataRequest): Promise<SyncTeamDataResponse> {
     try {
-      console.log('[SYNC-TEAM-DATA] Processing sync for tenant:', request.tenantId);
+      console.log('[SYNC-TEAM-DATA] Processing request for tenant:', request.tenantId);
 
-      // TODO: Replace with actual synchronization logic
-      // Simulate team data synchronization
-      const stats = {
-        totalUsers: 4,
-        activeUsers: 2,
-        userGroups: 3,
-        lastSync: new Date().toISOString()
-      };
+      const result = await this.teamRepository.syncTeamData(request.tenantId);
 
-      return {
-        success: true,
-        message: 'Team data synchronized successfully',
-        stats
-      };
+      if (result.success) {
+        return {
+          success: true,
+          message: 'Team data synchronized',
+          stats: result.stats
+        };
+      } else {
+        return {
+          success: false,
+          message: result.error || 'Failed to sync team data'
+        };
+      }
     } catch (error) {
       console.error('Error in SyncTeamDataUseCase:', error);
       return {
         success: false,
-        message: error.message || 'Failed to sync team data',
-        stats: {
-          totalUsers: 0,
-          activeUsers: 0,
-          userGroups: 0
-        }
+        message: 'Failed to sync team data'
       };
     }
   }

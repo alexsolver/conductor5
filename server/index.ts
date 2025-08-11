@@ -20,6 +20,8 @@ import userManagementRoutes from './routes/userManagementRoutes';
 import ticketMetadataRouter from './routes/ticketMetadata';
 import ticketHierarchyRouter from './modules/tickets/routes';
 import ticketFieldOptionsRouter from './routes/ticketFieldOptions';
+import { teamsRoutes as teamsManagementRoutes } from './routes/teamManagementRoutes';
+import { teamsRoutes } from './modules/teams/routes';
 
 const app = express();
 
@@ -124,6 +126,8 @@ app.use((req, res, next) => {
   app.use('/api', userManagementRoutes);
   app.use('/api/tickets', ticketFieldOptionsRouter);
   console.log('✅ Ticket field options routes registered');
+  app.use('/api/team-management', teamsManagementRoutes);
+  app.use('/api/teams', teamsRoutes);
 
   // Customers router
   try {

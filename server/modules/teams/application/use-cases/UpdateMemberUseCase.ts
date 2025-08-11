@@ -1,56 +1,56 @@
 
+import { DrizzleTeamRepository } from '../../infrastructure/repositories/DrizzleTeamRepository';
+
 export interface UpdateMemberRequest {
   tenantId: string;
   userId: string;
   memberId: string;
-  updateData: {
-    firstName?: string;
-    lastName?: string;
-    email?: string;
-    role?: string;
-    department?: string;
-    position?: string;
-    phone?: string;
-    isActive?: boolean;
-  };
+  updateData: any;
   updatedBy: string;
 }
 
 export interface UpdateMemberResponse {
   success: boolean;
   message: string;
-  updatedMember?: any;
+  data?: any;
 }
 
 export class UpdateMemberUseCase {
-  
+  private teamRepository: DrizzleTeamRepository;
+
+  constructor() {
+    this.teamRepository = new DrizzleTeamRepository();
+  }
+
   async execute(request: UpdateMemberRequest): Promise<UpdateMemberResponse> {
     try {
-      console.log('[UPDATE-MEMBER] Processing request:', {
-        tenantId: request.tenantId,
-        memberId: request.memberId,
-        updateData: request.updateData
-      });
+      console.log('[UPDATE-MEMBER] Processing request:', request);
 
-      // TODO: Replace with actual repository calls
-      // Simulate member update
-      const updatedMember = {
-        id: request.memberId,
-        ...request.updateData,
-        updatedAt: new Date().toISOString(),
-        updatedBy: request.updatedBy
-      };
+      // Validate UUID format
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(request.memberId)) {
+        return {
+          success: false,
+          message: 'Invalid member ID format'
+        };
+      }
+
+      const updatedMember = await this.teamRepository.updateMember(
+        request.tenantId,
+        request.memberId,
+        request.updateData
+      );
 
       return {
         success: true,
         message: 'Member updated successfully',
-        updatedMember
+        data: updatedMember
       };
     } catch (error) {
       console.error('Error in UpdateMemberUseCase:', error);
       return {
         success: false,
-        message: error.message || 'Failed to update member'
+        message: 'Failed to update member'
       };
     }
   }

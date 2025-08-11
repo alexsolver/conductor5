@@ -1,4 +1,6 @@
 
+import { DrizzleTeamRepository } from '../../infrastructure/repositories/DrizzleTeamRepository';
+
 export interface UpdateMemberStatusRequest {
   tenantId: string;
   userId: string;
@@ -10,47 +12,57 @@ export interface UpdateMemberStatusRequest {
 export interface UpdateMemberStatusResponse {
   success: boolean;
   message: string;
-  updatedMember?: {
-    id: string;
-    status: string;
-    updatedAt: string;
-  };
 }
 
 export class UpdateMemberStatusUseCase {
-  
+  private teamRepository: DrizzleTeamRepository;
+
+  constructor() {
+    this.teamRepository = new DrizzleTeamRepository();
+  }
+
   async execute(request: UpdateMemberStatusRequest): Promise<UpdateMemberStatusResponse> {
     try {
-      console.log('[UPDATE-MEMBER-STATUS] Processing request:', {
-        tenantId: request.tenantId,
-        memberId: request.memberId,
-        status: request.status
-      });
+      console.log('[UPDATE-MEMBER-STATUS] Processing request:', request);
 
-      // Validate status
-      const validStatuses = ['active', 'inactive', 'pending'];
-      if (!validStatuses.includes(request.status)) {
-        throw new Error(`Invalid status: ${request.status}`);
+      // Validate UUID format
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(request.memberId)) {
+        return {
+          success: false,
+          message: 'Invalid member ID format'
+        };
       }
 
-      // TODO: Replace with actual repository calls
-      // Simulate status update
-      const updatedMember = {
-        id: request.memberId,
-        status: request.status,
-        updatedAt: new Date().toISOString()
-      };
+      if (!['active', 'inactive', 'pending'].includes(request.status)) {
+        return {
+          success: false,
+          message: 'Invalid status'
+        };
+      }
 
-      return {
-        success: true,
-        message: 'Member status updated successfully',
-        updatedMember
-      };
+      const success = await this.teamRepository.updateMemberStatus(
+        request.tenantId, 
+        request.memberId, 
+        request.status
+      );
+
+      if (success) {
+        return {
+          success: true,
+          message: 'Status updated successfully'
+        };
+      } else {
+        return {
+          success: false,
+          message: 'Failed to update status'
+        };
+      }
     } catch (error) {
       console.error('Error in UpdateMemberStatusUseCase:', error);
       return {
         success: false,
-        message: error.message || 'Failed to update member status'
+        message: 'Failed to update status'
       };
     }
   }

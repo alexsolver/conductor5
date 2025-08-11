@@ -3,32 +3,26 @@ import { Router } from 'express';
 import { jwtAuth } from '../../middleware/jwtAuth';
 import { TeamsController } from './application/controllers/TeamsController';
 
-export function createTeamsRoutes(): Router {
-  const router = Router();
-  const controller = new TeamsController();
+const router = Router();
+const teamsController = new TeamsController();
 
-  // Apply JWT authentication to all routes
-  router.use(jwtAuth);
+// Apply JWT authentication to all routes
+router.use(jwtAuth);
 
-  // Team overview and stats routes
-  router.get('/overview', (req, res) => controller.getOverview(req, res));
-  router.get('/members', (req, res) => controller.getMembers(req, res));
-  router.get('/stats', (req, res) => controller.getStats(req, res));
-  router.get('/performance', (req, res) => controller.getPerformance(req, res));
-  router.get('/skills-matrix', (req, res) => controller.getSkillsMatrix(req, res));
-  router.get('/departments', (req, res) => controller.getDepartments(req, res));
-  router.get('/roles', (req, res) => controller.getRoles(req, res));
+// Team management routes using modular controller
+router.get('/overview', teamsController.getOverview.bind(teamsController));
+router.get('/members', teamsController.getMembers.bind(teamsController));
+router.get('/stats', teamsController.getStats.bind(teamsController));
+router.get('/performance', teamsController.getPerformance.bind(teamsController));
+router.get('/skills-matrix', teamsController.getSkillsMatrix.bind(teamsController));
+router.get('/departments', teamsController.getDepartments.bind(teamsController));
+router.get('/roles', teamsController.getRoles.bind(teamsController));
 
-  // Member management routes
-  router.put('/members/:id/status', (req, res) => controller.updateMemberStatus(req, res));
-  router.put('/members/:id', (req, res) => controller.updateMember(req, res));
+// Member management operations
+router.put('/members/:id/status', teamsController.updateMemberStatus.bind(teamsController));
+router.put('/members/:id', teamsController.updateMember.bind(teamsController));
 
-  // Sync routes
-  router.post('/members/sync', (req, res) => controller.syncTeamData(req, res));
+// Team data synchronization
+router.post('/members/sync', teamsController.syncTeamData.bind(teamsController));
 
-  console.log('✅ Teams module routes registered successfully');
-  return router;
-}
-
-// Default export for compatibility
-export default createTeamsRoutes;
+export { router as teamsRoutes };

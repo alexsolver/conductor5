@@ -20,9 +20,9 @@ const router = Router();
 // ============= SIMPLIFIED USER ROUTES =============
 
 // Get all users for a tenant
-router.get('/users', 
-  jwtAuth, 
-  requirePermission('tenant', 'manage_users'), 
+router.get('/users',
+  jwtAuth,
+  requirePermission('tenant', 'manage_users'),
   async (req: AuthenticatedRequest, res) => {
     try {
       const tenantId = req.user!.tenantId;
@@ -36,9 +36,9 @@ router.get('/users',
 );
 
 // Create new user
-router.post('/users', 
-  jwtAuth, 
-  requirePermission('tenant', 'manage_users'), 
+router.post('/users',
+  jwtAuth,
+  requirePermission('tenant', 'manage_users'),
   async (req: AuthenticatedRequest, res) => {
     try {
       const tenantId = req.user!.tenantId;
@@ -98,7 +98,7 @@ router.post('/users',
 
       console.log(`✅ User created successfully: ${userData.email} (ID: ${newUser[0].id})`);
 
-      res.status(201).json({ 
+      res.status(201).json({
         message: 'User created successfully',
         user: newUser[0],
         tempPassword: userData.sendInvitation ? null : tempPassword // Only return if invitation is not sent
@@ -115,9 +115,9 @@ router.post('/users',
 );
 
 // Get user by ID
-router.get('/users/:userId', 
-  jwtAuth, 
-  requirePermission('tenant', 'manage_users'), 
+router.get('/users/:userId',
+  jwtAuth,
+  requirePermission('tenant', 'manage_users'),
   async (req: AuthenticatedRequest, res) => {
     try {
       const { userId } = req.params;
@@ -139,9 +139,9 @@ router.get('/users/:userId',
 // ============= USER GROUPS ROUTES =============
 
 // Get all groups for tenant
-router.get('/groups', 
-  jwtAuth, 
-  requirePermission('tenant', 'manage_users'), 
+router.get('/groups',
+  jwtAuth,
+  requirePermission('tenant', 'manage_users'),
   async (req: AuthenticatedRequest, res) => {
     try {
       const tenantId = req.user!.tenantId;
@@ -179,25 +179,25 @@ router.get('/groups',
         })
       );
 
-      res.json({ 
+      res.json({
         success: true,
-        groups: groupsWithMemberCount 
+        groups: groupsWithMemberCount
       });
     } catch (error) {
       console.error('Error fetching user groups:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         success: false,
         message: 'Failed to fetch user groups',
-        error: error.message 
+        error: error.message
       });
     }
   }
 );
 
 // Create new group
-router.post('/groups', 
-  jwtAuth, 
-  requirePermission('tenant', 'manage_users'), 
+router.post('/groups',
+  jwtAuth,
+  requirePermission('tenant', 'manage_users'),
   async (req: AuthenticatedRequest, res) => {
     try {
       const tenantId = req.user!.tenantId;
@@ -223,7 +223,7 @@ router.post('/groups',
         .values(validatedData)
         .returning();
 
-      res.status(201).json({ 
+      res.status(201).json({
         success: true,
         group: newGroup,
         message: 'Grupo criado com sucesso'
@@ -231,20 +231,20 @@ router.post('/groups',
     } catch (error: any) {
       console.error('Error creating user group:', error);
       if (error?.code === '23505') { // Unique constraint violation
-        res.status(409).json({ 
+        res.status(409).json({
           success: false,
-          message: 'Um grupo com esse nome já existe neste tenant' 
+          message: 'Um grupo com esse nome já existe neste tenant'
         });
       } else if (error.name === 'ZodError') {
-        res.status(400).json({ 
+        res.status(400).json({
           success: false,
           message: 'Dados inválidos fornecidos',
-          errors: error.errors 
+          errors: error.errors
         });
       } else {
-        res.status(500).json({ 
+        res.status(500).json({
           success: false,
-          message: 'Failed to create user group' 
+          message: 'Failed to create user group'
         });
       }
     }
@@ -252,9 +252,9 @@ router.post('/groups',
 );
 
 // Update group
-router.put('/groups/:groupId', 
-  jwtAuth, 
-  requirePermission('tenant', 'manage_users'), 
+router.put('/groups/:groupId',
+  jwtAuth,
+  requirePermission('tenant', 'manage_users'),
   async (req: AuthenticatedRequest, res) => {
     try {
       const { groupId } = req.params;
@@ -285,9 +285,9 @@ router.put('/groups/:groupId',
 );
 
 // Delete group
-router.delete('/groups/:groupId', 
-  jwtAuth, 
-  requirePermission('tenant', 'manage_users'), 
+router.delete('/groups/:groupId',
+  jwtAuth,
+  requirePermission('tenant', 'manage_users'),
   async (req: AuthenticatedRequest, res) => {
     try {
       const { groupId } = req.params;
@@ -317,9 +317,9 @@ router.delete('/groups/:groupId',
 );
 
 // Get all users for tenant (for role/group management)
-router.get('/users', 
-  jwtAuth, 
-  requirePermission('tenant', 'manage_users'), 
+router.get('/users',
+  jwtAuth,
+  requirePermission('tenant', 'manage_users'),
   async (req: AuthenticatedRequest, res) => {
     try {
       const tenantId = req.user!.tenantId;
@@ -360,18 +360,18 @@ router.get('/users',
 // ============= GROUP MEMBERS ROUTES =============
 
 // Get group members
-router.get('/groups/:groupId/members', 
-  jwtAuth, 
-  requirePermission('tenant', 'manage_users'), 
+router.get('/groups/:groupId/members',
+  jwtAuth,
+  requirePermission('tenant', 'manage_users'),
   async (req: AuthenticatedRequest, res) => {
     try {
       const { groupId } = req.params;
       const tenantId = req.user!.tenantId;
 
       if (!groupId || !tenantId) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           success: false,
-          message: 'Group ID and tenant ID are required' 
+          message: 'Group ID and tenant ID are required'
         });
       }
 
@@ -427,26 +427,26 @@ router.get('/groups/:groupId/members',
       }));
 
       console.log(`Found ${formattedMembers.length} members for group ${groupId}`);
-      res.json({ 
+      res.json({
         success: true,
         members: formattedMembers,
         count: formattedMembers.length
       });
     } catch (error) {
       console.error('Error fetching group members:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         success: false,
         message: 'Failed to fetch group members',
-        error: error.message 
+        error: error.message
       });
     }
   }
 );
 
-// Add user to group  
-router.post('/groups/:groupId/members', 
-  jwtAuth, 
-  requirePermission('tenant', 'manage_users'), 
+// Add user to group
+router.post('/groups/:groupId/members',
+  jwtAuth,
+  requirePermission('tenant', 'manage_users'),
   async (req: AuthenticatedRequest, res) => {
     try {
       const { groupId } = req.params;
@@ -508,7 +508,7 @@ router.post('/groups/:groupId/members',
             .returning();
 
           console.log(`Successfully reactivated user ${userId} in group ${groupId}`);
-          return res.status(200).json({ 
+          return res.status(200).json({
             message: 'User membership reactivated successfully',
             membership: reactivatedMembership
           });
@@ -532,7 +532,7 @@ router.post('/groups/:groupId/members',
 
       console.log(`Successfully added user ${userId} to group ${groupId} for tenant ${tenantId}`);
 
-      res.status(201).json({ 
+      res.status(201).json({
         message: 'User added to group successfully',
         membership
       });
@@ -544,9 +544,9 @@ router.post('/groups/:groupId/members',
 );
 
 // Remove user from group
-router.delete('/groups/:groupId/members/:userId', 
-  jwtAuth, 
-  requirePermission('tenant', 'manage_users'), 
+router.delete('/groups/:groupId/members/:userId',
+  jwtAuth,
+  requirePermission('tenant', 'manage_users'),
   async (req: AuthenticatedRequest, res) => {
     try {
       const { groupId, userId } = req.params;
@@ -593,7 +593,7 @@ router.delete('/groups/:groupId/members/:userId',
 
       console.log(`Successfully removed user ${userId} from group ${groupId} for tenant ${tenantId}`);
 
-      res.json({ 
+      res.json({
         message: 'User removed from group successfully',
         membership: removedMembership
       });
@@ -607,9 +607,9 @@ router.delete('/groups/:groupId/members/:userId',
 // ============= ROLES MANAGEMENT ROUTES =============
 
 // Get all roles for tenant
-router.get('/roles', 
-  jwtAuth, 
-  requirePermission('tenant', 'manage_users'), 
+router.get('/roles',
+  jwtAuth,
+  requirePermission('tenant', 'manage_users'),
   async (req: AuthenticatedRequest, res) => {
     try {
       const tenantId = req.user!.tenantId;
@@ -649,9 +649,9 @@ router.get('/roles',
 );
 
 // Get permissions catalog
-router.get('/permissions', 
-  jwtAuth, 
-  requirePermission('tenant', 'manage_users'), 
+router.get('/permissions',
+  jwtAuth,
+  requirePermission('tenant', 'manage_users'),
   async (req: AuthenticatedRequest, res) => {
     try {
       // Mock permissions data based on workspace categories
@@ -662,7 +662,7 @@ router.get('/permissions',
         { id: 'workspace.security', name: 'Configurações de Segurança', category: 'workspace_admin', description: 'Definir políticas de segurança', level: 'workspace' },
         { id: 'workspace.integrations', name: 'Gerenciar Integrações', category: 'workspace_admin', description: 'Configurar integrações', level: 'workspace' },
 
-        // Gestão de Usuários e Acesso  
+        // Gestão de Usuários e Acesso
         { id: 'user.view', name: 'Visualizar Usuários', category: 'user_access', description: 'Ver lista de usuários', level: 'workspace' },
         { id: 'user.create', name: 'Criar Usuários', category: 'user_access', description: 'Adicionar novos usuários', level: 'workspace' },
         { id: 'user.edit', name: 'Editar Usuários', category: 'user_access', description: 'Modificar dados dos usuários', level: 'workspace' },
@@ -726,9 +726,9 @@ router.get('/permissions',
 );
 
 // Create role
-router.post('/roles', 
-  jwtAuth, 
-  requirePermission('tenant', 'manage_users'), 
+router.post('/roles',
+  jwtAuth,
+  requirePermission('tenant', 'manage_users'),
   async (req: AuthenticatedRequest, res) => {
     try {
       const { name, description, permissions } = req.body;
@@ -762,9 +762,9 @@ router.post('/roles',
 );
 
 // Update role
-router.put('/roles/:roleId', 
-  jwtAuth, 
-  requirePermission('tenant', 'manage_users'), 
+router.put('/roles/:roleId',
+  jwtAuth,
+  requirePermission('tenant', 'manage_users'),
   async (req: AuthenticatedRequest, res) => {
     try {
       const { roleId } = req.params;
@@ -795,9 +795,9 @@ router.put('/roles/:roleId',
 );
 
 // Delete role
-router.delete('/roles/:roleId', 
-  jwtAuth, 
-  requirePermission('tenant', 'manage_users'), 
+router.delete('/roles/:roleId',
+  jwtAuth,
+  requirePermission('tenant', 'manage_users'),
   async (req: AuthenticatedRequest, res) => {
     try {
       const { roleId } = req.params;
@@ -815,9 +815,9 @@ router.delete('/roles/:roleId',
 );
 
 // Assign user to role
-router.post('/roles/:roleId/users', 
-  jwtAuth, 
-  requirePermission('tenant', 'manage_users'), 
+router.post('/roles/:roleId/users',
+  jwtAuth,
+  requirePermission('tenant', 'manage_users'),
   async (req: AuthenticatedRequest, res) => {
     try {
       const { roleId } = req.params;
@@ -831,10 +831,10 @@ router.post('/roles/:roleId/users',
       // Mock assignment - TODO: implement real database insert
       console.log(`Assigning user ${userId} to role ${roleId} for tenant ${tenantId}`);
 
-      res.status(201).json({ 
+      res.status(201).json({
         message: 'User assigned to role successfully',
         roleId,
-        userId 
+        userId
       });
     } catch (error) {
       console.error('Error assigning user to role:', error);
@@ -844,9 +844,9 @@ router.post('/roles/:roleId/users',
 );
 
 // Remove user from role
-router.delete('/roles/:roleId/users/:userId', 
-  jwtAuth, 
-  requirePermission('tenant', 'manage_users'), 
+router.delete('/roles/:roleId/users/:userId',
+  jwtAuth,
+  requirePermission('tenant', 'manage_users'),
   async (req: AuthenticatedRequest, res) => {
     try {
       const { roleId, userId } = req.params;
@@ -855,10 +855,10 @@ router.delete('/roles/:roleId/users/:userId',
       // Mock removal - TODO: implement real database delete
       console.log(`Removing user ${userId} from role ${roleId} for tenant ${tenantId}`);
 
-      res.json({ 
+      res.json({
         message: 'User removed from role successfully',
         roleId,
-        userId 
+        userId
       });
     } catch (error) {
       console.error('Error removing user from role:', error);

@@ -1,4 +1,6 @@
 
+import { DrizzleTeamRepository } from '../../infrastructure/repositories/DrizzleTeamRepository';
+
 export interface GetRolesRequest {
   tenantId: string;
   userId: string;
@@ -13,19 +15,17 @@ export interface GetRolesResponse {
 }
 
 export class GetRolesUseCase {
-  
+  private teamRepository: DrizzleTeamRepository;
+
+  constructor() {
+    this.teamRepository = new DrizzleTeamRepository();
+  }
+
   async execute(request: GetRolesRequest): Promise<GetRolesResponse> {
     try {
       console.log('[GET-ROLES] Processing request for tenant:', request.tenantId);
 
-      // TODO: Replace with actual repository calls
-      const roles = [
-        { id: 'tenant_admin', name: 'Administrador do Tenant', type: 'role' },
-        { id: 'saas_admin', name: 'Administrador SaaS', type: 'role' },
-        { id: 'manager', name: 'Gerente', type: 'role' },
-        { id: 'agent', name: 'Agente', type: 'role' },
-        { id: 'customer', name: 'Cliente', type: 'role' }
-      ];
+      const roles = await this.teamRepository.getRoles(request.tenantId);
 
       return { roles };
     } catch (error) {
