@@ -2,8 +2,38 @@
 import { Request, Response } from 'express';
 import { AuthenticatedRequest } from '../../../../middleware/jwtAuth';
 import { GetTeamMembersUseCase } from '../use-cases/GetTeamMembersUseCase';
+import { GetTeamOverviewUseCase } from '../use-cases/GetTeamOverviewUseCase';
+import { GetTeamStatsUseCase } from '../use-cases/GetTeamStatsUseCase';
+import { GetTeamPerformanceUseCase } from '../use-cases/GetTeamPerformanceUseCase';
+import { GetSkillsMatrixUseCase } from '../use-cases/GetSkillsMatrixUseCase';
+import { GetDepartmentsUseCase } from '../use-cases/GetDepartmentsUseCase';
+import { GetRolesUseCase } from '../use-cases/GetRolesUseCase';
+import { UpdateMemberStatusUseCase } from '../use-cases/UpdateMemberStatusUseCase';
+import { UpdateMemberUseCase } from '../use-cases/UpdateMemberUseCase';
+import { SyncTeamDataUseCase } from '../use-cases/SyncTeamDataUseCase';
 
 export class TeamsController {
+  private getTeamOverviewUseCase: GetTeamOverviewUseCase;
+  private getTeamStatsUseCase: GetTeamStatsUseCase;
+  private getTeamPerformanceUseCase: GetTeamPerformanceUseCase;
+  private getSkillsMatrixUseCase: GetSkillsMatrixUseCase;
+  private getDepartmentsUseCase: GetDepartmentsUseCase;
+  private getRolesUseCase: GetRolesUseCase;
+  private updateMemberStatusUseCase: UpdateMemberStatusUseCase;
+  private updateMemberUseCase: UpdateMemberUseCase;
+  private syncTeamDataUseCase: SyncTeamDataUseCase;
+
+  constructor() {
+    this.getTeamOverviewUseCase = new GetTeamOverviewUseCase();
+    this.getTeamStatsUseCase = new GetTeamStatsUseCase();
+    this.getTeamPerformanceUseCase = new GetTeamPerformanceUseCase();
+    this.getSkillsMatrixUseCase = new GetSkillsMatrixUseCase();
+    this.getDepartmentsUseCase = new GetDepartmentsUseCase();
+    this.getRolesUseCase = new GetRolesUseCase();
+    this.updateMemberStatusUseCase = new UpdateMemberStatusUseCase();
+    this.updateMemberUseCase = new UpdateMemberUseCase();
+    this.syncTeamDataUseCase = new SyncTeamDataUseCase();
+  }
   
   // Get team overview data
   async getOverview(req: AuthenticatedRequest, res: Response): Promise<void> {
@@ -14,24 +44,12 @@ export class TeamsController {
         return;
       }
 
-      // Mock data for now - should be replaced with actual use cases
-      const overview = {
-        departments: [
-          { id: 1, name: 'TI', description: 'Tecnologia da Informação', count: 5, percentage: 50 },
-          { id: 2, name: 'Comercial', description: 'Vendas e Marketing', count: 3, percentage: 30 },
-          { id: 3, name: 'Administrativo', description: 'Recursos Humanos', count: 2, percentage: 20 }
-        ],
-        recentActivities: [
-          { 
-            id: 1, 
-            description: 'Usuário adicionado ao sistema', 
-            user: 'Admin', 
-            timestamp: new Date().toISOString() 
-          }
-        ],
-        totalMembers: 10,
-        totalDepartments: 3
-      };
+      console.log('[TEAMS-CONTROLLER] Fetching overview for tenant:', user.tenantId);
+
+      const overview = await this.getTeamOverviewUseCase.execute({
+        tenantId: user.tenantId,
+        userId: user.id
+      });
 
       res.json(overview);
     } catch (error) {
@@ -73,12 +91,12 @@ export class TeamsController {
         return;
       }
 
-      const stats = {
-        totalMembers: "4",
-        activeToday: "2", 
-        pendingApprovals: "0",
-        averagePerformance: 85
-      };
+      console.log('[TEAMS-CONTROLLER] Fetching stats for tenant:', user.tenantId);
+
+      const stats = await this.getTeamStatsUseCase.execute({
+        tenantId: user.tenantId,
+        userId: user.id
+      });
 
       res.json(stats);
     } catch (error) {
@@ -96,33 +114,12 @@ export class TeamsController {
         return;
       }
 
-      const performance = {
-        individuals: [
-          {
-            id: user.id,
-            name: 'Admin User',
-            performance: 90,
-            goals: 5,
-            completedGoals: 4,
-            role: 'Administrator',
-            department: 'TI'
-          }
-        ],
-        goals: [
-          {
-            name: 'Metas Individuais',
-            completed: 4,
-            total: 5,
-            percentage: 80
-          },
-          {
-            name: 'Performance Geral',
-            completed: 85,
-            total: 100,
-            percentage: 85
-          }
-        ]
-      };
+      console.log('[TEAMS-CONTROLLER] Fetching performance for tenant:', user.tenantId);
+
+      const performance = await this.getTeamPerformanceUseCase.execute({
+        tenantId: user.tenantId,
+        userId: user.id
+      });
 
       res.json(performance);
     } catch (error) {
@@ -140,18 +137,12 @@ export class TeamsController {
         return;
       }
 
-      const skillsMatrix = {
-        topSkills: [
-          { name: 'JavaScript', count: 3, level: 'Avançado' },
-          { name: 'React', count: 2, level: 'Intermediário' },
-          { name: 'Node.js', count: 2, level: 'Avançado' }
-        ],
-        skillCategories: [
-          { category: 'Desenvolvimento', count: 5 },
-          { category: 'Design', count: 2 },
-          { category: 'Gestão', count: 1 }
-        ]
-      };
+      console.log('[TEAMS-CONTROLLER] Fetching skills matrix for tenant:', user.tenantId);
+
+      const skillsMatrix = await this.getSkillsMatrixUseCase.execute({
+        tenantId: user.tenantId,
+        userId: user.id
+      });
 
       res.json(skillsMatrix);
     } catch (error) {
@@ -169,13 +160,14 @@ export class TeamsController {
         return;
       }
 
-      const departments = [
-        { id: 1, name: 'TI', description: 'Tecnologia da Informação', managerId: null, isActive: true, createdAt: new Date().toISOString() },
-        { id: 2, name: 'Comercial', description: 'Vendas e Marketing', managerId: null, isActive: true, createdAt: new Date().toISOString() },
-        { id: 3, name: 'Administrativo', description: 'Recursos Humanos', managerId: null, isActive: true, createdAt: new Date().toISOString() }
-      ];
+      console.log('[TEAMS-CONTROLLER] Fetching departments for tenant:', user.tenantId);
 
-      res.json({ departments });
+      const result = await this.getDepartmentsUseCase.execute({
+        tenantId: user.tenantId,
+        userId: user.id
+      });
+
+      res.json(result);
     } catch (error) {
       console.error('Error fetching departments:', error);
       res.status(500).json({ message: 'Failed to fetch departments' });
@@ -191,15 +183,14 @@ export class TeamsController {
         return;
       }
 
-      const roles = [
-        { id: 'tenant_admin', name: 'Administrador do Tenant', type: 'role' },
-        { id: 'saas_admin', name: 'Administrador SaaS', type: 'role' },
-        { id: 'manager', name: 'Gerente', type: 'role' },
-        { id: 'agent', name: 'Agente', type: 'role' },
-        { id: 'customer', name: 'Cliente', type: 'role' }
-      ];
+      console.log('[TEAMS-CONTROLLER] Fetching roles for tenant:', user.tenantId);
 
-      res.json({ roles });
+      const result = await this.getRolesUseCase.execute({
+        tenantId: user.tenantId,
+        userId: user.id
+      });
+
+      res.json(result);
     } catch (error) {
       console.error('Error fetching roles:', error);
       res.status(500).json({ message: 'Failed to fetch roles' });
@@ -224,9 +215,21 @@ export class TeamsController {
         return;
       }
 
-      console.log(`Updating member ${id} status to ${status}`);
+      console.log('[TEAMS-CONTROLLER] Updating member status:', { memberId: id, status });
 
-      res.json({ success: true, message: 'Status updated successfully' });
+      const result = await this.updateMemberStatusUseCase.execute({
+        tenantId: user.tenantId,
+        userId: user.id,
+        memberId: id,
+        status,
+        updatedBy: user.id
+      });
+
+      if (result.success) {
+        res.json(result);
+      } else {
+        res.status(400).json(result);
+      }
     } catch (error) {
       console.error('Error updating member status:', error);
       res.status(500).json({ message: 'Failed to update status' });
@@ -245,13 +248,21 @@ export class TeamsController {
         return;
       }
 
-      console.log('Updating member:', id, 'with data:', updateData);
+      console.log('[TEAMS-CONTROLLER] Updating member:', { memberId: id, updateData });
 
-      res.json({ 
-        success: true, 
-        message: 'Member updated successfully',
-        data: updateData
+      const result = await this.updateMemberUseCase.execute({
+        tenantId: user.tenantId,
+        userId: user.id,
+        memberId: id,
+        updateData,
+        updatedBy: user.id
       });
+
+      if (result.success) {
+        res.json(result);
+      } else {
+        res.status(400).json(result);
+      }
     } catch (error) {
       console.error('Error updating member:', error);
       res.status(500).json({ 
@@ -270,19 +281,18 @@ export class TeamsController {
         return;
       }
 
-      console.log('Syncing team data for tenant:', user.tenantId);
+      console.log('[TEAMS-CONTROLLER] Syncing team data for tenant:', user.tenantId);
 
-      const syncStats = {
-        totalUsers: 4,
-        activeUsers: 2,
-        userGroups: 3
-      };
-
-      res.json({ 
-        success: true, 
-        message: 'Team data synchronized',
-        stats: syncStats
+      const result = await this.syncTeamDataUseCase.execute({
+        tenantId: user.tenantId,
+        userId: user.id
       });
+
+      if (result.success) {
+        res.json(result);
+      } else {
+        res.status(500).json(result);
+      }
     } catch (error) {
       console.error('Error syncing team data:', error);
       res.status(500).json({ message: 'Failed to sync team data' });

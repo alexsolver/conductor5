@@ -531,5 +531,52 @@
     "advanced": "Avançado",
     "specialist": "Especialista",
     "excellence": "Excelência"
-  }
+  },
+  "workspaces": {
+      "title": "Workspace",
+      "description": "Gerencie configurações do workspace",
+      "settings": "Configurações do Workspace",
+      "members": "Membros do Workspace",
+      "permissions": "Permissões do Workspace"
+    },
+    "userManagement": {
+      "roles": {
+        "customer": "Cliente",
+        "agent": "Agente",
+        "manager": "Gerente",
+        "tenant_admin": "Administrador do Tenant",
+        "saas_admin": "Administrador SaaS",
+        "workspaceAdmin": "Admin do Workspace"
+      },
+      "expires1Day": "1 dia",
+      "expires3Days": "3 dias",
+      "expires7Days": "7 dias",
+      "expires14Days": "14 dias",
+      "expires30Days": "30 dias",
+      "expiresOn": "Expira em",
+      "invitationNotesPlaceholder": "Mensagem personalizada para incluir no convite...",
+      "sendInvitation": "Enviar Convite",
+      "emailPlaceholder": "usuario@empresa.com",
+      "title": "Gestão de Usuários",
+      "users": "Usuários",
+      "groups": "Grupos",
+      "roles": "Papéis",
+      "invitations": "Convites",
+      "sessions": "Sessões",
+      "activity": "Atividade",
+      "createUser": "Criar Usuário",
+      "inviteUser": "Convidar Usuário",
+      "editUser": "Editar Usuário",
+      "deleteUser": "Excluir Usuário",
+      "firstName": "Nome",
+      "lastName": "Sobrenome",
+      "email": "Email",
+      "role": "Papel",
+      "isActive": "Ativo",
+      "createdAt": "Criado em",
+      "updatedAt": "Atualizado em",
+      "lastLogin": "Último login",
+      "status": "Status",
+      "actions": "Ações"
+    }
 }
