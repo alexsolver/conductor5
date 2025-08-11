@@ -265,9 +265,9 @@ export const tickets = pgTable("tickets", {
   beneficiaryId: uuid("beneficiary_id").references(() => beneficiaries.id),
   beneficiaryType: varchar("beneficiary_type", { length: 50 }).default("customer"),
   responsibleId: uuid("responsible_id").references(() => users.id),
-  assignmentGroupId: uuid("assignment_group_id").references(() => userGroups.id),
-  locationId: uuid("location_id").references(() => locations.id),
-  followerId: uuid("follower_id").references(() => users.id),
+  assignmentGroup: varchar("assignment_group", { length: 100 }), // FIXED: Database has assignment_group as VARCHAR
+  location: varchar("location", { length: 255 }), // FIXED: Database has location as VARCHAR, not location_id as UUID
+  // FIXED: Database doesn't have follower_id field, only followers array
   followers: text("followers").array(),
   tags: text("tags").array(),
   contactType: varchar("contact_type", { length: 50 }),
@@ -1758,7 +1758,7 @@ export const ticketInternalActions = pgTable("ticket_internal_actions", {
   description: text("description"),
 
   // Atribuição hierárquica: Grupo → Agente
-  assignmentGroupId: uuid("assignment_group_id").references(() => userGroups.id), // Grupo de atribuição (prioridade sobre groupId)
+  assignmentGroup: varchar("assignment_group", { length: 100 }), // FIXED: Database has assignment_group as VARCHAR
   groupId: uuid("group_id"), // working group (manter para compatibilidade)
   agentId: uuid("agent_id").references(() => users.id), // Agente responsável (opcional se apenas grupo atribuído)
 
@@ -1792,12 +1792,12 @@ export const ticketInternalActions = pgTable("ticket_internal_actions", {
 }, (table) => [
   index("ticket_internal_actions_tenant_ticket_idx").on(table.tenantId, table.ticketId),
   index("ticket_internal_actions_tenant_agent_idx").on(table.tenantId, table.agentId),
-  index("ticket_internal_actions_tenant_group_idx").on(table.tenantId, table.assignmentGroupId),
+  index("ticket_internal_actions_tenant_group_idx").on(table.tenantId, table.assignmentGroup),
   index("ticket_internal_actions_tenant_status_idx").on(table.tenantId, table.status),
   index("ticket_internal_actions_tenant_created_idx").on(table.tenantId, table.createdAt),
   index("ticket_internal_actions_planned_dates_idx").on(table.tenantId, table.plannedStartDate, table.plannedEndDate),
   index("ticket_internal_actions_actual_dates_idx").on(table.tenantId, table.actualStartDate, table.actualEndDate),
-  index("ticket_internal_actions_group_agent_idx").on(table.tenantId, table.assignmentGroupId, table.agentId),
+  index("ticket_internal_actions_group_agent_idx").on(table.tenantId, table.assignmentGroup, table.agentId),
   // TENANT ISOLATION: Action numbers must be unique per tenant
   unique("ticket_internal_actions_tenant_number_unique").on(table.tenantId, table.actionNumber),
 ]);
