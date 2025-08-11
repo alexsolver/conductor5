@@ -28,7 +28,7 @@ import {
   Calendar,
   UserPlus
 } from "lucide-react";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { apiRequest, queryClient, validateApiResponse } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import AssociateMultipleCustomersModal from "@/components/customers/AssociateMultipleCustomersModal";
 import CompanyCustomersSection from "@/components/CompanyCustomersSection";
@@ -98,10 +98,29 @@ export default function Companies() {
       
       try {
         const response = await apiRequest('GET', '/api/customers/companies');
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
         const data = await response.json();
         console.log('[COMPANIES-FRONTEND] API Response data:', data);
         
-        // Handle different response formats
+        // Use validation helper
+        const validated = validateApiResponse(data, ['companies', 'data']);
+        
+        if (validated.success) {
+          // Try different data paths
+          if (Array.isArray(validated.data)) {
+            return validated.data;
+          } else if (Array.isArray(validated.data.companies)) {
+            return validated.data.companies;
+          } else if (Array.isArray(validated.data.data)) {
+            return validated.data.data;
+          }
+        }
+        
+        // Fallback: try original structure
         if (data.success && Array.isArray(data.data)) {
           return data.data;
         } else if (Array.isArray(data.companies)) {
@@ -110,7 +129,7 @@ export default function Companies() {
           return data;
         }
         
-        console.log('[COMPANIES-FRONTEND] Returning empty array - no valid data found');
+        console.warn('[COMPANIES-FRONTEND] No valid data found in response:', data);
         return [];
       } catch (error) {
         console.error('[COMPANIES-FRONTEND] API Error:', error);

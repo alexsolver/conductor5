@@ -256,7 +256,7 @@ const TicketConfiguration: React.FC = () => {
   const companies = React.useMemo(() => {
     if (companiesLoading) return [];
 
-    // Handle different response formats
+    // Handle different response formats with null safety
     if (Array.isArray(companiesData)) {
       return companiesData;
     }
@@ -267,6 +267,11 @@ const TicketConfiguration: React.FC = () => {
 
     if (companiesData?.companies && Array.isArray(companiesData.companies)) {
       return companiesData.companies;
+    }
+
+    // Additional safety checks for nested data
+    if (companiesData?.data?.companies && Array.isArray(companiesData.data.companies)) {
+      return companiesData.data.companies;
     }
 
     console.warn('⚠️ Companies data is not in expected format:', companiesData);

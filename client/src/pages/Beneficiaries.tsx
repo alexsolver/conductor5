@@ -38,7 +38,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, validateApiResponse } from "@/lib/queryClient";
 
 // Schema for beneficiary creation/editing
 const beneficiarySchema = z.object({
@@ -157,19 +157,37 @@ export default function Beneficiaries() {
       const data = await response.json();
       console.log('[BENEFICIARIES] API Response:', data);
       
-      // Handle different response formats
-      if (data.success && data.data) {
+      // Use validation helper
+      const validated = validateApiResponse(data, ['beneficiaries']);
+      
+      if (validated.success) {
+        let beneficiaries = [];
+        let pagination = { total: 0, totalPages: 0 };
+        
+        // Try different data paths
+        if (Array.isArray(validated.data.beneficiaries)) {
+          beneficiaries = validated.data.beneficiaries;
+        } else if (Array.isArray(validated.data)) {
+          beneficiaries = validated.data;
+        } else if (data.data && Array.isArray(data.data.beneficiaries)) {
+          beneficiaries = data.data.beneficiaries;
+        } else if (Array.isArray(data.beneficiaries)) {
+          beneficiaries = data.beneficiaries;
+        }
+        
+        // Handle pagination
+        if (data.data && data.data.pagination) {
+          pagination = data.data.pagination;
+        } else if (data.pagination) {
+          pagination = data.pagination;
+        } else {
+          pagination = { total: beneficiaries.length, totalPages: Math.ceil(beneficiaries.length / itemsPerPage) };
+        }
+        
         return {
           data: {
-            beneficiaries: Array.isArray(data.data.beneficiaries) ? data.data.beneficiaries : [],
-            pagination: data.data.pagination || { total: 0, totalPages: 0 }
-          }
-        };
-      } else if (Array.isArray(data.beneficiaries)) {
-        return {
-          data: {
-            beneficiaries: data.beneficiaries,
-            pagination: data.pagination || { total: data.beneficiaries.length, totalPages: 1 }
+            beneficiaries,
+            pagination
           }
         };
       }
