@@ -22,21 +22,7 @@ export class SaasConfig {
     public readonly updatedAt: Date = new Date()
   ) {}
 
-  static create(
-    id: string,
-    tenantId: string,
-    configKey: string,
-    configValue: string,
-    description?: string
-  ): SaasConfig {
-    return new SaasConfig(
-      id,
-      tenantId,
-      configKey,
-      configValue,
-      description
-    );
-  }
+  // CLEANED: Factory method removed - creation logic moved to repository layer
 
   validate(): boolean {
     return !!(this.configKey && this.configValue && this.tenantId);

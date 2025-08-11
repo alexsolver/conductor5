@@ -21,27 +21,8 @@ export class Skill {
     public readonly updatedAt: Date = new Date()
   ) {}
 
-  static create(props: Omit<SkillProps, 'id' | 'createdAt' | 'updatedAt'>): Skill {
-    return new Skill(
-      crypto.randomUUID(),
-      props.name,
-      props.category,
-      props.description,
-      props.isActive ?? true
-    );
-  }
-
-  static reconstruct(props: SkillProps): Skill {
-    return new Skill(
-      props.id,
-      props.name,
-      props.category,
-      props.description,
-      props.isActive ?? true,
-      props.createdAt,
-      props.updatedAt
-    );
-  }
+  // CLEANED: Factory methods removed - creation and reconstruction moved to repository layer
+  // Domain entities should focus on business logic, not object construction
 }
 
 export interface UserSkillProps {

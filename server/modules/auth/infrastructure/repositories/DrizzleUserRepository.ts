@@ -208,20 +208,21 @@ export class DrizzleUserRepository implements IUserRepository {
   }
 
   private toDomainEntity(data: any): User {
-    return User.fromPersistence({
-      id: data.id,
-      email: data.email,
-      password: data.passwordHash || data.password_hash, // Handle both field names
-      firstName: data.firstName || data.first_name,
-      lastName: data.lastName || data.last_name,
-      role: data.role,
-      tenantId: data.tenantId || data.tenant_id,
-      active: data.isActive !== undefined ? data.isActive : (data.is_active !== undefined ? data.is_active : data.active),
-      verified: data.verified || false,
-      lastLogin: data.lastLoginAt || data.last_login_at || data.lastLogin,
-      createdAt: data.createdAt || data.created_at || new Date(),
-      updatedAt: data.updatedAt || data.updated_at || new Date()
-    });
+    // FIXED: Manual entity reconstruction since factory method was moved to repository layer
+    return new User(
+      data.id,
+      data.email,
+      data.passwordHash || data.password_hash || data.password, // Handle field variations
+      data.firstName || data.first_name,
+      data.lastName || data.last_name,
+      data.role,
+      data.tenantId || data.tenant_id,
+      data.isActive !== undefined ? data.isActive : (data.is_active !== undefined ? data.is_active : data.active),
+      data.verified || false,
+      data.lastLoginAt || data.last_login_at || data.lastLogin,
+      data.createdAt || data.created_at || new Date(),
+      data.updatedAt || data.updated_at || new Date()
+    );
   }
 
   async findAll(options?: { page?: number; limit?: number }): Promise<User[]> {

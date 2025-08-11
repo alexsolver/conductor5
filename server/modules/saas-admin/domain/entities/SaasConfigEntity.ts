@@ -13,8 +13,7 @@ export interface SaasConfiguration extends SaasAdminEntity {
 }
 
 // Domain entities should be framework-agnostic
-// Export SaasConfig from './SaasConfig' as intended by the edit.
-export { SaasConfig } from './SaasConfig';
+// CLEANED: Removed circular reference
 
 export interface SaasConfig {
   id: string;

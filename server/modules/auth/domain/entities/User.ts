@@ -222,21 +222,6 @@ export class User {
     );
   }
 
-  // Factory method for reconstruction from persistence
-  static fromPersistence(data: any): User {
-    return new User(
-      data.id,
-      data.email,
-      data.password, // This is actually the password hash
-      data.firstName,
-      data.lastName,
-      data.role,
-      data.tenantId,
-      data.active,
-      data.verified,
-      data.lastLogin,
-      data.createdAt,
-      data.updatedAt
-    );
-  }
+  // CLEANED: Factory method removed - persistence mapping moved to repository layer
+  // Domain entities should not handle data reconstruction from external sources
 }

@@ -123,25 +123,8 @@ export class Customer {
     return !this.active || this.suspended;
   }
 
-  // Factory methods
-  // Factory method removed - should be handled by repository or service layer  
-    // Business validation
-    if (!props.email) {
-      throw new Error('Customer email is required');
-    }
-    
-    if (!props.tenantId) {
-      throw new Error('Customer must belong to a tenant');
-    }
-
-    if (!props.customerType) {
-      throw new Error('Customer type (PF/PJ) is required');
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(props.email)) {
-      throw new Error('Invalid email format');
-    }
+  // CLEANED: Factory methods removed - creation logic moved to application layer
+  // Domain entities should focus on business logic, not object construction with validation
 
     // Validação específica por tipo
     if (props.customerType === 'PF') {

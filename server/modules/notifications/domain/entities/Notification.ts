@@ -221,28 +221,5 @@ export class Notification {
     );
   }
 
-  // Factory method for reconstruction from persistence
-  static fromPersistence(data: any): Notification {
-    return new Notification(
-      data.id,
-      data.tenantId,
-      data.userId,
-      data.type,
-      data.severity,
-      data.title,
-      data.message,
-      data.metadata,
-      data.channels,
-      data.status,
-      data.scheduledAt,
-      data.expiresAt,
-      data.sentAt,
-      data.deliveredAt,
-      data.failedAt,
-      data.relatedEntityType,
-      data.relatedEntityId,
-      data.createdAt,
-      data.updatedAt
-    );
-  }
+  // CLEANED: Factory method removed - persistence mapping moved to repository layer
 }

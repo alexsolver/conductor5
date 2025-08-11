@@ -172,19 +172,6 @@ export class NotificationPreference {
     );
   }
 
-  // Factory method for reconstruction from persistence
-  static fromPersistence(data: any): NotificationPreference {
-    return new NotificationPreference(
-      data.id,
-      data.tenantId,
-      data.userId,
-      data.notificationType,
-      data.channels,
-      data.enabled,
-      data.scheduleSettings,
-      data.filters,
-      data.createdAt,
-      data.updatedAt
-    );
-  }
+  // CLEANED: Factory method removed - persistence mapping moved to repository layer
+  // Domain entities should not handle data reconstruction from external sources
 }

@@ -258,6 +258,6 @@ export class Ticket {
     );
   }
 
-  // Factory method for reconstruction from persistence
-  // Infrastructure mapping removed - this logic moved to DrizzleTicketRepository
+  // CLEANED: Factory method removed - domain entities should not handle persistence mapping
+  // Infrastructure concerns moved to repository layer for proper Clean Architecture
 }

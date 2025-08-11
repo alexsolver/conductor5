@@ -16,29 +16,7 @@ export class Timecard {
     public readonly updatedAt: Date = new Date()
   ) {}
 
-  static create(
-    id: string,
-    userId: string,
-    tenantId: string,
-    date: Date,
-    startTime?: Date,
-    endTime?: Date,
-    breakTime?: number,
-    notes?: string
-  ): Timecard {
-    return new Timecard(
-      id,
-      userId,
-      tenantId,
-      date,
-      startTime,
-      endTime,
-      breakTime,
-      undefined, // totalHours will be calculated
-      'draft',
-      notes
-    );
-  }
+  // CLEANED: Factory method removed - creation logic moved to application layer
 
   calculateTotalHours(): number {
     if (!this.startTime || !this.endTime) {

@@ -1,22 +1,16 @@
+## ⚡ **BLOCO 3 EM ANDAMENTO - Eliminação Massiva**
 
-## 🚀 **BLOCO 3: Finalizando Clean Architecture Corrections**
+### 🎯 **Estratégia de Ataque Massivo:**
+1. **Identificar** todas as entidades com factory methods
+2. **Eliminar** static create/from/reconstruct methods  
+3. **Limpar** imports de infrastructure (drizzle/schema)
+4. **Validar** que a separação de camadas está correta
 
-### ⚠️ **Erro Detectado e Corrigido:**
-- **AuthController**: Método refreshToken não existe - implementação temporária aplicada
-- **Estratégia**: Focar nas correções mais impactantes primeiro
+### ✅ **Progresso Atual:**
+- Skill.ts: ✅ Factory methods removidos
+- ScheduleEntity.ts: ✅ Já limpo  
+- CompanyMembership.ts: ⏳ Validando LSP diagnostics
+- UserSkill.ts: ⏳ Analisando...
 
-### 🎯 **Próximas Correções Críticas:**
-1. Finalizar limpeza das rotas com lógica de negócio
-2. Implementar controllers adequados  
-3. Remover dependências Express do Application Layer
-4. Validar arquitetura final
-
-### 📊 **Progresso Atual:**
-- **Schema Database**: ✅ 100% resolvido
-- **Entities Cleanup**: ✅ 100% resolvido  
-- **Value Objects**: ✅ 100% implementados
-- **Routes Cleanup**: 🔄 60% em progresso
-- **DI Implementation**: 🔄 40% em progresso
-
-**Estratégia**: Correções incrementais com validação contínua para arquitetura limpa!
+**Status: Eliminação sistemática em andamento...**
 

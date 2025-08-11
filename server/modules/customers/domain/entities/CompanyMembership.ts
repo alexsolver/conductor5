@@ -225,38 +225,6 @@ export class CompanyMembership {
     );
   }
 
-  // Factory Methods
-  // Factory method removed - should be handled by repository or service layer
-    return new CompanyMembership(
-      crypto.randomUUID(),
-      props.customerId,
-      props.companyId,
-      props.role || 'member',
-      props.title || null,
-      props.department || null,
-      props.permissions || {},
-      true, // isActive
-      props.isPrimary || false,
-      new Date(),
-      null, // leftAt
-      props.addedBy
-    );
-  }
-
-  static fromPersistence(data: any): CompanyMembership {
-    return new CompanyMembership(
-      data.id,
-      data.customerId,
-      data.companyId,
-      data.role || 'member',
-      data.title,
-      data.department,
-      data.permissions || {},
-      data.isActive !== false,
-      data.isPrimary || false,
-      data.joinedAt,
-      data.leftAt,
-      data.addedBy
-    );
-  }
+  // CLEANED: Factory methods removed - creation and persistence mapping moved to repository layer
+  // Domain entities should focus on business logic, not object construction
 }

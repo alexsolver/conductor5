@@ -267,8 +267,7 @@ export const tickets = pgTable("tickets", {
   responsibleId: uuid("responsible_id").references(() => users.id),
   assignmentGroup: varchar("assignment_group", { length: 100 }), // FIXED: Database has assignment_group as VARCHAR
   location: varchar("location", { length: 255 }), // FIXED: Database has location as VARCHAR, not location_id as UUID
-  // FIXED: Database doesn't have follower_id field, only followers array
-  followers: text("followers").array(),
+  // FIXED: Database doesn't have followers field either, removing completely
   tags: text("tags").array(),
   contactType: varchar("contact_type", { length: 50 }),
 

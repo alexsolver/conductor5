@@ -24,18 +24,7 @@ export class TimecardEntity {
     public updatedAt: Date = new Date()
   ) {}
 
-  static create(props: TimecardProps, id: string): TimecardEntity {
-    return new TimecardEntity(
-      id,
-      props.userId,
-      props.date,
-      props.startTime,
-      props.endTime,
-      props.breakTime,
-      props.status,
-      props.tenantId
-    );
-  }
+  // CLEANED: Factory method removed - creation logic moved to repository layer
 
   calculateWorkHours(): number {
     const diff = this.endTime.getTime() - this.startTime.getTime();

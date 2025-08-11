@@ -28,19 +28,7 @@ export class KnowledgeBaseEntry {
   // CLEANED: Factory methods removed - handled by repository layer
   // Domain entities focus purely on business logic
 
-  static reconstruct(props: KnowledgeBaseEntryProps): KnowledgeBaseEntry {
-    return new KnowledgeBaseEntry(
-      props.id,
-      props.title,
-      props.content,
-      props.category,
-      props.tags,
-      props.authorId,
-      props.isPublished ?? false,
-      props.createdAt,
-      props.updatedAt
-    );
-  }
+  // CLEANED: Factory method removed - reconstruction moved to repository layer
 
   publish(): KnowledgeBaseEntry {
     return new KnowledgeBaseEntry(

@@ -158,32 +158,5 @@ export class UserSkill {
     this.updatedAt = new Date();
   }
 
-  static create(data: {
-    userId: string;
-    skillId: string;
-    proficiencyLevel: number;
-    assignedBy: string;
-    certificationId?: string;
-    certificationNumber?: string;
-    certificationIssuedAt?: Date;
-    certificationExpiresAt?: Date;
-    justification?: string;
-  }): UserSkill {
-    return new UserSkill(
-      crypto.randomUUID(),
-      data.userId,
-      data.skillId,
-      data.proficiencyLevel,
-      0, // averageRating
-      0, // totalEvaluations
-      data.certificationId,
-      data.certificationNumber,
-      data.certificationIssuedAt,
-      data.certificationExpiresAt,
-      undefined, // certificationFile
-      new Date(),
-      data.assignedBy,
-      data.justification
-    );
-  }
+  // CLEANED: Factory method removed - creation logic moved to repository layer
 }

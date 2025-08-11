@@ -330,37 +330,6 @@ export class Company {
     );
   }
 
-  // CLEANED: Factory methods removed - handled by repository layer
-
-  static fromPersistence(data: Record<string, unknown>): Company {
-    return new Company(
-      data.id as string,
-      data.tenantId as string,
-      data.name as string,
-      data.displayName as string | null,
-      data.description as string | null,
-      data.industry as string | null,
-      data.size as 'small' | 'medium' | 'large' | 'enterprise' | null,
-      data.email as string | null,
-      data.phone as string | null,
-      data.website as string | null,
-      (data.address as Record<string, string>) || {},
-      data.taxId as string | null,
-      data.registrationNumber as string | null,
-      (data.subscriptionTier as 'basic' | 'premium' | 'enterprise') || 'basic',
-      data.contractType as 'monthly' | 'yearly' | 'custom' | null,
-      data.maxUsers as number | null,
-      data.maxTickets as number | null,
-      (data.settings as Record<string, unknown>) || {},
-      (data.tags as string[]) || [],
-      (data.metadata as Record<string, unknown>) || {},
-      (data.status as 'active' | 'inactive' | 'suspended' | 'trial') || 'active',
-      data.isActive !== false,
-      data.isPrimary || false,
-      data.createdAt as Date,
-      data.updatedAt as Date,
-      data.createdBy as string,
-      data.updatedBy as string | null
-    );
-  }
+  // CLEANED: Factory methods removed - persistence mapping moved to repository layer
+  // Domain entities should not handle data reconstruction from external sources
 }
