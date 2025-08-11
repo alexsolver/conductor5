@@ -59,7 +59,7 @@ router.delete('/skills/:id',
 router.get('/user-skills', userSkillController.getUserSkills.bind(userSkillController));
 
 // GET /api/technical-skills/user-skills/user/:userId - Detailed skills of a user
-router.get('/user-skills/user/:userId', userSkillController.getUserSkillsDetailed.bind(userSkillController));
+router.get('/user-skills/user/:userId', userSkillController.getUserSkills.bind(userSkillController));
 
 // POST /api/technical-skills/user-skills - Assign skill to user (admin/HR only)
 router.post('/user-skills',

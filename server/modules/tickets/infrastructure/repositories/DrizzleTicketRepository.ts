@@ -1,7 +1,7 @@
 import { eq, and, or, ilike, count } from 'drizzle-orm';
 import { Ticket } from '../../domain/entities/Ticket';
 import { ITicketRepository, TicketFilter } from '../../domain/ports/ITicketRepository';
-import { tickets } from '@shared/schema';
+import { tickets } from '@shared/schema-master';
 import { db } from '../../../../db';
 
 export class DrizzleTicketRepository implements ITicketRepository {
@@ -254,25 +254,46 @@ export class DrizzleTicketRepository implements ITicketRepository {
   }
 
   private toDomainEntity(data: any): Ticket {
+    // Clean Architecture: Proper mapping from infrastructure to domain entity
     return new Ticket(
       data.id,
       data.tenant_id || data.tenantId,
+      data.customer_id || data.customerId,
+      data.caller_id || data.callerId,
+      data.caller_type || 'customer',
       data.subject,
       data.description || '',
-      data.priority || 'medium',
+      data.number || '',
+      data.subject || '', // shortDescription
+      data.category || '',
+      data.subcategory || '',
+      data.priority as any || 'medium',
+      data.impact || 'medium',
+      data.urgency || 'medium',
+      data.status as any || 'open',
       data.status || 'open',
-      data.caller_id || data.callerId,
-      data.customer_id || data.customerId,
+      data.assigned_to_id || data.assignedToId,
       data.beneficiary_id || data.beneficiaryId,
-      data.responsible_id || data.responsibleId,
-      data.category,
-      data.subcategory,
+      data.beneficiary_type || null,
+      data.assignment_group || data.assignmentGroup,
       data.location,
-      data.tags || [],
-      data.environment,
-      data.template_name || data.templateName,
-      data.created_at || data.createdAt,
-      data.updated_at || data.updatedAt
+      data.contact_type || data.contactType || 'email',
+      data.business_impact || data.businessImpact,
+      data.symptoms,
+      data.workaround,
+      null, // configurationItem
+      null, // businessService
+      data.resolution_code || data.resolutionCode,
+      data.resolution_notes || data.resolutionNotes,
+      null, // workNotes
+      null, // closeNotes
+      true, // notify
+      null, // rootCause
+      data.created_at || data.createdAt || new Date(),
+      null, // resolvedAt
+      null, // closedAt
+      data.created_at || data.createdAt || new Date(),
+      data.updated_at || data.updatedAt || new Date()
     );
   }
 

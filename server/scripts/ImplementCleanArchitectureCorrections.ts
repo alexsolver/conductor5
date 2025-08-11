@@ -8,7 +8,31 @@
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
 
-class CleanArchitectureCorrector {
+export class CleanArchitectureCorrector {
+  
+  async generateCorrectionPlan(validationResult: any): Promise<any[]> {
+    // Generate correction plans based on validation results
+    const plans = [];
+    
+    for (const issue of validationResult.issues) {
+      if (issue.severity === 'critical') {
+        plans.push({
+          type: 'critical',
+          module: issue.module,
+          description: issue.description,
+          action: issue.suggestedFix || 'manual_review_required'
+        });
+      }
+    }
+    
+    return plans;
+  }
+
+  async executeCorrectionPlan(plans: any[], autoImplement: boolean = false): Promise<void> {
+    if (autoImplement) {
+      await this.implementAllCorrections();
+    }
+  }
   
   async implementAllCorrections(): Promise<void> {
     console.log('🔧 INICIANDO CORREÇÕES AUTOMÁTICAS DE CLEAN ARCHITECTURE...\n');
@@ -257,4 +281,4 @@ if (typeof require !== 'undefined' && require.main === module) {
   runCorrections();
 }
 
-export { CleanArchitectureCorrector };
+// Export is handled at class declaration

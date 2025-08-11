@@ -15,13 +15,14 @@ export class TicketController {
 
   async getAllTickets(req: Request, res: Response): Promise<void> {
     try {
-      const { tenantId, userId } = req.user || {};
+      const { tenantId } = req.user || {};
 
       if (!tenantId) {
         res.status(400).json(standardResponse(false, 'Tenant ID is required'));
         return;
       }
 
+      // Clean Architecture: Controller only handles HTTP concerns, delegates business logic to Use Case
       const query = {
         tenantId,
         page: parseInt(req.query.page as string) || 1,
@@ -30,7 +31,7 @@ export class TicketController {
         status: req.query.status as string,
         priority: req.query.priority as string,
         assignedToId: req.query.assignedToId as string,
-        companyId: req.query.companyId as string
+        customerId: req.query.customerId as string // Fixed: Use customerId instead of companyId
       };
 
       const result = await this.getAllTicketsUseCase.execute(query);
@@ -43,11 +44,21 @@ export class TicketController {
 
   async create(req: Request, res: Response): Promise<void> {
     try {
-      // Implementation
-      standardResponse(res, 201, 'Ticket created successfully', req.body);
+      const { tenantId } = req.user || {};
+
+      if (!tenantId) {
+        res.status(400).json(standardResponse(false, 'Tenant ID is required'));
+        return;
+      }
+
+      // Clean Architecture: Delegate to Use Case, controller only handles HTTP protocol
+      const ticketData = { ...req.body, tenantId };
+      const result = await this.createTicketUseCase.execute(ticketData);
+      
+      res.status(201).json(standardResponse(true, 'Ticket created successfully', result));
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      standardResponse(res, 400, 'Failed to create ticket', null, errorMessage);
+      console.error('❌ Error creating ticket:', error);
+      res.status(400).json(standardResponse(false, 'Failed to create ticket'));
     }
   }
 

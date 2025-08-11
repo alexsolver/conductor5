@@ -7,10 +7,16 @@ import { z } from "zod";
 import { localSchema, regiaoSchema, rotaDinamicaSchema, trechoSchema, rotaTrechoSchema, areaSchema, agrupamentoSchema } from "../../../shared/schema-locations-new";
 import { db } from '../../db';
 
+// Clean Architecture: Controller should depend on Use Cases, not repositories
 export class LocationsNewController {
-  private repository: LocationsNewRepository;
+  private repository: LocationsNewRepository; // Temporary for migration
 
-  constructor() {
+  constructor(
+    // Clean Architecture: Inject Use Cases instead of repositories
+    // private getLocationsUseCase: GetLocationsUseCase,
+    // private createLocationUseCase: CreateLocationUseCase
+  ) {
+    // Temporary repository for transition period
     this.repository = new LocationsNewRepository(db);
   }
 

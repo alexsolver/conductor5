@@ -27,46 +27,55 @@ export class GetNotificationsUseCase {
   constructor(private notificationRepository: INotificationRepository) {}
 
   async execute(request: GetNotificationsRequest): Promise<GetNotificationsResponse> {
-    let notifications: Notification[];
+    // Clean Architecture: Use Case contains only business logic, no presentation concerns
+    this.validateRequest(request);
 
-    if (request.userId) {
-      notifications = await this.notificationRepository.findByUserId(
-        request.userId,
-        request.tenantId,
-        request.limit,
-        request.offset
-      );
-    } else if (request.status) {
-      notifications = await this.notificationRepository.findByStatus(
-        request.status,
-        request.tenantId
-      );
-    } else if (request.type) {
-      notifications = await this.notificationRepository.findByType(
-        request.type,
-        request.tenantId
-      );
-    } else if (request.severity) {
-      notifications = await this.notificationRepository.findBySeverity(
-        request.severity,
-        request.tenantId
-      );
-    } else {
+    let notifications = await this.fetchNotifications(request);
+    
+    const total = await this.calculateTotal(request, notifications);
+    const unreadCount = await this.calculateUnreadCount(request);
+
+    return { notifications, total, unreadCount };
+  }
+
+  private validateRequest(request: GetNotificationsRequest): void {
+    if (!request.tenantId) {
+      throw new Error('Tenant ID is required');
+    }
+    
+    const hasFilter = request.userId || request.status || request.type || request.severity;
+    if (!hasFilter) {
       throw new Error('At least one filter parameter is required');
     }
+  }
 
-    const total = request.userId 
+  private async fetchNotifications(request: GetNotificationsRequest): Promise<Notification[]> {
+    if (request.userId) {
+      return await this.notificationRepository.findByUserId(
+        request.userId, request.tenantId, request.limit, request.offset
+      );
+    }
+    if (request.status) {
+      return await this.notificationRepository.findByStatus(request.status, request.tenantId);
+    }
+    if (request.type) {
+      return await this.notificationRepository.findByType(request.type, request.tenantId);
+    }
+    if (request.severity) {
+      return await this.notificationRepository.findBySeverity(request.severity, request.tenantId);
+    }
+    return [];
+  }
+
+  private async calculateTotal(request: GetNotificationsRequest, notifications: Notification[]): Promise<number> {
+    return request.userId 
       ? await this.notificationRepository.countByUser(request.userId, request.tenantId)
       : notifications.length;
+  }
 
-    const unreadCount = request.userId
+  private async calculateUnreadCount(request: GetNotificationsRequest): Promise<number> {
+    return request.userId
       ? await this.notificationRepository.countUnreadByUser(request.userId, request.tenantId)
       : 0;
-
-    return {
-      notifications,
-      total,
-      unreadCount
-    };
   }
 }

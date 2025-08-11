@@ -3,46 +3,6 @@
   "score": 0,
   "issues": [
     {
-      "id": "ARCH-AUTH-DOMAIN-VALUE-OBJECTS-MISSING",
-      "layer": "domain",
-      "module": "auth",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'value-objects' ausente na camada 'domain'",
-      "file": "/home/runner/workspace/server/modules/auth/domain/value-objects",
-      "suggestedFix": "Criar diretório/arquivo 'value-objects' na camada 'domain' se necessário"
-    },
-    {
-      "id": "ARCH-AUTH-APPLICATION-REPOSITORIES-MISSING",
-      "layer": "application",
-      "module": "auth",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'repositories' ausente na camada 'application'",
-      "file": "/home/runner/workspace/server/modules/auth/application/repositories",
-      "suggestedFix": "Criar diretório/arquivo 'repositories' na camada 'application' se necessário"
-    },
-    {
-      "id": "ARCH-AUTH-INFRASTRUCTURE-CLIENTS-MISSING",
-      "layer": "infrastructure",
-      "module": "auth",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'clients' ausente na camada 'infrastructure'",
-      "file": "/home/runner/workspace/server/modules/auth/infrastructure/clients",
-      "suggestedFix": "Criar diretório/arquivo 'clients' na camada 'infrastructure' se necessário"
-    },
-    {
-      "id": "ARCH-AUTH-INFRASTRUCTURE-CONFIG-MISSING",
-      "layer": "infrastructure",
-      "module": "auth",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'config' ausente na camada 'infrastructure'",
-      "file": "/home/runner/workspace/server/modules/auth/infrastructure/config",
-      "suggestedFix": "Criar diretório/arquivo 'config' na camada 'infrastructure' se necessário"
-    },
-    {
       "id": "ROUTES-AUTH-NO-LOGIC",
       "layer": "presentation",
       "module": "auth",
@@ -61,46 +21,6 @@
       "description": "Rotas contêm lógica de negócio ou acesso direto a dados",
       "file": "/home/runner/workspace/server/modules/auth/routes.ts",
       "suggestedFix": "Mover lógica de negócio/dados para Use Cases na camada Application e/ou Controllers."
-    },
-    {
-      "id": "ARCH-BENEFICIARIES-DOMAIN-VALUE-OBJECTS-MISSING",
-      "layer": "domain",
-      "module": "beneficiaries",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'value-objects' ausente na camada 'domain'",
-      "file": "/home/runner/workspace/server/modules/beneficiaries/domain/value-objects",
-      "suggestedFix": "Criar diretório/arquivo 'value-objects' na camada 'domain' se necessário"
-    },
-    {
-      "id": "ARCH-BENEFICIARIES-APPLICATION-REPOSITORIES-MISSING",
-      "layer": "application",
-      "module": "beneficiaries",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'repositories' ausente na camada 'application'",
-      "file": "/home/runner/workspace/server/modules/beneficiaries/application/repositories",
-      "suggestedFix": "Criar diretório/arquivo 'repositories' na camada 'application' se necessário"
-    },
-    {
-      "id": "ARCH-BENEFICIARIES-INFRASTRUCTURE-CLIENTS-MISSING",
-      "layer": "infrastructure",
-      "module": "beneficiaries",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'clients' ausente na camada 'infrastructure'",
-      "file": "/home/runner/workspace/server/modules/beneficiaries/infrastructure/clients",
-      "suggestedFix": "Criar diretório/arquivo 'clients' na camada 'infrastructure' se necessário"
-    },
-    {
-      "id": "ARCH-BENEFICIARIES-INFRASTRUCTURE-CONFIG-MISSING",
-      "layer": "infrastructure",
-      "module": "beneficiaries",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'config' ausente na camada 'infrastructure'",
-      "file": "/home/runner/workspace/server/modules/beneficiaries/infrastructure/config",
-      "suggestedFix": "Criar diretório/arquivo 'config' na camada 'infrastructure' se necessário"
     },
     {
       "id": "ROUTES-BENEFICIARIES-NO-LOGIC",
@@ -181,16 +101,6 @@
       "description": "Rotas contêm lógica de negócio ou acesso direto a dados",
       "file": "/home/runner/workspace/server/modules/custom-fields/routes.ts",
       "suggestedFix": "Mover lógica de negócio/dados para Use Cases na camada Application e/ou Controllers."
-    },
-    {
-      "id": "ARCH-CUSTOMERS-DOMAIN-VALUE-OBJECTS-MISSING",
-      "layer": "domain",
-      "module": "customers",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'value-objects' ausente na camada 'domain'",
-      "file": "/home/runner/workspace/server/modules/customers/domain/value-objects",
-      "suggestedFix": "Criar diretório/arquivo 'value-objects' na camada 'domain' se necessário"
     },
     {
       "id": "ARCH-CUSTOMERS-APPLICATION-REPOSITORIES-MISSING",
@@ -1103,44 +1013,24 @@
       "suggestedFix": "Criar diretório/arquivo 'config' na camada 'infrastructure' se necessário"
     },
     {
-      "id": "ARCH-TICKETS-DOMAIN-VALUE-OBJECTS-MISSING",
-      "layer": "domain",
-      "module": "tickets",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'value-objects' ausente na camada 'domain'",
-      "file": "/home/runner/workspace/server/modules/tickets/domain/value-objects",
-      "suggestedFix": "Criar diretório/arquivo 'value-objects' na camada 'domain' se necessário"
-    },
-    {
-      "id": "ARCH-TICKETS-APPLICATION-REPOSITORIES-MISSING",
+      "id": "ARCH-TICKETS-APPLICATION-USE-CASES-MISSING",
       "layer": "application",
       "module": "tickets",
       "severity": "low",
       "type": "structure_violation",
-      "description": "Estrutura esperada 'repositories' ausente na camada 'application'",
-      "file": "/home/runner/workspace/server/modules/tickets/application/repositories",
-      "suggestedFix": "Criar diretório/arquivo 'repositories' na camada 'application' se necessário"
+      "description": "Estrutura esperada 'use-cases' ausente na camada 'application'",
+      "file": "/home/runner/workspace/server/modules/tickets/application/use-cases",
+      "suggestedFix": "Criar diretório/arquivo 'use-cases' na camada 'application' se necessário"
     },
     {
-      "id": "ARCH-TICKETS-INFRASTRUCTURE-CLIENTS-MISSING",
-      "layer": "infrastructure",
+      "id": "ROUTES-TICKETS-NO-LOGIC",
+      "layer": "presentation",
       "module": "tickets",
       "severity": "low",
       "type": "structure_violation",
-      "description": "Estrutura esperada 'clients' ausente na camada 'infrastructure'",
-      "file": "/home/runner/workspace/server/modules/tickets/infrastructure/clients",
-      "suggestedFix": "Criar diretório/arquivo 'clients' na camada 'infrastructure' se necessário"
-    },
-    {
-      "id": "ARCH-TICKETS-INFRASTRUCTURE-CONFIG-MISSING",
-      "layer": "infrastructure",
-      "module": "tickets",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'config' ausente na camada 'infrastructure'",
-      "file": "/home/runner/workspace/server/modules/tickets/infrastructure/config",
-      "suggestedFix": "Criar diretório/arquivo 'config' na camada 'infrastructure' se necessário"
+      "description": "Arquivo de rotas não parece conter controllers ou chamadas a Use Cases.",
+      "file": "/home/runner/workspace/server/modules/tickets/routes.ts",
+      "suggestedFix": "Definir rotas que utilizem controllers da camada Application ou chamem Use Cases."
     },
     {
       "id": "ROUTES-TICKETS-BUSINESS-LOGIC",
@@ -1153,46 +1043,6 @@
       "suggestedFix": "Mover lógica de negócio/dados para Use Cases na camada Application e/ou Controllers."
     },
     {
-      "id": "ARCH-TIMECARD-DOMAIN-VALUE-OBJECTS-MISSING",
-      "layer": "domain",
-      "module": "timecard",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'value-objects' ausente na camada 'domain'",
-      "file": "/home/runner/workspace/server/modules/timecard/domain/value-objects",
-      "suggestedFix": "Criar diretório/arquivo 'value-objects' na camada 'domain' se necessário"
-    },
-    {
-      "id": "ARCH-TIMECARD-APPLICATION-REPOSITORIES-MISSING",
-      "layer": "application",
-      "module": "timecard",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'repositories' ausente na camada 'application'",
-      "file": "/home/runner/workspace/server/modules/timecard/application/repositories",
-      "suggestedFix": "Criar diretório/arquivo 'repositories' na camada 'application' se necessário"
-    },
-    {
-      "id": "ARCH-TIMECARD-INFRASTRUCTURE-CLIENTS-MISSING",
-      "layer": "infrastructure",
-      "module": "timecard",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'clients' ausente na camada 'infrastructure'",
-      "file": "/home/runner/workspace/server/modules/timecard/infrastructure/clients",
-      "suggestedFix": "Criar diretório/arquivo 'clients' na camada 'infrastructure' se necessário"
-    },
-    {
-      "id": "ARCH-TIMECARD-INFRASTRUCTURE-CONFIG-MISSING",
-      "layer": "infrastructure",
-      "module": "timecard",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'config' ausente na camada 'infrastructure'",
-      "file": "/home/runner/workspace/server/modules/timecard/infrastructure/config",
-      "suggestedFix": "Criar diretório/arquivo 'config' na camada 'infrastructure' se necessário"
-    },
-    {
       "id": "ROUTES-TIMECARD-BUSINESS-LOGIC",
       "layer": "presentation",
       "module": "timecard",
@@ -1203,7 +1053,7 @@
       "suggestedFix": "Mover lógica de negócio/dados para Use Cases na camada Application e/ou Controllers."
     },
     {
-      "id": "DEP-BENEFICIARIES-APP-1754856340401-express",
+      "id": "DEP-BENEFICIARIES-APP-1754875542037-express",
       "layer": "application",
       "module": "beneficiaries",
       "severity": "high",
@@ -1214,7 +1064,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-CUSTOM-FIELDS-APP-1754856340402-express",
+      "id": "DEP-CUSTOM-FIELDS-APP-1754875542049-express",
       "layer": "application",
       "module": "custom-fields",
       "severity": "high",
@@ -1225,7 +1075,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754856340415-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754875542153-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -1236,7 +1086,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754856340415-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754875542154-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -1247,7 +1097,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754856340415-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754875542154-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -1258,7 +1108,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754856340415-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754875542155-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -1269,7 +1119,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754856340416-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754875542156-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -1280,7 +1130,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754856340416-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754875542156-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -1291,7 +1141,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754856340416-drizzleorm",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754875542156-drizzleorm",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -1302,7 +1152,7 @@
       "suggestedFix": "Application não deve importar ORM diretamente. Use interfaces de repositório do Domain."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754856340416-drizzleormnodepostgres",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754875542156-drizzleormnodepostgres",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -1313,7 +1163,7 @@
       "suggestedFix": "Application não deve importar ORM diretamente. Use interfaces de repositório do Domain."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754856340416-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754875542156-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -1324,7 +1174,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754856340417-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754875542158-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -1335,7 +1185,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754856340417-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754875542159-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -1346,7 +1196,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754856340417-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754875542159-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -1357,7 +1207,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754856340417-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754875542159-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -1368,7 +1218,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754856340417-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754875542160-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -1379,7 +1229,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754856340417-drizzleorm",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754875542160-drizzleorm",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -1390,7 +1240,7 @@
       "suggestedFix": "Application não deve importar ORM diretamente. Use interfaces de repositório do Domain."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754856340418-drizzleorm",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754875542160-drizzleorm",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -1401,7 +1251,7 @@
       "suggestedFix": "Application não deve importar ORM diretamente. Use interfaces de repositório do Domain."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754856340418-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754875542160-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -1412,18 +1262,40 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-TECHNICAL-SKILLS-APP-1754856340689-express",
+      "id": "DEP-TECHNICAL-SKILLS-APP-1754875542538-express",
       "layer": "application",
       "module": "technical-skills",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer: Dependência proibida encontrada -> express",
       "file": "/home/runner/workspace/server/modules/technical-skills/application/controllers/UserSkillController.ts",
-      "line": 2,
+      "line": 1,
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-TIMECARD-APP-1754856340695-express",
+      "id": "DEP-TECHNICAL-SKILLS-APP-1754875542539-express",
+      "layer": "application",
+      "module": "technical-skills",
+      "severity": "high",
+      "type": "dependency_violation",
+      "description": "Application Layer: Dependência proibida encontrada -> express",
+      "file": "/home/runner/workspace/server/modules/technical-skills/application/controllers/UserSkillController_backup.ts",
+      "line": 1,
+      "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
+    },
+    {
+      "id": "DEP-TICKETS-APP-1754875542601-express",
+      "layer": "application",
+      "module": "tickets",
+      "severity": "high",
+      "type": "dependency_violation",
+      "description": "Application Layer: Dependência proibida encontrada -> express",
+      "file": "/home/runner/workspace/server/modules/tickets/application/controllers/TicketController.ts",
+      "line": 1,
+      "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
+    },
+    {
+      "id": "DEP-TIMECARD-APP-1754875542616-express",
       "layer": "application",
       "module": "timecard",
       "severity": "high",
@@ -1434,7 +1306,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-TIMECARD-APP-1754856340695-express",
+      "id": "DEP-TIMECARD-APP-1754875542616-express",
       "layer": "application",
       "module": "timecard",
       "severity": "high",
@@ -1443,27 +1315,6 @@
       "file": "/home/runner/workspace/server/modules/timecard/application/controllers/TimecardApprovalController.ts",
       "line": 3,
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
-    },
-    {
-      "id": "DEP-TIMECARD-APP-1754856347826-drizzleorm",
-      "layer": "application",
-      "module": "timecard",
-      "severity": "high",
-      "type": "dependency_violation",
-      "description": "Application Layer: Dependência proibida encontrada -> drizzle-orm",
-      "file": "/home/runner/workspace/server/modules/timecard/application/controllers/TimecardController.ts",
-      "line": 7,
-      "suggestedFix": "Application não deve importar ORM diretamente. Use interfaces de repositório do Domain."
-    },
-    {
-      "id": "SOC-AUTH-ENTITY-INFRA",
-      "layer": "domain",
-      "module": "auth",
-      "severity": "critical",
-      "type": "coupling_issue",
-      "description": "Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade",
-      "file": "/home/runner/workspace/server/modules/auth/domain/entities/User.ts",
-      "suggestedFix": "Mover lógica de infraestrutura para Repository na camada Infrastructure"
     },
     {
       "id": "SOC-AUTH-ENTITY-PRESENTATION",
@@ -1494,16 +1345,6 @@
       "description": "Repository contém possível lógica de negócio ou validação complexa",
       "file": "/home/runner/workspace/server/modules/auth/infrastructure/repositories/DrizzleUserRepository.ts",
       "suggestedFix": "Mover lógica de negócio para Domain layer (Entity ou Service). Repository deve focar em persistência e mapeamento."
-    },
-    {
-      "id": "SOC-BENEFICIARIES-ENTITY-INFRA",
-      "layer": "domain",
-      "module": "beneficiaries",
-      "severity": "critical",
-      "type": "coupling_issue",
-      "description": "Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade",
-      "file": "/home/runner/workspace/server/modules/beneficiaries/domain/entities/Beneficiary.ts",
-      "suggestedFix": "Mover lógica de infraestrutura para Repository na camada Infrastructure"
     },
     {
       "id": "SOC-BENEFICIARIES-ENTITY-PRESENTATION",
@@ -1546,16 +1387,6 @@
       "suggestedFix": "Mover lógica de Presentation para Controllers na camada Application"
     },
     {
-      "id": "SOC-CUSTOM-FIELDS-ENTITY-INFRA",
-      "layer": "domain",
-      "module": "custom-fields",
-      "severity": "critical",
-      "type": "coupling_issue",
-      "description": "Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade",
-      "file": "/home/runner/workspace/server/modules/custom-fields/domain/entities/CustomField.ts",
-      "suggestedFix": "Mover lógica de infraestrutura para Repository na camada Infrastructure"
-    },
-    {
       "id": "SOC-CUSTOM-FIELDS-USECASE-PRESENTATION",
       "layer": "application",
       "module": "custom-fields",
@@ -1576,26 +1407,6 @@
       "suggestedFix": "Controllers devem apenas receber requisições, validar DTOs, chamar Use Cases e retornar respostas."
     },
     {
-      "id": "SOC-CUSTOMERS-ENTITY-INFRA",
-      "layer": "domain",
-      "module": "customers",
-      "severity": "critical",
-      "type": "coupling_issue",
-      "description": "Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade",
-      "file": "/home/runner/workspace/server/modules/customers/domain/entities/Company.ts",
-      "suggestedFix": "Mover lógica de infraestrutura para Repository na camada Infrastructure"
-    },
-    {
-      "id": "SOC-CUSTOMERS-ENTITY-INFRA",
-      "layer": "domain",
-      "module": "customers",
-      "severity": "critical",
-      "type": "coupling_issue",
-      "description": "Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade",
-      "file": "/home/runner/workspace/server/modules/customers/domain/entities/CompanyMembership.ts",
-      "suggestedFix": "Mover lógica de infraestrutura para Repository na camada Infrastructure"
-    },
-    {
       "id": "SOC-CUSTOMERS-ENTITY-PRESENTATION",
       "layer": "domain",
       "module": "customers",
@@ -1604,16 +1415,6 @@
       "description": "Entity misturada com conceitos de Presentation layer (DTOs, Request/Response) - violação de responsabilidade",
       "file": "/home/runner/workspace/server/modules/customers/domain/entities/CompanyMembership.ts",
       "suggestedFix": "Separar Entity de DTOs/Requests/Responses, movendo-os para Application layer (ou Presentation)"
-    },
-    {
-      "id": "SOC-CUSTOMERS-ENTITY-INFRA",
-      "layer": "domain",
-      "module": "customers",
-      "severity": "critical",
-      "type": "coupling_issue",
-      "description": "Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade",
-      "file": "/home/runner/workspace/server/modules/customers/domain/entities/Customer.ts",
-      "suggestedFix": "Mover lógica de infraestrutura para Repository na camada Infrastructure"
     },
     {
       "id": "SOC-CUSTOMERS-USECASE-PRESENTATION",
@@ -1726,36 +1527,6 @@
       "suggestedFix": "Mover lógica de negócio para Domain layer (Entity ou Service). Repository deve focar em persistência e mapeamento."
     },
     {
-      "id": "SOC-FIELD-LAYOUT-ENTITY-INFRA",
-      "layer": "domain",
-      "module": "field-layout",
-      "severity": "critical",
-      "type": "coupling_issue",
-      "description": "Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade",
-      "file": "/home/runner/workspace/server/modules/field-layout/domain/entities/FieldLayout.ts",
-      "suggestedFix": "Mover lógica de infraestrutura para Repository na camada Infrastructure"
-    },
-    {
-      "id": "SOC-FIELD-LAYOUTS-ENTITY-INFRA",
-      "layer": "domain",
-      "module": "field-layouts",
-      "severity": "critical",
-      "type": "coupling_issue",
-      "description": "Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade",
-      "file": "/home/runner/workspace/server/modules/field-layouts/domain/entities/FieldLayout.ts",
-      "suggestedFix": "Mover lógica de infraestrutura para Repository na camada Infrastructure"
-    },
-    {
-      "id": "SOC-KNOWLEDGE-BASE-ENTITY-INFRA",
-      "layer": "domain",
-      "module": "knowledge-base",
-      "severity": "critical",
-      "type": "coupling_issue",
-      "description": "Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade",
-      "file": "/home/runner/workspace/server/modules/knowledge-base/domain/entities/KnowledgeBaseEntry.ts",
-      "suggestedFix": "Mover lógica de infraestrutura para Repository na camada Infrastructure"
-    },
-    {
       "id": "SOC-KNOWLEDGE-BASE-REPO-BUSINESS",
       "layer": "infrastructure",
       "module": "knowledge-base",
@@ -1786,16 +1557,6 @@
       "suggestedFix": "Controllers devem apenas receber requisições, validar DTOs, chamar Use Cases e retornar respostas."
     },
     {
-      "id": "SOC-LOCATIONS-ENTITY-INFRA",
-      "layer": "domain",
-      "module": "locations",
-      "severity": "critical",
-      "type": "coupling_issue",
-      "description": "Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade",
-      "file": "/home/runner/workspace/server/modules/locations/domain/entities/Location.ts",
-      "suggestedFix": "Mover lógica de infraestrutura para Repository na camada Infrastructure"
-    },
-    {
       "id": "SOC-LOCATIONS-USECASE-PRESENTATION",
       "layer": "application",
       "module": "locations",
@@ -1804,26 +1565,6 @@
       "description": "Use Case contém lógica de Presentation layer (acesso a request/response, express)",
       "file": "/home/runner/workspace/server/modules/locations/application/use-cases/CreateLocationUseCase.ts",
       "suggestedFix": "Mover lógica de Presentation para Controllers na camada Application"
-    },
-    {
-      "id": "SOC-MATERIALS-SERVICES-ENTITY-INFRA",
-      "layer": "domain",
-      "module": "materials-services",
-      "severity": "critical",
-      "type": "coupling_issue",
-      "description": "Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade",
-      "file": "/home/runner/workspace/server/modules/materials-services/domain/entities/Material.ts",
-      "suggestedFix": "Mover lógica de infraestrutura para Repository na camada Infrastructure"
-    },
-    {
-      "id": "SOC-MATERIALS-SERVICES-ENTITY-INFRA",
-      "layer": "domain",
-      "module": "materials-services",
-      "severity": "critical",
-      "type": "coupling_issue",
-      "description": "Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade",
-      "file": "/home/runner/workspace/server/modules/materials-services/domain/entities/Service.ts",
-      "suggestedFix": "Mover lógica de infraestrutura para Repository na camada Infrastructure"
     },
     {
       "id": "SOC-MATERIALS-SERVICES-USECASE-PRESENTATION",
@@ -2026,26 +1767,6 @@
       "suggestedFix": "Controllers devem apenas receber requisições, validar DTOs, chamar Use Cases e retornar respostas."
     },
     {
-      "id": "SOC-NOTIFICATIONS-ENTITY-INFRA",
-      "layer": "domain",
-      "module": "notifications",
-      "severity": "critical",
-      "type": "coupling_issue",
-      "description": "Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade",
-      "file": "/home/runner/workspace/server/modules/notifications/domain/entities/Notification.ts",
-      "suggestedFix": "Mover lógica de infraestrutura para Repository na camada Infrastructure"
-    },
-    {
-      "id": "SOC-NOTIFICATIONS-ENTITY-INFRA",
-      "layer": "domain",
-      "module": "notifications",
-      "severity": "critical",
-      "type": "coupling_issue",
-      "description": "Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade",
-      "file": "/home/runner/workspace/server/modules/notifications/domain/entities/NotificationPreference.ts",
-      "suggestedFix": "Mover lógica de infraestrutura para Repository na camada Infrastructure"
-    },
-    {
       "id": "SOC-NOTIFICATIONS-USECASE-PRESENTATION",
       "layer": "application",
       "module": "notifications",
@@ -2054,16 +1775,6 @@
       "description": "Use Case contém lógica de Presentation layer (acesso a request/response, express)",
       "file": "/home/runner/workspace/server/modules/notifications/application/use-cases/GetNotificationsUseCase.ts",
       "suggestedFix": "Mover lógica de Presentation para Controllers na camada Application"
-    },
-    {
-      "id": "SOC-PEOPLE-ENTITY-INFRA",
-      "layer": "domain",
-      "module": "people",
-      "severity": "critical",
-      "type": "coupling_issue",
-      "description": "Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade",
-      "file": "/home/runner/workspace/server/modules/people/domain/entities/Person.ts",
-      "suggestedFix": "Mover lógica de infraestrutura para Repository na camada Infrastructure"
     },
     {
       "id": "SOC-PEOPLE-USECASE-PRESENTATION",
@@ -2084,36 +1795,6 @@
       "description": "Use Case contém lógica de Presentation layer (acesso a request/response, express)",
       "file": "/home/runner/workspace/server/modules/people/application/use-cases/UpdatePersonUseCase.ts",
       "suggestedFix": "Mover lógica de Presentation para Controllers na camada Application"
-    },
-    {
-      "id": "SOC-SAAS-ADMIN-ENTITY-INFRA",
-      "layer": "domain",
-      "module": "saas-admin",
-      "severity": "critical",
-      "type": "coupling_issue",
-      "description": "Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade",
-      "file": "/home/runner/workspace/server/modules/saas-admin/domain/entities/SaasConfig.ts",
-      "suggestedFix": "Mover lógica de infraestrutura para Repository na camada Infrastructure"
-    },
-    {
-      "id": "SOC-SAAS-ADMIN-ENTITY-INFRA",
-      "layer": "domain",
-      "module": "saas-admin",
-      "severity": "critical",
-      "type": "coupling_issue",
-      "description": "Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade",
-      "file": "/home/runner/workspace/server/modules/saas-admin/domain/entities/SaasConfigEntity.ts",
-      "suggestedFix": "Mover lógica de infraestrutura para Repository na camada Infrastructure"
-    },
-    {
-      "id": "SOC-SCHEDULE-MANAGEMENT-ENTITY-INFRA",
-      "layer": "domain",
-      "module": "schedule-management",
-      "severity": "critical",
-      "type": "coupling_issue",
-      "description": "Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade",
-      "file": "/home/runner/workspace/server/modules/schedule-management/domain/entities/ScheduleEntity.ts",
-      "suggestedFix": "Mover lógica de infraestrutura para Repository na camada Infrastructure"
     },
     {
       "id": "SOC-SCHEDULE-MANAGEMENT-USECASE-PRESENTATION",
@@ -2156,16 +1837,6 @@
       "suggestedFix": "Controllers devem apenas receber requisições, validar DTOs, chamar Use Cases e retornar respostas."
     },
     {
-      "id": "SOC-SHARED-ENTITY-INFRA",
-      "layer": "domain",
-      "module": "shared",
-      "severity": "critical",
-      "type": "coupling_issue",
-      "description": "Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade",
-      "file": "/home/runner/workspace/server/modules/shared/domain/entities/BaseEntity.ts",
-      "suggestedFix": "Mover lógica de infraestrutura para Repository na camada Infrastructure"
-    },
-    {
       "id": "SOC-SHARED-USECASE-PRESENTATION",
       "layer": "application",
       "module": "shared",
@@ -2186,36 +1857,6 @@
       "suggestedFix": "Mover lógica de negócio para Domain layer (Entity ou Service). Repository deve focar em persistência e mapeamento."
     },
     {
-      "id": "SOC-TECHNICAL-SKILLS-ENTITY-INFRA",
-      "layer": "domain",
-      "module": "technical-skills",
-      "severity": "critical",
-      "type": "coupling_issue",
-      "description": "Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade",
-      "file": "/home/runner/workspace/server/modules/technical-skills/domain/entities/Skill.ts",
-      "suggestedFix": "Mover lógica de infraestrutura para Repository na camada Infrastructure"
-    },
-    {
-      "id": "SOC-TECHNICAL-SKILLS-ENTITY-INFRA",
-      "layer": "domain",
-      "module": "technical-skills",
-      "severity": "critical",
-      "type": "coupling_issue",
-      "description": "Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade",
-      "file": "/home/runner/workspace/server/modules/technical-skills/domain/entities/SkillEntity.ts",
-      "suggestedFix": "Mover lógica de infraestrutura para Repository na camada Infrastructure"
-    },
-    {
-      "id": "SOC-TECHNICAL-SKILLS-ENTITY-INFRA",
-      "layer": "domain",
-      "module": "technical-skills",
-      "severity": "critical",
-      "type": "coupling_issue",
-      "description": "Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade",
-      "file": "/home/runner/workspace/server/modules/technical-skills/domain/entities/UserSkill.ts",
-      "suggestedFix": "Mover lógica de infraestrutura para Repository na camada Infrastructure"
-    },
-    {
       "id": "SOC-TECHNICAL-SKILLS-ENTITY-PRESENTATION",
       "layer": "domain",
       "module": "technical-skills",
@@ -2233,6 +1874,36 @@
       "type": "coupling_issue",
       "description": "Use Case contém lógica de Presentation layer (acesso a request/response, express)",
       "file": "/home/runner/workspace/server/modules/technical-skills/application/use-cases/CreateSkillUseCase.ts",
+      "suggestedFix": "Mover lógica de Presentation para Controllers na camada Application"
+    },
+    {
+      "id": "SOC-TECHNICAL-SKILLS-USECASE-PRESENTATION",
+      "layer": "application",
+      "module": "technical-skills",
+      "severity": "high",
+      "type": "coupling_issue",
+      "description": "Use Case contém lógica de Presentation layer (acesso a request/response, express)",
+      "file": "/home/runner/workspace/server/modules/technical-skills/application/use-cases/CreateUserSkillUseCase.ts",
+      "suggestedFix": "Mover lógica de Presentation para Controllers na camada Application"
+    },
+    {
+      "id": "SOC-TECHNICAL-SKILLS-USECASE-PRESENTATION",
+      "layer": "application",
+      "module": "technical-skills",
+      "severity": "high",
+      "type": "coupling_issue",
+      "description": "Use Case contém lógica de Presentation layer (acesso a request/response, express)",
+      "file": "/home/runner/workspace/server/modules/technical-skills/application/use-cases/GetUserSkillsUseCase.ts",
+      "suggestedFix": "Mover lógica de Presentation para Controllers na camada Application"
+    },
+    {
+      "id": "SOC-TECHNICAL-SKILLS-USECASE-PRESENTATION",
+      "layer": "application",
+      "module": "technical-skills",
+      "severity": "high",
+      "type": "coupling_issue",
+      "description": "Use Case contém lógica de Presentation layer (acesso a request/response, express)",
+      "file": "/home/runner/workspace/server/modules/technical-skills/application/use-cases/UpdateUserSkillUseCase.ts",
       "suggestedFix": "Mover lógica de Presentation para Controllers na camada Application"
     },
     {
@@ -2272,48 +1943,8 @@
       "severity": "high",
       "type": "coupling_issue",
       "description": "Controller contém lógica de negócio ou acesso direto a dados",
-      "file": "/home/runner/workspace/server/modules/technical-skills/application/controllers/UserSkillController.ts",
+      "file": "/home/runner/workspace/server/modules/technical-skills/application/controllers/UserSkillController_backup.ts",
       "suggestedFix": "Controllers devem apenas receber requisições, validar DTOs, chamar Use Cases e retornar respostas."
-    },
-    {
-      "id": "SOC-TEMPLATE-AUDIT-ENTITY-INFRA",
-      "layer": "domain",
-      "module": "template-audit",
-      "severity": "critical",
-      "type": "coupling_issue",
-      "description": "Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade",
-      "file": "/home/runner/workspace/server/modules/template-audit/domain/entities/TemplateAudit.ts",
-      "suggestedFix": "Mover lógica de infraestrutura para Repository na camada Infrastructure"
-    },
-    {
-      "id": "SOC-TEMPLATE-HIERARCHY-ENTITY-INFRA",
-      "layer": "domain",
-      "module": "template-hierarchy",
-      "severity": "critical",
-      "type": "coupling_issue",
-      "description": "Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade",
-      "file": "/home/runner/workspace/server/modules/template-hierarchy/domain/entities/TemplateHierarchy.ts",
-      "suggestedFix": "Mover lógica de infraestrutura para Repository na camada Infrastructure"
-    },
-    {
-      "id": "SOC-TEMPLATE-VERSIONS-ENTITY-INFRA",
-      "layer": "domain",
-      "module": "template-versions",
-      "severity": "critical",
-      "type": "coupling_issue",
-      "description": "Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade",
-      "file": "/home/runner/workspace/server/modules/template-versions/domain/entities/TemplateVersion.ts",
-      "suggestedFix": "Mover lógica de infraestrutura para Repository na camada Infrastructure"
-    },
-    {
-      "id": "SOC-TENANT-ADMIN-ENTITY-INFRA",
-      "layer": "domain",
-      "module": "tenant-admin",
-      "severity": "critical",
-      "type": "coupling_issue",
-      "description": "Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade",
-      "file": "/home/runner/workspace/server/modules/tenant-admin/domain/entities/TenantConfig.ts",
-      "suggestedFix": "Mover lógica de infraestrutura para Repository na camada Infrastructure"
     },
     {
       "id": "SOC-TICKET-HISTORY-USECASE-PRESENTATION",
@@ -2324,36 +1955,6 @@
       "description": "Use Case contém lógica de Presentation layer (acesso a request/response, express)",
       "file": "/home/runner/workspace/server/modules/ticket-history/application/use-cases/CreateTicketHistoryUseCase.ts",
       "suggestedFix": "Mover lógica de Presentation para Controllers na camada Application"
-    },
-    {
-      "id": "SOC-TICKET-HISTORY-CONTROLLER-BUSINESS",
-      "layer": "application",
-      "module": "ticket-history",
-      "severity": "high",
-      "type": "coupling_issue",
-      "description": "Controller contém lógica de negócio ou acesso direto a dados",
-      "file": "/home/runner/workspace/server/modules/ticket-history/application/controllers/TicketHistoryController.ts",
-      "suggestedFix": "Controllers devem apenas receber requisições, validar DTOs, chamar Use Cases e retornar respostas."
-    },
-    {
-      "id": "SOC-TICKET-TEMPLATES-ENTITY-INFRA",
-      "layer": "domain",
-      "module": "ticket-templates",
-      "severity": "critical",
-      "type": "coupling_issue",
-      "description": "Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade",
-      "file": "/home/runner/workspace/server/modules/ticket-templates/domain/entities/TicketTemplate.ts",
-      "suggestedFix": "Mover lógica de infraestrutura para Repository na camada Infrastructure"
-    },
-    {
-      "id": "SOC-TICKETS-ENTITY-INFRA",
-      "layer": "domain",
-      "module": "tickets",
-      "severity": "critical",
-      "type": "coupling_issue",
-      "description": "Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade",
-      "file": "/home/runner/workspace/server/modules/tickets/domain/entities/Ticket.ts",
-      "suggestedFix": "Mover lógica de infraestrutura para Repository na camada Infrastructure"
     },
     {
       "id": "SOC-TICKETS-ENTITY-PRESENTATION",
@@ -2372,7 +1973,7 @@
       "severity": "high",
       "type": "coupling_issue",
       "description": "Use Case contém lógica de Presentation layer (acesso a request/response, express)",
-      "file": "/home/runner/workspace/server/modules/tickets/application/use-cases/CreateTicketUseCase.ts",
+      "file": "/home/runner/workspace/server/modules/tickets/application/usecases/CreateTicketUseCase.ts",
       "suggestedFix": "Mover lógica de Presentation para Controllers na camada Application"
     },
     {
@@ -2382,7 +1983,7 @@
       "severity": "high",
       "type": "coupling_issue",
       "description": "Use Case contém lógica de Presentation layer (acesso a request/response, express)",
-      "file": "/home/runner/workspace/server/modules/tickets/application/usecases/CreateTicketUseCase.ts",
+      "file": "/home/runner/workspace/server/modules/tickets/application/usecases/GetTicketsUseCase.ts",
       "suggestedFix": "Mover lógica de Presentation para Controllers na camada Application"
     },
     {
@@ -2406,24 +2007,24 @@
       "suggestedFix": "Mover lógica de negócio para Domain layer (Entity ou Service). Repository deve focar em persistência e mapeamento."
     },
     {
-      "id": "SOC-TIMECARD-ENTITY-INFRA",
-      "layer": "domain",
-      "module": "timecard",
-      "severity": "critical",
+      "id": "SOC-TICKETS-REPO-BUSINESS",
+      "layer": "infrastructure",
+      "module": "tickets",
+      "severity": "medium",
       "type": "coupling_issue",
-      "description": "Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade",
-      "file": "/home/runner/workspace/server/modules/timecard/domain/entities/Timecard.ts",
-      "suggestedFix": "Mover lógica de infraestrutura para Repository na camada Infrastructure"
+      "description": "Repository contém possível lógica de negócio ou validação complexa",
+      "file": "/home/runner/workspace/server/modules/tickets/infrastructure/repositories/DrizzleTicketRepository_backup.ts",
+      "suggestedFix": "Mover lógica de negócio para Domain layer (Entity ou Service). Repository deve focar em persistência e mapeamento."
     },
     {
-      "id": "SOC-TIMECARD-ENTITY-INFRA",
-      "layer": "domain",
-      "module": "timecard",
-      "severity": "critical",
+      "id": "SOC-TICKETS-REPO-BUSINESS",
+      "layer": "infrastructure",
+      "module": "tickets",
+      "severity": "medium",
       "type": "coupling_issue",
-      "description": "Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade",
-      "file": "/home/runner/workspace/server/modules/timecard/domain/entities/TimecardEntity.ts",
-      "suggestedFix": "Mover lógica de infraestrutura para Repository na camada Infrastructure"
+      "description": "Repository contém possível lógica de negócio ou validação complexa",
+      "file": "/home/runner/workspace/server/modules/tickets/infrastructure/repositories/DrizzleTicketRepository_fixed.ts",
+      "suggestedFix": "Mover lógica de negócio para Domain layer (Entity ou Service). Repository deve focar em persistência e mapeamento."
     },
     {
       "id": "SOC-TIMECARD-REPO-BUSINESS",
@@ -2466,13 +2067,13 @@
       "suggestedFix": "Renomear para seguir o padrão PascalCase (ex: AuthService, NotificationService)"
     },
     {
-      "id": "NAMING-BENEFICIARIES-USECASE-indexUseCase-FORMAT",
+      "id": "NAMING-BENEFICIARIES-USECASE-index-FORMAT",
       "layer": "application",
       "module": "beneficiaries",
       "severity": "medium",
       "type": "naming_inconsistency",
-      "description": "Use Case 'indexUseCase' não segue o padrão '[Action]UseCase' (ex: CreateCustomerUseCase)",
-      "file": "/home/runner/workspace/server/modules/beneficiaries/application/use-cases/indexUseCase.ts",
+      "description": "Use Case 'index' não segue o padrão '[Action]UseCase' (ex: CreateCustomerUseCase)",
+      "file": "/home/runner/workspace/server/modules/beneficiaries/application/use-cases/index.ts",
       "suggestedFix": "Renomear para seguir o padrão [Verbo]UseCase"
     },
     {
@@ -2516,13 +2117,13 @@
       "suggestedFix": "Renomear para seguir o padrão PascalCase (ex: AuthService, NotificationService)"
     },
     {
-      "id": "NAMING-CUSTOM-FIELDS-USECASE-indexUseCase-FORMAT",
+      "id": "NAMING-CUSTOM-FIELDS-USECASE-index-FORMAT",
       "layer": "application",
       "module": "custom-fields",
       "severity": "medium",
       "type": "naming_inconsistency",
-      "description": "Use Case 'indexUseCase' não segue o padrão '[Action]UseCase' (ex: CreateCustomerUseCase)",
-      "file": "/home/runner/workspace/server/modules/custom-fields/application/use-cases/indexUseCase.ts",
+      "description": "Use Case 'index' não segue o padrão '[Action]UseCase' (ex: CreateCustomerUseCase)",
+      "file": "/home/runner/workspace/server/modules/custom-fields/application/use-cases/index.ts",
       "suggestedFix": "Renomear para seguir o padrão [Verbo]UseCase"
     },
     {
@@ -3036,6 +2637,26 @@
       "suggestedFix": "Considerar remover o sufixo \"Service\" se for um Domain Service puro (ex: UserDomainService -> User)"
     },
     {
+      "id": "NAMING-TICKETS-REPO-DrizzleTicketRepository_backup-FORMAT",
+      "layer": "infrastructure",
+      "module": "tickets",
+      "severity": "medium",
+      "type": "naming_inconsistency",
+      "description": "Repository 'DrizzleTicketRepository_backup' não segue o padrão '[Entity]Repository' (ex: CustomerRepository)",
+      "file": "/home/runner/workspace/server/modules/tickets/infrastructure/repositories/DrizzleTicketRepository_backup.ts",
+      "suggestedFix": "Renomear para seguir o padrão [NomeDaEntidade]Repository"
+    },
+    {
+      "id": "NAMING-TICKETS-REPO-DrizzleTicketRepository_fixed-FORMAT",
+      "layer": "infrastructure",
+      "module": "tickets",
+      "severity": "medium",
+      "type": "naming_inconsistency",
+      "description": "Repository 'DrizzleTicketRepository_fixed' não segue o padrão '[Entity]Repository' (ex: CustomerRepository)",
+      "file": "/home/runner/workspace/server/modules/tickets/infrastructure/repositories/DrizzleTicketRepository_fixed.ts",
+      "suggestedFix": "Renomear para seguir o padrão [NomeDaEntidade]Repository"
+    },
+    {
       "id": "NAMING-TICKETS-DOMAINSERVICE-TicketDomainService-SUFFIX",
       "layer": "domain",
       "module": "tickets",
@@ -3536,34 +3157,14 @@
       "suggestedFix": "Verificar se o serviço é realmente necessário e se está sendo utilizado pelos Use Cases."
     },
     {
-      "id": "COMP-TECHNICAL-SKILLS-ENTITY-REPO-SkillEntity-MISSING",
-      "layer": "infrastructure",
+      "id": "COMP-TECHNICAL-SKILLS-ROUTE-CONTROLLER-MISMATCH-UserSkillController_backup",
+      "layer": "presentation",
       "module": "technical-skills",
-      "severity": "high",
-      "type": "missing_component",
-      "description": "Entity 'SkillEntity' não possui um Repository correspondente na camada Infrastructure",
-      "file": "/home/runner/workspace/server/modules/technical-skills/infrastructure/repositories",
-      "suggestedFix": "Criar um arquivo como 'SkillEntityRepository.ts' ou 'DrizzleSkillEntityRepository.ts' na camada Infrastructure"
-    },
-    {
-      "id": "COMP-TECHNICAL-SKILLS-REPO-INTERFACE-DrizzleSkillRepository-MISSING",
-      "layer": "domain",
-      "module": "technical-skills",
-      "severity": "medium",
-      "type": "missing_component",
-      "description": "Repository 'DrizzleSkillRepository' implementa uma interface que não foi encontrada no Domain layer",
-      "file": "/home/runner/workspace/server/modules/technical-skills/domain",
-      "suggestedFix": "Criar a interface 'IDrizzleSkillRepository' no Domain layer (ex: domain/repositories ou domain/ports)"
-    },
-    {
-      "id": "COMP-TECHNICAL-SKILLS-REPO-INTERFACE-DrizzleUserSkillRepository-MISSING",
-      "layer": "domain",
-      "module": "technical-skills",
-      "severity": "medium",
-      "type": "missing_component",
-      "description": "Repository 'DrizzleUserSkillRepository' implementa uma interface que não foi encontrada no Domain layer",
-      "file": "/home/runner/workspace/server/modules/technical-skills/domain",
-      "suggestedFix": "Criar a interface 'IDrizzleUserSkillRepository' no Domain layer (ex: domain/repositories ou domain/ports)"
+      "severity": "low",
+      "type": "structure_violation",
+      "description": "Controller 'UserSkillController_backup' não parece ser referenciado nas rotas do módulo",
+      "file": "/home/runner/workspace/server/modules/technical-skills/routes.ts",
+      "suggestedFix": "Garantir que as rotas do módulo utilizem os controllers definidos"
     },
     {
       "id": "COMP-TECHNICAL-SKILLS-DOMAIN-SERVICE-UNUSED-index.ts",
@@ -3576,16 +3177,6 @@
       "suggestedFix": "Verificar se o serviço é realmente necessário e se está sendo utilizado pelos Use Cases."
     },
     {
-      "id": "COMP-TEMPLATE-AUDIT-REPO-INTERFACE-DrizzleTemplateAuditRepository-MISSING",
-      "layer": "domain",
-      "module": "template-audit",
-      "severity": "medium",
-      "type": "missing_component",
-      "description": "Repository 'DrizzleTemplateAuditRepository' implementa uma interface que não foi encontrada no Domain layer",
-      "file": "/home/runner/workspace/server/modules/template-audit/domain",
-      "suggestedFix": "Criar a interface 'IDrizzleTemplateAuditRepository' no Domain layer (ex: domain/repositories ou domain/ports)"
-    },
-    {
       "id": "COMP-TEMPLATE-AUDIT-DOMAIN-SERVICE-UNUSED-index.ts",
       "layer": "domain",
       "module": "template-audit",
@@ -3596,36 +3187,6 @@
       "suggestedFix": "Verificar se o serviço é realmente necessário e se está sendo utilizado pelos Use Cases."
     },
     {
-      "id": "COMP-TEMPLATE-HIERARCHY-REPO-INTERFACE-DrizzleTemplateHierarchyRepository-MISSING",
-      "layer": "domain",
-      "module": "template-hierarchy",
-      "severity": "medium",
-      "type": "missing_component",
-      "description": "Repository 'DrizzleTemplateHierarchyRepository' implementa uma interface que não foi encontrada no Domain layer",
-      "file": "/home/runner/workspace/server/modules/template-hierarchy/domain",
-      "suggestedFix": "Criar a interface 'IDrizzleTemplateHierarchyRepository' no Domain layer (ex: domain/repositories ou domain/ports)"
-    },
-    {
-      "id": "COMP-TEMPLATE-VERSIONS-REPO-INTERFACE-DrizzleTemplateVersionRepository-MISSING",
-      "layer": "domain",
-      "module": "template-versions",
-      "severity": "medium",
-      "type": "missing_component",
-      "description": "Repository 'DrizzleTemplateVersionRepository' implementa uma interface que não foi encontrada no Domain layer",
-      "file": "/home/runner/workspace/server/modules/template-versions/domain",
-      "suggestedFix": "Criar a interface 'IDrizzleTemplateVersionRepository' no Domain layer (ex: domain/repositories ou domain/ports)"
-    },
-    {
-      "id": "COMP-TENANT-ADMIN-REPO-INTERFACE-DrizzleTenantConfigRepository-MISSING",
-      "layer": "domain",
-      "module": "tenant-admin",
-      "severity": "medium",
-      "type": "missing_component",
-      "description": "Repository 'DrizzleTenantConfigRepository' implementa uma interface que não foi encontrada no Domain layer",
-      "file": "/home/runner/workspace/server/modules/tenant-admin/domain",
-      "suggestedFix": "Criar a interface 'IDrizzleTenantConfigRepository' no Domain layer (ex: domain/repositories ou domain/ports)"
-    },
-    {
       "id": "COMP-TENANT-ADMIN-DOMAIN-SERVICE-UNUSED-index.ts",
       "layer": "domain",
       "module": "tenant-admin",
@@ -3634,76 +3195,6 @@
       "description": "Domain Service 'index.ts' parece não ter métodos exportados ou estar isolado.",
       "file": "/home/runner/workspace/server/modules/tenant-admin/domain/services/index.ts",
       "suggestedFix": "Verificar se o serviço é realmente necessário e se está sendo utilizado pelos Use Cases."
-    },
-    {
-      "id": "COMP-TICKET-HISTORY-REPO-INTERFACE-DrizzleTicketHistoryRepository-MISSING",
-      "layer": "domain",
-      "module": "ticket-history",
-      "severity": "medium",
-      "type": "missing_component",
-      "description": "Repository 'DrizzleTicketHistoryRepository' implementa uma interface que não foi encontrada no Domain layer",
-      "file": "/home/runner/workspace/server/modules/ticket-history/domain",
-      "suggestedFix": "Criar a interface 'IDrizzleTicketHistoryRepository' no Domain layer (ex: domain/repositories ou domain/ports)"
-    },
-    {
-      "id": "COMP-TICKET-TEMPLATES-REPO-INTERFACE-DrizzleTicketTemplateRepository-MISSING",
-      "layer": "domain",
-      "module": "ticket-templates",
-      "severity": "medium",
-      "type": "missing_component",
-      "description": "Repository 'DrizzleTicketTemplateRepository' implementa uma interface que não foi encontrada no Domain layer",
-      "file": "/home/runner/workspace/server/modules/ticket-templates/domain",
-      "suggestedFix": "Criar a interface 'IDrizzleTicketTemplateRepository' no Domain layer (ex: domain/repositories ou domain/ports)"
-    },
-    {
-      "id": "COMP-TICKETS-REPO-INTERFACE-DrizzleTicketRepository-MISSING",
-      "layer": "domain",
-      "module": "tickets",
-      "severity": "medium",
-      "type": "missing_component",
-      "description": "Repository 'DrizzleTicketRepository' implementa uma interface que não foi encontrada no Domain layer",
-      "file": "/home/runner/workspace/server/modules/tickets/domain",
-      "suggestedFix": "Criar a interface 'IDrizzleTicketRepository' no Domain layer (ex: domain/repositories ou domain/ports)"
-    },
-    {
-      "id": "COMP-TIMECARD-ENTITY-REPO-TimecardEntity-MISSING",
-      "layer": "infrastructure",
-      "module": "timecard",
-      "severity": "high",
-      "type": "missing_component",
-      "description": "Entity 'TimecardEntity' não possui um Repository correspondente na camada Infrastructure",
-      "file": "/home/runner/workspace/server/modules/timecard/infrastructure/repositories",
-      "suggestedFix": "Criar um arquivo como 'TimecardEntityRepository.ts' ou 'DrizzleTimecardEntityRepository.ts' na camada Infrastructure"
-    },
-    {
-      "id": "COMP-TIMECARD-ROUTE-CONTROLLER-MISMATCH-TimecardApprovalController",
-      "layer": "presentation",
-      "module": "timecard",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Controller 'TimecardApprovalController' não parece ser referenciado nas rotas do módulo",
-      "file": "/home/runner/workspace/server/modules/timecard/routes.ts",
-      "suggestedFix": "Garantir que as rotas do módulo utilizem os controllers definidos"
-    },
-    {
-      "id": "COMP-TIMECARD-REPO-INTERFACE-DrizzleTimecardRepository-MISSING",
-      "layer": "domain",
-      "module": "timecard",
-      "severity": "medium",
-      "type": "missing_component",
-      "description": "Repository 'DrizzleTimecardRepository' implementa uma interface que não foi encontrada no Domain layer",
-      "file": "/home/runner/workspace/server/modules/timecard/domain",
-      "suggestedFix": "Criar a interface 'IDrizzleTimecardRepository' no Domain layer (ex: domain/repositories ou domain/ports)"
-    },
-    {
-      "id": "COMP-TIMECARD-REPO-INTERFACE-indexRepository-MISSING",
-      "layer": "domain",
-      "module": "timecard",
-      "severity": "medium",
-      "type": "missing_component",
-      "description": "Repository 'indexRepository' implementa uma interface que não foi encontrada no Domain layer",
-      "file": "/home/runner/workspace/server/modules/timecard/domain",
-      "suggestedFix": "Criar a interface 'IindexRepository' no Domain layer (ex: domain/repositories ou domain/ports)"
     },
     {
       "id": "COMP-TIMECARD-DOMAIN-SERVICE-UNUSED-index.ts",
@@ -3717,10 +3208,10 @@
     }
   ],
   "summary": {
-    "total": 369,
-    "critical": 30,
-    "high": 94,
-    "medium": 62,
-    "low": 183
+    "total": 318,
+    "critical": 0,
+    "high": 95,
+    "medium": 55,
+    "low": 168
   }
 }

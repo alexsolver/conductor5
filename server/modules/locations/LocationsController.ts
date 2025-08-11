@@ -7,10 +7,16 @@ import { insertLocationSchema, insertLocationSegmentSchema, insertLocationAreaSc
          insertLocationRouteSchema, insertAreaGroupSchema } from '../../../shared/schema-locations';
 import { pool } from '../../db';
 
+// Clean Architecture: Controller should depend on Use Cases, not repositories  
 export class LocationsController {
-  private repository: LocationsRepository;
+  private repository: LocationsRepository; // Temporary for migration
 
-  constructor() {
+  constructor(
+    // Clean Architecture: Inject Use Cases instead of repositories
+    // private getLocationsUseCase: GetLocationsUseCase,
+    // private createLocationUseCase: CreateLocationUseCase
+  ) {
+    // Temporary repository for transition period
     this.repository = new LocationsRepository(pool);
   }
 

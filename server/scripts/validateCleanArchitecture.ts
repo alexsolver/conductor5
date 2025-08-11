@@ -177,7 +177,7 @@ npm run validate:architecture --report
     }, {});
 
     return Object.entries(moduleIssues)
-      .map(([module, moduleIssues]: [string, any[]]) => {
+      .map(([module, moduleIssues]: [string, any]) => {
         const critical = moduleIssues.filter(i => i.severity === 'critical').length;
         const high = moduleIssues.filter(i => i.severity === 'high').length;
         const status = critical > 0 ? '🔥' : high > 0 ? '⚠️' : '📋';
@@ -197,10 +197,10 @@ ${moduleIssues.slice(0, 3).map(i => `  - ${i.description}`).join('\n')}
       .map(plan => {
         const priorityEmoji = {
           immediate: '🔥',
-          high: '⚠️',
+          high: '⚠️',  
           medium: '📋',
           low: '💡'
-        }[plan.priority];
+        }[plan.priority] || '📋';
 
         return `### ${priorityEmoji} ${plan.module}
 - **Prioridade:** ${plan.priority}

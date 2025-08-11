@@ -23,19 +23,13 @@ import { GetSkillsUseCase } from '../use-cases/GetSkillsUseCase';
 import { UpdateSkillUseCase } from '../use-cases/UpdateSkillUseCase';
 import { standardResponse } from '../../../utils/standardResponse';
 
+// Clean Architecture: Controller depends on Use Cases, not services or repositories
 export class SkillController {
-  private skillService: SkillApplicationService;
-  private createSkillUseCase: CreateSkillUseCase;
-  private getSkillsUseCase: GetSkillsUseCase;
-  private updateSkillUseCase: UpdateSkillUseCase;
-
-
-  constructor(skillRepository: ISkillRepository) {
-    this.skillService = new SkillApplicationService(skillRepository);
-    this.createSkillUseCase = new CreateSkillUseCase();
-    this.getSkillsUseCase = new GetSkillsUseCase();
-    this.updateSkillUseCase = new UpdateSkillUseCase();
-  }
+  constructor(
+    private createSkillUseCase: CreateSkillUseCase,
+    private getSkillsUseCase: GetSkillsUseCase,
+    private updateSkillUseCase: UpdateSkillUseCase
+  ) {}
 
   async createSkill(req: HttpRequest, res: HttpResponse): Promise<void> {
     try {

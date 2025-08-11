@@ -16,9 +16,9 @@ interface HttpResponse {
 }
 
 export class CustomerController {
+  // Clean Architecture: Controller should only depend on Application Services, not repositories
   constructor(
-    private customerApplicationService: CustomerApplicationService,
-    private customerRepository: ICustomerRepository // Added repository dependency
+    private customerApplicationService: CustomerApplicationService
   ) {}
 
   async createCustomer(req: HttpRequest, res: HttpResponse): Promise<void> {
