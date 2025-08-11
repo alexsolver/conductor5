@@ -5,17 +5,25 @@
  */
 
 import { Request, Response } from 'express';
+import { GetMaterialsUseCase } from '../use-cases/GetMaterialsUseCase';
+import { CreateMaterialUseCase } from '../use-cases/CreateMaterialUseCase';
+import { GetServicesUseCase } from '../use-cases/GetServicesUseCase';
+import { CreateServiceUseCase } from '../use-cases/CreateServiceUseCase';
 
 export class MaterialsServicesController {
-  constructor() {}
+  constructor(
+    private getMaterialsUseCase: GetMaterialsUseCase,
+    private createMaterialUseCase: CreateMaterialUseCase,
+    private getServicesUseCase: GetServicesUseCase,
+    private createServiceUseCase: CreateServiceUseCase
+  ) {}
 
-  // REST API Methods - Required by routes
   async index(req: Request, res: Response): Promise<void> {
     await this.getMaterials(req, res);
   }
 
   async show(req: Request, res: Response): Promise<void> {
-    await this.getMaterialById(req, res);
+    res.status(501).json({ success: false, message: 'Not implemented' });
   }
 
   async create(req: Request, res: Response): Promise<void> {
@@ -23,14 +31,13 @@ export class MaterialsServicesController {
   }
 
   async update(req: Request, res: Response): Promise<void> {
-    await this.updateMaterial(req, res);
+    res.status(501).json({ success: false, message: 'Not implemented' });
   }
 
   async delete(req: Request, res: Response): Promise<void> {
-    await this.deleteMaterial(req, res);
+    res.status(501).json({ success: false, message: 'Not implemented' });
   }
 
-  // Method implementations required by REST API
   async getMaterialById(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
@@ -140,124 +147,74 @@ export class MaterialsServicesController {
   // MATERIALS MANAGEMENT
   async createMaterial(req: Request, res: Response): Promise<void> {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string;
-      const { name, description, category, unitPrice, supplier } = req.body;
-      
-      if (!name || !category) {
-        res.status(400).json({ 
-          success: false, 
-          message: 'Name and category are required' 
-        });
+      const user = (req as any).user;
+      const tenantId = user?.tenantId;
+
+      if (!tenantId) {
+        res.status(400).json({ success: false, message: 'Tenant ID is required' });
         return;
       }
-      
-      res.status(201).json({
-        success: true,
-        message: 'Material created successfully',
-        data: { name, description, category, unitPrice, supplier, tenantId }
-      });
+
+      const material = await this.createMaterialUseCase.execute(req.body, tenantId);
+      res.status(201).json({ success: true, data: material });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to create material';
-      res.status(400).json({ success: false, message });
+      console.error('❌ [MaterialsServicesController] Error creating material:', error);
+      res.status(500).json({ success: false, message: 'Internal server error' });
     }
   }
 
   async getMaterials(req: Request, res: Response): Promise<void> {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string;
-      const { search, category, supplier } = req.query;
-      
+      const user = (req as any).user;
+      const tenantId = user?.tenantId;
+
       if (!tenantId) {
-        res.status(400).json({ 
-          success: false, 
-          message: 'Tenant ID is required in x-tenant-id header' 
-        });
+        res.status(400).json({ success: false, message: 'Tenant ID is required' });
         return;
       }
-      
-      console.log('🏗️ [MaterialsServicesController] Getting materials for tenant:', tenantId);
-      
-      // Use direct SQL query following same pattern as tickets
-      const { db } = await import('../../../../db');
-      const { sql } = await import('drizzle-orm');
-      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-      
-      const query = `
-        SELECT 
-          id,
-          tenant_id,
-          name,
-          description,
-          type,
-          status,
-          measurement_unit,
-          created_at,
-          updated_at
-        FROM "${schemaName}".items
-        WHERE tenant_id = '${tenantId}'
-        ORDER BY created_at DESC
-        LIMIT 50
-      `;
-      
-      console.log('🏗️ [MaterialsServicesController] Executing query:', query);
-      
-      const result = await db.execute(sql.raw(query));
-      const materials = Array.isArray(result) ? result : (result.rows || []);
-      
-      console.log('🏗️ [MaterialsServicesController] Materials found:', materials.length);
-      
-      res.json({
-        success: true,
-        message: 'Materials retrieved successfully',
-        data: materials,
-        filters: { search, category, supplier, tenantId }
-      });
+
+      const materials = await this.getMaterialsUseCase.execute(tenantId);
+      res.json({ success: true, data: materials });
     } catch (error) {
-      console.error('🏗️ [MaterialsServicesController] Error:', error);
-      const message = error instanceof Error ? error.message : 'Failed to retrieve materials';
-      res.status(500).json({ success: false, message });
+      console.error('❌ [MaterialsServicesController] Error getting materials:', error);
+      res.status(500).json({ success: false, message: 'Internal server error' });
     }
   }
 
   // SERVICES MANAGEMENT
   async createService(req: Request, res: Response): Promise<void> {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string;
-      const { name, description, category, hourlyRate, estimatedDuration } = req.body;
-      
-      if (!name || !category) {
-        res.status(400).json({ 
-          success: false, 
-          message: 'Name and category are required' 
-        });
+      const user = (req as any).user;
+      const tenantId = user?.tenantId;
+
+      if (!tenantId) {
+        res.status(400).json({ success: false, message: 'Tenant ID is required' });
         return;
       }
-      
-      res.status(201).json({
-        success: true,
-        message: 'Service created successfully',
-        data: { name, description, category, hourlyRate, estimatedDuration, tenantId }
-      });
+
+      const service = await this.createServiceUseCase.execute(req.body, tenantId);
+      res.status(201).json({ success: true, data: service });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to create service';
-      res.status(400).json({ success: false, message });
+      console.error('❌ [MaterialsServicesController] Error creating service:', error);
+      res.status(500).json({ success: false, message: 'Internal server error' });
     }
   }
 
   async getServices(req: Request, res: Response): Promise<void> {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string;
-      const { search, category } = req.query;
-      
-      res.json({
-        success: true,
-        message: 'Services retrieved successfully',
-        data: [],
-        filters: { search, category, tenantId }
-      });
+      const user = (req as any).user;
+      const tenantId = user?.tenantId;
+
+      if (!tenantId) {
+        res.status(400).json({ success: false, message: 'Tenant ID is required' });
+        return;
+      }
+
+      const services = await this.getServicesUseCase.execute(tenantId);
+      res.json({ success: true, data: services });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to retrieve services';
-      res.status(500).json({ success: false, message });
+      console.error('❌ [MaterialsServicesController] Error getting services:', error);
+      res.status(500).json({ success: false, message: 'Internal server error' });
     }
   }
 

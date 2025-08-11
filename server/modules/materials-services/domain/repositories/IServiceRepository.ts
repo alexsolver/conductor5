@@ -14,3 +14,13 @@ export interface IServiceRepository {
   update(id: string, tenantId: string, data: Partial<Service>): Promise<Service>;
   delete(id: string, tenantId: string): Promise<void>;
 }
+import { Service } from '../entities/Service';
+
+export interface IServiceRepository {
+  findById(id: string, tenantId: string): Promise<Service | null>;
+  findByTenant(tenantId: string): Promise<Service[]>;
+  create(service: Service): Promise<Service>;
+  update(id: string, service: Partial<Service>, tenantId: string): Promise<Service | null>;
+  delete(id: string, tenantId: string): Promise<boolean>;
+  findByCode(code: string, tenantId: string): Promise<Service | null>;
+}

@@ -16,3 +16,13 @@ export interface IMaterialRepository {
   delete(id: string, tenantId: string): Promise<void>;
   updateStock(id: string, tenantId: string, quantity: number): Promise<Material>;
 }
+import { Material } from '../entities/Material';
+
+export interface IMaterialRepository {
+  findById(id: string, tenantId: string): Promise<Material | null>;
+  findByTenant(tenantId: string): Promise<Material[]>;
+  create(material: Material): Promise<Material>;
+  update(id: string, material: Partial<Material>, tenantId: string): Promise<Material | null>;
+  delete(id: string, tenantId: string): Promise<boolean>;
+  findByCode(code: string, tenantId: string): Promise<Material | null>;
+}

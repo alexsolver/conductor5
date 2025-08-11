@@ -10,16 +10,22 @@ export class BeneficiariesController {
 
   async getBeneficiaries(req: Request, res: Response): Promise<void> {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string;
+      const user = (req as any).user;
+      console.log('👥 [BeneficiariesController] Getting beneficiaries for tenant:', user?.tenantId);
+
+      const tenantId = user?.tenantId;
+      if (!tenantId) {
+        res.status(400).json({ success: false, message: 'Tenant ID is required' });
+        return;
+      }
+
       const { search, customerId, active } = req.query;
-      
-      console.log('👥 [BeneficiariesController] Getting beneficiaries for tenant:', tenantId);
-      
+
       // Import from absolute path
       const { db } = await import('../../../../db');
       const { sql } = await import('drizzle-orm');
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-      
+
       // Execute direct query using sql template literals
       const result = await db.execute(sql`
         SELECT 
@@ -43,11 +49,11 @@ export class BeneficiariesController {
         ORDER BY created_at DESC
         LIMIT 50
       `);
-      
+
       const beneficiaries = Array.isArray(result) ? result : (result.rows || []);
-      
+
       console.log('👥 [BeneficiariesController] Beneficiaries found:', beneficiaries.length);
-      
+
       res.json({
         success: true,
         message: 'Beneficiaries retrieved successfully',
@@ -65,7 +71,7 @@ export class BeneficiariesController {
     try {
       const tenantId = req.headers['x-tenant-id'] as string;
       const { firstName, lastName, email, phone, customerId, relationshipType } = req.body;
-      
+
       if (!firstName || !lastName || !customerId) {
         res.status(400).json({ 
           success: false, 
@@ -73,7 +79,7 @@ export class BeneficiariesController {
         });
         return;
       }
-      
+
       res.status(201).json({
         success: true,
         message: 'Beneficiary created successfully',
@@ -89,7 +95,7 @@ export class BeneficiariesController {
     try {
       const { id } = req.params;
       const tenantId = req.headers['x-tenant-id'] as string;
-      
+
       res.json({
         success: true,
         message: 'Beneficiary updated successfully',
@@ -105,7 +111,7 @@ export class BeneficiariesController {
     try {
       const { id } = req.params;
       const tenantId = req.headers['x-tenant-id'] as string;
-      
+
       res.json({
         success: true,
         message: 'Beneficiary deleted successfully',
@@ -121,7 +127,7 @@ export class BeneficiariesController {
     try {
       const { id } = req.params;
       const tenantId = req.headers['x-tenant-id'] as string;
-      
+
       res.json({
         success: true,
         message: 'Beneficiary retrieved successfully',

@@ -1,80 +1,65 @@
 /**
- * Service Domain Entity
- * Clean Architecture - Domain Layer
+ * DOMAIN ENTITY - SERVICE
+ * Clean Architecture: Pure domain entity without infrastructure concerns
  */
 
 export class Service {
   constructor(
     public readonly id: string,
-    public readonly tenantId: string,
     public readonly name: string,
-    public readonly description?: string,
-    public readonly category: string = 'General',
-    public readonly subcategory?: string,
-    public readonly price: number = 0,
-    public readonly cost: number = 0,
-    public readonly estimatedDuration?: number, // in minutes
-    public readonly skillsRequired: string[] = [],
-    public readonly specifications: Record<string, any> = {},
-    public readonly active: boolean = true,
-    public readonly createdAt: Date = new Date(),
-    public readonly updatedAt: Date = new Date()
-  ) {
-    this.validateInvariants();
+    public readonly description: string,
+    public readonly code: string,
+    public readonly hourlyRate: number,
+    public readonly category: string,
+    public readonly estimatedDuration: number, // minutes
+    public readonly complexity: 'low' | 'medium' | 'high' | 'critical',
+    public readonly status: 'active' | 'inactive',
+    public readonly tenantId: string,
+    public readonly createdAt: Date,
+    public readonly updatedAt: Date
+  ) {}
+
+  public isActive(): boolean {
+    return this.status === 'active';
   }
 
-  private validateInvariants(): void {
-    if (!this.id) {
-      throw new Error('Service ID is required');
-    }
-    
-    if (!this.tenantId) {
-      throw new Error('Tenant ID is required');
-    }
-    
-    if (!this.name || this.name.trim().length === 0) {
-      throw new Error('Service name is required');
-    }
-
-    if (this.price < 0) {
-      throw new Error('Service price cannot be negative');
-    }
-
-    if (this.cost < 0) {
-      throw new Error('Service cost cannot be negative');
-    }
-
-    if (this.estimatedDuration && this.estimatedDuration <= 0) {
-      throw new Error('Estimated duration must be positive');
-    }
+  public canBeScheduled(): boolean {
+    return this.isActive();
   }
 
-  // Business methods
-  getProfitMargin(): number {
-    if (this.cost === 0) return 0;
-    return ((this.price - this.cost) / this.cost) * 100;
+  public calculateServiceCost(hours: number): number {
+    return this.hourlyRate * hours;
   }
 
-  getHourlyRate(): number {
-    if (!this.estimatedDuration) return 0;
-    return (this.price / this.estimatedDuration) * 60; // per hour
+  public validateForCreation(): boolean {
+    return this.name.length > 0 &&
+           this.hourlyRate >= 0 &&
+           this.estimatedDuration > 0;
   }
 
-  hasRequiredSkills(availableSkills: string[]): boolean {
-    return this.skillsRequired.every(skill => 
-      availableSkills.some(available => 
-        available.toLowerCase() === skill.toLowerCase()
-      )
+  public static create(
+    name: string,
+    description: string,
+    code: string,
+    hourlyRate: number,
+    category: string,
+    estimatedDuration: number,
+    complexity: 'low' | 'medium' | 'high' | 'critical',
+    tenantId: string
+  ): Service {
+    return new Service(
+      crypto.randomUUID(),
+      name,
+      description,
+      code,
+      hourlyRate,
+      category,
+      estimatedDuration,
+      complexity,
+      'active',
+      tenantId,
+      new Date(),
+      new Date()
     );
-  }
-
-  getEstimatedHours(): number {
-    if (!this.estimatedDuration) return 0;
-    return this.estimatedDuration / 60;
-  }
-
-  isComplex(): boolean {
-    return this.skillsRequired.length > 2 || 
-           (this.estimatedDuration && this.estimatedDuration > 480); // 8 hours
   }
 }
