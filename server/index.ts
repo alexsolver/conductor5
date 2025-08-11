@@ -20,8 +20,8 @@ import userManagementRoutes from './routes/userManagementRoutes';
 import ticketMetadataRouter from './routes/ticketMetadata';
 import ticketHierarchyRouter from './modules/tickets/routes';
 import ticketFieldOptionsRouter from './routes/ticketFieldOptions';
-import { teamsRoutes as teamsManagementRoutes } from './routes/teamManagementRoutes';
-import { teamsRoutes } from './modules/teams/routes';
+import { teamManagementRoutes as teamsManagementRoutes } from './routes/teamManagementRoutes';
+
 
 const app = express();
 
@@ -127,7 +127,6 @@ app.use((req, res, next) => {
   app.use('/api/tickets', ticketFieldOptionsRouter);
   console.log('✅ Ticket field options routes registered');
   app.use('/api/team-management', teamsManagementRoutes);
-  app.use('/api/teams', teamsRoutes);
 
   // Customers router
   try {
@@ -147,14 +146,7 @@ app.use((req, res, next) => {
     console.log('Beneficiaries router not available, skipping...');
   }
 
-  // Teams router
-  try {
-    const { createTeamsRoutes } = await import('./modules/teams/routes');
-    app.use('/api/teams', createTeamsRoutes());
-    console.log('✅ Teams router registered');
-  } catch (error) {
-    console.log('Teams router not available, skipping...');
-  }
+  
 
   app.get('/health', async (req, res) => {
     const memoryUsage = process.memoryUsage();
