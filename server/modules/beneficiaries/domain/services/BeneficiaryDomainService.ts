@@ -6,7 +6,7 @@
 
 import { CreateBeneficiaryDTO } from '../../application/dto/CreateBeneficiaryDTO';
 
-export class BeneficiaryDomainService {
+export class BeneficiaryDomain {
   async validateBeneficiaryData(data: CreateBeneficiaryDTO): Promise<void> {
     // Business rule validations
     if (!data.name || data.name.trim().length < 2) {

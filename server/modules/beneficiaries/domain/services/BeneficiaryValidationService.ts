@@ -1,5 +1,5 @@
 
-export class BeneficiaryValidationService {
+export class BeneficiaryValidation {
   static validateEmail(email: string): boolean {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);

@@ -1,4 +1,3 @@
-
 import { BeneficiaryDeletedEvent } from '../../domain/events/BeneficiaryDeletedEvent';
 import { IBeneficiaryRepository } from '../../domain/repositories/IBeneficiaryRepository';
 
@@ -13,23 +12,26 @@ export class DeleteBeneficiaryUseCase {
     private beneficiaryRepository: IBeneficiaryRepository
   ) {}
 
-  async execute(request: DeleteBeneficiaryRequest): Promise<void> {
-    const beneficiary = await this.beneficiaryRepository.findById(request.id);
-    
+  async execute(id: string, tenantId: string): Promise<boolean> {
+    const beneficiary = await this.beneficiaryRepository.findById(id);
+
     if (!beneficiary) {
-      throw new Error('Beneficiary not found');
+      return false; // Indicate that the beneficiary was not found
     }
 
-    await this.beneficiaryRepository.delete(request.id);
+    await this.beneficiaryRepository.delete(id);
 
     const event: BeneficiaryDeletedEvent = {
       id: crypto.randomUUID(),
-      beneficiaryId: request.id,
-      deletedBy: request.deletedBy,
+      beneficiaryId: id,
+      deletedBy: 'system', // Placeholder, actual user info would come from context or another parameter
       deletedAt: new Date(),
-      tenantId: request.tenantId
+      tenantId: tenantId
     };
 
     // Publish event logic would go here
+    console.log('BeneficiaryDeletedEvent published:', event); // Placeholder for actual event publishing
+
+    return true; // Indicate successful deletion
   }
 }

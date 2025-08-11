@@ -20,3 +20,14 @@ export interface IBeneficiaryRepository {
   update(id: string, beneficiary: Partial<Beneficiary>, tenantId: string): Promise<Beneficiary | null>;
   delete(id: string, tenantId: string): Promise<boolean>;
 }
+import { Beneficiary } from '../entities/Beneficiary';
+
+export interface IBeneficiaryRepository {
+  findAll(tenantId: string): Promise<Beneficiary[]>;
+  findById(id: string, tenantId: string): Promise<Beneficiary | null>;
+  create(beneficiary: Beneficiary): Promise<Beneficiary>;
+  update(id: string, beneficiary: Partial<Beneficiary>, tenantId: string): Promise<Beneficiary | null>;
+  delete(id: string, tenantId: string): Promise<boolean>;
+  findByDocument(document: string, tenantId: string): Promise<Beneficiary | null>;
+  findByStatus(status: string, tenantId: string): Promise<Beneficiary[]>;
+}

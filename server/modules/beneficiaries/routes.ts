@@ -1,4 +1,3 @@
-
 import { Router } from 'express';
 import { BeneficiariesController } from './application/controllers/BeneficiariesController';
 import { jwtAuth } from '../../middleware/jwtAuth';

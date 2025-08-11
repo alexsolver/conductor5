@@ -3,6 +3,7 @@
  * Resolves violations: Missing Use Cases to handle business logic
  */
 
+// Removed express dependencies - Clean Architecture compliance
 import { Beneficiary } from '../../domain/entities/Beneficiary';
 
 interface BeneficiaryRepositoryInterface {
@@ -35,28 +36,12 @@ export class GetBeneficiariesUseCase {
     private readonly beneficiaryRepository: BeneficiaryRepositoryInterface
   ) {}
 
-  async execute(request: GetBeneficiariesRequest): Promise<GetBeneficiariesResponse> {
+  async execute(tenantId: string, filters?: any): Promise<Beneficiary[]> {
     const beneficiaries = await this.beneficiaryRepository.findByTenant(
-      request.tenantId,
-      {
-        search: request.search,
-        customerId: request.customerId,
-        active: request.active
-      }
+      tenantId,
+      filters
     );
 
-    return {
-      beneficiaries: beneficiaries.map((b: Beneficiary) => ({
-        id: b.getId(),
-        firstName: b.getFirstName(),
-        lastName: b.getLastName(),
-        email: b.getEmail(),
-        phone: b.getPhone(),
-        customerId: b.getCustomerId(),
-        relationshipType: b.getRelationshipType(),
-        isActive: b.isActive()
-      })),
-      total: beneficiaries.length
-    };
+    return beneficiaries;
   }
 }

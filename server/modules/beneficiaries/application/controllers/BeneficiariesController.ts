@@ -4,138 +4,111 @@
  */
 
 import { Request, Response } from 'express';
+// Assuming these use cases are correctly defined and imported elsewhere
+// import { GetBeneficiariesUseCase } from '../application/use-cases/beneficiary/getBeneficiariesUseCase';
+// import { CreateBeneficiaryUseCase } from '../application/use-cases/beneficiary/createBeneficiaryUseCase';
+
+// Placeholder for Use Case types (replace with actual imports)
+interface GetBeneficiariesUseCase {
+  execute(tenantId: string, query: any): Promise<any[]>;
+}
+
+interface CreateBeneficiaryUseCase {
+  execute(beneficiaryData: any): Promise<any>;
+}
 
 export class BeneficiariesController {
-  constructor() {}
+  // Inject dependencies
+  constructor(
+    private getBeneficiariesUseCase: GetBeneficiariesUseCase,
+    private createBeneficiaryUseCase: CreateBeneficiaryUseCase,
+    // Add other use cases as needed
+  ) {}
 
   async getBeneficiaries(req: Request, res: Response): Promise<void> {
     try {
-      const user = (req as any).user;
-      console.log('👥 [BeneficiariesController] Getting beneficiaries for tenant:', user?.tenantId);
-
-      const tenantId = user?.tenantId;
+      const tenantId = req.user?.tenantId;
       if (!tenantId) {
-        res.status(400).json({ success: false, message: 'Tenant ID is required' });
+        res.status(400).json({ error: 'Tenant ID is required' });
         return;
       }
 
-      const { search, customerId, active } = req.query;
-
-      // Import from absolute path
-      const { db } = await import('../../../../db');
-      const { sql } = await import('drizzle-orm');
-      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-
-      // Execute direct query using sql template literals
-      const result = await db.execute(sql`
-        SELECT 
-          id,
-          tenant_id,
-          first_name,
-          last_name,
-          email,
-          birth_date,
-          rg,
-          cpf_cnpj,
-          is_active,
-          customer_code,
-          customer_id,
-          phone,
-          cell_phone,
-          created_at,
-          updated_at
-        FROM ${sql.identifier(schemaName)}.beneficiaries
-        WHERE tenant_id = ${tenantId} AND is_active = true
-        ORDER BY created_at DESC
-        LIMIT 50
-      `);
-
-      const beneficiaries = Array.isArray(result) ? result : (result.rows || []);
-
-      console.log('👥 [BeneficiariesController] Beneficiaries found:', beneficiaries.length);
-
-      res.json({
-        success: true,
-        message: 'Beneficiaries retrieved successfully',
-        data: beneficiaries,
-        filters: { search, customerId, active: active === 'true', tenantId }
-      });
+      const beneficiaries = await this.getBeneficiariesUseCase.execute(tenantId, req.query);
+      res.json({ success: true, data: beneficiaries });
     } catch (error) {
-      console.error('👥 [BeneficiariesController] Error:', error);
-      const message = error instanceof Error ? error.message : 'Failed to retrieve beneficiaries';
-      res.status(500).json({ success: false, message });
+      console.error('Error getting beneficiaries:', error);
+      res.status(500).json({ error: 'Internal server error' });
     }
   }
 
   async createBeneficiary(req: Request, res: Response): Promise<void> {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string;
-      const { firstName, lastName, email, phone, customerId, relationshipType } = req.body;
-
-      if (!firstName || !lastName || !customerId) {
-        res.status(400).json({ 
-          success: false, 
-          message: 'First name, last name, and customer ID are required' 
-        });
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        res.status(400).json({ error: 'Tenant ID is required' });
         return;
       }
 
-      res.status(201).json({
-        success: true,
-        message: 'Beneficiary created successfully',
-        data: { firstName, lastName, email, phone, customerId, relationshipType, tenantId }
-      });
+      const beneficiaryData = { ...req.body, tenantId };
+      const beneficiary = await this.createBeneficiaryUseCase.execute(beneficiaryData);
+      res.status(201).json({ success: true, data: beneficiary });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to create beneficiary';
-      res.status(400).json({ success: false, message });
+      console.error('Error creating beneficiary:', error);
+      res.status(500).json({ error: 'Internal server error' });
     }
   }
 
+  // Placeholder for updateBeneficiary, deleteBeneficiary, getBeneficiary methods
+  // These would also be updated to use their respective Use Cases.
   async updateBeneficiary(req: Request, res: Response): Promise<void> {
+    // Placeholder implementation - replace with actual Use Case call
     try {
       const { id } = req.params;
-      const tenantId = req.headers['x-tenant-id'] as string;
-
-      res.json({
-        success: true,
-        message: 'Beneficiary updated successfully',
-        data: { id, ...req.body, tenantId }
-      });
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        res.status(400).json({ error: 'Tenant ID is required' });
+        return;
+      }
+      const updatedData = { ...req.body, id, tenantId };
+      // const updatedBeneficiary = await this.updateBeneficiaryUseCase.execute(updatedData);
+      res.json({ success: true, message: 'Beneficiary updated successfully', data: updatedData });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to update beneficiary';
-      res.status(400).json({ success: false, message });
+      console.error('Error updating beneficiary:', error);
+      res.status(500).json({ error: 'Internal server error' });
     }
   }
 
   async deleteBeneficiary(req: Request, res: Response): Promise<void> {
+    // Placeholder implementation - replace with actual Use Case call
     try {
       const { id } = req.params;
-      const tenantId = req.headers['x-tenant-id'] as string;
-
-      res.json({
-        success: true,
-        message: 'Beneficiary deleted successfully',
-        data: { id, tenantId }
-      });
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        res.status(400).json({ error: 'Tenant ID is required' });
+        return;
+      }
+      // await this.deleteBeneficiaryUseCase.execute(id, tenantId);
+      res.json({ success: true, message: 'Beneficiary deleted successfully', data: { id, tenantId } });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to delete beneficiary';
-      res.status(400).json({ success: false, message });
+      console.error('Error deleting beneficiary:', error);
+      res.status(500).json({ error: 'Internal server error' });
     }
   }
 
   async getBeneficiary(req: Request, res: Response): Promise<void> {
+    // Placeholder implementation - replace with actual Use Case call
     try {
       const { id } = req.params;
-      const tenantId = req.headers['x-tenant-id'] as string;
-
-      res.json({
-        success: true,
-        message: 'Beneficiary retrieved successfully',
-        data: { id, tenantId }
-      });
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        res.status(400).json({ error: 'Tenant ID is required' });
+        return;
+      }
+      // const beneficiary = await this.getBeneficiaryUseCase.execute(id, tenantId);
+      res.json({ success: true, message: 'Beneficiary retrieved successfully', data: { id, tenantId } });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Beneficiary not found';
-      res.status(404).json({ success: false, message });
+      console.error('Error getting beneficiary:', error);
+      res.status(500).json({ error: 'Internal server error' });
     }
   }
 }

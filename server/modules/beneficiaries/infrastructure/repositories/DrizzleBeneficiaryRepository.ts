@@ -7,7 +7,8 @@ import { Beneficiary } from '../../domain/entities/Beneficiary';
 import { beneficiaries } from '../../../../shared/schema-master';
 import { eq, and, like, sql } from 'drizzle-orm';
 
-interface BeneficiaryRepositoryInterface {
+// Renomeada para seguir o padrão de nomenclatura de interfaces
+interface IBeneficiaryRepository {
   save(beneficiary: Beneficiary): Promise<void>;
   findById(id: string, tenantId: string): Promise<Beneficiary | null>;
   findByTenant(tenantId: string, filters?: any): Promise<Beneficiary[]>;
@@ -15,7 +16,7 @@ interface BeneficiaryRepositoryInterface {
   delete(id: string, tenantId: string): Promise<void>;
 }
 
-export class DrizzleBeneficiaryRepository implements BeneficiaryRepositoryInterface {
+export class DrizzleBeneficiaryRepository implements IBeneficiaryRepository {
   constructor(private readonly db: any) {}
 
   async save(beneficiary: Beneficiary): Promise<void> {
