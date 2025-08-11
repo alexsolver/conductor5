@@ -11,8 +11,66 @@
  */
 
 import { CleanArchitectureValidator } from './CleanArchitectureValidator';
-import { CleanArchitectureCorrector } from './ImplementCleanArchitectureCorrections';
+import { CleanArchitectureCorrector } from './CleanArchitectureCorrector';
 import { writeFileSync, mkdirSync, existsSync } from 'fs';
+import { join } from 'path';
+
+async function main() {
+  console.log('🏗️ INICIANDO VALIDAÇÃO COMPLETA DE CLEAN ARCHITECTURE...\n');
+  
+  const validator = new CleanArchitectureValidator();
+  const corrector = new CleanArchitectureCorrector();
+  
+  try {
+    // Executar validação completa
+    const validationResult = await validator.validateCompleteArchitecture();
+    
+    // Criar diretório de reports se não existir
+    if (!existsSync('reports')) {
+      mkdirSync('reports', { recursive: true });
+    }
+    
+    // Salvar resultado da validação
+    writeFileSync(
+      'reports/clean-architecture-validation-result.json',
+      JSON.stringify(validationResult, null, 2)
+    );
+    
+    // Gerar relatório detalhado
+    validator.generateDetailedReport(validationResult);
+    
+    // Se há problemas, gerar plano de correção
+    if (validationResult.issues.length > 0) {
+      const correctionPlans = await corrector.generateCorrectionPlan(validationResult);
+      
+      // Salvar plano de correção
+      writeFileSync(
+        'reports/clean-architecture-correction-plan.json',
+        JSON.stringify(correctionPlans, null, 2)
+      );
+      
+      corrector.generateCorrectionReport(correctionPlans);
+      
+      // Executar correções automáticas se solicitado
+      const shouldFix = process.argv.includes('--fix');
+      if (shouldFix) {
+        await corrector.executeCorrectionPlan(correctionPlans, true);
+      }
+    }
+    
+    // Exit com código apropriado
+    process.exit(validationResult.passed ? 0 : 1);
+    
+  } catch (error) {
+    console.error('❌ Erro durante validação:', error);
+    process.exit(1);
+  }
+}
+
+// Executar se chamado diretamente
+if (require.main === module) {
+  main();
+}nc } from 'fs';
 
 class CleanArchitectureOrchestrator {
 

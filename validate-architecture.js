@@ -51,3 +51,54 @@ import('tsx/esm').then(() => {
   console.log('✅ VALIDAÇÃO DE CLEAN ARCHITECTURE CONCLUÍDA');
   console.log('================================================================================');
 });
+#!/usr/bin/env node
+/**
+ * SCRIPT ALTERNATIVO - VALIDAÇÃO CLEAN ARCHITECTURE
+ * Executa validação usando CommonJS para compatibilidade
+ */
+
+const { execSync } = require('child_process');
+const fs = require('fs');
+const path = require('path');
+
+async function runValidation() {
+  console.log('🏗️ INICIANDO VALIDAÇÃO DE CLEAN ARCHITECTURE...\n');
+  
+  try {
+    // Executar o script de validação
+    execSync('npx tsx server/scripts/validateCleanArchitecture.ts', {
+      stdio: 'inherit',
+      cwd: process.cwd()
+    });
+  } catch (error) {
+    console.log('⚠️ Validação completada com problemas identificados');
+    
+    // Verificar se o relatório foi gerado
+    const reportPath = path.join(process.cwd(), 'reports', 'clean-architecture-validation-result.json');
+    if (fs.existsSync(reportPath)) {
+      try {
+        const report = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
+        console.log('\n📊 RESUMO DOS RESULTADOS:');
+        console.log(`Score: ${report.score}/100`);
+        console.log(`Total de problemas: ${report.summary.total}`);
+        console.log(`Críticos: ${report.summary.critical}`);
+        console.log(`Altos: ${report.summary.high}`);
+        console.log(`Médios: ${report.summary.medium}`);
+        console.log(`Baixos: ${report.summary.low}`);
+        
+        if (report.summary.critical > 0 || report.summary.high > 0) {
+          console.log('\n🎯 PRÓXIMOS PASSOS:');
+          console.log('1. Revisar o relatório em reports/CLEAN_ARCHITECTURE_REPORT.md');
+          console.log('2. Executar correções automáticas: npm run validate:architecture --fix');
+          console.log('3. Validar novamente após correções');
+        }
+      } catch (parseError) {
+        console.log('Erro ao ler relatório de validação:', parseError);
+      }
+    }
+  }
+}
+
+if (require.main === module) {
+  runValidation().catch(console.error);
+}

@@ -12,10 +12,10 @@
 import { readFileSync, existsSync, readdirSync, statSync, writeFileSync, mkdirSync } from 'fs';
 import { join, extname, dirname } from 'path';
 import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+// Remove ESM imports that don't work with CommonJS
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = dirname(__filename);
+const __dirname = __dirname || process.cwd();
 
 interface ArchitectureIssue {
   id: string;
@@ -1448,7 +1448,7 @@ class CleanArchitectureValidator {
     return aspects;
   }
 
-  private saveReports(validationResult: ValidationResult): void {
+  saveReports(validationResult: ValidationResult): void {
     // Cria diretório 'reports' se não existir
     if (!existsSync('reports')) {
       mkdirSync('reports', { recursive: true });
@@ -1464,7 +1464,7 @@ class CleanArchitectureValidator {
     // Gera e salva o relatório em Markdown
     const markdownReport = this.generateMarkdownReport(validationResult);
     writeFileSync(
-      'reports/CLEAN_ARCHITECTURE_REPORT.md', // Mantendo o nome original do arquivo solicitado pelo usuário
+      'reports/CLEAN_ARCHITECTURE_REPORT.md',
       markdownReport
     );
     console.log('✅ Relatório Markdown atualizado em: reports/CLEAN_ARCHITECTURE_REPORT.md');
