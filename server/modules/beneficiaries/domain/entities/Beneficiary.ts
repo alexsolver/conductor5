@@ -1,53 +1,59 @@
 /**
- * Beneficiary Domain Entity
- * Clean Architecture - Domain Layer
- * Pure business logic without external dependencies
+ * Beneficiary Domain Entity - Clean Architecture Domain Layer
+ * Resolves violations: Missing domain entities
  */
 
 export class Beneficiary {
   constructor(
-    public readonly id: string,
-    public readonly tenantId: string,
-    public readonly name: string,
-    public readonly email?: string,
-    public readonly phone?: string,
-    public readonly document?: string,
-    public readonly status: 'active' | 'inactive' = 'active',
-    public readonly metadata: Record<string, any> = {},
-    public readonly createdAt: Date = new Date(),
-    public readonly updatedAt: Date = new Date()
-  ) {
-    this.validateInvariants();
-  }
+    private readonly id: string,
+    private readonly tenantId: string,
+    private firstName: string,
+    private lastName: string,
+    private email?: string,
+    private phone?: string,
+    private customerId?: string,
+    private relationshipType?: string,
+    private active: boolean = true,
+    private readonly createdAt: Date = new Date(),
+    private updatedAt: Date = new Date()
+  ) {}
 
-  private validateInvariants(): void {
-    if (!this.id || this.id.trim().length === 0) {
-      throw new Error('Beneficiary ID is required');
-    }
-    
-    if (!this.tenantId || this.tenantId.trim().length === 0) {
-      throw new Error('Tenant ID is required');
-    }
-    
-    if (!this.name || this.name.trim().length < 2) {
-      throw new Error('Beneficiary name must be at least 2 characters long');
-    }
-  }
+  // Getters
+  getId(): string { return this.id; }
+  getTenantId(): string { return this.tenantId; }
+  getFirstName(): string { return this.firstName; }
+  getLastName(): string { return this.lastName; }
+  getEmail(): string | undefined { return this.email; }
+  getPhone(): string | undefined { return this.phone; }
+  getCustomerId(): string | undefined { return this.customerId; }
+  getRelationshipType(): string | undefined { return this.relationshipType; }
+  isActive(): boolean { return this.active; }
+  getCreatedAt(): Date { return this.createdAt; }
+  getUpdatedAt(): Date { return this.updatedAt; }
 
   // Business methods
-  isActive(): boolean {
-    return this.status === 'active';
+  updateContactInfo(email?: string, phone?: string): void {
+    this.email = email;
+    this.phone = phone;
+    this.updatedAt = new Date();
   }
 
-  hasEmail(): boolean {
-    return !!this.email;
+  updateRelationship(relationshipType: string): void {
+    this.relationshipType = relationshipType;
+    this.updatedAt = new Date();
   }
 
-  hasPhone(): boolean {
-    return !!this.phone;
+  deactivate(): void {
+    this.active = false;
+    this.updatedAt = new Date();
+  }
+
+  activate(): void {
+    this.active = true;
+    this.updatedAt = new Date();
   }
 
   getFullName(): string {
-    return this.name.trim();
+    return `${this.firstName} ${this.lastName}`;
   }
 }

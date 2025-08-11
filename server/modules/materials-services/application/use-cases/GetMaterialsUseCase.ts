@@ -1,39 +1,60 @@
 /**
- * Get Materials Use Case
- * Clean Architecture - Application Layer
+ * GetMaterialsUseCase - Clean Architecture Application Layer
+ * Resolves violations: Missing Use Cases for materials management
  */
 
-// Clean Use Case without presentation layer dependencies
-import { IMaterialRepository } from '../../domain/repositories/IMaterialRepository';
 import { Material } from '../../domain/entities/Material';
 
-interface GetMaterialsRequest {
-  tenantId: string;
-  filters?: {
-    category?: string;
-    search?: string;
-    limit?: number;
-    offset?: number;
-  };
+interface MaterialRepositoryInterface {
+  findByTenant(tenantId: string, filters?: any): Promise<Material[]>;
 }
 
-interface GetMaterialsResponse {
-  success: boolean;
-  data?: any[];
-  total?: number;
-  message?: string;
+export interface GetMaterialsRequest {
+  tenantId: string;
+  search?: string;
+  category?: string;
+  supplier?: string;
+}
+
+export interface GetMaterialsResponse {
+  materials: Array<{
+    id: string;
+    name: string;
+    description?: string;
+    category: string;
+    unitPrice?: number;
+    supplier?: string;
+    isActive: boolean;
+  }>;
+  total: number;
 }
 
 export class GetMaterialsUseCase {
-  constructor(private materialRepository: IMaterialRepository) {}
+  constructor(
+    private readonly materialRepository: MaterialRepositoryInterface
+  ) {}
 
   async execute(request: GetMaterialsRequest): Promise<GetMaterialsResponse> {
-    const materials = await this.materialRepository.findByTenant(request.tenantId);
+    const materials = await this.materialRepository.findByTenant(
+      request.tenantId,
+      {
+        search: request.search,
+        category: request.category,
+        supplier: request.supplier
+      }
+    );
+
     return {
-      success: true,
-      data: materials,
-      total: materials.length,
-      message: 'Materials retrieved successfully',
+      materials: materials.map((m: Material) => ({
+        id: m.getId(),
+        name: m.getName(),
+        description: m.getDescription(),
+        category: m.getCategory(),
+        unitPrice: m.getUnitPrice(),
+        supplier: m.getSupplier(),
+        isActive: m.isActive()
+      })),
+      total: materials.length
     };
   }
 }

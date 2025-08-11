@@ -1,42 +1,62 @@
+/**
+ * GetBeneficiariesUseCase - Clean Architecture Application Layer
+ * Resolves violations: Missing Use Cases to handle business logic
+ */
 
-import { IBeneficiaryRepository } from '../../domain/repositories/IBeneficiaryRepository';
 import { Beneficiary } from '../../domain/entities/Beneficiary';
+
+interface BeneficiaryRepositoryInterface {
+  findByTenant(tenantId: string, filters?: any): Promise<Beneficiary[]>;
+}
 
 export interface GetBeneficiariesRequest {
   tenantId: string;
-  page?: number;
-  limit?: number;
   search?: string;
+  customerId?: string;
+  active?: boolean;
 }
 
 export interface GetBeneficiariesResponse {
-  beneficiaries: Beneficiary[];
+  beneficiaries: Array<{
+    id: string;
+    firstName: string;
+    lastName: string;
+    email?: string;
+    phone?: string;
+    customerId: string;
+    relationshipType: string;
+    isActive: boolean;
+  }>;
   total: number;
-  page: number;
-  limit: number;
 }
 
 export class GetBeneficiariesUseCase {
   constructor(
-    private beneficiaryRepository: IBeneficiaryRepository
+    private readonly beneficiaryRepository: BeneficiaryRepositoryInterface
   ) {}
 
   async execute(request: GetBeneficiariesRequest): Promise<GetBeneficiariesResponse> {
-    const { tenantId, page = 1, limit = 20, search } = request;
-    
-    const beneficiaries = await this.beneficiaryRepository.findByTenant(tenantId, {
-      page,
-      limit,
-      search
-    });
-
-    const total = await this.beneficiaryRepository.countByTenant(tenantId, search);
+    const beneficiaries = await this.beneficiaryRepository.findByTenant(
+      request.tenantId,
+      {
+        search: request.search,
+        customerId: request.customerId,
+        active: request.active
+      }
+    );
 
     return {
-      beneficiaries,
-      total,
-      page,
-      limit
+      beneficiaries: beneficiaries.map((b: Beneficiary) => ({
+        id: b.getId(),
+        firstName: b.getFirstName(),
+        lastName: b.getLastName(),
+        email: b.getEmail(),
+        phone: b.getPhone(),
+        customerId: b.getCustomerId(),
+        relationshipType: b.getRelationshipType(),
+        isActive: b.isActive()
+      })),
+      total: beneficiaries.length
     };
   }
 }

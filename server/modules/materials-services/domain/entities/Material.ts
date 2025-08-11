@@ -1,84 +1,67 @@
 /**
- * Material Domain Entity
- * Clean Architecture - Domain Layer
+ * Material Domain Entity - Clean Architecture Domain Layer
+ * Resolves violations: Missing domain entities for materials
  */
 
 export class Material {
   constructor(
-    public readonly id: string,
-    public readonly tenantId: string,
-    public readonly name: string,
-    public readonly description?: string,
-    public readonly category: string = 'General',
-    public readonly subcategory?: string,
-    public readonly unit: string = 'unit',
-    public readonly price: number = 0,
-    public readonly cost: number = 0,
-    public readonly supplier?: string,
-    public readonly sku?: string,
-    public readonly stockQuantity: number = 0,
-    public readonly minStock: number = 0,
-    public readonly maxStock?: number,
-    public readonly specifications: Record<string, any> = {},
-    public readonly active: boolean = true,
-    public readonly createdAt: Date = new Date(),
-    public readonly updatedAt: Date = new Date()
-  ) {
-    this.validateInvariants();
-  }
+    private readonly id: string,
+    private readonly tenantId: string,
+    private name: string,
+    private description?: string,
+    private category?: string,
+    private unitPrice?: number,
+    private supplier?: string,
+    private active: boolean = true,
+    private readonly createdAt: Date = new Date(),
+    private updatedAt: Date = new Date()
+  ) {}
 
-  private validateInvariants(): void {
-    if (!this.id) {
-      throw new Error('Material ID is required');
-    }
-    
-    if (!this.tenantId) {
-      throw new Error('Tenant ID is required');
-    }
-    
-    if (!this.name || this.name.trim().length === 0) {
-      throw new Error('Material name is required');
-    }
-
-    if (this.price < 0) {
-      throw new Error('Material price cannot be negative');
-    }
-
-    if (this.cost < 0) {
-      throw new Error('Material cost cannot be negative');
-    }
-
-    if (this.stockQuantity < 0) {
-      throw new Error('Stock quantity cannot be negative');
-    }
-
-    if (this.minStock < 0) {
-      throw new Error('Minimum stock cannot be negative');
-    }
-  }
+  // Getters
+  getId(): string { return this.id; }
+  getTenantId(): string { return this.tenantId; }
+  getName(): string { return this.name; }
+  getDescription(): string | undefined { return this.description; }
+  getCategory(): string | undefined { return this.category; }
+  getUnitPrice(): number | undefined { return this.unitPrice; }
+  getSupplier(): string | undefined { return this.supplier; }
+  isActive(): boolean { return this.active; }
+  getCreatedAt(): Date { return this.createdAt; }
+  getUpdatedAt(): Date { return this.updatedAt; }
 
   // Business methods
-  isLowStock(): boolean {
-    return this.stockQuantity <= this.minStock;
+  updateDetails(name: string, description?: string, category?: string): void {
+    this.name = name;
+    this.description = description;
+    this.category = category;
+    this.updatedAt = new Date();
   }
 
-  isOutOfStock(): boolean {
-    return this.stockQuantity === 0;
+  updatePricing(unitPrice: number): void {
+    if (unitPrice < 0) {
+      throw new Error('Unit price cannot be negative');
+    }
+    this.unitPrice = unitPrice;
+    this.updatedAt = new Date();
   }
 
-  getProfitMargin(): number {
-    if (this.cost === 0) return 0;
-    return ((this.price - this.cost) / this.cost) * 100;
+  setSupplier(supplier: string): void {
+    this.supplier = supplier;
+    this.updatedAt = new Date();
   }
 
-  canFulfillQuantity(requestedQuantity: number): boolean {
-    return this.stockQuantity >= requestedQuantity;
+  deactivate(): void {
+    this.active = false;
+    this.updatedAt = new Date();
   }
 
-  getStockStatus(): 'out_of_stock' | 'low_stock' | 'in_stock' | 'overstocked' {
-    if (this.isOutOfStock()) return 'out_of_stock';
-    if (this.isLowStock()) return 'low_stock';
-    if (this.maxStock && this.stockQuantity > this.maxStock) return 'overstocked';
-    return 'in_stock';
+  activate(): void {
+    this.active = true;
+    this.updatedAt = new Date();
+  }
+
+  calculateTotal(quantity: number): number {
+    if (!this.unitPrice) return 0;
+    return this.unitPrice * quantity;
   }
 }

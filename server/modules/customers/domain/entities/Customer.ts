@@ -1,32 +1,63 @@
+/**
+ * Customer Domain Entity - Clean Architecture Domain Layer
+ * Resolves violations: Missing domain entities for customers
+ */
+
 export class Customer {
   constructor(
-    public readonly id: string,
-    public readonly tenantId: string,
-    public readonly name: string,
-    public readonly email: string,
-    public readonly phone: string,
-    public readonly address: string,
-    public readonly companyId: string,
-    public readonly createdAt: Date,
-    public readonly updatedAt: Date
+    private readonly id: string,
+    private readonly tenantId: string,
+    private name: string,
+    private email: string,
+    private phone?: string,
+    private address?: string,
+    private active: boolean = true,
+    private readonly createdAt: Date = new Date(),
+    private updatedAt: Date = new Date()
   ) {}
 
-  // Domain methods only - no DTOs or presentation logic
-  public updateContactInfo(email: string, phone: string): Customer {
-    return new Customer(
-      this.id,
-      this.tenantId,
-      this.name,
-      email,
-      phone,
-      this.address,
-      this.companyId,
-      this.createdAt,
-      new Date()
-    );
+  // Getters
+  getId(): string { return this.id; }
+  getTenantId(): string { return this.tenantId; }
+  getName(): string { return this.name; }
+  getEmail(): string { return this.email; }
+  getPhone(): string | undefined { return this.phone; }
+  getAddress(): string | undefined { return this.address; }
+  isActive(): boolean { return this.active; }
+  getCreatedAt(): Date { return this.createdAt; }
+  getUpdatedAt(): Date { return this.updatedAt; }
+
+  // Business methods
+  updateContactInfo(name: string, email: string, phone?: string): void {
+    if (!this.isValidEmail(email)) {
+      throw new Error('Invalid email format');
+    }
+    this.name = name;
+    this.email = email;
+    this.phone = phone;
+    this.updatedAt = new Date();
   }
 
-  public isActive(): boolean {
-    return true; // Add business logic here
+  updateAddress(address: string): void {
+    this.address = address;
+    this.updatedAt = new Date();
+  }
+
+  deactivate(): void {
+    this.active = false;
+    this.updatedAt = new Date();
+  }
+
+  activate(): void {
+    this.active = true;
+    this.updatedAt = new Date();
+  }
+
+  private isValidEmail(email: string): boolean {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
+
+  getDisplayName(): string {
+    return `${this.name} (${this.email})`;
   }
 }

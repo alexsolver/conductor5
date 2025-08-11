@@ -1,64 +1,69 @@
 /**
- * Custom Field Domain Entity
- * Clean Architecture - Domain Layer
+ * CustomField Domain Entity - Clean Architecture Domain Layer
+ * Resolves violations: Missing domain entities
  */
 
 export class CustomField {
   constructor(
-    public readonly id: string,
-    public readonly tenantId: string,
-    public readonly name: string,
-    public readonly fieldType: 'text' | 'number' | 'boolean' | 'select' | 'multiselect' | 'date',
-    public readonly isRequired: boolean = false,
-    public readonly defaultValue?: any,
-    public readonly options: string[] = [],
-    public readonly validation?: {
-      min?: number;
-      max?: number;
-      pattern?: string;
-    },
-    public readonly createdAt: Date = new Date(),
-    public readonly updatedAt: Date = new Date()
-  ) {
-    this.validateInvariants();
-  }
+    private readonly id: string,
+    private readonly tenantId: string,
+    private name: string,
+    private label: string,
+    private type: string,
+    private entityType: string,
+    private required: boolean = false,
+    private options?: string[],
+    private active: boolean = true,
+    private readonly createdAt: Date = new Date(),
+    private updatedAt: Date = new Date()
+  ) {}
 
-  private validateInvariants(): void {
-    if (!this.id) {
-      throw new Error('Custom field ID is required');
-    }
-    
-    if (!this.tenantId) {
-      throw new Error('Tenant ID is required');
-    }
-    
-    if (!this.name || this.name.trim().length === 0) {
-      throw new Error('Custom field name is required');
-    }
-  }
+  // Getters
+  getId(): string { return this.id; }
+  getTenantId(): string { return this.tenantId; }
+  getName(): string { return this.name; }
+  getLabel(): string { return this.label; }
+  getType(): string { return this.type; }
+  getEntityType(): string { return this.entityType; }
+  isRequired(): boolean { return this.required; }
+  getOptions(): string[] | undefined { return this.options; }
+  isActive(): boolean { return this.active; }
+  getCreatedAt(): Date { return this.createdAt; }
+  getUpdatedAt(): Date { return this.updatedAt; }
 
   // Business methods
-  isSelectType(): boolean {
-    return this.fieldType === 'select' || this.fieldType === 'multiselect';
+  updateConfiguration(label: string, required: boolean, options?: string[]): void {
+    this.label = label;
+    this.required = required;
+    this.options = options;
+    this.updatedAt = new Date();
   }
 
-  hasOptions(): boolean {
-    return this.options && this.options.length > 0;
+  deactivate(): void {
+    this.active = false;
+    this.updatedAt = new Date();
+  }
+
+  activate(): void {
+    this.active = true;
+    this.updatedAt = new Date();
   }
 
   validateValue(value: any): boolean {
-    if (this.isRequired && (value === null || value === undefined || value === '')) {
+    // Business logic for field validation
+    if (this.required && (value === null || value === undefined || value === '')) {
       return false;
     }
 
-    if (this.isSelectType() && this.hasOptions()) {
-      if (this.fieldType === 'select') {
-        return this.options.includes(value);
-      } else if (this.fieldType === 'multiselect' && Array.isArray(value)) {
-        return value.every(v => this.options.includes(v));
-      }
+    switch (this.type) {
+      case 'email':
+        return !value || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+      case 'number':
+        return !value || !isNaN(Number(value));
+      case 'select':
+        return !value || !this.options || this.options.includes(value);
+      default:
+        return true;
     }
-
-    return true;
   }
 }
