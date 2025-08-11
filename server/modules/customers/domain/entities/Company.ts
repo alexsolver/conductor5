@@ -52,9 +52,9 @@ export class Company {
     private isActive: boolean = true,
     private isPrimary: boolean = false,
     private readonly createdAt: Date = new Date(),
-    private modifiedAt: Date = new Date(),
+    private updatedAt: Date = new Date(),
     private readonly createdBy: string,
-    private modifiedBy: string | null = null
+    private updatedBy: string | null = null
   ) {
     this.validateBusinessRules();
   }
@@ -84,9 +84,9 @@ export class Company {
   isActiveCompany(): boolean { return this.isActive; }
   isPrimaryCompany(): boolean { return this.isPrimary; }
   getCreatedAt(): Date { return this.createdAt; }
-  getModifiedAt(): Date { return this.modifiedAt; }
+  getUpdatedAt(): Date { return this.updatedAt; }
   getCreatedBy(): string { return this.createdBy; }
-  getModifiedBy(): string | null { return this.modifiedBy; }
+  getUpdatedBy(): string | null { return this.updatedBy; }
 
   // Business Methods
   getEffectiveName(): string {
@@ -178,14 +178,14 @@ export class Company {
     }
   }
 
-  // Modify Methods
-  changeBasicInfo(props: {
+  // Update Methods
+  updateBasicInfo(props: {
     name?: string;
     displayName?: string | null;
     description?: string | null;
     industry?: string | null;
     size?: 'small' | 'medium' | 'large' | 'enterprise' | null;
-    modifiedBy: string;
+    updatedBy: string;
   }): Company {
     return new Company(
       this.id,
@@ -214,16 +214,16 @@ export class Company {
       this.createdAt,
       new Date(),
       this.createdBy,
-      props.modifiedBy
+      props.updatedBy
     );
   }
 
-  changeContactInfo(props: {
+  updateContactInfo(props: {
     email?: string | null;
     phone?: string | null;
     website?: string | null;
     address?: Record<string, string>;
-    modifiedBy: string;
+    updatedBy: string;
   }): Company {
     return new Company(
       this.id,
@@ -252,16 +252,16 @@ export class Company {
       this.createdAt,
       new Date(),
       this.createdBy,
-      props.modifiedBy
+      props.updatedBy
     );
   }
 
-  changeSubscription(props: {
+  updateSubscription(props: {
     subscriptionTier?: 'basic' | 'premium' | 'enterprise';
     contractType?: 'monthly' | 'yearly' | 'custom' | null;
     maxUsers?: number | null;
     maxTickets?: number | null;
-    modifiedBy: string;
+    updatedBy: string;
   }): Company {
     return new Company(
       this.id,
@@ -290,14 +290,14 @@ export class Company {
       this.createdAt,
       new Date(),
       this.createdBy,
-      props.modifiedBy
+      props.updatedBy
     );
   }
 
-  changeStatus(props: {
+  updateStatus(props: {
     status?: 'active' | 'inactive' | 'suspended' | 'trial';
     isActive?: boolean;
-    modifiedBy: string;
+    updatedBy: string;
   }): Company {
     return new Company(
       this.id,
@@ -326,10 +326,85 @@ export class Company {
       this.createdAt,
       new Date(),
       this.createdBy,
-      props.modifiedBy
+      props.updatedBy
     );
   }
 
-  // CLEANED: Factory methods removed - persistence mapping moved to repository layer
-  // Domain entities should not handle data reconstruction from external sources
+  // Factory Methods
+  static create(props: {
+    tenantId: string;
+    name: string;
+    displayName?: string | null;
+    description?: string | null;
+    industry?: string | null;
+    size?: 'small' | 'medium' | 'large' | 'enterprise' | null;
+    email?: string | null;
+    phone?: string | null;
+    website?: string | null;
+    address?: Record<string, string>;
+    subscriptionTier?: 'basic' | 'premium' | 'enterprise';
+    createdBy: string;
+  }): Company {
+    return new Company(
+      crypto.randomUUID(),
+      props.tenantId,
+      props.name,
+      props.displayName || null,
+      props.description || null,
+      props.industry || null,
+      props.size || null,
+      props.email || null,
+      props.phone || null,
+      props.website || null,
+      props.address || {},
+      null, // taxId
+      null, // registrationNumber
+      props.subscriptionTier || 'basic',
+      null, // contractType
+      null, // maxUsers
+      null, // maxTickets
+      {}, // settings
+      [], // tags
+      {}, // metadata
+      'active', // status
+      true, // isActive
+      false, // isPrimary
+      new Date(),
+      new Date(),
+      props.createdBy,
+      null
+    );
+  }
+
+  static fromPersistence(data: Record<string, unknown>): Company {
+    return new Company(
+      data.id as string,
+      data.tenantId as string,
+      data.name as string,
+      data.displayName as string | null,
+      data.description as string | null,
+      data.industry as string | null,
+      data.size as 'small' | 'medium' | 'large' | 'enterprise' | null,
+      data.email as string | null,
+      data.phone as string | null,
+      data.website as string | null,
+      (data.address as Record<string, string>) || {},
+      data.taxId as string | null,
+      data.registrationNumber as string | null,
+      (data.subscriptionTier as 'basic' | 'premium' | 'enterprise') || 'basic',
+      data.contractType as 'monthly' | 'yearly' | 'custom' | null,
+      data.maxUsers as number | null,
+      data.maxTickets as number | null,
+      (data.settings as Record<string, unknown>) || {},
+      (data.tags as string[]) || [],
+      (data.metadata as Record<string, unknown>) || {},
+      (data.status as 'active' | 'inactive' | 'suspended' | 'trial') || 'active',
+      data.isActive !== false,
+      data.isPrimary || false,
+      data.createdAt as Date,
+      data.updatedAt as Date,
+      data.createdBy as string,
+      data.updatedBy as string | null
+    );
+  }
 }

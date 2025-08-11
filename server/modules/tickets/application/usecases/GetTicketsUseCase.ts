@@ -1,44 +1,30 @@
-import { ITicketRepository } from '../../domain/repositories/ITicketRepository';
-import { Ticket } from '../../domain/entities/Ticket';
+/**
+ * Get Tickets Use Case
+ * Clean Architecture - Application Layer
+ */
 
-export interface GetTicketsQuery {
+import { Ticket } from '../../domain/entities/Ticket';
+import { ITicketRepository, TicketFilter } from '../../domain/ports/ITicketRepository';
+
+export interface GetTicketsInput {
   tenantId: string;
-  page?: number;
-  limit?: number;
   search?: string;
   status?: string;
   priority?: string;
   assignedToId?: string;
-  companyId?: string;
+  customerId?: string;
+  category?: string;
+  state?: string;
+  urgent?: boolean;
+  limit?: number;
+  offset?: number;
 }
 
-export interface GetTicketsResult {
+export interface GetTicketsOutput {
   tickets: Ticket[];
   total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-}
-
-interface GetTicketsRequest {
-  tenantId: string;
-  userId: string;
-  filters?: {
-    status?: string;
-    priority?: string;
-    assignedTo?: string;
-    customerId?: string;
-    ticketId?: string;
-    limit?: number;
-    offset?: number;
-  };
-}
-
-interface GetTicketsResponse {
   success: boolean;
-  data: any[];
-  total: number;
-  message: string;
+  error?: string;
 }
 
 export class GetTicketsUseCase {
@@ -46,35 +32,48 @@ export class GetTicketsUseCase {
     private ticketRepository: ITicketRepository
   ) {}
 
-  async execute(request: GetTicketsRequest): Promise<GetTicketsResponse> {
+  async execute(input: GetTicketsInput): Promise<GetTicketsOutput> {
     try {
-      const { tenantId, filters = {} } = request;
+      const filter: TicketFilter = {
+        tenantId: input.tenantId,
+        search: input.search,
+        status: input.status,
+        priority: input.priority,
+        assignedToId: input.assignedToId,
+        customerId: input.customerId,
+        category: input.category,
+        state: input.state,
+        urgent: input.urgent,
+        limit: input.limit || 50,
+        offset: input.offset || 0
+      };
 
-      console.log('🎫 [GetTicketsUseCase] Executing with:', { tenantId, filters });
-
-      // Validate tenant ID
-      if (!tenantId) {
-        throw new Error('Tenant ID is required');
-      }
-
-      // Get tickets from repository
-      const tickets = await this.ticketRepository.findByTenant(tenantId, filters);
-
-      console.log('🎫 [GetTicketsUseCase] Repository returned:', tickets?.length || 0, 'tickets');
+      const [tickets, total] = await Promise.all([
+        this.ticketRepository.findMany(filter),
+        this.ticketRepository.count({
+          tenantId: filter.tenantId,
+          search: filter.search,
+          status: filter.status,
+          priority: filter.priority,
+          assignedToId: filter.assignedToId,
+          customerId: filter.customerId,
+          category: filter.category,
+          state: filter.state,
+          urgent: filter.urgent
+        })
+      ]);
 
       return {
-        success: true,
-        data: tickets || [],
-        total: tickets?.length || 0,
-        message: 'Tickets retrieved successfully'
+        tickets,
+        total,
+        success: true
       };
     } catch (error) {
-      console.error('🎫 [GetTicketsUseCase] Error:', error);
       return {
-        success: false,
-        data: [],
+        tickets: [],
         total: 0,
-        message: error instanceof Error ? error.message : 'Failed to retrieve tickets'
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error occurred'
       };
     }
   }

@@ -1,276 +1,814 @@
-/**
- * KnowledgeBaseController - Clean Architecture Presentation Layer
- * Fixes: 3 high priority violations - Routes containing business logic + Express dependencies
- */
 
 import { Request, Response } from 'express';
+import { AuthenticatedRequest } from '../../../middleware/jwtAuth';
+import { KnowledgeBaseRepository } from '../../infrastructure/repositories/KnowledgeBaseRepository';
 
 export class KnowledgeBaseController {
-  constructor() {}
+  private knowledgeBaseRepository: KnowledgeBaseRepository;
 
-  async getArticles(req: Request, res: Response): Promise<void> {
-    try {
-      const tenantId = req.headers['x-tenant-id'] as string;
-      const { category, status, search, published } = req.query;
-      
-      res.json({
-        success: true,
-        message: 'Knowledge base articles retrieved successfully',
-        data: [],
-        filters: { category, status, search, published: published === 'true', tenantId }
-      });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to retrieve articles';
-      res.status(500).json({ success: false, message });
-    }
+  constructor() {
+    this.knowledgeBaseRepository = new KnowledgeBaseRepository();
   }
 
-  async createArticle(req: Request, res: Response): Promise<void> {
+  // Categories
+  async createCategory(req: AuthenticatedRequest, res: Response) {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string;
-      const { title, content, category, tags, published } = req.body;
-      
-      if (!title || !content) {
-        res.status(400).json({ 
-          success: false, 
-          message: 'Title and content are required' 
-        });
-        return;
+      if (!req.user?.tenantId) {
+        return res.status(400).json({ success: false, message: "User not associated with a tenant" });
       }
+
+      const categoryData = {
+        ...req.body,
+        createdBy: req.user.id
+      };
+
+      const category = await this.knowledgeBaseRepository.createCategory(req.user.tenantId, categoryData);
       
-      res.status(201).json({
-        success: true,
-        message: 'Article created successfully',
-        data: { title, content, category, tags: tags || [], published: !!published, tenantId }
+      res.status(201).json({ 
+        success: true, 
+        data: category,
+        message: 'Category created successfully' 
       });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to create article';
-      res.status(400).json({ success: false, message });
+      console.error('Error creating knowledge category:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to create category' 
+      });
     }
   }
 
-  async getArticle(req: Request, res: Response): Promise<void> {
+  async getCategories(req: AuthenticatedRequest, res: Response) {
     try {
-      const { id } = req.params;
-      const tenantId = req.headers['x-tenant-id'] as string;
-      
-      res.json({
-        success: true,
-        message: 'Article retrieved successfully',
-        data: { id, tenantId }
-      });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Article not found';
-      res.status(404).json({ success: false, message });
-    }
-  }
-
-  async updateArticle(req: Request, res: Response): Promise<void> {
-    try {
-      const { id } = req.params;
-      const tenantId = req.headers['x-tenant-id'] as string;
-      
-      res.json({
-        success: true,
-        message: 'Article updated successfully',
-        data: { id, ...req.body, tenantId }
-      });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to update article';
-      res.status(400).json({ success: false, message });
-    }
-  }
-
-  async deleteArticle(req: Request, res: Response): Promise<void> {
-    try {
-      const { id } = req.params;
-      const tenantId = req.headers['x-tenant-id'] as string;
-      
-      res.json({
-        success: true,
-        message: 'Article deleted successfully',
-        data: { id, tenantId }
-      });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to delete article';
-      res.status(400).json({ success: false, message });
-    }
-  }
-
-  async searchArticles(req: Request, res: Response): Promise<void> {
-    try {
-      const tenantId = req.headers['x-tenant-id'] as string;
-      const { query, category, limit } = req.query;
-      
-      if (!query) {
-        res.status(400).json({ 
-          success: false, 
-          message: 'Search query is required' 
-        });
-        return;
+      if (!req.user?.tenantId) {
+        return res.status(400).json({ success: false, message: "User not associated with a tenant" });
       }
+
+      const filters = {
+        parentId: req.query.parentId as string,
+      };
+
+      const categories = await this.knowledgeBaseRepository.getCategories(req.user.tenantId, filters);
       
-      res.json({
-        success: true,
-        message: 'Search completed successfully',
-        data: [],
-        filters: { query, category, limit: parseInt(limit as string) || 10, tenantId }
+      res.json({ 
+        success: true, 
+        data: categories 
       });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Search failed';
-      res.status(500).json({ success: false, message });
+      console.error('Error fetching knowledge categories:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch categories' 
+      });
     }
   }
 
-  async getCategories(req: Request, res: Response): Promise<void> {
+  async updateCategory(req: AuthenticatedRequest, res: Response) {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string;
-      
-      console.log('📚 [KnowledgeBaseController] Getting categories for tenant:', tenantId);
-      
-      // Use direct SQL query following same pattern as tickets
-      const { db } = await import('../../../db');
-      const { sql } = await import('drizzle-orm');
-      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-      
-      const query = `
-        SELECT 
-          id,
-          tenant_id,
-          name,
-          description,
-          parent_category_id,
-          sort_order,
-          is_active,
-          created_at,
-          updated_at
-        FROM "${schemaName}".knowledge_categories
-        WHERE tenant_id = '${tenantId}' AND is_active = true
-        ORDER BY sort_order ASC, name ASC
-        LIMIT 50
-      `;
-      
-      console.log('📚 [KnowledgeBaseController] Executing query:', query);
-      
-      const result = await db.execute(sql.raw(query));
-      const categories = Array.isArray(result) ? result : (result.rows || []);
-      
-      console.log('📚 [KnowledgeBaseController] Categories found:', categories.length);
-      
-      res.json({
-        success: true,
-        message: 'Knowledge base categories retrieved successfully',
-        data: categories,
-        tenantId
-      });
-    } catch (error) {
-      console.error('📚 [KnowledgeBaseController] Error:', error);
-      const message = error instanceof Error ? error.message : 'Failed to retrieve categories';
-      res.status(500).json({ success: false, message });
-    }
-  }
-
-  async createCategory(req: Request, res: Response): Promise<void> {
-    try {
-      const tenantId = req.headers['x-tenant-id'] as string;
-      const { name, description, parentId } = req.body;
-      
-      if (!name) {
-        res.status(400).json({ 
-          success: false, 
-          message: 'Category name is required' 
-        });
-        return;
+      if (!req.user?.tenantId) {
+        return res.status(400).json({ success: false, message: "User not associated with a tenant" });
       }
+
+      const { categoryId } = req.params;
+      const category = await this.knowledgeBaseRepository.updateCategory(req.user.tenantId, categoryId, req.body);
       
-      res.status(201).json({
-        success: true,
-        message: 'Category created successfully',
-        data: { name, description, parentId, tenantId }
+      if (!category) {
+        return res.status(404).json({ 
+          success: false, 
+          message: 'Category not found' 
+        });
+      }
+
+      res.json({ 
+        success: true, 
+        data: category,
+        message: 'Category updated successfully' 
       });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to create category';
-      res.status(400).json({ success: false, message });
+      console.error('Error updating knowledge category:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to update category' 
+      });
     }
   }
 
-  async updateCategory(req: Request, res: Response): Promise<void> {
+  async deleteCategory(req: AuthenticatedRequest, res: Response) {
     try {
-      const { id } = req.params;
-      const tenantId = req.headers['x-tenant-id'] as string;
+      if (!req.user?.tenantId) {
+        return res.status(400).json({ success: false, message: "User not associated with a tenant" });
+      }
+
+      const { categoryId } = req.params;
+      const category = await this.knowledgeBaseRepository.deleteCategory(req.user.tenantId, categoryId);
       
-      res.json({
-        success: true,
-        message: 'Category updated successfully',
-        data: { id, ...req.body, tenantId }
+      if (!category) {
+        return res.status(404).json({ 
+          success: false, 
+          message: 'Category not found' 
+        });
+      }
+
+      res.json({ 
+        success: true, 
+        message: 'Category deleted successfully' 
       });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to update category';
-      res.status(400).json({ success: false, message });
+      console.error('Error deleting knowledge category:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to delete category' 
+      });
     }
   }
 
-  async deleteCategory(req: Request, res: Response): Promise<void> {
+  // Articles
+  async createArticle(req: AuthenticatedRequest, res: Response) {
     try {
-      const { id } = req.params;
-      const tenantId = req.headers['x-tenant-id'] as string;
+      if (!req.user?.tenantId) {
+        return res.status(400).json({ success: false, message: "User not associated with a tenant" });
+      }
+
+      const articleData = {
+        ...req.body,
+        authorId: req.user.id,
+        slug: req.body.slug || req.body.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+      };
+
+      const article = await this.knowledgeBaseRepository.createArticle(req.user.tenantId, articleData);
       
-      res.json({
-        success: true,
-        message: 'Category deleted successfully',
-        data: { id, tenantId }
+      res.status(201).json({ 
+        success: true, 
+        data: article,
+        message: 'Article created successfully' 
       });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to delete category';
-      res.status(400).json({ success: false, message });
+      console.error('Error creating knowledge article:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to create article' 
+      });
     }
   }
 
-  async getArticleById(req: Request, res: Response): Promise<void> {
+  async getArticles(req: AuthenticatedRequest, res: Response) {
     try {
-      const { id } = req.params;
-      const tenantId = req.headers['x-tenant-id'] as string;
+      if (!req.user?.tenantId) {
+        return res.status(400).json({ success: false, message: "User not associated with a tenant" });
+      }
+
+      const filters = {
+        categoryId: req.query.categoryId as string,
+        status: req.query.status as string,
+        visibility: req.query.visibility as string,
+        search: req.query.search as string,
+        featured: req.query.featured === 'true' ? true : req.query.featured === 'false' ? false : undefined,
+        limit: req.query.limit as string,
+        offset: req.query.offset as string,
+      };
+
+      const articles = await this.knowledgeBaseRepository.getArticles(req.user.tenantId, filters);
       
-      res.json({
-        success: true,
-        message: 'Article retrieved successfully',
-        data: { id, tenantId }
+      res.json({ 
+        success: true, 
+        data: articles,
+        pagination: {
+          total: articles.length,
+          limit: parseInt(filters.limit || '50'),
+          offset: parseInt(filters.offset || '0'),
+          hasMore: articles.length >= parseInt(filters.limit || '50')
+        }
       });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Article not found';
-      res.status(404).json({ success: false, message });
+      console.error('Error fetching knowledge articles:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch articles' 
+      });
     }
   }
 
-  async updateArticleById(req: Request, res: Response): Promise<void> {
+  async getArticleById(req: AuthenticatedRequest, res: Response) {
     try {
-      const { id } = req.params;
-      const tenantId = req.headers['x-tenant-id'] as string;
+      if (!req.user?.tenantId) {
+        return res.status(400).json({ success: false, message: "User not associated with a tenant" });
+      }
+
+      const { articleId } = req.params;
+      const article = await this.knowledgeBaseRepository.getArticleById(req.user.tenantId, articleId);
       
-      res.json({
-        success: true,
-        message: 'Article updated successfully',
-        data: { id, ...req.body, tenantId }
+      if (!article) {
+        return res.status(404).json({ 
+          success: false, 
+          message: 'Article not found' 
+        });
+      }
+
+      res.json({ 
+        success: true, 
+        data: article 
       });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to update article';
-      res.status(400).json({ success: false, message });
+      console.error('Error fetching knowledge article:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch article' 
+      });
     }
   }
 
-  async deleteArticleById(req: Request, res: Response): Promise<void> {
+  async updateArticle(req: AuthenticatedRequest, res: Response) {
     try {
-      const { id } = req.params;
-      const tenantId = req.headers['x-tenant-id'] as string;
+      if (!req.user?.tenantId) {
+        return res.status(400).json({ success: false, message: "User not associated with a tenant" });
+      }
+
+      const { articleId } = req.params;
+      const updateData = {
+        ...req.body,
+        authorId: req.user.id
+      };
+
+      const article = await this.knowledgeBaseRepository.updateArticle(req.user.tenantId, articleId, updateData);
       
-      res.json({
-        success: true,
-        message: 'Article deleted successfully',
-        data: { id, tenantId }
+      if (!article) {
+        return res.status(404).json({ 
+          success: false, 
+          message: 'Article not found' 
+        });
+      }
+
+      res.json({ 
+        success: true, 
+        data: article,
+        message: 'Article updated successfully' 
       });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to delete article';
-      res.status(400).json({ success: false, message });
+      console.error('Error updating knowledge article:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to update article' 
+      });
+    }
+  }
+
+  async deleteArticle(req: AuthenticatedRequest, res: Response) {
+    try {
+      if (!req.user?.tenantId) {
+        return res.status(400).json({ success: false, message: "User not associated with a tenant" });
+      }
+
+      const { articleId } = req.params;
+      const article = await this.knowledgeBaseRepository.deleteArticle(req.user.tenantId, articleId);
+      
+      if (!article) {
+        return res.status(404).json({ 
+          success: false, 
+          message: 'Article not found' 
+        });
+      }
+
+      res.json({ 
+        success: true, 
+        message: 'Article deleted successfully' 
+      });
+    } catch (error) {
+      console.error('Error deleting knowledge article:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to delete article' 
+      });
+    }
+  }
+
+  // Search
+  async searchArticles(req: AuthenticatedRequest, res: Response) {
+    try {
+      if (!req.user?.tenantId) {
+        return res.status(400).json({ success: false, message: "User not associated with a tenant" });
+      }
+
+      const query = req.query.q as string;
+      const filters = {
+        categoryId: req.query.categoryId as string,
+        limit: req.query.limit as string,
+      };
+
+      const articles = await this.knowledgeBaseRepository.searchArticles(req.user.tenantId, query, filters);
+      
+      res.json({ 
+        success: true, 
+        data: articles,
+        query: query
+      });
+    } catch (error) {
+      console.error('Error searching knowledge articles:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to search articles' 
+      });
+    }
+  }
+
+  // Rating
+  async rateArticle(req: AuthenticatedRequest, res: Response) {
+    try {
+      if (!req.user?.tenantId) {
+        return res.status(400).json({ success: false, message: "User not associated with a tenant" });
+      }
+
+      const { articleId } = req.params;
+      const rating = await this.knowledgeBaseRepository.rateArticle(
+        req.user.tenantId, 
+        articleId, 
+        req.user.id, 
+        req.body
+      );
+      
+      res.json({ 
+        success: true, 
+        data: rating,
+        message: 'Rating submitted successfully' 
+      });
+    } catch (error) {
+      console.error('Error rating knowledge article:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to submit rating' 
+      });
+    }
+  }
+
+  // Comments
+  async createComment(req: AuthenticatedRequest, res: Response) {
+    try {
+      if (!req.user?.tenantId) {
+        return res.status(400).json({ success: false, message: "User not associated with a tenant" });
+      }
+
+      const commentData = {
+        ...req.body,
+        authorId: req.user.id
+      };
+
+      const comment = await this.knowledgeBaseRepository.createComment(req.user.tenantId, commentData);
+      
+      res.status(201).json({ 
+        success: true, 
+        data: comment,
+        message: 'Comment created successfully' 
+      });
+    } catch (error) {
+      console.error('Error creating knowledge comment:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to create comment' 
+      });
+    }
+  }
+
+  async getComments(req: AuthenticatedRequest, res: Response) {
+    try {
+      if (!req.user?.tenantId) {
+        return res.status(400).json({ success: false, message: "User not associated with a tenant" });
+      }
+
+      const { articleId } = req.params;
+      const comments = await this.knowledgeBaseRepository.getComments(req.user.tenantId, articleId);
+      
+      res.json({ 
+        success: true, 
+        data: comments 
+      });
+    } catch (error) {
+      console.error('Error fetching knowledge comments:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch comments' 
+      });
+    }
+  }
+
+  // Tags
+  async getTags(req: AuthenticatedRequest, res: Response) {
+    try {
+      if (!req.user?.tenantId) {
+        return res.status(400).json({ success: false, message: "User not associated with a tenant" });
+      }
+
+      const tags = await this.knowledgeBaseRepository.getTags(req.user.tenantId);
+      
+      res.json({ 
+        success: true, 
+        data: tags 
+      });
+    } catch (error) {
+      console.error('Error fetching knowledge tags:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch tags' 
+      });
+    }
+  }
+
+  async createTag(req: AuthenticatedRequest, res: Response) {
+    try {
+      if (!req.user?.tenantId) {
+        return res.status(400).json({ success: false, message: "User not associated with a tenant" });
+      }
+
+      const tagData = {
+        ...req.body,
+        slug: req.body.slug || req.body.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+      };
+
+      const tag = await this.knowledgeBaseRepository.createTag(req.user.tenantId, tagData);
+      
+      res.status(201).json({ 
+        success: true, 
+        data: tag,
+        message: 'Tag created successfully' 
+      });
+    } catch (error) {
+      console.error('Error creating knowledge tag:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to create tag' 
+      });
+    }
+  }
+
+  // Analytics
+  async getAnalytics(req: AuthenticatedRequest, res: Response) {
+    try {
+      if (!req.user?.tenantId) {
+        return res.status(400).json({ success: false, message: "User not associated with a tenant" });
+      }
+
+      const analytics = await this.knowledgeBaseRepository.getAnalytics(req.user.tenantId);
+      
+      res.json({ 
+        success: true, 
+        data: analytics 
+      });
+    } catch (error) {
+      console.error('Error fetching knowledge analytics:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch analytics' 
+      });
+    }
+  }
+
+  async getAdvancedAnalytics(req: AuthenticatedRequest, res: Response) {
+    try {
+      if (!req.user?.tenantId) {
+        return res.status(400).json({ success: false, message: "User not associated with a tenant" });
+      }
+
+      const analytics = await this.knowledgeBaseRepository.getAdvancedAnalytics(req.user.tenantId);
+      
+      res.json({ 
+        success: true, 
+        data: analytics 
+      });
+    } catch (error) {
+      console.error('Error fetching advanced analytics:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch advanced analytics' 
+      });
+    }
+  }
+
+  async getPopularArticles(req: AuthenticatedRequest, res: Response) {
+    try {
+      if (!req.user?.tenantId) {
+        return res.status(400).json({ success: false, message: "User not associated with a tenant" });
+      }
+
+      const limit = req.query.limit as string || '10';
+      const articles = await this.knowledgeBaseRepository.getPopularArticles(req.user.tenantId, parseInt(limit));
+      
+      res.json({ 
+        success: true, 
+        data: articles 
+      });
+    } catch (error) {
+      console.error('Error fetching popular articles:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch popular articles' 
+      });
+    }
+  }
+
+  async getRecentArticles(req: AuthenticatedRequest, res: Response) {
+    try {
+      if (!req.user?.tenantId) {
+        return res.status(400).json({ success: false, message: "User not associated with a tenant" });
+      }
+
+      const limit = req.query.limit as string || '10';
+      const articles = await this.knowledgeBaseRepository.getRecentArticles(req.user.tenantId, parseInt(limit));
+      
+      res.json({ 
+        success: true, 
+        data: articles 
+      });
+    } catch (error) {
+      console.error('Error fetching recent articles:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch recent articles' 
+      });
+    }
+  }
+
+  // Search Analytics
+  async getSearchAnalytics(req: AuthenticatedRequest, res: Response) {
+    try {
+      if (!req.user?.tenantId) {
+        return res.status(400).json({ success: false, message: "User not associated with a tenant" });
+      }
+
+      const analytics = await this.knowledgeBaseRepository.getSearchAnalytics(req.user.tenantId);
+      
+      res.json({ 
+        success: true, 
+        data: analytics 
+      });
+    } catch (error) {
+      console.error('Error fetching search analytics:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch search analytics' 
+      });
+    }
+  }
+
+  // User Engagement
+  async getUserEngagement(req: AuthenticatedRequest, res: Response) {
+    try {
+      if (!req.user?.tenantId) {
+        return res.status(400).json({ success: false, message: "User not associated with a tenant" });
+      }
+
+      const engagement = await this.knowledgeBaseRepository.getUserEngagement(req.user.tenantId);
+      
+      res.json({ 
+        success: true, 
+        data: engagement 
+      });
+    } catch (error) {
+      console.error('Error fetching user engagement:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch user engagement' 
+      });
+    }
+  }
+
+  // Media Management
+  async getMediaLibrary(req: AuthenticatedRequest, res: Response) {
+    try {
+      if (!req.user?.tenantId) {
+        return res.status(400).json({ success: false, message: "User not associated with a tenant" });
+      }
+
+      const media = await this.knowledgeBaseRepository.getMediaLibrary(req.user.tenantId);
+      
+      res.json({ 
+        success: true, 
+        data: media 
+      });
+    } catch (error) {
+      console.error('Error fetching media library:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch media library' 
+      });
+    }
+  }
+
+  async uploadMedia(req: AuthenticatedRequest, res: Response) {
+    try {
+      if (!req.user?.tenantId) {
+        return res.status(400).json({ success: false, message: "User not associated with a tenant" });
+      }
+
+      const mediaData = {
+        ...req.body,
+        uploadedBy: req.user.id
+      };
+
+      const media = await this.knowledgeBaseRepository.uploadMedia(req.user.tenantId, mediaData);
+      
+      res.status(201).json({ 
+        success: true, 
+        data: media,
+        message: 'Media uploaded successfully' 
+      });
+    } catch (error) {
+      console.error('Error uploading media:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to upload media' 
+      });
+    }
+  }
+
+  // Article Templates
+  async getArticleTemplates(req: AuthenticatedRequest, res: Response) {
+    try {
+      if (!req.user?.tenantId) {
+        return res.status(400).json({ success: false, message: "User not associated with a tenant" });
+      }
+
+      const templates = await this.knowledgeBaseRepository.getArticleTemplates(req.user.tenantId);
+      
+      res.json({ 
+        success: true, 
+        data: templates 
+      });
+    } catch (error) {
+      console.error('Error fetching article templates:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch article templates' 
+      });
+    }
+  }
+
+  async createArticleTemplate(req: AuthenticatedRequest, res: Response) {
+    try {
+      if (!req.user?.tenantId) {
+        return res.status(400).json({ success: false, message: "User not associated with a tenant" });
+      }
+
+      const templateData = {
+        ...req.body,
+        createdBy: req.user.id
+      };
+
+      const template = await this.knowledgeBaseRepository.createArticleTemplate(req.user.tenantId, templateData);
+      
+      res.status(201).json({ 
+        success: true, 
+        data: template,
+        message: 'Template created successfully' 
+      });
+    } catch (error) {
+      console.error('Error creating article template:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to create template' 
+      });
+    }
+  }
+
+  // Article Cloning
+  async cloneArticle(req: AuthenticatedRequest, res: Response) {
+    try {
+      if (!req.user?.tenantId) {
+        return res.status(400).json({ success: false, message: "User not associated with a tenant" });
+      }
+
+      const { articleId } = req.params;
+      const cloneData = {
+        ...req.body,
+        authorId: req.user.id
+      };
+
+      const clonedArticle = await this.knowledgeBaseRepository.cloneArticle(req.user.tenantId, articleId, cloneData);
+      
+      res.status(201).json({ 
+        success: true, 
+        data: clonedArticle,
+        message: 'Article cloned successfully' 
+      });
+    } catch (error) {
+      console.error('Error cloning article:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to clone article' 
+      });
+    }
+  }
+
+  // Ticket Integration
+  async linkArticleToTicket(req: AuthenticatedRequest, res: Response) {
+    try {
+      if (!req.user?.tenantId) {
+        return res.status(400).json({ success: false, message: "User not associated with a tenant" });
+      }
+
+      const { articleId } = req.params;
+      const { ticketId } = req.body;
+
+      const link = await this.knowledgeBaseRepository.linkArticleToTicket(req.user.tenantId, articleId, ticketId);
+      
+      res.json({ 
+        success: true, 
+        data: link,
+        message: 'Article linked to ticket successfully' 
+      });
+    } catch (error) {
+      console.error('Error linking article to ticket:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to link article to ticket' 
+      });
+    }
+  }
+
+  async getArticlesByTicket(req: AuthenticatedRequest, res: Response) {
+    try {
+      if (!req.user?.tenantId) {
+        return res.status(400).json({ success: false, message: "User not associated with a tenant" });
+      }
+
+      const { ticketId } = req.params;
+      const articles = await this.knowledgeBaseRepository.getArticlesByTicket(req.user.tenantId, ticketId);
+      
+      res.json({ 
+        success: true, 
+        data: articles 
+      });
+    } catch (error) {
+      console.error('Error fetching articles by ticket:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch articles by ticket' 
+      });
+    }
+  }
+
+  // Favorites
+  async toggleFavorite(req: AuthenticatedRequest, res: Response) {
+    try {
+      if (!req.user?.tenantId) {
+        return res.status(400).json({ success: false, message: "User not associated with a tenant" });
+      }
+
+      const { articleId } = req.params;
+      const favorite = await this.knowledgeBaseRepository.toggleFavorite(req.user.tenantId, articleId, req.user.id);
+      
+      res.json({ 
+        success: true, 
+        data: favorite,
+        message: favorite ? 'Article added to favorites' : 'Article removed from favorites'
+      });
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to toggle favorite' 
+      });
+    }
+  }
+
+  async getFavoriteArticles(req: AuthenticatedRequest, res: Response) {
+    try {
+      if (!req.user?.tenantId) {
+        return res.status(400).json({ success: false, message: "User not associated with a tenant" });
+      }
+
+      const articles = await this.knowledgeBaseRepository.getFavoriteArticles(req.user.tenantId, req.user.id);
+      
+      res.json({ 
+        success: true, 
+        data: articles 
+      });
+    } catch (error) {
+      console.error('Error fetching favorite articles:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch favorite articles' 
+      });
+    }
+  }
+
+  // Versions
+  async getArticleVersions(req: AuthenticatedRequest, res: Response) {
+    try {
+      if (!req.user?.tenantId) {
+        return res.status(400).json({ success: false, message: "User not associated with a tenant" });
+      }
+
+      const { articleId } = req.params;
+      const versions = await this.knowledgeBaseRepository.getArticleVersions(req.user.tenantId, articleId);
+      
+      res.json({ 
+        success: true, 
+        data: versions 
+      });
+    } catch (error) {
+      console.error('Error fetching article versions:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch versions' 
+      });
     }
   }
 }

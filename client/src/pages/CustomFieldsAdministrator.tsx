@@ -97,32 +97,16 @@ export default function CustomFieldsAdministrator() {
   const { data: moduleFields = [], isLoading } = useQuery({
     queryKey: ['custom-fields', selectedModule],
     queryFn: async () => {
-      try {
-        const response = await fetch(`/api/custom-fields/fields/${selectedModule}`, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token') || localStorage.getItem('accessToken')}`
-          }
-        });
-        if (!response.ok) {
-          console.warn(`[CUSTOM-FIELDS] API returned ${response.status} for module ${selectedModule}`);
-          return [];
+      const response = await fetch(`/api/custom-fields/fields/${selectedModule}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
-        const data = await response.json();
-        console.log(`[CUSTOM-FIELDS] API Response for ${selectedModule}:`, data);
-        
-        if (data.success && Array.isArray(data.data)) {
-          return data.data;
-        } else if (Array.isArray(data.fields)) {
-          return data.fields;
-        } else if (Array.isArray(data)) {
-          return data;
-        }
-        
-        return [];
-      } catch (error) {
-        console.error(`[CUSTOM-FIELDS] Error fetching fields for ${selectedModule}:`, error);
-        return [];
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch fields');
       }
+      const data = await response.json();
+      return data.data || [];
     }
   });
 

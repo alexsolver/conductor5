@@ -1,12 +1,11 @@
 import { Request, Response } from 'express';
 import { ComplianceRepository } from '../../infrastructure/repositories/ComplianceRepository';
-import { IComplianceRepository } from '../../domain/repositories/IComplianceRepository';
 
 export class ComplianceController {
-  private complianceRepository: IComplianceRepository;
+  private repository: ComplianceRepository;
 
-  constructor(complianceRepository: IComplianceRepository) {
-    this.complianceRepository = complianceRepository;
+  constructor() {
+    this.repository = new ComplianceRepository();
   }
 
   // GESTÃO DE AUDITORIAS
@@ -17,7 +16,7 @@ export class ComplianceController {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
 
-      const audits = await this.complianceRepository.getAllAudits(tenantId);
+      const audits = await this.repository.getAllAudits(tenantId);
       res.json(audits);
     } catch (error) {
       console.error('Erro ao buscar auditorias:', error);
@@ -29,12 +28,12 @@ export class ComplianceController {
     try {
       const { id } = req.params;
       const tenantId = req.user?.tenantId;
-
+      
       if (!tenantId) {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
 
-      const audit = await this.complianceRepository.getAuditById(id, tenantId);
+      const audit = await this.repository.getAuditById(id, tenantId);
       if (!audit) {
         return res.status(404).json({ error: 'Auditoria não encontrada' });
       }
@@ -58,7 +57,7 @@ export class ComplianceController {
         tenantId
       };
 
-      const audit = await this.complianceRepository.createAudit(auditData);
+      const audit = await this.repository.createAudit(auditData);
       res.status(201).json(audit);
     } catch (error) {
       console.error('Erro ao criar auditoria:', error);
@@ -70,12 +69,12 @@ export class ComplianceController {
     try {
       const { id } = req.params;
       const tenantId = req.user?.tenantId;
-
+      
       if (!tenantId) {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
 
-      const audit = await this.complianceRepository.updateAudit(id, tenantId, req.body);
+      const audit = await this.repository.updateAudit(id, tenantId, req.body);
       if (!audit) {
         return res.status(404).json({ error: 'Auditoria não encontrada' });
       }
@@ -91,12 +90,12 @@ export class ComplianceController {
     try {
       const { id } = req.params;
       const tenantId = req.user?.tenantId;
-
+      
       if (!tenantId) {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
 
-      await this.complianceRepository.deleteAudit(id, tenantId);
+      await this.repository.deleteAudit(id, tenantId);
       res.status(204).send();
     } catch (error) {
       console.error('Erro ao excluir auditoria:', error);
@@ -112,7 +111,7 @@ export class ComplianceController {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
 
-      const certifications = await this.complianceRepository.getAllCertifications(tenantId);
+      const certifications = await this.repository.getAllCertifications(tenantId);
       res.json(certifications);
     } catch (error) {
       console.error('Erro ao buscar certificações:', error);
@@ -124,12 +123,12 @@ export class ComplianceController {
     try {
       const { id } = req.params;
       const tenantId = req.user?.tenantId;
-
+      
       if (!tenantId) {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
 
-      const certification = await this.complianceRepository.getCertificationById(id, tenantId);
+      const certification = await this.repository.getCertificationById(id, tenantId);
       if (!certification) {
         return res.status(404).json({ error: 'Certificação não encontrada' });
       }
@@ -153,7 +152,7 @@ export class ComplianceController {
         tenantId
       };
 
-      const certification = await this.complianceRepository.createCertification(certificationData);
+      const certification = await this.repository.createCertification(certificationData);
       res.status(201).json(certification);
     } catch (error) {
       console.error('Erro ao criar certificação:', error);
@@ -165,12 +164,12 @@ export class ComplianceController {
     try {
       const { id } = req.params;
       const tenantId = req.user?.tenantId;
-
+      
       if (!tenantId) {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
 
-      const certification = await this.complianceRepository.updateCertification(id, tenantId, req.body);
+      const certification = await this.repository.updateCertification(id, tenantId, req.body);
       if (!certification) {
         return res.status(404).json({ error: 'Certificação não encontrada' });
       }
@@ -186,12 +185,12 @@ export class ComplianceController {
     try {
       const { id } = req.params;
       const tenantId = req.user?.tenantId;
-
+      
       if (!tenantId) {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
 
-      await this.complianceRepository.deleteCertification(id, tenantId);
+      await this.repository.deleteCertification(id, tenantId);
       res.status(204).send();
     } catch (error) {
       console.error('Erro ao excluir certificação:', error);
@@ -203,13 +202,13 @@ export class ComplianceController {
     try {
       const tenantId = req.user?.tenantId;
       const { daysAhead } = req.query;
-
+      
       if (!tenantId) {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
 
-      const certifications = await this.complianceRepository.getExpiringCertifications(
-        tenantId,
+      const certifications = await this.repository.getExpiringCertifications(
+        tenantId, 
         daysAhead ? parseInt(daysAhead as string) : 30
       );
       res.json(certifications);
@@ -224,14 +223,14 @@ export class ComplianceController {
     try {
       const tenantId = req.user?.tenantId;
       const { auditId, certificationId } = req.query;
-
+      
       if (!tenantId) {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
 
-      const evidence = await this.complianceRepository.getAllEvidence(
-        tenantId,
-        auditId as string,
+      const evidence = await this.repository.getAllEvidence(
+        tenantId, 
+        auditId as string, 
         certificationId as string
       );
       res.json(evidence);
@@ -254,7 +253,7 @@ export class ComplianceController {
         collectedBy: req.user?.id
       };
 
-      const evidence = await this.complianceRepository.createEvidence(evidenceData);
+      const evidence = await this.repository.createEvidence(evidenceData);
       res.status(201).json(evidence);
     } catch (error) {
       console.error('Erro ao criar evidência:', error);
@@ -266,12 +265,12 @@ export class ComplianceController {
     try {
       const { id } = req.params;
       const tenantId = req.user?.tenantId;
-
+      
       if (!tenantId) {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
 
-      const evidence = await this.complianceRepository.updateEvidence(id, tenantId, req.body);
+      const evidence = await this.repository.updateEvidence(id, tenantId, req.body);
       if (!evidence) {
         return res.status(404).json({ error: 'Evidência não encontrada' });
       }
@@ -287,12 +286,12 @@ export class ComplianceController {
     try {
       const { id } = req.params;
       const tenantId = req.user?.tenantId;
-
+      
       if (!tenantId) {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
 
-      await this.complianceRepository.deleteEvidence(id, tenantId);
+      await this.repository.deleteEvidence(id, tenantId);
       res.status(204).send();
     } catch (error) {
       console.error('Erro ao excluir evidência:', error);
@@ -304,12 +303,12 @@ export class ComplianceController {
     try {
       const { id } = req.params;
       const tenantId = req.user?.tenantId;
-
+      
       if (!tenantId) {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
 
-      const evidence = await this.complianceRepository.verifyEvidence(id, tenantId, req.user?.id!);
+      const evidence = await this.repository.verifyEvidence(id, tenantId, req.user?.id!);
       res.json(evidence);
     } catch (error) {
       console.error('Erro ao verificar evidência:', error);
@@ -322,12 +321,12 @@ export class ComplianceController {
     try {
       const tenantId = req.user?.tenantId;
       const { status } = req.query;
-
+      
       if (!tenantId) {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
 
-      const alerts = await this.complianceRepository.getAllAlerts(tenantId, status as string);
+      const alerts = await this.repository.getAllAlerts(tenantId, status as string);
       res.json(alerts);
     } catch (error) {
       console.error('Erro ao buscar alertas:', error);
@@ -347,7 +346,7 @@ export class ComplianceController {
         tenantId
       };
 
-      const alert = await this.complianceRepository.createAlert(alertData);
+      const alert = await this.repository.createAlert(alertData);
       res.status(201).json(alert);
     } catch (error) {
       console.error('Erro ao criar alerta:', error);
@@ -359,12 +358,12 @@ export class ComplianceController {
     try {
       const { id } = req.params;
       const tenantId = req.user?.tenantId;
-
+      
       if (!tenantId) {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
 
-      const alert = await this.complianceRepository.acknowledgeAlert(id, tenantId, req.user?.id!);
+      const alert = await this.repository.acknowledgeAlert(id, tenantId, req.user?.id!);
       res.json(alert);
     } catch (error) {
       console.error('Erro ao reconhecer alerta:', error);
@@ -377,7 +376,7 @@ export class ComplianceController {
       const { id } = req.params;
       const { resolution } = req.body;
       const tenantId = req.user?.tenantId;
-
+      
       if (!tenantId) {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
@@ -386,7 +385,7 @@ export class ComplianceController {
         return res.status(400).json({ error: 'Resolução é obrigatória' });
       }
 
-      const alert = await this.complianceRepository.resolveAlert(id, tenantId, req.user?.id!, resolution);
+      const alert = await this.repository.resolveAlert(id, tenantId, req.user?.id!, resolution);
       res.json(alert);
     } catch (error) {
       console.error('Erro ao resolver alerta:', error);
@@ -399,12 +398,12 @@ export class ComplianceController {
     try {
       const tenantId = req.user?.tenantId;
       const { entityType } = req.query;
-
+      
       if (!tenantId) {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
 
-      const scores = await this.complianceRepository.getAllScores(tenantId, entityType as string);
+      const scores = await this.repository.getAllScores(tenantId, entityType as string);
       res.json(scores);
     } catch (error) {
       console.error('Erro ao buscar scores:', error);
@@ -416,12 +415,12 @@ export class ComplianceController {
     try {
       const { entityId, entityType } = req.params;
       const tenantId = req.user?.tenantId;
-
+      
       if (!tenantId) {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
 
-      const score = await this.complianceRepository.getScoreByEntity(entityId, entityType, tenantId);
+      const score = await this.repository.getScoreByEntity(entityId, entityType, tenantId);
       res.json(score);
     } catch (error) {
       console.error('Erro ao buscar score da entidade:', error);
@@ -442,7 +441,7 @@ export class ComplianceController {
         assessedBy: req.user?.id
       };
 
-      const score = await this.complianceRepository.createScore(scoreData);
+      const score = await this.repository.createScore(scoreData);
       res.status(201).json(score);
     } catch (error) {
       console.error('Erro ao criar score:', error);
@@ -454,12 +453,12 @@ export class ComplianceController {
     try {
       const { id } = req.params;
       const tenantId = req.user?.tenantId;
-
+      
       if (!tenantId) {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
 
-      const score = await this.complianceRepository.updateScore(id, tenantId, req.body);
+      const score = await this.repository.updateScore(id, tenantId, req.body);
       if (!score) {
         return res.status(404).json({ error: 'Score não encontrado' });
       }
@@ -475,12 +474,12 @@ export class ComplianceController {
     try {
       const { entityId, entityType } = req.params;
       const tenantId = req.user?.tenantId;
-
+      
       if (!tenantId) {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
 
-      const scoreCalculation = await this.complianceRepository.calculateComplianceScore(entityId, entityType, tenantId);
+      const scoreCalculation = await this.repository.calculateComplianceScore(entityId, entityType, tenantId);
       res.json(scoreCalculation);
     } catch (error) {
       console.error('Erro ao calcular score de compliance:', error);
@@ -496,7 +495,7 @@ export class ComplianceController {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
 
-      const stats = await this.complianceRepository.getComplianceStats(tenantId);
+      const stats = await this.repository.getComplianceStats(tenantId);
       res.json(stats);
     } catch (error) {
       console.error('Erro ao buscar estatísticas de compliance:', error);
@@ -512,10 +511,10 @@ export class ComplianceController {
         return res.status(400).json({ error: 'Tenant ID é obrigatório' });
       }
 
-      const alerts = await this.complianceRepository.generateExpirationAlerts(tenantId);
-      res.json({
+      const alerts = await this.repository.generateExpirationAlerts(tenantId);
+      res.json({ 
         message: `${alerts.length} alertas de vencimento gerados`,
-        alerts
+        alerts 
       });
     } catch (error) {
       console.error('Erro ao gerar alertas de vencimento:', error);

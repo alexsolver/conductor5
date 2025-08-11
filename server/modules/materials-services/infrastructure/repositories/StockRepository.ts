@@ -3,8 +3,6 @@ import { eq, and, like, desc, sql } from 'drizzle-orm';
 // Note: Using mock data for now as schema is being implemented
 // import { stockItems, stockMovements, warehouses, items } from '@shared/schema';
 
-import { IStockRepository } from '../../domain/ports/IStockRepository';
-
 export interface StockItem {
   id: string;
   itemId: string;
@@ -38,32 +36,8 @@ export interface StockMovement {
   createdAt: string;
 }
 
-export class StockRepository implements IStockRepository {
+export class StockRepository {
   constructor(private db: ReturnType<typeof drizzle>) {}
-
-  async save(stock: any): Promise<any> {
-    return stock;
-  }
-
-  async findById(id: string): Promise<any | null> {
-    return null;
-  }
-
-  async findAll(tenantId: string): Promise<any[]> {
-    return [];
-  }
-
-  async update(id: string, stock: any): Promise<any> {
-    return stock;
-  }
-
-  async delete(id: string): Promise<void> {
-    // Delete implementation
-  }
-
-  async findByTenantId(tenantId: string): Promise<any[]> {
-    return [];
-  }
 
   async getStockItems(tenantId: string, options?: {
     limit?: number;
@@ -166,7 +140,7 @@ export class StockRepository implements IStockRepository {
 
       if (options?.search) {
         const searchLower = options.search.toLowerCase();
-        filteredItems = filteredItems.filter(item =>
+        filteredItems = filteredItems.filter(item => 
           item.itemName.toLowerCase().includes(searchLower) ||
           item.itemCode.toLowerCase().includes(searchLower)
         );
@@ -311,7 +285,7 @@ export class StockRepository implements IStockRepository {
         filteredMovements = filteredMovements.slice(0, options.limit);
       }
 
-      return filteredMovements.sort((a, b) =>
+      return filteredMovements.sort((a, b) => 
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
     } catch (error) {

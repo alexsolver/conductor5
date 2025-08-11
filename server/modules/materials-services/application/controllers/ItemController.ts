@@ -1,5 +1,4 @@
-// Removed express dependency - using abstracted interfaces instead
-import crypto from 'crypto';
+import { Request, Response } from 'express';
 import { ItemRepository } from '../../infrastructure/repositories/ItemRepository';
 
 interface AuthenticatedRequest extends Request {
@@ -299,10 +298,7 @@ export class ItemController {
       }
 
       // Separar vínculos dos dados básicos do item
-      const { linkedCustomers, linkedItems, linkedSuppliers, childrenIds, ...itemData } = req.body;
-
-      console.log('🔧 [UPDATE-ITEM] Processing update for item:', id);
-      console.log('🔧 [UPDATE-ITEM] Children IDs received:', childrenIds);
+      const { linkedCustomers, linkedItems, linkedSuppliers, ...itemData } = req.body;
 
       const updateData = {
         ...itemData,
@@ -318,27 +314,12 @@ export class ItemController {
         });
       }
 
-      // Processar vínculos hierárquicos (pai-filho)
-      if (childrenIds && Array.isArray(childrenIds)) {
-        try {
-          await this.processItemHierarchy(id, tenantId, childrenIds, req.user?.id);
-          console.log('✅ [UPDATE-ITEM] Hierarchy processed successfully');
-        } catch (hierarchyError) {
-          console.error('❌ [UPDATE-ITEM] Hierarchy processing failed:', hierarchyError);
-        }
-      }
-
-      // Processar outros vínculos
+      // 🔧 CORREÇÃO: Processar vínculos se fornecidos
       if (linkedCustomers || linkedItems || linkedSuppliers) {
-        try {
-          await this.itemRepository.updateItemLinks(id, tenantId, {
-            customers: linkedCustomers || [],
-            suppliers: linkedSuppliers || []
-          }, req.user?.id);
-          console.log('✅ [UPDATE-ITEM] Links processed successfully');
-        } catch (linkError) {
-          console.error('❌ [UPDATE-ITEM] Links processing failed:', linkError);
-        }
+        await this.itemRepository.updateItemLinks(id, tenantId, {
+          customers: linkedCustomers || [],
+          suppliers: linkedSuppliers || []
+        }, req.user?.id);
       }
 
       res.json({
@@ -352,125 +333,6 @@ export class ItemController {
         success: false,
         message: 'Failed to update item'
       });
-    }
-  }
-
-  private async processItemHierarchy(parentItemId: string, tenantId: string, childrenIds: string[], userId?: string) {
-    const { pool } = await import('../../../../db.js');
-    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-
-    // Verificar se a tabela existe, se não, criar
-    try {
-      const tableCheck = await pool.query(`
-        SELECT EXISTS (
-          SELECT FROM information_schema.tables 
-          WHERE table_schema = '${schemaName}' 
-          AND table_name = 'item_hierarchy'
-        );
-      `);
-
-      if (!tableCheck.rows[0].exists) {
-        console.log('⚠️ [HIERARCHY] Table item_hierarchy does not exist, creating...');
-
-        // Criar tabela item_hierarchy
-        await pool.query(`
-          CREATE TABLE "${schemaName}".item_hierarchy (
-            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-            tenant_id UUID NOT NULL,
-            parent_item_id UUID NOT NULL,
-            child_item_id UUID NOT NULL,
-            "order" INTEGER DEFAULT 0,
-            is_active BOOLEAN DEFAULT true,
-            notes TEXT,
-            created_at TIMESTAMP DEFAULT NOW(),
-            created_by UUID,
-            updated_at TIMESTAMP DEFAULT NOW(),
-            updated_by UUID,
-
-            CONSTRAINT fk_parent_item FOREIGN KEY (parent_item_id) 
-              REFERENCES "${schemaName}".items(id) ON DELETE CASCADE,
-            CONSTRAINT fk_child_item FOREIGN KEY (child_item_id) 
-              REFERENCES "${schemaName}".items(id) ON DELETE CASCADE,
-            CONSTRAINT unique_parent_child UNIQUE (parent_item_id, child_item_id)
-          );
-        `);
-
-        // Criar índices (verificar se já existem primeiro)
-        try {
-          const indexName1 = `idx_${schemaName.replace(/-/g, '_')}_item_hierarchy_parent`;
-          const indexCheck1 = await pool.query(`
-            SELECT indexname FROM pg_indexes 
-            WHERE schemaname = '${schemaName}' 
-            AND indexname = '${indexName1}'
-          `);
-
-          if (indexCheck1.rows.length === 0) {
-            await pool.query(`
-              CREATE INDEX ${indexName1} 
-              ON "${schemaName}".item_hierarchy(parent_item_id);
-            `);
-          }
-
-          const indexName2 = `idx_${schemaName.replace(/-/g, '_')}_item_hierarchy_child`;
-          const indexCheck2 = await pool.query(`
-            SELECT indexname FROM pg_indexes 
-            WHERE schemaname = '${schemaName}' 
-            AND indexname = '${indexName2}'
-          `);
-
-          if (indexCheck2.rows.length === 0) {
-            await pool.query(`
-              CREATE INDEX ${indexName2} 
-              ON "${schemaName}".item_hierarchy(child_item_id);
-            `);
-          }
-        } catch (indexError) {
-          console.warn('⚠️ [HIERARCHY] Index creation warning:', indexError.message);
-        }
-
-        console.log('✅ [HIERARCHY] Table item_hierarchy created successfully');
-      }
-
-      // Remover vínculos hierárquicos existentes para este item
-      await pool.query(`
-        DELETE FROM "${schemaName}".item_hierarchy 
-        WHERE parent_item_id = $1 AND tenant_id = $2
-      `, [parentItemId, tenantId]);
-
-      // Criar novos vínculos hierárquicos
-      if (childrenIds.length > 0) {
-        // Inserir um por vez para evitar conflitos
-        let successCount = 0;
-        for (let i = 0; i < childrenIds.length; i++) {
-          const childId = childrenIds[i];
-          try {
-            await pool.query(`
-              INSERT INTO "${schemaName}".item_hierarchy 
-              (id, tenant_id, parent_item_id, child_item_id, "order", created_by)
-              VALUES ($1, $2, $3, $4, $5, $6)
-              ON CONFLICT (parent_item_id, child_item_id) DO UPDATE SET
-                "order" = EXCLUDED."order",
-                updated_at = NOW(),
-                updated_by = EXCLUDED.created_by
-            `, [
-              crypto.randomUUID(),
-              tenantId,
-              parentItemId,
-              childId,
-              i,
-              userId || null
-            ]);
-            successCount++;
-          } catch (insertError) {
-            console.warn(`⚠️ [HIERARCHY] Failed to insert child ${childId}:`, insertError.message);
-          }
-        }
-
-        console.log(`✅ [HIERARCHY] Created ${successCount}/${childrenIds.length} hierarchical links`);
-      }
-    } catch (error) {
-      console.error('❌ [HIERARCHY] Failed to process hierarchy:', error);
-      throw error;
     }
   }
 
@@ -1005,13 +867,13 @@ export class ItemController {
       let customerLinks = [];
       try {
         const customerLinksResult = await pool.query(`
-          SELECT c.id, COALESCE(c.company, c.name, c.customer_name, 'Nome não informado') as name 
+          SELECT c.id, c.company as name 
           FROM "${schemaName}".customer_item_mappings cim
           INNER JOIN "${schemaName}".companies c ON cim.customer_id = c.id
           WHERE cim.item_id = $1 
             AND cim.tenant_id = $2 
             AND cim.is_active = true 
-            AND (c.status = 'active' OR c.status IS NULL)
+            AND c.status = 'active'
           LIMIT 50
         `, [itemId, tenantId]);
         customerLinks = customerLinksResult.rows;
@@ -1040,11 +902,11 @@ export class ItemController {
       try {
         const supplierLinksResult = await pool.query(`
           SELECT s.id, s.name 
-          FROM "${schemaName}".supplier_item_links sil
-          INNER JOIN "${schemaName}".suppliers s ON sil.supplier_id = s.id
-          WHERE sil.item_id = $1 
-            AND sil.tenant_id = $2 
-            AND sil.is_active = true
+          FROM "${schemaName}".item_supplier_links isl
+          INNER JOIN "${schemaName}".suppliers s ON isl.supplier_id = s.id
+          WHERE isl.item_id = $1 
+            AND isl.tenant_id = $2 
+            AND isl.is_active = true
             AND s.active = true
           LIMIT 50
         `, [itemId, tenantId]);

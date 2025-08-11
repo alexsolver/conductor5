@@ -105,280 +105,95 @@ function LocationsNewContent() {
   });
 
   // Data queries for each record type - using proper authentication from queryClient
-  const { data: locationsData, isLoading: locationsLoading, error: locationsError } = useQuery({
-    queryKey: [`/api/locations-new/local`],
-    queryFn: async () => {
-      try {
-        const response = await apiRequest('GET', '/api/locations-new/local');
-        const data = await response.json();
-        console.log('[LOCATIONS] Local API Response:', data);
-
-        if (data.success && Array.isArray(data.data)) {
-          return { data: data.data };
-        } else if (Array.isArray(data.locations)) {
-          return { data: data.locations };
-        } else if (Array.isArray(data)) {
-          return { data: data };
-        }
-
-        return { data: [] };
-      } catch (error) {
-        console.error('[LOCATIONS] Local API Error:', error);
-        return { data: [] };
-      }
-    },
-    staleTime: 5 * 60 * 1000,
+  const localQuery = useQuery({
+    queryKey: [`/api/locations-new/local`]
   });
 
-  const { data: regionData, isLoading: regionLoading } = useQuery({
-    queryKey: ['/api/locations-new/regiao'],
-    queryFn: async () => {
-      try {
-        const response = await apiRequest('GET', '/api/locations-new/regiao');
-        const data = await response.json();
-        console.log('[LOCATIONS] Region API Response:', data);
-        return data.success ? { data: data.data || [] } : { data: [] };
-      } catch (error) {
-        console.error('[LOCATIONS] Region API Error:', error);
-        return { data: [] };
-      }
-    },
-    staleTime: 5 * 60 * 1000,
+  const regiaoQuery = useQuery({
+    queryKey: [`/api/locations-new/regiao`]
   });
 
   const rotaDinamicaQuery = useQuery({
-    queryKey: [`/api/locations-new/rota-dinamica`],
-    queryFn: async () => {
-      try {
-        const response = await apiRequest('GET', '/api/locations-new/rota-dinamica');
-        const data = await response.json();
-        console.log('[LOCATIONS] Rota Dinamica API Response:', data);
-        return data.success ? { data: data.data || [] } : { data: [] };
-      } catch (error) {
-        console.error('[LOCATIONS] Rota Dinamica API Error:', error);
-        return { data: [] };
-      }
-    },
-    staleTime: 5 * 60 * 1000,
+    queryKey: [`/api/locations-new/rota-dinamica`]
   });
 
   const trechoQuery = useQuery({
-    queryKey: [`/api/locations-new/trecho`],
-    queryFn: async () => {
-      try {
-        const response = await apiRequest('GET', '/api/locations-new/trecho');
-        const data = await response.json();
-        console.log('[LOCATIONS] Trecho API Response:', data);
-        return data.success ? { data: data.data || [] } : { data: [] };
-      } catch (error) {
-        console.error('[LOCATIONS] Trecho API Error:', error);
-        return { data: [] };
-      }
-    },
-    staleTime: 5 * 60 * 1000,
+    queryKey: [`/api/locations-new/trecho`]
   });
 
   const rotaTrechoQuery = useQuery({
-    queryKey: [`/api/locations-new/rota-trecho`],
-    queryFn: async () => {
-      try {
-        const response = await apiRequest('GET', '/api/locations-new/rota-trecho');
-        const data = await response.json();
-        console.log('[LOCATIONS] Rota Trecho API Response:', data);
-        return data.success ? { data: data.data || [] } : { data: [] };
-      } catch (error) {
-        console.error('[LOCATIONS] Rota Trecho API Error:', error);
-        return { data: [] };
-      }
-    },
-    staleTime: 5 * 60 * 1000,
+    queryKey: [`/api/locations-new/rota-trecho`]
   });
 
   const areaQuery = useQuery({
-    queryKey: [`/api/locations-new/area`],
-    queryFn: async () => {
-      try {
-        const response = await apiRequest('GET', '/api/locations-new/area');
-        const data = await response.json();
-        console.log('[LOCATIONS] Area API Response:', data);
-        return data.success ? { data: data.data || [] } : { data: [] };
-      } catch (error) {
-        console.error('[LOCATIONS] Area API Error:', error);
-        return { data: [] };
-      }
-    },
-    staleTime: 5 * 60 * 1000,
+    queryKey: [`/api/locations-new/area`]
   });
 
   const agrupamentoQuery = useQuery({
-    queryKey: [`/api/locations-new/agrupamento`],
-    queryFn: async () => {
-      try {
-        const response = await apiRequest('GET', '/api/locations-new/agrupamento');
-        const data = await response.json();
-        console.log('[LOCATIONS] Agrupamento API Response:', data);
-        return data.success ? { data: data.data || [] } : { data: [] };
-      } catch (error) {
-        console.error('[LOCATIONS] Agrupamento API Error:', error);
-        return { data: [] };
-      }
-    },
-    staleTime: 5 * 60 * 1000,
+    queryKey: [`/api/locations-new/agrupamento`]
   });
 
   // Stats queries
   const localStatsQuery = useQuery({
-    queryKey: [`/api/locations-new/local/stats`],
-    queryFn: async () => {
-      try {
-        const response = await apiRequest('GET', '/api/locations-new/local/stats');
-        const data = await response.json();
-        console.log('[LOCATIONS] Local Stats API Response:', data);
-        return data.success ? data.data : { total: 0, active: 0, inactive: 0 };
-      } catch (error) {
-        console.error('[LOCATIONS] Local Stats API Error:', error);
-        return { total: 0, active: 0, inactive: 0 };
-      }
-    },
-    staleTime: 5 * 60 * 1000,
+    queryKey: [`/api/locations-new/local/stats`]
   });
 
   const regiaoStatsQuery = useQuery({
-    queryKey: [`/api/locations-new/regiao/stats`],
-    queryFn: async () => {
-      try {
-        const response = await apiRequest('GET', '/api/locations-new/regiao/stats');
-        const data = await response.json();
-        console.log('[LOCATIONS] Region Stats API Response:', data);
-        return data.success ? data.data : { total: 0, active: 0, inactive: 0 };
-      } catch (error) {
-        console.error('[LOCATIONS] Region Stats API Error:', error);
-        return { total: 0, active: 0, inactive: 0 };
-      }
-    },
-    staleTime: 5 * 60 * 1000,
+    queryKey: [`/api/locations-new/regiao/stats`]
   });
 
   const rotaDinamicaStatsQuery = useQuery({
-    queryKey: [`/api/locations-new/rota-dinamica/stats`],
-    queryFn: async () => {
-      try {
-        const response = await apiRequest('GET', '/api/locations-new/rota-dinamica/stats');
-        const data = await response.json();
-        console.log('[LOCATIONS] Rota Dinamica Stats API Response:', data);
-        return data.success ? data.data : { total: 0, active: 0, inactive: 0 };
-      } catch (error) {
-        console.error('[LOCATIONS] Rota Dinamica Stats API Error:', error);
-        return { total: 0, active: 0, inactive: 0 };
-      }
-    },
-    staleTime: 5 * 60 * 1000,
+    queryKey: [`/api/locations-new/rota-dinamica/stats`]
   });
 
   const trechoStatsQuery = useQuery({
-    queryKey: [`/api/locations-new/trecho/stats`],
-    queryFn: async () => {
-      try {
-        const response = await apiRequest('GET', '/api/locations-new/trecho/stats');
-        const data = await response.json();
-        console.log('[LOCATIONS] Trecho Stats API Response:', data);
-        return data.success ? data.data : { total: 0, active: 0, inactive: 0 };
-      } catch (error) {
-        console.error('[LOCATIONS] Trecho Stats API Error:', error);
-        return { total: 0, active: 0, inactive: 0 };
-      }
-    },
-    staleTime: 5 * 60 * 1000,
+    queryKey: [`/api/locations-new/trecho/stats`]
   });
 
   const rotaTrechoStatsQuery = useQuery({
-    queryKey: [`/api/locations-new/rota-trecho/stats`],
-    queryFn: async () => {
-      try {
-        const response = await apiRequest('GET', '/api/locations-new/rota-trecho/stats');
-        const data = await response.json();
-        console.log('[LOCATIONS] Rota Trecho Stats API Response:', data);
-        return data.success ? data.data : { total: 0, active: 0, inactive: 0 };
-      } catch (error) {
-        console.error('[LOCATIONS] Rota Trecho Stats API Error:', error);
-        return { total: 0, active: 0, inactive: 0 };
-      }
-    },
-    staleTime: 5 * 60 * 1000,
+    queryKey: [`/api/locations-new/rota-trecho/stats`]
   });
 
   const areaStatsQuery = useQuery({
-    queryKey: [`/api/locations-new/area/stats`],
-    queryFn: async () => {
-      try {
-        const response = await apiRequest('GET', '/api/locations-new/area/stats');
-        const data = await response.json();
-        console.log('[LOCATIONS] Area Stats API Response:', data);
-        return data.success ? data.data : { total: 0, active: 0, inactive: 0 };
-      } catch (error) {
-        console.error('[LOCATIONS] Area Stats API Error:', error);
-        return { total: 0, active: 0, inactive: 0 };
-      }
-    },
-    staleTime: 5 * 60 * 1000,
+    queryKey: [`/api/locations-new/area/stats`]
   });
 
   const agrupamentoStatsQuery = useQuery({
-    queryKey: [`/api/locations-new/agrupamento/stats`],
-    queryFn: async () => {
-      try {
-        const response = await apiRequest('GET', '/api/locations-new/agrupamento/stats');
-        const data = await response.json();
-        console.log('[LOCATIONS] Agrupamento Stats API Response:', data);
-        return data.success ? data.data : { total: 0, active: 0, inactive: 0 };
-      } catch (error) {
-        console.error('[LOCATIONS] Agrupamento Stats API Error:', error);
-        return { total: 0, active: 0, inactive: 0 };
-      }
-    },
-    staleTime: 5 * 60 * 1000,
+    queryKey: [`/api/locations-new/agrupamento/stats`]
   });
 
   // Organize queries into objects for easier access
   const queries = {
-    local: locationsData,
-    regiao: regionData,
-    "rota-dinamica": rotaDinamicaQuery.data,
-    trecho: trechoQuery.data,
-    "rota-trecho": rotaTrechoQuery.data,
-    area: areaQuery.data,
-    agrupamento: agrupamentoQuery.data
+    local: localQuery,
+    regiao: regiaoQuery,
+    "rota-dinamica": rotaDinamicaQuery,
+    trecho: trechoQuery,
+    "rota-trecho": rotaTrechoQuery,
+    area: areaQuery,
+    agrupamento: agrupamentoQuery
   };
 
   const statsQueries = {
-    localStats: localStatsQuery.data,
-    regiaoStats: regiaoStatsQuery.data,
-    rotaDinamicaStats: rotaDinamicaStatsQuery.data,
-    trechoStats: trechoStatsQuery.data,
-    rotaTrechoStats: rotaTrechoStatsQuery.data,
-    areaStats: areaStatsQuery.data,
-    agrupamentoStats: agrupamentoStatsQuery.data
+    localStats: localStatsQuery,
+    regiaoStats: regiaoStatsQuery,
+    rotaDinamicaStats: rotaDinamicaStatsQuery,
+    trechoStats: trechoStatsQuery,
+    rotaTrechoStats: rotaTrechoStatsQuery,
+    areaStats: areaStatsQuery,
+    agrupamentoStats: agrupamentoStatsQuery
   };
 
   // Get current data safely
   const getCurrentData = useCallback(() => {
     const currentQuery = queries[activeRecordType as keyof typeof queries];
-    // Adjusting to handle potential undefined data and the structure returned by the fixed queries
-    if (locationsError && activeRecordType === 'local') return [];
-    if (regionLoading || !regionData) return [];
-    if (locationsLoading) return [];
-
-    if (activeRecordType === 'local') {
-      return (currentQuery as any)?.data || [];
-    }
-    return (currentQuery as any)?.data || [];
-  }, [queries, activeRecordType, locationsData, regionData, locationsError, regionLoading, locationsLoading]);
+    return (currentQuery?.data as any)?.data?.records || [];
+  }, [queries, activeRecordType]);
 
   // Get current stats safely
   const getCurrentStats = useCallback(() => {
     const statsKey = `${activeRecordType.replace('-', '')}Stats` as keyof typeof statsQueries;
     const currentStatsQuery = statsQueries[statsKey];
-    return currentStatsQuery || { total: 0, active: 0, inactive: 0 };
+    return (currentStatsQuery?.data as any)?.data || { total: 0, active: 0, inactive: 0 };
   }, [statsQueries, activeRecordType]);
 
   // Create mutation using apiRequest
@@ -416,11 +231,11 @@ function LocationsNewContent() {
   const filteredData = useMemo(() => {
     const data = getCurrentData();
     return data.filter((item: any) => {
-      const matchesSearch = !searchTerm ||
+      const matchesSearch = !searchTerm || 
         item.nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.descricao?.toLowerCase().includes(searchTerm.toLowerCase());
 
-      const matchesStatus = statusFilter === "all" ||
+      const matchesStatus = statusFilter === "all" || 
         (statusFilter === "active" && item.ativo) ||
         (statusFilter === "inactive" && !item.ativo);
 
@@ -458,13 +273,13 @@ function LocationsNewContent() {
                     Configure padrões de horários que podem ser associados a múltiplos locais, regiões e rotas.
                   </DialogDescription>
                 </DialogHeader>
-
+                
                 <Tabs defaultValue="padroes" className="w-full">
                   <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="padroes">Padrões de Horários</TabsTrigger>
                     <TabsTrigger value="associacoes">Associações</TabsTrigger>
                   </TabsList>
-
+                  
                   <TabsContent value="padroes" className="space-y-4">
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
@@ -474,7 +289,7 @@ function LocationsNewContent() {
                           Novo Padrão
                         </Button>
                       </div>
-
+                      
                       <div className="grid gap-4">
                         {[
                           { id: 1, nome: "Comercial Padrão", horario: "08:00-18:00", dias: "Seg-Sex", entidades: 15 },
@@ -505,11 +320,11 @@ function LocationsNewContent() {
                       </div>
                     </div>
                   </TabsContent>
-
+                  
                   <TabsContent value="associacoes" className="space-y-4">
                     <div className="space-y-4">
                       <h3 className="text-lg font-semibold">Associar Horários às Entidades</h3>
-
+                      
                       <div className="grid grid-cols-2 gap-6">
                         <div className="space-y-3">
                           <h4 className="font-medium">Selecionar Padrão de Horário</h4>
@@ -524,7 +339,7 @@ function LocationsNewContent() {
                             </SelectContent>
                           </Select>
                         </div>
-
+                        
                         <div className="space-y-3">
                           <h4 className="font-medium">Aplicar a Entidades</h4>
                           <div className="space-y-2 max-h-40 overflow-y-auto">
@@ -545,7 +360,7 @@ function LocationsNewContent() {
                           </div>
                         </div>
                       </div>
-
+                      
                       <Button className="w-full">
                         <CheckCircle className="h-4 w-4 mr-2" />
                         Aplicar Horários às Entidades Selecionadas
@@ -581,7 +396,7 @@ function LocationsNewContent() {
                           <MapPin className="h-5 w-5 text-blue-500" />
                           <h3 className="text-lg font-semibold">Identificação</h3>
                         </div>
-
+                    
                     <div className="grid grid-cols-3 gap-4">
                       <FormField
                         control={form.control}
@@ -604,7 +419,7 @@ function LocationsNewContent() {
                           </FormItem>
                         )}
                       />
-
+                      
                       <FormField
                         control={form.control}
                         name="nome"
@@ -619,7 +434,7 @@ function LocationsNewContent() {
                         )}
                       />
                     </div>
-
+                    
                     <FormField
                       control={form.control}
                       name="descricao"
@@ -633,7 +448,7 @@ function LocationsNewContent() {
                         </FormItem>
                       )}
                     />
-
+                    
                     <div className="grid grid-cols-2 gap-4">
                       <FormField
                         control={form.control}
@@ -648,7 +463,7 @@ function LocationsNewContent() {
                           </FormItem>
                         )}
                       />
-
+                      
                       <FormField
                         control={form.control}
                         name="tipoClienteFavorecido"
@@ -671,7 +486,7 @@ function LocationsNewContent() {
                         )}
                       />
                     </div>
-
+                    
                     <FormField
                       control={form.control}
                       name="tecnicoPrincipalId"
@@ -701,7 +516,7 @@ function LocationsNewContent() {
                       <Phone className="h-5 w-5 text-green-500" />
                       <h3 className="text-lg font-semibold">Contato</h3>
                     </div>
-
+                    
                     <FormField
                       control={form.control}
                       name="email"
@@ -715,7 +530,7 @@ function LocationsNewContent() {
                         </FormItem>
                       )}
                     />
-
+                    
                     <div className="grid grid-cols-3 gap-4">
                       <FormField
                         control={form.control}
@@ -730,7 +545,7 @@ function LocationsNewContent() {
                           </FormItem>
                         )}
                       />
-
+                      
                       <FormField
                         control={form.control}
                         name="telefone"
@@ -753,7 +568,7 @@ function LocationsNewContent() {
                       <MapPin className="h-5 w-5 text-purple-500" />
                       <h3 className="text-lg font-semibold">Endereço</h3>
                     </div>
-
+                    
                     <div className="grid grid-cols-4 gap-4">
                       <FormField
                         control={form.control}
@@ -773,7 +588,7 @@ function LocationsNewContent() {
                           </FormItem>
                         )}
                       />
-
+                      
                       <FormField
                         control={form.control}
                         name="pais"
@@ -787,7 +602,7 @@ function LocationsNewContent() {
                           </FormItem>
                         )}
                       />
-
+                      
                       <FormField
                         control={form.control}
                         name="estado"
@@ -801,7 +616,7 @@ function LocationsNewContent() {
                           </FormItem>
                         )}
                       />
-
+                      
                       <FormField
                         control={form.control}
                         name="municipio"
@@ -816,7 +631,7 @@ function LocationsNewContent() {
                         )}
                       />
                     </div>
-
+                    
                     <div className="grid grid-cols-2 gap-4">
                       <FormField
                         control={form.control}
@@ -831,7 +646,7 @@ function LocationsNewContent() {
                           </FormItem>
                         )}
                       />
-
+                      
                       <FormField
                         control={form.control}
                         name="tipoLogradouro"
@@ -858,7 +673,7 @@ function LocationsNewContent() {
                         )}
                       />
                     </div>
-
+                    
                     <div className="grid grid-cols-3 gap-4">
                       <FormField
                         control={form.control}
@@ -873,7 +688,7 @@ function LocationsNewContent() {
                           </FormItem>
                         )}
                       />
-
+                      
                       <FormField
                         control={form.control}
                         name="numero"
@@ -888,7 +703,7 @@ function LocationsNewContent() {
                         )}
                       />
                     </div>
-
+                    
                     <FormField
                       control={form.control}
                       name="complemento"
@@ -910,7 +725,7 @@ function LocationsNewContent() {
                       <Map className="h-5 w-5 text-red-500" />
                       <h3 className="text-lg font-semibold">Georreferenciamento</h3>
                     </div>
-
+                    
                     <Alert>
                       <MapPin className="h-4 w-4" />
                       <AlertDescription>
@@ -918,7 +733,7 @@ function LocationsNewContent() {
                         Você pode clicar no mapa para ajustar a localização exata.
                       </AlertDescription>
                     </Alert>
-
+                    
                     <div className="grid grid-cols-2 gap-4">
                       <FormField
                         control={form.control}
@@ -933,7 +748,7 @@ function LocationsNewContent() {
                           </FormItem>
                         )}
                       />
-
+                      
                       <FormField
                         control={form.control}
                         name="longitude"
@@ -948,7 +763,7 @@ function LocationsNewContent() {
                         )}
                       />
                     </div>
-
+                    
                     <div className="flex justify-center">
                       <Button type="button" variant="outline">
                         <Map className="h-4 w-4 mr-2" />
@@ -963,7 +778,7 @@ function LocationsNewContent() {
                       <Clock className="h-5 w-5 text-orange-500" />
                       <h3 className="text-lg font-semibold">Tempo e Disponibilidade</h3>
                     </div>
-
+                    
                     <FormField
                       control={form.control}
                       name="fusoHorario"
@@ -986,7 +801,7 @@ function LocationsNewContent() {
                         </FormItem>
                       )}
                     />
-
+                    
                     <div className="space-y-3">
                       <h4 className="font-medium">Feriados</h4>
                       <div className="flex space-x-2">
@@ -1014,7 +829,7 @@ function LocationsNewContent() {
                           <MapPin className="h-5 w-5 text-blue-500" />
                           <h3 className="text-lg font-semibold">Identificação</h3>
                         </div>
-
+                        
                         <div className="grid grid-cols-3 gap-4">
                           <FormField
                             control={form.control}
@@ -1037,7 +852,7 @@ function LocationsNewContent() {
                               </FormItem>
                             )}
                           />
-
+                          
                           <FormField
                             control={form.control}
                             name="nome"
@@ -1052,7 +867,7 @@ function LocationsNewContent() {
                             )}
                           />
                         </div>
-
+                        
                         <FormField
                           control={form.control}
                           name="descricao"
@@ -1066,7 +881,7 @@ function LocationsNewContent() {
                             </FormItem>
                           )}
                         />
-
+                        
                         <FormField
                           control={form.control}
                           name="codigoIntegracao"
@@ -1088,7 +903,7 @@ function LocationsNewContent() {
                           <Users className="h-5 w-5 text-green-500" />
                           <h3 className="text-lg font-semibold">Relacionamentos</h3>
                         </div>
-
+                        
                         <div className="grid grid-cols-2 gap-4">
                           <FormField
                             control={form.control}
@@ -1103,7 +918,7 @@ function LocationsNewContent() {
                               </FormItem>
                             )}
                           />
-
+                          
                           <FormField
                             control={form.control}
                             name="tecnicoPrincipal"
@@ -1134,7 +949,7 @@ function LocationsNewContent() {
                           <MapPin className="h-5 w-5 text-red-500" />
                           <h3 className="text-lg font-semibold">Geolocalização</h3>
                         </div>
-
+                        
                         <div className="grid grid-cols-2 gap-4">
                           <FormField
                             control={form.control}
@@ -1149,7 +964,7 @@ function LocationsNewContent() {
                               </FormItem>
                             )}
                           />
-
+                          
                           <FormField
                             control={form.control}
                             name="longitude"
@@ -1164,7 +979,7 @@ function LocationsNewContent() {
                             )}
                           />
                         </div>
-
+                        
                         <FormField
                           control={form.control}
                           name="cepsAbrangidos"
@@ -1186,7 +1001,7 @@ function LocationsNewContent() {
                           <Home className="h-5 w-5 text-orange-500" />
                           <h3 className="text-lg font-semibold">Endereço Base</h3>
                         </div>
-
+                        
                         <div className="grid grid-cols-2 gap-4">
                           <FormField
                             control={form.control}
@@ -1201,7 +1016,7 @@ function LocationsNewContent() {
                               </FormItem>
                             )}
                           />
-
+                          
                           <FormField
                             control={form.control}
                             name="pais"
@@ -1216,7 +1031,7 @@ function LocationsNewContent() {
                             )}
                           />
                         </div>
-
+                        
                         <div className="grid grid-cols-2 gap-4">
                           <FormField
                             control={form.control}
@@ -1231,7 +1046,7 @@ function LocationsNewContent() {
                               </FormItem>
                             )}
                           />
-
+                          
                           <FormField
                             control={form.control}
                             name="municipio"
@@ -1246,7 +1061,7 @@ function LocationsNewContent() {
                             )}
                           />
                         </div>
-
+                        
                         <div className="grid grid-cols-2 gap-4">
                           <FormField
                             control={form.control}
@@ -1261,7 +1076,7 @@ function LocationsNewContent() {
                               </FormItem>
                             )}
                           />
-
+                          
                           <FormField
                             control={form.control}
                             name="tipoLogradouro"
@@ -1288,7 +1103,7 @@ function LocationsNewContent() {
                             )}
                           />
                         </div>
-
+                        
                         <div className="grid grid-cols-3 gap-4">
                           <FormField
                             control={form.control}
@@ -1303,7 +1118,7 @@ function LocationsNewContent() {
                               </FormItem>
                             )}
                           />
-
+                          
                           <FormField
                             control={form.control}
                             name="numero"
@@ -1317,7 +1132,7 @@ function LocationsNewContent() {
                               </FormItem>
                             )}
                           />
-
+                          
                           <FormField
                             control={form.control}
                             name="complemento"
@@ -1345,7 +1160,7 @@ function LocationsNewContent() {
                           <Route className="h-5 w-5 text-blue-500" />
                           <h3 className="text-lg font-semibold">Identificação</h3>
                         </div>
-
+                        
                         <div className="grid grid-cols-3 gap-4">
                           <FormField
                             control={form.control}
@@ -1368,7 +1183,7 @@ function LocationsNewContent() {
                               </FormItem>
                             )}
                           />
-
+                          
                           <FormField
                             control={form.control}
                             name="nome"
@@ -1382,7 +1197,7 @@ function LocationsNewContent() {
                               </FormItem>
                             )}
                           />
-
+                          
                           <FormField
                             control={form.control}
                             name="codigoIntegracao"
@@ -1405,7 +1220,7 @@ function LocationsNewContent() {
                           <Calendar className="h-5 w-5 text-purple-500" />
                           <h3 className="text-lg font-semibold">Planejamento da Rota</h3>
                         </div>
-
+                        
                         <div className="grid grid-cols-7 gap-2">
                           {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map((dia, index) => (
                             <div key={index} className="flex items-center space-x-2">
@@ -1414,7 +1229,7 @@ function LocationsNewContent() {
                             </div>
                           ))}
                         </div>
-
+                        
                         <FormField
                           control={form.control}
                           name="previsaoDias"
@@ -1440,7 +1255,7 @@ function LocationsNewContent() {
                           <ArrowRight className="h-5 w-5 text-blue-500" />
                           <h3 className="text-lg font-semibold">Identificação do Trecho</h3>
                         </div>
-
+                        
                         <div className="grid grid-cols-3 gap-4">
                           <FormField
                             control={form.control}
@@ -1463,7 +1278,7 @@ function LocationsNewContent() {
                               </FormItem>
                             )}
                           />
-
+                          
                           <FormField
                             control={form.control}
                             name="codigoIntegracao"
@@ -1478,7 +1293,7 @@ function LocationsNewContent() {
                             )}
                           />
                         </div>
-
+                        
                         <div className="grid grid-cols-2 gap-4">
                           <FormField
                             control={form.control}
@@ -1501,7 +1316,7 @@ function LocationsNewContent() {
                               </FormItem>
                             )}
                           />
-
+                          
                           <FormField
                             control={form.control}
                             name="localBId"
@@ -1536,7 +1351,7 @@ function LocationsNewContent() {
                           <Network className="h-5 w-5 text-blue-500" />
                           <h3 className="text-lg font-semibold">Definição da Rota</h3>
                         </div>
-
+                        
                         <div className="grid grid-cols-2 gap-4">
                           <FormField
                             control={form.control}
@@ -1559,7 +1374,7 @@ function LocationsNewContent() {
                               </FormItem>
                             )}
                           />
-
+                          
                           <FormField
                             control={form.control}
                             name="codigoIntegracao"
@@ -1574,7 +1389,7 @@ function LocationsNewContent() {
                             )}
                           />
                         </div>
-
+                        
                         <div className="space-y-3">
                           <h4 className="font-medium">Definição do Trecho - Múltiplos Registros</h4>
                           <div className="border rounded-lg">
@@ -1638,7 +1453,7 @@ function LocationsNewContent() {
                           <Layers className="h-5 w-5 text-blue-500" />
                           <h3 className="text-lg font-semibold">Identificação</h3>
                         </div>
-
+                        
                         <div className="grid grid-cols-3 gap-4">
                           <FormField
                             control={form.control}
@@ -1661,7 +1476,7 @@ function LocationsNewContent() {
                               </FormItem>
                             )}
                           />
-
+                          
                           <FormField
                             control={form.control}
                             name="nome"
@@ -1676,7 +1491,7 @@ function LocationsNewContent() {
                             )}
                           />
                         </div>
-
+                        
                         <div className="grid grid-cols-2 gap-4">
                           <FormField
                             control={form.control}
@@ -1691,7 +1506,7 @@ function LocationsNewContent() {
                               </FormItem>
                             )}
                           />
-
+                          
                           <FormField
                             control={form.control}
                             name="codigoIntegracao"
@@ -1714,7 +1529,7 @@ function LocationsNewContent() {
                           <Grid3X3 className="h-5 w-5 text-teal-500" />
                           <h3 className="text-lg font-semibold">Classificação</h3>
                         </div>
-
+                        
                         <FormField
                           control={form.control}
                           name="tipoArea"
@@ -1740,7 +1555,7 @@ function LocationsNewContent() {
                             </FormItem>
                           )}
                         />
-
+                        
                         <FormField
                           control={form.control}
                           name="corMapa"
@@ -1759,7 +1574,7 @@ function LocationsNewContent() {
                             </FormItem>
                           )}
                         />
-
+                        
                         <div className="bg-blue-50 p-4 rounded-lg">
                           <p className="text-sm text-blue-700">
                             A configuração específica dos parâmetros da área será baseada no tipo selecionado acima.
@@ -1777,7 +1592,7 @@ function LocationsNewContent() {
                           <Folder className="h-5 w-5 text-blue-500" />
                           <h3 className="text-lg font-semibold">Identificação</h3>
                         </div>
-
+                        
                         <div className="grid grid-cols-3 gap-4">
                           <FormField
                             control={form.control}
@@ -1800,7 +1615,7 @@ function LocationsNewContent() {
                               </FormItem>
                             )}
                           />
-
+                          
                           <FormField
                             control={form.control}
                             name="nome"
@@ -1815,7 +1630,7 @@ function LocationsNewContent() {
                             )}
                           />
                         </div>
-
+                        
                         <div className="grid grid-cols-2 gap-4">
                           <FormField
                             control={form.control}
@@ -1830,7 +1645,7 @@ function LocationsNewContent() {
                               </FormItem>
                             )}
                           />
-
+                          
                           <FormField
                             control={form.control}
                             name="codigoIntegracao"
@@ -1853,7 +1668,7 @@ function LocationsNewContent() {
                           <Map className="h-5 w-5 text-indigo-500" />
                           <h3 className="text-lg font-semibold">Seleção de Áreas</h3>
                         </div>
-
+                        
                         <div className="space-y-3">
                           <h4 className="font-medium">Áreas Disponíveis</h4>
                           <div className="grid grid-cols-2 gap-2">
@@ -1886,7 +1701,7 @@ function LocationsNewContent() {
                                 </FormItem>
                               )}
                             />
-
+                            
                             <FormField
                               control={form.control}
                               name="cepFim"
@@ -1911,9 +1726,9 @@ function LocationsNewContent() {
                   )}
 
                   <div className="flex justify-end space-x-2 pt-4 border-t">
-                    <Button
-                      type="button"
-                      variant="outline"
+                    <Button 
+                      type="button" 
+                      variant="outline" 
                       onClick={() => setIsCreateDialogOpen(false)}
                     >
                       Cancelar
@@ -1941,7 +1756,7 @@ function LocationsNewContent() {
               <p className="text-xs text-muted-foreground">registros cadastrados</p>
             </CardContent>
           </Card>
-
+          
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Ativos</CardTitle>
@@ -1952,7 +1767,7 @@ function LocationsNewContent() {
               <p className="text-xs text-muted-foreground">em funcionamento</p>
             </CardContent>
           </Card>
-
+          
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Inativos</CardTitle>

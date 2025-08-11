@@ -188,10 +188,10 @@ const TicketDetails = React.memo(() => {
   };
 
   const specialTabs = [
-    {
-      id: "attachments",
-      label: getTabLabel("Anexos", ticketAttachments?.success ? ticketAttachments?.data?.length : ticketAttachments?.data?.length || attachments?.length),
-      icon: Paperclip
+    { 
+      id: "attachments", 
+      label: getTabLabel("Anexos", ticketAttachments?.success ? ticketAttachments?.data?.length : ticketAttachments?.data?.length || attachments?.length), 
+      icon: Paperclip 
     },
     { id: "notes", label: "Notas", icon: FileText },
     { id: "communications", label: "Comunicação", icon: MessageSquare },
@@ -206,36 +206,17 @@ const TicketDetails = React.memo(() => {
     queryKey: ["/api/tickets", id],
     queryFn: async () => {
       try {
-        console.log('🎫 Fetching ticket:', id);
         const response = await apiRequest("GET", `/api/tickets/${id}`);
-        
         if (!response.ok) {
-          console.error('🎫 Response not ok:', response.status, response.statusText);
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
-
-        // Check content type before parsing
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-          console.error('🎫 Invalid content type:', contentType);
-          const text = await response.text();
-          console.error('🎫 Response text:', text.substring(0, 200));
-          throw new Error('Server returned invalid response format');
-        }
-
         const data = await response.json();
-        console.log('🎫 Ticket data received:', data);
-        
         if (!data.success && !data.data) {
           throw new Error(data.message || 'Ticket não encontrado');
         }
         return data;
       } catch (error) {
         console.error('❌ Error fetching ticket:', error);
-        // If it's a JSON parsing error, provide more context
-        if (error.message?.includes('Unexpected token')) {
-          throw new Error('Erro de comunicação com o servidor. Tente recarregar a página.');
-        }
         throw error;
       }
     },
@@ -245,11 +226,8 @@ const TicketDetails = React.memo(() => {
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     retry: (failureCount, error) => {
-      // Don't retry on 404, 403 errors or JSON parsing errors
-      if (error?.message?.includes('404') || 
-          error?.message?.includes('403') || 
-          error?.message?.includes('Unexpected token') ||
-          error?.message?.includes('invalid response format')) {
+      // Don't retry on 404 or 403 errors
+      if (error?.message?.includes('404') || error?.message?.includes('403')) {
         return false;
       }
       return failureCount < 2;
@@ -386,9 +364,9 @@ const TicketDetails = React.memo(() => {
 
   // Fetch users for assignment
   const { data: users = [] } = useQuery({
-    queryKey: ["/api/tenant-admin/users"],
+    queryKey: ["/api/users"],
     queryFn: async () => {
-      const response = await apiRequest("GET", "/api/tenant-admin/users");
+      const response = await apiRequest("GET", "/api/users");
       return response.json();
     },
   });
@@ -492,10 +470,6 @@ const TicketDetails = React.memo(() => {
   // Fetch team users/members for assignments and followers
   const { data: usersData } = useQuery({
     queryKey: ["/api/tenant-admin/users"],
-    queryFn: async () => {
-      const response = await apiRequest("GET", "/api/tenant-admin/users");
-      return response.json();
-    },
   });
 
   const customers = Array.isArray(customersData?.customers) ? customersData.customers : [];
@@ -541,7 +515,7 @@ const TicketDetails = React.memo(() => {
     console.log('🔍 [ATTACHMENTS-DEBUG] Is data array:', Array.isArray(ticketAttachments?.data));
     console.log('🔍 [ATTACHMENTS-DEBUG] Data length:', ticketAttachments?.data?.length);
     console.log('🔍 [ATTACHMENTS-DEBUG] Data content:', ticketAttachments?.data);
-
+    
     if (ticketAttachments?.success && Array.isArray(ticketAttachments.data)) {
       console.log('📎 Setting attachments (success + array):', ticketAttachments.data.length, 'items');
       setAttachments(ticketAttachments.data);
@@ -1644,7 +1618,7 @@ const TicketDetails = React.memo(() => {
             </div>
 
             {/* Upload Component with Description Field */}
-            <TicketAttachmentUpload
+            <TicketAttachmentUpload 
               ticketId={id!}
               onUploadComplete={() => {
                 // Refresh attachments data
@@ -1664,8 +1638,8 @@ const TicketDetails = React.memo(() => {
                       <div>
                         <p className="font-medium">{attachment.filename || attachment.original_filename || attachment.name || 'Arquivo sem nome'}</p>
                         <p className="text-sm text-gray-500">
-                          {attachment.file_size && !isNaN(Number(attachment.file_size))
-                            ? formatFileSize(Number(attachment.file_size))
+                          {attachment.file_size && !isNaN(Number(attachment.file_size)) 
+                            ? formatFileSize(Number(attachment.file_size)) 
                             : attachment.size && !isNaN(Number(attachment.size))
                             ? formatFileSize(Number(attachment.size))
                             : 'Tamanho desconhecido'
@@ -1805,6 +1779,7 @@ const TicketDetails = React.memo(() => {
               </Badge>
             </div>
 
+            {/* Communication Timeline */}
             <div className="space-y-4">
               <div className="flex items-center gap-4 mb-4">
                 <h3 className="font-medium text-gray-700">Timeline de Comunicação</h3>
@@ -3717,8 +3692,8 @@ const TicketDetails = React.memo(() => {
                   const name = caller ? (caller.fullName || caller.name ||
                              `${caller.firstName || ''} ${caller.lastName || ''}`.trim() || 'Nome não informado') : 'Não especificado';
                   const email = caller?.email || 'Não informado';
-                  const address = typeof caller?.address === 'string' ? caller.address :
-                                 caller?.address ?
+                  const address = typeof caller?.address === 'string' ? caller.address : 
+                                 caller?.address ? 
                                  `${caller.address.street || ''} ${caller.address.number || ''}`.trim() || 'Não informado' : 'Não informado';
                   const addressNumber = caller?.addressNumber || '';
 

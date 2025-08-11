@@ -4,7 +4,7 @@
  * Clean Architecture - Domain Layer
  */
 
-export interface NotificationPreferenceInitProps {
+export interface NotificationPreferenceCreateProps {
   tenantId: string;
   userId: string;
   notificationType: string;
@@ -38,8 +38,8 @@ export class NotificationPreference {
     private enabled: boolean,
     private scheduleSettings: ScheduleSettings,
     private filters: NotificationFilters,
-    private readonly establishedAt: Date,
-    private modifiedAt: Date
+    private readonly createdAt: Date,
+    private updatedAt: Date
   ) {}
 
   // Getters
@@ -51,28 +51,53 @@ export class NotificationPreference {
   isEnabled(): boolean { return this.enabled; }
   getScheduleSettings(): ScheduleSettings { return this.scheduleSettings; }
   getFilters(): NotificationFilters { return this.filters; }
-  getEstablishedAt(): Date { return this.establishedAt; }
-  getModifiedAt(): Date { return this.modifiedAt; }
+  getCreatedAt(): Date { return this.createdAt; }
+  getUpdatedAt(): Date { return this.updatedAt; }
 
-  // Business rules - decoupled from other entities
-  canReceiveNotification(): boolean {
-    return this.enabled;
+  // Business rules
+  shouldReceiveNotification(notification: Notification): boolean {
+    if (!this.enabled) return false;
+    
+    // Check severity filter
+    if (this.filters.minSeverity) {
+      const severityLevels = { info: 1, warning: 2, error: 3, critical: 4 };
+      const minLevel = severityLevels[this.filters.minSeverity];
+      const notificationLevel = severityLevels[notification.getSeverity()];
+      if (notificationLevel < minLevel) return false;
+    }
+
+    // Check schedule (Do Not Disturb)
+    if (this.scheduleSettings.doNotDisturbStart && this.scheduleSettings.doNotDisturbEnd) {
+      const now = new Date();
+      const currentTime = now.toTimeString().slice(0, 5); // HH:MM
+      const start = this.scheduleSettings.doNotDisturbStart;
+      const end = this.scheduleSettings.doNotDisturbEnd;
+      
+      if (start < end) {
+        // Same day range (e.g., 09:00 - 17:00)
+        if (currentTime >= start && currentTime <= end) return false;
+      } else {
+        // Cross-midnight range (e.g., 22:00 - 08:00)
+        if (currentTime >= start || currentTime <= end) return false;
+      }
+    }
+
+    // Check weekdays only
+    if (this.scheduleSettings.weekdaysOnly) {
+      const dayOfWeek = new Date().getDay();
+      if (dayOfWeek === 0 || dayOfWeek === 6) return false; // Sunday or Saturday
+    }
+
+    return true;
   }
-  
-  meetsSevertityRequirement(severity: string): boolean {
-    if (!this.filters.minSeverity) return true;
-    const severityLevels = { info: 1, warning: 2, error: 3, critical: 4 };
-    const minLevel = severityLevels[this.filters.minSeverity];
-    const notificationLevel = severityLevels[severity];
-    return notificationLevel >= minLevel;
-  }
 
-
-
-  isInDoNotDisturbPeriod(currentTime: string): boolean {
+  isInDoNotDisturbPeriod(): boolean {
     if (!this.scheduleSettings.doNotDisturbStart || !this.scheduleSettings.doNotDisturbEnd) {
       return false;
     }
+
+    const now = new Date();
+    const currentTime = now.toTimeString().slice(0, 5);
     const start = this.scheduleSettings.doNotDisturbStart;
     const end = this.scheduleSettings.doNotDisturbEnd;
     
@@ -83,8 +108,38 @@ export class NotificationPreference {
     }
   }
 
-  // State modification methods  
-  changeChannels(channels: NotificationChannel[]): NotificationPreference {
+  // Factory method
+  static create(props: NotificationPreferenceCreateProps, idGenerator: { generate(): string }): NotificationPreference {
+    if (!props.tenantId) {
+      throw new Error('NotificationPreference must belong to a tenant');
+    }
+
+    if (!props.userId) {
+      throw new Error('NotificationPreference must have a user');
+    }
+
+    if (!props.notificationType) {
+      throw new Error('NotificationPreference must have a notification type');
+    }
+
+    const now = new Date();
+    
+    return new NotificationPreference(
+      idGenerator.generate(),
+      props.tenantId,
+      props.userId,
+      props.notificationType,
+      props.channels || ['in_app'],
+      props.enabled,
+      props.scheduleSettings || {},
+      props.filters || {},
+      now,
+      now
+    );
+  }
+
+  // Update methods
+  updateChannels(channels: NotificationChannel[]): NotificationPreference {
     return new NotificationPreference(
       this.id,
       this.tenantId,
@@ -94,12 +149,12 @@ export class NotificationPreference {
       this.enabled,
       this.scheduleSettings,
       this.filters,
-      this.establishedAt,
-      this.modifiedAt // Managed by application layer
+      this.createdAt,
+      new Date()
     );
   }
 
-  changeEnabled(enabled: boolean): NotificationPreference {
+  updateEnabled(enabled: boolean): NotificationPreference {
     return new NotificationPreference(
       this.id,
       this.tenantId,
@@ -109,12 +164,12 @@ export class NotificationPreference {
       enabled,
       this.scheduleSettings,
       this.filters,
-      this.establishedAt,
-      this.modifiedAt // Managed by application layer
+      this.createdAt,
+      new Date()
     );
   }
 
-  modifyScheduleSettings(scheduleSettings: ScheduleSettings): NotificationPreference {
+  updateScheduleSettings(scheduleSettings: ScheduleSettings): NotificationPreference {
     return new NotificationPreference(
       this.id,
       this.tenantId,
@@ -124,12 +179,12 @@ export class NotificationPreference {
       this.enabled,
       scheduleSettings,
       this.filters,
-      this.establishedAt,
-      this.modifiedAt // Managed by application layer
+      this.createdAt,
+      new Date()
     );
   }
 
-  modifyFilters(filters: NotificationFilters): NotificationPreference {
+  updateFilters(filters: NotificationFilters): NotificationPreference {
     return new NotificationPreference(
       this.id,
       this.tenantId,
@@ -139,11 +194,24 @@ export class NotificationPreference {
       this.enabled,
       this.scheduleSettings,
       filters,
-      this.establishedAt,
-      this.modifiedAt // Managed by application layer
+      this.createdAt,
+      new Date()
     );
   }
 
-  // CLEANED: Factory method removed - persistence mapping moved to repository layer
-  // Domain entities should not handle data reconstruction from external sources
+  // Factory method for reconstruction from persistence
+  static fromPersistence(data: any): NotificationPreference {
+    return new NotificationPreference(
+      data.id,
+      data.tenantId,
+      data.userId,
+      data.notificationType,
+      data.channels,
+      data.enabled,
+      data.scheduleSettings,
+      data.filters,
+      data.createdAt,
+      data.updatedAt
+    );
+  }
 }

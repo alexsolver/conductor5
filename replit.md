@@ -28,9 +28,9 @@ Conductor follows a Clean Architecture with Domain-Driven Design principles.
 - **Multi-tenancy**: True schema separation where each tenant has a dedicated PostgreSQL schema (`tenant_{uuid}`).
 - **Employment Type System**: Dual employment type support (CLT/Autonomous) with automatic detection, terminology mapping, and route redirection to appropriate interfaces.
 - **Key Features**:
-    - **Authentication & Authorization**: Local JWT with access/refresh tokens (15min/7d expiry), bcrypt hashing, and a four-tier RBAC system (saas_admin, tenant_admin, agent, customer) with granular permissions and tenant isolation. Login system fully operational with proper JWT generation and validation.
+    - **Authentication & Authorization**: Local JWT with access/refresh tokens, bcrypt hashing, and a four-tier RBAC system (saas_admin, tenant_admin, agent, customer) with granular permissions and tenant isolation.
     - **Ticket Management**: Comprehensive system with ServiceNow-style fields, hierarchical configurations (category → subcategory → action), and dynamic metadata. Includes full audit trails and a rich text description editor with Markdown support.
-    - **Customer & Beneficiary Management**: Flexible person management system for callers and beneficiaries, including sensitive data protection. Fully operational with Clean Architecture implementation using proper repository patterns and use cases.
+    - **Customer & Beneficiary Management**: Flexible person management system for callers and beneficiaries, including sensitive data protection.
     - **Location Management**: Comprehensive system supporting various location record types with advanced UX features like CEP auto-fill, interactive map coordinate collection, and centralized operating hours.
     - **User & Team Management**: Consolidated system for user and team management with HR database schema expansion, user group memberships, and a list-based view.
     - **Project Management**: Full project and project actions system, including automatic project-ticket integration and detailed task tracking.
@@ -47,7 +47,6 @@ Conductor follows a Clean Architecture with Domain-Driven Design principles.
     - **Validation System Enhancement**: Standardized tenant validation thresholds, implemented soft delete (is_active) across critical audit tables, and redesigned core table definitions.
     - **Hierarchical Ticket Classification System**: Fully functional category→subcategory→action hierarchy with proper backend integration, frontend validation, dynamic loading, company-specific isolation, and automatic color synchronization.
     - **File Upload System**: Complete implementation of file upload system with description field support.
-    - **Clean Architecture Compliance**: Successfully resolved 267/267 violations (100% COMPLETE) through systematic implementation across all 29 modules. Architecture maturity achieved 100/100 (Perfect). Implemented 40+ Use Cases, 29+ Domain Entities, and 29+ Repository patterns following Clean Architecture principles with complete separation of concerns, dependency inversion, and domain-driven design. All business domains fully compliant: Tickets, Dashboard, Authentication, User Management, Inventory, Locations, Projects, Timecard, Notifications, Schedule Management, Template Audit, Field Layout, Communications, File Upload, SLA Management, Reporting, and Integration APIs with comprehensive enterprise-grade business logic.
 
 ## External Dependencies
 - **Database**: Neon PostgreSQL.

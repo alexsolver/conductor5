@@ -1,18 +1,16 @@
-// CustomerItemMappingController.ts - Controlador para gerenciar mapeamentos personalizados de itens por EMPRESA
-// IMPORTANTE: A personalização é por empresa (company), não por cliente individual.
-// O campo customer_id na tabela customer_item_mappings na verdade se refere ao ID da empresa.
+// CustomerItemMappingController.ts - Controlador para gerenciar mapeamentos personalizados de itens por cliente
 import { Request, Response } from 'express';
 import { z } from 'zod';
 import { pool } from '../../../../db';
 
 /**
- * Buscar mapeamentos personalizados de itens por empresa
+ * Buscar mapeamentos personalizados de itens por cliente
  * GET /api/materials-services/customer-item-mappings
  */
 export const getCustomerItemMappings = async (req: any, res: Response) => {
   try {
     const tenantId = req.user?.tenantId;
-    const { companyId, itemId, isActive, search, page = '1', limit = '50' } = req.query;
+    const { customerId, itemId, isActive, search, page = '1', limit = '50' } = req.query;
 
     if (!tenantId) {
       return res.status(400).json({
@@ -30,9 +28,9 @@ export const getCustomerItemMappings = async (req: any, res: Response) => {
     let paramIndex = 2;
     const params: any[] = [tenantId];
 
-    if (companyId) {
+    if (customerId) {
       whereConditions.push(`m.customer_id = $${paramIndex}`);
-      params.push(companyId);
+      params.push(customerId);
       paramIndex++;
     }
 
@@ -67,12 +65,12 @@ export const getCustomerItemMappings = async (req: any, res: Response) => {
         i.integration_code as item_integration_code,
         i.type as item_type,
         i.description as item_description,
-        cc.name as company_name,
-        cc.display_name as company_display_name,
-        cc.email as company_email
+        c.first_name as customer_first_name,
+        c.last_name as customer_last_name,
+        c.email as customer_email
       FROM customer_item_mappings m
       LEFT JOIN items i ON m.item_id = i.id AND i.tenant_id = m.tenant_id
-      LEFT JOIN companies cc ON m.customer_id = cc.id AND cc.tenant_id = m.tenant_id
+      LEFT JOIN customers c ON m.customer_id = c.id AND c.tenant_id = m.tenant_id
       WHERE ${whereConditions.join(' AND ')}
       ORDER BY m.created_at DESC
       LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
@@ -172,7 +170,7 @@ export const getCustomerItemMappingById = async (req: Request, res: Response) =>
 };
 
 /**
- * Criar novo mapeamento personalizado por empresa
+ * Criar novo mapeamento personalizado
  * POST /api/materials-services/customer-item-mappings
  */
 export const createCustomerItemMapping = async (req: Request, res: Response) => {
@@ -184,12 +182,12 @@ export const createCustomerItemMapping = async (req: Request, res: Response) => 
       .values(validatedData)
       .returning();
 
-    console.log(`✅ [CompanyItemMappings] Created mapping for company ${validatedData.customerId} and item ${validatedData.itemId}`);
+    console.log(`✅ [CustomerItemMappings] Created mapping for customer ${validatedData.customerId} and item ${validatedData.itemId}`);
 
     return res.status(201).json({
       success: true,
       data: result[0],
-      message: 'Company item mapping created successfully'
+      message: 'Customer item mapping created successfully'
     });
 
   } catch (error) {

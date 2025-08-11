@@ -1,99 +1,204 @@
-/**
- * CustomerController - Clean Architecture Presentation Layer
- * Fixes: 11 high priority violations - Routes containing business logic + Express dependencies
- */
-
-import { Request, Response } from 'express';
+import { Response } from 'express';
+import { AuthenticatedRequest } from '../../../middleware/jwtAuth';
+import { CustomerApplicationService } from '../services/CustomerApplicationService';
+import { transformToCustomerDTO } from '../dto/CustomerResponseDTO';
 
 export class CustomerController {
-  constructor() {}
+  constructor(
+    private customerApplicationService: CustomerApplicationService
+  ) {}
 
-  async createCustomer(req: Request, res: Response): Promise<void> {
+  async createCustomer(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string;
-      const { firstName, lastName, email, phone, companyId } = req.body;
-      
-      if (!firstName || !lastName || !email) {
-        res.status(400).json({ 
-          success: false, 
-          message: 'First name, last name, and email are required' 
+      const { logInfo, logError } = await import('../../../../utils/logger');
+      const customerData = req.body;
+      const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
+
+      // Log operation start
+      logInfo('Customer creation started', {
+        tenantId,
+        userId,
+        customerType: customerData.customerType,
+        operation: 'CREATE_CUSTOMER'
+      });
+
+      if (!tenantId) {
+        logError('Customer creation failed - missing tenant ID', new Error('Missing tenant ID'), {
+          userId,
+          operation: 'CREATE_CUSTOMER'
+        });
+        res.status(403).json({
+          success: false,
+          error: 'Tenant access required',
+          code: 'MISSING_TENANT_ACCESS'
         });
         return;
       }
-      
+
+      const result = await this.customerApplicationService.createCustomer({
+        ...customerData,
+        tenantId
+      });
+
+      // Log successful creation
+      logInfo('Customer created successfully', {
+        tenantId,
+        userId,
+        customerId: result.customer.id, // Assuming result.customer exists and has an id
+        customerType: result.customer.customerType, // Assuming result.customer exists and has customerType
+        operation: 'CREATE_CUSTOMER'
+      });
+
       res.status(201).json({
         success: true,
-        message: 'Customer created successfully',
-        data: { firstName, lastName, email, phone, companyId, tenantId }
+        data: transformToCustomerDTO(result.customer), // Use the DTO transformer
+        message: 'Customer created successfully'
       });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to create customer';
-      res.status(400).json({ success: false, message });
+      const { logError } = await import('../../../../utils/logger');
+      logError('Customer creation failed', error, {
+        operation: 'CREATE_CUSTOMER',
+        tenantId: req.user?.tenantId,
+        userId: req.user?.id
+      });
+
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   }
 
-  async getCustomers(req: Request, res: Response): Promise<void> {
+  async updateCustomer(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string;
-      const { search, companyId, active } = req.query;
-      
-      res.json({
-        success: true,
-        message: 'Customers retrieved successfully',
-        data: [],
-        filters: { search, companyId, active: active === 'true', tenantId }
+      if (!req.user?.tenantId) {
+        res.status(403).json({
+          success: false,
+          error: 'Tenant access required',
+          code: 'MISSING_TENANT_ACCESS'
+        });
+        return;
+      }
+
+      const customerId = req.params.id;
+      const updateData = {
+        ...req.body,
+        tenantId: req.user.tenantId
+      };
+
+      const result = await this.customerApplicationService.updateCustomer({
+        id: customerId,
+        ...updateData
       });
+
+      if (result.success) {
+        res.json({
+          success: true,
+          data: transformToCustomerDTO(result.customer),
+          message: 'Customer updated successfully'
+        });
+      } else {
+        res.status(400).json({
+          success: false,
+          error: result.error,
+          code: 'UPDATE_FAILED'
+        });
+      }
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to retrieve customers';
-      res.status(500).json({ success: false, message });
+      console.error('[CONTROLLER] Update customer error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   }
 
-  async getCustomer(req: Request, res: Response): Promise<void> {
+  async deleteCustomer(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      const { id } = req.params;
-      const tenantId = req.headers['x-tenant-id'] as string;
-      
-      res.json({
-        success: true,
-        message: 'Customer retrieved successfully',
-        data: { id, tenantId }
+      if (!req.user?.tenantId) {
+        res.status(403).json({
+          success: false,
+          error: 'Tenant access required',
+          code: 'MISSING_TENANT_ACCESS'
+        });
+        return;
+      }
+
+      const customerId = req.params.id;
+
+      const result = await this.customerApplicationService.deleteCustomer({
+        id: customerId,
+        tenantId: req.user.tenantId
       });
+
+      if (result.success) {
+        res.json({
+          success: true,
+          message: 'Customer deleted successfully'
+        });
+      } else {
+        res.status(400).json({
+          success: false,
+          error: result.error,
+          code: 'DELETE_FAILED'
+        });
+      }
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Customer not found';
-      res.status(404).json({ success: false, message });
+      console.error('[CONTROLLER] Delete customer error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   }
 
-  async updateCustomer(req: Request, res: Response): Promise<void> {
+  async getCustomers(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      const { id } = req.params;
-      const tenantId = req.headers['x-tenant-id'] as string;
-      
-      res.json({
-        success: true,
-        message: 'Customer updated successfully',
-        data: { id, ...req.body, tenantId }
-      });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to update customer';
-      res.status(400).json({ success: false, message });
-    }
-  }
+      if (!req.user?.tenantId) {
+        res.status(403).json({
+          success: false,
+          error: 'Tenant access required',
+          code: 'MISSING_TENANT_ACCESS'
+        });
+        return;
+      }
 
-  async deleteCustomer(req: Request, res: Response): Promise<void> {
-    try {
-      const { id } = req.params;
-      const tenantId = req.headers['x-tenant-id'] as string;
-      
-      res.json({
-        success: true,
-        message: 'Customer deleted successfully',
-        data: { id, tenantId }
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 50;
+
+      const result = await this.customerApplicationService.getCustomers({
+        tenantId: req.user.tenantId,
+        page,
+        limit
       });
+
+      if (result.success) {
+        res.json({
+          success: true,
+          customers: result.customers?.map(transformToCustomerDTO) || [],
+          total: result.total || 0,
+          page,
+          limit,
+          totalPages: Math.ceil((result.total || 0) / limit)
+        });
+      } else {
+        res.status(500).json({
+          success: false,
+          error: result.error,
+          code: 'FETCH_FAILED'
+        });
+      }
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to delete customer';
-      res.status(400).json({ success: false, message });
+      console.error('[CONTROLLER] Get customers error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   }
 }

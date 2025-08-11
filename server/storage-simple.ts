@@ -381,152 +381,55 @@ export class DatabaseStorage implements IStorage {
   // Fixes: N+1 queries, complex joins
   // ===========================
 
-  async getTickets(tenantId: string, options: {
-    page?: number;
-    limit?: number;
-    search?: string;
-    status?: string;
-    priority?: string;
-    assignedToId?: string;
-    companyId?: string;
-  } = {}): Promise<any[]> {
+  async getTickets(tenantId: string, options: { limit?: number; offset?: number; status?: string } = {}): Promise<any[]> {
     try {
-      const { page = 1, limit = 50, search, status, priority, assignedToId, companyId } = options;
-      const offset = (page - 1) * limit;
-
-      console.log('🎫 [STORAGE-SIMPLE] Getting tickets for tenant:', tenantId);
-      console.log('🎫 [STORAGE-SIMPLE] Options:', options);
-
       const validatedTenantId = await validateTenantAccess(tenantId);
+      const { limit = 50, offset = 0, status } = options;
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
-      // Check if tickets table exists in schema
-      const tableCheck = await tenantDb.execute(sql`
-        SELECT EXISTS(SELECT 1 FROM information_schema.tables WHERE table_schema = ${schemaName} AND table_name = 'tickets')
-      `);
-
-      if (!tableCheck.rows[0]?.exists) {
-        console.log('❌ [STORAGE-SIMPLE] Tickets table does not exist in schema:', schemaName);
-        // Initialize schema if it doesn't exist
-        await schemaManager.createTenantSchema(validatedTenantId);
-        return [];
-      }
-
+      // OPTIMIZED: Single JOIN query instead of N+1  
       let baseQuery = sql`
         SELECT 
-          t.id,
-          COALESCE(t.number, CONCAT('T-', SUBSTRING(t.id::text, 1, 8))) as number,
-          COALESCE(t.subject, 'Sem título') as subject,
-          t.description,
-          COALESCE(t.status, t.state, 'open') as status,
-          COALESCE(t.priority, 'medium') as priority,
-          t.impact,
-          t.urgency,
-          t.category,
-          t.subcategory,
-          t.caller_id,
-          t.assigned_to_id,
-          t.created_at,
-          t.updated_at,
-          c.first_name as caller_first_name,
-          c.last_name as caller_last_name,
-          c.email as caller_email
-        FROM ${sql.identifier(schemaName)}.tickets t
-        LEFT JOIN ${sql.identifier(schemaName)}.customers c ON t.caller_id = c.id
-        WHERE t.tenant_id = ${validatedTenantId}
-          AND (t.status IS NULL OR t.status != 'deleted')
+          tickets.*,
+          customers.first_name as customer_first_name,
+          customers.last_name as customer_last_name,
+          customers.email as customer_email,
+          caller.first_name as caller_first_name,
+          caller.last_name as caller_last_name,
+          caller.email as caller_email,
+          companies.name as customer_company_name
+        FROM ${sql.identifier(schemaName)}.tickets
+        LEFT JOIN ${sql.identifier(schemaName)}.customers ON tickets.customer_id = customers.id
+        LEFT JOIN ${sql.identifier(schemaName)}.customers caller ON tickets.caller_id = caller.id
+        LEFT JOIN ${sql.identifier(schemaName)}.companies companies ON tickets.company_id = companies.id
+        WHERE tickets.tenant_id = ${validatedTenantId}
       `;
 
-      // Apply filters
-      if (search) {
-        baseQuery = sql`${baseQuery} AND (
-          t.subject ILIKE ${'%' + search + '%'} OR 
-          t.description ILIKE ${'%' + search + '%'} OR
-          COALESCE(t.number, CONCAT('T-', SUBSTRING(t.id::text, 1, 8))) ILIKE ${'%' + search + '%'}
-        )`;
-      }
-
-      if (status && status !== '') {
-        baseQuery = sql`${baseQuery} AND COALESCE(t.status, t.state, 'open') = ${status}`;
-      }
-
-      if (priority && priority !== '') {
-        baseQuery = sql`${baseQuery} AND COALESCE(t.priority, 'medium') = ${priority}`;
-      }
-
-      if (assignedToId && assignedToId !== '') {
-        baseQuery = sql`${baseQuery} AND t.assigned_to_id = ${assignedToId}`;
-      }
-
-      if (companyId && companyId !== '') {
-        baseQuery = sql`${baseQuery} AND t.company_id = ${companyId}`;
+      if (status) {
+        baseQuery = sql`${baseQuery} AND tickets.status = ${status}`;
       }
 
       const finalQuery = sql`${baseQuery} 
-        ORDER BY t.created_at DESC 
+        ORDER BY tickets.created_at DESC 
         LIMIT ${limit} 
         OFFSET ${offset}
       `;
 
       const result = await tenantDb.execute(finalQuery);
-
-      console.log('🎫 [STORAGE-SIMPLE] Query result:', {
-        rowCount: result.rows?.length || 0,
-        tenantId: validatedTenantId,
-        schemaName,
-        sampleTicket: result.rows?.[0] ? {
-          id: result.rows[0].id,
-          subject: result.rows[0].subject,
-          status: result.rows[0].status
-        } : null
-      });
-
-      // Transform data for frontend compatibility
-      const tickets = (result.rows || []).map((ticket: any) => ({
-        ...ticket,
-        // Ensure consistent field naming
-        subject: ticket.subject || 'Sem título',
-        status: ticket.status || ticket.state || 'open',
-        priority: ticket.priority || 'medium',
-        number: ticket.number || `T-${ticket.id.substring(0, 8)}`,
-        created_at: ticket.created_at || ticket.opened_at,
-        updated_at: ticket.updated_at || ticket.created_at
-      }));
-
-      return tickets;
+      return result.rows || [];
     } catch (error) {
-      console.error('❌ [STORAGE-SIMPLE] Error getting tickets:', error);
-      logError('Error getting tickets', error, { tenantId, options });
-      return [];
+      logError('Error fetching tickets', error, { tenantId, options });
+      throw error;
     }
   }
 
   async getTicketById(tenantId: string, ticketId: string): Promise<any | undefined> {
     try {
-      console.log(`🎫 [STORAGE-SIMPLE] Getting ticket by ID: ${ticketId} for tenant: ${tenantId}`);
-
       const validatedTenantId = await validateTenantAccess(tenantId);
       const tenantDb = await poolManager.getTenantConnection(validatedTenantId);
       const schemaName = `tenant_${validatedTenantId.replace(/-/g, '_')}`;
 
-      console.log(`🎫 [STORAGE-SIMPLE] Using schema: ${schemaName}`);
-
-      // First check if the ticket exists at all
-      const ticketCheck = await tenantDb.execute(sql`
-        SELECT COUNT(*) as count
-        FROM ${sql.identifier(schemaName)}.tickets
-        WHERE id = ${ticketId}
-      `);
-
-      console.log(`🎫 [STORAGE-SIMPLE] Ticket exists check:`, ticketCheck.rows?.[0]);
-
-      if (!ticketCheck.rows?.[0]?.count || parseInt(ticketCheck.rows[0].count) === 0) {
-        console.log(`🎫 [STORAGE-SIMPLE] Ticket ${ticketId} does not exist`);
-        return undefined;
-      }
-
-      // Now get the full ticket data
       const result = await tenantDb.execute(sql`
         SELECT 
           tickets.*,
@@ -545,19 +448,8 @@ export class DatabaseStorage implements IStorage {
         LIMIT 1
       `);
 
-      console.log(`🎫 [STORAGE-SIMPLE] Ticket query result:`, {
-        rowCount: result.rows?.length || 0,
-        ticketFound: !!result.rows?.[0],
-        ticketData: result.rows?.[0] ? {
-          id: result.rows[0].id,
-          subject: result.rows[0].subject,
-          status: result.rows[0].status
-        } : null
-      });
-
       return result.rows?.[0] || undefined;
     } catch (error) {
-      console.error(`🎫 [STORAGE-SIMPLE] Error fetching ticket ${ticketId}:`, error);
       logError('Error fetching ticket', error, { tenantId, ticketId });
       throw error;
     }
@@ -728,7 +620,7 @@ export class DatabaseStorage implements IStorage {
         FROM ${sql.identifier(schemaName)}.tickets 
         WHERE tenant_id = ${validatedTenantId}
       `);
-
+      
       return parseInt((result.rows?.[0]?.count as string) || '0');
     } catch (error) {
       logError('Error getting tickets count', error, { tenantId });
@@ -1718,13 +1610,13 @@ export class DatabaseStorage implements IStorage {
       const result = await tenantDb.execute(sql`
         DELETE FROM ${sql.identifier(schemaName)}.beneficiary_customer_relationships
         WHERE beneficiary_id = ${beneficiaryId} 
-          AND customer_id = ${customerId}
+        AND customer_id = ${customerId}
       `);
 
       return (result.rowCount || 0) > 0;
     } catch (error) {
       logError('Error removing beneficiary customer relationship', error, { tenantId, beneficiaryId, customerId });
-      return false;
+      throw error;
     }
   }
 

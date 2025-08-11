@@ -102,11 +102,11 @@ export function UserGroups({ tenantAdmin = false }: UserGroupsProps) {
 
   // Query para buscar membros da equipe - usando API que funciona
   const { data: teamMembersData, isLoading: teamMembersLoading } = useQuery<TeamMember[]>({
-    queryKey: ["/api/teams/members"],
+    queryKey: ["/api/user-management/users"],
     enabled: !!editingGroup,
     select: (data: any) => {
-      if (data && Array.isArray(data.members)) {
-        return data.members.map((member: any) => ({
+      if (data && Array.isArray(data.users)) {
+        return data.users.map((member: any) => ({
           id: member.id,
           name: member.name || `${member.firstName || ''} ${member.lastName || ''}`.trim() || 'Sem nome',
           firstName: member.firstName,

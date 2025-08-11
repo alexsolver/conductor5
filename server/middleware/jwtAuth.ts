@@ -1,8 +1,7 @@
 // JWT Authentication Middleware - Clean Architecture
-import jwt from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
-import { storageSimple } from '../storage-simple';
-import { rbacService } from './rbacMiddleware';
+import { DependencyContainer } from '../application/services/DependencyContainer';
+import { tokenManager } from '../utils/tokenManager';
 
 export interface AuthenticatedRequest extends Request {
   user?: {
@@ -12,7 +11,6 @@ export interface AuthenticatedRequest extends Request {
     tenantId: string | null;
     permissions: any[];
     attributes: Record<string, any>;
-    hasCustomerAccess?: boolean;
   };
   tenant?: any; // Add tenant property for compatibility
 }
@@ -43,36 +41,44 @@ export const jwtAuth = async (req: AuthenticatedRequest, res: Response, next: Ne
       });
     }
 
-    console.log('✅ Token verified successfully:', { 
-      userId: payload.userId,
-      email: payload.email,
-      tenantId: payload.tenantId 
-    });
+    // console.log('✅ Token verified successfully:', { 
+    //   userId: payload.userId,
+    //   email: payload.email,
+    //   tenantId: payload.tenantId 
+    // });
 
-    // Mock user data with placeholder permissions initially
-    const user = {
-      id: payload.userId,
-      email: payload.email,
-      role: payload.role,
-      tenantId: payload.tenantId,
+    // Verify user exists and is active
+    const container = DependencyContainer.getInstance();
+    const userRepository = container.userRepository;
+    const user = await userRepository.findById(payload.userId);
+
+    if (!user || !user.active) {
+      return res.status(401).json({ message: 'User not found or inactive' });
+    }
+
+    // Add user context to request - with permissions and enhanced tenant validation
+    const { RBACService } = await import('./rbacMiddleware');
+    const rbacInstance = RBACService.getInstance();
+    const permissions = rbacInstance.getRolePermissions(user.role);
+
+    // Enhanced tenant validation for customers module
+    if (!user.tenantId && req.path.includes('/customers')) {
+      return res.status(403).json({ 
+        message: 'Tenant access required for customer operations',
+        code: 'MISSING_TENANT_ACCESS'
+      });
+    }
+
+    req.user = {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      tenantId: user.tenantId,
+      permissions: permissions || [],
+      attributes: {},
+      // Add customer-specific permissions
+      hasCustomerAccess: Array.isArray(permissions) ? permissions.some(p => typeof p === 'string' && p.includes('customer')) : false
     };
-
-    // Enrich user with permissions
-    const enrichedUser = await rbacService.enrichUserWithPermissions({
-      id: payload.userId,
-      email: payload.email,
-      role: payload.role,
-      tenantId: payload.tenantId
-    });
-
-    req.user = enrichedUser;
-
-    // Debug log to verify tenantId is being set
-    console.log('🔐 [JWT-AUTH] User context set:', {
-      userId: req.user.id,
-      tenantId: req.user.tenantId,
-      payloadTenantId: payload.tenantId
-    });
 
     // Log successful authentication for parts-services endpoints
     if (req.path.includes('/parts-services')) {
@@ -115,25 +121,24 @@ export const optionalJwtAuth = async (req: AuthenticatedRequest, res: Response, 
     }
 
     const token = authHeader.substring(7);
-    const payload = tokenManager.verifyAccessToken(token);
+    const container = DependencyContainer.getInstance();
+    const tokenService = container.tokenService;
 
+    const payload = tokenService.verifyAccessToken(token);
     if (payload) {
-      // Enrich user with permissions even for optional auth
-      const enrichedUser = await rbacService.enrichUserWithPermissions({
-        id: payload.userId,
-        email: payload.email,
-        role: payload.role,
-        tenantId: payload.tenantId
-      });
+      const userRepository = container.userRepository;
+      const user = await userRepository.findById(payload.userId);
 
-      req.user = enrichedUser;
-
-      console.log('🔍 [JWT-AUTH] User authenticated:', {
-        userId: req.user.id,
-        tenantId: req.user.tenantId,
-        email: req.user.email,
-        path: req.path
-      });
+      if (user && user.active) {
+        req.user = {
+          id: user.id,
+          email: user.email,
+          role: user.role,
+          tenantId: user.tenantId,
+          permissions: [],
+          attributes: {}
+        };
+      }
     }
 
     next();

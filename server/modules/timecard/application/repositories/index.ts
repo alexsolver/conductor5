@@ -1,2 +1,0 @@
-
-export { ITimecardApplicationRepository } from './ITimecardApplicationRepository';

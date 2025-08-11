@@ -40,7 +40,6 @@ import {
   Building2,
   Award,
   UserCheck,
-  User,
   FileText,
   Mail,
   FolderOpen,
@@ -162,8 +161,7 @@ const adminNavigation = [
       { name: "Templates de Tickets", href: "/ticket-templates", icon: FileText },
       { name: "Campos Customizados", href: "/custom-fields-admin", icon: Wrench },
       { name: "Clientes", href: "/customers", icon: Users },
-      { name: "Pessoas", href: "/people", icon: UserCheck },
-      { name: "Beneficiários", href: "/beneficiaries", icon: User },
+      { name: "Favorecidos", href: "/tenant-admin/beneficiaries", icon: UserCheck },
       { name: "Formulários Internos", href: "/internal-forms", icon: FileText },
 
       { name: "Empresas", href: "/companies", icon: Building2 },
@@ -211,7 +209,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
     if (item.name === "Tickets" && activeTicketsCount > 0) {
       return { ...item, badge: activeTicketsCount.toString() };
     }
-
+    
     // Update timecard section based on employment type
     if (item.name === "Controle de Jornadas") {
       const timecardRoute = employmentType === 'autonomo' ? '/timecard-autonomous' : '/timecard';
@@ -247,7 +245,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
         ]
       };
     }
-
+    
     return item;
   });
 
@@ -265,7 +263,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
         color: 'white'
       }}>
         {/* Logo */}
-        <div className={`flex items-center transition-all duration-300 ${
+        <div className={`flex items-center flex-shrink-0 transition-all duration-300 ${
           collapsed ? 'px-2 justify-center' : 'px-4 justify-between'
         }`}>
           <div className={`flex items-center transition-all duration-300 ${
@@ -284,7 +282,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
               </h1>
             )}
           </div>
-
+          
           {/* Toggle Button - Always visible and properly positioned */}
           {!collapsed && (
             <Button
@@ -585,7 +583,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                 collapsed ? "justify-center py-3 px-2 hover:scale-105" : "px-2 py-2",
                 location === "/layouts"
                   ? "text-white shadow-lg"
-                  : "text-white hover:bg-white hover:bg-opacity-10"
+                  : "text-white hover:bg-white hover:bg-opacity-20"
               )} style={location === "/layouts" ? {
                 backgroundColor: 'var(--accent)',
                 color: 'white'
@@ -611,7 +609,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                     collapsed ? "justify-center py-3 px-2 hover:scale-105" : "px-2 py-2",
                     isActive
                       ? "text-white shadow-lg"
-                      : "text-white hover:bg-white hover:bg-opacity-10"
+                      : "text-white hover:bg-white hover:bg-opacity-20"
                   )} style={isActive ? {
                     backgroundColor: 'var(--accent)',
                     color: 'white'

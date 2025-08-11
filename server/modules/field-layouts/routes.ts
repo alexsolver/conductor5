@@ -1,39 +1,28 @@
 import { Router } from 'express';
-import { jwtAuth } from '../../middleware/jwtAuth';
-import { enhancedTenantValidator } from '../../middleware/tenantValidator';
-import { FieldLayoutController } from './application/controllers/FieldLayoutController';
-import { DrizzleFieldLayoutRepository } from './infrastructure/repositories/DrizzleFieldLayoutRepository';
-import { db } from '../../db';
+import { FieldLayoutRepository } from './FieldLayoutRepository';
 
 const router = Router();
-
-// Middleware de autenticação para todas as rotas
-router.use(jwtAuth);
-router.use(enhancedTenantValidator());
-
-// Inicializar dependências
-const fieldLayoutRepository = new DrizzleFieldLayoutRepository(db);
-const fieldLayoutController = new FieldLayoutController();
+const fieldLayoutRepo = new FieldLayoutRepository();
 
 // Get layout for a specific module/page
 router.get('/:moduleType/:pageType', async (req, res) => {
   try {
     const { moduleType, pageType } = req.params;
     const { customerId } = req.query;
-
-    const layout = await fieldLayoutController.getLayout(
-      moduleType,
-      pageType,
+    
+    const layout = await fieldLayoutRepo.getLayout(
+      moduleType, 
+      pageType, 
       customerId as string
     );
-
+    
     if (!layout) {
       return res.status(404).json({
         success: false,
         message: 'Layout not found'
       });
     }
-
+    
     res.json({
       success: true,
       layout
@@ -51,16 +40,16 @@ router.get('/:moduleType/:pageType', async (req, res) => {
 router.get('/:moduleType/:pageType/customer/:customerId', async (req, res) => {
   try {
     const { moduleType, pageType, customerId } = req.params;
-
-    const layout = await fieldLayoutController.getLayout(moduleType, pageType, customerId);
-
+    
+    const layout = await fieldLayoutRepo.getLayout(moduleType, pageType, customerId);
+    
     if (!layout) {
       return res.status(404).json({
         success: false,
         message: 'Layout not found'
       });
     }
-
+    
     res.json({
       success: true,
       layout
@@ -83,9 +72,9 @@ router.post('/:moduleType/:pageType', async (req, res) => {
       moduleType,
       pageType
     };
-
-    const savedLayout = await fieldLayoutController.saveLayout(layoutData);
-
+    
+    const savedLayout = await fieldLayoutRepo.saveLayout(layoutData);
+    
     res.json({
       success: true,
       layout: savedLayout,
@@ -110,9 +99,9 @@ router.post('/:moduleType/:pageType/customer/:customerId', async (req, res) => {
       pageType,
       customerId
     };
-
-    const savedLayout = await fieldLayoutController.saveLayout(layoutData);
-
+    
+    const savedLayout = await fieldLayoutRepo.saveLayout(layoutData);
+    
     res.json({
       success: true,
       layout: savedLayout,
@@ -133,22 +122,22 @@ router.post('/:moduleType/:pageType/sections/:sectionId/fields', async (req, res
     const { moduleType, pageType, sectionId } = req.params;
     const { customerId } = req.query;
     const fieldData = req.body;
-
-    const updatedLayout = await fieldLayoutController.addFieldToLayout(
+    
+    const updatedLayout = await fieldLayoutRepo.addFieldToLayout(
       moduleType,
       pageType,
       sectionId,
       fieldData,
       customerId as string
     );
-
+    
     if (!updatedLayout) {
       return res.status(404).json({
         success: false,
         message: 'Layout or section not found'
       });
     }
-
+    
     res.json({
       success: true,
       layout: updatedLayout,
@@ -168,21 +157,21 @@ router.delete('/:moduleType/:pageType/fields/:fieldId', async (req, res) => {
   try {
     const { moduleType, pageType, fieldId } = req.params;
     const { customerId } = req.query;
-
-    const updatedLayout = await fieldLayoutController.removeFieldFromLayout(
+    
+    const updatedLayout = await fieldLayoutRepo.removeFieldFromLayout(
       moduleType,
       pageType,
       fieldId,
       customerId as string
     );
-
+    
     if (!updatedLayout) {
       return res.status(404).json({
         success: false,
         message: 'Layout or field not found'
       });
     }
-
+    
     res.json({
       success: true,
       layout: updatedLayout,
@@ -201,16 +190,16 @@ router.delete('/:moduleType/:pageType/fields/:fieldId', async (req, res) => {
 router.post('/:moduleType/:pageType/demo', async (req, res) => {
   try {
     const { moduleType, pageType } = req.params;
-
-    const updatedLayout = await fieldLayoutController.addDemoFields(moduleType, pageType);
-
+    
+    const updatedLayout = await fieldLayoutRepo.addDemoFields(moduleType, pageType);
+    
     if (!updatedLayout) {
       return res.status(404).json({
         success: false,
         message: 'Layout not found'
       });
     }
-
+    
     res.json({
       success: true,
       layout: updatedLayout,

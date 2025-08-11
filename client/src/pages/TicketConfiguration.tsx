@@ -240,41 +240,13 @@ const TicketConfiguration: React.FC = () => {
   });
 
   // Queries
-  const { data: companiesData, isLoading: companiesLoading } = useQuery({
+  const { data: companies = [] } = useQuery({
     queryKey: ['/api/customers/companies'],
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/customers/companies');
-      const result = await response.json();
-      console.log('🔍 Companies API Response:', result);
-      return result;
-    },
-    retry: 3,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+      return response.json();
+    }
   });
-
-  // Ensure companies is always an array with proper validation
-  const companies = React.useMemo(() => {
-    if (companiesLoading) return [];
-
-    // Extract companies and filter out Default if inactive - with safety check
-    const rawCompanies = Array.isArray(companiesData) ? companiesData : 
-                         Array.isArray(companiesData?.data) ? companiesData.data :
-                         Array.isArray(companiesData?.companies) ? companiesData.companies : [];
-
-    // Filter companies directly removing Default if inactive - with null safety
-    const companies = (rawCompanies || [])
-      .filter((company: any) => {
-        if (!company) return false;
-        // Remove Default company if it's inactive
-        const isDefaultCompany = company.name?.toLowerCase().includes('default');
-        if (isDefaultCompany && (company.status === 'inactive' || company.is_active === false)) {
-          console.log('🚫 Filtering out Default company (inactive):', company);
-          return false;
-        }
-        return true;
-      })
-    return companies;
-  }, [companiesData, companiesLoading]);
 
   const { data: categories = [] } = useQuery({
     queryKey: ['categories', selectedCompany],
@@ -309,7 +281,7 @@ const TicketConfiguration: React.FC = () => {
     enabled: !!selectedCompany
   });
 
-  const { data: fieldOptions, refetch: refetchFieldOptions } = useQuery({
+  const { data: fieldOptions = [], refetch: refetchFieldOptions } = useQuery({
     queryKey: ['field-options', selectedCompany],
     queryFn: async () => {
       if (!selectedCompany) return [];
@@ -509,10 +481,10 @@ const TicketConfiguration: React.FC = () => {
     },
     onSuccess: async (result) => {
       console.log('✅ Field option updated successfully:', result);
-
+      
       // Invalidate cache sem forçar refetch imediato
       queryClient.invalidateQueries({ queryKey: ['field-options', selectedCompany] });
-
+      
       setDialogOpen(false);
       fieldOptionForm.reset();
       toast({ 
@@ -540,10 +512,10 @@ const TicketConfiguration: React.FC = () => {
     },
     onSuccess: async (result) => {
       console.log('✅ Field option status updated successfully:', result);
-
+      
       // Invalidate cache sem forçar refetch imediato
       queryClient.invalidateQueries({ queryKey: ['field-options', selectedCompany] });
-
+      
       toast({ 
         title: "Status atualizado com sucesso",
         description: "A opção foi ativada/desativada."
@@ -636,7 +608,7 @@ const TicketConfiguration: React.FC = () => {
     },
     onSuccess: async (result) => {
       console.log('✅ Hierarchy copied successfully:', result);
-
+      
       // Invalidate all related queries to refresh data
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['categories', selectedCompany] }),
@@ -645,7 +617,7 @@ const TicketConfiguration: React.FC = () => {
         queryClient.invalidateQueries({ queryKey: ['field-options', selectedCompany] }),
         queryClient.invalidateQueries({ queryKey: ['/api/ticket-config/numbering', selectedCompany] })
       ]);
-
+      
       // Force refetch to ensure UI updates
       await Promise.all([
         queryClient.refetchQueries({ queryKey: ['categories', selectedCompany] }),
@@ -654,7 +626,7 @@ const TicketConfiguration: React.FC = () => {
         queryClient.refetchQueries({ queryKey: ['field-options', selectedCompany] }),
         queryClient.refetchQueries({ queryKey: ['/api/ticket-config/numbering', selectedCompany] })
       ]);
-
+      
       toast({ 
         title: "Estrutura copiada com sucesso",
         description: `${result.summary || 'Toda a estrutura hierárquica foi copiada da empresa Default.'}`
@@ -749,9 +721,9 @@ const TicketConfiguration: React.FC = () => {
     }
   };
 
-  const filteredCategories = Array.isArray(categories) ? categories.filter(cat => 
-    cat?.name?.toLowerCase().includes(searchTerm.toLowerCase())
-  ) : [];
+  const filteredCategories = categories.filter((cat: Category) =>
+    cat.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   // Effect para carregar dados da numeração no form
   useEffect(() => {
@@ -795,7 +767,7 @@ const TicketConfiguration: React.FC = () => {
               ))}
             </SelectContent>
           </Select>
-
+          
           {/* Botão para copiar estrutura da empresa Default */}
           {selectedCompany && selectedCompany !== '00000000-0000-0000-0000-000000000001' && (
             <div className="flex items-center space-x-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
@@ -1032,7 +1004,7 @@ const TicketConfiguration: React.FC = () => {
                                 <div key={subcategory.id} className="border-t border-gray-100">
                                   {/* Header da Subcategoria */}
                                   <div className="flex items-center justify-between p-4 pl-12 bg-green-50 hover:bg-green-100 transition-colors">
-                                    <div className="flex items-center space-x-3">
+                                    <div className="flex items-center space-x-3 flex-1">
                                       <div 
                                         className="w-4 h-4 rounded border border-white shadow-sm"
                                         style={{ backgroundColor: subcategory.color }}
@@ -1179,7 +1151,7 @@ const TicketConfiguration: React.FC = () => {
                     <div>
                       <p className="text-sm font-medium text-gray-600">Status</p>
                       <p className="text-2xl font-bold">
-                        {(fieldOptions || []).filter(opt => opt.fieldName === 'status').length}
+                        {fieldOptions.filter(opt => opt.fieldName === 'status').length}
                       </p>
                     </div>
                   </div>
@@ -1192,7 +1164,7 @@ const TicketConfiguration: React.FC = () => {
                     <div>
                       <p className="text-sm font-medium text-gray-600">Prioridades</p>
                       <p className="text-2xl font-bold">
-                        {(fieldOptions || []).filter(opt => opt.fieldName === 'priority').length}
+                        {fieldOptions.filter(opt => opt.fieldName === 'priority').length}
                       </p>
                     </div>
                   </div>
@@ -1205,7 +1177,7 @@ const TicketConfiguration: React.FC = () => {
                     <div>
                       <p className="text-sm font-medium text-gray-600">Impactos</p>
                       <p className="text-2xl font-bold">
-                        {(fieldOptions || []).filter(opt => opt.fieldName === 'impact').length}
+                        {fieldOptions.filter(opt => opt.fieldName === 'impact').length}
                       </p>
                     </div>
                   </div>
@@ -1218,7 +1190,7 @@ const TicketConfiguration: React.FC = () => {
                     <div>
                       <p className="text-sm font-medium text-gray-600">Urgências</p>
                       <p className="text-2xl font-bold">
-                        {(fieldOptions || []).filter(opt => opt.fieldName === 'urgency').length}
+                        {fieldOptions.filter(opt => opt.fieldName === 'urgency').length}
                       </p>
                     </div>
                   </div>
@@ -1642,13 +1614,7 @@ const TicketConfiguration: React.FC = () => {
           {/* Formulário de Categoria */}
           {editingItem?.type === 'category' && (
             <Form {...categoryForm}>
-              <form onSubmit={categoryForm.handleSubmit((data) => {
-                if (editingItem.id) {
-                  updateCategoryMutation.mutate({ ...data, id: editingItem.id });
-                } else {
-                  createCategoryMutation.mutate(data);
-                }
-              })} className="space-y-4">
+              <form onSubmit={categoryForm.handleSubmit((data) => createCategoryMutation.mutate(data))} className="space-y-4">
                 <FormField
                   control={categoryForm.control}
                   name="name"
@@ -1724,7 +1690,7 @@ const TicketConfiguration: React.FC = () => {
                   <Button type="button" variant="outline" onClick={closeDialog}>
                     Cancelar
                   </Button>
-                  <Button type="submit" disabled={updateCategoryMutation.isPending || createCategoryMutation.isPending}>
+                  <Button type="submit" disabled={createCategoryMutation.isPending}>
                     Salvar
                   </Button>
                 </div>
@@ -1735,13 +1701,7 @@ const TicketConfiguration: React.FC = () => {
           {/* Formulário de Subcategoria */}
           {editingItem?.type === 'subcategory' && (
             <Form {...subcategoryForm}>
-              <form onSubmit={subcategoryForm.handleSubmit((data) => {
-                if (editingItem.id) {
-                  updateSubcategoryMutation.mutate({ ...data, id: editingItem.id });
-                } else {
-                  createSubcategoryMutation.mutate(data);
-                }
-              })} className="space-y-4">
+              <form onSubmit={subcategoryForm.handleSubmit((data) => createSubcategoryMutation.mutate(data))} className="space-y-4">
                 <FormField
                   control={subcategoryForm.control}
                   name="categoryId"
@@ -1824,7 +1784,7 @@ const TicketConfiguration: React.FC = () => {
                   <Button type="button" variant="outline" onClick={closeDialog}>
                     Cancelar
                   </Button>
-                  <Button type="submit" disabled={updateSubcategoryMutation.isPending || createSubcategoryMutation.isPending}>
+                  <Button type="submit" disabled={createSubcategoryMutation.isPending}>
                     Salvar
                   </Button>
                 </div>
@@ -1835,13 +1795,7 @@ const TicketConfiguration: React.FC = () => {
           {/* Formulário de Ação */}
           {editingItem?.type === 'action' && (
             <Form {...actionForm}>
-              <form onSubmit={actionForm.handleSubmit((data) => {
-                if (editingItem.id) {
-                  updateActionMutation.mutate({ ...data, id: editingItem.id });
-                } else {
-                  createActionMutation.mutate(data);
-                }
-              })} className="space-y-4">
+              <form onSubmit={actionForm.handleSubmit((data) => createActionMutation.mutate(data))} className="space-y-4">
                 <FormField
                   control={actionForm.control}
                   name="subcategoryId"
@@ -1924,7 +1878,7 @@ const TicketConfiguration: React.FC = () => {
                   <Button type="button" variant="outline" onClick={closeDialog}>
                     Cancelar
                   </Button>
-                  <Button type="submit" disabled={updateActionMutation.isPending || createActionMutation.isPending}>
+                  <Button type="submit" disabled={createActionMutation.isPending}>
                     Salvar
                   </Button>
                 </div>
@@ -2086,7 +2040,7 @@ const TicketConfiguration: React.FC = () => {
                   <Button type="button" variant="outline" onClick={closeDialog}>
                     Cancelar
                   </Button>
-                  <Button type="submit" disabled={updateFieldOptionMutation.isPending || createFieldOptionMutation.isPending}>
+                  <Button type="submit" disabled={createFieldOptionMutation.isPending}>
                     Salvar
                   </Button>
                 </div>

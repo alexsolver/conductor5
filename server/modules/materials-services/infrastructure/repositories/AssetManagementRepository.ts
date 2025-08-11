@@ -13,9 +13,7 @@ import {
 } from '@shared/schema';
 import { eq, and, desc, asc } from 'drizzle-orm';
 
-import { IAssetManagementRepository } from '../../domain/ports/IAssetManagementRepository';
-
-export class AssetManagementRepository implements IAssetManagementRepository {
+export class AssetManagementRepository {
   // GESTÃO DE ATIVOS
   async getAllAssets(tenantId: string) {
     return await db

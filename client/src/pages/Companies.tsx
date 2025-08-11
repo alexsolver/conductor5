@@ -28,7 +28,7 @@ import {
   Calendar,
   UserPlus
 } from "lucide-react";
-import { apiRequest, queryClient, validateApiResponse } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import AssociateMultipleCustomersModal from "@/components/customers/AssociateMultipleCustomersModal";
 import CompanyCustomersSection from "@/components/CompanyCustomersSection";
@@ -91,59 +91,13 @@ export default function Companies() {
   });
 
   // Query para buscar empresas
-  const { data: companies = [], isLoading, error } = useQuery({
+  const { data: companies = [], isLoading } = useQuery({
     queryKey: ['/api/customers/companies'],
     queryFn: async () => {
-      console.log('[COMPANIES-FRONTEND] Starting API request...');
-
-      try {
-        const response = await apiRequest('GET', '/api/customers/companies');
-
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-
-        const data = await response.json();
-        console.log('[COMPANIES-FRONTEND] API Response data:', data);
-
-        // Use validation helper
-        const validated = validateApiResponse(data, ['companies', 'data']);
-
-        if (validated.success) {
-          // Try different data paths
-          if (Array.isArray(validated.data)) {
-            return validated.data;
-          } else if (Array.isArray(validated.data.companies)) {
-            return validated.data.companies;
-          } else if (Array.isArray(validated.data.data)) {
-            return validated.data.data;
-          }
-        }
-
-        // Fallback: try original structure
-        if (data.success && Array.isArray(data.data)) {
-          return data.data;
-        } else if (Array.isArray(data.companies)) {
-          return data.companies;
-        } else if (Array.isArray(data)) {
-          return data;
-        }
-
-        console.warn('[COMPANIES-FRONTEND] No valid data found in response:', data);
-        return [];
-      } catch (error) {
-        console.error('[COMPANIES-FRONTEND] API Error:', error);
-        return [];
-      }
-    },
-    retry: 3,
-    retryDelay: 1000
+      const response = await apiRequest('GET', '/api/customers/companies');
+      return response;
+    }
   });
-
-  // Log any query errors
-  if (error) {
-    console.error('[COMPANIES-FRONTEND] Query Error:', error);
-  }
 
   // Mutation para criar empresa
   const createCompanyMutation = useMutation({
@@ -238,11 +192,11 @@ export default function Companies() {
   };
 
   // Filtrar empresas com base no termo de busca
-  const filteredCompanies = Array.isArray(companies) ? companies.filter((company: Company) =>
+  const filteredCompanies = companies.filter((company: Company) =>
     company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (company.displayName?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
     (company.industry?.toLowerCase() || "").includes(searchTerm.toLowerCase())
-  ) : [];
+  );
 
   if (isLoading) {
     return (
@@ -273,7 +227,7 @@ export default function Companies() {
             Gerencie suas empresas e clientes associados
           </p>
         </div>
-
+        
         <div className="flex flex-col sm:flex-row gap-3">
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
@@ -521,7 +475,7 @@ export default function Companies() {
                       </Badge>
                     </div>
                   </div>
-
+                  
                   <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <Button
                       size="sm"
@@ -544,7 +498,7 @@ export default function Companies() {
                   </div>
                 </div>
               </CardHeader>
-
+              
               <CardContent className="pt-0">
                 {company.description && (
                   <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">

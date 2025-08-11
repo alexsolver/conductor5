@@ -1,2 +1,0 @@
-
-export { IAuthApplicationRepository } from './IAuthApplicationRepository';

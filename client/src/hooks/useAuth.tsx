@@ -1,7 +1,7 @@
 import React, { createContext, ReactNode, useContext } from 'react';
 import { useQuery, useMutation, UseMutationResult } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '../lib/queryClient';
-import { useToast } from '../hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 interface User {
   id: string;
@@ -50,7 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { data: user, error, isLoading } = useQuery({
     queryKey: ['/api/auth/user'],
     queryFn: async (): Promise<User | null> => {
-      const token = globalThis.localStorage?.getItem('accessToken');
+      const token = localStorage.getItem('accessToken');
       if (!token) {
         return null;
       }
@@ -70,7 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             const refreshed = await attemptTokenRefresh();
             if (refreshed) {
               // Retry with new token
-              const newToken = globalThis.localStorage?.getItem('accessToken');
+              const newToken = localStorage.getItem('accessToken');
               const retryResponse = await fetch('/api/auth/user', {
                 headers: {
                   Authorization: `Bearer ${newToken}`,
@@ -80,24 +80,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               });
               
               if (retryResponse.ok) {
-                return (await retryResponse.json()) as User;
+                return await retryResponse.json();
               }
             }
             
-            globalThis.localStorage?.removeItem('accessToken');
-            globalThis.localStorage?.removeItem('refreshToken');
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
             return null;
           }
           console.warn(`Auth check failed: ${response.status}`);
           return null;
         }
 
-        const userData = await response.json() as User;
+        const userData = await response.json();
         return userData || null;
       } catch (error) {
         // Auth query error handled by UI
-        globalThis.localStorage?.removeItem('accessToken');
-        globalThis.localStorage?.removeItem('refreshToken');
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
         return null;
       }
     },
@@ -108,7 +108,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Token refresh mechanism
   const attemptTokenRefresh = async (): Promise<boolean> => {
-    const refreshToken = globalThis.localStorage?.getItem('refreshToken');
+    const refreshToken = localStorage.getItem('refreshToken');
     if (!refreshToken) {
       return false;
     }
@@ -124,21 +124,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       if (response.ok) {
-        const data = await response.json() as { accessToken: string; refreshToken?: string };
-        globalThis.localStorage?.setItem('accessToken', data.accessToken);
-        if (data.refreshToken) {
-          globalThis.localStorage?.setItem('refreshToken', data.refreshToken);
+        const { accessToken, refreshToken: newRefreshToken } = await response.json();
+        localStorage.setItem('accessToken', accessToken);
+        if (newRefreshToken) {
+          localStorage.setItem('refreshToken', newRefreshToken);
         }
         return true;
       } else {
-        globalThis.localStorage?.removeItem('accessToken');
-        globalThis.localStorage?.removeItem('refreshToken');
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
         return false;
       }
     } catch (error) {
       console.error('Token refresh failed:', error);
-      globalThis.localStorage?.removeItem('accessToken');
-      globalThis.localStorage?.removeItem('refreshToken');
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
       return false;
     }
   };
@@ -166,13 +166,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     },
     onSuccess: (result: { user: User; accessToken: string; refreshToken?: string }) => {
-      globalThis.localStorage?.setItem('accessToken', result.accessToken);
+      localStorage.setItem('accessToken', result.accessToken);
       if (result.refreshToken) {
-        globalThis.localStorage?.setItem('refreshToken', result.refreshToken);
+        localStorage.setItem('refreshToken', result.refreshToken);
       }
       // Store tenantId for quick access by components
       if (result.user?.tenantId) {
-        globalThis.localStorage?.setItem('tenantId', result.user.tenantId);
+        localStorage.setItem('tenantId', result.user.tenantId);
       }
       queryClient.setQueryData(['/api/auth/user'], result.user);
       toast({
@@ -204,30 +204,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw error;
       }
     },
-    onSuccess: (result: any) => {
-      // Handle the actual response structure from backend
-      if (result.success && result.data) {
+    onSuccess: (result: { user: User; accessToken: string; tenant?: { id: string; name: string; subdomain: string } }) => {
+      localStorage.setItem('accessToken', result.accessToken);
+      // Store tenantId for quick access by components
+      if (result.user?.tenantId) {
+        localStorage.setItem('tenantId', result.user.tenantId);
+      }
+      queryClient.setQueryData(['/api/auth/user'], result.user);
+
+      if (result.tenant) {
         toast({
-          title: 'Registro realizado com sucesso',
-          description: `Bem-vindo ao Conductor, ${result.data.firstName || result.data.email}!`,
+          title: 'Workspace criado com sucesso!',
+          description: `Bem-vindo ao Conductor! Seu workspace "${result.tenant.name}" foi criado e você é o administrador.`,
         });
-      } else if (result.user && result.accessToken) {
-        // Handle login-like response
-        globalThis.localStorage?.setItem('accessToken', result.accessToken);
-        if (result.user?.tenantId) {
-          globalThis.localStorage?.setItem('tenantId', result.user.tenantId);
-        }
-        queryClient.setQueryData(['/api/auth/user'], result.user);
-        
+      } else {
         toast({
           title: 'Registro realizado com sucesso',
           description: `Bem-vindo ao Conductor, ${result.user.firstName || result.user.email}!`,
-        });
-      } else {
-        // Fallback for success without user data
-        toast({
-          title: 'Registro realizado com sucesso',
-          description: 'Bem-vindo ao Conductor!',
         });
       }
     },
@@ -255,9 +248,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     },
     onSuccess: () => {
-      globalThis.localStorage?.removeItem('accessToken');
-      globalThis.localStorage?.removeItem('refreshToken');
-      globalThis.localStorage?.removeItem('tenantId');
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('tenantId');
       queryClient.setQueryData(['/api/auth/user'], null);
       queryClient.clear();
       toast({
@@ -268,7 +261,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     onError: (error: Error) => {
       console.error('Logout error:', error);
       // Still clear local state on error
-      globalThis.localStorage?.removeItem('accessToken');
+      localStorage.removeItem('accessToken');
       queryClient.setQueryData(['/api/auth/user'], null);
       queryClient.clear();
     },

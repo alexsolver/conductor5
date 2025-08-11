@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
@@ -15,7 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Plus, Filter, FileText, X, RefreshCw } from "lucide-react";
+import { Plus, Filter } from "lucide-react";
 import { DynamicSelect } from "@/components/DynamicSelect";
 import { DynamicBadge } from "@/components/DynamicBadge";
 import { useFieldColors } from "@/hooks/useFieldColors";
@@ -34,12 +34,6 @@ export default function Tickets() {
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
   const { getFieldColor, getFieldLabel, isLoading: isFieldColorsLoading, isReady } = useFieldColors();
-
-  // State for filtering
-  const [searchTerm, setSearchTerm] = useState<string>("");
-  const [selectedStatus, setSelectedStatus] = useState<string>("");
-  const [selectedPriority, setSelectedPriority] = useState<string>("");
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
 
   // Status mapping - manter valores em inglês conforme banco de dados 
   const statusMapping: Record<string, string> = {
@@ -93,11 +87,9 @@ export default function Tickets() {
   // Token management handled by auth hook
   // Remove debug code for production
 
-  const { data: ticketsResponse, isLoading, error } = useQuery({
+  const { data: tickets, isLoading, error } = useQuery({
     queryKey: ["/api/tickets"],
-    retry: 1,
-    refetchOnWindowFocus: false,
-    staleTime: 30000, // 30 seconds
+    retry: false,
   });
 
   // Fetch customers for the dropdown
@@ -159,7 +151,7 @@ export default function Tickets() {
 
   // Extract customers with proper error handling
   const customers = Array.isArray(customersData?.customers) ? customersData.customers : [];
-
+  
   // Handle customer loading errors
   if (customersData?.error || customersError) {
     console.error('Customer loading error:', customersData?.error || customersError);
@@ -324,20 +316,20 @@ export default function Tickets() {
       description: data.description,
       priority: data.priority,
       urgency: data.urgency,
-
+      
       // Hierarchical classification
       category: data.category,
       subcategory: data.subcategory,
       action: data.action,
-
+      
       // Person relationships (standardized)
       caller_id: data.customerId,
       beneficiary_id: data.beneficiaryId || null,
       customer_company_id: data.companyId,
-
+      
       // Assignment
       assignment_group_id: data.assignmentGroup,
-
+      
       // Location and context
       location: data.location,
       symptoms: data.symptoms || null,
@@ -375,35 +367,6 @@ export default function Tickets() {
     }
   };
 
-  // Filter tickets based on search and selected filters with safety checks
-  const filteredTickets = React.useMemo(() => {
-    if (!Array.isArray(ticketsList)) {
-      console.warn('🎫 ticketsList is not an array:', ticketsList);
-      return [];
-    }
-
-    return ticketsList.filter((ticket: any) => {
-      if (!ticket) {
-        console.warn('🎫 Invalid ticket object:', ticket);
-        return false;
-      }
-
-      const matchesSearchTerm = !searchTerm ||
-        ticket.subject?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        ticket.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        ticket.number?.toString().includes(searchTerm);
-      
-      const matchesStatus = !selectedStatus || mapStatusValue(ticket.status) === selectedStatus;
-      const matchesPriority = !selectedPriority || mapPriorityValue(ticket.priority) === selectedPriority;
-      const matchesCategory = !selectedCategory || mapCategoryValue(ticket.category) === selectedCategory;
-
-      return matchesSearchTerm && matchesStatus && matchesPriority && matchesCategory;
-    });
-  }, [ticketsList, searchTerm, selectedStatus, selectedPriority, selectedCategory]);
-
-  const ticketsCount = Array.isArray(ticketsList) ? ticketsList.length : 0;
-  const filteredTicketsCount = filteredTickets.length;
-
   if (isLoading || isFieldColorsLoading || !isReady) {
     return (
       <div className="p-4 space-y-6">
@@ -429,102 +392,16 @@ export default function Tickets() {
     );
   }
 
-  // Handle API errors
-  if (error) {
-    return (
-      <div className="p-4 space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-            Tickets de Suporte
-          </h1>
-        </div>
-        <Card>
-          <CardContent className="p-6 text-center">
-            <div className="text-red-500 mb-4">
-              <FileText className="h-12 w-12 mx-auto mb-2" />
-              <h3 className="text-lg font-semibold">Erro ao carregar tickets</h3>
-              <p className="text-sm text-gray-600 mt-2">
-                {error?.message || 'Falha na comunicação com o servidor'}
-              </p>
-              <Button 
-                onClick={() => window.location.reload()} 
-                className="mt-4"
-                variant="outline"
-              >
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Tentar novamente
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  // Extract tickets with comprehensive error handling
-  const ticketsList = React.useMemo(() => {
-    console.log('🎫 Processing ticketsResponse:', ticketsResponse);
-    
-    if (!ticketsResponse) {
-      console.log('🎫 No tickets response available');
-      return [];
-    }
-    
-    // Handle different response structures with validation
-    if (ticketsResponse.data?.tickets && Array.isArray(ticketsResponse.data.tickets)) {
-      console.log('🎫 Using ticketsResponse.data.tickets:', ticketsResponse.data.tickets.length);
-      return ticketsResponse.data.tickets;
-    }
-    
-    if (Array.isArray(ticketsResponse.data)) {
-      console.log('🎫 Using ticketsResponse.data:', ticketsResponse.data.length);
-      return ticketsResponse.data;
-    }
-    
-    if (Array.isArray(ticketsResponse)) {
-      console.log('🎫 Using ticketsResponse directly:', ticketsResponse.length);
-      return ticketsResponse;
-    }
-    
-    // Check for success field and data
-    if (ticketsResponse.success && ticketsResponse.data) {
-      if (Array.isArray(ticketsResponse.data)) {
-        console.log('🎫 Using success response data:', ticketsResponse.data.length);
-        return ticketsResponse.data;
-      }
-    }
-    
-    console.warn('🎫 Unexpected tickets response structure:', {
-      hasData: !!ticketsResponse.data,
-      isDataArray: Array.isArray(ticketsResponse.data),
-      hasSuccess: !!ticketsResponse.success,
-      keys: Object.keys(ticketsResponse),
-      structure: ticketsResponse
-    });
-    return [];
-  }, [ticketsResponse]);
-
-  // Debug log for tickets data
-  React.useEffect(() => {
-    console.log('🎫 Tickets data update:', {
-      isLoading,
-      error: error?.message,
-      responseStructure: ticketsResponse ? Object.keys(ticketsResponse) : null,
-      ticketsCount: ticketsList.length,
-      sampleTicket: ticketsList[0] ? {
-        id: ticketsList[0].id,
-        subject: ticketsList[0].subject,
-        status: ticketsList[0].status
-      } : null
-    });
-  }, [isLoading, error, ticketsResponse, ticketsList]);
+  // Parse consistente dos dados de tickets
+  const ticketsList = (tickets as any)?.data?.tickets || [];
+  const ticketsCount = Array.isArray(ticketsList) ? ticketsList.length : 0;
 
   return (
     <div className="p-4 space-y-6">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-            Tickets de Suporte ({filteredTicketsCount})
+            Tickets de Suporte ({ticketsCount})
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
             Gerencie e acompanhe solicitações de suporte ao cliente
@@ -626,7 +503,7 @@ export default function Tickets() {
                                     const lastName = customer.last_name || customer.lastName || '';
                                     const fullName = customer.fullName || customer.full_name || '';
                                     const name = customer.name || '';
-
+                                    
                                     if (fullName) return fullName;
                                     if (firstName && lastName) return `${firstName} ${lastName}`;
                                     if (firstName) return firstName;
@@ -962,68 +839,6 @@ export default function Tickets() {
         </div>
       </div>
 
-      {/* Filtros de Busca */}
-      <div className="flex justify-between items-center p-4 border rounded-lg shadow-sm bg-white dark:bg-gray-800">
-        <div className="flex items-center space-x-4 w-full">
-          <Input 
-            placeholder="Buscar por assunto, descrição ou ID..." 
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="h-10 flex-grow"
-          />
-          <Select onValueChange={setSelectedStatus} value={selectedStatus}>
-            <SelectTrigger className="w-[180px] h-10">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="">Todos os Status</SelectItem>
-              <SelectItem value="new">Novo</SelectItem>
-              <SelectItem value="open">Aberto</SelectItem>
-              <SelectItem value="in_progress">Em Andamento</SelectItem>
-              <SelectItem value="resolved">Resolvido</SelectItem>
-              <SelectItem value="closed">Fechado</SelectItem>
-              <SelectItem value="cancelled">Cancelado</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select onValueChange={setSelectedPriority} value={selectedPriority}>
-            <SelectTrigger className="w-[180px] h-10">
-              <SelectValue placeholder="Prioridade" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="">Todas as Prioridades</SelectItem>
-              <SelectItem value="low">Baixa</SelectItem>
-              <SelectItem value="medium">Média</SelectItem>
-              <SelectItem value="high">Alta</SelectItem>
-              <SelectItem value="critical">Crítica</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select onValueChange={setSelectedCategory} value={selectedCategory}>
-            <SelectTrigger className="w-[180px] h-10">
-              <SelectValue placeholder="Categoria" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="">Todas as Categorias</SelectItem>
-              {categories.map((category: any) => (
-                <SelectItem key={category.id} value={category.id}>
-                  {category.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {(searchTerm || selectedStatus || selectedPriority || selectedCategory) && (
-            <Button variant="outline" size="sm" onClick={() => {
-              setSearchTerm('');
-              setSelectedStatus('');
-              setSelectedPriority('');
-              setSelectedCategory('');
-            }} className="flex items-center h-10">
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Limpar Filtros
-            </Button>
-          )}
-        </div>
-      </div>
-
       {/* Sistema de Visualizações de Tickets */}
       <div className="mb-6">
         <TicketViewSelector 
@@ -1033,174 +848,100 @@ export default function Tickets() {
       </div>
 
       <div className="space-y-4">
-        {filteredTickets.length === 0 ? (
-            <Card>
-              <CardContent className="p-6 text-center">
-                <div className="text-gray-500 mb-4">
-                  <FileText className="h-12 w-12 mx-auto mb-2" />
-                  <h3 className="text-lg font-semibold">Nenhum ticket encontrado</h3>
-                  <p className="text-sm text-gray-600 mt-2">
-                    {searchTerm || selectedStatus || selectedPriority || selectedCategory
-                      ? "Tente ajustar os filtros de busca ou limpar os filtros ativos"
-                      : "Não há tickets cadastrados ainda"}
-                  </p>
-                  {(searchTerm || selectedStatus || selectedPriority || selectedCategory) && (
-                    <div className="flex gap-2 justify-center mt-4 mb-4">
-                      {searchTerm && (
-                        <Badge variant="secondary" className="px-3 py-1">
-                          Busca: "{searchTerm}"
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="ml-2 h-auto p-0"
-                            onClick={() => setSearchTerm('')}
-                          >
-                            ×
-                          </Button>
-                        </Badge>
-                      )}
-                      {selectedStatus && (
-                        <Badge variant="secondary" className="px-3 py-1">
-                          Status: {getFieldLabel('status', selectedStatus)}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="ml-2 h-auto p-0"
-                            onClick={() => setSelectedStatus('')}
-                          >
-                            ×
-                          </Button>
-                        </Badge>
-                      )}
-                      {selectedPriority && (
-                        <Badge variant="secondary" className="px-3 py-1">
-                          Prioridade: {getFieldLabel('priority', selectedPriority)}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="ml-2 h-auto p-0"
-                            onClick={() => setSelectedPriority('')}
-                          >
-                            ×
-                          </Button>
-                        </Badge>
-                      )}
-                      {selectedCategory && (
-                        <Badge variant="secondary" className="px-3 py-1">
-                          Categoria: {getFieldLabel('category', selectedCategory)}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="ml-2 h-auto p-0"
-                            onClick={() => setSelectedCategory('')}
-                          >
-                            ×
-                          </Button>
-                        </Badge>
-                      )}
-                    </div>
-                  )}
-                </div>
-                <div className="flex gap-2 justify-center">
-                  {(searchTerm || selectedStatus || selectedPriority || selectedCategory) && (
-                    <Button 
-                      variant="outline" 
-                      onClick={() => {
-                        setSearchTerm('');
-                        setSelectedStatus('');
-                        setSelectedPriority('');
-                        setSelectedCategory('');
-                      }}
-                    >
-                      <X className="h-4 w-4 mr-2" />
-                      Limpar Filtros
-                    </Button>
-                  )}
-                  <Button onClick={() => navigate('/tickets/new')}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    {ticketsCount === 0 ? 'Criar Primeiro Ticket' : 'Novo Ticket'}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ) : (
-            filteredTickets.map((ticket: any) => (
-            <Card key={ticket.id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate(`/tickets/${ticket.id}`)}>
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-start justify-between mb-3">
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mr-4">
-                        #{ticket.number || ticket.id} - {ticket.subject || 'Sem título'}
-                      </h3>
-                      <div className="flex items-center space-x-2 flex-shrink-0">
-                        <DynamicBadge 
-                          fieldName="priority" 
-                          value={mapPriorityValue(ticket.priority)}
-                          showIcon={true}
-                          className="font-medium"
-                          size="sm"
-                        >
-                          {getFieldLabel('priority', ticket.priority || 'medium')}
-                        </DynamicBadge>
-                        <DynamicBadge 
-                          fieldName="status" 
-                          value={mapStatusValue(ticket.status)}
-                          showIcon={true}
-                          className="font-medium"
-                          size="sm"
-                        >
-                          {getFieldLabel('status', ticket.status || 'open')}
-                        </DynamicBadge>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center space-x-2 mb-3">
+        {Array.isArray(ticketsList) && ticketsList.length > 0 ? (
+          ticketsList.map((ticket: any) => (
+          <Card key={ticket.id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate(`/tickets/${ticket.id}`)}>
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-start justify-between mb-3">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mr-4">
+                      #{ticket.number || ticket.id} - {ticket.subject || 'Sem título'}
+                    </h3>
+                    <div className="flex items-center space-x-2 flex-shrink-0">
                       <DynamicBadge 
-                        fieldName="category" 
-                        value={mapCategoryValue(ticket.category)}
-                        showIcon={false}
-                        className="font-medium text-xs"
+                        fieldName="priority" 
+                        value={mapPriorityValue(ticket.priority)}
+                        showIcon={true}
+                        className="font-medium"
                         size="sm"
                       >
-                        {getFieldLabel('category', ticket.category || 'suporte_tecnico')}
+                        {getFieldLabel('priority', ticket.priority || 'medium')}
+                      </DynamicBadge>
+                      <DynamicBadge 
+                        fieldName="status" 
+                        value={mapStatusValue(ticket.status)}
+                        showIcon={true}
+                        className="font-medium"
+                        size="sm"
+                      >
+                        {getFieldLabel('status', ticket.status || 'open')}
                       </DynamicBadge>
                     </div>
-                    <p className="text-gray-600 dark:text-gray-400 mb-3">
-                      {ticket.description ? 
-                        (ticket.description.length > 150 ? 
-                          ticket.description.substring(0, 150) + '...' : 
-                          ticket.description
-                        ).replace(/<[^>]*>/g, '') : 
-                        'Sem descrição disponível'
-                      }
-                    </p>
-                    <div className="flex items-center space-x-4 text-sm text-gray-500">
-                      <span>ID: {ticket.id}</span>
-                      <span>•</span>
-                      <span>Criado: {formatDate(ticket.created_at || ticket.opened_at)}</span>
-                      {ticket.assigned_to_id && (
-                        <>
-                          <span>•</span>
-                          <span>Atribuído</span>
-                        </>
-                      )}
-                    </div>
                   </div>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(`/tickets/${ticket.id}`);
-                    }}
-                  >
-                    Ver Detalhes
-                  </Button>
+                  
+                  <div className="flex items-center space-x-2 mb-3">
+                    <DynamicBadge 
+                      fieldName="category" 
+                      value={mapCategoryValue(ticket.category)}
+                      showIcon={false}
+                      className="font-medium text-xs"
+                      size="sm"
+                    >
+                      {getFieldLabel('category', ticket.category || 'suporte_tecnico')}
+                    </DynamicBadge>
+                  </div>
+                  <p className="text-gray-600 dark:text-gray-400 mb-3">
+                    {ticket.description ? 
+                      (ticket.description.length > 150 ? 
+                        ticket.description.substring(0, 150) + '...' : 
+                        ticket.description
+                      ).replace(/<[^>]*>/g, '') : 
+                      'Sem descrição disponível'
+                    }
+                  </p>
+                  <div className="flex items-center space-x-4 text-sm text-gray-500">
+                    <span>ID: {ticket.id}</span>
+                    <span>•</span>
+                    <span>Criado: {formatDate(ticket.created_at || ticket.opened_at)}</span>
+                    {ticket.assigned_to_id && (
+                      <>
+                        <span>•</span>
+                        <span>Atribuído</span>
+                      </>
+                    )}
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
-          ))
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/tickets/${ticket.id}`);
+                  }}
+                >
+                  Ver Detalhes
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))
+        ) : (
+          <Card>
+            <CardContent className="p-12 text-center">
+              <div className="text-gray-500">
+                <div className="text-lg font-medium mb-2">📋 Nenhum ticket encontrado</div>
+                <p className="text-sm mb-4">Não há tickets para exibir no momento.</p>
+                <Button 
+                  onClick={() => setIsCreateDialogOpen(true)}
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Criar Primeiro Ticket
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         )}
       </div>
     </div>

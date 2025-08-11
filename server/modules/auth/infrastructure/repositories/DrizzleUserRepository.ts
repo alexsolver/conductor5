@@ -1,3 +1,4 @@
+
 /**
  * Drizzle User Repository Implementation
  * Clean Architecture - Infrastructure Layer
@@ -21,7 +22,7 @@ interface UserFilter {
 }
 
 export class DrizzleUserRepository implements IUserRepository {
-
+  
   async findById(id: string): Promise<User | null> {
     const result = await db
       .select()
@@ -208,27 +209,26 @@ export class DrizzleUserRepository implements IUserRepository {
   }
 
   private toDomainEntity(data: any): User {
-    // FIXED: Manual entity reconstruction since factory method was moved to repository layer
-    return new User(
-      data.id,
-      data.email,
-      data.passwordHash || data.password_hash || data.password, // Handle field variations
-      data.firstName || data.first_name,
-      data.lastName || data.last_name,
-      data.role,
-      data.tenantId || data.tenant_id,
-      data.isActive !== undefined ? data.isActive : (data.is_active !== undefined ? data.is_active : data.active),
-      data.verified || false,
-      data.lastLoginAt || data.last_login_at || data.lastLogin,
-      data.createdAt || data.created_at || new Date(),
-      data.updatedAt || data.updated_at || new Date()
-    );
+    return User.fromPersistence({
+      id: data.id,
+      email: data.email,
+      password: data.passwordHash || data.password_hash, // Handle both field names
+      firstName: data.firstName || data.first_name,
+      lastName: data.lastName || data.last_name,
+      role: data.role,
+      tenantId: data.tenantId || data.tenant_id,
+      active: data.isActive !== undefined ? data.isActive : (data.is_active !== undefined ? data.is_active : data.active),
+      verified: data.verified || false,
+      lastLogin: data.lastLoginAt || data.last_login_at || data.lastLogin,
+      createdAt: data.createdAt || data.created_at || new Date(),
+      updatedAt: data.updatedAt || data.updated_at || new Date()
+    });
   }
 
   async findAll(options?: { page?: number; limit?: number }): Promise<User[]> {
     const limit = options?.limit || 50;
     const offset = options?.page ? (options.page - 1) * limit : 0;
-
+    
     const results = await db
       .select()
       .from(users)
@@ -240,10 +240,22 @@ export class DrizzleUserRepository implements IUserRepository {
   }
 
   async create(userData: { email: string; passwordHash: string; firstName?: string; lastName?: string; role: string; tenantId?: string }): Promise<User> {
-    // Removed validation logic - should be handled by Domain Service
-    // Repository should only handle data persistence
-    const result = await this.db.insert(users).values(userData).returning();
-    return this.toDomainEntity(result[0]);
+    const user = User.fromPersistence({
+      id: crypto.randomUUID(),
+      email: userData.email,
+      password: userData.passwordHash,
+      firstName: userData.firstName,
+      lastName: userData.lastName,
+      role: userData.role,
+      tenantId: userData.tenantId,
+      active: true,
+      verified: false,
+      lastLogin: undefined,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
+
+    return await this.save(user);
   }
 
   async countByTenant(tenantId: string): Promise<number> {
@@ -251,7 +263,7 @@ export class DrizzleUserRepository implements IUserRepository {
       .select({ count: count() })
       .from(users)
       .where(eq(users.tenantId, tenantId));
-
+    
     return result[0]?.count || 0;
   }
 

@@ -1,26 +1,13 @@
-interface HttpRequest {
-  body: any;
-  params: any;
-  query: any;
-  user?: any;
-  headers: any;
-}
-
-interface HttpResponse {
-  status(code: number): HttpResponse;
-  json(data: any): void;
-  send(data: any): void;
-}
+import { Request, Response } from 'express';
 import { MediaService } from '../services/MediaService';
-import { IMediaRepository } from '../../domain/ports/IMediaRepository';
+import { MediaRepository } from '../../infrastructure/repositories/MediaRepository';
 import { AuthenticatedRequest } from '../../../../middleware/jwtAuth';
-// Removed Express dependency for clean architecture
 
 export class MediaController {
   private mediaService: MediaService;
 
-  constructor(mediaRepository: IMediaRepository) { // Inject IMediaRepository
-    this.mediaService = new MediaService(mediaRepository);
+  constructor() {
+    this.mediaService = new MediaService(new MediaRepository());
   }
 
   // Get media statistics
@@ -48,11 +35,11 @@ export class MediaController {
       }
 
       const { folder, search, type, page = 1, limit = 50 } = req.query;
-
+      
       const filters = {
-        folderId: folder as string | undefined,
-        searchQuery: search as string | undefined,
-        type: type as string | undefined,
+        folderId: folder as string || undefined,
+        searchQuery: search as string || undefined,
+        type: type as string || undefined,
         page: parseInt(page as string),
         limit: parseInt(limit as string)
       };
@@ -86,7 +73,7 @@ export class MediaController {
     try {
       const tenantId = req.user?.tenantId;
       const userId = req.user?.id;
-
+      
       if (!tenantId || !userId) {
         return res.status(401).json({ success: false, message: 'Authentication required' });
       }
@@ -96,7 +83,7 @@ export class MediaController {
       }
 
       const { folderId, tags, description } = req.body;
-
+      
       const uploadData = {
         files: req.files,
         folderId: folderId || null,
@@ -118,13 +105,13 @@ export class MediaController {
     try {
       const tenantId = req.user?.tenantId;
       const userId = req.user?.id;
-
+      
       if (!tenantId || !userId) {
         return res.status(401).json({ success: false, message: 'Authentication required' });
       }
 
       const { name, description, color, parentId } = req.body;
-
+      
       if (!name) {
         return res.status(400).json({ success: false, message: 'Folder name is required' });
       }
@@ -154,7 +141,7 @@ export class MediaController {
       }
 
       const { fileId } = req.params;
-
+      
       if (!fileId) {
         return res.status(400).json({ success: false, message: 'File ID is required' });
       }
@@ -177,7 +164,7 @@ export class MediaController {
 
       const { fileId } = req.params;
       const { name, description, tags, folderId } = req.body;
-
+      
       if (!fileId) {
         return res.status(400).json({ success: false, message: 'File ID is required' });
       }
@@ -206,7 +193,7 @@ export class MediaController {
       }
 
       const { fileId } = req.params;
-
+      
       if (!fileId) {
         return res.status(400).json({ success: false, message: 'File ID is required' });
       }

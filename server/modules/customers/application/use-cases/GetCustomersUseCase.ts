@@ -1,66 +1,53 @@
-/**
- * GetCustomersUseCase - Clean Architecture Application Layer
- * Resolves violations: Missing Use Cases for customer management
- */
-
-import { Customer } from '../../domain/entities/Customer';
-
-interface CustomerRepositoryInterface {
-  findByTenant(tenantId: string, filters?: any): Promise<Customer[]>;
-}
+// Application Layer - Use Case
+import { Customer } from "../../domain/entities/Customer";
+import { ICustomerRepository } from "../../domain/repositories/ICustomerRepository";
 
 export interface GetCustomersRequest {
   tenantId: string;
-  search?: string;
   limit?: number;
   offset?: number;
+  verified?: boolean;
+  active?: boolean;
+  company?: string;
+  tags?: string[];
 }
 
 export interface GetCustomersResponse {
-  customers: Array<{
-    id: string;
-    name: string;
-    email: string;
-    phone?: string;
-    address?: string;
-    isActive: boolean;
-  }>;
+  customers: Customer[];
   total: number;
-  pagination: {
-    limit?: number;
-    offset?: number;
-  };
+  hasMore: boolean;
 }
 
 export class GetCustomersUseCase {
-  constructor(
-    private readonly customerRepository: CustomerRepositoryInterface
-  ) {}
+  constructor(private customerRepository: ICustomerRepository) {}
 
   async execute(request: GetCustomersRequest): Promise<GetCustomersResponse> {
-    const customers = await this.customerRepository.findByTenant(
-      request.tenantId,
-      {
-        search: request.search,
-        limit: request.limit,
-        offset: request.offset
-      }
-    );
+    const limit = request.limit || 50;
+    const offset = request.offset || 0;
+
+    // Get customers with filters
+    const customers = await this.customerRepository.findAll(request.tenantId, {
+      limit: limit + 1, // Get one extra to check if there are more
+      offset,
+      verified: request.verified,
+      active: request.active,
+      company: request.company,
+      tags: request.tags,
+    });
+
+    // Get total count
+    const total = await this.customerRepository.countTotal(request.tenantId);
+
+    // Check if there are more results
+    const hasMore = customers.length > limit;
+    if (hasMore) {
+      customers.pop(); // Remove the extra customer
+    }
 
     return {
-      customers: customers.map((c: Customer) => ({
-        id: c.getId(),
-        name: c.getName(),
-        email: c.getEmail(),
-        phone: c.getPhone(),
-        address: c.getAddress(),
-        isActive: c.isActive()
-      })),
-      total: customers.length,
-      pagination: {
-        limit: request.limit,
-        offset: request.offset
-      }
+      customers,
+      total,
+      hasMore,
     };
   }
 }

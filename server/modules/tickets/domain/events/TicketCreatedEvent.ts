@@ -4,9 +4,8 @@
  */
 
 import { IDomainEvent } from '../../../shared/domain/IDomainEvent';
-import { BaseDomainEvent } from '../../../shared/domain/events/BaseDomainEvent';
 
-export class TicketCreatedEvent extends BaseDomainEvent implements IDomainEvent {
+export class TicketCreatedEvent implements IDomainEvent {
   public readonly eventName = 'TicketCreated';
   public readonly aggregateId: string;
   public readonly occurredOn: Date;
@@ -20,7 +19,6 @@ export class TicketCreatedEvent extends BaseDomainEvent implements IDomainEvent 
     public readonly subject: string,
     occurredOn?: Date
   ) {
-    super('TicketCreated'); // Initialize BaseDomainEvent
     this.aggregateId = ticketId;
     this.occurredOn = occurredOn || new Date();
   }

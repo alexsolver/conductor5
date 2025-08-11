@@ -1,40 +1,19 @@
 import { Pool } from '@neondatabase/serverless';
-import { ticketListViews, ticketViewShares, userViewPreferences } from '@shared/schema';
-
-// Type definitions for the repository
-type TicketListView = typeof ticketListViews.$inferSelect;
-type InsertTicketListView = typeof ticketListViews.$inferInsert;
-type TicketViewShare = typeof ticketViewShares.$inferSelect;
-type InsertTicketViewShare = typeof ticketViewShares.$inferInsert;
-type UserViewPreference = typeof userViewPreferences.$inferSelect;
-type InsertUserViewPreference = typeof userViewPreferences.$inferInsert;
+import {
+  TicketListView,
+  InsertTicketListView,
+  TicketViewShare,
+  InsertTicketViewShare,
+  UserViewPreference,
+  InsertUserViewPreference
+} from '@shared/schema';
 
 export class TicketViewsRepository {
   constructor(private pool: Pool) {}
 
   private async query(sql: string, params: any[] = []) {
-    try {
-      const result = await this.pool.query(sql, params);
-      return result.rows;
-    } catch (error: any) {
-      // If table doesn't exist, try to create infrastructure
-      if (error.code === '42P01' && sql.includes('ticket_list_views')) {
-        console.log('🏗️ Ticket infrastructure tables missing, creating them...');
-        const { createTicketInfrastructureTables } = await import('../scripts/createTicketInfrastructureTables');
-        
-        // Extract tenant ID from SQL
-        const tenantMatch = sql.match(/tenant_([^.]+)/);
-        if (tenantMatch) {
-          const tenantId = tenantMatch[1].replace(/_/g, '-');
-          await createTicketInfrastructureTables(tenantId);
-          
-          // Retry the original query
-          const result = await this.pool.query(sql, params);
-          return result.rows;
-        }
-      }
-      throw error;
-    }
+    const result = await this.pool.query(sql, params);
+    return result.rows;
   }
 
   // ========================================

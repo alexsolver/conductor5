@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { db } from '../db';
 import { sql } from 'drizzle-orm';
-import { ipKeyGenerator } from 'express-rate-limit';
 
 interface RateLimitConfig {
   windowMs: number;
@@ -145,7 +144,7 @@ export function createRateLimitMiddleware(config?: Partial<RateLimitConfig>) {
   const service = config ? new RateLimitService({ ...defaultConfig, ...config }) : rateLimitService;
   
   return async (req: Request, res: Response, next: NextFunction) => {
-    const ip = ipKeyGenerator(req);
+    const ip = req.ip || (req.connection as any)?.remoteAddress || (Array.isArray(req.headers['x-forwarded-for']) ? req.headers['x-forwarded-for'][0] : req.headers['x-forwarded-for']) || 'unknown';
     const email = req.body?.email || req.body?.username;
     
     try {
@@ -180,7 +179,7 @@ export function recordLoginAttempt(req: Request, res: Response, next: NextFuncti
   const originalSend = res.send;
   
   res.send = function(data: any) {
-    const ip = ipKeyGenerator(req);
+    const ip = req.ip || (req.connection as any)?.remoteAddress || (Array.isArray(req.headers['x-forwarded-for']) ? req.headers['x-forwarded-for'][0] : req.headers['x-forwarded-for']) || 'unknown';
     const email = req.body?.email || req.body?.username;
     
     // Check if login was successful based on status code

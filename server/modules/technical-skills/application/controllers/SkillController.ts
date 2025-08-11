@@ -1,41 +1,21 @@
-import { z } from 'zod';
-import { SkillApplicationService } from '../services/SkillApplicationService';
-import { ISkillRepository } from '../../domain/ports/ISkillRepository';
+import type { Request, Response } from 'express';
+import type { ISkillRepository } from '../../domain/repositories/ISkillRepository';
+import { Skill, SkillEntity } from '../../domain/entities/Skill';
 import crypto from 'crypto';
-import { IUserSkillRepository } from '../../domain/ports/IUserSkillRepository';
+import { DrizzleSkillRepository } from '../../infrastructure/repositories/DrizzleSkillRepository';
 
-// Define HttpRequest and HttpResponse interfaces to remove Express dependency
-interface HttpRequest {
-  body: any;
-  params: any;
-  query: any;
-  headers?: any;
-  user?: any;
-}
-
-interface HttpResponse {
-  status: (code: number) => HttpResponse;
-  json: (data: any) => void;
-}
-
-import { CreateSkillUseCase } from '../use-cases/CreateSkillUseCase';
-import { GetSkillsUseCase } from '../use-cases/GetSkillsUseCase';
-import { UpdateSkillUseCase } from '../use-cases/UpdateSkillUseCase';
-import { standardResponse } from '../../../utils/standardResponse';
-
-// Clean Architecture: Controller depends on Use Cases, not services or repositories
 export class SkillController {
-  constructor(
-    private createSkillUseCase: CreateSkillUseCase,
-    private getSkillsUseCase: GetSkillsUseCase,
-    private updateSkillUseCase: UpdateSkillUseCase
-  ) {}
+  private skillRepository: ISkillRepository;
 
-  async createSkill(req: HttpRequest, res: HttpResponse): Promise<void> {
+  constructor() {
+    this.skillRepository = new DrizzleSkillRepository();
+  }
+
+  async createSkill(req: Request, res: Response): Promise<void> {
     try {
       const { name, category, description } = req.body;
-      const user = req.user;
-      const tenantId = req.headers && req.headers['x-tenant-id'] ? req.headers['x-tenant-id'] as string : user?.tenantId;
+      const user = (req as any).user;
+      const tenantId = req.headers['x-tenant-id'] as string || user?.tenantId;
       const userId = user?.id;
 
       console.log('Creating skill with tenantId:', tenantId, 'user:', user);
@@ -56,7 +36,8 @@ export class SkillController {
         return;
       }
 
-      const skillData = {
+      // Criar skill com apenas campos básicos
+      const skill = {
         id: crypto.randomUUID(),
         name,
         category,
@@ -69,7 +50,7 @@ export class SkillController {
         updatedAt: new Date(),
       };
 
-      const createdSkill = await this.skillService.createSkill(skillData);
+      const createdSkill = await this.skillRepository.create(skill);
 
       res.status(201).json({
         success: true,
@@ -86,16 +67,16 @@ export class SkillController {
     }
   }
 
-  async getSkills(req: HttpRequest, res: HttpResponse): Promise<void> {
+  async getSkills(req: Request, res: Response): Promise<void> {
     try {
-      const tenantId = req.headers && req.headers['x-tenant-id'] ? req.headers['x-tenant-id'] as string : req.user?.tenantId;
-
+      const tenantId = req.headers['x-tenant-id'] as string;
+      
       console.log('Getting skills for tenant:', tenantId);
 
       const { category, search, isActive } = req.query;
 
       const filters: any = {};
-
+      
       if (tenantId) {
         filters.tenantId = tenantId;
       }
@@ -104,7 +85,7 @@ export class SkillController {
       if (search) filters.search = search as string;
       if (isActive !== undefined) filters.isActive = isActive === 'true';
 
-      const skills = await this.skillService.getSkills(filters);
+      const skills = await this.skillRepository.findAll(filters);
 
       console.log('Found skills:', skills.length);
 
@@ -116,8 +97,8 @@ export class SkillController {
     } catch (error) {
       console.error('Error fetching skills:', {
         error: error instanceof Error ? error.message : 'Unknown error',
-        userId: req.user?.id,
-        tenantId: req.headers && req.headers['x-tenant-id'] ? req.headers['x-tenant-id'] : req.user?.tenantId
+        userId: (req as any).user?.id,
+        tenantId: req.headers['x-tenant-id']
       });
 
       res.status(500).json({
@@ -128,10 +109,10 @@ export class SkillController {
     }
   }
 
-  async getSkillById(req: HttpRequest, res: HttpResponse): Promise<void> {
+  async getSkillById(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const skill = await this.skillService.getSkillById(id);
+      const skill = await this.skillRepository.findById(id);
 
       if (!skill) {
         res.status(404).json({
@@ -155,12 +136,12 @@ export class SkillController {
     }
   }
 
-  async updateSkill(req: HttpRequest, res: HttpResponse): Promise<void> {
+  async updateSkill(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const { name, category, description, suggestedCertification, certificationValidityMonths, observations, scaleOptions } = req.body;
-      const tenantId = req.headers && req.headers['x-tenant-id'] ? req.headers['x-tenant-id'] as string : req.user?.tenantId;
-      const userId = req.user?.id;
+      const tenantId = req.headers['x-tenant-id'] as string;
+      const userId = (req as any).user?.id;
 
       const updateData = {
         id,
@@ -175,7 +156,7 @@ export class SkillController {
         updatedBy: userId,
       };
 
-      const updatedSkill = await this.skillService.updateSkill(id, updateData);
+      const updatedSkill = await this.skillRepository.updateDirect(updateData);
 
       res.json({
         success: true,
@@ -192,11 +173,11 @@ export class SkillController {
     }
   }
 
-  async deleteSkill(req: HttpRequest, res: HttpResponse): Promise<void> {
+  async deleteSkill(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
 
-      await this.skillService.deleteSkill(id);
+      await this.skillRepository.delete(id);
 
       res.json({
         success: true,
@@ -212,9 +193,9 @@ export class SkillController {
     }
   }
 
-  async getCategories(req: HttpRequest, res: HttpResponse): Promise<void> {
+  async getCategories(req: Request, res: Response): Promise<void> {
     try {
-      const categories = await this.skillService.getCategories();
+      const categories = await this.skillRepository.getCategories();
 
       res.json({
         success: true,
@@ -230,15 +211,31 @@ export class SkillController {
     }
   }
 
-  async getStatistics(req: HttpRequest, res: HttpResponse): Promise<void> {
+  async getStatistics(req: Request, res: Response): Promise<void> {
     try {
-      const tenantId = req.headers && req.headers['x-tenant-id'] ? req.headers['x-tenant-id'] as string : req.user?.tenantId;
+      const tenantId = req.headers['x-tenant-id'] as string;
 
-      const statistics = await this.skillService.getStatistics(tenantId);
+      // Buscar estatísticas básicas das habilidades
+      const allSkills = await this.skillRepository.findAll({ tenantId });
+      
+      const totalSkills = allSkills.length;
+      const activeSkills = allSkills.filter(skill => skill.isActive).length;
+      const inactiveSkills = totalSkills - activeSkills;
+
+      // Agrupar por categoria
+      const categoriesCount = allSkills.reduce((acc, skill) => {
+        acc[skill.category] = (acc[skill.category] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
 
       res.json({
         success: true,
-        data: statistics
+        data: {
+          totalSkills,
+          activeSkills,
+          inactiveSkills,
+          categoriesCount
+        }
       });
     } catch (error) {
       console.error('Error fetching statistics:', error);

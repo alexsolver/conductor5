@@ -38,7 +38,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest, validateApiResponse } from "@/lib/queryClient";
+import { apiRequest } from "@/lib/queryClient";
 
 // Schema for beneficiary creation/editing
 const beneficiarySchema = z.object({
@@ -155,49 +155,7 @@ export default function Beneficiaries() {
       }
 
       const data = await response.json();
-      console.log('[BENEFICIARIES] API Response:', data);
-      
-      // Use validation helper
-      const validated = validateApiResponse(data, ['beneficiaries']);
-      
-      if (validated.success) {
-        let beneficiaries = [];
-        let pagination = { total: 0, totalPages: 0 };
-        
-        // Try different data paths
-        if (Array.isArray(validated.data.beneficiaries)) {
-          beneficiaries = validated.data.beneficiaries;
-        } else if (Array.isArray(validated.data)) {
-          beneficiaries = validated.data;
-        } else if (data.data && Array.isArray(data.data.beneficiaries)) {
-          beneficiaries = data.data.beneficiaries;
-        } else if (Array.isArray(data.beneficiaries)) {
-          beneficiaries = data.beneficiaries;
-        }
-        
-        // Handle pagination
-        if (data.data && data.data.pagination) {
-          pagination = data.data.pagination;
-        } else if (data.pagination) {
-          pagination = data.pagination;
-        } else {
-          pagination = { total: beneficiaries.length, totalPages: Math.ceil(beneficiaries.length / itemsPerPage) };
-        }
-        
-        return {
-          data: {
-            beneficiaries,
-            pagination
-          }
-        };
-      }
-      
-      return {
-        data: {
-          beneficiaries: [],
-          pagination: { total: 0, totalPages: 0 }
-        }
-      };
+      return data;
     },
   });
 
@@ -217,10 +175,7 @@ export default function Beneficiaries() {
 
   // Update beneficiaryCustomers when data changes
   React.useEffect(() => {
-    if (beneficiaryCustomersData && 
-        typeof beneficiaryCustomersData === 'object' && 
-        'data' in beneficiaryCustomersData && 
-        Array.isArray(beneficiaryCustomersData.data)) {
+    if (beneficiaryCustomersData && 'data' in beneficiaryCustomersData && beneficiaryCustomersData.data) {
       setBeneficiaryCustomers(beneficiaryCustomersData.data);
     }
   }, [beneficiaryCustomersData]);
@@ -908,10 +863,7 @@ export default function Beneficiaries() {
                     )}
                   </TableCell>
                   <TableCell>
-                    {beneficiary.createdAt || beneficiary.created_at ? 
-                      new Date(beneficiary.createdAt || beneficiary.created_at!).toLocaleDateString('pt-BR') : 
-                      '-'
-                    }
+                    {new Date(beneficiary.createdAt || beneficiary.created_at).toLocaleDateString('pt-BR')}
                   </TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>

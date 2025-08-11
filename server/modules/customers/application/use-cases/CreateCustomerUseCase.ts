@@ -1,10 +1,9 @@
 
 // Application Layer - Use Case
-import { Customer } from "../../domain/entities/Customer";
-import { ICustomerRepository } from "../../domain/repositories/ICustomerRepository";
-import { CustomerCreated } from "../../domain/events/CustomerEvents";
-import { IDomainEventPublisher } from "../../../shared/events/IDomainEventPublisher";
-import { randomUUID } from "crypto";
+import { Customer } from "../../../domain/entities/Customer";
+import { ICustomerRepository } from "../../../domain/repositories/ICustomerRepository";
+import { CustomerCreated } from "../../../domain/events/CustomerEvents";
+import { IDomainEventPublisher } from "../../../../shared/events/IDomainEventPublisher";
 
 export interface CreateCustomerRequest {
   tenantId: string;
@@ -64,50 +63,41 @@ export class CreateCustomerUseCase {
     }
 
     // Create customer entity
-    const customer = new Customer(
-      randomUUID(),
-      request.tenantId,
-      request.customerType as 'PF' | 'PJ' || "PF",
-      'Ativo',
-      request.email,
-      null, // description
-      null, // internalCode
-      request.firstName,
-      request.lastName,
-      request.cpf,
-      request.companyName,
-      request.cnpj,
-      request.contactPerson,
-      null, // responsible
-      request.phone,
-      request.mobilePhone,
-      null, // position
-      null, // supervisor
-      null, // coordinator
-      null, // manager
-      [], // tags
-      {}, // metadata
-      false, // verified
-      true, // active
-      false, // suspended
-      null, // lastLogin
-      'UTC', // timezone
-      'pt-BR', // locale
-      'pt', // language
-      null, // externalId
-      'customer', // role
-      null, // notes
-      null, // avatar
-      null, // signature
-      new Date(), // createdAt
-      new Date() // modifiedAt
-    );
+    const customer = Customer.create({
+      tenantId: request.tenantId,
+      email: request.email,
+      firstName: request.firstName,
+      lastName: request.lastName,
+      phone: request.phone,
+      mobilePhone: request.mobilePhone,
+      customerType: request.customerType || "PF",
+      cpf: request.cpf,
+      cnpj: request.cnpj,
+      companyName: request.companyName,
+      contactPerson: request.contactPerson,
+      state: request.state,
+      address: request.address,
+      addressNumber: request.addressNumber,
+      complement: request.complement,
+      neighborhood: request.neighborhood,
+      city: request.city,
+      zipCode: request.zipCode,
+    });
 
     // Save to repository
-    const savedCustomer = await this.customerRepository.create(customer);
+    const savedCustomer = await this.customerRepository.save(customer);
 
     // Publish domain event
-    const event = new CustomerCreated(savedCustomer);
+    const event = new CustomerCreated(
+      savedCustomer.id,
+      savedCustomer.tenantId,
+      {
+        email: savedCustomer.email,
+        fullName: savedCustomer.fullName,
+        customerType: savedCustomer.customerType,
+        companyName: savedCustomer.companyName || undefined,
+      }
+    );
 
     await this.eventPublisher.publish(event);
 

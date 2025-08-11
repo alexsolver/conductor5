@@ -63,7 +63,6 @@ export default function TeamManagement() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClientInstance = useQueryClient();
-  
   const [activeTab, setActiveTab] = useState("overview");
   const [searchTerm, setSearchTerm] = useState("");
   const [filterDepartment, setFilterDepartment] = useState("all");
@@ -136,19 +135,19 @@ export default function TeamManagement() {
     refetchInterval: 30000,
   });
 
-  // Fetch team members from team-management API
-  const { data: teamMembersData, isLoading: tenantMembersLoading } = useQuery({
-    queryKey: ["/api/team-management/members"],
+  // Usar user-management/users que funciona em vez de tenant-admin/team/members
+  const { data: userManagementData, isLoading: tenantMembersLoading } = useQuery({
+    queryKey: ["/api/user-management/users"],
     enabled: !!user,
     refetchInterval: 60000,
   });
 
-  // Use team-management data directly (it's already an array)
-  const tenantMembers = Array.isArray(teamMembersData) ? teamMembersData : [];
+  // Extrair users do objeto retornado
+  const tenantMembers = userManagementData?.users || [];
 
-  // Fetch groups for filter - use teams departments as groups
+  // Fetch groups for filter
   const { data: groupsData } = useQuery({
-    queryKey: ['/api/teams/departments'],
+    queryKey: ['/api/user-management/groups'],
     enabled: !!user,
   });
 
@@ -164,34 +163,9 @@ export default function TeamManagement() {
     enabled: !!user,
   });
 
-  // Fallback to teams API if team-management doesn't have data
-  const { data: fallbackTeamsData } = useQuery({
-    queryKey: ["/api/teams/members"],
-    enabled: !!user && (!teamMembersData || teamMembersData.length === 0),
-    refetchInterval: 60000,
-  });
-
-  // Combine data sources - prioritize team-management, fallback to teams
-  const membersArray = (() => {
-    if (Array.isArray(tenantMembers) && tenantMembers.length > 0) {
-      return tenantMembers;
-    }
-    
-    if (fallbackTeamsData?.users && Array.isArray(fallbackTeamsData.users)) {
-      return fallbackTeamsData.users;
-    }
-    
-    if (Array.isArray(fallbackTeamsData)) {
-      return fallbackTeamsData;
-    }
-    
-    return [];
-  })();
-  
-  // Debug logging
-  console.log('TeamManagement - Current user:', user);
-  console.log('TeamManagement - Team members data:', teamMembersData);
-  console.log('TeamManagement - Processed members array:', membersArray);
+  // Filter team members - usando tenantMembers que funciona
+  const membersArray = Array.isArray(tenantMembers) ? tenantMembers : 
+                       (tenantMembers && Array.isArray(tenantMembers.members) ? tenantMembers.members : []);
   
   const filteredMembers = membersArray.filter((member: any) => {
     const matchesSearch = member.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -275,7 +249,7 @@ export default function TeamManagement() {
 
   // Handle export team data
   const handleExportTeamData = () => {
-    if (!membersArray || membersArray.length === 0) {
+    if (!teamMembers || teamMembers.length === 0) {
       toast({
         title: "Nenhum dado para exportar",
         description: "Não há membros da equipe para exportar.",
@@ -330,7 +304,7 @@ export default function TeamManagement() {
     }
   };
 
-  if (overviewLoading || membersLoading || statsLoading || tenantMembersLoading) {
+  if (overviewLoading || membersLoading || statsLoading) {
     return (
       <div className="p-4 space-y-4">
         <div className="animate-pulse">
@@ -372,7 +346,7 @@ export default function TeamManagement() {
           <Button 
             variant="outline"
             onClick={handleExportTeamData}
-            disabled={!membersArray || membersArray.length === 0}
+            disabled={!teamMembers || teamMembers.length === 0}
           >
             <Download className="h-4 w-4 mr-2" />
             Exportar
@@ -388,7 +362,7 @@ export default function TeamManagement() {
               <div>
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total de Membros</p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {teamStats?.totalMembers ?? membersArray.length}
+                  {teamStats?.totalMembers ?? 0}
                 </p>
               </div>
               <Users className="h-8 w-8 text-blue-600" />

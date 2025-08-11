@@ -1,7 +1,7 @@
-
 import { sql } from 'drizzle-orm';
+import * as schema from '@shared/schema';
 
-class SchemaValidator {
+export class SchemaValidator {
 
   static async validateTenantSchema(db: any, tenantId: string): Promise<{
     isValid: boolean;
@@ -19,7 +19,7 @@ class SchemaValidator {
 
         // Core ticket system (essential)
         'ticket_field_configurations', 'ticket_field_options', 'ticket_categories',
-        'ticket_subcategories', 'ticket_actions', 'users'
+        'ticket_subcategories', 'ticket_actions'
       ];
       const missingTables: string[] = [];
       const fieldMappings: Record<string, string[]> = {};
@@ -40,7 +40,6 @@ class SchemaValidator {
             SELECT column_name 
             FROM information_schema.columns 
             WHERE table_schema = ${schemaName} AND table_name = ${table}
-            ORDER BY ordinal_position
           `);
 
           fieldMappings[table] = columns.rows.map((row: any) => row.column_name);
@@ -67,10 +66,7 @@ class SchemaValidator {
     const mappings: Record<string, string[]> = {
       'is_active': ['active', 'is_enabled', 'enabled'],
       'first_name': ['name', 'full_name', 'display_name'],
-      'last_name': ['surname', 'family_name'],
-      'address': ['street_address', 'full_address', 'location_address'],
-      'assigned_to_id': ['assignee_id', 'responsible_id', 'agent_id'],
-      'tenant_id': ['tenant', 'organization_id', 'company_id']
+      'address': ['street_address', 'full_address', 'location_address']
     };
 
     if (availableFields.includes(originalField)) {
@@ -96,121 +92,64 @@ class SchemaValidator {
     issues: string[];
   }> {
     const issues: string[] = [];
-    let tableCount = 0;
-    let indexCount = 0; 
-    let constraintCount = 0;
-    let foreignKeyCount = 0;
 
     try {
-      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-
       // Validate table count
       const tableResult = await db.execute(sql`
         SELECT COUNT(*) as count 
         FROM information_schema.tables 
-        WHERE table_schema = ${schemaName}
+        WHERE table_schema = ${`tenant_${tenantId.replace(/-/g, '_')}`}
       `);
-      tableCount = parseInt(tableResult.rows[0]?.count as string || "0");
+      const tableCount = parseInt(tableResult.rows[0]?.count as string || "0");
 
       // Validate indexes
       const indexResult = await db.execute(sql`
         SELECT COUNT(*) as count 
         FROM pg_indexes 
-        WHERE schemaname = ${schemaName}
+        WHERE schemaname = ${`tenant_${tenantId.replace(/-/g, '_')}`}
       `);
-      indexCount = parseInt(indexResult.rows[0]?.count as string || "0");
+      const indexCount = parseInt(indexResult.rows[0]?.count as string || "0");
 
       // Validate constraints
       const constraintResult = await db.execute(sql`
         SELECT COUNT(*) as count 
         FROM information_schema.table_constraints 
-        WHERE table_schema = ${schemaName}
+        WHERE table_schema = ${`tenant_${tenantId.replace(/-/g, '_')}`}
       `);
-      constraintCount = parseInt(constraintResult.rows[0]?.count as string || "0");
+      const constraintCount = parseInt(constraintResult.rows[0]?.count as string || "0");
 
       // Validate foreign keys
       const fkResult = await db.execute(sql`
         SELECT COUNT(*) as count 
         FROM information_schema.table_constraints 
-        WHERE table_schema = ${schemaName}
+        WHERE table_schema = ${`tenant_${tenantId.replace(/-/g, '_')}`}
         AND constraint_type = 'FOREIGN KEY'
       `);
-      foreignKeyCount = parseInt(fkResult.rows[0]?.count as string || "0");
+      const foreignKeyCount = parseInt(fkResult.rows[0]?.count as string || "0");
 
       // Health criteria (enhanced with FK validation)
-      const isHealthy = tableCount >= 15 && indexCount >= 10 && constraintCount >= 5 && foreignKeyCount >= 3;
+      const isHealthy = tableCount >= 60 && indexCount >= 50 && constraintCount >= 30 && foreignKeyCount >= 15;
 
-      if (tableCount < 15) issues.push(`Low table count: ${tableCount}/15 minimum`);
-      if (indexCount < 10) issues.push(`Low index count: ${indexCount}/10 minimum`);
-      if (constraintCount < 5) issues.push(`Low constraint count: ${constraintCount}/5 minimum`);
-      if (foreignKeyCount < 3) issues.push(`Low FK count: ${foreignKeyCount}/3 minimum`);
+      if (tableCount < 60) issues.push(`Low table count: ${tableCount}/60`);
+      if (indexCount < 50) issues.push(`Low index count: ${indexCount}/50`);
+      if (constraintCount < 30) issues.push(`Low constraint count: ${constraintCount}/30`);
 
       return {
         isHealthy,
         tableCount,
         indexCount,
         constraintCount,
-        foreignKeyCount,
         issues
       };
     } catch (error) {
-      issues.push(`Validation error: ${(error as Error).message}`);
+      issues.push(`Validation error: ${error.message}`);
       return {
         isHealthy: false,
-        tableCount,
-        indexCount,
-        constraintCount,
-        foreignKeyCount,
+        tableCount: 0,
+        indexCount: 0,
+        constraintCount: 0,
         issues
-      };
-    }
-  }
-
-  // Add validation for field consistency
-  static async validateFieldConsistency(db: any, tenantId: string): Promise<{
-    isConsistent: boolean;
-    fieldIssues: string[];
-  }> {
-    const fieldIssues: string[] = [];
-    const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-
-    try {
-      // Check critical field consistency
-      const criticalFields = [
-        { table: 'users', field: 'tenant_id' },
-        { table: 'tickets', field: 'tenant_id' },
-        { table: 'customers', field: 'tenant_id' },
-        { table: 'users', field: 'is_active' },
-        { table: 'tickets', field: 'assigned_to_id' }
-      ];
-
-      for (const { table, field } of criticalFields) {
-        const fieldExists = await db.execute(sql`
-          SELECT EXISTS (
-            SELECT FROM information_schema.columns 
-            WHERE table_schema = ${schemaName} 
-            AND table_name = ${table}
-            AND column_name = ${field}
-          ) as exists
-        `);
-
-        if (!fieldExists.rows?.[0]?.exists) {
-          fieldIssues.push(`Missing critical field: ${table}.${field}`);
-        }
-      }
-
-      return {
-        isConsistent: fieldIssues.length === 0,
-        fieldIssues
-      };
-    } catch (error) {
-      fieldIssues.push(`Field validation error: ${(error as Error).message}`);
-      return {
-        isConsistent: false,
-        fieldIssues
       };
     }
   }
 }
-
-export { SchemaValidator };

@@ -4,8 +4,6 @@
  */
 
 import { Ticket } from '../../domain/entities/Ticket';
-import { TicketPriority } from '../../domain/value-objects/TicketPriority';
-import { TicketStatus } from '../../domain/value-objects/TicketStatus';
 import { ITicketRepository } from '../../domain/ports/ITicketRepository';
 import { IDomainEventPublisher } from '../../../shared/domain/IDomainEventPublisher';
 import { TicketCreatedEvent } from '../../domain/events/TicketCreatedEvent';
@@ -62,60 +60,54 @@ export class CreateTicketUseCase {
       );
 
       // Create new ticket
-      // Using constructor directly since factory method was moved to repository layer
-      const ticketId = this.idGenerator.generateId();
-      const now = new Date();
-      
-      const ticket = new Ticket(
-        ticketId, // id
-        input.tenantId, // tenantId
-        input.customerId, // customerId
-        input.callerId, // callerId
-        input.callerType, // callerType
-        input.subject, // subject
-        input.description || '', // description
-        ticketNumber, // number
-        input.shortDescription || input.subject, // shortDescription
-        input.category || '', // category
-        input.subcategory || '', // subcategory
-        TicketPriority.create(input.priority), // priority
-        input.impact || 'medium', // impact
-        input.urgency || 'medium', // urgency
-        TicketStatus.create('open'), // state
-        'open', // status
-        input.assignedToId || null, // assignedToId
-        input.beneficiaryId || null, // beneficiaryId
-        input.beneficiaryType || null, // beneficiaryType
-        input.assignmentGroup || null, // assignmentGroup
-        input.location || null, // location
-        input.contactType || '', // contactType
-        input.businessImpact || null, // businessImpact
-        input.symptoms || null, // symptoms
-        input.workaround || null, // workaround
-        input.configurationItem || null, // configurationItem
-        input.businessService || null, // businessService
-        null, // resolutionCode
-        null, // resolutionNotes
-        null, // workNotes
-        null, // closeNotes
-        input.notify || false, // notify
-        null, // rootCause
-        now, // openedAt
-        null, // resolvedAt
-        null, // closedAt
-        now, // createdAt
-        now // updatedAt
+      const ticket = Ticket.create({
+        tenantId: input.tenantId,
+        customerId: input.customerId,
+        callerId: input.callerId,
+        callerType: input.callerType,
+        subject: input.subject,
+        description: input.description,
+        shortDescription: input.shortDescription,
+        category: input.category,
+        subcategory: input.subcategory,
+        priority: input.priority,
+        impact: input.impact,
+        urgency: input.urgency,
+        assignedToId: input.assignedToId,
+        beneficiaryId: input.beneficiaryId,
+        beneficiaryType: input.beneficiaryType,
+        assignmentGroup: input.assignmentGroup,
+        location: input.location,
+        contactType: input.contactType,
+        businessImpact: input.businessImpact,
+        symptoms: input.symptoms,
+        workaround: input.workaround,
+        configurationItem: input.configurationItem,
+        businessService: input.businessService,
+        notify: input.notify
+      }, ticketNumber, this.idGenerator);
+
+      // Save ticket
+      const savedTicket = await this.ticketRepository.save(ticket);
+
+      // Publish domain event
+      const event = new TicketCreatedEvent(
+        savedTicket.getId(),
+        savedTicket.getTenantId(),
+        savedTicket.getCustomerId(),
+        savedTicket.getCallerId(),
+        savedTicket.getPriority(),
+        savedTicket.getSubject(),
+        new Date()
       );
+      
+      await this.eventPublisher.publish(event);
 
-      // Save ticket - using create method instead of save
-      const ticketResult = await this.ticketRepository.create(input, input.tenantId);
-
-      // Return simple success response without domain events for now
       return {
-        id: ticketResult.id || ticketId,
-        number: ticketResult.number || ticketNumber,
+        id: savedTicket.getId(),
+        number: savedTicket.getNumber(),
         success: true,
-        message: 'Ticket created successfully'
+        ticket: savedTicket
       };
     } catch (error) {
       return {

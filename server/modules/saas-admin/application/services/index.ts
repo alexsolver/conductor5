@@ -1,2 +1,0 @@
-
-export { SaasAdminApplicationService } from './SaasAdminApplicationService';

@@ -4,7 +4,7 @@ import { unifiedStorage } from "./storage-simple";
 import { schemaManager } from "./db";
 import { jwtAuth, AuthenticatedRequest } from "./middleware/jwtAuth";
 import { requirePermission, requireTenantAccess } from "./middleware/rbacMiddleware";
-import { createCSPMiddleware, createCSPReportingEndpoint, createCSPManagementRoutes } from "./middleware/cspMiddleware";
+import createCSPMiddleware, { createCSPReportingEndpoint, createCSPManagementRoutes } from "./middleware/cspMiddleware";
 import { createMemoryRateLimitMiddleware, RATE_LIMIT_CONFIGS } from "./services/redisRateLimitService";
 import { createFeatureFlagMiddleware } from "./services/featureFlagService";
 import cookieParser from "cookie-parser";
@@ -20,7 +20,7 @@ import userManagementRoutes from "./routes/userManagementRoutes";
 import { integrityRouter as integrityRoutes } from './routes/integrityRoutes';
 import systemScanRoutes from './routes/systemScanRoutes';
 import { technicalSkillsRoutes } from './modules/technical-skills/routes';
-// Import beneficiariesRoutes handled dynamically below
+import beneficiariesRoutes from './modules/beneficiaries/routes';
 // import internalFormsRoutes from './modules/internal-forms/routes'; // Temporarily removed
 // Removed: external-contacts routes - functionality eliminated
 import locationsNewRoutes from './modules/locations/routes-new';
@@ -36,73 +36,8 @@ import holidayRoutes from './routes/HolidayController';
 // import omnibridgeRoutes from './routes/omnibridge'; // Removed - using real APIs only
 
 // Removed: journeyRoutes - functionality eliminated from system
-// import { timecardRoutes } from './routes/timecardRoutes'; // Temporarily disabled due to controller issues
-// Import CLT Compliance Controller with safety check
-let cltComplianceController: any = null;
-
-async function initializeCLTController() {
-  try {
-    const cltModule = await import('./controllers/CLTComplianceController');
-    cltComplianceController = cltModule.cltComplianceController || cltModule.default || null;
-
-    if (cltComplianceController && typeof cltComplianceController === 'object') {
-      // Ensure all methods exist with fallbacks
-      const requiredMethods = ['getAll', 'getById', 'create', 'update', 'delete'];
-      requiredMethods.forEach(method => {
-        if (typeof cltComplianceController[method] !== 'function') {
-          cltComplianceController[method] = async (req: any, res: any) => {
-            res.status(501).json({
-              success: false,
-              error: `CLT Compliance ${method} method not implemented`
-            });
-          };
-        }
-      });
-    }
-  } catch (error) {
-    console.warn('CLT Compliance Controller not available:', error.message);
-    cltComplianceController = createFallbackController();
-  }
-}
-
-// Create fallback controller for CLT compliance routes
-function createFallbackController() {
-  return {
-    getAll: async (req: any, res: any) => {
-      res.status(501).json({
-        success: false,
-        error: 'CLT Compliance module not available'
-      });
-    },
-    getById: async (req: any, res: any) => {
-      res.status(501).json({
-        success: false,
-        error: 'CLT Compliance module not available'
-      });
-    },
-    create: async (req: any, res: any) => {
-      res.status(501).json({
-        success: false,
-        error: 'CLT Compliance module not available'
-      });
-    },
-    update: async (req: any, res: any) => {
-      res.status(501).json({
-        success: false,
-        error: 'CLT Compliance module not available'
-      });
-    },
-    delete: async (req: any, res: any) => {
-      res.status(501).json({
-        success: false,
-        error: 'CLT Compliance module not available'
-      });
-    }
-  };
-}
-
-// Initialize controller on startup
-initializeCLTController();
+import { timecardRoutes } from './routes/timecardRoutes';
+import { cltComplianceController } from './controllers/CLTComplianceController';
 import { TimecardApprovalController } from './modules/timecard/application/controllers/TimecardApprovalController';
 import { TimecardController } from './modules/timecard/application/controllers/TimecardController';
 import scheduleRoutes from './modules/schedule-management/infrastructure/routes/scheduleRoutes';
@@ -112,9 +47,10 @@ import contractRoutes from './routes/contractRoutes';
 import materialsServicesRoutes from './modules/materials-services/routes';
 import knowledgeBaseRoutes from './modules/knowledge-base/routes';
 import notificationsRoutes from './modules/notifications/routes';
+import ticketMetadataRoutes from './routes/ticketMetadata.js';
 import ticketFieldOptionsRoutes from './routes/ticketFieldOptions';
 import { slaController } from './modules/tickets/SlaController';
-import customFieldsRoutes from './modules/custom-fields/routes';
+import customFieldsRoutes from './modules/custom-fields/routes.ts';
 import { fieldLayoutRoutes } from './modules/field-layouts/routes';
 import ticketHistoryRoutes from './modules/ticket-history/routes';
 import { TicketViewsController } from './controllers/TicketViewsController';
@@ -125,81 +61,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Add cookie parser middleware
   app.use(cookieParser());
 
-  // Apply CSP middleware with fallback
-  try {
-    const cspMiddleware = createCSPMiddleware({
-      environment: process.env.NODE_ENV === 'production' ? 'production' : 'development',
-      nonce: true
-    });
-    if (cspMiddleware && typeof cspMiddleware === 'function') {
-      app.use(cspMiddleware);
-    } else {
-      console.warn('CSP middleware returned invalid function, skipping...');
-    }
-  } catch (error) {
-    console.warn('CSP middleware not available, skipping...', error?.message || error);
-  }
+  // Apply CSP middleware
+  app.use(createCSPMiddleware({
+    environment: process.env.NODE_ENV === 'production' ? 'production' : 'development',
+    nonce: true
+  }));
 
 
 
-  // Apply memory-based rate limiting middleware with safety checks
-  try {
-    const loginRateLimit = createMemoryRateLimitMiddleware(RATE_LIMIT_CONFIGS.LOGIN);
-    const registerRateLimit = createMemoryRateLimitMiddleware(RATE_LIMIT_CONFIGS.REGISTRATION);
-    const passwordResetRateLimit = createMemoryRateLimitMiddleware(RATE_LIMIT_CONFIGS.PASSWORD_RESET);
-
-    if (loginRateLimit && typeof loginRateLimit === 'function') {
-      app.use('/api/auth/login', loginRateLimit);
-    }
-    if (registerRateLimit && typeof registerRateLimit === 'function') {
-      app.use('/api/auth/register', registerRateLimit);
-    }
-    if (passwordResetRateLimit && typeof passwordResetRateLimit === 'function') {
-      app.use('/api/auth/password-reset', passwordResetRateLimit);
-    }
-  } catch (error) {
-    console.warn('Rate limiting middleware not available, skipping...', error.message);
-  }
+  // Apply memory-based rate limiting middleware  
+  app.use('/api/auth/login', createMemoryRateLimitMiddleware(RATE_LIMIT_CONFIGS.LOGIN));
+  app.use('/api/auth/register', createMemoryRateLimitMiddleware(RATE_LIMIT_CONFIGS.REGISTRATION));
+  app.use('/api/auth/password-reset', createMemoryRateLimitMiddleware(RATE_LIMIT_CONFIGS.PASSWORD_RESET));
 
   // Exempt ticket-config/field-options from rate limiting to avoid UI errors
   app.use('/api', (req, res, next) => {
     if (req.path.includes('/ticket-config/field-options')) {
       return next(); // Skip rate limiting for field-options
     }
-    try {
-      const generalRateLimit = createMemoryRateLimitMiddleware(RATE_LIMIT_CONFIGS.API_GENERAL);
-      if (generalRateLimit && typeof generalRateLimit === 'function') {
-        return generalRateLimit(req, res, next);
-      }
-    } catch (error) {
-      // Continue without rate limiting if middleware fails
-    }
-    return next();
+    return createMemoryRateLimitMiddleware(RATE_LIMIT_CONFIGS.API_GENERAL)(req, res, next);
   });
 
-  // Apply feature flag middleware with safety check
-  try {
-    const featureFlagMiddleware = createFeatureFlagMiddleware();
-    if (featureFlagMiddleware && typeof featureFlagMiddleware === 'function') {
-      app.use(featureFlagMiddleware);
-    }
-  } catch (error) {
-    console.warn('Feature flag middleware not available, skipping...', error?.message || error);
-  }
+  // Apply feature flag middleware
+  app.use(createFeatureFlagMiddleware());
 
   // CSP reporting endpoint
-  try {
-    const cspReportingEndpoint = createCSPReportingEndpoint();
-    if (cspReportingEndpoint && typeof cspReportingEndpoint === 'function') {
-      app.post('/api/csp-report', cspReportingEndpoint);
-    }
-  } catch (error) {
-    console.warn('CSP reporting endpoint not available, skipping...', error?.message || error);
-  }
+  app.post('/api/csp-report', createCSPReportingEndpoint());
 
-  // CSP management routes (admin only) - disabled
-  // Note: CSP management routes are disabled to prevent middleware errors
-  console.log('CSP management routes disabled');
+  // CSP management routes (admin only)
+  app.use('/api/csp', requirePermission('platform', 'manage_security'), createCSPManagementRoutes());
 
   // Feature flags routes
   app.get('/api/feature-flags', jwtAuth, async (req: AuthenticatedRequest, res) => {
@@ -268,51 +158,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Customer dependencies simplified - using storage-simple.ts approach
 
   // Import and mount authentication routes
-  try {
-    const authRoutes = await import('./modules/auth/routes');
-    app.use('/api/auth', authRoutes.default);
-  } catch (error) {
-    console.log('Auth router not available, skipping...');
-  }
+  const { authRouter } = await import('./modules/auth/routes');
+  app.use('/api/auth', authRouter);
 
-  // Import microservice routers with error handling
-  try {
-    const { dashboardRouter } = await import('./modules/dashboard/routes');
-    app.use('/api/dashboard', dashboardRouter);
-  } catch (error) {
-    console.log('Dashboard router not available, skipping...');
-  }
+  // Import microservice routers
+  const { dashboardRouter } = await import('./modules/dashboard/routes');
+  const { customersRouter } = await import('./modules/customers/routes');
+  const { ticketsRouter } = await import('./modules/tickets/routes');
+  // const { knowledgeBaseRouter } = await import('./modules/knowledge-base/routes');
+  const { peopleRouter } = await import('./modules/people/routes');
+  // Beneficiaries routes imported at top of file
 
-  try {
-    const { customersRouter } = await import('./modules/customers/routes');
-    app.use('/api/customers', customersRouter);
-  } catch (error) {
-    console.log('Customers router not available, skipping...');
-  }
-
-  try {
-    const { ticketsRouter } = await import('./modules/tickets/routes');
-    app.use('/api/tickets', ticketsRouter);
-  } catch (error) {
-    console.log('Tickets router not available, skipping...');
-  }
-
-  try {
-    const { peopleRouter } = await import('./modules/people/routes');
-    app.use('/api/people', peopleRouter);
-  } catch (error) {
-    console.log('People router not available, skipping...');
-  }
-
-  try {
-    const { beneficiariesRouter } = await import('./modules/beneficiaries/routes');
-    app.use('/api/beneficiaries', beneficiariesRouter);
-  } catch (error) {
-    console.log('Beneficiaries router not available, skipping...');
-  }
-
-  // Remove old router mounting logic that was causing crashes
-  // All routers now mounted with try-catch above
+  // Module Integrity Control System
 
   // Configure multer for file uploads
   const upload = multer({
@@ -340,8 +197,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Router mounting completed above with try-catch blocks
-  // No duplicate mounting needed here
+  // Mount microservice routes
+  app.use('/api/dashboard', dashboardRouter);
+  app.use('/api/customers', customersRouter);
+  app.use('/api/beneficiaries', beneficiariesRoutes);
+  app.use('/api/tickets', ticketsRouter);
 
   // Import and mount ticket relationships routes
   const ticketRelationshipsRouter = await import('./routes/ticketRelationships');
@@ -380,7 +240,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/tickets/metadata/dynamic-schema', jwtAuth, metadataController.generateDynamicSchema.bind(metadataController));
 
   // app.use('/api/knowledge-base', knowledgeBaseRouter);
-  // app.use('/api/people', peopleRouter); // Handled above with try-catch
+  app.use('/api/people', peopleRouter);
   app.use('/api/integrity', integrityRoutes);
   app.use('/api/system', systemScanRoutes);
 
@@ -1353,12 +1213,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/templates', templateRoutes.default);
 
   // Import and mount admin routes
-  // const saasAdminRoutes = await import('./modules/saas-admin/routes'); // Imported at top
-  // const tenantAdminRoutes = await import('./modules/tenant-admin/routes'); // Imported at top
+  const saasAdminRoutes = await import('./modules/saas-admin/routes');
+  const tenantAdminRoutes = await import('./modules/tenant-admin/routes');
   // const saasAdminIntegrationsRoutes = await import('./routes/saasAdminIntegrations'); // Temporarily removed
   const tenantIntegrationsRoutes = await import('./routes/tenantIntegrations');
-  app.use('/api/saas-admin', saasAdminRoutes);
-  app.use('/api/tenant-admin', tenantAdminRoutes);
+  app.use('/api/saas-admin', saasAdminRoutes.default);
+  app.use('/api/tenant-admin', tenantAdminRoutes.default);
   // Removed: journey API routes - functionality eliminated from system
   app.use('/api/schedule', scheduleRoutes);
 
@@ -1512,7 +1372,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     app.put('/api/ticket-templates/:templateId', jwtAuth, ticketTemplateController.updateTemplate.bind(ticketTemplateController));
     app.delete('/api/ticket-templates/:templateId', jwtAuth, ticketTemplateController.deleteTemplate.bind(ticketTemplateController));
 
-    // Busca e filters
+    // Busca e filtros
     app.get('/api/ticket-templates/company/:companyId/search', jwtAuth, ticketTemplateController.searchTemplates.bind(ticketTemplateController));
     app.get('/api/ticket-templates/company/:companyId/categories', jwtAuth, ticketTemplateController.getTemplateCategories.bind(ticketTemplateController));
     app.get('/api/ticket-templates/company/:companyId/popular', jwtAuth, ticketTemplateController.getPopularTemplates.bind(ticketTemplateController));
@@ -2091,138 +1951,110 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // OmniBridge Module temporarily removed
 
   // Timecard Routes - Essential for CLT compliance
-  // app.use('/api/timecard', timecardRoutes); // Temporarily disabled due to controller issues
+  app.use('/api/timecard', timecardRoutes);
+
+  // OmniBridge Auto-Start Routes - Simplified without requireTenantAccess
+  app.post('/api/omnibridge/start-monitoring', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { omniBridgeAutoStart } = await import('./services/OmniBridgeAutoStart');
+      const tenantId = req.user?.tenantId;
+
+      if (!tenantId) {
+        return res.status(400).json({ message: "Tenant ID required" });
+      }
+
+      console.log(`🚀 Starting OmniBridge monitoring for tenant: ${tenantId}`);
+      await omniBridgeAutoStart.detectAndStartCommunicationChannels(tenantId);
+
+      res.json({ 
+        message: "OmniBridge monitoring started successfully",
+        activeMonitoring: omniBridgeAutoStart.getActiveMonitoring(),
+        isActive: true
+      });
+    } catch (error) {
+      console.error('Error starting OmniBridge monitoring:', error);
+      res.status(500).json({ message: "Failed to start monitoring" });
+    }
+  });
+
+  app.post('/api/omnibridge/stop-monitoring', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { omniBridgeAutoStart } = await import('./services/OmniBridgeAutoStart');
+      const tenantId = req.user?.tenantId;
+
+      if (!tenantId) {
+        return res.status(400).json({ message: "Tenant ID required" });
+      }
+
+      console.log(`🛑 Stopping OmniBridge monitoring for tenant: ${tenantId}`);
+      await omniBridgeAutoStart.stopAllMonitoring(tenantId);
+
+      res.json({ 
+        message: "OmniBridge monitoring stopped successfully",
+        isActive: false
+      });
+    } catch (error) {
+      console.error('Error stopping OmniBridge monitoring:', error);
+      res.status(500).json({ message: "Failed to stop monitoring" });
+    }
+  });
+
+  app.get('/api/omnibridge/monitoring-status', jwtAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { omniBridgeAutoStart } = await import('./services/OmniBridgeAutoStart');
+
+      const activeMonitoring = omniBridgeAutoStart.getActiveMonitoring();
+      res.json({ 
+        activeMonitoring,
+        isActive: activeMonitoring.length > 0
+      });
+    } catch (error) {
+      console.error('Error getting monitoring status:', error);
+      res.status(500).json({ message: "Failed to get status" });
+    }
+  });
+
+  // Timecard routes - Registro de Ponto  
+  app.use('/api/timecard', jwtAuth, timecardRoutes);
+
+  // Timecard Approval Routes
+  const timecardApprovalController = new TimecardApprovalController();
+
+  // Approval Groups
+  app.get('/api/timecard/approval/groups', jwtAuth, timecardApprovalController.getApprovalGroups);
+  app.post('/api/timecard/approval/groups', jwtAuth, timecardApprovalController.createApprovalGroup);
+  app.put('/api/timecard/approval/groups/:id', jwtAuth, timecardApprovalController.updateApprovalGroup);
+  app.delete('/api/timecard/approval/groups/:id', jwtAuth, timecardApprovalController.deleteApprovalGroup);
+
+  // Group Members
+  app.get('/api/timecard/approval/groups/:groupId/members', jwtAuth, timecardApprovalController.getGroupMembers);
+  app.put('/api/timecard/approval/groups/:groupId/members', jwtAuth, timecardApprovalController.addGroupMember);
+  app.delete('/api/timecard/approval/groups/:groupId/members/:memberId', jwtAuth, timecardApprovalController.removeGroupMember);
+
+  // Approval Settings
+  app.get('/api/timecard/approval/settings', jwtAuth, timecardApprovalController.getApprovalSettings);
+  app.put('/api/timecard/approval/settings', jwtAuth, timecardApprovalController.updateApprovalSettings);
+
+  // Approval Actions
+  app.get('/api/timecard/approval/pending', jwtAuth, timecardApprovalController.getPendingApprovals);
+  app.post('/api/timecard/approval/approve/:entryId', jwtAuth, timecardApprovalController.approveTimecard);
+  app.post('/api/timecard/approval/reject/:entryId', jwtAuth, timecardApprovalController.rejectTimecard);
+  app.post('/api/timecard/approval/bulk-approve', jwtAuth, timecardApprovalController.bulkApproveTimecards);
+
+  // Utility Routes
+  app.get('/api/timecard/approval/users', jwtAuth, timecardApprovalController.getAvailableUsers);
 
   // 🔴 CLT COMPLIANCE ROUTES - OBRIGATÓRIAS POR LEI
-  // Enhanced CLT handler with comprehensive safety checks
-  const safeCltHandler = (methodName: string, defaultMessage: string) => {
-    return async (req: any, res: any) => {
-      try {
-        if (cltComplianceController && 
-            typeof cltComplianceController === 'object' && 
-            typeof cltComplianceController[methodName] === 'function') {
-          return await cltComplianceController[methodName](req, res);
-        } else {
-          console.warn(`[CLT-${methodName}] Method not available, returning fallback response`);
-          return res.status(501).json({ 
-            message: defaultMessage,
-            status: 'not_implemented',
-            method: methodName
-          });
-        }
-      } catch (error) {
-        console.error(`[CLT-${methodName}] Error:`, error);
-        return res.status(500).json({ 
-          message: 'Erro interno do sistema CLT',
-          error: error.message,
-          method: methodName
-        });
-      }
-    };
-  };
-
   // Verificação de integridade da cadeia CLT
-  app.get('/api/timecard/compliance/integrity-check', jwtAuth, 
-    safeCltHandler('checkIntegrity', 'Verificação de integridade CLT não disponível'));
+  app.get('/api/timecard/compliance/integrity-check', jwtAuth, cltComplianceController.checkIntegrity.bind(cltComplianceController));
 
   // Trilha de auditoria completa
-  app.get('/api/timecard/compliance/audit-log', jwtAuth, 
-    safeCltHandler('getAuditLog', 'Log de auditoria CLT não disponível'));
+  app.get('/api/timecard/compliance/audit-log', jwtAuth, cltComplianceController.getAuditLog.bind(cltComplianceController));
 
   // Relatórios de compliance para fiscalização
-  app.post('/api/timecard/compliance/generate-report', jwtAuth, 
-    safeCltHandler('generateComplianceReport', 'Geração de relatórios CLT não disponível'));
-
-  app.get('/api/timecard/compliance/reports', jwtAuth, 
-    safeCltHandler('listComplianceReports', 'Listagem de relatórios CLT não disponível'));
-
-  app.get('/api/timecard/compliance/reports/:reportId', jwtAuth, 
-    safeCltHandler('downloadComplianceReport', 'Download de relatórios CLT não disponível'));
-
-  // Additional CLT compliance routes with comprehensive safety checks
-  app.get('/api/timecard/compliance/backups', jwtAuth, async (req, res) => {
-    try {
-      if (cltComplianceController && 
-          typeof cltComplianceController === 'object' && 
-          typeof cltComplianceController.getBackupStatus === 'function') {
-        return await cltComplianceController.getBackupStatus(req, res);
-      } else {
-        res.status(501).json({ 
-          message: 'Status de backup CLT não disponível',
-          status: 'not_implemented' 
-        });
-      }
-    } catch (error) {
-      console.error('[CLT-BACKUP-STATUS] Error:', error);
-      res.status(500).json({ 
-        message: 'Erro interno no sistema CLT',
-        error: error.message 
-      });
-    }
-  });
-
-  app.post('/api/timecard/compliance/verify-backup', jwtAuth, async (req, res) => {
-    try {
-      if (cltComplianceController && 
-          typeof cltComplianceController === 'object' && 
-          typeof cltComplianceController.verifyBackup === 'function') {
-        return await cltComplianceController.verifyBackup(req, res);
-      } else {
-        res.status(501).json({ 
-          message: 'Verificação de backup CLT não disponível',
-          status: 'not_implemented' 
-        });
-      }
-    } catch (error) {
-      console.error('[CLT-VERIFY-BACKUP] Error:', error);
-      res.status(500).json({ 
-        message: 'Erro interno no sistema CLT',
-        error: error.message 
-      });
-    }
-  });
-
-  app.get('/api/timecard/compliance/keys', jwtAuth, async (req, res) => {
-    try {
-      if (cltComplianceController && 
-          typeof cltComplianceController === 'object' && 
-          typeof cltComplianceController.getDigitalKeys === 'function') {
-        return await cltComplianceController.getDigitalKeys(req, res);
-      } else {
-        res.status(501).json({ 
-          message: 'Gestão de chaves digitais CLT não disponível',
-          status: 'not_implemented' 
-        });
-      }
-    } catch (error) {
-      console.error('[CLT-KEYS] Error:', error);
-      res.status(500).json({ 
-        message: 'Erro interno no sistema CLT',
-        error: error.message 
-      });
-    }
-  });
-
-  app.post('/api/timecard/compliance/rebuild-integrity', jwtAuth, async (req, res) => {
-    try {
-      if (cltComplianceController && 
-          typeof cltComplianceController === 'object' && 
-          typeof cltComplianceController.rebuildIntegrityChain === 'function') {
-        return await cltComplianceController.rebuildIntegrityChain(req, res);
-      } else {
-        res.status(501).json({ 
-          message: 'Reconstituição de integridade CLT não disponível',
-          status: 'not_implemented' 
-        });
-      }
-    } catch (error) {
-      console.error('[CLT-REBUILD] Error:', error);
-      res.status(500).json({ 
-        message: 'Erro interno no sistema CLT',
-        error: error.message 
-      });
-    }
-  });
+  app.post('/api/timecard/compliance/generate-report', jwtAuth, cltComplianceController.generateComplianceReport.bind(cltComplianceController));
+  app.get('/api/timecard/compliance/reports', jwtAuth, cltComplianceController.listComplianceReports.bind(cltComplianceController));
+  app.get('/api/timecard/compliance/reports/:reportId', jwtAuth, cltComplianceController.downloadComplianceReport.bind(cltComplianceController));
 
   // Direct CLT Reports - Bypass routing conflicts
   app.get('/api/timecard/reports/attendance/:period', jwtAuth, async (req: AuthenticatedRequest, res) => {
@@ -2237,35 +2069,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log('[ATTENDANCE-REPORT] Fetching real timecard data for user:', userId, 'period:', period);
 
-      // Mock data for now since TimecardController method may not exist
-      const mockReport = {
-        success: true,
-        period,
-        data: {
-          employee: {
-            id: userId,
-            name: 'Funcionário',
-            registration: '001'
-          },
-          entries: [],
-          summary: {
-            totalHours: '00:00',
-            workingDays: 0,
-            overtime: '00:00'
-          }
-        }
-      };
-
-      res.json(mockReport);
+      // Usar o TimecardController que já tem acesso ao db correto
+      const timecardController = new TimecardController();
+      
+      // Redirecionar para o método correto do controller
+      req.params = { period };
+      return await timecardController.getAttendanceReport(req, res);
     } catch (error) {
       console.error('[ATTENDANCE-REPORT] Error:', error);
       res.status(500).json({ success: false, error: 'Erro ao gerar relatório de espelho de ponto' });
     }
   });
 
+        
 
+  // Status dos backups
+  app.get('/api/timecard/compliance/backups', jwtAuth, cltComplianceController.getBackupStatus.bind(cltComplianceController));
+  app.post('/api/timecard/compliance/verify-backup', jwtAuth, cltComplianceController.verifyBackup.bind(cltComplianceController));
 
-  // Duplicate CLT routes removed - handled above with comprehensive safety checks
+  // Status das chaves de assinatura digital
+  app.get('/api/timecard/compliance/keys', jwtAuth, cltComplianceController.getDigitalKeys.bind(cltComplianceController));
+
+  // Reconstituição da cadeia de integridade
+  app.post('/api/timecard/compliance/rebuild-integrity', jwtAuth, cltComplianceController.rebuildIntegrityChain.bind(cltComplianceController));
 
   // Contract Management routes - Gestão de Contratos
   app.use('/api/contracts', contractRoutes);
@@ -2715,7 +2541,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({ success: true, data: analyticsData });
     } catch (error) {
-      console.error('Error fetching KB analytics:', error);
+      console.error('Error fetching analytics:', error);
       res.status(500).json({ success: false, message: 'Failed to fetch analytics' });
     }
   });
@@ -3333,153 +3159,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { companyId, relationshipType = 'client', isPrimary = false } = req.body;
       const tenantId = req.user?.tenantId;
 
-      console.log('[CUSTOMER-COMPANY-ASSOCIATION] Request:', { 
-        customerId, 
-        companyId, 
-        relationshipType, 
-        isPrimary, 
-        tenantId,
-        requestBody: req.body,
-        userContext: {
-          userId: req.user?.id,
-          userTenantId: req.user?.tenantId
-        }
-      });
-
       if (!tenantId) {
         return res.status(401).json({ message: 'Tenant required' });
       }
 
-      if (!customerId || !companyId) {
-        return res.status(400).json({ 
-          success: false, 
-          message: 'Customer ID and Company ID are required' 
-        });
-      }
-
-      // Validate UUID format
-      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-      if (!uuidRegex.test(customerId)) {
-        console.error('[CUSTOMER-COMPANY-ASSOCIATION] Invalid customer UUID format:', customerId);
-        return res.status(400).json({ 
-          success: false, 
-          message: 'Invalid customer ID format' 
-        });
-      }
-
-      if (!uuidRegex.test(companyId)) {
-        console.error('[CUSTOMER-COMPANY-ASSOCIATION] Invalid company UUID format:', companyId);
-        return res.status(400).json({ 
-          success: false, 
-          message: 'Invalid company ID format' 
-        });
-      }
-
-      const { schemaManager } = await import('./db');
-      const pool = schemaManager.getPool();
+      const { db: tenantDb } = await schemaManager.getTenantDb(tenantId);
       const schemaName = schemaManager.getSchemaName(tenantId);
 
-      // Log the schema being used
-      console.log('[CUSTOMER-COMPANY-ASSOCIATION] Using schema:', schemaName);
+      // Check if relationship already exists (including inactive ones)
+      const existing = await tenantDb.execute(sql`
+        SELECT id, is_active FROM ${sql.identifier(schemaName)}.companies_relationships
+        WHERE customer_id = ${customerId} AND company_id = ${companyId}
+      `);
 
-      // First, verify that both customer and company exist
-      const customerCheck = await pool.query(`
-        SELECT id FROM "${schemaName}".customers 
-        WHERE id = $1 AND tenant_id = $2 AND is_active = true
-      `, [customerId, tenantId]);
+      if (existing.rows.length > 0) {
+        const existingRelation = existing.rows[0];
 
-      console.log('[CUSTOMER-COMPANY-ASSOCIATION] Customer check result:', {
-        customerId,
-        tenantId,
-        rowsFound: customerCheck.rows.length,
-        rows: customerCheck.rows
-      });
-
-      if (customerCheck.rows.length === 0) {
-        // Try to find the customer without tenant restriction to debug
-        const debugCheck = await pool.query(`
-          SELECT id, tenant_id, is_active FROM "${schemaName}".customers 
-          WHERE id = $1
-        `, [customerId]);
-
-        console.error('[CUSTOMER-COMPANY-ASSOCIATION] Customer not found:', {
-          customerId,
-          tenantId,
-          debugResults: debugCheck.rows
-        });
-
-        return res.status(404).json({ 
-          success: false, 
-          message: 'Cliente não encontrado' 
-        });
-      }
-
-      const companyCheck = await pool.query(`
-        SELECT id FROM "${schemaName}".companies 
-        WHERE id = $1 AND tenant_id = $2
-      `, [companyId, tenantId]);
-
-      if (companyCheck.rows.length === 0) {
-        console.error('[CUSTOMER-COMPANY-ASSOCIATION] Company not found:', companyId);
-        return res.status(404).json({ 
-          success: false, 
-          message: 'Empresa não encontrada' 
-        });
-      }
-
-      // Check if relationship already exists in companies_relationships table
-      const existingCheck = await pool.query(`
-        SELECT id, is_active FROM "${schemaName}".companies_relationships
-        WHERE customer_id = $1 AND company_id = $2
-      `, [customerId, companyId]);
-
-      if (existingCheck.rows.length > 0) {
-        const existing = existingCheck.rows[0];
-        if (existing.is_active) {
+        if (existingRelation.is_active) {
           return res.status(400).json({ 
             success: false, 
             message: 'Cliente já está associado a esta empresa' 
           });
         } else {
           // Reactivate existing relationship
-          const reactivated = await pool.query(`
-            UPDATE "${schemaName}".companies_relationships
-            SET is_active = true, relationship_type = $1, is_primary = $2, 
-                start_date = CURRENT_DATE, updated_at = CURRENT_TIMESTAMP
-            WHERE id = $3
+          const reactivated = await tenantDb.execute(sql`
+            UPDATE ${sql.identifier(schemaName)}.companies_relationships
+            SET is_active = true, relationship_type = ${relationshipType}, 
+                is_primary = ${isPrimary}, start_date = CURRENT_DATE, 
+                updated_at = CURRENT_TIMESTAMP, end_date = NULL
+            WHERE id = ${existingRelation.id}
             RETURNING *
-          `, [relationshipType, isPrimary, existing.id]);
+          `);
 
-          console.log('[CUSTOMER-COMPANY-ASSOCIATION] Relationship reactivated');
-          return res.json({
+          return res.status(200).json({
             success: true,
-            message: 'Relacionamento reativado com sucesso',
+            message: 'Associação reativada com sucesso',
             data: reactivated.rows[0]
           });
         }
       }
 
-      // Create new relationship
-      const result = await pool.query(`
-        INSERT INTO "${schemaName}".companies_relationships 
+      // Create new customer-company relationship
+      const relationship = await tenantDb.execute(sql`
+        INSERT INTO ${sql.identifier(schemaName)}.companies_relationships 
         (customer_id, company_id, relationship_type, is_primary, is_active, start_date, created_at, updated_at)
-        VALUES ($1, $2, $3, $4, true, CURRENT_DATE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        VALUES (${customerId}, ${companyId}, ${relationshipType}, ${isPrimary}, true, CURRENT_DATE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
         RETURNING *
-      `, [customerId, companyId, relationshipType, isPrimary]);
-
-      console.log('[CUSTOMER-COMPANY-ASSOCIATION] New relationship created:', result.rows[0]);
+      `);
 
       res.status(201).json({
         success: true,
         message: 'Cliente associado à empresa com sucesso',
-        data: result.rows[0]
+        data: relationship.rows[0]
       });
     } catch (error) {
       console.error('Error adding customer to company:', error);
       res.status(500).json({ 
         success: false, 
-        message: 'Erro ao associar cliente à empresa',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        message: 'Erro ao associar cliente à empresa' 
       });
     }
   });
@@ -3696,7 +3433,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/technical-skills', technicalSkillsRoutes);
   app.use('/api/schedule', scheduleRoutes);
   app.use('/api/notifications', notificationsRoutes);
-  // app.use('/api/ticket-metadata', ticketMetadataRoutes); // Ticket metadata routes handled inline above
+  app.use('/api/ticket-metadata', ticketMetadataRoutes);
   app.use('/api/field-layouts', fieldLayoutRoutes);
 
   // ========================================
@@ -3800,7 +3537,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/technical-skills', technicalSkillsRoutes);
   app.use('/api/schedule', scheduleRoutes);
   app.use('/api/notifications', notificationsRoutes);
-  // app.use('/api/ticket-metadata', ticketMetadataRoutes); // Ticket metadata routes handled inline above
+  app.use('/api/ticket-metadata', ticketMetadataRoutes);
   app.use('/api/field-layouts', fieldLayoutRoutes);
   app.use('/api/ticket-history', ticketHistoryRoutes);
   app.use('/api/ticket-field-options', ticketFieldOptionsRoutes);
@@ -3974,123 +3711,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error creating user group:', error);
       res.status(500).json({ success: false, message: 'Failed to create user group' });
-    }
-  });
-
-  // CLT Compliance routes with proper controller handling
-  app.get('/api/clt-compliance', async (req: Request, res: Response) => {
-    try {
-      // Ensure controller is initialized
-      if (!cltComplianceController) {
-        await initializeCLTController();
-      }
-
-      if (cltComplianceController && typeof cltComplianceController.getAll === 'function') {
-        await cltComplianceController.getAll(req, res);
-      } else {
-        res.status(501).json({
-          success: false,
-          error: 'CLT Compliance service not available'
-        });
-      }
-    } catch (error) {
-      console.error('Error in CLT compliance getAll:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Internal server error'
-      });
-    }
-  });
-
-  app.get('/api/clt-compliance/:id', async (req: Request, res: Response) => {
-    try {
-      if (!cltComplianceController) {
-        await initializeCLTController();
-      }
-
-      if (cltComplianceController && typeof cltComplianceController.getById === 'function') {
-        await cltComplianceController.getById(req, res);
-      } else {
-        res.status(501).json({
-          success: false,
-          error: 'CLT Compliance service not available'
-        });
-      }
-    } catch (error) {
-      console.error('Error in CLT compliance getById:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Internal server error'
-      });
-    }
-  });
-
-  app.post('/api/clt-compliance', async (req: Request, res: Response) => {
-    try {
-      if (!cltComplianceController) {
-        await initializeCLTController();
-      }
-
-      if (cltComplianceController && typeof cltComplianceController.create === 'function') {
-        await cltComplianceController.create(req, res);
-      } else {
-        res.status(501).json({
-          success: false,
-          error: 'CLT Compliance service not available'
-        });
-      }
-    } catch (error) {
-      console.error('Error in CLT compliance create:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Internal server error'
-      });
-    }
-  });
-
-  app.put('/api/clt-compliance/:id', async (req: Request, res: Response) => {
-    try {
-      if (!cltComplianceController) {
-        await initializeCLTController();
-      }
-
-      if (cltComplianceController && typeof cltComplianceController.update === 'function') {
-        await cltComplianceController.update(req, res);
-      } else {
-        res.status(501).json({
-          success: false,
-          error: 'CLT Compliance service not available'
-        });
-      }
-    } catch (error) {
-      console.error('Error in CLT compliance update:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Internal server error'
-      });
-    }
-  });
-
-  app.delete('/api/clt-compliance/:id', async (req: Request, res: Response) => {
-    try {
-      if (!cltComplianceController) {
-        await initializeCLTController();
-      }
-
-      if (cltComplianceController && typeof cltComplianceController.delete === 'function') {
-        await cltComplianceController.delete(req, res);
-      } else {
-        res.status(501).json({
-          success: false,
-          error: 'CLT Compliance service not available'
-        });
-      }
-    } catch (error) {
-      console.error('Error in CLT compliance delete:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Internal server error'
-      });
     }
   });
 

@@ -15,8 +15,8 @@ export class UserSkill {
     public readonly assignedBy: string,
     public justification?: string,
     public isActive: boolean = true,
-    public readonly establishedAt: Date = new Date(),
-    public modifiedAt: Date = new Date()
+    public readonly createdAt: Date = new Date(),
+    public updatedAt: Date = new Date()
   ) {
     this.validateProficiencyLevel();
     this.validateRating();
@@ -43,12 +43,13 @@ export class UserSkill {
     }
   }
 
-  modifyProficiencyLevel(newLevel: number, changedBy: string, reason?: string): void {
+  updateProficiencyLevel(newLevel: number, changedBy: string, reason?: string): void {
     const oldLevel = this.proficiencyLevel;
     this.proficiencyLevel = newLevel;
     this.validateProficiencyLevel();
+    this.updatedAt = new Date();
     
-    // Change validation completed - timestamp managed by application layer
+    // Log da mudança seria feito por um domain service
   }
 
   addEvaluation(rating: number): void {
@@ -59,6 +60,8 @@ export class UserSkill {
     const totalPoints = this.averageRating * this.totalEvaluations + rating;
     this.totalEvaluations += 1;
     this.averageRating = Number((totalPoints / this.totalEvaluations).toFixed(2));
+    
+    this.updatedAt = new Date();
     
     // Verificar se qualifica para nível 5 automático
     this.checkAutoLevel5Qualification();
@@ -73,11 +76,12 @@ export class UserSkill {
       this.totalEvaluations >= minEvaluations &&
       this.proficiencyLevel < 5
     ) {
-      // Auto-qualification criteria met
+      // Seria validado por um domain service que também checa SLAs
+      // this.updateProficiencyLevel(5, 'system', 'Qualificação automática por performance');
     }
   }
 
-  setCertification(
+  updateCertification(
     certificationId?: string,
     certificationNumber?: string,
     issuedAt?: Date,
@@ -91,23 +95,24 @@ export class UserSkill {
     this.certificationFile = filePath;
     
     this.validateCertificationDates();
-    // Modified timestamp managed by application layer
+    this.updatedAt = new Date();
   }
 
-  isCertificationValid(currentDate: Date): boolean {
+  isCertificationValid(): boolean {
     if (!this.certificationExpiresAt) {
       return true; // Certificação sem validade
     }
     
-    return this.certificationExpiresAt > currentDate;
+    return this.certificationExpiresAt > new Date();
   }
 
-  isCertificationExpiringSoon(currentDate: Date, daysAhead: number = 30): boolean {
+  isCertificationExpiringSoon(daysAhead: number = 30): boolean {
     if (!this.certificationExpiresAt) {
       return false;
     }
     
-    const warningDate = new Date(currentDate.getTime() + daysAhead * 24 * 60 * 60 * 1000);
+    const warningDate = new Date();
+    warningDate.setDate(warningDate.getDate() + daysAhead);
     
     return this.certificationExpiresAt <= warningDate;
   }
@@ -145,13 +150,40 @@ export class UserSkill {
 
   deactivate(): void {
     this.isActive = false;
-    this.modifiedAt = new Date();
+    this.updatedAt = new Date();
   }
 
   activate(): void {
     this.isActive = true;
-    this.modifiedAt = new Date();
+    this.updatedAt = new Date();
   }
 
-  // CLEANED: Factory method removed - creation logic moved to repository layer
+  static create(data: {
+    userId: string;
+    skillId: string;
+    proficiencyLevel: number;
+    assignedBy: string;
+    certificationId?: string;
+    certificationNumber?: string;
+    certificationIssuedAt?: Date;
+    certificationExpiresAt?: Date;
+    justification?: string;
+  }): UserSkill {
+    return new UserSkill(
+      crypto.randomUUID(),
+      data.userId,
+      data.skillId,
+      data.proficiencyLevel,
+      0, // averageRating
+      0, // totalEvaluations
+      data.certificationId,
+      data.certificationNumber,
+      data.certificationIssuedAt,
+      data.certificationExpiresAt,
+      undefined, // certificationFile
+      new Date(),
+      data.assignedBy,
+      data.justification
+    );
+  }
 }

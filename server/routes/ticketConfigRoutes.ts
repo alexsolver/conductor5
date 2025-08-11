@@ -830,54 +830,7 @@ router.get('/field-options', jwtAuth, async (req: AuthenticatedRequest, res) => 
       success: true,
       data: result.rows
     });
-  } catch (error: unknown) {
-    // If table doesn't exist, try to create it
-    const errorObj = error as any;
-    if (errorObj.code === '42P01' && errorObj.message.includes('ticket_field_options')) {
-      try {
-        console.log('🏗️ Creating missing ticket infrastructure tables...');
-        const { createTicketInfrastructureTables } = await import('../scripts/createTicketInfrastructureTables');
-        await createTicketInfrastructureTables(req.user!.tenantId);
-        
-        // Get variables from scope
-        const retryTenantId = req.user!.tenantId;
-        const retrySchemaName = `tenant_${retryTenantId.replace(/-/g, '_')}`;
-        const retryCompanyId = companyId || '00000000-0000-0000-0000-000000000001';
-        
-        // Retry the request
-        const retryResult = await db.execute(sql`
-          SELECT 
-            id,
-            tenant_id,
-            customer_id,
-            field_name,
-            value,
-            label,
-            color,
-            sort_order,
-            is_active,
-            is_default,
-            status_type,
-            created_at,
-            updated_at
-          FROM "${sql.raw(retrySchemaName)}".ticket_field_options 
-          WHERE tenant_id = ${retryTenantId}
-          AND customer_id = ${retryCompanyId}
-          AND is_active = true
-          ${fieldName ? sql`AND field_name = ${fieldName}` : sql``}
-          ORDER BY field_name, sort_order, label
-        `);
-        
-        res.json({
-          success: true,
-          data: retryResult.rows
-        });
-        return;
-      } catch (createError) {
-        console.error('Error creating ticket infrastructure:', createError);
-      }
-    }
-    
+  } catch (error) {
     console.error('Error fetching field options:', error);
     res.status(500).json({
       success: false,

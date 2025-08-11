@@ -115,7 +115,6 @@ interface Item {
   suppliersCount?: number;
   linkedCompanies?: { id: string; name: string }[];
   linkedSuppliers?: { id: string; name: string }[];
-  linkedChildren?: { id: string; name: string }[]; // Assumed field for linked children in edit view
 }
 
 const itemSchema = z.object({
@@ -209,52 +208,21 @@ export default function ItemCatalog() {
   });
 
   // Query para vínculos do item específico quando estiver editando
-  const { data: itemLinksData, refetch: refetchItemLinks, isLoading: isLoadingLinks } = useQuery({
+  const { data: itemLinksData, refetch: refetchItemLinks } = useQuery({
     queryKey: ['/api/materials-services/items', selectedItem?.id, 'links'],
     queryFn: async () => {
       if (!selectedItem?.id) return { customers: [], suppliers: [] };
       try {
-        console.log(`🔍 [FRONTEND] Buscando vínculos para item: ${selectedItem.id}`);
         const response = await apiRequest('GET', `/api/materials-services/items/${selectedItem.id}/links`);
-
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-
         const result = await response.json();
-        console.log('🔗 [FRONTEND] Links carregados:', result);
-
-        // Validação da estrutura de dados com mapeamento correto
-        const validatedData = {
-          customers: Array.isArray(result?.data?.customers) ? result.data.customers.map((customer: any) => ({
-            id: customer.id || customer.customer_id,
-            name: customer.name || customer.company_name || `Empresa ${customer.id}`,
-            linked_at: customer.linked_at || customer.created_at,
-            is_active: customer.is_active !== undefined ? customer.is_active : true
-          })) : [],
-          suppliers: Array.isArray(result?.data?.suppliers) ? result.data.suppliers.map((supplier: any) => ({
-            id: supplier.id || supplier.supplier_id,
-            name: supplier.name || supplier.supplier_name || `Fornecedor ${supplier.id}`,
-            linked_at: supplier.linked_at || supplier.created_at,
-            is_active: supplier.is_active !== undefined ? supplier.is_active : true
-          })) : []
-        };
-
-        console.log(`✅ [FRONTEND] Dados validados: ${validatedData.customers.length} empresas, ${validatedData.suppliers.length} fornecedores`);
-        return validatedData;
+        console.log('🔗 Links carregados:', result);
+        return result?.data || { customers: [], suppliers: [] };
       } catch (error) {
-        console.error('❌ [FRONTEND] Erro ao carregar vínculos do item:', error);
-        toast({
-          title: "Aviso",
-          description: `Não foi possível carregar os vínculos: ${error instanceof Error ? error.message : 'Erro desconhecido'}`,
-          variant: "default"
-        });
+        console.error('Erro ao carregar vínculos do item:', error);
         return { customers: [], suppliers: [] };
       }
     },
-    enabled: !!selectedItem?.id && (currentView === 'item-details' || currentView === 'item-edit'),
-    retry: 2,
-    retryDelay: 1000
+    enabled: !!selectedItem?.id && (currentView === 'item-details' || currentView === 'item-edit')
   });
 
   // Mutations
@@ -289,10 +257,6 @@ export default function ItemCatalog() {
   const updateItemMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: z.infer<typeof itemSchema> }) => {
       const response = await apiRequest('PUT', `/api/materials-services/items/${id}`, data);
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Erro ao atualizar item');
-      }
       return response.json();
     },
     onSuccess: () => {
@@ -304,10 +268,10 @@ export default function ItemCatalog() {
       });
       setCurrentView('item-details');
     },
-    onError: (error: Error) => {
+    onError: () => {
       toast({
         title: "Erro ao atualizar item",
-        description: error.message || "Tente novamente mais tarde.",
+        description: "Tente novamente mais tarde.",
         variant: "destructive",
       });
     },
@@ -316,10 +280,6 @@ export default function ItemCatalog() {
   const deleteItemMutation = useMutation({
     mutationFn: async (id: string) => {
       const response = await apiRequest('DELETE', `/api/materials-services/items/${id}`);
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Erro ao excluir item');
-      }
       return response.json();
     },
     onSuccess: () => {
@@ -329,50 +289,26 @@ export default function ItemCatalog() {
         description: "O item foi removido do catálogo.",
       });
     },
-    onError: (error: Error) => {
+    onError: () => {
       toast({
         title: "Erro ao excluir item",
-        description: error.message || "Tente novamente mais tarde.",
+        description: "Tente novamente mais tarde.",
         variant: "destructive",
       });
     },
   });
 
-  // Processar dados com mapeamento correto
-  const items: Item[] = (itemsResponse as any)?.items || []; // Changed from itemsResponse?.data
-
-  // Processar empresas com estrutura consistente
-  const rawCompanies = (availableCustomers as any)?.data || availableCustomers || [];
-  const companies = Array.isArray(rawCompanies) ? rawCompanies.map((company: any) => ({
-    id: company.id,
-    name: company.name || company.company_name || company.displayName || `Empresa ${company.id}`,
-    displayName: company.displayName || company.display_name || company.name,
-    status: company.status || 'active',
-    is_active: company.is_active !== undefined ? company.is_active : true
-  })).filter((company: any) => company.is_active !== false) : [];
-
-  // Processar fornecedores
-  const rawSuppliers = (availableSuppliers as any)?.data || availableSuppliers || [];
-  const suppliers = Array.isArray(rawSuppliers) ? rawSuppliers.map((supplier: any) => ({
-    id: supplier.id,
-    name: supplier.name || supplier.supplier_name || `Fornecedor ${supplier.id}`,
-    status: supplier.status || 'active'
-  })).filter((supplier: any) => supplier.status !== 'inactive') : [];
-
-  console.log('📊 [FRONTEND] Dados processados:', {
-    items: items.length,
-    companies: companies.length,
-    suppliers: suppliers.length,
-    rawCompanies: rawCompanies.length,
-    rawSuppliers: rawSuppliers.length
-  });
+  // Processar dados
+  const items: Item[] = (itemsResponse as any)?.data || [];
+  const companies = (availableCustomers as any)?.data || [];
+  const suppliers = (availableSuppliers as any)?.data || [];
 
   const filteredItems = items.filter((item: Item) => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          item.integrationCode?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          item.description?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = typeFilter === "all" || item.type === typeFilter;
-    const matchesStatus = statusFilter === "all" ||
+    const matchesStatus = statusFilter === "all" || 
                          (statusFilter === "active" && item.active) ||
                          (statusFilter === "inactive" && !item.active);
     const matchesHierarchy = hierarchyFilter === "all" ||
@@ -419,40 +355,19 @@ export default function ItemCatalog() {
 
   const onSubmitItem = async (data: z.infer<typeof itemSchema>) => {
     if (selectedItem && currentView === 'item-edit') {
-      console.log('🔧 [FRONTEND] Submitting item update with data:', data);
-
       // Logic to update item and its hierarchical links
       try {
-        const updatePayload = {
+        const updateResponse = await apiRequest('PUT', `/api/materials-services/items/${selectedItem.id}`, {
           ...data,
-          childrenIds: data.childrenIds || [], // Ensure childrenIds are sent as array
-        };
-
-        console.log('🔧 [FRONTEND] Update payload:', updatePayload);
-
-        const updateResponse = await apiRequest('PUT', `/api/materials-services/items/${selectedItem.id}`, updatePayload);
-
-        if (!updateResponse.ok) {
-          const errorData = await updateResponse.json();
-          throw new Error(errorData.message || 'Failed to update item');
-        }
-
-        toast({
-          title: "Item atualizado",
-          description: "Informações e vínculos hierárquicos salvos com sucesso."
+          childrenIds: data.childrenIds, // Ensure childrenIds are sent
         });
-
+        if (!updateResponse.ok) throw new Error('Failed to update item');
+        
+        toast({ title: "Item atualizado", description: "Informações e vínculos salvos." });
         queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items"] });
-        queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items", selectedItem.id, "links"] });
-
         setCurrentView('item-details');
       } catch (error) {
-        console.error('❌ [FRONTEND] Update error:', error);
-        toast({
-          title: "Erro ao atualizar",
-          description: error instanceof Error ? error.message : "Tente novamente.",
-          variant: "destructive"
-        });
+        toast({ title: "Erro ao atualizar", description: "Tente novamente.", variant: "destructive" });
       }
     } else {
       createItemMutation.mutate(data);
@@ -546,7 +461,7 @@ export default function ItemCatalog() {
                 </SelectContent>
               </Select>
 
-              <Button
+              <Button 
                 variant={isBulkMode ? "default" : "outline"}
                 onClick={() => setIsBulkMode(!isBulkMode)}
               >
@@ -598,8 +513,8 @@ export default function ItemCatalog() {
                 </TableHeader>
                 <TableBody>
                   {paginatedItems.map((item) => (
-                    <TableRow
-                      key={item.id}
+                    <TableRow 
+                      key={item.id} 
                       className={`hover:bg-gray-50 transition-colors ${
                         selectedItems.has(item.id) ? 'bg-blue-50' : ''
                       }`}
@@ -613,13 +528,13 @@ export default function ItemCatalog() {
                         </TableCell>
                       )}
 
-                      <TableCell
+                      <TableCell 
                         className="font-medium cursor-pointer hover:text-blue-600"
                         onClick={() => handleItemClick(item)}
                       >
                         <div className="flex items-center gap-2">
-                          {item.type === 'material' ?
-                            <Package className="h-4 w-4 text-blue-600" /> :
+                          {item.type === 'material' ? 
+                            <Package className="h-4 w-4 text-blue-600" /> : 
                             <Wrench className="h-4 w-4 text-green-600" />
                           }
                           <div>
@@ -697,8 +612,8 @@ export default function ItemCatalog() {
 
                       <TableCell>
                         <div className="flex items-center gap-1">
-                          <Button
-                            variant="ghost"
+                          <Button 
+                            variant="ghost" 
                             size="sm"
                             onClick={(e) => {
                               e.stopPropagation();
@@ -707,8 +622,8 @@ export default function ItemCatalog() {
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
-                          <Button
-                            variant="ghost"
+                          <Button 
+                            variant="ghost" 
                             size="sm"
                             onClick={(e) => {
                               e.stopPropagation();
@@ -719,8 +634,8 @@ export default function ItemCatalog() {
                           </Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                              <Button
-                                variant="ghost"
+                              <Button 
+                                variant="ghost" 
                                 size="sm"
                                 onClick={(e) => e.stopPropagation()}
                                 className="text-red-600 hover:text-red-700"
@@ -795,8 +710,8 @@ export default function ItemCatalog() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
+            <Button 
+              variant="ghost" 
               size="sm"
               onClick={() => setCurrentView('catalog')}
             >
@@ -831,7 +746,7 @@ export default function ItemCatalog() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Button
+            <Button 
               variant="outline"
               onClick={() => handleEditItem(selectedItem)}
             >
@@ -967,8 +882,8 @@ export default function ItemCatalog() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
+            <Button 
+              variant="ghost" 
               size="sm"
               onClick={() => setCurrentView('item-details')}
             >
@@ -1135,7 +1050,7 @@ export default function ItemCatalog() {
                   <div>
                     <label className="text-sm font-medium">Itens Filhos</label>
                     <div className="mt-2">
-                      <Select
+                      <Select 
                         value=""
                         onValueChange={(value) => {
                           if (value && value !== "none") {
@@ -1152,9 +1067,9 @@ export default function ItemCatalog() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="none">Selecionar item...</SelectItem>
-                          {items.filter(item =>
-                            item.id !== selectedItem?.id &&
-                            !item.parentId &&
+                          {items.filter(item => 
+                            item.id !== selectedItem?.id && 
+                            !item.parentId && 
                             !(itemForm.watch("childrenIds") || []).includes(item.id)
                           ).map((item) => (
                             <SelectItem key={item.id} value={item.id}>
@@ -1205,7 +1120,7 @@ export default function ItemCatalog() {
                 </div>
               </CardContent>
             </Card>
-
+          
             <Card>
               <CardHeader>
                 <CardTitle>Vínculos com Empresas e Fornecedores</CardTitle>
@@ -1220,140 +1135,93 @@ export default function ItemCatalog() {
                   <TabsContent value="companies" className="space-y-4 mt-6">
                     <div className="flex items-center justify-between">
                       <h3 className="text-lg font-medium">Empresas Vinculadas</h3>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="text-xs">
-                          {itemLinks?.customers?.length || 0} vínculos
-                        </Badge>
-                        <Select
-                          onValueChange={async (companyId) => {
-                            if (!selectedItem?.id || !companyId || companyId === "select-company") return;
+                      <Select
+                        onValueChange={async (companyId) => {
+                          if (!selectedItem?.id || !companyId || companyId === "none") return;
 
-                            try {
-                              console.log(`🔗 [FRONTEND] Vinculando empresa ${companyId} ao item ${selectedItem.id}`);
+                          try {
+                            const response = await fetch(`/api/materials-services/items/${selectedItem.id}/link-customer`, {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ customerId: companyId })
+                            });
 
-                              const response = await apiRequest('POST', `/api/materials-services/items/${selectedItem.id}/link-customer`, {
-                                customerId: companyId
-                              });
-
-                              if (response.ok) {
-                                toast({
-                                  title: "✅ Sucesso",
-                                  description: "Empresa vinculada com sucesso"
-                                });
-                                refetchItemLinks();
-                              } else {
-                                const errorData = await response.json();
-                                throw new Error(errorData.message || 'Falha ao vincular empresa');
-                              }
-                            } catch (error) {
-                              console.error('❌ [FRONTEND] Erro ao vincular empresa:', error);
+                            if (response.ok) {
                               toast({
-                                title: "❌ Erro",
-                                description: error instanceof Error ? error.message : "Erro ao vincular empresa",
-                                variant: "destructive"
+                                title: "Sucesso",
+                                description: "Empresa vinculada com sucesso"
                               });
+                              refetchItemLinks();
+                            } else {
+                              throw new Error('Falha ao vincular empresa');
                             }
-                          }}
-                          value="" // Always reset to allow multiple selections
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione uma empresa" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="select-company">Selecione uma empresa</SelectItem>
-                            {(() => {
-                              console.log('🏢 [DROPDOWN] Processando empresas:', {
-                                totalCompanies: companies.length,
-                                linkedCustomers: itemLinks?.customers?.length || 0,
-                                companies: companies.map(c => ({ id: c.id, name: c.name })),
-                                linkedIds: itemLinks?.customers?.map(c => c.id) || []
-                              });
-
-                              const availableCompanies = companies.filter((company: any) =>
-                                !itemLinks?.customers?.some((linked: any) => linked.id === company.id)
-                              );
-
-                              console.log('🔍 [DROPDOWN] Empresas disponíveis:', availableCompanies.length);
-
-                              if (availableCompanies.length === 0) {
-                                return (
-                                  <SelectItem value="no-companies" disabled>
-                                    {companies.length === 0 ? 'Nenhuma empresa encontrada no sistema' : 'Todas as empresas já estão vinculadas'}
-                                  </SelectItem>
-                                );
-                              }
-
-                              return availableCompanies.map((company: any) => (
-                                <SelectItem key={`company-${company.id}`} value={company.id}>
-                                  {company.name || company.displayName || `Empresa ${company.id}`}
-                                </SelectItem>
-                              ));
-                            })()}
-                          </SelectContent>
-                        </Select>
-                      </div>
+                          } catch (error) {
+                            toast({
+                              title: "Erro",
+                              description: "Erro ao vincular empresa",
+                              variant: "destructive"
+                            });
+                          }
+                        }}
+                        value="" // Always reset to allow multiple selections
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Vincular Empresa" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">Selecione uma empresa...</SelectItem>
+                          {companies.filter(company => 
+                            !itemLinks?.customers?.some((linked: any) => linked.id === company.id)
+                          ).map((company) => (
+                            <SelectItem key={company.id} value={company.id}>
+                              {company.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
 
                     <div className="space-y-2">
                       {itemLinks?.customers?.map((company: any) => (
-                        <div key={company.id} className="flex items-center justify-between bg-blue-50 border border-blue-200 p-3 rounded-lg">
-                          <div className="flex items-center gap-2">
-                            <Building className="h-4 w-4 text-blue-600" />
-                            <span className="font-medium">{company.name}</span>
-                            {company.linked_at && (
-                              <Badge variant="outline" className="text-xs">
-                                Vinculado em {new Date(company.linked_at).toLocaleDateString()}
-                              </Badge>
-                            )}
-                          </div>
+                        <div key={company.id} className="flex items-center justify-between bg-gray-50 p-3 rounded">
+                          <span>{company.name}</span>
                           <Button
-                            variant="outline"
+                            variant="outline" 
                             size="sm"
                             onClick={async () => {
                               if (!selectedItem?.id) return;
 
                               try {
-                                console.log(`🗑️ [FRONTEND] Desvinculando empresa ${company.id} do item ${selectedItem.id}`);
-
-                                const response = await apiRequest('DELETE', `/api/materials-services/items/${selectedItem.id}/unlink-customer/${company.id}`);
+                                const response = await fetch(`/api/materials-services/items/${selectedItem.id}/unlink-customer/${company.id}`, {
+                                  method: 'DELETE'
+                                });
 
                                 if (response.ok) {
                                   toast({
-                                    title: "✅ Sucesso",
+                                    title: "Sucesso",
                                     description: "Empresa desvinculada com sucesso"
                                   });
                                   refetchItemLinks();
                                 } else {
-                                  const errorData = await response.json();
-                                  throw new Error(errorData.message || 'Falha ao desvincular empresa');
+                                  throw new Error('Falha ao desvincular empresa');
                                 }
                               } catch (error) {
-                                console.error('❌ [FRONTEND] Erro ao desvincular empresa:', error);
                                 toast({
-                                  title: "❌ Erro",
-                                  description: error instanceof Error ? error.message : "Erro ao desvincular empresa",
+                                  title: "Erro",
+                                  description: "Erro ao desvincular empresa",
                                   variant: "destructive"
                                 });
                               }
                             }}
-                            className="hover:bg-red-50 hover:border-red-200"
                           >
-                            <X className="h-4 w-4 mr-1" />
                             Desvincular
                           </Button>
                         </div>
                       ))}
 
                       {(!itemLinks?.customers || itemLinks.customers.length === 0) && (
-                        <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-                          <Building className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                          <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhuma empresa vinculada</h3>
-                          <p className="text-gray-500 mb-4">
-                            Vincule empresas a este item para controlar o acesso e personalização
-                          </p>
-                          <div className="text-sm text-gray-400">
-                            Use o seletor acima para adicionar vínculos
-                          </div>
+                        <div className="text-center py-8 text-gray-500">
+                          Nenhuma empresa vinculada
                         </div>
                       )}
                     </div>
@@ -1364,11 +1232,13 @@ export default function ItemCatalog() {
                       <h3 className="text-lg font-medium">Fornecedores Vinculados</h3>
                       <Select
                         onValueChange={async (supplierId) => {
-                          if (!selectedItem?.id || !supplierId || supplierId === "select-supplier") return;
+                          if (!selectedItem?.id || !supplierId || supplierId === "none") return;
 
                           try {
-                            const response = await apiRequest('POST', `/api/materials-services/items/${selectedItem.id}/link-supplier`, {
-                              supplierId
+                            const response = await fetch(`/api/materials-services/items/${selectedItem.id}/link-supplier`, {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ supplierId })
                             });
 
                             if (response.ok) {
@@ -1378,14 +1248,12 @@ export default function ItemCatalog() {
                               });
                               refetchItemLinks();
                             } else {
-                              const errorData = await response.json();
-                              throw new Error(errorData.message || 'Falha ao vincular fornecedor');
+                              throw new Error('Falha ao vincular fornecedor');
                             }
                           } catch (error) {
-                            console.error('❌ [FRONTEND] Erro ao vincular fornecedor:', error);
                             toast({
                               title: "Erro",
-                              description: error instanceof Error ? error.message : "Erro ao vincular fornecedor",
+                              description: "Erro ao vincular fornecedor",
                               variant: "destructive"
                             });
                           }
@@ -1396,21 +1264,14 @@ export default function ItemCatalog() {
                           <SelectValue placeholder="Vincular Fornecedor" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="select-supplier">Selecione um fornecedor</SelectItem>
-                          {suppliers?.filter((supplier: any) =>
+                          <SelectItem value="none">Selecione um fornecedor...</SelectItem>
+                          {suppliers.filter(supplier => 
                             !itemLinks?.suppliers?.some((linked: any) => linked.id === supplier.id)
-                          ).map((supplier: any) => (
+                          ).map((supplier) => (
                             <SelectItem key={supplier.id} value={supplier.id}>
                               {supplier.name}
                             </SelectItem>
                           ))}
-                          {suppliers?.filter((supplier: any) =>
-                            !itemLinks?.suppliers?.some((linked: any) => linked.id === supplier.id)
-                          ).length === 0 && (
-                            <SelectItem value="select-supplier" disabled>
-                              Todos os fornecedores já estão vinculados
-                            </SelectItem>
-                          )}
                         </SelectContent>
                       </Select>
                     </div>
@@ -1426,7 +1287,9 @@ export default function ItemCatalog() {
                               if (!selectedItem?.id) return;
 
                               try {
-                                const response = await apiRequest('DELETE', `/api/materials-services/items/${selectedItem.id}/unlink-supplier/${supplier.id}`);
+                                const response = await fetch(`/api/materials-services/items/${selectedItem.id}/unlink-supplier/${supplier.id}`, {
+                                  method: 'DELETE'
+                                });
 
                                 if (response.ok) {
                                   toast({
@@ -1435,14 +1298,12 @@ export default function ItemCatalog() {
                                   });
                                   refetchItemLinks();
                                 } else {
-                                  const errorData = await response.json();
-                                  throw new Error(errorData.message || 'Falha ao desvincular fornecedor');
+                                  throw new Error('Falha ao desvincular fornecedor');
                                 }
                               } catch (error) {
-                                console.error('❌ [FRONTEND] Erro ao desvincular fornecedor:', error);
                                 toast({
                                   title: "Erro",
-                                  description: error instanceof Error ? error.message : "Erro ao desvincular fornecedor",
+                                  description: "Erro ao desvincular fornecedor",
                                   variant: "destructive"
                                 });
                               }
@@ -1614,9 +1475,9 @@ export default function ItemCatalog() {
               />
 
               <div className="flex justify-end space-x-2 pt-4">
-                <Button
-                  type="button"
-                  variant="outline"
+                <Button 
+                  type="button" 
+                  variant="outline" 
                   onClick={() => {
                     setIsCreateModalOpen(false);
                     itemForm.reset();
@@ -1624,7 +1485,7 @@ export default function ItemCatalog() {
                 >
                   Cancelar
                 </Button>
-                <Button
+                <Button 
                   type="submit"
                   disabled={createItemMutation.isPending}
                 >

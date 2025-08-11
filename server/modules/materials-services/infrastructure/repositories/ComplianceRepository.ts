@@ -18,9 +18,7 @@ import {
 } from '@shared/schema';
 import { eq, and, desc, asc, lte, gte, or } from 'drizzle-orm';
 
-import { IComplianceRepository } from '../../domain/ports/IComplianceRepository';
-
-export class ComplianceRepository implements IComplianceRepository {
+export class ComplianceRepository {
   // GESTÃO DE AUDITORIAS
   async getAllAudits(tenantId: string) {
     return await db

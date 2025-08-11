@@ -1,2 +1,0 @@
-
-export { AuditLogCreatedEvent } from './AuditLogCreatedEvent';

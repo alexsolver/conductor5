@@ -1,21 +1,14 @@
 import { Router } from 'express';
 import { jwtAuth } from '../../middleware/jwtAuth';
-import { tenantValidator } from '../../middleware/tenantValidator';
-import { TenantAdminController } from './application/controllers/TenantAdminController';
-import { DrizzleTenantConfigRepository } from './infrastructure/repositories/DrizzleTenantConfigRepository';
-import { db } from '../../db';
-import { requirePermission, AuthorizedRequest } from '../../middleware/authorizationMiddleware';
+import { requireTenantAdmin, requirePermission, requireTenantAccess, AuthorizedRequest } from '../../middleware/authorizationMiddleware';
 import { Permission } from '../../domain/authorization/RolePermissions';
+import { DependencyContainer } from '../../application/services/DependencyContainer';
 
 const router = Router();
 
-// Middleware de autenticação para todas as rotas
+// Aplicar middlewares de autenticação e autorização
 router.use(jwtAuth);
-router.use(tenantValidator);
-
-// Inicializar dependências
-const tenantConfigRepository = new DrizzleTenantConfigRepository(db);
-const tenantAdminController = new TenantAdminController();
+router.use(requireTenantAdmin);
 
 /**
  * GET /api/tenant-admin/settings
@@ -24,20 +17,20 @@ const tenantAdminController = new TenantAdminController();
 router.get('/settings', requirePermission(Permission.TENANT_MANAGE_SETTINGS), async (req: AuthorizedRequest, res) => {
   try {
     const tenantId = req.user!.tenantId;
-
+    
     if (!tenantId) {
       return res.status(400).json({ message: 'User not associated with a tenant' });
     }
 
     const container = DependencyContainer.getInstance();
     const tenantRepository = container.tenantRepository;
-
+    
     const tenant = await tenantRepository.findById(tenantId);
-
+    
     if (!tenant) {
       return res.status(404).json({ message: 'Tenant not found' });
     }
-
+    
     res.json({
       id: tenant.id,
       name: tenant.name,
@@ -59,26 +52,26 @@ router.get('/settings', requirePermission(Permission.TENANT_MANAGE_SETTINGS), as
 router.put('/settings', requirePermission(Permission.TENANT_MANAGE_SETTINGS), async (req: AuthorizedRequest, res) => {
   try {
     const tenantId = req.user!.tenantId;
-
+    
     if (!tenantId) {
       return res.status(400).json({ message: 'User not associated with a tenant' });
     }
 
     const { name, settings } = req.body;
-
+    
     const container = DependencyContainer.getInstance();
     const tenantRepository = container.tenantRepository;
-
+    
     const updates: any = {};
     if (name) updates.name = name;
     if (settings) updates.settings = settings;
-
+    
     const tenant = await tenantRepository.update(tenantId, updates);
-
+    
     if (!tenant) {
       return res.status(404).json({ message: 'Tenant not found' });
     }
-
+    
     res.json(tenant);
   } catch (error) {
     console.error('Error updating tenant settings:', error);
@@ -93,20 +86,20 @@ router.put('/settings', requirePermission(Permission.TENANT_MANAGE_SETTINGS), as
 router.get('/branding', requirePermission(Permission.TENANT_MANAGE_SETTINGS), async (req: AuthorizedRequest, res) => {
   try {
     const tenantId = req.user!.tenantId;
-
+    
     if (!tenantId) {
       return res.status(400).json({ message: 'User not associated with a tenant' });
     }
 
     const container = DependencyContainer.getInstance();
     const tenantRepository = container.tenantRepository;
-
+    
     const tenant = await tenantRepository.findById(tenantId);
-
+    
     if (!tenant) {
       return res.status(404).json({ message: 'Tenant not found' });
     }
-
+    
     // Configurações de branding padrão
     const defaultBrandingSettings = {
       logo: {
@@ -148,12 +141,12 @@ router.get('/branding', requirePermission(Permission.TENANT_MANAGE_SETTINGS), as
         customCss: ""
       }
     };
-
+    
     // Mesclar configurações salvas com configurações padrão
     const brandingSettings = tenant.settings?.branding ? 
       { ...defaultBrandingSettings, ...tenant.settings.branding } : 
       defaultBrandingSettings;
-
+    
     res.json({
       settings: brandingSettings
     });
@@ -170,41 +163,41 @@ router.get('/branding', requirePermission(Permission.TENANT_MANAGE_SETTINGS), as
 router.put('/branding', requirePermission(Permission.TENANT_MANAGE_SETTINGS), async (req: AuthorizedRequest, res) => {
   try {
     const tenantId = req.user!.tenantId;
-
+    
     if (!tenantId) {
       return res.status(400).json({ message: 'User not associated with a tenant' });
     }
 
     const { settings: brandingSettings } = req.body;
-
+    
     if (!brandingSettings) {
       return res.status(400).json({ message: 'Branding settings are required' });
     }
-
+    
     const container = DependencyContainer.getInstance();
     const tenantRepository = container.tenantRepository;
-
+    
     // Buscar tenant atual
     const currentTenant = await tenantRepository.findById(tenantId);
-
+    
     if (!currentTenant) {
       return res.status(404).json({ message: 'Tenant not found' });
     }
-
+    
     // Atualizar configurações de branding mantendo outras configurações existentes
     const updatedSettings = {
       ...currentTenant.settings,
       branding: brandingSettings
     };
-
+    
     const tenant = await tenantRepository.update(tenantId, { 
       settings: updatedSettings 
     });
-
+    
     if (!tenant) {
       return res.status(404).json({ message: 'Tenant not found' });
     }
-
+    
     res.json({
       settings: brandingSettings,
       message: 'Branding settings updated successfully'
@@ -222,19 +215,19 @@ router.put('/branding', requirePermission(Permission.TENANT_MANAGE_SETTINGS), as
 router.get('/users', requirePermission(Permission.TENANT_MANAGE_USERS), async (req: AuthorizedRequest, res) => {
   try {
     const tenantId = req.user!.tenantId;
-
+    
     if (!tenantId) {
       return res.status(400).json({ message: 'User not associated with a tenant' });
     }
 
     const container = DependencyContainer.getInstance();
     const userRepository = container.userRepository;
-
+    
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 50;
-
+    
     const users = await userRepository.findByTenant(tenantId, { page, limit });
-
+    
     res.json({
       users,
       pagination: { page, limit }
@@ -252,13 +245,13 @@ router.get('/users', requirePermission(Permission.TENANT_MANAGE_USERS), async (r
 router.post('/users', requirePermission(Permission.TENANT_MANAGE_USERS), async (req: AuthorizedRequest, res) => {
   try {
     const tenantId = req.user!.tenantId;
-
+    
     if (!tenantId) {
       return res.status(400).json({ message: 'User not associated with a tenant' });
     }
 
     const { email, firstName, lastName, role = 'agent' } = req.body;
-
+    
     if (!email) {
       return res.status(400).json({ message: 'Email is required' });
     }
@@ -271,17 +264,17 @@ router.post('/users', requirePermission(Permission.TENANT_MANAGE_USERS), async (
     const container = DependencyContainer.getInstance();
     const userRepository = container.userRepository;
     const passwordHasher = container.passwordHasher;
-
+    
     // Verificar se email já existe
     const existingUser = await userRepository.findByEmail(email);
     if (existingUser) {
       return res.status(409).json({ message: 'Email already exists' });
     }
-
+    
     // Gerar senha temporária
     const tempPassword = Math.random().toString(36).slice(-8);
     const hashedPassword = await passwordHasher.hash(tempPassword);
-
+    
     const user = await userRepository.create({
       email,
       passwordHash: hashedPassword,
@@ -290,9 +283,9 @@ router.post('/users', requirePermission(Permission.TENANT_MANAGE_USERS), async (
       role,
       tenantId
     });
-
+    
     // Enviar email com senha temporária (implementar depois)
-
+    
     res.status(201).json({
       ...user,
       tempPassword // Remover em produção
@@ -311,30 +304,30 @@ router.put('/users/:userId', requirePermission(Permission.TENANT_MANAGE_USERS), 
   try {
     const { userId } = req.params;
     const tenantId = req.user!.tenantId;
-
+    
     if (!tenantId) {
       return res.status(400).json({ message: 'User not associated with a tenant' });
     }
 
     const container = DependencyContainer.getInstance();
     const userRepository = container.userRepository;
-
+    
     // Verificar se usuário pertence ao tenant
     const targetUser = await userRepository.findById(userId);
     if (!targetUser || targetUser.tenantId !== tenantId) {
       return res.status(404).json({ message: 'User not found in this tenant' });
     }
-
+    
     // Não pode alterar outros admins
     if (targetUser.role === 'tenant_admin' || targetUser.role === 'saas_admin') {
       return res.status(403).json({ message: 'Cannot modify admin users' });
     }
-
+    
     const updates = req.body;
     delete updates.role; // Não permitir mudança de role via esta rota
-
+    
     const user = await userRepository.update(userId, updates);
-
+    
     res.json(user);
   } catch (error) {
     console.error('Error updating user:', error);
@@ -349,16 +342,16 @@ router.put('/users/:userId', requirePermission(Permission.TENANT_MANAGE_USERS), 
 router.get('/analytics', requirePermission(Permission.TENANT_VIEW_ANALYTICS), async (req: AuthorizedRequest, res) => {
   try {
     const tenantId = req.user!.tenantId;
-
+    
     if (!tenantId) {
       return res.status(400).json({ message: 'User not associated with a tenant' });
     }
 
     // CORREÇÃO CRÍTICA: Usar importação direta do storage ao invés do container
     const { storageSimple } = await import('../../storage-simple');
-
+    
     const stats = await storageSimple.getDashboardStats(tenantId);
-
+    
     res.json(stats);
   } catch (error) {
     console.error('Error fetching tenant analytics:', error);
@@ -373,7 +366,7 @@ router.get('/analytics', requirePermission(Permission.TENANT_VIEW_ANALYTICS), as
 router.get('/slas', requirePermission(Permission.TENANT_MANAGE_SETTINGS), async (req: AuthorizedRequest, res) => {
   try {
     const tenantId = req.user!.tenantId;
-
+    
     if (!tenantId) {
       return res.status(400).json({ message: 'User not associated with a tenant' });
     }
@@ -405,7 +398,7 @@ router.get('/slas', requirePermission(Permission.TENANT_MANAGE_SETTINGS), async 
         createdAt: new Date().toISOString()
       }
     ];
-
+    
     res.json({ slas });
   } catch (error) {
     console.error('Error fetching SLAs:', error);
@@ -420,13 +413,13 @@ router.get('/slas', requirePermission(Permission.TENANT_MANAGE_SETTINGS), async 
 router.post('/slas', requirePermission(Permission.TENANT_MANAGE_SETTINGS), async (req: AuthorizedRequest, res) => {
   try {
     const tenantId = req.user!.tenantId;
-
+    
     if (!tenantId) {
       return res.status(400).json({ message: 'User not associated with a tenant' });
     }
 
     const { name, priority, responseTime, resolutionTime, timeUnit, category, description, active } = req.body;
-
+    
     if (!name || !priority || !responseTime || !resolutionTime || !timeUnit) {
       return res.status(400).json({ message: 'Required fields missing' });
     }
@@ -446,7 +439,7 @@ router.post('/slas', requirePermission(Permission.TENANT_MANAGE_SETTINGS), async
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
-
+    
     res.status(201).json(newSLA);
   } catch (error) {
     console.error('Error creating SLA:', error);
@@ -461,7 +454,7 @@ router.post('/slas', requirePermission(Permission.TENANT_MANAGE_SETTINGS), async
 router.get('/sla-metrics', requirePermission(Permission.TENANT_VIEW_ANALYTICS), async (req: AuthorizedRequest, res) => {
   try {
     const tenantId = req.user!.tenantId;
-
+    
     if (!tenantId) {
       return res.status(400).json({ message: 'User not associated with a tenant' });
     }
@@ -481,7 +474,7 @@ router.get('/sla-metrics', requirePermission(Permission.TENANT_VIEW_ANALYTICS), 
         baixa: 92
       }
     };
-
+    
     res.json(metrics);
   } catch (error) {
     console.error('Error fetching SLA metrics:', error);
@@ -496,18 +489,18 @@ router.get('/sla-metrics', requirePermission(Permission.TENANT_VIEW_ANALYTICS), 
 router.get('/integrations', async (req: AuthorizedRequest, res) => {
   try {
     const tenantId = req.user?.tenantId;
-
+    
     if (!tenantId) {
       return res.status(400).json({ message: 'User not associated with a tenant' });
     }
 
     // CORREÇÃO CRÍTICA: Usar importação direta do storage ao invés do container
     const { storageSimple } = await import('../../storage-simple');
-
+    
     console.log(`🔍 Fetching integrations for tenant: ${tenantId}`);
     const integrations = await storageSimple.getTenantIntegrations(tenantId);
     console.log(`📊 Found ${integrations.length} integrations`);
-
+    
     res.json({
       integrations: integrations || [],
       totalCount: integrations?.length || 0
@@ -530,14 +523,14 @@ router.get('/integrations', async (req: AuthorizedRequest, res) => {
 router.get('/integrations/gmail-oauth2/config', async (req: AuthorizedRequest, res) => {
   try {
     const tenantId = req.user?.tenantId;
-
+    
     if (!tenantId) {
       return res.status(400).json({ message: 'User not associated with a tenant' });
     }
 
     const { storageSimple } = await import('../../storage-simple');
     const config = await storageSimple.getTenantIntegrationConfig(tenantId, 'gmail-oauth2');
-
+    
     // Return sanitized config (mask sensitive data)
     const sanitizedConfig = config ? {
       ...config,
@@ -548,7 +541,7 @@ router.get('/integrations/gmail-oauth2/config', async (req: AuthorizedRequest, r
         refreshToken: config.config?.refreshToken ? '••••••••' : ''
       }
     } : null;
-
+    
     res.json(sanitizedConfig);
   } catch (error) {
     console.error('Error fetching Gmail OAuth2 config:', error);
@@ -560,13 +553,13 @@ router.get('/integrations/gmail-oauth2/config', async (req: AuthorizedRequest, r
 router.post('/integrations/gmail-oauth2/config', async (req: AuthorizedRequest, res) => {
   try {
     const tenantId = req.user?.tenantId;
-
+    
     if (!tenantId) {
       return res.status(400).json({ message: 'User not associated with a tenant' });
     }
 
     const { clientId, clientSecret, redirectUri, scopes, enabled } = req.body;
-
+    
     const configData = {
       clientId: clientId || '',
       clientSecret: clientSecret || '',
@@ -601,14 +594,14 @@ router.post('/integrations/gmail-oauth2/config', async (req: AuthorizedRequest, 
 router.post('/integrations/gmail-oauth2/oauth/start', async (req: AuthorizedRequest, res) => {
   try {
     const tenantId = req.user?.tenantId;
-
+    
     if (!tenantId) {
       return res.status(400).json({ message: 'User not associated with a tenant' });
     }
 
     const { storageSimple } = await import('../../storage-simple');
     const config = await storageSimple.getTenantIntegrationConfig(tenantId, 'gmail-oauth2');
-
+    
     if (!config?.config?.clientId) {
       return res.status(400).json({ message: 'Gmail OAuth2 configuration missing. Please configure Client ID first.' });
     }
@@ -616,7 +609,7 @@ router.post('/integrations/gmail-oauth2/oauth/start', async (req: AuthorizedRequ
     const baseUrl = 'https://accounts.google.com/o/oauth2/v2/auth';
     const scopes = config.config.scopes || 'email profile https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send';
     const redirectUri = config.config.redirectUri || `${req.protocol}://${req.get('host')}/auth/gmail/callback`;
-
+    
     const authUrl = `${baseUrl}?client_id=${config.config.clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}&response_type=code&access_type=offline&prompt=consent&state=${tenantId}`;
 
     res.json({
@@ -635,14 +628,14 @@ router.post('/integrations/gmail-oauth2/oauth/start', async (req: AuthorizedRequ
 router.post('/integrations/gmail-oauth2/test', async (req: AuthorizedRequest, res) => {
   try {
     const tenantId = req.user?.tenantId;
-
+    
     if (!tenantId) {
       return res.status(400).json({ message: 'User not associated with a tenant' });
     }
 
     const { storageSimple } = await import('../../storage-simple');
     const config = await storageSimple.getTenantIntegrationConfig(tenantId, 'gmail-oauth2');
-
+    
     if (!config?.config) {
       return res.json({
         success: false,

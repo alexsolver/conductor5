@@ -1,6 +1,6 @@
 /**
- * Ticket Repository Interface
- * Clean Architecture - Domain Layer Port
+ * Ticket Repository Interface (Port)
+ * Clean Architecture - Domain Layer
  */
 
 import { Ticket } from '../entities/Ticket';
@@ -9,11 +9,11 @@ export interface TicketFilter {
   tenantId: string;
   search?: string;
   status?: string;
-  state?: string;
   priority?: string;
   assignedToId?: string;
   customerId?: string;
   category?: string;
+  state?: string;
   urgent?: boolean;
   limit?: number;
   offset?: number;
@@ -21,7 +21,7 @@ export interface TicketFilter {
 
 export interface ITicketRepository {
   findById(id: string, tenantId: string): Promise<Ticket | null>;
-  findAll(tenantId: string): Promise<Ticket[]>;
+  findByNumber(number: string, tenantId: string): Promise<Ticket | null>;
   findMany(filter: TicketFilter): Promise<Ticket[]>;
   save(ticket: Ticket): Promise<Ticket>;
   delete(id: string, tenantId: string): Promise<boolean>;

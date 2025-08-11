@@ -4,13 +4,45 @@
  * Contains business rules and invariants for tickets
  */
 
-import { TicketStatus, TicketPriority } from '../value-objects';
+export interface TicketCreateProps {
+  tenantId: string;
+  customerId: string;
+  callerId: string;
+  callerType: 'user' | 'customer';
+  subject: string;
+  description: string;
+  shortDescription?: string;
+  category?: string;
+  subcategory?: string;
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  impact?: 'low' | 'medium' | 'high' | 'critical';
+  urgency?: 'low' | 'medium' | 'high';
+  state?: string;
+  status?: string;
+  assignedToId?: string;
+  beneficiaryId?: string;
+  beneficiaryType?: 'user' | 'customer';
+  assignmentGroup?: string;
+  location?: string;
+  contactType?: string;
+  businessImpact?: string;
+  symptoms?: string;
+  workaround?: string;
+  configurationItem?: string;
+  businessService?: string;
+  resolutionCode?: string;
+  resolutionNotes?: string;
+  workNotes?: string;
+  closeNotes?: string;
+  notify?: boolean;
+  rootCause?: string;
+}
 
 export class Ticket {
   constructor(
     private readonly id: string,
     private readonly tenantId: string,
-    private customerId: string,
+    private readonly customerId: string,
     private readonly callerId: string,
     private readonly callerType: 'user' | 'customer',
     private subject: string,
@@ -19,10 +51,10 @@ export class Ticket {
     private shortDescription: string,
     private category: string,
     private subcategory: string,
-    private priority: TicketPriority,
+    private priority: 'low' | 'medium' | 'high' | 'urgent',
     private impact: 'low' | 'medium' | 'high' | 'critical',
     private urgency: 'low' | 'medium' | 'high',
-    private state: TicketStatus,
+    private state: string,
     private status: string,
     private assignedToId: string | null,
     private beneficiaryId: string | null,
@@ -45,7 +77,7 @@ export class Ticket {
     private resolvedAt: Date | null,
     private closedAt: Date | null,
     private readonly createdAt: Date,
-    private modifiedAt: Date
+    private updatedAt: Date
   ) {}
 
   // Getters
@@ -60,10 +92,10 @@ export class Ticket {
   getShortDescription(): string { return this.shortDescription; }
   getCategory(): string { return this.category; }
   getSubcategory(): string { return this.subcategory; }
-  getPriority(): TicketPriority { return this.priority; }
+  getPriority(): 'low' | 'medium' | 'high' | 'urgent' { return this.priority; }
   getImpact(): 'low' | 'medium' | 'high' | 'critical' { return this.impact; }
   getUrgency(): 'low' | 'medium' | 'high' { return this.urgency; }
-  getState(): TicketStatus { return this.state; }
+  getState(): string { return this.state; }
   getStatus(): string { return this.status; }
   getAssignedToId(): string | null { return this.assignedToId; }
   getBeneficiaryId(): string | null { return this.beneficiaryId; }
@@ -72,26 +104,26 @@ export class Ticket {
   getResolvedAt(): Date | null { return this.resolvedAt; }
   getClosedAt(): Date | null { return this.closedAt; }
   getCreatedAt(): Date { return this.createdAt; }
-  getModifiedAt(): Date { return this.modifiedAt; }
+  getUpdatedAt(): Date { return this.updatedAt; }
 
   // Business rules
   canBeAssigned(): boolean {
-    return this.state.getValue() !== 'closed' && this.state.getValue() !== 'resolved';
+    return this.state !== 'closed' && this.state !== 'resolved';
   }
 
   canBeResolved(): boolean {
-    return this.state.getValue() === 'in_progress' || this.state.getValue() === 'open';
+    return this.state === 'in_progress' || this.state === 'open';
   }
 
   canBeClosed(): boolean {
-    return this.state.getValue() === 'resolved' || this.state.getValue() === 'in_progress';
+    return this.state === 'resolved' || this.state === 'in_progress';
   }
 
   isOverdue(): boolean {
-    if (this.state.getValue() === 'closed' || this.state.getValue() === 'resolved') {
+    if (this.state === 'closed' || this.state === 'resolved') {
       return false;
     }
-
+    
     // Business rule: High priority tickets are overdue after 4 hours
     // Medium priority after 24 hours, Low priority after 72 hours
     const hoursLimit = {
@@ -99,20 +131,84 @@ export class Ticket {
       high: 4,
       medium: 24,
       low: 72
-    }[this.priority.getValue()];
+    }[this.priority];
 
     const hoursSinceCreated = (Date.now() - this.createdAt.getTime()) / (1000 * 60 * 60);
     return hoursSinceCreated > hoursLimit;
   }
 
   requiresEscalation(): boolean {
-    return this.priority.getValue() === 'urgent' && !this.assignedToId;
+    return this.priority === 'urgent' && !this.assignedToId;
   }
 
-  // Factory method removed - should be handled by repository or service layer
-  // Domain entities should focus on business logic, not object construction with external dependencies
+  // Factory method
+  static create(props: TicketCreateProps, ticketNumber: string, idGenerator: { generate(): string }): Ticket {
+    // Business validation
+    if (!props.subject?.trim()) {
+      throw new Error('Ticket subject is required');
+    }
+    
+    if (!props.description?.trim()) {
+      throw new Error('Ticket description is required');
+    }
+    
+    if (!props.tenantId) {
+      throw new Error('Ticket must belong to a tenant');
+    }
 
-  // Modify methods (immutable)
+    if (!props.customerId) {
+      throw new Error('Ticket must have a customer');
+    }
+
+    if (!props.callerId) {
+      throw new Error('Ticket must have a caller');
+    }
+
+    const now = new Date();
+    
+    return new Ticket(
+      idGenerator.generate(),
+      props.tenantId,
+      props.customerId,
+      props.callerId,
+      props.callerType,
+      props.subject.trim(),
+      props.description.trim(),
+      ticketNumber,
+      props.shortDescription?.trim() || props.subject.trim(),
+      props.category || 'general',
+      props.subcategory || '',
+      props.priority,
+      props.impact || 'medium',
+      props.urgency || 'medium',
+      props.state || 'open',
+      props.status || 'open',
+      props.assignedToId || null,
+      props.beneficiaryId || null,
+      props.beneficiaryType || null,
+      props.assignmentGroup || null,
+      props.location || null,
+      props.contactType || 'email',
+      props.businessImpact || null,
+      props.symptoms || null,
+      props.workaround || null,
+      props.configurationItem || null,
+      props.businessService || null,
+      props.resolutionCode || null,
+      props.resolutionNotes || null,
+      props.workNotes || null,
+      props.closeNotes || null,
+      props.notify || true,
+      props.rootCause || null,
+      now, // openedAt
+      null, // resolvedAt
+      null, // closedAt
+      now, // createdAt
+      now  // updatedAt
+    );
+  }
+
+  // Update methods (immutable)
   assign(assignedToId: string, assignmentGroup?: string): Ticket {
     if (!this.canBeAssigned()) {
       throw new Error('Ticket cannot be assigned in current state');
@@ -130,10 +226,10 @@ export class Ticket {
       this.shortDescription,
       this.category,
       this.subcategory,
-      new TicketPriority(this.priority.getValue()), // Preserve existing priority
+      this.priority,
       this.impact,
       this.urgency,
-      new TicketStatus('in_progress'), // Change state to in_progress when assigned
+      'in_progress', // Change state to in_progress when assigned
       this.status,
       assignedToId,
       this.beneficiaryId,
@@ -156,7 +252,7 @@ export class Ticket {
       this.resolvedAt,
       this.closedAt,
       this.createdAt,
-      new Date() // modifiedAt
+      new Date() // updatedAt
     );
   }
 
@@ -166,7 +262,7 @@ export class Ticket {
     }
 
     const now = new Date();
-
+    
     return new Ticket(
       this.id,
       this.tenantId,
@@ -179,10 +275,10 @@ export class Ticket {
       this.shortDescription,
       this.category,
       this.subcategory,
-      this.priority, // Preserve existing priority
+      this.priority,
       this.impact,
       this.urgency,
-      new TicketStatus('resolved'),
+      'resolved',
       'resolved',
       this.assignedToId,
       this.beneficiaryId,
@@ -205,7 +301,7 @@ export class Ticket {
       now, // resolvedAt
       this.closedAt,
       this.createdAt,
-      now // modifiedAt
+      now // updatedAt
     );
   }
 
@@ -215,7 +311,7 @@ export class Ticket {
     }
 
     const now = new Date();
-
+    
     return new Ticket(
       this.id,
       this.tenantId,
@@ -228,10 +324,10 @@ export class Ticket {
       this.shortDescription,
       this.category,
       this.subcategory,
-      this.priority, // Preserve existing priority
+      this.priority,
       this.impact,
       this.urgency,
-      new TicketStatus('closed'),
+      'closed',
       'closed',
       this.assignedToId,
       this.beneficiaryId,
@@ -254,10 +350,51 @@ export class Ticket {
       this.resolvedAt,
       now, // closedAt
       this.createdAt,
-      now // modifiedAt
+      now // updatedAt
     );
   }
 
-  // CLEANED: Factory method removed - domain entities should not handle persistence mapping
-  // Infrastructure concerns moved to repository layer for proper Clean Architecture
+  // Factory method for reconstruction from persistence
+  static fromPersistence(data: any): Ticket {
+    return new Ticket(
+      data.id,
+      data.tenantId,
+      data.customerId,
+      data.callerId,
+      data.callerType,
+      data.subject,
+      data.description,
+      data.number,
+      data.shortDescription,
+      data.category,
+      data.subcategory,
+      data.priority,
+      data.impact,
+      data.urgency,
+      data.state,
+      data.status,
+      data.assignedToId,
+      data.beneficiaryId,
+      data.beneficiaryType,
+      data.assignmentGroup,
+      data.location,
+      data.contactType,
+      data.businessImpact,
+      data.symptoms,
+      data.workaround,
+      data.configurationItem,
+      data.businessService,
+      data.resolutionCode,
+      data.resolutionNotes,
+      data.workNotes,
+      data.closeNotes,
+      data.notify,
+      data.rootCause,
+      data.openedAt,
+      data.resolvedAt,
+      data.closedAt,
+      data.createdAt,
+      data.updatedAt
+    );
+  }
 }

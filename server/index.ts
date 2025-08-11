@@ -17,16 +17,8 @@ import { ActivityTrackingService } from './services/ActivityTrackingService';
 import { userGroupsRouter } from './routes/userGroups';
 import userGroupsByAgentRoutes from './routes/userGroupsByAgent';
 import userManagementRoutes from './routes/userManagementRoutes';
-import ticketMetadataRouter from './routes/ticketMetadata';
-import ticketHierarchyRouter from './modules/tickets/routes';
-import ticketFieldOptionsRouter from './routes/ticketFieldOptions';
-import { teamManagementRoutes as teamsManagementRoutes } from './routes/teamManagementRoutes';
-
 
 const app = express();
-
-// Trust proxy for proper IP detection in rate limiting
-app.set('trust proxy', true);
 
 // CRITICAL VITE STABILITY: Apply enhanced WebSocket stability middleware first
 app.use(enhancedWebsocketStability);
@@ -124,29 +116,6 @@ app.use((req, res, next) => {
   app.use('/api/user-groups', userGroupsRouter);
   app.use('/api', userGroupsByAgentRoutes);
   app.use('/api', userManagementRoutes);
-  app.use('/api/tickets', ticketFieldOptionsRouter);
-  console.log('✅ Ticket field options routes registered');
-  app.use('/api/team-management', teamsManagementRoutes);
-
-  // Customers router
-  try {
-    const { createCustomersRoutes } = await import('./modules/customers/routes');
-    app.use('/api/customers', createCustomersRoutes(db, schema, jwtAuth));
-    console.log('✅ Customers router registered');
-  } catch (error) {
-    console.log('Customers router not available, skipping...');
-  }
-
-  // Beneficiaries router
-  try {
-    const { createBeneficiariesRoutes } = await import('./modules/beneficiaries/routes');
-    app.use('/api/beneficiaries', createBeneficiariesRoutes(db, schema, jwtAuth));
-    console.log('✅ Beneficiaries router registered');
-  } catch (error) {
-    console.log('Beneficiaries router not available, skipping...');
-  }
-
-  
 
   app.get('/health', async (req, res) => {
     const memoryUsage = process.memoryUsage();
@@ -186,26 +155,12 @@ app.use((req, res, next) => {
     }
   });
 
-  // Error handling middleware (should be last)
-  app.use((error: any, req: Request, res: Response, next: NextFunction) => {
-    console.error('❌ Unhandled error:', error);
+  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+    const status = err.status || err.statusCode || 500;
+    const message = err.message || "Internal Server Error";
 
-    // Ensure JSON response for API routes
-    if (req.path.startsWith('/api/')) {
-      res.setHeader('Content-Type', 'application/json');
-      return res.status(500).json({ 
-        success: false,
-        error: 'Internal server error',
-        message: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
-      });
-    }
-
-    // For non-API routes, return HTML error page
-    res.status(500).json({ 
-      success: false,
-      error: 'Internal server error',
-      message: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
-    });
+    res.status(status).json({ message });
+    throw err;
   });
 
   // importantly only setup vite in development and after

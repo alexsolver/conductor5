@@ -1,55 +1,88 @@
-/**
- * Customer Domain Events
- * Clean Architecture - Domain Layer
- * Defines customer-related domain events
- */
+// Domain Events for Customer Module
+export abstract class DomainEvent {
+  public readonly occurredOn: Date;
+  public readonly eventId: string;
 
-import { IDomainEvent } from '../../../shared/domain/IDomainEvent';
-import { Customer } from '../entities/Customer';
-
-export class CustomerCreated implements IDomainEvent {
   constructor(
-    public readonly customer: Customer,
-    public readonly occurredOn: Date = new Date()
-  ) {}
-
-  getAggregateId(): string {
-    return this.customer.id;
+    public readonly aggregateId: string,
+    public readonly tenantId: string
+  ) {
+    this.occurredOn = new Date();
+    this.eventId = crypto.randomUUID();
   }
 
-  getEventType(): string {
-    return 'CustomerCreated';
+  abstract get eventName(): string;
+}
+
+export class CustomerCreated extends DomainEvent {
+  get eventName(): string {
+    return 'customer.created';
+  }
+
+  constructor(
+    aggregateId: string,
+    tenantId: string,
+    public readonly customerData: {
+      email: string;
+      fullName: string;
+      company?: string;
+    }
+  ) {
+    super(aggregateId, tenantId);
   }
 }
 
-export class CustomerUpdated implements IDomainEvent {
-  constructor(
-    public readonly customer: Customer,
-    public readonly changes: Record<string, any>,
-    public readonly occurredOn: Date = new Date()
-  ) {}
-
-  getAggregateId(): string {
-    return this.customer.id;
+export class CustomerUpdated extends DomainEvent {
+  get eventName(): string {
+    return 'customer.updated';
   }
 
-  getEventType(): string {
-    return 'CustomerUpdated';
+  constructor(
+    aggregateId: string,
+    tenantId: string,
+    public readonly changes: Record<string, any>
+  ) {
+    super(aggregateId, tenantId);
   }
 }
 
-export class CustomerDeleted implements IDomainEvent {
-  constructor(
-    public readonly customerId: string,
-    public readonly tenantId: string,
-    public readonly occurredOn: Date = new Date()
-  ) {}
-
-  getAggregateId(): string {
-    return this.customerId;
+export class CustomerSuspended extends DomainEvent {
+  get eventName(): string {
+    return 'customer.suspended';
   }
 
-  getEventType(): string {
-    return 'CustomerDeleted';
+  constructor(
+    aggregateId: string,
+    tenantId: string,
+    public readonly reason?: string
+  ) {
+    super(aggregateId, tenantId);
+  }
+}
+
+export class CustomerActivated extends DomainEvent {
+  get eventName(): string {
+    return 'customer.activated';
+  }
+
+  constructor(
+    aggregateId: string,
+    tenantId: string
+  ) {
+    super(aggregateId, tenantId);
+  }
+}
+
+export class CustomerVerified extends DomainEvent {
+  get eventName(): string {
+    return 'customer.verified';
+  }
+
+  constructor(
+    aggregateId: string,
+    tenantId: string,
+    public readonly verificationMethod: string
+  ) {
+    super(aggregateId, tenantId);
   }
 }

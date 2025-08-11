@@ -116,8 +116,8 @@ export class CompanyMembership {
     }
   }
 
-  // Modification Methods
-  changeRole(role: 'member' | 'admin' | 'owner' | 'contact'): CompanyMembership {
+  // Update Methods
+  updateRole(role: 'member' | 'admin' | 'owner' | 'contact'): CompanyMembership {
     return new CompanyMembership(
       this.id,
       this.customerId,
@@ -134,7 +134,7 @@ export class CompanyMembership {
     );
   }
 
-  changeJobInfo(title: string | null, department: string | null): CompanyMembership {
+  updateJobInfo(title: string | null, department: string | null): CompanyMembership {
     return new CompanyMembership(
       this.id,
       this.customerId,
@@ -151,7 +151,7 @@ export class CompanyMembership {
     );
   }
 
-  changePermissions(permissions: {
+  updatePermissions(permissions: {
     canCreateTickets?: boolean;
     canViewAllTickets?: boolean;
     canManageUsers?: boolean;
@@ -225,6 +225,47 @@ export class CompanyMembership {
     );
   }
 
-  // CLEANED: Factory methods removed - creation and persistence mapping moved to repository layer
-  // Domain entities should focus on business logic, not object construction
+  // Factory Methods
+  static create(props: {
+    customerId: string;
+    companyId: string;
+    role?: 'member' | 'admin' | 'owner' | 'contact';
+    title?: string | null;
+    department?: string | null;
+    permissions?: any;
+    isPrimary?: boolean;
+    addedBy: string;
+  }): CompanyMembership {
+    return new CompanyMembership(
+      crypto.randomUUID(),
+      props.customerId,
+      props.companyId,
+      props.role || 'member',
+      props.title || null,
+      props.department || null,
+      props.permissions || {},
+      true, // isActive
+      props.isPrimary || false,
+      new Date(),
+      null, // leftAt
+      props.addedBy
+    );
+  }
+
+  static fromPersistence(data: any): CompanyMembership {
+    return new CompanyMembership(
+      data.id,
+      data.customerId,
+      data.companyId,
+      data.role || 'member',
+      data.title,
+      data.department,
+      data.permissions || {},
+      data.isActive !== false,
+      data.isPrimary || false,
+      data.joinedAt,
+      data.leftAt,
+      data.addedBy
+    );
+  }
 }
