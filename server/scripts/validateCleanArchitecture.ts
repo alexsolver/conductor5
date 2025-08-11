@@ -36,9 +36,16 @@ class CleanArchitectureOrchestrator {
       }
 
       // 2. Se há problemas, gerar plano de correção
-      if (validationResult.issues.length > 0) {
+      if (validationResult.issues && validationResult.issues.length > 0) {
         const corrector = new CleanArchitectureCorrector();
-        const correctionPlans = await corrector.generateCorrectionPlan(validationResult);
+        let correctionPlans: any[] = [];
+        
+        try {
+          correctionPlans = await corrector.generateCorrectionPlan(validationResult);
+        } catch (error) {
+          console.warn('⚠️ Erro ao gerar plano de correção:', error);
+          correctionPlans = [];
+        }
         
         if (shouldFix) {
           console.log('\n🔧 Executando correções automáticas...');
@@ -54,7 +61,11 @@ class CleanArchitectureOrchestrator {
         }
 
         // 4. Salvar relatórios
-        this.saveReports(validationResult, correctionPlans);
+        try {
+          this.saveReports(validationResult, correctionPlans || []);
+        } catch (error) {
+          console.warn('⚠️ Erro ao salvar relatórios:', error);
+        }
 
         // 5. Status de saída
         process.exit(validationResult.passed ? 0 : 1);
@@ -140,16 +151,20 @@ ${this.generateCorrectionPlanMarkdown(correctionPlans)}
 ## Recomendações
 
 ### Prioridade Imediata 🔥
-${correctionPlans
-  .filter(p => p.priority === 'immediate')
-  .map(p => `- **${p.module}:** ${p.actions.length} ações (${p.estimatedTime})`)
-  .join('\n') || 'Nenhuma ação imediata necessária'}
+${correctionPlans && correctionPlans.length > 0
+  ? correctionPlans
+      .filter(p => p && p.priority === 'immediate')
+      .map(p => `- **${p.module || 'Módulo'}:** ${(p.actions || []).length} ações (${p.estimatedTime || 'tempo não estimado'})`)
+      .join('\n') || 'Nenhuma ação imediata necessária'
+  : 'Nenhuma ação imediata necessária'}
 
 ### Prioridade Alta ⚠️
-${correctionPlans
-  .filter(p => p.priority === 'high')
-  .map(p => `- **${p.module}:** ${p.actions.length} ações (${p.estimatedTime})`)
-  .join('\n') || 'Nenhuma ação de alta prioridade necessária'}
+${correctionPlans && correctionPlans.length > 0
+  ? correctionPlans
+      .filter(p => p && p.priority === 'high')
+      .map(p => `- **${p.module || 'Módulo'}:** ${(p.actions || []).length} ações (${p.estimatedTime || 'tempo não estimado'})`)
+      .join('\n') || 'Nenhuma ação de alta prioridade necessária'
+  : 'Nenhuma ação de alta prioridade necessária'}
 
 ## Comandos para Correção
 
@@ -170,9 +185,15 @@ npm run validate:architecture --report
   }
 
   private generateModuleProblemsMarkdown(issues: any[]): string {
+    if (!issues || !Array.isArray(issues) || issues.length === 0) {
+      return 'Nenhum problema encontrado por módulo.';
+    }
+
     const moduleIssues = issues.reduce((acc, issue) => {
-      if (!acc[issue.module]) acc[issue.module] = [];
-      acc[issue.module].push(issue);
+      if (issue && issue.module) {
+        if (!acc[issue.module]) acc[issue.module] = [];
+        acc[issue.module].push(issue);
+      }
       return acc;
     }, {});
 
@@ -193,7 +214,12 @@ ${moduleIssues.slice(0, 3).map(i => `  - ${i.description}`).join('\n')}
   }
 
   private generateCorrectionPlanMarkdown(plans: any[]): string {
+    if (!plans || plans.length === 0) {
+      return 'Nenhum plano de correção disponível.';
+    }
+
     return plans
+      .filter(plan => plan && typeof plan === 'object')
       .map(plan => {
         const priorityEmoji = {
           immediate: '🔥',
@@ -202,14 +228,21 @@ ${moduleIssues.slice(0, 3).map(i => `  - ${i.description}`).join('\n')}
           low: '💡'
         }[plan.priority] || '📋';
 
-        return `### ${priorityEmoji} ${plan.module}
-- **Prioridade:** ${plan.priority}
-- **Tempo estimado:** ${plan.estimatedTime}
-- **Ações:** ${plan.actions.length}
+        const actions = plan.actions || [];
+        const module = plan.module || 'Módulo desconhecido';
+        const priority = plan.priority || 'indefinida';
+        const estimatedTime = plan.estimatedTime || 'não estimado';
 
-${plan.actions.map((action: any, index: number) => 
-  `${index + 1}. **${action.type}:** ${action.description}`
-).join('\n')}
+        return `### ${priorityEmoji} ${module}
+- **Prioridade:** ${priority}
+- **Tempo estimado:** ${estimatedTime}
+- **Ações:** ${actions.length}
+
+${actions.map((action: any, index: number) => {
+  const actionType = action?.type || 'Ação';
+  const actionDescription = action?.description || 'Descrição não disponível';
+  return `${index + 1}. **${actionType}:** ${actionDescription}`;
+}).join('\n')}
 `;
       })
       .join('\n');
