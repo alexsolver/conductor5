@@ -4,9 +4,25 @@
  */
 
 import { Request, Response } from 'express';
+import { GetInventoryItemsUseCase } from '../use-cases/GetInventoryItemsUseCase';
+import { CreateInventoryItemUseCase } from '../use-cases/CreateInventoryItemUseCase';
+import { UpdateInventoryStockUseCase } from '../use-cases/UpdateInventoryStockUseCase';
+
+interface AuthenticatedRequest extends Request {
+  user?: {
+    id: string;
+    tenantId: string;
+    email: string;
+    role: string;
+  };
+}
 
 export class InventoryController {
-  constructor() {}
+  constructor(
+    private getInventoryItemsUseCase: GetInventoryItemsUseCase,
+    private createInventoryItemUseCase: CreateInventoryItemUseCase,
+    private updateInventoryStockUseCase: UpdateInventoryStockUseCase
+  ) {}
 
   async getInventoryItems(req: Request, res: Response): Promise<void> {
     try {
