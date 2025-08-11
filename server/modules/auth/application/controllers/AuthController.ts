@@ -21,13 +21,20 @@ export class AuthController {
       }
       
       res.json({
-        success: true,
-        message: 'Login successful',
-        data: { 
-          user: { email }, 
-          token: 'mock-jwt-token',
-          refreshToken: 'mock-refresh-token' 
-        }
+        user: { 
+          id: 'mock-user-id',
+          email, 
+          firstName: 'Test',
+          lastName: 'User',
+          role: 'tenant_admin',
+          tenantId: 'mock-tenant-id',
+          profileImageUrl: null,
+          isActive: true,
+          lastLoginAt: new Date().toISOString(),
+          createdAt: new Date().toISOString()
+        }, 
+        accessToken: 'mock-jwt-token',
+        refreshToken: 'mock-refresh-token'
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Login failed';
