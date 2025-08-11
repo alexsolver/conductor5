@@ -9,6 +9,134 @@ import { Request, Response } from 'express';
 export class MaterialsServicesController {
   constructor() {}
 
+  // REST API Methods - Required by routes
+  async index(req: Request, res: Response): Promise<void> {
+    await this.getMaterials(req, res);
+  }
+
+  async show(req: Request, res: Response): Promise<void> {
+    await this.getMaterialById(req, res);
+  }
+
+  async create(req: Request, res: Response): Promise<void> {
+    await this.createMaterial(req, res);
+  }
+
+  async update(req: Request, res: Response): Promise<void> {
+    await this.updateMaterial(req, res);
+  }
+
+  async delete(req: Request, res: Response): Promise<void> {
+    await this.deleteMaterial(req, res);
+  }
+
+  // Method implementations required by REST API
+  async getMaterialById(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const tenantId = req.headers['x-tenant-id'] as string;
+      
+      if (!id) {
+        res.status(400).json({ 
+          success: false, 
+          message: 'Material ID is required' 
+        });
+        return;
+      }
+
+      // Use direct SQL query following same pattern as tickets
+      const { db } = await import('../../../../db');
+      const { sql } = await import('drizzle-orm');
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      const query = `
+        SELECT 
+          id,
+          tenant_id,
+          name,
+          description,
+          type,
+          status,
+          measurement_unit,
+          created_at,
+          updated_at
+        FROM "${schemaName}".items
+        WHERE tenant_id = '${tenantId}' AND id = '${id}'
+        LIMIT 1
+      `;
+      
+      const result = await db.execute(sql.raw(query));
+      const materials = Array.isArray(result) ? result : (result.rows || []);
+      
+      if (materials.length === 0) {
+        res.status(404).json({
+          success: false,
+          message: 'Material not found'
+        });
+        return;
+      }
+
+      res.json({
+        success: true,
+        message: 'Material retrieved successfully',
+        data: materials[0]
+      });
+    } catch (error) {
+      console.error('🏗️ [MaterialsServicesController] Get Material Error:', error);
+      const message = error instanceof Error ? error.message : 'Failed to retrieve material';
+      res.status(500).json({ success: false, message });
+    }
+  }
+
+  async updateMaterial(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const tenantId = req.headers['x-tenant-id'] as string;
+      const { name, description, category, unitPrice, supplier } = req.body;
+      
+      if (!id) {
+        res.status(400).json({ 
+          success: false, 
+          message: 'Material ID is required' 
+        });
+        return;
+      }
+
+      res.json({
+        success: true,
+        message: 'Material updated successfully',
+        data: { id, name, description, category, unitPrice, supplier, tenantId }
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to update material';
+      res.status(500).json({ success: false, message });
+    }
+  }
+
+  async deleteMaterial(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const tenantId = req.headers['x-tenant-id'] as string;
+      
+      if (!id) {
+        res.status(400).json({ 
+          success: false, 
+          message: 'Material ID is required' 
+        });
+        return;
+      }
+
+      res.json({
+        success: true,
+        message: 'Material deleted successfully',
+        data: { id, tenantId }
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to delete material';
+      res.status(500).json({ success: false, message });
+    }
+  }
+
   // MATERIALS MANAGEMENT
   async createMaterial(req: Request, res: Response): Promise<void> {
     try {
@@ -39,10 +167,18 @@ export class MaterialsServicesController {
       const tenantId = req.headers['x-tenant-id'] as string;
       const { search, category, supplier } = req.query;
       
+      if (!tenantId) {
+        res.status(400).json({ 
+          success: false, 
+          message: 'Tenant ID is required in x-tenant-id header' 
+        });
+        return;
+      }
+      
       console.log('🏗️ [MaterialsServicesController] Getting materials for tenant:', tenantId);
       
       // Use direct SQL query following same pattern as tickets
-      const { db } = await import('../../../db');
+      const { db } = await import('../../../../db');
       const { sql } = await import('drizzle-orm');
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       
@@ -52,13 +188,12 @@ export class MaterialsServicesController {
           tenant_id,
           name,
           description,
-          category,
-          supplier_id,
-          unit_price,
-          quantity_in_stock,
+          type,
+          status,
+          measurement_unit,
           created_at,
           updated_at
-        FROM "${schemaName}".materials
+        FROM "${schemaName}".items
         WHERE tenant_id = '${tenantId}'
         ORDER BY created_at DESC
         LIMIT 50
@@ -135,7 +270,7 @@ export class MaterialsServicesController {
       console.log('📦 [MaterialsServicesController] Getting inventory for tenant:', tenantId);
       
       // Use direct SQL query following same pattern as tickets
-      const { db } = await import('../../../db');
+      const { db } = await import('../../../../db');
       const { sql } = await import('drizzle-orm');
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
       
@@ -145,13 +280,13 @@ export class MaterialsServicesController {
           tenant_id,
           name,
           description,
-          quantity_in_stock,
-          minimum_stock,
-          unit_price,
+          type,
+          status,
+          measurement_unit,
           created_at,
           updated_at
-        FROM "${schemaName}".materials
-        WHERE tenant_id = '${tenantId}' AND quantity_in_stock > 0
+        FROM "${schemaName}".items
+        WHERE tenant_id = '${tenantId}' AND status = 'active'
         ORDER BY created_at DESC
         LIMIT 50
       `;

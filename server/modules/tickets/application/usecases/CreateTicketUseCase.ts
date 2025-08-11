@@ -4,6 +4,8 @@
  */
 
 import { Ticket } from '../../domain/entities/Ticket';
+import { TicketPriority } from '../../domain/value-objects/TicketPriority';
+import { TicketStatus } from '../../domain/value-objects/TicketStatus';
 import { ITicketRepository } from '../../domain/ports/ITicketRepository';
 import { IDomainEventPublisher } from '../../../shared/domain/IDomainEventPublisher';
 import { TicketCreatedEvent } from '../../domain/events/TicketCreatedEvent';
@@ -76,10 +78,10 @@ export class CreateTicketUseCase {
         input.shortDescription || input.subject, // shortDescription
         input.category || '', // category
         input.subcategory || '', // subcategory
-        new TicketPriority(input.priority), // priority
+        TicketPriority.create(input.priority), // priority
         input.impact || 'medium', // impact
         input.urgency || 'medium', // urgency
-        new TicketStatus('open'), // state
+        TicketStatus.create('open'), // state
         'open', // status
         input.assignedToId || null, // assignedToId
         input.beneficiaryId || null, // beneficiaryId

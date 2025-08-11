@@ -69,10 +69,10 @@ export class ActivityTrackingService {
         INSERT INTO ${sql.identifier(this.getTenantSchema(data.tenantId))}.user_activity_tracking 
         (id, tenant_id, user_id, session_id, activity_type, resource_type, resource_id, 
          action, metadata, start_time, page_url, user_agent, ip_address)
-        VALUES (${activityId}, ${data.tenantId}, ${data.userId}, ${enrichedData.sessionId},
-                ${data.activityType}, ${data.resourceType}, ${data.resourceId}, 
+        VALUES (${activityId}, ${data.tenantId}, ${data.userId}, ${enrichedData.sessionId || null},
+                ${data.activityType}, ${data.resourceType}, ${data.resourceId || null}, 
                 ${data.action}, ${JSON.stringify(data.metadata || {})}, ${now},
-                ${enrichedData.pageUrl}, ${enrichedData.userAgent}, ${enrichedData.ipAddress})
+                ${enrichedData.pageUrl || null}, ${enrichedData.userAgent || null}, ${enrichedData.ipAddress || null})
       `);
 
       // Store in memory for tracking duration

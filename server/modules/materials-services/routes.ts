@@ -8,6 +8,7 @@ const controller = new MaterialsServicesController();
 
 // Clean route handlers - delegate to controller
 router.get('/', jwtAuth, (req, res) => controller.index(req, res));
+router.get('/items', jwtAuth, (req, res) => controller.index(req, res));
 router.post('/', jwtAuth, (req, res) => controller.create(req, res));
 router.get('/:id', jwtAuth, (req, res) => controller.show(req, res));
 router.put('/:id', jwtAuth, (req, res) => controller.update(req, res));
