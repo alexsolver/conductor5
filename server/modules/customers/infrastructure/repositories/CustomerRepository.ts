@@ -2,7 +2,7 @@ import { Customer } from '../../domain/entities/Customer';
 import { ICustomerRepository } from '../../domain/ports/ICustomerRepository';
 import { drizzle } from 'drizzle-orm/neon-http';
 import * as schema from '@shared/schema';
-import { eq, and, like, count, or } from 'drizzle-orm';
+import { eq, and, like, count, or, sql } from 'drizzle-orm';
 
 export class DrizzleCustomerRepository implements ICustomerRepository {
   constructor(private readonly db: ReturnType<typeof drizzle>) {}
@@ -40,34 +40,49 @@ export class DrizzleCustomerRepository implements ICustomerRepository {
   }
 
   async findMany(filter: { tenantId: string; search?: string; active?: boolean; verified?: boolean; limit?: number; offset?: number; }): Promise<Customer[]> {
-    let query = this.db
-      .select()
-      .from(schema.customers)
-      .where(and(
-        eq(schema.customers.tenantId, filter.tenantId),
-        eq(schema.customers.isActive, filter.active ?? true)
-      ));
-
-    if (filter.search) {
-      query = query.where(
-        or(
-          like(schema.customers.firstName, `%${filter.search}%`),
-          like(schema.customers.lastName, `%${filter.search}%`),
-          like(schema.customers.email, `%${filter.search}%`)
-        )
-      );
+    try {
+      console.log('👥 [DrizzleCustomerRepository] Finding customers for tenant:', filter.tenantId);
+      
+      // Use tenant-specific schema
+      const schemaName = `tenant_${filter.tenantId.replace(/-/g, '_')}`;
+      
+      let query = `
+        SELECT 
+          id,
+          tenant_id,
+          customer_type,
+          is_active,
+          email,
+          first_name,
+          last_name,
+          cpf,
+          company_name,
+          cnpj,
+          contact_person,
+          phone,
+          mobile_phone,
+          created_at,
+          updated_at
+        FROM "${schemaName}".customers
+        WHERE is_active = true
+        ORDER BY created_at DESC
+        LIMIT 50
+      `;
+      
+      console.log('👥 [DrizzleCustomerRepository] Executing query:', query);
+      
+      const result = await this.db.execute(sql.raw(query));
+      console.log('👥 [DrizzleCustomerRepository] Raw result:', result, 'type:', typeof result);
+      
+      // Handle result structure properly
+      const rows = Array.isArray(result) ? result : (result.rows || []);
+      console.log('👥 [DrizzleCustomerRepository] Rows found:', rows.length);
+      
+      return rows.map(this.toDomainEntity);
+    } catch (error) {
+      console.error('👥 [DrizzleCustomerRepository] Error finding customers:', error);
+      return [];
     }
-
-    if (filter.limit) {
-      query = query.limit(filter.limit);
-    }
-
-    if (filter.offset) {
-      query = query.offset(filter.offset);
-    }
-
-    const results = await query;
-    return results.map(this.toDomainEntity);
   }
 
   async findByEmail(email: string, tenantId: string): Promise<Customer | null> {

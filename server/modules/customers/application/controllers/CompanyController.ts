@@ -4,6 +4,8 @@
  */
 
 import { Request, Response } from 'express';
+import { db } from '../../../db';
+import { sql } from 'drizzle-orm';
 
 export class CompanyController {
   constructor() {}
@@ -13,13 +15,42 @@ export class CompanyController {
       const tenantId = req.headers['x-tenant-id'] as string;
       const { search, industry, active } = req.query;
       
+      console.log('🏢 [CompanyController] Getting companies for tenant:', tenantId);
+      
+      // Use direct SQL query following same pattern as tickets
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      const query = `
+        SELECT 
+          id,
+          tenant_id,
+          name,
+          industry,
+          email,
+          phone,
+          created_at,
+          updated_at
+        FROM "${schemaName}".companies
+        WHERE tenant_id = '${tenantId}'
+        ORDER BY created_at DESC
+        LIMIT 50
+      `;
+      
+      console.log('🏢 [CompanyController] Executing query:', query);
+      
+      const result = await db.execute(sql.raw(query));
+      const companies = Array.isArray(result) ? result : (result.rows || []);
+      
+      console.log('🏢 [CompanyController] Companies found:', companies.length);
+      
       res.json({
         success: true,
         message: 'Companies retrieved successfully',
-        data: [],
+        data: companies,
         filters: { search, industry, active: active === 'true', tenantId }
       });
     } catch (error) {
+      console.error('🏢 [CompanyController] Error:', error);
       const message = error instanceof Error ? error.message : 'Failed to retrieve companies';
       res.status(500).json({ success: false, message });
     }
