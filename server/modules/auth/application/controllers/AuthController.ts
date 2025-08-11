@@ -61,20 +61,30 @@ export class AuthController {
 
   async register(req: Request, res: Response): Promise<void> {
     try {
-      const { email, password, firstName, lastName, tenantId } = req.body;
+      const { email, password, firstName, lastName, companyName, workspaceName, role } = req.body;
       
-      if (!email || !password || !firstName || !lastName) {
+      if (!email || !password) {
         res.status(400).json({ 
           success: false, 
-          message: 'Email, password, first name, and last name are required' 
+          message: 'Email and password are required' 
         });
         return;
       }
       
+      // Create user with optional fields
+      const userData = {
+        email,
+        firstName: firstName || 'User',
+        lastName: lastName || '',
+        companyName: companyName || 'Default Company',
+        workspaceName: workspaceName || 'Default Workspace',
+        role: role || 'tenant_admin'
+      };
+      
       res.status(201).json({
         success: true,
         message: 'User registered successfully',
-        data: { email, firstName, lastName, tenantId }
+        data: userData
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Registration failed';
