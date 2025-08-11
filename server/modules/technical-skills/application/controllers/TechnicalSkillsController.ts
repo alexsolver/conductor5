@@ -38,13 +38,46 @@ export class TechnicalSkillsController {
       const tenantId = req.headers['x-tenant-id'] as string;
       const { search, category, level } = req.query;
       
+      console.log('🛠️ [TechnicalSkillsController] Getting skills for tenant:', tenantId);
+      
+      // Use direct SQL query following same pattern as tickets
+      const { db } = await import('../../../db');
+      const { sql } = await import('drizzle-orm');
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      const query = `
+        SELECT 
+          id,
+          tenant_id,
+          name,
+          category,
+          level,
+          certification,
+          validity_months,
+          is_active,
+          created_at,
+          updated_at
+        FROM "${schemaName}".technical_skills
+        WHERE tenant_id = '${tenantId}' AND is_active = true
+        ORDER BY category ASC, name ASC
+        LIMIT 50
+      `;
+      
+      console.log('🛠️ [TechnicalSkillsController] Executing query:', query);
+      
+      const result = await db.execute(sql.raw(query));
+      const skills = Array.isArray(result) ? result : (result.rows || []);
+      
+      console.log('🛠️ [TechnicalSkillsController] Skills found:', skills.length);
+      
       res.json({
         success: true,
         message: 'Technical skills retrieved successfully',
-        data: [],
+        data: skills,
         filters: { search, category, level, tenantId }
       });
     } catch (error) {
+      console.error('🛠️ [TechnicalSkillsController] Error:', error);
       const message = error instanceof Error ? error.message : 'Failed to retrieve skills';
       res.status(500).json({ success: false, message });
     }

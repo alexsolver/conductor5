@@ -13,13 +13,51 @@ export class LocationsController {
       const tenantId = req.headers['x-tenant-id'] as string;
       const { type, region, active } = req.query;
       
+      console.log('📍 [LocationsController] Getting locations for tenant:', tenantId);
+      
+      // Use direct SQL query following same pattern as tickets
+      const { db } = await import('../../../db');
+      const { sql } = await import('drizzle-orm');
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      const query = `
+        SELECT 
+          id,
+          tenant_id,
+          name,
+          address,
+          city,
+          state,
+          country,
+          postal_code,
+          latitude,
+          longitude,
+          type,
+          region,
+          is_active,
+          created_at,
+          updated_at
+        FROM "${schemaName}".locations
+        WHERE tenant_id = '${tenantId}' AND is_active = true
+        ORDER BY created_at DESC
+        LIMIT 50
+      `;
+      
+      console.log('📍 [LocationsController] Executing query:', query);
+      
+      const result = await db.execute(sql.raw(query));
+      const locations = Array.isArray(result) ? result : (result.rows || []);
+      
+      console.log('📍 [LocationsController] Locations found:', locations.length);
+      
       res.json({
         success: true,
         message: 'Locations retrieved successfully',
-        data: [],
+        data: locations,
         filters: { type, region, active: active === 'true', tenantId }
       });
     } catch (error) {
+      console.error('📍 [LocationsController] Error:', error);
       const message = error instanceof Error ? error.message : 'Failed to retrieve locations';
       res.status(500).json({ success: false, message });
     }

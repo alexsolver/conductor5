@@ -38,13 +38,49 @@ export class ScheduleManagementController {
       const tenantId = req.headers['x-tenant-id'] as string;
       const { userId, startDate, endDate, type } = req.query;
       
+      console.log('📅 [ScheduleManagementController] Getting schedules for tenant:', tenantId);
+      
+      // Use direct SQL query following same pattern as tickets
+      const { db } = await import('../../../db');
+      const { sql } = await import('drizzle-orm');
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      const query = `
+        SELECT 
+          id,
+          tenant_id,
+          user_id,
+          title,
+          description,
+          start_time,
+          end_time,
+          schedule_date,
+          type,
+          status,
+          location_id,
+          created_at,
+          updated_at
+        FROM "${schemaName}".schedules
+        WHERE tenant_id = '${tenantId}'
+        ORDER BY schedule_date DESC, start_time DESC
+        LIMIT 50
+      `;
+      
+      console.log('📅 [ScheduleManagementController] Executing query:', query);
+      
+      const result = await db.execute(sql.raw(query));
+      const schedules = Array.isArray(result) ? result : (result.rows || []);
+      
+      console.log('📅 [ScheduleManagementController] Schedules found:', schedules.length);
+      
       res.json({
         success: true,
         message: 'Schedules retrieved successfully',
-        data: [],
+        data: schedules,
         filters: { userId, startDate, endDate, type, tenantId }
       });
     } catch (error) {
+      console.error('📅 [ScheduleManagementController] Error:', error);
       const message = error instanceof Error ? error.message : 'Failed to retrieve schedules';
       res.status(500).json({ success: false, message });
     }

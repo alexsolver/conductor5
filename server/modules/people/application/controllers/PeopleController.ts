@@ -13,13 +13,47 @@ export class PeopleController {
       const tenantId = req.headers['x-tenant-id'] as string;
       const { search, role, active } = req.query;
       
+      console.log('👥 [PeopleController] Getting people for tenant:', tenantId);
+      
+      // Use direct SQL query following same pattern as tickets
+      const { db } = await import('../../../db');
+      const { sql } = await import('drizzle-orm');
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      const query = `
+        SELECT 
+          id,
+          tenant_id,
+          first_name,
+          last_name,
+          email,
+          phone,
+          role,
+          department,
+          is_active,
+          created_at,
+          updated_at
+        FROM "${schemaName}".people
+        WHERE tenant_id = '${tenantId}' AND is_active = true
+        ORDER BY last_name ASC, first_name ASC
+        LIMIT 50
+      `;
+      
+      console.log('👥 [PeopleController] Executing query:', query);
+      
+      const result = await db.execute(sql.raw(query));
+      const people = Array.isArray(result) ? result : (result.rows || []);
+      
+      console.log('👥 [PeopleController] People found:', people.length);
+      
       res.json({
         success: true,
         message: 'People retrieved successfully',
-        data: [],
+        data: people,
         filters: { search, role, active: active === 'true', tenantId }
       });
     } catch (error) {
+      console.error('👥 [PeopleController] Error:', error);
       const message = error instanceof Error ? error.message : 'Failed to retrieve people';
       res.status(500).json({ success: false, message });
     }

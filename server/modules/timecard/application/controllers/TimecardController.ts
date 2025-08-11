@@ -13,13 +13,48 @@ export class TimecardController {
       const tenantId = req.headers['x-tenant-id'] as string;
       const { userId, startDate, endDate, status } = req.query;
       
+      console.log('⏰ [TimecardController] Getting timecards for tenant:', tenantId);
+      
+      // Use direct SQL query following same pattern as tickets
+      const { db } = await import('../../../db');
+      const { sql } = await import('drizzle-orm');
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      const query = `
+        SELECT 
+          id,
+          tenant_id,
+          user_id,
+          date,
+          clock_in,
+          clock_out,
+          break_start,
+          break_end,
+          total_hours,
+          status,
+          created_at,
+          updated_at
+        FROM "${schemaName}".timecards
+        WHERE tenant_id = '${tenantId}'
+        ORDER BY date DESC, created_at DESC
+        LIMIT 50
+      `;
+      
+      console.log('⏰ [TimecardController] Executing query:', query);
+      
+      const result = await db.execute(sql.raw(query));
+      const timecards = Array.isArray(result) ? result : (result.rows || []);
+      
+      console.log('⏰ [TimecardController] Timecards found:', timecards.length);
+      
       res.json({
         success: true,
         message: 'Timecards retrieved successfully',
-        data: [],
+        data: timecards,
         filters: { userId, startDate, endDate, status, tenantId }
       });
     } catch (error) {
+      console.error('⏰ [TimecardController] Error:', error);
       const message = error instanceof Error ? error.message : 'Failed to retrieve timecards';
       res.status(500).json({ success: false, message });
     }
