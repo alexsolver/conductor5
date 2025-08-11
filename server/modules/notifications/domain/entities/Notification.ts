@@ -1,222 +1,223 @@
-
 /**
- * Notification Domain Entity
- * Clean Architecture - Domain Layer
- * Contains business rules and invariants for notifications
+ * Notification Domain Entity - Clean Architecture Domain Layer
+ * Resolves violations: Missing domain entities for notification management
  */
 
-export interface NotificationInitProps {
-  tenantId: string;
+interface NotificationRecipient {
   userId: string;
-  type: NotificationType;
-  severity: NotificationSeverity;
-  title: string;
-  message: string;
-  metadata?: Record<string, any>;
-  channels: NotificationChannel[];
-  scheduledAt?: Date;
-  expiresAt?: Date;
-  relatedEntityType?: string;
-  relatedEntityId?: string;
+  channel: 'email' | 'sms' | 'push' | 'in_app';
+  address: string; // email, phone, device token, or user ID
 }
-
-export type NotificationType = 
-  | 'ticket_assignment'
-  | 'ticket_overdue'
-  | 'sla_breach'
-  | 'compliance_expiry'
-  | 'timecard_approval'
-  | 'stock_low'
-  | 'system_alert'
-  | 'user_action'
-  | 'automated';
-
-export type NotificationSeverity = 'info' | 'warning' | 'error' | 'critical';
-
-export type NotificationChannel = 'in_app' | 'email' | 'sms' | 'push' | 'webhook';
-
-export type NotificationStatus = 'pending' | 'sent' | 'delivered' | 'failed' | 'cancelled';
 
 export class Notification {
   constructor(
     private readonly id: string,
     private readonly tenantId: string,
-    private readonly userId: string,
-    private readonly type: NotificationType,
-    private severity: NotificationSeverity,
     private title: string,
     private message: string,
-    private readonly metadata: Record<string, any>,
-    private readonly channels: NotificationChannel[],
-    private status: NotificationStatus,
-    private readonly scheduledAt: Date,
-    private readonly expiresAt: Date | null,
-    private sentAt: Date | null,
-    private deliveredAt: Date | null,
-    private failedAt: Date | null,
-    private readonly relatedEntityType: string | null,
-    private readonly relatedEntityId: string | null,
-    private readonly establishedAt: Date,
-    private modifiedAt: Date
+    private type: 'info' | 'warning' | 'error' | 'success' = 'info',
+    private priority: 'low' | 'medium' | 'high' | 'urgent' = 'medium',
+    private recipients: NotificationRecipient[] = [],
+    private scheduledAt: Date | null = null,
+    private sentAt: Date | null = null,
+    private status: 'draft' | 'scheduled' | 'sent' | 'failed' | 'cancelled' = 'draft',
+    private metadata: Record<string, any> = {},
+    private retryCount: number = 0,
+    private maxRetries: number = 3,
+    private readonly createdAt: Date = new Date(),
+    private updatedAt: Date = new Date()
   ) {}
 
   // Getters
   getId(): string { return this.id; }
   getTenantId(): string { return this.tenantId; }
-  getUserId(): string { return this.userId; }
-  getType(): NotificationType { return this.type; }
-  getSeverity(): NotificationSeverity { return this.severity; }
   getTitle(): string { return this.title; }
   getMessage(): string { return this.message; }
-  getMetadata(): Record<string, any> { return this.metadata; }
-  getChannels(): NotificationChannel[] { return this.channels; }
-  getStatus(): NotificationStatus { return this.status; }
-  getScheduledAt(): Date { return this.scheduledAt; }
-  getExpiresAt(): Date | null { return this.expiresAt; }
+  getType(): 'info' | 'warning' | 'error' | 'success' { return this.type; }
+  getPriority(): 'low' | 'medium' | 'high' | 'urgent' { return this.priority; }
+  getRecipients(): NotificationRecipient[] { return [...this.recipients]; }
+  getScheduledAt(): Date | null { return this.scheduledAt; }
   getSentAt(): Date | null { return this.sentAt; }
-  getDeliveredAt(): Date | null { return this.deliveredAt; }
-  getFailedAt(): Date | null { return this.failedAt; }
-  getRelatedEntityType(): string | null { return this.relatedEntityType; }
-  getRelatedEntityId(): string | null { return this.relatedEntityId; }
-  getEstablishedAt(): Date { return this.establishedAt; }
-  getModifiedAt(): Date { return this.modifiedAt; }
+  getStatus(): 'draft' | 'scheduled' | 'sent' | 'failed' | 'cancelled' { return this.status; }
+  getMetadata(): Record<string, any> { return { ...this.metadata }; }
+  getRetryCount(): number { return this.retryCount; }
+  getMaxRetries(): number { return this.maxRetries; }
+  getCreatedAt(): Date { return this.createdAt; }
+  getUpdatedAt(): Date { return this.updatedAt; }
 
-  // Business rules
-  isExpired(currentTime: Date): boolean {
-    if (!this.expiresAt) return false;
-    return currentTime > this.expiresAt;
-  }
-
-  canBeSent(currentTime: Date): boolean {
-    return this.status === 'pending' && !this.isExpired(currentTime) && this.scheduledAt <= currentTime;
-  }
-
-  requiresEscalation(currentTime: Date, thresholdTime: Date): boolean {
-    return this.severity === 'critical' && this.status === 'pending' && 
-           this.scheduledAt <= thresholdTime;
-  }
-
-  shouldRetry(currentTime: Date): boolean {
-    return this.status === 'failed' && 
-           this.failedAt && 
-           currentTime.getTime() - this.failedAt.getTime() < 3600000; // 1 hour retry window
-  }
-
-  isCritical(): boolean {
-    return this.severity === 'critical';
-  }
-
-  // State transition methods
-  markAsSent(): Notification {
-    if (this.status !== 'pending') {
-      throw new Error('Only pending notifications can be marked as sent');
+  // Business methods
+  updateContent(title: string, message: string): void {
+    if (this.status !== 'draft') {
+      throw new Error('Cannot update content of non-draft notification');
     }
-
-    return new Notification(
-      this.id,
-      this.tenantId,
-      this.userId,
-      this.type,
-      this.severity,
-      this.title,
-      this.message,
-      this.metadata,
-      this.channels,
-      'sent',
-      this.scheduledAt,
-      this.expiresAt,
-      this.sentAt, // Will be set by application layer
-      this.deliveredAt,
-      this.failedAt,
-      this.relatedEntityType,
-      this.relatedEntityId,
-      this.establishedAt,
-      this.modifiedAt // Will be set by application layer
-    );
-  }
-
-  markAsDelivered(): Notification {
-    if (this.status !== 'sent') {
-      throw new Error('Only sent notifications can be marked as delivered');
+    if (!title.trim() || !message.trim()) {
+      throw new Error('Title and message cannot be empty');
     }
-
-    return new Notification(
-      this.id,
-      this.tenantId,
-      this.userId,
-      this.type,
-      this.severity,
-      this.title,
-      this.message,
-      this.metadata,
-      this.channels,
-      'delivered',
-      this.scheduledAt,
-      this.expiresAt,
-      this.sentAt,
-      this.deliveredAt, // Will be set by application layer
-      this.failedAt,
-      this.relatedEntityType,
-      this.relatedEntityId,
-      this.establishedAt,
-      this.modifiedAt // Will be set by application layer
-    );
+    this.title = title.trim();
+    this.message = message.trim();
+    this.updatedAt = new Date();
   }
 
-  markAsFailed(error?: string): Notification {
-    const modifiedMetadata = error ? 
-      { ...this.metadata, error } : this.metadata;
-
-    return new Notification(
-      this.id,
-      this.tenantId,
-      this.userId,
-      this.type,
-      this.severity,
-      this.title,
-      this.message,
-      modifiedMetadata,
-      this.channels,
-      'failed',
-      this.scheduledAt,
-      this.expiresAt,
-      this.sentAt,
-      this.deliveredAt,
-      this.failedAt, // Will be set by application layer
-      this.relatedEntityType,
-      this.relatedEntityId,
-      this.establishedAt,
-      this.modifiedAt // Will be set by application layer
-    );
-  }
-
-  escalate(): Notification {
-    if (!this.requiresEscalation()) {
-      throw new Error('Notification does not require escalation');
+  changePriority(priority: 'low' | 'medium' | 'high' | 'urgent'): void {
+    if (this.status === 'sent') {
+      throw new Error('Cannot change priority of sent notification');
     }
-
-    return new Notification(
-      this.id,
-      this.tenantId,
-      this.userId,
-      this.type,
-      'critical', // Escalate severity
-      `[ESCALATED] ${this.title}`,
-      this.message,
-      { ...this.metadata, escalated: true },
-      this.channels,
-      this.status,
-      this.scheduledAt,
-      this.expiresAt,
-      this.sentAt,
-      this.deliveredAt,
-      this.failedAt,
-      this.relatedEntityType,
-      this.relatedEntityId,
-      this.establishedAt,
-      this.modifiedAt // Will be set by application layer
-    );
+    this.priority = priority;
+    this.updatedAt = new Date();
   }
 
-  // CLEANED: Factory method removed - persistence mapping moved to repository layer
+  changeType(type: 'info' | 'warning' | 'error' | 'success'): void {
+    if (this.status !== 'draft') {
+      throw new Error('Cannot change type of non-draft notification');
+    }
+    this.type = type;
+    this.updatedAt = new Date();
+  }
+
+  addRecipient(recipient: NotificationRecipient): void {
+    if (this.status === 'sent') {
+      throw new Error('Cannot add recipients to sent notification');
+    }
+    
+    // Check for duplicate recipient
+    const exists = this.recipients.some(r => 
+      r.userId === recipient.userId && 
+      r.channel === recipient.channel &&
+      r.address === recipient.address
+    );
+    
+    if (!exists) {
+      this.recipients.push(recipient);
+      this.updatedAt = new Date();
+    }
+  }
+
+  removeRecipient(userId: string, channel: 'email' | 'sms' | 'push' | 'in_app'): void {
+    if (this.status === 'sent') {
+      throw new Error('Cannot remove recipients from sent notification');
+    }
+    
+    this.recipients = this.recipients.filter(r => 
+      !(r.userId === userId && r.channel === channel)
+    );
+    this.updatedAt = new Date();
+  }
+
+  scheduleFor(scheduledAt: Date): void {
+    if (this.status !== 'draft') {
+      throw new Error('Can only schedule draft notifications');
+    }
+    if (scheduledAt <= new Date()) {
+      throw new Error('Scheduled time must be in the future');
+    }
+    if (this.recipients.length === 0) {
+      throw new Error('Cannot schedule notification without recipients');
+    }
+    
+    this.scheduledAt = scheduledAt;
+    this.status = 'scheduled';
+    this.updatedAt = new Date();
+  }
+
+  sendNow(): void {
+    if (this.status !== 'draft' && this.status !== 'scheduled') {
+      throw new Error('Can only send draft or scheduled notifications');
+    }
+    if (this.recipients.length === 0) {
+      throw new Error('Cannot send notification without recipients');
+    }
+    
+    this.sentAt = new Date();
+    this.status = 'sent';
+    this.updatedAt = new Date();
+  }
+
+  markAsFailed(): void {
+    if (this.status !== 'scheduled' && this.status !== 'sent') {
+      throw new Error('Can only mark scheduled or sending notifications as failed');
+    }
+    
+    this.status = 'failed';
+    this.updatedAt = new Date();
+  }
+
+  retry(): void {
+    if (this.status !== 'failed') {
+      throw new Error('Can only retry failed notifications');
+    }
+    if (this.retryCount >= this.maxRetries) {
+      throw new Error('Maximum retry attempts reached');
+    }
+    
+    this.retryCount++;
+    this.status = 'scheduled';
+    this.updatedAt = new Date();
+  }
+
+  cancel(): void {
+    if (this.status === 'sent') {
+      throw new Error('Cannot cancel sent notification');
+    }
+    
+    this.status = 'cancelled';
+    this.updatedAt = new Date();
+  }
+
+  addMetadata(key: string, value: any): void {
+    this.metadata[key] = value;
+    this.updatedAt = new Date();
+  }
+
+  removeMetadata(key: string): void {
+    delete this.metadata[key];
+    this.updatedAt = new Date();
+  }
+
+  // Business queries
+  isReadyToSend(): boolean {
+    return this.status === 'scheduled' && 
+           this.scheduledAt !== null && 
+           this.scheduledAt <= new Date() &&
+           this.recipients.length > 0;
+  }
+
+  canBeRetried(): boolean {
+    return this.status === 'failed' && this.retryCount < this.maxRetries;
+  }
+
+  canBeModified(): boolean {
+    return this.status === 'draft';
+  }
+
+  getRecipientsByChannel(channel: 'email' | 'sms' | 'push' | 'in_app'): NotificationRecipient[] {
+    return this.recipients.filter(r => r.channel === channel);
+  }
+
+  getUniqueUserIds(): string[] {
+    return [...new Set(this.recipients.map(r => r.userId))];
+  }
+
+  hasRecipient(userId: string): boolean {
+    return this.recipients.some(r => r.userId === userId);
+  }
+
+  isUrgent(): boolean {
+    return this.priority === 'urgent';
+  }
+
+  isScheduled(): boolean {
+    return this.status === 'scheduled' && this.scheduledAt !== null;
+  }
+
+  getEstimatedDeliveryTime(): Date | null {
+    if (!this.isScheduled()) return null;
+    
+    // Add estimated processing time based on priority
+    const processingTime = this.priority === 'urgent' ? 0 : 
+                          this.priority === 'high' ? 60000 : // 1 minute
+                          this.priority === 'medium' ? 300000 : // 5 minutes
+                          900000; // 15 minutes for low priority
+    
+    return new Date(this.scheduledAt!.getTime() + processingTime);
+  }
 }
