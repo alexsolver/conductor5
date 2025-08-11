@@ -1,5 +1,6 @@
 
-import { Pool } from 'pg';
+import pkg from 'pg';
+const { Pool } = pkg;
 import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 
