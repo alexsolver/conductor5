@@ -1,7 +1,7 @@
 import { eq, and, or, ilike, count } from 'drizzle-orm';
 import { Ticket } from '../../domain/entities/Ticket';
 import { ITicketRepository, TicketFilter } from '../../domain/ports/ITicketRepository';
-import { tickets } from '@shared/schema-master';
+import { tickets } from '@shared/schema';
 import { db } from '../../../../db';
 
 export class DrizzleTicketRepository implements ITicketRepository {
