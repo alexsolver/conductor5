@@ -155,7 +155,31 @@ export default function Beneficiaries() {
       }
 
       const data = await response.json();
-      return data;
+      console.log('[BENEFICIARIES] API Response:', data);
+      
+      // Handle different response formats
+      if (data.success && data.data) {
+        return {
+          data: {
+            beneficiaries: Array.isArray(data.data.beneficiaries) ? data.data.beneficiaries : [],
+            pagination: data.data.pagination || { total: 0, totalPages: 0 }
+          }
+        };
+      } else if (Array.isArray(data.beneficiaries)) {
+        return {
+          data: {
+            beneficiaries: data.beneficiaries,
+            pagination: data.pagination || { total: data.beneficiaries.length, totalPages: 1 }
+          }
+        };
+      }
+      
+      return {
+        data: {
+          beneficiaries: [],
+          pagination: { total: 0, totalPages: 0 }
+        }
+      };
     },
   });
 

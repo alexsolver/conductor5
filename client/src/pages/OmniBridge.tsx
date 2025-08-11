@@ -56,7 +56,7 @@ export default function OmniBridge() {
   const [activeTab, setActiveTab] = useState('channels');
   const [refreshKey, setRefreshKey] = useState(0);
   const queryClient = useQueryClient();
-  
+
   // Channel configuration states
   const [selectedChannel, setSelectedChannel] = useState<any>(null);
   const [syncConfigOpen, setSyncConfigOpen] = useState(false);
@@ -182,13 +182,29 @@ export default function OmniBridge() {
     }
   });
 
+  // Fetch connections data
+  const { data: connectionsData, isLoading: connectionsLoading } = useQuery({
+    queryKey: ['/api/omnibridge/connections'],
+    queryFn: async () => {
+      try {
+        const response = await apiRequest('GET', '/api/omnibridge/connections');
+        return await response.json();
+      } catch (error) {
+        console.error('[OMNIBRIDGE] API Error:', error);
+        return { connections: [] };
+      }
+    },
+  });
+
   // Transform real data for display - ONLY communication integrations
   const allChannels = (integrationsData as any)?.integrations || [];
   const channels = allChannels.filter((integration: any) => 
     integration.category === 'Comunicação'
   );
   const inbox = (inboxData as any)?.messages || [];
-  
+  const connections = Array.isArray(connectionsData?.connections) ? connectionsData.connections : 
+                     Array.isArray(connectionsData) ? connectionsData : [];
+
   // Debug log for inbox data
   useEffect(() => {
     if (inbox.length > 0) {
@@ -229,7 +245,7 @@ export default function OmniBridge() {
     }
   };
 
-  const isLoading = integrationsLoading || inboxLoading;
+  const isLoading = integrationsLoading || inboxLoading || connectionsLoading;
 
   if (isLoading) {
     return (
@@ -270,7 +286,7 @@ export default function OmniBridge() {
             <Activity className="h-4 w-4 text-green-600" />
             <span className="text-sm text-green-600 font-medium">Sistema Ativo</span>
           </div>
-          
+
 
 
           <Button 
@@ -390,7 +406,7 @@ export default function OmniBridge() {
                               </div>
                             </div>
                           </div>
-                          
+
                           <div className="flex items-center justify-between mb-3">
                             <Badge className={getStatusColor(channel.status)}>
                               {channel.status === 'connected' ? 'Conectado' : 
@@ -425,11 +441,11 @@ export default function OmniBridge() {
                                 const isImapChannel = channel.id === 'imap-email';
                                 const isStartPending = startMonitoringMutation.isPending && isImapChannel;
                                 const isStopPending = stopMonitoringMutation.isPending && isImapChannel;
-                                
+
                                 // For IMAP channel, use real monitoring status
                                 // For other channels, use connection status as proxy
                                 const shouldShowPause = isImapChannel ? isMonitoringActive : isChannelConnected;
-                                
+
                                 return shouldShowPause ? (
                                   <Button 
                                     variant="outline" 
@@ -471,7 +487,7 @@ export default function OmniBridge() {
                                   </Button>
                                 );
                               })()}
-                              
+
                               {/* Sync Configuration Button - For email channels */}
                               {(channel.id === 'imap-email' || channel.name.toLowerCase().includes('email')) && (
                                 <Button 
@@ -642,7 +658,7 @@ export default function OmniBridge() {
               Configure o intervalo de sincronização para o canal {selectedChannel?.name}
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="syncInterval" className="text-right">

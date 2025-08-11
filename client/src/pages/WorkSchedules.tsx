@@ -249,10 +249,24 @@ function WorkSchedulesContent() {
     queryKey: ['/api/timecard/work-schedules'],
     queryFn: async () => {
       console.log('[FRONTEND-QA] Fetching work schedules...');
-      const response = await apiRequest('GET', '/api/timecard/work-schedules');
-      const data = await response.json();
-      console.log('[FRONTEND-QA] API Response:', data);
-      return data;
+      try {
+        const response = await apiRequest('GET', '/api/timecard/work-schedules');
+        const data = await response.json();
+        console.log('[WORK-SCHEDULES] API Response:', data);
+
+        if (data.success && Array.isArray(data.data)) {
+          return { schedules: data.data };
+        } else if (Array.isArray(data.schedules)) {
+          return { schedules: data.schedules };
+        } else if (Array.isArray(data)) {
+          return { schedules: data };
+        }
+
+        return { schedules: [] };
+      } catch (error) {
+        console.error('[WORK-SCHEDULES] API Error:', error);
+        return { schedules: [] };
+      }
     },
     staleTime: 1000, // Reduced for faster updates during development
     retry: 3,
@@ -473,9 +487,9 @@ function WorkSchedulesContent() {
   console.log('[FRONTEND-DEBUG] Is array:', Array.isArray(schedulesData));
 
   try {
-    if (Array.isArray(schedulesData)) {
-      console.log('[FRONTEND-DEBUG] Processing as direct array, length:', schedulesData.length);
-      schedules = schedulesData.map(schedule => {
+    if (schedulesData && Array.isArray(schedulesData.schedules)) {
+      console.log('[FRONTEND-DEBUG] Processing schedules from data.schedules, length:', schedulesData.schedules.length);
+      schedules = schedulesData.schedules.map(schedule => {
         try {
           return {
             ...schedule,
@@ -512,47 +526,9 @@ function WorkSchedulesContent() {
           };
         }
       });
-    } else if (schedulesData && typeof schedulesData === 'object') {
-      console.log('[FRONTEND-DEBUG] Processing as object, looking for schedules/data property');
-      const rawSchedules = (schedulesData as any).schedules || (schedulesData as any).data || schedulesData;
-      console.log('[FRONTEND-DEBUG] Found raw schedules:', rawSchedules);
-      if (Array.isArray(rawSchedules)) {
-        schedules = rawSchedules.map(schedule => {
-          try {
-            return {
-              ...schedule,
-              workDays: Array.isArray(schedule.workDays) ? schedule.workDays : [1,2,3,4,5],
-              userName: schedule.userName || 'Usuário',
-              scheduleType: schedule.scheduleType || '5x2',
-              breakDurationMinutes: schedule.breakDurationMinutes || 60,
-              isActive: schedule.isActive ?? true,
-              useWeeklySchedule: schedule.useWeeklySchedule ?? false,
-              weeklySchedule: schedule.weeklySchedule || {},
-              // Safe date handling
-              createdAt: schedule.createdAt ? new Date(schedule.createdAt).toISOString() : new Date().toISOString(),
-              updatedAt: schedule.updatedAt ? new Date(schedule.updatedAt).toISOString() : new Date().toISOString(),
-              startDate: schedule.startDate ? new Date(schedule.startDate).toISOString().split('T')[0] : null,
-              endDate: schedule.endDate ? new Date(schedule.endDate).toISOString().split('T')[0] : null
-            };
-          } catch (err) {
-            console.error('Error processing schedule:', err, schedule);
-            return {
-              ...schedule,
-              workDays: [1,2,3,4,5],
-              userName: 'Usuário',
-              scheduleType: '5x2',
-              breakDurationMinutes: 60,
-              isActive: true,
-              useWeeklySchedule: false,
-              weeklySchedule: {},
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-              startDate: null,
-              endDate: null
-            };
-          }
-        });
-      }
+    } else {
+      console.log('[FRONTEND-DEBUG] schedulesData is not in the expected format or is empty.');
+      schedules = [];
     }
     console.log('[FRONTEND-DEBUG] Final processed schedules:', schedules.length);
   } catch (error) {
@@ -562,7 +538,7 @@ function WorkSchedulesContent() {
 
   // Filter custom templates (excluding default ones like 5x2, 6x1, 12x36)
   const customTemplates = Array.isArray(scheduleTemplatesData?.templates)
-    ? scheduleTemplatesData.templates.filter((t: ScheduleTemplate) => 
+    ? scheduleTemplatesData.templates.filter((t: ScheduleTemplate) =>
         !['5x2', '6x1', '12x36', '4x3', 'flexible', 'part-time'].includes(t.id)
       )
     : [];

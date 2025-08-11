@@ -339,8 +339,8 @@ export default function ItemCatalog() {
   });
 
   // Processar dados com mapeamento correto
-  const items: Item[] = (itemsResponse as any)?.data || [];
-  
+  const items: Item[] = (itemsResponse as any)?.items || []; // Changed from itemsResponse?.data
+
   // Processar empresas com estrutura consistente
   const rawCompanies = (availableCustomers as any)?.data || availableCustomers || [];
   const companies = Array.isArray(rawCompanies) ? rawCompanies.map((company: any) => ({
@@ -350,7 +350,7 @@ export default function ItemCatalog() {
     status: company.status || 'active',
     is_active: company.is_active !== undefined ? company.is_active : true
   })).filter((company: any) => company.is_active !== false) : [];
-  
+
   // Processar fornecedores
   const rawSuppliers = (availableSuppliers as any)?.data || availableSuppliers || [];
   const suppliers = Array.isArray(rawSuppliers) ? rawSuppliers.map((supplier: any) => ({
@@ -372,7 +372,7 @@ export default function ItemCatalog() {
                          item.integrationCode?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          item.description?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = typeFilter === "all" || item.type === typeFilter;
-    const matchesStatus = statusFilter === "all" || 
+    const matchesStatus = statusFilter === "all" ||
                          (statusFilter === "active" && item.active) ||
                          (statusFilter === "inactive" && !item.active);
     const matchesHierarchy = hierarchyFilter === "all" ||
@@ -437,9 +437,9 @@ export default function ItemCatalog() {
           throw new Error(errorData.message || 'Failed to update item');
         }
 
-        toast({ 
-          title: "Item atualizado", 
-          description: "Informações e vínculos hierárquicos salvos com sucesso." 
+        toast({
+          title: "Item atualizado",
+          description: "Informações e vínculos hierárquicos salvos com sucesso."
         });
 
         queryClient.invalidateQueries({ queryKey: ["/api/materials-services/items"] });
@@ -448,10 +448,10 @@ export default function ItemCatalog() {
         setCurrentView('item-details');
       } catch (error) {
         console.error('❌ [FRONTEND] Update error:', error);
-        toast({ 
-          title: "Erro ao atualizar", 
-          description: error instanceof Error ? error.message : "Tente novamente.", 
-          variant: "destructive" 
+        toast({
+          title: "Erro ao atualizar",
+          description: error instanceof Error ? error.message : "Tente novamente.",
+          variant: "destructive"
         });
       }
     } else {
@@ -546,7 +546,7 @@ export default function ItemCatalog() {
                 </SelectContent>
               </Select>
 
-              <Button 
+              <Button
                 variant={isBulkMode ? "default" : "outline"}
                 onClick={() => setIsBulkMode(!isBulkMode)}
               >
@@ -598,8 +598,8 @@ export default function ItemCatalog() {
                 </TableHeader>
                 <TableBody>
                   {paginatedItems.map((item) => (
-                    <TableRow 
-                      key={item.id} 
+                    <TableRow
+                      key={item.id}
                       className={`hover:bg-gray-50 transition-colors ${
                         selectedItems.has(item.id) ? 'bg-blue-50' : ''
                       }`}
@@ -613,13 +613,13 @@ export default function ItemCatalog() {
                         </TableCell>
                       )}
 
-                      <TableCell 
+                      <TableCell
                         className="font-medium cursor-pointer hover:text-blue-600"
                         onClick={() => handleItemClick(item)}
                       >
                         <div className="flex items-center gap-2">
-                          {item.type === 'material' ? 
-                            <Package className="h-4 w-4 text-blue-600" /> : 
+                          {item.type === 'material' ?
+                            <Package className="h-4 w-4 text-blue-600" /> :
                             <Wrench className="h-4 w-4 text-green-600" />
                           }
                           <div>
@@ -697,8 +697,8 @@ export default function ItemCatalog() {
 
                       <TableCell>
                         <div className="flex items-center gap-1">
-                          <Button 
-                            variant="ghost" 
+                          <Button
+                            variant="ghost"
                             size="sm"
                             onClick={(e) => {
                               e.stopPropagation();
@@ -707,8 +707,8 @@ export default function ItemCatalog() {
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
-                          <Button 
-                            variant="ghost" 
+                          <Button
+                            variant="ghost"
                             size="sm"
                             onClick={(e) => {
                               e.stopPropagation();
@@ -719,8 +719,8 @@ export default function ItemCatalog() {
                           </Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                              <Button 
-                                variant="ghost" 
+                              <Button
+                                variant="ghost"
                                 size="sm"
                                 onClick={(e) => e.stopPropagation()}
                                 className="text-red-600 hover:text-red-700"
@@ -795,8 +795,8 @@ export default function ItemCatalog() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               size="sm"
               onClick={() => setCurrentView('catalog')}
             >
@@ -831,7 +831,7 @@ export default function ItemCatalog() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Button 
+            <Button
               variant="outline"
               onClick={() => handleEditItem(selectedItem)}
             >
@@ -967,8 +967,8 @@ export default function ItemCatalog() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               size="sm"
               onClick={() => setCurrentView('item-details')}
             >
@@ -1135,7 +1135,7 @@ export default function ItemCatalog() {
                   <div>
                     <label className="text-sm font-medium">Itens Filhos</label>
                     <div className="mt-2">
-                      <Select 
+                      <Select
                         value=""
                         onValueChange={(value) => {
                           if (value && value !== "none") {
@@ -1152,9 +1152,9 @@ export default function ItemCatalog() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="none">Selecionar item...</SelectItem>
-                          {items.filter(item => 
-                            item.id !== selectedItem?.id && 
-                            !item.parentId && 
+                          {items.filter(item =>
+                            item.id !== selectedItem?.id &&
+                            !item.parentId &&
                             !(itemForm.watch("childrenIds") || []).includes(item.id)
                           ).map((item) => (
                             <SelectItem key={item.id} value={item.id}>
@@ -1269,7 +1269,7 @@ export default function ItemCatalog() {
                                 linkedIds: itemLinks?.customers?.map(c => c.id) || []
                               });
 
-                              const availableCompanies = companies.filter((company: any) => 
+                              const availableCompanies = companies.filter((company: any) =>
                                 !itemLinks?.customers?.some((linked: any) => linked.id === company.id)
                               );
 
@@ -1307,7 +1307,7 @@ export default function ItemCatalog() {
                             )}
                           </div>
                           <Button
-                            variant="outline" 
+                            variant="outline"
                             size="sm"
                             onClick={async () => {
                               if (!selectedItem?.id) return;
@@ -1397,14 +1397,14 @@ export default function ItemCatalog() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="select-supplier">Selecione um fornecedor</SelectItem>
-                          {suppliers?.filter((supplier: any) => 
+                          {suppliers?.filter((supplier: any) =>
                             !itemLinks?.suppliers?.some((linked: any) => linked.id === supplier.id)
                           ).map((supplier: any) => (
                             <SelectItem key={supplier.id} value={supplier.id}>
                               {supplier.name}
                             </SelectItem>
                           ))}
-                          {suppliers?.filter((supplier: any) => 
+                          {suppliers?.filter((supplier: any) =>
                             !itemLinks?.suppliers?.some((linked: any) => linked.id === supplier.id)
                           ).length === 0 && (
                             <SelectItem value="select-supplier" disabled>
@@ -1614,9 +1614,9 @@ export default function ItemCatalog() {
               />
 
               <div className="flex justify-end space-x-2 pt-4">
-                <Button 
-                  type="button" 
-                  variant="outline" 
+                <Button
+                  type="button"
+                  variant="outline"
                   onClick={() => {
                     setIsCreateModalOpen(false);
                     itemForm.reset();
@@ -1624,7 +1624,7 @@ export default function ItemCatalog() {
                 >
                   Cancelar
                 </Button>
-                <Button 
+                <Button
                   type="submit"
                   disabled={createItemMutation.isPending}
                 >

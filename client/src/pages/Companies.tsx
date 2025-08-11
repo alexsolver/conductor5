@@ -98,23 +98,20 @@ export default function Companies() {
       
       try {
         const response = await apiRequest('GET', '/api/customers/companies');
-        console.log('[COMPANIES-FRONTEND] Raw API Response:', response);
-        console.log('[COMPANIES-FRONTEND] Response type:', typeof response);
-        console.log('[COMPANIES-FRONTEND] Is array:', Array.isArray(response));
+        const data = await response.json();
+        console.log('[COMPANIES-FRONTEND] API Response data:', data);
         
-        if (response) {
-          console.log('[COMPANIES-FRONTEND] Response keys:', Object.keys(response));
-          if (Array.isArray(response)) {
-            console.log('[COMPANIES-FRONTEND] Companies count:', response.length);
-            console.log('[COMPANIES-FRONTEND] First company sample:', response[0]);
-          }
+        // Handle different response formats
+        if (data.success && Array.isArray(data.data)) {
+          return data.data;
+        } else if (Array.isArray(data.companies)) {
+          return data.companies;
+        } else if (Array.isArray(data)) {
+          return data;
         }
         
-        // Ensure we always return an array
-        const companies = Array.isArray(response) ? response : [];
-        console.log('[COMPANIES-FRONTEND] Final companies array:', companies.length, 'items');
-        
-        return companies;
+        console.log('[COMPANIES-FRONTEND] Returning empty array - no valid data found');
+        return [];
       } catch (error) {
         console.error('[COMPANIES-FRONTEND] API Error:', error);
         return [];

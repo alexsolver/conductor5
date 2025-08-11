@@ -746,9 +746,9 @@ const TicketConfiguration: React.FC = () => {
     }
   };
 
-  const filteredCategories = categories.filter((cat: Category) =>
-    cat.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredCategories = Array.isArray(categories) ? categories.filter(cat => 
+    cat?.name?.toLowerCase().includes(searchTerm.toLowerCase())
+  ) : [];
 
   // Effect para carregar dados da numeração no form
   useEffect(() => {

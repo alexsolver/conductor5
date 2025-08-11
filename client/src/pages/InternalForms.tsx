@@ -23,8 +23,24 @@ export default function InternalForms() {
   const { data: forms = [], isLoading } = useQuery({
     queryKey: ['internal-forms'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/internal-forms/forms');
-      return response.json();
+      try {
+        const response = await apiRequest('GET', '/api/internal-forms/forms');
+        const data = await response.json();
+        console.log('[INTERNAL-FORMS] API Response:', data);
+        
+        if (data.success && Array.isArray(data.data)) {
+          return data.data;
+        } else if (Array.isArray(data.forms)) {
+          return data.forms;
+        } else if (Array.isArray(data)) {
+          return data;
+        }
+        
+        return [];
+      } catch (error) {
+        console.error('[INTERNAL-FORMS] API Error:', error);
+        return [];
+      }
     }
   });
 
