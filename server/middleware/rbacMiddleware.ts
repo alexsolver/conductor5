@@ -38,7 +38,7 @@ export const PERMISSIONS = {
     MANAGE_BILLING: { resource: 'platform', action: 'manage_billing' },
     MANAGE_SECURITY: { resource: 'platform', action: 'manage_security' },
   },
-  
+
   // Tenant-level permissions
   TENANT: {
     MANAGE_SETTINGS: { resource: 'tenant', action: 'manage_settings' },
@@ -47,7 +47,7 @@ export const PERMISSIONS = {
     MANAGE_BILLING: { resource: 'tenant', action: 'manage_billing' },
     CONFIGURE_INTEGRATIONS: { resource: 'tenant', action: 'configure_integrations' },
   },
-  
+
   // Ticket permissions
   TICKET: {
     VIEW_ALL: { resource: 'ticket', action: 'view_all' },
@@ -60,7 +60,7 @@ export const PERMISSIONS = {
     RESOLVE: { resource: 'ticket', action: 'resolve' },
     REOPEN: { resource: 'ticket', action: 'reopen' },
   },
-  
+
   // Customer permissions
   CUSTOMER: {
     VIEW_ALL: { resource: 'customer', action: 'view_all' },
@@ -70,7 +70,7 @@ export const PERMISSIONS = {
     DELETE: { resource: 'customer', action: 'delete' },
     EXPORT: { resource: 'customer', action: 'export' },
   },
-  
+
   // Knowledge Base permissions
   KNOWLEDGE: {
     VIEW_ALL: { resource: 'knowledge', action: 'view_all' },
@@ -80,12 +80,20 @@ export const PERMISSIONS = {
     DELETE: { resource: 'knowledge', action: 'delete' },
     PUBLISH: { resource: 'knowledge', action: 'publish' },
   },
-  
+
   // Analytics permissions
   ANALYTICS: {
     VIEW_BASIC: { resource: 'analytics', action: 'view_basic' },
     VIEW_DETAILED: { resource: 'analytics', action: 'view_detailed' },
     EXPORT: { resource: 'analytics', action: 'export' },
+  },
+
+  // Team permissions (New)
+  TEAM: {
+    VIEW_MEMBERS: { resource: 'team', action: 'view_members' },
+    VIEW_OVERVIEW: { resource: 'team', action: 'view_overview' },
+    VIEW_PERFORMANCE: { resource: 'team', action: 'view_performance' },
+    MANAGE_MEMBERS: { resource: 'team', action: 'manage_members' },
   },
 };
 
@@ -118,8 +126,12 @@ export const ROLE_PERMISSIONS = {
     PERMISSIONS.KNOWLEDGE.PUBLISH,
     PERMISSIONS.ANALYTICS.VIEW_DETAILED,
     PERMISSIONS.ANALYTICS.EXPORT,
+    PERMISSIONS.TEAM.VIEW_MEMBERS,
+    PERMISSIONS.TEAM.VIEW_OVERVIEW,
+    PERMISSIONS.TEAM.VIEW_PERFORMANCE,
+    PERMISSIONS.TEAM.MANAGE_MEMBERS,
   ],
-  
+
   tenant_admin: [
     PERMISSIONS.TENANT.MANAGE_SETTINGS,
     PERMISSIONS.TENANT.MANAGE_USERS,
@@ -142,8 +154,12 @@ export const ROLE_PERMISSIONS = {
     PERMISSIONS.KNOWLEDGE.PUBLISH,
     PERMISSIONS.ANALYTICS.VIEW_DETAILED,
     PERMISSIONS.ANALYTICS.EXPORT,
+    PERMISSIONS.TEAM.VIEW_MEMBERS,
+    PERMISSIONS.TEAM.VIEW_OVERVIEW,
+    PERMISSIONS.TEAM.VIEW_PERFORMANCE,
+    PERMISSIONS.TEAM.MANAGE_MEMBERS,
   ],
-  
+
   agent: [
     PERMISSIONS.TICKET.VIEW_ALL,
     PERMISSIONS.TICKET.CREATE,
@@ -157,7 +173,7 @@ export const ROLE_PERMISSIONS = {
     PERMISSIONS.KNOWLEDGE.UPDATE,
     PERMISSIONS.ANALYTICS.VIEW_BASIC,
   ],
-  
+
   customer: [
     PERMISSIONS.TICKET.VIEW_OWN,
     PERMISSIONS.TICKET.CREATE,
@@ -168,7 +184,7 @@ export const ROLE_PERMISSIONS = {
 
 export class RBACService {
   private static instance: RBACService;
-  
+
   static getInstance(): RBACService {
     if (!RBACService.instance) {
       RBACService.instance = new RBACService();
@@ -185,7 +201,7 @@ export class RBACService {
     if (!user) return [];
 
     const rolePermissions = this.getRolePermissions(user.role);
-    
+
     // Filter permissions based on tenant context
     if (tenantId && user.tenantId !== tenantId && user.role !== 'saas_admin') {
       return rolePermissions.filter(p => p.resource !== 'platform');
@@ -199,7 +215,7 @@ export class RBACService {
     if (!user.permissions || !Array.isArray(user.permissions)) {
       return false;
     }
-    
+
     // Check if user has the permission
     const hasPermission = user.permissions.some(p => 
       p.resource === permission.resource && p.action === permission.action
@@ -278,7 +294,7 @@ export function requireTenantAccess(tenantIdParam: string = 'tenantId') {
     }
 
     const requestedTenantId = req.params[tenantIdParam] || req.body.tenantId || req.query.tenantId;
-    
+
     // SaaS admins can access any tenant
     if (req.user.role === 'saas_admin') {
       return next();
@@ -328,7 +344,7 @@ export function requireResourceOwnership(resourceProvider: (req: Request) => Pro
 
     try {
       const resource = await resourceProvider(req);
-      
+
       // Check tenant access
       if (req.user.tenantId !== resource.tenantId && req.user.role !== 'saas_admin') {
         return res.status(403).json({ message: 'Access denied to resource tenant' });
