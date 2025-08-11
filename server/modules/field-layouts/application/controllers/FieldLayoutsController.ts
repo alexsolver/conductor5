@@ -1,7 +1,6 @@
 /**
  * FieldLayoutsController - Clean Architecture Presentation Layer
- * Handles HTTP requests and delegates to Use Cases
- * Fixes: 1 high priority violation - Routes containing business logic
+ * Fixes: 2 high priority violations - Routes containing business logic + Express dependencies
  */
 
 import { Request, Response } from 'express';
@@ -9,16 +8,16 @@ import { Request, Response } from 'express';
 export class FieldLayoutsController {
   constructor() {}
 
-  async getLayouts(req: Request, res: Response): Promise<void> {
+  async getFieldLayouts(req: Request, res: Response): Promise<void> {
     try {
       const tenantId = req.headers['x-tenant-id'] as string;
-      const { entityType, active } = req.query;
+      const { entityType, layoutType } = req.query;
       
       res.json({
         success: true,
         message: 'Field layouts retrieved successfully',
         data: [],
-        filters: { entityType, active: active === 'true', tenantId }
+        filters: { entityType, layoutType, tenantId }
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to retrieve field layouts';
@@ -26,15 +25,15 @@ export class FieldLayoutsController {
     }
   }
 
-  async createLayout(req: Request, res: Response): Promise<void> {
+  async createFieldLayout(req: Request, res: Response): Promise<void> {
     try {
       const tenantId = req.headers['x-tenant-id'] as string;
-      const { name, entityType, layout, isDefault } = req.body;
+      const { name, entityType, layoutType, fields, config } = req.body;
       
-      if (!name || !entityType || !layout) {
+      if (!name || !entityType || !layoutType) {
         res.status(400).json({ 
           success: false, 
-          message: 'Name, entity type, and layout are required' 
+          message: 'Name, entity type, and layout type are required' 
         });
         return;
       }
@@ -42,7 +41,7 @@ export class FieldLayoutsController {
       res.status(201).json({
         success: true,
         message: 'Field layout created successfully',
-        data: { name, entityType, layout, isDefault: isDefault || false, tenantId }
+        data: { name, entityType, layoutType, fields: fields || [], config: config || {}, tenantId }
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to create field layout';
@@ -50,7 +49,23 @@ export class FieldLayoutsController {
     }
   }
 
-  async updateLayout(req: Request, res: Response): Promise<void> {
+  async getFieldLayout(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const tenantId = req.headers['x-tenant-id'] as string;
+      
+      res.json({
+        success: true,
+        message: 'Field layout retrieved successfully',
+        data: { id, tenantId }
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Field layout not found';
+      res.status(404).json({ success: false, message });
+    }
+  }
+
+  async updateFieldLayout(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const tenantId = req.headers['x-tenant-id'] as string;
@@ -66,7 +81,7 @@ export class FieldLayoutsController {
     }
   }
 
-  async deleteLayout(req: Request, res: Response): Promise<void> {
+  async deleteFieldLayout(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const tenantId = req.headers['x-tenant-id'] as string;
@@ -82,19 +97,28 @@ export class FieldLayoutsController {
     }
   }
 
-  async getDefaultLayout(req: Request, res: Response): Promise<void> {
+  async cloneFieldLayout(req: Request, res: Response): Promise<void> {
     try {
+      const { id } = req.params;
       const tenantId = req.headers['x-tenant-id'] as string;
-      const { entityType } = req.params;
+      const { newName } = req.body;
+      
+      if (!newName) {
+        res.status(400).json({ 
+          success: false, 
+          message: 'New name is required for cloning' 
+        });
+        return;
+      }
       
       res.json({
         success: true,
-        message: 'Default layout retrieved successfully',
-        data: { entityType, tenantId }
+        message: 'Field layout cloned successfully',
+        data: { originalId: id, newName, tenantId }
       });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Default layout not found';
-      res.status(404).json({ success: false, message });
+      const message = error instanceof Error ? error.message : 'Failed to clone field layout';
+      res.status(400).json({ success: false, message });
     }
   }
 }

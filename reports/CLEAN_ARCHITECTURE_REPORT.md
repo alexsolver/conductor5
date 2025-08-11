@@ -7,10 +7,10 @@
 ## Resumo de Problemas
 
 - 🔥 **Críticos:** 5
-- ⚠️ **Altos:** 131
-- 📋 **Médios:** 60
-- 💡 **Baixos:** 130
-- **Total:** 326
+- ⚠️ **Altos:** 137
+- 📋 **Médios:** 61
+- 💡 **Baixos:** 135
+- **Total:** 338
 
 ## Principais Problemas por Módulo
 
@@ -54,6 +54,14 @@
   - Application Layer: Dependência proibida encontrada -> express
   - Use Case 'indexUseCase' não segue o padrão '[Action]UseCase' (ex: CreateCustomerUseCase)
 
+### ⚠️ inventory
+- **Total de problemas:** 8
+- **Críticos:** 0 | **Altos:** 3
+- **Principais problemas:**
+  - Camada 'domain' ausente no módulo inventory
+  - Estrutura esperada 'use-cases' ausente na camada 'application'
+  - Estrutura esperada 'dto' ausente na camada 'application'
+
 ### ⚠️ knowledge-base
 - **Total de problemas:** 9
 - **Críticos:** 0 | **Altos:** 3
@@ -71,8 +79,8 @@
   - Use Case contém lógica de Presentation layer (acesso a request/response, express)
 
 ### 🔥 materials-services
-- **Total de problemas:** 72
-- **Críticos:** 2 | **Altos:** 37
+- **Total de problemas:** 74
+- **Críticos:** 2 | **Altos:** 38
 - **Principais problemas:**
   - Rotas contêm lógica de negócio ou acesso direto a dados
   - Application Layer: Dependência proibida encontrada -> express
@@ -188,12 +196,12 @@
   - Application Layer: Dependência proibida encontrada -> express
   - Application Layer: Dependência proibida encontrada -> express
 
-### 📋 user-management
-- **Total de problemas:** 4
-- **Críticos:** 0 | **Altos:** 0
+### ⚠️ user-management
+- **Total de problemas:** 5
+- **Críticos:** 0 | **Altos:** 1
 - **Principais problemas:**
   - Arquivo de rotas (routes.ts ou presentation/index.ts) ausente no módulo user-management
-  - Service 'index' não segue o padrão PascalCase
+  - Application Layer: Dependência proibida encontrada -> express
   - Service 'index' não segue o padrão PascalCase
 
 ### ⚠️ users
@@ -213,12 +221,12 @@
   - Use Case contém lógica de Presentation layer (acesso a request/response, express)
 
 ### 🔥 customers
-- **Total de problemas:** 17
-- **Críticos:** 1 | **Altos:** 10
+- **Total de problemas:** 18
+- **Críticos:** 1 | **Altos:** 11
 - **Principais problemas:**
   - Application Layer: Dependência proibida encontrada -> express
-  - Entity misturada com conceitos de Presentation layer (DTOs, Request/Response) - violação de responsabilidade
-  - Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade
+  - Application Layer: Dependência proibida encontrada -> express
+  - Application Layer: Dependência proibida encontrada -> express
 
 ### ⚠️ technical-skills
 - **Total de problemas:** 20

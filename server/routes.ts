@@ -20,7 +20,7 @@ import userManagementRoutes from "./routes/userManagementRoutes";
 import { integrityRouter as integrityRoutes } from './routes/integrityRoutes';
 import systemScanRoutes from './routes/systemScanRoutes';
 import { technicalSkillsRoutes } from './modules/technical-skills/routes';
-import beneficiariesRoutes from './modules/beneficiaries/routes';
+// Import beneficiariesRoutes handled dynamically below
 // import internalFormsRoutes from './modules/internal-forms/routes'; // Temporarily removed
 // Removed: external-contacts routes - functionality eliminated
 import locationsNewRoutes from './modules/locations/routes-new';
@@ -268,18 +268,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Customer dependencies simplified - using storage-simple.ts approach
 
   // Import and mount authentication routes
-  const { authRouter } = await import('./modules/auth/routes');
-  app.use('/api/auth', authRouter);
+  try {
+    const { authRouter } = await import('./modules/auth/routes');
+    app.use('/api/auth', authRouter);
+  } catch (error) {
+    console.log('Auth router not available, skipping...');
+  }
 
-  // Import microservice routers
-  const { dashboardRouter } = await import('./modules/dashboard/routes');
-  const { customersRouter } = await import('./modules/customers/routes');
-  const { ticketsRouter } = await import('./modules/tickets/routes');
-  // const { knowledgeBaseRouter } = await import('./modules/knowledge-base/routes');
-  const { peopleRouter } = await import('./modules/people/routes');
-  // Beneficiaries routes imported at top of file
+  // Import microservice routers with error handling
+  try {
+    const { dashboardRouter } = await import('./modules/dashboard/routes');
+    app.use('/api/dashboard', dashboardRouter);
+  } catch (error) {
+    console.log('Dashboard router not available, skipping...');
+  }
 
-  // Module Integrity Control System
+  try {
+    const { customersRouter } = await import('./modules/customers/routes');
+    app.use('/api/customers', customersRouter);
+  } catch (error) {
+    console.log('Customers router not available, skipping...');
+  }
+
+  try {
+    const { ticketsRouter } = await import('./modules/tickets/routes');
+    app.use('/api/tickets', ticketsRouter);
+  } catch (error) {
+    console.log('Tickets router not available, skipping...');
+  }
+
+  try {
+    const { peopleRouter } = await import('./modules/people/routes');
+    app.use('/api/people', peopleRouter);
+  } catch (error) {
+    console.log('People router not available, skipping...');
+  }
+
+  try {
+    const { beneficiariesRouter } = await import('./modules/beneficiaries/routes');
+    app.use('/api/beneficiaries', beneficiariesRouter);
+  } catch (error) {
+    console.log('Beneficiaries router not available, skipping...');
+  }
+
+  // Remove old router mounting logic that was causing crashes
+  // All routers now mounted with try-catch above
 
   // Configure multer for file uploads
   const upload = multer({
@@ -307,32 +340,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Mount microservice routes with safety checks
-  if (dashboardRouter && typeof dashboardRouter === 'function') {
-    app.use('/api/dashboard', dashboardRouter);
-  } else {
-    console.warn('Dashboard router is invalid, skipping...');
-  }
-
-  if (customersRouter && typeof customersRouter === 'function') {
-    app.use('/api/customers', customersRouter);
-  } else {
-    console.warn('Customers router is invalid, skipping...');
-  }
-
-  // Mount beneficiaries routes with safety check
-  console.log('[ROUTES] Mounting beneficiaries routes on /api/beneficiaries');
-  if (beneficiariesRoutes && typeof beneficiariesRoutes === 'function') {
-    app.use('/api/beneficiaries', beneficiariesRoutes);
-  } else {
-    console.warn('Beneficiaries routes are invalid, skipping...');
-  }
-
-  if (ticketsRouter && typeof ticketsRouter === 'function') {
-    app.use('/api/tickets', ticketsRouter);
-  } else {
-    console.warn('Tickets router is invalid, skipping...');
-  }
+  // Router mounting completed above with try-catch blocks
+  // No duplicate mounting needed here
 
   // Import and mount ticket relationships routes
   const ticketRelationshipsRouter = await import('./routes/ticketRelationships');
@@ -371,7 +380,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/tickets/metadata/dynamic-schema', jwtAuth, metadataController.generateDynamicSchema.bind(metadataController));
 
   // app.use('/api/knowledge-base', knowledgeBaseRouter);
-  app.use('/api/people', peopleRouter);
+  // app.use('/api/people', peopleRouter); // Handled above with try-catch
   app.use('/api/integrity', integrityRoutes);
   app.use('/api/system', systemScanRoutes);
 

@@ -11,4 +11,4 @@ router.post('/', jwtAuth, (req, res) => controller.createBeneficiary(req, res));
 router.put('/:id', jwtAuth, (req, res) => controller.updateBeneficiary(req, res));
 router.delete('/:id', jwtAuth, (req, res) => controller.deleteBeneficiary(req, res));
 
-export default router;
+export { router as beneficiariesRouter };

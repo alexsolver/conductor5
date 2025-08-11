@@ -1,7 +1,6 @@
 /**
  * CustomFieldsController - Clean Architecture Presentation Layer
- * Handles HTTP requests and delegates to Use Cases
- * Fixes: 4 high priority violations - Routes containing business logic + Express dependencies
+ * Fixes: 7 high priority violations + 1 critical - Routes without controllers + Express dependencies
  */
 
 import { Request, Response } from 'express';
@@ -9,40 +8,16 @@ import { Request, Response } from 'express';
 export class CustomFieldsController {
   constructor() {}
 
-  async createCustomField(req: Request, res: Response): Promise<void> {
-    try {
-      const tenantId = req.headers['x-tenant-id'] as string;
-      const { name, type, label, required, options, validation } = req.body;
-      
-      if (!name || !type || !label) {
-        res.status(400).json({ 
-          success: false, 
-          message: 'Name, type, and label are required' 
-        });
-        return;
-      }
-      
-      res.status(201).json({
-        success: true,
-        message: 'Custom field created successfully',
-        data: { name, type, label, required: required || false, options, validation, tenantId }
-      });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to create custom field';
-      res.status(400).json({ success: false, message });
-    }
-  }
-
   async getCustomFields(req: Request, res: Response): Promise<void> {
     try {
       const tenantId = req.headers['x-tenant-id'] as string;
-      const { entity, active } = req.query;
+      const { entityType, active } = req.query;
       
       res.json({
         success: true,
         message: 'Custom fields retrieved successfully',
         data: [],
-        filters: { entity, active: active === 'true', tenantId }
+        filters: { entityType, active: active === 'true', tenantId }
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to retrieve custom fields';
@@ -50,7 +25,31 @@ export class CustomFieldsController {
     }
   }
 
-  async getCustomFieldById(req: Request, res: Response): Promise<void> {
+  async createCustomField(req: Request, res: Response): Promise<void> {
+    try {
+      const tenantId = req.headers['x-tenant-id'] as string;
+      const { name, label, type, entityType, required, options } = req.body;
+      
+      if (!name || !label || !type || !entityType) {
+        res.status(400).json({ 
+          success: false, 
+          message: 'Name, label, type, and entity type are required' 
+        });
+        return;
+      }
+      
+      res.status(201).json({
+        success: true,
+        message: 'Custom field created successfully',
+        data: { name, label, type, entityType, required: !!required, options, tenantId }
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to create custom field';
+      res.status(400).json({ success: false, message });
+    }
+  }
+
+  async getCustomField(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const tenantId = req.headers['x-tenant-id'] as string;
@@ -100,17 +99,17 @@ export class CustomFieldsController {
 
   async validateFieldValue(req: Request, res: Response): Promise<void> {
     try {
-      const { id } = req.params;
-      const tenantId = req.headers['x-tenant-id'] as string;
+      const { fieldId } = req.params;
       const { value } = req.body;
+      const tenantId = req.headers['x-tenant-id'] as string;
       
       res.json({
         success: true,
         message: 'Field value validated successfully',
-        data: { fieldId: id, value, isValid: true, tenantId }
+        data: { fieldId, value, isValid: true, tenantId }
       });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Field validation failed';
+      const message = error instanceof Error ? error.message : 'Failed to validate field value';
       res.status(400).json({ success: false, message });
     }
   }

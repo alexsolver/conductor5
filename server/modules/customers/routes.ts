@@ -17,4 +17,4 @@ router.put('/:id', jwtAuth, (req, res) => customerController.updateCustomer(req,
 router.get('/companies', jwtAuth, (req, res) => companyController.getCompanies(req, res));
 router.post('/companies', jwtAuth, (req, res) => companyController.createCompany(req, res));
 
-export default router;
+export { router as customersRouter };
