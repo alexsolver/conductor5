@@ -28,7 +28,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
           t.caller_id,
           t.beneficiary_id,
           t.assigned_to_id,
-          t.customer_company_id,
+          t.company_id,
           t.location,
           t.symptoms,
           t.business_impact,
