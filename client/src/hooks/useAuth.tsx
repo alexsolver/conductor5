@@ -204,23 +204,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw error;
       }
     },
-    onSuccess: (result: { user: User; accessToken: string; tenant?: { id: string; name: string; subdomain: string } }) => {
-      localStorage.setItem('accessToken', result.accessToken);
-      // Store tenantId for quick access by components
-      if (result.user?.tenantId) {
-        localStorage.setItem('tenantId', result.user.tenantId);
-      }
-      queryClient.setQueryData(['/api/auth/user'], result.user);
-
-      if (result.tenant) {
+    onSuccess: (result: any) => {
+      // Handle the actual response structure from backend
+      if (result.success && result.data) {
         toast({
-          title: 'Workspace criado com sucesso!',
-          description: `Bem-vindo ao Conductor! Seu workspace "${result.tenant.name}" foi criado e você é o administrador.`,
+          title: 'Registro realizado com sucesso',
+          description: `Bem-vindo ao Conductor, ${result.data.firstName || result.data.email}!`,
         });
-      } else {
+      } else if (result.user && result.accessToken) {
+        // Handle login-like response
+        localStorage.setItem('accessToken', result.accessToken);
+        if (result.user?.tenantId) {
+          localStorage.setItem('tenantId', result.user.tenantId);
+        }
+        queryClient.setQueryData(['/api/auth/user'], result.user);
+        
         toast({
           title: 'Registro realizado com sucesso',
           description: `Bem-vindo ao Conductor, ${result.user.firstName || result.user.email}!`,
+        });
+      } else {
+        // Fallback for success without user data
+        toast({
+          title: 'Registro realizado com sucesso',
+          description: 'Bem-vindo ao Conductor!',
         });
       }
     },
