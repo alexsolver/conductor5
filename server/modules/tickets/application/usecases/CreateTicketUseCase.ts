@@ -63,7 +63,7 @@ export class CreateTicketUseCase {
 
       // Create new ticket
       // Using constructor directly since factory method was moved to repository layer
-      const ticketId = this.idGenerator.generate();
+      const ticketId = this.idGenerator.generateId();
       const now = new Date();
       
       const ticket = new Ticket(

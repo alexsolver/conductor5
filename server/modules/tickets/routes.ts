@@ -20,6 +20,10 @@ import { ResolveTicketUseCase } from './application/usecases/ResolveTicketUseCas
 // Repository - To be injected into Use Cases
 import { DrizzleTicketRepository } from './infrastructure/repositories/DrizzleTicketRepository';
 
+// Dependencies for CreateTicketUseCase
+import { UuidGenerator } from '../shared/infrastructure/UuidGenerator';
+import { IDomainEventPublisher } from '../shared/domain/IDomainEventPublisher';
+
 // Database connection
 import { db, schemaManager } from '../../db';
 
@@ -118,10 +122,21 @@ const ticketsRouter = Router();
 // Use direct import of db connection from '../../db'
 const ticketRepository = new DrizzleTicketRepository(db);
 
+// Initialize dependencies
+const idGenerator = new UuidGenerator();
+
+// Simple event publisher implementation for tickets
+const eventPublisher: IDomainEventPublisher = {
+  async publish(event: any): Promise<void> {
+    console.log('🎫 [TicketEventPublisher] Domain event published:', event);
+    // TODO: Implement proper event handling
+  }
+};
+
 // Initialize controller with dependencies
 const ticketController = new TicketController(
   new GetTicketsUseCase(ticketRepository),
-  new CreateTicketUseCase(ticketRepository),
+  new CreateTicketUseCase(ticketRepository, eventPublisher, idGenerator),
   new AssignTicketUseCase(ticketRepository),
   new ResolveTicketUseCase(ticketRepository)
 );
