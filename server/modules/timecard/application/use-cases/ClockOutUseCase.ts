@@ -3,7 +3,75 @@
  * Resolves violations: Missing Use Cases for timecard clock-out business logic
  */
 
+import { ITimecardRepository } from '../../domain/ports/ITimecardRepository';
 import { Timecard } from '../../domain/entities/Timecard';
+import { TimecardClockDTO } from '../dto/TimecardClockDTO';
+
+interface ClockOutRequest {
+  userId: string;
+  tenantId: string;
+  location?: string;
+  notes?: string;
+  timestamp: Date;
+}
+
+interface ClockOutResponse {
+  timecardId: string;
+  clockOutTime: Date;
+  totalHours: number;
+  status: 'success' | 'not_clocked_in';
+  message: string;
+}
+
+export class ClockOutUseCase {
+  constructor(
+    private readonly timecardRepository: ITimecardRepository
+  ) {}
+
+  async execute(request: ClockOutRequest): Promise<ClockOutResponse> {
+    try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      // Find existing timecard for today
+      const existingTimecard = await this.timecardRepository.findByUserAndDate(
+        request.userId,
+        request.tenantId,
+        today
+      );
+
+      if (!existingTimecard) {
+        throw new Error('Nenhum timecard encontrado para hoje');
+      }
+
+      if (!existingTimecard.isCurrentlyClockedIn()) {
+        return {
+          timecardId: existingTimecard.getId(),
+          clockOutTime: request.timestamp,
+          totalHours: existingTimecard.getTotalHours(),
+          status: 'not_clocked_in',
+          message: 'Usuário não registrou entrada hoje'
+        };
+      }
+
+      // Clock out
+      existingTimecard.clockOut(request.timestamp, request.location, request.notes);
+      const updatedTimecard = await this.timecardRepository.update(existingTimecard);
+
+      return {
+        timecardId: updatedTimecard.getId(),
+        clockOutTime: request.timestamp,
+        totalHours: updatedTimecard.getTotalHours(),
+        status: 'success',
+        message: 'Saída registrada com sucesso'
+      };
+
+    } catch (error) {
+      console.error('Error in ClockOutUseCase:', error);
+      throw new Error('Falha ao registrar saída');
+    }
+  }
+}
 
 interface TimecardRepositoryInterface {
   findByUserAndDate(userId: string, date: Date, tenantId: string): Promise<Timecard | null>;

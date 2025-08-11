@@ -1,10 +1,43 @@
 import { Router } from 'express';
 import { jwtAuth } from '../../middleware/jwtAuth';
-import { TimecardController } from './application/controllers/TimecardController';
 import { TimecardApprovalController } from './application/controllers/TimecardApprovalController';
 
+// Create dependencies with proper injection
+import { DrizzleTimecardRepository } from './infrastructure/repositories/DrizzleTimecardRepository';
+import { ClockInUseCase } from './application/use-cases/ClockInUseCase';
+import { ClockOutUseCase } from './application/use-cases/ClockOutUseCase';
+import { CreateTimecardUseCase } from './application/use-cases/CreateTimecardUseCase';
+import { GetTimecardStatusUseCase } from './application/use-cases/GetTimecardStatusUseCase';
+import { GetTimecardReportsUseCase } from './application/use-cases/GetTimecardReportsUseCase';
+import { TimecardController } from './application/controllers/TimecardController';
+import { drizzle } from 'drizzle-orm/neon-http';
+import { neon } from '@neondatabase/serverless';
+
 const timecardRouter = Router();
-const timecardController = new TimecardController();
+
+// Initialize database connection
+const sql = neon(process.env.DATABASE_URL!);
+const db = drizzle(sql);
+
+// Initialize repository
+const timecardRepository = new DrizzleTimecardRepository(db);
+
+// Initialize use cases
+const clockInUseCase = new ClockInUseCase(timecardRepository);
+const clockOutUseCase = new ClockOutUseCase(timecardRepository);
+const createTimecardUseCase = new CreateTimecardUseCase(timecardRepository);
+const getTimecardStatusUseCase = new GetTimecardStatusUseCase(timecardRepository);
+const getTimecardReportsUseCase = new GetTimecardReportsUseCase(timecardRepository);
+
+// Initialize controller with proper dependency injection
+const timecardController = new TimecardController(
+  clockInUseCase,
+  clockOutUseCase,
+  createTimecardUseCase,
+  getTimecardStatusUseCase,
+  getTimecardReportsUseCase
+);
+
 const timecardApprovalController = new TimecardApprovalController();
 
 // Work Schedules routes - usando TimecardController unificado
@@ -58,8 +91,11 @@ timecardRouter.get('/reports/overtime/:period', jwtAuth, timecardController.getO
 
 timecardRouter.get('/reports/compliance/:period', jwtAuth, timecardController.getComplianceReport.bind(timecardController));
 
-// Current status route
+// Basic Timecard routes
+timecardRouter.post('/clock-in', jwtAuth, timecardController.clockIn.bind(timecardController));
+timecardRouter.post('/clock-out', jwtAuth, timecardController.clockOut.bind(timecardController));
 timecardRouter.get('/current-status', jwtAuth, timecardController.getCurrentStatus.bind(timecardController));
+timecardRouter.get('/reports/:period', jwtAuth, timecardController.getReports.bind(timecardController));
 
 // Approval routes
 timecardRouter.post('/approve/:id', jwtAuth, timecardApprovalController.approveTimecard.bind(timecardApprovalController));
