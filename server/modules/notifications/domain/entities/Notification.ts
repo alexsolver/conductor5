@@ -5,7 +5,7 @@
  * Contains business rules and invariants for notifications
  */
 
-export interface NotificationCreateProps {
+export interface NotificationInitProps {
   tenantId: string;
   userId: string;
   type: NotificationType;
@@ -56,7 +56,7 @@ export class Notification {
     private failedAt: Date | null,
     private readonly relatedEntityType: string | null,
     private readonly relatedEntityId: string | null,
-    private readonly createdAt: Date,
+    private readonly establishedAt: Date,
     private modifiedAt: Date
   ) {}
 
@@ -78,7 +78,7 @@ export class Notification {
   getFailedAt(): Date | null { return this.failedAt; }
   getRelatedEntityType(): string | null { return this.relatedEntityType; }
   getRelatedEntityId(): string | null { return this.relatedEntityId; }
-  getCreatedAt(): Date { return this.createdAt; }
+  getEstablishedAt(): Date { return this.establishedAt; }
   getModifiedAt(): Date { return this.modifiedAt; }
 
   // Business rules
@@ -130,7 +130,7 @@ export class Notification {
       this.failedAt,
       this.relatedEntityType,
       this.relatedEntityId,
-      this.createdAt,
+      this.establishedAt,
       this.modifiedAt // Will be set by application layer
     );
   }
@@ -158,13 +158,13 @@ export class Notification {
       this.failedAt,
       this.relatedEntityType,
       this.relatedEntityId,
-      this.createdAt,
+      this.establishedAt,
       this.modifiedAt // Will be set by application layer
     );
   }
 
   markAsFailed(error?: string): Notification {
-    const updatedMetadata = error ? 
+    const modifiedMetadata = error ? 
       { ...this.metadata, error } : this.metadata;
 
     return new Notification(
@@ -175,18 +175,18 @@ export class Notification {
       this.severity,
       this.title,
       this.message,
-      updatedMetadata,
+      modifiedMetadata,
       this.channels,
       'failed',
       this.scheduledAt,
       this.expiresAt,
       this.sentAt,
       this.deliveredAt,
-      new Date(), // failedAt
+      this.failedAt, // Will be set by application layer
       this.relatedEntityType,
       this.relatedEntityId,
-      this.createdAt,
-      new Date() // modifiedAt
+      this.establishedAt,
+      this.modifiedAt // Will be set by application layer
     );
   }
 
@@ -203,7 +203,7 @@ export class Notification {
       'critical', // Escalate severity
       `[ESCALATED] ${this.title}`,
       this.message,
-      { ...this.metadata, escalated: true, escalatedAt: new Date().toISOString() },
+      { ...this.metadata, escalated: true },
       this.channels,
       this.status,
       this.scheduledAt,
@@ -213,8 +213,8 @@ export class Notification {
       this.failedAt,
       this.relatedEntityType,
       this.relatedEntityId,
-      this.createdAt,
-      new Date() // modifiedAt
+      this.establishedAt,
+      this.modifiedAt // Will be set by application layer
     );
   }
 

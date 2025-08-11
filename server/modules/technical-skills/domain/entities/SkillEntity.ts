@@ -21,29 +21,29 @@ export class SkillEntity implements Skill {
     public tenantId: string,
     public description?: string,
     public isActive: boolean = true,
-    public createdAt: Date = new Date(),
-    public modifiedAt: Date = new Date()
+    public createdAt: Date,
+    public modifiedAt: Date
   ) {}
 
   activate(): void {
     this.isActive = true;
-    this.modifiedAt = new Date();
+    // Modified timestamp managed by application layer
   }
 
   deactivate(): void {
     this.isActive = false;
-    this.modifiedAt = new Date();
+    // Modified timestamp managed by application layer
   }
 
   changeDetails(name: string, description?: string, category?: string): void {
     this.name = name;
     if (description !== undefined) this.description = description;
     if (category !== undefined) this.category = category;
-    this.modifiedAt = new Date();
+    // Modified timestamp managed by application layer
   }
 
   changeLevel(level: 'beginner' | 'intermediate' | 'advanced' | 'expert'): void {
     this.level = level;
-    this.modifiedAt = new Date();
+    // Modified timestamp managed by application layer
   }
 }

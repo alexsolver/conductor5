@@ -15,7 +15,7 @@ export class UserSkill {
     public readonly assignedBy: string,
     public justification?: string,
     public isActive: boolean = true,
-    public readonly createdAt: Date = new Date(),
+    public readonly establishedAt: Date = new Date(),
     public modifiedAt: Date = new Date()
   ) {
     this.validateProficiencyLevel();
@@ -77,7 +77,7 @@ export class UserSkill {
     }
   }
 
-  updateCertification(
+  setCertification(
     certificationId?: string,
     certificationNumber?: string,
     issuedAt?: Date,
@@ -91,24 +91,23 @@ export class UserSkill {
     this.certificationFile = filePath;
     
     this.validateCertificationDates();
-    this.modifiedAt = new Date();
+    // Modified timestamp managed by application layer
   }
 
-  isCertificationValid(): boolean {
+  isCertificationValid(currentDate: Date): boolean {
     if (!this.certificationExpiresAt) {
       return true; // Certificação sem validade
     }
     
-    return this.certificationExpiresAt > new Date();
+    return this.certificationExpiresAt > currentDate;
   }
 
-  isCertificationExpiringSoon(daysAhead: number = 30): boolean {
+  isCertificationExpiringSoon(currentDate: Date, daysAhead: number = 30): boolean {
     if (!this.certificationExpiresAt) {
       return false;
     }
     
-    const warningDate = new Date();
-    warningDate.setDate(warningDate.getDate() + daysAhead);
+    const warningDate = new Date(currentDate.getTime() + daysAhead * 24 * 60 * 60 * 1000);
     
     return this.certificationExpiresAt <= warningDate;
   }

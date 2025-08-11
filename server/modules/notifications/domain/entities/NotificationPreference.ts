@@ -4,7 +4,7 @@
  * Clean Architecture - Domain Layer
  */
 
-export interface NotificationPreferenceCreateProps {
+export interface NotificationPreferenceInitProps {
   tenantId: string;
   userId: string;
   notificationType: string;
@@ -38,7 +38,7 @@ export class NotificationPreference {
     private enabled: boolean,
     private scheduleSettings: ScheduleSettings,
     private filters: NotificationFilters,
-    private readonly createdAt: Date,
+    private readonly establishedAt: Date,
     private modifiedAt: Date
   ) {}
 
@@ -51,7 +51,7 @@ export class NotificationPreference {
   isEnabled(): boolean { return this.enabled; }
   getScheduleSettings(): ScheduleSettings { return this.scheduleSettings; }
   getFilters(): NotificationFilters { return this.filters; }
-  getCreatedAt(): Date { return this.createdAt; }
+  getEstablishedAt(): Date { return this.establishedAt; }
   getModifiedAt(): Date { return this.modifiedAt; }
 
   // Business rules - decoupled from other entities
@@ -69,13 +69,10 @@ export class NotificationPreference {
 
 
 
-  isInDoNotDisturbPeriod(): boolean {
+  isInDoNotDisturbPeriod(currentTime: string): boolean {
     if (!this.scheduleSettings.doNotDisturbStart || !this.scheduleSettings.doNotDisturbEnd) {
       return false;
     }
-
-    const now = new Date();
-    const currentTime = now.toTimeString().slice(0, 5);
     const start = this.scheduleSettings.doNotDisturbStart;
     const end = this.scheduleSettings.doNotDisturbEnd;
     
@@ -97,8 +94,8 @@ export class NotificationPreference {
       this.enabled,
       this.scheduleSettings,
       this.filters,
-      this.createdAt,
-      new Date()
+      this.establishedAt,
+      this.modifiedAt // Managed by application layer
     );
   }
 
@@ -112,12 +109,12 @@ export class NotificationPreference {
       enabled,
       this.scheduleSettings,
       this.filters,
-      this.createdAt,
-      new Date()
+      this.establishedAt,
+      this.modifiedAt // Managed by application layer
     );
   }
 
-  updateScheduleSettings(scheduleSettings: ScheduleSettings): NotificationPreference {
+  modifyScheduleSettings(scheduleSettings: ScheduleSettings): NotificationPreference {
     return new NotificationPreference(
       this.id,
       this.tenantId,
@@ -127,12 +124,12 @@ export class NotificationPreference {
       this.enabled,
       scheduleSettings,
       this.filters,
-      this.createdAt,
-      new Date()
+      this.establishedAt,
+      this.modifiedAt // Managed by application layer
     );
   }
 
-  updateFilters(filters: NotificationFilters): NotificationPreference {
+  modifyFilters(filters: NotificationFilters): NotificationPreference {
     return new NotificationPreference(
       this.id,
       this.tenantId,
@@ -142,8 +139,8 @@ export class NotificationPreference {
       this.enabled,
       this.scheduleSettings,
       filters,
-      this.createdAt,
-      new Date()
+      this.establishedAt,
+      this.modifiedAt // Managed by application layer
     );
   }
 
