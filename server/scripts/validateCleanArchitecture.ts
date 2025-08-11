@@ -70,7 +70,7 @@ async function main() {
 // Executar se chamado diretamente
 if (require.main === module) {
   main();
-}nc } from 'fs';
+}
 
 class CleanArchitectureOrchestrator {
 
@@ -97,22 +97,22 @@ class CleanArchitectureOrchestrator {
       if (validationResult.issues && validationResult.issues.length > 0) {
         const corrector = new CleanArchitectureCorrector();
         let correctionPlans: any[] = [];
-        
+
         try {
           correctionPlans = await corrector.generateCorrectionPlan(validationResult);
         } catch (error) {
           console.warn('⚠️ Erro ao gerar plano de correção:', error);
           correctionPlans = [];
         }
-        
+
         if (shouldFix) {
           console.log('\n🔧 Executando correções automáticas...');
           await corrector.executeCorrectionPlan(correctionPlans, true);
-          
+
           // Re-executar validação após correções
           console.log('\n🔍 Re-executando validação após correções...');
           const newValidationResult = await validator.validateCompleteArchitecture();
-          
+
           if (!quiet) {
             validator.generateDetailedReport(newValidationResult);
           }
