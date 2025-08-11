@@ -104,7 +104,16 @@ router.get('/members', async (req: AuthenticatedRequest, res) => {
         lastName: users.lastName,
         email: users.email,
         role: users.role,
+        position: users.position,
+        department: users.department,
+        phone: users.phone,
+        cellPhone: users.cellPhone,
+        performance: users.performance,
+        goals: users.goals,
+        completedGoals: users.completedGoals,
         isActive: users.isActive,
+        status: users.status,
+        lastActiveAt: users.lastActiveAt,
         createdAt: users.createdAt
       })
       .from(users)
@@ -120,11 +129,21 @@ router.get('/members', async (req: AuthenticatedRequest, res) => {
       lastName: member.lastName,
       email: member.email,
       role: member.role,
+      position: member.position || 'Não informado',
+      department: member.department || 'Geral',
+      phone: member.phone,
+      cellPhone: member.cellPhone,
+      performance: member.performance || 0,
+      goals: member.goals || 0,
+      completedGoals: member.completedGoals || 0,
       isActive: member.isActive,
+      status: member.status || (member.isActive ? 'active' : 'inactive'),
+      lastActive: member.lastActiveAt,
       createdAt: member.createdAt
     }));
 
-    res.json({ members: processedMembers });
+    console.log('[TEAM-MANAGEMENT] Processed members:', processedMembers.length);
+    res.json(processedMembers);
   } catch (error) {
     console.error('Error fetching team members:', error);
     res.status(500).json({ message: 'Failed to fetch members' });
