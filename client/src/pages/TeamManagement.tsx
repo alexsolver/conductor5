@@ -64,10 +64,6 @@ export default function TeamManagement() {
   const { toast } = useToast();
   const queryClientInstance = useQueryClient();
   
-  // Debug logging
-  console.log('TeamManagement - Current user:', user);
-  console.log('TeamManagement - Team members data:', teamMembersData);
-  console.log('TeamManagement - Processed members array:', membersArray);
   const [activeTab, setActiveTab] = useState("overview");
   const [searchTerm, setSearchTerm] = useState("");
   const [filterDepartment, setFilterDepartment] = useState("all");
@@ -191,6 +187,11 @@ export default function TeamManagement() {
     
     return [];
   })();
+  
+  // Debug logging
+  console.log('TeamManagement - Current user:', user);
+  console.log('TeamManagement - Team members data:', teamMembersData);
+  console.log('TeamManagement - Processed members array:', membersArray);
   
   const filteredMembers = membersArray.filter((member: any) => {
     const matchesSearch = member.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
