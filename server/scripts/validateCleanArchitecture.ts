@@ -68,7 +68,7 @@ async function main() {
 }
 
 // Executar se chamado diretamente
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   main();
 }
 
@@ -307,6 +307,4 @@ ${actions.map((action: any, index: number) => {
   }
 }
 
-// Executar validação
-const orchestrator = new CleanArchitectureOrchestrator();
-orchestrator.run().catch(console.error);
+// A execução já é feita pelo main() acima quando chamado diretamente
