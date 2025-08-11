@@ -3,7 +3,7 @@ import { QueryClient, QueryFunction } from "@tanstack/react-query";
 async function refreshAccessToken(): Promise<string | null> {
   try {
     // Get refresh token from localStorage (if stored) or cookies
-    const refreshToken = localStorage.getItem('refreshToken');
+    const refreshToken = globalThis.localStorage?.getItem('refreshToken');
 
     if (!refreshToken) {
       console.log('No refresh token available');
@@ -21,23 +21,27 @@ async function refreshAccessToken(): Promise<string | null> {
 
     if (!response.ok) {
       console.log('Refresh token failed, redirecting to login');
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-      window.location.href = '/auth';
+      globalThis.localStorage?.removeItem('accessToken');
+      globalThis.localStorage?.removeItem('refreshToken');
+      if (typeof globalThis.window !== 'undefined') {
+        globalThis.window.location.href = '/auth';
+      }
       return null;
     }
 
-    const data = await response.json();
-    localStorage.setItem('accessToken', data.accessToken);
+    const data = await response.json() as { accessToken: string; refreshToken?: string };
+    globalThis.localStorage?.setItem('accessToken', data.accessToken);
     if (data.refreshToken) {
-      localStorage.setItem('refreshToken', data.refreshToken);
+      globalThis.localStorage?.setItem('refreshToken', data.refreshToken);
     }
     return data.accessToken;
   } catch (error) {
     console.error('Token refresh failed:', error);
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    window.location.href = '/auth';
+    globalThis.localStorage?.removeItem('accessToken');
+    globalThis.localStorage?.removeItem('refreshToken');
+    if (typeof globalThis.window !== 'undefined') {
+      globalThis.window.location.href = '/auth';
+    }
     return null;
   }
 }
