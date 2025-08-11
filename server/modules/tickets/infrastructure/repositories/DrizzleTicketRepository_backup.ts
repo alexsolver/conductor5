@@ -1,10 +1,13 @@
 import { eq, and, or, ilike, count } from 'drizzle-orm';
 import { Ticket } from '../../domain/entities/Ticket';
 import { ITicketRepository, TicketFilter } from '../../domain/ports/ITicketRepository';
-import { tickets } from '@shared/schema';
-import { db } from '../../../../db';
+import { tickets } from '@shared/schema'; // Using unified schema with proper exports
+import { db } from '../../../../db'; // Assuming db is still used internally
+// Note: ticketNumberGenerator import removed - will be injected via dependency injection
 
 export class DrizzleTicketRepository implements ITicketRepository {
+
+  // Assuming db is still available or managed elsewhere for internal use if not injected
   private dbConnection = db;
 
   async findById(id: string, tenantId: string): Promise<Ticket | null> {
@@ -18,6 +21,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
       return result.length > 0 ? this.toDomainEntity(result[0]) : null;
     } catch (error) {
       console.error('❌ Error finding ticket by id:', error);
+      // Re-throw or handle as appropriate for the application's error handling strategy
       throw error;
     }
   }
@@ -51,7 +55,8 @@ export class DrizzleTicketRepository implements ITicketRepository {
     }
   }
 
-  async findMany(filter: any): Promise<Ticket[]> {
+
+  async findMany(filter: any): Promise<Ticket[]> { // Simplified filter type for broader compatibility
     const conditions = [eq(tickets.tenantId, filter.tenantId)];
 
     if (filter.search) {
@@ -60,13 +65,18 @@ export class DrizzleTicketRepository implements ITicketRepository {
         or(
           ilike(tickets.subject, searchPattern),
           ilike(tickets.description, searchPattern),
-          ilike(tickets.number, searchPattern)
+          ilike(tickets.number, searchPattern),
+          ilike(tickets.shortDescription, searchPattern)
         )!
       );
     }
 
     if (filter.status) {
       conditions.push(eq(tickets.status, filter.status));
+    }
+
+    if (filter.state) {
+      conditions.push(eq(tickets.state, filter.state));
     }
 
     if (filter.priority) {
@@ -78,7 +88,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
     }
 
     if (filter.customerId) {
-      conditions.push(eq(tickets.customerId, filter.customerId));
+      conditions.push(eq(tickets.companyId, filter.customerId));
     }
 
     if (filter.category) {
@@ -113,10 +123,13 @@ export class DrizzleTicketRepository implements ITicketRepository {
 
   async save(ticket: Ticket): Promise<Ticket> {
     const ticketData = this.toPersistenceData(ticket);
+
+    // Check if ticket exists by ID and tenantId
     const existingTicket = await this.findById(ticket.getId(), ticket.getTenantId());
 
     try {
       if (existingTicket) {
+        // Update existing ticket
         const [updated] = await this.dbConnection
           .update(tickets)
           .set({
@@ -134,6 +147,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
         }
         return this.toDomainEntity(updated);
       } else {
+        // Insert new ticket
         const [inserted] = await this.dbConnection
           .insert(tickets)
           .values(ticketData)
@@ -163,7 +177,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
     }
   }
 
-  async count(filter: Omit<any, 'limit' | 'offset'>): Promise<number> {
+  async count(filter: Omit<any, 'limit' | 'offset'>): Promise<number> { // Simplified filter type
     const conditions = [eq(tickets.tenantId, filter.tenantId)];
 
     if (filter.search) {
@@ -172,13 +186,18 @@ export class DrizzleTicketRepository implements ITicketRepository {
         or(
           ilike(tickets.subject, searchPattern),
           ilike(tickets.description, searchPattern),
-          ilike(tickets.number, searchPattern)
+          ilike(tickets.number, searchPattern),
+          ilike(tickets.shortDescription, searchPattern)
         )!
       );
     }
 
     if (filter.status) {
       conditions.push(eq(tickets.status, filter.status));
+    }
+
+    if (filter.state) {
+      conditions.push(eq(tickets.state, filter.state));
     }
 
     if (filter.priority) {
@@ -190,7 +209,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
     }
 
     if (filter.customerId) {
-      conditions.push(eq(tickets.customerId, filter.customerId));
+      conditions.push(eq(tickets.companyId, filter.customerId));
     }
 
     if (filter.category) {
@@ -222,7 +241,10 @@ export class DrizzleTicketRepository implements ITicketRepository {
         .where(and(
           eq(tickets.tenantId, tenantId),
           eq(tickets.priority, 'urgent'),
-          eq(tickets.status, 'open')
+          or(
+            eq(tickets.state, 'open'),
+            eq(tickets.state, 'in_progress')
+          )!
         ));
 
       return results.map(result => this.toDomainEntity(result));
@@ -232,6 +254,13 @@ export class DrizzleTicketRepository implements ITicketRepository {
     }
   }
 
+  async findOverdue(tenantId: string): Promise<Ticket[]> {
+    // Placeholder: This would require more complex SQL logic
+    // to determine "overdue" status based on priority, deadlines, etc.
+    // For now, returning an empty array as per the original implementation.
+    return [];
+  }
+
   async findUnassigned(tenantId: string): Promise<Ticket[]> {
     try {
       const results = await this.dbConnection
@@ -239,10 +268,10 @@ export class DrizzleTicketRepository implements ITicketRepository {
         .from(tickets)
         .where(and(
           eq(tickets.tenantId, tenantId),
-          eq(tickets.assignedToId, null),
+          eq(tickets.assignedToId, null), // Ensure correct handling of null for Drizzle
           or(
-            eq(tickets.status, 'open'),
-            eq(tickets.status, 'in_progress')
+            eq(tickets.state, 'open'),
+            eq(tickets.state, 'in_progress')
           )!
         ));
 
@@ -253,48 +282,86 @@ export class DrizzleTicketRepository implements ITicketRepository {
     }
   }
 
+  async getNextTicketNumber(tenantId: string, prefix = 'INC'): Promise<string> {
+    // CLEANED: Infrastructure layer - purely data generation without business rules
+    // Ticket numbering strategy can be injected via domain service if needed
+    const timestamp = Date.now().toString(36);
+    const random = Math.random().toString(36).substr(2, 5);
+    return `${prefix}-${timestamp}-${random}`.toUpperCase();
+  }
+
+
   private toDomainEntity(data: any): Ticket {
+    // Infrastructure mapping - domain entity reconstruction from persistence layer
     return new Ticket(
       data.id,
-      data.tenant_id || data.tenantId,
+      data.tenantId,
+      data.customerId, // FIXED: Consistent with schema customerId field
+      data.callerId,
+      data.callerType,
       data.subject,
-      data.description || '',
-      data.priority || 'medium',
-      data.status || 'open',
-      data.caller_id || data.callerId,
-      data.customer_id || data.customerId,
-      data.beneficiary_id || data.beneficiaryId,
-      data.responsible_id || data.responsibleId,
+      data.description,
+      data.number,
+      data.description, // shortDescription not in schema, using description
       data.category,
       data.subcategory,
+      data.priority,
+      data.impact,
+      data.urgency,
+      data.status, // state not in DB, using status  
+      data.status,
+      data.assignedToId || data.assigned_to_id, // Handle both camelCase and snake_case
+      data.beneficiaryId || data.beneficiary_id, // Handle both camelCase and snake_case
+      data.beneficiaryType || data.beneficiary_type, // Handle both camelCase and snake_case  
+      data.assignmentGroupId || data.assignment_group, // Handle both camelCase and snake_case
       data.location,
-      data.tags || [],
-      data.environment,
-      data.template_name || data.templateName,
-      data.created_at || data.createdAt,
-      data.updated_at || data.updatedAt
+      data.contactType || data.contact_type, // Handle both camelCase and snake_case
+      data.businessImpact || data.business_impact, // Handle both camelCase and snake_case
+      data.symptoms,
+      data.workaround,
+      data.configurationItem,
+      data.businessService,
+      data.resolutionCode,
+      data.resolutionNotes,
+      data.workNotes,
+      data.closeNotes,
+      data.notify,
+      data.rootCause || data.root_cause, // Handle both camelCase and snake_case
+      data.openedAt || data.opened_at || data.createdAt, // Handle both camelCase and snake_case  
+      data.resolvedAt || data.resolved_at, // Handle both camelCase and snake_case
+      data.closedAt || data.closed_at, // Handle both camelCase and snake_case
+      data.createdAt || data.created_at, // Handle both camelCase and snake_case
+      data.updatedAt || data.updated_at // Handle both camelCase and snake_case
     );
   }
 
   private toPersistenceData(ticket: Ticket): any {
     return {
       id: ticket.getId(),
-      tenant_id: ticket.getTenantId(),
+      tenantId: ticket.getTenantId(),
+      customerId: ticket.getCustomerId(), // FIXED: Consistent with schema customerId field
+      callerId: ticket.getCallerId(),
+      callerType: ticket.getCallerType(),
       subject: ticket.getSubject(),
       description: ticket.getDescription(),
-      priority: ticket.getPriority(),
-      status: ticket.getStatus(),
-      caller_id: ticket.getCallerId(),
-      customer_id: ticket.getCustomerId(),
-      beneficiary_id: ticket.getBeneficiaryId(),
-      responsible_id: ticket.getResponsibleId(),
+      number: ticket.getNumber(),
       category: ticket.getCategory(),
       subcategory: ticket.getSubcategory(),
-      location: ticket.getLocation(),
-      tags: ticket.getTags(),
-      environment: ticket.getEnvironment(),
-      template_name: ticket.getTemplateName(),
-      updated_at: new Date()
+      priority: ticket.getPriority().getValue(), // Convert TicketPriority to string
+      impact: ticket.getImpact(),
+      urgency: ticket.getUrgency(),
+      status: ticket.getStatus(), // FIXED: Using status field from schema
+      assignedToId: ticket.getAssignedToId(),
+      beneficiaryId: ticket.getBeneficiaryId(),
+      beneficiaryType: ticket.getBeneficiaryType(),
+      contactType: ticket.getContactType(),
+      businessImpact: ticket.getBusinessImpact(),
+      symptoms: ticket.getSymptoms(),
+      workaround: ticket.getWorkaround(),
+      resolutionCode: ticket.getResolutionCode(),
+      resolutionNotes: ticket.getResolutionNotes(),
+      createdAt: ticket.getCreatedAt(),
+      updatedAt: ticket.getUpdatedAt()
     };
   }
 }

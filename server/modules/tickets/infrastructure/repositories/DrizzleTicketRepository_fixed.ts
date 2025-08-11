@@ -1,10 +1,13 @@
-import { eq, and, or, ilike, count } from 'drizzle-orm';
+import { eq, and, or, ilike } from 'drizzle-orm';
 import { Ticket } from '../../domain/entities/Ticket';
 import { ITicketRepository, TicketFilter } from '../../domain/ports/ITicketRepository';
-import { tickets } from '@shared/schema';
-import { db } from '../../../../db';
+import { tickets } from '@shared/schema'; // Using unified schema with proper exports
+import { db } from '../../../../db'; // Assuming db is still used internally
+// Note: ticketNumberGenerator import removed - will be injected via dependency injection
 
 export class DrizzleTicketRepository implements ITicketRepository {
+
+  // Assuming db is still available or managed elsewhere for internal use if not injected
   private dbConnection = db;
 
   async findById(id: string, tenantId: string): Promise<Ticket | null> {
@@ -18,6 +21,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
       return result.length > 0 ? this.toDomainEntity(result[0]) : null;
     } catch (error) {
       console.error('❌ Error finding ticket by id:', error);
+      // Re-throw or handle as appropriate for the application's error handling strategy
       throw error;
     }
   }
@@ -51,7 +55,8 @@ export class DrizzleTicketRepository implements ITicketRepository {
     }
   }
 
-  async findMany(filter: any): Promise<Ticket[]> {
+
+  async findMany(filter: any): Promise<Ticket[]> { // Simplified filter type for broader compatibility
     const conditions = [eq(tickets.tenantId, filter.tenantId)];
 
     if (filter.search) {
@@ -73,6 +78,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
       conditions.push(eq(tickets.priority, filter.priority));
     }
 
+    // FIXED: Use correct database column names
     if (filter.assignedToId) {
       conditions.push(eq(tickets.assignedToId, filter.assignedToId));
     }
@@ -113,10 +119,13 @@ export class DrizzleTicketRepository implements ITicketRepository {
 
   async save(ticket: Ticket): Promise<Ticket> {
     const ticketData = this.toPersistenceData(ticket);
+
+    // Check if ticket exists by ID and tenantId
     const existingTicket = await this.findById(ticket.getId(), ticket.getTenantId());
 
     try {
       if (existingTicket) {
+        // Update existing ticket
         const [updated] = await this.dbConnection
           .update(tickets)
           .set({
@@ -134,6 +143,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
         }
         return this.toDomainEntity(updated);
       } else {
+        // Insert new ticket
         const [inserted] = await this.dbConnection
           .insert(tickets)
           .values(ticketData)
@@ -163,7 +173,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
     }
   }
 
-  async count(filter: Omit<any, 'limit' | 'offset'>): Promise<number> {
+  async count(filter: Omit<any, 'limit' | 'offset'>): Promise<number> { // Simplified filter type
     const conditions = [eq(tickets.tenantId, filter.tenantId)];
 
     if (filter.search) {
@@ -185,6 +195,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
       conditions.push(eq(tickets.priority, filter.priority));
     }
 
+    // FIXED: Use correct database column names
     if (filter.assignedToId) {
       conditions.push(eq(tickets.assignedToId, filter.assignedToId));
     }
@@ -222,7 +233,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
         .where(and(
           eq(tickets.tenantId, tenantId),
           eq(tickets.priority, 'urgent'),
-          eq(tickets.status, 'open')
+          eq(tickets.status, 'open') // FIXED: Use status instead of non-existent state
         ));
 
       return results.map(result => this.toDomainEntity(result));
@@ -239,7 +250,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
         .from(tickets)
         .where(and(
           eq(tickets.tenantId, tenantId),
-          eq(tickets.assignedToId, null),
+          eq(tickets.assignedToId, null), // FIXED: Use correct column name
           or(
             eq(tickets.status, 'open'),
             eq(tickets.status, 'in_progress')
@@ -253,7 +264,9 @@ export class DrizzleTicketRepository implements ITicketRepository {
     }
   }
 
+  // CLEANED: Private domain/persistence mapping methods
   private toDomainEntity(data: any): Ticket {
+    // CLEANED: Entity factory method removed - direct instantiation for simplicity
     return new Ticket(
       data.id,
       data.tenant_id || data.tenantId,
@@ -277,6 +290,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
   }
 
   private toPersistenceData(ticket: Ticket): any {
+    // CLEANED: Persistence mapping for database insertion/update
     return {
       id: ticket.getId(),
       tenant_id: ticket.getTenantId(),
