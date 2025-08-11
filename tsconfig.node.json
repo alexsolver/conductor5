@@ -1,0 +1,25 @@
+
+{
+  "compilerOptions": {
+    "composite": true,
+    "skipLibCheck": true,
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "esModuleInterop": true,
+    "target": "ES2022",
+    "lib": ["ES2023"],
+    "types": ["node"],
+    "resolveJsonModule": true,
+    "allowImportingTsExtensions": false,
+    "noEmit": false,
+    "outDir": "./dist"
+  },
+  "include": [
+    "server/**/*",
+    "shared/**/*",
+    "scripts/**/*",
+    "vite.config.ts"
+  ]
+}
