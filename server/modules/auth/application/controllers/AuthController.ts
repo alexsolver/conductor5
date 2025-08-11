@@ -21,8 +21,8 @@ export class AuthController {
         return;
       }
       
-      // Get database connection
-      const { neonClient: sql } = await import('../../../../infrastructure/database/neon');
+      // Get database connection  
+      const { sql } = await import('../../../../db');
       
       // Find user in database
       const userResult = await sql`
