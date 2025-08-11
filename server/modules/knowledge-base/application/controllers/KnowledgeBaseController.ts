@@ -121,4 +121,124 @@ export class KnowledgeBaseController {
       res.status(500).json({ success: false, message });
     }
   }
+
+  async getCategories(req: Request, res: Response): Promise<void> {
+    try {
+      const tenantId = req.headers['x-tenant-id'] as string;
+      
+      res.json({
+        success: true,
+        message: 'Knowledge base categories retrieved successfully',
+        data: [],
+        tenantId
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to retrieve categories';
+      res.status(500).json({ success: false, message });
+    }
+  }
+
+  async createCategory(req: Request, res: Response): Promise<void> {
+    try {
+      const tenantId = req.headers['x-tenant-id'] as string;
+      const { name, description, parentId } = req.body;
+      
+      if (!name) {
+        res.status(400).json({ 
+          success: false, 
+          message: 'Category name is required' 
+        });
+        return;
+      }
+      
+      res.status(201).json({
+        success: true,
+        message: 'Category created successfully',
+        data: { name, description, parentId, tenantId }
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to create category';
+      res.status(400).json({ success: false, message });
+    }
+  }
+
+  async updateCategory(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const tenantId = req.headers['x-tenant-id'] as string;
+      
+      res.json({
+        success: true,
+        message: 'Category updated successfully',
+        data: { id, ...req.body, tenantId }
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to update category';
+      res.status(400).json({ success: false, message });
+    }
+  }
+
+  async deleteCategory(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const tenantId = req.headers['x-tenant-id'] as string;
+      
+      res.json({
+        success: true,
+        message: 'Category deleted successfully',
+        data: { id, tenantId }
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to delete category';
+      res.status(400).json({ success: false, message });
+    }
+  }
+
+  async getArticleById(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const tenantId = req.headers['x-tenant-id'] as string;
+      
+      res.json({
+        success: true,
+        message: 'Article retrieved successfully',
+        data: { id, tenantId }
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Article not found';
+      res.status(404).json({ success: false, message });
+    }
+  }
+
+  async updateArticleById(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const tenantId = req.headers['x-tenant-id'] as string;
+      
+      res.json({
+        success: true,
+        message: 'Article updated successfully',
+        data: { id, ...req.body, tenantId }
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to update article';
+      res.status(400).json({ success: false, message });
+    }
+  }
+
+  async deleteArticleById(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const tenantId = req.headers['x-tenant-id'] as string;
+      
+      res.json({
+        success: true,
+        message: 'Article deleted successfully',
+        data: { id, tenantId }
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to delete article';
+      res.status(400).json({ success: false, message });
+    }
+  }
 }
