@@ -1,160 +1,151 @@
+
 /**
- * TimecardController - Clean Architecture Presentation Layer
- * Fixes: 4 high priority violations - Routes containing business logic + Express dependencies
+ * TimecardController - Clean Architecture Application Layer
+ * Fixes dependency injection and follows AGENT_CODING_STANDARDS.md
  */
 
 import { Request, Response } from 'express';
+import { ClockInUseCase } from '../use-cases/ClockInUseCase';
+import { ClockOutUseCase } from '../use-cases/ClockOutUseCase';
+import { CreateTimecardUseCase } from '../use-cases/CreateTimecardUseCase';
+import { GetTimecardStatusUseCase } from '../use-cases/GetTimecardStatusUseCase';
+import { GetTimecardReportsUseCase } from '../use-cases/GetTimecardReportsUseCase';
+import { CreateTimecardDTO } from '../dto/CreateTimecardDTO';
+import { TimecardClockDTO } from '../dto/TimecardClockDTO';
 
 export class TimecardController {
-  constructor() {}
-
-  async getTimecards(req: Request, res: Response): Promise<void> {
-    try {
-      const tenantId = req.headers['x-tenant-id'] as string;
-      const { userId, startDate, endDate, status } = req.query;
-      
-      console.log('⏰ [TimecardController] Getting timecards for tenant:', tenantId);
-      
-      // Use direct SQL query following same pattern as tickets
-      const { db } = await import('../../../db');
-      const { sql } = await import('drizzle-orm');
-      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
-      
-      const query = `
-        SELECT 
-          id,
-          tenant_id,
-          user_id,
-          date,
-          clock_in,
-          clock_out,
-          break_start,
-          break_end,
-          total_hours,
-          status,
-          created_at,
-          updated_at
-        FROM "${schemaName}".timecards
-        WHERE tenant_id = '${tenantId}'
-        ORDER BY date DESC, created_at DESC
-        LIMIT 50
-      `;
-      
-      console.log('⏰ [TimecardController] Executing query:', query);
-      
-      const result = await db.execute(sql.raw(query));
-      const timecards = Array.isArray(result) ? result : (result.rows || []);
-      
-      console.log('⏰ [TimecardController] Timecards found:', timecards.length);
-      
-      res.json({
-        success: true,
-        message: 'Timecards retrieved successfully',
-        data: timecards,
-        filters: { userId, startDate, endDate, status, tenantId }
-      });
-    } catch (error) {
-      console.error('⏰ [TimecardController] Error:', error);
-      const message = error instanceof Error ? error.message : 'Failed to retrieve timecards';
-      res.status(500).json({ success: false, message });
-    }
-  }
+  constructor(
+    private readonly clockInUseCase: ClockInUseCase,
+    private readonly clockOutUseCase: ClockOutUseCase,
+    private readonly createTimecardUseCase: CreateTimecardUseCase,
+    private readonly getTimecardStatusUseCase: GetTimecardStatusUseCase,
+    private readonly getTimecardReportsUseCase: GetTimecardReportsUseCase
+  ) {}
 
   async clockIn(req: Request, res: Response): Promise<void> {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string;
-      const userId = req.headers['x-user-id'] as string;
-      const { location, notes } = req.body;
+      const { userId, tenantId } = req.user!;
+      const clockDTO = new TimecardClockDTO({
+        userId,
+        tenantId,
+        location: req.body.location,
+        notes: req.body.notes,
+        timestamp: new Date()
+      });
+
+      const result = await this.clockInUseCase.execute(clockDTO);
       
-      res.status(201).json({
+      res.status(200).json({
         success: true,
-        message: 'Clock in successful',
-        data: { 
-          userId, 
-          clockInTime: new Date().toISOString(),
-          location,
-          notes,
-          tenantId 
-        }
+        message: 'Clock in realizado com sucesso',
+        data: result
       });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to clock in';
-      res.status(400).json({ success: false, message });
+      console.error('Error in clockIn:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Erro interno do servidor'
+      });
     }
   }
 
   async clockOut(req: Request, res: Response): Promise<void> {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string;
-      const userId = req.headers['x-user-id'] as string;
-      const { notes } = req.body;
+      const { userId, tenantId } = req.user!;
+      const clockDTO = new TimecardClockDTO({
+        userId,
+        tenantId,
+        location: req.body.location,
+        notes: req.body.notes,
+        timestamp: new Date()
+      });
+
+      const result = await this.clockOutUseCase.execute(clockDTO);
       
-      res.json({
+      res.status(200).json({
         success: true,
-        message: 'Clock out successful',
-        data: { 
-          userId, 
-          clockOutTime: new Date().toISOString(),
-          notes,
-          tenantId 
-        }
+        message: 'Clock out realizado com sucesso',
+        data: result
       });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to clock out';
-      res.status(400).json({ success: false, message });
+      console.error('Error in clockOut:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Erro interno do servidor'
+      });
     }
   }
 
-  async getTimesheet(req: Request, res: Response): Promise<void> {
+  async createTimecard(req: Request, res: Response): Promise<void> {
     try {
-      const { userId } = req.params;
-      const tenantId = req.headers['x-tenant-id'] as string;
-      const { week, month } = req.query;
+      const { userId, tenantId } = req.user!;
+      const createDTO = new CreateTimecardDTO({
+        ...req.body,
+        userId,
+        tenantId
+      });
+
+      const result = await this.createTimecardUseCase.execute(createDTO);
       
-      res.json({
+      res.status(201).json({
         success: true,
-        message: 'Timesheet retrieved successfully',
-        data: {
-          userId,
-          period: week || month || 'current_week',
-          totalHours: 0,
-          entries: [],
-          tenantId
-        }
+        message: 'Timecard criado com sucesso',
+        data: result
       });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to retrieve timesheet';
-      res.status(500).json({ success: false, message });
+      console.error('Error in createTimecard:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Erro interno do servidor'
+      });
     }
   }
 
-  async generateReport(req: Request, res: Response): Promise<void> {
+  async getCurrentStatus(req: Request, res: Response): Promise<void> {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string;
-      const { startDate, endDate, userId, format } = req.body;
+      const { userId, tenantId } = req.user!;
       
-      if (!startDate || !endDate) {
-        res.status(400).json({ 
-          success: false, 
-          message: 'Start date and end date are required' 
-        });
-        return;
-      }
+      const result = await this.getTimecardStatusUseCase.execute({
+        userId,
+        tenantId
+      });
       
-      res.json({
+      res.status(200).json({
         success: true,
-        message: 'Report generated successfully',
-        data: {
-          period: { startDate, endDate },
-          userId,
-          format: format || 'pdf',
-          reportUrl: '/reports/timecard_report.pdf',
-          tenantId
-        }
+        data: result
       });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to generate report';
-      res.status(400).json({ success: false, message });
+      console.error('Error in getCurrentStatus:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Erro interno do servidor'
+      });
+    }
+  }
+
+  async getReports(req: Request, res: Response): Promise<void> {
+    try {
+      const { userId, tenantId } = req.user!;
+      const { period, startDate, endDate } = req.params;
+      
+      const result = await this.getTimecardReportsUseCase.execute({
+        userId,
+        tenantId,
+        period,
+        startDate: startDate ? new Date(startDate) : undefined,
+        endDate: endDate ? new Date(endDate) : undefined
+      });
+      
+      res.status(200).json({
+        success: true,
+        data: result
+      });
+    } catch (error) {
+      console.error('Error in getReports:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Erro interno do servidor'
+      });
     }
   }
 }

@@ -1,129 +1,64 @@
-import { ITimecard } from '../../domain/entities/ITimecard';
-import { IITimecardRepository } from '../../domain/ports/IITimecardRepository';
-// Removed drizzle import - Domain layer should not depend on ORM
-import * as schema from '@shared/schema';
 
-export class DrizzleITimecardRepository implements IITimecardRepository {
-  constructor(private readonly db: ReturnType<typeof drizzle>) {}
+/**
+ * ITimecardRepository - Clean Architecture Domain Layer Port
+ * Follows AGENT_CODING_STANDARDS.md interface patterns
+ */
 
-  async findById(id: string, tenantId: string): Promise<ITimecard | null> {
-    // Implementar busca por ID
-    throw new Error('Method not implemented.');
-  }
-
-  async findAll(tenantId: string): Promise<ITimecard[]> {
-    // Implementar busca de todos
-    throw new Error('Method not implemented.');
-  }
-
-  async create(entity: ITimecard): Promise<ITimecard> {
-    // Implementar criação
-    throw new Error('Method not implemented.');
-  }
-
-  async update(id: string, entity: Partial<ITimecard>, tenantId: string): Promise<ITimecard | null> {
-    // Implementar atualização
-    throw new Error('Method not implemented.');
-  }
-
-  async delete(id: string, tenantId: string): Promise<boolean> {
-    // Implementar exclusão
-    throw new Error('Method not implemented.');
-  }
-}
 import { Timecard } from '../entities/Timecard';
 
 export interface ITimecardRepository {
-  findById(id: string, tenantId: string): Promise<Timecard | null>;
-  findAll(tenantId: string): Promise<Timecard[]>;
-  findByUserId(userId: string, tenantId: string): Promise<Timecard[]>;
-  create(timecard: Timecard): Promise<Timecard>;
-  update(id: string, timecard: Partial<Timecard>, tenantId: string): Promise<Timecard | null>;
-  delete(id: string, tenantId: string): Promise<boolean>;
-}
-import { Timecard } from '../entities/Timecard';
+  // Basic CRUD operations
+  save(timecard: Timecard): Promise<Timecard>;
+  findById(id: string): Promise<Timecard | null>;
+  update(timecard: Timecard): Promise<Timecard>;
+  delete(id: string): Promise<void>;
 
-export interface ITimecardRepository {
-  findById(id: string, tenantId: string): Promise<Timecard | null>;
-  findAll(tenantId: string): Promise<Timecard[]>;
-  findByUserId(userId: string, tenantId: string): Promise<Timecard[]>;
-  findByDateRange(userId: string, startDate: Date, endDate: Date, tenantId: string): Promise<Timecard[]>;
-  create(timecard: Timecard): Promise<Timecard>;
-  update(id: string, timecard: Partial<Timecard>, tenantId: string): Promise<Timecard | null>;
-  delete(id: string, tenantId: string): Promise<boolean>;
-}
-import { Timecard } from '../entities/Timecard';
+  // Business queries
+  findByUserAndDate(userId: string, tenantId: string, date: Date): Promise<Timecard | null>;
+  
+  findByUserAndDateRange(
+    userId: string, 
+    tenantId: string, 
+    startDate: Date, 
+    endDate: Date
+  ): Promise<Timecard[]>;
 
-export interface ITimecardRepository {
-  findById(id: string, tenantId: string): Promise<Timecard | null>;
-  findAll(tenantId: string): Promise<Timecard[]>;
-  create(timecard: Timecard): Promise<Timecard>;
-  update(id: string, timecard: Partial<Timecard>, tenantId: string): Promise<Timecard | null>;
-  delete(id: string, tenantId: string): Promise<boolean>;
-  findByUserId(userId: string, tenantId: string): Promise<Timecard[]>;
-  findByDateRange(startDate: Date, endDate: Date, tenantId: string): Promise<Timecard[]>;
-}
-import { Timecard } from '../entities/Timecard';
+  findByTenantAndDateRange(
+    tenantId: string,
+    startDate: Date,
+    endDate: Date
+  ): Promise<Timecard[]>;
 
-export interface ITimecardRepository {
-  findById(id: string, tenantId: string): Promise<Timecard | null>;
-  findAll(tenantId: string): Promise<Timecard[]>;
-  create(timecard: Timecard): Promise<Timecard>;
-  update(id: string, timecard: Partial<Timecard>, tenantId: string): Promise<Timecard | null>;
-  delete(id: string, tenantId: string): Promise<boolean>;
-  findByUser(userId: string, tenantId: string): Promise<Timecard[]>;
-  findByPeriod(startDate: Date, endDate: Date, tenantId: string): Promise<Timecard[]>;
-}
-import { Timecard } from '../entities/Timecard';
+  findOpenTimecardsByUser(userId: string, tenantId: string): Promise<Timecard[]>;
 
-export interface ITimecardRepository {
-  findById(id: string, tenantId: string): Promise<Timecard | null>;
-  findAll(tenantId: string): Promise<Timecard[]>;
-  create(timecard: Timecard): Promise<Timecard>;
-  update(id: string, timecard: Partial<Timecard>, tenantId: string): Promise<Timecard | null>;
-  delete(id: string, tenantId: string): Promise<boolean>;
-}
-import { Timecard } from '../entities/Timecard';
+  findPendingApprovalsByTenant(tenantId: string): Promise<Timecard[]>;
 
-export interface ITimecardRepository {
-  findById(id: string, tenantId: string): Promise<Timecard | null>;
-  findAll(tenantId: string): Promise<Timecard[]>;
-  create(timecard: Timecard): Promise<Timecard>;
-  update(id: string, timecard: Partial<Timecard>, tenantId: string): Promise<Timecard | null>;
-  delete(id: string, tenantId: string): Promise<boolean>;
-  findByUser(userId: string, tenantId: string): Promise<Timecard[]>;
-  findByPeriod(startDate: Date, endDate: Date, tenantId: string): Promise<Timecard[]>;
-}
-import { Timecard } from '../entities/Timecard';
+  // Statistics queries
+  getTotalHoursByUserAndPeriod(
+    userId: string,
+    tenantId: string,
+    startDate: Date,
+    endDate: Date
+  ): Promise<number>;
 
-export interface ITimecardRepository {
-  findById(id: string, tenantId: string): Promise<Timecard | null>;
-  findAll(tenantId: string): Promise<Timecard[]>;
-  findByUserId(userId: string, tenantId: string): Promise<Timecard[]>;
-  create(timecard: Timecard): Promise<Timecard>;
-  update(id: string, timecard: Partial<Timecard>, tenantId: string): Promise<Timecard | null>;
-  delete(id: string, tenantId: string): Promise<boolean>;
-}
-import { Timecard } from '../entities/Timecard';
+  getTimecardStatsByUser(
+    userId: string,
+    tenantId: string,
+    startDate: Date,
+    endDate: Date
+  ): Promise<{
+    totalHours: number;
+    regularHours: number;
+    overtimeHours: number;
+    totalDays: number;
+    averageHoursPerDay: number;
+  }>;
 
-export interface ITimecardRepository {
-  findById(id: string, tenantId: string): Promise<Timecard | null>;
-  findAll(tenantId: string): Promise<Timecard[]>;
-  create(timecard: Timecard): Promise<Timecard>;
-  update(id: string, timecard: Partial<Timecard>, tenantId: string): Promise<Timecard | null>;
-  delete(id: string, tenantId: string): Promise<boolean>;
-  findByUser(userId: string, tenantId: string): Promise<Timecard[]>;
-  findByDateRange(startDate: Date, endDate: Date, tenantId: string): Promise<Timecard[]>;
-}
-import { Timecard } from '../entities/Timecard';
-
-export interface ITimecardRepository {
-  findById(id: string, tenantId: string): Promise<Timecard | null>;
-  findAll(tenantId: string, filters?: any): Promise<Timecard[]>;
-  create(timecard: Timecard): Promise<Timecard>;
-  update(id: string, timecard: Partial<Timecard>, tenantId: string): Promise<Timecard | null>;
-  delete(id: string, tenantId: string): Promise<boolean>;
-  findByUser(userId: string, tenantId: string): Promise<Timecard[]>;
-  findByDateRange(startDate: Date, endDate: Date, tenantId: string): Promise<Timecard[]>;
-  findPendingApprovals(tenantId: string): Promise<Timecard[]>;
+  // Bulk operations
+  bulkSave(timecards: Timecard[]): Promise<Timecard[]>;
+  bulkUpdateStatus(
+    ids: string[], 
+    status: 'open' | 'submitted' | 'approved' | 'rejected',
+    approvedById?: string
+  ): Promise<void>;
 }
