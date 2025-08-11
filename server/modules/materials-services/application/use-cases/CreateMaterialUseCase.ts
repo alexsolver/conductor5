@@ -4,6 +4,8 @@
  * Pure business logic without external dependencies
  */
 
+// Clean Use Case without presentation layer dependencies
+
 import { IMaterialRepository } from '../../domain/repositories/IMaterialRepository';
 import { Material } from '../../domain/entities/Material';
 // Inline CreateMaterialDTO interface

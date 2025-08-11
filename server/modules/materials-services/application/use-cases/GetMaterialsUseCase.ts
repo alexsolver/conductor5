@@ -3,6 +3,7 @@
  * Clean Architecture - Application Layer
  */
 
+// Clean Use Case without presentation layer dependencies
 import { IMaterialRepository } from '../../domain/repositories/IMaterialRepository';
 import { Material } from '../../domain/entities/Material';
 

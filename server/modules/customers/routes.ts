@@ -1,4 +1,3 @@
-
 import { Router } from 'express';
 import { CustomerController } from './application/controllers/CustomerController';
 import { CompanyController } from './application/controllers/CompanyController';

@@ -288,6 +288,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
       tags: ticket.getTags(),
       environment: ticket.getEnvironment(),
       template_name: ticket.getTemplateName(),
+      assigned_to_id: ticket.getAssignedToId(), // Corrected field name for persistence
       updated_at: new Date()
     };
   }
