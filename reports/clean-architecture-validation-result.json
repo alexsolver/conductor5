@@ -43,46 +43,6 @@
       "suggestedFix": "Mover lógica de negócio/dados para Use Cases na camada Application e/ou Controllers."
     },
     {
-      "id": "ARCH-CUSTOM-FIELDS-DOMAIN-VALUE-OBJECTS-MISSING",
-      "layer": "domain",
-      "module": "custom-fields",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'value-objects' ausente na camada 'domain'",
-      "file": "/home/runner/workspace/server/modules/custom-fields/domain/value-objects",
-      "suggestedFix": "Criar diretório/arquivo 'value-objects' na camada 'domain' se necessário"
-    },
-    {
-      "id": "ARCH-CUSTOM-FIELDS-APPLICATION-REPOSITORIES-MISSING",
-      "layer": "application",
-      "module": "custom-fields",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'repositories' ausente na camada 'application'",
-      "file": "/home/runner/workspace/server/modules/custom-fields/application/repositories",
-      "suggestedFix": "Criar diretório/arquivo 'repositories' na camada 'application' se necessário"
-    },
-    {
-      "id": "ARCH-CUSTOM-FIELDS-INFRASTRUCTURE-CLIENTS-MISSING",
-      "layer": "infrastructure",
-      "module": "custom-fields",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'clients' ausente na camada 'infrastructure'",
-      "file": "/home/runner/workspace/server/modules/custom-fields/infrastructure/clients",
-      "suggestedFix": "Criar diretório/arquivo 'clients' na camada 'infrastructure' se necessário"
-    },
-    {
-      "id": "ARCH-CUSTOM-FIELDS-INFRASTRUCTURE-CONFIG-MISSING",
-      "layer": "infrastructure",
-      "module": "custom-fields",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'config' ausente na camada 'infrastructure'",
-      "file": "/home/runner/workspace/server/modules/custom-fields/infrastructure/config",
-      "suggestedFix": "Criar diretório/arquivo 'config' na camada 'infrastructure' se necessário"
-    },
-    {
       "id": "ROUTES-CUSTOM-FIELDS-NO-LOGIC",
       "layer": "presentation",
       "module": "custom-fields",
@@ -101,36 +61,6 @@
       "description": "Rotas contêm lógica de negócio ou acesso direto a dados",
       "file": "/home/runner/workspace/server/modules/custom-fields/routes.ts",
       "suggestedFix": "Mover lógica de negócio/dados para Use Cases na camada Application e/ou Controllers."
-    },
-    {
-      "id": "ARCH-CUSTOMERS-APPLICATION-REPOSITORIES-MISSING",
-      "layer": "application",
-      "module": "customers",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'repositories' ausente na camada 'application'",
-      "file": "/home/runner/workspace/server/modules/customers/application/repositories",
-      "suggestedFix": "Criar diretório/arquivo 'repositories' na camada 'application' se necessário"
-    },
-    {
-      "id": "ARCH-CUSTOMERS-INFRASTRUCTURE-CLIENTS-MISSING",
-      "layer": "infrastructure",
-      "module": "customers",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'clients' ausente na camada 'infrastructure'",
-      "file": "/home/runner/workspace/server/modules/customers/infrastructure/clients",
-      "suggestedFix": "Criar diretório/arquivo 'clients' na camada 'infrastructure' se necessário"
-    },
-    {
-      "id": "ARCH-CUSTOMERS-INFRASTRUCTURE-CONFIG-MISSING",
-      "layer": "infrastructure",
-      "module": "customers",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'config' ausente na camada 'infrastructure'",
-      "file": "/home/runner/workspace/server/modules/customers/infrastructure/config",
-      "suggestedFix": "Criar diretório/arquivo 'config' na camada 'infrastructure' se necessário"
     },
     {
       "id": "ROUTES-CUSTOMERS-NO-LOGIC",
@@ -153,46 +83,6 @@
       "suggestedFix": "Mover lógica de negócio/dados para Use Cases na camada Application e/ou Controllers."
     },
     {
-      "id": "ARCH-DASHBOARD-DOMAIN-VALUE-OBJECTS-MISSING",
-      "layer": "domain",
-      "module": "dashboard",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'value-objects' ausente na camada 'domain'",
-      "file": "/home/runner/workspace/server/modules/dashboard/domain/value-objects",
-      "suggestedFix": "Criar diretório/arquivo 'value-objects' na camada 'domain' se necessário"
-    },
-    {
-      "id": "ARCH-DASHBOARD-APPLICATION-REPOSITORIES-MISSING",
-      "layer": "application",
-      "module": "dashboard",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'repositories' ausente na camada 'application'",
-      "file": "/home/runner/workspace/server/modules/dashboard/application/repositories",
-      "suggestedFix": "Criar diretório/arquivo 'repositories' na camada 'application' se necessário"
-    },
-    {
-      "id": "ARCH-DASHBOARD-INFRASTRUCTURE-CLIENTS-MISSING",
-      "layer": "infrastructure",
-      "module": "dashboard",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'clients' ausente na camada 'infrastructure'",
-      "file": "/home/runner/workspace/server/modules/dashboard/infrastructure/clients",
-      "suggestedFix": "Criar diretório/arquivo 'clients' na camada 'infrastructure' se necessário"
-    },
-    {
-      "id": "ARCH-DASHBOARD-INFRASTRUCTURE-CONFIG-MISSING",
-      "layer": "infrastructure",
-      "module": "dashboard",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'config' ausente na camada 'infrastructure'",
-      "file": "/home/runner/workspace/server/modules/dashboard/infrastructure/config",
-      "suggestedFix": "Criar diretório/arquivo 'config' na camada 'infrastructure' se necessário"
-    },
-    {
       "id": "ROUTES-DASHBOARD-NO-LOGIC",
       "layer": "presentation",
       "module": "dashboard",
@@ -201,46 +91,6 @@
       "description": "Arquivo de rotas não parece conter controllers ou chamadas a Use Cases.",
       "file": "/home/runner/workspace/server/modules/dashboard/routes.ts",
       "suggestedFix": "Definir rotas que utilizem controllers da camada Application ou chamem Use Cases."
-    },
-    {
-      "id": "ARCH-FIELD-LAYOUT-DOMAIN-VALUE-OBJECTS-MISSING",
-      "layer": "domain",
-      "module": "field-layout",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'value-objects' ausente na camada 'domain'",
-      "file": "/home/runner/workspace/server/modules/field-layout/domain/value-objects",
-      "suggestedFix": "Criar diretório/arquivo 'value-objects' na camada 'domain' se necessário"
-    },
-    {
-      "id": "ARCH-FIELD-LAYOUT-APPLICATION-REPOSITORIES-MISSING",
-      "layer": "application",
-      "module": "field-layout",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'repositories' ausente na camada 'application'",
-      "file": "/home/runner/workspace/server/modules/field-layout/application/repositories",
-      "suggestedFix": "Criar diretório/arquivo 'repositories' na camada 'application' se necessário"
-    },
-    {
-      "id": "ARCH-FIELD-LAYOUT-INFRASTRUCTURE-CLIENTS-MISSING",
-      "layer": "infrastructure",
-      "module": "field-layout",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'clients' ausente na camada 'infrastructure'",
-      "file": "/home/runner/workspace/server/modules/field-layout/infrastructure/clients",
-      "suggestedFix": "Criar diretório/arquivo 'clients' na camada 'infrastructure' se necessário"
-    },
-    {
-      "id": "ARCH-FIELD-LAYOUT-INFRASTRUCTURE-CONFIG-MISSING",
-      "layer": "infrastructure",
-      "module": "field-layout",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'config' ausente na camada 'infrastructure'",
-      "file": "/home/runner/workspace/server/modules/field-layout/infrastructure/config",
-      "suggestedFix": "Criar diretório/arquivo 'config' na camada 'infrastructure' se necessário"
     },
     {
       "id": "ROUTES-FIELD-LAYOUT-NO-LOGIC",
@@ -253,46 +103,6 @@
       "suggestedFix": "Definir rotas que utilizem controllers da camada Application ou chamem Use Cases."
     },
     {
-      "id": "ARCH-FIELD-LAYOUTS-DOMAIN-VALUE-OBJECTS-MISSING",
-      "layer": "domain",
-      "module": "field-layouts",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'value-objects' ausente na camada 'domain'",
-      "file": "/home/runner/workspace/server/modules/field-layouts/domain/value-objects",
-      "suggestedFix": "Criar diretório/arquivo 'value-objects' na camada 'domain' se necessário"
-    },
-    {
-      "id": "ARCH-FIELD-LAYOUTS-APPLICATION-REPOSITORIES-MISSING",
-      "layer": "application",
-      "module": "field-layouts",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'repositories' ausente na camada 'application'",
-      "file": "/home/runner/workspace/server/modules/field-layouts/application/repositories",
-      "suggestedFix": "Criar diretório/arquivo 'repositories' na camada 'application' se necessário"
-    },
-    {
-      "id": "ARCH-FIELD-LAYOUTS-INFRASTRUCTURE-CLIENTS-MISSING",
-      "layer": "infrastructure",
-      "module": "field-layouts",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'clients' ausente na camada 'infrastructure'",
-      "file": "/home/runner/workspace/server/modules/field-layouts/infrastructure/clients",
-      "suggestedFix": "Criar diretório/arquivo 'clients' na camada 'infrastructure' se necessário"
-    },
-    {
-      "id": "ARCH-FIELD-LAYOUTS-INFRASTRUCTURE-CONFIG-MISSING",
-      "layer": "infrastructure",
-      "module": "field-layouts",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'config' ausente na camada 'infrastructure'",
-      "file": "/home/runner/workspace/server/modules/field-layouts/infrastructure/config",
-      "suggestedFix": "Criar diretório/arquivo 'config' na camada 'infrastructure' se necessário"
-    },
-    {
       "id": "ROUTES-FIELD-LAYOUTS-BUSINESS-LOGIC",
       "layer": "presentation",
       "module": "field-layouts",
@@ -301,46 +111,6 @@
       "description": "Rotas contêm lógica de negócio ou acesso direto a dados",
       "file": "/home/runner/workspace/server/modules/field-layouts/routes.ts",
       "suggestedFix": "Mover lógica de negócio/dados para Use Cases na camada Application e/ou Controllers."
-    },
-    {
-      "id": "ARCH-KNOWLEDGE-BASE-DOMAIN-VALUE-OBJECTS-MISSING",
-      "layer": "domain",
-      "module": "knowledge-base",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'value-objects' ausente na camada 'domain'",
-      "file": "/home/runner/workspace/server/modules/knowledge-base/domain/value-objects",
-      "suggestedFix": "Criar diretório/arquivo 'value-objects' na camada 'domain' se necessário"
-    },
-    {
-      "id": "ARCH-KNOWLEDGE-BASE-APPLICATION-REPOSITORIES-MISSING",
-      "layer": "application",
-      "module": "knowledge-base",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'repositories' ausente na camada 'application'",
-      "file": "/home/runner/workspace/server/modules/knowledge-base/application/repositories",
-      "suggestedFix": "Criar diretório/arquivo 'repositories' na camada 'application' se necessário"
-    },
-    {
-      "id": "ARCH-KNOWLEDGE-BASE-INFRASTRUCTURE-CLIENTS-MISSING",
-      "layer": "infrastructure",
-      "module": "knowledge-base",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'clients' ausente na camada 'infrastructure'",
-      "file": "/home/runner/workspace/server/modules/knowledge-base/infrastructure/clients",
-      "suggestedFix": "Criar diretório/arquivo 'clients' na camada 'infrastructure' se necessário"
-    },
-    {
-      "id": "ARCH-KNOWLEDGE-BASE-INFRASTRUCTURE-CONFIG-MISSING",
-      "layer": "infrastructure",
-      "module": "knowledge-base",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'config' ausente na camada 'infrastructure'",
-      "file": "/home/runner/workspace/server/modules/knowledge-base/infrastructure/config",
-      "suggestedFix": "Criar diretório/arquivo 'config' na camada 'infrastructure' se necessário"
     },
     {
       "id": "ROUTES-KNOWLEDGE-BASE-BUSINESS-LOGIC",
@@ -353,46 +123,6 @@
       "suggestedFix": "Mover lógica de negócio/dados para Use Cases na camada Application e/ou Controllers."
     },
     {
-      "id": "ARCH-LOCATIONS-DOMAIN-VALUE-OBJECTS-MISSING",
-      "layer": "domain",
-      "module": "locations",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'value-objects' ausente na camada 'domain'",
-      "file": "/home/runner/workspace/server/modules/locations/domain/value-objects",
-      "suggestedFix": "Criar diretório/arquivo 'value-objects' na camada 'domain' se necessário"
-    },
-    {
-      "id": "ARCH-LOCATIONS-APPLICATION-REPOSITORIES-MISSING",
-      "layer": "application",
-      "module": "locations",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'repositories' ausente na camada 'application'",
-      "file": "/home/runner/workspace/server/modules/locations/application/repositories",
-      "suggestedFix": "Criar diretório/arquivo 'repositories' na camada 'application' se necessário"
-    },
-    {
-      "id": "ARCH-LOCATIONS-INFRASTRUCTURE-CLIENTS-MISSING",
-      "layer": "infrastructure",
-      "module": "locations",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'clients' ausente na camada 'infrastructure'",
-      "file": "/home/runner/workspace/server/modules/locations/infrastructure/clients",
-      "suggestedFix": "Criar diretório/arquivo 'clients' na camada 'infrastructure' se necessário"
-    },
-    {
-      "id": "ARCH-LOCATIONS-INFRASTRUCTURE-CONFIG-MISSING",
-      "layer": "infrastructure",
-      "module": "locations",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'config' ausente na camada 'infrastructure'",
-      "file": "/home/runner/workspace/server/modules/locations/infrastructure/config",
-      "suggestedFix": "Criar diretório/arquivo 'config' na camada 'infrastructure' se necessário"
-    },
-    {
       "id": "ROUTES-LOCATIONS-BUSINESS-LOGIC",
       "layer": "presentation",
       "module": "locations",
@@ -401,46 +131,6 @@
       "description": "Rotas contêm lógica de negócio ou acesso direto a dados",
       "file": "/home/runner/workspace/server/modules/locations/routes.ts",
       "suggestedFix": "Mover lógica de negócio/dados para Use Cases na camada Application e/ou Controllers."
-    },
-    {
-      "id": "ARCH-MATERIALS-SERVICES-DOMAIN-VALUE-OBJECTS-MISSING",
-      "layer": "domain",
-      "module": "materials-services",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'value-objects' ausente na camada 'domain'",
-      "file": "/home/runner/workspace/server/modules/materials-services/domain/value-objects",
-      "suggestedFix": "Criar diretório/arquivo 'value-objects' na camada 'domain' se necessário"
-    },
-    {
-      "id": "ARCH-MATERIALS-SERVICES-APPLICATION-REPOSITORIES-MISSING",
-      "layer": "application",
-      "module": "materials-services",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'repositories' ausente na camada 'application'",
-      "file": "/home/runner/workspace/server/modules/materials-services/application/repositories",
-      "suggestedFix": "Criar diretório/arquivo 'repositories' na camada 'application' se necessário"
-    },
-    {
-      "id": "ARCH-MATERIALS-SERVICES-INFRASTRUCTURE-CLIENTS-MISSING",
-      "layer": "infrastructure",
-      "module": "materials-services",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'clients' ausente na camada 'infrastructure'",
-      "file": "/home/runner/workspace/server/modules/materials-services/infrastructure/clients",
-      "suggestedFix": "Criar diretório/arquivo 'clients' na camada 'infrastructure' se necessário"
-    },
-    {
-      "id": "ARCH-MATERIALS-SERVICES-INFRASTRUCTURE-CONFIG-MISSING",
-      "layer": "infrastructure",
-      "module": "materials-services",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'config' ausente na camada 'infrastructure'",
-      "file": "/home/runner/workspace/server/modules/materials-services/infrastructure/config",
-      "suggestedFix": "Criar diretório/arquivo 'config' na camada 'infrastructure' se necessário"
     },
     {
       "id": "ROUTES-MATERIALS-SERVICES-NO-LOGIC",
@@ -463,46 +153,6 @@
       "suggestedFix": "Mover lógica de negócio/dados para Use Cases na camada Application e/ou Controllers."
     },
     {
-      "id": "ARCH-NOTIFICATIONS-DOMAIN-VALUE-OBJECTS-MISSING",
-      "layer": "domain",
-      "module": "notifications",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'value-objects' ausente na camada 'domain'",
-      "file": "/home/runner/workspace/server/modules/notifications/domain/value-objects",
-      "suggestedFix": "Criar diretório/arquivo 'value-objects' na camada 'domain' se necessário"
-    },
-    {
-      "id": "ARCH-NOTIFICATIONS-APPLICATION-REPOSITORIES-MISSING",
-      "layer": "application",
-      "module": "notifications",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'repositories' ausente na camada 'application'",
-      "file": "/home/runner/workspace/server/modules/notifications/application/repositories",
-      "suggestedFix": "Criar diretório/arquivo 'repositories' na camada 'application' se necessário"
-    },
-    {
-      "id": "ARCH-NOTIFICATIONS-INFRASTRUCTURE-CLIENTS-MISSING",
-      "layer": "infrastructure",
-      "module": "notifications",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'clients' ausente na camada 'infrastructure'",
-      "file": "/home/runner/workspace/server/modules/notifications/infrastructure/clients",
-      "suggestedFix": "Criar diretório/arquivo 'clients' na camada 'infrastructure' se necessário"
-    },
-    {
-      "id": "ARCH-NOTIFICATIONS-INFRASTRUCTURE-CONFIG-MISSING",
-      "layer": "infrastructure",
-      "module": "notifications",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'config' ausente na camada 'infrastructure'",
-      "file": "/home/runner/workspace/server/modules/notifications/infrastructure/config",
-      "suggestedFix": "Criar diretório/arquivo 'config' na camada 'infrastructure' se necessário"
-    },
-    {
       "id": "ROUTES-NOTIFICATIONS-NO-LOGIC",
       "layer": "presentation",
       "module": "notifications",
@@ -523,46 +173,6 @@
       "suggestedFix": "Mover lógica de negócio/dados para Use Cases na camada Application e/ou Controllers."
     },
     {
-      "id": "ARCH-PEOPLE-DOMAIN-VALUE-OBJECTS-MISSING",
-      "layer": "domain",
-      "module": "people",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'value-objects' ausente na camada 'domain'",
-      "file": "/home/runner/workspace/server/modules/people/domain/value-objects",
-      "suggestedFix": "Criar diretório/arquivo 'value-objects' na camada 'domain' se necessário"
-    },
-    {
-      "id": "ARCH-PEOPLE-APPLICATION-REPOSITORIES-MISSING",
-      "layer": "application",
-      "module": "people",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'repositories' ausente na camada 'application'",
-      "file": "/home/runner/workspace/server/modules/people/application/repositories",
-      "suggestedFix": "Criar diretório/arquivo 'repositories' na camada 'application' se necessário"
-    },
-    {
-      "id": "ARCH-PEOPLE-INFRASTRUCTURE-CLIENTS-MISSING",
-      "layer": "infrastructure",
-      "module": "people",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'clients' ausente na camada 'infrastructure'",
-      "file": "/home/runner/workspace/server/modules/people/infrastructure/clients",
-      "suggestedFix": "Criar diretório/arquivo 'clients' na camada 'infrastructure' se necessário"
-    },
-    {
-      "id": "ARCH-PEOPLE-INFRASTRUCTURE-CONFIG-MISSING",
-      "layer": "infrastructure",
-      "module": "people",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'config' ausente na camada 'infrastructure'",
-      "file": "/home/runner/workspace/server/modules/people/infrastructure/config",
-      "suggestedFix": "Criar diretório/arquivo 'config' na camada 'infrastructure' se necessário"
-    },
-    {
       "id": "ROUTES-PEOPLE-NO-LOGIC",
       "layer": "presentation",
       "module": "people",
@@ -573,46 +183,6 @@
       "suggestedFix": "Definir rotas que utilizem controllers da camada Application ou chamem Use Cases."
     },
     {
-      "id": "ARCH-SAAS-ADMIN-DOMAIN-VALUE-OBJECTS-MISSING",
-      "layer": "domain",
-      "module": "saas-admin",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'value-objects' ausente na camada 'domain'",
-      "file": "/home/runner/workspace/server/modules/saas-admin/domain/value-objects",
-      "suggestedFix": "Criar diretório/arquivo 'value-objects' na camada 'domain' se necessário"
-    },
-    {
-      "id": "ARCH-SAAS-ADMIN-APPLICATION-REPOSITORIES-MISSING",
-      "layer": "application",
-      "module": "saas-admin",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'repositories' ausente na camada 'application'",
-      "file": "/home/runner/workspace/server/modules/saas-admin/application/repositories",
-      "suggestedFix": "Criar diretório/arquivo 'repositories' na camada 'application' se necessário"
-    },
-    {
-      "id": "ARCH-SAAS-ADMIN-INFRASTRUCTURE-CLIENTS-MISSING",
-      "layer": "infrastructure",
-      "module": "saas-admin",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'clients' ausente na camada 'infrastructure'",
-      "file": "/home/runner/workspace/server/modules/saas-admin/infrastructure/clients",
-      "suggestedFix": "Criar diretório/arquivo 'clients' na camada 'infrastructure' se necessário"
-    },
-    {
-      "id": "ARCH-SAAS-ADMIN-INFRASTRUCTURE-CONFIG-MISSING",
-      "layer": "infrastructure",
-      "module": "saas-admin",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'config' ausente na camada 'infrastructure'",
-      "file": "/home/runner/workspace/server/modules/saas-admin/infrastructure/config",
-      "suggestedFix": "Criar diretório/arquivo 'config' na camada 'infrastructure' se necessário"
-    },
-    {
       "id": "ROUTES-SAAS-ADMIN-BUSINESS-LOGIC",
       "layer": "presentation",
       "module": "saas-admin",
@@ -621,36 +191,6 @@
       "description": "Rotas contêm lógica de negócio ou acesso direto a dados",
       "file": "/home/runner/workspace/server/modules/saas-admin/routes.ts",
       "suggestedFix": "Mover lógica de negócio/dados para Use Cases na camada Application e/ou Controllers."
-    },
-    {
-      "id": "ARCH-SCHEDULE-MANAGEMENT-DOMAIN-VALUE-OBJECTS-MISSING",
-      "layer": "domain",
-      "module": "schedule-management",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'value-objects' ausente na camada 'domain'",
-      "file": "/home/runner/workspace/server/modules/schedule-management/domain/value-objects",
-      "suggestedFix": "Criar diretório/arquivo 'value-objects' na camada 'domain' se necessário"
-    },
-    {
-      "id": "ARCH-SCHEDULE-MANAGEMENT-INFRASTRUCTURE-CLIENTS-MISSING",
-      "layer": "infrastructure",
-      "module": "schedule-management",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'clients' ausente na camada 'infrastructure'",
-      "file": "/home/runner/workspace/server/modules/schedule-management/infrastructure/clients",
-      "suggestedFix": "Criar diretório/arquivo 'clients' na camada 'infrastructure' se necessário"
-    },
-    {
-      "id": "ARCH-SCHEDULE-MANAGEMENT-INFRASTRUCTURE-CONFIG-MISSING",
-      "layer": "infrastructure",
-      "module": "schedule-management",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'config' ausente na camada 'infrastructure'",
-      "file": "/home/runner/workspace/server/modules/schedule-management/infrastructure/config",
-      "suggestedFix": "Criar diretório/arquivo 'config' na camada 'infrastructure' se necessário"
     },
     {
       "id": "ROUTES-SCHEDULE-MANAGEMENT-BUSINESS-LOGIC",
@@ -703,46 +243,6 @@
       "suggestedFix": "Criar diretório/arquivo 'config' na camada 'infrastructure' se necessário"
     },
     {
-      "id": "ARCH-TECHNICAL-SKILLS-DOMAIN-VALUE-OBJECTS-MISSING",
-      "layer": "domain",
-      "module": "technical-skills",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'value-objects' ausente na camada 'domain'",
-      "file": "/home/runner/workspace/server/modules/technical-skills/domain/value-objects",
-      "suggestedFix": "Criar diretório/arquivo 'value-objects' na camada 'domain' se necessário"
-    },
-    {
-      "id": "ARCH-TECHNICAL-SKILLS-APPLICATION-REPOSITORIES-MISSING",
-      "layer": "application",
-      "module": "technical-skills",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'repositories' ausente na camada 'application'",
-      "file": "/home/runner/workspace/server/modules/technical-skills/application/repositories",
-      "suggestedFix": "Criar diretório/arquivo 'repositories' na camada 'application' se necessário"
-    },
-    {
-      "id": "ARCH-TECHNICAL-SKILLS-INFRASTRUCTURE-CLIENTS-MISSING",
-      "layer": "infrastructure",
-      "module": "technical-skills",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'clients' ausente na camada 'infrastructure'",
-      "file": "/home/runner/workspace/server/modules/technical-skills/infrastructure/clients",
-      "suggestedFix": "Criar diretório/arquivo 'clients' na camada 'infrastructure' se necessário"
-    },
-    {
-      "id": "ARCH-TECHNICAL-SKILLS-INFRASTRUCTURE-CONFIG-MISSING",
-      "layer": "infrastructure",
-      "module": "technical-skills",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'config' ausente na camada 'infrastructure'",
-      "file": "/home/runner/workspace/server/modules/technical-skills/infrastructure/config",
-      "suggestedFix": "Criar diretório/arquivo 'config' na camada 'infrastructure' se necessário"
-    },
-    {
       "id": "ROUTES-TECHNICAL-SKILLS-BUSINESS-LOGIC",
       "layer": "presentation",
       "module": "technical-skills",
@@ -751,46 +251,6 @@
       "description": "Rotas contêm lógica de negócio ou acesso direto a dados",
       "file": "/home/runner/workspace/server/modules/technical-skills/routes.ts",
       "suggestedFix": "Mover lógica de negócio/dados para Use Cases na camada Application e/ou Controllers."
-    },
-    {
-      "id": "ARCH-TEMPLATE-AUDIT-DOMAIN-VALUE-OBJECTS-MISSING",
-      "layer": "domain",
-      "module": "template-audit",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'value-objects' ausente na camada 'domain'",
-      "file": "/home/runner/workspace/server/modules/template-audit/domain/value-objects",
-      "suggestedFix": "Criar diretório/arquivo 'value-objects' na camada 'domain' se necessário"
-    },
-    {
-      "id": "ARCH-TEMPLATE-AUDIT-APPLICATION-REPOSITORIES-MISSING",
-      "layer": "application",
-      "module": "template-audit",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'repositories' ausente na camada 'application'",
-      "file": "/home/runner/workspace/server/modules/template-audit/application/repositories",
-      "suggestedFix": "Criar diretório/arquivo 'repositories' na camada 'application' se necessário"
-    },
-    {
-      "id": "ARCH-TEMPLATE-AUDIT-INFRASTRUCTURE-CLIENTS-MISSING",
-      "layer": "infrastructure",
-      "module": "template-audit",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'clients' ausente na camada 'infrastructure'",
-      "file": "/home/runner/workspace/server/modules/template-audit/infrastructure/clients",
-      "suggestedFix": "Criar diretório/arquivo 'clients' na camada 'infrastructure' se necessário"
-    },
-    {
-      "id": "ARCH-TEMPLATE-AUDIT-INFRASTRUCTURE-CONFIG-MISSING",
-      "layer": "infrastructure",
-      "module": "template-audit",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'config' ausente na camada 'infrastructure'",
-      "file": "/home/runner/workspace/server/modules/template-audit/infrastructure/config",
-      "suggestedFix": "Criar diretório/arquivo 'config' na camada 'infrastructure' se necessário"
     },
     {
       "id": "ARCH-TEMPLATE-HIERARCHY-DOMAIN-VALUE-OBJECTS-MISSING",
@@ -873,46 +333,6 @@
       "suggestedFix": "Criar diretório/arquivo 'config' na camada 'infrastructure' se necessário"
     },
     {
-      "id": "ARCH-TENANT-ADMIN-DOMAIN-VALUE-OBJECTS-MISSING",
-      "layer": "domain",
-      "module": "tenant-admin",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'value-objects' ausente na camada 'domain'",
-      "file": "/home/runner/workspace/server/modules/tenant-admin/domain/value-objects",
-      "suggestedFix": "Criar diretório/arquivo 'value-objects' na camada 'domain' se necessário"
-    },
-    {
-      "id": "ARCH-TENANT-ADMIN-APPLICATION-REPOSITORIES-MISSING",
-      "layer": "application",
-      "module": "tenant-admin",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'repositories' ausente na camada 'application'",
-      "file": "/home/runner/workspace/server/modules/tenant-admin/application/repositories",
-      "suggestedFix": "Criar diretório/arquivo 'repositories' na camada 'application' se necessário"
-    },
-    {
-      "id": "ARCH-TENANT-ADMIN-INFRASTRUCTURE-CLIENTS-MISSING",
-      "layer": "infrastructure",
-      "module": "tenant-admin",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'clients' ausente na camada 'infrastructure'",
-      "file": "/home/runner/workspace/server/modules/tenant-admin/infrastructure/clients",
-      "suggestedFix": "Criar diretório/arquivo 'clients' na camada 'infrastructure' se necessário"
-    },
-    {
-      "id": "ARCH-TENANT-ADMIN-INFRASTRUCTURE-CONFIG-MISSING",
-      "layer": "infrastructure",
-      "module": "tenant-admin",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'config' ausente na camada 'infrastructure'",
-      "file": "/home/runner/workspace/server/modules/tenant-admin/infrastructure/config",
-      "suggestedFix": "Criar diretório/arquivo 'config' na camada 'infrastructure' se necessário"
-    },
-    {
       "id": "ROUTES-TENANT-ADMIN-BUSINESS-LOGIC",
       "layer": "presentation",
       "module": "tenant-admin",
@@ -921,46 +341,6 @@
       "description": "Rotas contêm lógica de negócio ou acesso direto a dados",
       "file": "/home/runner/workspace/server/modules/tenant-admin/routes.ts",
       "suggestedFix": "Mover lógica de negócio/dados para Use Cases na camada Application e/ou Controllers."
-    },
-    {
-      "id": "ARCH-TICKET-HISTORY-DOMAIN-VALUE-OBJECTS-MISSING",
-      "layer": "domain",
-      "module": "ticket-history",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'value-objects' ausente na camada 'domain'",
-      "file": "/home/runner/workspace/server/modules/ticket-history/domain/value-objects",
-      "suggestedFix": "Criar diretório/arquivo 'value-objects' na camada 'domain' se necessário"
-    },
-    {
-      "id": "ARCH-TICKET-HISTORY-APPLICATION-REPOSITORIES-MISSING",
-      "layer": "application",
-      "module": "ticket-history",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'repositories' ausente na camada 'application'",
-      "file": "/home/runner/workspace/server/modules/ticket-history/application/repositories",
-      "suggestedFix": "Criar diretório/arquivo 'repositories' na camada 'application' se necessário"
-    },
-    {
-      "id": "ARCH-TICKET-HISTORY-INFRASTRUCTURE-CLIENTS-MISSING",
-      "layer": "infrastructure",
-      "module": "ticket-history",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'clients' ausente na camada 'infrastructure'",
-      "file": "/home/runner/workspace/server/modules/ticket-history/infrastructure/clients",
-      "suggestedFix": "Criar diretório/arquivo 'clients' na camada 'infrastructure' se necessário"
-    },
-    {
-      "id": "ARCH-TICKET-HISTORY-INFRASTRUCTURE-CONFIG-MISSING",
-      "layer": "infrastructure",
-      "module": "ticket-history",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'config' ausente na camada 'infrastructure'",
-      "file": "/home/runner/workspace/server/modules/ticket-history/infrastructure/config",
-      "suggestedFix": "Criar diretório/arquivo 'config' na camada 'infrastructure' se necessário"
     },
     {
       "id": "ROUTES-TICKET-HISTORY-NO-LOGIC",
@@ -1053,7 +433,57 @@
       "suggestedFix": "Mover lógica de negócio/dados para Use Cases na camada Application e/ou Controllers."
     },
     {
-      "id": "DEP-BENEFICIARIES-APP-1754875542037-express",
+      "id": "ARCH-USER-MANAGEMENT-DOMAIN-ENTITIES-MISSING",
+      "layer": "domain",
+      "module": "user-management",
+      "severity": "low",
+      "type": "structure_violation",
+      "description": "Estrutura esperada 'entities' ausente na camada 'domain'",
+      "file": "/home/runner/workspace/server/modules/user-management/domain/entities",
+      "suggestedFix": "Criar diretório/arquivo 'entities' na camada 'domain' se necessário"
+    },
+    {
+      "id": "ARCH-USER-MANAGEMENT-APPLICATION-USE-CASES-MISSING",
+      "layer": "application",
+      "module": "user-management",
+      "severity": "low",
+      "type": "structure_violation",
+      "description": "Estrutura esperada 'use-cases' ausente na camada 'application'",
+      "file": "/home/runner/workspace/server/modules/user-management/application/use-cases",
+      "suggestedFix": "Criar diretório/arquivo 'use-cases' na camada 'application' se necessário"
+    },
+    {
+      "id": "ARCH-USER-MANAGEMENT-APPLICATION-CONTROLLERS-MISSING",
+      "layer": "application",
+      "module": "user-management",
+      "severity": "low",
+      "type": "structure_violation",
+      "description": "Estrutura esperada 'controllers' ausente na camada 'application'",
+      "file": "/home/runner/workspace/server/modules/user-management/application/controllers",
+      "suggestedFix": "Criar diretório/arquivo 'controllers' na camada 'application' se necessário"
+    },
+    {
+      "id": "ARCH-USER-MANAGEMENT-INFRASTRUCTURE-REPOSITORIES-MISSING",
+      "layer": "infrastructure",
+      "module": "user-management",
+      "severity": "low",
+      "type": "structure_violation",
+      "description": "Estrutura esperada 'repositories' ausente na camada 'infrastructure'",
+      "file": "/home/runner/workspace/server/modules/user-management/infrastructure/repositories",
+      "suggestedFix": "Criar diretório/arquivo 'repositories' na camada 'infrastructure' se necessário"
+    },
+    {
+      "id": "ARCH-USER-MANAGEMENT-ROUTES-MISSING",
+      "layer": "presentation",
+      "module": "user-management",
+      "severity": "medium",
+      "type": "missing_component",
+      "description": "Arquivo de rotas (routes.ts ou presentation/index.ts) ausente no módulo user-management",
+      "file": "/home/runner/workspace/server/modules/user-management",
+      "suggestedFix": "Criar arquivo de rotas na camada Presentation ou no diretório raiz do módulo para definir endpoints da API"
+    },
+    {
+      "id": "DEP-BENEFICIARIES-APP-1754875928359-express",
       "layer": "application",
       "module": "beneficiaries",
       "severity": "high",
@@ -1064,7 +494,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-CUSTOM-FIELDS-APP-1754875542049-express",
+      "id": "DEP-CUSTOM-FIELDS-APP-1754875928374-express",
       "layer": "application",
       "module": "custom-fields",
       "severity": "high",
@@ -1075,7 +505,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754875542153-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754875928475-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -1086,7 +516,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754875542154-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754875928476-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -1097,7 +527,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754875542154-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754875928476-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -1108,7 +538,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754875542155-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754875928476-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -1119,7 +549,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754875542156-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754875928477-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -1130,7 +560,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754875542156-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754875928477-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -1141,7 +571,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754875542156-drizzleorm",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754875928477-drizzleorm",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -1152,7 +582,7 @@
       "suggestedFix": "Application não deve importar ORM diretamente. Use interfaces de repositório do Domain."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754875542156-drizzleormnodepostgres",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754875928477-drizzleormnodepostgres",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -1163,7 +593,7 @@
       "suggestedFix": "Application não deve importar ORM diretamente. Use interfaces de repositório do Domain."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754875542156-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754875928477-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -1174,7 +604,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754875542158-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754875928478-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -1185,7 +615,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754875542159-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754875928479-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -1196,7 +626,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754875542159-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754875928479-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -1207,7 +637,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754875542159-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754875928480-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -1218,7 +648,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754875542160-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754875928480-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -1229,7 +659,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754875542160-drizzleorm",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754875928480-drizzleorm",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -1240,7 +670,7 @@
       "suggestedFix": "Application não deve importar ORM diretamente. Use interfaces de repositório do Domain."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754875542160-drizzleorm",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754875928480-drizzleorm",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -1251,7 +681,7 @@
       "suggestedFix": "Application não deve importar ORM diretamente. Use interfaces de repositório do Domain."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754875542160-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754875928480-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -1262,7 +692,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-TECHNICAL-SKILLS-APP-1754875542538-express",
+      "id": "DEP-TECHNICAL-SKILLS-APP-1754875928943-express",
       "layer": "application",
       "module": "technical-skills",
       "severity": "high",
@@ -1273,7 +703,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-TECHNICAL-SKILLS-APP-1754875542539-express",
+      "id": "DEP-TECHNICAL-SKILLS-APP-1754875928944-express",
       "layer": "application",
       "module": "technical-skills",
       "severity": "high",
@@ -1284,7 +714,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-TICKETS-APP-1754875542601-express",
+      "id": "DEP-TICKETS-APP-1754875929017-express",
       "layer": "application",
       "module": "tickets",
       "severity": "high",
@@ -1295,7 +725,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-TIMECARD-APP-1754875542616-express",
+      "id": "DEP-TIMECARD-APP-1754875929032-express",
       "layer": "application",
       "module": "timecard",
       "severity": "high",
@@ -1306,7 +736,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-TIMECARD-APP-1754875542616-express",
+      "id": "DEP-TIMECARD-APP-1754875929032-express",
       "layer": "application",
       "module": "timecard",
       "severity": "high",
@@ -1347,14 +777,14 @@
       "suggestedFix": "Mover lógica de negócio para Domain layer (Entity ou Service). Repository deve focar em persistência e mapeamento."
     },
     {
-      "id": "SOC-BENEFICIARIES-ENTITY-PRESENTATION",
+      "id": "SOC-BENEFICIARIES-ENTITY-INFRA",
       "layer": "domain",
       "module": "beneficiaries",
-      "severity": "high",
+      "severity": "critical",
       "type": "coupling_issue",
-      "description": "Entity misturada com conceitos de Presentation layer (DTOs, Request/Response) - violação de responsabilidade",
+      "description": "Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade",
       "file": "/home/runner/workspace/server/modules/beneficiaries/domain/entities/Beneficiary.ts",
-      "suggestedFix": "Separar Entity de DTOs/Requests/Responses, movendo-os para Application layer (ou Presentation)"
+      "suggestedFix": "Mover lógica de infraestrutura para Repository na camada Infrastructure"
     },
     {
       "id": "SOC-BENEFICIARIES-USECASE-PRESENTATION",
@@ -2727,6 +2157,26 @@
       "suggestedFix": "Renomear para seguir o padrão PascalCase (ex: AuthService, NotificationService)"
     },
     {
+      "id": "NAMING-USER-MANAGEMENT-SERVICE-index-CASE",
+      "layer": "domain",
+      "module": "user-management",
+      "severity": "low",
+      "type": "naming_inconsistency",
+      "description": "Service 'index' não segue o padrão PascalCase",
+      "file": "/home/runner/workspace/server/modules/user-management/domain/services/index.ts",
+      "suggestedFix": "Renomear para seguir o padrão PascalCase (ex: AuthService, NotificationService)"
+    },
+    {
+      "id": "NAMING-USER-MANAGEMENT-SERVICE-index-CASE",
+      "layer": "application",
+      "module": "user-management",
+      "severity": "low",
+      "type": "naming_inconsistency",
+      "description": "Service 'index' não segue o padrão PascalCase",
+      "file": "/home/runner/workspace/server/modules/user-management/application/services/index.ts",
+      "suggestedFix": "Renomear para seguir o padrão PascalCase (ex: AuthService, NotificationService)"
+    },
+    {
       "id": "COMP-AUTH-ROUTE-CONTROLLER-MISMATCH-AuthControllerFixed",
       "layer": "presentation",
       "module": "auth",
@@ -3205,13 +2655,23 @@
       "description": "Domain Service 'index.ts' parece não ter métodos exportados ou estar isolado.",
       "file": "/home/runner/workspace/server/modules/timecard/domain/services/index.ts",
       "suggestedFix": "Verificar se o serviço é realmente necessário e se está sendo utilizado pelos Use Cases."
+    },
+    {
+      "id": "COMP-USER-MANAGEMENT-DOMAIN-SERVICE-UNUSED-index.ts",
+      "layer": "domain",
+      "module": "user-management",
+      "severity": "low",
+      "type": "missing_component",
+      "description": "Domain Service 'index.ts' parece não ter métodos exportados ou estar isolado.",
+      "file": "/home/runner/workspace/server/modules/user-management/domain/services/index.ts",
+      "suggestedFix": "Verificar se o serviço é realmente necessário e se está sendo utilizado pelos Use Cases."
     }
   ],
   "summary": {
-    "total": 318,
-    "critical": 0,
-    "high": 95,
-    "medium": 55,
-    "low": 168
+    "total": 264,
+    "critical": 1,
+    "high": 94,
+    "medium": 56,
+    "low": 113
   }
 }

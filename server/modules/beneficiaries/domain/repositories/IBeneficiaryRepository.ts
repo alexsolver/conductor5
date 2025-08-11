@@ -1,17 +1,20 @@
+/**
+ * Beneficiary Repository Interface
+ * Clean Architecture - Domain Layer
+ * Defines contract for beneficiary data persistence
+ */
 
 import { Beneficiary } from '../entities/Beneficiary';
 
-export interface FindOptions {
-  page?: number;
-  limit?: number;
-  search?: string;
-}
-
 export interface IBeneficiaryRepository {
-  create(beneficiary: Beneficiary): Promise<Beneficiary>;
   findById(id: string, tenantId: string): Promise<Beneficiary | null>;
-  findByTenant(tenantId: string, options?: FindOptions): Promise<Beneficiary[]>;
-  countByTenant(tenantId: string, search?: string): Promise<number>;
-  update(beneficiary: Beneficiary): Promise<Beneficiary>;
-  delete(id: string, tenantId: string): Promise<boolean>;
+  findByEmail(email: string, tenantId: string): Promise<Beneficiary | null>;
+  findAll(tenantId: string, filters?: {
+    search?: string;
+    status?: string;
+  }): Promise<Beneficiary[]>;
+  create(beneficiary: Beneficiary): Promise<Beneficiary>;
+  update(id: string, tenantId: string, data: Partial<Beneficiary>): Promise<Beneficiary>;
+  delete(id: string, tenantId: string): Promise<void>;
+  findByTenant(tenantId: string): Promise<Beneficiary[]>;
 }

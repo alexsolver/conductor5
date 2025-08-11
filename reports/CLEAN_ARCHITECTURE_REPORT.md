@@ -8,9 +8,9 @@
 
 - 🔥 **Críticos:** 0
 - ⚠️ **Altos:** 95
-- 📋 **Médios:** 55
-- 💡 **Baixos:** 168
-- **Total:** 318
+- 📋 **Médios:** 56
+- 💡 **Baixos:** 115
+- **Total:** 266
 
 ## Principais Problemas por Módulo
 
@@ -31,100 +31,100 @@
   - Application Layer: Dependência proibida encontrada -> express
 
 ### ⚠️ custom-fields
-- **Total de problemas:** 16
+- **Total de problemas:** 12
 - **Críticos:** 0 | **Altos:** 4
 - **Principais problemas:**
-  - Estrutura esperada 'value-objects' ausente na camada 'domain'
-  - Estrutura esperada 'repositories' ausente na camada 'application'
-  - Estrutura esperada 'clients' ausente na camada 'infrastructure'
+  - Arquivo de rotas não parece conter controllers ou chamadas a Use Cases.
+  - Rotas contêm lógica de negócio ou acesso direto a dados
+  - Application Layer: Dependência proibida encontrada -> express
 
 ### ⚠️ customers
-- **Total de problemas:** 19
+- **Total de problemas:** 16
 - **Críticos:** 0 | **Altos:** 9
 - **Principais problemas:**
-  - Estrutura esperada 'repositories' ausente na camada 'application'
-  - Estrutura esperada 'clients' ausente na camada 'infrastructure'
-  - Estrutura esperada 'config' ausente na camada 'infrastructure'
+  - Arquivo de rotas não parece conter controllers ou chamadas a Use Cases.
+  - Rotas contêm lógica de negócio ou acesso direto a dados
+  - Entity misturada com conceitos de Presentation layer (DTOs, Request/Response) - violação de responsabilidade
 
 ### ⚠️ dashboard
-- **Total de problemas:** 10
+- **Total de problemas:** 6
 - **Críticos:** 0 | **Altos:** 1
 - **Principais problemas:**
-  - Estrutura esperada 'value-objects' ausente na camada 'domain'
-  - Estrutura esperada 'repositories' ausente na camada 'application'
-  - Estrutura esperada 'clients' ausente na camada 'infrastructure'
+  - Arquivo de rotas não parece conter controllers ou chamadas a Use Cases.
+  - Use Case contém lógica de Presentation layer (acesso a request/response, express)
+  - Repository contém possível lógica de negócio ou validação complexa
 
 ### 📋 field-layout
-- **Total de problemas:** 7
+- **Total de problemas:** 3
 - **Críticos:** 0 | **Altos:** 0
 - **Principais problemas:**
-  - Estrutura esperada 'value-objects' ausente na camada 'domain'
-  - Estrutura esperada 'repositories' ausente na camada 'application'
-  - Estrutura esperada 'clients' ausente na camada 'infrastructure'
+  - Arquivo de rotas não parece conter controllers ou chamadas a Use Cases.
+  - Domain Service 'FieldLayoutDomainService' não precisa necessariamente terminar com 'Service'
+  - Repository 'DrizzleFieldLayoutRepository' implementa uma interface que não foi encontrada no Domain layer
 
 ### ⚠️ field-layouts
-- **Total de problemas:** 11
+- **Total de problemas:** 7
 - **Críticos:** 0 | **Altos:** 1
 - **Principais problemas:**
-  - Estrutura esperada 'value-objects' ausente na camada 'domain'
-  - Estrutura esperada 'repositories' ausente na camada 'application'
-  - Estrutura esperada 'clients' ausente na camada 'infrastructure'
+  - Rotas contêm lógica de negócio ou acesso direto a dados
+  - Use Case 'indexUseCase' não segue o padrão '[Action]UseCase' (ex: CreateCustomerUseCase)
+  - Domain Service 'FieldLayoutDomainService' não precisa necessariamente terminar com 'Service'
 
 ### ⚠️ knowledge-base
-- **Total de problemas:** 13
+- **Total de problemas:** 9
 - **Críticos:** 0 | **Altos:** 3
 - **Principais problemas:**
-  - Estrutura esperada 'value-objects' ausente na camada 'domain'
-  - Estrutura esperada 'repositories' ausente na camada 'application'
-  - Estrutura esperada 'clients' ausente na camada 'infrastructure'
+  - Rotas contêm lógica de negócio ou acesso direto a dados
+  - Repository contém possível lógica de negócio ou validação complexa
+  - Controller contém lógica de negócio ou acesso direto a dados
 
 ### ⚠️ locations
+- **Total de problemas:** 5
+- **Críticos:** 0 | **Altos:** 2
+- **Principais problemas:**
+  - Rotas contêm lógica de negócio ou acesso direto a dados
+  - Use Case contém lógica de Presentation layer (acesso a request/response, express)
+  - Domain Service 'LocationDomainService' não precisa necessariamente terminar com 'Service'
+
+### ⚠️ materials-services
+- **Total de problemas:** 54
+- **Críticos:** 0 | **Altos:** 32
+- **Principais problemas:**
+  - Arquivo de rotas não parece conter controllers ou chamadas a Use Cases.
+  - Rotas contêm lógica de negócio ou acesso direto a dados
+  - Application Layer: Dependência proibida encontrada -> express
+
+### ⚠️ notifications
+- **Total de problemas:** 6
+- **Críticos:** 0 | **Altos:** 2
+- **Principais problemas:**
+  - Arquivo de rotas não parece conter controllers ou chamadas a Use Cases.
+  - Rotas contêm lógica de negócio ou acesso direto a dados
+  - Use Case contém lógica de Presentation layer (acesso a request/response, express)
+
+### ⚠️ people
 - **Total de problemas:** 9
 - **Críticos:** 0 | **Altos:** 2
 - **Principais problemas:**
-  - Estrutura esperada 'value-objects' ausente na camada 'domain'
-  - Estrutura esperada 'repositories' ausente na camada 'application'
-  - Estrutura esperada 'clients' ausente na camada 'infrastructure'
-
-### ⚠️ materials-services
-- **Total de problemas:** 58
-- **Críticos:** 0 | **Altos:** 32
-- **Principais problemas:**
-  - Estrutura esperada 'value-objects' ausente na camada 'domain'
-  - Estrutura esperada 'repositories' ausente na camada 'application'
-  - Estrutura esperada 'clients' ausente na camada 'infrastructure'
-
-### ⚠️ notifications
-- **Total de problemas:** 10
-- **Críticos:** 0 | **Altos:** 2
-- **Principais problemas:**
-  - Estrutura esperada 'value-objects' ausente na camada 'domain'
-  - Estrutura esperada 'repositories' ausente na camada 'application'
-  - Estrutura esperada 'clients' ausente na camada 'infrastructure'
-
-### ⚠️ people
-- **Total de problemas:** 13
-- **Críticos:** 0 | **Altos:** 2
-- **Principais problemas:**
-  - Estrutura esperada 'value-objects' ausente na camada 'domain'
-  - Estrutura esperada 'repositories' ausente na camada 'application'
-  - Estrutura esperada 'clients' ausente na camada 'infrastructure'
+  - Arquivo de rotas não parece conter controllers ou chamadas a Use Cases.
+  - Use Case contém lógica de Presentation layer (acesso a request/response, express)
+  - Use Case contém lógica de Presentation layer (acesso a request/response, express)
 
 ### ⚠️ saas-admin
-- **Total de problemas:** 11
+- **Total de problemas:** 7
 - **Críticos:** 0 | **Altos:** 2
 - **Principais problemas:**
-  - Estrutura esperada 'value-objects' ausente na camada 'domain'
-  - Estrutura esperada 'repositories' ausente na camada 'application'
-  - Estrutura esperada 'clients' ausente na camada 'infrastructure'
+  - Rotas contêm lógica de negócio ou acesso direto a dados
+  - Repository 'indexRepository' não segue o padrão '[Entity]Repository' (ex: CustomerRepository)
+  - Domain Service 'SaasAdminDomainService' não precisa necessariamente terminar com 'Service'
 
 ### ⚠️ schedule-management
-- **Total de problemas:** 13
+- **Total de problemas:** 10
 - **Críticos:** 0 | **Altos:** 5
 - **Principais problemas:**
-  - Estrutura esperada 'value-objects' ausente na camada 'domain'
-  - Estrutura esperada 'clients' ausente na camada 'infrastructure'
-  - Estrutura esperada 'config' ausente na camada 'infrastructure'
+  - Rotas contêm lógica de negócio ou acesso direto a dados
+  - Use Case contém lógica de Presentation layer (acesso a request/response, express)
+  - Use Case contém lógica de Presentation layer (acesso a request/response, express)
 
 ### ⚠️ shared
 - **Total de problemas:** 17
@@ -135,20 +135,12 @@
   - Estrutura esperada 'clients' ausente na camada 'infrastructure'
 
 ### ⚠️ technical-skills
-- **Total de problemas:** 20
+- **Total de problemas:** 16
 - **Críticos:** 0 | **Altos:** 10
 - **Principais problemas:**
-  - Estrutura esperada 'value-objects' ausente na camada 'domain'
-  - Estrutura esperada 'repositories' ausente na camada 'application'
-  - Estrutura esperada 'clients' ausente na camada 'infrastructure'
-
-### 📋 template-audit
-- **Total de problemas:** 8
-- **Críticos:** 0 | **Altos:** 0
-- **Principais problemas:**
-  - Estrutura esperada 'value-objects' ausente na camada 'domain'
-  - Estrutura esperada 'repositories' ausente na camada 'application'
-  - Estrutura esperada 'clients' ausente na camada 'infrastructure'
+  - Rotas contêm lógica de negócio ou acesso direto a dados
+  - Application Layer: Dependência proibida encontrada -> express
+  - Application Layer: Dependência proibida encontrada -> express
 
 ### 📋 template-hierarchy
 - **Total de problemas:** 5
@@ -167,20 +159,20 @@
   - Estrutura esperada 'clients' ausente na camada 'infrastructure'
 
 ### ⚠️ tenant-admin
-- **Total de problemas:** 10
+- **Total de problemas:** 6
 - **Críticos:** 0 | **Altos:** 1
 - **Principais problemas:**
-  - Estrutura esperada 'value-objects' ausente na camada 'domain'
-  - Estrutura esperada 'repositories' ausente na camada 'application'
-  - Estrutura esperada 'clients' ausente na camada 'infrastructure'
+  - Rotas contêm lógica de negócio ou acesso direto a dados
+  - Use Case 'indexUseCase' não segue o padrão '[Action]UseCase' (ex: CreateCustomerUseCase)
+  - Domain Service 'TenantConfigDomainService' não precisa necessariamente terminar com 'Service'
 
 ### ⚠️ ticket-history
-- **Total de problemas:** 7
+- **Total de problemas:** 3
 - **Críticos:** 0 | **Altos:** 1
 - **Principais problemas:**
-  - Estrutura esperada 'value-objects' ausente na camada 'domain'
-  - Estrutura esperada 'repositories' ausente na camada 'application'
-  - Estrutura esperada 'clients' ausente na camada 'infrastructure'
+  - Arquivo de rotas não parece conter controllers ou chamadas a Use Cases.
+  - Use Case contém lógica de Presentation layer (acesso a request/response, express)
+  - Domain Service 'TicketHistoryDomainService' não precisa necessariamente terminar com 'Service'
 
 ### 📋 ticket-templates
 - **Total de problemas:** 5
@@ -205,6 +197,22 @@
   - Rotas contêm lógica de negócio ou acesso direto a dados
   - Application Layer: Dependência proibida encontrada -> express
   - Application Layer: Dependência proibida encontrada -> express
+
+### 📋 user-management
+- **Total de problemas:** 10
+- **Críticos:** 0 | **Altos:** 0
+- **Principais problemas:**
+  - Estrutura esperada 'entities' ausente na camada 'domain'
+  - Estrutura esperada 'repositories' ausente na camada 'domain'
+  - Estrutura esperada 'events' ausente na camada 'domain'
+
+### 📋 template-audit
+- **Total de problemas:** 4
+- **Críticos:** 0 | **Altos:** 0
+- **Principais problemas:**
+  - Domain Service 'AuditValidationService' não precisa necessariamente terminar com 'Service'
+  - Service 'index' não segue o padrão PascalCase
+  - Service 'index' não segue o padrão PascalCase
 
 
 ## Plano de Correção

@@ -1,13 +1,12 @@
-// Shared interface for domain event publishing
-export interface IDomainEvent {
-  readonly eventId: string;
-  readonly aggregateId: string;
-  readonly tenantId: string;
-  readonly occurredOn: Date;
-  readonly eventName: string;
-}
+/**
+ * Domain Event Publisher Interface
+ * Clean Architecture - Shared Infrastructure Layer
+ * Contract for publishing domain events
+ */
+
+import { IDomainEvent } from '../domain/IDomainEvent';
 
 export interface IDomainEventPublisher {
   publish(event: IDomainEvent): Promise<void>;
-  publishMany(events: IDomainEvent[]): Promise<void>;
+  publishAll(events: IDomainEvent[]): Promise<void>;
 }

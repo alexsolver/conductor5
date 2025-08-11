@@ -1,32 +1,53 @@
-// Domain entities should not import DTOs from application layer
-
-// Removed application layer dependency - domain should not import from application
-
-// CLEAN ARCHITECTURE: DTOs and data interfaces removed from domain entity
-// These concerns belong to application/presentation layer
+/**
+ * Beneficiary Domain Entity
+ * Clean Architecture - Domain Layer
+ * Pure business logic without external dependencies
+ */
 
 export class Beneficiary {
-  private constructor(
-    private readonly _id: string,
-    private readonly _name: string,
-    private readonly _email: string,
-    private readonly _phone?: string,
-    private readonly _address?: string,
-    private readonly _createdAt: Date = new Date(),
-    private readonly _modifiedAt: Date = new Date()
-  ) {}
+  constructor(
+    public readonly id: string,
+    public readonly tenantId: string,
+    public readonly name: string,
+    public readonly email?: string,
+    public readonly phone?: string,
+    public readonly document?: string,
+    public readonly status: 'active' | 'inactive' = 'active',
+    public readonly metadata: Record<string, any> = {},
+    public readonly createdAt: Date = new Date(),
+    public readonly updatedAt: Date = new Date()
+  ) {
+    this.validateInvariants();
+  }
 
-  // Factory method removed - should be handled by repository or service layer
-  // Domain entities should focus on business logic, not object construction
+  private validateInvariants(): void {
+    if (!this.id || this.id.trim().length === 0) {
+      throw new Error('Beneficiary ID is required');
+    }
+    
+    if (!this.tenantId || this.tenantId.trim().length === 0) {
+      throw new Error('Tenant ID is required');
+    }
+    
+    if (!this.name || this.name.trim().length < 2) {
+      throw new Error('Beneficiary name must be at least 2 characters long');
+    }
+  }
 
-  get id(): string { return this._id; }
-  get name(): string { return this._name; }
-  get email(): string { return this._email; }
-  get phone(): string | undefined { return this._phone; }
-  get address(): string | undefined { return this._address; }
-  get createdAt(): Date { return this._createdAt; }
-  get modifiedAt(): Date { return this._modifiedAt; }
+  // Business methods
+  isActive(): boolean {
+    return this.status === 'active';
+  }
 
-  // CLEANED: Serialization methods removed from domain entities
-  // Presentation concerns should be handled by DTOs in application layer
+  hasEmail(): boolean {
+    return !!this.email;
+  }
+
+  hasPhone(): boolean {
+    return !!this.phone;
+  }
+
+  getFullName(): string {
+    return this.name.trim();
+  }
 }

@@ -3,6 +3,7 @@ import { IBeneficiaryRepository } from '../../domain/repositories/IBeneficiaryRe
 import { Beneficiary } from '../../domain/entities/Beneficiary';
 import { BeneficiaryDomainService } from '../../domain/services/BeneficiaryDomainService';
 import { CreateBeneficiaryDTO } from '../dto/CreateBeneficiaryDTO';
+import { randomUUID } from 'crypto';
 
 export class CreateBeneficiaryUseCase {
   constructor(
@@ -15,16 +16,18 @@ export class CreateBeneficiaryUseCase {
     await this.beneficiaryDomainService.validateBeneficiaryData(data);
 
     // Create beneficiary entity
-    const beneficiary = new Beneficiary({
-      id: crypto.randomUUID(),
-      tenantId: data.tenantId,
-      name: data.name,
-      email: data.email,
-      phone: data.phone,
-      document: data.document,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    });
+    const beneficiary = new Beneficiary(
+      randomUUID(),
+      data.tenantId,
+      data.name,
+      data.email,
+      data.phone,
+      data.document,
+      data.status || 'active',
+      data.metadata || {},
+      new Date(),
+      new Date()
+    );
 
     // Save to repository
     return await this.beneficiaryRepository.create(beneficiary);

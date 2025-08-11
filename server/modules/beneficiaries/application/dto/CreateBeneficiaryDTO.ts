@@ -1,21 +1,15 @@
-export interface CreateBeneficiaryDTO {
-  name: string;
-  email: string;
-  phone?: string;
-  cpf?: string;
-  cnpj?: string;
-  address?: string;
-  tenantId: string;
-}
+/**
+ * Create Beneficiary DTO
+ * Clean Architecture - Application Layer
+ * Data Transfer Object for creating beneficiaries
+ */
 
-export interface BeneficiaryResponseDTO {
-  id: string;
+export interface CreateBeneficiaryDTO {
+  tenantId: string;
   name: string;
-  email: string;
+  email?: string;
   phone?: string;
-  cpf?: string;
-  cnpj?: string;
-  address?: string;
-  createdAt: Date;
-  updatedAt: Date;
+  document?: string;
+  status?: 'active' | 'inactive';
+  metadata?: Record<string, any>;
 }
