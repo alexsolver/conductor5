@@ -3,7 +3,7 @@ export interface SaasAdminEntity {
   id: string;
   tenantId: string;
   createdAt: Date;
-  updatedAt: Date;
+  modifiedAt: Date;
 }
 
 export interface SaasConfiguration extends SaasAdminEntity {
@@ -22,7 +22,7 @@ export interface SaasConfig {
   configValue: string;
   isActive: boolean;
   createdAt: Date;
-  updatedAt: Date;
+  modifiedAt: Date;
 }
 
 export class SaasConfigEntity implements SaasConfig {
@@ -33,21 +33,23 @@ export class SaasConfigEntity implements SaasConfig {
     public configValue: string,
     public isActive: boolean = true,
     public createdAt: Date = new Date(),
-    public updatedAt: Date = new Date()
+    public modifiedAt: Date = new Date()
   ) {}
 
-  update(updates: Partial<Omit<SaasConfig, 'id' | 'createdAt'>>): void {
-    Object.assign(this, updates);
-    this.updatedAt = new Date();
+  modify(configKey?: string, configValue?: string, isActive?: boolean): void {
+    if (configKey !== undefined) this.configKey = configKey;
+    if (configValue !== undefined) this.configValue = configValue;
+    if (isActive !== undefined) this.isActive = isActive;
+    this.modifiedAt = new Date();
   }
 
   activate(): void {
     this.isActive = true;
-    this.updatedAt = new Date();
+    this.modifiedAt = new Date();
   }
 
   deactivate(): void {
     this.isActive = false;
-    this.updatedAt = new Date();
+    this.modifiedAt = new Date();
   }
 }

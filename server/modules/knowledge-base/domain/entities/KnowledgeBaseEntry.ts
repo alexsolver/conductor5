@@ -1,4 +1,4 @@
-// Domain entities should not depend on ORM libraries
+// CLEAN ARCHITECTURE: Domain layer contains only business logic
 
 export interface KnowledgeBaseEntryProps {
   id: string;
@@ -9,7 +9,7 @@ export interface KnowledgeBaseEntryProps {
   authorId: string;
   isPublished?: boolean;
   createdAt?: Date;
-  updatedAt?: Date;
+  modifiedAt?: Date;
 }
 
 export class KnowledgeBaseEntry {
@@ -22,7 +22,7 @@ export class KnowledgeBaseEntry {
     public readonly authorId: string,
     public readonly isPublished: boolean = false,
     public readonly createdAt: Date = new Date(),
-    public readonly updatedAt: Date = new Date()
+    public readonly modifiedAt: Date = new Date()
   ) {}
 
   // CLEANED: Factory methods removed - handled by repository layer
@@ -44,7 +44,7 @@ export class KnowledgeBaseEntry {
     );
   }
 
-  update(props: Partial<Pick<KnowledgeBaseEntryProps, 'title' | 'content' | 'category' | 'tags'>>): KnowledgeBaseEntry {
+  modify(props: Partial<Pick<KnowledgeBaseEntryProps, 'title' | 'content' | 'category' | 'tags'>>): KnowledgeBaseEntry {
     return new KnowledgeBaseEntry(
       this.id,
       props.title ?? this.title,

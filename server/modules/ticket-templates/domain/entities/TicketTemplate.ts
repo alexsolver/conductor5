@@ -8,7 +8,7 @@ export class TicketTemplate {
     public readonly category?: string,
     public readonly isActive: boolean = true,
     public readonly createdAt: Date = new Date(),
-    public readonly updatedAt: Date = new Date()
+    public readonly modifiedAt: Date = new Date()
   ) {}
 
   // Factory method removed - should be handled by repository or service layer

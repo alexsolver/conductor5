@@ -12,7 +12,7 @@ export interface Location {
   parentId?: string;
   isActive: boolean;
   createdAt: Date;
-  updatedAt: Date;
+  modifiedAt: Date;
 }
 
 export class Location implements Location {
@@ -27,21 +27,21 @@ export class Location implements Location {
     public coordinates?: { latitude: number; longitude: number },
     public parentId?: string,
     public createdAt: Date = new Date(),
-    public updatedAt: Date = new Date()
+    public modifiedAt: Date = new Date()
   ) {}
 
-  updateName(name: string): void {
+  changeName(name: string): void {
     this.name = name;
-    this.updatedAt = new Date();
+    this.modifiedAt = new Date();
   }
 
   deactivate(): void {
     this.isActive = false;
-    this.updatedAt = new Date();
+    this.modifiedAt = new Date();
   }
 
   activate(): void {
     this.isActive = true;
-    this.updatedAt = new Date();
+    this.modifiedAt = new Date();
   }
 }

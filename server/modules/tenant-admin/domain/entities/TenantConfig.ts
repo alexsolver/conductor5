@@ -6,13 +6,12 @@ export class TenantConfig {
     public readonly config: Record<string, any>,
     public readonly isActive: boolean = true,
     public readonly createdAt: Date = new Date(),
-    public readonly updatedAt: Date = new Date()
+    public readonly modifiedAt: Date = new Date()
   ) {}
 
-  // Factory method moved to repository or service layer for clean domain separation
-  // Domain entities should focus on business logic, not object construction
+  // Business validation methods
 
-  // Business rule for configuration updates
+  // Business rule for configuration merging
   mergeConfig(newConfig: Record<string, any>): Record<string, any> {
     return { ...this.config, ...newConfig };
   }

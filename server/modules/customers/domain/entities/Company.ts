@@ -52,9 +52,9 @@ export class Company {
     private isActive: boolean = true,
     private isPrimary: boolean = false,
     private readonly createdAt: Date = new Date(),
-    private updatedAt: Date = new Date(),
+    private modifiedAt: Date = new Date(),
     private readonly createdBy: string,
-    private updatedBy: string | null = null
+    private modifiedBy: string | null = null
   ) {
     this.validateBusinessRules();
   }
@@ -84,9 +84,9 @@ export class Company {
   isActiveCompany(): boolean { return this.isActive; }
   isPrimaryCompany(): boolean { return this.isPrimary; }
   getCreatedAt(): Date { return this.createdAt; }
-  getUpdatedAt(): Date { return this.updatedAt; }
+  getModifiedAt(): Date { return this.modifiedAt; }
   getCreatedBy(): string { return this.createdBy; }
-  getUpdatedBy(): string | null { return this.updatedBy; }
+  getModifiedBy(): string | null { return this.modifiedBy; }
 
   // Business Methods
   getEffectiveName(): string {
@@ -178,14 +178,14 @@ export class Company {
     }
   }
 
-  // Update Methods
-  updateBasicInfo(props: {
+  // Modify Methods
+  changeBasicInfo(props: {
     name?: string;
     displayName?: string | null;
     description?: string | null;
     industry?: string | null;
     size?: 'small' | 'medium' | 'large' | 'enterprise' | null;
-    updatedBy: string;
+    modifiedBy: string;
   }): Company {
     return new Company(
       this.id,
@@ -214,16 +214,16 @@ export class Company {
       this.createdAt,
       new Date(),
       this.createdBy,
-      props.updatedBy
+      props.modifiedBy
     );
   }
 
-  updateContactInfo(props: {
+  changeContactInfo(props: {
     email?: string | null;
     phone?: string | null;
     website?: string | null;
     address?: Record<string, string>;
-    updatedBy: string;
+    modifiedBy: string;
   }): Company {
     return new Company(
       this.id,
@@ -252,16 +252,16 @@ export class Company {
       this.createdAt,
       new Date(),
       this.createdBy,
-      props.updatedBy
+      props.modifiedBy
     );
   }
 
-  updateSubscription(props: {
+  changeSubscription(props: {
     subscriptionTier?: 'basic' | 'premium' | 'enterprise';
     contractType?: 'monthly' | 'yearly' | 'custom' | null;
     maxUsers?: number | null;
     maxTickets?: number | null;
-    updatedBy: string;
+    modifiedBy: string;
   }): Company {
     return new Company(
       this.id,
@@ -290,14 +290,14 @@ export class Company {
       this.createdAt,
       new Date(),
       this.createdBy,
-      props.updatedBy
+      props.modifiedBy
     );
   }
 
-  updateStatus(props: {
+  changeStatus(props: {
     status?: 'active' | 'inactive' | 'suspended' | 'trial';
     isActive?: boolean;
-    updatedBy: string;
+    modifiedBy: string;
   }): Company {
     return new Company(
       this.id,
@@ -326,7 +326,7 @@ export class Company {
       this.createdAt,
       new Date(),
       this.createdBy,
-      props.updatedBy
+      props.modifiedBy
     );
   }
 

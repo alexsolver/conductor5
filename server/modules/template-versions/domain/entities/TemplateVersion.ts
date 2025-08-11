@@ -11,7 +11,7 @@ export class TemplateVersion {
     public readonly isActive: boolean = false,
     public readonly isDraft: boolean = true,
     public readonly createdAt: Date = new Date(),
-    public readonly updatedAt: Date = new Date()
+    public readonly modifiedAt: Date = new Date()
   ) {}
 
   // Factory method moved to repository or service layer to maintain clean domain entities

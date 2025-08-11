@@ -57,7 +57,7 @@ export class Notification {
     private readonly relatedEntityType: string | null,
     private readonly relatedEntityId: string | null,
     private readonly createdAt: Date,
-    private updatedAt: Date
+    private modifiedAt: Date
   ) {}
 
   // Getters
@@ -79,37 +79,34 @@ export class Notification {
   getRelatedEntityType(): string | null { return this.relatedEntityType; }
   getRelatedEntityId(): string | null { return this.relatedEntityId; }
   getCreatedAt(): Date { return this.createdAt; }
-  getUpdatedAt(): Date { return this.updatedAt; }
+  getModifiedAt(): Date { return this.modifiedAt; }
 
   // Business rules
-  isExpired(): boolean {
+  isExpired(currentTime: Date): boolean {
     if (!this.expiresAt) return false;
-    return new Date() > this.expiresAt;
+    return currentTime > this.expiresAt;
   }
 
-  canBeSent(): boolean {
-    return this.status === 'pending' && !this.isExpired() && this.scheduledAt <= new Date();
+  canBeSent(currentTime: Date): boolean {
+    return this.status === 'pending' && !this.isExpired(currentTime) && this.scheduledAt <= currentTime;
   }
 
-  requiresEscalation(): boolean {
+  requiresEscalation(currentTime: Date, thresholdTime: Date): boolean {
     return this.severity === 'critical' && this.status === 'pending' && 
-           this.scheduledAt <= new Date(Date.now() - 15 * 60 * 1000); // 15 minutes overdue
+           this.scheduledAt <= thresholdTime;
   }
 
-  shouldRetry(): boolean {
+  shouldRetry(currentTime: Date): boolean {
     return this.status === 'failed' && 
            this.failedAt && 
-           new Date().getTime() - this.failedAt.getTime() < 3600000; // 1 hour retry window
+           currentTime.getTime() - this.failedAt.getTime() < 3600000; // 1 hour retry window
   }
 
   isCritical(): boolean {
     return this.severity === 'critical';
   }
 
-  // Factory method
-  // Factory method removed - should be handled by repository or service layer
-
-  // Update methods
+  // State transition methods
   markAsSent(): Notification {
     if (this.status !== 'pending') {
       throw new Error('Only pending notifications can be marked as sent');
@@ -128,13 +125,13 @@ export class Notification {
       'sent',
       this.scheduledAt,
       this.expiresAt,
-      new Date(), // sentAt
+      this.sentAt, // Will be set by application layer
       this.deliveredAt,
       this.failedAt,
       this.relatedEntityType,
       this.relatedEntityId,
       this.createdAt,
-      new Date() // updatedAt
+      this.modifiedAt // Will be set by application layer
     );
   }
 
@@ -157,12 +154,12 @@ export class Notification {
       this.scheduledAt,
       this.expiresAt,
       this.sentAt,
-      new Date(), // deliveredAt
+      this.deliveredAt, // Will be set by application layer
       this.failedAt,
       this.relatedEntityType,
       this.relatedEntityId,
       this.createdAt,
-      new Date() // updatedAt
+      this.modifiedAt // Will be set by application layer
     );
   }
 
@@ -189,7 +186,7 @@ export class Notification {
       this.relatedEntityType,
       this.relatedEntityId,
       this.createdAt,
-      new Date() // updatedAt
+      new Date() // modifiedAt
     );
   }
 
@@ -217,7 +214,7 @@ export class Notification {
       this.relatedEntityType,
       this.relatedEntityId,
       this.createdAt,
-      new Date() // updatedAt
+      new Date() // modifiedAt
     );
   }
 

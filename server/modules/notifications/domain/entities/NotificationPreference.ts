@@ -39,7 +39,7 @@ export class NotificationPreference {
     private scheduleSettings: ScheduleSettings,
     private filters: NotificationFilters,
     private readonly createdAt: Date,
-    private updatedAt: Date
+    private modifiedAt: Date
   ) {}
 
   // Getters
@@ -52,44 +52,22 @@ export class NotificationPreference {
   getScheduleSettings(): ScheduleSettings { return this.scheduleSettings; }
   getFilters(): NotificationFilters { return this.filters; }
   getCreatedAt(): Date { return this.createdAt; }
-  getUpdatedAt(): Date { return this.updatedAt; }
+  getModifiedAt(): Date { return this.modifiedAt; }
 
-  // Business rules
-  shouldReceiveNotification(notification: Notification): boolean {
-    if (!this.enabled) return false;
-    
-    // Check severity filter
-    if (this.filters.minSeverity) {
-      const severityLevels = { info: 1, warning: 2, error: 3, critical: 4 };
-      const minLevel = severityLevels[this.filters.minSeverity];
-      const notificationLevel = severityLevels[notification.getSeverity()];
-      if (notificationLevel < minLevel) return false;
-    }
-
-    // Check schedule (Do Not Disturb)
-    if (this.scheduleSettings.doNotDisturbStart && this.scheduleSettings.doNotDisturbEnd) {
-      const now = new Date();
-      const currentTime = now.toTimeString().slice(0, 5); // HH:MM
-      const start = this.scheduleSettings.doNotDisturbStart;
-      const end = this.scheduleSettings.doNotDisturbEnd;
-      
-      if (start < end) {
-        // Same day range (e.g., 09:00 - 17:00)
-        if (currentTime >= start && currentTime <= end) return false;
-      } else {
-        // Cross-midnight range (e.g., 22:00 - 08:00)
-        if (currentTime >= start || currentTime <= end) return false;
-      }
-    }
-
-    // Check weekdays only
-    if (this.scheduleSettings.weekdaysOnly) {
-      const dayOfWeek = new Date().getDay();
-      if (dayOfWeek === 0 || dayOfWeek === 6) return false; // Sunday or Saturday
-    }
-
-    return true;
+  // Business rules - decoupled from other entities
+  canReceiveNotification(): boolean {
+    return this.enabled;
   }
+  
+  meetsSevertityRequirement(severity: string): boolean {
+    if (!this.filters.minSeverity) return true;
+    const severityLevels = { info: 1, warning: 2, error: 3, critical: 4 };
+    const minLevel = severityLevels[this.filters.minSeverity];
+    const notificationLevel = severityLevels[severity];
+    return notificationLevel >= minLevel;
+  }
+
+
 
   isInDoNotDisturbPeriod(): boolean {
     if (!this.scheduleSettings.doNotDisturbStart || !this.scheduleSettings.doNotDisturbEnd) {
@@ -108,11 +86,8 @@ export class NotificationPreference {
     }
   }
 
-  // Factory method
-  // Factory method removed - should be handled by repository or service layer
-
-  // Update methods
-  updateChannels(channels: NotificationChannel[]): NotificationPreference {
+  // State modification methods  
+  changeChannels(channels: NotificationChannel[]): NotificationPreference {
     return new NotificationPreference(
       this.id,
       this.tenantId,
@@ -127,7 +102,7 @@ export class NotificationPreference {
     );
   }
 
-  updateEnabled(enabled: boolean): NotificationPreference {
+  changeEnabled(enabled: boolean): NotificationPreference {
     return new NotificationPreference(
       this.id,
       this.tenantId,

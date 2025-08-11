@@ -2,36 +2,8 @@
 
 // Removed application layer dependency - domain should not import from application
 
-export interface BeneficiaryProps {
-  id: string;
-  name: string;
-  email: string;
-  phone?: string;
-  address?: string;
-  createdAt?: Date;
-  updatedAt?: Date;
-}
-
-export interface BeneficiaryCreateData {
-  id?: string;
-  tenantId: string;
-  name: string;
-  email?: string;
-  phone?: string;
-  active?: boolean;
-}
-
-export interface BeneficiaryData {
-  id?: string;
-  name: string;
-  email?: string;
-  phone?: string;
-  tenantId: string;
-  customerId?: string;
-  status?: string;
-  createdAt?: Date;
-  updatedAt?: Date;
-}
+// CLEAN ARCHITECTURE: DTOs and data interfaces removed from domain entity
+// These concerns belong to application/presentation layer
 
 export class Beneficiary {
   private constructor(
@@ -41,7 +13,7 @@ export class Beneficiary {
     private readonly _phone?: string,
     private readonly _address?: string,
     private readonly _createdAt: Date = new Date(),
-    private readonly _updatedAt: Date = new Date()
+    private readonly _modifiedAt: Date = new Date()
   ) {}
 
   // Factory method removed - should be handled by repository or service layer
@@ -53,7 +25,7 @@ export class Beneficiary {
   get phone(): string | undefined { return this._phone; }
   get address(): string | undefined { return this._address; }
   get createdAt(): Date { return this._createdAt; }
-  get updatedAt(): Date { return this._updatedAt; }
+  get modifiedAt(): Date { return this._modifiedAt; }
 
   // CLEANED: Serialization methods removed from domain entities
   // Presentation concerns should be handled by DTOs in application layer

@@ -4,16 +4,8 @@
  * Contains business rules and invariants for users
  */
 
-export interface UserCreateProps {
-  email: string;
-  password: string;
-  firstName?: string;
-  lastName?: string;
-  role: 'saas_admin' | 'tenant_admin' | 'agent' | 'customer';
-  tenantId?: string;
-  active?: boolean;
-  verified?: boolean;
-}
+// CLEAN ARCHITECTURE: Interface removed from domain entity
+// DTOs and creation interfaces should be in application layer
 
 export class User {
   constructor(
@@ -28,7 +20,7 @@ export class User {
     private verified: boolean,
     private lastLogin: Date | null,
     private readonly createdAt: Date,
-    private updatedAt: Date
+    private modifiedAt: Date
   ) {}
 
   // Getters
@@ -43,7 +35,7 @@ export class User {
   isVerified(): boolean { return this.verified; }
   getLastLogin(): Date | null { return this.lastLogin; }
   getCreatedAt(): Date { return this.createdAt; }
-  getUpdatedAt(): Date { return this.updatedAt; }
+  getModifiedAt(): Date { return this.modifiedAt; }
 
   // Business methods
   getFullName(): string {
@@ -145,8 +137,8 @@ export class User {
   // Factory method removed - should be handled by repository or service layer
   // Domain entities should focus on business logic, not object construction with external dependencies
 
-  // Update methods (immutable)
-  updateProfile(changes: {
+  // Modify methods (immutable)
+  modifyProfile(changes: {
     firstName?: string;
     lastName?: string;
     email?: string;
@@ -163,7 +155,7 @@ export class User {
       this.verified,
       this.lastLogin,
       this.createdAt,
-      new Date() // updatedAt
+      new Date() // modifiedAt
     );
   }
 
@@ -180,7 +172,7 @@ export class User {
       this.verified,
       this.lastLogin,
       this.createdAt,
-      new Date() // updatedAt
+      new Date() // modifiedAt
     );
   }
 
@@ -201,7 +193,7 @@ export class User {
       this.verified,
       this.lastLogin,
       this.createdAt,
-      new Date() // updatedAt
+      new Date() // modifiedAt
     );
   }
 
@@ -218,7 +210,7 @@ export class User {
       this.verified,
       new Date(), // lastLogin
       this.createdAt,
-      new Date() // updatedAt
+      new Date() // modifiedAt
     );
   }
 

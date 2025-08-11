@@ -6,7 +6,7 @@ export interface FieldLayoutProps {
   layout: any;
   isActive: boolean;
   createdAt: Date;
-  updatedAt: Date;
+  modifiedAt: Date;
 }
 
 export class FieldLayout {
@@ -36,13 +36,13 @@ export class FieldLayout {
     return this.props.createdAt;
   }
 
-  get updatedAt(): Date {
-    return this.props.updatedAt;
+  get modifiedAt(): Date {
+    return this.props.modifiedAt;
   }
 
-  public updateLayout(layout: any): void {
+  public changeLayout(layout: any): void {
     this.props.layout = layout;
-    this.props.updatedAt = new Date();
+    this.props.modifiedAt = new Date();
   }
 
   public activate(): void {

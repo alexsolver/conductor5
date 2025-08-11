@@ -1,4 +1,3 @@
-
 export class FieldLayout {
   constructor(
     public readonly id: string,
@@ -7,19 +6,13 @@ export class FieldLayout {
     public readonly tenantId: string,
     public readonly isActive: boolean = true,
     public readonly createdAt: Date = new Date(),
-    public readonly updatedAt: Date = new Date()
+    public readonly modifiedAt: Date = new Date()
   ) {}
 
-  // Factory method removed - should be handled by repository or service layer
-    return new FieldLayout(
-      data.id,
-      data.name,
-      data.fields,
-      data.tenantId
-    );
-  }
+  // CLEAN ARCHITECTURE: Factory method removed from domain entity
+  // Creation logic should be handled by repository or application layer
 
-  update(data: { name?: string; fields?: any[] }): FieldLayout {
+  modify(data: { name?: string; fields?: any[] }): FieldLayout {
     return new FieldLayout(
       this.id,
       data.name ?? this.name,
@@ -27,7 +20,7 @@ export class FieldLayout {
       this.tenantId,
       this.isActive,
       this.createdAt,
-      new Date()
+      new Date() // modifiedAt
     );
   }
 }

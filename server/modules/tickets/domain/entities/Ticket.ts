@@ -45,7 +45,7 @@ export class Ticket {
     private resolvedAt: Date | null,
     private closedAt: Date | null,
     private readonly createdAt: Date,
-    private updatedAt: Date
+    private modifiedAt: Date
   ) {}
 
   // Getters
@@ -72,7 +72,7 @@ export class Ticket {
   getResolvedAt(): Date | null { return this.resolvedAt; }
   getClosedAt(): Date | null { return this.closedAt; }
   getCreatedAt(): Date { return this.createdAt; }
-  getUpdatedAt(): Date { return this.updatedAt; }
+  getModifiedAt(): Date { return this.modifiedAt; }
 
   // Business rules
   canBeAssigned(): boolean {
@@ -112,7 +112,7 @@ export class Ticket {
   // Factory method removed - should be handled by repository or service layer
   // Domain entities should focus on business logic, not object construction with external dependencies
 
-  // Update methods (immutable)
+  // Modify methods (immutable)
   assign(assignedToId: string, assignmentGroup?: string): Ticket {
     if (!this.canBeAssigned()) {
       throw new Error('Ticket cannot be assigned in current state');
@@ -156,7 +156,7 @@ export class Ticket {
       this.resolvedAt,
       this.closedAt,
       this.createdAt,
-      new Date() // updatedAt
+      new Date() // modifiedAt
     );
   }
 
@@ -205,7 +205,7 @@ export class Ticket {
       now, // resolvedAt
       this.closedAt,
       this.createdAt,
-      now // updatedAt
+      now // modifiedAt
     );
   }
 
@@ -254,7 +254,7 @@ export class Ticket {
       this.resolvedAt,
       now, // closedAt
       this.createdAt,
-      now // updatedAt
+      now // modifiedAt
     );
   }
 

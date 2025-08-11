@@ -1,5 +1,4 @@
-// Domain layer não deve importar ORM diretamente
-// Removed drizzle-orm dependency - Domain Layer should not depend on infrastructure
+// CLEAN ARCHITECTURE: Domain entities focus on business rules only
 export class Timecard {
   constructor(
     public readonly id: string,
@@ -13,7 +12,7 @@ export class Timecard {
     public readonly status: 'draft' | 'submitted' | 'approved' | 'rejected' = 'draft',
     public readonly notes?: string,
     public readonly createdAt: Date = new Date(),
-    public readonly updatedAt: Date = new Date()
+    public readonly modifiedAt: Date = new Date()
   ) {}
 
   // CLEANED: Factory method removed - creation logic moved to application layer

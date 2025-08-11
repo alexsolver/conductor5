@@ -10,7 +10,7 @@ export class TemplateHierarchy {
     public readonly path: string = '',
     public readonly active: boolean = true,
     public readonly createdAt: Date = new Date(),
-    public readonly updatedAt: Date = new Date()
+    public readonly modifiedAt: Date = new Date()
   ) {}
 
   // Factory method removed - should be handled by repository or service layer

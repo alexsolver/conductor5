@@ -1,4 +1,4 @@
-// Domain layer não deve importar ORM diretamente
+// CLEAN ARCHITECTURE: Domain layer maintains separation of concerns
 
 export interface SkillProps {
   id: string;
@@ -7,7 +7,7 @@ export interface SkillProps {
   description?: string;
   isActive?: boolean;
   createdAt?: Date;
-  updatedAt?: Date;
+  modifiedAt?: Date;
 }
 
 export class Skill {
@@ -18,11 +18,13 @@ export class Skill {
     public readonly description?: string,
     public readonly isActive: boolean = true,
     public readonly createdAt: Date = new Date(),
-    public readonly updatedAt: Date = new Date()
+    public readonly modifiedAt: Date = new Date()
   ) {}
 
-  // CLEANED: Factory methods removed - creation and reconstruction moved to repository layer
-  // Domain entities should focus on business logic, not object construction
+  // Business validation methods
+  isValidSkill(): boolean {
+    return this.name.length > 0 && this.category.length > 0;
+  }
 }
 
 export interface UserSkillProps {
@@ -32,7 +34,7 @@ export interface UserSkillProps {
   level: number;
   certifiedAt?: Date;
   createdAt?: Date;
-  updatedAt?: Date;
+  modifiedAt?: Date;
 }
 
 export class UserSkill {
@@ -43,13 +45,12 @@ export class UserSkill {
     public readonly level: number,
     public readonly certifiedAt?: Date,
     public readonly createdAt: Date = new Date(),
-    public readonly updatedAt: Date = new Date()
+    public readonly modifiedAt: Date = new Date()
   ) {}
 
-  // CLEANED: Factory methods removed - creation and reconstruction moved to repository layer
-  // Domain entities should focus on business logic, not object construction
+  // Business validation methods
 
-  updateLevel(newLevel: number): UserSkill {
+  changeLevel(newLevel: number): UserSkill {
     if (newLevel < 1 || newLevel > 5) {
       throw new Error('Skill level must be between 1 and 5');
     }

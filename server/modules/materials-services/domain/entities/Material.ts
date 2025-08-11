@@ -11,7 +11,7 @@ export class Material {
     public readonly sku?: string,
     public readonly isActive: boolean = true,
     public readonly createdAt: Date = new Date(),
-    public readonly updatedAt: Date = new Date()
+    public readonly modifiedAt: Date = new Date()
   ) {}
 
   // Business logic methods

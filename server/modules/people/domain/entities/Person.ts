@@ -9,13 +9,13 @@ export class Person {
     public readonly tenantId?: string,
     public readonly isActive: boolean = true,
     public readonly createdAt: Date = new Date(),
-    public readonly updatedAt: Date = new Date()
+    public readonly modifiedAt: Date = new Date()
   ) {}
 
   // CLEANED: Factory methods removed - handled by repository layer
   // Domain entities focus purely on business logic
 
-  update(data: { 
+  modify(data: { 
     name?: string; 
     email?: string; 
     phone?: string; 

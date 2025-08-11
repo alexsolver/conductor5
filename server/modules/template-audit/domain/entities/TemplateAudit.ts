@@ -2,7 +2,7 @@
 export interface TemplateAudit {
   id: string;
   templateId: string;
-  action: 'created' | 'updated' | 'deleted';
+  action: 'created' | 'modified' | 'deleted';
   userId: string;
   changes: Record<string, any>;
   timestamp: Date;

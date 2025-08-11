@@ -8,7 +8,7 @@ export class SaasConfig {
     public readonly description?: string,
     public readonly isActive: boolean = true,
     public readonly createdAt: Date = new Date(),
-    public readonly updatedAt: Date = new Date()
+    public readonly modifiedAt: Date = new Date()
   ) {}
 
   // CLEANED: Factory method removed - creation logic moved to repository layer

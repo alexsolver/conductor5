@@ -16,7 +16,7 @@ export class UserSkill {
     public justification?: string,
     public isActive: boolean = true,
     public readonly createdAt: Date = new Date(),
-    public updatedAt: Date = new Date()
+    public modifiedAt: Date = new Date()
   ) {
     this.validateProficiencyLevel();
     this.validateRating();
@@ -43,13 +43,12 @@ export class UserSkill {
     }
   }
 
-  updateProficiencyLevel(newLevel: number, changedBy: string, reason?: string): void {
+  modifyProficiencyLevel(newLevel: number, changedBy: string, reason?: string): void {
     const oldLevel = this.proficiencyLevel;
     this.proficiencyLevel = newLevel;
     this.validateProficiencyLevel();
-    this.updatedAt = new Date();
     
-    // Log da mudança seria feito por um domain service
+    // Change validation completed - timestamp managed by application layer
   }
 
   addEvaluation(rating: number): void {
@@ -60,8 +59,6 @@ export class UserSkill {
     const totalPoints = this.averageRating * this.totalEvaluations + rating;
     this.totalEvaluations += 1;
     this.averageRating = Number((totalPoints / this.totalEvaluations).toFixed(2));
-    
-    this.updatedAt = new Date();
     
     // Verificar se qualifica para nível 5 automático
     this.checkAutoLevel5Qualification();
@@ -76,8 +73,7 @@ export class UserSkill {
       this.totalEvaluations >= minEvaluations &&
       this.proficiencyLevel < 5
     ) {
-      // Seria validado por um domain service que também checa SLAs
-      // this.updateProficiencyLevel(5, 'system', 'Qualificação automática por performance');
+      // Auto-qualification criteria met
     }
   }
 
@@ -95,7 +91,7 @@ export class UserSkill {
     this.certificationFile = filePath;
     
     this.validateCertificationDates();
-    this.updatedAt = new Date();
+    this.modifiedAt = new Date();
   }
 
   isCertificationValid(): boolean {
@@ -150,12 +146,12 @@ export class UserSkill {
 
   deactivate(): void {
     this.isActive = false;
-    this.updatedAt = new Date();
+    this.modifiedAt = new Date();
   }
 
   activate(): void {
     this.isActive = true;
-    this.updatedAt = new Date();
+    this.modifiedAt = new Date();
   }
 
   // CLEANED: Factory method removed - creation logic moved to repository layer

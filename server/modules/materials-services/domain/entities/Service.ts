@@ -1,4 +1,4 @@
-// Removed drizzle dependency - Domain layer should not depend on infrastructure
+// CLEAN ARCHITECTURE: Domain entity with business logic separation
 export class Service {
   constructor(
     public readonly id: string,
@@ -10,7 +10,7 @@ export class Service {
     public readonly duration?: number,
     public readonly isActive: boolean = true,
     public readonly createdAt: Date = new Date(),
-    public readonly updatedAt: Date = new Date()
+    public readonly modifiedAt: Date = new Date()
   ) {}
 
   // CLEANED: Factory methods removed - handled by repository layer

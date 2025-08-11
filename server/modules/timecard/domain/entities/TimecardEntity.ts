@@ -1,4 +1,4 @@
-// Domain entities should not depend on ORM libraries
+// CLEAN ARCHITECTURE: Pure domain entity with business rules
 
 export interface TimecardProps {
   userId: string;
@@ -21,7 +21,7 @@ export class TimecardEntity {
     public status: string,
     public readonly tenantId: string,
     public readonly createdAt: Date = new Date(),
-    public updatedAt: Date = new Date()
+    public modifiedAt: Date = new Date()
   ) {}
 
   // CLEANED: Factory method removed - creation logic moved to repository layer

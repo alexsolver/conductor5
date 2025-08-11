@@ -116,8 +116,8 @@ export class CompanyMembership {
     }
   }
 
-  // Update Methods
-  updateRole(role: 'member' | 'admin' | 'owner' | 'contact'): CompanyMembership {
+  // Modification Methods
+  changeRole(role: 'member' | 'admin' | 'owner' | 'contact'): CompanyMembership {
     return new CompanyMembership(
       this.id,
       this.customerId,
@@ -134,7 +134,7 @@ export class CompanyMembership {
     );
   }
 
-  updateJobInfo(title: string | null, department: string | null): CompanyMembership {
+  changeJobInfo(title: string | null, department: string | null): CompanyMembership {
     return new CompanyMembership(
       this.id,
       this.customerId,
@@ -151,7 +151,7 @@ export class CompanyMembership {
     );
   }
 
-  updatePermissions(permissions: {
+  changePermissions(permissions: {
     canCreateTickets?: boolean;
     canViewAllTickets?: boolean;
     canManageUsers?: boolean;

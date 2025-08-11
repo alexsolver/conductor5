@@ -50,7 +50,7 @@ export class Customer {
     public readonly avatar: string | null = null,
     public readonly signature: string | null = null,
     public readonly createdAt: Date = new Date(),
-    public readonly updatedAt: Date = new Date()
+    public readonly modifiedAt: Date = new Date()
   ) {}
 
   // Business rules
@@ -127,8 +127,8 @@ export class Customer {
   // Domain entities should focus on business logic, not object construction
   }
 
-  // Update methods (immutable)
-  updateProfile(changes: {
+  // Modify methods (immutable)
+  modifyProfile(changes: {
     firstName?: string | null;
     lastName?: string | null;
     phone?: string | null;

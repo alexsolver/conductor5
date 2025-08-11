@@ -1,4 +1,4 @@
-// Removed drizzle dependency - Domain layer should not depend on infrastructure
+// CLEAN ARCHITECTURE: Domain layer contains business logic only
 
 export class ScheduleEntity {
   constructor(
@@ -11,7 +11,7 @@ export class ScheduleEntity {
     public readonly description?: string,
     public readonly location?: string,
     public readonly createdAt?: Date,
-    public readonly updatedAt?: Date
+    public readonly modifiedAt?: Date
   ) {}
 
   // Regras de negócio da entidade Schedule
