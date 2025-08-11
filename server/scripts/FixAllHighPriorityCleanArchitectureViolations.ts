@@ -1,6 +1,4 @@
 
-#!/usr/bin/env tsx
-
 /**
  * COMPREHENSIVE HIGH PRIORITY CLEAN ARCHITECTURE FIXES
  * Full-Stack Developer: Data Integration, QA/Testing, Database Design, Frontend Data Binding
