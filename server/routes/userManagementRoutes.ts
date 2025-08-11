@@ -43,13 +43,13 @@ router.post('/users',
     try {
       const tenantId = req.user!.tenantId;
       const userData = req.body;
-      
+
       // Gerar senha temporária se não fornecida
       const tempPassword = userData.password || Math.random().toString(36).slice(-8);
       const bcrypt = await import('bcryptjs');
       const hashedPassword = await bcrypt.hash(tempPassword, 10);
-      
-      // Criar usuário com dados completos
+
+      // Create user with full data
       const newUser = await db.insert(usersTable)
         .values({
           id: crypto.randomUUID(),
@@ -62,7 +62,7 @@ router.post('/users',
           isActive: true,
           createdAt: new Date(),
           updatedAt: new Date(),
-          // Dados HR/Endereço
+          // HR/Address Data
           integrationCode: userData.integrationCode || null,
           alternativeEmail: userData.alternativeEmail || null,
           cellPhone: userData.cellPhone || null,
@@ -72,7 +72,7 @@ router.post('/users',
           vehicleType: userData.vehicleType || null,
           cpfCnpj: userData.cpfCnpj || null,
           supervisorIds: userData.supervisorIds || [],
-          // Endereço
+          // Address
           cep: userData.cep || null,
           country: userData.country || 'Brasil',
           state: userData.state || null,
@@ -82,7 +82,7 @@ router.post('/users',
           houseNumber: userData.houseNumber || null,
           complement: userData.complement || null,
           neighborhood: userData.neighborhood || null,
-          // Dados RH
+          // HR Data
           employeeCode: userData.employeeCode || null,
           pis: userData.pis || null,
           cargo: userData.cargo || null,
@@ -90,22 +90,22 @@ router.post('/users',
           serieNumber: userData.serieNumber || null,
           admissionDate: userData.admissionDate ? new Date(userData.admissionDate) : null,
           costCenter: userData.costCenter || null,
-          // Campos padrão
+          // Default fields
           status: 'active',
           performance: 75
         })
         .returning();
-      
+
       console.log(`✅ User created successfully: ${userData.email} (ID: ${newUser[0].id})`);
-      
+
       res.status(201).json({ 
         message: 'User created successfully',
         user: newUser[0],
-        tempPassword: userData.sendInvitation ? null : tempPassword // Só retorna se não enviar convite
+        tempPassword: userData.sendInvitation ? null : tempPassword // Only return if invitation is not sent
       });
     } catch (error) {
       console.error('❌ Error creating user:', error);
-      if (error.code === '23505') { // Violação de unique constraint
+      if (error.code === '23505') { // Unique constraint violation
         res.status(409).json({ message: 'Email already exists' });
       } else {
         res.status(500).json({ message: 'Failed to create user' });
@@ -123,11 +123,11 @@ router.get('/users/:userId',
       const { userId } = req.params;
       const tenantId = req.user!.tenantId;
       const user = await userManagementService.getUserById(userId, tenantId);
-      
+
       if (!user) {
         return res.status(404).json({ message: 'User not found' });
       }
-      
+
       res.json({ user });
     } catch (error) {
       console.error('Error fetching user by ID:', error);
@@ -145,8 +145,8 @@ router.get('/groups',
   async (req: AuthenticatedRequest, res) => {
     try {
       const tenantId = req.user!.tenantId;
-      
-      // Buscar grupos com contagem de membros
+
+      // Fetch groups with member count
       const groups = await db.select({
         id: userGroups.id,
         name: userGroups.name,
@@ -161,7 +161,7 @@ router.get('/groups',
         ))
         .orderBy(userGroups.createdAt);
 
-      // Para cada grupo, buscar a contagem de membros ativos
+      // For each group, fetch the count of active members
       const groupsWithMemberCount = await Promise.all(
         groups.map(async (group) => {
           const memberCount = await db.select({ count: sql<number>`count(*)` })
@@ -178,7 +178,7 @@ router.get('/groups',
           };
         })
       );
-      
+
       res.json({ 
         success: true,
         groups: groupsWithMemberCount 
@@ -201,11 +201,11 @@ router.post('/groups',
   async (req: AuthenticatedRequest, res) => {
     try {
       const tenantId = req.user!.tenantId;
-      
+
       if (!tenantId) {
         return res.status(400).json({ message: 'Tenant ID is required' });
       }
-      
+
       // Create group data with tenantId
       const groupData = {
         ...req.body,
@@ -215,14 +215,14 @@ router.post('/groups',
         createdAt: new Date(),
         updatedAt: new Date()
       };
-      
+
       // Validate the complete data
       const validatedData = insertUserGroupSchema.parse(groupData);
-      
+
       const [newGroup] = await db.insert(userGroups)
         .values(validatedData)
         .returning();
-      
+
       res.status(201).json({ 
         success: true,
         group: newGroup,
@@ -260,7 +260,7 @@ router.put('/groups/:groupId',
       const { groupId } = req.params;
       const tenantId = req.user!.tenantId;
       const validatedData = updateUserGroupSchema.parse(req.body);
-      
+
       const [updatedGroup] = await db.update(userGroups)
         .set({
           ...validatedData,
@@ -271,11 +271,11 @@ router.put('/groups/:groupId',
           eq(userGroups.tenantId, tenantId)
         ))
         .returning();
-      
+
       if (!updatedGroup) {
         return res.status(404).json({ message: 'Group not found' });
       }
-      
+
       res.json({ group: updatedGroup });
     } catch (error) {
       console.error('Error updating user group:', error);
@@ -292,7 +292,7 @@ router.delete('/groups/:groupId',
     try {
       const { groupId } = req.params;
       const tenantId = req.user!.tenantId;
-      
+
       const [deletedGroup] = await db.update(userGroups)
         .set({
           isActive: false,
@@ -303,11 +303,11 @@ router.delete('/groups/:groupId',
           eq(userGroups.tenantId, tenantId)
         ))
         .returning();
-      
+
       if (!deletedGroup) {
         return res.status(404).json({ message: 'Group not found' });
       }
-      
+
       res.json({ message: 'Group deleted successfully' });
     } catch (error) {
       console.error('Error deleting user group:', error);
@@ -323,7 +323,7 @@ router.get('/users',
   async (req: AuthenticatedRequest, res) => {
     try {
       const tenantId = req.user!.tenantId;
-      
+
       // Get users from database with proper name concatenation
       const users = await db.select({
         id: usersTable.id,
@@ -348,7 +348,7 @@ router.get('/users',
         // Create name field if it doesn't exist
         name: user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email
       }));
-      
+
       res.json({ users: usersWithNames });
     } catch (error) {
       console.error('Error fetching users:', error);
@@ -367,17 +367,17 @@ router.get('/groups/:groupId/members',
     try {
       const { groupId } = req.params;
       const tenantId = req.user!.tenantId;
-      
+
       if (!groupId || !tenantId) {
         return res.status(400).json({ 
           success: false,
           message: 'Group ID and tenant ID are required' 
         });
       }
-      
+
       console.log(`Fetching members for group ${groupId} in tenant ${tenantId}`);
-      
-      // Verificar se o grupo existe e pertence ao tenant
+
+      // Verify if the group exists and belongs to the tenant
       const groupExists = await db.select({ id: userGroups.id })
         .from(userGroups)
         .where(and(
@@ -393,8 +393,8 @@ router.get('/groups/:groupId/members',
           message: 'Group not found or access denied'
         });
       }
-      
-      // Query corrigida para buscar os membros do grupo
+
+      // Corrected query to fetch group members
       const members = await db.select({
         membershipId: userGroupMemberships.id,
         userId: userGroupMemberships.userId,
@@ -415,7 +415,7 @@ router.get('/groups/:groupId/members',
       ))
       .orderBy(userGroupMemberships.addedAt);
 
-      // Format members data consistently - corrigido para evitar campos undefined
+      // Format members data consistently - corrected to avoid undefined fields
       const formattedMembers = members.map(member => ({
         membershipId: member.membershipId,
         userId: member.userId,
@@ -425,7 +425,7 @@ router.get('/groups/:groupId/members',
         position: member.userPosition || '',
         addedAt: member.addedAt
       }));
-      
+
       console.log(`Found ${formattedMembers.length} members for group ${groupId}`);
       res.json({ 
         success: true,
@@ -452,12 +452,12 @@ router.post('/groups/:groupId/members',
       const { groupId } = req.params;
       const { userId } = req.body;
       const tenantId = req.user!.tenantId;
-      
+
       if (!userId) {
         return res.status(400).json({ message: 'userId is required' });
       }
-      
-      // Verificar se o grupo existe
+
+      // Verify if the group exists
       const group = await db.select().from(userGroups)
         .where(and(
           eq(userGroups.id, groupId),
@@ -465,12 +465,12 @@ router.post('/groups/:groupId/members',
           eq(userGroups.isActive, true)
         ))
         .limit(1);
-      
+
       if (!group.length) {
         return res.status(404).json({ message: 'Group not found' });
       }
-      
-      // Verificar se o usuário existe
+
+      // Verify if the user exists
       const user = await db.select().from(usersTable)
         .where(and(
           eq(usersTable.id, userId),
@@ -478,12 +478,12 @@ router.post('/groups/:groupId/members',
           eq(usersTable.isActive, true)
         ))
         .limit(1);
-      
+
       if (!user.length) {
         return res.status(404).json({ message: 'User not found' });
       }
-      
-      // Verificar se a associação já existe (ativa ou inativa)
+
+      // Check if the membership already exists (active or inactive)
       const existingMembership = await db.select().from(userGroupMemberships)
         .where(and(
           eq(userGroupMemberships.tenantId, tenantId),
@@ -491,9 +491,9 @@ router.post('/groups/:groupId/members',
           eq(userGroupMemberships.groupId, groupId)
         ))
         .limit(1);
-      
+
       if (existingMembership.length > 0) {
-        // Se existe mas está inativa, reativar
+        // If it exists but is inactive, reactivate it
         if (!existingMembership[0].isActive) {
           const [reactivatedMembership] = await db.update(userGroupMemberships)
             .set({
@@ -506,19 +506,19 @@ router.post('/groups/:groupId/members',
               eq(userGroupMemberships.groupId, groupId)
             ))
             .returning();
-          
+
           console.log(`Successfully reactivated user ${userId} in group ${groupId}`);
           return res.status(200).json({ 
             message: 'User membership reactivated successfully',
             membership: reactivatedMembership
           });
         } else {
-          // Se já está ativa, retornar conflito
+          // If it's already active, return a conflict
           return res.status(409).json({ message: 'User is already a member of this group' });
         }
       }
-      
-      // Criar a associação usuário-grupo
+
+      // Create the user-group membership
       const [membership] = await db.insert(userGroupMemberships)
         .values({
           tenantId,
@@ -529,9 +529,9 @@ router.post('/groups/:groupId/members',
           isActive: true
         })
         .returning();
-      
+
       console.log(`Successfully added user ${userId} to group ${groupId} for tenant ${tenantId}`);
-      
+
       res.status(201).json({ 
         message: 'User added to group successfully',
         membership
@@ -551,8 +551,8 @@ router.delete('/groups/:groupId/members/:userId',
     try {
       const { groupId, userId } = req.params;
       const tenantId = req.user!.tenantId;
-      
-      // Verificar se o grupo existe
+
+      // Verify if the group exists
       const group = await db.select().from(userGroups)
         .where(and(
           eq(userGroups.id, groupId),
@@ -560,12 +560,12 @@ router.delete('/groups/:groupId/members/:userId',
           eq(userGroups.isActive, true)
         ))
         .limit(1);
-      
+
       if (!group.length) {
         return res.status(404).json({ message: 'Group not found' });
       }
-      
-      // Verificar se a associação existe
+
+      // Verify if the membership exists
       const existingMembership = await db.select().from(userGroupMemberships)
         .where(and(
           eq(userGroupMemberships.tenantId, tenantId),
@@ -574,12 +574,12 @@ router.delete('/groups/:groupId/members/:userId',
           eq(userGroupMemberships.isActive, true)
         ))
         .limit(1);
-      
+
       if (!existingMembership.length) {
         return res.status(404).json({ message: 'User is not a member of this group' });
       }
-      
-      // Remover a associação (soft delete)
+
+      // Remove the membership (soft delete)
       const [removedMembership] = await db.update(userGroupMemberships)
         .set({
           isActive: false
@@ -590,9 +590,9 @@ router.delete('/groups/:groupId/members/:userId',
           eq(userGroupMemberships.groupId, groupId)
         ))
         .returning();
-      
+
       console.log(`Successfully removed user ${userId} from group ${groupId} for tenant ${tenantId}`);
-      
+
       res.json({ 
         message: 'User removed from group successfully',
         membership: removedMembership
@@ -613,7 +613,7 @@ router.get('/roles',
   async (req: AuthenticatedRequest, res) => {
     try {
       const tenantId = req.user!.tenantId;
-      
+
       // Mock roles data - TODO: implement real database query
       const roles = [
         {
@@ -639,7 +639,7 @@ router.get('/roles',
           updatedAt: new Date().toISOString()
         }
       ];
-      
+
       res.json({ roles });
     } catch (error) {
       console.error('Error fetching roles:', error);
@@ -661,7 +661,7 @@ router.get('/permissions',
         { id: 'workspace.configure', name: 'Configurar Workspace', category: 'workspace_admin', description: 'Alterar configurações', level: 'workspace' },
         { id: 'workspace.security', name: 'Configurações de Segurança', category: 'workspace_admin', description: 'Definir políticas de segurança', level: 'workspace' },
         { id: 'workspace.integrations', name: 'Gerenciar Integrações', category: 'workspace_admin', description: 'Configurar integrações', level: 'workspace' },
-        
+
         // Gestão de Usuários e Acesso  
         { id: 'user.view', name: 'Visualizar Usuários', category: 'user_access', description: 'Ver lista de usuários', level: 'workspace' },
         { id: 'user.create', name: 'Criar Usuários', category: 'user_access', description: 'Adicionar novos usuários', level: 'workspace' },
@@ -669,7 +669,7 @@ router.get('/permissions',
         { id: 'user.delete', name: 'Excluir Usuários', category: 'user_access', description: 'Remover usuários', level: 'workspace' },
         { id: 'groups.manage', name: 'Gerenciar Grupos', category: 'user_access', description: 'Administrar grupos de usuários', level: 'workspace' },
         { id: 'sessions.monitor', name: 'Monitorar Sessões', category: 'user_access', description: 'Ver sessões ativas', level: 'workspace' },
-        
+
         // Atendimento ao Cliente
         { id: 'tickets.view', name: 'Visualizar Tickets', category: 'customer_support', description: 'Ver tickets de suporte', level: 'workspace' },
         { id: 'tickets.create', name: 'Criar Tickets', category: 'customer_support', description: 'Abrir novos tickets', level: 'workspace' },
@@ -677,46 +677,46 @@ router.get('/permissions',
         { id: 'tickets.delete', name: 'Excluir Tickets', category: 'customer_support', description: 'Remover tickets', level: 'workspace' },
         { id: 'tickets.assign', name: 'Atribuir Tickets', category: 'customer_support', description: 'Designar responsáveis', level: 'workspace' },
         { id: 'tickets.manage', name: 'Gerenciar Tickets', category: 'customer_support', description: 'Controle total sobre tickets', level: 'workspace' },
-        
+
         // Gestão de Clientes
         { id: 'customers.view', name: 'Visualizar Clientes', category: 'customer_management', description: 'Ver dados dos clientes', level: 'workspace' },
         { id: 'customers.create', name: 'Criar Clientes', category: 'customer_management', description: 'Adicionar novos clientes', level: 'workspace' },
         { id: 'customers.edit', name: 'Editar Clientes', category: 'customer_management', description: 'Modificar dados dos clientes', level: 'workspace' },
         { id: 'customers.delete', name: 'Excluir Clientes', category: 'customer_management', description: 'Remover clientes', level: 'workspace' },
-        
+
         // Base de Conhecimento
         { id: 'kb.view', name: 'Visualizar KB', category: 'knowledge_base', description: 'Acessar base de conhecimento', level: 'workspace' },
         { id: 'kb.create', name: 'Criar Artigos KB', category: 'knowledge_base', description: 'Adicionar artigos', level: 'workspace' },
         { id: 'kb.edit', name: 'Editar KB', category: 'knowledge_base', description: 'Modificar artigos', level: 'workspace' },
         { id: 'kb.manage', name: 'Gerenciar KB', category: 'knowledge_base', description: 'Controle total da KB', level: 'workspace' },
-        
+
         // Recursos Humanos e Equipe
         { id: 'hr.view', name: 'Visualizar RH', category: 'hr_team', description: 'Ver dados de RH', level: 'workspace' },
         { id: 'hr.performance', name: 'Gerenciar Performance', category: 'hr_team', description: 'Avaliar desempenho', level: 'workspace' },
         { id: 'hr.skills', name: 'Matriz de Habilidades', category: 'hr_team', description: 'Gerenciar habilidades', level: 'workspace' },
         { id: 'hr.absence', name: 'Gestão de Ausências', category: 'hr_team', description: 'Aprovar férias e licenças', level: 'workspace' },
-        
+
         // Timecard e Ponto
         { id: 'timecard.view', name: 'Visualizar Ponto', category: 'timecard', description: 'Ver registros de ponto', level: 'workspace' },
         { id: 'timecard.manage', name: 'Gerenciar Ponto', category: 'timecard', description: 'Administrar registros', level: 'workspace' },
         { id: 'timecard.approve', name: 'Aprovar Horas', category: 'timecard', description: 'Aprovar registros de horas', level: 'workspace' },
-        
+
         // Projetos e Tarefas
-        
+
         // Analytics e Relatórios
         { id: 'analytics.view', name: 'Visualizar Analytics', category: 'analytics', description: 'Acessar relatórios', level: 'workspace' },
         { id: 'analytics.create', name: 'Criar Relatórios', category: 'analytics', description: 'Gerar relatórios customizados', level: 'workspace' },
-        
+
         // Configurações e Personalização
         { id: 'settings.view', name: 'Visualizar Configurações', category: 'settings', description: 'Ver configurações', level: 'workspace' },
         { id: 'settings.edit', name: 'Editar Configurações', category: 'settings', description: 'Modificar configurações', level: 'workspace' },
         { id: 'settings.branding', name: 'Personalizar Branding', category: 'settings', description: 'Alterar visual', level: 'workspace' },
-        
+
         // Compliance e Segurança
         { id: 'compliance.view', name: 'Visualizar Compliance', category: 'compliance', description: 'Ver logs de auditoria', level: 'workspace' },
         { id: 'compliance.manage', name: 'Gerenciar Compliance', category: 'compliance', description: 'Administrar conformidade', level: 'workspace' }
       ];
-      
+
       res.json({ permissions });
     } catch (error) {
       console.error('Error fetching permissions:', error);
@@ -733,11 +733,11 @@ router.post('/roles',
     try {
       const { name, description, permissions } = req.body;
       const tenantId = req.user!.tenantId;
-      
+
       if (!name || !Array.isArray(permissions)) {
         return res.status(400).json({ message: 'Name and permissions are required' });
       }
-      
+
       // Mock creation - TODO: implement real database insert
       const newRole = {
         id: Date.now().toString(),
@@ -750,9 +750,9 @@ router.post('/roles',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
-      
+
       console.log(`Creating role "${name}" with ${permissions.length} permissions for tenant ${tenantId}`);
-      
+
       res.status(201).json({ role: newRole });
     } catch (error) {
       console.error('Error creating role:', error);
@@ -770,7 +770,7 @@ router.put('/roles/:roleId',
       const { roleId } = req.params;
       const { name, description, permissions } = req.body;
       const tenantId = req.user!.tenantId;
-      
+
       // Mock update - TODO: implement real database update
       const updatedRole = {
         id: roleId,
@@ -783,9 +783,9 @@ router.put('/roles/:roleId',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
-      
+
       console.log(`Updating role ${roleId} for tenant ${tenantId}`);
-      
+
       res.json({ role: updatedRole });
     } catch (error) {
       console.error('Error updating role:', error);
@@ -802,10 +802,10 @@ router.delete('/roles/:roleId',
     try {
       const { roleId } = req.params;
       const tenantId = req.user!.tenantId;
-      
+
       // Mock deletion - TODO: implement real database soft delete
       console.log(`Deleting role ${roleId} for tenant ${tenantId}`);
-      
+
       res.json({ message: 'Role deleted successfully' });
     } catch (error) {
       console.error('Error deleting role:', error);
@@ -823,14 +823,14 @@ router.post('/roles/:roleId/users',
       const { roleId } = req.params;
       const { userId } = req.body;
       const tenantId = req.user!.tenantId;
-      
+
       if (!userId) {
         return res.status(400).json({ message: 'userId is required' });
       }
-      
+
       // Mock assignment - TODO: implement real database insert
       console.log(`Assigning user ${userId} to role ${roleId} for tenant ${tenantId}`);
-      
+
       res.status(201).json({ 
         message: 'User assigned to role successfully',
         roleId,
@@ -851,10 +851,10 @@ router.delete('/roles/:roleId/users/:userId',
     try {
       const { roleId, userId } = req.params;
       const tenantId = req.user!.tenantId;
-      
+
       // Mock removal - TODO: implement real database delete
       console.log(`Removing user ${userId} from role ${roleId} for tenant ${tenantId}`);
-      
+
       res.json({ 
         message: 'User removed from role successfully',
         roleId,

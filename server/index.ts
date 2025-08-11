@@ -143,6 +143,15 @@ app.use((req, res, next) => {
     console.log('Beneficiaries router not available, skipping...');
   }
 
+  // Teams router
+  try {
+    const { createTeamsRoutes } = await import('./modules/teams/routes');
+    app.use('/api/teams', createTeamsRoutes());
+    console.log('✅ Teams router registered');
+  } catch (error) {
+    console.log('Teams router not available, skipping...');
+  }
+
   app.get('/health', async (req, res) => {
     const memoryUsage = process.memoryUsage();
     const cpuUsage = process.cpuUsage();

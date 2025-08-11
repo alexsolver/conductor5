@@ -135,9 +135,9 @@ export default function TeamManagement() {
     refetchInterval: 30000,
   });
 
-  // Usar user-management/users que funciona em vez de tenant-admin/team/members
+  // Usar teams module em vez de user-management
   const { data: userManagementData, isLoading: tenantMembersLoading } = useQuery({
-    queryKey: ["/api/user-management/users"],
+    queryKey: ["/api/teams/members"],
     enabled: !!user,
     refetchInterval: 60000,
   });
@@ -145,9 +145,9 @@ export default function TeamManagement() {
   // Extrair users do objeto retornado
   const tenantMembers = userManagementData?.users || [];
 
-  // Fetch groups for filter
+  // Fetch groups for filter - use teams departments as groups
   const { data: groupsData } = useQuery({
-    queryKey: ['/api/user-management/groups'],
+    queryKey: ['/api/teams/departments'],
     enabled: !!user,
   });
 
