@@ -5,7 +5,19 @@
 
 import { IServiceRepository } from '../../domain/repositories/IServiceRepository';
 import { Service } from '../../domain/entities/Service';
-import { CreateServiceDTO } from '../dto/CreateServiceDTO';
+// Inline CreateServiceDTO interface
+interface CreateServiceDTO {
+  tenantId: string;
+  name: string;
+  description?: string;
+  category: string;
+  subcategory?: string;
+  price?: number;
+  cost?: number;
+  estimatedDuration?: number; // in minutes
+  skillsRequired?: string[];
+  specifications?: Record<string, any>;
+}
 import { randomUUID } from 'crypto';
 
 export class CreateServiceUseCase {

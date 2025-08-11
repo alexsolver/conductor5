@@ -7,8 +7,14 @@
 import { Request, Response } from 'express';
 import { CreateMaterialUseCase } from '../use-cases/CreateMaterialUseCase';
 import { GetMaterialsUseCase } from '../use-cases/GetMaterialsUseCase';
-import { CreateServiceUseCase } from '../use-cases/CreateServiceUseCase';
-import { GetServicesUseCase } from '../use-cases/GetServicesUseCase';
+// Simple inline interfaces for now
+interface CreateServiceUseCase {
+  execute(data: any): Promise<any>;
+}
+
+interface GetServicesUseCase {
+  execute(request: any): Promise<any>;
+}
 
 export class MaterialsServicesController {
   constructor(

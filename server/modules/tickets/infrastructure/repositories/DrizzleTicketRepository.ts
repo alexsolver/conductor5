@@ -254,46 +254,19 @@ export class DrizzleTicketRepository implements ITicketRepository {
   }
 
   private toDomainEntity(data: any): Ticket {
-    // Clean Architecture: Proper mapping from infrastructure to domain entity
     return new Ticket(
       data.id,
-      data.tenant_id || data.tenantId,
-      data.customer_id || data.customerId,
-      data.caller_id || data.callerId,
-      data.caller_type || 'customer',
-      data.subject,
+      data.tenantId || data.tenant_id,
+      data.number || 'TK-' + Date.now(),
+      data.subject || data.title || 'Untitled',
       data.description || '',
-      data.number || '',
-      data.subject || '', // shortDescription
-      data.category || '',
-      data.subcategory || '',
-      data.priority as any || 'medium',
-      data.impact || 'medium',
-      data.urgency || 'medium',
-      data.status as any || 'open',
-      data.status || 'open',
-      data.assigned_to_id || data.assignedToId,
-      data.beneficiary_id || data.beneficiaryId,
-      data.beneficiary_type || null,
-      data.assignment_group || data.assignmentGroup,
-      data.location,
-      data.contact_type || data.contactType || 'email',
-      data.business_impact || data.businessImpact,
-      data.symptoms,
-      data.workaround,
-      null, // configurationItem
-      null, // businessService
-      data.resolution_code || data.resolutionCode,
-      data.resolution_notes || data.resolutionNotes,
-      null, // workNotes
-      null, // closeNotes
-      true, // notify
-      null, // rootCause
-      data.created_at || data.createdAt || new Date(),
-      null, // resolvedAt
-      null, // closedAt
-      data.created_at || data.createdAt || new Date(),
-      data.updated_at || data.updatedAt || new Date()
+      { getValue: () => data.priority || 'medium' },
+      { getValue: () => data.status || 'open' },
+      data.customerId || data.customer_id || null,
+      data.assignedToId || data.assigned_to_id || null,
+      data.category || 'General',
+      data.createdAt || new Date(),
+      data.updatedAt || new Date()
     );
   }
 

@@ -4,7 +4,33 @@
  */
 
 import { IDashboardRepository } from '../../domain/repositories/IDashboardRepository';
-import { DashboardMetrics } from '../../domain/entities/DashboardMetrics';
+// Dashboard metrics interface - simplified for now
+interface DashboardMetrics {
+  tenantId: string;
+  ticketStats: {
+    total: number;
+    open: number;
+    inProgress: number;
+    resolved: number;
+    closed: number;
+  };
+  userStats: {
+    total: number;
+    active: number;
+    inactive: number;
+  };
+  activityStats: {
+    todayTickets: number;
+    weekTickets: number;
+    monthTickets: number;
+  };
+  performanceStats: {
+    avgResolutionTime: number;
+    avgResponseTime: number;
+    satisfactionScore: number;
+  };
+  generatedAt: Date;
+}
 
 export interface GetDashboardMetricsRequest {
   tenantId: string;
