@@ -13,13 +13,47 @@ export class MaterialsController {
       const tenantId = req.headers['x-tenant-id'] as string;
       const { category, supplier, search, inStock } = req.query;
       
+      console.log('🛠️ [MaterialsController] Getting materials for tenant:', tenantId);
+      
+      // Use direct SQL query following same pattern as tickets
+      const { db } = await import('../../../db');
+      const { sql } = await import('drizzle-orm');
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      const query = `
+        SELECT 
+          id,
+          tenant_id,
+          name,
+          description,
+          category,
+          supplier_id,
+          unit_price,
+          quantity_in_stock,
+          minimum_stock,
+          created_at,
+          updated_at
+        FROM "${schemaName}".materials
+        WHERE tenant_id = '${tenantId}'
+        ORDER BY created_at DESC
+        LIMIT 50
+      `;
+      
+      console.log('🛠️ [MaterialsController] Executing query:', query);
+      
+      const result = await db.execute(sql.raw(query));
+      const materials = Array.isArray(result) ? result : (result.rows || []);
+      
+      console.log('🛠️ [MaterialsController] Materials found:', materials.length);
+      
       res.json({
         success: true,
         message: 'Materials retrieved successfully',
-        data: [],
+        data: materials,
         filters: { category, supplier, search, inStock: inStock === 'true', tenantId }
       });
     } catch (error) {
+      console.error('🛠️ [MaterialsController] Error:', error);
       const message = error instanceof Error ? error.message : 'Failed to retrieve materials';
       res.status(500).json({ success: false, message });
     }

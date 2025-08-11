@@ -46,13 +46,46 @@ export class UsersController {
       const tenantId = req.headers['x-tenant-id'] as string;
       const { search, role, active, employmentType } = req.query;
       
+      console.log('👤 [UsersController] Getting users for tenant:', tenantId);
+      
+      // Use direct SQL query from public.users table (not tenant-specific)
+      const { db } = await import('../../../db');
+      const { sql } = await import('drizzle-orm');
+      
+      const query = `
+        SELECT 
+          id,
+          tenant_id,
+          email,
+          first_name,
+          last_name,
+          role,
+          is_active,
+          employment_type,
+          last_login_at,
+          created_at,
+          updated_at
+        FROM public.users
+        WHERE tenant_id = '${tenantId}' AND is_active = true
+        ORDER BY created_at DESC
+        LIMIT 50
+      `;
+      
+      console.log('👤 [UsersController] Executing query:', query);
+      
+      const result = await db.execute(sql.raw(query));
+      const users = Array.isArray(result) ? result : (result.rows || []);
+      
+      console.log('👤 [UsersController] Users found:', users.length);
+      
       res.json({
         success: true,
         message: 'Users retrieved successfully',
-        data: [],
+        data: users,
         filters: { search, role, active: active === 'true', employmentType, tenantId }
       });
     } catch (error) {
+      console.error('👤 [UsersController] Error:', error);
       const message = error instanceof Error ? error.message : 'Failed to retrieve users';
       res.status(500).json({ success: false, message });
     }

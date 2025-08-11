@@ -13,13 +13,45 @@ export class TeamsController {
       const tenantId = req.headers['x-tenant-id'] as string;
       const { department, active, search } = req.query;
       
+      console.log('👥 [TeamsController] Getting teams for tenant:', tenantId);
+      
+      // Use direct SQL query following same pattern as tickets
+      const { db } = await import('../../../db');
+      const { sql } = await import('drizzle-orm');
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      const query = `
+        SELECT 
+          id,
+          tenant_id,
+          name,
+          description,
+          department,
+          leader_id,
+          is_active,
+          created_at,
+          updated_at
+        FROM "${schemaName}".teams
+        WHERE tenant_id = '${tenantId}' AND is_active = true
+        ORDER BY created_at DESC
+        LIMIT 50
+      `;
+      
+      console.log('👥 [TeamsController] Executing query:', query);
+      
+      const result = await db.execute(sql.raw(query));
+      const teams = Array.isArray(result) ? result : (result.rows || []);
+      
+      console.log('👥 [TeamsController] Teams found:', teams.length);
+      
       res.json({
         success: true,
         message: 'Teams retrieved successfully',
-        data: [],
+        data: teams,
         filters: { department, active: active === 'true', search, tenantId }
       });
     } catch (error) {
+      console.error('👥 [TeamsController] Error:', error);
       const message = error instanceof Error ? error.message : 'Failed to retrieve teams';
       res.status(500).json({ success: false, message });
     }

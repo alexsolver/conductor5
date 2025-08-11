@@ -13,13 +13,47 @@ export class ProjectsController {
       const tenantId = req.headers['x-tenant-id'] as string;
       const { status, assignedTo, priority, search } = req.query;
       
+      console.log('📋 [ProjectsController] Getting projects for tenant:', tenantId);
+      
+      // Use direct SQL query following same pattern as tickets
+      const { db } = await import('../../../db');
+      const { sql } = await import('drizzle-orm');
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      const query = `
+        SELECT 
+          id,
+          tenant_id,
+          name,
+          description,
+          status,
+          priority,
+          assigned_to_id,
+          start_date,
+          end_date,
+          created_at,
+          updated_at
+        FROM "${schemaName}".projects
+        WHERE tenant_id = '${tenantId}'
+        ORDER BY created_at DESC
+        LIMIT 50
+      `;
+      
+      console.log('📋 [ProjectsController] Executing query:', query);
+      
+      const result = await db.execute(sql.raw(query));
+      const projects = Array.isArray(result) ? result : (result.rows || []);
+      
+      console.log('📋 [ProjectsController] Projects found:', projects.length);
+      
       res.json({
         success: true,
         message: 'Projects retrieved successfully',
-        data: [],
+        data: projects,
         filters: { status, assignedTo, priority, search, tenantId }
       });
     } catch (error) {
+      console.error('📋 [ProjectsController] Error:', error);
       const message = error instanceof Error ? error.message : 'Failed to retrieve projects';
       res.status(500).json({ success: false, message });
     }

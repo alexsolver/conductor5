@@ -29,13 +29,48 @@ export class InventoryController {
       const tenantId = req.headers['x-tenant-id'] as string;
       const { category, location, lowStock, search } = req.query;
       
+      console.log('📦 [InventoryController] Getting inventory items for tenant:', tenantId);
+      
+      // Use direct SQL query following same pattern as tickets
+      const { db } = await import('../../../db');
+      const { sql } = await import('drizzle-orm');
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      const query = `
+        SELECT 
+          id,
+          tenant_id,
+          name,
+          sku,
+          category,
+          quantity,
+          min_stock,
+          max_stock,
+          location_id,
+          unit_price,
+          created_at,
+          updated_at
+        FROM "${schemaName}".inventory_items
+        WHERE tenant_id = '${tenantId}'
+        ORDER BY created_at DESC
+        LIMIT 50
+      `;
+      
+      console.log('📦 [InventoryController] Executing query:', query);
+      
+      const result = await db.execute(sql.raw(query));
+      const inventoryItems = Array.isArray(result) ? result : (result.rows || []);
+      
+      console.log('📦 [InventoryController] Inventory items found:', inventoryItems.length);
+      
       res.json({
         success: true,
         message: 'Inventory items retrieved successfully',
-        data: [],
+        data: inventoryItems,
         filters: { category, location, lowStock: lowStock === 'true', search, tenantId }
       });
     } catch (error) {
+      console.error('📦 [InventoryController] Error:', error);
       const message = error instanceof Error ? error.message : 'Failed to retrieve inventory items';
       res.status(500).json({ success: false, message });
     }

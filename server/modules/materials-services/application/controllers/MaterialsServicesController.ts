@@ -39,13 +39,46 @@ export class MaterialsServicesController {
       const tenantId = req.headers['x-tenant-id'] as string;
       const { search, category, supplier } = req.query;
       
+      console.log('🏗️ [MaterialsServicesController] Getting materials for tenant:', tenantId);
+      
+      // Use direct SQL query following same pattern as tickets
+      const { db } = await import('../../../db');
+      const { sql } = await import('drizzle-orm');
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      const query = `
+        SELECT 
+          id,
+          tenant_id,
+          name,
+          description,
+          category,
+          supplier_id,
+          unit_price,
+          quantity_in_stock,
+          created_at,
+          updated_at
+        FROM "${schemaName}".materials
+        WHERE tenant_id = '${tenantId}'
+        ORDER BY created_at DESC
+        LIMIT 50
+      `;
+      
+      console.log('🏗️ [MaterialsServicesController] Executing query:', query);
+      
+      const result = await db.execute(sql.raw(query));
+      const materials = Array.isArray(result) ? result : (result.rows || []);
+      
+      console.log('🏗️ [MaterialsServicesController] Materials found:', materials.length);
+      
       res.json({
         success: true,
         message: 'Materials retrieved successfully',
-        data: [],
+        data: materials,
         filters: { search, category, supplier, tenantId }
       });
     } catch (error) {
+      console.error('🏗️ [MaterialsServicesController] Error:', error);
       const message = error instanceof Error ? error.message : 'Failed to retrieve materials';
       res.status(500).json({ success: false, message });
     }
@@ -99,13 +132,45 @@ export class MaterialsServicesController {
       const tenantId = req.headers['x-tenant-id'] as string;
       const { location, lowStock } = req.query;
       
+      console.log('📦 [MaterialsServicesController] Getting inventory for tenant:', tenantId);
+      
+      // Use direct SQL query following same pattern as tickets
+      const { db } = await import('../../../db');
+      const { sql } = await import('drizzle-orm');
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      const query = `
+        SELECT 
+          id,
+          tenant_id,
+          name,
+          description,
+          quantity_in_stock,
+          minimum_stock,
+          unit_price,
+          created_at,
+          updated_at
+        FROM "${schemaName}".materials
+        WHERE tenant_id = '${tenantId}' AND quantity_in_stock > 0
+        ORDER BY created_at DESC
+        LIMIT 50
+      `;
+      
+      console.log('📦 [MaterialsServicesController] Executing query:', query);
+      
+      const result = await db.execute(sql.raw(query));
+      const inventory = Array.isArray(result) ? result : (result.rows || []);
+      
+      console.log('📦 [MaterialsServicesController] Inventory found:', inventory.length);
+      
       res.json({
         success: true,
         message: 'Inventory retrieved successfully',
-        data: [],
+        data: inventory,
         filters: { location, lowStock: lowStock === 'true', tenantId }
       });
     } catch (error) {
+      console.error('📦 [MaterialsServicesController] Error:', error);
       const message = error instanceof Error ? error.message : 'Failed to retrieve inventory';
       res.status(500).json({ success: false, message });
     }

@@ -14,10 +14,42 @@ export class NotificationsController {
       const userId = req.headers['x-user-id'] as string;
       const { read, type, limit } = req.query;
       
+      console.log('🔔 [NotificationsController] Getting notifications for tenant:', tenantId, 'user:', userId);
+      
+      // Use direct SQL query following same pattern as tickets
+      const { db } = await import('../../../db');
+      const { sql } = await import('drizzle-orm');
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      const query = `
+        SELECT 
+          id,
+          tenant_id,
+          recipient_id,
+          title,
+          message,
+          type,
+          priority,
+          is_read,
+          created_at,
+          updated_at
+        FROM "${schemaName}".notifications
+        WHERE tenant_id = '${tenantId}' AND recipient_id = '${userId}'
+        ORDER BY created_at DESC
+        LIMIT ${parseInt(limit as string) || 20}
+      `;
+      
+      console.log('🔔 [NotificationsController] Executing query:', query);
+      
+      const result = await db.execute(sql.raw(query));
+      const notifications = Array.isArray(result) ? result : (result.rows || []);
+      
+      console.log('🔔 [NotificationsController] Notifications found:', notifications.length);
+      
       res.json({
         success: true,
         message: 'Notifications retrieved successfully',
-        data: [],
+        data: notifications,
         filters: { 
           userId, 
           read: read === 'true', 
@@ -27,6 +59,7 @@ export class NotificationsController {
         }
       });
     } catch (error) {
+      console.error('🔔 [NotificationsController] Error:', error);
       const message = error instanceof Error ? error.message : 'Failed to retrieve notifications';
       res.status(500).json({ success: false, message });
     }

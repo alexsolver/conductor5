@@ -126,13 +126,45 @@ export class KnowledgeBaseController {
     try {
       const tenantId = req.headers['x-tenant-id'] as string;
       
+      console.log('📚 [KnowledgeBaseController] Getting categories for tenant:', tenantId);
+      
+      // Use direct SQL query following same pattern as tickets
+      const { db } = await import('../../../db');
+      const { sql } = await import('drizzle-orm');
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      const query = `
+        SELECT 
+          id,
+          tenant_id,
+          name,
+          description,
+          parent_category_id,
+          sort_order,
+          is_active,
+          created_at,
+          updated_at
+        FROM "${schemaName}".knowledge_categories
+        WHERE tenant_id = '${tenantId}' AND is_active = true
+        ORDER BY sort_order ASC, name ASC
+        LIMIT 50
+      `;
+      
+      console.log('📚 [KnowledgeBaseController] Executing query:', query);
+      
+      const result = await db.execute(sql.raw(query));
+      const categories = Array.isArray(result) ? result : (result.rows || []);
+      
+      console.log('📚 [KnowledgeBaseController] Categories found:', categories.length);
+      
       res.json({
         success: true,
         message: 'Knowledge base categories retrieved successfully',
-        data: [],
+        data: categories,
         tenantId
       });
     } catch (error) {
+      console.error('📚 [KnowledgeBaseController] Error:', error);
       const message = error instanceof Error ? error.message : 'Failed to retrieve categories';
       res.status(500).json({ success: false, message });
     }

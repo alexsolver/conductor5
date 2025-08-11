@@ -13,13 +13,51 @@ export class BeneficiariesController {
       const tenantId = req.headers['x-tenant-id'] as string;
       const { search, customerId, active } = req.query;
       
+      console.log('👥 [BeneficiariesController] Getting beneficiaries for tenant:', tenantId);
+      
+      // Use direct SQL query following same pattern as tickets
+      const { db } = await import('../../../db');
+      const { sql } = await import('drizzle-orm');
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      const query = `
+        SELECT 
+          id,
+          tenant_id,
+          first_name,
+          last_name,
+          email,
+          birth_date,
+          rg,
+          cpf_cnpj,
+          is_active,
+          customer_code,
+          customer_id,
+          phone,
+          cell_phone,
+          created_at,
+          updated_at
+        FROM "${schemaName}".beneficiaries
+        WHERE tenant_id = '${tenantId}' AND is_active = true
+        ORDER BY created_at DESC
+        LIMIT 50
+      `;
+      
+      console.log('👥 [BeneficiariesController] Executing query:', query);
+      
+      const result = await db.execute(sql.raw(query));
+      const beneficiaries = Array.isArray(result) ? result : (result.rows || []);
+      
+      console.log('👥 [BeneficiariesController] Beneficiaries found:', beneficiaries.length);
+      
       res.json({
         success: true,
         message: 'Beneficiaries retrieved successfully',
-        data: [],
+        data: beneficiaries,
         filters: { search, customerId, active: active === 'true', tenantId }
       });
     } catch (error) {
+      console.error('👥 [BeneficiariesController] Error:', error);
       const message = error instanceof Error ? error.message : 'Failed to retrieve beneficiaries';
       res.status(500).json({ success: false, message });
     }
