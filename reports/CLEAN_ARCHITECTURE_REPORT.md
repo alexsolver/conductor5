@@ -7,10 +7,10 @@
 ## Resumo de Problemas
 
 - 🔥 **Críticos:** 5
-- ⚠️ **Altos:** 137
+- ⚠️ **Altos:** 138
 - 📋 **Médios:** 61
 - 💡 **Baixos:** 131
-- **Total:** 334
+- **Total:** 335
 
 ## Principais Problemas por Módulo
 
@@ -190,12 +190,12 @@
   - Estrutura esperada 'dto' ausente na camada 'application'
 
 ### ⚠️ auth
-- **Total de problemas:** 10
-- **Críticos:** 0 | **Altos:** 3
+- **Total de problemas:** 11
+- **Críticos:** 0 | **Altos:** 4
 - **Principais problemas:**
   - Application Layer: Dependência proibida encontrada -> express
+  - Application Layer: Dependência proibida encontrada -> jsonwebtoken
   - Entity misturada com conceitos de Presentation layer (DTOs, Request/Response) - violação de responsabilidade
-  - Use Case contém lógica de Presentation layer (acesso a request/response, express)
 
 ### 🔥 customers
 - **Total de problemas:** 18
