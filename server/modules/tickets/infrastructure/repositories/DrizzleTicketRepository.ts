@@ -263,7 +263,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
       { getValue: () => data.priority || 'medium' },
       { getValue: () => data.status || 'open' },
       data.customerId || data.customer_id || null,
-      data.assignedToId || data.assigned_to_id || null,
+      data.assignedToId || data.assigned_to_id || null, // This line uses the correct field name when mapping data to Ticket entity
       data.category || 'General',
       data.createdAt || new Date(),
       data.updatedAt || new Date()

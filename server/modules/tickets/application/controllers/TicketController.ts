@@ -15,30 +15,35 @@ export class TicketController {
 
   async getAllTickets(req: Request, res: Response): Promise<void> {
     try {
-      const { tenantId } = req.user || {};
+      console.log('🎫 [TICKETS-ROUTES] Request context:', {
+        path: req.path,
+        method: req.method,
+        hasUser: !!req.user,
+        tenantId: req.user?.tenantId,
+        userId: req.user?.userId
+      });
 
-      if (!tenantId) {
-        res.status(400).json(standardResponse(false, 'Tenant ID is required'));
-        return;
-      }
-
-      // Clean Architecture: Controller only handles HTTP concerns, delegates business logic to Use Case
-      const query = {
+      const { tenantId } = req.user!;
+      const tickets = await this.getTicketsUseCase.execute({ 
         tenantId,
-        page: parseInt(req.query.page as string) || 1,
-        limit: parseInt(req.query.limit as string) || 50,
-        search: req.query.search as string,
-        status: req.query.status as string,
-        priority: req.query.priority as string,
-        assignedToId: req.query.assignedToId as string,
-        customerId: req.query.customerId as string // Fixed: Use customerId instead of companyId
-      };
+        filters: req.query as any
+      });
 
-      const result = await this.getAllTicketsUseCase.execute(query);
-      res.json(standardResponse(true, 'Tickets retrieved successfully', result));
+      res.json({
+        success: true,
+        message: 'Tickets retrieved successfully',
+        data: tickets,
+        count: tickets.length
+      });
     } catch (error) {
-      console.error('❌ Error in getAllTickets:', error);
-      res.status(500).json(standardResponse(false, 'Failed to retrieve tickets'));
+      console.error('❌ Error finding all tickets:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error retrieving tickets',
+        data: [],
+        count: 0,
+        error: error.message
+      });
     }
   }
 
@@ -54,7 +59,7 @@ export class TicketController {
       // Clean Architecture: Delegate to Use Case, controller only handles HTTP protocol
       const ticketData = { ...req.body, tenantId };
       const result = await this.createTicketUseCase.execute(ticketData);
-      
+
       res.status(201).json(standardResponse(true, 'Ticket created successfully', result));
     } catch (error) {
       console.error('❌ Error creating ticket:', error);
