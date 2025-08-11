@@ -25,21 +25,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
   async findAll(tenantId: string): Promise<Ticket[]> {
     try {
       const results = await this.dbConnection
-        .select({
-          id: tickets.id,
-          tenantId: tickets.tenantId,
-          number: tickets.number,
-          subject: tickets.subject,
-          description: tickets.description,
-          priority: tickets.priority,
-          status: tickets.status,
-          customerId: tickets.customerId,
-          assignedToId: tickets.assigned_to_id,
-          category: tickets.category,
-          subcategory: tickets.subcategory,
-          createdAt: tickets.createdAt,
-          updatedAt: tickets.updatedAt
-        })
+        .select()
         .from(tickets)
         .where(eq(tickets.tenantId, tenantId));
 
