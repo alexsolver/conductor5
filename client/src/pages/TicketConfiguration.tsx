@@ -240,13 +240,38 @@ const TicketConfiguration: React.FC = () => {
   });
 
   // Queries
-  const { data: companies = [] } = useQuery({
+  const { data: companiesData, isLoading: companiesLoading } = useQuery({
     queryKey: ['/api/customers/companies'],
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/customers/companies');
-      return response.json();
-    }
+      const result = await response.json();
+      console.log('🔍 Companies API Response:', result);
+      return result;
+    },
+    retry: 3,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
+
+  // Ensure companies is always an array with proper validation
+  const companies = React.useMemo(() => {
+    if (companiesLoading) return [];
+
+    // Handle different response formats
+    if (Array.isArray(companiesData)) {
+      return companiesData;
+    }
+
+    if (companiesData?.success && Array.isArray(companiesData.data)) {
+      return companiesData.data;
+    }
+
+    if (companiesData?.companies && Array.isArray(companiesData.companies)) {
+      return companiesData.companies;
+    }
+
+    console.warn('⚠️ Companies data is not in expected format:', companiesData);
+    return [];
+  }, [companiesData, companiesLoading]);
 
   const { data: categories = [] } = useQuery({
     queryKey: ['categories', selectedCompany],
@@ -281,7 +306,7 @@ const TicketConfiguration: React.FC = () => {
     enabled: !!selectedCompany
   });
 
-  const { data: fieldOptions = [], refetch: refetchFieldOptions } = useQuery({
+  const { data: fieldOptions, refetch: refetchFieldOptions } = useQuery({
     queryKey: ['field-options', selectedCompany],
     queryFn: async () => {
       if (!selectedCompany) return [];
@@ -481,10 +506,10 @@ const TicketConfiguration: React.FC = () => {
     },
     onSuccess: async (result) => {
       console.log('✅ Field option updated successfully:', result);
-      
+
       // Invalidate cache sem forçar refetch imediato
       queryClient.invalidateQueries({ queryKey: ['field-options', selectedCompany] });
-      
+
       setDialogOpen(false);
       fieldOptionForm.reset();
       toast({ 
@@ -512,10 +537,10 @@ const TicketConfiguration: React.FC = () => {
     },
     onSuccess: async (result) => {
       console.log('✅ Field option status updated successfully:', result);
-      
+
       // Invalidate cache sem forçar refetch imediato
       queryClient.invalidateQueries({ queryKey: ['field-options', selectedCompany] });
-      
+
       toast({ 
         title: "Status atualizado com sucesso",
         description: "A opção foi ativada/desativada."
@@ -608,7 +633,7 @@ const TicketConfiguration: React.FC = () => {
     },
     onSuccess: async (result) => {
       console.log('✅ Hierarchy copied successfully:', result);
-      
+
       // Invalidate all related queries to refresh data
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['categories', selectedCompany] }),
@@ -617,7 +642,7 @@ const TicketConfiguration: React.FC = () => {
         queryClient.invalidateQueries({ queryKey: ['field-options', selectedCompany] }),
         queryClient.invalidateQueries({ queryKey: ['/api/ticket-config/numbering', selectedCompany] })
       ]);
-      
+
       // Force refetch to ensure UI updates
       await Promise.all([
         queryClient.refetchQueries({ queryKey: ['categories', selectedCompany] }),
@@ -626,7 +651,7 @@ const TicketConfiguration: React.FC = () => {
         queryClient.refetchQueries({ queryKey: ['field-options', selectedCompany] }),
         queryClient.refetchQueries({ queryKey: ['/api/ticket-config/numbering', selectedCompany] })
       ]);
-      
+
       toast({ 
         title: "Estrutura copiada com sucesso",
         description: `${result.summary || 'Toda a estrutura hierárquica foi copiada da empresa Default.'}`
@@ -767,7 +792,7 @@ const TicketConfiguration: React.FC = () => {
               ))}
             </SelectContent>
           </Select>
-          
+
           {/* Botão para copiar estrutura da empresa Default */}
           {selectedCompany && selectedCompany !== '00000000-0000-0000-0000-000000000001' && (
             <div className="flex items-center space-x-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
@@ -1004,7 +1029,7 @@ const TicketConfiguration: React.FC = () => {
                                 <div key={subcategory.id} className="border-t border-gray-100">
                                   {/* Header da Subcategoria */}
                                   <div className="flex items-center justify-between p-4 pl-12 bg-green-50 hover:bg-green-100 transition-colors">
-                                    <div className="flex items-center space-x-3 flex-1">
+                                    <div className="flex items-center space-x-3">
                                       <div 
                                         className="w-4 h-4 rounded border border-white shadow-sm"
                                         style={{ backgroundColor: subcategory.color }}

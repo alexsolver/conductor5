@@ -65,6 +65,9 @@ export async function apiRequest(
     headers["Content-Type"] = "application/json";
   }
   
+  // Add request logging for debugging
+  console.log(`🌐 API Request: ${method} ${url}`, data ? { data } : '');
+  
   // Add authorization header if token exists (but skip redirect for login/register endpoints)
   let token = localStorage.getItem('accessToken');
   const isAuthEndpoint = url.includes('/auth/login') || url.includes('/auth/register');
@@ -117,8 +120,14 @@ export async function apiRequest(
     }
   }
 
-  await throwIfResNotOk(res);
-  return res;
+  try {
+    await throwIfResNotOk(res);
+    console.log(`✅ API Success: ${method} ${url} - ${res.status}`);
+    return res;
+  } catch (error) {
+    console.error(`❌ API Error: ${method} ${url} - ${res.status}:`, error);
+    throw error;
+  }
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";

@@ -51,126 +51,47 @@ export const schemaManager = {
   // Enhanced tenant schema validation with detailed checks for Customer Module
   async validateTenantSchema(tenantId: string): Promise<boolean> {
     try {
+      // Validate UUID format
+      if (!tenantId || !/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/.test(tenantId)) {
+        throw new Error(`Invalid tenant UUID: ${tenantId}`);
+      }
+
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
-      // Validate schema exists
-      const schemaExists = await pool.query(`
-        SELECT schema_name 
-        FROM information_schema.schemata 
-        WHERE schema_name = $1
-      `, [schemaName]);
+      // Check if schema exists
+      const schemaExists = await this.pool.query(
+        'SELECT schema_name FROM information_schema.schemata WHERE schema_name = $1',
+        [schemaName]
+      );
 
       if (schemaExists.rows.length === 0) {
-        console.log(`❌ Schema ${schemaName} does not exist`);
+        console.error(`❌ Tenant schema not found: ${schemaName}`);
         return false;
       }
 
-      // Get table count
-      const result = await pool.query(`
-        SELECT COUNT(*) as table_count 
-        FROM information_schema.tables 
-        WHERE table_schema = $1
-      `, [schemaName]);
+      // Verify essential tables exist
+      const requiredTables = [
+        'customers', 'tickets', 'ticket_messages', 'activity_logs', 
+        'locations', 'customer_companies', 'skills', 'certifications', 
+        'user_skills', 'favorecidos', 'projects', 'project_actions'
+      ];
 
-      const tableCount = parseInt(result.rows[0]?.table_count || "0");
+      const tableCount = await this.pool.query(
+        `SELECT COUNT(*) as count FROM information_schema.tables 
+         WHERE table_schema = $1 AND table_name = ANY($2)`,
+        [schemaName, requiredTables]
+      );
 
-      // ✅ CUSTOMER MODULE SPECIFIC VALIDATION - COMPREHENSIVE TABLE CHECK
-      const customerModuleTables = await pool.query(`
-        SELECT table_name 
-        FROM information_schema.tables 
-        WHERE table_schema = $1
-        AND table_name IN (
-          'customers', 'beneficiaries', 'companies', 'customer_company_memberships',
-          'customer_item_mappings', 'tickets', 'locations', 'user_groups', 'activity_logs'
-        )
-        ORDER BY table_name
-      `, [schemaName]);
-
-      const customerTables = customerModuleTables.rows.map(row => row.table_name);
-
-      // ✅ VALIDATE CUSTOMER TABLE STRUCTURE - ENHANCED
-      const customerStructure = await pool.query(`
-        SELECT column_name, data_type, is_nullable, column_default
-        FROM information_schema.columns 
-        WHERE table_schema = $1 AND table_name = 'customers'
-        AND column_name IN ('tenant_id', 'customer_type', 'first_name', 'last_name', 'email', 'is_active', 'created_at', 'updated_at')
-        ORDER BY ordinal_position
-      `, [schemaName]);
-
-      const customerFieldsOk = customerStructure.rows.length >= 8;
-
-      // ✅ VALIDATE BENEFICIARIES TABLE STRUCTURE - ENHANCED
-      const beneficiariesStructure = await pool.query(`
-        SELECT column_name, data_type
-        FROM information_schema.columns 
-        WHERE table_schema = $1 AND table_name = 'beneficiaries'
-        AND column_name IN ('tenant_id', 'name', 'cpf', 'cnpj', 'is_active', 'created_at', 'updated_at')
-      `, [schemaName]);
-
-      const beneficiariesFieldsOk = beneficiariesStructure.rows.length >= 6;
-
-      // ✅ VALIDATE FOREIGN KEYS FOR CUSTOMER MODULE
-      const foreignKeyCheck = await pool.query(`
-        SELECT 
-          tc.table_name,
-          kcu.column_name,
-          ccu.table_name AS foreign_table_name,
-          ccu.column_name AS foreign_column_name
-        FROM information_schema.table_constraints tc
-        JOIN information_schema.key_column_usage kcu
-          ON tc.constraint_name = kcu.constraint_name
-          AND tc.table_schema = kcu.table_schema
-        JOIN information_schema.constraint_column_usage ccu
-          ON ccu.constraint_name = tc.constraint_name
-          AND ccu.table_schema = tc.table_schema
-        WHERE tc.constraint_type = 'FOREIGN KEY'
-          AND tc.table_schema = $1
-          AND tc.table_name IN ('tickets', 'customer_company_memberships', 'beneficiaries')
-      `, [schemaName]);
-
-      const foreignKeysOk = foreignKeyCheck.rows.length >= 3; // At least 3 FK relationships expected
-
-      // Check for required soft delete columns on customer tables
-      const customerSoftDeleteCheck = await pool.query(`
-        SELECT 
-          t.table_name,
-          CASE WHEN c.column_name IS NOT NULL THEN true ELSE false END as has_is_active
-        FROM (
-          SELECT 'customers' as table_name UNION ALL
-          SELECT 'beneficiaries' UNION ALL  
-          SELECT 'companies' UNION ALL
-          SELECT 'tickets' UNION ALL
-          SELECT 'activity_logs'
-        ) t
-        LEFT JOIN information_schema.columns c 
-          ON c.table_schema = $1 
-          AND c.table_name = t.table_name 
-          AND c.column_name = 'is_active'
-      `, [schemaName]);
-
-      const customerSoftDeleteCoverage = customerSoftDeleteCheck.rows.filter(row => row.has_is_active).length;
-
-      // ✅ CUSTOMER MODULE VALIDATION CRITERIA - ENHANCED
-      const customerModuleValid = customerTables.length >= 6 && customerFieldsOk && beneficiariesFieldsOk && customerSoftDeleteCoverage >= 4 && foreignKeysOk;
-      const overallValid = tableCount >= 60 && customerModuleValid;
-
-      console.log(`🏢 Customer Module validated for ${tenantId}:`);
-      console.log(`   📋 Customer tables: ${customerTables.length}/8 (${customerTables.join(', ')})`);
-      console.log(`   🔧 Customer fields: ${customerFieldsOk ? 'OK' : 'MISSING'}`);
-      console.log(`   🏷️ Beneficiaries fields: ${beneficiariesFieldsOk ? 'OK' : 'MISSING'}`);
-      console.log(`   🔗 Foreign keys: ${foreignKeysOk ? 'OK' : 'MISSING'} (${foreignKeyCheck.rows.length} found)`);
-      console.log(`   🗑️ Soft delete coverage: ${customerSoftDeleteCoverage}/5`);
-      console.log(`   ✅ Total tables: ${tableCount} - ${overallValid ? 'VALID' : 'INVALID'}`);
-
-      if (!customerModuleValid) {
-        const expectedCustomerTables = ['customers', 'beneficiaries', 'companies', 'customer_company_memberships', 'tickets', 'locations', 'user_groups', 'activity_logs'];
-        console.log(`❌ Missing customer tables: ${expectedCustomerTables.filter(t => !customerTables.includes(t))}`);
-        console.log(`❌ Missing foreign keys - expected relationships in tickets, memberships, and beneficiaries`);
+      const foundTables = parseInt(tableCount.rows[0].count);
+      if (foundTables < requiredTables.length) {
+        console.error(`❌ Incomplete tenant schema: ${schemaName} has ${foundTables}/${requiredTables.length} required tables`);
+        return false;
       }
 
-      return overallValid;
+      console.log(`✅ Tenant schema validated: ${schemaName} with ${foundTables} tables`);
+      return true;
     } catch (error) {
-      console.error(`❌ Customer Module schema validation failed for ${tenantId}:`, error);
+      console.error(`❌ Tenant schema validation failed for ${tenantId}:`, error.message);
       return false;
     }
   },

@@ -12,22 +12,22 @@ export class AuthController {
   async login(req: Request, res: Response): Promise<void> {
     try {
       const { email, password } = req.body;
-      
+
       if (!email || !password) {
-        res.status(400).json({ 
-          success: false, 
-          message: 'Email and password are required' 
+        res.status(400).json({
+          success: false,
+          message: 'Email and password are required'
         });
         return;
       }
-      
+
       // Generate real JWT tokens using TokenManager
       const { tokenManager } = await import('../../../../utils/tokenManager');
-      
+
       // Use real data for alex@lansolver.com as confirmed in database
-      const user = email === 'alex@lansolver.com' ? { 
+      const user = email === 'alex@lansolver.com' ? {
         id: '550e8400-e29b-41d4-a716-446655440001',
-        email, 
+        email,
         firstName: 'Alex',
         lastName: 'Lansolver',
         role: 'saas_admin',
@@ -36,9 +36,9 @@ export class AuthController {
         isActive: true,
         lastLoginAt: new Date().toISOString(),
         createdAt: new Date().toISOString()
-      } : { 
+      } : {
         id: 'mock-user-id',
-        email, 
+        email,
         firstName: 'Test',
         lastName: 'User',
         role: 'tenant_admin',
@@ -83,16 +83,41 @@ export class AuthController {
 
   async register(req: Request, res: Response): Promise<void> {
     try {
-      const { email, password, firstName, lastName, companyName, workspaceName, role } = req.body;
-      
-      if (!email || !password) {
-        res.status(400).json({ 
-          success: false, 
-          message: 'Email and password are required' 
+      const { email, password, firstName, lastName, companyName, workspaceName, role, tenantId } = req.body;
+
+      // Validate required fields with detailed error messages
+      const missingFields = [];
+      if (!email) missingFields.push('email');
+      if (!password) missingFields.push('password');
+      if (!firstName) missingFields.push('firstName');
+      if (!tenantId) missingFields.push('tenantId');
+
+      if (missingFields.length > 0) {
+        console.error('❌ Missing required fields for registration:', missingFields);
+        return res.status(400).json({
+          success: false,
+          message: `Missing required fields: ${missingFields.join(', ')}`,
+          missingFields
         });
-        return;
       }
-      
+
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid email format'
+        });
+      }
+
+      // Validate password strength
+      if (password.length < 6) {
+        return res.status(400).json({
+          success: false,
+          message: 'Password must be at least 6 characters long'
+        });
+      }
+
       // Create user with optional fields
       const userData = {
         email,
@@ -100,9 +125,10 @@ export class AuthController {
         lastName: lastName || '',
         companyName: companyName || 'Default Company',
         workspaceName: workspaceName || 'Default Workspace',
-        role: role || 'tenant_admin'
+        role: role || 'tenant_admin',
+        tenantId: tenantId // Assign tenantId here
       };
-      
+
       res.status(201).json({
         success: true,
         message: 'User registered successfully',
@@ -118,7 +144,7 @@ export class AuthController {
     try {
       const userId = req.headers['x-user-id'] as string;
       const tenantId = req.headers['x-tenant-id'] as string;
-      
+
       res.json({
         success: true,
         message: 'User profile retrieved',
@@ -145,23 +171,23 @@ export class AuthController {
   async refreshToken(req: Request, res: Response): Promise<void> {
     try {
       const { refreshToken } = req.body;
-      
+
       if (!refreshToken) {
-        res.status(400).json({ 
-          success: false, 
-          message: 'Refresh token is required' 
+        res.status(400).json({
+          success: false,
+          message: 'Refresh token is required'
         });
         return;
       }
 
       // Verify refresh token using TokenManager
       const { tokenManager } = await import('../../../../utils/tokenManager');
-      
+
       const decoded = tokenManager.verifyRefreshToken(refreshToken);
       if (!decoded) {
-        res.status(401).json({ 
-          success: false, 
-          message: 'Invalid or expired refresh token' 
+        res.status(401).json({
+          success: false,
+          message: 'Invalid or expired refresh token'
         });
         return;
       }

@@ -14,7 +14,30 @@ router.get('/:id', jwtAuth, (req, res) => customerController.getCustomer(req, re
 router.put('/:id', jwtAuth, (req, res) => customerController.updateCustomer(req, res));
 
 // Company routes
-router.get('/companies', jwtAuth, (req, res) => companyController.getCompanies(req, res));
+// GET /api/customers/companies
+router.get('/companies', jwtAuth, async (req, res) => {
+  try {
+    const companies = await getCompaniesUseCase.execute(req.user.tenantId);
+
+    // Ensure consistent response format
+    const companiesArray = Array.isArray(companies) ? companies : [];
+
+    console.log(`✅ Companies fetched for tenant ${req.user.tenantId}:`, companiesArray.length);
+
+    res.json({
+      success: true,
+      data: companiesArray,
+      total: companiesArray.length
+    });
+  } catch (error) {
+    console.error('❌ Error fetching companies:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to fetch companies',
+      data: []
+    });
+  }
+});
 router.post('/companies', jwtAuth, (req, res) => companyController.createCompany(req, res));
 
 export { router as customersRouter };
