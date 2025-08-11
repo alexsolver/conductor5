@@ -15,30 +15,36 @@ import { DrizzleBeneficiaryRepository } from './infrastructure/repositories/Driz
 export function createBeneficiariesRoutes(db: any, schema: any, jwtAuth: any): Router {
   const router = Router();
 
-  // Repository instance
-  const beneficiaryRepository = new DrizzleBeneficiaryRepository(db, schema);
+  try {
+    // Repository instance
+    const beneficiaryRepository = new DrizzleBeneficiaryRepository(db, schema);
 
-  // Use Cases instances
-  const createBeneficiaryUseCase = new CreateBeneficiaryUseCase(beneficiaryRepository);
-  const updateBeneficiaryUseCase = new UpdateBeneficiaryUseCase(beneficiaryRepository);
-  const getBeneficiariesUseCase = new GetBeneficiariesUseCase(beneficiaryRepository);
-  const deleteBeneficiaryUseCase = new DeleteBeneficiaryUseCase(beneficiaryRepository);
+    // Use Cases instances
+    const createBeneficiaryUseCase = new CreateBeneficiaryUseCase(beneficiaryRepository);
+    const updateBeneficiaryUseCase = new UpdateBeneficiaryUseCase(beneficiaryRepository);
+    const getBeneficiariesUseCase = new GetBeneficiariesUseCase(beneficiaryRepository);
+    const deleteBeneficiaryUseCase = new DeleteBeneficiaryUseCase(beneficiaryRepository);
 
-  // Controller instance with dependency injection
-  const controller = new BeneficiariesController(
-    createBeneficiaryUseCase,
-    updateBeneficiaryUseCase,
-    getBeneficiariesUseCase,
-    deleteBeneficiaryUseCase
-  );
+    // Controller instance with dependency injection
+    const controller = new BeneficiariesController(
+      createBeneficiaryUseCase,
+      updateBeneficiaryUseCase,
+      getBeneficiariesUseCase,
+      deleteBeneficiaryUseCase
+    );
 
-  // Routes with proper middleware
-  router.get('/', jwtAuth, (req, res) => controller.getBeneficiaries(req, res));
-  router.post('/', jwtAuth, (req, res) => controller.createBeneficiary(req, res));
-  router.put('/:id', jwtAuth, (req, res) => controller.updateBeneficiary(req, res));
-  router.delete('/:id', jwtAuth, (req, res) => controller.deleteBeneficiary(req, res));
+    // Routes with proper middleware
+    router.get('/', jwtAuth, (req, res) => controller.getBeneficiaries(req, res));
+    router.post('/', jwtAuth, (req, res) => controller.createBeneficiary(req, res));
+    router.put('/:id', jwtAuth, (req, res) => controller.updateBeneficiary(req, res));
+    router.delete('/:id', jwtAuth, (req, res) => controller.deleteBeneficiary(req, res));
 
-  return router;
+    console.log('✅ Beneficiaries routes registered successfully');
+    return router;
+  } catch (error) {
+    console.error('❌ Error creating beneficiaries routes:', error);
+    return router;
+  }
 }
 
 // Default export for backward compatibility

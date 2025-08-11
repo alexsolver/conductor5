@@ -125,6 +125,24 @@ app.use((req, res, next) => {
   app.use('/api/tickets', ticketFieldOptionsRouter);
   console.log('✅ Ticket field options routes registered');
 
+  // Customers router
+  try {
+    const { createCustomersRoutes } = await import('./modules/customers/routes');
+    app.use('/api/customers', createCustomersRoutes(db, schema, jwtAuth));
+    console.log('✅ Customers router registered');
+  } catch (error) {
+    console.log('Customers router not available, skipping...');
+  }
+
+  // Beneficiaries router
+  try {
+    const { createBeneficiariesRoutes } = await import('./modules/beneficiaries/routes');
+    app.use('/api/beneficiaries', createBeneficiariesRoutes(db, schema, jwtAuth));
+    console.log('✅ Beneficiaries router registered');
+  } catch (error) {
+    console.log('Beneficiaries router not available, skipping...');
+  }
+
   app.get('/health', async (req, res) => {
     const memoryUsage = process.memoryUsage();
     const cpuUsage = process.cpuUsage();

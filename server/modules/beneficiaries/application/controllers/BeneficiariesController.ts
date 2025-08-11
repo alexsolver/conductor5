@@ -11,6 +11,9 @@ import { GetBeneficiariesUseCase } from '../use-cases/GetBeneficiariesUseCase';
 import { DeleteBeneficiaryUseCase } from '../use-cases/DeleteBeneficiaryUseCase';
 import { CreateBeneficiaryDTO, UpdateBeneficiaryDTO, GetBeneficiariesDTO } from '../dto/CreateBeneficiaryDTO';
 
+export import { CreateBeneficiaryDTO, UpdateBeneficiaryDTO, GetBeneficiariesDTO } from '../dto/CreateBeneficiaryDTO';
+import { Request, Response } from 'express';
+
 export class BeneficiariesController {
   constructor(
     private readonly createBeneficiaryUseCase: CreateBeneficiaryUseCase,
