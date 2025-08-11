@@ -6,7 +6,7 @@
 import { ICustomFieldRepository } from '../../domain/repositories/ICustomFieldRepository';
 import { CustomField } from '../../domain/entities/CustomField';
 
-export interface GetCustomFieldsRequest {
+export interface GetCustomFieldsany {
   tenantId: string;
 }
 
@@ -15,7 +15,7 @@ export class GetCustomFieldsUseCase {
     private customFieldRepository: ICustomFieldRepository
   ) {}
 
-  async execute(request: GetCustomFieldsRequest): Promise<CustomField[]> {
+  async execute(request: GetCustomFieldsany): Promise<CustomField[]> {
     if (!request.tenantId) {
       throw new Error('Tenant ID is required');
     }

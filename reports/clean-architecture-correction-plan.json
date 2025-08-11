@@ -13,6 +13,12 @@
   },
   {
     "type": "critical",
+    "module": "customers",
+    "description": "Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade",
+    "action": "Mover lógica de infraestrutura para Repository na camada Infrastructure"
+  },
+  {
+    "type": "critical",
     "module": "materials-services",
     "description": "Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade",
     "action": "Mover lógica de infraestrutura para Repository na camada Infrastructure"

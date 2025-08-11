@@ -1,32 +1,21 @@
+
 import { Router } from 'express';
-import { jwtAuth } from '../../middleware/jwtAuth';
-import { tenantValidator } from '../../middleware/tenantValidator';
 import { CustomerController } from './application/controllers/CustomerController';
+import { CompanyController } from './application/controllers/CompanyController';
+import { jwtAuth } from '../../middleware/jwtAuth';
 
 const router = Router();
+const customerController = new CustomerController();
+const companyController = new CompanyController();
 
-// Middleware de autenticação para todas as rotas
-router.use(jwtAuth);
-router.use(tenantValidator);
+// Customer routes
+router.get('/', jwtAuth, (req, res) => customerController.getCustomers(req, res));
+router.post('/', jwtAuth, (req, res) => customerController.createCustomer(req, res));
+router.get('/:id', jwtAuth, (req, res) => customerController.getCustomer(req, res));
+router.put('/:id', jwtAuth, (req, res) => customerController.updateCustomer(req, res));
 
-// CLEANED: Temporary stub implementation while fixing Clean Architecture - removes business logic from routes
-const customerApplicationService = {
-  createCustomer: async (data: any) => ({ success: true, customer: data }),
-  getCustomers: async (params: any) => ({ success: true, customers: [], total: 0 }),
-  updateCustomer: async (data: any) => ({ success: true, customer: data }),
-  deleteCustomer: async (data: any) => ({ success: true })
-};
-
-const customerRepository = {}; // Temporary placeholder - will be replaced with proper DI
-
-// Controller instantiation with proper dependencies
-const customerController = new CustomerController(customerApplicationService, customerRepository);
-
-// Rotas CRUD - delegando para controllers
-router.get('/', customerController.getAll.bind(customerController));
-router.get('/:id', customerController.getById.bind(customerController));
-router.post('/', customerController.create.bind(customerController));
-router.put('/:id', customerController.update.bind(customerController));
-router.delete('/:id', customerController.delete.bind(customerController));
+// Company routes
+router.get('/companies', jwtAuth, (req, res) => companyController.getCompanies(req, res));
+router.post('/companies', jwtAuth, (req, res) => companyController.createCompany(req, res));
 
 export default router;

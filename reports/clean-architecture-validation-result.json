@@ -3,36 +3,6 @@
   "score": 0,
   "issues": [
     {
-      "id": "ROUTES-AUTH-NO-LOGIC",
-      "layer": "presentation",
-      "module": "auth",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Arquivo de rotas não parece conter controllers ou chamadas a Use Cases.",
-      "file": "/home/runner/workspace/server/modules/auth/routes.ts",
-      "suggestedFix": "Definir rotas que utilizem controllers da camada Application ou chamem Use Cases."
-    },
-    {
-      "id": "ROUTES-AUTH-BUSINESS-LOGIC",
-      "layer": "presentation",
-      "module": "auth",
-      "severity": "high",
-      "type": "coupling_issue",
-      "description": "Rotas contêm lógica de negócio ou acesso direto a dados",
-      "file": "/home/runner/workspace/server/modules/auth/routes.ts",
-      "suggestedFix": "Mover lógica de negócio/dados para Use Cases na camada Application e/ou Controllers."
-    },
-    {
-      "id": "ROUTES-BENEFICIARIES-NO-LOGIC",
-      "layer": "presentation",
-      "module": "beneficiaries",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Arquivo de rotas não parece conter controllers ou chamadas a Use Cases.",
-      "file": "/home/runner/workspace/server/modules/beneficiaries/routes.ts",
-      "suggestedFix": "Definir rotas que utilizem controllers da camada Application ou chamem Use Cases."
-    },
-    {
       "id": "ROUTES-BENEFICIARIES-BUSINESS-LOGIC",
       "layer": "presentation",
       "module": "beneficiaries",
@@ -60,26 +30,6 @@
       "type": "coupling_issue",
       "description": "Rotas contêm lógica de negócio ou acesso direto a dados",
       "file": "/home/runner/workspace/server/modules/custom-fields/routes.ts",
-      "suggestedFix": "Mover lógica de negócio/dados para Use Cases na camada Application e/ou Controllers."
-    },
-    {
-      "id": "ROUTES-CUSTOMERS-NO-LOGIC",
-      "layer": "presentation",
-      "module": "customers",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Arquivo de rotas não parece conter controllers ou chamadas a Use Cases.",
-      "file": "/home/runner/workspace/server/modules/customers/routes.ts",
-      "suggestedFix": "Definir rotas que utilizem controllers da camada Application ou chamem Use Cases."
-    },
-    {
-      "id": "ROUTES-CUSTOMERS-BUSINESS-LOGIC",
-      "layer": "presentation",
-      "module": "customers",
-      "severity": "high",
-      "type": "coupling_issue",
-      "description": "Rotas contêm lógica de negócio ou acesso direto a dados",
-      "file": "/home/runner/workspace/server/modules/customers/routes.ts",
       "suggestedFix": "Mover lógica de negócio/dados para Use Cases na camada Application e/ou Controllers."
     },
     {
@@ -131,16 +81,6 @@
       "description": "Rotas contêm lógica de negócio ou acesso direto a dados",
       "file": "/home/runner/workspace/server/modules/locations/routes.ts",
       "suggestedFix": "Mover lógica de negócio/dados para Use Cases na camada Application e/ou Controllers."
-    },
-    {
-      "id": "ROUTES-MATERIALS-SERVICES-NO-LOGIC",
-      "layer": "presentation",
-      "module": "materials-services",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Arquivo de rotas não parece conter controllers ou chamadas a Use Cases.",
-      "file": "/home/runner/workspace/server/modules/materials-services/routes.ts",
-      "suggestedFix": "Definir rotas que utilizem controllers da camada Application ou chamem Use Cases."
     },
     {
       "id": "ROUTES-MATERIALS-SERVICES-BUSINESS-LOGIC",
@@ -353,16 +293,6 @@
       "suggestedFix": "Criar arquivo de rotas na camada Presentation ou no diretório raiz do módulo para definir endpoints da API"
     },
     {
-      "id": "ROUTES-TECHNICAL-SKILLS-BUSINESS-LOGIC",
-      "layer": "presentation",
-      "module": "technical-skills",
-      "severity": "high",
-      "type": "coupling_issue",
-      "description": "Rotas contêm lógica de negócio ou acesso direto a dados",
-      "file": "/home/runner/workspace/server/modules/technical-skills/routes.ts",
-      "suggestedFix": "Mover lógica de negócio/dados para Use Cases na camada Application e/ou Controllers."
-    },
-    {
       "id": "ARCH-TEMPLATE-HIERARCHY-INFRASTRUCTURE-CONFIG-MISSING",
       "layer": "infrastructure",
       "module": "template-hierarchy",
@@ -421,16 +351,6 @@
       "description": "Estrutura esperada 'config' ausente na camada 'infrastructure'",
       "file": "/home/runner/workspace/server/modules/ticket-templates/infrastructure/config",
       "suggestedFix": "Criar diretório/arquivo 'config' na camada 'infrastructure' se necessário"
-    },
-    {
-      "id": "ARCH-TICKETS-APPLICATION-USE-CASES-MISSING",
-      "layer": "application",
-      "module": "tickets",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Estrutura esperada 'use-cases' ausente na camada 'application'",
-      "file": "/home/runner/workspace/server/modules/tickets/application/use-cases",
-      "suggestedFix": "Criar diretório/arquivo 'use-cases' na camada 'application' se necessário"
     },
     {
       "id": "ROUTES-TICKETS-NO-LOGIC",
@@ -543,7 +463,7 @@
       "suggestedFix": "Criar arquivo de rotas na camada Presentation ou no diretório raiz do módulo para definir endpoints da API"
     },
     {
-      "id": "DEP-AUTH-APP-1754880239710-express",
+      "id": "DEP-AUTH-APP-1754880612749-express",
       "layer": "application",
       "module": "auth",
       "severity": "high",
@@ -554,7 +474,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-BENEFICIARIES-APP-1754880239759-express",
+      "id": "DEP-BENEFICIARIES-APP-1754880612751-express",
       "layer": "application",
       "module": "beneficiaries",
       "severity": "high",
@@ -565,7 +485,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-CUSTOM-FIELDS-APP-1754880239774-express",
+      "id": "DEP-CUSTOM-FIELDS-APP-1754880612752-express",
       "layer": "application",
       "module": "custom-fields",
       "severity": "high",
@@ -576,7 +496,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-CUSTOM-FIELDS-APP-1754880239775-express",
+      "id": "DEP-CUSTOM-FIELDS-APP-1754880612752-express",
       "layer": "application",
       "module": "custom-fields",
       "severity": "high",
@@ -587,7 +507,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-CUSTOM-FIELDS-APP-1754880239775-express",
+      "id": "DEP-CUSTOM-FIELDS-APP-1754880612752-express",
       "layer": "application",
       "module": "custom-fields",
       "severity": "high",
@@ -598,7 +518,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-CUSTOMERS-APP-1754880239792-express",
+      "id": "DEP-CUSTOMERS-APP-1754880612754-express",
       "layer": "application",
       "module": "customers",
       "severity": "high",
@@ -609,7 +529,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-DASHBOARD-APP-1754880239812-express",
+      "id": "DEP-DASHBOARD-APP-1754880612758-express",
       "layer": "application",
       "module": "dashboard",
       "severity": "high",
@@ -620,7 +540,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-FIELD-LAYOUT-APP-1754880239823-express",
+      "id": "DEP-FIELD-LAYOUT-APP-1754880612759-express",
       "layer": "application",
       "module": "field-layout",
       "severity": "high",
@@ -631,7 +551,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-FIELD-LAYOUTS-APP-1754880239834-express",
+      "id": "DEP-FIELD-LAYOUTS-APP-1754880612760-express",
       "layer": "application",
       "module": "field-layouts",
       "severity": "high",
@@ -642,7 +562,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-KNOWLEDGE-BASE-APP-1754880239850-express",
+      "id": "DEP-KNOWLEDGE-BASE-APP-1754880612761-express",
       "layer": "application",
       "module": "knowledge-base",
       "severity": "high",
@@ -653,7 +573,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-LOCATIONS-APP-1754880239862-express",
+      "id": "DEP-LOCATIONS-APP-1754880612763-express",
       "layer": "application",
       "module": "locations",
       "severity": "high",
@@ -664,7 +584,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754880239877-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754880612764-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -675,7 +595,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754880239877-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754880612764-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -686,7 +606,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754880239878-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754880612764-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -697,7 +617,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754880239878-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754880612765-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -708,7 +628,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754880239879-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754880612765-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -719,7 +639,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754880239879-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754880612765-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -730,7 +650,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754880239879-drizzleorm",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754880612765-drizzleorm",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -741,7 +661,7 @@
       "suggestedFix": "Application não deve importar ORM diretamente. Use interfaces de repositório do Domain."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754880239879-drizzleormnodepostgres",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754880612765-drizzleormnodepostgres",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -752,7 +672,7 @@
       "suggestedFix": "Application não deve importar ORM diretamente. Use interfaces de repositório do Domain."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754880239879-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754880612765-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -763,7 +683,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754880239880-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754880612765-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -774,7 +694,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754880239881-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754880612765-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -785,7 +705,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754880239881-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754880612765-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -796,7 +716,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754880239881-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754880612766-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -807,7 +727,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754880239882-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754880612766-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -818,7 +738,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754880239882-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754880612766-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -829,7 +749,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754880239882-drizzleorm",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754880612766-drizzleorm",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -840,7 +760,7 @@
       "suggestedFix": "Application não deve importar ORM diretamente. Use interfaces de repositório do Domain."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754880239882-drizzleorm",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754880612766-drizzleorm",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -851,7 +771,7 @@
       "suggestedFix": "Application não deve importar ORM diretamente. Use interfaces de repositório do Domain."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754880239882-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754880612766-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -862,7 +782,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-NOTIFICATIONS-APP-1754880240192-express",
+      "id": "DEP-NOTIFICATIONS-APP-1754880612768-express",
       "layer": "application",
       "module": "notifications",
       "severity": "high",
@@ -873,7 +793,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-PEOPLE-APP-1754880240205-express",
+      "id": "DEP-PEOPLE-APP-1754880612769-express",
       "layer": "application",
       "module": "people",
       "severity": "high",
@@ -884,7 +804,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-PROJECTS-APP-1754880240212-express",
+      "id": "DEP-PROJECTS-APP-1754880612769-express",
       "layer": "application",
       "module": "projects",
       "severity": "high",
@@ -895,7 +815,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-SAAS-ADMIN-APP-1754880240221-express",
+      "id": "DEP-SAAS-ADMIN-APP-1754880612770-express",
       "layer": "application",
       "module": "saas-admin",
       "severity": "high",
@@ -906,7 +826,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-SCHEDULE-MANAGEMENT-APP-1754880240238-express",
+      "id": "DEP-SCHEDULE-MANAGEMENT-APP-1754880612771-express",
       "layer": "application",
       "module": "schedule-management",
       "severity": "high",
@@ -917,7 +837,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-SCHEDULE-MANAGEMENT-APP-1754880240240-express",
+      "id": "DEP-SCHEDULE-MANAGEMENT-APP-1754880612771-express",
       "layer": "application",
       "module": "schedule-management",
       "severity": "high",
@@ -928,7 +848,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-TEAMS-APP-1754880240266-express",
+      "id": "DEP-TEAMS-APP-1754880612773-express",
       "layer": "application",
       "module": "teams",
       "severity": "high",
@@ -939,7 +859,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-TECHNICAL-SKILLS-APP-1754880240275-express",
+      "id": "DEP-TECHNICAL-SKILLS-APP-1754880612774-express",
       "layer": "application",
       "module": "technical-skills",
       "severity": "high",
@@ -950,7 +870,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-TECHNICAL-SKILLS-APP-1754880240276-express",
+      "id": "DEP-TECHNICAL-SKILLS-APP-1754880612774-express",
       "layer": "application",
       "module": "technical-skills",
       "severity": "high",
@@ -961,18 +881,18 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-TECHNICAL-SKILLS-APP-1754880240276-express",
+      "id": "DEP-TECHNICAL-SKILLS-APP-1754880612774-express",
       "layer": "application",
       "module": "technical-skills",
       "severity": "high",
       "type": "dependency_violation",
       "description": "Application Layer: Dependência proibida encontrada -> express",
       "file": "/home/runner/workspace/server/modules/technical-skills/application/controllers/UserSkillController.ts",
-      "line": 1,
+      "line": 2,
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-TECHNICAL-SKILLS-APP-1754880240276-express",
+      "id": "DEP-TECHNICAL-SKILLS-APP-1754880612774-express",
       "layer": "application",
       "module": "technical-skills",
       "severity": "high",
@@ -983,7 +903,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-TENANT-ADMIN-APP-1754880240319-express",
+      "id": "DEP-TENANT-ADMIN-APP-1754880612777-express",
       "layer": "application",
       "module": "tenant-admin",
       "severity": "high",
@@ -994,7 +914,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-TICKET-HISTORY-APP-1754880240332-express",
+      "id": "DEP-TICKET-HISTORY-APP-1754880612778-express",
       "layer": "application",
       "module": "ticket-history",
       "severity": "high",
@@ -1005,7 +925,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-TICKET-HISTORY-APP-1754880240333-express",
+      "id": "DEP-TICKET-HISTORY-APP-1754880612778-express",
       "layer": "application",
       "module": "ticket-history",
       "severity": "high",
@@ -1016,7 +936,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-TICKETS-APP-1754880240352-express",
+      "id": "DEP-TICKETS-APP-1754880612780-express",
       "layer": "application",
       "module": "tickets",
       "severity": "high",
@@ -1027,7 +947,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-TICKETS-APP-1754880240352-express",
+      "id": "DEP-TICKETS-APP-1754880612780-express",
       "layer": "application",
       "module": "tickets",
       "severity": "high",
@@ -1038,7 +958,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-TIMECARD-APP-1754880240366-express",
+      "id": "DEP-TIMECARD-APP-1754880612782-express",
       "layer": "application",
       "module": "timecard",
       "severity": "high",
@@ -1049,7 +969,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-TIMECARD-APP-1754880240366-express",
+      "id": "DEP-TIMECARD-APP-1754880612782-express",
       "layer": "application",
       "module": "timecard",
       "severity": "high",
@@ -1060,7 +980,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-TIMECARD-APP-1754880240366-express",
+      "id": "DEP-TIMECARD-APP-1754880612782-express",
       "layer": "application",
       "module": "timecard",
       "severity": "high",
@@ -1071,7 +991,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-USERS-APP-1754880240385-express",
+      "id": "DEP-USERS-APP-1754880612785-express",
       "layer": "application",
       "module": "users",
       "severity": "high",
@@ -1199,6 +1119,26 @@
       "type": "coupling_issue",
       "description": "Entity misturada com conceitos de Presentation layer (DTOs, Request/Response) - violação de responsabilidade",
       "file": "/home/runner/workspace/server/modules/customers/domain/entities/CompanyMembership.ts",
+      "suggestedFix": "Separar Entity de DTOs/Requests/Responses, movendo-os para Application layer (ou Presentation)"
+    },
+    {
+      "id": "SOC-CUSTOMERS-ENTITY-INFRA",
+      "layer": "domain",
+      "module": "customers",
+      "severity": "critical",
+      "type": "coupling_issue",
+      "description": "Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade",
+      "file": "/home/runner/workspace/server/modules/customers/domain/entities/Customer.ts",
+      "suggestedFix": "Mover lógica de infraestrutura para Repository na camada Infrastructure"
+    },
+    {
+      "id": "SOC-CUSTOMERS-ENTITY-PRESENTATION",
+      "layer": "domain",
+      "module": "customers",
+      "severity": "high",
+      "type": "coupling_issue",
+      "description": "Entity misturada com conceitos de Presentation layer (DTOs, Request/Response) - violação de responsabilidade",
+      "file": "/home/runner/workspace/server/modules/customers/domain/entities/Customer.ts",
       "suggestedFix": "Separar Entity de DTOs/Requests/Responses, movendo-os para Application layer (ou Presentation)"
     },
     {
@@ -1810,6 +1750,16 @@
       "description": "Entity misturada com conceitos de Presentation layer (DTOs, Request/Response) - violação de responsabilidade",
       "file": "/home/runner/workspace/server/modules/tickets/domain/entities/Ticket.ts",
       "suggestedFix": "Separar Entity de DTOs/Requests/Responses, movendo-os para Application layer (ou Presentation)"
+    },
+    {
+      "id": "SOC-TICKETS-USECASE-PRESENTATION",
+      "layer": "application",
+      "module": "tickets",
+      "severity": "high",
+      "type": "coupling_issue",
+      "description": "Use Case contém lógica de Presentation layer (acesso a request/response, express)",
+      "file": "/home/runner/workspace/server/modules/tickets/application/use-cases/GetTicketsUseCase.ts",
+      "suggestedFix": "Mover lógica de Presentation para Controllers na camada Application"
     },
     {
       "id": "SOC-TICKETS-USECASE-PRESENTATION",
@@ -2612,12 +2562,12 @@
       "suggestedFix": "Criar a interface 'IDrizzleUserRepository' no Domain layer (ex: domain/repositories ou domain/ports)"
     },
     {
-      "id": "COMP-BENEFICIARIES-ROUTE-CONTROLLER-MISMATCH-BeneficiariesController",
+      "id": "COMP-BENEFICIARIES-ROUTE-CONTROLLER-MISMATCH-BeneficiaryController",
       "layer": "presentation",
       "module": "beneficiaries",
       "severity": "low",
       "type": "structure_violation",
-      "description": "Controller 'BeneficiariesController' não parece ser referenciado nas rotas do módulo",
+      "description": "Controller 'BeneficiaryController' não parece ser referenciado nas rotas do módulo",
       "file": "/home/runner/workspace/server/modules/beneficiaries/routes.ts",
       "suggestedFix": "Garantir que as rotas do módulo utilizem os controllers definidos"
     },
@@ -2680,16 +2630,6 @@
       "description": "Domain Service 'index.ts' parece não ter métodos exportados ou estar isolado.",
       "file": "/home/runner/workspace/server/modules/custom-fields/domain/services/index.ts",
       "suggestedFix": "Verificar se o serviço é realmente necessário e se está sendo utilizado pelos Use Cases."
-    },
-    {
-      "id": "COMP-CUSTOMERS-ROUTE-CONTROLLER-MISMATCH-CompanyController",
-      "layer": "presentation",
-      "module": "customers",
-      "severity": "low",
-      "type": "structure_violation",
-      "description": "Controller 'CompanyController' não parece ser referenciado nas rotas do módulo",
-      "file": "/home/runner/workspace/server/modules/customers/routes.ts",
-      "suggestedFix": "Garantir que as rotas do módulo utilizem os controllers definidos"
     },
     {
       "id": "COMP-CUSTOMERS-ROUTE-CONTROLLER-MISMATCH-CustomersController",
@@ -2822,12 +2762,62 @@
       "suggestedFix": "Criar a interface 'IDrizzleLocationRepository' no Domain layer (ex: domain/repositories ou domain/ports)"
     },
     {
+      "id": "COMP-MATERIALS-SERVICES-ROUTE-CONTROLLER-MISMATCH-AssetManagementController",
+      "layer": "presentation",
+      "module": "materials-services",
+      "severity": "low",
+      "type": "structure_violation",
+      "description": "Controller 'AssetManagementController' não parece ser referenciado nas rotas do módulo",
+      "file": "/home/runner/workspace/server/modules/materials-services/routes.ts",
+      "suggestedFix": "Garantir que as rotas do módulo utilizem os controllers definidos"
+    },
+    {
+      "id": "COMP-MATERIALS-SERVICES-ROUTE-CONTROLLER-MISMATCH-AuditController",
+      "layer": "presentation",
+      "module": "materials-services",
+      "severity": "low",
+      "type": "structure_violation",
+      "description": "Controller 'AuditController' não parece ser referenciado nas rotas do módulo",
+      "file": "/home/runner/workspace/server/modules/materials-services/routes.ts",
+      "suggestedFix": "Garantir que as rotas do módulo utilizem os controllers definidos"
+    },
+    {
+      "id": "COMP-MATERIALS-SERVICES-ROUTE-CONTROLLER-MISMATCH-ComplianceController",
+      "layer": "presentation",
+      "module": "materials-services",
+      "severity": "low",
+      "type": "structure_violation",
+      "description": "Controller 'ComplianceController' não parece ser referenciado nas rotas do módulo",
+      "file": "/home/runner/workspace/server/modules/materials-services/routes.ts",
+      "suggestedFix": "Garantir que as rotas do módulo utilizem os controllers definidos"
+    },
+    {
       "id": "COMP-MATERIALS-SERVICES-ROUTE-CONTROLLER-MISMATCH-CustomerItemMappingController-fixed",
       "layer": "presentation",
       "module": "materials-services",
       "severity": "low",
       "type": "structure_violation",
       "description": "Controller 'CustomerItemMappingController-fixed' não parece ser referenciado nas rotas do módulo",
+      "file": "/home/runner/workspace/server/modules/materials-services/routes.ts",
+      "suggestedFix": "Garantir que as rotas do módulo utilizem os controllers definidos"
+    },
+    {
+      "id": "COMP-MATERIALS-SERVICES-ROUTE-CONTROLLER-MISMATCH-CustomerItemMappingController-v2",
+      "layer": "presentation",
+      "module": "materials-services",
+      "severity": "low",
+      "type": "structure_violation",
+      "description": "Controller 'CustomerItemMappingController-v2' não parece ser referenciado nas rotas do módulo",
+      "file": "/home/runner/workspace/server/modules/materials-services/routes.ts",
+      "suggestedFix": "Garantir que as rotas do módulo utilizem os controllers definidos"
+    },
+    {
+      "id": "COMP-MATERIALS-SERVICES-ROUTE-CONTROLLER-MISMATCH-CustomerItemMappingController",
+      "layer": "presentation",
+      "module": "materials-services",
+      "severity": "low",
+      "type": "structure_violation",
+      "description": "Controller 'CustomerItemMappingController' não parece ser referenciado nas rotas do módulo",
       "file": "/home/runner/workspace/server/modules/materials-services/routes.ts",
       "suggestedFix": "Garantir que as rotas do módulo utilizem os controllers definidos"
     },
@@ -2842,12 +2832,42 @@
       "suggestedFix": "Garantir que as rotas do módulo utilizem os controllers definidos"
     },
     {
-      "id": "COMP-MATERIALS-SERVICES-ROUTE-CONTROLLER-MISMATCH-MaterialsServicesController",
+      "id": "COMP-MATERIALS-SERVICES-ROUTE-CONTROLLER-MISMATCH-ImportController",
       "layer": "presentation",
       "module": "materials-services",
       "severity": "low",
       "type": "structure_violation",
-      "description": "Controller 'MaterialsServicesController' não parece ser referenciado nas rotas do módulo",
+      "description": "Controller 'ImportController' não parece ser referenciado nas rotas do módulo",
+      "file": "/home/runner/workspace/server/modules/materials-services/routes.ts",
+      "suggestedFix": "Garantir que as rotas do módulo utilizem os controllers definidos"
+    },
+    {
+      "id": "COMP-MATERIALS-SERVICES-ROUTE-CONTROLLER-MISMATCH-ItemController",
+      "layer": "presentation",
+      "module": "materials-services",
+      "severity": "low",
+      "type": "structure_violation",
+      "description": "Controller 'ItemController' não parece ser referenciado nas rotas do módulo",
+      "file": "/home/runner/workspace/server/modules/materials-services/routes.ts",
+      "suggestedFix": "Garantir que as rotas do módulo utilizem os controllers definidos"
+    },
+    {
+      "id": "COMP-MATERIALS-SERVICES-ROUTE-CONTROLLER-MISMATCH-LPUController",
+      "layer": "presentation",
+      "module": "materials-services",
+      "severity": "low",
+      "type": "structure_violation",
+      "description": "Controller 'LPUController' não parece ser referenciado nas rotas do módulo",
+      "file": "/home/runner/workspace/server/modules/materials-services/routes.ts",
+      "suggestedFix": "Garantir que as rotas do módulo utilizem os controllers definidos"
+    },
+    {
+      "id": "COMP-MATERIALS-SERVICES-ROUTE-CONTROLLER-MISMATCH-MaterialController",
+      "layer": "presentation",
+      "module": "materials-services",
+      "severity": "low",
+      "type": "structure_violation",
+      "description": "Controller 'MaterialController' não parece ser referenciado nas rotas do módulo",
       "file": "/home/runner/workspace/server/modules/materials-services/routes.ts",
       "suggestedFix": "Garantir que as rotas do módulo utilizem os controllers definidos"
     },
@@ -2862,12 +2882,42 @@
       "suggestedFix": "Garantir que as rotas do módulo utilizem os controllers definidos"
     },
     {
+      "id": "COMP-MATERIALS-SERVICES-ROUTE-CONTROLLER-MISMATCH-StockController",
+      "layer": "presentation",
+      "module": "materials-services",
+      "severity": "low",
+      "type": "structure_violation",
+      "description": "Controller 'StockController' não parece ser referenciado nas rotas do módulo",
+      "file": "/home/runner/workspace/server/modules/materials-services/routes.ts",
+      "suggestedFix": "Garantir que as rotas do módulo utilizem os controllers definidos"
+    },
+    {
+      "id": "COMP-MATERIALS-SERVICES-ROUTE-CONTROLLER-MISMATCH-SupplierController",
+      "layer": "presentation",
+      "module": "materials-services",
+      "severity": "low",
+      "type": "structure_violation",
+      "description": "Controller 'SupplierController' não parece ser referenciado nas rotas do módulo",
+      "file": "/home/runner/workspace/server/modules/materials-services/routes.ts",
+      "suggestedFix": "Garantir que as rotas do módulo utilizem os controllers definidos"
+    },
+    {
       "id": "COMP-MATERIALS-SERVICES-ROUTE-CONTROLLER-MISMATCH-SupplierLinksController",
       "layer": "presentation",
       "module": "materials-services",
       "severity": "low",
       "type": "structure_violation",
       "description": "Controller 'SupplierLinksController' não parece ser referenciado nas rotas do módulo",
+      "file": "/home/runner/workspace/server/modules/materials-services/routes.ts",
+      "suggestedFix": "Garantir que as rotas do módulo utilizem os controllers definidos"
+    },
+    {
+      "id": "COMP-MATERIALS-SERVICES-ROUTE-CONTROLLER-MISMATCH-TicketMaterialsController",
+      "layer": "presentation",
+      "module": "materials-services",
+      "severity": "low",
+      "type": "structure_violation",
+      "description": "Controller 'TicketMaterialsController' não parece ser referenciado nas rotas do módulo",
       "file": "/home/runner/workspace/server/modules/materials-services/routes.ts",
       "suggestedFix": "Garantir que as rotas do módulo utilizem os controllers definidos"
     },
@@ -3102,12 +3152,12 @@
       "suggestedFix": "Verificar se o serviço é realmente necessário e se está sendo utilizado pelos Use Cases."
     },
     {
-      "id": "COMP-TECHNICAL-SKILLS-ROUTE-CONTROLLER-MISMATCH-TechnicalSkillsController",
+      "id": "COMP-TECHNICAL-SKILLS-ROUTE-CONTROLLER-MISMATCH-SkillController",
       "layer": "presentation",
       "module": "technical-skills",
       "severity": "low",
       "type": "structure_violation",
-      "description": "Controller 'TechnicalSkillsController' não parece ser referenciado nas rotas do módulo",
+      "description": "Controller 'SkillController' não parece ser referenciado nas rotas do módulo",
       "file": "/home/runner/workspace/server/modules/technical-skills/routes.ts",
       "suggestedFix": "Garantir que as rotas do módulo utilizem os controllers definidos"
     },
@@ -3118,6 +3168,16 @@
       "severity": "low",
       "type": "structure_violation",
       "description": "Controller 'TechnicalskillsController' não parece ser referenciado nas rotas do módulo",
+      "file": "/home/runner/workspace/server/modules/technical-skills/routes.ts",
+      "suggestedFix": "Garantir que as rotas do módulo utilizem os controllers definidos"
+    },
+    {
+      "id": "COMP-TECHNICAL-SKILLS-ROUTE-CONTROLLER-MISMATCH-UserSkillController",
+      "layer": "presentation",
+      "module": "technical-skills",
+      "severity": "low",
+      "type": "structure_violation",
+      "description": "Controller 'UserSkillController' não parece ser referenciado nas rotas do módulo",
       "file": "/home/runner/workspace/server/modules/technical-skills/routes.ts",
       "suggestedFix": "Garantir que as rotas do módulo utilizem os controllers definidos"
     },
@@ -3203,10 +3263,10 @@
     }
   ],
   "summary": {
-    "total": 315,
-    "critical": 4,
-    "high": 130,
+    "total": 321,
+    "critical": 5,
+    "high": 129,
     "medium": 59,
-    "low": 122
+    "low": 128
   }
 }

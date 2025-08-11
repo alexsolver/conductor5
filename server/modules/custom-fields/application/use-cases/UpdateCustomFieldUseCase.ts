@@ -3,7 +3,7 @@ import { CustomFieldUpdatedEvent } from '../../domain/events/CustomFieldUpdatedE
 import { ICustomFieldRepository } from '../../domain/repositories/ICustomFieldRepository';
 import { CustomFieldDomainService } from '../../domain/services/CustomFieldDomainService';
 
-export interface UpdateCustomFieldRequest {
+export interface UpdateCustomFieldany {
   id: string;
   name?: string;
   type?: string;
@@ -18,7 +18,7 @@ export class UpdateCustomFieldUseCase {
     private domainService: CustomFieldDomainService
   ) {}
 
-  async execute(request: UpdateCustomFieldRequest): Promise<void> {
+  async execute(request: UpdateCustomFieldany): Promise<void> {
     const customField = await this.customFieldRepository.findById(request.id);
     
     if (!customField) {

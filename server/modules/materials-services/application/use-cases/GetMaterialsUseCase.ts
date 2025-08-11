@@ -6,7 +6,7 @@
 import { IMaterialRepository } from '../../domain/repositories/IMaterialRepository';
 import { Material } from '../../domain/entities/Material';
 
-export interface GetMaterialsRequest {
+export interface GetMaterialsany {
   tenantId: string;
   category?: string;
 }
@@ -16,7 +16,7 @@ export class GetMaterialsUseCase {
     private materialRepository: IMaterialRepository
   ) {}
 
-  async execute(request: GetMaterialsRequest): Promise<Material[]> {
+  async execute(request: GetMaterialsany): Promise<Material[]> {
     if (!request.tenantId) {
       throw new Error('Tenant ID is required');
     }
