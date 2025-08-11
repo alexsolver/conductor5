@@ -225,7 +225,10 @@ export class DrizzleTicketRepository implements ITicketRepository {
         ticketData.workaround || null
       ];
 
-      const result = await this.db.execute(sql.raw(query, params));
+      const result = await this.db.execute({
+        sql: query,
+        args: params
+      });
 
       console.log('🎫 [DrizzleTicketRepository] Ticket created:', result[0]);
       return result[0];
@@ -233,6 +236,41 @@ export class DrizzleTicketRepository implements ITicketRepository {
     } catch (error) {
       console.error('🎫 [DrizzleTicketRepository] Error creating ticket:', error);
       throw error;
+    }
+  }
+
+  async getNextTicketNumber(tenantId: string, prefix: string = 'TK'): Promise<string> {
+    try {
+      console.log('🎫 [DrizzleTicketRepository] Generating ticket number for tenant:', tenantId);
+      
+      const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
+      
+      // Get the latest ticket number for this tenant
+      const query = `
+        SELECT number 
+        FROM "${schemaName}".tickets 
+        WHERE tenant_id = $1 AND number LIKE $2
+        ORDER BY created_at DESC 
+        LIMIT 1
+      `;
+      
+      const result = await this.db.execute(sql.raw(query, tenantId, `${prefix}-%`));
+      
+      let nextNumber = 1;
+      if (result.length > 0) {
+        const lastNumber = result[0].number;
+        const numericPart = parseInt(lastNumber.split('-')[1]) || 0;
+        nextNumber = numericPart + 1;
+      }
+      
+      const ticketNumber = `${prefix}-${nextNumber.toString().padStart(6, '0')}`;
+      console.log('🎫 [DrizzleTicketRepository] Generated ticket number:', ticketNumber);
+      
+      return ticketNumber;
+    } catch (error) {
+      console.error('🎫 [DrizzleTicketRepository] Error generating ticket number:', error);
+      // Fallback to timestamp-based number if query fails
+      return `${prefix}-${Date.now().toString().slice(-6)}`;
     }
   }
 
@@ -253,7 +291,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
 
       const params = [ticketId, ...Object.values(updates)];
 
-      const result = await this.db.execute(sql.raw(query, params));
+      const result = await this.db.execute(sql.raw(query, ...params));
       return result[0];
 
     } catch (error) {
@@ -267,7 +305,7 @@ export class DrizzleTicketRepository implements ITicketRepository {
       const schemaName = `tenant_${tenantId.replace(/-/g, '_')}`;
 
       const query = `DELETE FROM "${schemaName}".tickets WHERE id = $1`;
-      await this.db.execute(sql.raw(query, [ticketId]));
+      await this.db.execute(sql.raw(query, ticketId));
 
       return true;
     } catch (error) {

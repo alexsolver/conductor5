@@ -235,7 +235,7 @@ export class TicketController {
         ticketId,
         assignedToId,
         tenantId,
-        assignedBy: req.user?.id || ''
+        assignedById: req.user?.id || ''
       });
 
       res.status(200).json(result);
