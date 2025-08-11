@@ -4,70 +4,86 @@
  */
 
 import { Request, Response } from 'express';
+import { GetDashboardSummaryUseCase } from '../use-cases/GetDashboardSummaryUseCase';
+import { GetRecentActivityUseCase } from '../use-cases/GetRecentActivityUseCase';
+import { GetPerformanceMetricsUseCase } from '../use-cases/GetPerformanceMetricsUseCase';
+
+interface AuthenticatedRequest extends Request {
+  user?: {
+    id: string;
+    tenantId: string;
+    email: string;
+    role: string;
+  };
+}
 
 export class DashboardController {
-  constructor() {}
+  constructor(
+    private getDashboardSummaryUseCase: GetDashboardSummaryUseCase,
+    private getRecentActivityUseCase: GetRecentActivityUseCase,
+    private getPerformanceMetricsUseCase: GetPerformanceMetricsUseCase
+  ) {}
 
-  async getDashboardSummary(req: Request, res: Response): Promise<void> {
+  async getDashboardSummary(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string;
-      const userId = req.headers['x-user-id'] as string;
-      
-      res.json({
-        success: true,
-        message: 'Dashboard summary retrieved successfully',
-        data: {
-          totalTickets: 0,
-          openTickets: 0,
-          resolvedTickets: 0,
-          pendingTickets: 0,
-          myTickets: 0,
-          urgentTickets: 0,
-          tenantId,
-          userId
-        }
+      const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
+
+      if (!tenantId || !userId) {
+        res.status(401).json({ success: false, message: 'Authentication required' });
+        return;
+      }
+
+      const result = await this.getDashboardSummaryUseCase.execute({
+        tenantId,
+        userId
       });
+      
+      res.json(result);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to retrieve dashboard summary';
       res.status(500).json({ success: false, message });
     }
   }
 
-  async getRecentActivity(req: Request, res: Response): Promise<void> {
+  async getRecentActivity(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string;
+      const tenantId = req.user?.tenantId;
       const { limit } = req.query;
-      
-      res.json({
-        success: true,
-        message: 'Recent activity retrieved successfully',
-        data: [],
-        filters: { limit: parseInt(limit as string) || 10, tenantId }
+
+      if (!tenantId) {
+        res.status(401).json({ success: false, message: 'Authentication required' });
+        return;
+      }
+
+      const result = await this.getRecentActivityUseCase.execute({
+        tenantId,
+        limit: parseInt(limit as string) || 10
       });
+      
+      res.json(result);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to retrieve recent activity';
       res.status(500).json({ success: false, message });
     }
   }
 
-  async getPerformanceMetrics(req: Request, res: Response): Promise<void> {
+  async getPerformanceMetrics(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      const tenantId = req.headers['x-tenant-id'] as string;
+      const tenantId = req.user?.tenantId;
       const { period } = req.query;
-      
-      res.json({
-        success: true,
-        message: 'Performance metrics retrieved successfully',
-        data: {
-          averageResolutionTime: 0,
-          firstResponseTime: 0,
-          customerSatisfaction: 0,
-          agentUtilization: 0,
-          ticketVolume: 0,
-          period: period || 'week',
-          tenantId
-        }
+
+      if (!tenantId) {
+        res.status(401).json({ success: false, message: 'Authentication required' });
+        return;
+      }
+
+      const result = await this.getPerformanceMetricsUseCase.execute({
+        tenantId,
+        period: period as string
       });
+      
+      res.json(result);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to retrieve performance metrics';
       res.status(500).json({ success: false, message });

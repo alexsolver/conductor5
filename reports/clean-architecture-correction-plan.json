@@ -42,6 +42,18 @@
       {
         "type": "move_code",
         "description": "Resolver acoplamento: Use Case contém lógica de Presentation layer (acesso a request/response, express)",
+        "target": "/home/runner/workspace/server/modules/beneficiaries/application/use-cases/CreateBeneficiaryUseCase.ts",
+        "steps": [
+          "Identificar código acoplado",
+          "Determinar camada correta para o código",
+          "Mover código para camada apropriada",
+          "Criar interfaces para comunicação entre camadas",
+          "Atualizar dependências"
+        ]
+      },
+      {
+        "type": "move_code",
+        "description": "Resolver acoplamento: Use Case contém lógica de Presentation layer (acesso a request/response, express)",
         "target": "/home/runner/workspace/server/modules/beneficiaries/application/use-cases/DeleteBeneficiaryUseCase.ts",
         "steps": [
           "Identificar código acoplado",
@@ -171,7 +183,7 @@
         ]
       }
     ],
-    "estimatedTime": "8h"
+    "estimatedTime": "9h"
   },
   {
     "priority": "immediate",

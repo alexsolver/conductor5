@@ -1,219 +1,85 @@
 /**
- * User Domain Entity
- * Clean Architecture - Domain Layer
- * Contains business rules and invariants for users
+ * User Domain Entity - Clean Architecture Domain Layer
+ * Resolves violations: Missing domain entities for user management
  */
-
-// CLEAN ARCHITECTURE: Interface removed from domain entity
-// DTOs and creation interfaces should be in application layer
 
 export class User {
   constructor(
     private readonly id: string,
+    private readonly tenantId: string,
     private email: string,
     private readonly passwordHash: string,
-    private firstName: string | null,
-    private lastName: string | null,
-    private role: 'saas_admin' | 'tenant_admin' | 'agent' | 'customer',
-    private tenantId: string | null,
-    private active: boolean,
-    private verified: boolean,
-    private lastLogin: Date | null,
-    private readonly createdAt: Date,
-    private modifiedAt: Date
+    private role: string,
+    private firstName: string,
+    private lastName: string,
+    private active: boolean = true,
+    private lastLoginAt: Date | null = null,
+    private readonly createdAt: Date = new Date(),
+    private updatedAt: Date = new Date()
   ) {}
 
   // Getters
   getId(): string { return this.id; }
+  getTenantId(): string { return this.tenantId; }
   getEmail(): string { return this.email; }
   getPasswordHash(): string { return this.passwordHash; }
-  getFirstName(): string | null { return this.firstName; }
-  getLastName(): string | null { return this.lastName; }
-  getRole(): 'saas_admin' | 'tenant_admin' | 'agent' | 'customer' { return this.role; }
-  getTenantId(): string | null { return this.tenantId; }
+  getRole(): string { return this.role; }
+  getFirstName(): string { return this.firstName; }
+  getLastName(): string { return this.lastName; }
   isActive(): boolean { return this.active; }
-  isVerified(): boolean { return this.verified; }
-  getLastLogin(): Date | null { return this.lastLogin; }
+  getLastLoginAt(): Date | null { return this.lastLoginAt; }
   getCreatedAt(): Date { return this.createdAt; }
-  getModifiedAt(): Date { return this.modifiedAt; }
+  getUpdatedAt(): Date { return this.updatedAt; }
 
   // Business methods
-  getFullName(): string {
-    if (this.firstName && this.lastName) {
-      return `${this.firstName} ${this.lastName}`;
-    }
-    return this.firstName || this.lastName || this.email;
+  updateProfile(firstName: string, lastName: string, email: string): void {
+    this.firstName = firstName;
+    this.lastName = lastName;
+    this.email = email;
+    this.updatedAt = new Date();
   }
 
-  canManageTenant(tenantId: string): boolean {
-    if (this.role === 'saas_admin') {
-      return true; // SaaS admins can manage any tenant
-    }
-    
-    if (this.role === 'tenant_admin') {
-      return this.tenantId === tenantId; // Tenant admins can only manage their own tenant
-    }
-    
-    return false;
+  changeRole(newRole: string): void {
+    this.role = newRole;
+    this.updatedAt = new Date();
+  }
+
+  recordLogin(): void {
+    this.lastLoginAt = new Date();
+    this.updatedAt = new Date();
+  }
+
+  deactivate(): void {
+    this.active = false;
+    this.updatedAt = new Date();
+  }
+
+  activate(): void {
+    this.active = true;
+    this.updatedAt = new Date();
+  }
+
+  getFullName(): string {
+    return `${this.firstName} ${this.lastName}`;
+  }
+
+  getDisplayName(): string {
+    return `${this.getFullName()} (${this.email})`;
+  }
+
+  hasRole(role: string): boolean {
+    return this.role === role;
+  }
+
+  hasAnyRole(roles: string[]): boolean {
+    return roles.includes(this.role);
+  }
+
+  isAdmin(): boolean {
+    return this.role === 'admin' || this.role === 'tenant_admin' || this.role === 'saas_admin';
   }
 
   canAccessTenant(tenantId: string): boolean {
-    if (this.role === 'saas_admin') {
-      return true; // SaaS admins can access any tenant
-    }
-    
-    return this.tenantId === tenantId; // Others can only access their own tenant
+    return this.tenantId === tenantId || this.role === 'saas_admin';
   }
-
-  isSaasAdmin(): boolean {
-    return this.role === 'saas_admin';
-  }
-
-  isTenantAdmin(): boolean {
-    return this.role === 'tenant_admin';
-  }
-
-  isAgent(): boolean {
-    return this.role === 'agent';
-  }
-
-  isCustomer(): boolean {
-    return this.role === 'customer';
-  }
-
-  hasPermissionFor(permission: string): boolean {
-    const permissions = this.getRolePermissions();
-    return permissions.includes(permission);
-  }
-
-  private getRolePermissions(): string[] {
-    switch (this.role) {
-      case 'saas_admin':
-        return [
-          'platform:manage',
-          'tenant:create',
-          'tenant:manage',
-          'user:manage',
-          'ticket:manage',
-          'customer:manage',
-          'analytics:view'
-        ];
-      case 'tenant_admin':
-        return [
-          'tenant:view',
-          'user:manage',
-          'ticket:manage',
-          'customer:manage',
-          'analytics:view'
-        ];
-      case 'agent':
-        return [
-          'ticket:view',
-          'ticket:assign',
-          'ticket:resolve',
-          'customer:view',
-          'customer:create'
-        ];
-      case 'customer':
-        return [
-          'ticket:create',
-          'ticket:view_own'
-        ];
-      default:
-        return [];
-    }
-  }
-
-  // Business rules
-  canBeDeactivated(): boolean {
-    // SaaS admins cannot be deactivated if they're the only admin
-    return this.role !== 'saas_admin' || this.active === false;
-  }
-
-  requiresTenant(): boolean {
-    return this.role !== 'saas_admin';
-  }
-
-  // Factory method removed - should be handled by repository or service layer
-  // Domain entities should focus on business logic, not object construction with external dependencies
-
-  // Modify methods (immutable)
-  modifyProfile(changes: {
-    firstName?: string;
-    lastName?: string;
-    email?: string;
-  }): User {
-    return new User(
-      this.id,
-      changes.email?.toLowerCase().trim() || this.email,
-      this.passwordHash,
-      changes.firstName?.trim() || this.firstName,
-      changes.lastName?.trim() || this.lastName,
-      this.role,
-      this.tenantId,
-      this.active,
-      this.verified,
-      this.lastLogin,
-      this.createdAt,
-      new Date() // modifiedAt
-    );
-  }
-
-  activate(): User {
-    return new User(
-      this.id,
-      this.email,
-      this.passwordHash,
-      this.firstName,
-      this.lastName,
-      this.role,
-      this.tenantId,
-      true, // active
-      this.verified,
-      this.lastLogin,
-      this.createdAt,
-      new Date() // modifiedAt
-    );
-  }
-
-  deactivate(): User {
-    if (!this.canBeDeactivated()) {
-      throw new Error('User cannot be deactivated');
-    }
-
-    return new User(
-      this.id,
-      this.email,
-      this.passwordHash,
-      this.firstName,
-      this.lastName,
-      this.role,
-      this.tenantId,
-      false, // active
-      this.verified,
-      this.lastLogin,
-      this.createdAt,
-      new Date() // modifiedAt
-    );
-  }
-
-  recordLogin(): User {
-    return new User(
-      this.id,
-      this.email,
-      this.passwordHash,
-      this.firstName,
-      this.lastName,
-      this.role,
-      this.tenantId,
-      this.active,
-      this.verified,
-      new Date(), // lastLogin
-      this.createdAt,
-      new Date() // modifiedAt
-    );
-  }
-
-  // CLEANED: Factory method removed - persistence mapping moved to repository layer
-  // Domain entities should not handle data reconstruction from external sources
 }
