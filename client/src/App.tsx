@@ -18,7 +18,7 @@ import TicketDetails from "./pages/TicketDetails";
 // CustomersTable removed - unified with Clientes.tsx
 import Beneficiaries from "./pages/Beneficiaries";
 // Locations import moved below to avoid duplication
-import KnowledgeBase from './pages/KnowledgeBase';
+
 import Analytics from "./pages/Analytics";
 import Settings from "./pages/SettingsSimple";
 import SecuritySettings from "./pages/SecuritySettings";
@@ -135,7 +135,7 @@ function AppRouter() {
         <Route path="/technical-skills" component={TechnicalSkills} />
         {/* Removed: external-contacts route - functionality eliminated */}
         <Route path="/locations" component={LocationsNew} />
-        <Route path="/knowledge-base" component={KnowledgeBase} />
+
         <Route path="/analytics" component={Analytics} />
         <Route path="/roadmap" component={Roadmap} />
         <Route path="/compliance" component={Compliance} />

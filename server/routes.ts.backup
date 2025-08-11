@@ -2099,6 +2099,698 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
 
+  // Knowledge Base additional routes with analytics
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant ID required' });
+      }
+
+      // Mock analytics data
+      const analytics = {
+        stats: {
+          totalArticles: 147,
+          totalViews: 28450,
+          averageRating: 4.6,
+          totalRatings: 892,
+          categoriesCount: 5,
+          publishedArticles: 134,
+          draftArticles: 13,
+          monthlyGrowth: 12,
+          weeklyViewsGrowth: 18
+        },
+        topCategories: [
+          { name: 'Procedimentos Operacionais', articleCount: 28, views: 8450 },
+          { name: 'Solução de Problemas', articleCount: 45, views: 12250 },
+          { name: 'Treinamento e Capacitação', articleCount: 32, views: 6800 }
+        ],
+        recentActivity: [
+          {
+            type: 'article_created',
+            title: 'Como Resolver Problemas de Conectividade',
+            user: 'Carlos Oliveira',
+            timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
+          }
+        ]
+      };
+
+      res.json({ success: true, data: analytics });
+    } catch (error) {
+      console.error('Error fetching KB analytics:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch analytics' });
+    }
+  });
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant ID required' });
+      }
+
+      // Mock categories data
+      const categories = [
+        {
+          id: 'cat-1',
+          name: 'Procedimentos Operacionais',
+          description: 'Manuais e procedimentos para operations do dia a dia',
+          color: '#3B82F6',
+          icon: 'Settings',
+          articleCount: 28,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        },
+        {
+          id: 'cat-2',
+          name: 'Solução de Problemas',
+          description: 'Guias de troubleshooting e resolucao de problemas',
+          color: '#F59E0B',
+          icon: 'AlertTriangle',
+          articleCount: 45,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        },
+        {
+          id: 'cat-3',
+          name: 'Treinamento e Capacitação',
+          description: 'Materiais educacionais e de treinamento',
+          color: '#10B981',
+          icon: 'GraduationCap',
+          articleCount: 32,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        },
+        {
+          id: 'cat-4',
+          name: 'Segurança e Compliance',
+          description: 'Normas de segurança e compliance regulatório',
+          color: '#EF4444',
+          icon: 'Shield',
+          articleCount: 18,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        },
+        {
+          id: 'cat-5',
+          name: 'Manutenção Técnica',
+          description: 'Procedimentos de manutenção e suporte técnico',
+          color: '#8B5CF6',
+          icon: 'Wrench',
+          articleCount: 24,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }
+      ];
+
+      res.json({ success: true, data: categories });
+    } catch (error) {
+      console.error('Error fetching KB categories:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch categories' });
+    }
+  });
+
+  // Knowledge Base Articles route
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant ID required' });
+      }
+
+      const { category, search } = req.query;
+
+      // Mock articles data
+      let articles = [
+        {
+          id: 'art-1',
+          title: 'Como Configurar Conexões de Rede',
+          summary: 'Guia completo para configuração de conexões de rede em equipamentos industriais',
+          content: 'Conteúdo detalhado do artigo...',
+          categoryId: 'cat-1',
+          category: { id: 'cat-1', name: 'Procedimentos Operacionais', color: '#3B82F6' },
+          tags: ['rede', 'configuração', 'tutorial'],
+          difficulty: 'Intermediário',
+          estimatedReadTime: 8,
+          viewCount: 1245,
+          likeCount: 89,
+          averageRating: '4.7',
+          status: 'published',
+          authorId: 'user-1',
+          createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+          updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
+        },
+        {
+          id: 'art-2',
+          title: 'Resolução de Problemas de Conectividade',
+          summary: 'Métodos para diagnóstico e resolução de problemas de conectividade',
+          content: 'Conteúdo detalhado do artigo...',
+          categoryId: 'cat-2',
+          category: { id: 'cat-2', name: 'Solução de Problemas', color: '#F59E0B' },
+          tags: ['troubleshooting', 'conectividade', 'diagnóstico'],
+          difficulty: 'Avançado',
+          estimatedReadTime: 12,
+          viewCount: 2156,
+          likeCount: 143,
+          averageRating: '4.8',
+          status: 'published',
+          authorId: 'user-2',
+          createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+          updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
+        },
+        {
+          id: 'art-3',
+          title: 'Normas de Segurança Industrial',
+          summary: 'Compilação das principais normas de segurança para ambiente industrial',
+          content: 'Conteúdo detalhado do artigo...',
+          categoryId: 'cat-4',
+          category: { id: 'cat-4', name: 'Segurança e Compliance', color: '#EF4444' },
+          tags: ['segurança', 'normas', 'compliance'],
+          difficulty: 'Básico',
+          estimatedReadTime: 6,
+          viewCount: 3421,
+          likeCount: 267,
+          averageRating: '4.9',
+          status: 'published',
+          authorId: 'user-3',
+          createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+          updatedAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString()
+        }
+      ];
+
+      // Filter by category if specified
+      if (category) {
+        articles = articles.filter(article => article.categoryId === category);
+      }
+
+      // Filter by search if specified
+      if (search) {
+        const searchTerm = search.toString().toLowerCase();
+        articles = articles.filter(article => 
+          article.title.toLowerCase().includes(searchTerm) ||
+          article.summary.toLowerCase().includes(searchTerm) ||
+          article.tags.some(tag => tag.toLowerCase().includes(searchTerm))
+        );
+      }
+
+      res.json({ success: true, data: articles });
+    } catch (error) {
+      console.error('Error fetching KB articles:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch articles' });
+    }
+  });
+
+  // Knowledge Base Routes - Direct Implementation
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant ID required' });
+      }
+
+      // Mock data for Knowledge Base categories
+      const categories = [
+        {
+          id: '1',
+          name: 'Tutoriais',
+          slug: 'tutoriais',
+          description: 'Guias passo a passo e tutoriais',
+          icon: 'BookOpen',
+          color: '#3B82F6',
+          level: 1,
+          isActive: true,
+          articleCount: 15
+        },
+        {
+          id: '2', 
+          name: 'FAQ',
+          slug: 'faq',
+          description: 'Perguntas frequentes',
+          icon: 'HelpCircle',
+          color: '#10B981',
+          level: 1,
+          isActive: true,
+          articleCount: 8
+        },
+        {
+          id: '3',
+          name: 'Troubleshooting',
+          slug: 'troubleshooting',
+          description: 'Solucao de problemas',
+          icon: 'Wrench',
+          color: '#F59E0B',
+          level: 1,
+          isActive: true,
+          articleCount: 12
+        },
+        {
+          id: '4',
+          name: 'Políticas',
+          slug: 'politicas',
+          description: 'Políticas e procedimentos',
+          icon: 'Shield',
+          color: '#EF4444',
+          level: 1,
+          isActive: true,
+          articleCount: 5
+        }
+      ];
+
+      res.json({ success: true, data: categories });
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch categories' });
+    }
+  });
+
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant ID required' });
+      }
+
+      // Mock data for Knowledge Base articles
+      const articles = [
+        {
+          id: '1',
+          title: 'Como Criar um Ticket',
+          slug: 'como-criar-ticket',
+          summary: 'Aprenda a criar tickets de suporte eficientemente',
+          content: 'Este guia mostra como criar tickets de suporte...',
+          status: 'published',
+          type: 'tutorial',
+          difficulty: 'beginner',
+          estimatedReadTime: 5,
+          viewCount: 124,
+          likeCount: 18,
+          averageRating: '4.5',
+          ratingCount: 12,
+          tags: ['tickets', 'suporte', 'iniciante'],
+          publishedAt: '2025-01-15T10:00:00Z',
+          createdAt: '2025-01-15T09:00:00Z',
+          categoryId: '1',
+          category: {
+            id: '1',
+            name: 'Tutoriais',
+            slug: 'tutoriais',
+            color: '#3B82F6',
+            icon: 'BookOpen'
+          }
+        },
+        {
+          id: '2',
+          title: 'Configurações de Notificação',
+          slug: 'configuracoes-notificacao',
+          summary: 'Configure suas preferências de notificação',
+          content: 'Personalize como receber notificações...',
+          status: 'published',
+          type: 'howto',
+          difficulty: 'intermediate',
+          estimatedReadTime: 8,
+          viewCount: 89,
+          likeCount: 15,
+          averageRating: '4.2',
+          ratingCount: 8,
+          tags: ['notificações', 'configuração'],
+          publishedAt: '2025-01-14T15:30:00Z',
+          createdAt: '2025-01-14T14:00:00Z',
+          categoryId: '1',
+          category: {
+            id: '1',
+            name: 'Tutoriais',
+            slug: 'tutoriais',
+            color: '#3B82F6',
+            icon: 'BookOpen'
+          }
+        },
+        {
+          id: '3',
+          title: 'Como Redefinir Senha?',
+          slug: 'redefinirsenha',
+          summary: 'Passo a passo para redefinir sua senha',
+          content: 'Se você esqueceu sua senha...',
+          status: 'published',
+          type: 'faq',
+          difficulty: 'beginner',
+          estimatedReadTime: 3,
+          viewCount: 256,
+          likeCount: 42,
+          averageRating: '4.8',
+          ratingCount: 25,
+          tags: ['senha', 'login', 'segurança'],
+          publishedAt: '2025-01-13T11:00:00Z',
+          createdAt: '2025-01-13T10:30:00Z',
+          categoryId: '2',
+          category: {
+            id: '2',
+            name: 'FAQ',
+            slug: 'faq',
+            color: '#10B981',
+            icon: 'HelpCircle'
+          }
+        },
+        {
+          id: '4',
+          title: 'Problemas de Conexão',
+          slug: 'problemas-conexao',
+          summary: 'Soluções para problemas de conectividade',
+          content: 'Se você está tendo problemas de conexão...',
+          status: 'published',
+          type: 'troubleshooting',
+          difficulty: 'advanced',
+          estimatedReadTime: 12,
+          viewCount: 78,
+          likeCount: 11,
+          averageRating: '4.0',
+          ratingCount: 6,
+          tags: ['conexão', 'rede', 'problemas'],
+          publishedAt: '2025-01-12T14:00:00Z',
+          createdAt: '2025-01-12T13:15:00Z',
+          categoryId: '3',
+          category: {
+            id: '3',
+            name: 'Troubleshooting',
+            slug: 'troubleshooting',
+            color: '#F59E0B',
+            icon: 'Wrench'
+          }
+        }
+      ];
+
+      res.json({ success: true, data: articles });
+    } catch (error) {
+      console.error('Error fetching KB articles:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch articles' });
+    }
+  });
+
+    try {
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant ID required' });
+      }
+
+      // Mock analytics data
+      const analyticsData = {
+        stats: {
+          total_articles: 40,
+          published_articles: 35,
+          draft_articles: 5,
+          total_views: 1547,
+          average_rating: 4.3
+        },
+        mostViewed: [
+          { id: '3', title: 'Como Redefinir Senha?', view_count: 256, average_rating: '4.8' },
+          { id: '1', title: 'Como Criar um Ticket', viewcount: 124, average_rating: '4.5' },
+          { id: '2', title: 'Configurações de Notificação', view_count: 89, average_rating: '4.2' },
+          { id: '4', title: 'Problemas de Conexão', view_count: 78, average_rating: '4.0' }
+        ],
+        topRated: [
+          { id: '3', title: 'Como Redefinir Senha?', average_rating: '4.8', rating_count: 25 },
+          { id: '1', title: 'Como Criar um Ticket', average_rating: '4.5', rating_count: 12 },
+          { id: '2', title: 'Configurações de Notificação', average_rating: '4.2', rating_count: 8 },
+          { id: '4', title: 'Problemas de Conexão', average_rating: '4.0', rating_count: 6 }
+        ],
+        articlesByStatus: [
+          { status: 'published', count: 35 },
+          { status: 'draft', count: 5 },
+          { status: 'review', count: 0 }
+        ],
+        viewsOverTime: [
+          { date: '2025-01-20', views: 45 },
+          { date: '2025-01-21', views: 52 },
+          { date: '2025-01-22', views: 38 },
+          { date: '2025-01-23', views: 61 },
+          { date: '2025-01-24', views: 47 },
+          { date: '2025-01-25', views: 58 },
+          { date: '2025-01-26', views: 69 }
+        ],
+        categoryStats: [
+          { category: 'Tutoriais', articles: 15, views: 680 },
+          { category: 'FAQ', articles: 8, views: 421 },
+          { category: 'Troubleshooting', articles: 12, views: 346 },
+          { category: 'Políticas', articles: 5, views: 100 }
+        ]
+      };
+
+      res.json({ success: true, data: analyticsData });
+    } catch (error) {
+      console.error('Error fetching analytics:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch analytics' });
+    }
+  });
+
+  // Additional Knowledge Base routes for complete functionality
+    try {
+      const { id } = req.params;
+      const tenantId = req.user?.tenantId;
+
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant ID required' });
+      }
+
+      // Mock single article data
+      const article = {
+        id: id,
+        title: 'Como Criar um Ticket',
+        slug: 'como-criar-ticket',
+        summary: 'Aprenda a criar tickets de suporte eficientemente',
+        content: '<h2>Introdução</h2><p>Este guia completo mostra como criar tickets de suporte de forma eficiente...</p><h3>Passo 1: Acesse o Sistema</h3><p>Para começar, faça login no sistema...</p>',
+        status: 'published',
+        type: 'tutorial',
+        difficulty: 'beginner',
+        estimatedReadTime: 5,
+        viewCount: 124,
+        likeCount: 18,
+        averageRating: '4.5',
+        ratingCount: 12,
+        tags: ['tickets', 'suporte', 'iniciante'],
+        publishedAt: '2025-01-15T10:00:00Z',
+        createdAt: '2025-01-15T09:00:00Z',
+        categoryId: '1',
+        category: {
+          id: '1',
+          name: 'Tutoriais',
+          slug: 'tutoriais',
+          color: '#3B82F6',
+          icon: 'BookOpen'
+        }
+      };
+
+      res.json({ success: true, data: article });
+    } catch (error) {
+      console.error('Error fetching article:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch article' });
+    }
+  });
+
+    try {
+      const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
+      if (!tenantId || !userId) {
+        return res.status(401).json({ message: 'Authentication required' });
+      }
+
+      const { title, summary, content, categoryId, type, difficulty, tags, estimatedReadTime } = req.body;
+
+      // Generate slug
+      const slug = title.toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .trim();
+
+      const result = await schemaManager.query(`
+        INSERT INTO kb_articles (
+          tenant_id, title, slug, summary, content, category_id, type, 
+          difficulty, tags, estimated_read_time, status, created_by, updated_by
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'published', $11, $12)
+        RETURNING *
+      `, [tenantId, title, slug, summary, content, categoryId, type, difficulty, tags, estimatedReadTime, userId, userId]);
+
+      res.status(201).json({ success: true, data: result.rows[0] });
+    } catch (error) {
+      console.error('Error creating article:', error);
+      res.status(500).json({ success: false, message: 'Failed to create article' });
+    }
+  });
+
+    try {
+      const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
+      if (!tenantId || !userId) {
+        return res.status(401).json({ message: 'Authentication required' });
+      }
+
+      const { name, description, icon, color } = req.body;
+
+      // Generate slug
+      const slug = name.toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .trim();
+
+      const result = await schemaManager.query(`
+        INSERT INTO kb_categories (
+          tenant_id, name, slug, description, icon, color, level, sort_order, created_by, updated_by
+        ) VALUES ($1, $2, $3, $4, $5, $6, 0, 0, $7, $8)
+        RETURNING *
+      `, [tenantId, name, slug, description, icon, color, userId, userId]);
+
+      res.status(201).json({ success: true, data: result.rows[0] });
+    } catch (error) {
+      console.error('Error creating category:', error);
+      res.status(500).json({ success: false, message: 'Failed to create category' });
+    }
+  });
+
+    try {
+      const tenantId = req.user?.tenantId;
+      const { q, category, type } = req.query;
+
+      if (!tenantId) {
+        return res.status(401).json({ message: 'Tenant ID required' });
+      }
+
+      // Mock search results
+      const searchResults = [
+        {
+          id: '1',
+          title: 'Como Criar um Ticket',
+          summary: 'Aprenda a criar tickets de suporte eficientemente',
+          type: 'tutorial',
+          category: 'Tutoriais',
+          relevanceScore: 95
+        },
+        {
+          id: '3',
+          title: 'Como Redefinir Senha?',
+          summary: 'Passo a passo para redefinir sua senha',
+          type: 'faq',
+          category: 'FAQ',
+          relevanceScore: 87
+        }
+      ];
+
+      res.json({ success: true, data: searchResults });
+    } catch (error) {
+      console.error('Error fetching analytics:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch analytics' });
+    }
+  });
+
+    try {
+      const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
+      if (!tenantId || !userId) {
+        return res.status(401).json({ message: 'Authentication required' });
+      }
+
+      const { title, summary, content, categoryId, type, difficulty, tags, estimatedReadTime } = req.body;
+
+      // Generate slug
+      const slug = title.toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .trim();
+
+      const result = await schemaManager.query(`
+        INSERT INTO kb_articles (
+          tenant_id, title, slug, summary, content, category_id, type, 
+          difficulty, tags, estimated_read_time, status, created_by, updated_by
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'published', $11, $12)
+        RETURNING *
+      `, [tenantId, title, slug, summary, content, categoryId, type, difficulty, tags, estimatedReadTime, userId, userId]);
+
+      res.status(201).json({ success: true, data: result.rows[0] });
+    } catch (error) {
+      console.error('Error creating article:', error);
+      res.status(500).json({ success: false, message: 'Failed to create article' });
+    }
+  });
+
+    try {
+      const tenantId = req.user?.tenantId;
+      const userId = req.user?.id;
+      if (!tenantId || !userId) {
+        return res.status(401).json({ message: 'Authentication required' });
+      }
+
+      const { name, description, icon, color } = req.body;
+
+      // Generate slug
+      const slug = name.toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .trim();
+
+      const result = await schemaManager.query(`
+        INSERT INTO kb_categories (
+          tenant_id, name, slug, description, icon, color, level, sort_order, created_by, updated_by
+        ) VALUES ($1, $2, $3, $4, $5, $6, 0, 0, $7, $8)
+        RETURNING *
+      `, [tenantId, name, slug, description, icon, color, userId, userId]);
+
+      res.status(201).json({ success: true, data: result.rows[0] });
+    } catch (error) {
+      console.error('Error creating category:', error);
+      res.status(500).json({ success: false, message: 'Failed to create category' });
+    }
+  });
+
+  // Knowledge Base Mock Routes - Temporary for compatibility
+    res.json({
+      success: true,
+      data: [
+        {
+          id: '1',
+          title: 'Procedimento de Manutenção Preventiva',
+          viewCount: 150,
+          averageRating: '4.8'
+        },
+        {
+          id: '2', 
+          title: 'Erro 404 - Equipamento Não Responde',
+          viewCount: 89,
+          averageRating: '4.5'
+        }
+      ]
+    });
+  });
+
+    res.json({
+      success: true,
+      data: [
+        {
+          id: '1',
+          title: 'Como Configurar Backup Automático',
+          createdAt: new Date().toISOString(),
+          summary: 'Passo a passo para backup automático'
+        }
+      ]
+    });
+  });
+
+    res.json({
+      success: true,
+      data: {
+        totalArticles: 3,
+        totalViews: 245,
+        averageRating: 4.6,
+        categoriesCount: 5
+      }
+    });
+  });
+
+
+
+
+
+
+
+  // ======================================== 
+  // TICKET CONFIGURATION ROUTES - HIERARCHICAL SYSTEM
   // ========================================
 
   // Import and use ticket configuration routes

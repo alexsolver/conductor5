@@ -107,7 +107,7 @@ const baseNavigation: Array<{
     ]
   },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
-  { name: "Knowledge Base", href: "/knowledge-base", icon: BookOpen },
+
   { name: "Compliance", href: "/compliance", icon: Shield },
   {
     name: "Reports",

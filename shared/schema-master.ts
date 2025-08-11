@@ -565,66 +565,7 @@ export const beneficiaries = pgTable("beneficiaries", {
   tenantCustomerIdx: index("beneficiaries_tenant_customer_idx").on(table.tenantId, table.customerId),
 }));
 
-// Projects table - Foreign keys and arrays optimized with critical indexes
-export const projects = pgTable("projects", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
-  name: varchar("name", { length: 255 }).notNull(),
-  description: text("description"),
-  status: varchar("status", { length: 50 }).default("planning"), // CONTEXTUAL: Project workflow starts "planning"
-  priority: varchar("priority", { length: 20 }).default("medium"),
-  budget: decimal("budget", { precision: 12, scale: 2 }),
-  actualCost: decimal("actual_cost", { precision: 12, scale: 2 }),
-  estimatedHours: integer("estimated_hours"),
-  actualHours: integer("actual_hours"),
-  startDate: date("start_date"),
-  endDate: date("end_date"),
-  managerId: uuid("manager_id").references(() => users.id), // Fixed: added FK reference
-  clientId: uuid("client_id").references(() => customers.id), // Fixed: added FK reference
-  teamMemberIds: uuid("team_member_ids").array().default([]), // Fixed: JSONB → native array
-  tags: text("tags").array(),
-  customFields: jsonb("custom_fields"),
-  isActive: boolean("is_active").default(true),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => [
-  index("projects_tenant_status_idx").on(table.tenantId, table.status),
-  index("projects_tenant_manager_idx").on(table.tenantId, table.managerId),
-  index("projects_tenant_deadline_idx").on(table.tenantId, table.endDate),
-]);
 
-// Project Actions table - Arrays and foreign keys optimized
-export const projectActions = pgTable("project_actions", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
-  projectId: uuid("project_id").references(() => projects.id),
-  title: varchar("title", { length: 255 }).notNull(),
-  description: text("description"),
-  type: varchar("type", { length: 50 }).notNull(),
-  status: varchar("status", { length: 50 }).default("pending").notNull(), // Actions workflow: pending → in_progress → completed
-  priority: varchar("priority", { length: 20 }).default("medium"),
-  estimatedHours: integer("estimated_hours"),
-  actualHours: integer("actual_hours"),
-  scheduledDate: date("scheduled_date"),
-  responsibleId: uuid("responsible_id").references(() => users.id), // Fixed: added FK reference
-  responsibleIds: uuid("responsible_ids").array().default([]), // Fixed: JSONB → native array
-  dependsOnActionIds: uuid("depends_on_action_ids").array().default([]), // Fixed: JSONB → native array
-  blockedByActionIds: uuid("blocked_by_action_ids").array().default([]), // Fixed: JSONB → native array
-  relatedTicketId: uuid("related_ticket_id").references(() => tickets.id), // Fixed: added FK reference
-  canConvertToTicket: boolean("can_convert_to_ticket").default(false),
-  ticketConversionRules: jsonb("ticket_conversion_rules"),
-  completedAt: timestamp("completed_at"),
-  isActive: boolean("is_active").default(true),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => [
-  index("project_actions_tenant_project_idx").on(table.tenantId, table.projectId),
-  index("project_actions_tenant_status_idx").on(table.tenantId, table.status),
-  index("project_actions_tenant_assigned_idx").on(table.tenantId, table.responsibleId),
-  index("project_actions_project_status_idx").on(table.tenantId, table.projectId, table.status),
-  index("project_actions_type_priority_idx").on(table.tenantId, table.type, table.priority),
-  index("project_actions_scheduled_idx").on(table.tenantId, table.scheduledDate),
-]);
 
 // ========================================
 // ZOD SCHEMAS FOR VALIDATION
@@ -659,8 +600,7 @@ export const insertUserSkillSchema = createInsertSchema(userSkills);
 export const insertUserGroupSchema = createInsertSchema(userGroups);
 export const insertUserGroupMembershipSchema = createInsertSchema(userGroupMemberships);
 export const insertBeneficiarySchema = createInsertSchema(beneficiaries);
-export const insertProjectSchema = createInsertSchema(projects);
-export const insertProjectActionSchema = createInsertSchema(projectActions);
+
 
 // Customer Company Memberships table - Many-to-many relationship
 export const customerCompanyMemberships = pgTable("customer_company_memberships", {
@@ -1515,11 +1455,7 @@ export type InsertUserSkill = typeof userSkills.$inferInsert;
 export type Beneficiary = typeof beneficiaries.$inferSelect;
 export type InsertBeneficiary = typeof beneficiaries.$inferInsert;
 
-export type Project = typeof projects.$inferSelect;
-export type InsertProject = typeof projects.$inferInsert;
 
-export type ProjectAction = typeof projectActions.$inferSelect;
-export type InsertProjectAction = typeof projectActions.$inferInsert;
 
 export type MarketLocalization = typeof marketLocalization.$inferSelect;
 export type InsertMarketLocalization = typeof marketLocalization.$inferInsert;
@@ -3405,81 +3341,7 @@ export const customerItemMappings = pgTable("customer_item_mappings", {
   unique("customer_item_mappings_customer_sku_unique").on(table.tenantId, table.customerId, table.customSku),
 ]);
 
-// ========================================
-// KNOWLEDGE BASE TABLES
-// ========================================
 
-// Knowledge base categories table
-export const knowledgeBaseCategories = pgTable("knowledge_base_categories", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
-  name: varchar("name", { length: 255 }).notNull(),
-  description: text("description"),
-  icon: varchar("icon", { length: 100 }),
-  color: varchar("color", { length: 7 }), // Hex color
-  parentId: uuid("parent_id"),
-  sortOrder: integer("sort_order").default(0),
-  isActive: boolean("is_active").default(true),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-  createdBy: uuid("created_by"),
-}, (table) => [
-  index("knowledge_base_categories_tenant_idx").on(table.tenantId),
-  index("knowledge_base_categories_parent_idx").on(table.parentId),
-  index("knowledge_base_categories_active_idx").on(table.tenantId, table.isActive),
-]);
-
-// Knowledge base articles table
-export const knowledgeBaseArticles = pgTable("knowledge_base_articles", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
-  categoryId: uuid("category_id").references(() => knowledgeBaseCategories.id),
-  title: varchar("title", { length: 500 }).notNull(),
-  slug: varchar("slug", { length: 500 }).notNull(),
-  content: text("content").notNull(),
-  summary: text("summary"),
-  tags: text("tags").array().default([]),
-  status: varchar("status", { length: 20 }).default("draft"), // draft, published, archived
-  viewCount: integer("view_count").default(0),
-  isPublic: boolean("is_public").default(false),
-  isFeatured: boolean("is_featured").default(false),
-  publishedAt: timestamp("published_at"),
-  metadata: jsonb("metadata").default({}),
-  version: integer("version").default(1),
-  isActive: boolean("is_active").default(true),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-  createdBy: uuid("created_by"),
-  publishedBy: uuid("published_by"),
-}, (table) => [
-  index("knowledge_base_articles_tenant_idx").on(table.tenantId),
-  index("knowledge_base_articles_category_idx").on(table.categoryId),
-  index("knowledge_base_articles_status_idx").on(table.tenantId, table.status),
-  index("knowledge_base_articles_public_idx").on(table.tenantId, table.isPublic),
-  index("knowledge_base_articles_featured_idx").on(table.tenantId, table.isFeatured),
-  unique("knowledge_base_articles_slug_unique").on(table.tenantId, table.slug),
-]);
-
-// Knowledge base files table
-export const knowledgeBaseFiles = pgTable("knowledge_base_files", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  tenantId: uuid("tenant_id").notNull(),
-  articleId: uuid("article_id").references(() => knowledgeBaseArticles.id),
-  filename: varchar("filename", { length: 255 }).notNull(),
-  originalName: varchar("original_name", { length: 255 }).notNull(),
-  mimeType: varchar("mime_type", { length: 100 }).notNull(),
-  size: integer("size").notNull(),
-  path: varchar("path", { length: 500 }).notNull(),
-  downloadCount: integer("download_count").default(0),
-  isActive: boolean("is_active").default(true),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-  uploadedBy: uuid("uploaded_by"),
-}, (table) => [
-  index("knowledge_base_files_tenant_idx").on(table.tenantId),
-  index("knowledge_base_files_article_idx").on(table.articleId),
-  index("knowledge_base_files_active_idx").on(table.tenantId, table.isActive),
-]);
 
 // ========================================
 // ADDITIONAL MATERIALS & SERVICES TYPES
@@ -3533,18 +3395,7 @@ export type InsertComplianceAlert = typeof complianceAlerts.$inferInsert;
 export type ComplianceScore = typeof complianceScores.$inferSelect;
 export type InsertComplianceScore = typeof complianceScores.$inferInsert;
 
-// ========================================
-// KNOWLEDGE BASE TYPES
-// ========================================
 
-export type KnowledgeBaseCategory = typeof knowledgeBaseCategories.$inferSelect;
-export type InsertKnowledgeBaseCategory = typeof knowledgeBaseCategories.$inferInsert;
-
-export type KnowledgeBaseArticle = typeof knowledgeBaseArticles.$inferSelect;
-export type InsertKnowledgeBaseArticle = typeof knowledgeBaseArticles.$inferInsert;
-
-export type KnowledgeBaseFile = typeof knowledgeBaseFiles.$inferSelect;
-export type InsertKnowledgeBaseFile = typeof knowledgeBaseFiles.$inferInsert;
 
 // Zod schemas para validação
 export const insertTicketListViewSchema = createInsertSchema(ticketListViews).extend({

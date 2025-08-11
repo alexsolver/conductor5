@@ -76,7 +76,7 @@ const PERMISSION_CATEGORIES = {
   'user_access': 'Gestão de Usuários e Acesso',
   'customer_support': 'Atendimento ao Cliente',
   'customer_management': 'Gestão de Clientes',
-  'knowledge_base': 'Base de Conhecimento',
+
   'hr_team': 'Recursos Humanos e Equipe',
   'timecard': 'Timecard e Ponto',
   // 'projects': Completely removed - module eliminated from system

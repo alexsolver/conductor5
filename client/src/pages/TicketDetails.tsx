@@ -36,7 +36,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { RichTextEditor } from "@/components/knowledge-base/RichTextEditor";
+
 import { DynamicSelect } from "@/components/DynamicSelect";
 import { DynamicBadge } from "@/components/DynamicBadge";
 import { useTicketMetadata } from "@/hooks/useTicketMetadata";
@@ -1631,7 +1631,7 @@ const TicketDetails = React.memo(() => {
             {(attachmentsData && attachmentsData.length > 0) && (
               <div className="space-y-3">
                 <h3 className="text-lg font-medium">Anexos Existentes ({attachmentsData.length})</h3>
-                {attachmentsData.map((attachment) => (
+                {attachmentsData.map((attachment: any) => (
                   <div key={attachment.id} className="flex items-center justify-between p-4 border rounded-lg">
                     <div className="flex items-center gap-3">
                       <FileText className="h-8 w-8 text-gray-400" />

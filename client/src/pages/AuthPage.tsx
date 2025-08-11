@@ -285,19 +285,7 @@ export default function AuthPage() {
               </div>
             </div>
 
-            <div className="flex items-start space-x-3">
-              <div className="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center mt-0.5">
-                <svg viewBox="0 0 24 24" className="w-5 h-5 text-green-600" fill="currentColor">
-                  <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>
-                </svg>
-              </div>
-              <div>
-                <h3 className="font-semibold text-slate-800 dark:text-slate-200">Knowledge Base</h3>
-                <p className="text-slate-600 dark:text-slate-400 text-sm">
-                  Build and manage your support documentation
-                </p>
-              </div>
-            </div>
+
 
             <div className="flex items-start space-x-3">
               <div className="w-8 h-8 bg-orange-100 dark:bg-orange-900 rounded-lg flex items-center justify-center mt-0.5">
