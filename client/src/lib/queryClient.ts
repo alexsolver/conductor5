@@ -73,13 +73,15 @@ export async function apiRequest(
   console.log(`🌐 API Request: ${method} ${url}`, data ? { data } : '');
 
   // Add authorization header if token exists (but skip redirect for login/register endpoints)
-  let token = localStorage.getItem('accessToken');
+  let token = globalThis.localStorage?.getItem('accessToken');
   const isAuthEndpoint = url.includes('/auth/login') || url.includes('/auth/register');
 
   // Check if token exists (skip for auth endpoints)
   if (!token && !isAuthEndpoint) {
     console.log('No token found, redirecting to login');
-    window.location.href = '/auth';
+    if (typeof globalThis.window !== 'undefined') {
+      globalThis.window.location.href = '/auth';
+    }
     return new Response('Unauthorized', { status: 401 });
   }
 
@@ -119,7 +121,9 @@ export async function apiRequest(
     } else {
       // If refresh failed, redirect to login
       console.log('Token refresh failed, redirecting to login');
-      window.location.href = '/auth';
+      if (typeof globalThis.window !== 'undefined') {
+        globalThis.window.location.href = '/auth';
+      }
       return new Response('Unauthorized', { status: 401 });
     }
   }
@@ -139,16 +143,19 @@ export const getQueryFn: <T>(options: {
   on401: UnauthorizedBehavior;
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
-  async ({ queryKey }) => {
+  async ({ queryKey }): Promise<T> => {
     const headers: Record<string, string> = {};
 
     // Add authorization header if token exists
-    let token = localStorage.getItem('accessToken');
+    let token = globalThis.localStorage?.getItem('accessToken');
 
     // Check if token exists
     if (!token) {
       console.log('No token found for query');
-      return null;
+      if (unauthorizedBehavior === "returnNull") {
+        return null as T;
+      }
+      throw new Error('No authentication token available');
     }
 
     if (token) {
@@ -173,11 +180,11 @@ export const getQueryFn: <T>(options: {
     }
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {
-      return null;
+      return null as T;
     }
 
     await throwIfResNotOk(res);
-    return await res.json();
+    return (await res.json()) as T;
   };
 
 // Helper function to validate API response data
