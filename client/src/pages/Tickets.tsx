@@ -375,19 +375,31 @@ export default function Tickets() {
     }
   };
 
-  // Filter tickets based on search and selected filters
-  const filteredTickets = ticketsList.filter((ticket: any) => {
-    const matchesSearchTerm = !searchTerm ||
-      ticket.subject?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      ticket.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      ticket.number?.includes(searchTerm);
-    
-    const matchesStatus = !selectedStatus || mapStatusValue(ticket.status) === selectedStatus;
-    const matchesPriority = !selectedPriority || mapPriorityValue(ticket.priority) === selectedPriority;
-    const matchesCategory = !selectedCategory || mapCategoryValue(ticket.category) === selectedCategory;
+  // Filter tickets based on search and selected filters with safety checks
+  const filteredTickets = React.useMemo(() => {
+    if (!Array.isArray(ticketsList)) {
+      console.warn('🎫 ticketsList is not an array:', ticketsList);
+      return [];
+    }
 
-    return matchesSearchTerm && matchesStatus && matchesPriority && matchesCategory;
-  });
+    return ticketsList.filter((ticket: any) => {
+      if (!ticket) {
+        console.warn('🎫 Invalid ticket object:', ticket);
+        return false;
+      }
+
+      const matchesSearchTerm = !searchTerm ||
+        ticket.subject?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        ticket.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        ticket.number?.toString().includes(searchTerm);
+      
+      const matchesStatus = !selectedStatus || mapStatusValue(ticket.status) === selectedStatus;
+      const matchesPriority = !selectedPriority || mapPriorityValue(ticket.priority) === selectedPriority;
+      const matchesCategory = !selectedCategory || mapCategoryValue(ticket.category) === selectedCategory;
+
+      return matchesSearchTerm && matchesStatus && matchesPriority && matchesCategory;
+    });
+  }, [ticketsList, searchTerm, selectedStatus, selectedPriority, selectedCategory]);
 
   const ticketsCount = Array.isArray(ticketsList) ? ticketsList.length : 0;
   const filteredTicketsCount = filteredTickets.length;
@@ -449,24 +461,46 @@ export default function Tickets() {
     );
   }
 
-  // Extract tickets with better error handling
+  // Extract tickets with comprehensive error handling
   const ticketsList = React.useMemo(() => {
-    if (!ticketsResponse) return [];
+    console.log('🎫 Processing ticketsResponse:', ticketsResponse);
     
-    // Handle different response structures
-    if (ticketsResponse.data?.tickets) {
+    if (!ticketsResponse) {
+      console.log('🎫 No tickets response available');
+      return [];
+    }
+    
+    // Handle different response structures with validation
+    if (ticketsResponse.data?.tickets && Array.isArray(ticketsResponse.data.tickets)) {
+      console.log('🎫 Using ticketsResponse.data.tickets:', ticketsResponse.data.tickets.length);
       return ticketsResponse.data.tickets;
     }
     
     if (Array.isArray(ticketsResponse.data)) {
+      console.log('🎫 Using ticketsResponse.data:', ticketsResponse.data.length);
       return ticketsResponse.data;
     }
     
     if (Array.isArray(ticketsResponse)) {
+      console.log('🎫 Using ticketsResponse directly:', ticketsResponse.length);
       return ticketsResponse;
     }
     
-    console.warn('🎫 Unexpected tickets response structure:', ticketsResponse);
+    // Check for success field and data
+    if (ticketsResponse.success && ticketsResponse.data) {
+      if (Array.isArray(ticketsResponse.data)) {
+        console.log('🎫 Using success response data:', ticketsResponse.data.length);
+        return ticketsResponse.data;
+      }
+    }
+    
+    console.warn('🎫 Unexpected tickets response structure:', {
+      hasData: !!ticketsResponse.data,
+      isDataArray: Array.isArray(ticketsResponse.data),
+      hasSuccess: !!ticketsResponse.success,
+      keys: Object.keys(ticketsResponse),
+      structure: ticketsResponse
+    });
     return [];
   }, [ticketsResponse]);
 

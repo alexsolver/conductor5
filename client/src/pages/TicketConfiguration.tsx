@@ -256,26 +256,24 @@ const TicketConfiguration: React.FC = () => {
   const companies = React.useMemo(() => {
     if (companiesLoading) return [];
 
-    // Handle different response formats with null safety
-    if (Array.isArray(companiesData)) {
-      return companiesData;
-    }
+    // Extract companies and filter out Default if inactive - with safety check
+    const rawCompanies = Array.isArray(companiesData) ? companiesData : 
+                         Array.isArray(companiesData?.data) ? companiesData.data :
+                         Array.isArray(companiesData?.companies) ? companiesData.companies : [];
 
-    if (companiesData?.success && Array.isArray(companiesData.data)) {
-      return companiesData.data;
-    }
-
-    if (companiesData?.companies && Array.isArray(companiesData.companies)) {
-      return companiesData.companies;
-    }
-
-    // Additional safety checks for nested data
-    if (companiesData?.data?.companies && Array.isArray(companiesData.data.companies)) {
-      return companiesData.data.companies;
-    }
-
-    console.warn('⚠️ Companies data is not in expected format:', companiesData);
-    return [];
+    // Filter companies directly removing Default if inactive - with null safety
+    const companies = (rawCompanies || [])
+      .filter((company: any) => {
+        if (!company) return false;
+        // Remove Default company if it's inactive
+        const isDefaultCompany = company.name?.toLowerCase().includes('default');
+        if (isDefaultCompany && (company.status === 'inactive' || company.is_active === false)) {
+          console.log('🚫 Filtering out Default company (inactive):', company);
+          return false;
+        }
+        return true;
+      })
+    return companies;
   }, [companiesData, companiesLoading]);
 
   const { data: categories = [] } = useQuery({
@@ -1644,7 +1642,13 @@ const TicketConfiguration: React.FC = () => {
           {/* Formulário de Categoria */}
           {editingItem?.type === 'category' && (
             <Form {...categoryForm}>
-              <form onSubmit={categoryForm.handleSubmit((data) => createCategoryMutation.mutate(data))} className="space-y-4">
+              <form onSubmit={categoryForm.handleSubmit((data) => {
+                if (editingItem.id) {
+                  updateCategoryMutation.mutate({ ...data, id: editingItem.id });
+                } else {
+                  createCategoryMutation.mutate(data);
+                }
+              })} className="space-y-4">
                 <FormField
                   control={categoryForm.control}
                   name="name"
@@ -1720,7 +1724,7 @@ const TicketConfiguration: React.FC = () => {
                   <Button type="button" variant="outline" onClick={closeDialog}>
                     Cancelar
                   </Button>
-                  <Button type="submit" disabled={createCategoryMutation.isPending}>
+                  <Button type="submit" disabled={updateCategoryMutation.isPending || createCategoryMutation.isPending}>
                     Salvar
                   </Button>
                 </div>
@@ -1731,7 +1735,13 @@ const TicketConfiguration: React.FC = () => {
           {/* Formulário de Subcategoria */}
           {editingItem?.type === 'subcategory' && (
             <Form {...subcategoryForm}>
-              <form onSubmit={subcategoryForm.handleSubmit((data) => createSubcategoryMutation.mutate(data))} className="space-y-4">
+              <form onSubmit={subcategoryForm.handleSubmit((data) => {
+                if (editingItem.id) {
+                  updateSubcategoryMutation.mutate({ ...data, id: editingItem.id });
+                } else {
+                  createSubcategoryMutation.mutate(data);
+                }
+              })} className="space-y-4">
                 <FormField
                   control={subcategoryForm.control}
                   name="categoryId"
@@ -1814,7 +1824,7 @@ const TicketConfiguration: React.FC = () => {
                   <Button type="button" variant="outline" onClick={closeDialog}>
                     Cancelar
                   </Button>
-                  <Button type="submit" disabled={createSubcategoryMutation.isPending}>
+                  <Button type="submit" disabled={updateSubcategoryMutation.isPending || createSubcategoryMutation.isPending}>
                     Salvar
                   </Button>
                 </div>
@@ -1825,7 +1835,13 @@ const TicketConfiguration: React.FC = () => {
           {/* Formulário de Ação */}
           {editingItem?.type === 'action' && (
             <Form {...actionForm}>
-              <form onSubmit={actionForm.handleSubmit((data) => createActionMutation.mutate(data))} className="space-y-4">
+              <form onSubmit={actionForm.handleSubmit((data) => {
+                if (editingItem.id) {
+                  updateActionMutation.mutate({ ...data, id: editingItem.id });
+                } else {
+                  createActionMutation.mutate(data);
+                }
+              })} className="space-y-4">
                 <FormField
                   control={actionForm.control}
                   name="subcategoryId"
@@ -1908,7 +1924,7 @@ const TicketConfiguration: React.FC = () => {
                   <Button type="button" variant="outline" onClick={closeDialog}>
                     Cancelar
                   </Button>
-                  <Button type="submit" disabled={createActionMutation.isPending}>
+                  <Button type="submit" disabled={updateActionMutation.isPending || createActionMutation.isPending}>
                     Salvar
                   </Button>
                 </div>
@@ -2070,7 +2086,7 @@ const TicketConfiguration: React.FC = () => {
                   <Button type="button" variant="outline" onClick={closeDialog}>
                     Cancelar
                   </Button>
-                  <Button type="submit" disabled={createFieldOptionMutation.isPending}>
+                  <Button type="submit" disabled={updateFieldOptionMutation.isPending || createFieldOptionMutation.isPending}>
                     Salvar
                   </Button>
                 </div>
