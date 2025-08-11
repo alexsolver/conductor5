@@ -13,8 +13,10 @@ const container = DependencyContainer.getInstance();
 
 // Instantiate AuthController (assuming it's correctly set up in DependencyContainer)
 // const authController = new AuthController(container.loginUseCase, container.registerUseCase, container.userRepository, container.tokenManager);
-// CLEANED: Business logic moved to proper controller layer - routes only handle HTTP routing
+// Clean Architecture: Business logic properly separated into controller layer
 import { AuthController } from './application/controllers/AuthController';
+
+// Proper dependency injection from container
 const authController = new AuthController(
   container.loginUseCase,
   container.registerUseCase,

@@ -483,7 +483,7 @@
       "suggestedFix": "Criar arquivo de rotas na camada Presentation ou no diretório raiz do módulo para definir endpoints da API"
     },
     {
-      "id": "DEP-BENEFICIARIES-APP-1754875928359-express",
+      "id": "DEP-BENEFICIARIES-APP-1754876321922-express",
       "layer": "application",
       "module": "beneficiaries",
       "severity": "high",
@@ -494,7 +494,18 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-CUSTOM-FIELDS-APP-1754875928374-express",
+      "id": "DEP-CUSTOM-FIELDS-APP-1754876321936-express",
+      "layer": "application",
+      "module": "custom-fields",
+      "severity": "high",
+      "type": "dependency_violation",
+      "description": "Application Layer: Dependência proibida encontrada -> express",
+      "file": "/home/runner/workspace/server/modules/custom-fields/application/controllers/CustomFieldController.ts",
+      "line": 7,
+      "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
+    },
+    {
+      "id": "DEP-CUSTOM-FIELDS-APP-1754876321936-express",
       "layer": "application",
       "module": "custom-fields",
       "severity": "high",
@@ -505,7 +516,18 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754875928475-express",
+      "id": "DEP-DASHBOARD-APP-1754876321976-express",
+      "layer": "application",
+      "module": "dashboard",
+      "severity": "high",
+      "type": "dependency_violation",
+      "description": "Application Layer: Dependência proibida encontrada -> express",
+      "file": "/home/runner/workspace/server/modules/dashboard/application/controllers/DashboardController.ts",
+      "line": 7,
+      "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
+    },
+    {
+      "id": "DEP-MATERIALS-SERVICES-APP-1754876322043-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -516,7 +538,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754875928476-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754876322043-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -527,7 +549,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754875928476-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754876322044-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -538,7 +560,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754875928476-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754876322044-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -549,7 +571,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754875928477-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754876322044-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -560,7 +582,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754875928477-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754876322045-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -571,7 +593,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754875928477-drizzleorm",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754876322045-drizzleorm",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -582,7 +604,7 @@
       "suggestedFix": "Application não deve importar ORM diretamente. Use interfaces de repositório do Domain."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754875928477-drizzleormnodepostgres",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754876322045-drizzleormnodepostgres",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -593,7 +615,7 @@
       "suggestedFix": "Application não deve importar ORM diretamente. Use interfaces de repositório do Domain."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754875928477-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754876322045-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -604,7 +626,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754875928478-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754876322046-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -615,7 +637,18 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754875928479-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754876322047-express",
+      "layer": "application",
+      "module": "materials-services",
+      "severity": "high",
+      "type": "dependency_violation",
+      "description": "Application Layer: Dependência proibida encontrada -> express",
+      "file": "/home/runner/workspace/server/modules/materials-services/application/controllers/MaterialsServicesController.ts",
+      "line": 7,
+      "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
+    },
+    {
+      "id": "DEP-MATERIALS-SERVICES-APP-1754876322047-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -626,7 +659,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754875928479-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754876322047-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -637,7 +670,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754875928480-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754876322048-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -648,7 +681,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754875928480-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754876322048-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -659,7 +692,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754875928480-drizzleorm",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754876322048-drizzleorm",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -670,7 +703,7 @@
       "suggestedFix": "Application não deve importar ORM diretamente. Use interfaces de repositório do Domain."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754875928480-drizzleorm",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754876322049-drizzleorm",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -681,7 +714,7 @@
       "suggestedFix": "Application não deve importar ORM diretamente. Use interfaces de repositório do Domain."
     },
     {
-      "id": "DEP-MATERIALS-SERVICES-APP-1754875928480-express",
+      "id": "DEP-MATERIALS-SERVICES-APP-1754876322049-express",
       "layer": "application",
       "module": "materials-services",
       "severity": "high",
@@ -692,7 +725,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-TECHNICAL-SKILLS-APP-1754875928943-express",
+      "id": "DEP-TECHNICAL-SKILLS-APP-1754876322460-express",
       "layer": "application",
       "module": "technical-skills",
       "severity": "high",
@@ -703,7 +736,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-TECHNICAL-SKILLS-APP-1754875928944-express",
+      "id": "DEP-TECHNICAL-SKILLS-APP-1754876322460-express",
       "layer": "application",
       "module": "technical-skills",
       "severity": "high",
@@ -714,7 +747,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-TICKETS-APP-1754875929017-express",
+      "id": "DEP-TICKETS-APP-1754876322537-express",
       "layer": "application",
       "module": "tickets",
       "severity": "high",
@@ -725,7 +758,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-TIMECARD-APP-1754875929032-express",
+      "id": "DEP-TIMECARD-APP-1754876322546-express",
       "layer": "application",
       "module": "timecard",
       "severity": "high",
@@ -736,7 +769,7 @@
       "suggestedFix": "Application não deve importar Express diretamente. Use controllers ou DTOs."
     },
     {
-      "id": "DEP-TIMECARD-APP-1754875929032-express",
+      "id": "DEP-TIMECARD-APP-1754876322546-express",
       "layer": "application",
       "module": "timecard",
       "severity": "high",
@@ -817,6 +850,36 @@
       "suggestedFix": "Mover lógica de Presentation para Controllers na camada Application"
     },
     {
+      "id": "SOC-CUSTOM-FIELDS-ENTITY-INFRA",
+      "layer": "domain",
+      "module": "custom-fields",
+      "severity": "critical",
+      "type": "coupling_issue",
+      "description": "Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade",
+      "file": "/home/runner/workspace/server/modules/custom-fields/domain/entities/CustomField.ts",
+      "suggestedFix": "Mover lógica de infraestrutura para Repository na camada Infrastructure"
+    },
+    {
+      "id": "SOC-CUSTOM-FIELDS-USECASE-PRESENTATION",
+      "layer": "application",
+      "module": "custom-fields",
+      "severity": "high",
+      "type": "coupling_issue",
+      "description": "Use Case contém lógica de Presentation layer (acesso a request/response, express)",
+      "file": "/home/runner/workspace/server/modules/custom-fields/application/use-cases/CreateCustomFieldUseCase.ts",
+      "suggestedFix": "Mover lógica de Presentation para Controllers na camada Application"
+    },
+    {
+      "id": "SOC-CUSTOM-FIELDS-USECASE-PRESENTATION",
+      "layer": "application",
+      "module": "custom-fields",
+      "severity": "high",
+      "type": "coupling_issue",
+      "description": "Use Case contém lógica de Presentation layer (acesso a request/response, express)",
+      "file": "/home/runner/workspace/server/modules/custom-fields/application/use-cases/GetCustomFieldsUseCase.ts",
+      "suggestedFix": "Mover lógica de Presentation para Controllers na camada Application"
+    },
+    {
       "id": "SOC-CUSTOM-FIELDS-USECASE-PRESENTATION",
       "layer": "application",
       "module": "custom-fields",
@@ -825,16 +888,6 @@
       "description": "Use Case contém lógica de Presentation layer (acesso a request/response, express)",
       "file": "/home/runner/workspace/server/modules/custom-fields/application/use-cases/UpdateCustomFieldUseCase.ts",
       "suggestedFix": "Mover lógica de Presentation para Controllers na camada Application"
-    },
-    {
-      "id": "SOC-CUSTOM-FIELDS-CONTROLLER-BUSINESS",
-      "layer": "application",
-      "module": "custom-fields",
-      "severity": "high",
-      "type": "coupling_issue",
-      "description": "Controller contém lógica de negócio ou acesso direto a dados",
-      "file": "/home/runner/workspace/server/modules/custom-fields/application/controllers/CustomFieldController.ts",
-      "suggestedFix": "Controllers devem apenas receber requisições, validar DTOs, chamar Use Cases e retornar respostas."
     },
     {
       "id": "SOC-CUSTOMERS-ENTITY-PRESENTATION",
@@ -937,6 +990,16 @@
       "suggestedFix": "Controllers devem apenas receber requisições, validar DTOs, chamar Use Cases e retornar respostas."
     },
     {
+      "id": "SOC-DASHBOARD-ENTITY-PRESENTATION",
+      "layer": "domain",
+      "module": "dashboard",
+      "severity": "high",
+      "type": "coupling_issue",
+      "description": "Entity misturada com conceitos de Presentation layer (DTOs, Request/Response) - violação de responsabilidade",
+      "file": "/home/runner/workspace/server/modules/dashboard/domain/entities/DashboardMetrics.ts",
+      "suggestedFix": "Separar Entity de DTOs/Requests/Responses, movendo-os para Application layer (ou Presentation)"
+    },
+    {
       "id": "SOC-DASHBOARD-USECASE-PRESENTATION",
       "layer": "application",
       "module": "dashboard",
@@ -997,6 +1060,36 @@
       "suggestedFix": "Mover lógica de Presentation para Controllers na camada Application"
     },
     {
+      "id": "SOC-MATERIALS-SERVICES-ENTITY-INFRA",
+      "layer": "domain",
+      "module": "materials-services",
+      "severity": "critical",
+      "type": "coupling_issue",
+      "description": "Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade",
+      "file": "/home/runner/workspace/server/modules/materials-services/domain/entities/Material.ts",
+      "suggestedFix": "Mover lógica de infraestrutura para Repository na camada Infrastructure"
+    },
+    {
+      "id": "SOC-MATERIALS-SERVICES-ENTITY-PRESENTATION",
+      "layer": "domain",
+      "module": "materials-services",
+      "severity": "high",
+      "type": "coupling_issue",
+      "description": "Entity misturada com conceitos de Presentation layer (DTOs, Request/Response) - violação de responsabilidade",
+      "file": "/home/runner/workspace/server/modules/materials-services/domain/entities/Material.ts",
+      "suggestedFix": "Separar Entity de DTOs/Requests/Responses, movendo-os para Application layer (ou Presentation)"
+    },
+    {
+      "id": "SOC-MATERIALS-SERVICES-ENTITY-INFRA",
+      "layer": "domain",
+      "module": "materials-services",
+      "severity": "critical",
+      "type": "coupling_issue",
+      "description": "Entity contém lógica de infraestrutura (acesso a dados, ORM) - violação de responsabilidade",
+      "file": "/home/runner/workspace/server/modules/materials-services/domain/entities/Service.ts",
+      "suggestedFix": "Mover lógica de infraestrutura para Repository na camada Infrastructure"
+    },
+    {
       "id": "SOC-MATERIALS-SERVICES-USECASE-PRESENTATION",
       "layer": "application",
       "module": "materials-services",
@@ -1004,6 +1097,36 @@
       "type": "coupling_issue",
       "description": "Use Case contém lógica de Presentation layer (acesso a request/response, express)",
       "file": "/home/runner/workspace/server/modules/materials-services/application/use-cases/CreateMaterialUseCase.ts",
+      "suggestedFix": "Mover lógica de Presentation para Controllers na camada Application"
+    },
+    {
+      "id": "SOC-MATERIALS-SERVICES-USECASE-PRESENTATION",
+      "layer": "application",
+      "module": "materials-services",
+      "severity": "high",
+      "type": "coupling_issue",
+      "description": "Use Case contém lógica de Presentation layer (acesso a request/response, express)",
+      "file": "/home/runner/workspace/server/modules/materials-services/application/use-cases/CreateServiceUseCase.ts",
+      "suggestedFix": "Mover lógica de Presentation para Controllers na camada Application"
+    },
+    {
+      "id": "SOC-MATERIALS-SERVICES-USECASE-PRESENTATION",
+      "layer": "application",
+      "module": "materials-services",
+      "severity": "high",
+      "type": "coupling_issue",
+      "description": "Use Case contém lógica de Presentation layer (acesso a request/response, express)",
+      "file": "/home/runner/workspace/server/modules/materials-services/application/use-cases/GetMaterialsUseCase.ts",
+      "suggestedFix": "Mover lógica de Presentation para Controllers na camada Application"
+    },
+    {
+      "id": "SOC-MATERIALS-SERVICES-USECASE-PRESENTATION",
+      "layer": "application",
+      "module": "materials-services",
+      "severity": "high",
+      "type": "coupling_issue",
+      "description": "Use Case contém lógica de Presentation layer (acesso a request/response, express)",
+      "file": "/home/runner/workspace/server/modules/materials-services/application/use-cases/GetServicesUseCase.ts",
       "suggestedFix": "Mover lógica de Presentation para Controllers na camada Application"
     },
     {
@@ -2297,6 +2420,16 @@
       "suggestedFix": "Criar a interface 'IDrizzleCompanyRepository' no Domain layer (ex: domain/repositories ou domain/ports)"
     },
     {
+      "id": "COMP-DASHBOARD-ENTITY-REPO-DashboardMetrics-MISSING",
+      "layer": "infrastructure",
+      "module": "dashboard",
+      "severity": "high",
+      "type": "missing_component",
+      "description": "Entity 'DashboardMetrics' não possui um Repository correspondente na camada Infrastructure",
+      "file": "/home/runner/workspace/server/modules/dashboard/infrastructure/repositories",
+      "suggestedFix": "Criar um arquivo como 'DashboardMetricsRepository.ts' ou 'DrizzleDashboardMetricsRepository.ts' na camada Infrastructure"
+    },
+    {
       "id": "COMP-DASHBOARD-REPO-INTERFACE-DrizzleDashboardMetricRepository-MISSING",
       "layer": "domain",
       "module": "dashboard",
@@ -2393,6 +2526,16 @@
       "severity": "low",
       "type": "structure_violation",
       "description": "Controller 'CustomerPersonalizationController' não parece ser referenciado nas rotas do módulo",
+      "file": "/home/runner/workspace/server/modules/materials-services/routes.ts",
+      "suggestedFix": "Garantir que as rotas do módulo utilizem os controllers definidos"
+    },
+    {
+      "id": "COMP-MATERIALS-SERVICES-ROUTE-CONTROLLER-MISMATCH-MaterialsServicesController",
+      "layer": "presentation",
+      "module": "materials-services",
+      "severity": "low",
+      "type": "structure_violation",
+      "description": "Controller 'MaterialsServicesController' não parece ser referenciado nas rotas do módulo",
       "file": "/home/runner/workspace/server/modules/materials-services/routes.ts",
       "suggestedFix": "Garantir que as rotas do módulo utilizem os controllers definidos"
     },
@@ -2668,10 +2811,10 @@
     }
   ],
   "summary": {
-    "total": 264,
-    "critical": 1,
-    "high": 94,
+    "total": 278,
+    "critical": 4,
+    "high": 104,
     "medium": 56,
-    "low": 113
+    "low": 114
   }
 }

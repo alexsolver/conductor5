@@ -1,13 +1,16 @@
+/**
+ * Create Custom Field DTO
+ * Clean Architecture - Application Layer
+ */
 
 export interface CreateCustomFieldDTO {
   tenantId: string;
   name: string;
-  type: 'text' | 'number' | 'date' | 'select' | 'boolean' | 'textarea';
-  label: string;
-  required: boolean;
-  options?: string[];
+  fieldType: 'text' | 'number' | 'boolean' | 'select' | 'multiselect' | 'date';
+  isRequired?: boolean;
   defaultValue?: any;
-  validationRules?: {
+  options?: string[];
+  validation?: {
     min?: number;
     max?: number;
     pattern?: string;

@@ -1,78 +1,64 @@
-
-// CLEAN ARCHITECTURE: Domain entity with business logic only
-
-export interface CustomFieldValidation {
-  min?: number;
-  max?: number;
-  pattern?: string;
-}
+/**
+ * Custom Field Domain Entity
+ * Clean Architecture - Domain Layer
+ */
 
 export class CustomField {
   constructor(
-    private readonly id: string,
-    private readonly tenantId: string,
-    private name: string,
-    private type: 'text' | 'number' | 'date' | 'boolean' | 'dropdown' | 'multidropdown',
-    private required: boolean,
-    private entityType: string,
-    private options: string[] = [],
-    private defaultValue: any = null,
-    private validation: CustomFieldValidation = {},
-    private readonly createdAt: Date = new Date(),
-    private modifiedAt: Date = new Date()
-  ) {}
+    public readonly id: string,
+    public readonly tenantId: string,
+    public readonly name: string,
+    public readonly fieldType: 'text' | 'number' | 'boolean' | 'select' | 'multiselect' | 'date',
+    public readonly isRequired: boolean = false,
+    public readonly defaultValue?: any,
+    public readonly options: string[] = [],
+    public readonly validation?: {
+      min?: number;
+      max?: number;
+      pattern?: string;
+    },
+    public readonly createdAt: Date = new Date(),
+    public readonly updatedAt: Date = new Date()
+  ) {
+    this.validateInvariants();
+  }
 
-  // Getters
-  getId(): string { return this.id; }
-  getTenantId(): string { return this.tenantId; }
-  getName(): string { return this.name; }
-  getType(): 'text' | 'number' | 'date' | 'boolean' | 'dropdown' | 'multidropdown' { return this.type; }
-  isRequired(): boolean { return this.required; }
-  getEntityType(): string { return this.entityType; }
-  getOptions(): string[] { return this.options; }
-  getDefaultValue(): any { return this.defaultValue; }
-  getValidation(): CustomFieldValidation { return this.validation; }
-  getCreatedAt(): Date { return this.createdAt; }
-  getModifiedAt(): Date { return this.modifiedAt; }
+  private validateInvariants(): void {
+    if (!this.id) {
+      throw new Error('Custom field ID is required');
+    }
+    
+    if (!this.tenantId) {
+      throw new Error('Tenant ID is required');
+    }
+    
+    if (!this.name || this.name.trim().length === 0) {
+      throw new Error('Custom field name is required');
+    }
+  }
 
   // Business methods
+  isSelectType(): boolean {
+    return this.fieldType === 'select' || this.fieldType === 'multiselect';
+  }
+
+  hasOptions(): boolean {
+    return this.options && this.options.length > 0;
+  }
+
   validateValue(value: any): boolean {
-    if (this.required && (value === null || value === undefined || value === '')) {
+    if (this.isRequired && (value === null || value === undefined || value === '')) {
       return false;
     }
 
-    switch (this.type) {
-      case 'number':
-        const numValue = Number(value);
-        if (isNaN(numValue)) return false;
-        if (this.validation.min !== undefined && numValue < this.validation.min) return false;
-        if (this.validation.max !== undefined && numValue > this.validation.max) return false;
-        break;
-      case 'text':
-        if (typeof value !== 'string') return false;
-        if (this.validation.pattern && !new RegExp(this.validation.pattern).test(value)) return false;
-        break;
-      case 'dropdown':
-      case 'multidropdown':
-        const values = Array.isArray(value) ? value : [value];
-        if (values.some(v => !this.options.includes(v))) return false;
-        break;
+    if (this.isSelectType() && this.hasOptions()) {
+      if (this.fieldType === 'select') {
+        return this.options.includes(value);
+      } else if (this.fieldType === 'multiselect' && Array.isArray(value)) {
+        return value.every(v => this.options.includes(v));
+      }
     }
 
     return true;
-  }
-
-  hasDropdownOptions(): boolean {
-    return this.type === 'dropdown' || this.type === 'multidropdown';
-  }
-
-  changeName(name: string): void {
-    this.name = name;
-    this.modifiedAt = new Date();
-  }
-
-  setRequired(required: boolean): void {
-    this.required = required;
-    this.modifiedAt = new Date();
   }
 }

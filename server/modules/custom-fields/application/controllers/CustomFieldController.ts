@@ -1,74 +1,37 @@
-interface HttpRequest {
-  body: any;
-  params: any;
-  query: any;
-}
+/**
+ * Custom Field Controller
+ * Clean Architecture - Presentation Layer
+ * Handles HTTP requests and delegates to Use Cases
+ */
 
-interface HttpResponse {
-  status: (code: number) => HttpResponse;
-  json: (data: any) => void;
-}
-
-import { ICustomFieldRepository } from '../../domain/repositories/ICustomFieldRepository';
-import { CustomField } from '../../domain/entities/CustomField';
-
-interface HttpRequest {
-  query: any;
-  params: any;
-  body: any;
-  user?: any;
-}
-
-interface HttpResponse {
-  status(code: number): HttpResponse;
-  json(data: any): void;
-}
-
-
-export interface CreateCustomFieldDTO {
-  name: string;
-  type: 'text' | 'number' | 'date' | 'boolean' | 'select' | 'multiselect';
-  required: boolean;
-  options?: string[];
-  defaultValue?: any;
-  validation?: {
-    min?: number;
-    max?: number;
-    pattern?: string;
-  };
-  entityType: string;
-  tenantId: string;
-}
+import { Request, Response } from 'express';
+import { CreateCustomFieldUseCase } from '../use-cases/CreateCustomFieldUseCase';
+import { GetCustomFieldsUseCase } from '../use-cases/GetCustomFieldsUseCase';
 
 export class CustomFieldController {
-  constructor(private customFieldRepository: ICustomFieldRepository) {}
+  constructor(
+    private createCustomFieldUseCase: CreateCustomFieldUseCase,
+    private getCustomFieldsUseCase: GetCustomFieldsUseCase
+  ) {}
 
-  async createCustomField(data: CreateCustomFieldDTO): Promise<CustomField> {
-    const customField: CustomField = {
-      id: crypto.randomUUID(),
-      ...data,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-
-    return await this.customFieldRepository.create(customField);
-  }
-
-  async getCustomFields(tenantId: string, entityType?: string): Promise<CustomField[]> {
-    if (entityType) {
-      return await this.customFieldRepository.findByEntityType(tenantId, entityType);
+  async create(req: Request, res: Response): Promise<void> {
+    try {
+      const result = await this.createCustomFieldUseCase.execute(req.body);
+      res.status(201).json(result);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to create custom field';
+      res.status(400).json({ message });
     }
-    return await this.customFieldRepository.findByTenantId(tenantId);
   }
 
-  async updateCustomField(id: string, updates: Partial<CustomField>): Promise<CustomField> {
-    return await this.customFieldRepository.update(id, {
-      ...updates,
-      updatedAt: new Date()
-    });
-  }
-
-  async deleteCustomField(id: string): Promise<void> {
-    await this.customFieldRepository.delete(id);
+  async getAll(req: Request, res: Response): Promise<void> {
+    try {
+      const tenantId = req.headers['x-tenant-id'] as string;
+      const result = await this.getCustomFieldsUseCase.execute({ tenantId });
+      res.json(result);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to retrieve custom fields';
+      res.status(500).json({ message });
+    }
   }
 }

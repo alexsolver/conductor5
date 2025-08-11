@@ -1,17 +1,32 @@
+/**
+ * Dashboard Repository Interface
+ * Clean Architecture - Domain Layer
+ */
 
-import { DashboardMetric } from '../entities/DashboardMetric';
-
-export interface IDashboardRepository {
-  findAll(): Promise<DashboardMetric[]>;
-  findByCategory(category: string): Promise<DashboardMetric[]>;
-  save(metric: DashboardMetric): Promise<DashboardMetric>;
-  findById(id: string): Promise<DashboardMetric | null>;
-}
-import { DashboardMetric } from '../entities/DashboardMetric';
+import { DashboardMetrics } from '../entities/DashboardMetrics';
 
 export interface IDashboardRepository {
-  getMetricsByTenant(tenantId: string): Promise<DashboardMetric[]>;
-  createMetric(metric: DashboardMetric): Promise<DashboardMetric>;
-  updateMetric(id: string, metric: Partial<DashboardMetric>): Promise<DashboardMetric>;
-  deleteMetric(id: string): Promise<void>;
+  getMetrics(tenantId: string): Promise<DashboardMetrics>;
+  getTicketStats(tenantId: string): Promise<{
+    total: number;
+    open: number;
+    inProgress: number;
+    resolved: number;
+    closed: number;
+  }>;
+  getUserStats(tenantId: string): Promise<{
+    total: number;
+    active: number;
+    inactive: number;
+  }>;
+  getActivityStats(tenantId: string): Promise<{
+    todayTickets: number;
+    weekTickets: number;
+    monthTickets: number;
+  }>;
+  getPerformanceStats(tenantId: string): Promise<{
+    avgResolutionTime: number;
+    avgResponseTime: number;
+    satisfactionScore: number;
+  }>;
 }

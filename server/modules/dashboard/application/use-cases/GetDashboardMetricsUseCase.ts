@@ -1,25 +1,26 @@
+/**
+ * Get Dashboard Metrics Use Case
+ * Clean Architecture - Application Layer
+ */
 
 import { IDashboardRepository } from '../../domain/repositories/IDashboardRepository';
-import { DashboardMetric } from '../../domain/entities/DashboardMetric';
+import { DashboardMetrics } from '../../domain/entities/DashboardMetrics';
 
 export interface GetDashboardMetricsRequest {
   tenantId: string;
 }
 
-export interface GetDashboardMetricsResponse {
-  metrics: DashboardMetric[];
-}
-
 export class GetDashboardMetricsUseCase {
   constructor(
-    private readonly dashboardRepository: IDashboardRepository
+    private dashboardRepository: IDashboardRepository
   ) {}
 
-  async execute(request: GetDashboardMetricsRequest): Promise<GetDashboardMetricsResponse> {
-    const metrics = await this.dashboardRepository.getMetricsByTenant(request.tenantId);
+  async execute(request: GetDashboardMetricsRequest): Promise<DashboardMetrics> {
+    if (!request.tenantId) {
+      throw new Error('Tenant ID is required');
+    }
 
-    return {
-      metrics
-    };
+    // Get metrics from repository
+    return await this.dashboardRepository.getMetrics(request.tenantId);
   }
 }
