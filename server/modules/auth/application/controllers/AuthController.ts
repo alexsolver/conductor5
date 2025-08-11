@@ -21,18 +21,41 @@ export class AuthController {
         return;
       }
       
+      // Get database connection
+      const { neonClient: sql } = await import('../../../../infrastructure/database/neon');
+      
+      // Find user in database
+      const userResult = await sql`
+        SELECT u.id, u.email, u.first_name, u.last_name, u.role, u.tenant_id, u.is_active,
+               t.name as tenant_name, t.subdomain as tenant_subdomain
+        FROM users u
+        LEFT JOIN tenants t ON u.tenant_id = t.id  
+        WHERE u.email = ${email} AND u.is_active = true
+        LIMIT 1
+      `;
+      
+      if (userResult.length === 0) {
+        res.status(401).json({ 
+          success: false, 
+          message: 'Invalid credentials' 
+        });
+        return;
+      }
+      
+      const dbUser = userResult[0];
+      
       // Generate real JWT tokens using TokenManager
       const { tokenManager } = await import('../../../../utils/tokenManager');
       
       const user = { 
-        id: 'mock-user-id',
-        email, 
-        firstName: 'Test',
-        lastName: 'User',
-        role: 'tenant_admin',
-        tenantId: 'mock-tenant-id',
+        id: dbUser.id,
+        email: dbUser.email, 
+        firstName: dbUser.first_name || 'User',
+        lastName: dbUser.last_name || '',
+        role: dbUser.role,
+        tenantId: dbUser.tenant_id,
         profileImageUrl: null,
-        isActive: true,
+        isActive: dbUser.is_active,
         lastLoginAt: new Date().toISOString(),
         createdAt: new Date().toISOString()
       };
@@ -51,9 +74,15 @@ export class AuthController {
       res.json({
         user,
         accessToken,
-        refreshToken
+        refreshToken,
+        tenant: {
+          id: dbUser.tenant_id,
+          name: dbUser.tenant_name,
+          subdomain: dbUser.tenant_subdomain
+        }
       });
     } catch (error) {
+      console.error('Login error:', error);
       const message = error instanceof Error ? error.message : 'Login failed';
       res.status(401).json({ success: false, message });
     }
