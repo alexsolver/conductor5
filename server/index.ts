@@ -17,6 +17,9 @@ import { ActivityTrackingService } from './services/ActivityTrackingService';
 import { userGroupsRouter } from './routes/userGroups';
 import userGroupsByAgentRoutes from './routes/userGroupsByAgent';
 import userManagementRoutes from './routes/userManagementRoutes';
+import ticketMetadataRouter from './routes/ticketMetadata';
+import ticketHierarchyRouter from './modules/tickets/routes';
+import ticketFieldOptionsRouter from './routes/ticketFieldOptions';
 
 const app = express();
 
@@ -119,6 +122,8 @@ app.use((req, res, next) => {
   app.use('/api/user-groups', userGroupsRouter);
   app.use('/api', userGroupsByAgentRoutes);
   app.use('/api', userManagementRoutes);
+  app.use('/api/tickets', ticketFieldOptionsRouter);
+  console.log('✅ Ticket field options routes registered');
 
   app.get('/health', async (req, res) => {
     const memoryUsage = process.memoryUsage();
