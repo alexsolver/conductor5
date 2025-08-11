@@ -4,6 +4,7 @@
  */
 
 import { Request, Response } from 'express';
+import jwt from 'jsonwebtoken';
 
 export class AuthController {
   constructor() {}
@@ -20,21 +21,42 @@ export class AuthController {
         return;
       }
       
+      // Generate real JWT tokens
+      const jwtSecret = process.env.JWT_SECRET || 'default-secret-key';
+      const user = { 
+        id: 'mock-user-id',
+        email, 
+        firstName: 'Test',
+        lastName: 'User',
+        role: 'tenant_admin',
+        tenantId: 'mock-tenant-id',
+        profileImageUrl: null,
+        isActive: true,
+        lastLoginAt: new Date().toISOString(),
+        createdAt: new Date().toISOString()
+      };
+
+      const accessToken = jwt.sign(
+        { 
+          userId: user.id, 
+          email: user.email, 
+          role: user.role, 
+          tenantId: user.tenantId 
+        },
+        jwtSecret,
+        { expiresIn: '15m' }
+      );
+
+      const refreshToken = jwt.sign(
+        { userId: user.id, type: 'refresh' },
+        jwtSecret,
+        { expiresIn: '7d' }
+      );
+
       res.json({
-        user: { 
-          id: 'mock-user-id',
-          email, 
-          firstName: 'Test',
-          lastName: 'User',
-          role: 'tenant_admin',
-          tenantId: 'mock-tenant-id',
-          profileImageUrl: null,
-          isActive: true,
-          lastLoginAt: new Date().toISOString(),
-          createdAt: new Date().toISOString()
-        }, 
-        accessToken: 'mock-jwt-token',
-        refreshToken: 'mock-refresh-token'
+        user,
+        accessToken,
+        refreshToken
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Login failed';
@@ -104,15 +126,44 @@ export class AuthController {
         });
         return;
       }
+
+      // Verify refresh token
+      const jwtSecret = process.env.JWT_SECRET || 'default-secret-key';
       
-      res.json({
-        success: true,
-        message: 'Token refreshed successfully',
-        data: { 
-          token: 'new-mock-jwt-token',
-          refreshToken: 'new-mock-refresh-token' 
+      try {
+        const decoded = jwt.verify(refreshToken, jwtSecret) as any;
+        
+        if (decoded.type !== 'refresh') {
+          res.status(401).json({ 
+            success: false, 
+            message: 'Invalid refresh token' 
+          });
+          return;
         }
-      });
+
+        // Generate new access token
+        const newAccessToken = jwt.sign(
+          { 
+            userId: decoded.userId, 
+            email: 'test@example.com', 
+            role: 'tenant_admin', 
+            tenantId: 'mock-tenant-id' 
+          },
+          jwtSecret,
+          { expiresIn: '15m' }
+        );
+
+        res.json({
+          accessToken: newAccessToken,
+          refreshToken // Keep the same refresh token
+        });
+      } catch (jwtError) {
+        res.status(401).json({ 
+          success: false, 
+          message: 'Invalid or expired refresh token' 
+        });
+        return;
+      }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Token refresh failed';
       res.status(401).json({ success: false, message });
