@@ -101,7 +101,31 @@ export class DrizzleTicketRepository implements ITicketRepository {
       console.log('🎫 [DrizzleTicketRepository] Executing query:', query);
       console.log('🎫 [DrizzleTicketRepository] With params:', params);
 
-      const result = await this.db.execute(sql.raw(query, params));
+      // Simplified approach - build query directly without parameters
+      let finalQuery = `
+        SELECT 
+          t.id,
+          COALESCE(t.number, CONCAT('T-', SUBSTRING(t.id::text, 1, 8))) as number,
+          t.subject,
+          t.description,
+          t.status,
+          t.priority,
+          t.category,
+          t.subcategory,
+          t.caller_id,
+          t.assigned_to_id,
+          t.created_at,
+          t.updated_at,
+          c.first_name as customer_first_name,
+          c.last_name as customer_last_name,
+          c.email as customer_email
+        FROM "${schemaName}".tickets t
+        LEFT JOIN "${schemaName}".customers c ON c.id = t.caller_id
+        ORDER BY t.created_at DESC
+        LIMIT 50
+      `;
+      
+      const result = await this.db.execute(sql.raw(finalQuery));
 
       console.log('🎫 [DrizzleTicketRepository] Raw result:', result.length, 'tickets found');
 
