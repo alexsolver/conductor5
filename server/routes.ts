@@ -119,7 +119,7 @@ import { fieldLayoutRoutes } from './modules/field-layouts/routes';
 import ticketHistoryRoutes from './modules/ticket-history/routes';
 import { TicketViewsController } from './controllers/TicketViewsController';
 // Hierarchical ticket metadata import - loaded dynamically below
-import workspaceRoutes from './routes/workspaceRoutes';
+
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Add cookie parser middleware
@@ -2396,6 +2396,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: 'Tenant ID required' });
       }
 
+      const { category, search } = req.query;
+
       // Mock articles data
       let articles = [
         {
@@ -4091,9 +4093,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
-
-  // Register workspace routes
-  app.use('/api', workspaceRoutes);
 
   const httpServer = createServer(app);
   return httpServer;

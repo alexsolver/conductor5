@@ -7,7 +7,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useEmploymentDetection } from "@/hooks/useEmploymentDetection";
-import { useWorkspaceSelector } from "@/hooks/useWorkspaceSelector";
 import { useState } from "react";
 import { 
   BarChart3, 
@@ -186,15 +185,6 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
   const { user, logoutMutation } = useAuth();
   const { terminology, employmentType } = useEmploymentDetection();
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
-  const { 
-    workspaces, 
-    currentWorkspace, 
-    isLoading: workspaceLoading, 
-    isOpen: workspaceDropdownOpen, 
-    setIsOpen: setWorkspaceDropdownOpen,
-    switchWorkspace,
-    hasMultipleWorkspaces 
-  } = useWorkspaceSelector();
 
   // Fetch tickets count for badge
   const { data: ticketsData } = useQuery({
@@ -324,19 +314,14 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
           </div>
         )}
 
-        {/* Workspace Selector */}
+        {/* Tenant Selector */}
         <div className={`mt-6 transition-all duration-300 ${collapsed ? 'px-2' : 'px-4'}`}>
-          <div 
-            className={`rounded-lg border transition-all duration-300 cursor-pointer hover:bg-white hover:bg-opacity-20 ${
-              collapsed ? 'p-2' : 'p-3'
-            }`} 
-            style={{
-              backgroundColor: 'rgba(255, 255, 255, 0.1)',
-              borderColor: 'rgba(255, 255, 255, 0.2)'
-            }}
-            onClick={() => hasMultipleWorkspaces && setWorkspaceDropdownOpen(!workspaceDropdownOpen)}
-            title={collapsed ? currentWorkspace?.name : undefined}
-          >
+          <div className={`rounded-lg border transition-all duration-300 ${
+            collapsed ? 'p-2' : 'p-3'
+          }`} style={{
+            backgroundColor: 'rgba(255, 255, 255, 0.1)',
+            borderColor: 'rgba(255, 255, 255, 0.2)'
+          }}>
             <div className={`flex items-center transition-all duration-300 ${
               collapsed ? 'justify-center' : 'justify-between'
             }`}>
@@ -348,60 +333,16 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
                 }`}>
                   <span className={`font-semibold text-purple-600 transition-all duration-300 ${
                     collapsed ? 'text-sm' : 'text-xs'
-                  }`}>
-                    {currentWorkspace?.name?.charAt(0)?.toUpperCase() || 'W'}
-                  </span>
+                  }`}>AC</span>
                 </div>
                 {!collapsed && (
-                  <span className="text-sm font-medium text-white transition-opacity duration-300 truncate">
-                    {workspaceLoading ? 'Carregando...' : (currentWorkspace?.name || 'Workspace')}
+                  <span className="text-sm font-medium text-white transition-opacity duration-300">
+                    {tenantData?.name || 'Carregando...'}
                   </span>
                 )}
               </div>
-              {!collapsed && hasMultipleWorkspaces && (
-                <ChevronDown 
-                  className={`w-4 h-4 text-white transition-transform duration-200 ${
-                    workspaceDropdownOpen ? 'rotate-180' : ''
-                  }`} 
-                />
-              )}
+              {!collapsed && <ChevronDown className="w-4 h-4 text-white" />}
             </div>
-
-            {/* Workspace Dropdown */}
-            {!collapsed && hasMultipleWorkspaces && workspaceDropdownOpen && (
-              <div className="mt-3 space-y-1">
-                {workspaces.map((workspace) => (
-                  <div
-                    key={workspace.id}
-                    className={`p-2 rounded-md cursor-pointer transition-colors ${
-                      workspace.id === currentWorkspace?.id
-                        ? 'bg-white bg-opacity-20 text-white'
-                        : 'hover:bg-white hover:bg-opacity-10 text-white text-opacity-80'
-                    }`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (workspace.id !== currentWorkspace?.id && !workspaceLoading) {
-                        switchWorkspace(workspace.id);
-                      }
-                    }}
-                  >
-                    <div className="flex items-center">
-                      <div className="w-4 h-4 bg-white rounded-full flex items-center justify-center mr-2">
-                        <span className="text-xs font-semibold text-purple-600">
-                          {workspace.name.charAt(0).toUpperCase()}
-                        </span>
-                      </div>
-                      <span className="text-sm font-medium truncate">
-                        {workspace.name}
-                      </span>
-                      {workspace.id === currentWorkspace?.id && (
-                        <div className="ml-auto w-2 h-2 bg-green-400 rounded-full"></div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
         </div>
 
